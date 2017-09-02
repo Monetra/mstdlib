@@ -16,6 +16,8 @@ environment:
 
 install:
   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares
+# Rename sh.exe as sh.exe in PATH interferes with MinGW
+  - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh2.exe"
 
 build_script:
   - cmake "-G%GENERATOR%" "-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%" -H. -B_builds
