@@ -17,7 +17,7 @@ matrix:
 
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sudo brew install openssl; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
 
 
 # Put in 3rd party sources and chain build
