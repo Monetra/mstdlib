@@ -78,9 +78,13 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 			io/check_event_bwshaping.c
 			io/check_serial.c
 			io/check_pipespeed.c
-			io/check_hid.c
 			io/check_netspeed.c
 		)
+		if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			list(APPEND tests
+				io/check_hid.c
+			)
+		endif()
 	endif()
 	# tls
 	if(MSTDLIB_BUILD_TLS)
