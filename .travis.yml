@@ -13,33 +13,30 @@ addons:
       - libpq-dev
       - libmariadbd-dev
       - unixodbc-dev
+      - check
 
 
 matrix:
   include:
     - os: linux
+      env: OPENSSL_ROOT_DIR="" CONFIG="RelWithDebInfo"
     - os: osx
+      env: OPENSSL_ROOT_DIR="/usr/local/opt/openssl" CONFIG="RelWithDebInfo"
 
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl doxygen mariadb-connector-c libiodbc libpq; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl doxygen mariadb-connector-c libiodbc libpq check; fi
 
 
 # Put in 3rd party sources and chain build
 before_script:
-   - cd thirdparty
    - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
    - unzip sqlite-amalgamation-3200100.zip
-   - mv sqlite-amalgamation-3200100 sqlite-amalgamation
-   - git clone https://github.com/c-ares/c-ares.git c-ares
-   - cd ..
+   - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
+   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares
 
 
-script:  
-    - mkdir -p build
-    - cd build
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..; fi 
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] ; then cmake ..; fi
-    - make -j2 || exit
-    - cd ..
+script:
+    - cmake -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds
+    - cmake --build _builds --config "$CONFIG" --target check
 
