@@ -8,6 +8,8 @@ addons:
       - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
     packages: &default_packages
       - cmake
+      - libssl-dev
+      - doxygen
 
 
 matrix:
@@ -18,7 +20,8 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
-
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew link openssl --force; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install doxygen; fi
 
 # Put in 3rd party sources and chain build
 before_script:
