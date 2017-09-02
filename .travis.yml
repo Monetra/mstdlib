@@ -20,7 +20,6 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew link openssl --force; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install doxygen; fi
 
 # Put in 3rd party sources and chain build
@@ -36,7 +35,8 @@ before_script:
 script:  
     - mkdir -p build
     - cd build
-    - cmake .. || exit
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..; fi 
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] ; then cmake ..; fi
     - make -j2 || exit
     - cd ..
 
