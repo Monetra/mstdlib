@@ -1,12 +1,24 @@
 language: c
+cache: apt
+dist: trusty
+addons:
+  apt:
+    sources: &apt_sources
+      - ubuntu-toolchain-r-test
+      - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
+    packages: &default_packages
+      - cmake
 
-compiler:  
-    - gcc
-    - clang
+matrix:
+  include:
+    - os: linux
 
-before_script:  
-    - mkdir build
+    - os: osx
+
+script:  
+    - mkdir -p build
     - cd build
-    - cmake ..
+    - cmake .. || exit
+    - make -j2 || exit
+    - cd ..
 
-script: make 
