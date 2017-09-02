@@ -9,11 +9,16 @@ addons:
     packages: &default_packages
       - cmake
 
+
 matrix:
   include:
     - os: linux
-
     - os: osx
+
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sudo brew install openssl; fi
+
 
 # Put in 3rd party sources and chain build
 before_script:
@@ -23,6 +28,7 @@ before_script:
    - mv sqlite-amalgamation-3200100 sqlite-amalgamation
    - git clone https://github.com/c-ares/c-ares.git c-ares
    - cd ..
+
 
 script:  
     - mkdir -p build
