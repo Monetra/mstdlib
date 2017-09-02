@@ -1,0 +1,24 @@
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 12"
+      CONFIG: Debug
+      OPENSSL_ROOT_DIR: "C:/OpenSSL-Win32"
+
+#    - GENERATOR: "Visual Studio 12"
+#      CONFIG: Release
+#      OPENSSL_ROOT_DIR: "C:/OpenSSL-Win32"
+
+    - GENERATOR: "Visual Studio 12 Win64"
+      CONFIG: Debug
+      OPENSSL_ROOT_DIR: "C:/OpenSSL-Win64"
+
+#    - GENERATOR: "Visual Studio 12 Win64"
+#      CONFIG: Release
+#      OPENSSL_ROOT_DIR: "C:/OpenSSL-Win64"
+
+install:
+  - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares
+
+build_script:
+  - cmake "-G%GENERATOR%" "-DOPENSSL_ROOT_DIR=%OPENSSL_ROOT_DIR%" -H. -B_builds
+  - cmake --build _builds --config "%CONFIG%"
