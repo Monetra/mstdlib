@@ -19,9 +19,9 @@ addons:
 matrix:
   include:
     - os: linux
-      env: OPENSSL_ROOT_DIR="" CONFIG="RelWithDebInfo"
+      env: OPENSSL_ROOT_DIR="" BUILD_TYPE="RelWithDebInfo"
     - os: osx
-      env: OPENSSL_ROOT_DIR="/usr/local/opt/openssl" CONFIG="RelWithDebInfo"
+      env: OPENSSL_ROOT_DIR="/usr/local/opt/openssl" BUILD_TYPE="RelWithDebInfo"
 
 
 install:
@@ -37,6 +37,6 @@ before_script:
 
 
 script:
-    - cmake -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds
-    - cmake --build _builds --config "$CONFIG"
-    - cmake --build _builds --config "$CONFIG" --target check
+    - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds
+    - cmake --build _builds 
+    - cmake --build _builds --target check

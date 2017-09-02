@@ -352,6 +352,24 @@ M_bool M_tls_x509_txt_SAN_add(M_tls_x509_t *x509, M_tls_x509_san_type_t type, co
 }
 
 
+#if 1
+static M_time_t M_tls_asn1time_to_timet(ASN1_TIME *asntime)
+{
+	M_time_localtm_t tm;
+	const char      *str = (const char *)asntime->data;
+
+	M_mem_set(&tm, 0, sizeof(tm));
+	/*  asntime->type == V_ASN1_UTCTIME -> 2 digit year YYmmddHHMMSS UTC
+	 *  asntime->type == V_ASN1_GENERALIZEDTIME -> 4 digit year YYYYmmddHHMMSS UTC
+	 */
+	if (M_time_parsefmt(str, (asntime->type == V_ASN1_UTCTIME)?"%y%m%d%H%M%S":"%Y%m%d%H%M%S", &tm) == NULL)
+		return 0;
+
+	return M_time_fromgm((M_time_gmtm_t *)&tm);
+}
+
+#else
+/* Requires OpenSSL 1.0.2 or higher */
 static M_time_t M_tls_asn1time_to_timet(ASN1_TIME *tm)
 {
 	M_time_t   t     = 0;
@@ -377,6 +395,7 @@ end:
 
 	return t;
 }
+#endif
 
 
 M_time_t M_tls_x509_time_start(M_tls_x509_t *x509)

@@ -350,11 +350,11 @@ static Suite *hid_suite(void)
 	tc = tcase_create("hid");
 	tcase_add_test(tc, check_hid);
 	suite_add_tcase(suite, tc);
-
+#if 0
 	tc = tcase_create("ingenico");
 	tcase_add_test(tc, check_ingenico);
 	suite_add_tcase(suite, tc);
-
+#endif
 	return suite;
 }
 
