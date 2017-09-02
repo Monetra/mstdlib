@@ -22,6 +22,7 @@ before_script:
    - unzip sqlite-amalgamation-3200100.zip
    - mv sqlite-amalgamation-3200100 sqlite-amalgamation
    - git clone https://github.com/c-ares/c-ares.git c-ares
+   - cd ..
 
 script:  
     - mkdir -p build
