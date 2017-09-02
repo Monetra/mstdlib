@@ -1,0 +1,114 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   ...
+   fun:srunner_run_all
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:srunner_run_all
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:srunner_create
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:suite_create
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:suite_add_tcase
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:tcase_create
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:_tcase_add_test
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:tcase_add_unchecked_fixture
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:tcase_add_checked_fixture
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:receive_test_result
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:list_add_end
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:srunner_run
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:srunner_init_logging
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   ...
+   fun:check_list_add_end
+   ...
+}
+
+
+{
+   Ignore libcrypto
+   Memcheck:Leak
+   ...
+   obj:*libcrypto*
+}
+
+{
+   Ignore libssl
+   Memcheck:Leak
+   ...
+   obj:*libssl*
+}
+

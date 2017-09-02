@@ -1,0 +1,23 @@
+all:
+	(cd base              && nmake -f Makefile.msc)
+	(cd formats           && nmake -f Makefile.msc)
+	(cd thread            && nmake -f Makefile.msc)
+	(cd thirdparty/c-ares && \
+		buildconf.bat && \
+		nmake -f Makefile.msvc CFG=lib-release c-ares && \
+		nmake -A -f Makefile.msvc CFG=lib-release INSTALL_DIR="$(MAKEDIR)/cares-build" install )
+	(cd io                && nmake -f Makefile.msc)
+	(cd tls               && nmake -f Makefile.msc)
+	(cd log               && nmake  -f Makefile.msc)
+
+clean:
+	(cd base              && nmake -f Makefile.msc clean)
+	(cd formats           && nmake -f Makefile.msc clean)
+	(cd thread            && nmake -f Makefile.msc clean)
+	(cd thirdparty/c-ares && \
+		nmake -f Makefile.msvc CFG=lib-release clean && \
+		rmdir /s /q "$(MAKEDIR)/cares-build" && \
+		rm -f ares_build.h )
+	(cd io                && nmake -f Makefile.msc clean)
+	(cd tls               && nmake -f Makefile.msc clean)
+	(cd log               && nmake -f Makefile.msc clean)

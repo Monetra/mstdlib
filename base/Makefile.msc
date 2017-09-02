@@ -1,0 +1,180 @@
+.SUFFIXES: .c .cpp .obj
+
+# variables
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+
+TARGET     = mstdlib.dll
+
+!IF "$(_NMAKE_VER)" == "6.00.8168.0"
+# VC 6
+USE_MANIFEST = 0
+!ELSE
+USE_MANIFEST = 1
+!ENDIF
+
+INCLUDES  = /I".\\" /I"..\\" /I"..\\include"
+LDPATH    =
+# 0x0502 is Windows Server 2003 with SP1, Windows XP with SP2 or greater. 0x0600 is Vista.
+DEFINES   = /D_CRT_SECURE_NO_DEPRECATE /D_WIN32_WINNT=0x0600 /DNO_AUTOGEN_CONFIG_H=1
+
+CFLAGS    = -DMSTDLIB_INTERNAL=1 -nologo /TC -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+CPPFLAGS  = -DMSTDLIB_INTERNAL=1 -nologo /TP -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+ASFLAGS   = -coff
+
+LDFLAGS   = -nologo -release /SUBSYSTEM:WINDOWS $(LDPATH)
+
+!IF "$(USE_MANIFEST)" == "1"
+LDFLAGS           = $(LDFLAGS) /MANIFEST /MANIFESTFILE:"$(TARGET).intermediate.manifest"
+!ENDIF
+
+ARFLAGS   = -nologo
+RCFLAGS   = /dWIN32 /r
+
+OBJS      = \
+	bincodec\m_base64.obj        \
+	bincodec\m_bincodec.obj      \
+	bincodec\m_bincodec_conv.obj \
+	bincodec\m_hex.obj           \
+	\
+	cache\m_cache.obj            \
+	cache\m_cache_strvp.obj      \
+	\
+	data\m_bin.obj               \
+	data\m_buf.obj               \
+	data\m_chr.obj               \
+	data\m_getopt.obj            \
+	data\m_getopt_parse.obj      \
+	data\m_parser.obj            \
+	data\m_queue.obj             \
+	data\m_state_machine.obj     \
+	data\m_str.obj               \
+	data\m_str_fmt.obj           \
+	data\m_str_hexdump.obj       \
+	data\m_str_num.obj           \
+	data\m_str_patmatch.obj      \
+	\
+	fs\m_fs.obj                  \
+	fs\m_fs_dir.obj              \
+	fs\m_fs_dir_entries.obj      \
+	fs\m_fs_dir_entry.obj        \
+	fs\m_fs_dir_walk.obj         \
+	fs\m_fs_file.obj             \
+	fs\m_fs_info.obj             \
+	fs\m_fs_path.obj             \
+	fs\m_fs_path_norm.obj        \
+	fs\m_fs_perms.obj            \
+	fs\m_fs_progress.obj         \
+	\
+	hash\m_hash_dict.obj         \
+	hash\m_hash_func.obj         \
+	hash\m_hash_multi.obj        \
+	hash\m_hash_strbin.obj       \
+	hash\m_hash_stridx.obj       \
+	hash\m_hash_strvp.obj        \
+	hash\m_hashtable.obj         \
+	hash\m_hash_u64bin.obj       \
+	hash\m_hash_u64str.obj       \
+	hash\m_hash_u64vp.obj        \
+	\
+	list\m_list.obj              \
+	list\m_list_bin.obj          \
+	list\m_list_str.obj          \
+	list\m_list_u64.obj          \
+	list\m_llist.obj             \
+	list\m_llist_bin.obj         \
+	list\m_llist_str.obj         \
+	list\m_llist_u64.obj         \
+	\
+	math\m_bithacks.obj          \
+	math\m_decimal.obj           \
+	math\m_float.obj             \
+	math\m_operator.obj          \
+	math\m_prop.obj              \
+	math\m_rand.obj              \
+	math\m_round.obj             \
+	\
+	mem\m_endian.obj             \
+	mem\m_mem.obj                \
+	\
+	sort\m_sort_binary.obj       \
+	sort\m_sort_compar.obj       \
+	sort\m_sort_mergesort.obj    \
+	sort\m_sort_qsort.obj        \
+	\
+	time\m_time.obj              \
+	time\m_time_elapsed.obj      \
+	time\m_time_gm.obj           \
+	time\m_time_local.obj        \
+	time\m_time_parse.obj        \
+	time\m_time_tz_dst_rules.obj \
+	time\m_time_tz_olson.obj     \
+	time\m_time_tz_olson_transitions.obj \
+	time\m_time_tz_posix.obj     \
+	time\m_time_tz_rule.obj      \
+	time\m_time_tzs.obj          \
+	\
+	fs\m_fs_win.obj              \
+	fs\m_fs_file_win.obj          \
+	fs\m_fs_info_win.obj          \
+	fs\m_fs_perms_win.obj         \
+	platform\m_platform_win.obj  \
+	time\m_time_tz_win.obj
+
+# targets
+all: $(TARGET)
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+{bincodec\}.c{bincodec\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{cache\}.c{cache\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{data\}.c{data\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{fmt\}.c{fmt\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{hash\}.c{hash\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{fs\}.c{fs\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{list\}.c{list\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{math\}.c{math\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{mem\}.c{mem\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{platform\}.c{platform\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{sort\}.c{sort\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{time\}.c{time\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+$(TARGET): $(OBJS)
+	$(LD) /DLL $(LDFLAGS) -out:$@ $(OBJS) winmm.lib Advapi32.lib Authz.lib Shlwapi.lib Shell32.lib
+!IF "$(USE_MANIFEST)" == "1"
+	mt.exe -nologo -manifest "$(TARGET).intermediate.manifest" -outputresource:$(TARGET);2
+!ENDIF
+
+# cleanup
+clean:
+	-del $(TARGET) $(OBJS) *.exp *.lib
+!IF "$(USE_MANIFEST)" == "1"
+	-del $(TARGET).intermediate.manifest
+!ENDIF

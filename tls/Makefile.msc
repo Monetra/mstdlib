@@ -1,0 +1,75 @@
+.SUFFIXES: .c .cpp .obj
+
+# variables
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+
+TARGET     = mstdlib_tls.dll
+
+!IF "$(_NMAKE_VER)" == "6.00.8168.0"
+# VC 6
+USE_MANIFEST = 0
+!ELSE
+USE_MANIFEST = 1
+!ENDIF
+
+
+!IFNDEF OPENSSL_DIR
+!  IF "$(PROCESSOR_ARCHITECTURE)" == "AMD64"
+OPENSSL_DIR = C:/Program Files/OpenSSL64
+!  ELSE
+OPENSSL_DIR = C:/Program Files/OpenSSL
+!  ENDIF
+!ENDIF
+
+!IF ! EXIST("$(OPENSSL_DIR)/include/openssl/ssl.h")
+!  ERROR Please set OPENSSL_DIR appropriately.
+!ENDIF
+
+INCLUDES  = /I".\\" /I"..\\" /I"..\\include" /I"..\\base" /I"$(OPENSSL_DIR)/include"
+LDPATH    = /LIBPATH:"$(OPENSSL_DIR)/lib"
+# 0x0502 is Windows Server 2003 with SP1, Windows XP with SP2 or greater.  0x0600 is Vista.
+DEFINES   = /D_CRT_SECURE_NO_DEPRECATE /D_WIN32_WINNT=0x0600 /DNO_AUTOGEN_CONFIG_H=1
+
+CFLAGS    = -DMSTDLIB_INTERNAL=1 -nologo /TC -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+CPPFLAGS  = -DMSTDLIB_INTERNAL=1 -nologo /TP -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+ASFLAGS   = -coff
+
+LDFLAGS   = -nologo -release /SUBSYSTEM:WINDOWS $(LDPATH)
+
+!IF "$(USE_MANIFEST)" == "1"
+LDFLAGS           = $(LDFLAGS) /MANIFEST /MANIFESTFILE:"$(TARGET).intermediate.manifest"
+!ENDIF
+
+ARFLAGS   = -nologo
+RCFLAGS   = /dWIN32 /r
+
+OBJS      = \
+	m_tls.obj               \
+	m_tls_certs.obj         \
+	m_tls_clientctx.obj     \
+	m_tls_ctx_common.obj    \
+	m_tls_hostvalidate.obj  \
+	m_tls_serverctx.obj
+
+# targets
+all: $(TARGET)
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+$(TARGET): $(OBJS)
+	$(LD) /DLL $(LDFLAGS) -out:$@ $(OBJS) ..\\io\\mstdlib_io.lib ..\\thread\\mstdlib_thread.lib ..\\base\\mstdlib.lib Ws2_32.lib Crypt32.lib ssleay32.lib libeay32.lib
+!IF "$(USE_MANIFEST)" == "1"
+	mt.exe -nologo -manifest "$(TARGET).intermediate.manifest" -outputresource:$(TARGET);2
+!ENDIF
+
+# cleanup
+clean:
+	-del $(TARGET) $(OBJS) *.exp *.lib
+!IF "$(USE_MANIFEST)" == "1"
+	-del $(TARGET).intermediate.manifest
+!ENDIF

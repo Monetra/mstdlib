@@ -1,0 +1,107 @@
+.SUFFIXES: .c .cpp .obj
+
+# variables
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+
+TARGET     = mstdlib_formats.dll
+
+!IF "$(_NMAKE_VER)" == "6.00.8168.0"
+# VC 6
+USE_MANIFEST = 0
+!ELSE
+USE_MANIFEST = 1
+!ENDIF
+
+INCLUDES  = /I".\\" /I"..\\" /I"..\\include" /I"..\\base"
+LDPATH    =
+# 0x0502 is Windows Server 2003 with SP1, Windows XP with SP2 or greater. 0x0600 is Vista.
+DEFINES   = /D_CRT_SECURE_NO_DEPRECATE /D_WIN32_WINNT=0x0600 /DNO_AUTOGEN_CONFIG_H=1
+
+CFLAGS    = -DMSTDLIB_INTERNAL=1 -nologo /TC -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+CPPFLAGS  = -DMSTDLIB_INTERNAL=1 -nologo /TP -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+ASFLAGS   = -coff
+
+LDFLAGS   = -nologo -release /SUBSYSTEM:WINDOWS $(LDPATH)
+
+!IF "$(USE_MANIFEST)" == "1"
+LDFLAGS           = $(LDFLAGS) /MANIFEST /MANIFESTFILE:"$(TARGET).intermediate.manifest"
+!ENDIF
+
+ARFLAGS   = -nologo
+RCFLAGS   = /dWIN32 /r
+
+OBJS      = \
+	csv\m_csv.obj                  \
+	\
+	ini/m_ini.obj                  \
+	ini/m_ini_element.obj          \
+	ini/m_ini_elements.obj         \
+	ini/m_ini_kvs.obj              \
+	ini/m_ini_merger.obj           \
+	ini/m_ini_reader.obj           \
+	ini/m_ini_settings.obj         \
+	ini/m_ini_writer.obj           \
+	\
+	json/m_json.obj \
+	json/m_json_jsonpath.obj       \
+	json/m_json_reader.obj         \
+	json/m_json_writer.obj         \
+	\
+	settings/m_settings.obj        \
+	settings/m_settings_reader.obj \
+	settings/m_settings_writer.obj \
+	\
+	time/m_mtzfile.obj             \
+	\
+	verify/m_verify.obj            \
+	\
+	xml/m_xml.obj                  \
+	xml/m_xml_entities.obj         \
+	xml/m_xml_reader.obj           \
+	xml/m_xml_writer.obj           \
+	xml/m_xml_xpath.obj
+
+# targets
+all: $(TARGET)
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+{csv\}.c{csv\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{ini\}.c{ini\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{json\}.c{json\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{settings\}.c{settings\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{time\}.c{time\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{verify\}.c{verify\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+{xml\}.c{xml\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
+
+
+$(TARGET): $(OBJS)
+	$(LD) /DLL $(LDFLAGS) -out:$@ $(OBJS) ..\\base\\mstdlib.lib Advapi32.lib
+!IF "$(USE_MANIFEST)" == "1"
+	mt.exe -nologo -manifest "$(TARGET).intermediate.manifest" -outputresource:$(TARGET);2
+!ENDIF
+
+# cleanup
+clean:
+	-del $(TARGET) $(OBJS) *.exp *.lib
+!IF "$(USE_MANIFEST)" == "1"
+	-del $(TARGET).intermediate.manifest
+!ENDIF

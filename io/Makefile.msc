@@ -1,0 +1,91 @@
+.SUFFIXES: .c .cpp .obj
+
+# variables
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+
+TARGET     = mstdlib_io.dll
+
+!IF "$(_NMAKE_VER)" == "6.00.8168.0"
+# VC 6
+USE_MANIFEST = 0
+!ELSE
+USE_MANIFEST = 1
+!ENDIF
+
+DDK_ROOT  = C:\\WinDDK\\7600.16385.0
+DDK_INC   = $(DDK_ROOT)\\inc\\api
+!IF "$(PROCESSOR_ARCHITECTURE)" == "AMD64"
+DDK_LIBS  = $(DDK_ROOT)\\lib\\wnet\\amd64
+!ELSE
+DDK_LIBS  = $(DDK_ROOT)\\lib\\wnet\\i386
+!ENDIF
+
+
+
+INCLUDES  = /I".\\" /I"..\\" /I"..\\include" /I"..\\base" /I"..\\cares-build\\include" /I"$(DDK_INC)"
+LIBPATH   = /LIBPATH:"$(DDK_LIBS)"
+# 0x0502 is Windows Server 2003 with SP1, Windows XP with SP2 or greater. 0x0600 is Vista
+DEFINES   = /D_CRT_SECURE_NO_DEPRECATE /D_WIN32_WINNT=0x0600 /DCARES_STATICLIB /DNO_AUTOGEN_CONFIG_H=1
+
+CFLAGS    = -DMSTDLIB_INTERNAL=1 -nologo /TC -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+CPPFLAGS  = -DMSTDLIB_INTERNAL=1 -nologo /TP -MD -Os -GF /W3 $(INCLUDES) $(DEFINES)
+ASFLAGS   = -coff
+
+LDFLAGS   = -nologo -release /SUBSYSTEM:WINDOWS $(LIBPATH)
+
+!IF "$(USE_MANIFEST)" == "1"
+LDFLAGS           = $(LDFLAGS) /MANIFEST /MANIFESTFILE:"$(TARGET).intermediate.manifest"
+!ENDIF
+
+ARFLAGS   = -nologo
+RCFLAGS   = /dWIN32 /r
+
+OBJS      = \
+	m_dns.obj                  \
+	m_event.obj                \
+	m_event_timer.obj          \
+	m_event_trigger.obj        \
+	m_io.obj                   \
+	m_io_block.obj             \
+	m_io_bluetooth.obj         \
+	m_io_bluetooth_notimpl.obj \
+	m_io_bwshaping.obj         \
+	m_io_loopback.obj          \
+	m_io_net.obj               \
+	m_io_netdns.obj            \
+	m_io_serial.obj            \
+	m_io_trace.obj             \
+	\
+	m_event_win32.obj          \
+	m_io_osevent_win32.obj     \
+	m_io_pipe_win32.obj        \
+	m_io_serial_win32.obj      \
+	m_io_w32overlap.obj        \
+	m_io_w32overlap_busyemu.obj \
+	m_io_win32_common.obj      \
+	m_io_hid.obj               \
+	m_io_hid_win32.obj
+
+# targets
+all: $(TARGET)
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+$(TARGET): $(OBJS)
+	$(LD) /DLL $(LDFLAGS) -out:$@ $(OBJS) ..\\base\\mstdlib.lib ..\\thread\\mstdlib_thread.lib ..\\cares-build\\lib\\libcares.lib Ws2_32.lib winmm.lib Advapi32.lib Setupapi.lib Hid.lib
+
+!IF "$(USE_MANIFEST)" == "1"
+	mt.exe -nologo -manifest "$(TARGET).intermediate.manifest" -outputresource:$(TARGET);2
+!ENDIF
+
+# cleanup
+clean:
+	-del $(TARGET) $(OBJS) *.exp *.lib
+!IF "$(USE_MANIFEST)" == "1"
+	-del $(TARGET).intermediate.manifest
+!ENDIF
