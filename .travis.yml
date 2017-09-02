@@ -38,5 +38,5 @@ before_script:
 
 script:
     - cmake -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds
+    - cmake --build _builds --config "$CONFIG"
     - cmake --build _builds --config "$CONFIG" --target check
-
