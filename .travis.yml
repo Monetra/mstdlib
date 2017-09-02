@@ -15,6 +15,14 @@ matrix:
 
     - os: osx
 
+# Put in 3rd party sources and chain build
+before_script:
+   - cd thirdparty
+   - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
+   - unzip sqlite-amalgamation-3200100.zip
+   - mv sqlite-amalgamation-3200100 sqlite-amalgamation
+   - git clone https://github.com/c-ares/c-ares.git c-ares
+
 script:  
     - mkdir -p build
     - cd build
