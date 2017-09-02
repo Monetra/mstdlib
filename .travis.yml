@@ -10,6 +10,9 @@ addons:
       - cmake
       - libssl-dev
       - doxygen
+      - libpq-dev
+      - libmariadbd-dev
+      - unixodbc-dev
 
 
 matrix:
@@ -19,8 +22,8 @@ matrix:
 
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install doxygen; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl doxygen mariadb-connector-c libiodbc libpq; fi
+
 
 # Put in 3rd party sources and chain build
 before_script:
