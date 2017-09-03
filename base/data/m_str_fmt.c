@@ -34,7 +34,6 @@
 
 #include <mstdlib/mstdlib.h>
 #include <float.h> /* Needed for DBL_EPSILON */
-#include <math.h>  /* Needed for fabs() */
 #include "m_parser_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -142,7 +141,7 @@ static size_t M_str_fmt_integer_to_str(M_uint64 val, unsigned short base, M_bool
 
 static M_bool M_float_equals(double a, double b)
 {
-	if (fabs(a - b) <= DBL_EPSILON * fabs(a))
+	if (M_ABS(a - b) <= DBL_EPSILON * M_ABS(a))
 		return M_TRUE;
 
 	return M_FALSE;
