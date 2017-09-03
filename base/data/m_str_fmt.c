@@ -33,6 +33,8 @@
 #endif
 
 #include <mstdlib/mstdlib.h>
+#include <float.h> /* Needed for DBL_EPSILON */
+#include <math.h>  /* Needed for fabs() */
 #include "m_parser_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -138,6 +140,14 @@ static size_t M_str_fmt_integer_to_str(M_uint64 val, unsigned short base, M_bool
 	return i;
 }
 
+static M_bool M_float_equals(double a, double b)
+{
+	if (fabs(a - b) <= DBL_EPSILON * fabs(a))
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
 /* Only converts positive numbers without fractional part. */
 static size_t M_str_fmt_double_to_str(double val, char *bytes, size_t len)
 {
@@ -154,7 +164,7 @@ static size_t M_str_fmt_double_to_str(double val, char *bytes, size_t len)
 		M_math_modf(temp, &val);
 		bytes[i] = "0123456789"[(size_t)((temp - val) * 10.0) % 10];
 		i++;
-	} while ((val > 0.0 || val < 0.0) && i < len-1);
+	} while (!M_float_equals(val, 0.0) && i < len-1);
 
 	M_str_fmt_reverse_bytes(bytes, i);
 
@@ -449,11 +459,18 @@ static ssize_t M_str_fmt_add_double_just(M_str_fmt_t *data, double dval, M_str_f
 	 * is a valid and portable way to check but it will cause a warning when
 	 * "-Wfloat-equal" is set. Don't try to silence warnings for these
 	 * checks! */
+#if defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
 	if (dval != dval || (dval == dval && dval - dval != 0.0)) {
 		const char *const_temp = "inf";
 		if (dval != dval) {
 			const_temp = "nan";
 		}
+#if defined(__GNUC__) && ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#  pragma GCC diagnostic pop
+#endif
 		M_mem_copy(bytes, const_temp, M_str_len(const_temp));
 		olen += M_str_fmt_add_sign(data, bytes, M_str_len((const char *)bytes), pos, sign_type, pad_char, &pad_len);
 		olen += M_str_fmt_add_bytes_just(data, bytes, M_str_len((const char *)bytes), pad_char, pad_len, ljust);
