@@ -136,7 +136,8 @@ static M_bool M_threadpool_queue_fetch(M_threadpool_t *pool, M_threadpool_queue_
 	M_mem_set(queue_copy, 0, sizeof(*queue_copy));
 
 	M_thread_mutex_lock(pool->queue_lock);
-	while (pool->up && !is_timeout) { /* Don't grab a task if the threadpool isn't up or idle timeout has expired */
+
+	while (pool->up) {
 		M_threadpool_queue_t *q = M_llist_take_node(M_llist_first(pool->queue));
 		if (q != NULL) {
 			queue_copy->parent   = q->parent;
@@ -152,6 +153,14 @@ static M_bool M_threadpool_queue_fetch(M_threadpool_t *pool, M_threadpool_queue_
 			acquired = M_TRUE;
 			break;
 		}
+
+		/* NOTE: even on a timeout condition, we'll look for a task first before
+		 *       exiting just to make sure we don't have an accidental stall */
+		if (is_timeout && pool->num_threads > pool->min_threads) {
+			break;
+		}
+		is_timeout = M_FALSE;
+
 
 		/* Wait for a signal to see if there is something to be processed
 		 * there is no need here to ensure order or anything, the tasks
