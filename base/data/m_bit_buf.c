@@ -126,7 +126,7 @@ void M_bit_buf_truncate(M_bit_buf_t *bbuf, size_t len_bits)
 
 		last_byte  = *(const M_uint8 *)(M_buf_peek(bbuf->bits) + num_full_bytes);
 		mask       = (M_uint8)((M_uint8)1 << (M_uint8)(8 - part_bits));
-		mask       = ~(mask - 1);
+		mask       = (M_uint8)~(mask - 1);
 		last_byte &= mask;
 
 		M_buf_truncate(bbuf->bits, num_full_bytes);
@@ -140,12 +140,12 @@ void M_bit_buf_truncate(M_bit_buf_t *bbuf, size_t len_bits)
 void M_bit_buf_fill(M_bit_buf_t *bbuf, M_uint8 bit, size_t len_bits)
 {
 	M_uint8 *last_byte;
-	size_t   next_bit_pos;
-	
+	M_uint8  next_bit_pos;
+
 	if (bbuf == NULL || len_bits == 0) {
 		return;
 	}
-	
+
 	while (len_bits > 0) {
 		/* Calculate position in last byte where we should store the next bit. */
 		next_bit_pos = 7 - (bbuf->nbits % 8);
@@ -158,14 +158,15 @@ void M_bit_buf_fill(M_bit_buf_t *bbuf, M_uint8 bit, size_t len_bits)
 			if (next_bit_pos == 7) {
 				M_buf_add_byte(bbuf->bits, 0);
 			}
-			
+
 			/* Since new bytes are initialized to zero, only need to set the bit if it's a 1. */
 			if (bit != 0) {
 				const char *ptr = M_buf_peek(bbuf->bits);
+				M_uint8     bits = (M_uint8)((M_uint8)1 << next_bit_pos);
 				last_byte   = M_CAST_OFF_CONST(M_uint8 *, ptr) + M_buf_len(bbuf->bits) - 1;
-				*last_byte |= (M_uint8)(1 << next_bit_pos);
+				*last_byte |= bits;
 			}
-		
+
 			len_bits--;
 			bbuf->nbits++;
 		}
@@ -175,26 +176,27 @@ void M_bit_buf_fill(M_bit_buf_t *bbuf, M_uint8 bit, size_t len_bits)
 
 void M_bit_buf_add_bit(M_bit_buf_t *bbuf, M_uint8 bit)
 {
-	size_t   next_bit_pos;
+	M_uint8  next_bit_pos;
 	M_uint8 *last_byte;
-	
+
 	if (bbuf == NULL) {
 		return;
 	}
-	
+
 	/* Calculate position in last byte where we should store the next bit. */
 	next_bit_pos = 7 - (bbuf->nbits % 8);
 	if (next_bit_pos == 7) {
 		M_buf_add_byte(bbuf->bits, 0);
 	}
-	
+
 	/* Since new bytes are initialized to zero, only need to set the bit if it's a 1. */
 	if (bit != 0) {
-		const char *ptr = M_buf_peek(bbuf->bits);
+		const char *ptr  = M_buf_peek(bbuf->bits);
+		M_uint8     bits = (M_uint8)(1 << next_bit_pos);
 		last_byte   = M_CAST_OFF_CONST(M_uint8 *, ptr) + M_buf_len(bbuf->bits) - 1;
-		*last_byte |= (M_uint8)(1 << next_bit_pos);
+		*last_byte |= bits;
 	}
-	
+
 	bbuf->nbits++;
 }
 
