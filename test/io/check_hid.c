@@ -6,6 +6,31 @@
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
 
+#define DEBUG 1
+
+#if defined(DEBUG) && DEBUG
+#include <stdarg.h>
+
+
+static void event_debug(const char *fmt, ...)
+{
+	va_list     ap;
+	char        buf[1024];
+	M_timeval_t tv;
+
+	M_time_gettimeofday(&tv);
+	va_start(ap, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_vprintf(buf, ap);
+	va_end(ap);
+}
+#else
+static void event_debug(const char *fmt, ...)
+{
+	(void)fmt;
+}
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #if 0
 /* INGENICO HID LAYER */
@@ -186,31 +211,9 @@ M_io_error_t M_io_add_ingenicohid(M_io_t *io, size_t *layer_idx)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 1
-
-#if defined(DEBUG) && DEBUG
-#include <stdarg.h>
 
 M_bool got_response = M_FALSE;
 
-static void event_debug(const char *fmt, ...)
-{
-	va_list     ap;
-	char        buf[1024];
-	M_timeval_t tv;
-
-	M_time_gettimeofday(&tv);
-	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
-	M_vprintf(buf, ap);
-	va_end(ap);
-}
-#else
-static void event_debug(const char *fmt, ...)
-{
-	(void)fmt;
-}
-#endif
 
 static const char *event_type_str(M_event_type_t type)
 {
