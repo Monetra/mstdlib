@@ -479,7 +479,7 @@ START_TEST(check_snprintf_fp)
 
 	M_free(buf);
 	M_free(output);
-	M_fs_delete(mfd_filename, M_FS_ERROR_SUCCESS, NULL, M_FS_PROGRESS_NOEXTRA);
+	M_fs_delete(mfd_filename, M_TRUE, NULL, M_FS_PROGRESS_NOEXTRA);
 }
 END_TEST
 

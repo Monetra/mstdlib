@@ -83,7 +83,6 @@ static M_io_t *M_io_event_create(M_event_trigger_t *trigger)
 {
 	M_io_t           *io;
 	M_io_handle_t    *handle;
-	M_io_layer_t     *layer;
 	M_io_callbacks_t *callbacks;
 
 	handle                     = M_malloc_zero(sizeof(*handle));
@@ -95,7 +94,7 @@ static M_io_t *M_io_event_create(M_event_trigger_t *trigger)
 	M_io_callbacks_reg_unregister(callbacks, M_io_event_unregister_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_event_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_event_state_cb);
-	layer                      = M_io_layer_add(io, "TRIGGER", handle, callbacks);
+	M_io_layer_add(io, "TRIGGER", handle, callbacks);
 	M_io_callbacks_destroy(callbacks);
 
 	return io;
@@ -133,8 +132,9 @@ M_event_trigger_t *M_event_trigger_add(M_event_t *event, M_event_callback_t call
 	/* We need to ensure there is a parent wake */
 	M_event_lock(event);
 	if (event->u.loop.parent_wake == NULL) {
+		enum M_EVENT_FLAGS   mask = M_EVENT_FLAG_NOWAKE;
 		event->u.loop.parent_wake = M_io_osevent_create(event);
-		event->u.loop.flags      &= ~(M_EVENT_FLAG_NOWAKE);
+		event->u.loop.flags      &= ~mask;
 	}
 	M_event_unlock(event);
 

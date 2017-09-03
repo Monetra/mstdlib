@@ -523,7 +523,7 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 
 		for (  ; (*state)->rowidx < rows; (*state)->rowidx++) {
 			size_t                 start_buf_len = M_buf_len(buf);
-			M_sql_report_cberror_t cberr;
+			M_sql_report_cberror_t cberr         = M_SQL_REPORT_SUCCESS;
 
 			for (j=0; j<(*state)->num_cols; j++) {
 				M_bool                 is_null = M_FALSE;

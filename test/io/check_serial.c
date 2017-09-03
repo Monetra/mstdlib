@@ -7,12 +7,12 @@
 #include <mstdlib/mstdlib_io.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+//#define SERIAL_TEST
+
 #define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
-
-M_bool got_response = M_FALSE;
 
 static void event_debug(const char *fmt, ...)
 {
@@ -32,6 +32,9 @@ static void event_debug(const char *fmt, ...)
 	(void)fmt;
 }
 #endif
+
+#ifdef SERIAL_TEST
+M_bool got_response = M_FALSE;
 
 static const char *event_type_str(M_event_type_t type)
 {
@@ -233,7 +236,7 @@ static M_bool serial_loop_test(const char *port1, const char *port2)
 	event_debug("exited");
 	return M_TRUE;
 }
-
+#endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -242,7 +245,6 @@ START_TEST(check_serial)
 	M_io_serial_enum_t *serenum = M_io_serial_enum(M_TRUE);
 	size_t              i;
 
-
 	ck_assert_msg(serenum != NULL, "Serial Enumeration returned a failure");
 
 	for (i=0; i < M_io_serial_enum_count(serenum); i++) {
@@ -250,14 +252,16 @@ START_TEST(check_serial)
 	}
 	M_io_serial_enum_destroy(serenum);
 
+#ifdef SERIAL_TEST
 	/* NOTE: run twice to ensure we can re-open ports */
 	for (i=0; i<2; i++) {
-#ifdef _WIN32
+#  ifdef _WIN32
 		ck_assert_msg(serial_loop_test("\\\\.\\COM3", "\\\\.\\COM4"));
-#elif defined(__linux__)
+#  elif defined(__linux__)
 		ck_assert_msg(serial_loop_test("/dev/ttyUSB0", "/dev/ttyUSB1"));
-#endif
+#  endif
 	}
+#endif
 }
 END_TEST
 

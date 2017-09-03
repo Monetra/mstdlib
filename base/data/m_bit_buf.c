@@ -122,10 +122,10 @@ void M_bit_buf_truncate(M_bit_buf_t *bbuf, size_t len_bits)
 		 * partial byte back on.
 		 */
 		M_uint8  last_byte;
-		M_uint64 mask;
+		M_uint8  mask;
 
 		last_byte  = *(const M_uint8 *)(M_buf_peek(bbuf->bits) + num_full_bytes);
-		mask       = (M_uint64)(1 << (8 - part_bits));
+		mask       = (M_uint8)((M_uint8)1 << (M_uint8)(8 - part_bits));
 		mask       = ~(mask - 1);
 		last_byte &= mask;
 
@@ -203,7 +203,7 @@ void M_bit_buf_add_bytes(M_bit_buf_t *bbuf, const void *vbytes, size_t nbits)
 {
 	const M_uint8 *bytes        = vbytes;
 	size_t         nbytes_whole;
-	size_t         nbits_left;
+	M_uint8        nbits_left;
 	size_t         i;
 
 	if (bbuf == NULL || bytes == NULL || nbits == 0) {
@@ -230,7 +230,7 @@ void M_bit_buf_add_bytes(M_bit_buf_t *bbuf, const void *vbytes, size_t nbits)
 		 * Since M_bit_buf_add() assumes that it's justified against the least-significant side, need to
 		 * shift the data down to change it to the correct justification.
 		 */
-		M_bit_buf_add(bbuf, bytes[nbytes_whole] >> (8 - nbits_left), nbits_left, M_BIT_BUF_PAD_NONE);
+		M_bit_buf_add(bbuf, (M_uint64)(bytes[nbytes_whole] >> (8 - nbits_left)), nbits_left, M_BIT_BUF_PAD_NONE);
 	}
 }
 

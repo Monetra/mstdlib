@@ -7,6 +7,7 @@
 #include <mstdlib/mstdlib_io.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+#if 0
 /* INGENICO HID LAYER */
 #include <mstdlib/io/m_io_layer.h>
 struct M_io_handle {
@@ -317,6 +318,8 @@ START_TEST(check_ingenico)
 	event_debug("exited");
 }
 END_TEST
+
+#endif
 
 START_TEST(check_hid)
 {

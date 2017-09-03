@@ -285,14 +285,14 @@ static M_bool check_tlsspeed_test(void)
 		 * return M_EVENT_ERR_RETURN; */
 	}
 
-	if (!M_tls_clientctx_set_trust_cert(clientctx, cert, M_str_len(cert))) {
+	if (!M_tls_clientctx_set_trust_cert(clientctx, (const M_uint8 *)cert, M_str_len(cert))) {
 		event_debug("failed to set server cert trust");
 		return M_FALSE;
 	}
 
 
 	/* GENERATE SERVER CTX */
-	serverctx = M_tls_serverctx_create(key, M_str_len(key), cert, M_str_len(cert), NULL, 0);
+	serverctx = M_tls_serverctx_create((const M_uint8 *)key, M_str_len(key), (const M_uint8 *)cert, M_str_len(cert), NULL, 0);
 	if (serverctx == NULL) {
 		event_debug("failed to create serverctx");
 		return M_FALSE;

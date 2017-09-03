@@ -100,7 +100,7 @@ static size_t event_timer_test(M_uint64 start_delay_ms, M_uint64 end_ms, M_uint6
 	if (start_delay_ms) {
 		M_timeval_t tv;
 		M_time_gettimeofday(&tv);
-		tv.tv_usec += start_delay_ms * 1000;
+		tv.tv_usec += (M_uint32)(start_delay_ms * 1000);
 		tv.tv_sec  += tv.tv_usec / 1000000;
 		tv.tv_usec %= 1000000;
 		M_event_timer_set_starttv(timer, &tv);
@@ -109,7 +109,7 @@ static size_t event_timer_test(M_uint64 start_delay_ms, M_uint64 end_ms, M_uint6
 	if (end_ms) {
 		M_timeval_t tv;
 		M_time_gettimeofday(&tv);
-		tv.tv_usec += end_ms * 1000;
+		tv.tv_usec += (M_uint32)(end_ms * 1000);
 		tv.tv_sec  += tv.tv_usec / 1000000;
 		tv.tv_usec %= 1000000;
 		M_event_timer_set_endtv(timer, &tv);

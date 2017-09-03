@@ -434,7 +434,7 @@ M_printf("ServerCert: %s\n", realcert);
 		 * return M_EVENT_ERR_RETURN; */
 	}
 
-	if (!M_tls_clientctx_set_trust_cert(clientctx, realcert, M_str_len(realcert))) {
+	if (!M_tls_clientctx_set_trust_cert(clientctx, (const M_uint8 *)realcert, M_str_len(realcert))) {
 		event_debug("failed to set server cert trust");
 		return M_EVENT_ERR_RETURN;
 	}
@@ -444,7 +444,7 @@ M_printf("ServerCert: %s\n", realcert);
 	/* GENERATE SERVER CTX */
 	M_list_str_remove_first(applist); /* Alter app list */
 
-	serverctx = M_tls_serverctx_create(boguskey, M_str_len(boguskey), boguscert, M_str_len(boguscert), NULL, 0);
+	serverctx = M_tls_serverctx_create((const M_uint8 *)boguskey, M_str_len(boguskey), (const M_uint8 *)boguscert, M_str_len(boguscert), NULL, 0);
 	if (serverctx == NULL) {
 		event_debug("failed to create base serverctx");
 		return M_EVENT_ERR_RETURN;
@@ -452,7 +452,7 @@ M_printf("ServerCert: %s\n", realcert);
 
 	M_tls_serverctx_set_applications(serverctx, applist);
 
-	child_serverctx = M_tls_serverctx_create(realkey, M_str_len(realkey), realcert, M_str_len(realcert), NULL, 0);
+	child_serverctx = M_tls_serverctx_create((const M_uint8 *)realkey, M_str_len(realkey), (const M_uint8 *)realcert, M_str_len(realcert), NULL, 0);
 	if (child_serverctx == NULL) {
 		event_debug("failed to create child serverctx");
 		return M_EVENT_ERR_RETURN;

@@ -241,7 +241,7 @@ M_bool M_bit_parser_read_bit(M_bit_parser_t *bparser, M_uint8 *bit)
 
 M_bool M_bit_parser_read_bit_buf(M_bit_parser_t *bparser, M_bit_buf_t *bbuf, size_t nbits)
 {
-	M_uint8 bit;
+	M_uint8 bit = 0;
 	size_t  i;
 
 	if (nbits == 0) {
@@ -266,7 +266,7 @@ M_bool M_bit_parser_read_bit_buf(M_bit_parser_t *bparser, M_bit_buf_t *bbuf, siz
 char *M_bit_parser_read_strdup(M_bit_parser_t *bparser, size_t nbits)
 {
 	M_buf_t *buf;
-	M_uint8  bit;
+	M_uint8  bit = 0;
 	size_t   i;
 	
 	if (nbits == 0 || M_bit_parser_len(bparser) < nbits) {

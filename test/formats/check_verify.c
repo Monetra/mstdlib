@@ -177,7 +177,7 @@ END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-Suite *M_ini_suite(void)
+static Suite *M_ini_suite(void)
 {
 	Suite *suite;
 	TCase *tc_verify_domain;

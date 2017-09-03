@@ -625,7 +625,7 @@ M_bool M_thread_cond_timedwait(M_thread_cond_t *cond, M_thread_mutex_t *mutex, M
 	M_time_gettimeofday(&tv);
 
 	/* Convert delay to microseconds, add to microseconds field. */
-	tv.tv_usec += millisec * 1000;
+	tv.tv_usec += (M_uint32)(millisec * 1000);
 
 	/* M_thread_cond_timedwait_abs() will normalize the time struct for us. */
 	return M_thread_cond_timedwait_abs(cond, mutex, &tv);

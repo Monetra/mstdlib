@@ -695,13 +695,15 @@ static void M_event_queue_pending(M_event_t *event, M_io_t *io, size_t layer_id,
 static void M_event_queue_pending_delivered(M_event_t *event, M_io_t *io, M_event_type_t type, size_t layer_id)
 {
 	M_event_pending_t *entry = NULL;
-	ssize_t             i;
+	ssize_t            i;
+	M_uint16           mask;
 
 	if (!M_hashtable_get(event->u.loop.pending_events, io, (void **)&entry))
 		return;
 
 	/* Unset delivered event */
-	entry->events[layer_id] &= ~((M_uint8)1 << type);
+	mask                     = (M_uint16)((M_uint16)1 << (M_uint16)type);
+	entry->events[layer_id] &= ~mask;
 
 	/* Clear high bits if next layer is empty */
 	if (layer_id > 0) {
@@ -858,8 +860,9 @@ static void M_event_softevent_process(M_event_t *event)
 		for (j=0; j<num_layers; j++) {
 			for (i=0; i<M_EVENT_TYPE__CNT && softevent->events[j] != 0; i++) {
 				if (softevent->events[j] & (((M_uint16)1) << i)) {
+					M_uint16 mask = (M_uint16)((M_uint16)1 << (M_uint16)i);
 					M_event_queue_pending(event, softevent->io, j, (M_event_type_t)i);
-					softevent->events[j] &= ~((M_uint16)((M_uint16)1) << (M_uint8)i);
+					softevent->events[j] &= ~mask;
 				}
 			}
 		}

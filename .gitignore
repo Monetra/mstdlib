@@ -1,4 +1,11 @@
 # ======================
+# Local modifications
+
+# We often build in build/ ignore that
+build/
+
+
+# ======================
 # https://github.com/github/gitignore/blob/master/C.gitignore
 # Prerequisites
 *.d

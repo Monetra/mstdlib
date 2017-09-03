@@ -186,8 +186,8 @@ static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_
 	while ((SANs = X509_get_ext_d2i(x509, NID_subject_alt_name, NULL, &idx)) != NULL && !match_found) {
 		count = sk_GENERAL_NAME_num(SANs);
 		for (i=0; i<count; i++) {
-			const GENERAL_NAME *name = sk_GENERAL_NAME_value(SANs, i);
-			const char         *dnsname;
+			const GENERAL_NAME *name    = sk_GENERAL_NAME_value(SANs, i);
+			const char         *dnsname = NULL;
 			char                ipaddr[64];
 
 			if (name->type != GEN_DNS && name->type != GEN_IPADD)
