@@ -34,14 +34,13 @@ M_bool M_chr_iscntrl(char c)
 
 M_bool M_chr_isascii(char c)
 {
-	/* NOTE: this may generate compiler warnings both when 'char' is signed by
-	 *       default and when 'char' is unsigned by default due to an error related
-	 *       to a comparison always being true.  Don't just blindly remove one of the
-	 *       checks to silence the stupid warning as they're both necessary to handle
-	 *       both cases!  (No, it doesn't make sense why C doesn't define if char
-	 *       is signed or unsigned). We could always instead use CHAR_MIN and CHAR_MAX
-	 *       and only emit code in those cases, but really, come on ... not worth it. */
-	return c >= 0 && c <= 127;
+	/* Due to char sometimes being unsigned, we need to emit different checks
+	 * depending on the CHAR_MIN/CHAR_MAX */
+#if CHAR_MIN == 0
+	return (c <= 127)?M_TRUE:M_FALSE;
+#else
+	return (c >= 0)?M_TRUE:M_FALSE;
+#endif
 }
 
 M_bool M_chr_isgraph(char c)

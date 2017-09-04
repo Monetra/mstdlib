@@ -84,7 +84,12 @@ void M_time_elapsed_start(M_timeval_t *start_tv)
 	 * NOTE: MacOSX/iOS needs a runtime check for clock_gettime() since it is a weak
 	 *       symbol that was introduced in MacOS 10.12 and iOS10, we need to check for
 	 *       NULL. */
-	if (clock_gettime == NULL || clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
+	if (
+#  if defined(__APPLE__) || defined(IOS)
+	    clock_gettime == NULL ||
+#  endif
+	    clock_gettime(CLOCK_MONOTONIC, &ts) == -1
+	) {
 		M_time_gettimeofday(start_tv);
 		return;
 	}
