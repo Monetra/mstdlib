@@ -29,7 +29,7 @@ matrix:
     - os: linux
       env: OPENSSL_ROOT_DIR="" BUILD_TYPE="RelWithDebInfo"
       compiler: clang
-   -  os: linux
+    - os: linux
       env: OPENSSL_ROOT_DIR="" BUILD_TYPE="RelWithDebInfo"
       compiler: gcc
     - os: osx
