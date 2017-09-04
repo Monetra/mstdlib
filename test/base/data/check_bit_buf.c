@@ -5,7 +5,7 @@
 #if !defined(HAVE_STDINT_H) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 #	define HAVE_STDINT_H
 #elif defined(_MSC_VER)
-#   typedef unsigned __int64 uintmax_t;
+    typedef unsigned __int64 uintmax_t;
 #endif
 #include <check.h>
 
