@@ -27,19 +27,27 @@ matrix:
   include:
     - os: linux
       env: 
+        - BUILD_TYPE="cmake"
         - OPENSSL_ROOT_DIR=""
-        - BUILD_TYPE="RelWithDebInfo"
       compiler: clang
     - os: linux
       env:
+        - BUILD_TYPE="cmake"
         - OPENSSL_ROOT_DIR=""
-        - BUILD_TYPE="RelWithDebInfo"
+      compiler: gcc
+    - os: linux
+      env:
+        - BUILD_TYPE="autotools"
+        - OPENSSL_ROOT_DIR=""
       compiler: gcc
     - os: osx
       env:
+        - BUILD_TYPE="cmake"
         - OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
-        - BUILD_TYPE="RelWithDebInfo"
-
+    - os: osx
+      env:
+        - BUILD_TYPE="autotools"
+        - OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl doxygen mariadb-connector-c libiodbc libpq check; fi
@@ -54,6 +62,7 @@ before_script:
 
 
 script:
-    - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds
-    - cmake --build _builds 
-    - cmake --build _builds --target check
+    - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds ; fi
+    - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake --build _builds && cmake --build _builds --target check ; fi
+    - if [ "$BUILD_TYPE" = "autotools" ] ; then ./buildconf.sh && ./configure --with-ssl-dir="${OPENSSL_ROOT_DIR}" ; fi
+    - if [ "$BUILD_TYPE" = "autotools" ] ; then make && make check ; fi
