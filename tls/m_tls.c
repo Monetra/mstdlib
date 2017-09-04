@@ -623,8 +623,13 @@ static int M_tls_bio_read(BIO *b, char *buf, int len)
 	BIO_clear_retry_flags(b);
 
 	if (err != M_IO_ERROR_SUCCESS) {
-		if (err == M_IO_ERROR_WOULDBLOCK)
+		if (err == M_IO_ERROR_WOULDBLOCK) {
 			BIO_set_retry_read(b);
+			return -1;
+		} else if (err == M_IO_ERROR_DISCONNECT) {
+			return 0;
+		}
+		/* Error */
 		return -1;
 	}
 
@@ -651,8 +656,13 @@ static int M_tls_bio_write(BIO *b, const char *buf, int len)
 	BIO_clear_retry_flags(b);
 
 	if (err != M_IO_ERROR_SUCCESS) {
-		if (err == M_IO_ERROR_WOULDBLOCK)
+		if (err == M_IO_ERROR_WOULDBLOCK) {
 			BIO_set_retry_write(b);
+			return -1;
+		} else if (err == M_IO_ERROR_DISCONNECT) {
+			return 0;
+		}
+		/* Error */
 		return -1;
 	}
 
