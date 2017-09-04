@@ -135,14 +135,66 @@ CMake
     $ cmake -DCMAKE_BUILD_TYPE=<DEBUG|RELEASE> ..
     $ make
 
-C-Ares
-------
 
-The I/O module uses c-ares for DNS resolution as part of its network
-support. c-ares if installed will be used. Optionally, its source can be
-placed in "thirdparty/c-ares" which will chain build c-ares. If chain
-building, the I/O module will be linked to this locally built version
-of c-ares.
+Dependencies
+------------
+
+### Required
+
+#### C-Ares
+The I/O module uses c-ares for DNS resolution as part of its network support. 
+It is recommended to simply extract the latest c-ares source into the mstdlib
+source tree under:
+   thirdparty/c-ares
+If it exists, it will be built as part of mstdlib and statically linked.
+
+Otherwise, mstdlib will attempt to search for C-Ares on the system.
+
+#### OpenSSL
+The TLS subsystem uses OpenSSL 1.0.1 or higher for the underlying cryptographic
+routines.  It is expected to be installed on the system. Pass
+-DOPENSSL_ROOT_DIR=<path> to cmake if the location is in a non-standard path.
+
+### Optional
+
+#### SQLite
+SQLite is used to build the SQLite plugin for the SQL subsystem.  It is
+recommended to download the latest SQLite Amalgamation package from sqlite.org
+and extract it into the mstdlib source tree under:
+  thirdparty/sqlite-amalgamation
+If it exists, it will be built as part of mstdlib and statically linked.
+
+Otherwise, mstdlib will attempt to search for SQLite on the system.  Use
+-DSQLITE_DIR=<path> if installed to a non-standard location.
+
+#### MySQL Client Library/MariaDB Connector C
+The MySQL Client Library, or MariaDB Connector C (recommended) are used to build
+the MySQL plugin for the SQL subsystem.  Mstdlib will attempt to search for
+one of these libraries on the system, use -DMYSQL_DIR=<path> if installed to a
+non-standard location.
+
+#### PostgreSQL Client Library
+The PostgreSQL Client Library is used to build the PostgreSQL plugin for the SQL
+subsystem.  v9.2 or higher is required. Mstdlib will attempt to search for the
+library on the system, use -DPOSTGRESQL_DIR=<path> if installed to a
+non-standard location.
+
+#### Oracle Client Library
+The Oracle Client Library is used to build the Oracle plugin for the SQL
+subsystem.  v11.2 or higher is required.  Mstdlib will attempt to search for the
+library on the system, use -DORACLE_DIR=<path> if installed to a non-standard
+location.
+
+#### ODBC (UnixODBC, iODBC, or Windows ODBC)
+The ODBC libraries are used to build the ODBC plugin for the SQL subsystem.
+Mstdlib will attempt to search for one of the available options, use
+-DODBC_DIR=<path> if installed to a non-standard location.
+
+#### DB2
+The DB2 libraries are used to build the DB2 plugin for the SQL subsystem.
+Mstdlib will attempt to search for the library on the system, use
+-DDB2_DIR=<path> if installed to a non-standard location.
+
 
 Building docs
 -------------
@@ -176,19 +228,26 @@ build/test/test_name-valgrind.log
 Build Options
 -------------
 
-Option                           | Description                | Default
----------------------------------|----------------------------|--------
-MSTDLIB_STATIC                   | Build static libs.         | OFF
-MSTDLIB_STATIC_PIC               | Build static libs as PIC.  | OFF
+Option                           | Description                        | Default
+---------------------------------|------------------------------------|--------
+MSTDLIB_STATIC                   | Build static libs.                 | OFF
+MSTDLIB_STATIC_PIC               | Build static libs as PIC.          | OFF
 MSTDLIB_INSTALL_LOCATION_LIBS    | Alternative install location to use instead of CMAKE_INSTALL_PREFIX. Useful for chain building and installing into a packing sub directory. | N/A
 MSTDLIB_INSTALL_LOCATION_HEADERS | Alternative install location to use instead of CMAKE_INSTALL_PREFIX. Useful for chain building and installing into a packing sub directory. | N/A
-MSTDLIB_INSTALL_HEADERS          | Install headers.           | ON
-MSTDLIB_INSTALL_LIBS             | Install libraries.         | ON
-MSTDLIB_BUILD_TESTS              | Build tests.               | ON
-MSTDLIB_USE_VALGRIND             | Run tests with valgrind when running "make check". | ON
-MSTDLIB_BUILD_THREAD             | Build thread module.       | ON
-MSTDLIB_BUILD_IO                 | Build io module.           | ON
-MSTDLIB_BUILD_TLS                | Build tls module.          | ON
-MSTDLIB_BUILD_LOG                | Build log module.          | ON
+MSTDLIB_INSTALL_HEADERS          | Install headers.                   | ON
+MSTDLIB_INSTALL_LIBS             | Install libraries.                 | ON
+MSTDLIB_BUILD_TESTS              | Build tests.                       | ON
 M_ASAN                           | Build with Address Sanitizer (compiler support required) | OFF
+MSTDLIB_USE_VALGRIND             | Run tests with valgrind when running "make check". | ON
+MSTDLIB_BUILD_THREAD             | Build thread module.               | ON
+MSTDLIB_BUILD_IO                 | Build io module.                   | ON
+MSTDLIB_BUILD_TLS                | Build tls module.                  | ON
+MSTDLIB_BUILD_LOG                | Build log module.                  | ON
+MSTDLIB_BUILD_SQL                | Build sql module.                  | ON
+MSTDLIB_BUILD_SQL_MYSQL          | Build MySQL/MariaDB plugin for sql | ON
+MSTDLIB_BUILD_SQL_SQLITE         | Build SQLite plugin for SQL        | ON
+MSTDLIB_BUILD_SQL_POSTGRESQL     | Build PostgreSQL plugin for SQL    | ON
+MSTDLIB_BUILD_SQL_ORACLE         | Build Oracle plugin for SQL        | ON
+MSTDLIB_BUILD_SQL_ODBC           | Build ODBC plugin for SQL          | ON
+MSTDLIB_BUILD_SQL_DB2            | Build DB2 plugin for SQL           | ON
 
