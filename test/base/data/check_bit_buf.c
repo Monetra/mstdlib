@@ -4,10 +4,13 @@
 /* Windows fix. VS2010 and newer have the stdint.h header, though libcheck doesn't realize this. */
 #if !defined(HAVE_STDINT_H) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 #	define HAVE_STDINT_H
+#elif defined(_MSC_VER)
+#   typedef unsigned __int64 uintmax_t;
 #endif
 #include <check.h>
 
 #include <mstdlib/mstdlib.h>
+
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
