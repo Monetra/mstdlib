@@ -27,8 +27,16 @@ env:
 matrix:
   include:
     - os: linux
-      env: OPENSSL_ROOT_DIR="" BUILD_TYPE="RelWithDebInfo"
-      compiler: clang
+      env: 
+        - OPENSSL_ROOT_DIR=""
+        - BUILD_TYPE="RelWithDebInfo"
+        - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0
     - os: linux
       env: OPENSSL_ROOT_DIR="" BUILD_TYPE="RelWithDebInfo"
       compiler: gcc
