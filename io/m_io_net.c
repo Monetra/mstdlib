@@ -95,7 +95,7 @@ static void M_io_net_resolve_error(M_io_handle_t *handle)
 	handle->data.net.last_error_sys = WSAGetLastError();
 #else
 	handle->data.net.last_error_sys = errno;
-	errno                  = 0;
+	errno                           = 0;
 #endif
 	handle->data.net.last_error     = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
 }
@@ -206,6 +206,7 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	errno  = 0;
 	retval = recv(handle->data.net.sock, buf, *read_len, 0);
 	if (retval == 0) {
+		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error = M_IO_ERROR_DISCONNECT;
 		return M_IO_ERROR_DISCONNECT;
 	} else if (retval < 0) {
@@ -1103,6 +1104,11 @@ static M_io_state_t M_io_net_state_cb(M_io_layer_t *layer)
 static M_bool M_io_net_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle->state == M_IO_NET_STATE_DISCONNECTED) {
+		M_snprintf(error, err_len, "Remote Closed Connection");
+		return M_TRUE;
+	}
 
 #ifdef _WIN32
 	return M_io_win32_errormsg(handle->data.net.last_error_sys, error, err_len);

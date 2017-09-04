@@ -816,11 +816,13 @@ void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)
 	num = M_io_layer_count(io);
 	for (i=0; i<num; i++) {
 		M_io_layer_t *layer = M_io_layer_at(io, i);
+		M_io_state_t  state;
 
 		if (layer->cb.cb_state == NULL || layer->cb.cb_errormsg == NULL)
 			continue;
 
-		if (layer->cb.cb_state(layer) != M_IO_STATE_ERROR)
+		state = layer->cb.cb_state(layer);
+		if (state != M_IO_STATE_DISCONNECTED && state != M_IO_STATE_ERROR)
 			continue;
 
 		done = layer->cb.cb_errormsg(layer, error, err_len);

@@ -33,6 +33,7 @@
 static M_io_error_t M_io_netdns_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_error_t   err;
 
 	if (handle->data.netdns.io == NULL)
 		return M_IO_ERROR_INVALID;
@@ -44,13 +45,24 @@ static M_io_error_t M_io_netdns_read_cb(M_io_layer_t *layer, unsigned char *buf,
 	}
 
 	/* Relay to underlying io object */
-	return M_io_read(handle->data.netdns.io, buf, *read_len, read_len);
+	err = M_io_read(handle->data.netdns.io, buf, *read_len, read_len);
+	if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
+		if (err == M_IO_ERROR_DISCONNECT) {
+			handle->state = M_IO_NET_STATE_DISCONNECTED;
+		} else {
+			handle->state = M_IO_NET_STATE_ERROR;
+		}
+	}
+
+	return err;
 }
 
 
 static M_io_error_t M_io_netdns_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_error_t   err;
+
 	if (handle->data.netdns.io == NULL)
 		return M_IO_ERROR_INVALID;
 
@@ -61,7 +73,16 @@ static M_io_error_t M_io_netdns_write_cb(M_io_layer_t *layer, const unsigned cha
 	}
 
 	/* Relay to io object */
-	return M_io_write(handle->data.netdns.io, buf, *write_len, write_len);
+	err = M_io_write(handle->data.netdns.io, buf, *write_len, write_len);
+	if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
+		if (err == M_IO_ERROR_DISCONNECT) {
+			handle->state = M_IO_NET_STATE_DISCONNECTED;
+		} else {
+			handle->state = M_IO_NET_STATE_ERROR;
+		}
+	}
+
+	return err;
 }
 
 
