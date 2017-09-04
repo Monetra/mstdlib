@@ -575,16 +575,17 @@ static void M_event_impl_win32_process(M_event_t *event)
 		}
 
 		/* Treat ACCEPT, READ, and ERROR events as READ events */
-		if (NetEvents.lNetworkEvents & (FD_ACCEPT|FD_READ) || (NetEvents.lNetworkEvents & FD_CLOSE && NetEvents.iErrorCode[FD_CLOSE_BIT] != 0)) {
+		if (NetEvents.lNetworkEvents & (FD_ACCEPT|FD_READ)) {
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
-#if 0
-			last_error_sys = NetEvents.iErrorCode[FD_CLOSE_BIT];
-#endif
 		}
 
-		/* Send Disconnect as-is */
-		if (NetEvents.lNetworkEvents & FD_CLOSE && NetEvents.iErrorCode[FD_CLOSE_BIT] == 0) {
-			M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
+		/* Send Disconnect or Error as if it was a READ event and let the read
+		 * get the real error code.  Reason for this is we've seen where there is
+		 * data available, but we get an FD_CLOSE event rather than a read event */
+		if (NetEvents.lNetworkEvents & FD_CLOSE) {
+			/* NetEvents.iErrorCode[FD_CLOSE_BIT] == 0 is disconnect, non-zero is error,
+			 * could use the value as last_error_sys */
+			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 		}
 
 		/* Treat CONNECT and WRITE events as WRITE events */
