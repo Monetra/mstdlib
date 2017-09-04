@@ -266,6 +266,7 @@ static void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
 
 
 	if (M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev)) {
+		M_uint16 ev;
 		if (ioev->softevent_node == NULL) {
 			softevent            = M_malloc_zero(sizeof(*softevent));
 			softevent->io        = io;
@@ -273,7 +274,8 @@ static void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
 		} else {
 			softevent            = M_llist_node_val(ioev->softevent_node);
 		}
-		softevent->events[layer_id] |= (M_uint16)(1 << (M_uint8)type);
+		ev = (M_uint16)(1 << type);
+		softevent->events[layer_id] |= ev;
 //M_printf("%s(): softevent io %p layer %zu type %d\n", __FUNCTION__, io, layer_id, (int)type);
 	} else {
 //M_printf("%s(): WARN: added softevent of io %p that does not exist\n", __FUNCTION__, io);
@@ -659,6 +661,7 @@ static void M_event_queue_pending(M_event_t *event, M_io_t *io, size_t layer_id,
 {
 	M_event_pending_t *entry  = NULL;
 	size_t             i;
+	M_uint16           ev;
 
 	/* If this is the first event, create the container */
 	if (event->u.loop.pending_events == NULL) {
@@ -681,7 +684,8 @@ static void M_event_queue_pending(M_event_t *event, M_io_t *io, size_t layer_id,
 	}
 
 //M_printf("%s(): io %p layer %zu handle %d type %d\n", __FUNCTION__, io_or_timer, layer_id, handle, (int)type);
-	entry->events[layer_id] |= (M_uint16)(1 << (M_uint8)type) & 0xFFFF;
+	ev                       = (M_uint16)(1 << type);
+	entry->events[layer_id] |= ev;
 
 	/* NOTE: we use the highest bit as an indicator that the *next* layer needs
 	 *       to be checked when processing events, so tag all layers below this
@@ -703,7 +707,7 @@ static void M_event_queue_pending_delivered(M_event_t *event, M_io_t *io, M_even
 
 	/* Unset delivered event */
 	mask                     = (M_uint16)((M_uint16)1 << (M_uint16)type);
-	entry->events[layer_id] &= ~mask;
+	entry->events[layer_id] &= (M_uint16)(~mask);
 
 	/* Clear high bits if next layer is empty */
 	if (layer_id > 0) {
@@ -862,7 +866,7 @@ static void M_event_softevent_process(M_event_t *event)
 				if (softevent->events[j] & (((M_uint16)1) << i)) {
 					M_uint16 mask = (M_uint16)((M_uint16)1 << (M_uint16)i);
 					M_event_queue_pending(event, softevent->io, j, (M_event_type_t)i);
-					softevent->events[j] &= ~mask;
+					softevent->events[j] &= (M_uint16)(~mask);
 				}
 			}
 		}
