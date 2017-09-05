@@ -75,7 +75,7 @@ before_script:
    - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
    - unzip sqlite-amalgamation-3200100.zip
    - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
-   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares
+   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
 
 
 script:
