@@ -46,7 +46,7 @@ jobs:
 #        - BUILD_TYPE="autotools"
 #        - CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl"
     - stage: Static Analysis
-    - os: linux
+      os: linux
       env: 
         - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-3.5"
       compiler: clang
@@ -55,7 +55,7 @@ jobs:
           sources:
             - clang-3.5
     - stage: Runtime Analysis
-    - os: linux
+      os: linux
       env: 
         - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
       compiler: clang
