@@ -46,6 +46,7 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 		base/time/check_time_tm.c
 		base/time/check_time_tz.c
 	)
+	set(slow_tests)
 	#formats
 	if (MSTDLIB_BUILD_FORMATS)
 		list(APPEND tests
@@ -61,7 +62,7 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 	endif ()
 	# thread
 	if (MSTDLIB_BUILD_THREAD)
-		list(APPEND tests
+		list(APPEND slow_tests
 			thread/check_thread_coop.c
 			thread/check_thread_native.c
 		)
@@ -75,10 +76,12 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 			io/check_event_timer.c
 			io/check_event_pipe.c
 			io/check_dns.c
-			io/check_event_bwshaping.c
 			io/check_serial.c
 			io/check_pipespeed.c
 			io/check_netspeed.c
+		)
+		list(APPEND slow_tests
+			io/check_event_bwshaping.c
 		)
 		if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			list(APPEND tests
@@ -101,6 +104,11 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 			sql/check_sql.c
 		)
 	endif()
+
+	# Include the slow tests in the list of tests we're going to run, if not explicitly disabled by the user.
+	if (NOT MSTDLIB_SKIP_SLOW_TESTS)
+		list(APPEND tests ${slow_tests})
+	endif ()
 
 	# There is a bug in check where it needs to link to threads. try and force it to happen.
 	# IF we include threads then that gets linked via mstdlib thread otherwise we need to add it.
