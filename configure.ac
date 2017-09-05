@@ -824,8 +824,8 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 	AM_CONDITIONAL(HAVE_PTHREAD, test "$have_pthreads" = "yes" -a "$have_sco5" = "no")
 
 	AC_CHECK_FUNC(getcontext, [ have_getcontext="yes" ], [ have_getcontext="no" ])
-	if test "$coopthreads_setjmp" = "yes" -o "$have_getcontext" = "no" ; then
-		AC_DEFINE([COOPTHREADS_SETJMP], [], [Use setjmp switching for coop threads])
+	if test "$have_getcontext" = "yes" ; then
+		AC_DEFINE([HAVE_GETCONTEXT], [], [Have getcontext stack switching functions])
 	fi
 
 	AC_CHECK_FUNC(sysconf, [ have_sysconf="yes" ], [ have_sysconf="no" ])
