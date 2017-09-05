@@ -866,22 +866,23 @@ static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
 #ifdef HAVE_SOCKADDR_STORAGE
 	struct sockaddr_storage sockaddr;
 #else
-	struct sockaddr_in      sockaddr;
+	struct sockaddr         sockaddr;
 #endif
+	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
 	socklen_t               sockaddr_size = sizeof(sockaddr);
 
-	if (getsockname(handle->data.net.sock, (struct sockaddr *)&sockaddr, &sockaddr_size) != 0) 
+	M_mem_set(sockaddr_ptr, 0, sockaddr_size);
+
+	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0) 
 		return M_FALSE;
 
-#ifndef HAVE_SOCKADDR_STORAGE
-	if (1) {
-#else
-	if (((struct sockaddr *)&sockaddr)->sa_family == AF_INET) {
-#endif
-		handle->data.net.eport = ((struct sockaddr_in *)&sockaddr)->sin_port;
+	if (sockaddr_ptr->sa_family == AF_INET) {
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)sockaddr_ptr;
+		handle->data.net.eport = sockaddr_in->sin_port;
 #ifdef AF_INET6
-	} else if (((struct sockaddr *)&sockaddr)->sa_family == AF_INET6) {
-		handle->data.net.eport = ((struct sockaddr_in6 *)&sockaddr)->sin6_port;
+	} else if (sockaddr_ptr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)sockaddr_ptr;
+		handle->data.net.eport = sockaddr_in6->sin6_port;
 #endif
 	} else {
 		return M_FALSE;
@@ -1147,16 +1148,19 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 #else
 	struct sockaddr_in      sockaddr;
 #endif
+	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
 	socklen_t               sockaddr_size = sizeof(sockaddr);
-	char                    addr[64];
+	char                    addr[64]      = { 0 };
+
+	M_mem_set(sockaddr_ptr, 0, sockaddr_size);
 
 	handle         = M_malloc_zero(sizeof(*handle));
 	handle->port   = orig_handle->port;
 	errno          = 0;
 #if defined(HAVE_ACCEPT4) && defined(SOCK_CLOEXEC)
-	handle->data.net.sock   = accept4(orig_handle->data.net.sock, (struct sockaddr *)&sockaddr, &sockaddr_size, SOCK_CLOEXEC);
+	handle->data.net.sock   = accept4(orig_handle->data.net.sock, sockaddr_ptr, &sockaddr_size, SOCK_CLOEXEC);
 #else
-	handle->data.net.sock   = accept(orig_handle->data.net.sock, (struct sockaddr *)&sockaddr, &sockaddr_size);
+	handle->data.net.sock   = accept(orig_handle->data.net.sock, sockaddr_ptr, &sockaddr_size);
 #endif
 	if (handle->data.net.sock == M_EVENT_INVALID_SOCKET) {
 		M_io_net_resolve_error(orig_handle);
@@ -1177,18 +1181,16 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 	handle->data.net.evhandle = handle->data.net.sock;
 #endif
 
-#ifndef HAVE_SOCKADDR_STORAGE
-	if (1) {
-#else
-	if (((struct sockaddr *)&sockaddr)->sa_family == AF_INET) {
-#endif
-		M_dns_ntop(AF_INET, &((struct sockaddr_in *)&sockaddr)->sin_addr, addr, sizeof(addr));
-		handle->data.net.eport = ((struct sockaddr_in *)&sockaddr)->sin_port;
+	if (sockaddr_ptr->sa_family == AF_INET) {
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)sockaddr_ptr;
+		M_dns_ntop(AF_INET, &sockaddr_in->sin_addr, addr, sizeof(addr));
+		handle->data.net.eport = sockaddr_in->sin_port;
 		handle->type           = M_IO_NET_IPV4;
 #ifdef AF_INET6
-	} else if (((struct sockaddr *)&sockaddr)->sa_family == AF_INET6) {
-		M_dns_ntop(AF_INET6, &((struct sockaddr_in6 *)&sockaddr)->sin6_addr, addr, sizeof(addr));
-		handle->data.net.eport = ((struct sockaddr_in6 *)&sockaddr)->sin6_port;
+	} else if (sockaddr_ptr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)sockaddr_ptr;
+		M_dns_ntop(AF_INET6, &sockaddr_in6->sin6_addr, addr, sizeof(addr));
+		handle->data.net.eport = sockaddr_in6->sin6_port;
 		handle->type           = M_IO_NET_IPV6;
 #endif
 	}

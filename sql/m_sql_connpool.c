@@ -403,7 +403,6 @@ static size_t M_sql_connpool_get_host_idx(M_sql_connpool_t *pool, M_bool readonl
 		pool_data = &pool->pool_readonly;
 	} else {
 		pool_data = &pool->pool_primary;
-		readonly  = M_FALSE; /* Override */
 	}
 
 	curr_idx = pool_data->host_idx;
@@ -440,7 +439,6 @@ static void M_sql_connpool_mark_host_idx_failed(M_sql_connpool_t *pool, size_t h
 		pool_data = &pool->pool_readonly;
 	} else {
 		pool_data = &pool->pool_primary;
-		readonly  = M_FALSE; /* Override */
 	}
 
 	pool_data->host_offline_t[host_idx] = M_time();
@@ -539,7 +537,7 @@ static M_sql_error_t M_sql_connpool_spawn(M_sql_connpool_t *pool, M_sql_connpool
 		/* Try to connect up to num_hosts times, or until successful */
 		for (j=0; j<pool_data->num_hosts; j++) {
 			err = M_sql_conn_create(&conn, pool, i, is_readonly, temp, sizeof(temp));
-			if (err == M_SQL_ERROR_SUCCESS)
+			if (err == M_SQL_ERROR_SUCCESS || conn == NULL)
 				break;
 		}
 

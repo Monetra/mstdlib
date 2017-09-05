@@ -119,6 +119,8 @@ static void M_sql_table_col_destroy(void *arg)
 static void M_sql_index_destroy(void *arg)
 {
 	M_sql_index_t *idx = arg;
+	if (idx == NULL)
+		return;
 	M_free(idx->name);
 	M_list_str_destroy(idx->cols);
 	M_free(idx);

@@ -620,7 +620,6 @@ M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt)
 	size_t col;
 	size_t cell;
 	size_t len;
-	size_t pad_align;
 
 	/* Not initialized */
 	if (stmt == NULL || stmt->result == NULL || stmt->result->num_cols == 0)
@@ -659,10 +658,8 @@ M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt)
 		return NULL;
 
 	/* Align offset for safety */
-	if (len % M_SAFE_ALIGNMENT == 0) {
-		pad_align = 0;
-	} else {
-		pad_align = M_SAFE_ALIGNMENT - (len % M_SAFE_ALIGNMENT);
+	if (len % M_SAFE_ALIGNMENT != 0) {
+		size_t pad_align = M_SAFE_ALIGNMENT - (len % M_SAFE_ALIGNMENT);
 		M_buf_add_fill(stmt->result->rows[row], 0, pad_align);
 	}
 

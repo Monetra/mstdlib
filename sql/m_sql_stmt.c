@@ -555,7 +555,7 @@ M_bool M_sql_stmt_has_remaining_rows(M_sql_stmt_t *stmt)
 
 M_sql_error_t M_sql_stmt_fetch(M_sql_stmt_t *stmt)
 {
-	M_sql_error_t err    = stmt->last_error;
+	M_sql_error_t err;
 	M_bool        append = M_FALSE;
 
 	err = M_sql_stmt_fetch_int(stmt, append);

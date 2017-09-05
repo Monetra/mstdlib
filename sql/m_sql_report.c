@@ -401,7 +401,7 @@ static M_sql_report_encap_type_t M_sql_report_col_needs_encap(const M_sql_report
 
 	/* If supplied data is not NULL, but has 0 length, or the cell starts or ends with whitespace, it needs encapsulation */
 	if ((data != NULL && data_len == 0) ||
-	    (data_len && (M_chr_isspace((char)data[0]) || M_chr_isspace((char)data[data_len-1])))
+	    (data != NULL && data_len && (M_chr_isspace((char)data[0]) || M_chr_isspace((char)data[data_len-1])))
 	   ) {
 		type = M_SQL_REPORT_ENCAP_ONLY;
 	}

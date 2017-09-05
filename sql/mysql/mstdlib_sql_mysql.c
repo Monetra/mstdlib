@@ -958,7 +958,6 @@ static M_sql_error_t mysql_cb_commit(M_sql_conn_t *conn, char *error, size_t err
 	/* Enable auto-commit, will disable it in transactions */
 	if (mysql_autocommit(dconn->conn, 1) != 0) {
 		unsigned int merr = mysql_errno(dconn->conn);
-		err               = mysql_resolve_error(NULL, (M_int32)merr);
 		M_snprintf(error, error_size, "failed to enable autocommit, forcing disconnect: (%u) %s", merr, mysql_error(dconn->conn));
 		return M_SQL_ERROR_CONN_LOST;
 	}
