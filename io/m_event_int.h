@@ -91,6 +91,7 @@ struct M_event_trigger {
 M_uint64 M_event_timer_minimum_ms(M_event_t *event);
 void M_event_timer_process(M_event_t *event);
 void M_event_deliver_io(M_event_t *event, M_io_t *io, M_event_type_t type);
+void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type);
 
 
 struct M_event_data;

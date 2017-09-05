@@ -248,7 +248,7 @@ void M_event_destroy(M_event_t *event)
 }
 
 
-static void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
+void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
 {
 	M_event_t            *event  = M_io_get_event(io);
 	M_event_io_t         *ioev   = NULL;
