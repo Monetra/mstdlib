@@ -534,7 +534,7 @@ M_printf("ServerCert: %s\n", realcert);
 
 START_TEST(check_tls)
 {
-	M_uint64 tests[] = { 1, 25, 50, /* 100,  200, -- disable because of mac */ 0 };
+	M_uint64 tests[] = { 1, 25, /* 50,  100,  200, -- disable because of mac */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {
