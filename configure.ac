@@ -19,6 +19,7 @@ AM_PROG_CC_C_O
 dnl __typeof__ -> typeof
 AC_C_TYPEOF
 AM_PROG_AS
+AM_SILENT_RULES([yes])
 
 ADD_OBJECTS=""
 UNAME_S=`uname -s`
