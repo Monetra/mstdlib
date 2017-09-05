@@ -43,12 +43,14 @@ jobs:
     - stage: Static Analysis
       os: linux
       env: 
-        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-3.5"
+        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-4.0"
       compiler: clang
       addons:
         apt:
           sources:
-            - clang-3.5
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0
     - stage: Runtime Analysis
       os: linux
       env: 
