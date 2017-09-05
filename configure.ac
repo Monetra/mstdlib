@@ -19,6 +19,9 @@ AM_PROG_CC_C_O
 dnl __typeof__ -> typeof
 AC_C_TYPEOF
 AM_PROG_AS
+
+dnl Setting this prevents showing the full compile/link command line.
+dnl Use --disable-silent-rules  or  make V=1  to re-enable verbosity.
 AM_SILENT_RULES([yes])
 
 ADD_OBJECTS=""
