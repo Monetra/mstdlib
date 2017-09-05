@@ -75,10 +75,14 @@ TESTS += \
 		io/check_event_pipe \
 		io/check_dns \
 		io/check_event_bwshaping \
-		io/check_hid \
 		io/check_serial \
 		io/check_pipespeed \
 		io/check_netspeed
+
+# No HID support on MacOSX
+if !MACOSX
+TESTS += io/check_hid
+endif
 
 AM_LDFLAGS += -L$(top_builddir)/io/.libs/
 LDADD += $(top_builddir)/io/libmstdlib_io.la
