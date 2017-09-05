@@ -10,6 +10,7 @@ LDADD       = $(top_builddir)/base/libmstdlib.la
 ######################################################################
 
 TESTS_ENVIRONMENT = $(VALGRIND_ENVIRONMENT)
+CK_VERBOSITY = verbose
 
 ######################################################################
 
