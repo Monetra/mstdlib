@@ -84,6 +84,10 @@ test_script:
   - set CTEST_OUTPUT_ON_FAILURE=1
   - ctest
 
+after_test:
+  - cd C:\projects\build-mstdlib\test
+  - ps: Get-ChildItem .\check_*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+
 # Enable RDP connections into build worker.
 # Force build worker to stay open after build is done, so we can RDP into it.
 #init:
