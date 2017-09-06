@@ -35,9 +35,10 @@ jobs:
       env:
         - BUILD_TYPE="autotools" CONFIG_OPTS=""
       compiler: gcc
-    - os: osx
-      env:
-        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
+# OSX seems unreliable with travis, builds just get canceled.
+#    - os: osx
+#      env:
+#        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
 #    - os: osx
 #      env:
 #        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl"
