@@ -877,11 +877,11 @@ static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
 		return M_FALSE;
 
 	if (sockaddr_ptr->sa_family == AF_INET) {
-		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)sockaddr_ptr;
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
 		handle->data.net.eport = sockaddr_in->sin_port;
 #ifdef AF_INET6
 	} else if (sockaddr_ptr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)sockaddr_ptr;
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
 		handle->data.net.eport = sockaddr_in6->sin6_port;
 #endif
 	} else {
@@ -1182,13 +1182,13 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 #endif
 
 	if (sockaddr_ptr->sa_family == AF_INET) {
-		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)sockaddr_ptr;
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
 		M_dns_ntop(AF_INET, &sockaddr_in->sin_addr, addr, sizeof(addr));
 		handle->data.net.eport = sockaddr_in->sin_port;
 		handle->type           = M_IO_NET_IPV4;
 #ifdef AF_INET6
 	} else if (sockaddr_ptr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)sockaddr_ptr;
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
 		M_dns_ntop(AF_INET6, &sockaddr_in6->sin6_addr, addr, sizeof(addr));
 		handle->data.net.eport = sockaddr_in6->sin6_port;
 		handle->type           = M_IO_NET_IPV6;
