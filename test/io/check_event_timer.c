@@ -152,14 +152,14 @@ struct timer_test {
 };
 struct timer_test timer_tests[] = {
 	/* start ,  end, intvl,  max, cnt,                         mode, trigger?, delay, expected, tolerance */
-	{       0, 1099,   100, 1200,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,     0,       10, 0 },
-	{       0, 1099,   100, 1200,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       10, 0 },
-	{       0, 1099,   100, 1200,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,     0,       10, 0 },
-	{       0, 1099,   100, 1200,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       10, 0 },
-	{       0, 1099,   100, 1200,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,   200,       10, 0 },
-	{       0, 1099,   100, 1200,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,   200,       10, 0 },
-	{       0, 1099,   100, 1200,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,   200,        8, 0 },
-	{       0, 1099,   100, 1200,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,   200,        8, 0 },
+	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,     0,       10, 0 },
+	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       10, 0 },
+	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,     0,       10, 0 },
+	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       10, 0 },
+	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,   300,       10, 0 },
+	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,   300,       10, 0 },
+	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,   300,        8, 0 },
+	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,   300,        8, 0 },
 	/* Interval is so short we had to add a tolerence as time isn't all that reliable */
 	{     100,  225,    50,  500,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,        3, 1 },
 	{     100,  225,    50,  500,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,        3, 1 },
