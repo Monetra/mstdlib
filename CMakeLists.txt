@@ -30,13 +30,19 @@ set(MSTDLIB_SOVERSION_STRING ${MSTDLIB_VERSION_MAJOR})
 
 
 # Build options
+if (M_ASAN)
+	set(valgrind_default FALSE)
+else ()
+	set(valgrind_default TRUE)
+endif ()
+
 option(MSTDLIB_STATIC          "Build as a static library"                              FALSE)
 option(MSTDLIB_STATIC_PIC      "Build the static library as PIC (position independent)" FALSE)
 option(MSTDLIB_INSTALL_HEADERS "Install headers"                                        TRUE)
 option(MSTDLIB_INSTALL_LIBS    "Install libraries"                                      TRUE)
 option(MSTDLIB_BUILD_TESTS     "Build tests"                                            TRUE)
 option(MSTDLIB_BUILD_DOCS      "Build doxygen docs"                                     TRUE)
-option(MSTDLIB_USE_VALGRIND    "Run tests with valgrind when running 'make check'"      TRUE)
+option(MSTDLIB_USE_VALGRIND    "Run tests with valgrind when running 'make check'"      ${valgrind_default})
 option(MSTDLIB_BUILD_FORMATS   "Build formats module"                                   TRUE)
 option(MSTDLIB_BUILD_THREAD    "Build thread module"                                    TRUE)
 option(MSTDLIB_BUILD_IO        "Build io module"                                        TRUE)
