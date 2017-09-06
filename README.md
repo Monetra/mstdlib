@@ -33,7 +33,7 @@ A number of additional functions are provided that are non-standard but often
 found in some common libc implementations. This ensures consistency across
 multiple platforms.
 
-To aid with reducing coding errors a number of attribute warning as set (as
+To aid with reducing coding errors a number of attribute warnings are set (as
 supported by the compiler in use). These provide additional hints to the
 compiler and cause additional warnings to be generated. For example, checking if
 NULL is passed as a parameter when NULL is not a valid input (mstdlib will
