@@ -4,9 +4,9 @@
 #  WINDDK_ROOT_DIR 
 #
 # Once done this will define
-#  WinDDK_FOUND - true if the system has WinDDK
+#  WinDDK_FOUND        - true if the system has WinDDK
 #  WINDDK_INCLUDE_DIRS - the WinDDK Include Directories
-#  WINDDK_LIBRARY_DIRS - the WinDDK Library Directories
+#  WINDDK_LIBRARIES    - the WinDDK Library Directories
 
 # Cache settings and WinDDK environment variables take precedence,
 # or we try to fall back to the default search.
@@ -38,21 +38,21 @@ endfunction()
 
 IF (WIN32)
 	# Visual Studio >= 2015 and some MinGW have DDK headers built in lets test for working headers, if we
-	# have them, then just set WINDDK_LIBRARY_DIRS and WINDDK_INCLUDE_DIRS blank.
+	# have them, then just set WINDDK_LIBRARIES and WINDDK_INCLUDE_DIRS blank.
 	IF (NOT WinDDK_FOUND)
-		SET(CMAKE_REQUIRED_LIBRARIES hid.lib)
+		SET(CMAKE_REQUIRED_LIBRARIES hid)
 		CHECK_INCLUDE_FILES ("windows.h;hidsdi.h"  HAVE_HIDSDI_H)
 		CHECK_SYMBOL_EXISTS ("HidD_GetAttributes" "windows.h;hidsdi.h" HAVE_HIDD_GETATTRIBUTES)
 		SET(CMAKE_REQUIRED_LIBRARIES )
 
 		IF ("${HAVE_HIDSDI_H}" AND "${HAVE_HIDD_GETATTRIBUTES}")
 			SET(WINDDK_INCLUDE_DIRS )
-			SET(WINDDK_LIBRARY_DIRS )
-			SET(WinDDK_FOUND 1)
+			SET(WINDDK_LIBRARIES hid)
+			SET(WinDDK_FOUND TRUE)
 		ENDIF ()
 	ENDIF ()
 
-	IF (NOT (WINDDK_INCLUDE_DIRS AND WINDDK_LIBRARY_DIRS) AND NOT WinDDK_FOUND)
+	IF (NOT (WINDDK_INCLUDE_DIRS AND WINDDK_LIBRARIES) AND NOT WinDDK_FOUND)
 		WINDDK_EXPAND_SUBDIRS(WINDDK_SEARCHPATHS
 			"$ENV{SYSTEMDRIVE}/WinDDK/"
 			"$ENV{ProgramFiles}/Windows Kits/"
@@ -89,8 +89,8 @@ IF (WIN32)
 			ENDFOREACH()
 		ENDFOREACH()
 
-		find_path(WINDDK_LIBRARY_DIRS
-			NAMES hid.lib
+		find_library(WINDDK_LIBRARIES
+			NAMES hid.lib hid.a hid
 			PATHS
 				"${WINDDK_ROOT_DIR}"
 				"$ENV{WINDDK_PATH}"
@@ -99,12 +99,12 @@ IF (WIN32)
 			PATH_SUFFIXES
 				${WINDDK_LIBPATH_SUFFIX}
 		)
-		mark_as_advanced(WINDDK_LIBRARY_DIRS)
+		mark_as_advanced(WINDDK_LIBRARIES)
 	ENDIF ()
 
 	IF (NOT WinDDK_FOUND)
 		FIND_PACKAGE_HANDLE_STANDARD_ARGS(WinDDK
-			REQUIRED_VARS WINDDK_INCLUDE_DIRS WINDDK_LIBRARY_DIRS
+			REQUIRED_VARS WINDDK_INCLUDE_DIRS WINDDK_LIBRARIES
 			FAIL_MESSAGE "WinDDK not found try -DWINDDK_ROOT_DIR=<path>"
 		)
 	ENDIF ()

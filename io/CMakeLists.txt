@@ -145,12 +145,8 @@ target_link_libraries(${PROJECT_NAME}
 
 # Link extra system libraries.
 if (WIN32 OR MINGW)
-	find_library(LIBHID
-		NAMES hid
-		PATHS "${WINDDK_LIBRARY_DIRS}" /lib
-	)
 	target_link_libraries(${PROJECT_NAME}
-		PRIVATE Ws2_32.lib winmm.lib Setupapi.lib "${LIBHID}"
+		PRIVATE Ws2_32.lib winmm.lib Setupapi.lib "${WINDDK_LIBRARIES}"
 	)
 endif ()
 
