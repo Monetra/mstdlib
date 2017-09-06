@@ -161,12 +161,12 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 				                           "--show-reachable=yes"
 				                           "--suppressions=${PROJECT_SOURCE_DIR}/valgrind/check.suppressions"
 				                           "--log-file=${PROJECT_BINARY_DIR}/test/${test_prog}-valgrind.log"
-				                           $<TARGET_FILE:${test_prog}>
+				                           $<TARGET_FILE:${test_prog}> "from_ctest"
 			)
 		else ()
 			add_test(
 				NAME    ${test_prog}
-				COMMAND ${test_prog}
+				COMMAND ${test_prog} "from_ctest"
 			)
 		endif ()
 	endforeach ()
