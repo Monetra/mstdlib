@@ -3,6 +3,13 @@ image: Visual Studio 2015
 # Github/Bitbucket only: get source code for one particular commit as zip archive, instead of git clone'ing.
 shallow_clone: true
 
+# Github/Bitbucket only: per-file commit filtering
+skip_commits:
+  files:
+    - .gitignore
+    - *.md
+    - .travis.yml
+
 # List of build configurations to test.
 configuration:
   - RelWithDebInfo
