@@ -406,7 +406,7 @@ static M_sql_report_encap_type_t M_sql_report_col_needs_encap(const M_sql_report
 		type = M_SQL_REPORT_ENCAP_ONLY;
 	}
 
-	for (i=0; i<data_len; i++) {
+	for (i=0; data != NULL && i<data_len; i++) {
 		if (data[i] == report->field_encaps || data[i] == report->field_escape)
 				return M_SQL_REPORT_ENCAP_REWRITE;
 

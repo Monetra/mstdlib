@@ -537,11 +537,11 @@ static M_sql_error_t M_sql_connpool_spawn(M_sql_connpool_t *pool, M_sql_connpool
 		/* Try to connect up to num_hosts times, or until successful */
 		for (j=0; j<pool_data->num_hosts; j++) {
 			err = M_sql_conn_create(&conn, pool, i, is_readonly, temp, sizeof(temp));
-			if (err == M_SQL_ERROR_SUCCESS || conn == NULL)
+			if (err == M_SQL_ERROR_SUCCESS)
 				break;
 		}
 
-		if (err != M_SQL_ERROR_SUCCESS) {
+		if (err != M_SQL_ERROR_SUCCESS || conn == NULL) {
 			pool_data->info[i] = M_SQL_CONN_INFO_FAILED;
 			M_snprintf(error, error_size, "(%s) #%zu of %zu: %s", is_readonly?"RO":"RW", i+1, start_conns, temp);
 		} else {
