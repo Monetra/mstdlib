@@ -7,7 +7,7 @@ shallow_clone: true
 skip_commits:
   files:
     - .gitignore
-    - *.md
+    - '**/*.md'
     - .travis.yml
 
 # List of build configurations to test.
