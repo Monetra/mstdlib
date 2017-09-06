@@ -7,13 +7,6 @@ cache:
   apt: true
 
 addons:
-  coverity_scan:
-    project:
-      name: "Monetra/mstdlib"
-      description: "M standard library for C"
-    build_command_prepend: "cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -H. -B_builds"
-    build_command:   "cmake --build _builds"
-    branch_pattern: coverity_scan
   apt:
     sources:
       - ubuntu-toolchain-r-test
@@ -35,7 +28,6 @@ env:
 
 before_install:
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-
 
 jobs:
   include:
@@ -64,11 +56,32 @@ jobs:
       env: 
         - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-4.0"
       compiler: clang
-    - stage: Runtime Analysis
-      os: linux
-      env: 
-        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
-      compiler: clang
+    - os: linux
+      env:
+        - BUILD_TYPE="coverity"
+      addons:
+        coverity_scan:
+          project:
+            name: "Monetra/mstdlib"
+            description: "M standard library for C"
+          build_command_prepend: "cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -H. -B_builds"
+          build_command: "cmake --build _builds"
+          branch_pattern: coverity_scan
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
+          packages:
+            - cmake
+            - libssl-dev
+            - libpq-dev
+            - libmariadbd-dev
+            - unixodbc-dev
+#    - stage: Runtime Analysis
+#      os: linux
+#      env: 
+#        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
+#      compiler: clang
 #    - os: osx
 #      env:
 #        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
@@ -89,7 +102,6 @@ before_script:
    - unzip sqlite-amalgamation-3200100.zip
    - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
    - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
-
 
 script:
     - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds ; fi
