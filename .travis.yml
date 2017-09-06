@@ -11,6 +11,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
+      - llvm-toolchain-trusty-4.0
     packages:
       - cmake
       - libssl-dev
@@ -19,6 +20,7 @@ addons:
       - libmariadbd-dev
       - unixodbc-dev
       - check
+      - clang-4.0
 
 jobs:
   include:
@@ -47,12 +49,6 @@ jobs:
       env: 
         - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-4.0"
       compiler: clang
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-4.0
-          packages:
-            - clang-4.0
     - stage: Runtime Analysis
       os: linux
       env: 
