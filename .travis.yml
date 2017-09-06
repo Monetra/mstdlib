@@ -1,5 +1,6 @@
 language: c
 dist: trusty
+osx_image: xcode9
 sudo: false
 
 cache:
