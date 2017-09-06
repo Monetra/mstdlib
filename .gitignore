@@ -3,6 +3,8 @@
 
 # We often build in build/ ignore that
 build/
+build-*/
+build_*/
 
 # Autotools ignore
 config/
@@ -11,6 +13,9 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
+
+# Qt Creator ignore
+CMakeLists.txt.user
 
 # ======================
 # https://github.com/github/gitignore/blob/master/C.gitignore
