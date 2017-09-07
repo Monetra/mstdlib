@@ -524,6 +524,7 @@ START_TEST(check_spinlock)
 	for (i=0; i<SPINLOCK_THREAD_COUNT; i++) {
 		thread[i] = M_thread_create(tattr, thread_spinlock, &data);
 	}
+	M_thread_attr_destroy(tattr);
 
 	M_thread_mutex_lock(data.condlock);
 	while (data.thread_count != SPINLOCK_THREAD_COUNT) {
