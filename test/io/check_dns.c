@@ -18,13 +18,14 @@
 #  define URL "http://www.google.com/"
 #endif
 
+M_bool got_response = M_FALSE;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
 
-M_bool got_response = M_FALSE;
 
 static void event_debug(const char *fmt, ...)
 {
