@@ -23,7 +23,7 @@ addons:
 
 # Add coverity certificate to system ca-certificates
 before_install:
-  - if [ "${COVERITY_SCAN_BRANCH}" = 1 ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-certificates.crt ; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" = "1" ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-certificates.crt ; fi
 
 jobs:
   include:
@@ -63,6 +63,7 @@ jobs:
           project:
             name: "Monetra/mstdlib"
             description: "M standard library for C"
+          notification_email: brad@monetra.com
           build_command_prepend: "cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -H. -B_builds"
           build_command: "cmake --build _builds"
           branch_pattern: coverity_scan
@@ -86,10 +87,6 @@ jobs:
 #      env:
 #        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
 #      compiler: clang
-  allow_failures:
-    - env: BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-4.0"
-    - env: BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
-  fast_finish: true
 
 
 install:
