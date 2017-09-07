@@ -478,14 +478,14 @@ static Suite *mem_suite(void)
 
 	tc_memdup = tcase_create("memdup");
 	tcase_add_loop_test(tc_memdup, check_memdup_NULL,     0, 32);
-	tcase_add_loop_test(tc_memdup, check_memdup_contents, 1, 32);
+	tcase_add_loop_test(tc_memdup, check_memdup_contents, 1, 26);
 	suite_add_tcase(suite, tc_memdup);
 
 	tc_memdup_max = tcase_create("memdup_max");
 	tcase_add_loop_test(tc_memdup_max, check_memdup_max_NULL,                1, 32);
-	tcase_add_loop_test(tc_memdup_max, check_memdup_max_contents,            1, 32);
-	tcase_add_loop_test(tc_memdup_max, check_memdup_max_empty_allocation,    1, 32);
-	tcase_add_loop_test(tc_memdup_max, check_memdup_max_contents_allocation, 1, 32);
+	tcase_add_loop_test(tc_memdup_max, check_memdup_max_contents,            1, 26);
+	tcase_add_loop_test(tc_memdup_max, check_memdup_max_empty_allocation,    1, 26);
+	tcase_add_loop_test(tc_memdup_max, check_memdup_max_contents_allocation, 1, 26);
 	suite_add_tcase(suite, tc_memdup_max);
 
 	tc_mem_chr = tcase_create("mem_chr");
