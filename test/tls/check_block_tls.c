@@ -14,7 +14,7 @@ M_uint64 active_server_connections;
 M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
-
+M_thread_mutex_t *debug_lock = NULL;
 #define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
@@ -29,7 +29,9 @@ static void event_debug(const char *fmt, ...)
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
+M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
 #else
@@ -207,6 +209,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	client_connection_count   = 0;
 	server_connection_count   = 0;
 	expected_connections      = num_connections;
+	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	/* Generate real cert */
 	if (!tls_gen_key_cert(&key, &cert))
@@ -276,6 +279,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_tls_serverctx_destroy(serverctx);
 	M_dns_destroy(dns);
 	event_debug("exited");
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
 	M_library_cleanup();
 	return M_EVENT_ERR_DONE;
 }
@@ -389,6 +393,8 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_io_error_t       err;
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
+	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+
 	/* Generate real cert */
 	if (!tls_gen_key_cert(&key, &cert))
 		return M_EVENT_ERR_RETURN;
@@ -496,6 +502,7 @@ cleanup:
 	M_tls_serverctx_destroy(serverctx);
 	M_dns_destroy(dns);
 	event_debug("exited");
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
 	M_library_cleanup();
 	return ev_err;
 }

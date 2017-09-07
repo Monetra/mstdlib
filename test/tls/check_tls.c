@@ -17,6 +17,7 @@ M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_io_t  *netserver;
+M_thread_mutex_t *debug_lock = NULL;
 
 #define DEBUG 1
 
@@ -32,7 +33,9 @@ static void event_debug(const char *fmt, ...)
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
+M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
 #else
@@ -273,13 +276,17 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
+M_thread_mutex_lock(debug_lock);
 		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+M_thread_mutex_unlock(debug_lock);
 		return;
 	}
 
 	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
+M_thread_mutex_lock(debug_lock);
 	M_printf("%s\n", buf);
+M_thread_mutex_unlock(debug_lock);
 	M_free(buf);
 }
 #endif
@@ -348,6 +355,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	active_server_connections = 0;
 	client_connection_count   = 0;
 	server_connection_count   = 0;
+	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -526,8 +534,9 @@ M_printf("ServerCert: %s\n", realcert);
 
 	M_tls_clientctx_destroy(clientctx);
 	M_tls_serverctx_destroy(serverctx);
-	M_library_cleanup();
 	event_debug("exited");
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
+	M_library_cleanup();
 
 	return err;
 }

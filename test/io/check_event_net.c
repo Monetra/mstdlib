@@ -15,6 +15,7 @@ M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_io_t  *netserver;
+M_thread_mutex_t *debug_lock = NULL;
 
 struct conn_state {
 	M_bool is_connected;
@@ -57,7 +58,9 @@ static void event_debug(const char *fmt, ...)
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
+M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
 static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
@@ -256,6 +259,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	active_server_connections = 0;
 	client_connection_count   = 0;
 	server_connection_count   = 0;
+	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("starting %llu connection test", num_connections);
 	if ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) != M_IO_ERROR_SUCCESS) {
@@ -300,9 +304,10 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	M_event_destroy(event);
 
 	M_dns_destroy(dns);
-
-	M_library_cleanup();
 	event_debug("exited");
+
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
+	M_library_cleanup();
 
 	return err;
 }

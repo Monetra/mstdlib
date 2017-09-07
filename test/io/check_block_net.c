@@ -13,7 +13,7 @@ M_uint64 active_server_connections;
 M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
-
+M_thread_mutex_t *debug_lock = NULL;
 #define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
@@ -28,7 +28,9 @@ static void event_debug(const char *fmt, ...)
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
+M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
 #else
@@ -158,6 +160,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	client_connection_count   = 0;
 	server_connection_count   = 0;
 	expected_connections      = num_connections;
+	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("Test %llu connections", num_connections);
 	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
@@ -178,6 +181,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	M_thread_join(thread, NULL);
 	M_dns_destroy(dns);
 	event_debug("exited");
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
 	M_library_cleanup();
 }
 
