@@ -56,7 +56,8 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 	}
 	if (is_server) {
 		M_atomic_inc_u64(&active_server_connections);
-		M_atomic_inc_u64(&server_connection_count);
+		/* Delay server connection count until we actually receive a message.
+		 * Sometimes windows does a spurious connection for some reason */
 	} else {
 		M_atomic_inc_u64(&active_client_connections);
 		M_atomic_inc_u64(&client_connection_count);
@@ -91,6 +92,10 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
+			/* Delay server connection count until we actually receive a message.
+			 * Sometimes windows does a spurious connection for some reason */
+			M_atomic_inc_u64(&server_connection_count);
+
 			M_parser_truncate(readparser, 0);
 			event_debug("%p %s closing connection", conn, is_server?"netserver":"netclient");
 			M_io_block_disconnect(conn);
