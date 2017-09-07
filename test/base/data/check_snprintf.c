@@ -200,13 +200,13 @@ static const struct {
 	{ "%.4f",  1.234,                   -1, "1.2340"              },
 	{ "%.3f",  1.234,                   -1, "1.234"               },
 	{ "%.0f",  1.234,                   -1, "1"                   },
-	{ "%.25f",  1.234,                   -1, "1.2340000000000000000000000" },
-	{ "%.16f", 1.7976931348623157e+308, -1, "179769313486234550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0000000000000000"  }, /* Largest representable number */
-	{ "%.16f", 2.2250738585072014e-308, -1, "0.0000000000000000"  }, /* Smallest number without losing precision */
-	{ "%.16f", 5e-324,                  -1, "0.0000000000000000"  }, /* Smallest representable number */
-	{ "%.16f", 52.0,                    -1, "52.0000000000000000" }, /* Mantissa bits */
-	{ "%.16f", 11.0,                    -1, "11.0000000000000000" }, /* Exponent bits */
-	{ "%.16f", 2.220446049250313e-16,   -1, "0.0000000000000002"  }, /* Epsilon */
+	{ "%.14f",  1.234,                   -1, "1.23400000000000" },
+	{ "%.14f", 1.7976931348623157e+308, -1, "179769313486234550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.00000000000000"  }, /* Largest representable number */
+	{ "%.14f", 2.2250738585072014e-308, -1, "0.00000000000000"  }, /* Smallest number without losing precision */
+	{ "%.14f", 5e-324,                  -1, "0.00000000000000"  }, /* Smallest representable number */
+	{ "%.14f", 52.0,                    -1, "52.00000000000000" }, /* Mantissa bits */
+	{ "%.14f", 11.0,                    -1, "11.00000000000000" }, /* Exponent bits */
+	{ "%.14f", 2.220446049250313e-16,   -1, "0.00000000000000"  }, /* Epsilon */
 	{ NULL, 0, -1, NULL  }
 };
 
@@ -293,8 +293,8 @@ START_TEST(check_snprintf_multi)
 	size_t      ret;
 
 	
-	fmt  = "%#09x %#09o abc %-4.1d, +%.16f -- %% %+020.16f";
-	expt = "0x0000149 000000052 abc 97  , +123456.7890000000043075 -- % +32.2345578801230031";
+	fmt  = "%#09x %#09o abc %-4.1d, +%.14f -- %% %+020.14f";
+	expt = "0x0000149 000000052 abc 97  , +123456.78900000000431 -- % +0032.23455788012300";
 	ret = M_snprintf(buf, sizeof(buf), fmt, 329, 42, 97, 123456.789, 32.234567890123); 
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
@@ -375,9 +375,9 @@ START_TEST(check_snprintf_alloc)
 	size_t      elen;
 	size_t      ret;
 
-	fmt  = "%#09x %#09o abc %-4.1d, +%.16f -- %% %+020.16f abcdefgh%%ijklmnopqrstuvwxyz %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s";
-	expt = "0x0000149 000000052 abc 97  , +123456.7890000000043075 -- % +32.2345578801230031 abcdefgh%ijklmnopqrstuvwxyz rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire                                 874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	28ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2";
-	elen = 1882;
+	fmt  = "%#09x %#09o abc %-4.1d, +%.14f -- %% %+020.14f abcdefgh%%ijklmnopqrstuvwxyz %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s";
+	expt = "0x0000149 000000052 abc 97  , +123456.78900000000431 -- % +0032.23455788012300 abcdefgh%ijklmnopqrstuvwxyz rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire                                 874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire874red5f8t741re2fg8u5y21twrfdgy76tirwkdlfghjui887454ytwrf4748154rtgy8u875654rqe2drftwy6548ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	28ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf7yhjklo06trf5t865fdf54rty6y+rt		28uo09ujklaiujdadad32	2	2	2	2	2	2	2	2	2	2	2	2	2	2";
+	elen = 1880;
 	ret = M_asprintf(&buf, fmt, 329, 42, 97, 123456.789, 32.234567890123,
 			"rtyuiop-o0ytrftgyhjuiophgfghjkl]-09876rfbnm,.547125871afe431qf87458745125yryuehfjkvlgphoy0985yrehdnjmklpg[-y09685ire",
 			"                                 ",

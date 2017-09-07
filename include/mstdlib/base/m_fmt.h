@@ -145,7 +145,8 @@ M_END_IGNORE_REDECLARATIONS
  * of the string, the string length will be used. E.g. ("%.2s", "abc") will result in "ab" for the output.
  *
  * Precision for floating point determines the number of decimal places to output. The default is 6.
- * Output is capped at 16 digits.
+ * It's recommended the maximum precision specified be no large than 14 digits. Digits over 14 can have
+ * platform specific rounding differences.
  *
  * If either or both sides of the decimal do not have a value the side is ignored. This allows any
  * combination of width and precision to be specified.
