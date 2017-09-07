@@ -67,8 +67,13 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 	endif ()
 	# thread
 	if (MSTDLIB_BUILD_THREAD)
+		if (NOT M_ASAN)
+			# The coop test yields false-positives when built with ASAN.
+			list(APPEND slow_tests
+				thread/check_thread_coop.c
+			)
+		endif ()
 		list(APPEND slow_tests
-			thread/check_thread_coop.c
 			thread/check_thread_native.c
 		)
 	endif ()
