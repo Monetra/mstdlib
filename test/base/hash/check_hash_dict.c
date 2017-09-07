@@ -334,6 +334,7 @@ START_TEST(check_enumerate)
 	/* nothing should remain */
 	ensure_num_entries(0);
 
+	M_hash_dict_enumerate_free(dict2_enum);
 	M_hash_dict_destroy(dict2);
 }
 END_TEST
