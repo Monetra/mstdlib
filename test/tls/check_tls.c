@@ -336,6 +336,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	M_tls_serverctx_t  *child_serverctx;
 	M_tls_clientctx_t  *clientctx;
 	M_list_str_t       *applist;
+	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 	const char * const hosts[] = { "localhost"
 #ifdef RANDOMIZE_HOSTS
 	, "127.0.0.1", "::1"
@@ -474,7 +475,7 @@ M_printf("ServerCert: %s\n", realcert);
 	M_free(realcert);
 
 	event_debug("starting %llu connection test", num_connections);
-	if (M_io_net_server_create(&netserver, 1234, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return M_EVENT_ERR_RETURN;
 	}
@@ -495,7 +496,7 @@ M_printf("ServerCert: %s\n", realcert);
 	}
 	event_debug("listener added to event");
 	for (i=0; i<num_connections; i++) {
-		if (M_io_net_client_create(&netclient, NULL, hosts[i % (sizeof(hosts) / sizeof(*hosts))], 1234, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+		if (M_io_net_client_create(&netclient, NULL, hosts[i % (sizeof(hosts) / sizeof(*hosts))], port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create net client");
 			return M_EVENT_ERR_RETURN;
 		}

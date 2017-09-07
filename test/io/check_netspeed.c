@@ -225,10 +225,11 @@ static M_bool check_netspeed_test(void)
 	//M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_event_err_t      err;
+	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
 	runtime_ms = 4000;
 
-	if (M_io_net_server_create(&netserver, 1234, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return M_FALSE;
 	}
@@ -245,7 +246,7 @@ static M_bool check_netspeed_test(void)
 	}
 	event_debug("listener added to event");
 
-	if (M_io_net_client_create(&netclient, NULL, "127.0.0.1", 1234, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_client_create(&netclient, NULL, "127.0.0.1", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net client");
 		return M_FALSE;
 	}
