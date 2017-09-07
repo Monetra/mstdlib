@@ -19,7 +19,7 @@
 #endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>

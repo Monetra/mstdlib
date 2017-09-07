@@ -19,7 +19,7 @@ M_uint64 expected_connections;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
