@@ -36,6 +36,7 @@ START_TEST(check_parse_inplace)
 	ck_assert_msg(csv != NULL, "Unable to parse csv data");
 
 	M_csv_destroy(csv);
+	M_free(data);
 }
 END_TEST
 
