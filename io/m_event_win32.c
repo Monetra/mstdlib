@@ -587,10 +587,10 @@ static void M_event_impl_win32_process(M_event_t *event)
 			 * could use the value as last_error_sys */
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 
-			/* Enqueue a softevent for a disconnect (or a second READ for an error) as otherwise
+			/* Enqueue a softevent for a disconnect (or ERROR) as otherwise
 			 * it will do a partial read if there is still data buffered, and not ever attempt
 			 * to read again. */
-			M_io_softevent_add(member->io, 0, (NetEvents.iErrorCode[FD_CLOSE_BIT] == 0)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_READ);
+			M_event_deliver_io(event, member->io, (NetEvents.iErrorCode[FD_CLOSE_BIT] == 0)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
 		}
 
 		/* Treat CONNECT and WRITE events as WRITE events */
