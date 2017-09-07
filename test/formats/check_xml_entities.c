@@ -41,6 +41,9 @@ START_TEST(check_xml_entities_xml_entity_tests)
 
 	r2 = M_xml_entities_encode(decoded, M_str_len(decoded));
 	ck_assert_msg(M_str_eq(r2, encoded) , "encoded \"%s\" to \"%s\", expected \"%s\"", decoded, r2, encoded);
+
+	M_free(r1);
+	M_free(r2);
 }
 END_TEST
 
