@@ -7,6 +7,8 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_tls.h>
 
+// Enable below to cycle between localhost, 127.0.0.1, and ::1 to verify they all work as expected
+//#define RANDOMIZE_HOSTS
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_uint64 active_client_connections;
@@ -334,9 +336,9 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	M_tls_serverctx_t  *child_serverctx;
 	M_tls_clientctx_t  *clientctx;
 	M_list_str_t       *applist;
-	const char * const hosts[] = { "localhost", "127.0.0.1"
-#ifndef _WIN32
- ,"::1"
+	const char * const hosts[] = { "localhost"
+#ifdef RANDOMIZE_HOSTS
+	, "127.0.0.1", "::1"
 #endif
 }; 
 
