@@ -759,7 +759,7 @@ M_API char *M_strdup_unquote(const char *s, unsigned char quote, unsigned char e
  *
  * s must be passed to M_free to release the memory space associated with it.
  *
- * \param[in] s   NULL-terminated string.
+ * \param[in] s   NULL-terminated string (or up to max bytes of s).
  * \param[in] max Maximum number of bytes to copy from s.
  *
  * \return NULL when insufficient memory or s is NULL. Otherwise a NULL-terminated substring
@@ -777,7 +777,7 @@ M_API char *M_strdup_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSE
  *
  * s must be passed to M_free to release the memory space associated with it.
  *
- * \param[in] s   NULL-terminated string.
+ * \param[in] s   NULL-terminated string (or up to max bytes of s).
  * \param[in] max Maximum number of bytes to copy from s.
  *
  * \return NULL when insufficient memory or s is NULL. Otherwise a NULL-terminated substring
@@ -797,7 +797,7 @@ M_API char *M_strdup_upper_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN
  *
  * s must be passed to M_free to release the memory space associated with it.
  *
- * \param[in] s   NULL-terminated string.
+ * \param[in] s   NULL-terminated string (or up to max bytes of s).
  * \param[in] max Maximum number of bytes to copy from s.
  *
  * \see M_strdup_max
@@ -814,7 +814,7 @@ M_API char *M_strdup_lower_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN
  *
  * s must be passed to M_free to release the memory space associated with it.
  *
- * \param[in] s   NULL-terminated string.
+ * \param[in] s   NULL-terminated string (or up to max bytes of s).
  * \param[in] max Maximum number of bytes to copy from s.
  *
  * \return NULL when insufficient memory or s is NULL. Otherwise a NULL-terminated substring
@@ -834,7 +834,7 @@ M_API char *M_strdup_trim_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_
  *
  * s must be passed to M_free to release the memory space associated with it.
  *
- * \param[in] s      NULL-terminated string.
+ * \param[in] s      NULL-terminated string (or up to max bytes of s).
  * \param[in] quote  Quote character that should be removed.
  * \param[in] escape Character that escapes a quote that is within the quoted string.
  * \param[in] max    Maximum number of bytes to copy from s.

@@ -51,7 +51,8 @@ static char *M_strdup_int(const char *s, size_t n)
 	if (s == NULL)
 		return NULL;
 
-	ret = M_memdup(s, n+1);
+	ret = M_malloc(n+1);
+	M_mem_copy(ret, s, n);
 	ret[n] = '\0';
 
 	return ret;
