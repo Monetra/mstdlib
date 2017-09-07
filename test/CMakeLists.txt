@@ -114,19 +114,9 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 	if (NOT MSTDLIB_SKIP_SLOW_TESTS)
 		list(APPEND tests ${slow_tests})
 	endif ()
-
-	# There is a bug in check where it needs to link to threads. try and force it to happen.
-	# IF we include threads then that gets linked via mstdlib thread otherwise we need to add it.
-	set(check_threads)
-	if (MSTDLIB_BUILD_THREAD)
-		find_package(Threads)
-		if (CMAKE_HAVE_PTHREAD_H)
-			set(check_threads "pthread")
-		endif ()
-	endif ()
 	
 	# list of link dependencies for each test.
-	set(test_deps Check::check ${check_threads} Mstdlib::base Mstdlib::config)
+	set(test_deps Check::check Mstdlib::base Mstdlib::config)
 	
 	if (TARGET Mstdlib::formats)
 		list(APPEND test_deps Mstdlib::formats)
@@ -146,7 +136,16 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 	if (UNIX AND NOT APPLE)
 		list(APPEND test_deps m)
 	endif ()
-	
+
+	# There is a bug in check where it needs to link to threads. try and force it to happen.
+	# IF we include threads then that gets linked via mstdlib thread otherwise we need to add it.
+	if (MSTDLIB_BUILD_THREAD)
+		find_package(Threads)
+		if (CMAKE_HAVE_PTHREAD_H)
+			list(APPEND test_deps pthread)
+		endif ()
+	endif ()
+
 	# Add an executable target for each test, then add the target to the list of CPack tests.
 	foreach (test_src ${tests})
 		get_filename_component(test_prog ${test_src} NAME_WE)
