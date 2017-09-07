@@ -451,8 +451,11 @@ M_list_str_t *M_settings_groups(M_hash_dict_t *dict, const char *group)
 			}
 
 			/* There is no sub group. */
-			if (s_group == NULL || *s_group == '\0')
+			if (s_group == NULL || *s_group == '\0') {
+				M_free(s_group);
+				M_free(s_key);
 				continue;
+			}
 
 			/* The group can be given as "group" or "group/".
  			 * This means that when we removed the provided group from the key's group we could have
