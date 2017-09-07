@@ -76,11 +76,11 @@ jobs:
             - libpq-dev
             - libmariadbd-dev
             - unixodbc-dev
-#    - stage: Runtime Analysis
-#      os: linux
-#      env: 
-#        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
-#      compiler: clang
+    - stage: Runtime Analysis
+      os: linux
+      env: 
+        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
+      compiler: clang
 #    - os: osx
 #      osx_image: xcode9
 #      env:
