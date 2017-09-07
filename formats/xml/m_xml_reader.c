@@ -485,6 +485,11 @@ static M_bool M_xml_read_tag_attributes(M_xml_node_t *node, const char *data, si
 				M_free(keytemp);
 				M_free(valtemp);
 				M_free(decoded_val);
+
+				M_free(keyval);
+
+				M_free(sdata);
+				M_free(kvdata);
 				return M_FALSE;
 			}
 			M_free(keytemp);
