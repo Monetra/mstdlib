@@ -82,16 +82,16 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 		list(APPEND tests
 			io/check_event_loopback.c
 			io/check_event_net.c
-			io/check_event_timer.c
+			io/check_block_net.c
 			io/check_event_pipe.c
 			io/check_dns.c
 			io/check_serial.c
 			io/check_pipespeed.c
 			io/check_netspeed.c
+			io/check_event_bwshaping.c
 		)
 		list(APPEND slow_tests
-			io/check_block_net.c
-			io/check_event_bwshaping.c
+			io/check_event_timer.c
 		)
 		if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			list(APPEND tests

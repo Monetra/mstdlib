@@ -80,9 +80,11 @@ build_script:
     -DCMAKE_BUILD_TYPE=%configuration%
     -DCMAKE_INSTALL_PREFIX=C:\projects\build-mstdlib\test_install
     -DCheck_DIR=C:\projects\build-check\install
-    -DMSTDLIB_SKIP_SLOW_TESTS=TRUE
     %CMAKE_EXTRA_OPTIONS% %APPVEYOR_BUILD_FOLDER%
   - ninja install
+ 
+# Add this line to cmake command to skip slow mstdlib tests (thread tests and check_event_timer)
+#-DMSTDLIB_SKIP_SLOW_TESTS=TRUE
 
 test_script:
   # Add a firewall exception to allow test programs to communicate on port 1234
@@ -93,12 +95,13 @@ test_script:
   
 on_finish:
   - cd C:\projects\build-mstdlib\test
-  - ps: Get-ChildItem .\*.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+  - dir /B *.log > list.txt
+  - cmake -E tar cfv all_tests.zip --format=zip --files-from=list.txt
+  - appveyor PushArtifact all_tests.zip
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# Force build worker to stay open after build is done, so we can RDP into it.
 
 # Enable RDP connections into build worker.
-# Force build worker to stay open after build is done, so we can RDP into it.
 #init:
 #  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-#on_finish:
-#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
