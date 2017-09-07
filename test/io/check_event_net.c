@@ -248,6 +248,8 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	M_event_err_t      err;
 	conn_state_t      *connstate;
 	M_io_error_t       ioerr;
+	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+
 
 	expected_connections      = num_connections;
 	active_client_connections = 0;
@@ -256,7 +258,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	server_connection_count   = 0;
 
 	event_debug("starting %llu connection test", num_connections);
-	if ((ioerr = M_io_net_server_create(&netserver, 1234, NULL, M_IO_NET_ANY)) != M_IO_ERROR_SUCCESS) {
+	if ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server: %s", M_io_error_string(ioerr));
 		return M_EVENT_ERR_RETURN;
 	}
@@ -270,7 +272,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	}
 	event_debug("listener added to event");
 	for (i=0; i<num_connections; i++) {
-		if (M_io_net_client_create(&netclient, dns, "localhost", 1234, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+		if (M_io_net_client_create(&netclient, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create net client");
 			return M_EVENT_ERR_RETURN;
 		}

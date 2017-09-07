@@ -130,20 +130,8 @@ static void *client_thread(void *arg)
 
 static void *listener_thread(void *arg)
 {
-	M_io_t            *netserver;
+	M_io_t            *netserver = arg;
 	M_io_t            *newconn;
-	M_tls_serverctx_t *serverctx = arg;
-
-	
-	if (M_io_net_server_create(&netserver, 1234, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
-		event_debug("failed to create net server");
-		return NULL;
-	}
-
-	if (M_io_tls_server_add(netserver, serverctx, NULL) != M_IO_ERROR_SUCCESS) {
-		event_debug("failed to wrap net server with tls");
-		return NULL;
-	}
 
 	event_debug("waiting on new connections");
 	while (active_server_connections != 0 || active_client_connections != 0 || server_connection_count != expected_connections || client_connection_count != expected_connections) {
@@ -209,9 +197,10 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_dns_t           *dns  = M_dns_create();
 	char              *cert = NULL;
 	char              *key  = NULL;
-	
+	M_io_t            *netserver = NULL;
 	M_tls_serverctx_t *serverctx;
 	M_tls_clientctx_t *clientctx;
+	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
 	active_client_connections = 0;
 	active_server_connections = 0;
@@ -255,13 +244,23 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_free(cert);
 
 	event_debug("Test %llu connections", num_connections);
+
+	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+		event_debug("failed to create net server");
+		return M_EVENT_ERR_RETURN;
+	}
+
+	if (M_io_tls_server_add(netserver, serverctx, NULL) != M_IO_ERROR_SUCCESS) {
+		event_debug("failed to wrap net server with tls");
+		return M_EVENT_ERR_RETURN;
+	}
 	M_thread_attr_set_create_joinable(attr, M_TRUE);
-	thread = M_thread_create(attr, listener_thread, serverctx);
+	thread = M_thread_create(attr, listener_thread, netserver);
 	M_thread_attr_destroy(attr);
 
 	M_thread_sleep(10000);
 	for (i=0; i<expected_connections; i++) {
-		if (M_io_net_client_create(&conn, dns, "localhost", 1234, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+		if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create client");
 			return M_EVENT_ERR_RETURN;
 		}
@@ -388,6 +387,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_event_err_t      ev_err = M_EVENT_ERR_RETURN;
 	M_bool             has_goodbye = M_FALSE;
 	M_io_error_t       err;
+	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
 	/* Generate real cert */
 	if (!tls_gen_key_cert(&key, &cert))
@@ -425,7 +425,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_free(cert);
 
 
-	if (M_io_net_server_create(&netserver, 1234, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return M_EVENT_ERR_RETURN;
 	}
@@ -438,7 +438,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_thread_create(NULL, tls_disconresp_listener, netserver);
 	M_thread_sleep(10000);
 
-	if (M_io_net_client_create(&conn, dns, "localhost", 1234, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create client");
 		return M_EVENT_ERR_RETURN;
 	}
