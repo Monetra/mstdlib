@@ -1,6 +1,5 @@
 language: c
 dist: trusty
-osx_image: xcode9
 sudo: false
 
 cache:
@@ -22,12 +21,9 @@ addons:
       - check
       - clang-4.0
 
-env:
-  global:
-    - secure: "m9Xq+CAgMokwdfVp9mWvT7+j8oyyWuL3vdmZOSGKVwTzdcAQn+KxGSYdqDUt2wwbJBAt0pblPLzqYG9TgPrqXRiTgOO7UImuOkS6gDD/UfegQqiPmWBDVfR0/Do3MQKChT9zaPSvklu5+50Bre8Wp9ZcSdgQFkrk5gGpEmMt4tVVQmIeFAE04bN1KBCwjWqBGSG56JM4+F3ENCgiOsuQl2b7zGXkFeFCEHzBEp2MpsCrtn5RqNIDQUGSX2OqMWVEQXWWqX8OUmHK3MvGHw0KbIv59SKE642t9j12lSjyndIaG4DyRCuJz1ZTki6bjZL+k0PK4bsGpC2wFAX/5NZY1qHL55bfKKKx17y7SQ3D6sheuIcM8dnF2AH3iu4tUxtPuhhn+NM0FLmxkbH3emkZHkOpwUE45IvAWNmp/bRkZYMqX65vm7oKLhbh4B2ZdsrHW9LKxGkp8Tk7gfzCK6H905MHVHnvW1xs+6kzDvWjUcx6p3QMuYdvdCqU/fSCjxyVntyiwGDGH4a6nBqmVs3ImpmB/MTSJhv6nwH+qUIEKIfBrKdjeZHyBRCACtynrTvHybhEjzfpdn0NhTCBiF1mqQP0xmJ1CFi7iVBrVvPWuP9ZyzZgKdE5yctKWPK+9oU4a43boXWYP/QLp6sIpthhjJF2M5jbJQDySAbwW/+BZ1w="
-
+# Add coverity certificate to system ca-certificates
 before_install:
-  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  - if [ "${COVERITY_SCAN_BRANCH}" = 1 ]; then echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-certificates.crt ; fi
 
 jobs:
   include:
@@ -46,9 +42,11 @@ jobs:
       compiler: gcc
 # OSX seems unreliable with travis, builds just get canceled.
 #    - os: osx
+#      osx_image: xcode9
 #      env:
 #        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
 #    - os: osx
+#      osx_image: xcode9
 #      env:
 #        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl"
     - stage: Static Analysis
@@ -59,6 +57,7 @@ jobs:
     - os: linux
       env:
         - BUILD_TYPE="coverity"
+        - secure: "m9Xq+CAgMokwdfVp9mWvT7+j8oyyWuL3vdmZOSGKVwTzdcAQn+KxGSYdqDUt2wwbJBAt0pblPLzqYG9TgPrqXRiTgOO7UImuOkS6gDD/UfegQqiPmWBDVfR0/Do3MQKChT9zaPSvklu5+50Bre8Wp9ZcSdgQFkrk5gGpEmMt4tVVQmIeFAE04bN1KBCwjWqBGSG56JM4+F3ENCgiOsuQl2b7zGXkFeFCEHzBEp2MpsCrtn5RqNIDQUGSX2OqMWVEQXWWqX8OUmHK3MvGHw0KbIv59SKE642t9j12lSjyndIaG4DyRCuJz1ZTki6bjZL+k0PK4bsGpC2wFAX/5NZY1qHL55bfKKKx17y7SQ3D6sheuIcM8dnF2AH3iu4tUxtPuhhn+NM0FLmxkbH3emkZHkOpwUE45IvAWNmp/bRkZYMqX65vm7oKLhbh4B2ZdsrHW9LKxGkp8Tk7gfzCK6H905MHVHnvW1xs+6kzDvWjUcx6p3QMuYdvdCqU/fSCjxyVntyiwGDGH4a6nBqmVs3ImpmB/MTSJhv6nwH+qUIEKIfBrKdjeZHyBRCACtynrTvHybhEjzfpdn0NhTCBiF1mqQP0xmJ1CFi7iVBrVvPWuP9ZyzZgKdE5yctKWPK+9oU4a43boXWYP/QLp6sIpthhjJF2M5jbJQDySAbwW/+BZ1w="
       addons:
         coverity_scan:
           project:
@@ -83,6 +82,7 @@ jobs:
 #        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
 #      compiler: clang
 #    - os: osx
+#      osx_image: xcode9
 #      env:
 #        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
 #      compiler: clang
