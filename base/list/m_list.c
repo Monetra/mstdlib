@@ -773,7 +773,7 @@ void M_list_remove_duplicates(M_list_t *d, M_uint32 type)
 			} else {
 				/* Matching values means we can find where the value starts and ends an only remove the range. */
 				for (j=i; d->equality(&d->start[i], &d->start[j+1], NULL) == 0; j++)
-					;;
+					;
 				/* We want to do a bulk remove since the duplicates will be contiguous and one move
 				 * operation will be faster than multiple. */
 				if (j > i)

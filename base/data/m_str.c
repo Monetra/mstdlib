@@ -779,7 +779,7 @@ char *M_str_split_on_char(char *s, char c)
 		return NULL;
 
 	for (; *s!='\0' && *s!=c; s++)
-		;;
+		;
 
 	if (s!=NULL && *s!='\0')
 		*s++ = '\0';
