@@ -393,7 +393,7 @@ M_fs_error_t M_fs_move(const char *path_old, const char *path_new, M_uint32 mode
 	/* Failure was because we're crossing mount points. */
 	if (res == M_FS_ERROR_NOT_SAMEDEV) {
 		/* Can't rename so copy and delete. */
-		if (M_fs_copy(norm_path_new, norm_path_old, mode, cb, progress_flags) == M_FS_ERROR_SUCCESS) {
+		if (M_fs_copy(norm_path_old, norm_path_new, mode, cb, progress_flags) == M_FS_ERROR_SUCCESS) {
 			/* Success - Delete the original files since this is a move. */
 			res = M_fs_delete(norm_path_old, M_TRUE, NULL, M_FS_PROGRESS_NOEXTRA);
 		} else {
