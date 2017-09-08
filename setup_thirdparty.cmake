@@ -17,11 +17,18 @@ if (NOT GIT)
 	message(FATAL_ERROR "This script requires git to be installed.")
 endif ()
 
-# If user didn't specify a generator, try to use ninja if available. Otherwise, use platform default.
+# If user didn't specify a generator, try to use ninja if available.
 if (NOT GEN)
 	find_program(NINJA ninja)
 	if (NINJA)
 		set(GEN "Ninja")
+	endif ()
+endif ()
+# If user didn't specify a generator and ninja wasn't available, use NMake if it's present. Otherwise, use platform default.
+if (NOT GEN)
+	find_program(NMAKE nmake)
+	if (NMAKE)
+		set(GEN "NMake Makefiles")
 	endif ()
 endif ()
 if (GEN)
@@ -54,7 +61,7 @@ file(WRITE "${rootdir}/thirdparty/check_src/CMakeLists.txt" "${str}")
 # existing targets in mstdlib. So, let's build it separately and install to the thirdparty dir.
 file(MAKE_DIRECTORY "${rootdir}/thirdparty/check_src/build")
 execute_process(COMMAND "${CMAKE_COMMAND}" "${rootdir}/thirdparty/check_src"
-	"${GEN}"
+	${GEN}
 	-DCHECK_ENABLE_TESTS=FALSE
 	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 	-DCMAKE_INSTALL_PREFIX=${rootdir}/thirdparty/check
@@ -96,7 +103,6 @@ file(DOWNLOAD https://sqlite.org/2017/${sqlite_name}.zip
 	INACTIVITY_TIMEOUT 3
 	TIMEOUT 20
 	EXPECTED_HASH SHA256=38fb09f523857f4265248e3aaf4744263757288094033ccf2184594ec656e255
-	TLS_VERIFY ON
 	STATUS res
 )
 if (NOT res MATCHES "^0;")
