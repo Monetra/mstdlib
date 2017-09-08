@@ -197,7 +197,7 @@ static M_bool mysql_connpool_readconf(mysql_connpool_data_t *data, const M_hash_
 	if (!M_str_isempty(const_temp)) {
 		data->max_isolation = M_sql_driver_str2isolation(const_temp);
 		if (data->max_isolation == M_SQL_ISOLATION_UNKNOWN) {
-			M_snprintf(error, sizeof(error), "Unrecognized max_isolation '%s'", const_temp);
+			M_snprintf(error, error_size, "Unrecognized max_isolation '%s'", const_temp);
 			return M_FALSE;
 		}
 	}

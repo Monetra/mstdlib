@@ -424,6 +424,7 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 		case M_IO_NET_STATE_CONNECTED:
 //M_printf("%s(): already connected\n", __FUNCTION__); fflush(stdout);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+			/* Fallthrough */
 		case M_IO_NET_STATE_DISCONNECTING:
 			/* Re-bind io event handle */
 			M_event_add(event, handle->data.netdns.io, M_io_netdns_realio_cb, io);

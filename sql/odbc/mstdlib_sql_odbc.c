@@ -877,10 +877,6 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				if (type != M_SQL_DATA_TYPE_BINARY)
 					ColumnSize++;
 
-				/* If all NULL, we probably still need something */
-				if (ColumnSize == 0)
-					ColumnSize = 1;
-
 				dstmt->bind_cols[i].data.pvalues = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.pvalues)) * ColumnSize * num_rows);
 				ParameterValue                   = dstmt->bind_cols[i].data.pvalues;
 				break;

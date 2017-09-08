@@ -176,7 +176,10 @@ static M_bool sqlite_cb_init(char *error, size_t error_size)
 	}
 
 
-	sqlite3_initialize();
+	if (sqlite3_initialize() != SQLITE_OK) {
+		M_snprintf(error, error_size, "sqlite3_initialize()) returned error");
+		return M_FALSE;
+	}
 
 	return M_TRUE;
 }

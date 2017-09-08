@@ -230,5 +230,6 @@ M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 
 M_io_error_t M_io_hid_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial /* May be NULL */)
 {
-	return M_io_hid_create_one(io_out, vendorid, &productid, (productid > 0)?1:0, serial);
+	M_uint16 prodarr[] = { productid };
+	return M_io_hid_create_one(io_out, vendorid, prodarr, (productid > 0)?1:0, serial);
 }

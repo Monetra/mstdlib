@@ -141,9 +141,11 @@ static M_threadid_t M_thread_pthread_self(void)
 static void M_thread_pthread_sleep(M_uint64 usec)
 {
 #if defined(PTHREAD_SLEEP_USE_POLL)
-	struct pollfd unused;
+	struct pollfd unused[1];
 
-	poll(&unused, 0, (int)(usec/1000));
+	M_mem_set(unused, 0, sizeof(unused));
+
+	(void)poll(unused, 0, (int)(usec/1000));
 #elif defined(PTHREAD_SLEEP_USE_SELECT)
 	fd_set         readfs;
 	struct timeval timeout;

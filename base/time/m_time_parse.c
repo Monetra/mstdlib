@@ -322,8 +322,10 @@ static M_bool M_time_getoffset(const char **s, M_time_t *gmtoff)
 			break;
 		case '-':
 			isneg = M_TRUE;
+			/* Fallthrough */
 		case '+':
 			(*s)++;
+			/* Fallthrough */
 		case '0':
 		case '1':
 		case '2':
