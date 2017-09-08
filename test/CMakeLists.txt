@@ -1,6 +1,10 @@
 enable_testing()
 
 if (MSTDLIB_BUILD_TESTS)
+	if (NOT Check_DIR)
+		# If user didn't specify a particular check installation, look in thirdparty dir.
+		set(Check_DIR "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/check")
+	endif ()
 	find_package(Check)
 	find_package(Valgrind)
 endif ()
