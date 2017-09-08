@@ -86,7 +86,6 @@ static void M_io_w32overlap_busyemu_close_handle(M_io_handle_t *handle)
 /* close will unregister and wait on the thread to shutdown, vs closehandle will not */
 void M_io_w32overlap_busyemu_close(M_io_layer_t *layer)
 {
-	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
 	if (handle->rhandle == NULL && handle->whandle == NULL)

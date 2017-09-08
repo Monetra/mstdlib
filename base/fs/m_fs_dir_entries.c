@@ -90,8 +90,8 @@ static int M_fs_dir_entries_sort_size(const M_fs_dir_entry_t *arg1, const M_fs_d
 
 static int M_fs_dir_entries_sort_time(const M_fs_dir_entry_t *arg1, const M_fs_dir_entry_t *arg2, M_fs_dir_entries_time_type_t type)
 {
-	time_t t1 = 0;
-	time_t t2 = 0;
+	M_time_t t1 = 0;
+	M_time_t t2 = 0;
 
 	switch (type) {
 		case M_FS_DIR_ENTRIES_TIME_ATIME:

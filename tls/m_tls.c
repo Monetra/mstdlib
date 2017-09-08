@@ -200,6 +200,15 @@ static void M_tls_destroy(void *arg)
 }
 
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
+static unsigned long M_tls_crypto_threadid_cb(void)
+{
+	M_threadid_t id = M_thread_self();
+	return (unsigned long)((M_uintptr)id);
+}
+#endif
+
+
 static void M_tls_init_routine(M_uint64 flags)
 {
 	M_tls_init_t type = (M_tls_init_t)flags;
@@ -224,7 +233,7 @@ static void M_tls_init_routine(M_uint64 flags)
 	M_thread_destructor_insert(M_tls_openssl_thread_free);
 
 
-	CRYPTO_set_id_callback(M_thread_self);
+	CRYPTO_set_id_callback(M_tls_crypto_threadid_cb);
 
 	CRYPTO_set_locking_callback(M_tls_openssl_staticlocks_cb);
 

@@ -94,7 +94,7 @@ static M_io_error_t M_io_net_resolve_error_sys(int err)
 static void M_io_net_resolve_error(M_io_handle_t *handle)
 {
 #ifdef _WIN32
-	handle->data.net.last_error_sys = WSAGetLastError();
+	handle->data.net.last_error_sys = (DWORD)WSAGetLastError();
 #else
 	handle->data.net.last_error_sys = errno;
 	errno                           = 0;
@@ -802,7 +802,7 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		} else {
 			enable = 0; /* Dual socket IPv6 + IPv4 */
 		}
-		setsockopt(handle->data.net.sock, IPPROTO_IPV6, IPV6_V6ONLY, &enable, sizeof(enable));
+		setsockopt(handle->data.net.sock, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&enable, sizeof(enable));
 #  endif
 	}
 #endif
@@ -1343,10 +1343,10 @@ M_io_error_t M_io_net_server_create(M_io_t **io_out, unsigned short port, const 
 
 /* XXX: this shouldn't be here and isn't necessarily right for everything */
 #ifdef _WIN32
-M_bool M_io_setnonblock(unsigned int fd)
+M_bool M_io_setnonblock(SOCKET fd)
 {
 	unsigned long tf = 1;
-	if (ioctlsocket((SOCKET)fd, (long)FIONBIO, &tf) == -1)
+	if (ioctlsocket(fd, (long)FIONBIO, &tf) == -1)
 		return M_FALSE;
 	return M_TRUE;
 }

@@ -106,7 +106,7 @@ void M_io_unlock(M_io_t *io);
 M_io_layer_t *M_io_layer_at(M_io_t *io, size_t layer_id);
 
 #ifdef _WIN32
-M_bool M_io_setnonblock(unsigned int /* same as SOCKET type without needed SOCKET def */fd);
+M_bool M_io_setnonblock(SOCKET fd);
 #else
 M_bool M_io_setnonblock(int fd);
 #endif

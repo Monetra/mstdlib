@@ -439,7 +439,7 @@ static ssize_t M_str_fmt_add_double_just(M_str_fmt_t *data, double dval, M_str_f
 	M_bool        pos       = M_TRUE;
 	ssize_t       olen      = 0;
 	size_t        offset    = 0;
-	M_uint64      added;
+	size_t        added;
 
 	/* Limit to 100 decimal digits. */
 	if (prec_len > 100)

@@ -1303,7 +1303,7 @@ char *M_str_keep_bracketed_quoted(const char *src, char open, char close, char q
 	char       *dst_pos;
 	const char *src_pos;
 	M_bool      in_quotes  = M_FALSE;
-	M_int64     open_count = 0;
+	size_t      open_count = 0;
 	
 	
 	dst     = M_malloc_zero(M_str_len(src) + 1);

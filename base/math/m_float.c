@@ -71,7 +71,7 @@ double M_math_modf(double x, double *iptr)
 		return x;
 	}
 
-	mask = -1ULL>>12>>e;
+	mask = ((M_uint64)(-1LL)) /* Was -1ULL, caused warning */ >> 12 >> e;
 	if ((u.i & mask) == 0) {
 		*iptr = x;
 		u.i &= 1ULL<<63;
@@ -81,6 +81,7 @@ double M_math_modf(double x, double *iptr)
 	*iptr = u.f;
 	return x - u.f;
 }
+
 
 double M_math_round(double x)
 {
