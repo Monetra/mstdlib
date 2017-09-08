@@ -31,7 +31,7 @@
 #else
 #  include <unistd.h>
 #endif
-
+#include "m_defs_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -95,7 +95,8 @@ static void *M_thread_wrapfunc(void *arg)
 	len = M_list_len(thread_destructors);
 	destructors = M_malloc(sizeof(void (*)(void))*len);
 	for (i=0;i<len;i++) {
-		destructors[i] = M_list_at(thread_destructors, i);
+		const void *dst = M_list_at(thread_destructors, i);
+		destructors[i] = M_CAST_OFF_CONST(void *, dst);
 	}
 	M_thread_mutex_unlock(thread_destructor_mutex);
 	for (i=0; i<len; i++) {
