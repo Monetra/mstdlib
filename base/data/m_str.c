@@ -1635,7 +1635,7 @@ char *M_str_replace_chr(char *s, char b, char a)
 	size_t len;
 	size_t i;
 
-	if (s == NULL || s == '\0')
+	if (s == NULL || *s == '\0')
 		return s;
 
 	len = M_str_len(s);
@@ -1657,7 +1657,7 @@ char *M_strdup_replace_charset(const char *s, const unsigned char *bcs, size_t b
 
 	if (s == NULL)
 		return NULL;
-	if (s == '\0')
+	if (*s == '\0')
 		return M_strdup(s);
 
 	buf = M_buf_create();
@@ -1686,7 +1686,7 @@ char *M_strdup_replace_str(const char *s, const char *b, const char *a)
 
 	if (s == NULL)
 		return NULL;
-	if (s == '\0')
+	if (*s == '\0')
 		return M_strdup("");
 	if (b == NULL || *b == '\0')
 		return M_strdup(s);
