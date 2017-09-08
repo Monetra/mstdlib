@@ -76,9 +76,8 @@ static M_bool M_getopt_parse_option_value(M_getopt_option_t *opt, const char *va
 
 static M_getopt_error_t M_getopt_parse_option_verify_value(M_getopt_option_t *opt, const char **val, M_bool opt_isval, int *idx)
 {
-	if (opt->val_required && *val == NULL)
+	if (opt->val_required && (val == NULL || *val == NULL))
 		return M_GETOPT_ERROR_MISSINGVALUE;
-
 
 	if (val != NULL && opt->type == M_GETOPT_TYPE_BOOLEAN && !opt->val_required) {
 		if (opt_isval) {
@@ -87,7 +86,7 @@ static M_getopt_error_t M_getopt_parse_option_verify_value(M_getopt_option_t *op
 		*val = NULL;
 	}
 
-	if (*val != NULL && !opt_isval)
+	if (val != NULL && *val != NULL && !opt_isval)
 		(*idx)++;
 
 	return M_GETOPT_ERROR_SUCCESS;
@@ -102,7 +101,7 @@ static M_getopt_error_t M_getopt_parse_option_long(M_getopt_t *g, const char *op
 	if (opt == NULL)
 		return M_GETOPT_ERROR_INVALIDOPT;
 
-	ret = M_getopt_parse_option_verify_value(opt, &val, opt_isval, idx);
+	ret = M_getopt_parse_option_verify_value(opt, val==NULL?NULL:&val, opt_isval, idx);
 	if (ret != M_GETOPT_ERROR_SUCCESS)
 		return ret;
 
@@ -145,7 +144,7 @@ static M_getopt_error_t M_getopt_parse_option_short(M_getopt_t *g, const char *o
 	if (opt == NULL)
 		return M_GETOPT_ERROR_INVALIDOPT;
 
-	ret = M_getopt_parse_option_verify_value(opt, &val, opt_isval, idx);
+	ret = M_getopt_parse_option_verify_value(opt, val==NULL?NULL:&val, opt_isval, idx);
 	if (ret != M_GETOPT_ERROR_SUCCESS)
 		return ret;
 
