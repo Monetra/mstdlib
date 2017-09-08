@@ -157,8 +157,9 @@ M_io_error_t M_io_serial_handle_set_baud(M_io_handle_t *handle, M_io_serial_baud
 }
 
 
-void M_io_serial_handle_set_flowcontrol_int(DCB *options, M_io_handle_t *handle, M_io_serial_flowcontrol_t flowcontrol)
+static void M_io_serial_handle_set_flowcontrol_int(DCB *options, M_io_handle_t *handle, M_io_serial_flowcontrol_t flowcontrol)
 {
+	(void)handle;
 	/* Clear all Flow Control settings */
 	options->fOutX           = FALSE;
 	options->fInX            = FALSE;
@@ -213,8 +214,10 @@ M_io_error_t M_io_serial_handle_set_flowcontrol(M_io_handle_t *handle, M_io_seri
 }
 
 
-M_io_error_t M_io_serial_handle_set_mode_int(DCB *options, M_io_handle_t *handle, M_io_serial_mode_t mode)
+static M_io_error_t M_io_serial_handle_set_mode_int(DCB *options, M_io_handle_t *handle, M_io_serial_mode_t mode)
 {
+	(void)handle;
+
 	switch (mode & M_IO_SERIAL_MODE_MASK_BITS) {
 		case M_IO_SERIAL_MODE_BITS_8:
 			options->ByteSize = 8;
@@ -376,7 +379,7 @@ M_io_serial_baud_t M_io_serial_handle_get_baud(M_io_handle_t *handle)
 }
 
 
-M_io_error_t M_io_serial_handle_configure(M_io_handle_t *handle)
+static M_io_error_t M_io_serial_handle_configure(M_io_handle_t *handle)
 {
 	DCB          options;
 	M_io_error_t err;
@@ -419,7 +422,7 @@ M_io_error_t M_io_serial_handle_configure(M_io_handle_t *handle)
 }
 
 
-M_bool M_io_serial_init_cb(M_io_layer_t *layer)
+static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
 	HANDLE         shandle;

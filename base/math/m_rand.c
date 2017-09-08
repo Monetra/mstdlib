@@ -84,7 +84,7 @@ M_rand_t *M_rand_create(M_uint64 seed)
 		 * so we might throw away some bits for high addresses, but we'd have
 		 * a lot of guaranteed zeros in the high bounds without shifting one
 		 * of the values to the upper 32bits */
-		seed ^= ((M_uint64)&tv) << 32 | (M_uint64)state;
+		seed ^= ((M_uint64)((M_uintptr)&tv)) << 32 | ((M_uint64)((M_uintptr)state));
 	}
 
 	/* Recommended to seed splitmix64 and use it's output for

@@ -414,7 +414,8 @@ M_bool M_tls_ctx_load_os_trust(SSL_CTX *ctx)
 	store = SSL_CTX_get_cert_store(ctx);
 
 	while ((pContext=CertEnumCertificatesInStore(hStore, pContext)) != NULL) {
-		X509 *x509 = d2i_X509(NULL, &pContext->pbCertEncoded, (long)pContext->cbCertEncoded);
+		BYTE * const *cert = &pContext->pbCertEncoded;
+		X509         *x509 = d2i_X509(NULL, M_CAST_OFF_CONST(const unsigned char **, cert), (long)pContext->cbCertEncoded);
 		if (x509) {
 			if (X509_STORE_add_cert(store, x509))
 				count++;

@@ -2,10 +2,15 @@
 
 #include <mstdlib/mstdlib_thread.h>
 #include "m_thread_int.h"
+#include "m_pollemu.h"
 
 int M_pollemu(struct pollfd *fds, nfds_t nfds, int timeout)
 {
+#ifdef _WIN32
+	SOCKET         maxfd = 0;
+#else
 	int            maxfd = 0;
+#endif
 	int            rv;
 	fd_set         readfds;
 	fd_set         writefds;
@@ -36,7 +41,7 @@ int M_pollemu(struct pollfd *fds, nfds_t nfds, int timeout)
 		tv.tv_usec = (timeout % 1000) * 1000;
 	}
 
-	rv = select(maxfd+1, &readfds, &writefds, &exceptfds, (timeout < 0)?NULL:&tv);
+	rv = select((int)maxfd+1, &readfds, &writefds, &exceptfds, (timeout < 0)?NULL:&tv);
 
 	/* Return value is the same as poll uses */
 	if (rv <= 0)

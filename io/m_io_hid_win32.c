@@ -132,14 +132,14 @@ static M_bool M_io_hid_enum_has_driver(HDEVINFO hDevInfo, SP_DEVINFO_DATA *devin
 	
 	M_mem_set(classname, 0, sizeof(classname));
 	M_mem_set(drivername, 0, sizeof(drivername));
-	if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, devinfo, SPDRP_CLASS, NULL, classname, sizeof(classname)-1, NULL))
+	if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, devinfo, SPDRP_CLASS, NULL, (PBYTE)classname, sizeof(classname)-1, NULL))
 		return M_FALSE;
 
 	/* Validate the class is "HIDClass", otherwise its an error (we don't want keyboards and mice) */
 	if (!M_str_eq(hidclass, classname))
 		return M_FALSE;
 
-	if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, devinfo, SPDRP_DRIVER, NULL, drivername, sizeof(drivername)-1, NULL))
+	if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, devinfo, SPDRP_DRIVER, NULL, (PBYTE)drivername, sizeof(drivername)-1, NULL))
 		return M_FALSE;
 
 	return M_TRUE;

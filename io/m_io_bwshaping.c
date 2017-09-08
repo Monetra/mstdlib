@@ -502,7 +502,7 @@ static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned 
 	/* If we still have a timer going before we can write, that means this operation would block */
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
 	if (to_ms == 0 || to_ms == M_TIMEOUT_INF) {
-		max_write = M_io_bwshaping_bwtrack_max_size(handle->out_bw, handle->settings.out_Bps, handle->settings.out_period_s,
+		max_write = (size_t)M_io_bwshaping_bwtrack_max_size(handle->out_bw, handle->settings.out_Bps, handle->settings.out_period_s,
 			handle->settings.out_sample_frequency_ms, handle->settings.out_mode);
 	}
 
@@ -551,7 +551,7 @@ static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *b
 	to_ms               = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
 	handle->in_fullread = M_FALSE;
 	if (to_ms == 0 || to_ms == M_TIMEOUT_INF) {
-		max_read = M_io_bwshaping_bwtrack_max_size(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s,
+		max_read = (size_t)M_io_bwshaping_bwtrack_max_size(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s,
 			handle->settings.in_sample_frequency_ms, handle->settings.in_mode);
 	}
 

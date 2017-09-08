@@ -158,7 +158,7 @@ ssize_t M_popen_read(M_popen_handle_t *mp, M_popen_fd_t fd, char *out, size_t ou
 			timeout_ms = (timeout_ms > 15) ? timeout_ms - 15 : 0;
 		} while (timeout_ms > 0);
 	}
-	retval = bytes_read;
+	retval = (ssize_t)bytes_read;
 	if (err != 0) {
 		if (err == ERROR_HANDLE_EOF || err == ERROR_BROKEN_PIPE) {
 			retval = -2;
@@ -220,7 +220,7 @@ ssize_t M_popen_write(M_popen_handle_t *mp, M_popen_fd_t fd, const char *in, siz
 	if (!WriteFile(*handle, in, d_in_len, &bytes_written, NULL)) {
 		retval = -1;
 	} else {
-		retval = bytes_written;
+		retval = (ssize_t)bytes_written;
 	}
 #else
 	retval = write(*handle, in, in_len);

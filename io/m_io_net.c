@@ -79,15 +79,17 @@ typedef int socklen_t;
 #endif
 
 
+#ifdef _WIN32
+static M_io_error_t M_io_net_resolve_error_sys(DWORD err)
+{
+	return M_io_win32_err_to_ioerr(err);
+}
+#else
 static M_io_error_t M_io_net_resolve_error_sys(int err)
 {
-#ifdef _WIN32
-	return M_io_win32_err_to_ioerr(err);
-#else
 	return M_io_posix_err_to_ioerr(err);
-#endif
 }
-
+#endif
 
 static void M_io_net_resolve_error(M_io_handle_t *handle)
 {
@@ -191,6 +193,13 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 }
 
 
+#ifdef _WIN32
+#  define RECV_TYPE     char *
+#  define RECV_LEN_TYPE int
+#else
+#  define RECV_TYPE     unsigned char *
+#  define RECV_LEN_TYPE size_t
+#endif
 
 static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
 {
@@ -204,7 +213,7 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	}
 
 	errno  = 0;
-	retval = recv(handle->data.net.sock, buf, *read_len, 0);
+	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error = M_IO_ERROR_DISCONNECT;
@@ -218,6 +227,13 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	return M_IO_ERROR_SUCCESS;
 }
 
+#ifdef _WIN32
+#  define SEND_TYPE     const char *
+#  define SEND_LEN_TYPE int
+#else
+#  define SEND_TYPE     const unsigned char *
+#  define SEND_LEN_TYPE size_t
+#endif
 
 static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
 {
@@ -243,7 +259,7 @@ static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned ch
 #endif
 
 	errno  = 0;
-	retval = send(handle->data.net.sock, buf, *write_len, flags);
+	retval = (ssize_t)send(handle->data.net.sock, (SEND_TYPE)buf, (SEND_LEN_TYPE)*write_len, flags);
 	if (retval == 0) {
 		handle->data.net.last_error = M_IO_ERROR_DISCONNECT;
 		err = M_IO_ERROR_DISCONNECT;
@@ -333,10 +349,10 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 	DWORD                dwBytes  = 0;
 
 	ka.onoff             = 1;
-	ka.keepalivetime     = handle->settings.ka_idle_time_s * 1000;
+	ka.keepalivetime     = (unsigned long)(handle->settings.ka_idle_time_s * 1000);
 	/* The keepalive successive probes is hardcoded to 10, so we need adjust the ka_retry_time_s to better
 	 * match the user request */
-	ka.keepaliveinterval = (handle->settings.ka_retry_time_s * 1000 * handle->settings.ka_retry_cnt ) / 10;
+	ka.keepaliveinterval = (unsigned long)((handle->settings.ka_retry_time_s * 1000 * handle->settings.ka_retry_cnt ) / 10);
 	if (WSAIoctl(handle->data.net.sock, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), &kar, sizeof(kar), &dwBytes, NULL, NULL) != 0) {
 		M_printf("WSAIoctl(SIO_KEEPALIVE_VALS) failed: %ld", (long)WSAGetLastError());
 	}
@@ -347,7 +363,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 
 #  ifdef SO_KEEPALIVE
 	on = 1;
-	if (setsockopt(handle->data.net.sock, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, SOL_SOCKET, SO_KEEPALIVE, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(SO_KEEPALIVE) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -356,7 +372,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  ifdef TCP_KEEPIDLE
 	/* how long (seconds) the connection is idle before sending keepalive probes */
 	on = (int)handle->settings.ka_idle_time_s; 
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPIDLE, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPIDLE, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPIDLE) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -369,7 +385,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  ifdef TCP_KEEPCNT
 	/* max number of probes until connection is considered dead */
 	on = (int)handle->settings.ka_retry_cnt;
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPCNT, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPCNT, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPCNT) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -378,7 +394,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  ifdef TCP_KEEPINTVL
 	/* time in seconds between individual keepalive probes */
 	on = (int)handle->settings.ka_retry_time_s;
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPINTVL, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPINTVL, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPINTVL) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -389,7 +405,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 
 	/* time in seconds idle before keepalive probes */
 	on = (int)handle->settings.ka_idle_time_s; 
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPALIVE) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -399,7 +415,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 	/* Solaris */
 	/* time in milliseconds between individual keepalive probes */
 	on = (int)handle->settings.ka_retry_time_s * 1000;
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(IPPROTO_TCP, TCP_KEEPALIVE_THRESHOLD) failed: %s", strerror(errno));
 	}
 	num_opts++;
@@ -409,7 +425,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 	/* Solaris */
 	/* default time (in milliseconds) threshold to abort a TCP connection after the keepalive probing mechanism has failed */
 	on = (int)handle->settings.ka_retry_time_s * handle->settings.ka_retry_cnt * 1000; 
-	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD, &on, sizeof(on)) == -1) {
+	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD) failed: %s", strerror(errno));
 	}
 	num_opts+=2;
@@ -427,12 +443,12 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 
 	/* Set Nagle, if enable TCP_NODELAY is 0 (off), otherwise it is 1 (on) */
 	ival = (handle->settings.nagle_enable)?0:1;
-	setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_NODELAY, &ival, sizeof(ival));
+	setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_NODELAY, (const void *)&ival, sizeof(ival));
 
 	/* Prevent SIGPIPE */
 #ifdef SO_NOSIGPIPE
 	ival = 1;
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_NOSIGPIPE, &ival, sizeof(ival));
+	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *)&ival, sizeof(ival));
 #endif
 
 	if (handle->settings.ka_enable)
@@ -761,10 +777,10 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 
 
 	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
 #ifdef SO_EXCLUSIVEADDRUSE
 	/* Windows, prevent 'stealing' of bound ports, why would this be allowed by default? */
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, &enable, sizeof(enable));
+	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
 #endif
 
 #ifdef AF_INET6
@@ -871,7 +887,7 @@ static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
 	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
 	socklen_t               sockaddr_size = sizeof(sockaddr);
 
-	M_mem_set(sockaddr_ptr, 0, sockaddr_size);
+	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
 
 	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0) 
 		return M_FALSE;
@@ -1152,7 +1168,7 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 	socklen_t               sockaddr_size = sizeof(sockaddr);
 	char                    addr[64]      = { 0 };
 
-	M_mem_set(sockaddr_ptr, 0, sockaddr_size);
+	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
 
 	handle         = M_malloc_zero(sizeof(*handle));
 	handle->port   = orig_handle->port;
@@ -1326,23 +1342,27 @@ M_io_error_t M_io_net_server_create(M_io_t **io_out, unsigned short port, const 
 
 
 /* XXX: this shouldn't be here and isn't necessarily right for everything */
+#ifdef _WIN32
+M_bool M_io_setnonblock(unsigned int fd)
+{
+	unsigned long tf = 1;
+	if (ioctlsocket((SOCKET)fd, (long)FIONBIO, &tf) == -1)
+		return M_FALSE;
+	return M_TRUE;
+}
+#else
 M_bool M_io_setnonblock(int fd)
 {
-#ifndef _WIN32
 	int flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 		return M_FALSE;
 
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		return M_FALSE;
-#else 
-	int tf = 1;
-	if (ioctlsocket(fd, FIONBIO, &tf) == -1)
-		return M_FALSE;
-#endif
+
 	return M_TRUE;
 }
-
+#endif
 char *M_io_net_get_fqdn(void)
 {
 	char            hostname[NI_MAXHOST+1];

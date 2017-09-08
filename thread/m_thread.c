@@ -40,7 +40,7 @@ static M_thread_model_callbacks_t  thread_cbs;
 static M_thread_mutex_t           *threadid_mutex          = NULL;
 static M_hash_u64vp_t             *threadid_map            = NULL;
 static M_thread_mutex_t           *thread_count_mutex      = NULL;
-static M_uint64                    thread_count            = 0;
+static M_uint64                    thread_count            = 0;   /* M_uint64 so we can use atomics (instead of size_t) */
 static M_thread_mutex_t           *thread_destructor_mutex = NULL;
 static M_list_t                   *thread_destructors      = NULL;
 
@@ -235,7 +235,7 @@ static size_t M_thread_num_cpu_cores_int(void)
 	SYSTEM_INFO sysinfo;
 
 	GetSystemInfo(&sysinfo);
-	count = sysinfo.dwNumberOfProcessors;
+	count = (int)sysinfo.dwNumberOfProcessors;
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
 	count = (int)sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROC_ONLN)
@@ -455,7 +455,7 @@ size_t M_thread_count(void)
 	size_t ret;
 
 	M_thread_mutex_lock(thread_count_mutex);
-	ret = thread_count;
+	ret = (size_t)thread_count;
 	M_thread_mutex_unlock(thread_count_mutex);
 	return ret;
 }

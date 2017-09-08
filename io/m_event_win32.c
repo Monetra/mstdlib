@@ -316,7 +316,12 @@ static void *M_event_impl_win32_eventthread(void *arg)
 				}
 
 				/* Process all events that were triggered */
-				if (retval >= WAIT_OBJECT_0 && retval <= WAIT_OBJECT_0 + nhandles) {
+				if (
+#if WAIT_OBJECT_0 > 0 /* Prevent stupid warning about condition always being true */
+				    retval >= WAIT_OBJECT_0 &&
+#endif
+				    retval <= WAIT_OBJECT_0 + nhandles
+				) {
 					if (retval - WAIT_OBJECT_0 != 0)
 						M_event_impl_win32_signal(threaddata->parent, handles[retval - WAIT_OBJECT_0]);
 					/* More events might have been signaled, we need to iterate across all to see */
@@ -385,7 +390,7 @@ static void M_event_impl_win32_modify_event(M_event_t *event, M_event_modify_typ
 	M_event_win32_handle_t *evhandle = NULL;
 	const void             *ptr;
 	size_t                  idx;
-	M_event_win32_thread_t *thread;
+	M_event_win32_thread_t *thread   = NULL;
 
 	(void)waittype;
 	(void)caps;
@@ -434,7 +439,7 @@ static void M_event_impl_win32_modify_event(M_event_t *event, M_event_modify_typ
 	}
 
 	/* See if we had room in a thread, if not, create another thread */
-	if (idx == M_list_len(data->threads)) {
+	if (idx == M_list_len(data->threads) || thread == NULL) {
 		thread = M_event_win32_add_thread(data);
 	}
 
@@ -549,7 +554,7 @@ static void M_event_impl_win32_process(M_event_t *event)
 		M_event_evhandle_t     *member  = NULL;
 		M_event_type_t          type    = M_EVENT_TYPE_OTHER;
 
-		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)handle, (void **)&member))
+		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle), (void **)&member))
 			continue;
 
 		if (member->sock == M_EVENT_INVALID_SOCKET) {

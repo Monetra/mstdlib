@@ -88,7 +88,6 @@ M_io_t *M_io_osevent_create(M_event_t *event)
 {
 	M_io_t           *io;
 	M_io_handle_t    *handle;
-	M_io_layer_t     *layer;
 	M_io_callbacks_t *callbacks;
 
 	if (event == NULL)
@@ -104,7 +103,7 @@ M_io_t *M_io_osevent_create(M_event_t *event)
 	M_io_callbacks_reg_unregister(callbacks, M_io_osevent_unregister_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_osevent_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_osevent_state_cb);
-	layer                      = M_io_layer_add(io, M_IO_OSEVENT_NAME, handle, callbacks);
+	M_io_layer_add(io, M_IO_OSEVENT_NAME, handle, callbacks);
 	M_io_callbacks_destroy(callbacks);
 
 	M_event_add(event, io, NULL, NULL);

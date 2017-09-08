@@ -489,6 +489,10 @@ static void M_io_w32overlap_disc_timer_cb(M_event_t *event, M_event_type_t type,
 	M_io_layer_t  *layer  = arg;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
+	(void)event;
+	(void)type;
+	(void)iodummy;
+
 	if (handle->whandle != NULL) {
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	}

@@ -190,7 +190,7 @@ void *M_malloc_zero(size_t size)
 static void *M_realloc_int(void *ptr, size_t size, M_bool zero)
 {
 	void  *ret;
-	size_t orig_size;
+	size_t orig_size = 0;
 
 	/* Same as M_malloc */
 	if (ptr == NULL) {
@@ -261,7 +261,7 @@ void *M_memdup_max(const void *src, size_t size, size_t min_alloc_size)
 void M_free(void *ptr)
 {
 	void  *actual_ptr;
-	size_t size;
+	size_t size = 0;
 
 	if (ptr == NULL)
 		return;

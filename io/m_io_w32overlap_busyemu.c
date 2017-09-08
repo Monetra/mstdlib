@@ -87,7 +87,6 @@ static void M_io_w32overlap_busyemu_close_handle(M_io_handle_t *handle)
 void M_io_w32overlap_busyemu_close(M_io_layer_t *layer)
 {
 	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_event_t     *event  = M_io_get_event(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
 	if (handle->rhandle == NULL && handle->whandle == NULL)
@@ -235,9 +234,6 @@ fail:
 M_bool M_io_w32overlap_busyemu_init_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
-	M_io_t          *io     = M_io_layer_get_io(layer);
-	M_event_t       *event  = M_io_get_event(io);
-	M_io_type_t      type   = M_io_get_type(io);
 	M_thread_attr_t *tattr;
 
 	if (handle->rhandle == NULL && handle->whandle == NULL)
@@ -284,16 +280,16 @@ void M_io_w32overlap_busyemu_unregister_cb(M_io_layer_t *layer)
 
 		/* Wait for thread to exit */
 		M_thread_join(handle->busyemu_thread, NULL);
-		handle->busyemu_thread = NULL;
+		handle->busyemu_thread = 0;
 
 		/* Re-gain lock */
 		M_io_layer_acquire(io, 0, NULL);
 	}
 
 	/* Join thread that is already stopped to clean up resources */
-	if (handle->busyemu_thread != NULL) {
+	if (handle->busyemu_thread != 0) {
 		M_thread_join(handle->busyemu_thread, NULL);
-		handle->busyemu_thread = NULL;
+		handle->busyemu_thread = 0;
 	}
 }
 
@@ -421,7 +417,6 @@ M_bool M_io_w32overlap_busyemu_disconnect_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_io_type_t    type   = M_io_get_type(io);
-	M_event_t     *event  = M_io_get_event(io);
 
 	/* Can't write because not a writer or the handle is already closed */
 	if ((type != M_IO_TYPE_WRITER && type != M_IO_TYPE_STREAM) || handle->whandle == M_EVENT_INVALID_HANDLE)

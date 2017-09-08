@@ -58,7 +58,11 @@ struct M_io_handle_net {
 	M_EVENT_HANDLE       evhandle;       /*!< Event handle                                                   */
 	M_EVENT_SOCKET       sock;           /*!< Socket/File Descriptor                                         */
 	unsigned short       eport;          /*!< Ephemeral port for informational purposes                      */
+#ifdef _WIN32
+	DWORD                last_error_sys;
+#else
 	int                  last_error_sys; /*!< Last recorded system error                                     */
+#endif
 	M_io_error_t         last_error;     /*!< Last recorded error mapped                                     */
 };
 

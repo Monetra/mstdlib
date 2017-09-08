@@ -449,7 +449,7 @@ M_bool M_event_handle_modify(M_event_t *event, M_event_modify_type_t modtype, M_
 
 	M_event_lock(event);
 
-	M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)handle, (void **)&member);
+	M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle), (void **)&member);
 
 	if (member != NULL && modtype == M_EVENT_MODTYPE_ADD_HANDLE) {
 		goto cleanup;
@@ -491,7 +491,7 @@ M_bool M_event_handle_modify(M_event_t *event, M_event_modify_type_t modtype, M_
 	switch (modtype) {
 		case M_EVENT_MODTYPE_ADD_HANDLE:
 //M_printf("%s(): %p add handle %d for io %p\n", __FUNCTION__, event, (int)handle, comm);
-			M_hash_u64vp_insert(event->u.loop.evhandles, (M_uint64)handle, member);
+			M_hash_u64vp_insert(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle), member);
 			break;
 		case M_EVENT_MODTYPE_ADD_WAITTYPE:
 		case M_EVENT_MODTYPE_DEL_WAITTYPE:
@@ -501,7 +501,7 @@ M_bool M_event_handle_modify(M_event_t *event, M_event_modify_type_t modtype, M_
 			/* Remove the node */
 //M_printf("%s(): %p remove handle %d for io %p\n", __FUNCTION__, event, (int)handle, comm);
 
-			M_hash_u64vp_remove(event->u.loop.evhandles, (M_uint64)handle, M_TRUE);
+			M_hash_u64vp_remove(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle), M_TRUE);
 			/* XXX: Should this be part of the initializer instead so it auto-frees? */
 			M_free(member);
 			break;

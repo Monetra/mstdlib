@@ -104,7 +104,13 @@ void M_io_lock(M_io_t *io);
 void M_io_unlock(M_io_t *io);
 
 M_io_layer_t *M_io_layer_at(M_io_t *io, size_t layer_id);
+
+#ifdef _WIN32
+M_bool M_io_setnonblock(unsigned int /* same as SOCKET type without needed SOCKET def */fd);
+#else
 M_bool M_io_setnonblock(int fd);
+#endif
+
 void M_io_block_data_free(M_io_t *io);
 
 /* Here because DNS needs it instead of m_io_net_int.h */
