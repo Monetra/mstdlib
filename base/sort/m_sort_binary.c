@@ -124,8 +124,9 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 			*idx = mid;
 		} else {
 			/* Insert after the index. */
-			if (eq > 0)
+			if (eq > 0) {
 				mid++;
+			}
 			while (mid < (size_t)right && eq == 0) {
 				mid++;
 				eq = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
