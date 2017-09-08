@@ -317,7 +317,10 @@ static void *M_event_impl_win32_eventthread(void *arg)
 
 				/* Process all events that were triggered */
 				if (
-#if WAIT_OBJECT_0 > 0 /* Prevent stupid warning about condition always being true */
+#if 0 
+/* WAIT_OBJECT_0 is defined as 0, wonder why they even define it?
+ * Don't emit this code as it will just cause a warning.
+ */
 				    retval >= WAIT_OBJECT_0 &&
 #endif
 				    retval <= WAIT_OBJECT_0 + nhandles
