@@ -28,12 +28,12 @@
 /*! Default hash algorithm. FNV1a */
 static M_uint32 M_hash_func_hash_FNV1a(const void *key, size_t key_len, M_uint32 seed)
 {
-	const unsigned char *bp = key;
-	const unsigned char *be = bp + key_len;
-	M_uint32             hv = seed; /*2166136261U;*/
+	const unsigned char *data = key;
+	M_uint32             hv   = seed; /*2166136261U;*/
+	size_t               i;
 
-	while (bp < be) {
-		hv ^= (M_uint32)*bp++;
+	for (i = 0; i < key_len; i++) {
+		hv ^= (M_uint32)data[i];
 		/* hv *= 0x01000193 */
 		hv += (hv<<1) + (hv<<4) + (hv<<7) + (hv<<8) + (hv<<24);
 	}
@@ -44,12 +44,12 @@ static M_uint32 M_hash_func_hash_FNV1a(const void *key, size_t key_len, M_uint32
 static M_uint32 M_hash_func_hash_FNV1a_casecmp(const void *key, size_t key_len, M_uint32 seed)
 {
 	/* FNV1a */
-	const char *bp = key;
-	const char *be = bp + key_len;
-	M_uint32    hv = seed; /*2166136261U*/;
+	const unsigned char *data = key;
+	M_uint32             hv   = seed; /*2166136261U*/
+	size_t               i;
 
-	while (bp < be) {
-		hv ^= (unsigned char)M_chr_tolower(*bp++);
+	for (i = 0; i < key_len; i++) {
+		hv ^= (unsigned char)M_chr_tolower((char)data[i]);
 		/* hv *=  16777619 */
 		hv += (hv<<1) + (hv<<4) + (hv<<7) + (hv<<8) + (hv<<24);
 	}
