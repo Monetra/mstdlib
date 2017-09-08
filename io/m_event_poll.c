@@ -97,11 +97,12 @@ static void M_event_impl_poll_data_structure(M_event_t *event)
  */
 static M_bool M_event_impl_poll_wait(M_event_t *event, M_uint64 timeout_ms)
 {
+	M_bool is_inf = (timeout_ms == M_TIMEOUT_INF)?M_TRUE:M_FALSE;
 	if (timeout_ms > M_INT32_MAX)
 		timeout_ms = M_INT32_MAX;
 
 	event->u.loop.impl_data->retval = M_thread_poll(event->u.loop.impl_data->fds, event->u.loop.impl_data->num_fds,
-	                                                (timeout_ms == M_TIMEOUT_INF)?-1:(int)timeout_ms);
+	                                                (is_inf)?-1:(int)timeout_ms);
 	if (event->u.loop.impl_data->retval > 0) {
 		return M_TRUE;
 	}

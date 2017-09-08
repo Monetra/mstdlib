@@ -1532,12 +1532,11 @@ M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxc
 		M_parser_append(parsers[cnt], ptr, ptrlen);
 
 		/* Silence clang, this should not be possible */
-		if (parsers[cnt] == NULL)
-			return NULL;
-
-		/* Preserve col/line numbers in children*/
-		parsers[cnt]->curr_col  = curr_col;
-		parsers[cnt]->curr_line = curr_line;
+		if (parsers[cnt] != NULL) {
+			/* Preserve col/line numbers in children*/
+			parsers[cnt]->curr_col  = curr_col;
+			parsers[cnt]->curr_line = curr_line;
+		}
 
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		cnt++;

@@ -1102,6 +1102,7 @@ ssize_t M_printf(const char *fmt, ...)
 size_t M_vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 {
 	M_str_fmt_t data;
+	ssize_t     rv;
 
 	data.endpoint   = M_STR_FMT_ENDPOINT_SBUF;
 	/* str could be NULL but we handle that when writing the output. Calling
@@ -1110,7 +1111,10 @@ size_t M_vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 	data.o.sbuf.pos = 0;
 	data.o.sbuf.len = size;
 
-	return (size_t)M_str_fmt_do_print(&data, fmt, ap);
+	rv = M_str_fmt_do_print(&data, fmt, ap);
+	if (rv < 0)
+		return 0;
+	return (size_t)rv;
 }
 
 size_t M_snprintf(char *str, size_t size, const char *fmt, ...)
@@ -1161,11 +1165,15 @@ size_t M_asprintf(char **ret, const char *fmt, ...)
 size_t M_vbprintf(M_buf_t *buf, const char *fmt, va_list ap)
 {
 	M_str_fmt_t data;
+	ssize_t     rv;
 
 	data.endpoint = M_STR_FMT_ENDPOINT_MBUF;
 	data.o.mbuf   = buf;
 
-	return (size_t)M_str_fmt_do_print(&data, fmt, ap);
+	rv = M_str_fmt_do_print(&data, fmt, ap);
+	if (rv < 0)
+		return 0;
+	return (size_t)rv;
 }
 
 size_t M_bprintf(M_buf_t *buf, const char *fmt, ...)

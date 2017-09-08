@@ -325,14 +325,22 @@ fail:
 M_io_error_t M_io_read(M_io_t *io, unsigned char *buf, size_t buf_len, size_t *len_read)
 {
 	M_io_error_t err;
+	size_t       layer_idx;
 
 	if (io == NULL || buf == NULL || buf_len == 0 || len_read == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
 
+	layer_idx = M_list_len(io->layer);
+	/* Sanity check for coverity false positive, we know this can't be zero */
+	if (layer_idx == 0) {
+		err = M_IO_ERROR_INVALID;
+		goto fail;
+	}
+
 	*len_read = buf_len;
-	err       = M_io_layer_read(io, M_list_len(io->layer)-1, buf, len_read);
+	err       = M_io_layer_read(io, layer_idx-1, buf, len_read);
 	if (err != M_IO_ERROR_SUCCESS)
 		*len_read = 0;
 
@@ -347,7 +355,8 @@ M_io_error_t M_io_read(M_io_t *io, unsigned char *buf, size_t buf_len, size_t *l
 	}
 
 fail:
-	io->last_error = err;
+	if (io != NULL)
+		io->last_error = err;
 
 	return err;
 }
@@ -467,14 +476,21 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf_len, size_t *len_written)
 {
 	M_io_error_t err;
+	size_t       layer_idx;
 
 	if (comm == NULL || buf == NULL || buf_len == 0 || len_written == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
 
+	layer_idx = M_list_len(comm->layer);
+	if (layer_idx == 0) {
+		err = M_IO_ERROR_INVALID;
+		goto fail;
+	}
+
 	*len_written = buf_len;
-	err = M_io_layer_write(comm, M_list_len(comm->layer)-1, buf, len_written);
+	err = M_io_layer_write(comm, layer_idx-1, buf, len_written);
 	if (err != M_IO_ERROR_SUCCESS)
 		*len_written = 0;
 
@@ -488,7 +504,8 @@ M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf_len, 
 		M_io_user_softevent_add(comm, M_EVENT_TYPE_WRITE);
 	}
 fail:
-	comm->last_error = err;
+	if (comm != NULL)
+		comm->last_error = err;
 
 	return err;
 }

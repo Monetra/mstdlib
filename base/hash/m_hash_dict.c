@@ -145,7 +145,10 @@ M_bool M_hash_dict_get(const M_hash_dict_t *h, const char *key, const char **val
 const char *M_hash_dict_get_direct(const M_hash_dict_t *h, const char *key)
 {
 	const char *val = NULL;
-	M_hash_dict_get(h, key, &val);
+
+	if (!M_hash_dict_get(h, key, &val))
+		return NULL;
+
 	return val;
 }
 

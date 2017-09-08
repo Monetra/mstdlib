@@ -106,7 +106,8 @@ M_bool M_hash_u64vp_get(const M_hash_u64vp_t *h, M_uint64 key, void **value)
 void *M_hash_u64vp_get_direct(const M_hash_u64vp_t *h, M_uint64 key)
 {
 	void *val = NULL;
-	M_hash_u64vp_get(h, key, &val);
+	if (!M_hash_u64vp_get(h, key, &val))
+		return NULL;
 	return val;
 }
 

@@ -449,7 +449,7 @@ M_bool M_event_handle_modify(M_event_t *event, M_event_modify_type_t modtype, M_
 
 	M_event_lock(event);
 
-	M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle), (void **)&member);
+	member = M_hash_u64vp_get_direct(event->u.loop.evhandles, (M_uint64)((M_uintptr)handle));
 
 	if (member != NULL && modtype == M_EVENT_MODTYPE_ADD_HANDLE) {
 		goto cleanup;
@@ -904,9 +904,11 @@ static void M_event_done_with_disconnect_int(M_event_t *event, M_uint64 timeout_
 	 * list first, then we have to check to ensure the io object hasn't been removed
 	 * by a prior disconnect. */
 	ios = M_list_create(NULL, M_LIST_NONE);
-	M_hashtable_enumerate(event->u.loop.reg_ios, &hashenum);
-	while (M_hashtable_enumerate_next(event->u.loop.reg_ios, &hashenum, &key, NULL)) {
-		M_list_insert(ios, key);
+
+	if (M_hashtable_enumerate(event->u.loop.reg_ios, &hashenum) > 0) {
+		while (M_hashtable_enumerate_next(event->u.loop.reg_ios, &hashenum, &key, NULL)) {
+			M_list_insert(ios, key);
+		}
 	}
 
 	for (i=0; i<M_list_len(ios); i++) {

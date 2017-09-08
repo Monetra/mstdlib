@@ -161,7 +161,7 @@ static M_int64 M_time_get_ampm_hour(const char **s, M_int64 hour)
 
 
 	/* AM with a PM hour is invalid. */
-	if (!is_pm && hour >= 12) 
+	if (!is_pm && hour > 12) 
 		return -1;
 
 	if (is_pm) {

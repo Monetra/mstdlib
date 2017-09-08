@@ -75,8 +75,10 @@ static void M_io_serial_close_handle(M_io_handle_t *handle)
 		}
 
 		if (!(handle->flags & M_IO_SERIAL_FLAG_NO_RESTORE_ON_CLOSE)) {
+			int rv;
 			/* Restore serial port back to the original state before we opened it */
-			tcsetattr(handle->fd, TCSANOW, &handle->options);
+			rv = tcsetattr(handle->fd, TCSANOW, &handle->options);
+			(void)rv; /* Appease coverity, we're closing the port, doesn't matter */
 		}
 		close(handle->fd);
 	}

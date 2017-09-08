@@ -778,14 +778,15 @@ char *M_str_split_on_char(char *s, char c)
 	if (s == NULL || c == '\0')
 		return NULL;
 
-	for (; *s!='\0' && *s!=c; s++)
+	for (; *s != '\0' && *s != c; s++)
 		;
 
-	if (s!=NULL && *s!='\0')
+	if (*s != '\0')
 		*s++ = '\0';
 
 	return s;
 }
+
 
 char **M_str_explode(unsigned char delim, const char *s, size_t s_len, size_t *num, size_t **len_array)
 {

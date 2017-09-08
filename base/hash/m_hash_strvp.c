@@ -123,7 +123,8 @@ M_bool M_hash_strvp_get(const M_hash_strvp_t *h, const char *key, void **value)
 void *M_hash_strvp_get_direct(const M_hash_strvp_t *h, const char *key)
 {
 	void *val = NULL;
-	M_hash_strvp_get(h, key, &val);
+	if (!M_hash_strvp_get(h, key, &val))
+		return NULL;
 	return val;
 }
 

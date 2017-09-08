@@ -167,9 +167,9 @@ static M_bool M_time_tz_posix_parse_time(M_parser_t *parser, int *hour, int *min
 	}
 
 	/* Store and skip past any direction modifier. */
-	M_parser_peek_byte(tparser, &c);
-	if (c == '+' || c == '-')
+	if (M_parser_peek_byte(tparser, &c) && (c == '+' || c == '-')) {
 		M_parser_consume(tparser, 1);
+	}
 
 	/* Separate the parts. */
 	parts = M_parser_split(tparser, ':', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
@@ -368,7 +368,7 @@ M_bool M_time_tz_posix_parse_time_offset(M_parser_t *parser, M_time_t *offset)
 
 	ret = M_time_tz_posix_parse_time(parser, &hour, &min, &sec, M_TRUE);
 	if (ret)
-		*offset = (hour * 60 * 60) + (min * 60) + sec;
+		*offset = (((M_time_t)hour) * 60 * 60) + (((M_time_t)min) * 60) + ((M_time_t)sec);
 
 	return ret;
 }

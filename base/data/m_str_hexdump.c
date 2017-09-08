@@ -60,8 +60,9 @@ char *M_str_hexdump(int flags, size_t bytes_per_line, const char *line_prefix, c
 		} else {
 			len_size = M_snprintf(temp, sizeof(temp), "%zX", data_len);
 		}
-		if (len_size < 4)
+		if (len_size < 4) {
 			len_size = 4;
+		}
 	}
 
 	/* Get size of hexdump */

@@ -440,15 +440,18 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 static void M_io_net_set_sockopts(M_io_handle_t *handle)
 {
 	int ival;
+	int rv;
 
 	/* Set Nagle, if enable TCP_NODELAY is 0 (off), otherwise it is 1 (on) */
 	ival = (handle->settings.nagle_enable)?0:1;
-	setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_NODELAY, (const void *)&ival, sizeof(ival));
+	rv   = setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_NODELAY, (const void *)&ival, sizeof(ival));
+	(void)rv; /* Not the end of the world if this fails, coverity complained */
 
 	/* Prevent SIGPIPE */
 #ifdef SO_NOSIGPIPE
 	ival = 1;
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *)&ival, sizeof(ival));
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *)&ival, sizeof(ival));
+	(void)rv;
 #endif
 
 	if (handle->settings.ka_enable)

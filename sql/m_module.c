@@ -156,6 +156,6 @@ void M_module_unload(M_module_handle_t handle)
 #ifdef _WIN32
 	FreeLibrary(handle);
 #else
-//	dlclose(handle);
+	dlclose(handle);
 #endif
 }

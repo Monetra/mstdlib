@@ -29,19 +29,37 @@
 
 M_bool M_uint32_is_power_of_two(M_uint32 n)
 {
-	return n && !(n & (n - 1));
+	if (n == 0)
+		return M_FALSE;
+
+	if (n & (n - 1))
+		return M_FALSE;
+
+	return M_TRUE;
 }
 
 
 M_bool M_uint64_is_power_of_two(M_uint64 n)
 {
-	return n && !(n & (n - 1));
+	if (n == 0)
+		return M_FALSE;
+
+	if (n & (n - 1))
+		return M_FALSE;
+
+	return M_TRUE;
 }
 
 
 M_bool M_size_t_is_power_of_two(size_t n)
 {
-	return n && !(n & (n - 1));
+	if (n == 0)
+		return M_FALSE;
+
+	if (n & (n - 1))
+		return M_FALSE;
+
+	return M_TRUE;
 }
 
 
