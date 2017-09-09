@@ -21,6 +21,7 @@ addons:
       - check
       - clang-4.0
       - libsqlite3-dev
+      - libc-ares-dev
 
 # Add coverity certificate to system ca-certificates
 before_install:
@@ -79,6 +80,7 @@ jobs:
             - libmariadbd-dev
             - unixodbc-dev
             - libsqlite3-dev
+            - libc-ares-dev
     - stage: Runtime Analysis
       os: linux
       env: 
@@ -97,7 +99,7 @@ install:
 
 # Put in 3rd party sources and chain build
 before_script:
-   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
+#   - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
 #   - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
 #   - unzip sqlite-amalgamation-3200100.zip
 #   - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
