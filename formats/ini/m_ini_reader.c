@@ -128,8 +128,13 @@ static char **M_ini_explode_lines(const char *s, const M_ini_settings_t *info, s
 			on_comment      = M_FALSE;
 		}
 	}
-	if (beginsect < s_len)
-		out[num_strs] = dupstr+beginsect;
+	if (beginsect < s_len) {
+		out[num_strs++] = dupstr+beginsect;
+	}
+
+	/* shouldn't be possible, silence coverity */
+	if (num_strs == 0)
+		M_free(dupstr);
 
 	return out;
 }
@@ -455,7 +460,7 @@ static M_bool M_ini_reader_parse_str_handle_kv(const char *section_name, const M
 static M_fs_error_t M_ini_reader_parse_str(M_ini_t **ini, const char *s, const M_ini_settings_t *info, M_bool ignore_whitespace,  size_t *err_line)
 {
 	char             **lines;
-	size_t             num_lines;
+	size_t             num_lines    = 0;
 	char              *section_name = NULL;
 	size_t             i;
 	M_ini_element_t   *elem;
@@ -479,7 +484,9 @@ static M_fs_error_t M_ini_reader_parse_str(M_ini_t **ini, const char *s, const M
 	/* Split the ini into lines which we can parse into elements. Lines are not literal lines but
  	 * delimited sections of elements. For example a kv element can include newlines if quoted. */
 	lines = M_ini_explode_lines(s, info, &num_lines);
-	if (num_lines == 0) {
+	if (lines == NULL || num_lines == 0) {
+		/* Silence coverity. Shouldn't be possible that if num_lines is 0 that lines will be non-NULL */
+		M_ini_explode_lines_free(lines, num_lines);
 		return M_FS_ERROR_SUCCESS;
 	}
 

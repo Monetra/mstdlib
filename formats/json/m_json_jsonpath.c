@@ -292,8 +292,11 @@ M_json_node_t **M_json_jsonpath(const M_json_node_t *node, const char *search, s
 		return NULL;
 
 	segments = M_str_explode_str('.', search+1, &num_segments);
-	if (segments == NULL || num_segments == 0)
+	if (segments == NULL || num_segments == 0) {
+		/* Silence coverity, if num_segments is 0, segments should be NULL */
+		M_str_explode_free(segments, num_segments);
 		return NULL;
+	}
 
 	/* Further split on '[' to pull out indexes */
 	seg_list = M_list_str_create(M_LIST_STR_NONE);
@@ -304,8 +307,10 @@ M_json_node_t **M_json_jsonpath(const M_json_node_t *node, const char *search, s
 		}
 
 		idx_segments = M_str_explode_str('[', segments[i], &num_idx_segments);
-		if (idx_segments == NULL || num_idx_segments == 0)
+		if (idx_segments == NULL || num_idx_segments == 0) {
+			M_str_explode_free(idx_segments, num_idx_segments);
 			continue;
+		}
 
 		for (j=0; j<num_idx_segments; j++) {
 			/* Empty means we found a '[', skip it. */

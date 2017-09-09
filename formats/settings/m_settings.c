@@ -372,6 +372,8 @@ void M_settings_split_key(const char *s, char **group, char **key)
 	if (p == NULL) {
 		if (key) {
 			*key = d;
+		} else {
+			M_free(d);
 		}
 		return;
 	}

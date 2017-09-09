@@ -302,6 +302,10 @@ static void M_xml_xpath_search_match_node_attr_has(const char *seg, M_xml_node_t
 	
 	(void)search_recursive;
 
+	/* Silence coverity. Shouldn't be possible, should get [@] at end*/
+	if (M_str_len(seg) < 3)
+		return;
+
 	/* Remove [@] from the attribute name we need to match on. */
 	attr = M_strdup_max(seg+2, M_str_len(seg)-3);
 	if (M_xml_node_attribute(node, attr) != NULL) {
@@ -317,7 +321,7 @@ static void M_xml_xpath_search_match_node_attr_val(const char *seg, M_xml_node_t
 	char     *attr;
 	char     *val;
 	char     *out;
-	size_t    num_parts;
+	size_t    num_parts = 0;
 	size_t    i;
 	size_t    start = 0;
 	size_t    len;
@@ -325,8 +329,10 @@ static void M_xml_xpath_search_match_node_attr_val(const char *seg, M_xml_node_t
 	(void)search_recursive;
 
 	parts = M_str_explode_str('=', seg, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (parts == NULL || num_parts == 0 || M_str_len(parts[0]) < 2) {
+		M_str_explode_free(parts, num_parts);
 		return;
+	}
 
 	/* Get the attribute. */
 	attr = M_strdup_max(parts[0]+2, M_str_len(parts[0])-2);
@@ -417,6 +423,10 @@ static void M_xml_xpath_search_match_node_pos(const char *seg, M_xml_node_t *nod
 		}
 	}
 	if (num_children_elems == 0)
+		return;
+
+	/* Silence coverity. Shouldn't be possible, should always have at least [] */
+	if (M_str_len(seg) < 2)
 		return;
 
 	/* Strip off []. */
@@ -583,8 +593,11 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 	*num_matches = 0;
 
 	segments = M_str_explode_str('/', search, &num_segments);
-	if (segments == NULL || num_segments == 0)
+	if (segments == NULL || num_segments == 0) {
+		/* Silence coverity, but most likely if num_segments is 0, segments is NULL right? */
+		M_str_explode_free(segments, num_segments);
 		return NULL;
+	}
 
 	/* Further split on '[' to pull out predicate filters. */
 	seg_list = M_list_str_create(M_LIST_STR_NONE);
@@ -595,8 +608,10 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 		}
 
 		pred_segments = M_str_explode_str('[', segments[i], &num_pred_segments);
-		if (pred_segments == NULL || num_pred_segments == 0)
+		if (pred_segments == NULL || num_pred_segments == 0) {
+			M_str_explode_free(pred_segments, num_pred_segments);
 			continue;
+		}
 
 		for (j=0; j<num_pred_segments; j++) {
 			/* Empty means we found a '[', skip it. */
