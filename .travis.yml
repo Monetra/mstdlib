@@ -10,7 +10,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
-      - llvm-toolchain-trusty-4.0
+      - llvm-toolchain-trusty-5.0
     packages:
       - cmake
       - libssl-dev
@@ -19,7 +19,7 @@ addons:
       - libmariadbd-dev
       - unixodbc-dev
       - check
-      - clang-4.0
+      - clang-5.0
       - libsqlite3-dev
       - libc-ares-dev
 
@@ -54,7 +54,7 @@ jobs:
     - stage: Static Analysis
       os: linux
       env: 
-        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-4.0"
+        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-5.0"
       compiler: clang
     - os: linux
       env:
