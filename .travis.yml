@@ -20,6 +20,7 @@ addons:
       - unixodbc-dev
       - check
       - clang-4.0
+      - libsqlite3-dev
 
 # Add coverity certificate to system ca-certificates
 before_install:
@@ -77,6 +78,7 @@ jobs:
             - libpq-dev
             - libmariadbd-dev
             - unixodbc-dev
+            - libsqlite3-dev
     - stage: Runtime Analysis
       os: linux
       env: 
@@ -95,10 +97,10 @@ install:
 
 # Put in 3rd party sources and chain build
 before_script:
-   - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
-   - unzip sqlite-amalgamation-3200100.zip
-   - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
    - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
+#   - wget http://sqlite.org/2017/sqlite-amalgamation-3200100.zip
+#   - unzip sqlite-amalgamation-3200100.zip
+#   - mv sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
 
 script:
     - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds ; fi
