@@ -488,7 +488,7 @@ static void check_set_insert(const char *prefix, M_uint64 *vals, size_t num_vals
 	}
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Insert %s: length not correct, expected: %zu, got: %zu", num_after_vals, len);
+	ck_assert_msg(len == num_after_vals, "SET Insert %s: length not correct, expected: %zu, got: %zu", prefix, num_after_vals, len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);

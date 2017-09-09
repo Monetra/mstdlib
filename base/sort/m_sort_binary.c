@@ -52,6 +52,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 	left  = 0;
 	right = (ssize_t)nmemb-1;
 
+	/* Shortcut if not needing to be stable to prepend ot head or append to tail */
 	if (!stable) {
 		/* Check the last value first, if we're inserting (!match), then it is probably
 		 * more efficient to append */
@@ -97,10 +98,9 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 	/* Try to find the value by halving (binary search). */
 	while (left <= right) {
 		mid = ((size_t)(left + right)) >> 1;
-		eq = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
+		eq  = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
 		if (eq == 0) {
-			*idx = mid;
-			return M_TRUE;
+			break;
 		} else if (eq < 0) {
 			right = ((ssize_t)mid) - 1;
 		} else if (eq > 0) {
@@ -108,46 +108,55 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 		}
 	}
 
-	if (stable) {
-		if (match) {
-			if (eq != 0) {
-				return M_FALSE;
-			}
-			/* Return the first matching element */
-			while (mid > 0 && mid >= (size_t)left) {
-				eq = compar(&key, (const unsigned char *)base+((mid-1)*esize), thunk);
-				if (eq != 0) {
-					break;
-				}
-				mid--;
-			}
-			*idx = mid;
-		} else {
-			/* Insert after the index. */
-			if (eq > 0) {
-				mid++;
-			}
-			while (mid < (size_t)right && eq == 0) {
-				mid++;
-				eq = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
-			}
-			*idx = mid;
-		}
-	} else {
-		/* If we're here we didn't find a match */
-		if (match) {
+	if (!stable) {
+		/* If we expected a match but didn't get one, fail */
+		if (match && eq != 0) {
 			return M_FALSE;
 		}
+
 		/* Not matching so use the last mid value. */
 		*idx = mid;
 
 		/* current index is less than the key being checked, need to insert after */
 		if (eq > 0)
 			(*idx)++;
+
+		return M_TRUE;
+	}
+
+	/* Stable matching now, extra work to do */
+
+	if (match) {
+		/* We require a match according to our parameters, but we didn't get
+		 * one, bail */
+		if (eq != 0) {
+			return M_FALSE;
+		}
+
+		/* Scan backwards to find the *first* match, this is what makes it stable */
+		for ( ; mid > 0 && mid >= (size_t)left ; mid--) {
+			eq = compar(&key, (const unsigned char *)base+((mid-1)*esize), thunk);
+			if (eq != 0)
+				break;
+		}
+		*idx = mid;
+	} else {
+		/* Insert after the index. */
+		if (eq > 0)
+			mid++;
+
+		/* Since we're not finding a match, that means we're probably inserting,
+		 * so we want to insert to the *end* of the identical matches */
+		while (mid < (size_t)right && eq == 0) {
+			mid++;
+			eq = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
+		}
+		*idx = mid;
 	}
 
 	return M_TRUE;
 }
+
 
 size_t M_sort_binary_insert_idx(const void *base, size_t nmemb, size_t esize, const void *key, M_bool stable, M_sort_compar_t compar, void *thunk)
 {
