@@ -152,7 +152,8 @@ source tree under:
 
 If it exists, it will be built as part of mstdlib and statically linked.
 
-Otherwise, mstdlib will attempt to search for C-Ares on the system.
+Otherwise, mstdlib will attempt to search for C-Ares on the system. Use
+`-Dc_ares_DIR=<path>` if installed to a non-standard location.
 
 #### OpenSSL
 The TLS subsystem uses OpenSSL 1.0.1 or higher for the underlying cryptographic
