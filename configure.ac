@@ -1,5 +1,11 @@
+m4_define([mstdlib_major_version],   [1])
+m4_define([mstdlib_minor_version],   [0])
+m4_define([mstdlib_release_version], [0])
+m4_define([mstdlib_version], [mstdlib_major_version.mstdlib_minor_version.mstdlib_release_version])
+
 AC_PREREQ([2.60])
-AC_INIT([mstdlib], [1.0], [dev@monetra.com])
+AC_INIT([mstdlib], [mstdlib_version], [support@monetra.com])
+
 dnl helper programs
 AC_CONFIG_AUX_DIR([config])
 dnl macros
@@ -1181,5 +1187,15 @@ AM_CONDITIONAL([MSTDLIB_SQL],         [ test $build_mstdlib_sql = yes ])
 AC_DEFINE([ADD_OBJECTS], [], [Additional sources])
 AC_SUBST(ADD_OBJECTS)
 AC_SUBST(BUILD_SUBDIRS)
+
+
+dnl Libtool versioning is weird, they use a 'current', 'age', and 'revision'
+dnl methodology to determine the ABI version.  We actually are guaranteeing
+dnl it based on our versions.  Major means ABI breaks, minor means addition
+dnl of new functions, and release means bugfixes.  We need to map our version
+dnl to the libtool version.  The forward method for .so versioning is
+dnl (current-age).age.revision, so we'll do the opposite here:
+LIBTOOL_VERSION="`expr mstdlib_major_version + mstdlib_minor_version`:`echo mstdlib_release_version`:`echo mstdlib_minor_version`"
+AC_SUBST(LIBTOOL_VERSION)
 
 AC_OUTPUT

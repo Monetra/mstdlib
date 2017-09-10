@@ -3,7 +3,7 @@ lib_LTLIBRARIES = libmstdlib_tls.la
 AM_CFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/tls -DMSTDLIB_INTERNAL=1
 AM_CPPFLAGS = $(AM_CFLAGS)
 
-libmstdlib_tls_la_LDFLAGS = -export-dynamic -version-info @MSTDLIB_VERSION@
+libmstdlib_tls_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_tls_la_SOURCES =  \
 	m_tls.c              \
 	m_tls_certs.c        \

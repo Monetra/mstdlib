@@ -3,7 +3,7 @@ lib_LTLIBRARIES = libmstdlib_sql.la
 AM_CFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/sql -DMSTDLIB_INTERNAL=1
 AM_CPPFLAGS = $(AM_CFLAGS)
 
-libmstdlib_sql_la_LDFLAGS = -export-dynamic -version-info @MSTDLIB_VERSION@
+libmstdlib_sql_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_sql_la_SOURCES = \
 	m_module.c              \
 	m_sql_connpool.c        \

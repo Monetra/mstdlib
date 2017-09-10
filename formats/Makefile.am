@@ -3,7 +3,7 @@ lib_LTLIBRARIES = libmstdlib_formats.la
 AM_CFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/base -DMSTDLIB_INTERNAL=1
 AM_CPPFLAGS = $(AM_CFLAGS)
 
-libmstdlib_formats_la_LDFLAGS = -export-dynamic -version-info @MSTDLIB_VERSION@
+libmstdlib_formats_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_formats_la_SOURCES =  \
 	csv/m_csv.c                  \
 	\

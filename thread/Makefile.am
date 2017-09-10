@@ -3,7 +3,7 @@ lib_LTLIBRARIES = libmstdlib_thread.la
 AM_CFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/base -DMSTDLIB_INTERNAL=1
 AM_CPPFLAGS = $(AM_CFLAGS)
 
-libmstdlib_thread_la_LDFLAGS = -export-dynamic -version-info @MSTDLIB_VERSION@
+libmstdlib_thread_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_thread_la_SOURCES = \
 	m_atomic.c \
 	m_popen.c \

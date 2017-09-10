@@ -3,7 +3,7 @@ lib_LTLIBRARIES = libmstdlib.la
 AM_CFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include -DMSTDLIB_INTERNAL=1
 AM_CPPFLAGS = $(AM_CFLAGS)
 
-libmstdlib_la_LDFLAGS = -export-dynamic -version-info @MSTDLIB_VERSION@
+libmstdlib_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_la_SOURCES =                \
 	\
 	bincodec/m_base64.c                \
