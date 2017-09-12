@@ -844,7 +844,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	}
 
 	for (i = 0; i < num_cols; i++) {
-		SQLSMALLINT          ValueType;
+		SQLSMALLINT          ValueType     = 0;
 		SQLSMALLINT          ParameterType;
 		SQLULEN              ColumnSize    = M_sql_driver_stmt_bind_get_max_col_size(stmt, i);
 		M_sql_data_type_t    type          = M_sql_driver_stmt_bind_get_col_type(stmt, i);
@@ -985,7 +985,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 
 	for (row = 0; row < num_rows; row++) {
 		for (i = 0; i < num_cols; i++) {
-			SQLSMALLINT          ValueType;
+			SQLSMALLINT          ValueType      = 0;
 			SQLSMALLINT          ParameterType;
 			SQLULEN              ColumnSize     = 0;
 			SQLPOINTER           ParameterValue = NULL;

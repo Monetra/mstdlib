@@ -13,6 +13,11 @@
 typedef unsigned long long llu; /* because I'm lazy ... */
 typedef          long long lld;
 
+/* We store format strings in variables to make testing easier, so disable the associated warning for this file. */
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wformat-security"
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
