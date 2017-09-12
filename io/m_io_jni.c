@@ -34,6 +34,7 @@
 
 JavaVM  *M_io_jni_jvm = NULL;
 
+
 #define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET ('A' - 'a')
 enum M_IO_JNI_TYPE {
 	M_IO_JNI_UNKNOWN = 0,
@@ -75,7 +76,9 @@ typedef struct {
 	M_hash_strvp_t *methods;
 } M_io_jni_references_t;
 
-static M_io_jni_references_t M_io_jni_ref = { NULL, NULL };
+static M_io_jni_references_t M_io_jni_ref     = { NULL, NULL };
+static M_hash_u64str_t      *M_io_jni_threads = NULL;
+static M_thread_mutex_t     *M_io_jni_lock    = NULL;
 
 static const struct {
 	const char *class;
@@ -246,6 +249,11 @@ JNIEnv *M_io_jni_getenv(void)
 			M_io_jni_debug("Failed to attach current thread to JVM");
 			return NULL;
 		}
+		/* Save the fact that *we* did the initialization in case some other JNI
+		 * app did it, we don't want to clear it out from under them. */
+		M_thread_mutex_lock(M_io_jni_lock);
+		M_hash_u64str_insert(M_io_jni_threads, (M_uint64)((M_uintptr)M_thread_self()), "1");
+		M_thread_mutex_unlock(M_io_jni_lock);
 	} else if (getEnvStat == JNI_EVERSION) {
 		M_io_jni_debug("Invalid JNI version");
 		return NULL;
@@ -445,8 +453,20 @@ static M_bool M_io_jni_register_funcs(void)
 
 static void M_io_jni_detach(void)
 {
-	JNIEnv *env    = NULL;
+	JNIEnv *env        = NULL;
+	M_bool  has_thread = M_FALSE;
 
+	/* Verify we are the ones that Attached the thread, if not, we should exit */
+	M_thread_mutex_lock(M_io_jni_lock);
+	has_thread = M_hash_u64str_get(M_io_jni_threads, (M_uint64)((M_uintptr)M_thread_self()), NULL);
+	if (has_thread)
+		M_hash_u64str_remove(M_io_jni_threads, (M_uint64)((M_uintptr)M_thread_self()));
+	M_thread_mutex_unlock(M_io_jni_lock);
+
+	if (!has_thread)
+		return;
+
+	/* Make sure someone else didn't detach our thread even though we initialized it */
 	(*M_io_jni_jvm)->GetEnv(M_io_jni_jvm, (void **)&env, JNI_VERSION_1_6);
 	if (env != NULL)
 		(*M_io_jni_jvm)->DetachCurrentThread(M_io_jni_jvm);
@@ -458,8 +478,12 @@ static void M_io_jni_deinit(void *arg)
 	(void)arg;
 	M_hash_strvp_destroy(M_io_jni_ref.classes, M_TRUE);
 	M_hash_strvp_destroy(M_io_jni_ref.methods, M_TRUE);
+	M_hash_u64str_destroy(M_io_jni_threads);
+	M_io_jni_threads = NULL;
+	M_thread_mutex_destroy(M_io_jni_lock);
+	M_io_jni_lock    = NULL;
 	M_mem_set(&M_io_jni_ref, 0, sizeof(M_io_jni_ref));
-	M_io_jni_jvm = NULL;
+	M_io_jni_jvm     = NULL;
 }
 
 
@@ -472,6 +496,9 @@ M_bool M_io_jni_init(JavaVM *jvm)
 		return M_FALSE;
 
 	M_io_jni_jvm = jvm;
+
+	M_io_jni_lock    = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	M_io_jni_threads = M_hash_u64str_create(16, 75, M_HASH_U64STR_NONE);
 
 	M_thread_destructor_insert(M_io_jni_detach);
 	if (!M_io_jni_register_funcs()) {
