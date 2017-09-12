@@ -25,6 +25,16 @@
 
 #include <mstdlib/mstdlib.h>
 
+#ifndef M_NOINLINE
+#  if defined(__GNUC__)
+#    define M_NOINLINE  __attribute__((noinline))
+#  elif defined(_MSC_VER)
+#    define M_NOINLINE  __declspec(noinline)
+#  else
+#    define M_NOINLINE
+#  endif
+#endif
+
 void M_decimal_create(M_decimal_t *dec)
 {
 	if (dec == NULL)
@@ -60,7 +70,14 @@ M_int64 M_decimal_to_int(const M_decimal_t *dec, M_uint8 implied_dec)
 }
 
 
-static enum M_DECIMAL_RETVAL M_decimal_mult_int64(M_int64 *out, M_int64 in1, M_int64 in2)
+/* Don't inline this function - if you do, triggers a strict-overflow warning due to the compiler assuming
+ * that in1 is always greater than 0 when called below in some tests - in these cases, the "if (in1 > 0)" check
+ * was being optimized out by the compiler.
+ *
+ * If this function isn't inlined, the compiler has no way of guessing whether or not in1 is > 0 or not, so
+ * it doesn't remove the if statement, and we don't see any warnings.
+ */
+static M_NOINLINE enum M_DECIMAL_RETVAL M_decimal_mult_int64(M_int64 *out, M_int64 in1, M_int64 in2)
 {
 	*out = in1 * in2;
 
