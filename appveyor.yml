@@ -35,19 +35,6 @@ environment:
 #      PATH: C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
 
 install:
-  # Clone libcheck into projects dir (will be built before the main project).
-  - cd C:\projects
-  - git clone https://github.com/libcheck/check.git check --depth 1
-  # -- note: libcheck annoyingly hardcodes the build type to debug, use powershell to comment this out --
-  - cd check
-  - ps: (Get-Content C:\projects\check\CMakeLists.txt).replace('set(CMAKE_BUILD_TYPE', '#set(CMAKE_BUILD_TYPE') | Set-Content C:\projects\check\CMakeLists.txt
-  - cd %APPVEYOR_BUILD_FOLDER%
-  # Clone C-ARES into thirdparty dir (will be chain-built).
-  - git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares --depth 1
-  # Download SQLite amalgamation file, extract into thirdparty dir (will be chain built)
-  - appveyor DownloadFile "http://sqlite.org/2017/sqlite-amalgamation-3200100.zip" -FileName sqlite_amal.zip
-  - 7z x sqlite_amal.zip > nul
-  - move sqlite-amalgamation-3200100 thirdparty/sqlite-amalgamation
   # Rename sh.exe as sh.exe in PATH interferes with MinGW.
   - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh2.exe"
   # Download and extract ninja, add it to PATH.
@@ -64,22 +51,13 @@ before_build:
   - if "%COMPILER%" == "MSVC" call "%MSVC_SETUP_PATH%" %MSVC_SETUP_ARG%
 
 build_script:
-  # Build libcheck.
-  - mkdir C:\projects\build-check
-  - cd C:\projects\build-check
-  - cmake -GNinja
-    -DCHECK_ENABLE_TESTS=FALSE
-    -DCMAKE_BUILD_TYPE=%configuration%
-    -DCMAKE_INSTALL_PREFIX=C:\projects\build-check\install
-    C:\projects\check
-  - ninja install
+  # Make build-mstdlib directory. Download c-ares, sqlite amalgamation and libcheck. Build and install libcheck.
+  - cmake -DBUILDDIR=C:\projects\build-mstdlib -DCMAKE_BUILD_TYPE=%configuration% -P "%APPVEYOR_BUILD_FOLDER%\setup_thirdparty.cmake"
   # Build mstdlib.
-  - mkdir C:\projects\build-mstdlib
   - cd C:\projects\build-mstdlib
   - cmake -GNinja
     -DCMAKE_BUILD_TYPE=%configuration%
     -DCMAKE_INSTALL_PREFIX=C:\projects\build-mstdlib\test_install
-    -DCheck_DIR=C:\projects\build-check\install
     %CMAKE_EXTRA_OPTIONS% %APPVEYOR_BUILD_FOLDER%
   - ninja install
  
