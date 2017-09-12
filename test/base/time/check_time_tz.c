@@ -4,6 +4,9 @@
 
 #include <mstdlib/mstdlib.h>
 
+typedef unsigned long long llu;
+typedef          long long lld;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define EST5EDT "EST5EDT,M3.2.0/02:00:00,M11.1.0/02:00:00"
@@ -90,7 +93,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 {
 	M_bool            isdst;
 	M_time_localtm_t  ltime;
-	time_t            timestamp;
+	M_time_t          timestamp;
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 
@@ -99,7 +102,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 
 	/* Check adjustment. */
 	if (tz_check->gmtoff != ltime.gmtoff) {
-		M_snprintf(err, err_len, "Expected offset %lld does not match offset %lld", (M_int64)tz_check->gmtoff, (M_int64)ltime.gmtoff);
+		M_snprintf(err, err_len, "Expected offset %lld does not match offset %lld", (lld)tz_check->gmtoff, (lld)ltime.gmtoff);
 		return M_FALSE;
 	}
 
@@ -132,8 +135,8 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 	/* Convert back to a UTC time. */
 	timestamp = M_time_fromlocal(&ltime, tz);
 
-	if (tz_check->utc != timestamp) {
-		M_snprintf(err, err_len, "Expected UTC time %lld does not match calculated time of %lld", (M_int64)tz_check->utc, (M_int64)timestamp);
+	if (((M_time_t)tz_check->utc) != timestamp) {
+		M_snprintf(err, err_len, "Expected UTC time %lld does not match calculated time of %lld", (lld)tz_check->utc, (lld)timestamp);
 		return M_FALSE;
 	}
 
@@ -142,12 +145,12 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 
 static void check_tz_run_checks(const M_time_tz_t *tz, const char *prefix, const check_tz_time_t *tz_checks)
 {
-	char   err[256];
+	char   err[256] = {0};
 	size_t i;
 
 	for (i=0; tz_checks[i].utc != 0; i++) {
 		if (!check_time_tz_int(&tz_checks[i], tz, err, sizeof(err))) {
-			ck_abort_msg("%s check %zu failed: %s", prefix, i, err);
+			ck_abort_msg("%s check %llu failed: %s", prefix, (llu)i, err);
 		}
 	}
 }
@@ -201,20 +204,20 @@ END_TEST
 START_TEST(check_time_tz_sys_convert)
 {
 	M_time_localtm_t ltime;
-	time_t           t;
+	M_time_t         t;
 	size_t           i;
 
 	for (i=0; check_tz_times_ny[i].utc != 0; i++) {
 		M_mem_set(&ltime, 0, sizeof(ltime));
 		M_time_tolocal(check_tz_times_ny[i].utc, &ltime, NULL);
 		t = M_time_fromlocal(&ltime, NULL);
-		ck_assert_msg(check_tz_times_ny[i].utc == t, "%zu: expected=%zu, got=%zu", i, check_tz_times_ny[i].utc, t);
+		ck_assert_msg(((M_time_t)check_tz_times_ny[i].utc) == t, "%llu: expected=%lld, got=%lld", (llu)i, (lld)check_tz_times_ny[i].utc, (lld)t);
 	}
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 	M_time_tolocal(0, &ltime, NULL);
 	t = M_time_fromlocal(&ltime, NULL);
-	ck_assert_msg(0 == t, "expected=0, got=%zu", t);
+	ck_assert_msg(0 == t, "expected=0, got=%lld", (lld)t);
 }
 END_TEST
 
