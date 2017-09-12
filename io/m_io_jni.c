@@ -377,7 +377,8 @@ static M_bool M_io_jni_register_funcs(void)
 	JNIEnv *env       = NULL;
 	M_bool  is_error  = M_FALSE;
 
-	if ((*M_io_jni_jvm)->AttachCurrentThread(M_io_jni_jvm, &env, NULL) != 0 || env == NULL) {
+	env = M_io_jni_getenv();
+	if (env == NULL) {
 		M_io_jni_debug("Failed to obtain java environment");
 		return M_FALSE;
 	}
