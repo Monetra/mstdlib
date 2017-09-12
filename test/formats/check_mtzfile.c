@@ -5,6 +5,9 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
+typedef unsigned long long llu;
+typedef          long long lld;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define EST5EDT "EST5EDT,M3.2.0/02:00:00,M11.1.0/02:00:00"
@@ -91,7 +94,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 {
 	M_bool            isdst;
 	M_time_localtm_t  ltime;
-	time_t            timestamp;
+	M_time_t          timestamp;
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 
@@ -100,7 +103,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 
 	/* Check adjustment. */
 	if (tz_check->gmtoff != ltime.gmtoff) {
-		M_snprintf(err, err_len, "Expected offset %lld does not match offset %lld", (M_int64)tz_check->gmtoff, (M_int64)ltime.gmtoff);
+		M_snprintf(err, err_len, "Expected offset %lld does not match offset %lld", (lld)tz_check->gmtoff, (lld)ltime.gmtoff);
 		return M_FALSE;
 	}
 
@@ -133,8 +136,8 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 	/* Convert back to a UTC time. */
 	timestamp = M_time_fromlocal(&ltime, tz);
 
-	if (tz_check->utc != timestamp) {
-		M_snprintf(err, err_len, "Expected UTC time %lld does not match calculated time of %lld", (M_int64)tz_check->utc, (M_int64)timestamp);
+	if (((M_time_t)tz_check->utc) != timestamp) {
+		M_snprintf(err, err_len, "Expected UTC time %lld does not match calculated time of %lld", (lld)tz_check->utc, (lld)timestamp);
 		return M_FALSE;
 	}
 
@@ -148,7 +151,7 @@ static void check_tz_run_checks(const M_time_tz_t *tz, const char *prefix, const
 
 	for (i=0; tz_checks[i].utc != 0; i++) {
 		if (!check_time_tz_int(&tz_checks[i], tz, err, sizeof(err))) {
-			ck_abort_msg("%s check %zu failed: %s", prefix, i, err);
+			ck_abort_msg("%s check %llu failed: %s", prefix, (llu)i, err);
 		}
 	}
 }
@@ -165,7 +168,7 @@ START_TEST(check_mtzfile)
 
 	tzs = M_time_tzs_create();
 	if (M_mtzfile_tzs_add_str(tzs, POSIXEX_INI, &err_line, &err_sect, &err_data) != M_TIME_RESULT_SUCCESS) {
-		ck_abort_msg("Error loading mtzfile ini data: line=%zu, sect=%s, data=%s", err_line, err_sect, err_data);
+		ck_abort_msg("Error loading mtzfile ini data: line=%llu, sect=%s, data=%s", (llu)err_line, err_sect, err_data);
 	}
 
 	tz  = M_time_tzs_get_tz(tzs, "EST5EDT");

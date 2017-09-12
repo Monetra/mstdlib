@@ -4,6 +4,8 @@
 
 #include <mstdlib/mstdlib_thread.h>
 
+typedef unsigned long long llu;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static M_thread_model_t configured_thread_model = M_THREAD_MODEL_INVALID;
@@ -313,7 +315,7 @@ START_TEST(check_sleeper)
 	 * 100, threads may not have fully exited. */
 	M_thread_sleep(15000);
 
-	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %zu", M_thread_count());
+	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %llu", (llu)M_thread_count());
 }
 END_TEST
 
@@ -348,7 +350,7 @@ START_TEST(check_joiner)
 
 	len = M_list_u64_len(threads);
 	for (i=0; i<len; i++) {
-		thread = M_list_u64_at(threads, i);
+		thread = (M_threadid_t)M_list_u64_at(threads, i);
 		M_thread_join(thread, NULL);
 	}
 	M_list_u64_destroy(threads);
@@ -845,7 +847,7 @@ START_TEST(check_pool)
 
 	ck_assert_msg(count == CHECK_POOL_TASK_CNT, "count (%u) != %u", count, CHECK_POOL_TASK_CNT);
 	len = M_list_u64_len(sd.seen_threads);
-	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %zu of %u used", len, CHECK_POOL_THREAD_CNT);
+	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %llu of %llu used", (llu)len, CHECK_POOL_THREAD_CNT);
 
 	M_list_u64_destroy(sd.seen_threads);
 	M_thread_mutex_destroy(sd.mutex);
@@ -875,7 +877,7 @@ START_TEST(check_innerd)
 	}
 	M_thread_sleep(5000000);
 
-	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %zu", M_thread_count());
+	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %llu", (llu)M_thread_count());
 }
 END_TEST
 
