@@ -3,7 +3,7 @@ enable_testing()
 if (MSTDLIB_BUILD_TESTS)
 	if (NOT Check_DIR)
 		# If user didn't specify a particular check installation, look in thirdparty dir.
-		set(Check_DIR "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/check")
+		set(Check_DIR "${Mstdlib_BINARY_DIR}/thirdparty/check")
 	endif ()
 	find_package(Check)
 	find_package(Valgrind)
@@ -161,6 +161,10 @@ if (TARGET Check::check AND MSTDLIB_BUILD_TESTS)
 		
 		add_executable(${test_prog} ${test_src})
 		target_link_libraries(${test_prog} PRIVATE ${test_deps})
+		
+		if (WIN32 AND test_prog STREQUAL "check_sql")
+			target_compile_definitions(${test_prog} PRIVATE _CRT_SECURE_NO_DEPRECATE) #because check_sql uses getenv(...)
+		endif ()
 		
 		if (TARGET Valgrind::valgrind AND MSTDLIB_USE_VALGRIND)
 			add_test(

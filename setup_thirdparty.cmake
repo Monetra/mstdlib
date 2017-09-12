@@ -1,16 +1,21 @@
 # Run this script with "cmake -P setup_thirdparty.cmake" to download dependencies that go in the thirdparty directory.
 #
 # Pass "-DGEN=<generator name>" to explicitly pick a generator
+# PASS "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/)
 # Pass "-DCMAKE_BUILD_TYPE=<build type>" to explicitly pick a build type (defaults to RelWithDebInfo)
 # Note that -D options must go BEFORE the -P.
 #
 cmake_minimum_required(VERSION 3.4.3)
 
-set(rootdir ${CMAKE_CURRENT_LIST_DIR})
+set(srcdir "${CMAKE_CURRENT_LIST_DIR}")
 
-if (NOT EXISTS "${rootdir}/thirdparty")
-	message(FATAL_ERROR "This script must be run from the root source dir of mstdlib!")
+if (BUILDDIR)
+	get_filename_component(bindir "${BUILDDIR}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_LIST_DIR}")
+else ()
+	set(bindir "${srcdir}/build")
 endif ()
+
+file(MAKE_DIRECTORY "${bindir}")
 
 find_program(GIT git)
 if (NOT GIT)
@@ -43,29 +48,28 @@ endif ()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # LibCheck
-file(REMOVE_RECURSE "${rootdir}/thirdparty/check")
-file(REMOVE_RECURSE "${rootdir}/thirdparty/check_src")
-execute_process(COMMAND "${GIT}" clone https://github.com/libcheck/check.git --depth 1 thirdparty/check_src
-	WORKING_DIRECTORY "${rootdir}"
+file(REMOVE_RECURSE "${bindir}/thirdparty/check")
+file(REMOVE_RECURSE "${bindir}/thirdparty/check_src")
+execute_process(COMMAND "${GIT}" clone https://github.com/libcheck/check.git --depth 1 "${bindir}/thirdparty/check_src"
 	RESULT_VARIABLE res
 )
 if (NOT res EQUAL 0)
 	message(FATAL_ERROR "Failed to download libcheck from server.")
 endif ()
 # libcheck hardcodes build type, comment this out so we can set it ourselves.
-file(READ "${rootdir}/thirdparty/check_src/CMakeLists.txt" str)
+file(READ "${bindir}/thirdparty/check_src/CMakeLists.txt" str)
 string(REPLACE "set\(CMAKE_BUILD_TYPE" "\#set\(CMAKE_BUILD_TYPE" str "${str}")
-file(WRITE "${rootdir}/thirdparty/check_src/CMakeLists.txt" "${str}")
+file(WRITE "${bindir}/thirdparty/check_src/CMakeLists.txt" "${str}")
 
 # libcheck can't be chain-built, because the target names it uses internally conflict with
 # existing targets in mstdlib. So, let's build it separately and install to the thirdparty dir.
-file(MAKE_DIRECTORY "${rootdir}/thirdparty/check_src/build")
-execute_process(COMMAND "${CMAKE_COMMAND}" "${rootdir}/thirdparty/check_src"
+file(MAKE_DIRECTORY "${bindir}/thirdparty/check_src/build")
+execute_process(COMMAND "${CMAKE_COMMAND}" "${bindir}/thirdparty/check_src"
 	${GEN}
 	-DCHECK_ENABLE_TESTS=FALSE
 	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-	-DCMAKE_INSTALL_PREFIX=${rootdir}/thirdparty/check
-	WORKING_DIRECTORY "${rootdir}/thirdparty/check_src/build"
+	-DCMAKE_INSTALL_PREFIX=${bindir}/thirdparty/check
+	WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
 	RESULT_VARIABLE res
 )
 if (NOT res EQUAL 0)
@@ -73,7 +77,7 @@ if (NOT res EQUAL 0)
 endif ()
 
 execute_process(COMMAND "${CMAKE_COMMAND}" --build . --target install --config ${CMAKE_BUILD_TYPE}
-	WORKING_DIRECTORY "${rootdir}/thirdparty/check_src/build"
+	WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
 	RESULT_VARIABLE res
 )
 if (NOT res EQUAL 0)
@@ -83,9 +87,8 @@ endif ()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # C-Ares
-file(REMOVE_RECURSE "${rootdir}/thirdparty/c-ares")
-execute_process(COMMAND "${GIT}" clone https://github.com/c-ares/c-ares.git --depth 1 thirdparty/c-ares
-	WORKING_DIRECTORY "${rootdir}"
+file(REMOVE_RECURSE "${srcdir}/thirdparty/c-ares")
+execute_process(COMMAND "${GIT}" clone https://github.com/c-ares/c-ares.git --depth 1 "${srcdir}/thirdparty/c-ares"
 	RESULT_VARIABLE res
 )
 if (NOT res EQUAL 0)
@@ -95,11 +98,11 @@ endif ()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SQLite Amalgamation
-file(REMOVE_RECURSE "${rootdir}/thirdparty/sqlite-amalgamation")
+file(REMOVE_RECURSE "${srcdir}/thirdparty/sqlite-amalgamation")
 set(sqlite_name sqlite-amalgamation-3200100)
-message("Downloading and extracting ${sqlite_name}.zip into thirdparty/sqlite-amalgamation ...")
+message("Downloading and extracting ${sqlite_name}.zip into ${src_dir}/thirdparty/sqlite-amalgamation ...")
 file(DOWNLOAD https://sqlite.org/2017/${sqlite_name}.zip
-	"${rootdir}/thirdparty/${sqlite_name}.zip"
+	"${srcdir}/thirdparty/${sqlite_name}.zip"
 	INACTIVITY_TIMEOUT 3
 	TIMEOUT 20
 	EXPECTED_HASH SHA256=38fb09f523857f4265248e3aaf4744263757288094033ccf2184594ec656e255
@@ -111,11 +114,10 @@ if (NOT res MATCHES "^0;")
 endif ()
 
 execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf ${sqlite_name}.zip --format=zip
-	WORKING_DIRECTORY "${rootdir}/thirdparty"
+	WORKING_DIRECTORY "${srcdir}/thirdparty"
 	RESULT_VARIABLE res
 )
 if (NOT res EQUAL 0)
 	message(FATAL_ERROR "Failed to extract sqlite amalgamation from zip file.")
 endif ()
-file(RENAME "${rootdir}/thirdparty/${sqlite_name}" "${rootdir}/thirdparty/sqlite-amalgamation")
-
+file(RENAME "${srcdir}/thirdparty/${sqlite_name}" "${srcdir}/thirdparty/sqlite-amalgamation")
