@@ -6,6 +6,9 @@ build/
 build-*/
 build_*/
 
+# Anything under thirdparty is an external dependency that's not part of this repo, ignore it.
+thirdparty/*
+
 # Autotools ignore
 config/
 m4/libtool.m4
