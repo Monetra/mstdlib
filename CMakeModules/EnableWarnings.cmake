@@ -54,7 +54,7 @@ set(_flags
 	-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition
 	-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations
 	-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
-	-Wnested-externs -Winline -Winvalid-pch -Wvariadic-macros -Wvarargs
+	-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs
 	-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat
 	-Wformat-security -Woverlength-strings -Wstrict-aliasing
 	-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
