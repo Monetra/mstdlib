@@ -1,87 +1,100 @@
 # Run this script with "cmake -P setup_thirdparty.cmake" to download dependencies that go in the thirdparty directory.
 #
-# Pass "-DGEN=<generator name>" to explicitly pick a generator
-# PASS "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/, relative to current working directory)
-# Pass "-DCMAKE_BUILD_TYPE=<build type>" to explicitly pick a build type (defaults to RelWithDebInfo)
-# Note that -D options must go BEFORE the -P.
+# Options for building libcheck:
+#   Pass "-DBUILDCHECK=FALSE" to disable building of check.
+#   Pass "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/, relative to current working directory)
+#   Pass "-DGEN=<generator name>" to explicitly pick a generator
+#   Pass "-DCMAKE_BUILD_TYPE=<build type>" to explicitly pick a build type (defaults to RelWithDebInfo)
+# 
+# (Note that -D options must go BEFORE the -P flag)
 #
 cmake_minimum_required(VERSION 3.4.3)
 
 set(srcdir "${CMAKE_CURRENT_LIST_DIR}")
 
-if (BUILDDIR)
-	get_filename_component(bindir "${BUILDDIR}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
-else ()
-	set(bindir "${CMAKE_SOURCE_DIR}/build")
+# BUILDCHECK is true by default
+if (NOT DEFINED BUILDCHECK)
+	set(BUILDCHECK TRUE)
 endif ()
-
-file(MAKE_DIRECTORY "${bindir}")
 
 find_program(GIT git)
 if (NOT GIT)
 	message(FATAL_ERROR "This script requires git to be installed.")
 endif ()
 
-# If user didn't specify a generator, try to use ninja if available.
-if (NOT GEN)
-	find_program(NINJA ninja)
-	if (NINJA)
-		set(GEN "Ninja")
+# Options for building code.
+if (BUILDCHECK)
+	if (BUILDDIR)
+		get_filename_component(bindir "${BUILDDIR}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+	else ()
+		set(bindir "${CMAKE_SOURCE_DIR}/build")
 	endif ()
-endif ()
-# If user didn't specify a generator and ninja wasn't available, use NMake if it's present. Otherwise, use platform default.
-if (NOT GEN)
-	find_program(NMAKE nmake)
-	if (NMAKE)
-		set(GEN "NMake Makefiles")
-	endif ()
-endif ()
-if (GEN)
-	set(GEN "-G${GEN}")
-endif ()
 
-# If user didn't specify a build type, set default.
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+	file(MAKE_DIRECTORY "${bindir}")
+
+	# If user didn't specify a generator, try to use ninja if available.
+	if (NOT GEN)
+		find_program(NINJA ninja)
+		if (NINJA)
+			set(GEN "Ninja")
+		endif ()
+	endif ()
+	# If user didn't specify a generator and ninja wasn't available, use NMake if it's present. Otherwise, use platform default.
+	if (NOT GEN)
+		find_program(NMAKE nmake)
+		if (NMAKE)
+			set(GEN "NMake Makefiles")
+		endif ()
+	endif ()
+	if (GEN)
+		set(GEN "-G${GEN}")
+	endif ()
+
+	# If user didn't specify a build type, set default.
+	if (NOT CMAKE_BUILD_TYPE)
+		set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+	endif ()
 endif ()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # LibCheck
-file(REMOVE_RECURSE "${bindir}/thirdparty/check")
-file(REMOVE_RECURSE "${bindir}/thirdparty/check_src")
-execute_process(COMMAND "${GIT}" clone https://github.com/libcheck/check.git --depth 1 "${bindir}/thirdparty/check_src"
-	RESULT_VARIABLE res
-)
-if (NOT res EQUAL 0)
-	message(FATAL_ERROR "Failed to download libcheck from server.")
-endif ()
-# libcheck hardcodes build type, comment this out so we can set it ourselves.
-file(READ "${bindir}/thirdparty/check_src/CMakeLists.txt" str)
-string(REPLACE "set\(CMAKE_BUILD_TYPE" "\#set\(CMAKE_BUILD_TYPE" str "${str}")
-file(WRITE "${bindir}/thirdparty/check_src/CMakeLists.txt" "${str}")
+if (BUILDCHECK)
+	file(REMOVE_RECURSE "${bindir}/thirdparty/check")
+	file(REMOVE_RECURSE "${bindir}/thirdparty/check_src")
+	execute_process(COMMAND "${GIT}" clone https://github.com/libcheck/check.git --depth 1 "${bindir}/thirdparty/check_src"
+		RESULT_VARIABLE res
+	)
+	if (NOT res EQUAL 0)
+		message(FATAL_ERROR "Failed to download libcheck from server.")
+	endif ()
+	# libcheck hardcodes build type, comment this out so we can set it ourselves.
+	file(READ "${bindir}/thirdparty/check_src/CMakeLists.txt" str)
+	string(REPLACE "set\(CMAKE_BUILD_TYPE" "\#set\(CMAKE_BUILD_TYPE" str "${str}")
+	file(WRITE "${bindir}/thirdparty/check_src/CMakeLists.txt" "${str}")
 
-# libcheck can't be chain-built, because the target names it uses internally conflict with
-# existing targets in mstdlib. So, let's build it separately and install to the thirdparty dir.
-file(MAKE_DIRECTORY "${bindir}/thirdparty/check_src/build")
-execute_process(COMMAND "${CMAKE_COMMAND}" "${bindir}/thirdparty/check_src"
-	${GEN}
-	-DCHECK_ENABLE_TESTS=FALSE
-	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-	-DCMAKE_INSTALL_PREFIX=${bindir}/thirdparty/check
-	WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
-	RESULT_VARIABLE res
-)
-if (NOT res EQUAL 0)
-	message(FATAL_ERROR "Failed to configure libcheck.")
-endif ()
+	# libcheck can't be chain-built, because the target names it uses internally conflict with
+	# existing targets in mstdlib. So, let's build it separately and install to the thirdparty dir.
+	file(MAKE_DIRECTORY "${bindir}/thirdparty/check_src/build")
+	execute_process(COMMAND "${CMAKE_COMMAND}" "${bindir}/thirdparty/check_src"
+		${GEN}
+		-DCHECK_ENABLE_TESTS=FALSE
+		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+		-DCMAKE_INSTALL_PREFIX=${bindir}/thirdparty/check
+		WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
+		RESULT_VARIABLE res
+	)
+	if (NOT res EQUAL 0)
+		message(FATAL_ERROR "Failed to configure libcheck.")
+	endif ()
 
-execute_process(COMMAND "${CMAKE_COMMAND}" --build . --target install --config ${CMAKE_BUILD_TYPE}
-	WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
-	RESULT_VARIABLE res
-)
-if (NOT res EQUAL 0)
-	message(FATAL_ERROR "Failed to build libcheck.")
+	execute_process(COMMAND "${CMAKE_COMMAND}" --build . --target install --config ${CMAKE_BUILD_TYPE}
+		WORKING_DIRECTORY "${bindir}/thirdparty/check_src/build"
+		RESULT_VARIABLE res
+	)
+	if (NOT res EQUAL 0)
+		message(FATAL_ERROR "Failed to build libcheck.")
+	endif ()
 endif ()
 
 
