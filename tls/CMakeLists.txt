@@ -6,9 +6,13 @@ project(mstdlib_tls
 )
 set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
-
 find_package(OpenSSL REQUIRED)
 
+# Copy OpenSSL libs to bin directory, so we can run test executables in place.
+if (MSTDLIB_BUILD_TESTS)
+	include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
+	copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+endif ()
 
 set(sources
 	m_tls.c

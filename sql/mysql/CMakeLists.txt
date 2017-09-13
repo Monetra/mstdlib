@@ -5,6 +5,8 @@ project(mstdlib_sql_mysql
 	LANGUAGES C
 )
 
+include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
+
 option(MSTDLIB_BUILD_SQL_MYSQL "Build MySQL/MariaDB plugin" TRUE)
 if (NOT MSTDLIB_BUILD_SQL_MYSQL)
 	message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Disabled")
@@ -24,13 +26,16 @@ if (MSTDLIB_SQL_STATIC)
 		message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Disabled (requested, but can't be built, missing OpenSSL)")
 	endif ()
 	return ()
+	# Copy OpenSSL libs to bin directory, so we can run test executables in place.
+	if (MSTDLIB_BUILD_TESTS)
+		copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+	endif ()
 endif ()
 
 message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Enabled")
 
 option(MSTDLIB_INSTALL_SQL_MYSQL "Install third-party MySQL library" FALSE)
 if (MSTDLIB_INSTALL_SQL_MYSQL)
-	include(InstallDepLibs)
 	install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin MySQL::mysql)
 endif ()
 

@@ -1,3 +1,5 @@
+include(InstallDepLibs) #provides copy_deplibs() and install_deplibs()
+
 enable_testing()
 
 if (NOT MSTDLIB_BUILD_TESTS)

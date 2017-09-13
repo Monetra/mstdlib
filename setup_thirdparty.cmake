@@ -1,7 +1,7 @@
 # Run this script with "cmake -P setup_thirdparty.cmake" to download dependencies that go in the thirdparty directory.
 #
 # Pass "-DGEN=<generator name>" to explicitly pick a generator
-# PASS "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/)
+# PASS "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/, relative to current working directory)
 # Pass "-DCMAKE_BUILD_TYPE=<build type>" to explicitly pick a build type (defaults to RelWithDebInfo)
 # Note that -D options must go BEFORE the -P.
 #
@@ -10,9 +10,9 @@ cmake_minimum_required(VERSION 3.4.3)
 set(srcdir "${CMAKE_CURRENT_LIST_DIR}")
 
 if (BUILDDIR)
-	get_filename_component(bindir "${BUILDDIR}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_LIST_DIR}")
+	get_filename_component(bindir "${BUILDDIR}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
 else ()
-	set(bindir "${srcdir}/build")
+	set(bindir "${CMAKE_SOURCE_DIR}/build")
 endif ()
 
 file(MAKE_DIRECTORY "${bindir}")

@@ -5,30 +5,44 @@
 # Accepts a list of paths and/or import targets. Import targets that are static libs or executables
 # are silently ignored.
 #
-# Function call:
-# install_deplibs([lib dest] [runtime dest] [... lib files or import targets ...]
+# Functions:
+# install_deplibs([lib dest] [runtime dest] [... lib files or import targets ...])
+#     Install the given list of lib dependencies to CMAKE_INSTALL_PREFIX, alongside the project. Can be passed
+#     either library paths or imported targets. On Windows, if given an import lib path or an imported library of
+#     type UNKNOWN, it will try to guess the path to the DLL. If it can't find the the DLL, it will throw an error.
+#
+#     By default, install_deplibs will also copy any DLL's to the build's runtime output directory ([build dir]/bin, usually).
+#     This behavior can be turned off by setting INSTALL_DEPLIBS_COPY_DLL to FALSE (see below).
+#
+# copy_deplibs([... lib files or import targets])
+#     Copy the given dependencies to the build directory, without installing them. Uses the same library resolution rules
+#     as install_deplibs, the only difference is that it doesn't install anything.
 #
 # Extra variables that modify how the function call works:
 # INSTALL_DEPLIBS_COPY_DLL  - if TRUE (the default), any DLL's installed with install_deplibs will also be copied to
 #                             the bin dir of the build directory. Set to FALSE to disable DLL copies.
+#
+#                             NOTE: this option only affects install_deplibs(). copy_deplibs() always copies to build dir,
+#                                   regardless of how this variable is set.
+#
 # INSTALL_DEPLIBS_COPY_DEST - directory to copy DLL's to. If not specified, defaults to CMAKE_RUNTIME_OUTPUT_DIR.
 #
 
 
-# Helper function for install_deplibs: try to find .dll using path of an import lib.
+# Helper function for _install_deplibs_internal: try to find .dll using path of an import lib.
 function(get_dll_from_implib out_dll path)
 	# Get directory containing import lib, and try to guess root dir of install.
 	get_filename_component(imp_dir "${path}" DIRECTORY)
 	string(REGEX REPLACE "/[/0-9x_-]*lib[/0-9x_-]*(/.*|$)" "" root_dir "${imp_dir}")
-	
+
 	# Get library name by removing .lib from extension.
 	get_filename_component(imp_file "${path}" NAME)
 	string(REGEX REPLACE "\.lib$" "" libname "${imp_file}")
 	string(MAKE_C_IDENTIFIER "${libname}" clibname)
-	
+
 	# Get alternate library names by removing lib prefix, and or d, MT, MDd, etc. (suffixes indicating visual studio build flags).
 	string(REGEX REPLACE "^lib" "" nolibname "${libname}")
-	
+
 	string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${libname}")
 	list(APPEND alt_names ${alt_name})
 	string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${nolibname}")
@@ -37,7 +51,7 @@ function(get_dll_from_implib out_dll path)
 	list(APPEND alt_names ${alt_name})
 	string(REGEX REPLACE "[dD]$" "" alt_name "${nolibname}")
 	list(APPEND alt_names ${alt_name})
-	
+
 	# Figure out possible arch names, based on bitness of project.
 	set(suffixes)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -52,7 +66,7 @@ function(get_dll_from_implib out_dll path)
 		)
 	endif ()
 	list(APPEND suffixes bin lib)
-	
+
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
 	find_library(${clibname}_DLL
 		NAMES           ${libname} ${nolibname} ${alt_names}
@@ -61,7 +75,7 @@ function(get_dll_from_implib out_dll path)
 		NO_DEFAULT_PATH
 		PATH_SUFFIXES   ${suffixes}
 	)
-	
+
 	if (${clibname}_DLL)
 		set(${out_dll} "${${clibname}_DLL}" PARENT_SCOPE)
 	else ()
@@ -70,7 +84,7 @@ function(get_dll_from_implib out_dll path)
 endfunction()
 
 
-# Helper function for install_deplibs: convert given list of libs into paths.
+# Helper function for _install_deplibs_internal: convert given list of libs into paths.
 function(get_paths_from_libs lib_dest runtime_dest out_paths_name out_libs_name)
 	set(out_libs)
 	foreach (lib IN LISTS ${out_libs_name})
@@ -78,7 +92,7 @@ function(get_paths_from_libs lib_dest runtime_dest out_paths_name out_libs_name)
 		if (lib STREQUAL "optimized" OR lib STREQUAL "debug")
 			continue()
 		endif ()
-		
+
 		if (TARGET "${lib}")
 			# If this is an alias target, get the proper name of the target, then add the result back
 			# onto the list of libs to process on the next invocation of this function.
@@ -143,7 +157,7 @@ function(get_paths_from_libs lib_dest runtime_dest out_paths_name out_libs_name)
 endfunction()
 
 
-# Helper function for install_deplibs: retrieve soname of given lib file. If no soname, returns the path.
+# Helper function for _install_deplibs_internal: retrieve soname of given lib file. If no soname, returns the path.
 find_program(READELF readelf DOC "readelf (unix/ELF only)")
 function(read_soname outvarname path)
 	# Set output variable to empty string - this is what will be returned on an error.
@@ -173,13 +187,14 @@ function(read_soname outvarname path)
 endfunction()
 
 
-# install_deplib([lib dest] [runtime dest] [... lib files or import targets ...]
-function(install_deplibs lib_dest runtime_dest)
-	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	# Handle default values for variables that control DLL copying.
-	if (NOT DEFINED INSTALL_DEPLIBS_COPY_DLL)
-		set(INSTALL_DEPLIBS_COPY_DLL TRUE)
+# Helper function for install_deplibs and copy_deplibs.
+# _install_deplibs_internal([lib dest] [runtime dest] [flag to turn file copy on/off] [flag to turn file install on/off] [... lib files or import targets ...]
+function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
+	if ((NOT do_copy) AND (NOT do_install))
+		return()
 	endif ()
+
+	# Handle default destination for copied DLL's.
 	if (NOT INSTALL_DEPLIBS_COPY_DEST)
 		set(INSTALL_DEPLIBS_COPY_DEST "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 	endif ()
@@ -213,12 +228,12 @@ function(install_deplibs lib_dest runtime_dest)
 		if (WIN32 AND ${path} MATCHES "\.lib$")
 			get_dll_from_implib(path "${path}")
 		endif ()
-		
+
 		# Resolve any symlinks in path to get actual physical name. If relative, evaluate relative to current binary dir.
 		get_filename_component(path "${path}" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 		# If we're on AIX, we need our own special install handling. Run it, then skip to next iteration.
-		if (aix_libname)
+		if (aix_libname AND do_install)
 			install(FILES "${path}" RENAME "${aix_libname}" DESTINATION "${lib_dest}")
 			continue()
 		endif ()
@@ -234,12 +249,16 @@ function(install_deplibs lib_dest runtime_dest)
 
 			# If requested by caller, copy the DLL's to the build dir in addition to installing them.
 			# If the file with the same name and timestamp already exists at the destination, nothing will be copied.
-			if (INSTALL_DEPLIBS_COPY_DLL)
+			if (do_copy)
 				file(COPY "${path}" DESTINATION "${INSTALL_DEPLIBS_COPY_DEST}")
 			endif ()
 		else ()
 			set(dest "${lib_dest}")
 			set(type FILES)
+		endif ()
+
+		if (NOT do_install)
+			continue()
 		endif ()
 
 		# Install the file.
@@ -275,3 +294,22 @@ function(install_deplibs lib_dest runtime_dest)
 		endif ()
 	endforeach ()
 endfunction()
+
+
+# install_deplibs([lib dest] [runtime dest] [... lib files or import targets ...]
+function(install_deplibs lib_dest runtime_dest)
+	# Handle default values for variables that control DLL copying.
+	if (NOT DEFINED INSTALL_DEPLIBS_COPY_DLL)
+		set(INSTALL_DEPLIBS_COPY_DLL TRUE)
+	endif ()
+
+	# Call internal helper
+	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${ARGN})
+endfunction()
+
+
+# copy_deplibs([... lib files or import targets...])
+function(copy_deplibs)
+	_install_deplibs_internal("" "" TRUE FALSE ${ARGN})
+endfunction()
+
