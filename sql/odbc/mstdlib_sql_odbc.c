@@ -51,10 +51,10 @@
 #endif
 
 /* DB2 Mappings */
-#ifndef SQL_C_SSHORT
+#if !defined(SQL_C_SSHORT) && defined(SQL_C_SHORT)
 #  define SQL_C_SSHORT SQL_C_SHORT
 #endif
-#ifndef SQL_C_SBIGINT
+#if !defined(SQL_C_SBIGINT) && defined(SQL_C_BIGINT)
 #  define SQL_C_SBIGINT SQL_C_BIGINT
 #endif
 
@@ -737,11 +737,7 @@ static void odbc_bind_set_type(M_sql_driver_stmt_t *dstmt, size_t col, M_sql_dat
 		case M_SQL_DATA_TYPE_INT64:
 			/* XXX: Int64 is really only supported as of Oracle 11.2.
 			 *      Should convert to SQL_C_NUMERIC on older versions. */
-#if !defined(SQL_C_SBIGINT) && defined(SQL_C_BIGINT)
-			*ValueType                = SQL_C_BIGINT;
-#else
 			*ValueType                = SQL_C_SBIGINT;
-#endif
 			*ParameterType            = SQL_BIGINT;
 			break;
 
