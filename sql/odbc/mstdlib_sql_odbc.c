@@ -50,6 +50,14 @@
 #  define SQL_IS_INTEGER 0
 #endif
 
+/* DB2 Mappings */
+#ifndef SQL_C_SSHORT
+#  define SQL_C_SSHORT SQL_C_SHORT
+#endif
+#ifndef SQL_C_SBIGINT
+#  define SQL_C_SBIGINT SQL_C_BIGINT
+#endif
+
 typedef struct {
 	SQLLEN            *lens;
 	union {
@@ -504,12 +512,14 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 		goto done;
 	}
 
+#ifdef SQL_ATTR_ODBC_CURSORS /* DB2 PASE doesn't appear to have this */
 	/* Only use cursors if needed - must be set before connect */
 	rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ODBC_CURSORS, (SQLPOINTER)SQL_CUR_USE_IF_NEEDED, SQL_IS_INTEGER);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetConnectAttr(SQL_ATTR_ODBC_CURSORS=SQL_CUR_USE_IF_NEEDED) failed", *conn, NULL, rc, error, error_size);
 		goto done;
 	}
+#endif
 
 	/* Generate connection string */
 	username = M_sql_driver_pool_get_username(pool);
@@ -564,12 +574,14 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 	}
 
 	if (auto_pop_ipd == SQL_TRUE) {
+#ifdef SQL_ATTR_ENABLE_AUTO_IPD /* DB2 PASE doesn't appear to have this */
 		/* Driver supports automatic IPD population, enable it! */
 		rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ENABLE_AUTO_IPD, (SQLPOINTER)SQL_TRUE, SQL_IS_INTEGER);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			err = odbc_format_error("SQLSetConnectAttr(SQL_ATTR_ENABLE_AUTO_IPD=SQL_TRUE) failed", *conn, NULL, rc, error, error_size);
 			goto done;
 		}
+#endif
 	}
 
 	/* Grab database name */
