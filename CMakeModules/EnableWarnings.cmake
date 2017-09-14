@@ -46,7 +46,7 @@ set(_flags
 	-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas
 	-Wmissing-format-attribute -Warray-bounds
 	-Wtrampolines -Wfloat-equal
-	-Wdeclaration-after-statement -Wundef -Wshadow -Wunsafe-loop-optimizations
+	-Wdeclaration-after-statement -Wundef -Wshadow
 	-Wpointer-arith -Wtype-limits -Wbad-function-cast -Wcast-qual
 	-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
 	-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
