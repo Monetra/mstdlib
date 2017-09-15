@@ -30,7 +30,7 @@
 #
 #    have_lib_mysql=no
 #
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_FIND_LIBRARY],
 	[AC_LANG_PUSH(C)
@@ -49,6 +49,9 @@ AC_DEFUN([AX_FIND_LIBRARY],
 			fi
 
 			for lib in $2; do
+				if test ! -e "${dir}/lib${lib}.so" -a ! -e "${dir}/lib${lib}.a" -a ! -e "${dir}/lib${lib}.dylib" -a ! -e "${dir}/${lib}.so" -a ! -e "${dir}/${lib}.a" -a ! -e "${dir}/${lib}.dylib" ; then
+					continue
+				fi
 				ax_find_library_LDFLAGS="${LDFLAGS}"
 				ax_find_library_LIBS="${LIBS}"
 				LDFLAGS="${LDFLAGS} -L${dir}"
@@ -111,7 +114,7 @@ AC_DEFUN([AX_FIND_LIBRARY],
 			AS_VAR_POPDEF([ax_Var])
 
 			if test "${ax_find_library_found_path}" = "" ; then
-				ax_find_header_found_path="system"
+				ax_find_library_found_path="system"
 			fi
 
 			AC_MSG_RESULT([${ax_find_library_found_path}(${ax_find_library_found_lib})])

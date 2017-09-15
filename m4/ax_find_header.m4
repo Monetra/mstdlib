@@ -24,7 +24,7 @@
 #
 #    have_openssl_rsa_h=no
 #
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_FIND_HEADER],
 	[AC_LANG_PUSH(C)
@@ -33,8 +33,8 @@ AC_DEFUN([AX_FIND_HEADER],
 		ax_find_header_found_path=""
 		AC_MSG_CHECKING(for $1)
 		for dir in $2; do
-			if test ! -d "$dir" ; then
-				continue;
+			if test ! -d "$dir" -o ! -f "$dir/$1" ; then
+				continue
 			fi
 
 			ax_find_header_CPPFLAGS="${CPPFLAGS}"
