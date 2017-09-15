@@ -188,7 +188,9 @@ endif ()
 
 set(_reqs MySQL_INCLUDE_DIR)
 if (NOT MySQL_FIND_COMPONENTS) # If user didn't request any particular component explicitly:
-	list(APPEND _reqs MySQL_LIBRARY) # Will contain shared lib, or static lib if no shared lib present
+	if (NOT MySQL_mysql_FOUND)
+		list(APPEND _reqs MySQL_LIBRARY)
+	endif ()
 endif ()
 
 find_package_handle_standard_args(MySQL
