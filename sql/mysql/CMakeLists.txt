@@ -5,41 +5,53 @@ project(mstdlib_sql_mysql
 	LANGUAGES C
 )
 
-include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
-option(MSTDLIB_BUILD_SQL_MYSQL "Build MySQL/MariaDB plugin" TRUE)
-if (NOT MSTDLIB_BUILD_SQL_MYSQL)
-	message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Disabled")
-	return ()
-endif ()
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup (third-party deps and options).
+include(InstallDepLibs)    # Provides copy_deplibs() and install_deplibs()
+include(ConditionalOption) # Provides conditional_option()
+
+# Find third-party deps.
+set(has_deps TRUE)
+set(reason)
 
 find_package(MySQL)
 if (NOT TARGET MySQL::mysql)
-	# This plugin requires MySQL - if not found and can't be built ourselves, disable it.
-	message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Disabled (requested, but can't be built)")
-	return()
+	string(APPEND reason " MySQL::mysql")
+	set(has_deps FALSE)
 endif ()
 
 if (MSTDLIB_SQL_STATIC)
 	find_package(OpenSSL)
 	if (NOT TARGET OpenSSL::Crypto OR NOT TARGET OpenSSL::SSL)
-		message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Disabled (requested, but can't be built, missing OpenSSL)")
-	endif ()
-	return ()
-	# Copy OpenSSL libs to bin directory, so we can run test executables in place.
-	if (MSTDLIB_BUILD_TESTS)
-		copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+		string(APPEND reason " OpenSSL::Crypto OpenSSL::SSL")
+		set(has_deps FALSE)
 	endif ()
 endif ()
 
-message(STATUS "Building MSTDLIB MySQL/MariaDB plugin... Enabled")
+if (reason)
+	set(reason "missing deps:${reason}")
+endif ()
+
+# Provide option to build, dependent on whether or not dependencies are found.
+conditional_option(MSTDLIB_BUILD_SQL_MYSQL ${has_deps} "MSTDLIB MySQL/MariaDB plugin" "${reason}")
+if (NOT MSTDLIB_BUILD_SQL_MYSQL)
+	return()
+endif ()
+
+# If linking statically, need to copy OpenSSL DLL's to bin directory so we can run test executables in place.
+if (MSTDLIB_SQL_STATIC AND MSTDLIB_BUILD_TESTS)
+	copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+endif ()
 
 option(MSTDLIB_INSTALL_SQL_MYSQL "Install third-party MySQL library" FALSE)
 if (MSTDLIB_INSTALL_SQL_MYSQL)
 	install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin MySQL::mysql)
 endif ()
 
-# Build the library.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Build and install module.
 if (WIN32)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") # Output module file to bin/, not lib/
 endif ()
@@ -94,3 +106,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${mod_dest})
 endif ()
+

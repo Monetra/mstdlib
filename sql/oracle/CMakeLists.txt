@@ -5,28 +5,33 @@ project(mstdlib_sql_oracle
 	LANGUAGES C
 )
 
-option(MSTDLIB_BUILD_SQL_ORACLE "Build Oracle plugin" TRUE)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup (third-party deps and options).
+include(InstallDepLibs)    # Provides copy_deplibs() and install_deplibs()
+include(ConditionalOption) # Provides conditional_option()
+
+find_package(Oracle)
+set(has_deps TRUE)
+set(reason)
+if (NOT TARGET Oracle::oci)
+	set(has_deps FALSE)
+	set(reason "missing deps: Oracle::oci")
+endif ()
+
+conditional_option(MSTDLIB_BUILD_SQL_ORACLE ${has_deps} "MSTDLIB Oracle plugin" "${reason}")
 if (NOT MSTDLIB_BUILD_SQL_ORACLE)
-	message(STATUS "Building MSTDLIB Oracle plugin... Disabled")
 	return ()
 endif ()
 
-find_package(Oracle)
-if (NOT TARGET Oracle::oci)
-	# This plugin requires Oracle - if not found and can't be built ourselves, disable it.
-	message(STATUS "Building MSTDLIB Oracle plugin... Disabled (requested, but can't be built)")
-	return()
-endif ()
-
-message(STATUS "Building MSTDLIB Oracle plugin... Enabled")
-
 option(MSTDLIB_INSTALL_SQL_ORACLE "Install third-party Oracle library" FALSE)
 if (MSTDLIB_INSTALL_SQL_ORACLE)
-	include(InstallDepLibs)
 	install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin Oracle::oci ${Oracle_EXTRA_DEPS})
 endif ()
 
-# Build the library.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Build and install module.
 if (WIN32)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") # Output module file to bin/, not lib/
 endif ()
@@ -78,3 +83,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${mod_dest})
 endif ()
+

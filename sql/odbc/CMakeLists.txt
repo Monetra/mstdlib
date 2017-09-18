@@ -5,22 +5,8 @@ project(mstdlib_sql_odbc
 	LANGUAGES C
 )
 
-set(mod_strs
-	ODBC
-	DB2
-)
-if (CMAKE_SYSTEM_NAME STREQUAL "AIX")
-	list(APPEND mod_strs DB2Pase)
-endif ()
-
-# Options controlling the various things that can be built in this subdirectory.
-foreach (mod_str ${mod_strs})
-	option(MSTDLIB_BUILD_SQL_${mod_str} "Build the ${mod_str} plugin" TRUE)
-
-	if (NOT MSTDLIB_BUILD_SQL_${mod_str})
-		message(STATUS "Building MSTDLIB ODBC plugin... Disabled")
-	endif ()
-endforeach ()
+include(InstallDepLibs)    # Provides copy_deplibs() and install_deplibs()
+include(ConditionalOption) # Provides conditional_option()
 
 # On windows, make sure module files get output to bin/, not lib/
 if (WIN32)
@@ -32,74 +18,82 @@ set(mods) # will contain list of target names for each built module
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # ODBC module.
+find_package(ODBC)
+set(has_deps TRUE)
+set(reason)
+if (NOT TARGET ODBC::odbc)
+	set(has_deps FALSE)
+	set(reason "missing deps: ODBC::odbc")
+endif ()
+conditional_option(MSTDLIB_BUILD_SQL_ODBC ${has_deps} "MSTDLIB ODBC plugin" "${reason}")
+
 if (MSTDLIB_BUILD_SQL_ODBC)
-	# This plugin requires ODBC - iODBC, UnixODBC, or Microsoft ODBC on Windows, if not found, disable it.
-	find_package(ODBC)
-	if (TARGET ODBC::odbc)
-		message(STATUS "Building MSTDLIB ODBC plugin... Enabled")
-
-		option(MSTDLIB_INSTALL_SQL_ODBC "Install third-party ODBC library" FALSE)
-		if (MSTDLIB_INSTALL_SQL_ODBC)
-			include(InstallDepLibs)
-			install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin ODBC::odbc)
-		endif ()
-
-		add_library(mstdlib_sql_odbc MODULE
-			mstdlib_sql_odbc.c
-		)
-
-		target_link_libraries(mstdlib_sql_odbc PRIVATE
-			ODBC::odbc
-		)
-
-		list(APPEND mods mstdlib_sql_odbc)
-	else ()
-		message(STATUS "Building MSTDLIB ODBC plugin... Disabled (requested, but can't be built)")
+	option(MSTDLIB_INSTALL_SQL_ODBC "Install third-party ODBC library" FALSE)
+	if (MSTDLIB_INSTALL_SQL_ODBC)
+		install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin ODBC::odbc)
 	endif ()
+
+	add_library(mstdlib_sql_odbc MODULE
+		mstdlib_sql_odbc.c
+	)
+
+	target_link_libraries(mstdlib_sql_odbc PRIVATE
+		ODBC::odbc
+	)
+
+	list(APPEND mods mstdlib_sql_odbc)
 endif ()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # DB2 module.
+find_package(DB2)
+set(has_deps TRUE)
+set(reason)
+if (NOT TARGET DB2::db2)
+	set(has_deps FALSE)
+	set(reason "missing deps: DB2::db2")
+endif ()
+conditional_option(MSTDLIB_BUILD_SQL_DB2 ${has_deps} "MSTDLIB DB2 plugin" "${reason}")
+
 if (MSTDLIB_BUILD_SQL_DB2)
-	find_package(DB2)
-	if (TARGET DB2::db2)
-		message(STATUS "Building MSTDLIB DB2 plugin... Enabled")
+	add_library(mstdlib_sql_db2 MODULE
+		mstdlib_sql_odbc.c
+	)
 
-		add_library(mstdlib_sql_db2 MODULE
-			mstdlib_sql_odbc.c
-		)
+	target_link_libraries(mstdlib_sql_db2 PRIVATE
+		DB2::db2
+	)
 
-		target_link_libraries(mstdlib_sql_db2 PRIVATE
-			DB2::db2
-		)
-
-		list(APPEND mods mstdlib_sql_db2)
-	else ()
-		message(STATUS "Building MSTDLIB DB2 plugin... Disabled (requested, but can't be built)")
-	endif ()
+	list(APPEND mods mstdlib_sql_db2)
 endif ()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # DB2 Pase module.
-if (MSTDLIB_BUILD_SQL_DB2Pase)
+if (CMAKE_SYSTEM_NAME STREQUAL "AIX")
 	find_package(DB2Pase)
-	if (TARGET DB2Pase::db2)
-		message(STATUS "Building MSTDLIB DB2Pase plugin... Enabled")
-
-		add_library(mstdlib_sql_db2pase MODULE
-			mstdlib_sql_odbc.c
-		)
-
-		target_link_libraries(mstdlib_sql_db2pase PRIVATE
-			DB2Pase::db2
-		)
-
-		list(APPEND mods mstdlib_sql_db2pase)
-	else ()
-		message(STATUS "Building MSTDLIB DB2Pase plugin... Disabled (requested, but can't be built)")
+	set(has_deps TRUE)
+	set(reason)
+	if (NOT TARGET DB2Pase::db2)
+		set(has_deps FALSE)
+		set(reason "missing deps: DB2Pase::db2")
 	endif ()
+	conditional_option(MSTDLIB_BUILD_SQL_DB2Pase ${has_deps} "MSTDLIB DB2Pase plugin" "${reason}")
+else ()
+	set(MSTDLIB_BUILD_SQL_DB2Pase FALSE)
+endif ()
+
+if (MSTDLIB_BUILD_SQL_DB2Pase)	
+	add_library(mstdlib_sql_db2pase MODULE
+		mstdlib_sql_odbc.c
+	)
+
+	target_link_libraries(mstdlib_sql_db2pase PRIVATE
+		DB2Pase::db2
+	)
+
+	list(APPEND mods mstdlib_sql_db2pase)
 endif ()
 
 
@@ -142,3 +136,4 @@ if (mods)
 		install(TARGETS ${mods} EXPORT Mstdlib ${mod_dest})
 	endif ()
 endif ()
+

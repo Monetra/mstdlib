@@ -5,14 +5,17 @@ project(mstdlib_sql_sqlite
 	LANGUAGES C
 )
 
-option(MSTDLIB_BUILD_SQL_SQLITE "Build SQLite plugin" TRUE)
-if (NOT MSTDLIB_BUILD_SQL_SQLITE)
-	message(STATUS "Building MSTDLIB SQLite plugin... Disabled")
-	return ()
-endif ()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup (third-party deps and options).
+include(InstallDepLibs)    # Provides copy_deplibs() and install_deplibs()
+include(ConditionalOption) # Provides conditional_option()
 
 # Find or build SQLite.
-if (EXISTS "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation/sqlite3.c")
+set(has_deps TRUE)
+set(reason)
+if (EXISTS "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation/sqlite3.c"
+	AND (NOT DEFINED MSTDLIB_BUILD_SQL_SQLITE OR MSTDLIB_BUILD_SQL_SQLITE)) #Only chain build if not explicitly disabled.
 	if (NOT TARGET SQLite::sqlite)
 		set(sqlite_dir "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation")
 		add_library(internal_sqlite OBJECT
@@ -58,22 +61,26 @@ if (EXISTS "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation/sqlite3.c")
 else ()
 	find_package(SQLite)
 	if (NOT TARGET SQLite::sqlite)
-		# This plugin requires SQLite - if not found and can't be built ourselves, disable it.
-		message(STATUS "Building MSTDLIB SQLite plugin... Disabled (requested, but can't be built)")
-		return()
+		set(has_deps FALSE)
+		set(reason "missing deps: SQLite::sqlite")
 	endif ()
 
 	# Note: only need to install SQLite as a third-party dep if we're not building it ourselves.
 	option(MSTDLIB_INSTALL_SQL_SQLITE "Install third-party SQLite library" FALSE)
 	if (MSTDLIB_INSTALL_SQL_SQLITE)
-		include(InstallDepLibs)
 		install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin SQLite::sqlite)
 	endif ()
 endif ()
 
-message(STATUS "Building MSTDLIB SQLite plugin... Enabled")
+# Provide option to build, dependent on whether or not dependencies are found.
+conditional_option(MSTDLIB_BUILD_SQL_SQLITE ${has_deps} "MSTDLIB SQLite plugin" "${reason}")
+if (NOT MSTDLIB_BUILD_SQL_SQLITE)
+	return ()
+endif ()
 
-# Build the library.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Build and install module.
 if (WIN32)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") # Output module file to bin/, not lib/
 endif ()

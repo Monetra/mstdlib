@@ -5,41 +5,52 @@ project(mstdlib_sql_postgresql
 	LANGUAGES C
 )
 
-include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
-option(MSTDLIB_BUILD_SQL_POSTGRESQL "Build PostgreSQL plugin" TRUE)
-if (NOT MSTDLIB_BUILD_SQL_POSTGRESQL)
-	message(STATUS "Building MSTDLIB PostgreSQL plugin... Disabled")
-	return ()
-endif ()
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup (third-party deps and options).
+include(InstallDepLibs)    # Provides copy_deplibs() and install_deplibs()
+include(ConditionalOption) # Provides conditional_option()
 
+# Find third-party deps.
 find_package(PostgreSQL)
+set(has_deps TRUE)
+set(reason)
 if (NOT TARGET PostgreSQL::pq)
-	# This plugin requires PostgreSQL - if not found and can't be built ourselves, disable it.
-	message(STATUS "Building MSTDLIB PostgreSQL plugin... Disabled (requested, but can't be built)")
-	return()
+	set(has_deps FALSE)
+	string(APPEND reason " PostgreSQL::pq")
 endif ()
 
 if (MSTDLIB_SQL_STATIC)
 	find_package(OpenSSL)
 	if (NOT TARGET OpenSSL::Crypto OR NOT TARGET OpenSSL::SSL)
-		message(STATUS "Building MSTDLIB PostgreSQL plugin... Disabled (requested, but can't be built, missing OpenSSL)")
-	endif ()
-	return ()
-	# Copy OpenSSL libs to bin directory, so we can run test executables in place.
-	if (MSTDLIB_BUILD_TESTS)
-		copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+		string(APPEND reason " OpenSSL::Crypto OpenSSL::SSL")
+		set(has_deps FALSE)
 	endif ()
 endif ()
 
-message(STATUS "Building MSTDLIB PostgreSQL plugin... Enabled")
+if (reason)
+	set(reason "missing deps:${reason}")
+endif ()
+
+# Provide option to build, dependent on whether or not dependencies are found.
+conditional_option(MSTDLIB_BUILD_SQL_POSTGRESQL ${has_deps} "MSTDLIB PostgreSQL plugin" "${reason}")
+if (NOT MSTDLIB_BUILD_SQL_POSTGRESQL)
+	return ()
+endif ()
+
+# If linking statically, need to copy OpenSSL DLL's to bin directory so we can run test executables in place.
+if (MSTDLIB_SQL_STATIC AND MSTDLIB_BUILD_TESTS)
+	copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
+endif ()
 
 option(MSTDLIB_INSTALL_SQL_POSTGRESQL "Install third-party PostgreSQL library" FALSE)
 if (MSTDLIB_INSTALL_SQL_POSTGRESQL)
 	install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin PostgreSQL::pq)
 endif ()
 
-# Build the library.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Build and install module.
 if (WIN32)
 	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}") # Output module file to bin/, not lib/
 endif ()
