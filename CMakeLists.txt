@@ -40,6 +40,7 @@ option(MSTDLIB_STATIC          "Build as a static library"                      
 option(MSTDLIB_STATIC_PIC      "Build the static library as PIC (position independent)" FALSE)
 option(MSTDLIB_INSTALL_HEADERS "Install headers"                                        TRUE)
 option(MSTDLIB_INSTALL_LIBS    "Install libraries"                                      TRUE)
+option(MSTDLIB_INSTALL_EXPORTS "Install export file"                                    ${MSTDLIB_INSTALL_LIBS})
 option(MSTDLIB_BUILD_TESTS     "Build tests"                                            TRUE)
 option(MSTDLIB_BUILD_DOCS      "Build doxygen docs"                                     TRUE)
 option(MSTDLIB_USE_VALGRIND    "Run tests with valgrind when running 'make check'"      ${valgrind_default})
@@ -49,6 +50,8 @@ option(MSTDLIB_BUILD_IO        "Build io module"                                
 option(MSTDLIB_BUILD_TLS       "Build tls module"                                       TRUE)
 option(MSTDLIB_BUILD_LOG       "Build log module"                                       TRUE)
 option(MSTDLIB_BUILD_SQL       "Build sql module"                                       TRUE)
+
+mark_as_advanced(FORCE MSTDLIB_INSTALL_EXPORTS)
 
 # Keep build organized.
 if (NOT MSTDLIB_RUNTIME_OUTPUT_DIRECTORY)
@@ -451,9 +454,12 @@ add_subdirectory(test)
 file(GLOB_RECURSE headers_and_scripts *.h *.lua *.yml)
 add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${headers_and_scripts})
 
-if (MSTDLIB_INSTALL_LIBS)
+if (MSTDLIB_INSTALL_EXPORTS)
 	install_exports(Mstdlib "${MSTDLIB_INSTALL_LOCATION_SHARE}/Mstdlib/cmake")
+endif ()
 
+# If we're not being chain-built, and install is enabled, add code to allow package creation.
+if ((CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR) AND MSTDLIB_INSTALL_LIBS)
 	set(CPACK_GENERATOR ZIP)
 	set(CPACK_PACKAGE_VERSION_MAJOR ${MSTDLIB_VERSION_MAJOR})
 	set(CPACK_PACKAGE_VERSION_MINOR ${MSTDLIB_VERSION_MINOR})
