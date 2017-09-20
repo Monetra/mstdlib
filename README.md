@@ -13,8 +13,8 @@ To avoid trademark issues the "m" in mstdlib just stands for the letter M. It
 does not stand for Main Street Softworks, Inc. nor Monetra.
 
 
-Rational/Use
-============
+Rationale/Use
+=============
 
 Mstdlib is designed to provide features not normally found in libc but also
 to be used in place of libc. Underneath mstdlib uses the system's libc when it 
