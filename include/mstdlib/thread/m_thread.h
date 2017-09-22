@@ -232,6 +232,10 @@ typedef struct M_thread_attr M_thread_attr_t;
 
 /*! Create and run a thread.
  *
+ * Threads are created detached by default.
+ * To create it joinable use a M_thread_attr_t and set
+ * it to joinable.
+ *
  * \param[in]     attr Thread creation attributes.
  * \param[in]     func The function to run.
  * \param[in,out] arg  Argument to pass to func.
