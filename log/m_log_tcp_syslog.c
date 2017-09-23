@@ -377,17 +377,12 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 		return;
 	}
 
-	/* Insert message into queue. If insertion failed, drop the message. */
-	if (M_llist_str_insert_first(mdata->msgs, M_buf_peek(buf)) == NULL) {
-		if (mdata->num_dropped < M_UINT64_MAX) {
-			mdata->num_dropped++;
-		}
-		M_thread_mutex_unlock(mdata->msg_lock);
-		return;
-	}
+	/* Insert message into queue. */
+	M_llist_str_insert_first(mdata->msgs, M_buf_peek(buf));
+	mdata->stored_bytes += M_buf_len(buf);
+	M_buf_cancel(buf); /* M_llist_str_insert_first() duplicated the data, we no longer need the buf */
 
 	/* If adding the new message will exceed our queue size limit, drop oldest messages until we have room. */
-	mdata->stored_bytes += M_buf_len(buf);
 	while (mdata->stored_bytes > mdata->max_bytes) {
 		char   *old;
 		size_t  old_len;
