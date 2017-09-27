@@ -245,6 +245,15 @@ M_API M_io_state_t M_io_get_layer_state(M_io_t *io, size_t id);
 M_API size_t M_io_layer_count(M_io_t *io);
 
 
+/*! Retrieve the name of the layer at the specified index.
+ *
+ * \param[in] io io object
+ * \param[in] idx index of layer (0 - M_io_layer_count())
+ * \return internal name of layer in string form
+ */
+M_API const char *M_io_layer_name(M_io_t *io, size_t idx);
+
+
 /* Get a textual error message associated with the io object.
  *
  * This message is populated by the layer that reported the error. The message

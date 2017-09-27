@@ -595,6 +595,26 @@ const char *M_io_layer_get_name(M_io_layer_t *layer)
 	return layer->name;
 }
 
+
+const char *M_io_layer_name(M_io_t *io, size_t idx)
+{
+	const M_io_layer_t *layer;
+	const char         *name = NULL;
+	if (io == NULL)
+		return NULL;
+
+	M_io_lock(io);
+
+	layer = M_list_at(io->layer, idx);
+	if (layer != NULL)
+		name = layer->name;
+
+	M_io_unlock(io);
+
+	return name;
+}
+
+
 M_io_handle_t *M_io_layer_get_handle(M_io_layer_t *layer)
 {
 	if (layer == NULL)
