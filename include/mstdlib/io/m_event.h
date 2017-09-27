@@ -325,6 +325,20 @@ M_API void M_event_destroy(M_event_t *event);
 M_API M_bool M_event_add(M_event_t *event, M_io_t *io, M_event_callback_t callback, void *cb_data);
 
 
+/*! Edit the callback associated with an io object in the event subsystem.
+ *
+ *  Editing allows a user to re-purpose an io object while processing events without
+ *  needing to remove and re-add the object which may cause a loss of events.
+ *
+ *  \param[in] io       IO object to modify the callback for
+ *  \param[in] callback Callback to set. NULL will set it to no callback.
+ *  \param[in] cb_data  Data passed to callback function.  NULL will remove the cb_data.
+ *  \return M_FALSE on error, such as if the IO object is not currently attached to an
+ *          event loop.
+ */
+M_API M_bool M_event_edit_io_cb(M_io_t *io, M_event_callback_t callback, void *cb_data);
+
+
 /*! Remove an io object from its associated event handle.
  * 
  *  Removing handles is threadsafe and can be executed either within an event

@@ -620,6 +620,39 @@ M_bool M_event_add(M_event_t *event, M_io_t *comm, M_event_callback_t callback, 
 }
 
 
+M_bool M_event_edit_io_cb(M_io_t *io, M_event_callback_t callback, void *cb_data)
+{
+	M_event_t     *event = NULL;
+	M_event_io_t  *ioev  = NULL;
+	M_bool         rv    = M_FALSE;
+
+	if (io == NULL)
+		return M_FALSE;
+
+	M_io_lock(io);
+
+	event = io->reg_event;
+	if (event == NULL)
+		goto done;
+
+	M_event_lock(event);
+
+	if (!M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev) || ioev == NULL)
+		goto done;
+
+	ioev->callback = callback;
+	ioev->cb_data  = cb_data;
+
+	rv = M_TRUE;
+
+done:
+	M_event_unlock(event);
+	M_io_unlock(io);
+
+	return rv;
+}
+
+
 void M_event_remove(M_io_t *io)
 {
 	M_event_t *event;
