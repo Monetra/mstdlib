@@ -330,6 +330,9 @@ M_API M_bool M_event_add(M_event_t *event, M_io_t *io, M_event_callback_t callba
  *  Editing allows a user to re-purpose an io object while processing events without
  *  needing to remove and re-add the object which may cause a loss of events.
  *
+ *  \note This will NOT cause a connected event to be triggered like M_event_add() does when
+ *        you first add an io object to an event loop for already-established connections.
+ *
  *  \param[in] io       IO object to modify the callback for
  *  \param[in] callback Callback to set. NULL will set it to no callback.
  *  \param[in] cb_data  Data passed to callback function.  NULL will remove the cb_data.
