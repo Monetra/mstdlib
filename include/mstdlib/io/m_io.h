@@ -147,6 +147,16 @@ M_API M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf);
 M_API M_io_error_t M_io_read_into_parser(M_io_t *comm, M_parser_t *parser);
 
 
+/*! Clear/Flush the read buffer to consume all data and dispose of it.
+ *
+ *  \param[in] io  io object
+ *  \return M_IO_ERROR_SUCCESS if data was flushed and the connection is still
+ *          active.  M_IO_ERROR_WOULDBLOCK if no data to flush, otherwise one
+ *          of the additional errors if the connection failed.
+ */
+M_API M_io_error_t M_io_read_clear(M_io_t *io);
+
+
 /*! Write data to an io object.
  *
  * This function will attempt to write as much data as possible. If not all data

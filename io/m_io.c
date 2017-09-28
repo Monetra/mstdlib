@@ -362,6 +362,25 @@ fail:
 }
 
 
+M_io_error_t M_io_read_clear(M_io_t *io)
+{
+	M_io_error_t err;
+	M_uint8      buf[1024];
+	M_bool       bytes_read = M_FALSE;
+	size_t       len = 0;
+
+	while ((err = M_io_read(io, buf, sizeof(buf), &len)) == M_IO_ERROR_SUCCESS) {
+		bytes_read = M_TRUE;
+	}
+
+	/* If the error is wouldblock, but previously it read bytes, return success */
+	if (err == M_IO_ERROR_WOULDBLOCK && bytes_read)
+		err = M_IO_ERROR_SUCCESS;
+
+	return err;
+}
+
+
 M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf)
 {
 	size_t         buf_len;
