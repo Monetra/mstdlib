@@ -153,7 +153,9 @@ M_time_t M_time_from_filetime(const FILETIME *ft)
 
 	/* Copy to 64bit signed integer */
 	l = (M_int64)(((M_uint64)ft->dwHighDateTime) << 32 | (M_uint64)ft->dwLowDateTime);
-	
+
+	if (l == 0)
+		return 0;
 	return l / 10000000 - 11644473600;
 }
 
