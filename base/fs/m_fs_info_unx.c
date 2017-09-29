@@ -107,6 +107,7 @@ M_fs_error_t M_fs_info(M_fs_info_t **info, const char *path, M_uint32 flags)
 	}
 
 	/* stat the path to get the info. */
+	M_mem_set(&buf, 0, sizeof(buf));
 	if (flags & M_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS) {
 		ret = stat(norm_path, &buf);
 	} else {
