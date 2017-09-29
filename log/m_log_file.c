@@ -107,7 +107,7 @@ static M_fs_error_t open_head_logfile(writer_thunk_t *wdata)
 		wdata->log_file_size        = M_fs_info_get_size(info);
 
 		/* If we couldn't get a file creation time from the filesystem, just use the current time. */
-		if (wdata->log_file_create_time == 0) {
+		if (wdata->log_file_create_time <= 0) {
 			wdata->log_file_create_time = M_time();
 		}
 
@@ -155,7 +155,7 @@ static int sort_log_files_cb(const void *arg1, const void *arg2, void *thunk)
 		ret = 0;
 	}
 
-	done:
+done:
 	M_parser_destroy(p1);
 	M_parser_destroy(p2);
 	return ret;
