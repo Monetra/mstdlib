@@ -8,11 +8,21 @@ if (NOT MSTDLIB_BUILD_TESTS)
 endif ()
 
 # Find libcheck (required).
-if (NOT Check_DIR)
+set(old_lib_mode ${CMAKE_FIND_ROOT_PATH_MODE_LIBRARY})
+set(old_inc_mode ${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE})
+if (NOT Check_DIR AND EXISTS "${Mstdlib_BINARY_DIR}/thirdparty/check")
 	# If user didn't specify a particular check installation, look in thirdparty dir.
 	set(Check_DIR "${Mstdlib_BINARY_DIR}/thirdparty/check")
+	# If we're cross-compiling, temporarily allow libs to be found outside the system root.
+	if (NOT CMAKE_SYSTEM_NAME STREQUAL CMAKE_HOST_SYSTEM_NAME)
+		set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH)
+		set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
+	endif ()
 endif ()
+
 find_package(Check)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ${old_lib_mode})
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ${old_inc_mode})
 
 if (NOT TARGET Check::check)
 	message(STATUS "Building tests... Disabled (requested, but can't be built because the Check library wasn't found)")

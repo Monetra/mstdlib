@@ -16,6 +16,7 @@ include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckTypeSize)
 include(SystemExtensions)
+include(InstallDepLibs)
 include(InstallExports) # Provides install_exports() function.
 
 include(AddressSanitizer) # Provides M_ASAN option, if supported by compiler
@@ -453,6 +454,23 @@ add_subdirectory(test)
 # Trick to make headers and scripts show up in IDEs. Adds a phony target that references the files.
 file(GLOB_RECURSE headers_and_scripts *.h *.lua *.yml)
 add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${headers_and_scripts})
+
+# If mstdlib is the root project, make sure to include required system libs (if any).
+if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
+	# Install any required system libs, if any (usually just MSVC redistributables on windows).
+	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+	include(InstallRequiredSystemLibraries) # sets CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+	
+	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
+	if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES CYGWIN)
+		find_library(WINPTHREAD_LIBRARY libwinpthread-1)
+		if (WINPTHREAD_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${WINPTHREAD_LIBRARY}")
+		endif ()
+	endif ()
+	
+	install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+endif ()
 
 if (MSTDLIB_INSTALL_EXPORTS)
 	install_exports(Mstdlib "${MSTDLIB_INSTALL_LOCATION_SHARE}/Mstdlib/cmake")

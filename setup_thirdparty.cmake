@@ -3,6 +3,7 @@
 # Options for building libcheck:
 #   Pass "-DBUILDCHECK=FALSE" to disable building of check.
 #   Pass "-DBUILDDIR=<build dir>" to pick location to build libcheck in (defaults to build/, relative to current working directory)
+#   Pass "-DTOOLCHAIN=<toolchain>" to cross-compile
 #   Pass "-DGEN=<generator name>" to explicitly pick a generator
 #   Pass "-DCMAKE_BUILD_TYPE=<build type>" to explicitly pick a build type (defaults to RelWithDebInfo)
 # 
@@ -73,11 +74,17 @@ if (BUILDCHECK)
 	string(REPLACE "set\(CMAKE_BUILD_TYPE" "\#set\(CMAKE_BUILD_TYPE" str "${str}")
 	file(WRITE "${bindir}/thirdparty/check_src/CMakeLists.txt" "${str}")
 
+	if (TOOLCHAIN)
+		get_filename_component(abspath "${TOOLCHAIN}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+		set(toolchain_cmd "-DCMAKE_TOOLCHAIN_FILE=${abspath}")
+	endif ()
+	
 	# libcheck can't be chain-built, because the target names it uses internally conflict with
 	# existing targets in mstdlib. So, let's build it separately and install to the thirdparty dir.
 	file(MAKE_DIRECTORY "${bindir}/thirdparty/check_src/build")
 	execute_process(COMMAND "${CMAKE_COMMAND}" "${bindir}/thirdparty/check_src"
 		${GEN}
+		${toolchain_cmd}
 		-DCHECK_ENABLE_TESTS=FALSE
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCMAKE_INSTALL_PREFIX=${bindir}/thirdparty/check
