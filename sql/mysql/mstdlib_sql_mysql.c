@@ -469,14 +469,14 @@ static M_sql_error_t mysql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_s
 					driver_stmt->bind_params[paramid].buffer_type   = MYSQL_TYPE_STRING;
 					p8 = M_sql_driver_stmt_bind_get_text(stmt, row, i);
 					driver_stmt->bind_params[paramid].buffer        = M_CAST_OFF_CONST(char *, p8);
-					driver_stmt->bind_params[paramid].buffer_length = M_sql_driver_stmt_bind_get_text_len(stmt, row, i);
+					driver_stmt->bind_params[paramid].buffer_length = (unsigned long)M_sql_driver_stmt_bind_get_text_len(stmt, row, i);
 					break;
 				case M_SQL_DATA_TYPE_BINARY:
 					driver_stmt->bind_params[paramid].buffer_type   = MYSQL_TYPE_BLOB;
 					p8u = M_sql_driver_stmt_bind_get_binary(stmt, row, i);
 					driver_stmt->bind_params[paramid].buffer        = M_CAST_OFF_CONST(M_uint8 *, p8u);
-					driver_stmt->bind_params[paramid].buffer_length = M_sql_driver_stmt_bind_get_binary_len(stmt, row, i);
-					driver_stmt->bind_params[paramid].is_unsigned = 1;
+					driver_stmt->bind_params[paramid].buffer_length = (unsigned long)M_sql_driver_stmt_bind_get_binary_len(stmt, row, i);
+					driver_stmt->bind_params[paramid].is_unsigned   = 1;
 					break;
 				case M_SQL_DATA_TYPE_NULL:
 					driver_stmt->bind_params[paramid].buffer_type   = MYSQL_TYPE_NULL;
@@ -592,7 +592,7 @@ static M_sql_error_t mysql_fetch_result_metadata(M_sql_driver_stmt_t *driver_stm
 			case MYSQL_TYPE_LONG_BLOB:
 			case MYSQL_TYPE_STRING:
 				result->bind[i].buffer_type   = (mtype == M_SQL_DATA_TYPE_TEXT)?MYSQL_TYPE_STRING:fields[i].type;
-				result->bind[i].buffer_length = max_len;
+				result->bind[i].buffer_length = (unsigned long)max_len;
 				break;
 			case MYSQL_TYPE_TINY:
 				result->bind[i].buffer_type   = fields[i].type;
@@ -615,7 +615,7 @@ static M_sql_error_t mysql_fetch_result_metadata(M_sql_driver_stmt_t *driver_stm
 				result->bind[i].buffer_type   = MYSQL_TYPE_STRING;
 				if (max_len == 0 || max_len > 16394)
 					max_len = 128;
-				result->bind[i].buffer_length = max_len;
+				result->bind[i].buffer_length = (unsigned long)max_len;
 				break;
 		}
 
@@ -675,7 +675,7 @@ static M_sql_error_t mysql_cb_prepare(M_sql_driver_stmt_t **driver_stmt, M_sql_c
 			goto fail;
 		}
 
-		if (mysql_stmt_prepare((*driver_stmt)->stmt, query, M_str_len(query)) != 0) {
+		if (mysql_stmt_prepare((*driver_stmt)->stmt, query, (unsigned long)M_str_len(query)) != 0) {
 			merr = mysql_stmt_errno((*driver_stmt)->stmt);
 			M_snprintf(error, error_size, "stmt prepare failed: %u: %s", merr, mysql_stmt_error((*driver_stmt)->stmt));
 			err = mysql_resolve_error(NULL, (M_int32)merr);
