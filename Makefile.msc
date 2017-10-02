@@ -17,7 +17,7 @@ clean:
 	(cd thirdparty/c-ares && \
 		nmake -f Makefile.msvc CFG=lib-release clean && \
 		rmdir /s /q "$(MAKEDIR)/cares-build" && \
-		rm -f ares_build.h )
+		del /q ares_build.h )
 	(cd io                && nmake -f Makefile.msc clean)
 	(cd tls               && nmake -f Makefile.msc clean)
 	(cd log               && nmake -f Makefile.msc clean)
