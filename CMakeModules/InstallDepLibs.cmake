@@ -95,7 +95,7 @@ function(get_dll_from_implib out_dll path)
 		)
 	endif ()
 	list(APPEND suffixes bin lib)
-	
+
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
 	find_library(${clibname}_DLL
 		NAMES           ${libname} ${nolibname} ${alt_names}
@@ -114,7 +114,7 @@ endfunction()
 
 
 # Helper function for _install_deplibs_internal: convert given list of libs into paths.
-function(get_paths_from_libs lib_dest runtime_dest out_paths_name out_libs_name)
+function(get_paths_from_libs lib_dest runtime_dest component out_paths_name out_libs_name)
 	set(out_libs)
 	foreach (lib IN LISTS ${out_libs_name})
 		# Skip "optimized" and "debug" keywords that might be in a <NAME>_LIBRARIES variable.
@@ -147,6 +147,7 @@ function(get_paths_from_libs lib_dest runtime_dest out_paths_name out_libs_name)
 					install(TARGETS ${lib}
 						LIBRARY DESTINATION "${lib_dest}"
 						RUNTIME DESTINATION "${runtime_dest}"
+						${component}
 					)
 				endif ()
 				continue()
@@ -218,7 +219,7 @@ endfunction()
 
 # Helper function for install_deplibs and copy_deplibs.
 # _install_deplibs_internal([lib dest] [runtime dest] [flag to turn file copy on/off] [flag to turn file install on/off] [... lib files or import targets ...]
-function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
+function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_install)
 	if ((NOT do_copy) AND (NOT do_install))
 		return()
 	endif ()
@@ -240,7 +241,7 @@ function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
 
 	set(libs ${ARGN})
 	while (libs)
-		get_paths_from_libs("${lib_dest}" "${runtime_dest}" lib_paths libs)
+		get_paths_from_libs("${lib_dest}" "${runtime_dest}" "${component}" lib_paths libs)
 	endwhile ()
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -263,7 +264,7 @@ function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
 
 		# If we're on AIX, we need our own special install handling. Run it, then skip to next iteration.
 		if (aix_libname AND do_install)
-			install(FILES "${path}" RENAME "${aix_libname}" DESTINATION "${lib_dest}")
+			install(FILES "${path}" RENAME "${aix_libname}" DESTINATION "${lib_dest}" ${component})
 			continue()
 		endif ()
 
@@ -292,7 +293,7 @@ function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
 
 		# Install the file.
 		#message(STATUS "will install ${path} to ${dest}")
-		install(${type} "${path}" DESTINATION "${dest}")
+		install(${type} "${path}" DESTINATION "${dest}" ${component})
 
 		# If the library has a soname that's different than the actual name of the file on disk, add a symlink.
 		read_soname(soname "${path}")
@@ -318,7 +319,7 @@ function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
 
 				# Install the symlink to the same directory as the library.
 				#message(STATUS "will install ${tmpdir}/${soname} to ${dest}")
-				install(${type} "${tmpdir}/${soname}" DESTINATION "${dest}")
+				install(${type} "${tmpdir}/${soname}" DESTINATION "${dest}" ${component})
 			endif ()
 		endif ()
 	endforeach ()
@@ -332,16 +333,114 @@ function(install_deplibs lib_dest runtime_dest)
 		set(INSTALL_DEPLIBS_COPY_DLL TRUE)
 	endif ()
 
+	set(libs ${ARGN})
+	if (NOT libs)
+		return()
+	endif ()
+
+	# See if the user passed an optional "COMPONENT [component name]" to the install command.
+	# If they did, remove those entries from the 'libs' list and add them to the 'component' list.
+	set(component)
+	list(FIND libs COMPONENT idx)
+	if (idx GREATER -1)
+		math(EXPR idx_next "${idx} + 1")
+		list(GET libs ${idx} ${idx_next} component)
+		list(REMOVE_AT libs ${idx} ${idx_next})
+	endif ()
+
 	# Call internal helper
-	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${ARGN})
+	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" "${component}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${libs})
 endfunction()
 
 
 # copy_deplibs([... lib files or import targets...])
 function(copy_deplibs)
-	_install_deplibs_internal("" "" TRUE FALSE ${ARGN})
+	_install_deplibs_internal("" "" "" TRUE FALSE ${ARGN})
 endfunction()
 
+
+# install_deplibs([lib dest] [runtime dest] [... Qt import targets to install ...]
+function(install_deplibs_qt lib_dest runtime_dest)
+	# Note: if Qt 5 hasn't been found, silently skip doing anything. We don't support packaging Qt 4.
+	if (NOT TARGET Qt5::Core)
+		return()
+	endif ()
+
+	set(libs ${ARGN})
+	if (NOT libs)
+		return()
+	endif ()
+
+	# See if the user passed an optional "COMPONENT [component name]" to the install command.
+	# If they did, remove those entries from the 'libs' list and add them to the 'component' list.
+	set(component)
+	list(FIND libs "COMPONENT" idx)
+	if (idx GREATER -1)
+		math(EXPR idx_next "${idx} + 1")
+		list(GET libs ${idx} ${idx_next} component)
+		list(REMOVE_AT libs ${idx} ${idx_next})
+	endif ()
+
+	# Install the Qt libs themselves.
+	install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${libs})
+
+	# Get Qt lib and plugin dirs.
+	get_target_property(qt_lib_dir Qt5::Core LOCATION)
+	get_filename_component(qt_lib_dir "${qt_lib_dir}" DIRECTORY)
+	get_filename_component(qt_plugin_dir "${qt_lib_dir}/../plugins" ABSOLUTE)
+
+	# Install the platform plugin (needed for Qt::Gui).
+	if (Qt5::Gui IN_LIST libs)
+		if (WIN32)
+			set(plugin qwindows.dll)
+		elseif (APPLE)
+			set(plugin libqcocoa.dylib)
+		else ()
+			set(plugin libqxcb.so)
+		endif ()
+		set(plugin "${qt_plugin_dir}/platforms/${plugin}")
+		if (EXISTS "${plugin}")
+			install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/platforms" ${component})
+		else ()
+			message(STATUS "Couldn't find Qt plugin ${plugin}, install package may be incomplete")
+		endif ()
+	endif ()
+
+	# Install the print support plugin (needed for Qt:PrintSupport).
+	if (Qt5::PrintSupport IN_LIST libs)
+		if (WIN32)
+			set(plugin windowsprintersupport.dll)
+		elseif (APPLE)
+			set(plugin libcocoaprintersupport.dylib)
+		else ()
+			set(plugin libcupsprintersupport.so)
+		endif ()
+		set(plugin "${qt_plugin_dir}/printsupport/${plugin}")
+		if (EXISTS "${plugin}")
+			install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/printsupport" ${component})
+		else ()
+			message(STATUS "Couldn't find Qt plugin ${plugin}, install package may be incomplete")
+		endif ()
+	endif ()
+
+	# Install extra internationaliztion libs needed by Qt5::Core for X11 (linux, etc).
+	if (Qt5::Core IN_LIST libs AND NOT WIN32 AND NOT APPLE)
+		# Glob for icu libs (for example, libicui18n.so.56 and libicui18n.so.56.1)
+		file(GLOB glob_libs "${qt_lib_dir}/libicu*")
+		set(icu_libs)
+		foreach (lib IN LISTS glob_libs)
+			# Resolve any symlinks.
+			get_filename_component(lib "${lib}" REALPATH)
+			if (lib MATCHES ".*\.so")
+				list(APPEND icu_libs "${lib}")
+			endif ()
+		endforeach ()
+		# Get rid of duplicate paths caused by symlinks that got resolved to a lib in the same directory.
+		list(REMOVE_DUPLICATES icu_libs)
+		# Install the dependencies.
+		install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${icu_libs})
+	endif ()
+endfunction()
 
 # install_deplibs([lib dest] [runtime dest])
 function(install_system_deplibs lib_dest runtime_dest)
