@@ -28,29 +28,58 @@
 # INSTALL_DEPLIBS_COPY_DEST - directory to copy DLL's to. If not specified, defaults to CMAKE_RUNTIME_OUTPUT_DIR.
 #
 
+# used for getting DLL names from mingw interface libs (.dll.a).
+find_program(DLLTOOL dlltool)
 
-# Helper function for _install_deplibs_internal: try to find .dll using path of an import lib.
+# Helper function for _install_deplibs_internal: try to find .dll using path of an import lib (VS or MinGW).
 function(get_dll_from_implib out_dll path)
 	# Get directory containing import lib, and try to guess root dir of install.
 	get_filename_component(imp_dir "${path}" DIRECTORY)
 	string(REGEX REPLACE "/[/0-9x_-]*lib[/0-9x_-]*(/.*|$)" "" root_dir "${imp_dir}")
 
-	# Get library name by removing .lib from extension.
-	get_filename_component(imp_file "${path}" NAME)
-	string(REGEX REPLACE "\.lib$" "" libname "${imp_file}")
+	set(libname)
+	set(nolibname)
+	set(alt_names)
+	
+	if (DLLTOOL AND "${path}" MATCHES "\.dll\.a$")
+		# If this is a MinGW interface lib, and we have access to MinGW tools, use dlltool to get the library name.
+		# Note: necessary, because for mingw-OpenSSL installed on cygwin, the basename of the .dll.a (libssl.dll.a) is different than the name of the .dll (ssleay32.dll).
+		execute_process(COMMAND "${DLLTOOL}" -I ${path}
+			RESULT_VARIABLE res
+			OUTPUT_VARIABLE libname
+			ERROR_QUIET
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		
+		# Strip extension.
+		string(REGEX REPLACE "\.dll$" "" libname "${libname}")
+		
+		# If the DLL tool command returned successfully:
+		if (NOT res EQUAL 0)
+			set(libname)
+		endif ()
+	endif ()
+	
+	if (NOT libname)
+		# Get library name by removing .lib or .dll.a from extension.
+		get_filename_component(imp_file "${path}" NAME)
+		string(REGEX REPLACE "\.lib$" "" libname "${imp_file}")
+		string(REGEX REPLACE "\.dll\.a$" "" libname "${libname}")
+
+		# Get alternate library names by removing lib prefix, and or d, MT, MDd, etc. (suffixes indicating visual studio build flags).
+		string(REGEX REPLACE "^lib" "" nolibname "${libname}")
+
+		string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${libname}")
+		list(APPEND alt_names ${alt_name})
+		string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${nolibname}")
+		list(APPEND alt_names ${alt_name})
+		string(REGEX REPLACE "[dD]$" "" alt_name "${libname}")
+		list(APPEND alt_names ${alt_name})
+		string(REGEX REPLACE "[dD]$" "" alt_name "${nolibname}")
+		list(APPEND alt_names ${alt_name})
+	endif ()
+
 	string(MAKE_C_IDENTIFIER "${libname}" clibname)
-
-	# Get alternate library names by removing lib prefix, and or d, MT, MDd, etc. (suffixes indicating visual studio build flags).
-	string(REGEX REPLACE "^lib" "" nolibname "${libname}")
-
-	string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${libname}")
-	list(APPEND alt_names ${alt_name})
-	string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${nolibname}")
-	list(APPEND alt_names ${alt_name})
-	string(REGEX REPLACE "[dD]$" "" alt_name "${libname}")
-	list(APPEND alt_names ${alt_name})
-	string(REGEX REPLACE "[dD]$" "" alt_name "${nolibname}")
-	list(APPEND alt_names ${alt_name})
 
 	# Figure out possible arch names, based on bitness of project.
 	set(suffixes)
@@ -66,7 +95,7 @@ function(get_dll_from_implib out_dll path)
 		)
 	endif ()
 	list(APPEND suffixes bin lib)
-
+	
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
 	find_library(${clibname}_DLL
 		NAMES           ${libname} ${nolibname} ${alt_names}
@@ -225,7 +254,7 @@ function(_install_deplibs_internal lib_dest runtime_dest do_copy do_install)
 		endif ()
 
 		# If on Windows, try to replace import libraries with DLL's. Throws fatal error if it can't do it.
-		if (WIN32 AND ${path} MATCHES "\.lib$")
+		if (WIN32 AND (${path} MATCHES "\.lib$" OR ${path} MATCHES "\.dll\.a$"))
 			get_dll_from_implib(path "${path}")
 		endif ()
 
@@ -313,3 +342,20 @@ function(copy_deplibs)
 	_install_deplibs_internal("" "" TRUE FALSE ${ARGN})
 endfunction()
 
+
+# install_deplibs([lib dest] [runtime dest])
+function(install_system_deplibs lib_dest runtime_dest)
+	# Install any required system libs, if any (usually just MSVC redistributables on windows).
+	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+	include(InstallRequiredSystemLibraries) # sets CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+	
+	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
+	if (MINGW)
+		find_library(WINPTHREAD_LIBRARY libwinpthread-1)
+		if (WINPTHREAD_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${WINPTHREAD_LIBRARY}")
+		endif ()
+	endif ()
+	
+	install_deplibs("${lib_dest}" "${runtime_dest}" ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+endfunction()

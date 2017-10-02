@@ -457,19 +457,8 @@ add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${headers_and_scripts})
 
 # If mstdlib is the root project, make sure to include required system libs (if any).
 if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
-	# Install any required system libs, if any (usually just MSVC redistributables on windows).
-	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
-	include(InstallRequiredSystemLibraries) # sets CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
-	
-	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
-	if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES CYGWIN)
-		find_library(WINPTHREAD_LIBRARY libwinpthread-1)
-		if (WINPTHREAD_LIBRARY)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${WINPTHREAD_LIBRARY}")
-		endif ()
-	endif ()
-	
-	install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+	# Install any required system libs, if any (usually just MSVC redistributables on windows, or winpthreads if building with MinGW).
+	install_system_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin)
 endif ()
 
 if (MSTDLIB_INSTALL_EXPORTS)
