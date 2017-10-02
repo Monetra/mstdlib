@@ -40,8 +40,8 @@ function(get_dll_from_implib out_dll path)
 	set(libname)
 	set(nolibname)
 	set(alt_names)
-	
-	if (DLLTOOL AND "${path}" MATCHES "\.dll\.a$")
+
+	if (DLLTOOL AND "${path}" MATCHES "\.a$")
 		# If this is a MinGW interface lib, and we have access to MinGW tools, use dlltool to get the library name.
 		# Note: necessary, because for mingw-OpenSSL installed on cygwin, the basename of the .dll.a (libssl.dll.a) is different than the name of the .dll (ssleay32.dll).
 		execute_process(COMMAND "${DLLTOOL}" -I ${path}
@@ -50,7 +50,7 @@ function(get_dll_from_implib out_dll path)
 			ERROR_QUIET
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
-		
+	
 		# Strip extension.
 		string(REGEX REPLACE "\.dll$" "" libname "${libname}")
 		
@@ -59,7 +59,7 @@ function(get_dll_from_implib out_dll path)
 			set(libname)
 		endif ()
 	endif ()
-	
+
 	if (NOT libname)
 		# Get library name by removing .lib or .dll.a from extension.
 		get_filename_component(imp_file "${path}" NAME)
@@ -255,7 +255,7 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 		endif ()
 
 		# If on Windows, try to replace import libraries with DLL's. Throws fatal error if it can't do it.
-		if (WIN32 AND (${path} MATCHES "\.lib$" OR ${path} MATCHES "\.dll\.a$"))
+		if (WIN32 AND (${path} MATCHES "\.lib$" OR ${path} MATCHES "\.a$"))
 			get_dll_from_implib(path "${path}")
 		endif ()
 
@@ -450,9 +450,36 @@ function(install_system_deplibs lib_dest runtime_dest)
 	
 	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
 	if (MINGW)
-		find_library(WINPTHREAD_LIBRARY libwinpthread-1)
-		if (WINPTHREAD_LIBRARY)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${WINPTHREAD_LIBRARY}")
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
+		
+		# Extra C libraries:
+		find_library(MINGW_WINPTHREAD_LIBRARY NAMES
+			libwinpthread-1
+		)
+		if (MINGW_WINPTHREAD_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_WINPTHREAD_LIBRARY}")
+		endif ()
+
+		find_library(MINGW_GCC_LIBRARY NAMES
+			libgcc_s_dw2-1  # dwarf-2 exceptions (32-bit only, exceptions can't be thrown over system DLL's)
+			libgcc_s_seh-1  # SEH (Windows native) exceptions (64-bit only)
+			libgcc_s_sjlj-1 # set-jump/long-jump exceptions (can be used for either, but not zero-cost)
+		)
+		if (MINGW_GCC_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_GCC_LIBRARY}")
+		endif ()
+
+		# Extra C++ libraries (only include if we're using C++ someplace in the project):
+		get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+		if (CXX IN_LIST languages)
+
+			find_library(MINGW_STDCXX_LIBRARY NAMES
+				libstdc++-6.dll
+			)
+			if (MINGW_STDCXX_LIBRARY)
+				list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_STDCXX_LIBRARY}")
+			endif ()
+
 		endif ()
 	endif ()
 	
