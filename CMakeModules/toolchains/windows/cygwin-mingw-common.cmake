@@ -23,7 +23,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) # Only search for includes that are 
 # Need to set CMAKE_CROSSCOMPILING to FALSE, so that CMake will let us use built targets in custom build
 # rules. This isn't truly cross-compiling, only makes sense for Cygwin.
 set(CMAKE_CROSSCOMPILING FALSE)
-set(CMAKE_PREFIX_PATH "${CMAKE_FIND_ROOT_PATH}") # Workaround for find_package bug, only needed when CMAKE_CROSSCOMPILING is false.
+set(CMAKE_PREFIX_PATH "${CMAKE_FIND_ROOT_PATH}" /usr/${CMAKE_TOOLCHAIN_PREFIX}) # Workaround for find_package bug, only needed when CMAKE_CROSSCOMPILING is false.
 
 # NOTE: if we ever change CMAKE_CROSSCOMPILING back to true, we'll also need to uncomment the code below.
 #
