@@ -387,7 +387,12 @@ function(install_deplibs_qt lib_dest runtime_dest)
 	# Get Qt lib and plugin dirs.
 	get_target_property(qt_lib_dir Qt5::Core LOCATION)
 	get_filename_component(qt_lib_dir "${qt_lib_dir}" DIRECTORY)
-	get_filename_component(qt_plugin_dir "${qt_lib_dir}/../plugins" ABSOLUTE)
+	
+	set(qt_plugin_dir "${qt_lib_dir}/../plugins") # path to plugins on standard installation by Qt installer.
+	if (NOT EXISTS "${qt_plugin_dir}")
+		set(qt_plugin_dir "${qt_lib_dir}/../lib/qt5/plugins") # path to plugins for Qt installed by some OS packages (like for ygwin mingw cross-compile).
+	endif ()
+	get_filename_component(qt_plugin_dir "${qt_plugin_dir}" ABSOLUTE)
 
 	# Install the platform plugin (needed for Qt::Gui).
 	if (Qt5::Gui IN_LIST libs)
