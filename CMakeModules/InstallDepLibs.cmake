@@ -28,8 +28,12 @@
 # INSTALL_DEPLIBS_COPY_DEST - directory to copy DLL's to. If not specified, defaults to CMAKE_RUNTIME_OUTPUT_DIR.
 #
 
-# used for getting DLL names from mingw interface libs (.dll.a).
+# used to extract DLL names from mingw interface libs (.dll.a).
 find_program(DLLTOOL dlltool)
+# used to extract SONAME from shared libs on ELF platforms.
+find_program(READELF readelf DOC "readelf (unix/ELF only)")
+
+mark_as_advanced(FORCE DLLTOOL READELF)
 
 # Helper function for _install_deplibs_internal: try to find .dll using path of an import lib (VS or MinGW).
 function(get_dll_from_implib out_dll path)
@@ -188,7 +192,6 @@ endfunction()
 
 
 # Helper function for _install_deplibs_internal: retrieve soname of given lib file. If no soname, returns the path.
-find_program(READELF readelf DOC "readelf (unix/ELF only)")
 function(read_soname outvarname path)
 	# Set output variable to empty string - this is what will be returned on an error.
 	set(${outvarname} "" PARENT_SCOPE)
