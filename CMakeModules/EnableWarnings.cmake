@@ -50,7 +50,7 @@ set(_flags
 	-Wpointer-arith -Wtype-limits -Wbad-function-cast -Wcast-qual
 	-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
 	-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
-	-Waddress -Wlogical-op -Waggregate-return
+	-Waddress -Wlogical-op
 	-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition
 	-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations
 	-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
