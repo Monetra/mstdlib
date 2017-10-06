@@ -67,9 +67,18 @@ static void M_io_block_event(M_event_t *event, M_event_type_t type, M_io_t *io, 
 {
 	M_io_block_data_t *data = cb_data;
 
-	/* Sanity check to prevent duplicate checks overwriting eachother */
-	if (data->done)
+	/* Sanity check to prevent duplicate checks overwriting eachother.  We need to
+	 * actually re-add the event we are ignoring as a soft event so it can be
+	 * delivered later */
+	if (data->done) {
+		if (io != NULL) {
+			size_t        idx   = M_io_layer_count(io)-1; /* Use last index */
+			M_io_layer_t *layer = M_io_layer_acquire(io, idx, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE /* Sibling-only=true will make it only notify user callbacks */, type);
+			M_io_layer_release(layer);
+		}
 		return;
+	}
 
 	if (type == M_EVENT_TYPE_CONNECTED && data->request == M_IO_SYNC_REQUEST_CONNECT) {
 		data->retval = M_IO_ERROR_SUCCESS;
