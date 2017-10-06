@@ -137,24 +137,35 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->events[i].ident, (void **)&member))
 			continue;
 
-		/* WARNING, if we deliver EV_EOF as a DISCONNECT event, there may be unread data and we never get
-		 * a read event.  This sounds broken, epoll() on linux doesn't behave this way.  Regardless, if
-		 * we are waiting on a read, treat an EOF as a read to prevent this situation! */
+		/* Disconnect */
 		if (event->u.loop.impl_data->events[i].flags & EV_EOF) {
-			M_event_deliver_io(event, member->io, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_DISCONNECTED);
+			/* NOTE: always deliver READ event first on a disconnect to make sure any
+			 *       possible pending data is flushed. */
+			if (member->waittype & M_EVENT_WAIT_READ) {
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
+			}
+			M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
 			continue;
 		}
 
+		/* Error */
 		if (event->u.loop.impl_data->events[i].flags & EV_ERROR) {
-			M_event_deliver_io(event, member->io, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_ERROR);
+			/* NOTE: always deliver READ event first on an error to make sure any
+			 *       possible pending data is flushed. */
+			if (member->waittype & M_EVENT_WAIT_READ) {
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
+			}
+			M_event_deliver_io(event, member->io, M_EVENT_TYPE_ERROR);
 			continue;
 		}
 
+		/* Read */
 		if (event->u.loop.impl_data->events[i].filter == EVFILT_READ) {
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 			continue;
 		}
 
+		/* Write */
 		if (event->u.loop.impl_data->events[i].filter == EVFILT_WRITE) {
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_WRITE);
 			continue;

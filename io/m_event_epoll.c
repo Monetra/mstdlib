@@ -134,24 +134,36 @@ static void M_event_impl_epoll_process(M_event_t *event)
 		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->events[i].data.fd, (void **)&member))
 			continue;
 
-		/* Deliver error events as if they were read events, when the user goes to read, they'll get back a meaningful
-		 * error message. */
+		/* Error */
 		if (event->u.loop.impl_data->events[i].events & EPOLLERR) {
-			M_event_deliver_io(event, member->io, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_ERROR);
+			/* NOTE: always deliver READ event first on an error to make sure any
+			 *       possible pending data is flushed. */
+			if (member->waittype & M_EVENT_WAIT_READ) {
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
+			}
+			M_event_deliver_io(event, member->io, M_EVENT_TYPE_ERROR);
 		}
 
+		/* Read */
 		if (event->u.loop.impl_data->events[i].events & EPOLLIN) {
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 		}
 
+		/* Disconnect */
 		if (event->u.loop.impl_data->events[i].events & (EPOLLHUP
 #ifdef EPOLLRDHUP
 		    | EPOLLRDHUP
 #endif
 		    )) {
-			M_event_deliver_io(event, member->io, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_DISCONNECTED);
+			/* NOTE: always deliver READ event first on a disconnect to make sure any
+			 *       possible pending data is flushed. */
+			if (member->waittype & M_EVENT_WAIT_READ) {
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
+			}
+			M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
 		}
 
+		/* Write */
 		if (event->u.loop.impl_data->events[i].events & EPOLLOUT) {
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_WRITE);
 		}
