@@ -97,6 +97,12 @@ static M_bool M_io_netdns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	if (handle->state == M_IO_NET_STATE_DISCONNECTING && *type == M_EVENT_TYPE_WRITE)
 		return M_TRUE;
 
+	/* Modify internal state */
+	if (*type == M_EVENT_TYPE_DISCONNECTED)
+		handle->state = M_IO_NET_STATE_DISCONNECTED;
+	if (*type == M_EVENT_TYPE_ERROR)
+		handle->state = M_IO_NET_STATE_ERROR;
+
 	return M_FALSE;
 }
 
@@ -288,22 +294,24 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 		case M_EVENT_TYPE_READ:
 		case M_EVENT_TYPE_WRITE:
 			/* Pass-on */
-			M_io_layer_softevent_add(layer, M_TRUE, type);
+			M_io_layer_softevent_add(layer, M_TRUE /* Sibling only */, type);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:
-			/* Change state and pass-on */
-			handle->state = M_IO_NET_STATE_DISCONNECTED;
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+			/* Relay to self, we won't change our own state until we receive it from
+			 * M_io_netdns_process_cb() as it will properly re-order events to make
+			 * sure a read event is delivered first so a user can read */
+			M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_DISCONNECTED);
 			break;
 
 		case M_EVENT_TYPE_ERROR:
 			if (handle->state == M_IO_NET_STATE_CONNECTING) {
 				M_io_netdns_handle_connect_error(layer, realio);
 			} else {
-				/* Relay */
-				handle->state = M_IO_NET_STATE_ERROR;
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+				/* Relay to self, we won't change our own state until we receive it from
+				 * M_io_netdns_process_cb() as it will properly re-order events to make
+				 * sure a read event is delivered first so a user can read */
+				M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_ERROR);
 			}
 			break;
 
