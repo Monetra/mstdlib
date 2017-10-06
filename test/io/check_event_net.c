@@ -317,7 +317,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 
 START_TEST(check_event_net)
 {
-	M_uint64 tests[] = { 1, 25, /* 100, */ 0 };
+	M_uint64 tests[] = { 1, 25, 50, /* 100, */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {
