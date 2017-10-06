@@ -253,7 +253,6 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	M_io_error_t       ioerr;
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
-
 	expected_connections      = num_connections;
 	active_client_connections = 0;
 	active_server_connections = 0;
@@ -262,7 +261,14 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("starting %llu connection test", num_connections);
-	if ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) != M_IO_ERROR_SUCCESS) {
+
+	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
+		port             = newport;
+	}
+
+	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server: %s", M_io_error_string(ioerr));
 		return M_EVENT_ERR_RETURN;
 	}

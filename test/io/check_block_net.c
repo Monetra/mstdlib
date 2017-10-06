@@ -159,6 +159,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	M_dns_t         *dns       = M_dns_create();
 	M_io_t          *netserver = NULL;
 	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_io_error_t     ioerr;
 
 	active_client_connections = 0;
 	active_server_connections = 0;
@@ -168,7 +169,14 @@ static void check_block_net_test(M_uint64 num_connections)
 	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("Test %llu connections", num_connections);
-	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+
+	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
+		port             = newport;
+	}
+
+	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return;
 	}

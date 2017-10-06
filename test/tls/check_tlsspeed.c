@@ -232,6 +232,7 @@ static M_bool check_tlsspeed_test(void)
 	M_tls_serverctx_t *serverctx;
 	M_tls_clientctx_t *clientctx;
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_io_error_t       ioerr;
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -305,7 +306,13 @@ static M_bool check_tlsspeed_test(void)
 
 	runtime_ms = 4000;
 
-	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
+		port             = newport;
+	}
+
+	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return M_FALSE;
 	}
