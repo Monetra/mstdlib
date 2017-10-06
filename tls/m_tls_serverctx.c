@@ -607,7 +607,7 @@ M_bool M_tls_serverctx_add_trust_crl(M_tls_serverctx_t *ctx, const unsigned char
 		}
 	}
 
-	M_thread_mutex_lock(ctx->lock);
+	M_thread_mutex_unlock(ctx->lock);
 
 	if (!count)
 		goto end;
