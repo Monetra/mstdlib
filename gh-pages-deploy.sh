@@ -14,16 +14,16 @@ ORIGIN_URL_WITH_CREDENTIALS=${ORIGIN_URL/\/\/github.com/\/\/$GITHUB_TOKEN@github
 
 # Clone the existing gh-pages for this repo into gh-pages-deploy/
 # Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
-echo "Checking out gh-pages branch"
-git clone $ORIGIN_URL gh-pages-deploy
+echo "Checking out ${TARGET_BRANCH} branch"
+git clone ${ORIGIN_URL} gh-pages-deploy
 cd gh-pages-deploy
-git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
+git checkout ${TARGET_BRANCH} || git checkout --orphan ${TARGET_BRANCH}
 
 echo "Removing old static content"
 git rm -rf .
 
 echo "Copying pages content to root"
-cp -r $PAGES_DIR/* .
+cp -r ../${PAGES_DIR}/* .
 
 echo "Pushing new content to $ORIGIN_URL"
 git config user.name "Travis CI" || exit 1
@@ -37,7 +37,7 @@ fi
 
 git add -A .
 git commit -m "Deploy to GitHub Pages: ${CURRENT_COMMIT}"
-git push --quiet "$ORIGIN_URL_WITH_CREDENTIALS" gh-pages > /dev/null 2>&1
+git push --quiet "${ORIGIN_URL_WITH_CREDENTIALS}" gh-pages > /dev/null 2>&1
 
 echo "Deployed successfully."
 exit 0
