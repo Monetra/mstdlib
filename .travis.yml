@@ -31,7 +31,7 @@ before_install:
 # Deploy to GitHub pages
 deploy:
   provider: script
-  script: gh-pages-deploy.sh
+  script: ./gh-pages-deploy.sh
   skip_cleanup: true
   on:
     branch: master
