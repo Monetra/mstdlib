@@ -32,7 +32,7 @@ before_install:
 deploy:
   provider: pages
   skip_cleanup: true
-  local_dir: build/docs/html
+  local_dir: _builds/docs/html
   target_branch: gh-pages
   github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard via monetra-gh-pages private user with restricted access
   on:
