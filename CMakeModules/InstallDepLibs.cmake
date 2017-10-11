@@ -362,7 +362,9 @@ function(copy_deplibs)
 endfunction()
 
 
-# install_deplibs([lib dest] [runtime dest] [... Qt import targets to install ...]
+# install_deplibs([lib dest] [runtime dest] [... Qt import targets to install ...] [COMPONENT [name]] [IMAGE_PLUGINS]
+#
+# If IMAGE_PLUGINS is passed, all plugins in the imageformats directory will be installed.
 function(install_deplibs_qt lib_dest runtime_dest)
 	# Note: if Qt 5 hasn't been found, silently skip doing anything. We don't support packaging Qt 4.
 	if (NOT TARGET Qt5::Core)
@@ -383,6 +385,15 @@ function(install_deplibs_qt lib_dest runtime_dest)
 		list(GET libs ${idx} ${idx_next} component)
 		list(REMOVE_AT libs ${idx} ${idx_next})
 	endif ()
+	
+	# See if the user passed "IMAGE_PLUGINS" to the install command.
+	# If they did, set a flag and remove it from the list of libraries.
+	set(do_image_plugins FALSE)
+	list(FIND libs "IMAGE_PLUGINS" idx)
+	if (idx GREATER -1)
+		list(REMOVE_AT libs ${idx})
+		set(do_image_plugins TRUE)
+	endiF ()
 
 	# Install the Qt libs themselves.
 	install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${libs})
@@ -399,7 +410,8 @@ function(install_deplibs_qt lib_dest runtime_dest)
 
 	# Install the platform plugin (needed for Qt::Gui).
 	if (Qt5::Gui IN_LIST libs)
-		if (WIN32)
+		# Platform plugin.
+		if (WIN32 OR CYGWIN)
 			set(plugin qwindows.dll)
 		elseif (APPLE)
 			set(plugin libqcocoa.dylib)
@@ -431,6 +443,31 @@ function(install_deplibs_qt lib_dest runtime_dest)
 		endif ()
 	endif ()
 
+	# Install the image format plugins, if requested. Doesn't install all of them, just the generally useful ones.
+	if (do_image_plugins)
+		set(formats
+			qgif
+			qjpeg
+			qsvg
+			qtiff
+			qwebp
+		)
+		
+		foreach(format IN LISTS formats)
+			if (WIN32 OR CYGWIN)
+				set(plugin "${format}.dll")
+			elseif (APPLE)
+				set(plugin "lib${format}.dylib")
+			else ()
+				set(plugin "lib${format}.so")
+			endif ()
+			set(plugin "${qt_plugin_dir}/imageformats/${plugin}")
+			if (EXISTS "${plugin}")
+				install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/imageformats" ${component})
+			endif ()
+		endforeach()
+	endif ()
+
 	# Install extra internationaliztion libs needed by Qt5::Core for X11 (linux, etc).
 	if (Qt5::Core IN_LIST libs AND NOT WIN32 AND NOT APPLE)
 		# Glob for icu libs (for example, libicui18n.so.56 and libicui18n.so.56.1)
@@ -447,6 +484,57 @@ function(install_deplibs_qt lib_dest runtime_dest)
 		list(REMOVE_DUPLICATES icu_libs)
 		# Install the dependencies.
 		install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${icu_libs})
+	endif ()
+  
+    # Install extra libs needed by Qt5::Core and Qt5::GUI, when using the mingw cross-compile Qt packages on Cygwin.
+	if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
+		set(extras)
+		if (Qt5::Core IN_LIST libs)
+			file(GLOB glob_libs "${qt_lib_dir}/libpcre*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+		endif ()
+		
+		if (Qt5::Gui IN_LIST libs)
+			file(GLOB glob_libs "${qt_lib_dir}/libharfbuzz*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/libfreetype*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/libpng*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/libglib-*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/libbz2*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/libintl-*.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+			
+			file(GLOB glob_libs "${qt_lib_dir}/iconv.dll")
+			if (glob_libs)
+				list(APPEND extras "${glob_libs}")
+			endif ()
+		endif ()
+		
+		# Install the dependencies.
+		install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${extras})
 	endif ()
 endfunction()
 
