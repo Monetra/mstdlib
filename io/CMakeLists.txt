@@ -6,15 +6,6 @@ project(mstdlib_io
 )
 set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
-# Suppress annoying deprecation warnings on newer windows.
-if (WIN32)
-	add_definitions(
-		-D_WINSOCK_DEPRECATED_NO_WARNINGS
-		-D_CRT_SECURE_NO_DEPRECATE
-		-D_CRT_NONSTDC_NO_DEPRECATE
-	)
-endif ()
-
 # Find and use C-Ares.
 if (IS_DIRECTORY "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/c-ares" AND NOT TARGET c-ares::cares)
 	# Turn off warnings when compiling c-ares (see EnableWarnings.cmake).

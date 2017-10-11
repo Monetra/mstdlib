@@ -203,7 +203,7 @@ static M_bool M_settings_write_registry_key(HKEY hkey, const char *location, con
 		return M_FALSE;
 	}
 
-	ret = RegSetValueEx(shkey, (LPTSTR)skey, 0, REG_SZ, (LPCBYTE)val, dlen);
+	ret = RegSetValueEx(shkey, (LPTSTR)skey, 0, REG_SZ, (const BYTE *)val, dlen);
 	if (ret != ERROR_SUCCESS) {
 		M_free(skey);
 		return M_FALSE;

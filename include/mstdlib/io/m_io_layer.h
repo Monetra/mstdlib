@@ -42,7 +42,6 @@ __BEGIN_DECLS
 
 #ifdef _WIN32
 /* Needed for types like SOCKET */
-#  define WIN32_LEAN_AND_MEAN
 #  include <winsock2.h>
 #  include <ws2tcpip.h>
 #  include <mstcpip.h>

@@ -20,6 +20,9 @@ include(InstallDepLibs)
 include(InstallExports) # Provides install_exports() function.
 
 include(AddressSanitizer) # Provides M_ASAN option, if supported by compiler
+include(Harden)
+include(EnableWarnings)
+
 
 # Version info.
 set(MSTDLIB_VERSION_MAJOR    ${PROJECT_VERSION_MAJOR})
@@ -73,12 +76,26 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${MSTDLIB_ARCHIVE_OUTPUT_DIRECTORY}")
 
 # Add target containing include directories for "internal" headers that are used across
 # the different modules in mstdlib. (config.h, m_config.h, config.w32.h, base/m_defs_int.h)
+#
+# Also include any mstdlib-wide compiler defines we'd like to set.
 add_library(mstdlib_config INTERFACE)
-target_include_directories(mstdlib_config
-	INTERFACE "${CMAKE_CURRENT_BINARY_DIR}"
-	          "${CMAKE_CURRENT_SOURCE_DIR}"
-	          "${CMAKE_CURRENT_SOURCE_DIR}/base"
+target_include_directories(mstdlib_config INTERFACE
+	"${CMAKE_CURRENT_BINARY_DIR}"
+	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_SOURCE_DIR}/base"
 )
+if (WIN32)
+	target_compile_definitions(mstdlib_config INTERFACE
+		# Suppress annoying deprecation warnings on newer windows.
+		_WINSOCK_DEPRECATED_NO_WARNINGS
+		_CRT_SECURE_NO_DEPRECATE
+		_CRT_NONSTDC_NO_DEPRECATE
+		# Leave out little-used parts of windows.h (can still get them by including the specific headers you need).
+		WIN32_LEAN_AND_MEAN
+		# Explicitly request Windows Vista or newer feature level.
+		_WIN32_WINNT=0x0600
+	)
+endif ()
 # Add alias for this target, for consumption by the different modules.
 add_library(Mstdlib::config ALIAS mstdlib_config)
 
@@ -116,10 +133,6 @@ endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Android")
 	set(ANDROID TRUE)
 endif ()
-
-
-include(Harden)
-include(EnableWarnings)
 
 # Check Types
 # CHECK_TYPE_SIZE can't be used to see if a type exists because on Apple when

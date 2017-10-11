@@ -86,7 +86,6 @@
  *     sleep waiting on Events would block all other Fibers.
  */
 #include "m_config.h"
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <Ws2tcpip.h>
