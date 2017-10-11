@@ -92,6 +92,7 @@ if (WIN32)
 		_CRT_NONSTDC_NO_DEPRECATE
 		# Leave out little-used parts of windows.h (can still get them by including the specific headers you need).
 		WIN32_LEAN_AND_MEAN
+		NOMINMAX
 		# Explicitly request Windows Vista or newer feature level.
 		_WIN32_WINNT=0x0600
 	)
@@ -479,10 +480,68 @@ if (MSTDLIB_INSTALL_EXPORTS)
 endif ()
 
 # If we're not being chain-built, and install is enabled, add code to allow package creation.
-if ((CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR) AND MSTDLIB_INSTALL_LIBS)
+if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
 	set(CPACK_GENERATOR ZIP)
-	set(CPACK_PACKAGE_VERSION_MAJOR ${MSTDLIB_VERSION_MAJOR})
-	set(CPACK_PACKAGE_VERSION_MINOR ${MSTDLIB_VERSION_MINOR})
-	set(CPACK_PACKAGE_VERSION_PATCH ${MSTDLIB_VERSION_PATCH})
+	
+	if (WIN32)
+		# Check to see if Wix is available. If it is, enable wix packaging by default.
+		if (NOT CYGWIN AND (EXISTS "$ENV{WIX}" OR EXISTS "${CPACK_WIX_ROOT}"))
+			set(wix_default TRUE)
+		else ()
+			set(wix_default FALSE)
+		endif ()
+
+		option(M_PACKAGE_WIX "Use Wix Toolset to generate MSI installer" ${wix_default})
+		if (M_PACKAGE_WIX)
+			list(APPEND CPACK_GENERATOR WIX)
+
+			# Uniterm builds that share the same GUID are allowed to replace one another on an install (i.e., upgrade in place).
+			set(CPACK_WIX_UPGRADE_GUID 174F7115-8000-40D7-A78F-07DF0D2022B3)
+
+			# These variables determine what info shows up for mstdlib in add/remove programs.
+			set(CPACK_WIX_PROPERTY_ARPHELPLINK     https://github.com/Monetra/mstdlib)
+			set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT https://monetra.github.io/mstdlib)
+			
+			# Add installed Mstdlib to the package registry.
+			set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY Mstdlib)
+		endif ()
+	elseif (APPLE)
+		# TODO: implement app bundling, the stuff commented out below isn't done yet
+	else () # Linux, FreeBSD, etc.
+		# Check to see if rpm is available.
+		find_program(RPMBUILD_EXECUTABLE rpmbuild)
+		mark_as_advanced(FORCE RPMBUILD_EXECUTABLE)
+		if (RPMBUILD_EXECUTABLE)
+			option(M_PACKAGE_RPM "Add RPM to packaging output" TRUE)
+		else ()
+			set(M_PACKAGE_RPM FALSE)
+		endif ()
+		if (M_PACKAGE_RPM)
+			list(APPEND CPACK_GENERATOR RPM)
+			set(CPACK_RPM_PACKAGE_URL         https://github.com/monetra/mstdlib)
+			set(CPACK_RPM_PACKAGE_RELOCATABLE TRUE)
+			# Note: Set CPACK_RPM_main_POST_INSTALL_SCRIPT_FILE to a script file to run post-install (if needed)
+		endif ()
+	endif ()
+	
+	if (CPACK_GENERATOR)
+		message(STATUS "Packagers enabled: ${CPACK_GENERATOR}")
+	endif ()
+	set(CPACK_VERBATIM_VARIABLES TRUE)
+
+	set(CPACK_PACKAGE_VENDOR                "Main Street Softworks")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY   "M Standard Library (mstdlib)")
+	set(CPACK_RESOURCE_FILE_README  "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+	if (WIN32)
+		set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
+		file(COPY "LICENSE" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+		file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/LICENSE" "${CPACK_RESOURCE_FILE_LICENSE}")
+	else ()
+		set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+	endif ()
+	
+	set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+	set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+	set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 	include(CPack)
 endif ()
