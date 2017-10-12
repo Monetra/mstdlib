@@ -6,13 +6,9 @@ project(mstdlib_tls
 )
 set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
-find_package(OpenSSL REQUIRED)
+include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
-# Copy OpenSSL libs to bin directory, so we can run test executables in place.
-if (MSTDLIB_BUILD_TESTS)
-	include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
-	copy_deplibs(OpenSSL::SSL OpenSSL::Crypto)
-endif ()
+find_package(OpenSSL REQUIRED)
 
 set(sources
 	m_tls.c
@@ -93,6 +89,21 @@ endif ()
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${lib_dest})
+	
+	# If we're not being chain-built, install OpenSSL as dep libs.
+	if ((CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR))
+		install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
+			OpenSSL::SSL
+			OpenSSL::Crypto
+		)
+		# If we're cross-compiling for windows from cygwin, zlib is also a dependency.
+		if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
+			find_package(ZLIB REQUIRED)
+			install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
+				ZLIB::ZLIB
+			)
+		endif ()
+	endif ()
 endif ()
 
 
