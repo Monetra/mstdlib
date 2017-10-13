@@ -576,7 +576,6 @@ static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *b
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_io_error_t   err;
-	M_uint64       to_ms;
 	size_t         request_len;
 
 	/* If latency isn't throttling us, then we see if we are throttle via Bps */

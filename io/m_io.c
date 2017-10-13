@@ -106,6 +106,16 @@ M_io_layer_t *M_io_layer_add(M_io_t *comm, const char *layer_name, M_io_handle_t
 	layer->handle        = handle;
 
 	M_mem_copy(&layer->cb, callbacks, sizeof(layer->cb));
+
+	if (comm->reg_event != NULL && layer->cb.cb_init != NULL) {
+		if (!layer->cb.cb_init(layer)) {
+			M_io_unlock(comm);
+			M_free(layer->name);
+			M_free(layer);
+			return NULL;
+		}
+	}
+
 	M_list_insert(comm->layer, layer);
 
 	M_io_unlock(comm);
