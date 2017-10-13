@@ -327,9 +327,37 @@ static void M_io_bwshaping_add_transfer(M_io_handle_t *handle, M_uint64 bytes, M
 }
 
 
-static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bwshaping_direction_t direction)
+static M_uint64 M_io_bwshaping_latency_next_ms(M_io_handle_t *handle, M_io_bwshaping_direction_t direction)
 {
 	M_uint64 elapsed;
+
+	if (direction == M_IO_BWSHAPING_DIRECTION_IN) {
+		elapsed = M_time_elapsed(&handle->in_lasttv);
+		if (handle->settings.in_latency_ms < elapsed) {
+			return 0;
+		} else if (handle->in_fullread) {
+			/* Last read returned exactly as many bytes as requested, which means there is most likely
+			 * more data to be read, so do not apply the latency to such an occurrence */
+			return 0;
+		}
+		return handle->settings.in_latency_ms - elapsed;
+	}
+
+	/* M_IO_BWSHAPING_DIRECTION_OUT */
+	elapsed = M_time_elapsed(&handle->out_lasttv);
+	if (handle->settings.out_latency_ms < elapsed) {
+		return 0;
+	}
+	return handle->settings.out_latency_ms - elapsed;
+}
+
+/* 
+ *  - Returns M_TIMEOUT_INF if no timeout is being enforced at this moment.
+ *  - Returns 0 if timeout has elapsed
+ *  - Returns number of milliseconds remaining in timeout otherwise 
+ */
+static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bwshaping_direction_t direction)
+{
 	M_uint64 bw_nextms;
 	M_uint64 l_nextms;
 
@@ -337,22 +365,12 @@ static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bws
 		/* Not configured, so don't use timeouts */
 		if (handle->settings.in_Bps == 0 && handle->settings.in_latency_ms == 0)
 			return M_TIMEOUT_INF;
+
 		/* Don't use a timer if we're not throttling */
 		if (!handle->in_waiting)
 			return M_TIMEOUT_INF;
 
-		elapsed   = M_time_elapsed(&handle->in_lasttv);
 		bw_nextms = M_io_bwshaping_bwtrack_next_ms(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s, handle->settings.in_sample_frequency_ms, handle->settings.in_mode);
-
-		if (handle->settings.in_latency_ms < elapsed) {
-			l_nextms = 0;
-		} else if (handle->in_fullread) {
-			/* Last read returned exactly as many bytes as requested, which means there is most likely
-			 * more data to be read, so do not apply the latency to such an occurrence */
-			l_nextms = 0;
-		} else {
-			l_nextms = handle->settings.in_latency_ms - elapsed;
-		}
 	} else {
 		/* Not configured, so don't use timeouts */
 		if (handle->settings.out_Bps == 0 && handle->settings.out_latency_ms == 0)
@@ -362,14 +380,10 @@ static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bws
 		if (!handle->out_waiting)
 			return M_TIMEOUT_INF;
 
-		elapsed   = M_time_elapsed(&handle->out_lasttv);
 		bw_nextms = M_io_bwshaping_bwtrack_next_ms(handle->out_bw, handle->settings.out_Bps, handle->settings.out_period_s, handle->settings.out_sample_frequency_ms, handle->settings.out_mode);
-		if (handle->settings.out_latency_ms < elapsed) {
-			l_nextms = 0;
-		} else {
-			l_nextms = handle->settings.out_latency_ms - elapsed;
-		}
 	}
+
+	l_nextms  = M_io_bwshaping_latency_next_ms(handle, direction);
 
 	return M_MAX(bw_nextms, l_nextms);
 }
@@ -414,35 +428,47 @@ static void M_io_bwshaping_set_timeout(M_io_handle_t *handle)
 	in_ms  = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
 	out_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
 	to_ms  = M_MIN(in_ms, out_ms);
-	if (to_ms == M_TIMEOUT_INF)
-		return;
 
 	/* Don't use reset as a to_ms of 0 might be used */
 	M_event_timer_stop(handle->timer);
+	if (to_ms == M_TIMEOUT_INF)
+		return;
 	M_event_timer_start(handle->timer, to_ms);
 }
 
 
 static void M_io_bwshaping_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *io_bogus, void *arg)
 {
-	M_io_layer_t  *layer  = arg;
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_layer_t  *layer    = arg;
+	M_io_handle_t *handle   = M_io_layer_get_handle(layer);
 	M_uint64       to_ms;
-
+	size_t         num_wait = 0;
 	(void)event;
 	(void)type;
 	(void)io_bogus;
 
+
+	if (handle->in_waiting)
+		num_wait++;
+	if (handle->out_waiting)
+		num_wait++;
+
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
 	if (to_ms == 0) {
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		num_wait--;
 	}
 
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
 	if (to_ms == 0) {
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+		num_wait--;
 	}
 
+	/* If still waiting, re-queue timer */
+	if (num_wait > 0) {
+		M_io_bwshaping_set_timeout(handle);
+	}
 }
 
 
@@ -493,23 +519,29 @@ static M_io_error_t M_io_bwshaping_accept_cb(M_io_t *io, M_io_layer_t *orig_laye
 static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
 {
 	size_t         max_write = 0;
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_io_handle_t *handle    = M_io_layer_get_handle(layer);
+	M_io_t        *io        = M_io_layer_get_io(layer);
 	M_io_error_t   err;
-	M_uint64       to_ms;
 	size_t         request_len;
 
-	/* If we still have a timer going before we can write, that means this operation would block */
-	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
-	if (to_ms == 0 || to_ms == M_TIMEOUT_INF) {
-		max_write = (size_t)M_io_bwshaping_bwtrack_max_size(handle->out_bw, handle->settings.out_Bps, handle->settings.out_period_s,
-			handle->settings.out_sample_frequency_ms, handle->settings.out_mode);
+	/* If latency isn't throttling us, then we see if we are throttle via Bps */
+	if (M_io_bwshaping_latency_next_ms(handle, M_IO_BWSHAPING_DIRECTION_OUT) == 0) {
+		M_uint64 mymax = M_io_bwshaping_bwtrack_max_size(handle->out_bw, handle->settings.out_Bps, handle->settings.out_period_s,
+		                                                 handle->settings.out_sample_frequency_ms, handle->settings.out_mode);
+		if (mymax > SIZE_MAX) {
+			max_write = SIZE_MAX;
+		} else {
+			max_write = (size_t)mymax;
+		}
+	} else {
+		/* Haven't hit latency timeout, don't allow write */
+		max_write = 0;
 	}
 
-	/* Initially disable timers */
-	handle->out_waiting = (handle->settings.out_latency_ms == 0)?M_FALSE:M_TRUE;
+	if (max_write > 0) {
+		/* Initially disable timers */
+		handle->out_waiting = M_FALSE;
 
-	if ((to_ms == 0 || to_ms == M_TIMEOUT_INF) && max_write > 0) {
 		if (*write_len > max_write) {
 			/* We're imposing a throttle, we need to set a flag stating we need to enable timers */
 			handle->out_waiting = M_TRUE;
@@ -525,7 +557,7 @@ static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned 
 
 		/* We can't be throttling if the OS told us we did a partial write or couldn't write at all */
 		if (err == M_IO_ERROR_WOULDBLOCK || (err == M_IO_ERROR_SUCCESS && *write_len < request_len)) {
-			handle->out_waiting = (handle->settings.out_latency_ms == 0)?M_FALSE:M_TRUE;
+			handle->out_waiting = (handle->settings.out_latency_ms)?M_TRUE:M_FALSE;
 		}
 	} else {
 		handle->out_waiting = M_TRUE;
@@ -547,19 +579,25 @@ static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *b
 	M_uint64       to_ms;
 	size_t         request_len;
 
-	/* If we still have a timer going before we can read, that means this operation would block */
-	to_ms               = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
-	handle->in_fullread = M_FALSE;
-	if (to_ms == 0 || to_ms == M_TIMEOUT_INF) {
-		max_read = (size_t)M_io_bwshaping_bwtrack_max_size(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s,
-			handle->settings.in_sample_frequency_ms, handle->settings.in_mode);
+	/* If latency isn't throttling us, then we see if we are throttle via Bps */
+	if (M_io_bwshaping_latency_next_ms(handle, M_IO_BWSHAPING_DIRECTION_IN) == 0) {
+		M_uint64 mymax = M_io_bwshaping_bwtrack_max_size(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s,
+		                                                 handle->settings.in_sample_frequency_ms, handle->settings.in_mode);
+		if (mymax > SIZE_MAX) {
+			max_read = SIZE_MAX;
+		} else {
+			max_read = (size_t)mymax;
+		}
+	} else {
+		/* Haven't hit latency timeout, don't allow read */
+		max_read = 0;
 	}
 
-	/* Set desired waiting state */
-	handle->in_waiting = (handle->settings.in_latency_ms == 0)?M_FALSE:M_TRUE;
-
-	if ((to_ms == 0 || to_ms == M_TIMEOUT_INF) && max_read > 0) {
+	if (max_read > 0) {
+		/* Set initial waiting state to false */
+		handle->in_waiting  = M_FALSE;
 		handle->in_fullread = M_TRUE;
+
 		if (*read_len > max_read) {
 			/* We're imposing a throttle, we need to set a flag stating we need to enable timers */
 			handle->in_waiting  = M_TRUE;
@@ -579,7 +617,7 @@ static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *b
 		/* We can't be throttling if the OS told us we did a partial read or couldn't read at all */
 		if (err == M_IO_ERROR_WOULDBLOCK || (err == M_IO_ERROR_SUCCESS && *read_len < request_len)) {
 			handle->in_fullread = M_FALSE;
-			handle->in_waiting  = (handle->settings.in_latency_ms == 0)?M_FALSE:M_TRUE;
+			handle->in_waiting  = (handle->settings.in_latency_ms)?M_TRUE:M_FALSE;
 		}
 	} else {
 		handle->in_waiting = M_TRUE;
@@ -595,44 +633,47 @@ static M_bool M_io_bwshaping_process_cb(M_io_layer_t *layer, M_event_type_t *typ
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint64       to_ms;
-	M_bool         orig_waiting;
 	M_bool         retval = M_FALSE;
 
 	switch (*type) {
 		case M_EVENT_TYPE_READ:
-			orig_waiting = handle->in_waiting;
-
 			/* See if we can read, if not, consume event and reset timer */
 			to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
-			if (to_ms != 0 && to_ms != M_TIMEOUT_INF) {
-				handle->in_waiting = M_TRUE;
-				retval             = M_TRUE;
+			if (to_ms == 0) {
+				/* Timer expired, was waiting on timer for reading, deliver event and clear timer.  Timer might fire of course. */
+				retval             = M_FALSE; /* Don't consume event */
+				handle->in_waiting = M_FALSE; /* Unset that we are waiting */
+				M_io_bwshaping_set_timeout(handle);
+			} else if (to_ms == M_TIMEOUT_INF) {
+				/* Not waiting on a timer for reading, we may or may not actually be able to read,
+				 * but the read callback handles this decision and would return WOULDBLOCK if it
+				 * violates bandwidth or latency requirements .... pass through */
+				retval             = M_FALSE; /* Don't consume event */
 			} else {
-				handle->in_waiting = M_FALSE;
+				/* Timer has not elapsed, need to continue waiting, block event */
+				retval             = M_TRUE;  /* consume event, don't deliver */
 			}
 
-			/* If timer state changed, update timeout, otherwise assume timer is correct */
-			if (handle->in_waiting != orig_waiting) {
-				M_io_bwshaping_set_timeout(handle);
-			}
 			return retval;
 
 		case M_EVENT_TYPE_WRITE:
-			orig_waiting = handle->out_waiting;
-
 			/* See if we can read, if not, consume event and reset timer */
 			to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
-			if (to_ms != 0 && to_ms != M_TIMEOUT_INF) {
-				handle->out_waiting = M_TRUE;
-				retval              = M_TRUE;
+			if (to_ms == 0) {
+				/* Timer expired, was waiting on timer for writing, deliver event and clear timer.  Timer might fire of course. */
+				retval              = M_FALSE; /* Don't consume event */
+				handle->out_waiting = M_FALSE; /* Unset that we are waiting */
+				M_io_bwshaping_set_timeout(handle);
+			} else if (to_ms == M_TIMEOUT_INF) {
+				/* Not waiting on a timer for writing, we may or may not actually be able to write,
+				 * but the write callback handles this decision and would return WOULDBLOCK if it
+				 * violates bandwidth or latency requirements .... pass through */
+				retval              = M_FALSE; /* Don't consume event */
 			} else {
-				handle->out_waiting = M_FALSE;
+				/* Timer has not elapsed, need to continue waiting, block event */
+				retval              = M_TRUE;  /* consume event, don't deliver */
 			}
 
-			/* If timer state changed, update timeout, otherwise assume timer is correct */
-			if (handle->out_waiting != orig_waiting) {
-				M_io_bwshaping_set_timeout(handle);
-			}
 			return retval;
 
 		case M_EVENT_TYPE_ERROR:
@@ -816,10 +857,10 @@ M_bool M_io_bwshaping_set_latency(M_io_t *io, size_t id, M_io_bwshaping_directio
 
 	if (direction == M_IO_BWSHAPING_DIRECTION_IN) {
 		handle->settings.in_latency_ms           = latency_ms;
-		M_mem_set(&handle->in_lasttv, 0, sizeof(handle->in_lasttv));
+		M_time_elapsed_start(&handle->in_lasttv);
 	} else {
 		handle->settings.out_latency_ms          = latency_ms;
-		M_mem_set(&handle->out_lasttv, 0, sizeof(handle->out_lasttv));
+		M_time_elapsed_start(&handle->out_lasttv);
 	}
 
 	M_io_layer_release(layer);
