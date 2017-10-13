@@ -33,51 +33,70 @@ set(_internal_enable_warnings_already_run TRUE)
 
 include(CheckCCompilerFlag)
 
+if (MSVC)
+	# Visual Studio uses a completely different nomenclature for warnings than gcc/mingw/clang, so none of the
+	# "-W[name]" warnings will work.
 
-# Default compiler flags we want enabled if supported.
-set(_flags
-	-W -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch
-	-Wdouble-promotion -Wformat -Wnonnull -Winit-self -Wimplicit-int
-	-Wimplicit-function-declaration -Wimplicit -Wignored-qualifiers -Wmain
-	-Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point
-	-Wreturn-type -Wswitch -Wtrigraphs -Wunused-but-set-parameter
-	-Wunused-but-set-variable -Wunused-function -Wunused-label
-	-Wunused-local-typedefs -Wunused-parameter -Wunused-variable -Wunused-value
-	-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas
-	-Wmissing-format-attribute -Warray-bounds
-	-Wtrampolines -Wfloat-equal
-	-Wdeclaration-after-statement -Wundef -Wshadow
-	-Wpointer-arith -Wtype-limits -Wbad-function-cast -Wcast-qual
-	-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
-	-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
-	-Waddress -Wlogical-op
-	-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition
-	-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations
-	-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
-	-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs
-	-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat
-	-Wformat-security -Woverlength-strings -Wstrict-aliasing
-	-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
-	-Wconversion -Wsign-conversion
-)
-
-if (WIN32)
 	# W4 would be better but it produces unnecessary warnings like:
 	# *  warning C4706: assignment within conditional expression
 	#     Triggered when doing "while(1)"
 	# * warning C4115: 'timeval' : named type definition in parentheses
 	# * warning C4201: nonstandard extension used : nameless struct/union
 	#     Triggered by system includes (commctrl.h, shtypes.h, Shlobj.h)
-	list(APPEND _flags "-W3")
+	set(_flags
+		/W3
+		/we4013 # Treat "function undefined, assuming extern returning int" warning as an error. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4013
+	)
+
+	# Disable some warnings to reduce noise level on visual studio.
+	if (NOT WIN32_STRICT_WARNINGS)
+		list(APPEND _flags	
+			/wd4018 # Disable signed/unsigned mismatch warnings. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4018
+			/wd4068 # Disable unknown pragma warning. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4068
+			/wd4244 # Disable integer type conversion warnings. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-3-and-4-c4244
+			/wd4267 # Disable warnings about converting size_t to a smaller type. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4267
+		)
+	endif ()
 else ()
-	# Don't put this in the default list because it causes unnecessary warnings on windows.
-	list(APPEND _flags "-Wall")
+	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio):
+	set(_flags
+		-W -Wall -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch
+		-Wdouble-promotion -Wformat -Wnonnull -Winit-self
+		-Wignored-qualifiers -Wmain
+		-Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point
+		-Wreturn-type -Wswitch -Wtrigraphs -Wunused-but-set-parameter
+		-Wunused-but-set-variable -Wunused-function -Wunused-label
+		-Wunused-local-typedefs -Wunused-parameter -Wunused-variable -Wunused-value
+		-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas
+		-Wmissing-format-attribute -Warray-bounds
+		-Wtrampolines -Wfloat-equal
+		-Wdeclaration-after-statement -Wundef -Wshadow
+		-Wpointer-arith -Wtype-limits -Wbad-function-cast -Wcast-qual
+		-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
+		-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
+		-Waddress -Wlogical-op
+		-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition
+		-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations
+		-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
+		-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs
+		-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat
+		-Wformat-security -Woverlength-strings -Wstrict-aliasing
+		-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
+		-Wconversion -Wsign-conversion
+		
+		# Treat implicit variable typing and implicit function declarations as errors.
+		-Werror=implicit-int
+		-Werror=implicit-function-declaration
+	)
 endif ()
 
 # Check and set compiler flags.
 foreach(_flag ${_flags})
-	CHECK_C_COMPILER_FLAG(${_flag} HAVE_${_flag})
-	if (HAVE_${_flag})
+	# For cache var name, this will replace invalid symbols in the flag (like '=' or '/') with underscores.
+	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
+	
+	check_c_compiler_flag(${_flag} ${varname})
+	if (${varname})
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_flag}")
 	endif ()
 endforeach ()
