@@ -91,7 +91,7 @@ if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${lib_dest})
 	
 	# If we're not being chain-built, install OpenSSL as dep libs.
-	if ((CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR))
+	if (CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR)
 		install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
 			OpenSSL::SSL
 			OpenSSL::Crypto

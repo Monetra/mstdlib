@@ -125,7 +125,7 @@ file(DOWNLOAD https://sqlite.org/2017/${sqlite_name}.zip
 	"${srcdir}/thirdparty/${sqlite_name}.zip"
 	INACTIVITY_TIMEOUT 3
 	TIMEOUT 20
-	EXPECTED_HASH SHA256=38fb09f523857f4265248e3aaf4744263757288094033ccf2184594ec656e255
+	EXPECTED_HASH SHA1=e9dc46fc55a512b5d2ef97fd548b7ab4beb2d3e3
 	STATUS res
 )
 if (NOT res MATCHES "^0;")
