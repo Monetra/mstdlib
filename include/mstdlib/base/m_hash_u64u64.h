@@ -115,7 +115,7 @@ M_API void M_hash_u64u64_destroy(M_hash_u64u64_t *h) M_FREE(1);
  *
  * \return M_TRUE on success, or M_FALSE on failure.
  */
-M_API M_bool M_hash_u64u64_insert(M_hash_u64u64_t *h, M_uint64 key, const char *value);
+M_API M_bool M_hash_u64u64_insert(M_hash_u64u64_t *h, M_uint64 key, M_uint64 value);
 
 
 /*! Remove an entry from the hashtable.
@@ -136,7 +136,7 @@ M_API M_bool M_hash_u64u64_remove(M_hash_u64u64_t *h, M_uint64 key);
  *
  * \return M_TRUE if value retrieved, M_FALSE if key does not exist.
  */
-M_API M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, const char **value);
+M_API M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, M_uint64 *value);
 
 
 /*! Retrieve the value for a key from the hashtable, and return it directly as the return value.
@@ -148,7 +148,7 @@ M_API M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, const cha
  *
  * \return NULL if key doesn't exist or NULL value on file, otherwise the value.
  */
-M_API const char *M_hash_u64u64_get_direct(const M_hash_u64u64_t *h, M_uint64 key);
+M_API M_uint64 M_hash_u64u64_get_direct(const M_hash_u64u64_t *h, M_uint64 key);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -173,7 +173,7 @@ M_API M_bool M_hash_u64u64_multi_len(const M_hash_u64u64_t *h, M_uint64 key, siz
  *
  * \return M_TRUE if value retrieved, M_FALSE if key does not exist
  */
-M_API M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t idx, const char **value);
+M_API M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t idx, M_uint64 *value);
 
 
 /*! Retrieve the value for a key from the given index when supporting muli-values.
@@ -184,7 +184,7 @@ M_API M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, siz
  *
  * \return M_TRUE if value retrieved, M_FALSE if key does not exist.
  */
-M_API const char *M_hash_u64u64_multi_get_direct(const M_hash_u64u64_t *h, M_uint64 key, size_t idx);
+M_API M_uint64 M_hash_u64u64_multi_get_direct(const M_hash_u64u64_t *h, M_uint64 key, size_t idx);
 
 
 /*! Remove a value from the hashtable when supporting muli-values.
@@ -263,7 +263,7 @@ M_API size_t M_hash_u64u64_enumerate(const M_hash_u64u64_t *h, M_hash_u64u64_enu
  *
  * \return M_TRUE if enumeration succeeded, M_FALSE if no more keys.
  */
-M_API M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum_t *hashenum, M_uint64 *key, const char **value);
+M_API M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum_t *hashenum, M_uint64 *key, M_uint64 *value);
 
 
 /*! Destroy an enumeration state.

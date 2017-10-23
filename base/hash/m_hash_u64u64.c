@@ -81,12 +81,12 @@ void M_hash_u64u64_destroy(M_hash_u64u64_t *h)
 }
 
 
-M_bool M_hash_u64u64_insert(M_hash_u64u64_t *h, M_uint64 key, const char *value)
+M_bool M_hash_u64u64_insert(M_hash_u64u64_t *h, M_uint64 key, M_uint64 value)
 {
 	/* We are hacking it a bit here.  We are using the fact that
 	 * sizeof(size_t) == sizeof(void *) so we are storing the value as
 	 * a pointer address to avoid allocating memory */
-	return M_hashtable_insert((M_hashtable_t *)h, &key, value);
+	return M_hashtable_insert((M_hashtable_t *)h, &key, &value);
 }
 
 
@@ -96,7 +96,7 @@ M_bool M_hash_u64u64_remove(M_hash_u64u64_t *h, M_uint64 key)
 }
 
 
-M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, const char **value)
+M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, M_uint64 *value)
 {
 	void  *outval = NULL;
 	M_bool retval;
@@ -104,14 +104,14 @@ M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, const char **va
 	retval = M_hashtable_get((const M_hashtable_t *)h, &key, &outval);
 
 	if (value != NULL)
-		*value = (const char *)outval;
+		*value = *(M_uint64 *)outval;
 
 	return retval;
 }
 
-const char *M_hash_u64u64_get_direct(const M_hash_u64u64_t *h, M_uint64 key)
+M_uint64 M_hash_u64u64_get_direct(const M_hash_u64u64_t *h, M_uint64 key)
 {
-	const char *val = NULL;
+	M_uint64 val = 0;
 	M_hash_u64u64_get(h, key, &val);
 	return val;
 }
@@ -124,7 +124,7 @@ M_bool M_hash_u64u64_multi_len(const M_hash_u64u64_t *h, M_uint64 key, size_t *l
 }
 
 
-M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t idx, const char **value)
+M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t idx, M_uint64 *value)
 {
 	void   *outval = NULL;
 	M_bool  retval;
@@ -132,15 +132,15 @@ M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t id
 	retval = M_hashtable_multi_get((const M_hashtable_t *)h, &key, idx, &outval);
 
 	if (value != NULL)
-		*value = outval;
+		*value = *(M_uint64 *)outval;
 
 	return retval;
 }
 
 
-const char *M_hash_u64u64_multi_get_direct(const M_hash_u64u64_t *h, M_uint64 key, size_t idx)
+M_uint64 M_hash_u64u64_multi_get_direct(const M_hash_u64u64_t *h, M_uint64 key, size_t idx)
 {
-	const char *val = NULL;
+	M_uint64 val = 0;
 	M_hash_u64u64_multi_get(h, key, idx, &val);
 	return val;
 }
@@ -192,7 +192,7 @@ size_t M_hash_u64u64_enumerate(const M_hash_u64u64_t *h, M_hash_u64u64_enum_t **
 }
 
 
-M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum_t *hashenum, M_uint64 *key, const char **value)
+M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum_t *hashenum, M_uint64 *key, M_uint64 *value)
 {
 	M_hashtable_enum_t *myhashenum = (M_hashtable_enum_t *)hashenum;
 	const M_uint64     *tmp_key;
@@ -205,7 +205,7 @@ M_bool M_hash_u64u64_enumerate_next(const M_hash_u64u64_t *h, M_hash_u64u64_enum
 		*key = *tmp_key;
 
 	if (value != NULL)
-		*value = tmp_val;
+		*value = *(const M_uint64 *)tmp_val;
 
 	return M_TRUE;
 }
