@@ -103,7 +103,7 @@ M_bool M_hash_u64u64_get(const M_hash_u64u64_t *h, M_uint64 key, M_uint64 *value
 
 	retval = M_hashtable_get((const M_hashtable_t *)h, &key, &outval);
 
-	if (value != NULL)
+	if (retval && value != NULL)
 		*value = *(M_uint64 *)outval;
 
 	return retval;
@@ -131,7 +131,7 @@ M_bool M_hash_u64u64_multi_get(const M_hash_u64u64_t *h, M_uint64 key, size_t id
 
 	retval = M_hashtable_multi_get((const M_hashtable_t *)h, &key, idx, &outval);
 
-	if (value != NULL)
+	if (retval && value != NULL)
 		*value = *(M_uint64 *)outval;
 
 	return retval;
