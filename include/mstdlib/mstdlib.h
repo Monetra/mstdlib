@@ -37,6 +37,7 @@
 #include <mstdlib/base/m_hash_strvp.h>
 #include <mstdlib/base/m_hash_u64bin.h>
 #include <mstdlib/base/m_hash_u64str.h>
+#include <mstdlib/base/m_hash_u64u64.h>
 #include <mstdlib/base/m_hash_u64vp.h>
 #include <mstdlib/base/m_hash_func.h>
 #include <mstdlib/base/m_list.h>

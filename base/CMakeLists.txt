@@ -59,6 +59,7 @@ set(sources
 	hash/m_hashtable.c
 	hash/m_hash_u64bin.c
 	hash/m_hash_u64str.c
+	hash/m_hash_u64u64.c
 	hash/m_hash_u64vp.c
 
 	# list:
