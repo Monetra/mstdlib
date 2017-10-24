@@ -17,7 +17,8 @@ include(CheckSymbolExists)
 include(CheckTypeSize)
 include(SystemExtensions)
 include(InstallDepLibs)
-include(InstallExports) # Provides install_exports() function.
+include(InstallExports) # Provides install_exports()
+include(SetPackageName) # Provides set_package_name()
 
 include(AddressSanitizer) # Provides M_ASAN option, if supported by compiler
 include(Harden)
@@ -482,7 +483,7 @@ endif ()
 # If we're not being chain-built, and install is enabled, add code to allow package creation.
 if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
 	set(CPACK_GENERATOR ZIP)
-	
+
 	if (WIN32)
 		# Check to see if Wix is available. If it is, enable wix packaging by default.
 		if (NOT CYGWIN AND (EXISTS "$ENV{WIX}" OR EXISTS "${CPACK_WIX_ROOT}"))
@@ -501,7 +502,7 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 			# These variables determine what info shows up for mstdlib in add/remove programs.
 			set(CPACK_WIX_PROPERTY_ARPHELPLINK     https://github.com/Monetra/mstdlib)
 			set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT https://monetra.github.io/mstdlib)
-			
+
 			# Add installed Mstdlib to the package registry.
 			set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY Mstdlib)
 		endif ()
@@ -523,7 +524,7 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 			# Note: Set CPACK_RPM_main_POST_INSTALL_SCRIPT_FILE to a script file to run post-install (if needed)
 		endif ()
 	endif ()
-	
+
 	if (CPACK_GENERATOR)
 		message(STATUS "Packagers enabled: ${CPACK_GENERATOR}")
 	endif ()
@@ -539,7 +540,9 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 	else ()
 		set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 	endif ()
-	
+
+	set_package_name(${PROJECT_NAME} ${PROJECT_VERSION})
+
 	set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 	set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 	set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
