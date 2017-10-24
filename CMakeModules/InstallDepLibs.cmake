@@ -28,12 +28,20 @@
 # INSTALL_DEPLIBS_COPY_DEST - directory to copy DLL's to. If not specified, defaults to CMAKE_RUNTIME_OUTPUT_DIR.
 #
 
+# guard to prevent duplicate includes (for parsing speed).
+if (_internal_install_deplibs_already_included)
+	return()
+endif ()
+set(_internal_install_deplibs_already_included TRUE)
+
+
 # used to extract DLL names from mingw interface libs (.dll.a).
 find_program(DLLTOOL dlltool)
 # used to extract SONAME from shared libs on ELF platforms.
 find_program(READELF readelf DOC "readelf (unix/ELF only)")
 
 mark_as_advanced(FORCE DLLTOOL READELF)
+
 
 # Helper function for _install_deplibs_internal: try to find .dll using path of an import lib (VS or MinGW).
 function(get_dll_from_implib out_dll path)
@@ -54,10 +62,10 @@ function(get_dll_from_implib out_dll path)
 			ERROR_QUIET
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
-	
+
 		# Strip extension.
 		string(REGEX REPLACE "\.dll$" "" libname "${libname}")
-		
+
 		# If the DLL tool command returned successfully:
 		if (NOT res EQUAL 0)
 			set(libname)
@@ -121,8 +129,8 @@ endfunction()
 function(get_paths_from_libs lib_dest runtime_dest component out_paths_name out_libs_name)
 	set(out_libs)
 	foreach (lib IN LISTS ${out_libs_name})
-		# Skip "optimized" and "debug" keywords that might be in a <NAME>_LIBRARIES variable.
-		if (lib STREQUAL "optimized" OR lib STREQUAL "debug")
+		# Skip empty list elements, as well as "optimized" and "debug" keywords that might be in a <NAME>_LIBRARIES variable.
+		if ((NOT lib) OR (lib STREQUAL "optimized") OR (lib STREQUAL "debug"))
 			continue()
 		endif ()
 
@@ -144,10 +152,10 @@ function(get_paths_from_libs lib_dest runtime_dest component out_paths_name out_
 				continue()
 			endif ()
 
-			# If this target isn't imported, install directly if shared, then skip regardless of type.
+			# If this target isn't imported, install directly if shared or module, then skip regardless of type.
 			get_target_property(is_imported ${lib} IMPORTED)
 			if (NOT is_imported)
-				if (type STREQUAL "SHARED_LIBRARY")
+				if (type STREQUAL "SHARED_LIBRARY" OR type STREQUAL "MODULE_LIBRARY")
 					install(TARGETS ${lib}
 						LIBRARY DESTINATION "${lib_dest}"
 						RUNTIME DESTINATION "${runtime_dest}"
@@ -251,6 +259,11 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 	# Process each library path, install to appropriate location.
 	set(sonames)
 	foreach (path IN LISTS lib_paths)
+		# If this is an empty list element, skip it.
+		if (NOT path)
+			continue()
+		endif ()
+
 		# AIX apparently links against the .so filename, not the one with versioning info.
 		set(aix_libname)
 		if (OSTYPE STREQUAL "aix")
@@ -362,192 +375,16 @@ function(copy_deplibs)
 endfunction()
 
 
-# install_deplibs([lib dest] [runtime dest] [... Qt import targets to install ...] [COMPONENT [name]] [IMAGE_PLUGINS]
-#
-# If IMAGE_PLUGINS is passed, all plugins in the imageformats directory will be installed.
-function(install_deplibs_qt lib_dest runtime_dest)
-	# Note: if Qt 5 hasn't been found, silently skip doing anything. We don't support packaging Qt 4.
-	if (NOT TARGET Qt5::Core)
-		return()
-	endif ()
-
-	set(libs ${ARGN})
-	if (NOT libs)
-		return()
-	endif ()
-
-	# See if the user passed an optional "COMPONENT [component name]" to the install command.
-	# If they did, remove those entries from the 'libs' list and add them to the 'component' list.
-	set(component)
-	list(FIND libs "COMPONENT" idx)
-	if (idx GREATER -1)
-		math(EXPR idx_next "${idx} + 1")
-		list(GET libs ${idx} ${idx_next} component)
-		list(REMOVE_AT libs ${idx} ${idx_next})
-	endif ()
-	
-	# See if the user passed "IMAGE_PLUGINS" to the install command.
-	# If they did, set a flag and remove it from the list of libraries.
-	set(do_image_plugins FALSE)
-	list(FIND libs "IMAGE_PLUGINS" idx)
-	if (idx GREATER -1)
-		list(REMOVE_AT libs ${idx})
-		set(do_image_plugins TRUE)
-	endiF ()
-
-	# Install the Qt libs themselves.
-	install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${libs})
-
-	# Get Qt lib and plugin dirs.
-	get_target_property(qt_lib_dir Qt5::Core LOCATION)
-	get_filename_component(qt_lib_dir "${qt_lib_dir}" DIRECTORY)
-	
-	set(qt_plugin_dir "${qt_lib_dir}/../plugins") # path to plugins on standard installation by Qt installer.
-	if (NOT EXISTS "${qt_plugin_dir}")
-		set(qt_plugin_dir "${qt_lib_dir}/../lib/qt5/plugins") # path to plugins for Qt installed by some OS packages (like for ygwin mingw cross-compile).
-	endif ()
-	get_filename_component(qt_plugin_dir "${qt_plugin_dir}" ABSOLUTE)
-
-	# Install the platform plugin (needed for Qt::Gui).
-	if (Qt5::Gui IN_LIST libs)
-		# Platform plugin.
-		if (WIN32 OR CYGWIN)
-			set(plugin qwindows.dll)
-		elseif (APPLE)
-			set(plugin libqcocoa.dylib)
-		else ()
-			set(plugin libqxcb.so)
-		endif ()
-		set(plugin "${qt_plugin_dir}/platforms/${plugin}")
-		if (EXISTS "${plugin}")
-			install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/platforms" ${component})
-		else ()
-			message(STATUS "Couldn't find Qt plugin ${plugin}, install package may be incomplete")
-		endif ()
-	endif ()
-
-	# Install the print support plugin (needed for Qt:PrintSupport).
-	if (Qt5::PrintSupport IN_LIST libs)
-		if (WIN32)
-			set(plugin windowsprintersupport.dll)
-		elseif (APPLE)
-			set(plugin libcocoaprintersupport.dylib)
-		else ()
-			set(plugin libcupsprintersupport.so)
-		endif ()
-		set(plugin "${qt_plugin_dir}/printsupport/${plugin}")
-		if (EXISTS "${plugin}")
-			install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/printsupport" ${component})
-		else ()
-			message(STATUS "Couldn't find Qt plugin ${plugin}, install package may be incomplete")
-		endif ()
-	endif ()
-
-	# Install the image format plugins, if requested. Doesn't install all of them, just the generally useful ones.
-	if (do_image_plugins)
-		set(formats
-			qgif
-			qjpeg
-			qsvg
-			qtiff
-			qwebp
-		)
-		
-		foreach(format IN LISTS formats)
-			if (WIN32 OR CYGWIN)
-				set(plugin "${format}.dll")
-			elseif (APPLE)
-				set(plugin "lib${format}.dylib")
-			else ()
-				set(plugin "lib${format}.so")
-			endif ()
-			set(plugin "${qt_plugin_dir}/imageformats/${plugin}")
-			if (EXISTS "${plugin}")
-				install(PROGRAMS "${plugin}" DESTINATION "${runtime_dest}/imageformats" ${component})
-			endif ()
-		endforeach()
-	endif ()
-
-	# Install extra internationaliztion libs needed by Qt5::Core for X11 (linux, etc).
-	if (Qt5::Core IN_LIST libs AND NOT WIN32 AND NOT APPLE)
-		# Glob for icu libs (for example, libicui18n.so.56 and libicui18n.so.56.1)
-		file(GLOB glob_libs "${qt_lib_dir}/libicu*")
-		set(icu_libs)
-		foreach (lib IN LISTS glob_libs)
-			# Resolve any symlinks.
-			get_filename_component(lib "${lib}" REALPATH)
-			if (lib MATCHES ".*\.so")
-				list(APPEND icu_libs "${lib}")
-			endif ()
-		endforeach ()
-		# Get rid of duplicate paths caused by symlinks that got resolved to a lib in the same directory.
-		list(REMOVE_DUPLICATES icu_libs)
-		# Install the dependencies.
-		install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${icu_libs})
-	endif ()
-  
-    # Install extra libs needed by Qt5::Core and Qt5::GUI, when using the mingw cross-compile Qt packages on Cygwin.
-	if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
-		set(extras)
-		if (Qt5::Core IN_LIST libs)
-			file(GLOB glob_libs "${qt_lib_dir}/libpcre*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-		endif ()
-		
-		if (Qt5::Gui IN_LIST libs)
-			file(GLOB glob_libs "${qt_lib_dir}/libharfbuzz*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/libfreetype*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/libpng*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/libglib-*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/libbz2*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/libintl-*.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-			
-			file(GLOB glob_libs "${qt_lib_dir}/iconv.dll")
-			if (glob_libs)
-				list(APPEND extras "${glob_libs}")
-			endif ()
-		endif ()
-		
-		# Install the dependencies.
-		install_deplibs("${lib_dest}" "${runtime_dest}" "${component}" ${extras})
-	endif ()
-endfunction()
-
 # install_deplibs([lib dest] [runtime dest])
 function(install_system_deplibs lib_dest runtime_dest)
 	# Install any required system libs, if any (usually just MSVC redistributables on windows).
 	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
 	include(InstallRequiredSystemLibraries) # sets CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
-	
+
 	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
 	if (MINGW)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		
+
 		# Extra C libraries:
 		find_library(MINGW_WINPTHREAD_LIBRARY NAMES
 			libwinpthread-1
@@ -568,16 +405,15 @@ function(install_system_deplibs lib_dest runtime_dest)
 		# Extra C++ libraries (only include if we're using C++ someplace in the project):
 		get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 		if (CXX IN_LIST languages)
-
 			find_library(MINGW_STDCXX_LIBRARY NAMES
 				libstdc++-6.dll
 			)
 			if (MINGW_STDCXX_LIBRARY)
 				list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_STDCXX_LIBRARY}")
 			endif ()
-
 		endif ()
 	endif ()
-	
+
 	install_deplibs("${lib_dest}" "${runtime_dest}" ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
 endfunction()
+
