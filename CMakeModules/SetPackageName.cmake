@@ -23,7 +23,7 @@ function(set_package_name name version)
 	elseif (WIN32)
 		# Visual Studio - grab first two digits of the compiler version (19 == VS 2015 or 2017).
 		# Note that the first two digits denote compatibility for the C and C++ runtimes. For example,
-		# an executable built with version 19.xx will be linked againsta a different set of C/C++ runtimes
+		# an executable built with version 19.xx will be linked against a different set of C/C++ runtimes
 		# than one built with version 18.xx or version 20.xx.
 		string(SUBSTRING "${MSVC_VERSION}" 0 2 ver)
 		string(APPEND CPACK_PACKAGE_FILE_NAME "-msvc${ver}")
