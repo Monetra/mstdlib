@@ -53,10 +53,27 @@ __BEGIN_DECLS
  *
  *  This implementation only supports a single Java VM instance, globally.
  * 
- *  \param Jvm  Initialized JavaVM to use.  Must be specified.
+ *  \param[in] Jvm  Initialized JavaVM to use.  Must be specified.
  *  \return M_TRUE on success, M_FALSE on failure.
  */
 M_API M_bool M_io_jni_init(JavaVM *Jvm);
+
+
+/*! Initialization function to initialize the io system for use on Android.
+ *
+ * M_io_jni_init must be called before this function.
+ * This should only be called when building for Android.
+ *
+ * This function must be called before DNS resolution will work on Android 8
+ * (Oreo) or newer when built targeting SDK 26. Also, the ACCESS_NETWORK_STATE
+ * permission must be present in the Android application.
+ *
+ * \param[in] connectivity_manager Android connectivity manager. Can be accessed in Java from a Context like so:
+ *                                 (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+ *
+ * \return M_TRUE on success, M_FALSE on failure.
+ */
+M_API M_bool M_io_jni_android_init(jobject connectivity_manager);
 
 
 /*! Retrieve JNI Environment Handle for current thread.

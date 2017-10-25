@@ -30,6 +30,7 @@
 
 #ifdef ANDROID
 #  include <android/log.h> 
+#  include "ares.h"
 #endif
 
 JavaVM  *M_io_jni_jvm = NULL;
@@ -509,6 +510,28 @@ M_bool M_io_jni_init(JavaVM *jvm)
 	M_library_cleanup_register(M_io_jni_deinit, NULL);
 
 	return M_TRUE;
+}
+
+
+M_bool M_io_jni_android_init(jobject connectivity_manager)
+{
+#ifndef ANDROID
+	return M_FALSE;
+#else
+	int ret;
+
+	if (ares_library_android_initialized())
+		return M_TRUE;
+
+	if (M_io_jni_jvm == NULL)
+		return M_FALSE;
+
+	ares_library_init_jvm(M_io_jni_jvm);
+	ret = ares_library_init_android(connectivity_manager);
+	if (ret != ARES_SUCCESS)
+		return M_FALSE;
+	return M_TRUE;
+#endif
 }
 
 
