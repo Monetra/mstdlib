@@ -140,7 +140,14 @@ static void M_event_impl_poll_process(M_event_t *event)
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 					cnt++;
 				}
-				M_event_deliver_io(event, member->io, M_EVENT_TYPE_ERROR);
+
+				/* Enqueue a softevent for a READ on a disconnect or ERROR as otherwise
+				 * it will do a partial read if there is still data buffered, and not ever attempt
+				 * to read again.   We do this as a soft event as it is delivered after processing
+				 * of normal events.  We don't know why this is necessary as it is very hard to
+				 * reproduce outside of a PRODUCTION environment!
+				 * NOTE: if not waiting on a READ event, deliver the real error */
+				M_io_softevent_add(member->io, 0, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_ERROR);
 				cnt++;
 			}
 
@@ -156,7 +163,14 @@ static void M_event_impl_poll_process(M_event_t *event)
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 					cnt++;
 				}
-				M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
+
+				/* Enqueue a softevent for a READ on a disconnect or ERROR as otherwise
+				 * it will do a partial read if there is still data buffered, and not ever attempt
+				 * to read again.   We do this as a soft event as it is delivered after processing
+				 * of normal events.  We don't know why this is necessary as it is very hard to
+				 * reproduce outside of a PRODUCTION environment! 
+				 * NOTE: if not waiting on a READ event, deliver the real error */
+				M_io_softevent_add(member->io, 0, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_DISCONNECTED);
 				cnt++;
 			}
 
