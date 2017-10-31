@@ -31,17 +31,28 @@ if (PKG_CONFIG_FOUND)
 endif ()
 
 if (WIN32)
-	set(_pref "$ENV{ProgramFiles}/sqlite")
-	set(_pref86 "$ENV{ProgramFiles\(x86\)}/sqlite")
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(archdir    "$ENV{ProgramFiles}")
+		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
+	else ()
+		set(archdir    "$ENV{ProgramFiles\(x86\)}")
+		set(notarchdir "$ENV{ProgramFiles}")
+	endif ()
 	set(_paths
-		"${_pref}"
-		"${_pref}3"
-		"${_pref86}"
-		"${_pref86}3"
+		"${archdir}/sqlite"
+		"${archdir}/sqlite3"
+		"${notarchdir}/sqlite"
+		"${notarchdir}/sqlite3"
 	)
 else ()
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(arch 64)
+	else ()
+		set(arch 32)
+	endif ()
 	set(_paths
-		/usr/local/sqlite
+		/usr/local/sqlite${arch}
+		/usr/locla/sqlite
 		/usr/local/sqlite3
 	)
 endif ()

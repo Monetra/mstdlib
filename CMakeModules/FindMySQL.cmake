@@ -42,17 +42,29 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 # Set path guesses.
 set(_paths)
 if (WIN32)
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(archdir    "$ENV{ProgramFiles}")
+		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
+	else ()
+		set(archdir    "$ENV{ProgramFiles\(x86\)}")
+		set(notarchdir "$ENV{ProgramFiles}")
+	endif ()
 	# MariaDB
-	append_glob_dirs(_paths "$ENV{ProgramFiles}/MariaDB*/")
-	append_glob_dirs(_paths "$ENV{ProgramFiles\(x86\)}/MariaDB*/")
+	append_glob_dirs(_paths "${archdir}/MariaDB*/")
+	append_glob_dirs(_paths "${notarchdir}/MariaDB*/")
 	# MySQL
-	append_glob_dirs(_paths "$ENV{ProgramFiles}/MySQL/MySQL Connector.C*/")
-	append_glob_dirs(_paths "$ENV{ProgramFiles\(x86\)}/MySQL/MySQL Connector.C*/")
+	append_glob_dirs(_paths "${archdir}/MySQL/MySQL Connector.C*/")
+	append_glob_dirs(_paths "${notarchdir}/MySQL/MySQL Connector.C*/")
 else ()
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(arch 64)
+	else ()
+		set(arch 32)
+	endif ()
 	list(APPEND _paths
-		/usr/local/mariadb64
+		/usr/local/mariadb${arch}
+		/usr/local/mysql${arch}
 		/usr/local/mariadb
-		/usr/local/mysql64
 		/usr/local/mysql
 	)
 	if (APPLE)

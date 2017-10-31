@@ -40,20 +40,36 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 # Set path guesses.
 set(_paths)
 if (WIN32)
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(archdir    "$ENV{ProgramFiles}")
+		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
+		set(arch       64)
+	else ()
+		set(archdir    "$ENV{ProgramFiles\(x86\)}")
+		set(notarchdir "$ENV{ProgramFiles}")
+		set(arch       32)
+	endif ()
 	# This should find installations from either the BigSQL or EDB Postgres installers.
 	# (Note: I'd recommend BigSQL, it's built with MinGW, so it's easier to package)
-	list(APPEND _paths /PostgreSQL64)
-	append_glob_dirs(_paths "/PostgreSQL64/pg*/")
+	list(APPEND _paths /PostgreSQL${arch})
+	append_glob_dirs(_paths "/PostgreSQL${arch}/pg*/")
 	list(APPEND _paths /PostgreSQL)
 	append_glob_dirs(_paths "/PostgreSQL/pg*/")
-	list(APPEND _paths "$ENV{ProgramFiles}/PostgreSQL")
-	append_glob_dirs(_paths "$ENV{ProgramFiles}/PostgreSQL/*/")
-	list(APPEND _paths "$ENV{ProgramFiles\(x86\)}/PostgreSQL")
-	append_glob_dirs(_paths "$ENV{ProgramFiles\(x86\)}/PostgreSQL/*/")
+	list(APPEND _paths "${archdir}/PostgreSQL")
+	append_glob_dirs(_paths "${archdir}/PostgreSQL/*/")
+	list(APPEND _paths "${notarchdir}/PostgreSQL")
+	append_glob_dirs(_paths "${notarchdir}/PostgreSQL/*/")
 else ()
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(arch 64)
+	else ()
+		set(arch 32)
+	endif ()
 	list(APPEND _paths
-		/usr/local/postgresql64
+		/usr/local/postgresql${arch}
+		/usr/local/pgsql${arch}
 		/usr/local/postgresql
+		/usr/local/pgsql
 	)
 	append_glob_dirs(_paths "/usr/pgsql-*")
 endif ()
