@@ -206,16 +206,6 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	/* Due to the way netdns wraps us, do not disallow read because we think we're in a disconnected
-	 * state, there may still be data buffered */
-	if (!handle->is_netdns) {
-		if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING) {
-			if (handle->state == M_IO_NET_STATE_DISCONNECTED)
-				return M_IO_ERROR_DISCONNECT;
-			return M_IO_ERROR_ERROR;
-		}
-	}
-
 	errno  = 0;
 	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
 	if (retval == 0) {
@@ -298,7 +288,8 @@ static void M_io_net_readwrite_err(M_io_t *comm, M_io_layer_t *layer, M_bool is_
 	} else {
 		/* Error condition, Stop waiting on all events */
 		M_io_net_handle_close(comm, handle);
-		handle->state = (err == M_IO_ERROR_DISCONNECT)?M_IO_NET_STATE_DISCONNECTED:M_IO_NET_STATE_ERROR;
+		handle->state     = (err == M_IO_ERROR_DISCONNECT)?M_IO_NET_STATE_DISCONNECTED:M_IO_NET_STATE_ERROR;
+		handle->hard_down = M_TRUE;
 	}
 }
 
@@ -316,10 +307,8 @@ static M_io_error_t M_io_net_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 	/* Don't use sanity check here if netdns is wrapping us, that layer has its own that is
 	 * more valid due to relayed signals.  There may infact be data buffered still due to
 	 * the way signals are delivered */
-	if (!handle->is_netdns) {
-		if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING)
-			return M_IO_ERROR_NOTCONNECTED;
-	}
+	if (handle->hard_down && handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING)
+		return M_IO_ERROR_NOTCONNECTED;
 
 	request_len = *read_len;
 	err         = M_io_net_read_cb_int(layer, buf, read_len);
@@ -622,19 +611,20 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 			M_io_net_set_sockopts(handle);
 			break;
 		case M_EVENT_TYPE_ERROR:
-			if ((handle->state == M_IO_NET_STATE_CONNECTED || handle->state == M_IO_NET_STATE_DISCONNECTING) && handle->data.net.last_error_sys == 0) {
-				/* In order to populate the *real* error message, we may need to read from the socket */
-				unsigned char buf[64];
-				size_t        buf_len = sizeof(buf);
-				M_io_net_read_cb(layer, buf, &buf_len);
+			if (handle->state == M_IO_NET_STATE_CONNECTED && handle->data.net.last_error_sys == 0) {
+				/* No way to *really* know the error, use the reset by peer error */
+#ifdef _WIN32
+				handle->data.net.last_error_sys = WSAECONNRESET;
+#else
+				handle->data.net.last_error_sys = ECONNRESET;
+#endif
 			}
+			handle->state = M_IO_NET_STATE_ERROR;
+			/* DO NOT close handle automatically, user will do so. */
+			break;
 		case M_EVENT_TYPE_DISCONNECTED:
-			if (*type == M_EVENT_TYPE_ERROR) {
-				handle->state = M_IO_NET_STATE_ERROR;
-			} else {
-				handle->state = M_IO_NET_STATE_DISCONNECTED;
-			}
-			M_io_net_handle_close(comm, handle);
+			handle->state = M_IO_NET_STATE_DISCONNECTED;
+			/* DO NOT close handle automatically, user will do so. */
 			break;
 		case M_EVENT_TYPE_READ:
 			/* We got a read, we need to wait on an op to re-activate */

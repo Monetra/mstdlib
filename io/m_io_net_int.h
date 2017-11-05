@@ -86,6 +86,7 @@ struct M_io_handle {
 	unsigned short      port;          /*!< Port being used                                  */
 	M_io_net_type_t     type;          /*!< Network type                                     */
 	M_io_net_state_t    state;         /*!< Current state                                    */
+	M_bool              hard_down;     /*!< If true, state was set by read/write failure     */
 	M_io_net_settings_t settings;      /*!< Settings for the connection                      */
 	M_event_timer_t    *timer;         /*!< Happy Eyeballs (DNS) or connection timer         */
 
