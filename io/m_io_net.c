@@ -206,17 +206,21 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING) {
-		if (handle->state == M_IO_NET_STATE_DISCONNECTED)
-			return M_IO_ERROR_DISCONNECT;
-		return M_IO_ERROR_ERROR;
+	/* Due to the way netdns wraps us, do not disallow read because we think we're in a disconnected
+	 * state, there may still be data buffered */
+	if (!handle->is_netdns) {
+		if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING) {
+			if (handle->state == M_IO_NET_STATE_DISCONNECTED)
+				return M_IO_ERROR_DISCONNECT;
+			return M_IO_ERROR_ERROR;
+		}
 	}
 
 	errno  = 0;
 	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
-		handle->data.net.last_error = M_IO_ERROR_DISCONNECT;
+		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
 		return M_IO_ERROR_DISCONNECT;
 	} else if (retval < 0) {
 		M_io_net_resolve_error(handle);
@@ -309,8 +313,13 @@ static M_io_error_t M_io_net_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 		return M_IO_ERROR_INVALID;
 	}
 
-	if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING)
-		return M_IO_ERROR_NOTCONNECTED;
+	/* Don't use sanity check here if netdns is wrapping us, that layer has its own that is
+	 * more valid due to relayed signals.  There may infact be data buffered still due to
+	 * the way signals are delivered */
+	if (!handle->is_netdns) {
+		if (handle->state != M_IO_NET_STATE_CONNECTED && handle->state != M_IO_NET_STATE_DISCONNECTING)
+			return M_IO_ERROR_NOTCONNECTED;
+	}
 
 	request_len = *read_len;
 	err         = M_io_net_read_cb_int(layer, buf, read_len);

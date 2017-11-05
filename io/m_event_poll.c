@@ -147,7 +147,7 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 * of normal events.  We don't know why this is necessary as it is very hard to
 				 * reproduce outside of a PRODUCTION environment!
 				 * NOTE: if not waiting on a READ event, deliver the real error */
-				M_io_softevent_add(member->io, 0, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_ERROR);
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_ERROR);
 				cnt++;
 			}
 
@@ -170,7 +170,7 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 * of normal events.  We don't know why this is necessary as it is very hard to
 				 * reproduce outside of a PRODUCTION environment! 
 				 * NOTE: if not waiting on a READ event, deliver the real error */
-				M_io_softevent_add(member->io, 0, (member->waittype & M_EVENT_WAIT_READ)?M_EVENT_TYPE_READ:M_EVENT_TYPE_DISCONNECTED);
+				M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
 				cnt++;
 			}
 

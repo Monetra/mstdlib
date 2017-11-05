@@ -294,7 +294,7 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 		case M_EVENT_TYPE_READ:
 		case M_EVENT_TYPE_WRITE:
 			/* Pass-on */
-			M_io_layer_softevent_add(layer, M_TRUE /* Sibling only */, type);
+			M_io_layer_softevent_add(layer, M_FALSE /* Self, must be same as below or order of events may be reversed, bad! */, type);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:

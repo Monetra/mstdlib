@@ -597,11 +597,8 @@ static void M_event_impl_win32_process(M_event_t *event)
 
 			/* Enqueue a softevent for a READ on a disconnect or ERROR as otherwise
 			 * it will do a partial read if there is still data buffered, and not ever attempt
-			 * to read again.   We do this as a soft event as it is delivered after processing
-			 * of normal events.  Do NOT try to enqueue a DISCONNECT or ERROR as it might wipe
-			 * pending events on io_net_dns and never actually push up the read event so it
-			 * gets used. */
-			M_io_softevent_add(member->io, 0, M_EVENT_TYPE_READ);
+			 * to read again.  */
+			M_event_deliver_io(event, member->io, (NetEvents.iErrorCode[FD_CLOSE_BIT] == 0)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
 		}
 
 		/* Treat CONNECT and WRITE events as WRITE events */
