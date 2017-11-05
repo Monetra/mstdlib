@@ -65,6 +65,7 @@ struct M_io_handle {
 	M_tls_stateflags_t state_flags;
 	M_bool             is_client;
 	M_event_timer_t   *timer;
+	M_io_error_t       last_io_err;
 	M_timeval_t        negotiation_start;
 	M_uint64           negotiation_time;
 	char               error[256];
@@ -617,18 +618,20 @@ static int M_tls_bio_destroy(BIO *b)
 static int M_tls_bio_read(BIO *b, char *buf, int len)
 {
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
-	M_io_layer_t *layer = BIO_get_data(b);
+	M_io_layer_t  *layer  = BIO_get_data(b);
 #else
-	M_io_layer_t *layer = b->ptr;
+	M_io_layer_t  *layer  = b->ptr;
 #endif
-	M_io_error_t  err;
-	size_t        read_len;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_error_t   err;
+	size_t         read_len;
 
 	if (buf == NULL || len <= 0 || layer == NULL)
 		return 0;
 
 	read_len = (size_t)len;
 	err      = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (unsigned char *)buf, &read_len);
+	handle->last_io_err = err;
 	BIO_clear_retry_flags(b);
 
 	if (err != M_IO_ERROR_SUCCESS) {
@@ -649,19 +652,20 @@ static int M_tls_bio_read(BIO *b, char *buf, int len)
 static int M_tls_bio_write(BIO *b, const char *buf, int len)
 {
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
-	M_io_layer_t *layer = BIO_get_data(b);
+	M_io_layer_t  *layer = BIO_get_data(b);
 #else
-	M_io_layer_t *layer = b->ptr;
+	M_io_layer_t  *layer = b->ptr;
 #endif
-	M_io_error_t  err;
-	size_t        write_len;
+	M_io_error_t   err;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         write_len;
 
 	if (buf == NULL || len <= 0 || layer == NULL)
 		return 0;
 
 	write_len = (size_t)len;
 	err       = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (const unsigned char *)buf, &write_len);
-
+	handle->last_io_err = err;
 	BIO_clear_retry_flags(b);
 
 	if (err != M_IO_ERROR_SUCCESS) {
@@ -789,7 +793,8 @@ static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 
 		ioerr = M_IO_ERROR_WOULDBLOCK;
 	} else {
-		if (err == SSL_ERROR_ZERO_RETURN) {
+		/* OpenSSL doesn't appear to relay disconnect vs error up the chain for syscalls, manage that ourselves */
+		if (err == SSL_ERROR_ZERO_RETURN || (err == SSL_ERROR_SYSCALL && handle->last_io_err == M_IO_ERROR_DISCONNECT)) {
 //M_printf("%s(): err == SSL_ERROR_ZERO_RETURN\n", __FUNCTION__);
 			handle->state = M_TLS_STATE_DISCONNECTED;
 			ioerr         = M_IO_ERROR_DISCONNECT;
@@ -850,7 +855,8 @@ static M_io_error_t M_io_tls_write_cb(M_io_layer_t *layer, const unsigned char *
 
 		ioerr = M_IO_ERROR_WOULDBLOCK;
 	} else {
-		if (err == SSL_ERROR_ZERO_RETURN) {
+		/* OpenSSL doesn't appear to relay disconnect vs error up the chain for syscalls, manage that ourselves */
+		if (err == SSL_ERROR_ZERO_RETURN || (err == SSL_ERROR_SYSCALL && handle->last_io_err == M_IO_ERROR_DISCONNECT)) {
 //M_printf("%s(): err == SSL_ERROR_ZERO_RETURN\n", __FUNCTION__);
 			handle->state = M_TLS_STATE_DISCONNECTED;
 			ioerr         = M_IO_ERROR_DISCONNECT;
