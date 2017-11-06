@@ -55,6 +55,7 @@ set(sources
 	hash/m_hash_multi.c
 	hash/m_hash_strbin.c
 	hash/m_hash_stridx.c
+	hash/m_hash_stru64.c
 	hash/m_hash_strvp.c
 	hash/m_hashtable.c
 	hash/m_hash_u64bin.c
