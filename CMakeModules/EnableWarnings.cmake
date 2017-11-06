@@ -83,10 +83,13 @@ else ()
 		-Wformat-security -Woverlength-strings -Wstrict-aliasing
 		-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
 		-Wconversion -Wsign-conversion
-		
+
 		# Treat implicit variable typing and implicit function declarations as errors.
 		-Werror=implicit-int
 		-Werror=implicit-function-declaration
+
+		# Make MacOSX honor -mmacosx-version-min
+		-Werror=partial-availability
 	)
 endif ()
 
