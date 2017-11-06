@@ -64,13 +64,13 @@ typedef enum {
 	                                           in conjunction with M_HASH_STRIDX_CASECMP. */
 	M_HASH_STRIDX_KEYS_LOWER    = 1 << 2, /*!< Keys will be lower cased before being inserted. Should be used
 	                                           in conjunction with M_HASH_STRIDX_CASECMP. */
-	M_HASH_STRIDX_KEYS_ORDERED  = 1 << 1, /*!< Keys should be ordered. Default is insertion order unless the
+	M_HASH_STRIDX_KEYS_ORDERED  = 1 << 3, /*!< Keys should be ordered. Default is insertion order unless the
 	                                           sorted option is specified. */
-	M_HASH_STRIDX_KEYS_SORTASC  = 1 << 2, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRIDX_KEYS_SORTDESC = 1 << 3, /*!< When the keys are ordered sort them using the key_equality function. */
-	M_HASH_STRIDX_MULTI_VALUE   = 1 << 4, /*!< Allow keys to contain multiple values.
+	M_HASH_STRIDX_KEYS_SORTASC  = 1 << 4, /*!< When the keys are ordered sort them using the key_equality function. */
+	M_HASH_STRIDX_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
+	M_HASH_STRIDX_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
 	                                           Sorted in insertion order another sorting is specified. */
-	M_HASH_STRIDX_MULTI_GETLAST = 1 << 5  /*!< When using get and get_direct function get the last value from the list
+	M_HASH_STRIDX_MULTI_GETLAST = 1 << 7  /*!< When using get and get_direct function get the last value from the list
 	                                           when allowing multiple values. The default is to get the first value. */
 } M_hash_stridx_flags_t;
 
