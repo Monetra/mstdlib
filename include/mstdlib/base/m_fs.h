@@ -1020,7 +1020,7 @@ M_API M_time_t M_fs_info_get_ctime(const M_fs_info_t *info);
  *
  * \param[in] info object created by M_fs_info()
  *
- * \return         time when file was created, or 0 if time couldn't be retrieved
+ * \return Time when file was created, or 0 if time couldn't be retrieved
  */
 M_API M_time_t M_fs_info_get_btime(const M_fs_info_t *info);
 

@@ -258,11 +258,32 @@ M_fs_error_t M_fs_info_int(M_fs_info_t **info, const char *path, M_fs_info_flags
 	large_val.HighPart = file_data->nFileSizeHigh;
 	M_fs_info_set_size(*info, large_val.QuadPart);
 
-	M_fs_info_set_atime(*info, M_time_from_filetime(&(file_data->ftLastAccessTime)));
-	M_fs_info_set_mtime(*info, M_time_from_filetime(&(file_data->ftLastWriteTime)));
-	M_fs_info_set_ctime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
-	M_fs_info_set_btime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
-
+	/* If the system can't pull these times (I'm looking at you ftCreationTime) the
+ 	 * value will be 0 (the Windows Epoc of Jan 1, 1601). It's not possibly for a file
+	 * to be created at that time because Windows didn't exist back then. If this is 0
+	 * we set the time to 0 because we are stating in the docs that if these aren't
+	 * avaliable they'll be set to 0. */
+	if (M_time_filetime_to_int64(&(file_data->ftLastAccessTime)) == 0) {
+		M_fs_info_set_atime(*info, 0);
+	} else {
+		M_fs_info_set_atime(*info, M_time_from_filetime(&(file_data->ftLastAccessTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftLastWriteTime)) == 0) {
+		M_fs_info_set_mtime(*info, 0);
+	} else {
+		M_fs_info_set_mtime(*info, M_time_from_filetime(&(file_data->ftLastWriteTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftCreationTime)) == 0) {
+		M_fs_info_set_ctime(*info, 0);
+	} else {
+		M_fs_info_set_ctime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftCreationTime)) == 0) {
+		M_fs_info_set_btime(*info, 0);
+	} else {
+		M_fs_info_set_btime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
+	}
+	
 	if (flags & M_FS_PATH_INFO_FLAGS_BASIC) {
 		return M_FS_ERROR_SUCCESS;
 	}

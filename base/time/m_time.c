@@ -124,6 +124,20 @@ static M_time_tv_usec_t M_TIME_TV_USEC_MAX =((((M_time_tv_usec_t)1 << (sizeof(M_
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #ifdef _WIN32
+M_int64 M_time_filetime_to_int64(const FILETIME *ft)
+{
+	M_int64 l;
+
+	l = (M_int64)(((M_uint64)ft->dwHighDateTime) << 32 | (M_uint64)ft->dwLowDateTime);
+	return l;
+}
+
+void M_time_filetime_from_int64(FILETIME *ft, M_int64 v)
+{
+	ft->dwLowDateTime  = (DWORD)v;
+	ft->dwHighDateTime = (DWORD)(v >> 32);
+}
+
 void M_time_timeval_from_filetime(const FILETIME *ft, M_timeval_t *tv)
 {
 	M_int64 l;
@@ -134,7 +148,7 @@ void M_time_timeval_from_filetime(const FILETIME *ft, M_timeval_t *tv)
 		return;
 	
 	/* Copy to 64bit signed integer */
-	l = (M_int64)(((M_uint64)ft->dwHighDateTime) << 32 | (M_uint64)ft->dwLowDateTime);
+	l = M_time_filetime_to_int64(ft);
 
 	/* Bring from 1 January 1601, 00:00:00 to 1 January 1970, 00:00:00 */
 	l -= 116444736000000000;
@@ -152,10 +166,12 @@ M_time_t M_time_from_filetime(const FILETIME *ft)
 	M_int64 l;
 
 	/* Copy to 64bit signed integer */
-	l = (M_int64)(((M_uint64)ft->dwHighDateTime) << 32 | (M_uint64)ft->dwLowDateTime);
+	l = M_time_filetime_to_int64(ft);
 
-	if (l == 0)
-		return 0;
+	/* The Windows Epoc is Jan 1, 1601. This is -11644473600
+ 	 * in Unix time. FILETIME has a 100 nano second resolution
+	 * so we need to reduce that to seconds before normalizing
+	 * against the Windows Epoc. */
 	return l / 10000000 - 11644473600;
 }
 
@@ -164,6 +180,9 @@ void M_time_to_filetime(M_time_t t, FILETIME *ft)
 {
 	LONGLONG l;
 
+	/* Convert to 100 nano second resolution and adjust
+ 	 * for the Windows Epoc (Jan 1, 1601) starting on a
+	 * different date than the Unix Epoc (Jan 1, 1970). */
 	l = Int32x32To64(t, 10000000) + 116444736000000000;
 	ft->dwLowDateTime  = (DWORD)l;
 	ft->dwHighDateTime = (DWORD)(l >> 32);

@@ -140,6 +140,24 @@ typedef struct M_time_tz_info_map M_time_tz_info_map_t;
  * Windows helpers. */
 
 #ifdef _WIN32
+/*! Convert a Windows FILETIME to an int64.
+ * \param[in]  ft The filetime.
+ * \return 64 bit Integer.
+ */
+M_int64 M_time_filetime_to_int64(const FILETIME *ft);
+
+/*! Convert an int64 to a Windows FILETIME.
+ *
+ * \warning Be careful because FILETIME is 100 nano second resultion.
+ * Converting a M_time_t to a file time must use M_time_to_filetime.
+ *
+ * \param[in,out] ft The filetime.
+ * \param[in]     v  64 bit Integer.
+ *
+ * \see M_time_to_filetime
+ */
+void M_time_filetime_from_int64(FILETIME *ft, M_int64 v);
+
 /*! Convert a windows FILETIME to a M_timeval_t.
  * \param[in]  ft The filetime.
  * \param[out] tv The timeval to fill.
