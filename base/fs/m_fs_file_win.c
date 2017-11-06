@@ -25,6 +25,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include "fs/m_fs_int.h"
+#include "time/m_time_int.h"
 #include "platform/m_platform.h"
 
 #include <Lmcons.h>
