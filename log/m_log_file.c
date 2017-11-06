@@ -81,7 +81,7 @@ static void writer_thunk_destroy(void *ptr)
 
 
 /* Open the head logfile, update file creation time. */
-static M_fs_error_t open_head_logfile(writer_thunk_t *wdata)
+static M_fs_error_t open_head_logfile(writer_thunk_t *wdata, M_bool is_rotate)
 {
 	M_fs_error_t err;
 	size_t       buf_size;
@@ -96,10 +96,16 @@ static M_fs_error_t open_head_logfile(writer_thunk_t *wdata)
 	err = M_fs_file_open(&wdata->fstream, wdata->log_file_path, buf_size,
 		M_FS_FILE_MODE_WRITE | M_FS_FILE_MODE_APPEND, NULL);
 
-	/* If the open was successful, update our file creation time. Want to try and get it from the filesystem,
-	 * in case we just opened an existing file.
-	 */
-	if (err == M_FS_ERROR_SUCCESS) {
+	if (is_rotate) {
+		/* We know the file has to be new, so don't bother checking the filesystem for creation time and size.
+		 * NOTE: this is an attempted workaround for a windows logging issue we can't reproduce (one line per file)
+		 */
+		wdata->log_file_create_time = M_time();
+		wdata->log_file_size        = 0;
+	} else if (err == M_FS_ERROR_SUCCESS) {
+		/* If we aren't creating a new file after a rotate, we want to try and get the creation time and size from
+		 * the filesystem, in case we just opened an existing file.
+		 */
 		M_fs_info_t *info;
 
 		M_fs_info(&info, wdata->log_file_path, M_FS_PATH_INFO_FLAGS_BASIC);
@@ -332,7 +338,7 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 	}
 
 	/* Open a new head log file. */
-	open_head_logfile(wdata);
+	open_head_logfile(wdata, M_TRUE);
 
 	M_buf_cancel(new_path);
 
@@ -420,7 +426,7 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 	 */
 	if (wdata->fstream == NULL || (cmd & M_LOG_CMD_FILE_REOPEN) != 0) {
 		M_fs_file_close(wdata->fstream);
-		open_head_logfile(wdata);
+		open_head_logfile(wdata, M_FALSE);
 	}
 
 	/* Detect conditions that require a file rotate. */
@@ -649,7 +655,7 @@ M_log_error_t M_log_module_add_file(M_log_t *log, const char *log_file_path, siz
 		return M_LOG_INVALID_PATH;
 	}
 
-	if (open_head_logfile(writer_thunk) != M_FS_ERROR_SUCCESS) {
+	if (open_head_logfile(writer_thunk, M_FALSE) != M_FS_ERROR_SUCCESS) {
 		/* This early open allows most I/O errors to be caught before logging starts. */
 		return M_LOG_UNREACHABLE;
 	}
