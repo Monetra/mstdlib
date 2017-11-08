@@ -18,6 +18,10 @@
 #     Copy the given dependencies to the build directory, without installing them. Uses the same library resolution rules
 #     as install_deplibs, the only difference is that it doesn't install anything.
 #
+# get_fixup_lib_dirs(outlistname [... lib files or import targets ...])
+#     Get library directories from the given list of files and targets, and remove system dirs and any duplicates.
+#     The resulting list can then be passed to fixup_bundle().
+#
 # Extra variables that modify how the function call works:
 # INSTALL_DEPLIBS_COPY_DLL  - if TRUE (the default), any DLL's installed with install_deplibs will also be copied to
 #                             the bin dir of the build directory. Set to FALSE to disable DLL copies.
@@ -72,6 +76,9 @@ function(get_dll_from_implib out_dll path)
 		endif ()
 	endif ()
 
+	string(TOLOWER "${libname}" libname_lower)
+	string(TOUPPER "${libname}" libname_upper)
+
 	if (NOT libname)
 		# Get library name by removing .lib or .dll.a from extension.
 		get_filename_component(imp_file "${path}" NAME)
@@ -110,7 +117,7 @@ function(get_dll_from_implib out_dll path)
 
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
 	find_library(${clibname}_DLL
-		NAMES           ${libname} ${nolibname} ${alt_names}
+		NAMES           ${libname} ${libname_lower} ${libname_upper} ${nolibname} ${alt_names}
 		HINTS           "${imp_dir}"
 		                "${root_dir}"
 		NO_DEFAULT_PATH
@@ -366,6 +373,37 @@ function(install_deplibs lib_dest runtime_dest)
 
 	# Call internal helper
 	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" "${component}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${libs})
+endfunction()
+
+
+# get_fixup_lib_dirs(outlistname [... lib files or import targets ...])
+function(get_fixup_lib_dirs outlistname)
+	set(libs "${ARGN}")
+	if (NOT libs)
+		set(${outlistname} PARENT_SCOPE)
+	endif ()
+
+	set(lib_paths)
+	while(libs)
+		get_paths_from_libs("" "" "" lib_paths libs)
+	endwhile()
+
+	set(fixup_lib_paths)
+	foreach(lib IN LISTS lib_paths)
+		get_filename_component(lib_dir "${lib}" DIRECTORY)
+		# If library was nested down in a framework directory, use parent dir instead (APPLE only).
+		if (APPLE)
+			# Don't allow stuff from system dirs on Apple.
+			if (lib_dir MATCHES "^/usr/lib" OR lib_dir MATCHES "^/System/Library")
+				continue()
+			endif ()
+			string(REGEX REPLACE "/[^/]+\.framework$" "" lib_dir "${lib_dir}")
+		endif ()
+		list(APPEND fixup_lib_dirs "${lib_dir}")
+	endforeach()
+	list(REMOVE_DUPLICATES fixup_lib_dirs)
+
+	set(${outlistname} "${fixup_lib_dirs}" PARENT_SCOPE)
 endfunction()
 
 

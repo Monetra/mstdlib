@@ -14,8 +14,8 @@ set(CMAKE_ASM_COMPILER ${CMAKE_TOOLCHAIN_PREFIX}-as      CACHE FILEPATH "Toolcha
 set(CMAKE_AR           ${CMAKE_TOOLCHAIN_PREFIX}-ar      CACHE FILEPATH "Toolchain static archiver")
 
 # Set paths to force find_package() to find target system libs instead of host system ones.
-set(CMAKE_SYSROOT                     /usr/${CMAKE_TOOLCHAIN_PREFIX}/sys-root/)
-set(CMAKE_FIND_ROOT_PATH              ${CMAKE_SYSROOT}/mingw/)
+set(CMAKE_SYSROOT                     /usr/${CMAKE_TOOLCHAIN_PREFIX}/sys-root)
+set(CMAKE_FIND_ROOT_PATH              ${CMAKE_SYSROOT}/mingw)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH) # For exe's, search for target system ones first, then host system.
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY) # Only search for libraries that are for the target system.
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) # Only search for includes that are for the target system.
@@ -23,7 +23,17 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) # Only search for includes that are 
 # Need to set CMAKE_CROSSCOMPILING to FALSE, so that CMake will let us use built targets in custom build
 # rules. This isn't truly cross-compiling, only makes sense for Cygwin.
 set(CMAKE_CROSSCOMPILING FALSE)
-set(CMAKE_PREFIX_PATH "${CMAKE_FIND_ROOT_PATH}" /usr/${CMAKE_TOOLCHAIN_PREFIX}) # Workaround for find_package bug, only needed when CMAKE_CROSSCOMPILING is false.
+list(APPEND CMAKE_PREFIX_PATH
+	"${CMAKE_FIND_ROOT_PATH}/usr/local/ssl"
+	"${CMAKE_FIND_ROOT_PATH}"
+	/usr/${CMAKE_TOOLCHAIN_PREFIX} # Workaround for find_package bug, only needed when CMAKE_CROSSCOMPILING is false.
+)
+
+# Fix for bug where compiler complains that it can't find stdlib.h while compiling Qt 5 programs.
+# See the following:
+#    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70129
+#    https://bugs.webkit.org/show_bug.cgi?id=161697#c8
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED TRUE)
 
 # NOTE: if we ever change CMAKE_CROSSCOMPILING back to true, we'll also need to uncomment the code below.
 #
