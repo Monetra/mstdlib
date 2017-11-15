@@ -90,8 +90,6 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
 static void M_thread_pthread_init(void)
 {
 #ifdef HAVE_PTHREAD_INIT
-	/* TODO: I think this was only needed for AIX 4.x, can probably take it out. */
-	extern void pthread_init(void);
 	pthread_init();
 #endif
 }

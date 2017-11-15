@@ -273,8 +273,9 @@ if (MSTDLIB_BUILD_THREAD)
 		check_library_exists(pthread pthread_rwlock_init           "" HAVE_PTHREAD_RWLOCK_INIT)
 		check_library_exists(pthread pthread_rwlockattr_setkind_np "" HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP)
 
-		# TODO: I think this was only needed for AIX 4.x, can probably take it out.
-		check_library_exists(pthread pthread_init                  "" HAVE_PTHREAD_INIT)
+		if (HAVE_PTHREAD_H)
+			check_symbol_exists(pthread_init "pthread.h" HAVE_PTHREAD_INIT)
+		endif ()
 
 		# Used in config.h.cmake.
 		check_symbol_exists(sysconf   "${check_extra_includes}" HAVE_SYSCONF)
