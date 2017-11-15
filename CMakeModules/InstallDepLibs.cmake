@@ -452,6 +452,19 @@ function(install_system_deplibs lib_dest runtime_dest)
 		endif ()
 	endif ()
 
+	# If we're compiling on AIX with GCC instead of the default system compiler, make sure to include libgcc_s.
+	if (CMAKE_SYSTEM_NAME MATCHES "AIX" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
+		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
+		string(REGEX REPLACE "(/)*bin(/)*.*$" "" search_dir "${search_dir}")
+		find_library(AIX_GCC_LIBRARY
+			NAMES libgcc_s.a
+			PATHS "${search_dir}"
+		)
+		if (AIX_GCC_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${AIX_GCC_LIBRARY}")
+		endif ()
+	endif ()
+
 	install_deplibs("${lib_dest}" "${runtime_dest}" ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
 endfunction()
 
