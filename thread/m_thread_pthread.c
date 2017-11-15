@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -90,6 +90,8 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
 static void M_thread_pthread_init(void)
 {
 #ifdef HAVE_PTHREAD_INIT
+	/* TODO: I think this was only needed for AIX 4.x, can probably take it out. */
+	extern void pthread_init(void);
 	pthread_init();
 #endif
 }
@@ -207,7 +209,7 @@ static M_thread_mutex_t *M_thread_pthread_mutex_create(M_uint32 attr)
 	} else {
 		pthread_mutexattr_settype(&myattr, PTHREAD_MUTEX_DEFAULT);
 	}
-	/* NOTE: we never define "struct M_thread_mutex", as we're aliasing it to a 
+	/* NOTE: we never define "struct M_thread_mutex", as we're aliasing it to a
 	 *       different type.  Bad style, but keeps our type safety */
 	mutex = M_malloc_zero(sizeof(pthread_mutex_t));
 	ret   = pthread_mutex_init((pthread_mutex_t *)mutex, &myattr);
@@ -265,7 +267,7 @@ static M_thread_cond_t *M_thread_pthread_cond_create(M_uint32 attr)
 	M_thread_cond_t *cond;
 
 	(void)attr;
-	/* NOTE: we never define "struct M_thread_cond", as we're aliasing it to a 
+	/* NOTE: we never define "struct M_thread_cond", as we're aliasing it to a
 	 *       different type.  Bad style, but keeps our type safety */
 	cond = M_malloc_zero(sizeof(pthread_cond_t));
 	if (pthread_cond_init((pthread_cond_t *)cond, NULL) == 0)
@@ -331,7 +333,7 @@ static M_thread_rwlock_t *M_thread_pthread_rwlock_create(void)
 	pthread_rwlockattr_setkind_np(&attr, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
 #endif
 
-	/* NOTE: we never define "struct M_thread_rwlock", as we're aliasing it to a 
+	/* NOTE: we never define "struct M_thread_rwlock", as we're aliasing it to a
 	 *       different type.  Bad style, but keeps our type safety */
 	rwlock = M_malloc_zero(sizeof(pthread_rwlock_t));
 	ret = pthread_rwlock_init((pthread_rwlock_t *)rwlock, &attr);
