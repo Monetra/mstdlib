@@ -42,7 +42,11 @@ set(_internal_install_deplibs_already_included TRUE)
 # used to extract DLL names from mingw interface libs (.dll.a).
 find_program(DLLTOOL dlltool)
 # used to extract SONAME from shared libs on ELF platforms.
-find_program(READELF readelf DOC "readelf (unix/ELF only)")
+find_program(READELF
+	NAMES readelf
+	      elfdump  #on Solaris, "elfdump -d" gives very similar output to "readelf -d" on Linux.
+	DOC "readelf (unix/ELF only)"
+)
 
 mark_as_advanced(FORCE DLLTOOL READELF)
 
@@ -227,11 +231,20 @@ function(read_soname outvarname path)
 	endif ()
 
 	# Parse the SONAME out of the header.
-	if (NOT header MATCHES "\\(SONAME\\)[^\n]+\\[([^\n]+)\\]") # If output didn't contain SONAME field.
-		return()
+	if (READELF MATCHES "readelf")
+		# Linux (readelf) format:   0x000000000000000e (SONAME) Library soname: [libssl.so.1.0.0]
+		if (NOT header MATCHES "\\(SONAME\\)[^\n]+\\[([^\n]+)\\]")
+			return()
+		endif ()
+	else ()
+		# Solaris (elfdump) format: [8] SONAME 0x49c1 libssl.so.1.0.0
+		if (NOT header MATCHES "\\[[0-9]+\\][ \t]+SONAME[ \t]+[x0-9a-fA-F]+[ \t]+([^\n]+)")
+			return()
+		endif ()
 	endif ()
 
-	set(${outvarname} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+	string(STRIP "${CMAKE_MATCH_1}" soname)
+	set(${outvarname} "${soname}" PARENT_SCOPE)
 endfunction()
 
 
@@ -273,7 +286,7 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 
 		# AIX apparently links against the .so filename, not the one with versioning info.
 		set(aix_libname)
-		if (OSTYPE STREQUAL "aix")
+		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
 			get_filename_component(aix_libname "${path}" NAME)
 		endif ()
 
@@ -452,16 +465,22 @@ function(install_system_deplibs lib_dest runtime_dest)
 		endif ()
 	endif ()
 
-	# If we're compiling on AIX with GCC instead of the default system compiler, make sure to include libgcc_s.
-	if (CMAKE_SYSTEM_NAME MATCHES "AIX" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
+	# If we're compiling on AIX or Solaris with GCC instead of the default system compiler, make sure to
+	# include libgcc_s.
+	if ((CMAKE_SYSTEM_NAME MATCHES "AIX" OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND CMAKE_C_COMPILER_ID MATCHES "GNU")
 		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
 		string(REGEX REPLACE "(/)*bin(/)*.*$" "" search_dir "${search_dir}")
-		find_library(AIX_GCC_LIBRARY
-			NAMES libgcc_s.a
+		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
+			set(ext .a)
+		else ()
+			set(ext .so)
+		endif ()
+		find_library(LIBGCC_S
+			NAMES libgcc_s${ext}
 			PATHS "${search_dir}"
 		)
-		if (AIX_GCC_LIBRARY)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${AIX_GCC_LIBRARY}")
+		if (LIBGCC_S)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBGCC_S}")
 		endif ()
 	endif ()
 
