@@ -32,22 +32,26 @@
 #include <IOKit/hid/IOHIDManager.h>
 
 struct M_io_handle {
-	IOHIDDeviceRef  device;
-	CFRunLoopRef    runloop;
-	M_io_t         *io;
-	M_buf_t        *readbuf;    /*!< Reads are transferred via a buffer */
-	M_buf_t        *writebuf;   /*!< Writes are transferred via a buffer */
-	unsigned char  *report;
-	size_t          report_len;
-	M_io_error_t    last_err;
+	IOHIDDeviceRef  device;     /*!< Device handle. */
+	CFRunLoopRef    runloop;    /*!< RunLoop the device is using for async events. */
+	M_io_t         *io;         /*!< io object handle is associated with. */
+	M_buf_t        *readbuf;    /*!< Reads are transferred via a buffer. */
+	M_buf_t        *writebuf;   /*!< Writes are transferred via a buffer. */
+	unsigned char  *report;     /*!< Buffer for storing report data that will be read from thh device. */
+	size_t          report_len; /*!< Size of the report buffer. */
+	char            error[256]; /*!< Error buffer for description of last system error. */
 };
 
 static void *M_io_hid_runloop_runner(void *arg)
 {
 	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
 
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	handle->runloop = CFRunLoopGetCurrent();
 	IOHIDDeviceScheduleWithRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
+	M_io_layer_release(layer);
+
 	CFRunLoopRun();
 
 	return NULL;
@@ -58,13 +62,21 @@ static M_io_error_t M_io_hid_ioreturn_to_err(IOReturn result)
 	switch (result) {
 		case kIOReturnSuccess:
 			return M_IO_ERROR_SUCCESS;
+		case kIOReturnNoMemory:
+		case kIOReturnNoResources:
+			return M_IO_ERROR_NOSYSRESOURCES;
+		case kIOReturnNoDevice:
+		case kIOReturnNotFound:
+			return M_IO_ERROR_NOTFOUND;
 		case kIOReturnNotPrivileged:
 		case kIOReturnNotPermitted:
 			return M_IO_ERROR_NOTPERM;
-		case kIOReturnNoResources:
-			return M_IO_ERROR_NOSYSRESOURCES;
 		case kIOReturnBadArgument:
 			return M_IO_ERROR_INVALID;
+		case kIOReturnLockedRead:
+		case kIOReturnLockedWrite:
+		case kIOReturnBusy:
+			return M_IO_ERROR_WOULDBLOCK;
 		case kIOReturnNotOpen:
 			return M_IO_ERROR_NOTCONNECTED;
 		case kIOReturnTimeout:
@@ -75,6 +87,120 @@ static M_io_error_t M_io_hid_ioreturn_to_err(IOReturn result)
 			return M_IO_ERROR_ERROR;
 	}
 	return M_IO_ERROR_ERROR;
+}
+
+static const char *M_io_hid_sys_errormsg(IOReturn result)
+{
+	switch (result) {
+		case kIOReturnSuccess:
+			return "OK";
+		case kIOReturnError:
+			return "general error";
+		case kIOReturnNoMemory:
+			return "can't allocate memory";
+		case kIOReturnNoResources:
+			return "resource shortage";
+		case kIOReturnIPCError:
+			return "error during IPC";
+		case kIOReturnNoDevice:
+			return "no such device";
+		case kIOReturnNotPrivileged:
+			return "privilege violation ";
+		case kIOReturnBadArgument:
+			return "invalid argument";
+		case kIOReturnLockedRead:
+			return "device read locked";
+		case kIOReturnLockedWrite:
+			return "device write locked";
+		case kIOReturnExclusiveAccess:
+			return "exclusive access and";
+		case kIOReturnBadMessageID:
+			return "sent/received messages";
+		case kIOReturnUnsupported:
+			return "unsupported function ";
+		case kIOReturnVMError:
+			return "misc. VM failure";
+		case kIOReturnInternalError:
+			return "internal error";
+		case kIOReturnIOError:
+			return "General I/O error";
+		case kIOReturnCannotLock:
+			return "can't acquire lock";
+		case kIOReturnNotOpen:
+			return "device not open ";
+		case kIOReturnNotReadable:
+			return "read not supported";
+		case kIOReturnNotWritable:
+			return "write not supported";
+		case kIOReturnNotAligned:
+			return "alignment error";
+		case kIOReturnBadMedia:
+			return "Media Error";
+		case kIOReturnStillOpen:
+			return "device(s) still open ";
+		case kIOReturnRLDError:
+			return "rld failure";
+		case kIOReturnDMAError:
+			return "DMA failure";
+		case kIOReturnBusy:
+			return "Device Busy";
+		case kIOReturnTimeout:
+			return "I/O Timeout";
+		case kIOReturnOffline:
+			return "device offline";
+		case kIOReturnNotReady:
+			return "not ready";
+		case kIOReturnNotAttached:
+			return "device not attached";
+		case kIOReturnNoChannels:
+			return "no DMA channels left";
+		case kIOReturnNoSpace:
+			return "no space for data";
+		case kIOReturnPortExists:
+			return "port already exists";
+		case kIOReturnCannotWire:
+			return "can't wire down ";
+		case kIOReturnNoInterrupt:
+			return "no interrupt attached";
+		case kIOReturnNoFrames:
+			return "no DMA frames enqueued";
+		case kIOReturnMessageTooLarge:
+			return "oversized msg received";
+		case kIOReturnNotPermitted:
+			return "not permitted";
+		case kIOReturnNoPower:
+			return "no power to device";
+		case kIOReturnNoMedia:
+			return "media not present";
+		case kIOReturnUnformattedMedia:
+			return "media not formatted";
+		case kIOReturnUnsupportedMode:
+			return "no such mode";
+		case kIOReturnUnderrun:
+			return "data underrun ";
+		case kIOReturnOverrun:
+			return "data overrun ";
+		case kIOReturnDeviceError:
+			return "the device is not working properly!";
+		case kIOReturnNoCompletion:
+			return "a completion routine is required";
+		case kIOReturnAborted:
+			return "operation aborted";
+		case kIOReturnNoBandwidth:
+			return "bus bandwidth would be exceeded";
+		case kIOReturnNotResponding:
+			return "device not responding";
+		case kIOReturnIsoTooOld:
+			return "isochronous I/O request for distant past!";
+		case kIOReturnIsoTooNew:
+			return "isochronous I/O request for distant future";
+		case kIOReturnNotFound:
+			return "data was not found";
+		case kIOReturnInvalid:
+			return "should never be seen ";
+	}
+
+	return "Error";
 }
 
 static M_bool M_io_hid_get_prop(IOHIDDeviceRef device, char *out, size_t out_len, const char *id_s)
@@ -210,10 +336,9 @@ static void M_io_hid_read_iocb(void *context, IOReturn result, void *sender, IOH
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 
-
-	ioerr            = M_io_hid_ioreturn_to_err(result);
-	handle->last_err = ioerr;
+	ioerr = M_io_hid_ioreturn_to_err(result);
 	if (M_io_error_is_critical(ioerr)) {
+		M_snprintf(handle->error, sizeof(handle->error), "%s", M_io_hid_sys_errormsg(result));
 		M_io_hid_close_device(handle);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
@@ -333,7 +458,10 @@ M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	M_snprintf(error, err_len, "%s", M_io_error_string(handle->last_err));
+	if (M_str_isempty(handle->error))
+		return M_FALSE;
+
+	M_str_cpy(error, err_len, handle->error);
 	return M_TRUE;
 }
 
@@ -377,12 +505,10 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (M_buf_len(handle->writebuf) == 0)
 		return M_IO_ERROR_SUCCESS;
 
-	ioret            = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
-	ioerr            = M_io_hid_ioreturn_to_err(ioret);
-	handle->last_err = ioerr;
+	ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
+	ioerr = M_io_hid_ioreturn_to_err(ioret);
 	if (M_io_error_is_critical(ioerr)) {
-		M_io_hid_close_device(handle);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_snprintf(handle->error, sizeof(handle->error), "%s", M_io_hid_sys_errormsg(ioret));
 		return ioerr;
 	}
 	if (ioerr == M_IO_ERROR_SUCCESS) {
@@ -400,20 +526,14 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	if (M_buf_len(handle->readbuf) == 0) {
-		if (handle->last_err != M_IO_ERROR_SUCCESS) {
-			return handle->last_err;
-		}
-		handle->last_err = M_IO_ERROR_WOULDBLOCK;
+	if (M_buf_len(handle->readbuf) == 0)
 		return M_IO_ERROR_WOULDBLOCK;
-	}
 
 	if (*read_len > M_buf_len(handle->readbuf))
 		*read_len = M_buf_len(handle->readbuf);
 
 	M_mem_copy(buf, M_buf_peek(handle->readbuf), *read_len);
 	M_buf_drop(handle->readbuf, *read_len);
-	handle->last_err = M_IO_ERROR_SUCCESS;
 	return M_IO_ERROR_SUCCESS;
 }
 
