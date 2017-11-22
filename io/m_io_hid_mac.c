@@ -185,19 +185,6 @@ static void M_io_hid_close_device(M_io_handle_t *handle)
 	handle->device = NULL;
 }
 
-static void M_io_hid_destroy_handle(M_io_handle_t *handle)
-{
-	if (handle == NULL)
-		return;
-
-	M_io_hid_close_device(handle);
-	M_buf_cancel(handle->readbuf);
-	M_buf_cancel(handle->writebuf);
-	M_free(handle->report);
-
-	M_free(handle);
-}
-
 static void M_io_hid_disconnect_iocb(void *context, IOReturn result, void *sender)
 {
 	M_io_handle_t *handle = context;
@@ -215,6 +202,7 @@ static void M_io_hid_read_iocb(void *context, IOReturn result, void *sender, IOH
 {
 	M_io_handle_t *handle = context;
 	M_io_layer_t  *layer;
+	M_io_error_t   ioerr;
 
 	(void)type;
 	(void)reportID;
@@ -222,8 +210,10 @@ static void M_io_hid_read_iocb(void *context, IOReturn result, void *sender, IOH
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 
-	handle->last_err = M_io_hid_ioreturn_to_err(result);
-	if (M_io_error_is_critical(handle->last_err)) {
+
+	ioerr            = M_io_hid_ioreturn_to_err(result);
+	handle->last_err = ioerr;
+	if (M_io_error_is_critical(ioerr)) {
 		M_io_hid_close_device(handle);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
@@ -291,6 +281,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	io_registry_entry_t  entry  = MACH_PORT_NULL;
 	IOHIDDeviceRef       device = NULL;
 	IOReturn             ioret;
+	size_t               report_len;
 
 	if (M_str_isempty(devpath))
 		*ioerr = M_IO_ERROR_INVALID;
@@ -313,11 +304,15 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
+	report_len = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey);
+	if (report_len == 0) {
+		*ioerr = M_IO_ERROR_ERROR;
+		goto err;
+	}
+
 	handle             = M_malloc_zero(sizeof(*handle));
 	handle->device     = device;
-	handle->report_len = (size_t)M_io_hid_get_prop_int32(handle->device, kIOHIDMaxInputReportSizeKey);
-	if (handle->report_len == 0)
-		handle->report_len = 64;
+	handle->report_len = report_len;
 	handle->report     = M_malloc(handle->report_len);
 	handle->readbuf    = M_buf_create();
 	handle->writebuf   = M_buf_create();
@@ -353,13 +348,20 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_hid_destroy_handle(handle);
+
+	M_io_hid_close_device(handle);
+	M_buf_cancel(handle->readbuf);
+	M_buf_cancel(handle->writebuf);
+	M_free(handle->report);
+
+	M_free(handle);
 }
 
 M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	(void)layer;
 	(void)type;
+	/* Do nothing, all events are generated as soft events. */
 	return M_FALSE;
 }
 
@@ -375,8 +377,14 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (M_buf_len(handle->writebuf) == 0)
 		return M_IO_ERROR_SUCCESS;
 
-	ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
-	ioerr = M_io_hid_ioreturn_to_err(ioret);
+	ioret            = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
+	ioerr            = M_io_hid_ioreturn_to_err(ioret);
+	handle->last_err = ioerr;
+	if (M_io_error_is_critical(ioerr)) {
+		M_io_hid_close_device(handle);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		return ioerr;
+	}
 	if (ioerr == M_IO_ERROR_SUCCESS) {
 		*write_len = M_buf_len(handle->writebuf);
 		M_buf_truncate(handle->writebuf, 0);
@@ -388,15 +396,15 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	if (buf == NULL || *read_len == 0) {
-		M_io_layer_release(layer);
+
+	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
-	}
 
 	if (M_buf_len(handle->readbuf) == 0) {
 		if (handle->last_err != M_IO_ERROR_SUCCESS) {
 			return handle->last_err;
 		}
+		handle->last_err = M_IO_ERROR_WOULDBLOCK;
 		return M_IO_ERROR_WOULDBLOCK;
 	}
 
@@ -405,6 +413,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 
 	M_mem_copy(buf, M_buf_peek(handle->readbuf), *read_len);
 	M_buf_drop(handle->readbuf, *read_len);
+	handle->last_err = M_IO_ERROR_SUCCESS;
 	return M_IO_ERROR_SUCCESS;
 }
 
