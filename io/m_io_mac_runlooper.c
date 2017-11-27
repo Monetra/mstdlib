@@ -29,6 +29,7 @@ static void M_io_mac_runloop_stop(void *arg)
 	CFRunLoopStop(M_io_mac_runloop);
 	M_thread_join(loop_thread, NULL);
 	M_io_mac_runloop = NULL;
+	M_thread_once_reset(&loop_starter);
 }
 
 static void *M_io_mac_runloop_runner(void *arg)
