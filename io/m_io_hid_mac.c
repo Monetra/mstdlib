@@ -572,18 +572,20 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_WOULDBLOCK;
 	}
-	M_thread_mutex_unlock(handle->write_lock);
 
-	if (handle->device == NULL)
+	if (handle->device == NULL) {
+		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_NOTCONNECTED;
+	}
 
 	if (buf != NULL && *write_len != 0)
 		M_buf_add_bytes(handle->writebuf, buf, *write_len);
 
-	if (M_buf_len(handle->writebuf) == 0)
+	if (M_buf_len(handle->writebuf) == 0) {
+		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_SUCCESS;
+	}
 
-	M_thread_mutex_lock(handle->write_lock);
 	M_thread_cond_signal(handle->write_cond);
 	M_thread_mutex_unlock(handle->write_lock);
 	return M_IO_ERROR_SUCCESS;
