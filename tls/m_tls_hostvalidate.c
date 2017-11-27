@@ -177,28 +177,36 @@ static M_bool M_tls_verify_host_match(const char *hostname, const char *name, M_
 
 static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_tls_verify_host_flags_t flags)
 {
-	STACK_OF(GENERAL_NAME) *SANs        = NULL;
+	GENERAL_NAMES          *SANs        = NULL;
 	int                     count;
 	int                     i;
-	int                     idx         = 0;
+	int                     idx         = -1;
 	M_bool                  match_found = M_FALSE;
 
 	while ((SANs = X509_get_ext_d2i(x509, NID_subject_alt_name, NULL, &idx)) != NULL && !match_found) {
 		count = sk_GENERAL_NAME_num(SANs);
 		for (i=0; i<count; i++) {
 			const GENERAL_NAME *name    = sk_GENERAL_NAME_value(SANs, i);
-			const char         *dnsname = NULL;
+			char                dnsname[256];
 			char                ipaddr[64];
 
 			if (name->type != GEN_DNS && name->type != GEN_IPADD)
 				continue;
 
 			if (name->type == GEN_DNS) {
-				dnsname = (const char *)ASN1_STRING_get0_data(name->d.dNSName);
+				unsigned char *temp;
+				int            dnsname_len;
+
+				dnsname_len = ASN1_STRING_to_UTF8(&temp, name->d.dNSName);
 				/* Check for malformed name (e.g. embedded NULL or binary data). Use M_str_len_max() so we don't possibly
 				 * read beyond bounds of buffer */
-				if (M_str_len_max(dnsname, (size_t)ASN1_STRING_length(name->d.dNSName)+1) != (size_t)ASN1_STRING_length(name->d.dNSName))
+				if (dnsname == NULL || dnsname_len <= 0 || M_str_len_max((const char *)temp, (size_t)dnsname_len) != (size_t)dnsname_len) {
+					OPENSSL_free(temp);
 					continue;
+				}
+
+				M_str_cpy(dnsname, sizeof(dnsname), (const char *)temp);
+
 			} else if (name->type == GEN_IPADD) {
 				const unsigned char *ip_bin     = ASN1_STRING_get0_data(name->d.iPAddress);
 				size_t               ip_bin_len = (size_t)ASN1_STRING_length(name->d.iPAddress);
@@ -206,7 +214,7 @@ static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_
 				if (!M_io_net_bin_to_ipaddr(ipaddr, sizeof(ipaddr), ip_bin, ip_bin_len))
 					continue;
 
-				dnsname = ipaddr;
+				M_str_cpy(dnsname, sizeof(dnsname), ipaddr);
 			}
 
 			if (M_tls_verify_host_match(hostname, dnsname, flags)) {
@@ -217,7 +225,6 @@ static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_
 
 		sk_GENERAL_NAME_pop_free(SANs, GENERAL_NAME_free);
 	}
-
 	return match_found;
 }
 
