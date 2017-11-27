@@ -197,8 +197,6 @@ void M_event_queue_pending_clear(M_event_t *event, M_io_t *io);
 M_io_t *M_io_osevent_create(M_event_t *event);
 void M_io_osevent_trigger(M_io_t *io);
 
-
-
 #if !defined(_WIN32)
 extern struct M_event_impl_cbs M_event_impl_poll;
 #endif

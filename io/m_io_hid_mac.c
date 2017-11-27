@@ -23,6 +23,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_hid.h>
+#include "m_io_int.h"
 #include "m_io_hid_int.h"
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -33,7 +34,6 @@
 
 struct M_io_handle {
 	IOHIDDeviceRef    device;     /*!< Device handle. */
-	CFRunLoopRef      runloop;    /*!< RunLoop the device is using for async events. */
 	M_io_t           *io;         /*!< io object handle is associated with. */
 	M_buf_t          *readbuf;    /*!< Reads are transferred via a buffer. */
 	M_buf_t          *writebuf;   /*!< Writes are transferred via a buffer. */
@@ -192,15 +192,11 @@ static const char *M_io_hid_sys_errormsg(IOReturn result)
 	return "Error";
 }
 
-static void M_io_hid_stop_runloop(M_io_handle_t *handle)
+static void M_io_hid_disassociate_runloop(M_io_handle_t *handle)
 {
-	if (handle->runloop == NULL)
+	if (handle->device == NULL)
 		return;
-
-	IOHIDDeviceUnscheduleFromRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
-	CFRunLoopStop(handle->runloop);
-
-	handle->runloop = NULL;
+	IOHIDDeviceUnscheduleFromRunLoop(handle->device, M_io_mac_runloop, kCFRunLoopDefaultMode);
 }
 
 static void M_io_hid_close_device(M_io_handle_t *handle)
@@ -208,7 +204,7 @@ static void M_io_hid_close_device(M_io_handle_t *handle)
 	if (handle == NULL || handle->device == NULL)
 		return;
 
-	M_io_hid_stop_runloop(handle);
+	M_io_hid_disassociate_runloop(handle);
 
 	handle->run = M_FALSE;
 	M_thread_mutex_lock(handle->write_lock);
@@ -218,21 +214,6 @@ static void M_io_hid_close_device(M_io_handle_t *handle)
 
 	IOHIDDeviceClose(handle->device, kIOHIDOptionsTypeNone);
 	handle->device = NULL;
-}
-
-static void *M_io_hid_runloop_runner(void *arg)
-{
-	M_io_handle_t *handle = arg;
-	M_io_layer_t  *layer;
-
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	handle->runloop = CFRunLoopGetCurrent();
-	IOHIDDeviceScheduleWithRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
-	M_io_layer_release(layer);
-
-	CFRunLoopRun();
-
-	return NULL;
 }
 
 /* DO NOT use IOHIDDeviceSetReportWithCallback. As of macOS 10.12 it returns
@@ -245,6 +226,7 @@ static void *M_io_hid_write_loop(void *arg)
 	M_io_layer_t  *layer;
 	IOReturn       ioret;
 	M_io_error_t   ioerr;
+	size_t         len;
 
 	while (handle->run) {
 		M_thread_mutex_lock(handle->write_lock);
@@ -621,7 +603,7 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	/* Remove the device from the run loop so additional events won't come in
  	 * They shouldn't but let's be safe. */
-	M_io_hid_stop_runloop(handle);
+	M_io_hid_disassociate_runloop(handle);
 	return M_TRUE;
 }
 
@@ -635,17 +617,23 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 
+	/* Start the global macOS runloop if hasn't already been
+ 	 * started. The HID system uses a macOS runloop for event
+	 * processing and calls our callbacks which trigger events
+	 * in our event system. */
+	M_io_mac_runloop_start();
+
 	if (handle->device == NULL)
 		return M_FALSE;
 
 	handle->io = io;
 
-	/* Add the device to the device loop and register callbacks. */
+	/* Register event callbacks and associate the device with the macOS runloop. */
 	IOHIDDeviceRegisterRemovalCallback(handle->device, M_io_hid_disconnect_iocb, handle);
 	IOHIDDeviceRegisterInputReportCallback(handle->device, handle->report, (CFIndex)handle->report_len, M_io_hid_read_iocb, handle);
+	IOHIDDeviceScheduleWithRunLoop(handle->device, M_io_mac_runloop, kCFRunLoopDefaultMode);
 
 	/* Trigger connected soft event when registered with event handle */
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
-	M_thread_create(NULL, M_io_hid_runloop_runner, handle);
 	return M_TRUE;
 }

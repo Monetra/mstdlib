@@ -66,6 +66,7 @@ else ()
 		)
 	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
 		list(APPEND sources
+			m_io_mac_runlooper.c
 			m_io_hid_mac.c
 		)
 	else ()
