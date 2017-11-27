@@ -194,19 +194,19 @@ static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_
 				continue;
 
 			if (name->type == GEN_DNS) {
-				unsigned char *temp;
+				unsigned char *temp = NULL;
 				int            dnsname_len;
 
 				dnsname_len = ASN1_STRING_to_UTF8(&temp, name->d.dNSName);
 				/* Check for malformed name (e.g. embedded NULL or binary data). Use M_str_len_max() so we don't possibly
 				 * read beyond bounds of buffer */
-				if (dnsname == NULL || dnsname_len <= 0 || M_str_len_max((const char *)temp, (size_t)dnsname_len) != (size_t)dnsname_len) {
+				if (temp == NULL || dnsname_len <= 0 || M_str_len_max((const char *)temp, (size_t)dnsname_len) != (size_t)dnsname_len) {
 					OPENSSL_free(temp);
 					continue;
 				}
 
-				M_str_cpy(dnsname, sizeof(dnsname), (const char *)temp);
-
+				M_str_cpy_max(dnsname, sizeof(dnsname), (const char *)temp, dnsname_len);
+				OPENSSL_free(temp);
 			} else if (name->type == GEN_IPADD) {
 				const unsigned char *ip_bin     = ASN1_STRING_get0_data(name->d.iPAddress);
 				size_t               ip_bin_len = (size_t)ASN1_STRING_length(name->d.iPAddress);
