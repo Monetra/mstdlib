@@ -39,6 +39,7 @@ struct M_io_handle {
 	M_buf_t          *writebuf;   /*!< Writes are transferred via a buffer. */
 	unsigned char    *report;     /*!< Buffer for storing report data that will be read from thh device. */
 	size_t            report_len; /*!< Size of the report buffer. */
+	M_bool            uses_reportid;
 	M_bool            run;
 	M_threadid_t      write_tid;
 	M_thread_mutex_t *write_lock;
@@ -227,6 +228,9 @@ static void *M_io_hid_write_loop(void *arg)
 	M_io_layer_t  *layer;
 	IOReturn       ioret;
 	M_io_error_t   ioerr;
+	const uint8_t *data;
+	uint8_t        reportid;
+	CFIndex        len;
 
 	while (handle->run) {
 		M_thread_mutex_lock(handle->write_lock);
@@ -246,7 +250,15 @@ static void *M_io_hid_write_loop(void *arg)
 		handle->in_write = M_TRUE;
 		M_thread_mutex_unlock(handle->write_lock);
 
-		ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
+		data     = (const uint8_t *)M_buf_peek(handle->writebuf);
+		len      = (CFIndex)M_buf_len(handle->writebuf);
+		reportid = data[0];
+		if (!handle->uses_reportid) {
+			/* Don't send the report id in the data if we're not using report ids. */
+			data++;
+			len--;
+		}
+		ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, reportid, data, len);
 		ioerr = M_io_hid_ioreturn_to_err(ioret);
 		/* Lock the layer so we can send events. */
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
@@ -278,6 +290,37 @@ static void *M_io_hid_write_loop(void *arg)
 	}
 
 	return NULL;
+}
+
+static M_bool M_io_hid_uses_reportid(IOHIDDeviceRef device)
+{
+	CFArrayRef      elements;
+	IOHIDElementRef e;
+	CFIndex         i;
+	CFIndex         len;
+	M_bool          ret = M_FALSE;
+
+	elements = IOHIDDeviceCopyMatchingElements(device, NULL, kIOHIDOptionsTypeNone);
+	if (elements == NULL)
+		return M_FALSE;
+
+	len = CFArrayGetCount(elements);
+	for (i=0; i<len; i++) {
+		e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
+		if (e == NULL) {
+			continue;
+		}
+		if (IOHIDElementGetType(e) != kIOHIDElementTypeOutput) {
+			continue;
+		}
+		if (IOHIDElementGetReportID(e) != 0) {
+			ret = M_TRUE;
+			break;
+		}
+	}
+
+	CFRelease(elements);
+	return ret;
 }
 
 static M_bool M_io_hid_get_prop(IOHIDDeviceRef device, char *out, size_t out_len, const char *id_s)
@@ -460,6 +503,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	io_registry_entry_t  entry  = MACH_PORT_NULL;
 	IOHIDDeviceRef       device = NULL;
 	IOReturn             ioret;
+	M_bool               uses_reportid;
 	size_t               report_len;
 
 	if (M_str_isempty(devpath))
@@ -483,21 +527,23 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	report_len = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey);
+	uses_reportid = M_io_hid_uses_reportid(device);
+	report_len    = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey);
 	if (report_len == 0) {
 		*ioerr = M_IO_ERROR_ERROR;
 		goto err;
 	}
 
-	handle             = M_malloc_zero(sizeof(*handle));
-	handle->device     = device;
-	handle->report_len = report_len;
-	handle->report     = M_malloc(handle->report_len);
-	handle->readbuf    = M_buf_create();
-	handle->writebuf   = M_buf_create();
-	handle->write_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-	handle->write_cond = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-	handle->run        = M_TRUE;
+	handle                = M_malloc_zero(sizeof(*handle));
+	handle->device        = device;
+	handle->report_len    = report_len;
+	handle->report        = M_malloc(handle->report_len);
+	handle->uses_reportid = uses_reportid;
+	handle->readbuf       = M_buf_create();
+	handle->writebuf      = M_buf_create();
+	handle->write_lock    = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->write_cond    = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	handle->run           = M_TRUE;
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
@@ -594,6 +640,8 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         offset = 0;
+	size_t         len;
 
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
@@ -604,11 +652,27 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (M_buf_len(handle->readbuf) == 0)
 		return M_IO_ERROR_WOULDBLOCK;
 
-	if (*read_len > M_buf_len(handle->readbuf))
-		*read_len = M_buf_len(handle->readbuf);
+	len = M_buf_len(handle->readbuf);
+	/* Don't try to read more than our buffer. */
+	if (*read_len > len)
+		len = *read_len;
 
-	M_mem_copy(buf, M_buf_peek(handle->readbuf), *read_len);
-	M_buf_drop(handle->readbuf, *read_len);
+	if (!handle->uses_reportid) {
+		/* If we don't use report ids, we must prefix the read buffer with a zero. */
+		buf[0] = 0;
+		offset = 1;
+		/* If we're maxed on the buffer we need to make room for the offset amount. */
+		if (*read_len == len) {
+			len -= offset;
+		}
+	}
+
+	/* Copy from the read buffer into the output buffer. */
+	M_mem_copy(buf+offset, M_buf_peek(handle->readbuf), len);
+	/* Drop what we read. */
+	M_buf_drop(handle->readbuf, len);
+	/* our read total is how much we read from the readbuf plus how much we pre-filled. */
+	*read_len = len+offset;
 	return M_IO_ERROR_SUCCESS;
 }
 
