@@ -205,7 +205,7 @@ static M_bool M_tls_verify_host_subjaltname(X509 *x509, const char *hostname, M_
 					continue;
 				}
 
-				M_str_cpy_max(dnsname, sizeof(dnsname), (const char *)temp, dnsname_len);
+				M_str_cpy_max(dnsname, sizeof(dnsname), (const char *)temp, (size_t)dnsname_len);
 				OPENSSL_free(temp);
 			} else if (name->type == GEN_IPADD) {
 				const unsigned char *ip_bin     = ASN1_STRING_get0_data(name->d.iPAddress);
