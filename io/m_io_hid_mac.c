@@ -44,6 +44,7 @@ struct M_io_handle {
 	M_thread_mutex_t *write_lock;
 	M_thread_cond_t  *write_cond;
 	char              error[256]; /*!< Error buffer for description of last system error. */
+	M_bool            in_write;
 };
 
 static M_io_error_t M_io_hid_ioreturn_to_err(IOReturn result)
@@ -226,11 +227,12 @@ static void *M_io_hid_write_loop(void *arg)
 	M_io_layer_t  *layer;
 	IOReturn       ioret;
 	M_io_error_t   ioerr;
-	size_t         len;
 
 	while (handle->run) {
 		M_thread_mutex_lock(handle->write_lock);
-		M_thread_cond_wait(handle->write_cond, handle->write_lock);
+		if (M_buf_len(handle->writebuf) == 0) {
+			M_thread_cond_wait(handle->write_cond, handle->write_lock);
+		}
 		if (!handle->run || handle->device == NULL) {
 			M_thread_mutex_unlock(handle->write_lock);
 			break;
@@ -241,6 +243,8 @@ static void *M_io_hid_write_loop(void *arg)
 			M_thread_mutex_unlock(handle->write_lock);
 			continue;
 		}
+		handle->in_write = M_TRUE;
+		M_thread_mutex_unlock(handle->write_lock);
 
 		ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
 		ioerr = M_io_hid_ioreturn_to_err(ioret);
@@ -251,6 +255,9 @@ static void *M_io_hid_write_loop(void *arg)
 			M_io_hid_close_device(handle);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 			M_io_layer_release(layer);
+
+			M_thread_mutex_lock(handle->write_lock);
+			handle->in_write = M_FALSE;
 			M_thread_mutex_unlock(handle->write_lock);
 			break;
 		}
@@ -265,6 +272,8 @@ static void *M_io_hid_write_loop(void *arg)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 		M_io_layer_release(layer);
 
+		M_thread_mutex_lock(handle->write_lock);
+		handle->in_write = M_FALSE;
 		M_thread_mutex_unlock(handle->write_lock);
 	}
 
@@ -559,19 +568,22 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (!M_thread_mutex_trylock(handle->write_lock))
 		return M_IO_ERROR_WOULDBLOCK;
 
-	if (handle->device == NULL) {
+	if (handle->in_write) {
 		M_thread_mutex_unlock(handle->write_lock);
-		return M_IO_ERROR_NOTCONNECTED;
+		return M_IO_ERROR_WOULDBLOCK;
 	}
+	M_thread_mutex_unlock(handle->write_lock);
+
+	if (handle->device == NULL)
+		return M_IO_ERROR_NOTCONNECTED;
 
 	if (buf != NULL && *write_len != 0)
 		M_buf_add_bytes(handle->writebuf, buf, *write_len);
 
-	if (M_buf_len(handle->writebuf) == 0) {
-		M_thread_mutex_unlock(handle->write_lock);
+	if (M_buf_len(handle->writebuf) == 0)
 		return M_IO_ERROR_SUCCESS;
-	}
 
+	M_thread_mutex_lock(handle->write_lock);
 	M_thread_cond_signal(handle->write_cond);
 	M_thread_mutex_unlock(handle->write_lock);
 	return M_IO_ERROR_SUCCESS;
