@@ -32,30 +32,19 @@
 #include <IOKit/hid/IOHIDManager.h>
 
 struct M_io_handle {
-	IOHIDDeviceRef  device;     /*!< Device handle. */
-	CFRunLoopRef    runloop;    /*!< RunLoop the device is using for async events. */
-	M_io_t         *io;         /*!< io object handle is associated with. */
-	M_buf_t        *readbuf;    /*!< Reads are transferred via a buffer. */
-	M_buf_t        *writebuf;   /*!< Writes are transferred via a buffer. */
-	unsigned char  *report;     /*!< Buffer for storing report data that will be read from thh device. */
-	size_t          report_len; /*!< Size of the report buffer. */
-	char            error[256]; /*!< Error buffer for description of last system error. */
+	IOHIDDeviceRef    device;     /*!< Device handle. */
+	CFRunLoopRef      runloop;    /*!< RunLoop the device is using for async events. */
+	M_io_t           *io;         /*!< io object handle is associated with. */
+	M_buf_t          *readbuf;    /*!< Reads are transferred via a buffer. */
+	M_buf_t          *writebuf;   /*!< Writes are transferred via a buffer. */
+	unsigned char    *report;     /*!< Buffer for storing report data that will be read from thh device. */
+	size_t            report_len; /*!< Size of the report buffer. */
+	M_bool            run;
+	M_threadid_t      write_tid;
+	M_thread_mutex_t *write_lock;
+	M_thread_cond_t  *write_cond;
+	char              error[256]; /*!< Error buffer for description of last system error. */
 };
-
-static void *M_io_hid_runloop_runner(void *arg)
-{
-	M_io_handle_t *handle = arg;
-	M_io_layer_t  *layer;
-
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	handle->runloop = CFRunLoopGetCurrent();
-	IOHIDDeviceScheduleWithRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
-	M_io_layer_release(layer);
-
-	CFRunLoopRun();
-
-	return NULL;
-}
 
 static M_io_error_t M_io_hid_ioreturn_to_err(IOReturn result)
 {
@@ -203,6 +192,103 @@ static const char *M_io_hid_sys_errormsg(IOReturn result)
 	return "Error";
 }
 
+static void M_io_hid_stop_runloop(M_io_handle_t *handle)
+{
+	if (handle->runloop == NULL)
+		return;
+
+	IOHIDDeviceUnscheduleFromRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
+	CFRunLoopStop(handle->runloop);
+
+	handle->runloop = NULL;
+}
+
+static void M_io_hid_close_device(M_io_handle_t *handle)
+{
+	if (handle == NULL || handle->device == NULL)
+		return;
+
+	M_io_hid_stop_runloop(handle);
+
+	handle->run = M_FALSE;
+	M_thread_mutex_lock(handle->write_lock);
+	M_thread_cond_broadcast(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
+	M_thread_join(handle->write_tid, NULL);
+
+	IOHIDDeviceClose(handle->device, kIOHIDOptionsTypeNone);
+	handle->device = NULL;
+}
+
+static void *M_io_hid_runloop_runner(void *arg)
+{
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	handle->runloop = CFRunLoopGetCurrent();
+	IOHIDDeviceScheduleWithRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
+	M_io_layer_release(layer);
+
+	CFRunLoopRun();
+
+	return NULL;
+}
+
+/* DO NOT use IOHIDDeviceSetReportWithCallback. As of macOS 10.12 it returns
+ * a not implemented error. As of 10.13 it will cause a kernel panic.
+ * To make writes non-blocking we have a write thread that uses the
+ * blocking write function. */
+static void *M_io_hid_write_loop(void *arg)
+{
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
+	IOReturn       ioret;
+	M_io_error_t   ioerr;
+
+	while (handle->run) {
+		M_thread_mutex_lock(handle->write_lock);
+		M_thread_cond_wait(handle->write_cond, handle->write_lock);
+		if (!handle->run || handle->device == NULL) {
+			M_thread_mutex_unlock(handle->write_lock);
+			break;
+		}
+		/* If there isn't anything to write we have nothing to
+ 		 * do right now. */
+		if (M_buf_len(handle->writebuf) == 0) {
+			M_thread_mutex_unlock(handle->write_lock);
+			continue;
+		}
+
+		ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
+		ioerr = M_io_hid_ioreturn_to_err(ioret);
+		/* Lock the layer so we can send events. */
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		if (M_io_error_is_critical(ioerr)) {
+			M_snprintf(handle->error, sizeof(handle->error), "%s", M_io_hid_sys_errormsg(ioret));
+			M_io_hid_close_device(handle);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+			M_io_layer_release(layer);
+			M_thread_mutex_unlock(handle->write_lock);
+			break;
+		}
+		/* clear the write buf since we've written the data. If
+ 		 * there was a recoverable error we don't clear the buf
+		 * because the write event will trigger this to run
+		 * again and the write will be retried. */
+		if (ioerr == M_IO_ERROR_SUCCESS) {
+			M_buf_truncate(handle->writebuf, 0);
+		}
+
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+		M_io_layer_release(layer);
+
+		M_thread_mutex_unlock(handle->write_lock);
+	}
+
+	return NULL;
+}
+
 static M_bool M_io_hid_get_prop(IOHIDDeviceRef device, char *out, size_t out_len, const char *id_s)
 {
 	CFStringRef  prop;
@@ -285,30 +371,6 @@ static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, IOHIDDeviceRef device
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
 
 	M_free(path);
-}
-
-static void M_io_hid_stop_runloop(M_io_handle_t *handle)
-{
-	if (handle->runloop == NULL)
-		return;
-
-	IOHIDDeviceUnscheduleFromRunLoop(handle->device, handle->runloop, kCFRunLoopDefaultMode);
-	CFRunLoopStop(handle->runloop);
-
-	handle->runloop = NULL;
-}
-
-static void M_io_hid_close_device(M_io_handle_t *handle)
-{
-	if (handle == NULL)
-		return;
-
-	if (handle->device == NULL)
-		return;
-
-	M_io_hid_stop_runloop(handle);
-	IOHIDDeviceClose(handle->device, kIOHIDOptionsTypeNone);
-	handle->device = NULL;
 }
 
 static void M_io_hid_disconnect_iocb(void *context, IOReturn result, void *sender)
@@ -403,6 +465,7 @@ done:
 M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 {
 	M_io_handle_t       *handle;
+	M_thread_attr_t     *tattr;
 	io_registry_entry_t  entry  = MACH_PORT_NULL;
 	IOHIDDeviceRef       device = NULL;
 	IOReturn             ioret;
@@ -441,6 +504,14 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->report     = M_malloc(handle->report_len);
 	handle->readbuf    = M_buf_create();
 	handle->writebuf   = M_buf_create();
+	handle->write_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->write_cond = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	handle->run        = M_TRUE;
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	handle->write_tid  = M_thread_create(tattr, M_io_hid_write_loop, handle);
+	M_thread_attr_destroy(tattr);
 
 	IOObjectRelease(entry);
 	return handle;
@@ -478,6 +549,9 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
 	M_io_hid_close_device(handle);
+
+	M_thread_mutex_destroy(handle->write_lock);
+	M_thread_cond_destroy(handle->write_cond);
 	M_buf_cancel(handle->readbuf);
 	M_buf_cancel(handle->writebuf);
 	M_free(handle->report);
@@ -496,27 +570,29 @@ M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	IOReturn       ioret;
-	M_io_error_t   ioerr;
+
+	/* If we can't lock then the write thread has the lock.
+ 	 * We can't put anything into the buffer while it's
+	 * processing so return would block. */
+	if (!M_thread_mutex_trylock(handle->write_lock))
+		return M_IO_ERROR_WOULDBLOCK;
+
+	if (handle->device == NULL) {
+		M_thread_mutex_unlock(handle->write_lock);
+		return M_IO_ERROR_NOTCONNECTED;
+	}
 
 	if (buf != NULL && *write_len != 0)
 		M_buf_add_bytes(handle->writebuf, buf, *write_len);
 
-	if (M_buf_len(handle->writebuf) == 0)
+	if (M_buf_len(handle->writebuf) == 0) {
+		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_SUCCESS;
+	}
 
-	ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, 0, (const uint8_t *)M_buf_peek(handle->writebuf), (CFIndex)M_buf_len(handle->writebuf));
-	ioerr = M_io_hid_ioreturn_to_err(ioret);
-	if (M_io_error_is_critical(ioerr)) {
-		M_snprintf(handle->error, sizeof(handle->error), "%s", M_io_hid_sys_errormsg(ioret));
-		return ioerr;
-	}
-	if (ioerr == M_IO_ERROR_SUCCESS) {
-		*write_len = M_buf_len(handle->writebuf);
-		M_buf_truncate(handle->writebuf, 0);
-	}
-	
-	return ioerr;
+	M_thread_cond_signal(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
+	return M_IO_ERROR_SUCCESS;
 }
 
 M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
@@ -525,6 +601,9 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
+
+	if (handle->device == NULL)
+		return M_IO_ERROR_NOTCONNECTED;
 
 	if (M_buf_len(handle->readbuf) == 0)
 		return M_IO_ERROR_WOULDBLOCK;
@@ -541,7 +620,7 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	/* Remove the device from the run loop so additional events won't come in
- 	 * They shouldn't be letes be safe. */
+ 	 * They shouldn't but let's be safe. */
 	M_io_hid_stop_runloop(handle);
 	return M_TRUE;
 }
