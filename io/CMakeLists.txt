@@ -64,6 +64,10 @@ else ()
 		list(APPEND sources
 			m_io_hid_linux.c
 		)
+	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
+		list(APPEND sources
+			m_io_hid_mac.c
+		)
 	else ()
 		list(APPEND sources
 			m_io_hid_notimpl.c
@@ -148,7 +152,7 @@ if (ANDROID)
 endif ()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-	if (NOT IOS)
+	if (NOT IOS AND NOT IOSSIM)
 		find_library(IOKIT NAMES IOKit)
 		target_link_libraries(${PROJECT_NAME}
 			PUBLIC "${IOKIT}"
