@@ -519,6 +519,21 @@ M_API size_t M_mem_count(const void *s, size_t s_len, M_uint8 b) M_WARN_UNUSED_R
 M_API unsigned char M_mem_calc_lrc(const void *s, size_t s_len);
 
 
+/*! Calculate a CRC (CRC-8/CCITT).
+ *
+ * This is an 8-bit cyclic redundancy check (CRC), using the CCITT standard
+ * polynomial: <tt>x^8 + x^2 + x + 1</tt>. It's calculated using an initial
+ * value of zero.
+ *
+ * Implementation is based on public-domain code that can be found here: https://www.3dbrew.org/wiki/CRC-8-CCITT
+ *
+ * \param[in] s     Pointer to data to perform check on.
+ * \param[in] s_len Size of memory area s.
+ * \return          CRC value.
+ */
+M_API M_uint8 M_mem_calc_crc8_ccitt(const void *s, size_t s_len);
+
+
 /*! Swap byes between positions.
  *
  * \param[in,out] s     Buffer with data to swap.
