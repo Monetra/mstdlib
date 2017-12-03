@@ -18,6 +18,10 @@
 #     Copy the given dependencies to the build directory, without installing them. Uses the same library resolution rules
 #     as install_deplibs, the only difference is that it doesn't install anything.
 #
+# get_fixup_lib_dirs(outlistname [... lib files or import targets ...])
+#     Get library directories from the given list of files and targets, and remove system dirs and any duplicates.
+#     The resulting list can then be passed to fixup_bundle().
+#
 # Extra variables that modify how the function call works:
 # INSTALL_DEPLIBS_COPY_DLL  - if TRUE (the default), any DLL's installed with install_deplibs will also be copied to
 #                             the bin dir of the build directory. Set to FALSE to disable DLL copies.
@@ -38,7 +42,11 @@ set(_internal_install_deplibs_already_included TRUE)
 # used to extract DLL names from mingw interface libs (.dll.a).
 find_program(DLLTOOL dlltool)
 # used to extract SONAME from shared libs on ELF platforms.
-find_program(READELF readelf DOC "readelf (unix/ELF only)")
+find_program(READELF
+	NAMES readelf
+	      elfdump  #on Solaris, "elfdump -d" gives very similar output to "readelf -d" on Linux.
+	DOC "readelf (unix/ELF only)"
+)
 
 mark_as_advanced(FORCE DLLTOOL READELF)
 
@@ -71,6 +79,9 @@ function(get_dll_from_implib out_dll path)
 			set(libname)
 		endif ()
 	endif ()
+
+	string(TOLOWER "${libname}" libname_lower)
+	string(TOUPPER "${libname}" libname_upper)
 
 	if (NOT libname)
 		# Get library name by removing .lib or .dll.a from extension.
@@ -110,7 +121,7 @@ function(get_dll_from_implib out_dll path)
 
 	set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
 	find_library(${clibname}_DLL
-		NAMES           ${libname} ${nolibname} ${alt_names}
+		NAMES           ${libname} ${libname_lower} ${libname_upper} ${nolibname} ${alt_names}
 		HINTS           "${imp_dir}"
 		                "${root_dir}"
 		NO_DEFAULT_PATH
@@ -220,11 +231,20 @@ function(read_soname outvarname path)
 	endif ()
 
 	# Parse the SONAME out of the header.
-	if (NOT header MATCHES "\\(SONAME\\)[^\n]+\\[([^\n]+)\\]") # If output didn't contain SONAME field.
-		return()
+	if (READELF MATCHES "readelf")
+		# Linux (readelf) format:   0x000000000000000e (SONAME) Library soname: [libssl.so.1.0.0]
+		if (NOT header MATCHES "\\(SONAME\\)[^\n]+\\[([^\n]+)\\]")
+			return()
+		endif ()
+	else ()
+		# Solaris (elfdump) format: [8] SONAME 0x49c1 libssl.so.1.0.0
+		if (NOT header MATCHES "\\[[0-9]+\\][ \t]+SONAME[ \t]+[x0-9a-fA-F]+[ \t]+([^\n]+)")
+			return()
+		endif ()
 	endif ()
 
-	set(${outvarname} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+	string(STRIP "${CMAKE_MATCH_1}" soname)
+	set(${outvarname} "${soname}" PARENT_SCOPE)
 endfunction()
 
 
@@ -266,7 +286,7 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 
 		# AIX apparently links against the .so filename, not the one with versioning info.
 		set(aix_libname)
-		if (OSTYPE STREQUAL "aix")
+		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
 			get_filename_component(aix_libname "${path}" NAME)
 		endif ()
 
@@ -369,6 +389,37 @@ function(install_deplibs lib_dest runtime_dest)
 endfunction()
 
 
+# get_fixup_lib_dirs(outlistname [... lib files or import targets ...])
+function(get_fixup_lib_dirs outlistname)
+	set(libs "${ARGN}")
+	if (NOT libs)
+		set(${outlistname} PARENT_SCOPE)
+	endif ()
+
+	set(lib_paths)
+	while(libs)
+		get_paths_from_libs("" "" "" lib_paths libs)
+	endwhile()
+
+	set(fixup_lib_paths)
+	foreach(lib IN LISTS lib_paths)
+		get_filename_component(lib_dir "${lib}" DIRECTORY)
+		# If library was nested down in a framework directory, use parent dir instead (APPLE only).
+		if (APPLE)
+			# Don't allow stuff from system dirs on Apple.
+			if (lib_dir MATCHES "^/usr/lib" OR lib_dir MATCHES "^/System/Library")
+				continue()
+			endif ()
+			string(REGEX REPLACE "/[^/]+\.framework$" "" lib_dir "${lib_dir}")
+		endif ()
+		list(APPEND fixup_lib_dirs "${lib_dir}")
+	endforeach()
+	list(REMOVE_DUPLICATES fixup_lib_dirs)
+
+	set(${outlistname} "${fixup_lib_dirs}" PARENT_SCOPE)
+endfunction()
+
+
 # copy_deplibs([... lib files or import targets...])
 function(copy_deplibs)
 	_install_deplibs_internal("" "" "" TRUE FALSE ${ARGN})
@@ -411,6 +462,25 @@ function(install_system_deplibs lib_dest runtime_dest)
 			if (MINGW_STDCXX_LIBRARY)
 				list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_STDCXX_LIBRARY}")
 			endif ()
+		endif ()
+	endif ()
+
+	# If we're compiling on AIX or Solaris with GCC instead of the default system compiler, make sure to
+	# include libgcc_s.
+	if ((CMAKE_SYSTEM_NAME MATCHES "AIX" OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND CMAKE_C_COMPILER_ID MATCHES "GNU")
+		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
+		string(REGEX REPLACE "(/)*bin(/)*.*$" "" search_dir "${search_dir}")
+		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
+			set(ext .a)
+		else ()
+			set(ext .so)
+		endif ()
+		find_library(LIBGCC_S
+			NAMES libgcc_s${ext}
+			PATHS "${search_dir}"
+		)
+		if (LIBGCC_S)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBGCC_S}")
 		endif ()
 	endif ()
 

@@ -884,17 +884,17 @@ static M_sql_error_t mysql_cb_begin(M_sql_conn_t *conn, M_sql_isolation_t isolat
 	stmt = M_sql_conn_execute_simple(conn, query, M_FALSE);
 	err  = M_sql_stmt_get_error(stmt);
 	if (stmt == NULL || err != M_SQL_ERROR_SUCCESS) {
-		M_snprintf(error, error_size, "SET ISOLATION %s failed: %s: %s", iso, M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
+		M_snprintf(error, error_size, "SET ISOLATION %s failed: %s: %s. Force Reconnect.", iso, M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 		M_sql_stmt_destroy(stmt);
-		return err;
+		return M_SQL_ERROR_CONN_LOST;
 	}
 	M_sql_stmt_destroy(stmt);
 
 	if (mysql_autocommit(dconn->conn, 0) != 0) {
 		unsigned int merr = mysql_errno(dconn->conn);
 		err               = mysql_resolve_error(NULL, (M_int32)merr);
-		M_snprintf(error, error_size, "failed to disable autocommit: (%u) %s", merr, mysql_error(dconn->conn));
-		return err;
+		M_snprintf(error, error_size, "failed to disable autocommit: (%u) %s. Force Reconnect.", merr, mysql_error(dconn->conn));
+		return M_SQL_ERROR_CONN_LOST;
 	}
 
 	return err;
@@ -911,10 +911,10 @@ static M_sql_error_t mysql_cb_rollback(M_sql_conn_t *conn)
 		unsigned int merr = mysql_errno(dconn->conn);
 		char         msg[256];
 		err               = mysql_resolve_error(NULL, (M_int32)merr);
-		M_snprintf(msg, sizeof(msg), "Rollback Failed: %s", mysql_error(dconn->conn));
+		M_snprintf(msg, sizeof(msg), "Rollback Failed: %s. Force Reconnect.", mysql_error(dconn->conn));
 		M_sql_driver_trace_message(M_FALSE, NULL, conn, err, msg);
 
-		return err;
+		return M_SQL_ERROR_CONN_LOST;
 	}
 
 	/* Enable auto-commit, will disable it in transactions */
@@ -950,8 +950,10 @@ static M_sql_error_t mysql_cb_commit(M_sql_conn_t *conn, char *error, size_t err
 		err               = mysql_resolve_error(NULL, (M_int32)merr);
 		M_snprintf(error, error_size, "COMMIT failed (%u): %s", merr, mysql_error(dconn->conn));
 
-		/* On failure to commit, attempt a rollback */
-		mysql_cb_rollback(conn);
+		/* On failure to commit, attempt a rollback.  If rollback forced a disconnect,
+		 * honor it, otherwise relay the original error code. */
+		if (mysql_cb_rollback(conn) == M_SQL_ERROR_CONN_LOST)
+			return M_SQL_ERROR_CONN_LOST;
 		return err;
 	}
 

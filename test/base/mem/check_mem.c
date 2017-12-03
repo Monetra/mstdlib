@@ -441,6 +441,27 @@ START_TEST(check_mem_count_nonzero_as_one)
 }
 END_TEST
 
+START_TEST(check_mem_calc_crc8_ccitt)
+{
+	M_uint8 test1_data[] = {
+		0x01, 0x02, 0x03, 0xFF, 0xF2, 0xA7, 0x05
+	};
+	M_uint8 test2_data[] = {
+		0x00, 0x00, 0x00, 0x20, 0x50, 0x01, 0x00, 0x00,
+		0x1A, 0xD7, 0x0A, 0x30, 0x2E, 0x30, 0x30, 0x2E,
+		0x30, 0x34, 0x2E, 0x30, 0x34, 0xD3, 0x04, 0x11,
+		0x00, 0x00, 0x00, 0xD4, 0x01, 0xFF, 0xDF, 0x3A,
+		0x02, 0x01, 0x00, 0xB7
+	};
+
+	size_t test1_len = sizeof(test1_data) / sizeof(*test1_data);
+	size_t test2_len = sizeof(test2_data) / sizeof(*test2_data);
+
+	ck_assert(M_mem_calc_crc8_ccitt(test1_data, test1_len) == 0x28);
+	ck_assert(M_mem_calc_crc8_ccitt(test2_data, test2_len) == 0x89);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *mem_suite(void)
@@ -456,6 +477,7 @@ static Suite *mem_suite(void)
 	TCase *tc_mem_str;
 	TCase *tc_mem_copy;
 	TCase *tc_mem_count;
+	TCase *tc_mem_checksum;
    
 	suite = suite_create("mem");
 
@@ -519,6 +541,10 @@ static Suite *mem_suite(void)
 	tcase_add_test(tc_mem_count, check_mem_count_zero_as_zero);
 	tcase_add_loop_test(tc_mem_count, check_mem_count_nonzero_as_one, 0, sizeof(COUNT_NONZERO_AS_ONE)-1);
 	suite_add_tcase(suite, tc_mem_count);
+
+	tc_mem_checksum = tcase_create("mem_checksum");
+	tcase_add_test(tc_mem_checksum, check_mem_calc_crc8_ccitt);
+	suite_add_tcase(suite, tc_mem_checksum);
 
 	return suite;
 }

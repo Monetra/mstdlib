@@ -2,9 +2,10 @@
 #
 # Sets CPACK_PACKAGE_FILE_NAME to a more descriptive package name than the default one provided by CPack.
 # Examples:
-#    mstdlib-windows32-1.0.0
+#    Mstdlib-Windows32-1.0.0
 #    mstdlib-linux64-1.0.0
 #    mstdlib-linux64-arm-1.0.0
+#    Mstdlib-MacOS-1.0.0
 #
 # If the "WIN32_ABI" optional parameter is given, a C runtime library ABI description is added to the
 # name, like "msvc19" when built with VS 2015/2017, or "mingw" when built with MinGW.
@@ -12,14 +13,30 @@
 # set_package_name(product_name product_version [WIN32_ABI])
 
 function(set_package_name name version)
-	set(CPACK_PACKAGE_FILE_NAME ${name}-${CMAKE_SYSTEM_NAME})
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(arch 64)
+	else ()
+		set(arch 32)
+	endif ()
+	
+	set(force_lower FALSE)
+	if (WIN32)
+		set(sysname "Windows${arch}")
+	elseif (IOS)
+		set(sysname "iOS")
+	elseif (APPLE)
+		set(sysname "MacOS")
+	elseif (ANDROID)
+		set(sysname "Android")
+	else ()
+		set(sysname "${CMAKE_SYSTEM_NAME}${arch}")
+		set(force_lower TRUE)
+	endif ()
+
+	set(CPACK_PACKAGE_FILE_NAME "${name}-${sysname}")
+	
 	if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
 		string(APPEND CPACK_PACKAGE_FILE_NAME "-arm")
-	endif ()
-	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-		string(APPEND CPACK_PACKAGE_FILE_NAME "64")
-	else ()
-		string(APPEND CPACK_PACKAGE_FILE_NAME "32")
 	endif ()
 
 	if ("WIN32_ABI" IN_LIST ARGN)
@@ -36,7 +53,11 @@ function(set_package_name name version)
 	endif ()
 
 	string(APPEND CPACK_PACKAGE_FILE_NAME "-${version}")
-	string(TOLOWER "${CPACK_PACKAGE_FILE_NAME}" CPACK_PACKAGE_FILE_NAME)
+
+	if (force_lower)
+		string(TOLOWER "${CPACK_PACKAGE_FILE_NAME}" CPACK_PACKAGE_FILE_NAME)
+	endif ()
 
 	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}" PARENT_SCOPE)
 endfunction()
+

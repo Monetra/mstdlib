@@ -269,10 +269,13 @@ if (MSTDLIB_BUILD_THREAD)
 
 		# PThread functions.
 		check_include_files(pthread.h                                 HAVE_PTHREAD_H)
-		check_library_exists(pthread pthread_init                  "" HAVE_PTHREAD_INIT)
 		check_library_exists(pthread pthread_yield                 "" HAVE_PTHREAD_YIELD)
 		check_library_exists(pthread pthread_rwlock_init           "" HAVE_PTHREAD_RWLOCK_INIT)
 		check_library_exists(pthread pthread_rwlockattr_setkind_np "" HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP)
+
+		if (HAVE_PTHREAD_H)
+			check_symbol_exists(pthread_init "pthread.h" HAVE_PTHREAD_INIT)
+		endif ()
 
 		# Used in config.h.cmake.
 		check_symbol_exists(sysconf   "${check_extra_includes}" HAVE_SYSCONF)

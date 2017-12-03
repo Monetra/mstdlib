@@ -32,6 +32,10 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "m_event_int.h"
 
+#if defined(__APPLE__) && !defined(IO) 
+#  include <CoreFoundation/CoreFoundation.h>
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 __BEGIN_DECLS
@@ -115,6 +119,12 @@ void M_io_block_data_free(M_io_t *io);
 
 /* Here because DNS needs it instead of m_io_net_int.h */
 void M_io_net_init_system(void);
+
+#if defined(__APPLE__) && !defined(IO) 
+void M_io_mac_runloop_start(void);
+extern CFRunLoopRef M_io_mac_runloop;
+#endif
+
 
 __END_DECLS
 

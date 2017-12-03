@@ -32,6 +32,7 @@ endif ()
 set(_internal_enable_warnings_already_run TRUE)
 
 include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
 
 if (MSVC)
 	# Visual Studio uses a completely different nomenclature for warnings than gcc/mingw/clang, so none of the
@@ -100,9 +101,39 @@ foreach(_flag ${_flags})
 	
 	check_c_compiler_flag(${_flag} ${varname})
 	if (${varname})
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_flag}")
+		string(APPEND CMAKE_C_FLAGS " ${_flag}")
 	endif ()
-endforeach ()
+endforeach()
+
+# Add flags to force output colors.
+if (CMAKE_GENERATOR MATCHES "Ninja")
+	set(color_default TRUE)
+else ()
+	set(color_default FALSE)
+endif ()
+option(FORCE_COLOR "Force compiler to always colorize, even when output is redirected." ${color_default})
+mark_as_advanced(FORCE FORCE_COLOR)
+set(color_flags
+	-fdiagnostics-color=always # GCC
+	-fcolor-diagnostics        # Clang
+)
+get_property(langauges GLOBAL PROPERTY ENABLED_LANGUAGES)
+foreach(_flag ${color_flags})
+	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
+	
+	check_c_compiler_flag(${_flag} ${varname})
+	if (${varname})
+		string(APPEND CMAKE_C_FLAGS " ${_flag}")
+	endif ()
+	
+	if ("CXX" IN_LIST languages)
+		string(APPEND ${varname} "_CXX")
+		check_cxx_compiler_flag(${_flag} ${varname})
+		if (${varname})
+			string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
+		endif ()
+	endif ()
+endforeach()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
