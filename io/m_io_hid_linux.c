@@ -191,7 +191,8 @@ struct M_io_handle {
 	M_EVENT_HANDLE handle;
 	int            last_error_sys;
 	M_bool         uses_report_descriptors;
-	size_t         report_size;
+	size_t         max_input_report_size;
+	size_t         max_output_report_size;
 	unsigned char  descriptor[4096]; /* 4096 is the max descriptor size */
 	size_t         descriptor_size;
 };
@@ -359,6 +360,190 @@ M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 }
 
 
+/* Read a HID field value (little-endian). */
+static M_uint64 read_hid_field_le(const M_uint8 *data, size_t data_len)
+{
+	M_uint64 ret;
+	size_t   i;
+
+	if (data == NULL || data_len == 0) {
+		return 0;
+	}
+
+	if (data_len == 1) {
+		return *data;
+	}
+
+	ret = 0;
+	for (i=0; i<data_len; i++) {
+		size_t val = data[i];
+		val <<= (8*i);
+		ret |= val;
+	}
+
+	return ret;
+}
+
+
+static M_bool read_hid_key(const M_uint8 *data, size_t data_len, size_t *key_len, size_t *payload_len)
+{
+	if (data == NULL || data_len == 0 || key_len == NULL || payload_len == NULL) {
+		return M_FALSE;
+	}
+
+	*key_len     = 0;
+	*payload_len = 0;
+
+	/* Long Item. Next byte contains length of data for this key. */
+	if ((data[0] & 0xF0) == 0xF0) {
+		*key_len = 3;
+
+		/* Malformed */
+		if (data_len < 2) {
+			return M_FALSE;
+		}
+		*payload_len = data[1];
+	} else {
+		*key_len = 1;
+
+		/* Short Item. The bottom two bits of the key contain the
+		 * size code for the data section for this key. */
+		if ((data[0] & 0x3) < 3) {
+			*payload_len = data[0] & 0x3;
+		} else {
+			*payload_len = 4;
+		}
+	}
+
+	/* Make sure this key hasn't been truncated. */
+	if (*key_len + *payload_len > data_len) {
+		return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
+
+/* Return maximum report sizes: (1) max over all input reports, and (2) max over all output reports. */
+static M_bool hid_get_max_report_sizes(const M_uint8 *desc, size_t desc_len, size_t *max_input, size_t *max_output)
+{
+	size_t  i                   = 0;
+	M_uint8 rid                 = 0;
+	size_t  report_size         = 0;
+	size_t  report_count        = 0;
+	size_t  global_report_count = 0;
+	size_t  global_report_size  = 0;
+
+	if (max_input == NULL || max_output == NULL || desc == NULL) {
+		return M_FALSE;
+	}
+	*max_input  = 0;
+	*max_output = 0;
+
+	while (i < desc_len) {
+		size_t data_len;
+		size_t key_len;
+		size_t key_no_size;
+
+		if (!read_hid_key(desc + i, desc_len - i, &key_len, &data_len)) {
+			return M_FALSE;
+		}
+
+		/* Mask off the size fields in the key. */
+		key_no_size = desc[i] & 0xFC;
+
+		/*M_printf("desc[%d] = 0x%02X\n", (int)i, (unsigned)desc[i]); */
+
+		if (desc[i] == 0x85) {
+			/* Report ID (always has size 1) */
+			rid          = desc[i + key_len];
+			report_size  = global_report_size;
+			report_count = global_report_count;
+		} else if (key_no_size == 0x74) {
+			/* Report Size */
+			report_size = read_hid_field_le(desc + i + key_len, data_len);
+			if (rid == 0) {
+				global_report_size = report_size;
+			}
+		} else if (key_no_size == 0x94) {
+			/* Report Count */
+			report_count = read_hid_field_le(desc + i + key_len, data_len);
+			if (rid == 0) {
+				global_report_count = report_count;
+			}
+		} else if (key_no_size == 0x80 || key_no_size == 0x90) {
+			/* (Input) or (Output) Usage Marker - should be at end of report. */
+			size_t  report_bytes;
+			size_t *dest = (key_no_size == 0x80)? max_input : max_output;
+			report_bytes = ((report_size * report_count) + 7) / 8;
+			if (*dest < report_bytes) {
+				*dest = report_bytes;
+			}
+		}
+
+		/* Move past this key and its data. */
+		i += data_len + key_len;
+	}
+
+	return M_TRUE;
+}
+
+
+#if 0 /* TODO: for future use, when we figure out how to do it on all platforms. */
+/* Return the size (in bytes) of a particular report, or 0 if there's an error (unknown report_id, etc.).
+ * Passing 0 will return the global report size, if any.
+ */
+static size_t hid_get_report_size(const M_uint8 *desc, size_t desc_len, M_uint8 report_id)
+{
+	size_t  i                   = 0;
+	M_uint8 rid                 = 0; /* Current report ID: global (rid == 0) to start with. */
+	size_t  report_size         = 0; /* size of each report field, in bits. */
+	size_t  report_count        = 0; /* number of fields in the report. */
+	size_t  global_report_count = 0;
+	size_t  global_report_size  = 0;
+
+	while (i < desc_len) {
+		size_t  data_len;
+		size_t  key_len;
+		M_uint8 key_no_size;
+
+		if (!read_hid_key(desc + i, desc_len - i, &key_len, &data_len)) {
+			return 0;
+		}
+
+		/* Mask off the size fields in the key. */
+		key_no_size = desc[i] & 0xFC;
+
+		if (desc[i] == 0x85) {
+			/* Report ID (always has size 1) */
+			rid = desc[i + key_len];
+		} else if(key_no_size == 0x74) {
+			/* Report Size */
+			report_size = (size_t)read_hid_field_le(desc + key_len, data_len);
+			if (rid == 0) {
+				global_report_size = report_size;
+			}
+		} else if(key_no_size == 0x94 && (rid == 0 || rid == report_id)) {
+			/* Report Count */
+			/* Only update report_count if we're on the global RID, or the specific RID we're looking for. */
+			report_count = (size_t)read_hid_field_le(desc + key_len, data_len);
+			if (rid == report_id && report_size > 0) {
+				return ((report_size * report_count) + 7) / 8;
+			}
+			if (rid == 0) {
+				global_report_count = report_count;
+			}
+		}
+
+		/* Move past this key and its data. */
+		i += data_len + key_len;
+	}
+
+	return ((global_report_size * global_report_count) + 7) / 8;
+}
+#endif
+
+
 static M_bool hid_uses_report_descriptors(const unsigned char *desc, size_t len)
 {
 	size_t i = 0;
@@ -373,27 +558,11 @@ static M_bool hid_uses_report_descriptors(const unsigned char *desc, size_t len)
 			return M_TRUE;
 		}
 
-		/* Long Item. Next byte contains length of data for this key. */
-		if ((desc[i] & 0xf0) == 0xf0) {
-			key_size = 3;
-
-			/* Malformed */
-			if (i+1 >= len)
-				return M_FALSE;
-			data_len = desc[i+1];
-		} else {
-			key_size = 1;
-
-			/* Short Item. The bottom two bits of the key contain the
-			 * size code for the data section for this key. */
-			if ((desc[i] & 0x3) < 3) {
-				data_len = desc[i] & 0x3;
-			} else {
-				data_len = 4;
-			}
+		if (!read_hid_key(desc + i, len - i, &key_size, &data_len)) {
+			return 0;
 		}
 
-		/* Skip over this key and its data */
+		/* Move past this key and its data */
 		i += data_len + key_size;
 	}
 
@@ -458,6 +627,50 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 //M_printf("%s(): opened path %s, report descriptor size %zu, fd %d\n", __FUNCTION__, path, (size_t)rpt_desc.size, fd);
 	handle->uses_report_descriptors = hid_uses_report_descriptors(handle->descriptor, handle->descriptor_size);
 
+	hid_get_max_report_sizes(handle->descriptor, handle->descriptor_size,
+		&handle->max_input_report_size, &handle->max_output_report_size);
+
+	/* Note: to match Windows, need to include report ID byte in reported size. So, increment both by one. */
+	if (handle->max_input_report_size > 0)
+		handle->max_input_report_size++;
+
+	if (handle->max_output_report_size > 0)
+		handle->max_output_report_size++;
+
+	/*M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
+		(int)handle->max_input_report_size,
+		(int)handle->max_output_report_size);*/
+
 	*ioerr = M_IO_ERROR_SUCCESS;
 	return handle;
+}
+
+
+void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
+{
+	ssize_t layer_idx;
+	ssize_t layer_count;
+	size_t  my_max_input;
+	size_t  my_max_output;
+	
+	if (max_input_size == NULL) {
+		max_input_size = &my_max_input;
+	}
+	if (max_output_size == NULL) {
+		max_output_size = &my_max_output;
+	}
+	*max_input_size  = 0;
+	*max_output_size = 0;
+	
+	layer_count = (ssize_t)M_io_layer_count(io);
+	
+	for (layer_idx=(layer_count - 1); layer_idx >= 0; layer_idx--) {
+		M_io_layer_t *layer = M_io_layer_acquire(io, (size_t)layer_idx, M_IO_USB_HID_NAME);
+		if (layer != NULL) {
+			M_io_handle_t *handle = M_io_layer_get_handle(layer);
+			*max_input_size  = handle->max_input_report_size;
+			*max_output_size = handle->max_output_report_size;
+			M_io_layer_release(layer);
+		}
+	}
 }

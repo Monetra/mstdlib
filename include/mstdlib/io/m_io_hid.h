@@ -168,7 +168,8 @@ M_API const char *M_io_hid_get_product(M_io_t *io);
 M_API M_uint16 M_io_hid_get_productid(M_io_t *io);
 M_API M_uint16 M_io_hid_get_vendorid(M_io_t *io);
 M_API const char *M_io_hid_get_serial(M_io_t *io);
-M_API size_t M_io_hid_get_report_size(M_io_t *io, unsigned char report_id);
+M_API void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size);
+/*M_API size_t M_io_hid_get_report_size(M_io_t *io, unsigned char report_id);*/ /* TODO: support this in the future */
 
 /*! @} */
 

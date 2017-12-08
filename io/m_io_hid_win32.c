@@ -36,11 +36,13 @@
 #include <setupapi.h>
 #include <winioctl.h>
 #include <hidsdi.h>
+#include <hidpi.h>
 #include "base/platform/m_platform_win.h"
 
 struct M_io_handle_w32 {
-	M_bool         uses_report_descriptors;
-	size_t         report_size;
+	M_bool uses_report_descriptors;
+	size_t max_input_report_size;
+	size_t max_output_report_size;
 };
 
 typedef BOOLEAN (__stdcall *hidstring_cb_t)(HANDLE, PVOID, ULONG);
@@ -234,22 +236,67 @@ static void hid_win32_cleanup(M_io_handle_t *handle)
 
 M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 {
-	M_io_handle_t *handle;
-	HANDLE         shandle;
+	M_io_handle_t       *handle;
+	HANDLE               shandle;
+	HIDP_PREPARSED_DATA *preparsed_data;
+	HIDP_CAPS            hid_caps;
 
 	shandle = CreateFile(devpath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 	if (shandle == M_EVENT_INVALID_HANDLE) {
 		*ioerr = M_io_win32_err_to_ioerr(GetLastError());
 		return NULL;
 	}
+	if (!HidD_GetPreparsedData(shandle, &preparsed_data)) {
+		*ioerr = M_IO_ERROR_NOTFOUND;
+		return NULL;
+	}
 
-	handle               = M_io_w32overlap_init_handle(shandle, shandle);
-	handle->priv         = M_malloc_zero(sizeof(*handle->priv));
-	handle->priv_cleanup = hid_win32_cleanup;
+	M_mem_set(&hid_caps, 0, sizeof(hid_caps));
+	if (HidP_GetCaps(preparsed_data, &hid_caps) != HIDP_STATUS_INVALID_PREPARSED_DATA) {
+		*ioerr = M_IO_ERROR_NOTFOUND;
+		HidD_FreePreparsedData(preparsed_data);
+		return NULL;
+	}
 
-	/* XXX: Set report descriptor info here */
+	handle                         = M_io_w32overlap_init_handle(shandle, shandle);
+	handle->priv                   = M_malloc_zero(sizeof(*handle->priv));
+	handle->priv_cleanup           = M_io_hid_win32_cleanup;
+	handle->max_input_report_size  = hid_caps.InputReportByteLength;  /* max size in bytes, including report ID */
+	handle->max_output_report_size = hid_caps.OutputReportByteLength; /* same */
+
+	/* TODO: implement report-specific info using the HidP_GetValueCaps() function. */
 
 	return handle;
+}
+
+
+void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
+{
+	ssize_t layer_idx;
+	ssize_t layer_count;
+	size_t  my_max_input;
+	size_t  my_max_output;
+	
+	if (max_input_size == NULL) {
+		max_input_size = &my_max_input;
+	}
+	if (max_output_size == NULL) {
+		max_output_size = &my_max_output;
+	}
+	*max_input_size  = 0;
+	*max_output_size = 0;
+	
+	layer_count = (ssize_t)M_io_layer_count(io);
+	
+	for (layer_idx=(layer_count - 1); layer_idx >= 0; layer_idx--) {
+		M_io_layer_t *layer = M_io_layer_acquire(io, (size_t)layer_idx, M_IO_USB_HID_NAME);
+		if (layer != NULL) {
+			M_io_handle_t *handle = M_io_layer_get_handle(layer);
+			*max_input_size  = handle->max_input_report_size;
+			*max_output_size = handle->max_output_report_size;
+			M_io_layer_release(layer);
+		}
+	}
 }
 
 
