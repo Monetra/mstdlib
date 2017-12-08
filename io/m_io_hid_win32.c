@@ -45,7 +45,7 @@ struct M_io_handle_w32 {
 
 typedef BOOLEAN (__stdcall *hidstring_cb_t)(HANDLE, PVOID, ULONG);
 
-static char *M_io_hid_get_string(HANDLE handle, hidstring_cb_t func)
+static char *hid_get_string(HANDLE handle, hidstring_cb_t func)
 {
 	wchar_t wstr[512];
 	char   *ret;
@@ -65,27 +65,27 @@ static char *M_io_hid_get_string(HANDLE handle, hidstring_cb_t func)
 }
 
 
-static char *M_io_hid_get_serial(HANDLE handle)
+static char *hid_get_serial(HANDLE handle)
 {
-	return M_io_hid_get_string(handle, HidD_GetSerialNumberString);
+	return hid_get_string(handle, HidD_GetSerialNumberString);
 }
 
 
-static char *M_io_hid_get_product(HANDLE handle)
+static char *hid_get_product(HANDLE handle)
 {
-	return M_io_hid_get_string(handle, HidD_GetProductString);
+	return hid_get_string(handle, HidD_GetProductString);
 }
 
 
-static char *M_io_hid_get_manufacturer(HANDLE handle)
+static char *hid_get_manufacturer(HANDLE handle)
 {
-	return M_io_hid_get_string(handle, HidD_GetManufacturerString);
+	return hid_get_string(handle, HidD_GetManufacturerString);
 }
 
 
 
-static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, const char *devpath, M_uint16 s_vendor_id,
-                                 const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serialnum)
+static void hid_enum_device(M_io_hid_enum_t *hidenum, const char *devpath, M_uint16 s_vendor_id,
+                            const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serialnum)
 {
 	char     *manufacturer = NULL;
 	char     *product      = NULL;
@@ -109,9 +109,9 @@ static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, const char *devpath, 
 	vendorid     = attrib.VendorID;
 	productid    = attrib.ProductID;
 
-	manufacturer = M_io_hid_get_manufacturer(handle);
-	product      = M_io_hid_get_product(handle);
-	serial       = M_io_hid_get_serial(handle);
+	manufacturer = hid_get_manufacturer(handle);
+	product      = hid_get_product(handle);
+	serial       = hid_get_serial(handle);
 	M_io_hid_enum_add(hidenum, devpath, manufacturer, product, serial, vendorid, productid, 
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
 
@@ -124,7 +124,7 @@ cleanup:
 }
 
 
-static M_bool M_io_hid_enum_has_driver(HDEVINFO hDevInfo, SP_DEVINFO_DATA *devinfo)
+static M_bool hid_enum_has_driver(HDEVINFO hDevInfo, SP_DEVINFO_DATA *devinfo)
 {
 	char               classname[256];
 	char               drivername[256];
@@ -146,7 +146,7 @@ static M_bool M_io_hid_enum_has_driver(HDEVINFO hDevInfo, SP_DEVINFO_DATA *devin
 }
 
 
-static M_bool M_io_hid_enum_devpath(HDEVINFO hDevInfo, SP_DEVICE_INTERFACE_DATA *devinterface, char *devpath, size_t devpath_size)
+static M_bool hid_enum_devpath(HDEVINFO hDevInfo, SP_DEVICE_INTERFACE_DATA *devinterface, char *devpath, size_t devpath_size)
 {
 	DWORD                              size              = 0;
 	SP_DEVICE_INTERFACE_DETAIL_DATA_A *devinterface_data = NULL;
@@ -198,7 +198,7 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		SP_DEVICE_INTERFACE_DATA devinterface;
 
 		/* Validate device has a bound driver */
-		if (!M_io_hid_enum_has_driver(hDevInfo, &devinfo))
+		if (!hid_enum_has_driver(hDevInfo, &devinfo))
 			goto cleanupdevinfo;
 
 		/* Enumerate interfaces for a device */
@@ -207,9 +207,9 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		for (ifaceidx = 0; SetupDiEnumDeviceInterfaces(hDevInfo, &devinfo, &HIDClassGuid, ifaceidx, &devinterface); ifaceidx++) {
 			char devpath[1024];
 
-			if (M_io_hid_enum_devpath(hDevInfo, &devinterface, devpath, sizeof(devpath))) {
+			if (hid_enum_devpath(hDevInfo, &devinterface, devpath, sizeof(devpath))) {
 				/* If we were able to get a device path, see if we can open it and get the info we need */
-				M_io_hid_enum_device(hidenum, devpath, vendorid, productids, num_productids, serial);
+				hid_enum_device(hidenum, devpath, vendorid, productids, num_productids, serial);
 			}
 
 			M_mem_set(&devinterface, 0, sizeof(devinterface));
@@ -225,7 +225,7 @@ cleanupdevinfo:
 }
 
 
-static void M_io_hid_win32_cleanup(M_io_handle_t *handle)
+static void hid_win32_cleanup(M_io_handle_t *handle)
 {
 	M_free(handle->priv);
 	handle->priv = NULL;
@@ -245,7 +245,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	handle               = M_io_w32overlap_init_handle(shandle, shandle);
 	handle->priv         = M_malloc_zero(sizeof(*handle->priv));
-	handle->priv_cleanup = M_io_hid_win32_cleanup;
+	handle->priv_cleanup = hid_win32_cleanup;
 
 	/* XXX: Set report descriptor info here */
 

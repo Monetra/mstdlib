@@ -38,7 +38,7 @@
 #include "m_io_posix_common.h"
 
 /* May need to expand to include /sys/subsystem once it's implemented */
-static const char * const M_io_hid_paths[] = {
+static const char * const hid_paths[] = {
 #if defined(__linux__)
 	"/sys/class/hidraw/hidraw*",
 #endif
@@ -46,7 +46,7 @@ static const char * const M_io_hid_paths[] = {
 };
 
 
-static char *M_io_hid_get_property(const char *basepath, const char *property)
+static char *hid_get_property(const char *basepath, const char *property)
 {
 	unsigned char *result;
 	char           path[1024];
@@ -73,34 +73,34 @@ static char *M_io_hid_get_property(const char *basepath, const char *property)
 	return (char *)result;
 }
 
-static char *M_io_hid_get_manufacturer(const char *basepath)
+static char *hid_get_manufacturer(const char *basepath)
 {
 	const char *filename = "manufacturer";
 
-	return M_io_hid_get_property(basepath, filename);
+	return hid_get_property(basepath, filename);
 }
 
-static char *M_io_hid_get_product(const char *basepath)
+static char *hid_get_product(const char *basepath)
 {
 	const char *filename = "product";
 
-	return M_io_hid_get_property(basepath, filename);
+	return hid_get_property(basepath, filename);
 }
 
-static char *M_io_hid_get_serial(const char *basepath)
+static char *hid_get_serial(const char *basepath)
 {
 	const char *filename = "serial";
 
-	return M_io_hid_get_property(basepath, filename);
+	return hid_get_property(basepath, filename);
 }
 
-static M_uint16 M_io_hid_get_vendorid(const char *basepath)
+static M_uint16 hid_get_vendorid(const char *basepath)
 {
 	const char *filename = "idVendor";
 	char       *id_str;
 	M_uint32    id;
 
-	id_str = M_io_hid_get_property(basepath, filename);
+	id_str = hid_get_property(basepath, filename);
 	if (M_str_isempty(id_str))
 		return 0;
 
@@ -110,13 +110,13 @@ static M_uint16 M_io_hid_get_vendorid(const char *basepath)
 	return (M_uint16)id;
 }
 
-static M_uint16 M_io_hid_get_productid(const char *basepath)
+static M_uint16 hid_get_productid(const char *basepath)
 {
 	const char *filename = "idProduct";
 	char       *id_str;
 	M_uint32    id;
 
-	id_str = M_io_hid_get_property(basepath, filename);
+	id_str = hid_get_property(basepath, filename);
 	if (M_str_isempty(id_str))
 		return 0;
 
@@ -127,7 +127,7 @@ static M_uint16 M_io_hid_get_productid(const char *basepath)
 	return (M_uint16)id;
 }
 
-static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, const char *classpath, const char *devpath,
+static void hid_enum_device(M_io_hid_enum_t *hidenum, const char *classpath, const char *devpath,
 		M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serialnum)
 {
 	char     *manufacturer;
@@ -137,14 +137,14 @@ static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, const char *classpath
 	M_uint16  productid;
 
 	/* If vendorid is 0, then this device is not present */
-	vendorid     = M_io_hid_get_vendorid(classpath);
+	vendorid     = hid_get_vendorid(classpath);
 	if (vendorid == 0)
 		return;
 
-	productid    = M_io_hid_get_productid(classpath);
-	serial       = M_io_hid_get_serial(classpath);
-	manufacturer = M_io_hid_get_manufacturer(classpath);
-	product      = M_io_hid_get_product(classpath);
+	productid    = hid_get_productid(classpath);
+	serial       = hid_get_serial(classpath);
+	manufacturer = hid_get_manufacturer(classpath);
+	product      = hid_get_product(classpath);
 
 	M_io_hid_enum_add(hidenum, devpath, manufacturer, product, serial, vendorid, productid, 
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
@@ -159,9 +159,9 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	M_io_hid_enum_t *hidenum = M_io_hid_enum_init();
 	size_t           i;
 
-	for (i=0; M_io_hid_paths[i] != NULL; i++) {
-		char *udirname  = M_fs_path_dirname(M_io_hid_paths[i], M_FS_SYSTEM_AUTO);
-		char *ubasename = M_fs_path_basename(M_io_hid_paths[i], M_FS_SYSTEM_AUTO);
+	for (i=0; hid_paths[i] != NULL; i++) {
+		char *udirname  = M_fs_path_dirname(hid_paths[i], M_FS_SYSTEM_AUTO);
+		char *ubasename = M_fs_path_basename(hid_paths[i], M_FS_SYSTEM_AUTO);
 		if (!M_str_isempty(udirname) && !M_str_isempty(ubasename)) {
 			size_t        j;
 			M_list_str_t *matches = M_fs_dir_walk_strs(udirname, ubasename, M_FS_DIR_WALK_FILTER_SYMLINK);
@@ -174,7 +174,7 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 						char devpath[256];
 						M_snprintf(devpath, sizeof(devpath), "/dev/%s", devname);
 						M_snprintf(classpath, sizeof(classpath), "%s/%s/device/../..", udirname, devname);
-						M_io_hid_enum_device(hidenum, classpath, devpath, vendorid, productids, num_productids, serial);
+						hid_enum_device(hidenum, classpath, devpath, vendorid, productids, num_productids, serial);
 					}
 				}
 				M_list_str_destroy(matches);
@@ -197,7 +197,7 @@ struct M_io_handle {
 };
 
 
-static void M_io_hid_linux_close_handle(M_io_handle_t *handle)
+static void hid_linux_close_handle(M_io_handle_t *handle)
 {
 	if (handle->handle != -1) {
 		close(handle->handle);
@@ -206,7 +206,7 @@ static void M_io_hid_linux_close_handle(M_io_handle_t *handle)
 }
 
 
-static void M_io_hid_linux_close(M_io_layer_t *layer)
+static void hid_linux_close(M_io_layer_t *layer)
 {
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
@@ -215,7 +215,7 @@ static void M_io_hid_linux_close(M_io_layer_t *layer)
 	if (event && handle->handle != -1)
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_HANDLE, io, handle->handle, M_EVENT_INVALID_SOCKET, 0, 0);
 
-	M_io_hid_linux_close_handle(handle);
+	hid_linux_close_handle(handle);
 }
 
 
@@ -271,7 +271,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 
 	err = M_io_posix_read(io, handle->handle, buf+offset, &len, &handle->last_error_sys);
 	if (M_io_error_is_critical(err))
-		M_io_hid_linux_close(layer);
+		hid_linux_close(layer);
 
 	if (err == M_IO_ERROR_SUCCESS) {
 		if (offset) {
@@ -303,7 +303,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	err = M_io_posix_write(io, handle->handle, buf + offset, &len, &handle->last_error_sys);
 	if (M_io_error_is_critical(err))
-		M_io_hid_linux_close(layer);
+		hid_linux_close(layer);
 
 	if (err == M_IO_ERROR_SUCCESS) {
 		if (offset)
@@ -317,12 +317,12 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	return err;
 }
 
-static void M_io_hid_linux_destroy_handle(M_io_handle_t *handle)
+static void hid_linux_destroy_handle(M_io_handle_t *handle)
 {
 	if (handle == NULL)
 		return;
 
-	M_io_hid_linux_close_handle(handle);
+	hid_linux_close_handle(handle);
 
 	M_free(handle);
 }
@@ -331,7 +331,7 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	M_io_hid_linux_destroy_handle(handle);
+	hid_linux_destroy_handle(handle);
 }
 
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
@@ -359,7 +359,7 @@ M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 }
 
 
-static M_bool M_io_hid_uses_report_descriptors(const unsigned char *desc, size_t len)
+static M_bool hid_uses_report_descriptors(const unsigned char *desc, size_t len)
 {
 	size_t i = 0;
 
@@ -456,7 +456,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->descriptor_size         = rpt_desc.size;
 	M_mem_copy(handle->descriptor, rpt_desc.value, rpt_desc.size);
 //M_printf("%s(): opened path %s, report descriptor size %zu, fd %d\n", __FUNCTION__, path, (size_t)rpt_desc.size, fd);
-	handle->uses_report_descriptors = M_io_hid_uses_report_descriptors(handle->descriptor, handle->descriptor_size);
+	handle->uses_report_descriptors = hid_uses_report_descriptors(handle->descriptor, handle->descriptor_size);
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 	return handle;
