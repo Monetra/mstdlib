@@ -46,6 +46,8 @@ struct M_io_handle {
 	M_thread_cond_t  *write_cond;
 	char              error[256]; /*!< Error buffer for description of last system error. */
 	M_bool            in_write;
+	size_t            max_input_report_size;
+	size_t            max_output_report_size;
 };
 
 static M_io_error_t M_io_hid_ioreturn_to_err(IOReturn result)
@@ -365,7 +367,7 @@ static M_int32 M_io_hid_get_prop_int32(IOHIDDeviceRef device, const char *id_s)
 
 }
 
-static char *M_io_hid_get_path(IOHIDDeviceRef device)
+static char *M_io_hid_get_os_path(IOHIDDeviceRef device)
 {
 	io_service_t  service;
 	kern_return_t ret;
@@ -399,7 +401,7 @@ static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, IOHIDDeviceRef device
 	M_io_hid_get_prop(device, serial, sizeof(serial), kIOHIDSerialNumberKey);
 	vendorid  = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDVendorIDKey);
 	productid = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDProductIDKey);
-	path      = M_io_hid_get_path(device);
+	path      = M_io_hid_get_os_path(device);
 
 	M_io_hid_enum_add(hidenum, path, manufacturer, product, serial, vendorid, productid, 
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
@@ -534,16 +536,19 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	handle                = M_malloc_zero(sizeof(*handle));
-	handle->device        = device;
-	handle->report_len    = report_len;
-	handle->report        = M_malloc(handle->report_len);
-	handle->uses_reportid = uses_reportid;
-	handle->readbuf       = M_buf_create();
-	handle->writebuf      = M_buf_create();
-	handle->write_lock    = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-	handle->write_cond    = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-	handle->run           = M_TRUE;
+	handle                         = M_malloc_zero(sizeof(*handle));
+	handle->device                 = device;
+	handle->report_len             = report_len;
+	handle->report                 = M_malloc(handle->report_len);
+	handle->uses_reportid          = uses_reportid;
+	handle->readbuf                = M_buf_create();
+	handle->writebuf               = M_buf_create();
+	handle->write_lock             = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->write_cond             = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	handle->run                    = M_TRUE;
+	/* Add one to accomidate the report ID that needs to be in the buffer. */
+	handle->max_input_report_size  = report_len+1;
+	handle->max_output_report_size = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxOutputReportSizeKey)+1;
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
@@ -560,6 +565,35 @@ err:
 		IOObjectRelease(entry);
 
 	return NULL;
+}
+
+void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
+{
+	size_t layer_idx;
+	size_t layer_count;
+	size_t my_max_input;
+	size_t my_max_output;
+
+	if (max_input_size == NULL) {
+		max_input_size = &my_max_input;
+	}
+	if (max_output_size == NULL) {
+		max_output_size = &my_max_output;
+	}
+	*max_input_size  = 0;
+	*max_output_size = 0;
+
+	layer_count = M_io_layer_count(io);
+
+	for (layer_idx=layer_count; layer_idx-->0; ) {
+		M_io_layer_t *layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
+		if (layer != NULL) {
+			M_io_handle_t *handle = M_io_layer_get_handle(layer);
+			*max_input_size       = handle->max_input_report_size;
+			*max_output_size      = handle->max_output_report_size;
+			M_io_layer_release(layer);
+		}
+	}
 }
 
 M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
