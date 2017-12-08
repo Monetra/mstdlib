@@ -40,9 +40,15 @@
 #include "base/platform/m_platform_win.h"
 
 struct M_io_handle_w32 {
-	M_bool uses_report_descriptors;
-	size_t max_input_report_size;
-	size_t max_output_report_size;
+	M_bool    uses_report_descriptors;
+	char     *path;
+	char     *manufacturer;
+	char     *product;
+	char     *serial;
+	M_uint16  productid;
+	M_uint16  vendorid;
+	size_t    max_input_report_size;
+	size_t    max_output_report_size;
 };
 
 typedef BOOLEAN (__stdcall *hidstring_cb_t)(HANDLE, PVOID, ULONG);
@@ -229,6 +235,11 @@ cleanupdevinfo:
 
 static void hid_win32_cleanup(M_io_handle_t *handle)
 {
+	M_free(handle->priv->path);
+	M_free(handle->priv->manufacturer);
+	M_free(handle->priv->product);
+	M_free(handle->priv->serial);
+
 	M_free(handle->priv);
 	handle->priv = NULL;
 }
@@ -240,6 +251,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	HANDLE               shandle;
 	PHIDP_PREPARSED_DATA preparsed_data;
 	HIDP_CAPS            hid_caps;
+	HIDD_ATTRIBUTES      attrib;
 
 	shandle = CreateFile(devpath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 	if (shandle == M_EVENT_INVALID_HANDLE) {
@@ -258,6 +270,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		return NULL;
 	}
 
+	M_mem_set(&attrib, 0, sizeof(attrib));
+	attrib.Size = sizeof(attrib);
+	HidD_GetAttributes(shandle, &attrib);
+
 	handle                               = M_io_w32overlap_init_handle(shandle, shandle);
 	handle->priv                         = M_malloc_zero(sizeof(*handle->priv));
 	handle->priv_cleanup                 = hid_win32_cleanup;
@@ -266,41 +282,143 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	/* TODO: implement report-specific info using the HidP_GetValueCaps() function. */
 
-	/*M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
-		(int)handle->priv->max_input_report_size,
-		(int)handle->priv->max_output_report_size);*/
+	handle->priv->path         = M_strdup(devpath);
+	handle->priv->manufacturer = hid_get_manufacturer(shandle);
+	handle->priv->product      = hid_get_product(shandle);
+	handle->priv->serial       = hid_get_serial(shandle);
+	handle->priv->productid    = attrib.ProductID;
+	handle->priv->vendorid     = attrib.VendorID;
+
+	/*
+	M_printf("\n\n\n");
+	M_printf("Path:             %s\n", handle->priv->path);
+	M_printf("Manufacturer:     %s\n", handle->priv->manufacturer);
+	M_printf("Product:          %s\n", handle->priv->product);
+	M_printf("Serial:           %s\n", handle->priv->serial);
+	M_printf("ProductID:        0x%04X\n", (unsigned)handle->priv->productid);
+	M_printf("VendorID:         0x%04X\n", (unsigned)handle->priv->vendorid);
+	M_printf("In Rpt Sz (Max):  %d bytes\n", (int)handle->priv->max_input_report_size);
+	M_printf("Out Rpt Sz (Max): %d bytes\n", (int)handle->priv->max_output_report_size);
+	M_printf("\n\n\n");
+	*/
 
 	return handle;
 }
 
 
+static M_io_layer_t *acquire_top_hid_layer(M_io_t *io)
+{
+	M_io_layer_t *layer       = NULL;
+	size_t        layer_idx;
+	size_t        layer_count;
+
+	if (io == NULL) {
+		return NULL;
+	}
+
+	layer_count = M_io_layer_count(io);
+	for (layer_idx=layer_count; layer == NULL && layer_idx-->0; ) {
+		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
+	}
+
+	return layer;
+}
+
+
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
-	ssize_t layer_idx;
-	ssize_t layer_count;
-	size_t  my_max_input;
-	size_t  my_max_output;
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         my_in;
+	size_t         my_out;
 
 	if (max_input_size == NULL) {
-		max_input_size = &my_max_input;
+		max_input_size  = &my_in;
 	}
 	if (max_output_size == NULL) {
-		max_output_size = &my_max_output;
+		max_output_size = &my_out;
 	}
-	*max_input_size  = 0;
-	*max_output_size = 0;
 
-	layer_count = (ssize_t)M_io_layer_count(io);
-
-	for (layer_idx=(layer_count - 1); layer_idx >= 0; layer_idx--) {
-		M_io_layer_t *layer = M_io_layer_acquire(io, (size_t)layer_idx, M_IO_USB_HID_NAME);
-		if (layer != NULL) {
-			M_io_handle_t *handle = M_io_layer_get_handle(layer);
-			*max_input_size  = handle->priv->max_input_report_size;
-			*max_output_size = handle->priv->max_output_report_size;
-			M_io_layer_release(layer);
-		}
+	if (layer == NULL) {
+		*max_input_size  = 0;
+		*max_output_size = 0;
+	} else {
+		*max_input_size  = handle->priv->max_input_report_size;
+		*max_output_size = handle->priv->max_output_report_size;
+		M_io_layer_release(layer);
 	}
+}
+
+
+const char *M_io_hid_get_path(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->priv->path;
+}
+
+
+const char *M_io_hid_get_manufacturer(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->priv->manufacturer;
+}
+
+
+const char *M_io_hid_get_product(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->priv->product;
+}
+
+
+const char *M_io_hid_get_serial(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->priv->serial;
+}
+
+
+M_uint16 M_io_hid_get_productid(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return 0;
+	}
+	return handle->priv->productid;
+}
+
+
+M_uint16 M_io_hid_get_vendorid(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return 0;
+	}
+	return handle->priv->vendorid;
 }
 
 
