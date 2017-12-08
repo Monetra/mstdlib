@@ -252,7 +252,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 	M_mem_set(&hid_caps, 0, sizeof(hid_caps));
-	if (HidP_GetCaps(preparsed_data, &hid_caps) != HIDP_STATUS_INVALID_PREPARSED_DATA) {
+	if (HidP_GetCaps(preparsed_data, &hid_caps) != HIDP_STATUS_SUCCESS) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		HidD_FreePreparsedData(preparsed_data);
 		return NULL;
@@ -266,9 +266,9 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	/* TODO: implement report-specific info using the HidP_GetValueCaps() function. */
 
-	M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
+	/*M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
 		(int)handle->priv->max_input_report_size,
-		(int)handle->priv->max_output_report_size);
+		(int)handle->priv->max_output_report_size);*/
 
 	return handle;
 }
