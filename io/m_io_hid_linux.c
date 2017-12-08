@@ -187,14 +187,35 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 }
 
 
+static char *get_classpath(const char *devpath)
+{
+	char *udirname  = M_fs_path_dirname(hid_paths[0], M_FS_SYSTEM_AUTO);
+	char *devname   = M_fs_path_basename(devpath, M_FS_SYSTEM_AUTO);
+	char *classpath;
+
+	M_asprintf(&classpath, "%s/%s/device/../..", udirname, devname);
+	M_free(udirname);
+	M_free(devname);
+
+	return classpath;
+}
+
+
 struct M_io_handle {
-	M_EVENT_HANDLE handle;
-	int            last_error_sys;
-	M_bool         uses_report_descriptors;
-	size_t         max_input_report_size;
-	size_t         max_output_report_size;
-	unsigned char  descriptor[4096]; /* 4096 is the max descriptor size */
-	size_t         descriptor_size;
+	M_EVENT_HANDLE  handle;
+	int             last_error_sys;
+	M_bool          uses_report_descriptors;
+	unsigned char   descriptor[4096]; /* 4096 is the max descriptor size */
+	size_t          descriptor_size;
+
+	char           *path;
+	char           *manufacturer;
+	char           *product;
+	char           *serial;
+	M_uint16        productid;
+	M_uint16        vendorid;
+	size_t          max_input_report_size;
+	size_t          max_output_report_size;
 };
 
 
@@ -324,6 +345,11 @@ static void hid_linux_destroy_handle(M_io_handle_t *handle)
 		return;
 
 	hid_linux_close_handle(handle);
+
+	M_free(handle->path);
+	M_free(handle->manufacturer);
+	M_free(handle->product);
+	M_free(handle->serial);
 
 	M_free(handle);
 }
@@ -576,7 +602,8 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	int                             fd;
 	struct hidraw_report_descriptor rpt_desc;
 	M_io_handle_t                  *handle;
-	int                             flags = O_RDWR;
+	int                             flags     = O_RDWR;
+	char                           *classpath = NULL;
 
 #ifdef O_CLOEXEC
 	flags |= O_CLOEXEC;
@@ -637,40 +664,144 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	if (handle->max_output_report_size > 0)
 		handle->max_output_report_size++;
 
-	/*M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
-		(int)handle->max_input_report_size,
-		(int)handle->max_output_report_size);*/
+	classpath            = get_classpath(devpath);
+	handle->path         = M_strdup(devpath);
+	handle->manufacturer = hid_get_manufacturer(classpath);
+	handle->product      = hid_get_product(classpath);
+	handle->serial       = hid_get_serial(classpath);
+	handle->productid    = hid_get_productid(classpath);
+	handle->vendorid     = hid_get_vendorid(classpath);
+	M_free(classpath);
+
+	/*
+	M_printf("\n\n\n");
+	M_printf("Path:             %s\n", handle->path);
+	M_printf("Manufacturer:     %s\n", handle->manufacturer);
+	M_printf("Product:          %s\n", handle->product);
+	M_printf("Serial:           %s\n", handle->serial);
+	M_printf("ProductID:        0x%04X\n", (unsigned)handle->productid);
+	M_printf("VendorID:         0x%04X\n", (unsigned)handle->vendorid);
+	M_printf("In Rpt Sz (Max):  %d bytes\n", (int)handle->max_input_report_size);
+	M_printf("Out Rpt Sz (Max): %d bytes\n", (int)handle->max_output_report_size);
+	M_printf("\n\n\n");
+	*/
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 	return handle;
 }
 
 
+static M_io_layer_t *acquire_top_hid_layer(M_io_t *io)
+{
+	M_io_layer_t *layer       = NULL;
+	size_t        layer_idx;
+	size_t        layer_count;
+
+	if (io == NULL) {
+		return NULL;
+	}
+
+	layer_count = M_io_layer_count(io);
+	for (layer_idx=layer_count; layer == NULL && layer_idx-->0; ) {
+		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
+	}
+
+	return layer;
+}
+
+
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
-	ssize_t layer_idx;
-	ssize_t layer_count;
-	size_t  my_max_input;
-	size_t  my_max_output;
-	
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         my_in;
+	size_t         my_out;
+
 	if (max_input_size == NULL) {
-		max_input_size = &my_max_input;
+		max_input_size  = &my_in;
 	}
 	if (max_output_size == NULL) {
-		max_output_size = &my_max_output;
+		max_output_size = &my_out;
 	}
-	*max_input_size  = 0;
-	*max_output_size = 0;
-	
-	layer_count = (ssize_t)M_io_layer_count(io);
-	
-	for (layer_idx=(layer_count - 1); layer_idx >= 0; layer_idx--) {
-		M_io_layer_t *layer = M_io_layer_acquire(io, (size_t)layer_idx, M_IO_USB_HID_NAME);
-		if (layer != NULL) {
-			M_io_handle_t *handle = M_io_layer_get_handle(layer);
-			*max_input_size  = handle->max_input_report_size;
-			*max_output_size = handle->max_output_report_size;
-			M_io_layer_release(layer);
-		}
+
+	if (layer == NULL) {
+		*max_input_size  = 0;
+		*max_output_size = 0;
+	} else {
+		*max_input_size  = handle->max_input_report_size;
+		*max_output_size = handle->max_output_report_size;
+		M_io_layer_release(layer);
 	}
+}
+
+
+const char *M_io_hid_get_path(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->path;
+}
+
+
+const char *M_io_hid_get_manufacturer(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->manufacturer;
+}
+
+
+const char *M_io_hid_get_product(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->product;
+}
+
+
+const char *M_io_hid_get_serial(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return NULL;
+	}
+	return handle->serial;
+}
+
+
+M_uint16 M_io_hid_get_productid(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return 0;
+	}
+	return handle->productid;
+}
+
+
+M_uint16 M_io_hid_get_vendorid(M_io_t *io)
+{
+	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL) {
+		return 0;
+	}
+	return handle->vendorid;
 }
