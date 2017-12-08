@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -114,7 +114,7 @@ static void hid_enum_device(M_io_hid_enum_t *hidenum, const char *devpath, M_uin
 	manufacturer = hid_get_manufacturer(handle);
 	product      = hid_get_product(handle);
 	serial       = hid_get_serial(handle);
-	M_io_hid_enum_add(hidenum, devpath, manufacturer, product, serial, vendorid, productid, 
+	M_io_hid_enum_add(hidenum, devpath, manufacturer, product, serial, vendorid, productid,
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
 
 cleanup:
@@ -131,7 +131,7 @@ static M_bool hid_enum_has_driver(HDEVINFO hDevInfo, SP_DEVINFO_DATA *devinfo)
 	char               classname[256];
 	char               drivername[256];
 	static const char *hidclass = "HIDClass";
-	
+
 	M_mem_set(classname, 0, sizeof(classname));
 	M_mem_set(drivername, 0, sizeof(drivername));
 	if (!SetupDiGetDeviceRegistryPropertyA(hDevInfo, devinfo, SPDRP_CLASS, NULL, (PBYTE)classname, sizeof(classname)-1, NULL))
@@ -238,7 +238,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 {
 	M_io_handle_t       *handle;
 	HANDLE               shandle;
-	HIDP_PREPARSED_DATA *preparsed_data;
+	PHIDP_PREPARSED_DATA preparsed_data;
 	HIDP_CAPS            hid_caps;
 
 	shandle = CreateFile(devpath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
@@ -258,13 +258,17 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		return NULL;
 	}
 
-	handle                         = M_io_w32overlap_init_handle(shandle, shandle);
-	handle->priv                   = M_malloc_zero(sizeof(*handle->priv));
-	handle->priv_cleanup           = M_io_hid_win32_cleanup;
-	handle->max_input_report_size  = hid_caps.InputReportByteLength;  /* max size in bytes, including report ID */
-	handle->max_output_report_size = hid_caps.OutputReportByteLength; /* same */
+	handle                               = M_io_w32overlap_init_handle(shandle, shandle);
+	handle->priv                         = M_malloc_zero(sizeof(*handle->priv));
+	handle->priv_cleanup                 = hid_win32_cleanup;
+	handle->priv->max_input_report_size  = hid_caps.InputReportByteLength;  /* max size in bytes, including report ID */
+	handle->priv->max_output_report_size = hid_caps.OutputReportByteLength; /* same */
 
 	/* TODO: implement report-specific info using the HidP_GetValueCaps() function. */
+
+	M_printf("\n\n\nMax Report Sizes: input=%d, output=%d !!!!!!!!!\n\n\n\n",
+		(int)handle->priv->max_input_report_size,
+		(int)handle->priv->max_output_report_size);
 
 	return handle;
 }
@@ -276,7 +280,7 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 	ssize_t layer_count;
 	size_t  my_max_input;
 	size_t  my_max_output;
-	
+
 	if (max_input_size == NULL) {
 		max_input_size = &my_max_input;
 	}
@@ -285,15 +289,15 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 	}
 	*max_input_size  = 0;
 	*max_output_size = 0;
-	
+
 	layer_count = (ssize_t)M_io_layer_count(io);
-	
+
 	for (layer_idx=(layer_count - 1); layer_idx >= 0; layer_idx--) {
 		M_io_layer_t *layer = M_io_layer_acquire(io, (size_t)layer_idx, M_IO_USB_HID_NAME);
 		if (layer != NULL) {
 			M_io_handle_t *handle = M_io_layer_get_handle(layer);
-			*max_input_size  = handle->max_input_report_size;
-			*max_output_size = handle->max_output_report_size;
+			*max_input_size  = handle->priv->max_input_report_size;
+			*max_output_size = handle->priv->max_output_report_size;
 			M_io_layer_release(layer);
 		}
 	}
