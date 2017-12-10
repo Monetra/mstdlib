@@ -20,6 +20,7 @@ addons:
       - unixodbc-dev
       - check
       - clang-5.0
+      - clang-tools-5.0
       - libsqlite3-dev
       - libc-ares-dev
 
