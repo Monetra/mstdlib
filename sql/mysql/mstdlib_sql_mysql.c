@@ -892,7 +892,11 @@ static M_sql_error_t mysql_cb_begin(M_sql_conn_t *conn, M_sql_isolation_t isolat
 
 	if (mysql_autocommit(dconn->conn, 0) != 0) {
 		unsigned int merr = mysql_errno(dconn->conn);
-		err               = mysql_resolve_error(NULL, (M_int32)merr);
+		/* Ignore error resolution, always disconnect if we can't begin a transaction
+		 * as our server might have gone non-primary and we need to connect to a new
+		 * one.
+		 * err               = mysql_resolve_error(NULL, (M_int32)merr);
+		 */
 		M_snprintf(error, error_size, "failed to disable autocommit: (%u) %s. Force Reconnect.", merr, mysql_error(dconn->conn));
 		return M_SQL_ERROR_CONN_LOST;
 	}
