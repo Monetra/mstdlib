@@ -126,7 +126,8 @@ M_bool M_hash_stru64_get(const M_hash_stru64_t *h, const char *key, M_uint64 *va
 M_uint64 M_hash_stru64_get_direct(const M_hash_stru64_t *h, const char *key)
 {
 	M_uint64 value;
-	M_hash_stru64_get(h, key, &value);
+	if (!M_hash_stru64_get(h, key, &value))
+		return 0;
 	return value;
 }
 
