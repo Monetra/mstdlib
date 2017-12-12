@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -222,7 +222,7 @@ M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 	M_io_callbacks_reg_disconnect(callbacks, M_io_hid_disconnect_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_hid_state_cb);
 	M_io_callbacks_reg_errormsg(callbacks, M_io_hid_errormsg_cb);
-	M_io_layer_add(*io_out, "HID", handle, callbacks);
+	M_io_layer_add(*io_out, M_IO_USB_HID_NAME, handle, callbacks);
 	M_io_callbacks_destroy(callbacks);
 	return M_IO_ERROR_SUCCESS;
 }
