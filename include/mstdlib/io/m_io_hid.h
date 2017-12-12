@@ -165,6 +165,8 @@ M_API M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const
 
 /*! Get the HID manufacturer from an io object.
  *
+ * Queries the highest HID layer in the stack, if there are more than one.
+ *
  * \param[in] io io object.
  *
  * \return String.
@@ -173,6 +175,8 @@ M_API const char *M_io_hid_get_manufacturer(M_io_t *io);
 
 
 /*! Get the HID path from an io object.
+ *
+ * Queries the highest HID layer in the stack, if there are more than one.
  *
  * \param[in] io io object.
  *
@@ -183,6 +187,8 @@ M_API const char *M_io_hid_get_path(M_io_t *io);
 
 /*! Get the HID product from an io object.
  *
+ * Queries the highest HID layer in the stack, if there are more than one.
+ *
  * \param[in] io io object.
  *
  * \return String.
@@ -191,6 +197,8 @@ M_API const char *M_io_hid_get_product(M_io_t *io);
 
 
 /*! Get the HID product ID from an io object.
+ *
+ * Queries the highest HID layer in the stack, if there are more than one.
  *
  * \param[in] io io object.
  *
@@ -201,6 +209,8 @@ M_API M_uint16 M_io_hid_get_productid(M_io_t *io);
 
 /*! Get the HID vendor ID from an io object.
  *
+ * Queries the highest HID layer in the stack, if there are more than one.
+ *
  * \param[in] io io object.
  *
  * \return String.
@@ -209,6 +219,8 @@ M_API M_uint16 M_io_hid_get_vendorid(M_io_t *io);
 
 
 /*! Get the HID serial number from an io object.
+ *
+ * Queries the highest HID layer in the stack, if there are more than one.
  *
  * \param[in] io io object.
  *
@@ -221,6 +233,8 @@ M_API const char *M_io_hid_get_serial(M_io_t *io);
  *
  * The report sizes returned may be 1 byte larger than the actual report size
  * to account for the report ID that is prepended to the data block.
+ *
+ * Queries the highest HID layer in the stack, if there are more than one.
  *
  * \param[in]  io              io object.
  * \param[out] max_input_size  Maximum input report size.
