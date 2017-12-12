@@ -46,6 +46,12 @@ struct M_io_handle {
 	M_thread_cond_t  *write_cond;
 	char              error[256]; /*!< Error buffer for description of last system error. */
 	M_bool            in_write;
+	char             *path;
+	char              manufacturer[256];
+	char              product[256];
+	char              serial[256];
+	M_uint16          vendorid;
+	M_uint16          productid;
 	size_t            max_input_report_size;
 	size_t            max_output_report_size;
 };
@@ -194,6 +200,25 @@ static const char *M_io_hid_sys_errormsg(IOReturn result)
 	}
 
 	return "Error";
+}
+
+static M_io_handle_t *M_io_hid_get_io_handle(M_io_t *io)
+{
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle = NULL;
+	size_t         len;
+	size_t         i;
+
+	len = M_io_layer_count(io);
+	for (i=len; i-->0; ) {
+		layer = M_io_layer_acquire(io, i, M_IO_USB_HID_NAME);
+		if (layer != NULL) {
+			handle = M_io_layer_get_handle(layer);
+			M_io_layer_release(layer);
+			break;
+		}
+	}
+	return handle;
 }
 
 static void M_io_hid_disassociate_runloop(M_io_handle_t *handle)
@@ -386,22 +411,55 @@ static char *M_io_hid_get_os_path(IOHIDDeviceRef device)
 	return M_strdup(path);
 }
 
+static void M_io_hid_dev_info(IOHIDDeviceRef device,
+		char *manufacturer, size_t manufacturer_len,
+		char *product, size_t product_len,
+		char *serial, size_t serial_len,
+		M_uint16 *vendorid, M_uint16 *productid,
+		char **path,
+		size_t *max_input_report_size, size_t *max_output_report_size)
+{
+	if (device == NULL)
+		return;
+
+	if (manufacturer != NULL && manufacturer_len != 0)
+		M_io_hid_get_prop(device, manufacturer, manufacturer_len, kIOHIDManufacturerKey);
+
+	if (product != NULL && product_len != 0)
+		M_io_hid_get_prop(device, product, product_len, kIOHIDProductKey);
+
+	if (serial != NULL && serial_len != 0)
+		M_io_hid_get_prop(device, serial, serial_len, kIOHIDSerialNumberKey);
+
+	if (vendorid != NULL)
+		*vendorid = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDVendorIDKey);
+
+	if (productid != NULL)
+		*productid = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDProductIDKey);
+
+	if (path != NULL)
+		*path = M_io_hid_get_os_path(device);
+
+	/* Add one to accomidate the report ID that needs to be in the buffer. */
+	if (max_input_report_size != NULL)
+		*max_input_report_size  = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey)+1;
+	if (max_output_report_size != NULL)
+		*max_output_report_size = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxOutputReportSizeKey)+1;
+}
+
+
 static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, IOHIDDeviceRef device,
 		M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serialnum)
 {
-	char      *path;
+	char      *path              = NULL;
 	char       manufacturer[256] = { 0 };
 	char       product[256]      = { 0 };
 	char       serial[256]       = { 0 };
-	M_uint16   vendorid;
-	M_uint16   productid;
+	M_uint16   vendorid          = 0;
+	M_uint16   productid         = 0;
 
-	M_io_hid_get_prop(device, manufacturer, sizeof(manufacturer), kIOHIDManufacturerKey);
-	M_io_hid_get_prop(device, product, sizeof(product), kIOHIDProductKey);
-	M_io_hid_get_prop(device, serial, sizeof(serial), kIOHIDSerialNumberKey);
-	vendorid  = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDVendorIDKey);
-	productid = (M_uint16)M_io_hid_get_prop_int32(device, kIOHIDProductIDKey);
-	path      = M_io_hid_get_os_path(device);
+	M_io_hid_dev_info(device, manufacturer, sizeof(manufacturer), product, sizeof(product), serial, sizeof(serial),
+			&vendorid, &productid, &path, NULL, NULL);
 
 	M_io_hid_enum_add(hidenum, path, manufacturer, product, serial, vendorid, productid, 
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
@@ -546,9 +604,11 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->write_lock             = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->write_cond             = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
 	handle->run                    = M_TRUE;
-	/* Add one to accomidate the report ID that needs to be in the buffer. */
-	handle->max_input_report_size  = report_len+1;
-	handle->max_output_report_size = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxOutputReportSizeKey)+1;
+
+	M_io_hid_dev_info(handle->device, handle->manufacturer, sizeof(handle->manufacturer),
+			handle->product, sizeof(handle->product), handle->serial, sizeof(handle->serial),
+			&handle->vendorid, &handle->productid, &handle->path,
+			&handle->max_input_report_size, &handle->max_output_report_size);
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
@@ -569,31 +629,89 @@ err:
 
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
-	size_t layer_idx;
-	size_t layer_count;
-	size_t my_max_input;
-	size_t my_max_output;
+	M_io_handle_t *handle;
+	size_t         my_max_input;
+	size_t         my_max_output;
 
-	if (max_input_size == NULL) {
+	if (max_input_size == NULL)
 		max_input_size = &my_max_input;
-	}
-	if (max_output_size == NULL) {
+	if (max_output_size == NULL)
 		max_output_size = &my_max_output;
-	}
+
 	*max_input_size  = 0;
 	*max_output_size = 0;
 
-	layer_count = M_io_layer_count(io);
-
-	for (layer_idx=layer_count; layer_idx-->0; ) {
-		M_io_layer_t *layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
-		if (layer != NULL) {
-			M_io_handle_t *handle = M_io_layer_get_handle(layer);
-			*max_input_size       = handle->max_input_report_size;
-			*max_output_size      = handle->max_output_report_size;
-			M_io_layer_release(layer);
-		}
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		*max_input_size  = handle->max_input_report_size;
+		*max_output_size = handle->max_output_report_size;
 	}
+}
+
+const char *M_io_hid_get_manufacturer(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->manufacturer;
+	}
+	return NULL;
+}
+
+const char *M_io_hid_get_path(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->path;
+	}
+	return NULL;
+}
+
+const char *M_io_hid_get_product(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->product;
+	}
+	return NULL;
+}
+
+M_uint16 M_io_hid_get_productid(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->productid;
+	}
+	return 0;
+}
+
+M_uint16 M_io_hid_get_vendorid(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->vendorid;
+	}
+	return 0;
+}
+
+const char *M_io_hid_get_serial(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_hid_get_io_handle(io);
+	if (handle != NULL) {
+		return handle->serial;
+	}
+	return NULL;
 }
 
 M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
@@ -626,6 +744,7 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	M_buf_cancel(handle->readbuf);
 	M_buf_cancel(handle->writebuf);
 	M_free(handle->report);
+	M_free(handle->path);
 
 	M_free(handle);
 }
