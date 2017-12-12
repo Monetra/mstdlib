@@ -1125,7 +1125,7 @@ static M_bool M_io_net_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
 	if (handle->state == M_IO_NET_STATE_DISCONNECTED) {
-		M_snprintf(error, err_len, "Remote Closed Connection");
+		M_snprintf(error, err_len, "Gracefully Closed Connection");
 		return M_TRUE;
 	}
 

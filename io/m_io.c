@@ -901,7 +901,7 @@ void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)
 			/* We want to avoid a "Success. No Error" response when someone queries
 			 * for the reason for a disconnect.  Even though that is technically
 			 * valid, there was no error, it can be confusing. */
-			M_snprintf(error, err_len, "%s", "Remote Closed Connection");
+			M_snprintf(error, err_len, "%s", "Gracefully Closed Connection");
 		} else {
 			M_snprintf(error, err_len, "%s", M_io_error_string(io->last_error));
 		}
