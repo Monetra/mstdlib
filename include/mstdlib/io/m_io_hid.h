@@ -162,14 +162,71 @@ M_API M_io_error_t M_io_hid_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 
  */
 M_API M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial /* May be NULL */);
 
+
+/*! Get the HID manufacturer from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API const char *M_io_hid_get_manufacturer(M_io_t *io);
+
+
+/*! Get the HID path from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API const char *M_io_hid_get_path(M_io_t *io);
+
+
+/*! Get the HID product from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API const char *M_io_hid_get_product(M_io_t *io);
+
+
+/*! Get the HID product ID from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API M_uint16 M_io_hid_get_productid(M_io_t *io);
+
+
+/*! Get the HID vendor ID from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API M_uint16 M_io_hid_get_vendorid(M_io_t *io);
+
+
+/*! Get the HID serial number from an io object.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
 M_API const char *M_io_hid_get_serial(M_io_t *io);
+
+
+/*! Get the HID maximum input and output report sizes from an io object.
+ *
+ * The report sizes returned may be 1 byte larger than the actual report size
+ * to account for the report ID that is prepended to the data block.
+ *
+ * \param[in]  io              io object.
+ * \param[out] max_input_size  Maximum input report size.
+ * \param[out] max_output_size Maximum output report size.
+ */
 M_API void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size);
-/*M_API size_t M_io_hid_get_report_size(M_io_t *io, unsigned char report_id);*/ /* TODO: support this in the future */
 
 /*! @} */
 
