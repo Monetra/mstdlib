@@ -704,6 +704,7 @@ static M_io_layer_t *acquire_top_hid_layer(M_io_t *io)
 	layer_count = M_io_layer_count(io);
 	for (layer_idx=layer_count; layer == NULL && layer_idx-->0; ) {
 		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
+		break;
 	}
 
 	return layer;
@@ -730,8 +731,8 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 	} else {
 		*max_input_size  = handle->max_input_report_size;
 		*max_output_size = handle->max_output_report_size;
-		M_io_layer_release(layer);
 	}
+	M_io_layer_release(layer);
 }
 
 
@@ -740,9 +741,11 @@ const char *M_io_hid_get_path(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return NULL;
 	}
+	M_io_layer_release(layer);
 	return handle->path;
 }
 
@@ -752,9 +755,11 @@ const char *M_io_hid_get_manufacturer(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return NULL;
 	}
+	M_io_layer_release(layer);
 	return handle->manufacturer;
 }
 
@@ -764,9 +769,11 @@ const char *M_io_hid_get_product(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return NULL;
 	}
+	M_io_layer_release(layer);
 	return handle->product;
 }
 
@@ -776,9 +783,11 @@ const char *M_io_hid_get_serial(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return NULL;
 	}
+	M_io_layer_release(layer);
 	return handle->serial;
 }
 
@@ -788,9 +797,11 @@ M_uint16 M_io_hid_get_productid(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return 0;
 	}
+	M_io_layer_release(layer);
 	return handle->productid;
 }
 
@@ -800,8 +811,10 @@ M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 	M_io_layer_t  *layer  = acquire_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (layer == NULL) {
+	if (handle == NULL) {
+		M_io_layer_release(layer);
 		return 0;
 	}
+	M_io_layer_release(layer);
 	return handle->vendorid;
 }
