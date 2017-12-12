@@ -806,9 +806,8 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		return M_IO_ERROR_WOULDBLOCK;
 
 	len = M_buf_len(handle->readbuf);
-	/* Don't try to read more than our buffer. */
-	if (*read_len > len)
-		len = *read_len;
+	/* Don't try to read more than we can. */
+	len = M_MIN(len, *read_len);
 
 	if (!handle->uses_reportid) {
 		/* If we don't use report ids, we must prefix the read buffer with a zero. */
