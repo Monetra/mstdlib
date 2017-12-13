@@ -98,13 +98,28 @@ M_API const char *M_io_bluetooth_enum_name(const M_io_bluetooth_enum_t *btenum, 
 M_API const char *M_io_bluetooth_enum_mac(const M_io_bluetooth_enum_t *btenum, size_t idx);
 
 
-/*! UUID of bluetooth device.
+/*! Number of services offered by the device.
  *
  * \param[in] btenum Bluetooth enumeration object.
  * \param[in] idx    Index in bluetooth enumeration.
  *
- * \return String.
+ * \return Service count.
  */
+M_API size_t M_io_bluetooth_enum_service_count(const M_io_bluetooth_enum_t *btenum, size_t idx);
+
+
+/*! Service identifying information.
+ *
+ * \param[in]  btenum Bluetooth enumeration object.
+ * \param[in]  idx    Index in bluetooth enumeration.
+ * \param[in]  sidx   Service index for entry in bluetooth enumeration.
+ * \param[out] name   Name of service. Optional. Can be returned as NULL if name not present.
+ * \param[out] uuid   UUID of service. Optional.
+ *
+ * \return M_TRUE on sucess. Otherwise M_FALSE.
+ */
+M_API M_bool M_io_bluetooth_enum_service_id(const M_io_bluetooth_enum_t *btenum, size_t idx, size_t sidx, const char **name, const char **uuid);
+
 M_API const char *M_io_bluetooth_enum_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx);
 
 
