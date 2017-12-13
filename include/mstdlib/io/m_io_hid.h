@@ -39,6 +39,7 @@ __BEGIN_DECLS
  * Supported OS:
  * - Windows
  * - Linux
+ * - macOS
  *
  * @{
  */
