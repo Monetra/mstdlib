@@ -23,8 +23,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_mfi.h>
-#include "m_io_mfi_int.h"
-#include "m_io_mfi_ios.h"
+#include "m_io_mfi.h"
 #import <ExternalAccessory/ExternalAccessory.h>
 
 #define M_IO_MFI_NAME "MFI"

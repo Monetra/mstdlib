@@ -27,10 +27,10 @@
 #import <Foundation/Foundation.h>
 #import <ExternalAccessory/ExternalAccessory.h>
 
-@interface M_io_bluetooth_ios_ea : NSObject <EAAccessoryDelegate, NSStreamDelegate>
+@interface M_io_mfi_ea : NSObject <EAAccessoryDelegate, NSStreamDelegate>
 
 /* Initializer */
-+ (id)m_io_bluetooth_ios_ea: (NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum;
++ (id)m_io_mfi_ea: (NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum;
 
 /* Stardard init/dealloc functions */
 - (id)init: (NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum;
