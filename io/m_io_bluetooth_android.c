@@ -79,16 +79,20 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 	/* Iterate across devices */
 	count = M_io_jni_array_length(env, device_arr);
 	for (i=0; i<count; i++) {
-		jobjectArray uuid_arr   = NULL;
-		jobject      device     = NULL;
-		size_t       uuid_count = 0;
-		jobject      uuid       = NULL;
-		jstring      uuid_str   = NULL;
-		jstring      name_str   = NULL;
-		jstring      mac_str    = NULL;
-		char        *c_uuid     = NULL;
-		char        *c_mac      = NULL;
-		char        *c_name     = NULL;
+		jobjectArray  uuid_arr   = NULL;
+		jobject       device     = NULL;
+		size_t        uuid_count = 0;
+		jobject       uuid       = NULL;
+		jstring       uuid_str   = NULL;
+		jstring       name_str   = NULL;
+		jstring       mac_str    = NULL;
+		char         *c_uuid     = NULL;
+		char         *c_mac      = NULL;
+		char         *c_name     = NULL;
+		M_list_str_t *uuid_l     = NULL;
+		size_t        j;
+
+		uuid_l = M_list_str_create(M_LIST_STR_NONE);
 
 		/* Grab device from array index */
 		device = M_io_jni_array_element(env, device_arr, i);
@@ -103,16 +107,22 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 		if (uuid_count == 0)
 			goto cleanup_loop;
 
-		/* Use only the first UUID, ignore the rest.  XXX: Is this right? */
-		uuid = M_io_jni_array_element(env, uuid_arr, 0);
-		if (uuid == NULL)
-			goto cleanup_loop;
+		for (j=0; j<uuid_count; j++) {
+			uuid = M_io_jni_array_element(env, uuid_arr, j);
+			if (uuid == NULL) {
+				goto cleanup_loop;
+			}
 
-		/* Convert UUID to string */
-		if (!M_io_jni_call_jobject(&uuid_str, NULL, 0, env, uuid, "android/os/ParcelUuid.toString", 0) || uuid_str == NULL)
-			goto cleanup_loop;
+			/* Convert UUID to string */
+			if (!M_io_jni_call_jobject(&uuid_str, NULL, 0, env, uuid, "android/os/ParcelUuid.toString", 0) || uuid_str == NULL) {
+				goto cleanup_loop;
+			}
 
-		c_uuid = M_io_jni_jstring_to_pchar(env, uuid_str);
+			c_uuid = M_io_jni_jstring_to_pchar(env, uuid_str);
+			M_list_str_insert(uuid_l, c_uuid);
+			M_io_jni_deletelocalref(env, &uuid_str);
+			M_free(c_uuid);
+		}
 
 
 		/* Get friendly name */
@@ -129,18 +139,17 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 		c_mac = M_io_jni_jstring_to_pchar(env, mac_str);
 
 		/* Store the result */
-		M_io_bluetooth_enum_add(btenum, c_name, c_mac, c_uuid);
+		M_io_bluetooth_enum_add(btenum, c_name, c_mac, NULL, uuid_l);
 
 cleanup_loop:
 		M_io_jni_deletelocalref(env, &uuid_arr);
 		M_io_jni_deletelocalref(env, &device);
 		M_io_jni_deletelocalref(env, &uuid);
-		M_io_jni_deletelocalref(env, &uuid_str);
 		M_io_jni_deletelocalref(env, &name_str);
 		M_io_jni_deletelocalref(env, &mac_str);
 		M_free(c_name);
 		M_free(c_mac);
-		M_free(c_uuid);
+		M_list_str_destroy(uuid_l);
 	}
 
 done:

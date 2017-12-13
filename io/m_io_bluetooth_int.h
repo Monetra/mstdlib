@@ -29,9 +29,10 @@
 #define M_IO_BLUETOOTH_NAME "BLUETOOTH"
 
 struct M_io_bluetooth_enum_device {
-	char *name;
-	char *mac;
-	char *uuid;
+	char         *name;
+	char         *mac;
+	M_list_str_t *service_names;
+	M_list_str_t *service_uuids;
 };
 
 typedef struct M_io_bluetooth_enum_device M_io_bluetooth_enum_device_t;
@@ -42,7 +43,7 @@ struct M_io_bluetooth_enum {
 
 M_io_bluetooth_enum_t *M_io_bluetooth_enum_init(void);
 
-void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const char *uuid);
+void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const M_list_str_t *service_names, const M_list_str_t *service_uuids);
 
 M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error_t *ioerr);
 M_bool M_io_bluetooth_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

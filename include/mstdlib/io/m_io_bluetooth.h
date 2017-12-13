@@ -120,8 +120,6 @@ M_API size_t M_io_bluetooth_enum_service_count(const M_io_bluetooth_enum_t *bten
  */
 M_API M_bool M_io_bluetooth_enum_service_id(const M_io_bluetooth_enum_t *btenum, size_t idx, size_t sidx, const char **name, const char **uuid);
 
-M_API const char *M_io_bluetooth_enum_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx);
-
 
 /*! Create a bluetooth connection.
  *
