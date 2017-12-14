@@ -120,7 +120,7 @@ void M_io_block_data_free(M_io_t *io);
 /* Here because DNS needs it instead of m_io_net_int.h */
 void M_io_net_init_system(void);
 
-#if defined(__APPLE__) && !defined(IO) 
+#if defined(__APPLE__) && !defined(IOS)
 void M_io_mac_runloop_start(void);
 extern CFRunLoopRef M_io_mac_runloop;
 #endif

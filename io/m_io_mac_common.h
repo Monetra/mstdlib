@@ -21,22 +21,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_MFI_H__
-#define __M_IO_MFI_H__
+#ifndef __M_IO_MAC_COMMON_H__
+#define __M_IO_MAC_COMMON_H__
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_io.h>
-#include <mstdlib/io/m_io_layer.h>
-#include "m_io_mfi_ea.h"
 
-struct M_io_handle {
-	M_io_state_t     state;      /*!< Current state of connection */
+#include <IOKit/IOReturn.h>
 
-	CFTypeRef        ea;         /*!< External Accessory Interface (__bridge_retained) */
-	M_buf_t         *readbuf;    /*!< Reads are transferred via a buffer */
-	M_buf_t         *writebuf;   /*!< Writes are transferred via a buffer */
-	M_io_t          *io;         /*!< Pointer to IO object */
-	M_event_timer_t *timer;      /*!< Timer to handle connection timeouts */
-	char             error[256]; /*!< Error string */
-};
+M_io_error_t M_io_mac_ioreturn_to_err(IOReturn result);
+const char *M_io_mac_ioreturn_errormsg(IOReturn result);
 
 #endif

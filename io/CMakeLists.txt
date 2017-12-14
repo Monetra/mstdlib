@@ -64,12 +64,18 @@ else ()
 		list(APPEND sources
 			m_io_hid_linux.c
 		)
-	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
+	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		list(APPEND sources
-			m_io_bluetooth_mac.m
-			m_io_hid_mac.c
-			m_io_mac_runlooper.c
+			m_io_mac_common.c
 		)
+		if (NOT IOS AND NOT IOSSIM)
+			list(APPEND sources
+				m_io_bluetooth_mac.m
+				m_io_bluetooth_mac_rfcomm.m
+				m_io_hid_mac.c
+				m_io_mac_runlooper.c
+			)
+		endif ()
 	else ()
 		list(APPEND sources
 			m_io_hid_notimpl.c

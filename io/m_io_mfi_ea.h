@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_BLUETOOTH_IOS_EA_H__
-#define __M_IO_BLUETOOTH_IOS_EA_H__
+#ifndef __M_IO_MFI_EA_H__
+#define __M_IO_MFI_EA_H__
 
 #import <Foundation/Foundation.h>
 #import <ExternalAccessory/ExternalAccessory.h>
@@ -47,4 +47,4 @@
 
 @end
 
-#endif /* __M_IO_BLUETOOTH_IOS_EA_H__ */
+#endif /* __M_IO_MFI_EA_H__ */
