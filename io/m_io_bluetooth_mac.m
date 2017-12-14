@@ -37,12 +37,12 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 
 	ds = [IOBluetoothDevice pairedDevices];
 	for (IOBluetoothDevice *d in ds) {
-		const char *name      = [[d name] UTF8String];
-		const char *mac       = [[d addressString] UTF8String];
+		const char *name      = [d.name UTF8String];
+		const char *mac       = [[d.addressString stringByReplacingOccurrencesOfString:@"-" withString:@":"] UTF8String];
 		const char *sname     = NULL;
-		M_bool      connected = [d isConnected]?M_TRUE:M_FALSE;
+		M_bool      connected = d.isConnected?M_TRUE:M_FALSE;
 
-		NSArray *srs = [d services];
+		NSArray *srs = d.services;
 		for (IOBluetoothSDPServiceRecord *sr in srs) {
 			BluetoothRFCOMMChannelID rfid;
 			/* Filter out anything that's not an rfcomm service. */
