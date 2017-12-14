@@ -106,7 +106,7 @@ M_API const char *M_io_mfi_enum_protocol(const M_io_mfi_enum_t *mfienum, size_t 
  *
  * \return String
  */
-M_API const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx, size_t sidx, const char **name, const char **uuid);
+M_API const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx);
 
 
 /*! Create a mfi connection.
