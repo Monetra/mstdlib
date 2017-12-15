@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_BLUETOOTH_H__
-#define __M_IO_BLUETOOTH_H__
+#ifndef __M_IO_MFI_H__
+#define __M_IO_MFI_H__
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
@@ -123,4 +123,4 @@ M_API M_io_error_t M_io_mfi_create(M_io_t **io_out, const char *protocol, const 
 
 __END_DECLS
 
-#endif /* __M_IO_BLUETOOTH_H__ */
+#endif /* __M_IO_MFI_H__ */
