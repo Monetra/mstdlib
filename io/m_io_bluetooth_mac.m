@@ -40,7 +40,7 @@ M_bool M_io_bluetooth_mac_uuid_to_str(IOBluetoothSDPUUID *u, char *uuid, size_t 
 	u = [u getUUIDWithLength:16];
 	b = [u bytes];
 
-	snprintf(uuid, uuid_len,
+	M_snprintf(uuid, uuid_len,
 		"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
 		b[0], b[1], b[2], b[3],
 		b[4], b[5], b[6], b[7],
