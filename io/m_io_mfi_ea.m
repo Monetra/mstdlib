@@ -22,9 +22,11 @@
  */
 
 #include <mstdlib/mstdlib_thread.h>
-#include "m_io_mfi.h"
+#include "m_io_mfi_int.h"
 #include "m_io_posix_common.h"
 #include "m_io_int.h" /* For M_io_layer_at() */
+
+#import "m_io_mfi_ea.h"
 
 @implementation M_io_mfi_ea
 

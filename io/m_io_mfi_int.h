@@ -21,12 +21,14 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_MFI_H__
-#define __M_IO_MFI_H__
+#ifndef __M_IO_MFI_INT_H__
+#define __M_IO_MFI_INT_H__
 
+#include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/io/m_io_layer.h>
-#include "m_io_mfi_ea.h"
+
+#import <CoreFoundation/CoreFoundation.h>
 
 struct M_io_handle {
 	M_io_state_t     state;      /*!< Current state of connection */

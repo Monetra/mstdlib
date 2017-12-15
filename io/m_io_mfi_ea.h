@@ -24,7 +24,7 @@
 #ifndef __M_IO_MFI_EA_H__
 #define __M_IO_MFI_EA_H__
 
-#import <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
 #import <ExternalAccessory/ExternalAccessory.h>
 
 @interface M_io_mfi_ea : NSObject <EAAccessoryDelegate, NSStreamDelegate>

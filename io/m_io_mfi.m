@@ -21,9 +21,8 @@
  * THE SOFTWARE.
  */
 
-#include <mstdlib/mstdlib.h>
-#include <mstdlib/io/m_io_mfi.h>
-#include "m_io_mfi.h"
+#include "m_io_mfi_int.h"
+#include "m_io_mfi_ea.h"
 #import <ExternalAccessory/ExternalAccessory.h>
 
 #define M_IO_MFI_NAME "MFI"
@@ -31,7 +30,7 @@
 typedef struct {
 	char *name;
 	char *protocol;
-	char *serialnum
+	char *serialnum;
 } M_io_mfi_enum_device_t;
 
 struct M_io_mfi_enum {
@@ -62,6 +61,19 @@ static void M_io_mfi_enum_add(M_io_mfi_enum_t *mfienum, const char *name, const 
 	M_list_insert(mfienum->devices, device);
 }
 
+static M_io_mfi_enum_t *M_io_mfi_enum_init(void)
+{
+	M_io_mfi_enum_t  *mfienum  = M_malloc_zero(sizeof(*mfienum));
+	struct M_list_callbacks listcbs = {
+		NULL,
+		NULL,
+		NULL,
+		M_io_mfi_enum_free_device
+	};
+	mfienum->devices = M_list_create(&listcbs, M_LIST_NONE);
+	return mfienum;
+}
+
 M_io_mfi_enum_t *M_io_mfi_enum(void)
 {
 	NSArray<EAAccessory *> *accs;
@@ -87,19 +99,6 @@ void M_io_mfi_enum_destroy(M_io_mfi_enum_t *mfienum)
 		return;
 	M_list_destroy(mfienum->devices, M_TRUE);
 	M_free(mfienum);
-}
-
-M_io_mfi_enum_t *M_io_mfi_enum_init(void)
-{
-	M_io_mfi_enum_t  *mfienum  = M_malloc_zero(sizeof(*mfienum));
-	struct M_list_callbacks listcbs = {
-		NULL,
-		NULL,
-		NULL,
-		M_io_mfi_enum_free_device
-	};
-	mfienum->devices = M_list_create(&listcbs, M_LIST_NONE);
-	return mfienum;
 }
 
 size_t M_io_mfi_enum_count(const M_io_mfi_enum_t *mfienum)
@@ -145,9 +144,9 @@ const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx)
 
 static M_io_handle_t *M_io_mfi_open(const char *protocol, const char *serialnum, M_io_error_t *ioerr)
 {
-	M_io_handle_t   *handle      = NULL;
-	M_io_mfi_ios_ea *ea          = nil;
-	NSString        *myserialnum = nil;
+	M_io_handle_t *handle      = NULL;
+	M_io_mfi_ea   *ea          = nil;
+	NSString      *myserialnum = nil;
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
@@ -166,7 +165,7 @@ static M_io_handle_t *M_io_mfi_open(const char *protocol, const char *serialnum,
 	handle->writebuf  = M_buf_create();
 	M_snprintf(handle->error, sizeof(handle->error), "Error not set");
 
-	ea = [M_io_mfi_ios_ea m_io_mfi_ios_ea:[NSString stringWithUTF8String:protocol] handle:handle serialnum:myserialnum];
+	ea = [M_io_mfi_ea m_io_mfi_ea:[NSString stringWithUTF8String:protocol] handle:handle serialnum:myserialnum];
 	if (ea == nil) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		M_buf_cancel(handle->readbuf);
@@ -198,11 +197,11 @@ static M_io_state_t M_io_mfi_state_cb(M_io_layer_t *layer)
 
 static void M_io_mfi_close(M_io_handle_t *handle, M_io_state_t state)
 {
-	M_io_mfi_ios_ea *ea;
+	M_io_mfi_ea *ea;
 
 	if (handle->ea != nil) {
 		handle->state = state;
-		ea = (__bridge_transfer M_io_mfi_ios_ea *)handle->ea;
+		ea = (__bridge_transfer M_io_mfi_ea *)handle->ea;
 		[ea close];
 		ea            = nil;
 		handle->ea    = nil;
@@ -255,7 +254,7 @@ static M_io_error_t M_io_mfi_write_cb(M_io_layer_t *layer, const unsigned char *
 
 	/* Dispatch an attempt to write if there was no previously enqueued data. */
 	if (M_buf_len(handle->writebuf) == *write_len) {
-		[(__bridge M_io_mfi_ios_ea *)handle->ea write_data_buffered];
+		[(__bridge M_io_mfi_ea *)handle->ea write_data_buffered];
 	}
 
 	return M_IO_ERROR_SUCCESS;
@@ -352,7 +351,7 @@ static M_bool M_io_mfi_init_cb(M_io_layer_t *layer)
 		case M_IO_STATE_INIT:
 			handle->state = M_IO_STATE_CONNECTING;
 			handle->io    = io;
-			[(__bridge M_io_mfi_ios_ea *)handle->ea connect];
+			[(__bridge M_io_mfi_ea *)handle->ea connect];
 
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:

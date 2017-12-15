@@ -64,18 +64,14 @@ else ()
 		list(APPEND sources
 			m_io_hid_linux.c
 		)
-	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
 		list(APPEND sources
 			m_io_mac_common.c
+			m_io_bluetooth_mac.m
+			m_io_bluetooth_mac_rfcomm.m
+			m_io_hid_mac.c
+			m_io_mac_runlooper.c
 		)
-		if (NOT IOS AND NOT IOSSIM)
-			list(APPEND sources
-				m_io_bluetooth_mac.m
-				m_io_bluetooth_mac_rfcomm.m
-				m_io_hid_mac.c
-				m_io_mac_runlooper.c
-			)
-		endif ()
 	else ()
 		list(APPEND sources
 			m_io_hid_notimpl.c
@@ -173,14 +169,14 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		target_link_libraries(${PROJECT_NAME}
 			PUBLIC "${IOBUETOOTH}"
 		)
+		find_library(FOUNDATION NAMES Foundation)
+		target_link_libraries(${PROJECT_NAME}
+			PUBLIC "${FOUNDATION}"
+		)
 	endif ()
 	find_library(COREFOUNDATION NAMES CoreFoundation)
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREFOUNDATION}"
-	)
-	find_library(FOUNDATION NAMES Foundation)
-	target_link_libraries(${PROJECT_NAME}
-		PUBLIC "${FOUNDATION}"
 	)
 endif ()
 
