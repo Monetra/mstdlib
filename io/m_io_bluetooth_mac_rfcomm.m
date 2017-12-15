@@ -161,7 +161,9 @@ M_uint16                  _mtu     = 0;
 	
 	[_channel setDelegate:nil];
 	[_channel closeChannel];
+	[_dev closeConnection];
 	_channel = nil;
+	_dev     = nil;
 }
 
 - (void)close
