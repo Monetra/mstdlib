@@ -31,6 +31,7 @@ static void M_io_bluetooth_enum_free_device(void *arg)
 	M_io_bluetooth_enum_device_t *device = arg;
 	M_free(device->name);
 	M_free(device->mac);
+	M_free(device->service_name);
 	M_free(device->uuid);
 	M_free(device);
 }
@@ -64,18 +65,19 @@ size_t M_io_bluetooth_enum_count(const M_io_bluetooth_enum_t *btenum)
 }
 
 
-void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const char *uuid)
+void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const char *service_name, const char *uuid, M_bool connected)
 {
 	M_io_bluetooth_enum_device_t *device;
 
 	if (btenum == NULL || M_str_isempty(name) || M_str_isempty(mac) || M_str_isempty(uuid))
 		return;
 
-	device       = M_malloc_zero(sizeof(*device));
-	device->name = M_strdup(name);
-
-	device->mac  = M_strdup(mac);
-	device->uuid = M_strdup(uuid);
+	device               = M_malloc_zero(sizeof(*device));
+	device->name         = M_strdup(name);
+	device->mac          = M_strdup(mac);
+	device->service_name = M_strdup(service_name);
+	device->uuid         = M_strdup(uuid);
+	device->connected    = connected;
 
 	M_list_insert(btenum->devices, device);
 }
@@ -102,7 +104,29 @@ const char *M_io_bluetooth_enum_mac(const M_io_bluetooth_enum_t *btenum, size_t 
 	return device->mac;
 }
 
-const char *M_io_bluetooth_enum_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx)
+M_bool M_io_bluetooth_enum_connected(const M_io_bluetooth_enum_t *btenum, size_t idx)
+{
+	const M_io_bluetooth_enum_device_t *device;
+	if (btenum == NULL)
+		return M_FALSE;
+	device = M_list_at(btenum->devices, idx);
+	if (device == NULL)
+		return M_FALSE;
+	return device->connected;
+}
+
+const char *M_io_bluetooth_enum_service_name(const M_io_bluetooth_enum_t *btenum, size_t idx)
+{
+	const M_io_bluetooth_enum_device_t *device;
+	if (btenum == NULL)
+		return NULL;
+	device = M_list_at(btenum->devices, idx);
+	if (device == NULL)
+		return NULL;
+	return device->service_name;
+}
+
+const char *M_io_bluetooth_enum_service_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx)
 {
 	const M_io_bluetooth_enum_device_t *device;
 	if (btenum == NULL)
@@ -112,7 +136,6 @@ const char *M_io_bluetooth_enum_uuid(const M_io_bluetooth_enum_t *btenum, size_t
 		return NULL;
 	return device->uuid;
 }
-
 
 M_io_error_t M_io_bluetooth_create(M_io_t **io_out, const char *mac, const char *uuid)
 {

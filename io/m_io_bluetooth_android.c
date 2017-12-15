@@ -79,16 +79,21 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 	/* Iterate across devices */
 	count = M_io_jni_array_length(env, device_arr);
 	for (i=0; i<count; i++) {
-		jobjectArray uuid_arr   = NULL;
-		jobject      device     = NULL;
-		size_t       uuid_count = 0;
-		jobject      uuid       = NULL;
-		jstring      uuid_str   = NULL;
-		jstring      name_str   = NULL;
-		jstring      mac_str    = NULL;
-		char        *c_uuid     = NULL;
-		char        *c_mac      = NULL;
-		char        *c_name     = NULL;
+		jobjectArray  uuid_arr   = NULL;
+		jobject       device     = NULL;
+		size_t        uuid_count = 0;
+		jobject       uuid       = NULL;
+		jstring       uuid_str   = NULL;
+		jstring       name_str   = NULL;
+		jstring       mac_str    = NULL;
+		char         *c_uuid     = NULL;
+		char         *c_mac      = NULL;
+		char         *c_name     = NULL;
+		M_list_str_t *uuid_l     = NULL;
+		size_t        len;
+		size_t        j;
+
+		uuid_l = M_list_str_create(M_LIST_STR_NONE);
 
 		/* Grab device from array index */
 		device = M_io_jni_array_element(env, device_arr, i);
@@ -103,16 +108,22 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 		if (uuid_count == 0)
 			goto cleanup_loop;
 
-		/* Use only the first UUID, ignore the rest.  XXX: Is this right? */
-		uuid = M_io_jni_array_element(env, uuid_arr, 0);
-		if (uuid == NULL)
-			goto cleanup_loop;
+		for (j=0; j<uuid_count; j++) {
+			uuid = M_io_jni_array_element(env, uuid_arr, j);
+			if (uuid == NULL) {
+				goto cleanup_loop;
+			}
 
-		/* Convert UUID to string */
-		if (!M_io_jni_call_jobject(&uuid_str, NULL, 0, env, uuid, "android/os/ParcelUuid.toString", 0) || uuid_str == NULL)
-			goto cleanup_loop;
+			/* Convert UUID to string */
+			if (!M_io_jni_call_jobject(&uuid_str, NULL, 0, env, uuid, "android/os/ParcelUuid.toString", 0) || uuid_str == NULL) {
+				goto cleanup_loop;
+			}
 
-		c_uuid = M_io_jni_jstring_to_pchar(env, uuid_str);
+			c_uuid = M_io_jni_jstring_to_pchar(env, uuid_str);
+			M_list_str_insert(uuid_l, c_uuid);
+			M_io_jni_deletelocalref(env, &uuid_str);
+			M_free(c_uuid);
+		}
 
 
 		/* Get friendly name */
@@ -128,19 +139,26 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 
 		c_mac = M_io_jni_jstring_to_pchar(env, mac_str);
 
-		/* Store the result */
-		M_io_bluetooth_enum_add(btenum, c_name, c_mac, c_uuid);
+		/* Store the result.
+ 		 *
+		 * We can't get the service name so that goes in as NULL.
+		 * We can't get the connecnted status so we lie and say
+		 * the device is connected.
+		 */
+		len = M_list_str_len(uuid_l);
+		for (j=0; j<len; j++) {
+			M_io_bluetooth_enum_add(btenum, c_name, c_mac, NULL, M_list_str_at(uuid_l, j), M_TRUE);
+		}
 
 cleanup_loop:
 		M_io_jni_deletelocalref(env, &uuid_arr);
 		M_io_jni_deletelocalref(env, &device);
 		M_io_jni_deletelocalref(env, &uuid);
-		M_io_jni_deletelocalref(env, &uuid_str);
 		M_io_jni_deletelocalref(env, &name_str);
 		M_io_jni_deletelocalref(env, &mac_str);
 		M_free(c_name);
 		M_free(c_mac);
-		M_free(c_uuid);
+		M_list_str_destroy(uuid_l);
 	}
 
 done:
@@ -209,35 +227,14 @@ M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error
 	}
 
 	/* If the UUID is not specified, use the first one from the device. */
-	if (M_str_isempty(uuid)) {
-		if (!M_io_jni_call_jobjectArray(&uuid_arr, NULL, 0, env, device, "android/bluetooth/BluetoothDevice.getUuids", 0) || uuid_arr == NULL) {
-			*ioerr = M_IO_ERROR_NOTFOUND;
-			goto done;
-		}
+	if (M_str_isempty(uuid))
+		uuid = M_IO_BLUETOOTH_RFCOMM_UUID;
 
-		if (M_io_jni_array_length(env, uuid_arr) == 0) {
-			*ioerr = M_IO_ERROR_NOTFOUND;
-			goto done;
-		}
-
-		puuid = M_io_jni_array_element(env, uuid_arr, 0);
-		if (puuid == NULL) {
-			*ioerr = M_IO_ERROR_NOTFOUND;
-			goto done;
-		}
-
-		/* Convert UUID to string */
-		if (!M_io_jni_call_jobject(&uuid_str, NULL, 0, env, puuid, "android/os/ParcelUuid.toString", 0) || uuid_str == NULL) {
-			*ioerr = M_IO_ERROR_ERROR;
-			goto done;
-		}
-	} else {
-		/* Convert C-String uuid into jstring */
-		uuid_str = M_io_jni_pchar_to_jstring(env, uuid);
-		if (uuid_str == NULL) {
-			*ioerr = M_IO_ERROR_ERROR;
-			goto done;
-		}
+	/* Convert C-String uuid into jstring */
+	uuid_str = M_io_jni_pchar_to_jstring(env, uuid);
+	if (uuid_str == NULL) {
+		*ioerr = M_IO_ERROR_ERROR;
+		goto done;
 	}
 
 	/* Convert string uuid into a UUID object */

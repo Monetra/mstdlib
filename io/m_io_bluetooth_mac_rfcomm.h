@@ -21,23 +21,28 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_BLUETOOTH_IOS_H__
-#define __M_IO_BLUETOOTH_IOS_H__
+#ifndef __M_IO_BLUETOOTH_MAC_RFCOMM_H__
+#define __M_IO_BLUETOOTH_MAC_RFCOMM_H__
 
-#include <mstdlib/mstdlib_io.h>
-#include <mstdlib/io/m_io_layer.h>
-#include "m_io_bluetooth_int.h"
-#include "m_io_bluetooth_ios_ea.h"
+#import <Foundation/Foundation.h>
 
-struct M_io_handle {
-	M_io_state_t     state;      /*!< Current state of connection */
+@interface M_io_bluetooth_mac_rfcomm : NSObject <IOBluetoothRFCOMMChannelDelegate>
 
-	CFTypeRef        ea;         /*!< External Accessory Interface (__bridge_retained) */
-	M_buf_t         *readbuf;    /*!< Reads are transferred via a buffer */
-	M_buf_t         *writebuf;   /*!< Writes are transferred via a buffer */
-	M_io_t          *io;         /*!< Pointer to IO object */
-	M_event_timer_t *timer;      /*!< Timer to handle connection timeouts */
-	char             error[256]; /*!< Error string */
-};
+/* Initializer */
++ (id)m_io_bluetooth_mac_rfcomm:(NSString *)mac uuid:(NSString *)uuid handle:(M_io_handle_t *)handle;
+
+/* Stardard init/dealloc functions */
+- (id)init:(NSString *)mac uuid:(NSString *)uuid handle:(M_io_handle_t *)handle;
+- (void)dealloc;
+
+/* Start connecting */
+- (BOOL)connect;
+
+/* Initiate a close */
+- (void)close;
+
+- (void)write_data_buffered;
+
+@end
 
 #endif

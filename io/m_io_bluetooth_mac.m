@@ -23,56 +23,107 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_bluetooth.h>
+#include "m_io_int.h"
 #include "m_io_bluetooth_int.h"
-#include "m_io_bluetooth_ios.h"
-#import <ExternalAccessory/ExternalAccessory.h>
+#include "m_io_bluetooth_mac.h"
+#include "m_io_bluetooth_mac_rfcomm.h"
 
+#import <Foundation/Foundation.h>
+
+M_bool M_io_bluetooth_mac_uuid_to_str(IOBluetoothSDPUUID *u, char *uuid, size_t uuid_len)
+{
+	const unsigned char *b;
+
+	if (u == nil || uuid == NULL || uuid_len == 0)
+		return M_FALSE;
+
+	u = [u getUUIDWithLength:16];
+	b = [u bytes];
+
+	M_snprintf(uuid, uuid_len,
+		"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+		b[0], b[1], b[2], b[3],
+		b[4], b[5], b[6], b[7],
+		b[8], b[9], b[10], b[11],
+		b[12], b[13], b[14], b[15]);
+
+	return M_TRUE;
+}
 
 M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 {
-	NSArray<EAAccessory *> *accs;
-	EAAccessory            *acc;
-	M_io_bluetooth_enum_t *btenum = M_io_bluetooth_enum_init();
+	M_io_bluetooth_enum_t *btenum = NULL;
+	NSArray               *ds;
 
-	accs = [[EAAccessoryManager sharedAccessoryManager] connectedAccessories];
-	for (acc in accs) {
-		for (NSString *k in acc.protocolStrings) {
-			const char *name      = [acc.name UTF8String];
-			const char *serialnum = [acc.serialNumber UTF8String];
-			const char *protocol  = [k UTF8String];
-			M_io_bluetooth_enum_add(btenum, name, protocol, serialnum);
+	btenum = M_io_bluetooth_enum_init();
+
+	ds = [IOBluetoothDevice pairedDevices];
+	for (IOBluetoothDevice *d in ds) {
+		const char *name      = [d.name UTF8String];
+		/* For some reason the mac address returned by the only function to get the mac address
+		 * returns it using '-' instead of the standard ':' character. Not sure why. Especially
+		 * when [IOBluetoothDevice deviceWithAddressString] needs it in the ':' form. */
+		const char *mac       = [[d.addressString stringByReplacingOccurrencesOfString:@"-" withString:@":"] UTF8String];
+		const char *sname     = NULL;
+		M_bool      connected = d.isConnected?M_TRUE:M_FALSE;
+
+		NSArray *srs = d.services;
+		for (IOBluetoothSDPServiceRecord *sr in srs) {
+			BluetoothRFCOMMChannelID rfid;
+			/* Filter out anything that's not an rfcomm service. */
+			if ([sr getRFCOMMChannelID:&rfid] != kIOReturnSuccess) {
+				continue;
+			}
+
+			NSString *sn = [sr getServiceName];
+			if (sn != nil) {
+				sname = [sn UTF8String];
+			}
+
+			NSDictionary *di = sr.attributes;
+			for (NSString *k in di) {
+				IOBluetoothSDPDataElement *e = [di objectForKey:k];
+				NSArray *iea = [e getArrayValue];
+
+				for (IOBluetoothSDPDataElement *ie in iea) {
+					if ([ie getTypeDescriptor] != kBluetoothSDPDataElementTypeUUID) {
+						continue;
+					}
+					char uuid[64];
+					M_io_bluetooth_mac_uuid_to_str([ie getUUIDValue], uuid, sizeof(uuid));
+
+					M_io_bluetooth_enum_add(btenum, name, mac, sname, uuid, connected);
+				}
+			}
 		}
 	}
 
 	return btenum;
 }
 
-
 M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error_t *ioerr)
 {
-	M_io_handle_t         *handle     = NULL;
-	M_io_bluetooth_ios_ea *ea         = nil;
-	NSString              *myuuid     = nil;
+	M_io_handle_t             *handle = NULL;
+	M_io_bluetooth_mac_rfcomm *conn   = nil;
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
-	if (mac == NULL) {
+	if (M_str_isempty(mac)) {
 		*ioerr = M_IO_ERROR_INVALID;
 		return NULL;
 	}
 
-	if (uuid != NULL)
-		myuuid = [NSString stringWithUTF8String:uuid];
+	if (uuid == NULL)
+		uuid = M_IO_BLUETOOTH_RFCOMM_UUID;
 
-	/* All pre-validations are good here.  We're not going to start the actual connection yet as that
-	 * is a blocking operation.  All of the above should have been non-blocking. */
-	handle            = M_malloc_zero(sizeof(*handle));
-	handle->readbuf   = M_buf_create();
-	handle->writebuf  = M_buf_create();
-	M_snprintf(handle->error, sizeof(handle->error), "Error not set");
+	/* All pre-validations are good here. We're not going to start the actual connection yet as that
+	 * is a blocking operation. All of the above should have been non-blocking. */
+	handle           = M_malloc_zero(sizeof(*handle));
+	handle->readbuf  = M_buf_create();
+	handle->writebuf = M_buf_create();
 
-	ea = [M_io_bluetooth_ios_ea m_io_bluetooth_ios_ea:[NSString stringWithUTF8String:mac] handle:handle serialnum:myuuid];
-	if (ea == nil) {
+	conn = [M_io_bluetooth_mac_rfcomm m_io_bluetooth_mac_rfcomm:[NSString stringWithUTF8String:mac] uuid:[NSString stringWithUTF8String:uuid] handle:handle];
+	if (conn == nil) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		M_buf_cancel(handle->readbuf);
 		M_buf_cancel(handle->writebuf);
@@ -80,15 +131,14 @@ M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error
 		return NULL;
 	}
 
-	handle->ea = (__bridge_retained CFTypeRef)ea;
-
+	handle->conn = (__bridge_retained CFTypeRef)conn;
 	return handle;
 }
-
 
 M_bool M_io_bluetooth_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
 	if (M_str_isempty(handle->error))
 		return M_FALSE;
 
@@ -96,27 +146,25 @@ M_bool M_io_bluetooth_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_l
 	return M_TRUE;
 }
 
-
 M_io_state_t M_io_bluetooth_state_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	return handle->state;
 }
 
-
 static void M_io_bluetooth_close(M_io_handle_t *handle, M_io_state_t state)
 {
-	M_io_bluetooth_ios_ea *ea;
+	M_io_bluetooth_mac_rfcomm *conn;
 
-	if (handle->ea != nil) {
-		handle->state = state;
-		ea = (__bridge_transfer M_io_bluetooth_ios_ea *)handle->ea;
-		[ea close];
-		ea            = nil;
-		handle->ea    = nil;
-	}
+	if (handle->conn == nil)
+		return;
+
+	handle->state = state;
+	conn = (__bridge_transfer M_io_bluetooth_mac_rfcomm *)handle->conn;
+	[conn close];
+	conn         = nil;
+	handle->conn = nil;
 }
-
 
 void M_io_bluetooth_destroy_cb(M_io_layer_t *layer)
 {
@@ -134,7 +182,6 @@ void M_io_bluetooth_destroy_cb(M_io_layer_t *layer)
 	M_free(handle);
 }
 
-
 M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -151,10 +198,9 @@ M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	return M_FALSE;
 }
 
-
 M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
 {
-	M_io_handle_t *handle   = M_io_layer_get_handle(layer);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
 	if (buf == NULL || *write_len == 0)
 		return M_IO_ERROR_INVALID;
@@ -162,16 +208,14 @@ M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *b
 	if (handle->state != M_IO_STATE_CONNECTED)
 		return M_IO_ERROR_INVALID;
 
-	M_buf_add_bytes(handle->writebuf, buf, *write_len);
+	if (!handle->can_write)
+		return M_IO_ERROR_WOULDBLOCK;
 
-	/* Dispatch an attempt to write if there was no previously enqueued data. */
-	if (M_buf_len(handle->writebuf) == *write_len) {
-		[(__bridge M_io_bluetooth_ios_ea *)handle->ea write_data_buffered];
-	}
+	M_buf_add_bytes(handle->writebuf, buf, *write_len);
+	[(__bridge M_io_bluetooth_mac_rfcomm *)handle->conn write_data_buffered];
 
 	return M_IO_ERROR_SUCCESS;
 }
-
 
 M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
 {
@@ -193,8 +237,6 @@ M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, siz
 	M_buf_drop(handle->readbuf, *read_len);
 	return M_IO_ERROR_SUCCESS;
 }
-
-
 
 static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
 {
@@ -225,7 +267,6 @@ static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 
 	M_io_layer_release(layer);
 }
-
 M_bool M_io_bluetooth_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -244,7 +285,6 @@ M_bool M_io_bluetooth_disconnect_cb(M_io_layer_t *layer)
 	return M_TRUE;
 }
 
-
 void M_io_bluetooth_unregister_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -254,22 +294,21 @@ void M_io_bluetooth_unregister_cb(M_io_layer_t *layer)
 		M_event_timer_remove(handle->timer);
 		handle->timer = NULL;
 	}
-
 }
-
 
 M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 {
-	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
-	M_io_t          *io     = M_io_layer_get_io(layer);
-	M_event_t       *event  = M_io_get_event(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_event_t     *event  = M_io_get_event(io);
 
 	switch (handle->state) {
 		case M_IO_STATE_INIT:
 			handle->state = M_IO_STATE_CONNECTING;
 			handle->io    = io;
-			[(__bridge M_io_bluetooth_ios_ea *)handle->ea connect];
-
+			if (![(__bridge M_io_bluetooth_mac_rfcomm *)handle->conn connect]) {
+				return M_FALSE;
+			}
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:
 			/* start timer to time out operation */
@@ -291,4 +330,3 @@ M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 
 	return M_TRUE;
 }
-

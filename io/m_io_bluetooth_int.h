@@ -27,11 +27,14 @@
 #include <mstdlib/io/m_io_layer.h>
 
 #define M_IO_BLUETOOTH_NAME "BLUETOOTH"
+#define M_IO_BLUETOOTH_RFCOMM_UUID "00001101-0000-1000-8000-00805f9b34fb"
 
 struct M_io_bluetooth_enum_device {
-	char *name;
-	char *mac;
-	char *uuid;
+	char   *name;
+	char   *mac;
+	char   *service_name;
+	char   *uuid;
+	M_bool  connected;
 };
 
 typedef struct M_io_bluetooth_enum_device M_io_bluetooth_enum_device_t;
@@ -42,7 +45,7 @@ struct M_io_bluetooth_enum {
 
 M_io_bluetooth_enum_t *M_io_bluetooth_enum_init(void);
 
-void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const char *uuid);
+void M_io_bluetooth_enum_add(M_io_bluetooth_enum_t *btenum, const char *name, const char *mac, const char *service_name, const char *uuid, M_bool connected);
 
 M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error_t *ioerr);
 M_bool M_io_bluetooth_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

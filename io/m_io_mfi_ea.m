@@ -22,11 +22,11 @@
  */
 
 #include <mstdlib/mstdlib_thread.h>
-#include "m_io_bluetooth_ios.h"
+#include "m_io_mfi.h"
 #include "m_io_posix_common.h"
 #include "m_io_int.h" /* For M_io_layer_at() */
 
-@implementation M_io_bluetooth_ios_ea
+@implementation M_io_mfi_ea
 
 EAAccessory   *_acc      = nil;
 EASession     *_session  = nil;
@@ -34,9 +34,9 @@ M_io_handle_t *_handle   = NULL;
 BOOL           _ropened  = NO;
 BOOL           _wopened  = NO;
 
-+ (id)m_io_bluetooth_ios_ea:(NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum
++ (id)m_io_mfi_ea:(NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum
 {
-	return [[M_io_bluetooth_ios_ea alloc] init: protocol handle:handle serialnum:serialnum];
+	return [[M_io_mfi_ea alloc] init: protocol handle:handle serialnum:serialnum];
 }
 
 - (void)_read

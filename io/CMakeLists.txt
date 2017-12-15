@@ -64,11 +64,18 @@ else ()
 		list(APPEND sources
 			m_io_hid_linux.c
 		)
-	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
+	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		list(APPEND sources
-			m_io_mac_runlooper.c
-			m_io_hid_mac.c
+			m_io_mac_common.c
 		)
+		if (NOT IOS AND NOT IOSSIM)
+			list(APPEND sources
+				m_io_bluetooth_mac.m
+				m_io_bluetooth_mac_rfcomm.m
+				m_io_hid_mac.c
+				m_io_mac_runlooper.c
+			)
+		endif ()
 	else ()
 		list(APPEND sources
 			m_io_hid_notimpl.c
@@ -83,8 +90,8 @@ endif ()
 if (ANDROID)
 	list(APPEND sources m_io_bluetooth_android.c)
 elseif (IOS)
-	list(APPEND sources m_io_bluetooth_ios_ea.m m_io_bluetooth_ios.m)
-else ()
+	list(APPEND sources m_io_mfi_ea.m m_io_mfi.m)
+elseif (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS)
 	list(APPEND sources m_io_bluetooth_notimpl.c)
 endif ()
 
@@ -115,6 +122,10 @@ else ()
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		POSITION_INDEPENDENT_CODE TRUE
 	)
+endif ()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+	target_compile_options(${PROJECT_NAME} PUBLIC "-fobjc-arc")
 endif ()
 
 
@@ -158,10 +169,18 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		target_link_libraries(${PROJECT_NAME}
 			PUBLIC "${IOKIT}"
 		)
+		find_library(IOBUETOOTH NAMES IOBluetooth)
+		target_link_libraries(${PROJECT_NAME}
+			PUBLIC "${IOBUETOOTH}"
+		)
 	endif ()
 	find_library(COREFOUNDATION NAMES CoreFoundation)
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREFOUNDATION}"
+	)
+	find_library(FOUNDATION NAMES Foundation)
+	target_link_libraries(${PROJECT_NAME}
+		PUBLIC "${FOUNDATION}"
 	)
 endif ()
 

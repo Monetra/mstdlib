@@ -34,15 +34,22 @@ __BEGIN_DECLS
 /*! \addtogroup m_io_bluetooth Bluetooth IO functions
  *  \ingroup m_eventio_base
  * 
- * Bluetooth IO functions
+ * Bluetooth IO functions.
+ *
+ * This is a connectivity layer and uses rfcomm. Protocols,
+ * such as AVDTP, should be implemented at a layer above this one.
+ * The generic rfcomm uuid that the vast majority of devices use is
+ * 00001101-0000-1000-8000-00805f9b34fb.
  *
  * Supported OS:
  * - Android
  * - iOS
+ * - macOS
  *
- * Note: iOS only supports the External Accessory EAAccessory protocol. Devices that
- * are part of the Made for iPhone/iPod/iPad (MFi) program. BLE is not supported
- * on iOS at this time.
+ * Note: On iOS, this interface only supports Bluetooth Low Energy (BLE) devices.
+ * iOS also supports an Apple proprietary system known as Made for iPhone/iPod/iPad (MFi).
+ * MFi uses bluetooth but is handled differently. It's supposed though the m_io_mfi layer.
+ * MFi is also known as the External Accessory / EAAccessory protocol.
  *
  * @{
  */
@@ -54,8 +61,12 @@ typedef struct M_io_bluetooth_enum M_io_bluetooth_enum_t;
 
 /*! Create a bluetooth enumeration object.
  *
- * Use to determine what bluetooth devices are connected. On some OS's this may
- * be a list of associated devices not necessarily what's actively connected.
+ * Use to determine what bluetooth devices are connected and
+ * what services are being offered. This is a
+ * list of associated devices not necessarily what's actively connected.
+ *
+ * The enumeration is based on available services. Meaning a device may 
+ * be listed multiple times if it exposes multiple services.
  *
  * \return Bluetooth enumeration object.
  */
@@ -98,22 +109,47 @@ M_API const char *M_io_bluetooth_enum_name(const M_io_bluetooth_enum_t *btenum, 
 M_API const char *M_io_bluetooth_enum_mac(const M_io_bluetooth_enum_t *btenum, size_t idx);
 
 
-/*! UUID of bluetooth device.
+/*! Whether the device is connected.
  *
- * \param[in] btenum Bluetooth enumeration object.
- * \param[in] idx    Index in bluetooth enumeration.
+ * Not all systems are able to report the connected status making this function
+ * less useful than you would think.
+ *
+ * \return M_TRUE if the device is connected, otherwise M_FALSE.
+ *         If it is not possible to determine the connected status this
+ *         function will return M_TRUE.
+ */
+M_API M_bool M_io_bluetooth_enum_connected(const M_io_bluetooth_enum_t *btenum, size_t idx);
+
+
+/*! Name of service reported by device.
+ *
+ * \param[in]  btenum Bluetooth enumeration object.
+ * \param[in]  idx    Index in bluetooth enumeration.
  *
  * \return String.
  */
-M_API const char *M_io_bluetooth_enum_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx);
+M_API const char *M_io_bluetooth_enum_service_name(const M_io_bluetooth_enum_t *btenum, size_t idx);
+
+
+/*! Uuid of service reported by device.
+ *
+ * \param[in]  btenum Bluetooth enumeration object.
+ * \param[in]  idx    Index in bluetooth enumeration.
+ *
+ * \return String.
+ */
+M_API const char *M_io_bluetooth_enum_service_uuid(const M_io_bluetooth_enum_t *btenum, size_t idx);
 
 
 /*! Create a bluetooth connection.
  *
  * \param[out] io_out io object for communication.
  * \param[in]  mac    Required MAC of the device.
- * \param[in]  uuid   Option UUID of the device. If not specified the first device matching
- *                    the mac will be used.
+ * \param[in]  uuid   Optional UUID of the device. For rfcomm (used by this io interface) the uuid
+ *                    is almost always 00001101-0000-1000-8000-00805f9b34fb unless the device is
+ *                    providing multiple services. Such as a device that can do multiple things like
+ *                    bar code scanner, and integrated printer. If not specified the generic
+ *                    rfcomm generic uuid will be used.
  *
  * \return Result.
  */

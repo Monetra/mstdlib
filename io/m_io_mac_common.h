@@ -21,30 +21,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_BLUETOOTH_IOS_EA_H__
-#define __M_IO_BLUETOOTH_IOS_EA_H__
+#ifndef __M_IO_MAC_COMMON_H__
+#define __M_IO_MAC_COMMON_H__
 
-#import <Foundation/Foundation.h>
-#import <ExternalAccessory/ExternalAccessory.h>
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-@interface M_io_bluetooth_ios_ea : NSObject <EAAccessoryDelegate, NSStreamDelegate>
+#include <mstdlib/mstdlib.h>
+#include <mstdlib/mstdlib_io.h>
 
-/* Initializer */
-+ (id)m_io_bluetooth_ios_ea: (NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum;
+#include <IOKit/IOReturn.h>
 
-/* Stardard init/dealloc functions */
-- (id)init: (NSString *)protocol handle:(M_io_handle_t *)handle serialnum:(NSString *)serialnum;
-- (void)dealloc;
+M_io_error_t M_io_mac_ioreturn_to_err(IOReturn result);
+const char *M_io_mac_ioreturn_errormsg(IOReturn result);
 
-/* Start connecting */
-- (void)connect;
-
-/* Initiate a close */
-- (void)close;
-
-/* Trigger the iOS event system to try to write data */
-- (void)write_data_buffered;
-
-@end
-
-#endif /* __M_IO_BLUETOOTH_IOS_EA_H__ */
+#endif
