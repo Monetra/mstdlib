@@ -34,7 +34,7 @@ M_io_handle_t            *_handle  = NULL;
 IOBluetoothDevice        *_dev     = NULL;
 IOBluetoothRFCOMMChannel *_channel = NULL;
 BluetoothRFCOMMChannelID  _cid;
-M_uint64                  _mtu     = 0;
+M_uint16                  _mtu     = 0;
 
 + (id)m_io_bluetooth_mac_rfcomm:(NSString *)mac uuid:(NSString *)uuid handle:(M_io_handle_t *)handle
 {
@@ -197,7 +197,7 @@ M_uint64                  _mtu     = 0;
 	ioret = [_channel writeAsync:M_buf_peek(_handle->writebuf) length:send_len refcon:NULL];
 	ioerr = M_io_mac_ioreturn_to_err(ioret);
 	if (ioerr == M_IO_ERROR_SUCCESS) {
-		M_buf_drop(_handle->writebuf, send_len);
+		_handle->wrote_len = send_len;
 		_handle->can_write = M_FALSE;
 	} else if (M_io_error_is_critical(ioerr)) {
 		M_snprintf(_handle->error, sizeof(_handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
@@ -282,9 +282,13 @@ M_uint64                  _mtu     = 0;
 	M_io_layer_t *layer;
 
 	(void)rfcommChannel;
+	(void)refcon;
 
 	layer = M_io_layer_acquire(_handle->io, 0, NULL);
 	if (error == kIOReturnSuccess) {
+		/* Clear the data from the buffer that was written. */
+		M_buf_drop(_handle->writebuf, _handle->wrote_len);
+
 		if (M_buf_len(_handle->writebuf) > 0) {
 			/* We have more data avaliable to write because more data was
 			 * buffered than could be written. Write the next block. */

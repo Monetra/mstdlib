@@ -36,6 +36,7 @@ struct M_io_handle {
 	CFTypeRef        conn;       /*!< Rfcomm interface (__bridge_retained) */
 	M_buf_t         *readbuf;    /*!< Reads are transferred via a buffer */
 	M_buf_t         *writebuf;   /*!< Write data is buffered because only uint16 max bytes can be sent at a time. */
+	size_t           wrote_len;  /*!< Amount of data buffered for writing. */
 	M_io_t          *io;         /*!< Pointer to IO object */
 	M_event_timer_t *timer;      /*!< Timer to handle connection timeouts */
 	char             error[256]; /*!< Error string */
