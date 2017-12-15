@@ -34,6 +34,51 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	return NULL;
 }
 
+const char *M_io_hid_get_manufacturer(M_io_t *io)
+{
+	(void)io;
+	return NULL;
+}
+
+const char *M_io_hid_get_path(M_io_t *io)
+{
+	(void)io;
+	return NULL;
+}
+
+const char *M_io_hid_get_product(M_io_t *io)
+{
+	(void)io;
+	return NULL;
+}
+
+M_uint16 M_io_hid_get_productid(M_io_t *io)
+{
+	(void)io;
+	return 0;
+}
+
+M_uint16 M_io_hid_get_vendorid(M_io_t *io)
+{
+	(void)io;
+	return 0;
+}
+
+const char *M_io_hid_get_serial(M_io_t *io)
+{
+	(void)io;
+	return NULL;
+}
+
+void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
+{
+	(void)io;
+	if (max_input_size != NULL)
+		*max_input_size = 0;
+	if (max_output_size != NULL)
+		*max_output_size = 0;
+}
+
 M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 {
 	(void)devpath;
