@@ -60,6 +60,9 @@ M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 	ds = [IOBluetoothDevice pairedDevices];
 	for (IOBluetoothDevice *d in ds) {
 		const char *name      = [d.name UTF8String];
+		/* For some reason the mac address returned by the only function to get the mac address
+		 * returns it using '-' instead of the standard ':' character. Not sure why. Especially
+		 * when [IOBluetoothDevice deviceWithAddressString] needs it in the ':' form. */
 		const char *mac       = [[d.addressString stringByReplacingOccurrencesOfString:@"-" withString:@":"] UTF8String];
 		const char *sname     = NULL;
 		M_bool      connected = d.isConnected?M_TRUE:M_FALSE;
@@ -113,11 +116,11 @@ M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error
 	if (uuid == NULL)
 		uuid = M_IO_BLUETOOTH_RFCOMM_UUID;
 
-	/* All pre-validations are good here.  We're not going to start the actual connection yet as that
-	 * is a blocking operation.  All of the above should have been non-blocking. */
-	handle            = M_malloc_zero(sizeof(*handle));
-	handle->readbuf   = M_buf_create();
-	handle->writebuf  = M_buf_create();
+	/* All pre-validations are good here. We're not going to start the actual connection yet as that
+	 * is a blocking operation. All of the above should have been non-blocking. */
+	handle           = M_malloc_zero(sizeof(*handle));
+	handle->readbuf  = M_buf_create();
+	handle->writebuf = M_buf_create();
 
 	conn = [M_io_bluetooth_mac_rfcomm m_io_bluetooth_mac_rfcomm:[NSString stringWithUTF8String:mac] uuid:[NSString stringWithUTF8String:uuid] handle:handle];
 	if (conn == nil) {

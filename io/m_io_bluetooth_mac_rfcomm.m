@@ -41,7 +41,7 @@ M_uint16                  _mtu     = 0;
 	return [[M_io_bluetooth_mac_rfcomm alloc] init:mac uuid:uuid handle:handle];
 }
 
-- (id)init: (NSString *)mac uuid:(NSString *)uuid handle:(M_io_handle_t *)handle
+- (id)init:(NSString *)mac uuid:(NSString *)uuid handle:(M_io_handle_t *)handle
 {
 	const char *cuuid;
 	M_bool      found = M_FALSE;
@@ -69,16 +69,14 @@ M_uint16                  _mtu     = 0;
 	 * the uuid until we find the right one, or run out. */
 	NSArray *srs = _dev.services;
 	for (IOBluetoothSDPServiceRecord *sr in srs) {
-		/* Skip anything that's not an rfcomm service. */
-		if ([sr getRFCOMMChannelID:&_cid] != kIOReturnSuccess) {
-			continue;
-
-		}
-
+		/* Get the channel id for the service. If we can't get the
+		 * channel id, that means it's not an rfcomm service. In
+		 * which case, skip it. */
 		if ([sr getRFCOMMChannelID:&_cid] != kIOReturnSuccess) {
 			continue;
 		}
 
+		/* Get the uuid for the service and check if it's ours. */
 		NSDictionary *di = sr.attributes;
 		for (NSString *k in di) {
 			IOBluetoothSDPDataElement *e = [di objectForKey:k];
@@ -160,7 +158,6 @@ M_uint16                  _mtu     = 0;
 {
 	if (_channel == nil)
 		return;
-
 	
 	[_channel setDelegate:nil];
 	[_channel closeChannel];
@@ -192,6 +189,7 @@ M_uint16                  _mtu     = 0;
 
 	layer = M_io_layer_acquire(_handle->io, 0, NULL);
 
+	/* We can only send up to _mtu bytes. */
 	len = M_buf_len(_handle->writebuf);
 	if (len > _mtu) {
 		send_len = _mtu;
@@ -202,9 +200,12 @@ M_uint16                  _mtu     = 0;
 	ioret = [_channel writeAsync:M_buf_peek(_handle->writebuf) length:send_len refcon:NULL];
 	ioerr = M_io_mac_ioreturn_to_err(ioret);
 	if (ioerr == M_IO_ERROR_SUCCESS) {
+		/* Save how much data we're writing so we can remove it from the buffer once the
+		 * write has finished. */
 		_handle->wrote_len = send_len;
+		/* Block any new data from being buffered because we've started a write operation. */
 		_handle->can_write = M_FALSE;
-	} else if (M_io_error_is_critical(ioerr)) {
+	} else {
 		M_snprintf(_handle->error, sizeof(_handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		[self close_int];
@@ -215,6 +216,9 @@ M_uint16                  _mtu     = 0;
 
 - (void)write_data_buffered
 {
+	/* This function should be called when the layer is locked but _write will also
+	 * lock the layer. We will displatch the actual write so this can return and unlock
+	 * the layer. Otherwise, we'll end up in a dead lock. */
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		[self _write];
 	});
