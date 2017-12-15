@@ -124,6 +124,10 @@ else ()
 	)
 endif ()
 
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+	target_compile_options(${PROJECT_NAME} PUBLIC "-fobjc-arc")
+endif ()
+
 
 # Set include directories.
 target_include_directories(${PROJECT_NAME}

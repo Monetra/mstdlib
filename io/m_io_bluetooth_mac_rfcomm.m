@@ -31,8 +31,8 @@
 @implementation M_io_bluetooth_mac_rfcomm
 
 M_io_handle_t            *_handle  = NULL;
-IOBluetoothDevice        *_dev     = NULL;
-IOBluetoothRFCOMMChannel *_channel = NULL;
+IOBluetoothDevice        *_dev     = nil;
+IOBluetoothRFCOMMChannel *_channel = nil;
 BluetoothRFCOMMChannelID  _cid;
 M_uint16                  _mtu     = 0;
 
@@ -139,7 +139,12 @@ M_uint16                  _mtu     = 0;
 	M_io_mac_runloop_start();
 
 	CFRunLoopPerformBlock(M_io_mac_runloop, kCFRunLoopCommonModes, ^{
-		ioret = [_dev openRFCOMMChannelAsync:&_channel withChannelID:_cid delegate:self];
+		/* Use a temporary channel for storage because openRFCOMMChannelAsync takes an __auto_release paraemter.
+		 * We are going to assign it to a __strong parameter to prevent it from being cleaned up from under
+		 * us but we can't do that directly. */
+		IOBluetoothRFCOMMChannel *channel = nil;
+		ioret    = [_dev openRFCOMMChannelAsync:&channel withChannelID:_cid delegate:self];
+		_channel = channel;
 		dispatch_semaphore_signal(sem);
 	});
 	CFRunLoopWakeUp(M_io_mac_runloop);
