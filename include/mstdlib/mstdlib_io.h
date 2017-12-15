@@ -83,6 +83,7 @@
 #include <mstdlib/io/m_io_loopback.h>
 #include <mstdlib/io/m_io_serial.h>
 #include <mstdlib/io/m_io_hid.h>
+#include <mstdlib/io/m_io_mfi.h>
 #include <mstdlib/io/m_io_trace.h>
 
 #endif /* __MSTDLIB_IO_H__ */
