@@ -26,7 +26,6 @@
 
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/io/m_io_layer.h>
-#include "m_io_mfi_ea.h"
 
 #include <IOBluetooth/IOBluetooth.h>
 
