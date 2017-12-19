@@ -424,6 +424,29 @@ void M_buf_add_bytes(M_buf_t *buf, const void *bytes, size_t bytes_length)
 }
 
 
+M_bool M_buf_add_bytes_hex(M_buf_t *buf, const char *hex_bytes)
+{
+	size_t   hex_len = M_str_len(hex_bytes);
+	size_t   bin_len;
+	M_uint8 *bin;
+
+	if (hex_len == 0) {
+		return M_TRUE;
+	}
+
+	if (buf == NULL || (hex_len % 2) != 0) {
+		return M_FALSE;
+	}
+
+	bin_len = hex_len / 2;
+	bin     = M_buf_direct_write_start(buf, &bin_len);
+	bin_len = M_bincodec_decode(bin, bin_len, hex_bytes, hex_len, M_BINCODEC_HEX);
+	M_buf_direct_write_end(buf, bin_len);
+
+	return M_TRUE;
+}
+
+
 void M_buf_add_str_transform(M_buf_t *buf, M_uint32 transform_type, const char *str)
 {
 	size_t str_length;
@@ -443,6 +466,19 @@ void M_buf_add_str(M_buf_t *buf, const char *str)
 {
 	M_buf_add_str_transform(buf, M_BUF_TRANSFORM_NONE, str);
 }
+
+
+void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len)
+{
+	size_t   hex_len;
+	M_uint8 *hex;
+
+	hex_len = M_bincodec_encode_size(len, 0, M_BINCODEC_HEX);
+	hex     = M_buf_direct_write_start(buf, &hex_len);
+	hex_len = M_bincodec_encode((char *)hex, hex_len, bytes, len, 0, M_BINCODEC_HEX);
+	M_buf_direct_write_end(buf, hex_len);
+}
+
 
 size_t M_buf_add_str_lines(M_buf_t *buf, const char *str, size_t max_lines, size_t max_chars, M_bool truncate,
 	const char *newline)

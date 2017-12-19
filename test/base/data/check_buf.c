@@ -4,6 +4,36 @@
 
 #include <mstdlib/mstdlib.h>
 
+static const char    *test_hex   = "9F33036020C8";
+static const M_uint8  test_bin[] = {0x9F, 0x33, 0x03, 0x60, 0x20, 0xC8};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+START_TEST(check_buf_add_bytes_hex)
+{
+	M_buf_t *buf = M_buf_create();
+
+	M_buf_add_bytes_hex(buf, test_hex);
+
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size doesn't match");
+	ck_assert_msg(M_mem_eq(test_bin, M_buf_peek(buf), sizeof(test_bin)), "output doesn't match");
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
+START_TEST(check_buf_add_str_hex)
+{
+	M_buf_t *buf = M_buf_create();
+
+	M_buf_add_str_hex(buf, test_bin, sizeof(test_bin));
+
+	ck_assert_msg(M_str_caseeq(test_hex, M_buf_peek(buf)), "output doesn't match");
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static struct {
@@ -180,11 +210,21 @@ END_TEST
 static Suite *M_buf_suite(void)
 {
 	Suite *suite;
+	TCase *tc_buf_add_bytes_hex;
+	TCase *tc_buf_add_str_hex;
 	TCase *tc_buf_uintbin;
 	TCase *tc_buf_strbin;
 	TCase *tc_buf_uintbcd;
 
 	suite = suite_create("buf");
+
+	tc_buf_add_bytes_hex = tcase_create("check_buf_add_bytes_hex");
+	tcase_add_test(tc_buf_add_bytes_hex, check_buf_add_bytes_hex);
+	suite_add_tcase(suite, tc_buf_add_bytes_hex);
+
+	tc_buf_add_str_hex = tcase_create("check_buf_add_str_hex");
+	tcase_add_test(tc_buf_add_str_hex, check_buf_add_str_hex);
+	suite_add_tcase(suite, tc_buf_add_str_hex);
 
 	tc_buf_uintbin = tcase_create("check_buf_uintbin");
 	tcase_add_test(tc_buf_uintbin, check_buf_uintbin);

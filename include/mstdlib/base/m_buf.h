@@ -285,6 +285,18 @@ M_API void M_buf_add_byte(M_buf_t *buf, unsigned char byte);
 M_API void M_buf_add_bytes(M_buf_t *buf, const void *bytes, size_t bytes_length);
 
 
+/*! Append zero or more bytes to a buffer (given as hex string).
+ *
+ * Same as M_buf_add_bytes(), but accepts binary data encoded as a hex string.
+ * The data is decoded into raw binary form before it's added to the buffer.
+ *
+ * \param[in,out] buf       Buffer.
+ * \param[in]     hex_bytes Hex string that encodes the bytes to append.
+ * \return        M_TRUE if successful, M_FALSE if error during hex decode
+ */
+M_API M_bool M_buf_add_bytes_hex(M_buf_t *buf, const char *hex_bytes);
+
+
 /*! Append one char to a buffer.
  *
  * \param[in,out] buf  Buffer.
@@ -301,6 +313,18 @@ M_API void M_buf_add_char(M_buf_t *buf, char c);
  * \param[in]     str String to append.
  */
 M_API void M_buf_add_str(M_buf_t *buf, const char *str);
+
+
+/*! Append the given bytes to the buffer as a hex-encoded string.
+ *
+ * The given binary data is converted to a hex-encoded string before being
+ * added to the buffer.
+ *
+ * \param[in,out] buf   Buffer.
+ * \param[in]     bytes Bytes to append as hex.
+ * \param[in]     len   Number of bytes to use as input.
+ */
+M_API void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len);
 
 
 /*! Split string into lines while keeping words intact, then append to buffer.
