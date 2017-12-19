@@ -22,22 +22,40 @@ static struct {
 	{ 0, 0 }
 };
 
-static const M_uint8  check_parser_buf_hex_in[] = {0x12u, 0x34u, 0x56u, 0x78u, 0x9Au, 0xBCu, 0xDEu, 0xF0u};
+static const M_uint8  check_parser_hex_in[]     = {0x12u, 0x34u, 0x56u, 0x78u, 0x9Au, 0xBCu, 0xDEu, 0xF0u};
+static const char    *check_parser_hex_out      = "123456789ABCDEF0";
 static const char    *check_parser_buf_hex_out  = "hello 123456789ABCDEF0";
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+START_TEST(check_parser_read_strdup_hex)
+{
+	M_parser_t *parser;
+	char       *hex;
+
+	parser = M_parser_create_const(check_parser_hex_in, sizeof(check_parser_hex_in), M_PARSER_FLAG_NONE);
+	hex    = M_parser_read_strdup_hex(parser, sizeof(check_parser_hex_in));
+
+	ck_assert_msg(hex != NULL, "couldn't read bytes");
+	ck_assert_msg(M_str_caseeq(hex, check_parser_hex_out), "output doesn't match");
+
+	M_parser_destroy(parser);
+	M_free(hex);
+}
+END_TEST
+
 
 START_TEST(check_parser_read_buf_hex)
 {
 	M_parser_t *parser;
 	M_buf_t    *buf;
 
-	parser = M_parser_create_const(check_parser_buf_hex_in, sizeof(check_parser_buf_hex_in), M_PARSER_FLAG_NONE);
+	parser = M_parser_create_const(check_parser_hex_in, sizeof(check_parser_hex_in), M_PARSER_FLAG_NONE);
 	buf    = M_buf_create();
 
 	M_buf_add_str(buf, "hello ");
 
-	ck_assert_msg(M_parser_read_buf_hex(parser, buf, sizeof(check_parser_buf_hex_in)), "couldn't read bytes");
+	ck_assert_msg(M_parser_read_buf_hex(parser, buf, sizeof(check_parser_hex_in)), "couldn't read bytes");
 
 	ck_assert_msg(M_str_caseeq(M_buf_peek(buf), check_parser_buf_hex_out), "output doesn't match");
 
@@ -81,10 +99,15 @@ END_TEST
 static Suite *M_parser_suite(void)
 {
 	Suite *suite;
+	TCase *tc_parser_read_strdup_hex;
 	TCase *tc_parser_read_buf_hex;
 	TCase *tc_parser_bcd;
 
 	suite = suite_create("parser");
+
+	tc_parser_read_strdup_hex = tcase_create("check_parser_read_strdup_hex");
+	tcase_add_test(tc_parser_read_strdup_hex, check_parser_read_strdup_hex);
+	suite_add_tcase(suite, tc_parser_read_strdup_hex);
 
 	tc_parser_read_buf_hex = tcase_create("check_parser_read_buf_hex");
 	tcase_add_test(tc_parser_read_buf_hex, check_parser_read_buf_hex);

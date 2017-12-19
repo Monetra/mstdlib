@@ -891,6 +891,18 @@ M_API size_t M_parser_read_str_mark(M_parser_t *parser, char *buf, size_t buf_le
 M_API char *M_parser_read_strdup(M_parser_t *parser, size_t len);
 
 
+/*! Read bytes (binary) from the parser, return as hex-encoded string and advance.
+ *
+ * \param[in,out] parser Parser object to read binary bytes from.
+ * \param[in]     len    Number of binary bytes to read from parser.
+ *
+ * \return null-terminated hex string on success, NULL if not enough bytes or other error
+ *
+ * \see M_parser_read_buf_hex
+ */
+M_API char *M_parser_read_strdup_hex(M_parser_t *parser, size_t len);
+
+
 /*! Read data until the specified sequence of bytes is encountered in the data stream.
  *
  * Put the resulting bytes in a newly allocated buffer.
