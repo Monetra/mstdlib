@@ -343,12 +343,14 @@ M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 }
 
 
-M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	JNIEnv        *env;
 	jbyteArray     arr;
 	M_bool         rv;
+
+	(void)meta;
 
 	if (layer == NULL)
 		return M_IO_ERROR_INVALID;
@@ -397,9 +399,11 @@ M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *b
 }
 
 
-M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)meta;
 
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;

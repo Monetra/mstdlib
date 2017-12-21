@@ -276,7 +276,7 @@ M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 }
 
 
-M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
@@ -291,7 +291,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	offset = handle->uses_report_descriptors?0:1;
 	len   -= offset;
 
-	err = M_io_posix_read(io, handle->handle, buf+offset, &len, &handle->last_error_sys);
+	err = M_io_posix_read(io, handle->handle, buf+offset, &len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		hid_linux_close(layer);
 
@@ -308,7 +308,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 }
 
 
-M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
@@ -323,7 +323,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	offset = handle->uses_report_descriptors?0:1;
 	len   -= offset;
 
-	err = M_io_posix_write(io, handle->handle, buf + offset, &len, &handle->last_error_sys);
+	err = M_io_posix_write(io, handle->handle, buf + offset, &len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		hid_linux_close(layer);
 

@@ -612,9 +612,11 @@ M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	return M_FALSE;
 }
 
-M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)meta;
 
 	/* If we can't lock then the write thread has the lock.
  	 * We can't put anything into the buffer while it's
@@ -645,11 +647,13 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	return M_IO_ERROR_SUCCESS;
 }
 
-M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len,  M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	size_t         offset = 0;
 	size_t         len;
+
+	(void)meta;
 
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;

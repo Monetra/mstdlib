@@ -630,7 +630,7 @@ static int M_tls_bio_read(BIO *b, char *buf, int len)
 		return 0;
 
 	read_len = (size_t)len;
-	err      = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (unsigned char *)buf, &read_len);
+	err      = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (unsigned char *)buf, &read_len, NULL);
 	handle->last_io_err = err;
 	BIO_clear_retry_flags(b);
 
@@ -664,7 +664,7 @@ static int M_tls_bio_write(BIO *b, const char *buf, int len)
 		return 0;
 
 	write_len = (size_t)len;
-	err       = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (const unsigned char *)buf, &write_len);
+	err       = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, (const unsigned char *)buf, &write_len, NULL);
 	handle->last_io_err = err;
 	BIO_clear_retry_flags(b);
 
@@ -755,13 +755,15 @@ static M_bool M_io_tls_init_cb(M_io_layer_t *layer)
 }
 
 
-static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle     = M_io_layer_get_handle(layer);
 	int            rv;
 	int            err;
 	size_t         request_len = *read_len;
 	M_io_error_t   ioerr;
+
+	(void)meta;
 
 	if (layer == NULL || handle == NULL || handle->ssl == NULL)
 		return M_IO_ERROR_INVALID;
@@ -817,13 +819,15 @@ static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 }
 
 
-static M_io_error_t M_io_tls_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_tls_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	int            rv;
 	int            err;
 	size_t         request_len = *write_len;
 	M_io_error_t   ioerr;
+
+	(void)meta;
 
 	if (layer == NULL || handle == NULL || handle->ssl == NULL)
 		return M_IO_ERROR_INVALID;

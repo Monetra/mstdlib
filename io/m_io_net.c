@@ -201,10 +201,12 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 #  define RECV_LEN_TYPE size_t
 #endif
 
-static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)meta;
 
 	errno  = 0;
 	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
@@ -229,12 +231,14 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 #  define SEND_LEN_TYPE size_t
 #endif
 
-static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	ssize_t        retval;
 	int            flags = 0;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_error_t   err;
+
+	(void)meta;
 
 	if (handle->state != M_IO_NET_STATE_CONNECTED) {
 		if (handle->state == M_IO_NET_STATE_DISCONNECTED)
@@ -294,7 +298,7 @@ static void M_io_net_readwrite_err(M_io_t *comm, M_io_layer_t *layer, M_bool is_
 }
 
 
-static M_io_error_t M_io_net_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_net_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	size_t         request_len;
 	M_io_error_t   err;
@@ -311,14 +315,14 @@ static M_io_error_t M_io_net_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 		return M_IO_ERROR_NOTCONNECTED;
 
 	request_len = *read_len;
-	err         = M_io_net_read_cb_int(layer, buf, read_len);
+	err         = M_io_net_read_cb_int(layer, buf, read_len, meta);
 	M_io_net_readwrite_err(M_io_layer_get_io(layer), layer, M_TRUE, err, request_len, *read_len);
 
 	return err;
 }
 
 
-static M_io_error_t M_io_net_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_net_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	size_t         request_len;
 	M_io_error_t   err;
@@ -331,7 +335,7 @@ static M_io_error_t M_io_net_write_cb(M_io_layer_t *layer, const unsigned char *
 		return M_IO_ERROR_NOTCONNECTED;
 
 	request_len = *write_len;
-	err         = M_io_net_write_cb_int(layer, buf, write_len);
+	err         = M_io_net_write_cb_int(layer, buf, write_len, meta);
 	M_io_net_readwrite_err(M_io_layer_get_io(layer), layer, M_FALSE, err, request_len, *write_len);
 
 	return err;
@@ -589,7 +593,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 			size_t        buf_len = sizeof(buf);
 			M_io_error_t  ioerr;
 
-			while ((ioerr = M_io_net_read_cb(layer, buf, &buf_len)) == M_IO_ERROR_SUCCESS && buf_len == sizeof(buf)) {
+			while ((ioerr = M_io_net_read_cb(layer, buf, &buf_len, NULL)) == M_IO_ERROR_SUCCESS && buf_len == sizeof(buf)) {
 				/* Reset buf size */
 				buf_len = sizeof(buf);
 			}

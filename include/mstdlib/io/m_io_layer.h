@@ -104,10 +104,10 @@ M_API M_bool M_io_callbacks_reg_init(M_io_callbacks_t *callbacks, M_bool (*cb_in
 M_API M_bool M_io_callbacks_reg_accept(M_io_callbacks_t *callbacks, M_io_error_t (*cb_accept)(M_io_t *new_conn, M_io_layer_t *orig_layer));
 
 /*! Register callback to read from the connection. Optional if not base layer, required if base layer */
-M_API M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len));
+M_API M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta));
 
 /*! Register callback to write to the connection. Optional if not base layer, required if base layer */
-M_API M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len));
+M_API M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta));
 
 /*! Register callback to process events.  Optional. */
 M_API M_bool M_io_callbacks_reg_processevent(M_io_callbacks_t *callbacks, M_bool (*cb_process_event)(M_io_layer_t *layer, M_event_type_t *type));
@@ -149,10 +149,10 @@ M_API M_io_handle_t *M_io_layer_get_handle(M_io_layer_t *layer);
 M_API size_t M_io_layer_get_index(M_io_layer_t *layer);
 
 /*! Perform a read operation at the given layer index */
-M_API M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len);
+M_API M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
 
 /*! Perform a write operation at the given layer index */
-M_API M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len);
+M_API M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 
 M_API M_bool M_io_error_is_critical(M_io_error_t err);
 

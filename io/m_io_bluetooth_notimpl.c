@@ -26,6 +26,7 @@
 #include <mstdlib/io/m_io_bluetooth.h>
 #include "m_io_bluetooth_int.h"
 
+
 M_io_bluetooth_enum_t *M_io_bluetooth_enum(void)
 {
 	return NULL;
@@ -66,19 +67,21 @@ M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	return M_FALSE;
 }
 
-M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	(void)layer;
 	(void)buf;
 	(void)write_len;
+	(void)meta;
 	return M_IO_ERROR_NOTIMPL;
 }
 
-M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	(void)layer;
 	(void)buf;
 	(void)read_len;
+	(void)meta;
 	return M_IO_ERROR_NOTIMPL;
 }
 

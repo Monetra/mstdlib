@@ -442,14 +442,14 @@ M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	return M_io_w32overlap_process_cb(layer, type);
 }
 
-M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
-	return M_io_w32overlap_write_cb(layer, buf, write_len);
+	return M_io_w32overlap_write_cb(layer, buf, write_len, meta);
 }
 
-M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
-	return M_io_w32overlap_read_cb(layer, buf, read_len);
+	return M_io_w32overlap_read_cb(layer, buf, read_len, meta);
 }
 
 void M_io_hid_unregister_cb(M_io_layer_t *layer)

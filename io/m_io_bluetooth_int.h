@@ -25,6 +25,7 @@
 #define __M_IO_BLUETOOTH_INT_H__
 
 #include <mstdlib/io/m_io_layer.h>
+#include "m_io_meta.h"
 
 #define M_IO_BLUETOOTH_NAME "BLUETOOTH"
 #define M_IO_BLUETOOTH_RFCOMM_UUID "00001101-0000-1000-8000-00805f9b34fb"
@@ -52,8 +53,8 @@ M_bool M_io_bluetooth_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_l
 M_io_state_t M_io_bluetooth_state_cb(M_io_layer_t *layer);
 void M_io_bluetooth_destroy_cb(M_io_layer_t *layer);
 M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type);
-M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len);
-M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len);
+M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
+M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
 void M_io_bluetooth_unregister_cb(M_io_layer_t *layer);
 M_bool M_io_bluetooth_disconnect_cb(M_io_layer_t *layer);
 M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer);

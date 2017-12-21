@@ -21,24 +21,20 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_IO_POSIX_COMMON_H__
-#define __M_IO_POSIX_COMMON_H__
+#ifndef __M_IO_META_H__
+#define __M_IO_META_H__
 
-#include "m_io_meta.h"
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_io_error_t M_io_posix_err_to_ioerr(int err);
-M_bool M_io_posix_errormsg(int err, char *error, size_t err_len);
-M_io_error_t M_io_posix_read(M_io_t *comm, int fd, unsigned char *buf, size_t *read_len, int *sys_error, M_io_meta_t *meta);
-M_io_error_t M_io_posix_write(M_io_t *io, int fd, const unsigned char *buf, size_t *write_len, int *sys_error, M_io_meta_t *meta);
-M_bool M_io_posix_process_cb(M_io_layer_t *layer, M_EVENT_HANDLE rhandle, M_EVENT_HANDLE whandle, M_event_type_t *type);
+#include <mstdlib/mstdlib_io.h>
 
-struct M_io_posix_sigpipe_state {
-	M_bool already_pending;
-	M_bool blocked;
-};
-typedef struct M_io_posix_sigpipe_state M_io_posix_sigpipe_state_t;
-void M_io_posix_sigpipe_block(M_io_posix_sigpipe_state_t *state);
-void M_io_posix_sigpipe_unblock(M_io_posix_sigpipe_state_t *state);
-void M_io_posix_fd_set_closeonexec(int fd);
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+typedef void(*M_io_meta_layer_data_destroy_t)(void *);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void M_io_meta_insert_layer_data(M_io_meta_t *meta, M_io_layer_t *layer, void *data, void (*data_destroy)(void *));
+void *M_io_meta_get_layer_data(M_io_meta_t *meta, M_io_layer_t *layer);
 
 #endif

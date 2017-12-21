@@ -97,7 +97,7 @@ static void M_io_pipe_destroy_cb(M_io_layer_t *layer)
 }
 
 
-static M_io_error_t M_io_pipe_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_pipe_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_error_t   err;
 	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
@@ -109,7 +109,7 @@ static M_io_error_t M_io_pipe_read_cb(M_io_layer_t *layer, unsigned char *buf, s
 	if (handle->handle == M_EVENT_INVALID_HANDLE)
 		return M_IO_ERROR_ERROR;
 
-	err = M_io_posix_read(io, handle->handle, buf, read_len, &handle->last_error_sys);
+	err = M_io_posix_read(io, handle->handle, buf, read_len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		M_io_pipe_close_handle(io, handle);
 		
@@ -117,7 +117,7 @@ static M_io_error_t M_io_pipe_read_cb(M_io_layer_t *layer, unsigned char *buf, s
 }
 
 
-static M_io_error_t M_io_pipe_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_pipe_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_error_t   err;
 	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
@@ -129,7 +129,7 @@ static M_io_error_t M_io_pipe_write_cb(M_io_layer_t *layer, const unsigned char 
 	if (handle->handle == M_EVENT_INVALID_HANDLE)
 		return M_IO_ERROR_ERROR;
 
-	err = M_io_posix_write(io, handle->handle, buf, write_len, &handle->last_error_sys);
+	err = M_io_posix_write(io, handle->handle, buf, write_len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		M_io_pipe_close_handle(io, handle);
 

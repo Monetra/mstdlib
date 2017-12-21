@@ -48,10 +48,10 @@ struct M_io_callbacks {
 	M_io_error_t   (*cb_accept)(M_io_t *new_comm, M_io_layer_t *orig_layer);
 
 	/*! Attempt to read from the layer */
-	M_io_error_t   (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len);
+	M_io_error_t   (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
 
 	/*! Attempt to write to the layer */
-	M_io_error_t   (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len);
+	M_io_error_t   (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 
 	/*! Process an event delivered to the layer */
 	M_bool         (*cb_process_event)(M_io_layer_t *layer, M_event_type_t *type);
