@@ -32,7 +32,7 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "m_event_int.h"
 
-#if defined(__APPLE__) && !defined(IO) 
+#if defined(__APPLE__) && !defined(IOS)
 #  include <CoreFoundation/CoreFoundation.h>
 #endif
 
