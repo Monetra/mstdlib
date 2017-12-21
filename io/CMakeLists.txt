@@ -85,11 +85,11 @@ endif ()
 
 if (ANDROID)
 	list(APPEND sources m_io_bluetooth_android.c)
-elseif (IOS OR IOSSIM)
+elseif (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin" OR IOS OR IOSSIM)
 	list(APPEND sources m_io_bluetooth_notimpl.c)
 endif ()
 
-if (IOS OR ISSIM)
+if (IOS OR IOSSIM)
 	list(APPEND sources m_io_mfi_ea.m m_io_mfi.m)
 else ()
 	list(APPEND sources m_io_mfi_notimpl.c)
