@@ -304,10 +304,10 @@ static void M_io_hid_dev_info(IOHIDDeviceRef device,
 	 * extra byte is already included in the length if the device uses report IDs. */
 	if (!uses_reportid) {
 		if (max_input_report_size != NULL) {
-			max_input_report_size++;
+			(*max_input_report_size)++;
 		}
 		if (max_output_report_size != NULL) {
-			max_output_report_size++;
+			(*max_output_report_size)++;
 		}
 	}
 }
