@@ -271,7 +271,7 @@ static void M_io_hid_dev_info(IOHIDDeviceRef device,
 		char *product, size_t product_len,
 		char *serial, size_t serial_len,
 		M_uint16 *vendorid, M_uint16 *productid,
-		char **path,
+		char **path, M_bool uses_reportid,
 		size_t *max_input_report_size, size_t *max_output_report_size)
 {
 	if (device == NULL)
@@ -295,11 +295,21 @@ static void M_io_hid_dev_info(IOHIDDeviceRef device,
 	if (path != NULL)
 		*path = M_io_hid_get_os_path(device);
 
-	/* Add one to accomidate the report ID that needs to be in the buffer. */
 	if (max_input_report_size != NULL)
-		*max_input_report_size  = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey)+1;
+		*max_input_report_size  = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxInputReportSizeKey);
 	if (max_output_report_size != NULL)
-		*max_output_report_size = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxOutputReportSizeKey)+1;
+		*max_output_report_size = (size_t)M_io_hid_get_prop_int32(device, kIOHIDMaxOutputReportSizeKey);
+	/* Add one to accommodate the report ID that needs to be in the buffer but only if the device
+ 	 * is NOT using report ids. 0 will be used instead of a report ID in this case. Otherwise, the
+	 * extra byte is already included in the length if the device uses report IDs. */
+	if (!uses_reportid) {
+		if (max_input_report_size != NULL) {
+			max_input_report_size++;
+		}
+		if (max_output_report_size != NULL) {
+			max_output_report_size++;
+		}
+	}
 }
 
 
@@ -314,7 +324,7 @@ static void M_io_hid_enum_device(M_io_hid_enum_t *hidenum, IOHIDDeviceRef device
 	M_uint16   productid         = 0;
 
 	M_io_hid_dev_info(device, manufacturer, sizeof(manufacturer), product, sizeof(product), serial, sizeof(serial),
-			&vendorid, &productid, &path, NULL, NULL);
+			&vendorid, &productid, &path, M_FALSE, NULL, NULL);
 
 	M_io_hid_enum_add(hidenum, path, manufacturer, product, serial, vendorid, productid, 
 	                  s_vendor_id, s_product_ids, s_num_product_ids, s_serialnum);
@@ -462,7 +472,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	M_io_hid_dev_info(handle->device, handle->manufacturer, sizeof(handle->manufacturer),
 			handle->product, sizeof(handle->product), handle->serial, sizeof(handle->serial),
-			&handle->vendorid, &handle->productid, &handle->path,
+			&handle->vendorid, &handle->productid, &handle->path, handle->uses_reportid,
 			&handle->max_input_report_size, &handle->max_output_report_size);
 
 	tattr = M_thread_attr_create();

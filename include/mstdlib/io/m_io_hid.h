@@ -36,6 +36,13 @@ __BEGIN_DECLS
  * 
  * HID (Human Interface Device) IO functions. Typically used with USB devices.
  *
+ * Report IDs need to be the first byte of any data sent to a device and
+ * will be the first byte of any data received from a device. All buffer
+ * sizes report will include the extra byte for the report ID.
+ *
+ * If a device does not use report IDs 0 should be sent as the first byte
+ * of any data and will be the first byte of any read data.
+ *
  * Supported OS:
  * - Windows
  * - Linux
