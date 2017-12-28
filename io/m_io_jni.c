@@ -146,7 +146,7 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 	const char        *ptr;
 	enum M_IO_JNI_TYPE type;
 
-	ptr = strchr(signature, ')');
+	ptr = M_str_chr(signature, ')');
 	if (ptr == NULL)
 		return M_IO_JNI_UNKNOWN;
 
@@ -204,7 +204,7 @@ static M_bool M_io_jni_sig_arg_count(const char *signature, size_t *cnt)
 	for ( ; signature != NULL && *signature != '\0'; signature++) {
 		switch (*signature) {
 			case 'L':
-				signature = strchr(signature, ';');
+				signature = M_str_chr(signature, ';');
 				if (!signature)
 					return M_FALSE; /* ERROR */
 				/* Fall-Thru */
