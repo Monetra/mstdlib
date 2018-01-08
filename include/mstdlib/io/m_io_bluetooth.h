@@ -43,13 +43,7 @@ __BEGIN_DECLS
  *
  * Supported OS:
  * - Android
- * - iOS
  * - macOS
- *
- * Note: On iOS, this interface only supports Bluetooth Low Energy (BLE) devices.
- * iOS also supports an Apple proprietary system known as Made for iPhone/iPod/iPad (MFi).
- * MFi uses bluetooth but is handled differently. It's supposed though the m_io_mfi layer.
- * MFi is also known as the External Accessory / EAAccessory protocol.
  *
  * @{
  */
