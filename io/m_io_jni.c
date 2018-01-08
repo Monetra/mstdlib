@@ -28,7 +28,7 @@
 #include "base/m_defs_int.h"
 #include <mstdlib/io/m_io_jni.h>
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #  include <android/log.h> 
 #  include "ares.h"
 #endif
@@ -98,7 +98,7 @@ static const struct {
 	{ "java/util/HashMap",                       "put",                                NULL,              "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",                      M_FALSE },
 	{ "java/util/Set",                           "toArray",                            NULL,              "()[Ljava/lang/Object;",                                                         M_FALSE },
 	{ "java/util/UUID",                          "fromString",                         NULL,              "(Ljava/lang/String;)Ljava/util/UUID;",                                          M_TRUE  },
-#ifdef ANDROID
+#ifdef __ANDROID__
 	{ "android/os/ParcelUuid",                   "toString",                           NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
 	{ "android/os/ParcelUuid",                   "getUuid",                            NULL,              "()Ljava/util/UUID;",                                                            M_FALSE },
 	{ "android/bluetooth/BluetoothAdapter",      "getDefaultAdapter",                  NULL,              "()Landroid/bluetooth/BluetoothAdapter;",                                        M_TRUE  },
@@ -129,7 +129,7 @@ void M_io_jni_debug(const char *fmt, ...)
 	va_start(ap, fmt);
 
 #ifdef DEBUG
-#  ifdef ANDROID
+#  ifdef __ANDROID__
 	__android_log_vprint(ANDROID_LOG_DEBUG, "mstdlib_jni", fmt, ap); 
 #  else
 	M_vfprintf(stderr, fmt, ap);
@@ -146,7 +146,7 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 	const char        *ptr;
 	enum M_IO_JNI_TYPE type;
 
-	ptr = strchr(signature, ')');
+	ptr = M_str_chr(signature, ')');
 	if (ptr == NULL)
 		return M_IO_JNI_UNKNOWN;
 
@@ -204,7 +204,7 @@ static M_bool M_io_jni_sig_arg_count(const char *signature, size_t *cnt)
 	for ( ; signature != NULL && *signature != '\0'; signature++) {
 		switch (*signature) {
 			case 'L':
-				signature = strchr(signature, ';');
+				signature = M_str_chr(signature, ';');
 				if (!signature)
 					return M_FALSE; /* ERROR */
 				/* Fall-Thru */
@@ -515,7 +515,7 @@ M_bool M_io_jni_init(JavaVM *jvm)
 
 M_bool M_io_jni_android_init(jobject connectivity_manager)
 {
-#ifndef ANDROID
+#ifndef __ANDROID__
 	return M_FALSE;
 #else
 	int ret;

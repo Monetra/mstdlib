@@ -763,7 +763,7 @@ void M_list_remove_duplicates(M_list_t *d, M_uint32 type)
 			if (type & M_LIST_MATCH_PTR) {
 				/* Matching pointers means we have to find each individual match and remove it. */
 				/* Only look forward until we run out of matches because matches will be adjacent. */
-				for (j=i+1; d->equality(&d->start[i], &d->start[j], NULL) == 0; j++) {
+				for (j=i+1; j<d->elements && d->equality(&d->start[i], &d->start[j], NULL) == 0; j++) {
 					/* Only remove if the pointer actually matches. */
 					if (d->start[i] == d->start[j]) {
 						M_list_remove_at(d, M_list_convert_idx_at(d, j));
@@ -772,7 +772,7 @@ void M_list_remove_duplicates(M_list_t *d, M_uint32 type)
 				}
 			} else {
 				/* Matching values means we can find where the value starts and ends an only remove the range. */
-				for (j=i; d->equality(&d->start[i], &d->start[j+1], NULL) == 0; j++)
+				for (j=i+1; j<d->elements && d->equality(&d->start[i], &d->start[j], NULL) == 0; j++)
 					;
 				/* We want to do a bulk remove since the duplicates will be contiguous and one move
 				 * operation will be faster than multiple. */
