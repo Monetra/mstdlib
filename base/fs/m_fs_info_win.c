@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -59,12 +59,16 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 	SID_NAME_USE  sid_use;
 	BOOL          defaulted;
 
+	if (user != NULL) {
+		*user  = NULL;
+	}
+	if (group != NULL) {
+		*group = NULL;
+	}
+
 	if (sd == NULL || user == NULL || user_sid == NULL || user_sid_len == 0 || group == NULL || group_sid == NULL || group_sid_len == 0) {
 		return M_FS_ERROR_INVALID;
 	}
-
-	*user  = NULL;
-	*group = NULL;
 
 	/* Get the user and group sids */
 	if (!GetSecurityDescriptorOwner(sd, &myuser_sid, &defaulted)) {
@@ -283,7 +287,7 @@ M_fs_error_t M_fs_info_int(M_fs_info_t **info, const char *path, M_fs_info_flags
 	} else {
 		M_fs_info_set_btime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
 	}
-	
+
 	if (flags & M_FS_PATH_INFO_FLAGS_BASIC) {
 		return M_FS_ERROR_SUCCESS;
 	}
@@ -291,7 +295,7 @@ M_fs_error_t M_fs_info_int(M_fs_info_t **info, const char *path, M_fs_info_flags
 	/* The following data is every expensive and slow to pull */
 
 	/* Get the security descriptor so we can get info about the file */
-	ret = GetNamedSecurityInfo(M_CAST_OFF_CONST(char *, path), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION, NULL, NULL, NULL, NULL, &sd); 
+	ret = GetNamedSecurityInfo(M_CAST_OFF_CONST(char *, path), SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION, NULL, NULL, NULL, NULL, &sd);
 	if (ret != ERROR_SUCCESS) {
 		M_fs_info_destroy(*info);
 		*info = NULL;
@@ -307,7 +311,7 @@ M_fs_error_t M_fs_info_int(M_fs_info_t **info, const char *path, M_fs_info_flags
 		M_fs_info_destroy(*info);
 		*info = NULL;
 		LocalFree(sd);
-		return res; 
+		return res;
 	}
 	M_fs_info_set_user(*info, user);
 	M_fs_info_set_group(*info, group);
