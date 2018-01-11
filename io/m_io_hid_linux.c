@@ -303,7 +303,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		*read_len = len;
 	}
 
-//M_printf("%s(): err = %s\n", __FUNCTION__, M_io_error_string(err));
+/*M_printf("%s(): err = %s\n", __FUNCTION__, M_io_error_string(err));*/
 	return err;
 }
 
@@ -333,9 +333,9 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 		*write_len = len;
 	}
 		
-//if (err != M_IO_ERROR_SUCCESS) {
-//M_printf("%s(): err = %s, %s\n", __FUNCTION__, M_io_error_string(err), strerror(handle->last_error_sys));
-//}
+/*if (err != M_IO_ERROR_SUCCESS) {
+	M_printf("%s(): err = %s, %s\n", __FUNCTION__, M_io_error_string(err), strerror(handle->last_error_sys));
+}*/
 	return err;
 }
 
@@ -487,13 +487,13 @@ static M_bool hid_get_max_report_sizes(const M_uint8 *desc, size_t desc_len, siz
 			report_count = global_report_count;
 		} else if (key_no_size == 0x74) {
 			/* Report Size */
-			report_size = read_hid_field_le(desc + i + key_len, data_len);
+			report_size = (size_t)read_hid_field_le(desc + i + key_len, data_len);
 			if (rid == 0) {
 				global_report_size = report_size;
 			}
 		} else if (key_no_size == 0x94) {
 			/* Report Count */
-			report_count = read_hid_field_le(desc + i + key_len, data_len);
+			report_count = (size_t)read_hid_field_le(desc + i + key_len, data_len);
 			if (rid == 0) {
 				global_report_count = report_count;
 			}
@@ -612,7 +612,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	fd = open(devpath, flags);
 	if (fd < 0) {
 		int err = errno;
-//M_printf("%s(): open failed %d - %s\n", __FUNCTION__, err, strerror(err));
+/*M_printf("%s(): open failed %d - %s\n", __FUNCTION__, err, strerror(err));*/
 		*ioerr = M_io_posix_err_to_ioerr(err);
 		return NULL;
 	}
@@ -622,7 +622,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 #endif
 
 	if (!M_io_setnonblock(fd)) {
-//M_printf("%s(): set nonblock failed\n", __FUNCTION__);
+/*M_printf("%s(): set nonblock failed\n", __FUNCTION__);*/
 		close(fd);
 		*ioerr = M_IO_ERROR_ERROR;
 		return NULL;
@@ -633,7 +633,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	if (ioctl(fd, HIDIOCGRDESCSIZE, &rpt_desc.size) < 0) {
 		int err = errno;
-//M_printf("%s(): get reportdescriptor size failed %d - %s\n", __FUNCTION__, err, strerror(err));
+/*M_printf("%s(): get reportdescriptor size failed %d - %s\n", __FUNCTION__, err, strerror(err));*/
 		close(fd);
 		*ioerr = M_io_posix_err_to_ioerr(err);
 		return NULL;
@@ -641,7 +641,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 
 	if (ioctl(fd, HIDIOCGRDESC, &rpt_desc) < 0) {
 		int err = errno;
-//M_printf("%s(): get reportdescriptor failed %d - %s\n", __FUNCTION__, err, strerror(err));
+/*M_printf("%s(): get reportdescriptor failed %d - %s\n", __FUNCTION__, err, strerror(err));*/
 		close(fd);
 		*ioerr = M_io_posix_err_to_ioerr(err);
 		return NULL;
@@ -651,7 +651,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->handle                  = fd;
 	handle->descriptor_size         = rpt_desc.size;
 	M_mem_copy(handle->descriptor, rpt_desc.value, rpt_desc.size);
-//M_printf("%s(): opened path %s, report descriptor size %zu, fd %d\n", __FUNCTION__, path, (size_t)rpt_desc.size, fd);
+/*M_printf("%s(): opened path %s, report descriptor size %zu, fd %d\n", __FUNCTION__, path, (size_t)rpt_desc.size, fd);*/
 	handle->uses_report_descriptors = hid_uses_report_descriptors(handle->descriptor, handle->descriptor_size);
 
 	hid_get_max_report_sizes(handle->descriptor, handle->descriptor_size,
