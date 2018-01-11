@@ -34,6 +34,8 @@ set(_internal_enable_warnings_already_run TRUE)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+
 if (MSVC)
 	# Visual Studio uses a completely different nomenclature for warnings than gcc/mingw/clang, so none of the
 	# "-W[name]" warnings will work.
@@ -51,15 +53,18 @@ if (MSVC)
 
 	# Disable some warnings to reduce noise level on visual studio.
 	if (NOT WIN32_STRICT_WARNINGS)
-		list(APPEND _flags	
+		list(APPEND _flags
 			/wd4018 # Disable signed/unsigned mismatch warnings. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4018
 			/wd4068 # Disable unknown pragma warning. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4068
 			/wd4244 # Disable integer type conversion warnings. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-3-and-4-c4244
 			/wd4267 # Disable warnings about converting size_t to a smaller type. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4267
 		)
 	endif ()
+
+	set(_cxx_flags "${_flags}")
 else ()
 	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio):
+	# C Flags:
 	set(_flags
 		-W -Wall -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch
 		-Wdouble-promotion -Wformat -Wnonnull -Winit-self
@@ -72,7 +77,7 @@ else ()
 		-Wmissing-format-attribute -Warray-bounds
 		-Wtrampolines -Wfloat-equal
 		-Wdeclaration-after-statement -Wundef -Wshadow
-		-Wpointer-arith -Wtype-limits -Wcast-qual
+		-Wpointer-arith -Wtype-limits
 		-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
 		-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
 		-Waddress -Wlogical-op
@@ -92,18 +97,63 @@ else ()
 		# Make MacOSX honor -mmacosx-version-min
 		-Werror=partial-availability
 	)
+
+	# C++ flags:
+	set(_cxx_flags
+		-Wall
+		-Wextra
+		-Wcast-align
+		-Wmissing-declarations
+		-Wredundant-decls
+		-Wformat
+		-Wmissing-format-attribute
+		-Wformat-security
+		-Wtype-limits
+		-Wcast-align
+		-Winvalid-pch
+		-Wvarargs
+		-Wvla
+		-Wendif-labels
+		-Wpacked-bitfield-compat
+
+		-Wno-unused-parameter
+	)
+
+	# Note: when cross-compiling to Windows from Cygwin, the Qt Mingw packages have a bunch of
+	#       noisy type-conversion warnings in headers. So, only enable those warnings if we're
+	#       not building that configuration.
+
+	if (NOT (WIN32 AND (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")))
+		list(APPEND _cxx_flags
+			-Wsign-conversion
+			-Wconversion
+			-Wfloat-equal
+		)
+	endif ()
 endif ()
 
-# Check and set compiler flags.
+# Check and set C compiler flags.
 foreach(_flag ${_flags})
 	# For cache var name, this will replace invalid symbols in the flag (like '=' or '/') with underscores.
 	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
-	
+
 	check_c_compiler_flag(${_flag} ${varname})
 	if (${varname})
 		string(APPEND CMAKE_C_FLAGS " ${_flag}")
 	endif ()
 endforeach()
+
+# Check and set C++ compiler flags (if C++ language is enabled).
+if ("CXX" IN_LIST languages)
+	foreach(_flag ${_cxx_flags})
+		string(MAKE_C_IDENTIFIER "HAVE_${_flag}_CXX" varname)
+
+		check_cxx_compiler_flag(${_flag} ${varname})
+		if (${varname})
+			string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
+		endif ()
+	endforeach()
+endif ()
 
 # Add flags to force output colors.
 if (CMAKE_GENERATOR MATCHES "Ninja")
@@ -117,17 +167,16 @@ set(color_flags
 	-fdiagnostics-color=always # GCC
 	-fcolor-diagnostics        # Clang
 )
-get_property(langauges GLOBAL PROPERTY ENABLED_LANGUAGES)
 foreach(_flag ${color_flags})
 	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
-	
+
 	check_c_compiler_flag(${_flag} ${varname})
 	if (${varname})
 		string(APPEND CMAKE_C_FLAGS " ${_flag}")
 	endif ()
-	
+
 	if ("CXX" IN_LIST languages)
-		string(APPEND ${varname} "_CXX")
+		string(APPEND varname "_CXX")
 		check_cxx_compiler_flag(${_flag} ${varname})
 		if (${varname})
 			string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
