@@ -61,7 +61,7 @@ static void M_event_impl_epoll_modify_event(M_event_t *event, M_event_modify_typ
 /* XXX: We need to know capabilities! Especially for pipes */
 	switch (modtype) {
 		case M_EVENT_MODTYPE_ADD_HANDLE:
-			ev.events = EPOLLET;
+			ev.events = (M_uint32)EPOLLET;
 			if (caps & M_EVENT_CAPS_WRITE)
 				ev.events |= EPOLLOUT;
 			if (caps & M_EVENT_CAPS_READ) {
