@@ -237,7 +237,7 @@ static M_bool mysql_cb_createpool(M_sql_driver_connpool_t **dpool, M_sql_connpoo
 	}
 
 	if (!mysql_thread_safe()) {
-		M_snprintf(error, error_size, "mysql client library not compiled as thread-safe")
+		M_snprintf(error, error_size, "mysql client library not compiled as thread-safe");
 		return M_FALSE;
 	}
 
