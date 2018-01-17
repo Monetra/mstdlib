@@ -328,8 +328,9 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 
 			/* cmd: <archive cmd> <logfilename.1> */
 			M_buf_add_str(cmd, wdata->archive_cmd);
-			M_buf_add_byte(cmd, ' ');
+			M_buf_add_str(cmd, " \"");
 			M_buf_add_str(cmd, M_buf_peek(new_path));
+			M_buf_add_byte(cmd, '\"');
 
 			wdata->archive_process = M_popen(M_buf_peek(cmd), NULL);
 
