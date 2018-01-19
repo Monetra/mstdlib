@@ -36,6 +36,33 @@ include(CheckCXXCompilerFlag)
 
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 
+# internal helper: _int_enable_warnings_set_flags(langs_var [warnings flags])
+function(_int_enable_warnings_set_flags langs_var)
+	foreach(_flag ${ARGN})
+		string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
+
+		if ("C" IN_LIST ${langs_var})
+			check_c_compiler_flag(${_flag} ${varname})
+			if (${varname})
+				string(APPEND CMAKE_C_FLAGS " ${_flag}")
+			endif ()
+		endif ()
+
+		if ("CXX" IN_LIST ${langs_var})
+			string(APPEND varname "_CXX")
+			check_cxx_compiler_flag(${_flag} ${varname})
+			if (${varname})
+				string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
+			endif ()
+		endif ()
+	endforeach()
+
+	foreach(lang C CXX)
+		string(STRIP "${CMAKE_${lang}_FLAGS}" CMAKE_${lang}_FLAGS)
+		set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}" PARENT_SCOPE)
+	endforeach()
+endfunction()
+
 if (MSVC)
 	# Visual Studio uses a completely different nomenclature for warnings than gcc/mingw/clang, so none of the
 	# "-W[name]" warnings will work.
@@ -133,26 +160,15 @@ else ()
 endif ()
 
 # Check and set C compiler flags.
-foreach(_flag ${_flags})
-	# For cache var name, this will replace invalid symbols in the flag (like '=' or '/') with underscores.
-	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
-
-	check_c_compiler_flag(${_flag} ${varname})
-	if (${varname})
-		string(APPEND CMAKE_C_FLAGS " ${_flag}")
-	endif ()
-endforeach()
+set(lang "C")
+if (lang IN_LIST languages)
+	_int_enable_warnings_set_flags(lang ${_flags})
+endif ()
 
 # Check and set C++ compiler flags (if C++ language is enabled).
-if ("CXX" IN_LIST languages)
-	foreach(_flag ${_cxx_flags})
-		string(MAKE_C_IDENTIFIER "HAVE_${_flag}_CXX" varname)
-
-		check_cxx_compiler_flag(${_flag} ${varname})
-		if (${varname})
-			string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
-		endif ()
-	endforeach()
+set(lang "CXX")
+if (lang IN_LIST languages)
+	_int_enable_warnings_set_flags(lang ${_cxx_flags})
 endif ()
 
 # Add flags to force output colors.
@@ -163,26 +179,13 @@ else ()
 endif ()
 option(FORCE_COLOR "Force compiler to always colorize, even when output is redirected." ${color_default})
 mark_as_advanced(FORCE FORCE_COLOR)
-set(color_flags
-	-fdiagnostics-color=always # GCC
-	-fcolor-diagnostics        # Clang
-)
-foreach(_flag ${color_flags})
-	string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
+if (FORCE_COLOR)
+	_int_enable_warnings_set_flags(languages
+		-fdiagnostics-color=always # GCC
+		-fcolor-diagnostics        # Clang
+	)
+endif ()
 
-	check_c_compiler_flag(${_flag} ${varname})
-	if (${varname})
-		string(APPEND CMAKE_C_FLAGS " ${_flag}")
-	endif ()
-
-	if ("CXX" IN_LIST languages)
-		string(APPEND varname "_CXX")
-		check_cxx_compiler_flag(${_flag} ${varname})
-		if (${varname})
-			string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
-		endif ()
-	endif ()
-endforeach()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -195,35 +198,50 @@ endforeach()
 #
 # Ex.: remove_warnings(-Wall -Wdouble-promotion -Wcomment) prunes those warnings flags from the compile command.
 function(remove_warnings)
-	set(pruned "${CMAKE_C_FLAGS}")
-	set(toadd)
-	set(in_explicit_disable FALSE)
-	foreach (flag ${ARGN})
-		if (flag STREQUAL "EXPLICIT_DISABLE")
-			set(in_explicit_disable TRUE)
-		elseif (in_explicit_disable)
-			string(APPEND toadd " ${flag}")
-		else ()
-			string(REGEX REPLACE "${flag}([ \t]+|$)" "" pruned "${pruned}")
-		endif ()
-	endforeach ()
-	if (toadd)
-		string(APPEND pruned " ${toadd}")
+	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+	set(langs C)
+	if ("CXX" IN_LIST languages)
+		list(APPEND langs CXX)
 	endif ()
-	set(CMAKE_C_FLAGS "${pruned}" PARENT_SCOPE)
+
+	foreach(lang ${langs})
+		set(toadd)
+		set(in_explicit_disable FALSE)
+		foreach (flag ${ARGN})
+			if (flag STREQUAL "EXPLICIT_DISABLE")
+				set(in_explicit_disable TRUE)
+			elseif (in_explicit_disable)
+				list(APPEND toadd "${flag}")
+			else ()
+				string(REGEX REPLACE "${flag}([ \t]+|$)" "" CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}")
+			endif ()
+		endforeach ()
+		_int_enable_warnings_set_flags(lang ${toadd})
+		string(STRIP "${CMAKE_${lang}_FLAGS}" CMAKE_${lang}_FLAGS)
+		set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}" PARENT_SCOPE)
+	endforeach()
 endfunction()
 
 
 # Explicitly suppress all warnings. As long as this flag is the last warning flag, warnings will be
 # suppressed even if earlier flags enabled warnings.
 function(remove_all_warnings)
-	string(REGEX REPLACE "[-/]W[^ \t]*([ \t]+|$)" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-	if (MSVC)
-		string(APPEND CMAKE_C_FLAGS " /w")
-	else ()
-		string(APPEND CMAKE_C_FLAGS " -w")
+	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+	set(langs C)
+	if ("CXX" IN_LIST languages)
+		list(APPEND langs CXX)
 	endif ()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" PARENT_SCOPE)
+
+	foreach(lang ${langs})
+		string(REGEX REPLACE "[-/][Ww][^ \t]*([ \t]+|$)" "" CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}")
+		if (MSVC)
+			string(APPEND CMAKE_${lang}_FLAGS " /w")
+		else ()
+			string(APPEND CMAKE_${lang}_FLAGS " -w")
+		endif ()
+		string(STRIP "${CMAKE_${lang}_FLAGS}" CMAKE_${lang}_FLAGS)
+		set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}" PARENT_SCOPE)
+	endforeach()
 endfunction()
 
 
@@ -240,25 +258,43 @@ endfunction()
 
 # Save the current warning settings to an internal variable.
 function(push_warnings)
-	if (CMAKE_C_FLAGS MATCHES ";")
-		message(FATAL_ERROR "Cannot push_warnings, CMAKE_C_FLAGS contains semicolons")
+	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+	set(langs C)
+	if ("CXX" IN_LIST languages)
+		list(APPEND langs CXX)
 	endif ()
-	# Add current flags to end of internal list.
-	list(APPEND _enable_warnings_internal_cflags_stack "${CMAKE_C_FLAGS}")
-	# Propagate results up to caller's scope.
-	set(_enable_warnings_internal_cflags_stack "${_enable_warnings_internal_cflags_stack}" PARENT_SCOPE)
+
+	foreach(lang ${langs})
+		if (CMAKE_${lang}_FLAGS MATCHES ";")
+			message(AUTHOR_WARNING "Cannot push warnings for ${lang}, CMAKE_${lang}_FLAGS contains semicolons")
+			continue()
+		endif ()
+		# Add current flags to end of internal list.
+		list(APPEND _enable_warnings_internal_${lang}_flags_stack "${CMAKE_${lang}_FLAGS}")
+		# Propagate results up to caller's scope.
+		set(_enable_warnings_internal_${lang}_flags_stack "${_enable_warnings_internal_${lang}_flags_stack}" PARENT_SCOPE)
+	endforeach()
 endfunction()
 
 
 # Restore the current warning settings from an internal variable.
 function(pop_warnings)
-	if (NOT _enable_warnings_internal_cflags_stack)
-		message(AUTHOR_WARNING "pop_warnings called when nothing is in the warnings stack, must be an extra call")
+	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+	set(langs C)
+	if ("CXX" IN_LIST languages)
+		list(APPEND langs CXX)
 	endif ()
-	# Pop flags off of end of list, overwrite current flags with whatever we popped off.
-	list(GET _enable_warnings_internal_cflags_stack -1 CMAKE_C_FLAGS)
-	list(REMOVE_AT _enable_warnings_internal_cflags_stack -1)
-	# Propagate results up to caller's scope.
-	set(_enable_warnings_internal_cflags_stack "${_enable_warnings_internal_cflags_stack}" PARENT_SCOPE)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" PARENT_SCOPE)
+
+	foreach(lang ${langs})
+		if (NOT _enable_warnings_internal_${lang}_flags_stack)
+			continue()
+		endif ()
+		# Pop flags off of end of list, overwrite current flags with whatever we popped off.
+		list(GET _enable_warnings_internal_${lang}_flags_stack -1 CMAKE_${lang}_FLAGS)
+		list(REMOVE_AT _enable_warnings_internal_${lang}_flags_stack -1)
+		# Propagate results up to caller's scope.
+		set(_enable_warnings_internal_${lang}_flags_stack "${_enable_warnings_internal_${lang}_flags_stack}" PARENT_SCOPE)
+		string(STRIP "${CMAKE_${lang}_FLAGS}" CMAKE_${lang}_FLAGS)
+		set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}" PARENT_SCOPE)
+	endforeach()
 endfunction()
