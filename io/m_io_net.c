@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -234,9 +234,9 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	ssize_t        retval;
-	int            flags = 0;
+	int            flags  = 0;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_error_t   err;
+	M_io_error_t   err    = M_IO_ERROR_ERROR;
 
 	(void)meta;
 
@@ -373,7 +373,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 
 #  ifdef TCP_KEEPIDLE
 	/* how long (seconds) the connection is idle before sending keepalive probes */
-	on = (int)handle->settings.ka_idle_time_s; 
+	on = (int)handle->settings.ka_idle_time_s;
 	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPIDLE, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPIDLE) failed: %s", strerror(errno));
 	}
@@ -406,7 +406,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 	/* Sun has TCP_KEEPALIVE but doesn't work, returns errors */
 
 	/* time in seconds idle before keepalive probes */
-	on = (int)handle->settings.ka_idle_time_s; 
+	on = (int)handle->settings.ka_idle_time_s;
 	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(TCP_KEEPALIVE) failed: %s", strerror(errno));
 	}
@@ -426,7 +426,7 @@ static void M_io_net_set_sockopts_keepalives(M_io_handle_t *handle)
 #  if defined(TCP_KEEPALIVE_ABORT_THRESHOLD)
 	/* Solaris */
 	/* default time (in milliseconds) threshold to abort a TCP connection after the keepalive probing mechanism has failed */
-	on = (int)handle->settings.ka_retry_time_s * handle->settings.ka_retry_cnt * 1000; 
+	on = (int)handle->settings.ka_retry_time_s * handle->settings.ka_retry_cnt * 1000;
 	if (setsockopt(handle->data.net.sock, IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD, (const void *)&on, sizeof(on)) == -1) {
 		M_printf("setsockopt(IPPROTO_TCP, TCP_KEEPALIVE_ABORT_THRESHOLD) failed: %s", strerror(errno));
 	}
@@ -476,7 +476,7 @@ static void M_io_net_set_fastpath(M_io_handle_t *handle)
 #  ifndef SIO_LOOPBACK_FAST_PATH
 #    define SIO_LOOPBACK_FAST_PATH 0x98000010
 #  endif
-	WSAIoctl(handle->data.net.sock, 
+	WSAIoctl(handle->data.net.sock,
 	         SIO_LOOPBACK_FAST_PATH,
 	         &OptionValue,
 	         sizeof(OptionValue),
@@ -565,7 +565,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 			default:
 				/* When attempting to connect, these events should never occur,
-				 * if they do, ignore and consume */ 
+				 * if they do, ignore and consume */
 				return M_TRUE;
 		}
 	}
@@ -895,7 +895,7 @@ static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
 
 	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
 
-	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0) 
+	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0)
 		return M_FALSE;
 
 	if (sockaddr_ptr->sa_family == AF_INET) {
@@ -1442,7 +1442,7 @@ M_bool M_io_net_set_connect_timeout_ms(M_io_t *io, M_uint64 timeout_ms)
 
 	if (timeout_ms == 0)
 		timeout_ms = 10;
-	
+
 	handle->settings.connect_timeout_ms = timeout_ms;
 
 	M_io_layer_release(layer);

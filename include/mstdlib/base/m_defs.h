@@ -170,8 +170,10 @@
 #  endif
 
 /*! Warn about the usage of a function with a message.
+ *
+ * Supress deprecation warnings on Windows, and in C++ code that's using Qt.
  */
-#if __GNUC_SUPPORT(40500) && !defined(_WIN32) /* || __CLANG_ATTR(deprecated) */
+#if __GNUC_SUPPORT(40500) && !defined(QT_VERSION) && !defined(_WIN32) /* || __CLANG_ATTR(deprecated) */
 #  define    M_DEPRECATED_MSG(msg,proto)       proto __attribute__((deprecated(msg)));
 #else
 #  define    M_DEPRECATED_MSG(msg,proto)
@@ -181,7 +183,14 @@
  */
 #define      M_DEPRECATED_FOR(f,proto)         M_DEPRECATED_MSG("Use " #f " instead", proto)
 
-#if defined(__GNUC__) && GCC_VERSION >= 40600
+#if defined(__clang__)
+#  define    M_BEGIN_IGNORE_DEPRECATIONS       _Pragma ("clang diagnostic push") \
+                                               _Pragma ("clang diagnostic ignored \"-Wdeprecated-declarations\"")
+#  define    M_END_IGNORE_DEPRECATIONS         _Pragma ("clang diagnostic pop")
+#  define    M_BEGIN_IGNORE_REDECLARATIONS     _Pragma ("clang diagnostic push") \
+                                               _Pragma ("clang diagnostic ignored \"-Wredundant-decls\"")
+#  define    M_END_IGNORE_REDECLARATIONS       _Pragma ("clang diagnostic pop")
+#elif defined(__GNUC__) && GCC_VERSION >= 40600
 #  define    M_BEGIN_IGNORE_DEPRECATIONS       _Pragma ("GCC diagnostic push") \
                                                _Pragma ("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 #  define    M_END_IGNORE_DEPRECATIONS         _Pragma ("GCC diagnostic pop")

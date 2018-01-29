@@ -306,6 +306,7 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 
 	/* Wait for archive command from previous rotate to finish, if it hasn't already. */
 	M_popen_close(wdata->archive_process, NULL);
+	wdata->archive_process = NULL;
 
 	/* Close the head log file, rename it to log #1. */
 	M_fs_file_close(wdata->fstream);
@@ -328,8 +329,9 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 
 			/* cmd: <archive cmd> <logfilename.1> */
 			M_buf_add_str(cmd, wdata->archive_cmd);
-			M_buf_add_byte(cmd, ' ');
+			M_buf_add_str(cmd, " \"");
 			M_buf_add_str(cmd, M_buf_peek(new_path));
+			M_buf_add_byte(cmd, '\"');
 
 			wdata->archive_process = M_popen(M_buf_peek(cmd), NULL);
 

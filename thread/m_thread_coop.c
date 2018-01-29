@@ -219,18 +219,18 @@ static int M_thread_coop_test_poll(M_thread_coop_poll_t *pollst)
 }
 
 #if defined(_WIN32)
-static void M_thread_coop_cpu_usleep(unsigned long usec)
+static void M_thread_coop_cpu_usleep(M_uint64 usec)
 {
-	Sleep(usec/1000);
+	Sleep((DWORD)(usec/1000));
 }
 #else
-static void M_thread_coop_cpu_usleep(unsigned long usec)
+static void M_thread_coop_cpu_usleep(M_uint64 usec)
 {
 	fd_set         readfs;
 	struct timeval timeout;
 	M_timeval_t    starttv;
 	int            ret;
-	unsigned long  diff;
+	M_uint64       diff;
 
 	do {
 		M_time_elapsed_start(&starttv);

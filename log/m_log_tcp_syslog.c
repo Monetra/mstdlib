@@ -183,12 +183,15 @@ static void add_syslog_header(M_buf_t *buf, module_thunk_t *mdata, M_syslog_prio
 	}
 
 	/* NOTE: must not contain any tabs or newline chars */
+
+	/* WARNING: the formatting here is very strict, in accordance with RFC 3164, pages 7-10. Don't change it. */
+
 	M_bprintf(buf, "<%d>%s %2lld %02lld:%02lld:%02lld %s %.32s: ", (int)(mdata->facility | priority), month_str,
 		now.day, now.hour, now.min, now.sec, mdata->src_host, mdata->product);
 }
 
 
-/* Add a octet-counting framing and syslog header to given message, then add result to given buf. */
+/* Add octet-counting framing and syslog header to given message, then add result to given buf. */
 static void add_framed_message(M_buf_t *buf, const char *msg, module_thunk_t *mdata, M_syslog_priority_t priority)
 {
 	M_buf_t *payload;
@@ -206,7 +209,7 @@ static void add_framed_message(M_buf_t *buf, const char *msg, module_thunk_t *md
 		M_buf_add_str(payload, mdata->line_end_str);
 	}
 
-	/* Add octet-counting framing around message. */
+	/* Add octet-counting framing around message (see RFC 6587). */
 	M_buf_add_uint(buf, M_buf_len(payload)); /* number of bytes in payload */
 	M_buf_add_byte(buf, ' ');
 	M_buf_merge(buf, payload); /* merge payload onto end of buf (destroys payload) */

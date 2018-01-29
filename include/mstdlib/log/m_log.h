@@ -962,6 +962,10 @@ M_API M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_mod
  *
  * Functions to enable logging to a remote syslog server over TCP.
  *
+ * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds
+ * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was
+ * chosen to ensure compatibility across a wide range of syslog servers.
+ *
  * Messages are written asynchronously, as part of an existing event loop owned by the caller.
  *
  * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.
@@ -969,7 +973,11 @@ M_API M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_mod
  * @{
  */
 
-/*! Add a module to output to a remote syslog with TCP.
+/*! Add a module to output to a remote syslog server over TCP.
+ *
+ * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds
+ * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was
+ * chosen to ensure compatibility across a wide range of syslog servers.
  *
  * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.
  *

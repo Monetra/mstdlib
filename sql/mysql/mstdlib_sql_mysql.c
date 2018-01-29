@@ -22,7 +22,12 @@
  */
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/sql/m_sql_driver.h>
+
+/* Note: suppress redeclaration warnings from header in Cygwin's MariaDB MinGW cross-compile package. */
+M_BEGIN_IGNORE_REDECLARATIONS
 #include <mysql.h>
+M_END_IGNORE_REDECLARATIONS
+
 #include "mysql_shared.h"
 
 /* Don't use m_defs_int.h, since we need to be able to build this as an external plugin. */
@@ -228,6 +233,11 @@ static M_bool mysql_cb_createpool(M_sql_driver_connpool_t **dpool, M_sql_connpoo
 
 	if (M_str_isempty(M_sql_driver_pool_get_password(pool))) {
 		M_snprintf(error, error_size, "Password cannot be blank");
+		return M_FALSE;
+	}
+
+	if (!mysql_thread_safe()) {
+		M_snprintf(error, error_size, "mysql client library not compiled as thread-safe");
 		return M_FALSE;
 	}
 

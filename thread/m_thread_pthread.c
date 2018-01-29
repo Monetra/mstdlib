@@ -290,8 +290,8 @@ static M_bool M_thread_pthread_cond_timedwait(M_thread_cond_t *cond, M_thread_mu
 		return M_FALSE;
 
 	M_mem_set(&ts, 0, sizeof(ts));
-	ts.tv_sec  = abstime->tv_sec;
-	ts.tv_nsec = abstime->tv_usec * 1000;
+	ts.tv_sec  = (M_time_tv_sec_t)(abstime->tv_sec);
+	ts.tv_nsec = (M_time_tv_usec_t)(abstime->tv_usec * 1000);
 
 	return pthread_cond_timedwait((pthread_cond_t *)cond, (pthread_mutex_t *)mutex, &ts)==0?M_TRUE:M_FALSE;
 }

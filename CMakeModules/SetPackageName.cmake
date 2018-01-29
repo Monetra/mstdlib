@@ -18,7 +18,7 @@ function(set_package_name name version)
 	else ()
 		set(arch 32)
 	endif ()
-	
+
 	set(force_lower FALSE)
 	if (WIN32)
 		set(sysname "Windows${arch}")
@@ -34,9 +34,14 @@ function(set_package_name name version)
 	endif ()
 
 	set(CPACK_PACKAGE_FILE_NAME "${name}-${sysname}")
-	
+
 	if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
 		string(APPEND CPACK_PACKAGE_FILE_NAME "-arm")
+		# Note: 64-bit ARM is always hard-float. But for 32-bit, need to inform user that it was built with hard-float
+		#       by adding 'hf'.
+		if (arch EQUAL 32 AND (CMAKE_C_FLAGS MATCHES "-mfloat-abi=hardfp" OR CMAKE_CXX_FLAGS MATCHES "-mfloat-abi=hardfp"))
+			string(APPEND CPACK_PACKAGE_FILE_NAME "hf")
+		endif ()
 	endif ()
 
 	if ("WIN32_ABI" IN_LIST ARGN)
