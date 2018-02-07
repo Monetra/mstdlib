@@ -691,7 +691,6 @@ M_time_tzs_t *M_time_tzs_load_zoneinfo(const char *path, M_uint32 zones, M_uint3
 	M_time_tzs_t *tzs       = NULL;
 	char         *norm_path;
 	M_fs_error_t  res;
-	size_t        i;
 	struct {
 		const char *path;
 	} sys_paths[] = {
@@ -702,10 +701,10 @@ M_time_tzs_t *M_time_tzs_load_zoneinfo(const char *path, M_uint32 zones, M_uint3
 
 	if (M_str_isempty(path)) {
 #ifdef _WIN32
-		(void)info;
 		/* The zoneinfo isn't standard on Windows so if we're not told where it is we can't load any data. */
 		return NULL;
 #else
+		size_t i;
 		for (i=0; sys_paths[i].path!=NULL; i++) {
 			if (M_fs_perms_can_access(sys_paths[i].path, M_FS_FILE_MODE_READ) == M_FS_ERROR_SUCCESS) {
 				path = sys_paths[i].path;
