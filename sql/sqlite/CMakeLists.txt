@@ -26,7 +26,7 @@ if (EXISTS "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation/sqlite3.c"
 		)
 		# Recommended compile time options from: http://sqlite.org/compile.html
 		target_compile_definitions(internal_sqlite
-			PRIVATE SQLITE_MUTEX_NOOP=1
+			PRIVATE SQLITE_MUTEX_APPDEF=1
 			        SQLITE_THREADSAFE=1
 			        SQLITE_DEFAULT_MEMSTATUS=0
 			        SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
