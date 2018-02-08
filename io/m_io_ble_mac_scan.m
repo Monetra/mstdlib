@@ -194,7 +194,9 @@ void M_io_ble_cache_device(CFTypeRef peripheral)
 		M_hash_strvp_insert(ble_devices, mac, dev);
 	} else {
 		if (peripheral != dev->peripheral) {
-			/* Let ARC know we don't need this anymore. */
+			/* Let ARC know we don't need this anymore.
+			 * Can't just overwrite because we need to
+			 * do the bridge transfer for ARC. */
 			p               = (__bridge_transfer CBPeripheral *)dev->peripheral;
 			p               = nil;
 			dev->peripheral = peripheral;
