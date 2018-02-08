@@ -218,7 +218,8 @@ BOOL              powered_on = NO;
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
-	const char        *mac;
+	const char *mac;
+
 	(void)error;
 
 	mac = [[[peripheral identifier] UUIDString] UTF8String];

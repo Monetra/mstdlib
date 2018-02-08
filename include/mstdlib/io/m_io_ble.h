@@ -44,6 +44,97 @@ __BEGIN_DECLS
  * MFi uses ble but is handled differently. It's supposed though the m_io_mfi layer.
  * MFi is also known as the External Accessory / EAAccessory protocol.
  *
+ *
+ * ## macOS requirements
+ *
+ * BLE events are only delivered to the main run loop. This is a design decision by Apple.
+ * It is not possible to use an different run loop to receive events like can be done
+ * with classic bluetooth or HID. BLE events are none blocking so there shouldn't be
+ * performance impact with the events being delivered. As little work as possible is
+ * performed during event processing to limit any impact of this design requirement.
+ *
+ * A C application will need to manually start the macOS main runloop otherwise no events
+ * will be delivered and no BLE operations will work.
+ *
+ * Example application that scans for 30 seconds and enumerates all devices and their
+ * services that were seen.
+ *
+ * \code{.c}
+ *     // Build:
+ *     // clang -g -fobjc-arc -framework CoreFoundation test_ble_enum.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
+ *     //
+ *     // Run:
+ *     // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
+ *
+ *     #include <mstdlib/mstdlib.h>
+ *     #include <mstdlib/mstdlib_thread.h>
+ *     #include <mstdlib/mstdlib_io.h>
+ *     #include <mstdlib/io/m_io_ble.h>
+ *
+ *     #include <CoreFoundation/CoreFoundation.h>
+ *
+ *     M_event_t    *el;
+ *     CFRunLoopRef  mrl = NULL;
+ *
+ *     static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+ *     {
+ *         M_io_ble_enum_t *btenum;
+ *         size_t           len;
+ *         size_t           i;
+ *
+ *         (void)event;
+ *         (void)type;
+ *         (void)io;
+ *         (void)cb_arg;
+ *
+ *         btenum = M_io_ble_enum();
+ *
+ *         len = M_io_ble_enum_count(btenum);
+ *         M_printf("Num devs = %zu\n", len);
+ *         for (i=0; i<len; i++) {
+ *             M_printf("Device:\n");
+ *             M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
+ *             M_printf("\tMac: %s\n", M_io_ble_enum_mac(btenum, i));
+ *             M_printf("\tConnected: %s\n", M_io_ble_enum_connected(btenum, i)?"Yes":"No");
+ *             M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
+ *             M_printf("\tSerivce: %s\n", M_io_ble_enum_service_uuid(btenum, i));
+ *         }
+ *
+ *         M_io_ble_enum_destroy(btenum);
+ *
+ *         if (mrl != NULL)
+ *             CFRunLoopStop(mrl);
+ *     }
+ *
+ *     static void *run_el(void *arg)
+ *     {
+ *         (void)arg;
+ *         M_event_loop(el, M_TIMEOUT_INF);
+ *         return NULL;
+ *     }
+ *
+ *     int main(int argc, char **argv)
+ *     {
+ *         M_threadid_t     el_thread;
+ *         M_thread_attr_t *tattr;
+ *
+ *         el = M_event_create(M_EVENT_FLAG_NONE);
+ *
+ *         tattr = M_thread_attr_create();
+ *         M_thread_attr_set_create_joinable(tattr, M_TRUE);
+ *         el_thread = M_thread_create(tattr, run_el, NULL);
+ *         M_thread_attr_destroy(tattr);
+ *
+ *         M_io_ble_scan(el, scan_done_cb, NULL, 30000);
+ *
+ *         mrl = CFRunLoopGetCurrent();
+ *         CFRunLoopRun();
+ *
+ *         return 0;
+ *     }
+ * \endcode
+ *
+ *
  * @{
  */
 
