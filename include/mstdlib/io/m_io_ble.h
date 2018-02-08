@@ -56,31 +56,27 @@ typedef struct M_io_ble_enum M_io_ble_enum_t;
  * A scan needs to take place for nearby devices to be found. Once found they will
  * appear in an enumeration.
  *
- * Will trigger an OTHER event when finished scanning either due to timeout
- * or M_io_ble_scan_stop being called. This event will only be triggerd once.
- * If the scan finishes, OTHER is triggered, calling M_io_ble_scan_stop after will
- * _not_ trigger a second OTHER event.
- *
- * Opening a known device does not require explicitly scanning.
+ * Opening a known device does not require explicitly scanning. Scanning
+ * will happen implicity if the device has not been seen before.
  *
  * Call m_io_destroy once finished with the scan io object.
  *
- * \param[out] io_out     io object for communication.
+ * \param[out] event      Event handle to receive scan events.
+ *  \param[in] callback   User-specified callback to call when the scan finishes 
+ *  \param[in] cb_data    Optional. User-specified data supplied to user-specified callback when
+ *                        executed.
  * \param[in]  timeout_ms How long the scan should run before stopping.
  *                        0 will default to 1 minute. Scanning for devices
  *                        can take a long time. During testing of a simple
  *                        pedometer times upwards of 50 seconds were seen
  *                        before the device was detected while sitting
- *                        6 inches away.
- */
-void M_io_ble_scan_start(M_io_t **io_out, M_int64 timeout_ms);
-
-
-/* Stop a BLE scan.
+ *                        6 inches away. A maximum of 5 minutes is allowed.
+ *                        Any amount larger will be reduced to the max.
  *
- * \param[out] io_out io object used for scanning for nearby devices.
+ * \return M_TRUE if the scan was started and the callback will be called.
+ *         Otherwise M_FALSE, the callback will not be called.
  */
-void M_io_ble_scan_stop(M_io_t *io);
+M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms);
 
 
 /*! Create a ble enumeration object.
@@ -152,16 +148,6 @@ M_API const char *M_io_ble_enum_mac(const M_io_ble_enum_t *btenum, size_t idx);
 M_API M_bool M_io_ble_enum_connected(const M_io_ble_enum_t *btenum, size_t idx);
 
 
-/*! Name of service reported by device.
- *
- * \param[in]  btenum Bluetooth enumeration object.
- * \param[in]  idx    Index in ble enumeration.
- *
- * \return String.
- */
-M_API const char *M_io_ble_enum_service_name(const M_io_ble_enum_t *btenum, size_t idx);
-
-
 /*! Uuid of service reported by device.
  *
  * \param[in]  btenum Bluetooth enumeration object.
@@ -172,14 +158,30 @@ M_API const char *M_io_ble_enum_service_name(const M_io_ble_enum_t *btenum, size
 M_API const char *M_io_ble_enum_service_uuid(const M_io_ble_enum_t *btenum, size_t idx);
 
 
+/*! Last time the device was seen.
+ *
+ * Run a scan to ensure this is up to date. Opening a device will also
+ * update the last seen time.
+ *
+ * \param[in]  btenum Bluetooth enumeration object.
+ * \param[in]  idx    Index in ble enumeration.
+ *
+ * \return time.
+ */
+M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx);
+
+
 /*! Create a ble connection.
  *
- * \param[out] io_out io object for communication.
- * \param[in]  mac    Required MAC of the device.
+ * \param[out] io_out     io object for communication.
+ * \param[in]  mac        Required MAC of the device.
+ * \param[in]  timeout_ms If the device has not already been seen a scan will
+ *                        be performed. This time out is how long we should
+ *                        wait to search for the device.
  *
  * \return Result.
  */
-M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac);
+M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms);
 
 /*! @} */
 

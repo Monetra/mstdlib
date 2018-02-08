@@ -1,0 +1,73 @@
+/* Build:
+ * clang -g -fobjc-arc -framework CoreFoundation test_ble_enum.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
+ *
+ * Run:
+ * DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
+ */
+#include <mstdlib/mstdlib.h>
+#include <mstdlib/mstdlib_thread.h>
+#include <mstdlib/mstdlib_io.h>
+#include <mstdlib/io/m_io_ble.h>
+
+#include <CoreFoundation/CoreFoundation.h>
+
+M_event_t    *el;
+CFRunLoopRef  mrl = NULL;
+
+static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_io_ble_enum_t *btenum;
+	size_t           len;
+	size_t           i;
+
+	(void)event;
+	(void)type;
+	(void)io;
+	(void)cb_arg;
+
+	btenum = M_io_ble_enum();
+
+	len = M_io_ble_enum_count(btenum);
+	M_printf("Num devs = %zu\n", len);
+	for (i=0; i<len; i++) {
+		M_printf("Device:\n");
+		M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
+		M_printf("\tMac: %s\n", M_io_ble_enum_mac(btenum, i));
+		M_printf("\tConnected: %s\n", M_io_ble_enum_connected(btenum, i)?"Yes":"No");
+		M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
+		M_printf("\tSerivce: %s\n", M_io_ble_enum_service_uuid(btenum, i));
+	}
+
+	M_io_ble_enum_destroy(btenum);
+
+	if (mrl != NULL)
+		CFRunLoopStop(mrl);
+}
+
+static void *run_el(void *arg)
+{
+	(void)arg;
+	M_event_loop(el, M_TIMEOUT_INF);
+	return NULL;
+}
+
+int main(int argc, char **argv)
+{
+	M_threadid_t     el_thread;
+	M_thread_attr_t *tattr;
+
+	el = M_event_create(M_EVENT_FLAG_NONE);
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	el_thread = M_thread_create(tattr, run_el, NULL);
+	M_thread_attr_destroy(tattr);
+
+	M_io_ble_scan(el, scan_done_cb, NULL, 30000);
+
+	mrl = CFRunLoopGetCurrent();
+	CFRunLoopRun();
+
+	return 0;
+}
+

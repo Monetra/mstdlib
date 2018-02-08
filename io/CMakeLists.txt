@@ -35,6 +35,7 @@ set(sources
 	m_io_serial.c
 	m_io_trace.c
 	m_io_hid.c
+	m_io_ble.c
 	m_io_bluetooth.c
 	m_event.c
 	m_event_timer.c
@@ -71,6 +72,10 @@ else ()
 			m_io_bluetooth_mac_rfcomm.m
 			m_io_hid_mac.c
 			m_io_mac_runlooper.c
+
+			m_io_ble_mac_scan.m
+			m_io_ble_mac_scanner.m
+			m_io_ble_mac.m
 		)
 	else ()
 		list(APPEND sources
@@ -81,6 +86,11 @@ endif ()
 
 if (ANDROID)
 	list(APPEND sources m_io_jni.c)
+endif ()
+
+# XXX Needs to go into the below once we get it implemented on these platforms.
+if (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin" OR IOS OR IOSSIM)
+	list(APPEND sources m_io_ble_notimpl.c)
 endif ()
 
 if (ANDROID)
@@ -181,6 +191,11 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	find_library(COREFOUNDATION NAMES CoreFoundation)
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREFOUNDATION}"
+	)
+
+	find_library(COREBLUETOOTH NAMES CoreBluetooth)
+	target_link_libraries(${PROJECT_NAME}
+		PUBLIC "${COREBLUETOOTH}"
 	)
 endif ()
 
