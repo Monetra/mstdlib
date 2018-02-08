@@ -68,6 +68,9 @@ int main(int argc, char **argv)
 	mrl = CFRunLoopGetCurrent();
 	CFRunLoopRun();
 
+	M_event_done_with_disconnect(el, 5*1000 /* 5 sec */);
+	M_thread_join(el_thread, NULL);
+
 	return 0;
 }
 
