@@ -67,7 +67,7 @@ void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *ma
 {
 	M_io_ble_enum_device_t *device;
 
-	if (btenum == NULL || M_str_isempty(name) || M_str_isempty(mac) || M_str_isempty(uuid))
+	if (btenum == NULL || M_str_isempty(mac) || M_str_isempty(uuid))
 		return;
 
 	device            = M_malloc_zero(sizeof(*device));
