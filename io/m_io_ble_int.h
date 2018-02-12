@@ -29,23 +29,44 @@
 
 #define M_IO_BLE_NAME "BLE"
 
-struct M_io_ble_enum_device {
+typedef struct {
 	char     *name;
 	char     *mac;
 	char     *uuid;
 	M_time_t  last_seen;
 	M_bool    connected;
-};
-
-typedef struct M_io_ble_enum_device M_io_ble_enum_device_t;
+} M_io_ble_enum_device_t;
 
 struct M_io_ble_enum {
 	M_list_t *devices;
 };
 
-M_io_ble_enum_t *M_io_ble_enum_init(void);
+typedef struct {
+	char           service_uuid[256];
+	char           characteristic_uuid[256];
+	unsigned char *data;
+} M_io_ble_data_t;
 
+struct M_io_handle {
+	M_io_t          *io;          /*!< io object handle is associated with. */
+	char             mac[256];    /*!< mac of device in use. */
+	M_list_t        *read_queue;  /*!< M_io_ble_data_t */
+	M_list_t        *write_queue; /*!< M_io_ble_data_t */
+	M_event_timer_t *timer;       /*!< Timer to handle connection timeouts */
+	M_uint64         timeout_ms;  /*!< Timeout for connecting. */
+	char             error[256];  /*!< Error message. */
+	M_io_state_t     state;
+	M_bool           can_write;   /*!< Wether data can be written. Will be false if a write operation is processing. */
+};
+
+M_io_ble_enum_t *M_io_ble_enum_init(void);
 void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *mac, const char *uuid, M_time_t last_seen, M_bool connected);
+
+void M_io_ble_connect(M_io_handle_t *handle);
+void M_io_ble_close(M_io_handle_t *handle);
+
+M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
+void M_io_ble_data_destory(M_io_ble_data_t *data);
 
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms);
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

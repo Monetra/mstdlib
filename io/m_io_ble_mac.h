@@ -30,19 +30,33 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 typedef struct {
-	CFTypeRef     peripheral; /* CBPeripheral */
-	char         *name;
-	char         *mac;
-	M_list_str_t *services;   /* key = name, val = uuid. Sorted. */
-	M_time_t      last_seen;  /* Over 30 minutes remove. Check after scan finishes. */
-	M_io_layer_t *layer;      /* When in use the layer using the peripheral. */
+	CFTypeRef       peripheral; /* CBPeripheral */
+	char           *name;
+	char           *mac;
+	/* key = service uuid
+ 	 * val = hash_strvp
+	 *     key = uuid
+	 *     val = CBCharacteristic
+	 * A list of CBCharacteristic's are in the CBService object.
+	 * The CBPeripheral has a list of CBService's.
+	 * We only need the CBCharacteristic for read and write and we're
+	 * caching it so we don't have to traverse multiple lists to find
+	 * the one we want. */
+	M_hash_strvp_t *services;
+	M_io_handle_t  *handle;
+	M_time_t        last_seen;  /* Over 30 minutes remove. Check after scan finishes. */
+	M_io_state_t    state;
 } M_io_ble_device_t;
 
 void M_io_ble_cbc_event_reset(void);
 void M_io_ble_cache_device(CFTypeRef peripheral);
 void M_io_ble_device_add_serivce(const char *mac, const char *uuid);
+void M_io_ble_device_add_characteristic(const char *mac, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc);
 void M_io_ble_device_clear_services(const char *mac);
 
-M_bool M_io_ble_device_need_read_services(CBPeripheral *peripheral);
+M_bool M_io_ble_device_need_read_services(const char *mac);
+M_bool M_io_ble_device_need_read_characteristics(const char *mac, const char *service_uuid);
+void M_io_ble_device_set_state(const char *mac, M_io_state_t state);
+M_bool M_io_ble_device_is_associated(const char *mac);
 
 #endif /* __M_IO_BLE_MAC_H__ */

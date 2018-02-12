@@ -21,10 +21,14 @@
  * THE SOFTWARE.
  */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 #include "m_config.h"
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_ble.h>
 #include "m_io_ble_int.h"
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void M_io_ble_enum_free_device(void *arg)
 {
@@ -34,6 +38,30 @@ static void M_io_ble_enum_free_device(void *arg)
 	M_free(device->uuid);
 	M_free(device);
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
+{
+	/* We have timeout default of 1 minute when 0 and a max of 5 minutes. */
+	if (timeout_ms == 0)
+		timeout_ms = 60000;
+	if (timeout_ms >= 300000)
+		timeout_ms = 300000;
+
+	return timeout_ms;
+}
+
+void M_io_ble_data_destory(M_io_ble_data_t *data)
+{
+	if (data == NULL)
+		return;
+
+	M_free(data->data);
+	M_free(data);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_enum_destroy(M_io_ble_enum_t *btenum)
 {

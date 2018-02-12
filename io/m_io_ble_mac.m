@@ -30,30 +30,61 @@
 
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
-	(void)mac;
-	(void)timeout_ms;
-	*ioerr = M_IO_ERROR_NOTIMPL;
-	return NULL;
+	M_io_handle_t *handle = NULL;
+	struct M_list_callbacks lcbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_list_free_func)M_io_ble_data_destory
+	};
+
+	*ioerr = M_IO_ERROR_SUCCESS;
+
+	if (M_str_isempty(mac)) {
+		*ioerr = M_IO_ERROR_INVALID;
+		return NULL;
+	}
+
+	handle              = M_malloc_zero(sizeof(*handle));
+	M_str_cpy(handle->mac, sizeof(handle->mac), mac);
+	handle->read_queue  = M_list_create(&lcbs, M_LIST_NONE);
+	handle->write_queue = M_list_create(&lcbs, M_LIST_NONE);
+	handle->timeout_ms  = M_io_ble_validate_timeout(timeout_ms);
+
+	return handle;
 }
 
 
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
-	(void)layer;
-	(void)error;
-	(void)err_len;
-	return M_FALSE;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (M_str_isempty(handle->error))
+		return M_FALSE;
+
+	M_str_cpy(error, err_len, handle->error);
+	return M_TRUE;
 }
 
 M_io_state_t M_io_ble_state_cb(M_io_layer_t *layer)
 {
-	(void)layer;
-	return M_IO_STATE_ERROR;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	return handle->state;
 }
 
 void M_io_ble_destroy_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle->timer) {
+		M_event_timer_remove(handle->timer);
+		handle->timer = NULL;
+	}
+
+	M_io_ble_close(handle);
+	M_list_destroy(handle->read_queue, M_TRUE);
+	M_list_destroy(handle->write_queue, M_TRUE);
+	M_free(handle);
 }
 
 M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
@@ -81,9 +112,41 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	return M_IO_ERROR_NOTIMPL;
 }
 
+static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
+	(void)dummy_io;
+	(void)type;
+	(void)event;
+
+	/* Lock! */
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+
+	handle->timer = NULL;
+
+	if (handle->state == M_IO_STATE_CONNECTING) {
+		M_io_ble_close(handle);
+		M_snprintf(handle->error, sizeof(handle->error), "Timeout waiting on connect");
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	} else if (handle->state == M_IO_STATE_DISCONNECTING) {
+		M_io_ble_close(handle);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	} else {
+		/* Shouldn't ever happen */
+	}
+
+	M_io_layer_release(layer);
+}
+
 M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle->state != M_IO_STATE_CONNECTED && handle->state != M_IO_STATE_DISCONNECTING)
+		return M_TRUE;
+
+	M_io_ble_close(handle);
 	return M_TRUE;
 }
 
@@ -94,6 +157,33 @@ void M_io_ble_unregister_cb(M_io_layer_t *layer)
 
 M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 {
-	(void)layer;
-	return M_FALSE;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_event_t     *event  = M_io_get_event(io);
+
+	switch (handle->state) {
+		case M_IO_STATE_INIT:
+			handle->state = M_IO_STATE_CONNECTING;
+			handle->io    = io;
+			M_io_ble_connect(handle);
+			/* Fall-thru */
+		case M_IO_STATE_CONNECTING:
+			/* start timer to time out operation */
+			handle->timer = M_event_timer_oneshot(event, handle->timeout_ms, M_TRUE, M_io_ble_timer_cb, handle);
+			break;
+		case M_IO_STATE_CONNECTED:
+			/* Trigger connected soft event when registered with event handle */
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+
+			/* If there is data in the read buffer, signal there is data to be read as well */
+			if (M_list_len(handle->read_queue) != 0) {
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+			}
+			break;
+		default:
+			/* Any other state is an error */
+			return M_FALSE;
+	}
+
+	return M_TRUE;
 }

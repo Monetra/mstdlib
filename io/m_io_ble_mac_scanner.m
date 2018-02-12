@@ -39,6 +39,9 @@ static int compar_scan_trigger(const void *a, const void *b, void *thunk)
 
 	(void)thunk;
 
+	if (sta == NULL || stb == NULL)
+		return 0;
+
 	/* Compare based on trigger pointer */
 	if (sta.trigger == stb.trigger)
 		return 0;
@@ -138,19 +141,17 @@ BOOL              powered_on = NO;
 	NSTimer     *timer;
 	ScanTrigger *st;
 
+	if (trigger == NULL)
+		return;
+
 	/* If there is only one trigger than there wasn't a scan previously running.
 	 * We don't need to call start a scan if it's already running. */
 	if (M_list_len(triggers) == 0 && powered_on)
 		[_manager scanForPeripheralsWithServices:nil options:nil];
 
-	/* We have timeout default of 1 minute when 0 and a max of 5 minutes. */
-	if (timeout_ms == 0)
-		timeout_ms = 60000;
-	if (timeout_ms >= 300000)
-		timeout_ms = 300000;
-
-	st    = [ScanTrigger scanTrigger:trigger timer:nil];
-	timer = [NSTimer scheduledTimerWithTimeInterval:(double)timeout_ms/1000 target:self selector:@selector(scanTimeout:) userInfo:st repeats:NO];
+	timeout_ms = M_io_ble_validate_timeout(timeout_ms);
+	st         = [ScanTrigger scanTrigger:trigger timer:nil];
+	timer      = [NSTimer scheduledTimerWithTimeInterval:(double)timeout_ms/1000 target:self selector:@selector(scanTimeout:) userInfo:st repeats:NO];
 	[st setTimer:timer];
 
 	M_list_insert(triggers, (__bridge_retained CFTypeRef)st);
@@ -169,6 +170,42 @@ BOOL              powered_on = NO;
 		[_manager stopScan];
 }
 
+- (BOOL)connectToDevice:(CBPeripheral *)peripheral
+{
+	const char        *mac;
+	CBPeripheralState  state;
+
+	if (!powered_on || _manager == nil || peripheral == nil)	
+		return NO;
+
+	state = peripheral.state;
+	if (state != CBPeripheralStateConnected && state != CBPeripheralStateConnecting) {
+		[_manager connectPeripheral:peripheral options:nil];
+	} else {
+		mac = [[[peripheral identifier] UUIDString] UTF8String];
+		M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
+	}
+	return YES;
+}
+
+- (void)disconnectFromDevice:(CBPeripheral *)peripheral
+{
+	const char        *mac;
+	CBPeripheralState  state;
+
+	if (!powered_on || _manager == nil || peripheral == nil)	
+		return;
+
+	state = peripheral.state;
+	if (state == CBPeripheralStateConnected || state == CBPeripheralStateConnecting) {
+		M_io_ble_device_set_state(mac, M_IO_STATE_DISCONNECTING);
+		[_manager cancelPeripheralConnection:peripheral];
+	} else {
+		mac = [[[peripheral identifier] UUIDString] UTF8String];
+		M_io_ble_device_set_state(mac, M_IO_STATE_DISCONNECTED);
+	}
+	return;
+}
 
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
@@ -202,42 +239,118 @@ BOOL              powered_on = NO;
 	 * it doens't work. */
 	M_io_ble_cache_device((__bridge_retained CFTypeRef)peripheral); 	
 
-	 if (M_io_ble_device_need_read_services(peripheral))
-		 [_manager connectPeripheral:peripheral options:nil];
+	 if (M_io_ble_device_need_read_services([[[peripheral identifier] UUIDString] UTF8String])) {
+		[_manager connectPeripheral:peripheral options:nil];
+	 }
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
+	const char *mac;
+	const char *service_uuid;
+	M_bool      read_characteristics = M_FALSE;
+
 	(void)central;
 
-	/* XXX: When opening a device for use need to have this set a different delegate and
-	 * don't try to discover services. */
+	mac = [[[peripheral identifier] UUIDString] UTF8String];
+
 	peripheral.delegate = self;
-	[peripheral discoverServices:nil];
+	if (M_io_ble_device_need_read_services(mac)) {
+		/* No services then we are in a scan. */
+		M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTING);
+		[peripheral discoverServices:nil];
+	} else if (M_io_ble_device_is_associated(mac)) {
+		for (CBService *service in peripheral.services) {
+			service_uuid = [[service.UUID UUIDString] UTF8String];
+			if (M_io_ble_device_need_read_characteristics(mac, service_uuid)) {
+				[peripheral discoverCharacteristics:nil forService:service];
+				read_characteristics = M_TRUE;
+			}
+		}
+		if (read_characteristics) {
+			/* We're associated and have services but no characteristics so we must be in an open. */
+			M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTING);
+		} else {
+			/* We're associated, and have services and characteristics so we must be in an open */
+			M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
+		}
+	} else {
+		/* Not associated and we have services so we don't need to do anything. */
+		[_manager cancelPeripheralConnection:peripheral];
+		M_io_ble_device_set_state(mac, M_IO_STATE_DISCONNECTING);
+	}
+}
+
+- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{
+	(void)central;
+	(void)error;
+
+	M_io_ble_device_set_state([[[peripheral identifier] UUIDString] UTF8String], M_IO_STATE_DISCONNECTED);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
 	const char *mac;
+	M_bool      associated;
 
 	(void)error;
 
-	mac = [[[peripheral identifier] UUIDString] UTF8String];
+	if (peripheral == nil)
+		return;
+
+
+	mac        = [[[peripheral identifier] UUIDString] UTF8String];
+	associated = M_io_ble_device_is_associated(mac);
+
 	for (CBService *service in peripheral.services) {
 		M_io_ble_device_add_serivce(mac, [[service.UUID UUIDString] UTF8String]);
+		if (associated) {
+			[peripheral discoverCharacteristics:nil forService:service];
+		}
 	}
-	[_manager cancelPeripheralConnection:peripheral];
+
+	if (!associated) {
+		[_manager cancelPeripheralConnection:peripheral];
+		M_io_ble_device_set_state(mac, M_IO_STATE_DISCONNECTING);
+	}
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didModifyServices:(NSArray<CBService *> *)invalidatedServices
 {
+	const char *mac;
+
 	/* Ignore the list of invalidted. This list is only services that have
 	* been "removed" by the device and doens't include new ones. We'll clear
 	* all and pull again so we can have a full listing of services. */
 	(void)invalidatedServices;
 
-	M_io_ble_device_clear_services([[[peripheral identifier] UUIDString] UTF8String]);
+	mac = [[[peripheral identifier] UUIDString] UTF8String];
+
+	M_io_ble_device_clear_services(mac);
+	M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTING);
 	[peripheral discoverServices:nil];
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error
+{
+	const char *mac;
+	const char *service_uuid;
+
+	(void)error;
+
+	if (peripheral == nil || service == nil)
+		return;
+
+	mac          = [[[peripheral identifier] UUIDString] UTF8String];
+	service_uuid = [[service.UUID UUIDString] UTF8String];
+
+	for (CBCharacteristic *c in service.characteristics) {
+		M_io_ble_device_add_characteristic(mac, service_uuid, [[c.UUID UUIDString] UTF8String], (__bridge_retained CFTypeRef)c);
+	}
+
+	if (M_io_ble_device_is_associated(mac))
+		M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
 }
 
 @end
