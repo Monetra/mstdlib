@@ -35,16 +35,20 @@ typedef struct {
 
 
 struct M_sql_report {
-	M_sql_report_flags_t    flags;        /*!< Bitmap of #M_sql_report_flags_t */
-	unsigned char           field_delim;  /*!< Field delimiter, defaults to ',' */
-	unsigned char           row_delim;    /*!< Row delimiter, defaults to '\n' */
-	unsigned char           field_encaps; /*!< Field Encapsulation, defaults to '"' */
-	unsigned char           field_escape; /*!< Field Escape, defaults to '"' */
-	M_sql_report_fetch_cb_t fetch_cb;     /*!< Callback to call after M_sql_stmt_fetch() */
+	M_sql_report_flags_t    flags;           /*!< Bitmap of #M_sql_report_flags_t */
+	unsigned char           field_delim[8];  /*!< Field delimiter, defaults to ',' */
+	size_t                  field_delim_size;
+	unsigned char           row_delim[8];    /*!< Row delimiter, defaults to '\r\n' */
+	size_t                  row_delim_size;
+	unsigned char           field_encaps[8]; /*!< Field Encapsulation, defaults to '"' */
+	size_t                  field_encaps_size;
+	unsigned char           field_escape[8]; /*!< Field Escape, defaults to '"' */
+	size_t                  field_escape_size;
+	M_sql_report_fetch_cb_t fetch_cb;        /*!< Callback to call after M_sql_stmt_fetch() */
 
-	M_llist_t           *add_cols;          /*!< Ordered list of columns to output */
-	M_hash_dict_t       *hide_cols_byname;  /*!< Dictionary of columns in server output to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
-	M_hash_u64str_t     *hide_cols_byidx;   /*!< Indexes to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
+	M_llist_t           *add_cols;           /*!< Ordered list of columns to output */
+	M_hash_dict_t       *hide_cols_byname;   /*!< Dictionary of columns in server output to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
+	M_hash_u64str_t     *hide_cols_byidx;    /*!< Indexes to hide, only relevant if flags has M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED */
 };
 
 
@@ -67,13 +71,22 @@ M_sql_report_t *M_sql_report_create(M_uint32 flags)
 		NULL,
 		M_sql_report_col_destroy
 	};
-	M_sql_report_t *report = M_malloc_zero(sizeof(*report));
-	report->flags          = flags;
-	report->field_delim    = ',';
-	report->row_delim      = '\n';
-	report->field_encaps   = '"';
-	report->field_escape   = '"';
-	report->add_cols       = M_llist_create(&add_cols_cb, M_LLIST_NONE);
+	M_sql_report_t *report    = M_malloc_zero(sizeof(*report));
+	report->flags             = flags;
+	report->field_delim[0]    = ',';
+	report->field_delim_size  = 1;
+
+	report->row_delim[0]      = '\r';
+	report->row_delim[1]      = '\n';
+	report->row_delim_size    = 2;
+
+	report->field_encaps[0]   = '"';
+	report->field_encaps_size = 1;
+
+	report->field_escape[0]   = '"';
+	report->field_escape_size = 1;
+
+	report->add_cols          = M_llist_create(&add_cols_cb, M_LLIST_NONE);
 
 	/* Only create hide_cols if we're auto-importing columns from the SQL output */
 	if (flags & M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED) {
@@ -96,15 +109,38 @@ void M_sql_report_destroy(M_sql_report_t *report)
 }
 
 
-M_bool M_sql_report_set_delims(M_sql_report_t *report, unsigned char field_delim, unsigned char row_delim, unsigned char field_encaps, unsigned char field_escape)
+M_bool M_sql_report_set_delims(M_sql_report_t *report, const unsigned char *field_delim, size_t field_delim_size, const unsigned char *row_delim, size_t row_delim_size, const unsigned char *field_encaps, size_t field_encaps_size, const unsigned char *field_escape, size_t field_escape_size)
 {
 	if (report == NULL)
 		return M_FALSE;
 
-	report->field_delim  = field_delim;
-	report->row_delim    = row_delim;
-	report->field_encaps = field_encaps;
-	report->field_escape = field_escape;
+	if (field_delim != NULL) {
+		if (field_delim_size > sizeof(report->field_delim) || field_delim_size == 0)
+			return M_FALSE;
+		M_mem_copy(report->field_delim, field_delim, field_delim_size);
+		report->field_delim_size = field_delim_size;
+	}
+
+	if (row_delim != NULL) {
+		if (row_delim_size > sizeof(report->row_delim) || row_delim_size == 0)
+			return M_FALSE;
+		M_mem_copy(report->row_delim, row_delim, row_delim_size);
+		report->row_delim_size = row_delim_size;
+	}
+
+	if (field_encaps != NULL) {
+		if (field_encaps_size > sizeof(report->field_encaps) || field_encaps_size == 0)
+			return M_FALSE;
+		M_mem_copy(report->field_encaps, field_encaps, field_encaps_size);
+		report->field_encaps_size = field_encaps_size;
+	}
+
+	if (field_escape != NULL) {
+		if (field_escape_size > sizeof(report->field_escape) || field_escape_size == 0)
+			return M_FALSE;
+		M_mem_copy(report->field_escape, field_escape, field_escape_size);
+		report->field_escape_size = field_escape_size;
+	}
 
 	return M_TRUE;
 }
@@ -394,6 +430,20 @@ typedef enum {
 } M_sql_report_encap_type_t;
 
 
+static __inline__ M_bool M_sql_report_data_matches(const unsigned char *data, size_t data_len, const unsigned char *srch, size_t srch_len)
+{
+	if (srch_len > data_len)
+		return M_FALSE;
+	if (data_len == 0 || srch_len == 0)
+		return M_FALSE;
+	if (data[0] != srch[0])
+		return M_FALSE;
+	if (srch_len == 1)
+		return M_TRUE;
+	return M_mem_eq(data, srch, srch_len);
+}
+
+
 static M_sql_report_encap_type_t M_sql_report_col_needs_encap(const M_sql_report_t *report, const M_uint8 *data, size_t data_len)
 {
 	size_t                    i;
@@ -407,11 +457,24 @@ static M_sql_report_encap_type_t M_sql_report_col_needs_encap(const M_sql_report
 	}
 
 	for (i=0; data != NULL && i<data_len; i++) {
-		if (data[i] == report->field_encaps || data[i] == report->field_escape)
-				return M_SQL_REPORT_ENCAP_REWRITE;
+		if (M_sql_report_data_matches(data+i, data_len - i, report->field_encaps, report->field_encaps_size))
+			return M_SQL_REPORT_ENCAP_REWRITE;
+		if (M_sql_report_data_matches(data+i, data_len - i, report->field_escape, report->field_escape_size))
+			return M_SQL_REPORT_ENCAP_REWRITE;
 
-		if (data[i] == report->field_delim || data[i] == report->row_delim)
-				type = M_SQL_REPORT_ENCAP_ONLY;
+		/* No need for below checks */
+		if (type == M_SQL_REPORT_ENCAP_ONLY)
+			continue;
+
+		if (M_sql_report_data_matches(data+i, data_len - i, report->field_delim, report->field_delim_size)) {
+			type = M_SQL_REPORT_ENCAP_ONLY;
+			continue;
+		}
+
+		if (M_sql_report_data_matches(data+i, data_len - i, report->row_delim, report->row_delim_size)) {
+			type = M_SQL_REPORT_ENCAP_ONLY;
+			continue;
+		}
 	}
 
 	return type;
@@ -429,13 +492,15 @@ static void M_sql_report_col_append(const M_sql_report_t *report, M_buf_t *outbu
 
 	/* escape as necessary */
 	for (i=0; i<data_len; i++) {
-		if (data[i] == report->field_encaps || data[i] == report->field_escape)
-			M_buf_add_byte(outbuf, report->field_escape);
+		if (M_sql_report_data_matches(data + i, data_len - i, report->field_encaps, report->field_encaps_size) ||
+		    M_sql_report_data_matches(data + i, data_len - i, report->field_escape, report->field_escape_size)) {
+			M_buf_add_bytes(outbuf, report->field_escape, report->field_escape_size);
+		}
 
 		M_buf_add_byte(outbuf, data[i]);
 	}
-
 }
+
 
 struct M_sql_report_state {
 	M_sql_report_col_t *cols;
@@ -498,20 +563,20 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 			M_sql_report_encap_type_t encap_type;
 			for (i=0; i<(*state)->num_cols; i++) {
 				if (i != 0)
-					M_buf_add_byte(buf, report->field_delim);
+					M_buf_add_bytes(buf, report->field_delim, report->field_delim_size);
 
 				encap_type = M_sql_report_col_needs_encap(report, (const M_uint8 *)(*state)->cols[i].name, M_str_len((*state)->cols[i].name));
 				if (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE) {
-					M_buf_add_byte(buf, report->field_encaps);
+					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
 				}
 
 				M_sql_report_col_append(report, buf, encap_type, (const M_uint8 *)(*state)->cols[i].name, M_str_len((*state)->cols[i].name));
 
 				if (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE) {
-					M_buf_add_byte(buf, report->field_encaps);
+					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
 				}
 			}
-			M_buf_add_byte(buf, report->row_delim);
+			M_buf_add_bytes(buf, report->row_delim, report->row_delim_size);
 		}
 	}
 
@@ -529,7 +594,7 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 				M_bool                 is_null = M_FALSE;
 
 				if (j != 0)
-					M_buf_add_byte(buf, report->field_delim);
+					M_buf_add_bytes(buf, report->field_delim, report->field_delim_size);
 
 				M_buf_truncate((*state)->colbuf, 0);
 				cberr = (*state)->cols[j].cb(stmt, arg, (*state)->rowidx, (*state)->cols[j].sql_col_idx, (*state)->colbuf, &is_null);
