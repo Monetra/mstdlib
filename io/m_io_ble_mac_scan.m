@@ -529,8 +529,8 @@ void M_io_ble_connect(M_io_handle_t *handle)
 			ret = [scanner connectToDevice:peripheral];
 		});
 		if (!ret) {
-			M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error");
-			layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+			M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error: Already in use or BLE not avaliable");
+			layer = M_io_layer_acquire(handle->io, 0, NULL);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 			M_io_layer_release(layer);
 		}

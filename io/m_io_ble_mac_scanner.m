@@ -144,9 +144,7 @@ BOOL              powered_on = NO;
 	if (trigger == NULL)
 		return;
 
-	/* If there is only one trigger than there wasn't a scan previously running.
-	 * We don't need to call start a scan if it's already running. */
-	if (M_list_len(triggers) == 0 && powered_on)
+	if (!_manager.isScanning)
 		[_manager scanForPeripheralsWithServices:nil options:nil];
 
 	timeout_ms = M_io_ble_validate_timeout(timeout_ms);
@@ -172,8 +170,7 @@ BOOL              powered_on = NO;
 
 - (BOOL)connectToDevice:(CBPeripheral *)peripheral
 {
-	const char        *mac;
-	CBPeripheralState  state;
+	CBPeripheralState state;
 
 	if (!powered_on || _manager == nil || peripheral == nil)	
 		return NO;
@@ -181,11 +178,13 @@ BOOL              powered_on = NO;
 	state = peripheral.state;
 	if (state != CBPeripheralStateConnected && state != CBPeripheralStateConnecting) {
 		[_manager connectPeripheral:peripheral options:nil];
-	} else {
-		mac = [[[peripheral identifier] UUIDString] UTF8String];
-		M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
+		return YES;
 	}
-	return YES;
+
+	/* Most likely the device is already connected. We can't connect
+	 * to a connected device. Also, we want to protect a second request
+	 * from another io object thinking it's connected when it isn't. */
+	return NO;
 }
 
 - (void)disconnectFromDevice:(CBPeripheral *)peripheral
@@ -212,7 +211,7 @@ BOOL              powered_on = NO;
 	switch (central.state) {
 		case CBManagerStatePoweredOn:
 			powered_on = YES;
-			if (M_list_len(triggers) > 0) {
+			if (!_manager.isScanning) {
 				[_manager scanForPeripheralsWithServices:nil options:nil];
 			}
 			break;
