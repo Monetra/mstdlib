@@ -204,6 +204,26 @@ M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *servi
 	return M_io_ble_get_device_service_characteristics(handle->mac, service_uuid);
 }
 
+void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response)
+{
+	M_io_handle_t *handle;
+	size_t         w;
+	size_t         wo;
+
+	if (with_response == NULL)
+		with_response = &w;
+	if (without_response == NULL)
+		without_response = &wo;
+
+	*with_response    = 0;
+	*without_response = 0;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return;
+	M_io_ble_get_device_max_write_sizes(handle->mac, with_response, without_response);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms)

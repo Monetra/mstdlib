@@ -149,7 +149,7 @@ static M_io_ble_device_t *M_io_ble_device_create(CFTypeRef peripheral, const cha
 
 static void M_io_ble_device_destroy(M_io_ble_device_t *dev)
 {
-	CBPeripheral *peripheral;
+	CBPeripheral *p;
 
 	if (dev == NULL)
 		return;
@@ -160,8 +160,8 @@ static void M_io_ble_device_destroy(M_io_ble_device_t *dev)
 
 	/* Decrement the reference count and set to nil so ARC can
  	 * clean up peripheral */
-	peripheral = (__bridge_transfer CBPeripheral *)dev->peripheral;
-	peripheral = nil;
+	p = (__bridge_transfer CBPeripheral *)dev->peripheral;
+	p = nil;
 
 	M_free(dev);
 }
@@ -472,7 +472,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
-	CBPeripheral      *peripheral;
+	CBPeripheral      *p;
 
 	M_thread_mutex_lock(lock);
 
@@ -508,9 +508,9 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				 *    requests them.
 				 * 3. Handle times out while device is getting characteristics.
 				 * 4. Handle is gone so the device will not longer be associated. */
-				peripheral = (__bridge CBPeripheral *)dev->peripheral;
+				p = (__bridge CBPeripheral *)dev->peripheral;
 				dispatch_async(dispatch_get_main_queue(), ^{
-					[scanner disconnectFromDevice:peripheral];
+					[scanner disconnectFromDevice:p];
 				});
 			}
 			stop_blind_scan();
@@ -621,7 +621,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
-	CBPeripheral      *peripheral;
+	CBPeripheral      *p;
 	M_bool             in_use = M_FALSE;
 	__block BOOL       ret;
 
@@ -642,10 +642,10 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		} else {
 			dev->handle = handle;
 		}
-		peripheral = (__bridge CBPeripheral *)dev->peripheral;
-		ret        = YES;
+		p   = (__bridge CBPeripheral *)dev->peripheral;
+		ret = YES;
 		dispatch_sync(dispatch_get_main_queue(), ^{
-			ret = [scanner connectToDevice:peripheral];
+			ret = [scanner connectToDevice:p];
 		});
 		if (!ret) {
 			M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error: Already in use or BLE not avaliable");
@@ -671,16 +671,16 @@ void M_io_ble_connect(M_io_handle_t *handle)
 void M_io_ble_close(M_io_handle_t *handle)
 {
 	M_io_ble_device_t *dev;
-	CBPeripheral      *peripheral;
+	CBPeripheral      *p;
 
 	M_thread_mutex_lock(lock);
 
 	M_hash_strvp_remove(ble_waiting, handle->mac, M_FALSE);
 	if (M_hash_strvp_get(ble_devices, handle->mac, (void **)&dev)) {
 		dev->handle = NULL;
-		peripheral  = (__bridge CBPeripheral *)dev->peripheral;
+		p = (__bridge CBPeripheral *)dev->peripheral;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[scanner disconnectFromDevice:peripheral];
+			[scanner disconnectFromDevice:p];
 		});
 	}
 
@@ -746,4 +746,29 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const
 	M_thread_mutex_unlock(lock);
 
 	return l;
+}
+
+void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response, size_t *without_response)
+{
+	M_io_ble_device_t  *dev;
+	__block NSUInteger  w;
+	__block NSUInteger  wo;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		CBPeripheral *p = (__bridge CBPeripheral *)dev->peripheral;
+		w               = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithResponse];
+		wo              = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse];
+	});
+
+	M_thread_mutex_unlock(lock);
+
+	*with_response    = (size_t)w;
+	*without_response = (size_t)wo;
 }

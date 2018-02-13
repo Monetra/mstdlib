@@ -297,6 +297,17 @@ M_API M_list_str_t *M_io_ble_get_services(M_io_t *io);
  */
 M_API M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *service_uuid);
 
+
+/*! Get the maximum write sizes from an io object.
+ *
+ * Queries the highest BLE layer in the stack, if there are more than one.
+ *
+ * \param[in]  io               io object.
+ * \param[out] with_response    The maximum size that will receive a response.
+ * \param[out] without_response The maximum size that will not receive a response.
+ */
+M_API void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response);
+
 /*! @} */
 
 __END_DECLS

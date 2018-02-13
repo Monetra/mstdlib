@@ -67,6 +67,7 @@ void M_io_ble_close(M_io_handle_t *handle);
 
 M_list_str_t *M_io_ble_get_device_services(const char *mac);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const char *service_uuid);
+void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response, size_t *without_response);
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 void M_io_ble_data_destory(M_io_ble_data_t *data);
