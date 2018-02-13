@@ -209,6 +209,8 @@ static void M_io_ble_manager_init(void)
 
 static void start_blind_scan(void)
 {
+	/* Don't start a scan if there aren't any
+	 * devices that need to be scanned for. */
 	if (M_hash_strvp_num_keys(ble_waiting) == 0)
 		return;
 
@@ -219,6 +221,8 @@ static void start_blind_scan(void)
 
 static void stop_blind_scan(void)
 {
+	/* Don't stop the scan if there are handles waiting
+	 * for a device to be found. */
 	if (M_hash_strvp_num_keys(ble_waiting) != 0)
 		return;
 
@@ -458,7 +462,6 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				M_io_layer_release(layer);
 				dev->handle = NULL;
 			}
-			stop_blind_scan();
 			break;
 		case M_IO_STATE_ERROR:
 			if (dev->handle != NULL) {
@@ -467,6 +470,9 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 				M_io_layer_release(layer);
 			}
+			/* A connection failure will trigger this event. A read/write error will also trigger this event.
+			 * It's okay to try to stop the blind scan here. If there are waiting devices the scan
+			 * won't be stopped. */
 			stop_blind_scan();
 			break;
 		case M_IO_STATE_INIT:
