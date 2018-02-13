@@ -689,3 +689,61 @@ void M_io_ble_close(M_io_handle_t *handle)
 	handle->state = M_IO_STATE_DISCONNECTED;
 	M_thread_mutex_unlock(lock);
 }
+
+M_list_str_t *M_io_ble_get_device_services(const char *mac)
+{
+	const char          *const_temp;
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_enum_t *he;
+	M_list_str_t        *l   = NULL;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return NULL;
+	}
+
+	l = M_list_str_create(M_LIST_STR_NONE);
+	M_hash_strvp_enumerate(dev->services, &he);
+	while (M_hash_strvp_enumerate_next(dev->services, he, &const_temp, NULL)) {
+		M_list_str_insert(l, const_temp);
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	M_thread_mutex_unlock(lock);
+
+	return l;
+}
+
+M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const char *service_uuid)
+{
+	const char          *const_temp;
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_enum_t *he;
+	M_hash_strvp_t      *service;
+	M_list_str_t        *l   = NULL;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return NULL;
+	}
+
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_thread_mutex_unlock(lock);
+		return NULL;
+	}
+
+	l = M_list_str_create(M_LIST_STR_NONE);
+	M_hash_strvp_enumerate(service, &he);
+	while (M_hash_strvp_enumerate_next(service, he, &const_temp, NULL)) {
+		M_list_str_insert(l, const_temp);
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	M_thread_mutex_unlock(lock);
+
+	return l;
+}

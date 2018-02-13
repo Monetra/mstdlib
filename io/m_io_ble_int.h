@@ -65,8 +65,12 @@ void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *ma
 void M_io_ble_connect(M_io_handle_t *handle);
 void M_io_ble_close(M_io_handle_t *handle);
 
+M_list_str_t *M_io_ble_get_device_services(const char *mac);
+M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const char *service_uuid);
+
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 void M_io_ble_data_destory(M_io_ble_data_t *data);
+M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);
 
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms);
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

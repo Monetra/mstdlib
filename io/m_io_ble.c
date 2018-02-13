@@ -61,6 +61,25 @@ void M_io_ble_data_destory(M_io_ble_data_t *data)
 	M_free(data);
 }
 
+M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io)
+{
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle = NULL;
+	size_t         len;
+	size_t         i;
+
+	len = M_io_layer_count(io);
+	for (i=len; i-->0; ) {
+		layer = M_io_layer_acquire(io, i, M_IO_BLE_NAME);
+		if (layer != NULL) {
+			handle = M_io_layer_get_handle(layer);
+			M_io_layer_release(layer);
+			break;
+		}
+	}
+	return handle;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_enum_destroy(M_io_ble_enum_t *btenum)
@@ -162,6 +181,30 @@ M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx)
 		return 0;
 	return device->last_seen;
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_list_str_t *M_io_ble_get_services(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return NULL;
+	return M_io_ble_get_device_services(handle->mac);
+}
+
+M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *service_uuid)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return NULL;
+	return M_io_ble_get_device_service_characteristics(handle->mac, service_uuid);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms)
 {

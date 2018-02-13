@@ -278,6 +278,25 @@ M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx
  */
 M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms);
 
+
+/*! Get a list of service UUIDs provided by the device.
+ *
+ * \param[in] io io object.
+ *
+ * \return List of strings.
+ */
+M_API M_list_str_t *M_io_ble_get_services(M_io_t *io);
+
+
+/*! Get a list of characteristic UUIDs provided a service provided by the device.
+ *
+ * \param[in] io           io object.
+ * \param[in] service_uuid UUID of service.
+ *
+ * \return List of strings.
+ */
+M_API M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *service_uuid);
+
 /*! @} */
 
 __END_DECLS
