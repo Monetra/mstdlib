@@ -79,6 +79,9 @@ static void M_io_ble_cleanup(void *arg)
 	scanner     = nil;
 	cbc_manager = nil;
 
+	M_hash_strvp_destroy(ble_devices, M_TRUE);
+	M_hash_strvp_destroy(ble_waiting, M_TRUE);
+
 	M_thread_mutex_destroy(lock);
 	M_thread_cond_destroy(cond);
 }
@@ -137,6 +140,19 @@ static void M_io_ble_device_destroy(M_io_ble_device_t *dev)
 	M_free(dev);
 }
 
+static void M_io_ble_waiting_destroy(M_io_handle_t *handle)
+{
+	M_io_layer_t *layer;
+
+	if (handle == NULL || handle->io == NULL)
+		return;
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	M_snprintf(handle->error, sizeof(handle->error), "Timeout");
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_release(layer);
+}
+
 static trigger_wrapper_t *trigger_wrapper_create(M_event_trigger_t *trigger, M_event_callback_t callback, void *cb_arg)
 {
 	trigger_wrapper_t *tw;
@@ -180,7 +196,7 @@ static void M_io_ble_manager_init(void)
 	/* Setup the scanning objects. */
 	dispatch_once(&d, ^{
 		ble_devices = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
-		ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, NULL);
+		ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
 		lock        = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 		cond        = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
 		scanner     = [M_io_ble_mac_scanner m_io_ble_mac_scanner];
@@ -213,8 +229,9 @@ void M_io_ble_cbc_event_reset(void)
 
 	M_hash_strvp_destroy(ble_devices, M_TRUE);
 	ble_devices = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
+	/* Will notify all waiting io objects with an error. */
 	M_hash_strvp_destroy(ble_waiting, M_TRUE);
-	ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, NULL);
+	ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
 
 	M_thread_mutex_unlock(lock);
 }
