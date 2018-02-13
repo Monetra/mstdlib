@@ -389,6 +389,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
+	CBPeripheral      *peripheral;
 
 	M_thread_mutex_lock(lock);
 
@@ -412,6 +413,21 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
 				M_io_layer_release(layer);
+			} else {
+				/* We have a connect event but no io objects are attached.
+				 * Close the device since it won't be used by anything.
+				 * This could happen due to timing.
+				 *
+				 * 1. Scanner sees device is associated because it has a
+				 *    handle in the the waiting queue.
+				 * 2. The device does not have characteristics so Scanner
+				 *    requests them.
+				 * 3. Handle times out while device is getting characteristics.
+				 * 4. Handle is gone so the device will not longer be associated. */
+				peripheral = (__bridge CBPeripheral *)dev->peripheral;
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[scanner disconnectFromDevice:peripheral];
+				});
 			}
 			break;
 		case M_IO_STATE_DISCONNECTED:
@@ -447,12 +463,10 @@ M_bool M_io_ble_device_is_associated(const char *mac)
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
-		M_thread_mutex_unlock(lock);
-		return M_FALSE;
-	}
+	if (M_hash_strvp_get(ble_devices, mac, (void **)&dev) && dev->handle != NULL)
+		ret = M_TRUE;
 
-	if (dev->handle != NULL)
+	if (!ret && M_hash_strvp_get(ble_waiting, mac, NULL))
 		ret = M_TRUE;
 
 	M_thread_mutex_unlock(lock);

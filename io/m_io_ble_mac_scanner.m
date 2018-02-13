@@ -176,7 +176,7 @@ BOOL              powered_on = NO;
 		return NO;
 
 	state = peripheral.state;
-	if (state != CBPeripheralStateConnected && state != CBPeripheralStateConnecting) {
+	if (state == CBPeripheralStateDisconnected) {
 		[_manager connectPeripheral:peripheral options:nil];
 		return YES;
 	}
@@ -238,9 +238,9 @@ BOOL              powered_on = NO;
 	 * it doens't work. */
 	M_io_ble_cache_device((__bridge_retained CFTypeRef)peripheral); 	
 
-	 if (M_io_ble_device_need_read_services([[[peripheral identifier] UUIDString] UTF8String])) {
+	if (M_io_ble_device_need_read_services([[[peripheral identifier] UUIDString] UTF8String])) {
 		[_manager connectPeripheral:peripheral options:nil];
-	 }
+	}
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
@@ -348,8 +348,10 @@ BOOL              powered_on = NO;
 		M_io_ble_device_add_characteristic(mac, service_uuid, [[c.UUID UUIDString] UTF8String], (__bridge_retained CFTypeRef)c);
 	}
 
-	if (M_io_ble_device_is_associated(mac))
-		M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
+	/* We have the characteristics so the device is ready for use.
+	 * These are only pulled when a device is being opened and associated
+	 * so we've connected. */
+	M_io_ble_device_set_state(mac, M_IO_STATE_CONNECTED);
 }
 
 @end
