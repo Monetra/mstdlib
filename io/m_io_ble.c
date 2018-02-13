@@ -221,7 +221,16 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 	handle = M_io_ble_get_io_handle(io);
 	if (handle == NULL)
 		return;
-	M_io_ble_get_device_max_write_sizes(handle->mac, with_response, without_response);
+
+	if (handle->have_max_write) {
+		*with_response    = handle->max_write_w_response;
+		*without_response = handle->max_write_wo_response;
+	} else {
+		M_io_ble_get_device_max_write_sizes(handle->mac, with_response, without_response);
+		handle->have_max_write        = M_TRUE;
+		handle->max_write_w_response  = *with_response;
+		handle->max_write_wo_response = *without_response;
+	}
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

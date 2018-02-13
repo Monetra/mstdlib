@@ -57,6 +57,9 @@ struct M_io_handle {
 	char             error[256];  /*!< Error message. */
 	M_io_state_t     state;
 	M_bool           can_write;   /*!< Wether data can be written. Will be false if a write operation is processing. */
+	M_bool           have_max_write;
+	size_t           max_write_w_response;
+	size_t           max_write_wo_response;
 };
 
 M_io_ble_enum_t *M_io_ble_enum_init(void);
