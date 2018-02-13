@@ -42,7 +42,28 @@
  * event delivery. Always disptach these async if it's sync and the main run
  * loop is not running we'll get a segfault due to bad access.
  *
- * All access to the ble_devices cache needs to be locked.
+ * All access to the ble_devices, and ble_waiting caches need to be locked.
+ *
+ * Devices need to be seen from a scan before they can be used. As such we
+ * cache them in the ble_devices cache. They are not open/connected. macOS/iOS
+ * uses an object for accessing devices. The only way to get a device object is
+ * by scanning. We cache the object so we can open, close, etc. the device
+ * when we need it.
+ *
+ * It is possible to open a device (if present) that hasn't been scanned by
+ * starting a scan and when found connecting to the device. This is the purpose
+ * of the *_blind_scan functions. The blind scan will stop when the device is
+ * connected, there is an error, or the M_io_ble_create timeout is triggered.
+ * This limits scan time to the minimum necessary.
+ *
+ * The ble_waiting cache hold device handles we want to associate to a device
+ * in the ble_devices cache. On connect a device is checked there is a waiting
+ * handle and will be associated at that time.
+ *
+ * Devices in the ble_devices cache will have an M_io_handle_t associated with
+ * them when connected. Read and write events will marshal data into and out
+ * of the handle. Event's will also be triggered on the handle. If a handle
+ * is not associated with a device then events will be ignored.
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -52,6 +73,11 @@ typedef struct {
 	M_event_callback_t  cb;
 	void               *cb_arg;
 } trigger_wrapper_t;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* Last seen can't be more than 15 minutes old. */
+const M_int64 LAST_SEEN_EXPIRE = 15*60;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -409,6 +435,39 @@ M_bool M_io_ble_device_need_read_characteristics(const char *mac, const char *se
 	return ret;
 }
 
+void M_io_ble_device_scan_finished(void)
+{
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_enum_t *he;
+	const char          *mac;
+	M_list_str_t        *macs;
+	M_time_t             expire;
+	size_t               len;
+	size_t               i;
+
+	M_thread_mutex_lock(lock);
+
+	/* Clear out all old devices that may not
+	 * be around anymore. */
+	macs   = M_list_str_create(M_LIST_STR_NONE);
+	expire = M_time()-LAST_SEEN_EXPIRE;
+	M_hash_strvp_enumerate(ble_devices, &he);
+	while (M_hash_strvp_enumerate_next(ble_devices, he, &mac, (void **)&dev)) {
+		if (dev->handle == NULL && dev->last_seen < expire) {
+			M_list_str_insert(macs, mac);
+		}
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	len = M_list_str_len(macs);
+	for (i=0; i<len; i++) {
+		M_hash_strvp_remove(ble_devices, M_list_str_at(macs, i), M_TRUE);
+	}
+	M_list_str_destroy(macs);
+
+	M_thread_mutex_unlock(lock);
+}
+
 void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 {
 	M_io_ble_device_t *dev;
@@ -422,7 +481,8 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 		return;
 	}
 
-	dev->state = state;
+	dev->last_seen = M_time();
+	dev->state     = state;
 	if (dev->handle)
 		dev->handle->state = state;
 
@@ -470,6 +530,11 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 				M_io_layer_release(layer);
 			}
+
+			/* Error events we remove the device from the cache. Assume it can't be used anymore. */
+			M_hash_strvp_remove(ble_devices, mac, M_TRUE);
+			dev = NULL;
+
 			/* A connection failure will trigger this event. A read/write error will also trigger this event.
 			 * It's okay to try to stop the blind scan here. If there are waiting devices the scan
 			 * won't be stopped. */
@@ -481,6 +546,8 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 		case M_IO_STATE_LISTENING:
 			break;
 	}
+
+	/* DO not use dev after this point because it could have been destroyed. */
 
 	M_thread_mutex_unlock(lock);
 }

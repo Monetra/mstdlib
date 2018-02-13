@@ -178,7 +178,8 @@ BOOL              blind_runnig = NO;
 	if (!_manager.isScanning || M_list_len(triggers) != 0)
 		return;
 
-	 [_manager stopScan];
+	[_manager stopScan];
+	M_io_ble_device_scan_finished();
 }
 
 - (void)scanTimeout:(NSTimer *)timer
@@ -190,8 +191,10 @@ BOOL              blind_runnig = NO;
 		return;
 
 	M_list_remove_at(triggers, idx);
-	if (M_list_len(triggers) == 0 && !blind_runnig)
+	if (M_list_len(triggers) == 0 && !blind_runnig) {
 		[_manager stopScan];
+		M_io_ble_device_scan_finished();
+	}
 }
 
 - (BOOL)connectToDevice:(CBPeripheral *)peripheral
@@ -242,12 +245,14 @@ BOOL              blind_runnig = NO;
 			}
 			break;
 		case CBManagerStateResetting:
-			M_io_ble_cbc_event_reset();
 		case CBManagerStatePoweredOff:
 		case CBManagerStateUnauthorized:
 		case CBManagerStateUnknown:
 		case CBManagerStateUnsupported:
 		default:
+			/* This will clear all cached devices. Any of these events
+			 * will invalidate the devices. */
+			M_io_ble_cbc_event_reset();
 			powered_on = NO;
 			break;
 	}
@@ -304,6 +309,17 @@ BOOL              blind_runnig = NO;
 		[_manager cancelPeripheralConnection:peripheral];
 		M_io_ble_device_set_state(mac, M_IO_STATE_DISCONNECTING);
 	}
+}
+
+- (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{
+	const char *mac;
+
+	(void)central;
+	(void)error;
+
+	mac = [[[peripheral identifier] UUIDString] UTF8String];
+	M_io_ble_device_set_state(mac, M_IO_STATE_ERROR);
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
