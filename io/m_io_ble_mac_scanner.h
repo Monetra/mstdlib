@@ -42,6 +42,8 @@
 
 - (void)setManager:(CBCentralManager *)manager;
 - (void)startScan:(M_event_trigger_t *)trigger timeout_ms:(M_uint64)timeout_ms;
+- (void)startScanBlind;
+- (void)stopScanBlind;
 - (void)scanTimeout:(NSTimer *)timer;
 - (BOOL)connectToDevice:(CBPeripheral *)peripheral;
 - (void)disconnectFromDevice:(CBPeripheral *)peripheral;

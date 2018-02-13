@@ -94,9 +94,10 @@ static void del_scan_trigger(void *p)
 
 @implementation M_io_ble_mac_scanner
 
-CBCentralManager *_manager   = nil;
-M_list_t         *triggers   = NULL; /* List of ScanTrigger objects */
-BOOL              powered_on = NO;
+CBCentralManager *_manager     = nil;
+M_list_t         *triggers     = NULL; /* List of ScanTrigger objects */
+BOOL              powered_on   = NO;
+BOOL              blind_runnig = NO;
 
 + (id)m_io_ble_mac_scanner
 {
@@ -144,7 +145,7 @@ BOOL              powered_on = NO;
 	if (trigger == NULL)
 		return;
 
-	if (!_manager.isScanning)
+	if (!_manager.isScanning && powered_on)
 		[_manager scanForPeripheralsWithServices:nil options:nil];
 
 	timeout_ms = M_io_ble_validate_timeout(timeout_ms);
@@ -153,6 +154,31 @@ BOOL              powered_on = NO;
 	[st setTimer:timer];
 
 	M_list_insert(triggers, (__bridge_retained CFTypeRef)st);
+}
+
+- (void)startScanBlind
+{
+	blind_runnig = YES;
+
+	if (_manager.isScanning || !powered_on)
+		return;
+
+	[_manager scanForPeripheralsWithServices:nil options:nil];
+}
+
+- (void)stopScanBlind
+{
+	blind_runnig = NO;
+
+	/* Scan requests might still be outstanding. Don't
+	 * stop scanning if this is the case. This is to
+	 * stop blind scans in case they were started without
+	 * using a trigger. Trying to connect to a specific
+	 * device uses blind scans. */
+	if (!_manager.isScanning || M_list_len(triggers) != 0)
+		return;
+
+	 [_manager stopScan];
 }
 
 - (void)scanTimeout:(NSTimer *)timer
@@ -164,7 +190,7 @@ BOOL              powered_on = NO;
 		return;
 
 	M_list_remove_at(triggers, idx);
-	if (M_list_len(triggers) == 0)
+	if (M_list_len(triggers) == 0 && !blind_runnig)
 		[_manager stopScan];
 }
 

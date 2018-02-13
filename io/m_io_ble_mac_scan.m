@@ -207,6 +207,26 @@ static void M_io_ble_manager_init(void)
 	});
 }
 
+static void start_blind_scan(void)
+{
+	if (M_hash_strvp_num_keys(ble_waiting) == 0)
+		return;
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[scanner startScanBlind];
+	});
+}
+
+static void stop_blind_scan(void)
+{
+	if (M_hash_strvp_num_keys(ble_waiting) != 0)
+		return;
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[scanner stopScanBlind];
+	});
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_cbc_event_reset(void)
@@ -419,7 +439,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				 * This could happen due to timing.
 				 *
 				 * 1. Scanner sees device is associated because it has a
-				 *    handle in the the waiting queue.
+				 *    handle in the waiting queue.
 				 * 2. The device does not have characteristics so Scanner
 				 *    requests them.
 				 * 3. Handle times out while device is getting characteristics.
@@ -429,6 +449,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 					[scanner disconnectFromDevice:peripheral];
 				});
 			}
+			stop_blind_scan();
 			break;
 		case M_IO_STATE_DISCONNECTED:
 			if (dev->handle != NULL) {
@@ -437,6 +458,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				M_io_layer_release(layer);
 				dev->handle = NULL;
 			}
+			stop_blind_scan();
 			break;
 		case M_IO_STATE_ERROR:
 			if (dev->handle != NULL) {
@@ -445,6 +467,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 				M_io_layer_release(layer);
 			}
+			stop_blind_scan();
 			break;
 		case M_IO_STATE_INIT:
 		case M_IO_STATE_CONNECTING:
@@ -529,6 +552,15 @@ void M_io_ble_connect(M_io_handle_t *handle)
 	M_bool             in_use = M_FALSE;
 	__block BOOL       ret;
 
+	M_io_ble_manager_init();
+	if (cbc_manager == NULL) {
+		M_snprintf(handle->error, sizeof(handle->error), "Failed to initalize BLE manager");
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_release(layer);
+		return;
+	}
+
 	M_thread_mutex_lock(lock);
 
 	if (M_hash_strvp_get(ble_devices, handle->mac, (void **)&dev)) {
@@ -550,7 +582,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		}
 	} else {
 		M_hash_strvp_insert(ble_waiting, handle->mac, handle);
-		/* XXX: Start scan. */
+		start_blind_scan();
 	}
 
 	if (in_use) {
@@ -578,6 +610,8 @@ void M_io_ble_close(M_io_handle_t *handle)
 			[scanner disconnectFromDevice:peripheral];
 		});
 	}
+
+	stop_blind_scan();
 
 	handle->state = M_IO_STATE_DISCONNECTED;
 	M_thread_mutex_unlock(lock);
