@@ -611,18 +611,18 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 				encap_type = M_sql_report_col_needs_encap(report, (const M_uint8 *)M_buf_peek((*state)->colbuf), M_buf_len((*state)->colbuf));
 
 				if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
-					M_buf_add_byte(buf, report->field_encaps);
+					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
 				}
 
 				M_sql_report_col_append(report, buf, encap_type, (const M_uint8 *)(is_null?NULL:M_buf_peek((*state)->colbuf)), is_null?0:M_buf_len((*state)->colbuf));
 
 				if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
-					M_buf_add_byte(buf, report->field_encaps);
+					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
 				}
 			}
 
 			if (cberr == M_SQL_REPORT_SUCCESS) {
-				M_buf_add_byte(buf, report->row_delim);
+				M_buf_add_bytes(buf, report->row_delim, report->row_delim_size);
 
 				/* Don't output more than the requested number of rows at once */
 				rows_output++;
