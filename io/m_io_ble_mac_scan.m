@@ -750,9 +750,10 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const
 
 void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response, size_t *without_response)
 {
-	M_io_ble_device_t  *dev;
-	__block NSUInteger  w;
-	__block NSUInteger  wo;
+	CBPeripheral      *p;
+	M_io_ble_device_t *dev;
+	NSUInteger         w;
+	NSUInteger         wo;
 
 	M_thread_mutex_lock(lock);
 
@@ -761,11 +762,9 @@ void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response,
 		return;
 	}
 
-	dispatch_sync(dispatch_get_main_queue(), ^{
-		CBPeripheral *p = (__bridge CBPeripheral *)dev->peripheral;
-		w               = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithResponse];
-		wo              = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse];
-	});
+	p  = (__bridge CBPeripheral *)dev->peripheral;
+	w  = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithResponse];
+	wo = [p maximumWriteValueLengthForType:CBCharacteristicWriteWithoutResponse];
 
 	M_thread_mutex_unlock(lock);
 
