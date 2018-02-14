@@ -170,10 +170,14 @@ static void M_io_ble_waiting_destroy(M_io_handle_t *handle)
 {
 	M_io_layer_t *layer;
 
-	if (handle == NULL || handle->io == NULL)
+	if (handle == NULL)
 		return;
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	if (handle->io == NULL) {
+		return;
+		M_io_layer_release(layer);
+	}
 	M_snprintf(handle->error, sizeof(handle->error), "Timeout");
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	M_io_layer_release(layer);
@@ -483,8 +487,6 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 
 	dev->last_seen = M_time();
 	dev->state     = state;
-	if (dev->handle)
-		dev->handle->state = state;
 
 	switch (state) {
 		case M_IO_STATE_CONNECTED:
@@ -495,10 +497,10 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 			}
 			if (dev->handle != NULL) {
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-		dev->handle->state = state;
+				dev->handle->state     = state;
+				dev->handle->can_write = M_TRUE;
 				M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
 				M_io_layer_release(layer);
-				dev->handle->can_write = M_TRUE;
 			} else {
 				/* We have a connect event but no io objects are attached.
 				 * Close the device since it won't be used by anything.
@@ -580,6 +582,7 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	NSData            *ndata;
 	M_io_ble_device_t *dev;
 	M_hash_strvp_t    *service;
+	M_io_layer_t      *layer;
 	void              *v;
 	CBCharacteristic  *c;
 	CBPeripheral      *p;
@@ -598,20 +601,24 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 		return M_IO_ERROR_NOTCONNECTED;
 	}
 
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	/* Verify if we can write. */
 	if (!dev->handle->can_write) {
+		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
 		return M_IO_ERROR_WOULDBLOCK;
 	}
 
 	/* Check if the service is valid.  */
 	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
 		return M_IO_ERROR_INVALID;
 	}
 
 	/* Check if the characteristic is valid and get it. */
 	if (!M_hash_strvp_get(service, characteristic_uuid, &v)) {
+		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
 		return M_IO_ERROR_INVALID;
 	}
@@ -628,6 +635,8 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 
 	dev->handle->can_write = blind;
 	dev->last_seen         = M_time();
+
+	M_io_layer_release(layer);
 	M_thread_mutex_unlock(lock);
 
 	return M_IO_ERROR_SUCCESS;
