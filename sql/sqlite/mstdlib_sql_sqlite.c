@@ -167,6 +167,11 @@ static M_bool sqlite_cb_init(char *error, size_t error_size)
 		return M_FALSE;
 	}
 
+	if (!sqlite3_threadsafe()) {
+		M_snprintf(error, error_size, "sqlite3_threadsafe() returned false");
+		return M_FALSE;
+	}
+
 	/* Use multithread, less strict than Serialized, but still threadsafe.  We
 	 * serialize access to the connection object and prepared statement handles
 	 * ourselves so the less strict mode makes sense.  */
@@ -174,7 +179,6 @@ static M_bool sqlite_cb_init(char *error, size_t error_size)
 		M_snprintf(error, error_size, "sqlite3_config(MULTITHREAD) returned error");
 		return M_FALSE;
 	}
-
 
 	if (sqlite3_initialize() != SQLITE_OK) {
 		M_snprintf(error, error_size, "sqlite3_initialize()) returned error");
@@ -239,9 +243,9 @@ static M_bool sqlite_connpool_readconf(sqlite_connpool_data_t *data, const M_has
 		data->integrity_check = M_TRUE;
 	}
 
-	/* Shared Cache defaults to off */
+	/* Shared Cache defaults to on */
 	const_temp = M_hash_dict_get_direct(conndict, "shared_cache");
-	if (M_str_istrue(const_temp)) {
+	if (M_str_isempty(const_temp) || M_str_istrue(const_temp)) {
 		data->shared_cache = M_TRUE;
 	}
 
@@ -387,7 +391,7 @@ static M_bool sqlite_verify_integrity(M_sql_conn_t *conn, char *error, size_t er
 		goto done;
 	}
 
-	if (!M_str_eq_max(csv, "ok\n", 3)) {
+	if (!M_str_eq_max(csv, "ok\r\n", 3)) {
 		M_snprintf(error, error_size, "integrity_check returned inconsistencies, database is corrupt.");
 		err = M_SQL_ERROR_QUERY_FAILURE;
 		M_sql_driver_trace_message(M_FALSE, NULL, conn, err, error);
@@ -761,9 +765,13 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 			break;
 		}
 
+		/* Seems to cause deadlocks */
+#if 0
 		if (rc == SQLITE_BUSY && driver_stmt->is_commit) {
 			/* Docs say we should retry on commit */
-		} else if (rc == SQLITE_LOCKED) {
+		} else
+#endif
+		if (rc == SQLITE_LOCKED) {
 			/* Retry */
 		} else {
 			M_snprintf(error, error_size, "Query Failed (%d): %s", real_rc, sqlite3_errmsg(driver_conn->conn));

@@ -113,7 +113,7 @@ else ()
 		-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
 		-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs
 		-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat
-		-Wformat-security -Woverlength-strings -Wstrict-aliasing
+		-Wformat-security -Wstrict-aliasing
 		-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
 		-Wconversion -Wsign-conversion
 

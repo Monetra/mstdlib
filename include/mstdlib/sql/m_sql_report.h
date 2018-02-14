@@ -100,17 +100,22 @@ M_API void M_sql_report_destroy(M_sql_report_t *report);
  *
  *  If this function is not called, the defaults are used.
  *
- * \param[in] report       Initialized report object.
- * \param[in] field_delim  Delimiter to use between fields, default is a comma (,)
- * \param[in] row_delim    Delimiter to use between rows, default is a new line (\\n - LF)
- * \param[in] field_encaps Encapsulation character to use for field data that may
- *                         contain the field_delim or row_delim, default is a double quote (")
- * \param[in] field_escape Escape character to use if the field contains the encapsulation char,
- *                         default is the same as the encapsulation, a double quote ("), as this is
- *                         what is defined by RFC4180 (CSV)
+ * \param[in] report            Initialized report object.
+ * \param[in] field_delim       Delimiter to use between fields, default is a comma (,). NULL to not change.
+ * \param[in] field_delim_size  Number of characters used in field delimiter.  Max size 8.
+ * \param[in] row_delim         Delimiter to use between rows, default is a new line (\\r\\n - CRLF). NULL to not change.
+ * \param[in] row_delim_size    Number of characters used in row delimiter.  Max size 8.
+ * \param[in] field_encaps      Encapsulation character to use for field data that may
+ *                              contain the field_delim or row_delim, default is a double quote ("). NULL to not change.
+ * \param[in] field_encaps_size Number of characters used in field encapsulation. Max size 8.
+ * \param[in] field_escape      Escape character to use if the field contains the encapsulation char,
+ *                              default is the same as the encapsulation, a double quote ("), as this is
+ *                              what is defined by RFC4180 (CSV)
+ * \param[in] field_escape_size Number of characters used in field escaping. Max size 8.
  * \return M_TRUE on success, M_FALSE on usage error.
  */
-M_API M_bool M_sql_report_set_delims(M_sql_report_t *report, unsigned char field_delim, unsigned char row_delim, unsigned char field_encaps, unsigned char field_escape);
+M_API M_bool M_sql_report_set_delims(M_sql_report_t *report, const unsigned char *field_delim, size_t field_delim_size, const unsigned char *row_delim, size_t row_delim_size, const unsigned char *field_encaps, size_t field_encaps_size, const unsigned char *field_escape, size_t field_escape_size);
+
 
 /*! Prototype for fetch callback registered with M_sql_report_set_fetch_cb()
  *

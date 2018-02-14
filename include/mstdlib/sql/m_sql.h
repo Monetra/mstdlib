@@ -55,7 +55,7 @@ __BEGIN_DECLS
  *  - integrity_check: Optional. Defaults to "FALSE" if not specified.  On first
  *    connect, automatically runs an integrity check to verify the database
  *    integrity if set to "TRUE".
- *  - shared_cache: Optional. Defaults to "FALSE" if not specified.  Enables
+ *  - shared_cache: Optional. Defaults to "TRUE" if not specified.  Enables
  *    shared cache mode for multiple connections to the same database.
  *  - autocreate: Optional. Defaults to "TRUE" if not specified. The default is
  *    to auto-create the database if not found, set this to "FALSE" to error if
