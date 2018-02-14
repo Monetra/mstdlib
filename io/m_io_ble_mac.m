@@ -31,12 +31,6 @@
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
 	M_io_handle_t *handle = NULL;
-	struct M_list_callbacks lcbs = {
-		NULL,
-		NULL,
-		NULL,
-		(M_list_free_func)M_io_ble_data_destory
-	};
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
@@ -47,8 +41,6 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 
 	handle              = M_malloc_zero(sizeof(*handle));
 	M_str_cpy(handle->uuid, sizeof(handle->uuid), uuid);
-	handle->read_queue  = M_list_create(&lcbs, M_LIST_NONE);
-	handle->write_queue = M_list_create(&lcbs, M_LIST_NONE);
 	handle->timeout_ms  = M_io_ble_validate_timeout(timeout_ms);
 
 	return handle;
@@ -82,15 +74,22 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 	}
 
 	M_io_ble_close(handle);
-	M_list_destroy(handle->read_queue, M_TRUE);
-	M_list_destroy(handle->write_queue, M_TRUE);
 	M_free(handle);
 }
 
 M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	(void)layer;
-	(void)type;
+
+	if (*type == M_EVENT_TYPE_CONNECTED || *type == M_EVENT_TYPE_ERROR || *type == M_EVENT_TYPE_DISCONNECTED) {
+		/* Disable timer */
+		if (handle->timer != NULL) {
+			M_event_timer_remove(handle->timer);
+			handle->timer = NULL;
+		}
+	}
+	/* Do nothing, all events are generated as soft events and we don't have anything to process */
 	return M_FALSE;
 }
 
@@ -152,7 +151,13 @@ M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 
 void M_io_ble_unregister_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	/* Only thing we can do is disable a timer if there was one */
+	if (handle->timer) {
+		M_event_timer_remove(handle->timer);
+		handle->timer = NULL;
+	}
 }
 
 M_bool M_io_ble_init_cb(M_io_layer_t *layer)
@@ -176,7 +181,7 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
 
 			/* If there is data in the read buffer, signal there is data to be read as well */
-			if (M_list_len(handle->read_queue) != 0) {
+			if (M_buf_len(handle->read_data.data) != 0) {
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 			}
 			break;

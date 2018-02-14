@@ -52,15 +52,6 @@ M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
 	return timeout_ms;
 }
 
-void M_io_ble_data_destory(M_io_ble_data_t *data)
-{
-	if (data == NULL)
-		return;
-
-	M_free(data->data);
-	M_free(data);
-}
-
 M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io)
 {
 	M_io_layer_t  *layer;

@@ -57,7 +57,7 @@ void M_io_ble_device_clear_services(const char *uuid);
 M_bool M_io_ble_device_need_read_services(const char *uuid);
 M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_device_scan_finished(void);
-void M_io_ble_device_set_state(const char *uuid, M_io_state_t state);
+void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error);
 M_bool M_io_ble_device_is_associated(const char *uuid);
 
 #endif /* __M_IO_BLE_MAC_H__ */

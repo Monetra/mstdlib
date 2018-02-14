@@ -227,10 +227,10 @@ BOOL              blind_runnig = NO;
 	uuid  = [[[peripheral identifier] UUIDString] UTF8String];
 	state = peripheral.state;
 	if (state == CBPeripheralStateConnected || state == CBPeripheralStateConnecting) {
-		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 		[_manager cancelPeripheralConnection:peripheral];
 	} else {
-		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTED);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTED, NULL);
 	}
 	return;
 }
@@ -287,7 +287,7 @@ BOOL              blind_runnig = NO;
 	peripheral.delegate = self;
 	if (M_io_ble_device_need_read_services(uuid)) {
 		/* No services then we are in a scan. */
-		M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING, NULL);
 		[peripheral discoverServices:nil];
 	} else if (M_io_ble_device_is_associated(uuid)) {
 		for (CBService *service in peripheral.services) {
@@ -299,15 +299,15 @@ BOOL              blind_runnig = NO;
 		}
 		if (read_characteristics) {
 			/* We're associated and have services but no characteristics so we must be in an open. */
-			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING);
+			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING, NULL);
 		} else {
 			/* We're associated, and have services and characteristics so we must be in an open */
-			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED);
+			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
 		}
 	} else {
 		/* Not associated and we have services so we don't need to do anything. */
 		[_manager cancelPeripheralConnection:peripheral];
-		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 	}
 }
 
@@ -316,18 +316,25 @@ BOOL              blind_runnig = NO;
 	const char *uuid;
 
 	(void)central;
+	/* We always consider this an error condition and don't really care why. */
 	(void)error;
 
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR);
+	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Failed to connect");
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-	(void)central;
-	(void)error;
+	const char *uuid;
 
-	M_io_ble_device_set_state([[[peripheral identifier] UUIDString] UTF8String], M_IO_STATE_DISCONNECTED);
+	(void)central;
+
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	if (error != nil) {
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Discovery failed");
+		return;
+	}
+	M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTED, NULL);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
@@ -335,14 +342,19 @@ BOOL              blind_runnig = NO;
 	const char *uuid;
 	M_bool      associated;
 
-	(void)error;
-
 	if (peripheral == nil)
 		return;
 
-
 	uuid       = [[[peripheral identifier] UUIDString] UTF8String];
 	associated = M_io_ble_device_is_associated(uuid);
+
+	if (error != nil) {
+		if (!associated) {
+			[_manager cancelPeripheralConnection:peripheral];
+		}
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Service discovery failed");
+		return;
+	}
 
 	for (CBService *service in peripheral.services) {
 		M_io_ble_device_add_serivce(uuid, [[service.UUID UUIDString] UTF8String]);
@@ -353,7 +365,7 @@ BOOL              blind_runnig = NO;
 
 	if (!associated) {
 		[_manager cancelPeripheralConnection:peripheral];
-		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 	}
 }
 
@@ -369,7 +381,7 @@ BOOL              blind_runnig = NO;
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 
 	M_io_ble_device_clear_services(uuid);
-	M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING);
+	M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTING, NULL);
 	[peripheral discoverServices:nil];
 }
 
@@ -378,13 +390,16 @@ BOOL              blind_runnig = NO;
 	const char *uuid;
 	const char *service_uuid;
 
-	(void)error;
-
 	if (peripheral == nil || service == nil)
 		return;
 
 	uuid         = [[[peripheral identifier] UUIDString] UTF8String];
 	service_uuid = [[service.UUID UUIDString] UTF8String];
+
+	if (error != nil) {
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Characteristic discovery failed");
+		return;
+	}
 
 	for (CBCharacteristic *c in service.characteristics) {
 		M_io_ble_device_add_characteristic(uuid, service_uuid, [[c.UUID UUIDString] UTF8String], (__bridge_retained CFTypeRef)c);
@@ -393,7 +408,7 @@ BOOL              blind_runnig = NO;
 	/* We have the characteristics so the device is ready for use.
 	 * These are only pulled when a device is being opened and associated
 	 * so we've connected. */
-	M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED);
+	M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
 }
 
 @end

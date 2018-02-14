@@ -468,7 +468,7 @@ void M_io_ble_device_scan_finished(void)
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_set_state(const char *uuid, M_io_state_t state)
+void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
@@ -526,7 +526,10 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state)
 		case M_IO_STATE_ERROR:
 			if (dev->handle != NULL) {
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-				M_snprintf(dev->handle->error, sizeof(dev->handle->error), "Error");
+				if (M_str_isempty(error)) {
+					error = "Generic error";
+				}
+				M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 				M_io_layer_release(layer);
 			}

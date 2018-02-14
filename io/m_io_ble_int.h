@@ -42,16 +42,16 @@ struct M_io_ble_enum {
 };
 
 typedef struct {
-	char           service_uuid[256];
-	char           characteristic_uuid[256];
-	unsigned char *data;
+	char     service_uuid[256];
+	char     characteristic_uuid[256];
+	M_buf_t *data;
 } M_io_ble_data_t;
 
 struct M_io_handle {
 	M_io_t          *io;          /*!< io object handle is associated with. */
 	char             uuid[256];   /*!< UUID of device in use. */
-	M_list_t        *read_queue;  /*!< M_io_ble_data_t */
-	M_list_t        *write_queue; /*!< M_io_ble_data_t */
+	M_io_ble_data_t  read_data;
+	M_io_ble_data_t  write_data;
 	M_event_timer_t *timer;       /*!< Timer to handle connection timeouts */
 	M_uint64         timeout_ms;  /*!< Timeout for connecting. */
 	char             error[256];  /*!< Error message. */
@@ -73,7 +73,6 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, cons
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
-void M_io_ble_data_destory(M_io_ble_data_t *data);
 M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);
 
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms);
