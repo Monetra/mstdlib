@@ -383,7 +383,6 @@ BOOL              blind_runnig = NO;
 		M_str_cpy(msg, sizeof(msg), "Failed to connect");
 	}
 
-
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 }
