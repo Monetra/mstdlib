@@ -40,7 +40,7 @@ __BEGIN_DECLS
  * - iOS
  * - macOS
  *
- * Note: iOS also supports an Apple proprietary system known as Made for iPhone/iPod/iPad (MFi).
+ * \note iOS also supports an Apple proprietary system known as Made for iPhone/iPod/iPad (MFi).
  * MFi uses ble but is handled differently. It's supposed though the m_io_mfi layer.
  * MFi is also known as the External Accessory / EAAccessory protocol.
  *
