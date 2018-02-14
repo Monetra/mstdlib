@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,6 +29,30 @@
 M_io_ble_enum_t *M_io_ble_enum(void)
 {
 	return NULL;
+}
+
+M_list_str_t *M_io_ble_get_device_services(const char *uuid)
+{
+	(void)uuid;
+	return NULL;
+}
+
+M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid)
+{
+	(void)uuid;
+	(void)service_uuid;
+	return NULL;
+}
+
+void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response)
+{
+	(void)uuid;
+	if (with_response != NULL) {
+		*with_response = 0;
+	}
+	if (without_response != NULL) {
+		*without_response = 0;
+	}
 }
 
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms)
