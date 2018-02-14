@@ -21,6 +21,40 @@
  * THE SOFTWARE.
  */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * When a peripheral first connects we know very little about it. Before any reads
+ * or write can happen we need to get a list of services and each service's
+ * characteristics. This is an asyc process which follows this pattern.
+ *
+ * 1. Start a scan
+ * 2. didDiscoverPeripheral is triggered with a peripheral object.
+ * 3. Connect to peripheral.
+ * 4. didConnectPeripheral is triggered.
+ * 5. request services.
+ * 6. didDiscoverServices is triggered and provides a list of services.
+ * 7. For each service reported request its characteristics.
+ * 8. didDiscoverCharacteristicsForService is triggered.
+ *
+ * The peripheral, and characteristic objects are all cached externally.
+ * Characteristics are lazy loaded and only pulled on a connect. A scan
+ * running as part of a basic enumeration will not request characteristics.
+ * As such, we can end up in a few different situations when opening a device
+ * for use.
+ *
+ * 1. We've scanned and have a peripheral and list of services cached.
+ *    a. Request characteristics.
+ *    b. Issue connected event.
+ * 2. We haven't scanned and need to find a given device.
+ *    a. Start scan
+ *    b. Request services
+ *    c. Request characteristics for each service.
+ *    d. Issue connected event.
+ *
+ * In both situations the connected event is triggered after characteristics
+ * for all services have been read.
+ *
+ */
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "m_config.h"
@@ -296,29 +330,34 @@ BOOL              blind_runnig = NO;
 
 	(void)central;
 
-	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-
 	peripheral.delegate = self;
+	uuid                = [[[peripheral identifier] UUIDString] UTF8String];
 
-	if (M_io_ble_device_is_associated(uuid)) {
-		if (M_io_ble_device_need_read_services(uuid)) {
-			[peripheral discoverServices:nil];
-		} else {
+	if (M_io_ble_device_need_read_services(uuid)) {
+		/* If we need services we need to request them regardless if there
+		 * is a device associated. */
+		[peripheral discoverServices:nil];
+	} else { /* We have services */
+		if (M_io_ble_device_is_associated(uuid)) {
+			/* Check if we already have characteristics for all of the services.
+			 * If we're missing any we need to request it. */
 			for (CBService *service in peripheral.services) {
 				service_uuid = [[service.UUID UUIDString] UTF8String];
 				if (M_io_ble_device_need_read_characteristics(uuid, service_uuid)) {
 					[peripheral discoverCharacteristics:nil forService:service];
 					read_characteristics = M_TRUE;
+					break;
 				}
 			}
+			if (!read_characteristics) {
+				/* We have all the characteristics so we're good to use the device. */
+				M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
+			}
+		} else {
+			/* Not associated and we have services so we don't need to do anything. */
+			[_manager cancelPeripheralConnection:peripheral];
+			M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 		}
-		M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
-	} else if (M_io_ble_device_need_read_services(uuid)) {
-		[peripheral discoverServices:nil];
-	} else {
-		/* Not associated and we have services so we don't need to do anything. */
-		[_manager cancelPeripheralConnection:peripheral];
-		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 	}
 }
 
@@ -367,11 +406,16 @@ BOOL              blind_runnig = NO;
 	for (CBService *service in peripheral.services) {
 		M_io_ble_device_add_serivce(uuid, [[service.UUID UUIDString] UTF8String]);
 		if (associated) {
+			/* Something is waiting to use this peripheral so we need
+			 * to request the characteristics for all services. */
 			[peripheral discoverCharacteristics:nil forService:service];
 		}
 	}
 
 	if (!associated) {
+		/* Nothing is waiting to use the peripheral so we must have been opened
+		 * by a enumerating scan. We don't need the device anymore because we
+		 * have everything we need. */
 		[_manager cancelPeripheralConnection:peripheral];
 		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
 	}
@@ -411,6 +455,13 @@ BOOL              blind_runnig = NO;
 	for (CBCharacteristic *c in service.characteristics) {
 		M_io_ble_device_add_characteristic(uuid, service_uuid, [[c.UUID UUIDString] UTF8String], (__bridge_retained CFTypeRef)c);
 	}
+
+	/* The scanner is running on a single thread (the main one) so
+	 * this event will never be processed in parallel and cause two
+	 * connected states to be set. Discovering characteristics only
+	 * happens once so we also don't need to worry about that either. */
+	if (M_io_ble_device_have_all_characteristics(uuid))
+		M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error

@@ -369,7 +369,6 @@ void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uu
 	dev->last_seen = M_time();
 
 	M_thread_mutex_unlock(lock);
-
 }
 
 void M_io_ble_device_clear_services(const char *uuid)
@@ -433,6 +432,40 @@ M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *s
 	} else if (M_hash_strvp_num_keys(characteristics) == 0) {
 		ret = M_TRUE;
 	}
+
+	M_thread_mutex_unlock(lock);
+
+	return ret;
+}
+
+M_bool M_io_ble_device_have_all_characteristics(const char *uuid)
+{
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_t      *service;
+	M_hash_strvp_enum_t *he;
+	M_bool               ret = M_TRUE;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_FALSE;
+	}
+
+	if (M_hash_strvp_enumerate(dev->services, &he) == 0) {
+		/* No services means no characteristics. */
+		M_hash_strvp_enumerate_free(he);
+		M_thread_mutex_unlock(lock);
+		return M_FALSE;
+	}
+	while (M_hash_strvp_enumerate_next(dev->services, he, NULL, (void **)&service)) {
+		/* No characteristics for a service means we don't have all of them. */
+		if (M_hash_strvp_num_keys(service) == 0) {
+			ret = M_FALSE;
+			break;
+		}
+	}
+	M_hash_strvp_enumerate_free(he);
 
 	M_thread_mutex_unlock(lock);
 

@@ -58,7 +58,6 @@ struct M_io_handle {
 	M_io_t          *io;          /*!< io object handle is associated with. */
 	char             uuid[256];   /*!< UUID of device in use. */
 	M_io_ble_data_t  read_data;
-	M_io_ble_data_t  write_data;
 	M_event_timer_t *timer;       /*!< Timer to handle connection timeouts */
 	M_uint64         timeout_ms;  /*!< Timeout for connecting. */
 	char             error[256];  /*!< Error message. */
