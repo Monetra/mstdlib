@@ -32,7 +32,7 @@
 typedef struct {
 	CFTypeRef       peripheral; /* CBPeripheral */
 	char           *name;
-	char           *mac;
+	char           *uuid;
 	/* key = service uuid
  	 * val = hash_strvp
 	 *     key = uuid
@@ -50,14 +50,14 @@ typedef struct {
 
 void M_io_ble_cbc_event_reset(void);
 void M_io_ble_cache_device(CFTypeRef peripheral);
-void M_io_ble_device_add_serivce(const char *mac, const char *uuid);
-void M_io_ble_device_add_characteristic(const char *mac, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc);
-void M_io_ble_device_clear_services(const char *mac);
+void M_io_ble_device_add_serivce(const char *uuid, const char *serivice_uuid);
+void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc);
+void M_io_ble_device_clear_services(const char *uuid);
 
-M_bool M_io_ble_device_need_read_services(const char *mac);
-M_bool M_io_ble_device_need_read_characteristics(const char *mac, const char *service_uuid);
+M_bool M_io_ble_device_need_read_services(const char *uuid);
+M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_device_scan_finished(void);
-void M_io_ble_device_set_state(const char *mac, M_io_state_t state);
-M_bool M_io_ble_device_is_associated(const char *mac);
+void M_io_ble_device_set_state(const char *uuid, M_io_state_t state);
+M_bool M_io_ble_device_is_associated(const char *uuid);
 
 #endif /* __M_IO_BLE_MAC_H__ */

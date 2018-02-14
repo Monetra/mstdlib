@@ -32,7 +32,7 @@ static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void
 	for (i=0; i<len; i++) {
 		M_printf("Device:\n");
 		M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
-		M_printf("\tMac: %s\n", M_io_ble_enum_mac(btenum, i));
+		M_printf("\tUUID: %s\n", M_io_ble_enum_uuid(btenum, i));
 		M_printf("\tConnected: %s\n", M_io_ble_enum_connected(btenum, i)?"Yes":"No");
 		M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
 		M_printf("\tSerivce: %s\n", M_io_ble_enum_service_uuid(btenum, i));

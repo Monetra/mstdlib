@@ -28,7 +28,7 @@
 #include "m_io_ble_int.h"
 #include "m_io_ble_mac.h"
 
-M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms)
+M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
 	M_io_handle_t *handle = NULL;
 	struct M_list_callbacks lcbs = {
@@ -40,13 +40,13 @@ M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 time
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
-	if (M_str_isempty(mac)) {
+	if (M_str_isempty(uuid)) {
 		*ioerr = M_IO_ERROR_INVALID;
 		return NULL;
 	}
 
 	handle              = M_malloc_zero(sizeof(*handle));
-	M_str_cpy(handle->mac, sizeof(handle->mac), mac);
+	M_str_cpy(handle->uuid, sizeof(handle->uuid), uuid);
 	handle->read_queue  = M_list_create(&lcbs, M_LIST_NONE);
 	handle->write_queue = M_list_create(&lcbs, M_LIST_NONE);
 	handle->timeout_ms  = M_io_ble_validate_timeout(timeout_ms);

@@ -83,8 +83,8 @@ const M_int64 LAST_SEEN_EXPIRE = 15*60;
 
 static M_io_ble_mac_scanner *scanner     = nil;
 static CBCentralManager     *cbc_manager = nil;
-static M_hash_strvp_t       *ble_devices = NULL; /* key = mac, val = M_io_ble_device_t. */
-static M_hash_strvp_t       *ble_waiting = NULL; /* key = mac, val = M_io_handle_t. */
+static M_hash_strvp_t       *ble_devices = NULL; /* key = UUID (device), val = M_io_ble_device_t. */
+static M_hash_strvp_t       *ble_waiting = NULL; /* key = UUID (device), val = M_io_handle_t. */
 static M_thread_mutex_t     *lock        = NULL;
 static M_thread_cond_t      *cond        = NULL;
 
@@ -130,17 +130,17 @@ static void M_io_ble_characteristics_destroy(CFTypeRef c)
 	cbc = nil;
 }
 
-static M_io_ble_device_t *M_io_ble_device_create(CFTypeRef peripheral, const char *name, const char *mac)
+static M_io_ble_device_t *M_io_ble_device_create(CFTypeRef peripheral, const char *name, const char *uuid)
 {
 	M_io_ble_device_t *dev;
 
-	if (peripheral == nil || M_str_isempty(mac))
+	if (peripheral == nil || M_str_isempty(uuid))
 		return NULL;
 
 	dev             = M_malloc_zero(sizeof(*dev));
 	dev->peripheral = peripheral;
 	dev->name       = M_strdup(name);
-	dev->mac        = M_strdup(mac);
+	dev->uuid       = M_strdup(uuid);
 	dev->services   = M_hash_strvp_create(8, 75, M_HASH_STRVP_KEYS_ORDERED|M_HASH_STRVP_KEYS_SORTASC, (void (*)(void *))M_io_ble_services_destroy);
 	dev->last_seen  = M_time();
 
@@ -155,7 +155,7 @@ static void M_io_ble_device_destroy(M_io_ble_device_t *dev)
 		return;
 
 	M_free(dev->name);
-	M_free(dev->mac);
+	M_free(dev->uuid);
 	M_hash_strvp_destroy(dev->services, M_TRUE);
 
 	/* Decrement the reference count and set to nil so ARC can
@@ -290,19 +290,19 @@ void M_io_ble_cache_device(CFTypeRef peripheral)
 {
 	CBPeripheral      *p;
 	M_io_ble_device_t *dev;
-	const char        *mac;
+	const char        *uuid;
 
 	M_thread_mutex_lock(lock);
 
-	p   = (__bridge CBPeripheral *)peripheral;
-	mac = [[[p identifier] UUIDString] UTF8String];
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
-		dev = M_io_ble_device_create(peripheral, [p.name UTF8String], mac);
+	p    = (__bridge CBPeripheral *)peripheral;
+	uuid = [[[p identifier] UUIDString] UTF8String];
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		dev = M_io_ble_device_create(peripheral, [p.name UTF8String], uuid);
 		if (dev == NULL) {
 			M_thread_mutex_unlock(lock);
 			return;
 		}
-		M_hash_strvp_insert(ble_devices, mac, dev);
+		M_hash_strvp_insert(ble_devices, uuid, dev);
 	} else {
 		if (peripheral != dev->peripheral) {
 			/* Let ARC know we don't need this anymore.
@@ -318,40 +318,40 @@ void M_io_ble_cache_device(CFTypeRef peripheral)
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_add_serivce(const char *mac, const char *uuid)
+void M_io_ble_device_add_serivce(const char *uuid, const char *service_uuid)
 {
 	M_io_ble_device_t *dev;
 	M_hash_strvp_t    *characteristics;
 
-	if (M_str_isempty(mac) || M_str_isempty(uuid))
+	if (M_str_isempty(uuid) || M_str_isempty(service_uuid))
 		return;
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}
 
 	characteristics = M_hash_strvp_create(8, 75, M_HASH_STRVP_KEYS_ORDERED|M_HASH_STRVP_KEYS_SORTASC, (void (*)(void *))M_io_ble_characteristics_destroy);
-	M_hash_strvp_insert(dev->services, uuid, characteristics);
+	M_hash_strvp_insert(dev->services, service_uuid, characteristics);
 
 	dev->last_seen = M_time();
 
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_add_characteristic(const char *mac, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc)
+void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc)
 {
 	M_io_ble_device_t *dev;
 	M_hash_strvp_t    *characteristics;
 
-	if (M_str_isempty(mac))
+	if (M_str_isempty(uuid))
 		return;
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev) || dev->services == NULL) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev) || dev->services == NULL) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}
@@ -368,16 +368,16 @@ void M_io_ble_device_add_characteristic(const char *mac, const char *service_uui
 
 }
 
-void M_io_ble_device_clear_services(const char *mac)
+void M_io_ble_device_clear_services(const char *uuid)
 {
 	M_io_ble_device_t *dev;
 
-	if (M_str_isempty(mac))
+	if (M_str_isempty(uuid))
 		return;
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}
@@ -388,14 +388,14 @@ void M_io_ble_device_clear_services(const char *mac)
 	M_thread_mutex_unlock(lock);
 }
 
-M_bool M_io_ble_device_need_read_services(const char *mac)
+M_bool M_io_ble_device_need_read_services(const char *uuid)
 {
 	M_io_ble_device_t *dev;
 	M_bool             ret = M_FALSE;
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return M_TRUE;
 	}
@@ -408,7 +408,7 @@ M_bool M_io_ble_device_need_read_services(const char *mac)
 	return ret;
 }
 
-M_bool M_io_ble_device_need_read_characteristics(const char *mac, const char *service_uuid)
+M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *service_uuid)
 {
 	M_io_ble_device_t *dev;
 	M_hash_strvp_t    *characteristics;
@@ -416,7 +416,7 @@ M_bool M_io_ble_device_need_read_characteristics(const char *mac, const char *se
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return M_TRUE;
 	}
@@ -439,8 +439,8 @@ void M_io_ble_device_scan_finished(void)
 {
 	M_io_ble_device_t   *dev;
 	M_hash_strvp_enum_t *he;
-	const char          *mac;
-	M_list_str_t        *macs;
+	const char          *uuid;
+	M_list_str_t        *uuids;
 	M_time_t             expire;
 	size_t               len;
 	size_t               i;
@@ -449,26 +449,26 @@ void M_io_ble_device_scan_finished(void)
 
 	/* Clear out all old devices that may not
 	 * be around anymore. */
-	macs   = M_list_str_create(M_LIST_STR_NONE);
+	uuids = M_list_str_create(M_LIST_STR_NONE);
 	expire = M_time()-LAST_SEEN_EXPIRE;
 	M_hash_strvp_enumerate(ble_devices, &he);
-	while (M_hash_strvp_enumerate_next(ble_devices, he, &mac, (void **)&dev)) {
+	while (M_hash_strvp_enumerate_next(ble_devices, he, &uuid, (void **)&dev)) {
 		if (dev->handle == NULL && dev->last_seen < expire) {
-			M_list_str_insert(macs, mac);
+			M_list_str_insert(uuids, uuid);
 		}
 	}
 	M_hash_strvp_enumerate_free(he);
 
-	len = M_list_str_len(macs);
+	len = M_list_str_len(uuids);
 	for (i=0; i<len; i++) {
-		M_hash_strvp_remove(ble_devices, M_list_str_at(macs, i), M_TRUE);
+		M_hash_strvp_remove(ble_devices, M_list_str_at(uuids, i), M_TRUE);
 	}
-	M_list_str_destroy(macs);
+	M_list_str_destroy(uuids);
 
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
+void M_io_ble_device_set_state(const char *uuid, M_io_state_t state)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
@@ -476,7 +476,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}
@@ -490,8 +490,8 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 		case M_IO_STATE_CONNECTED:
 			/* If we found a device then we want to associate it. */
 			if (dev->handle == NULL) {
-				dev->handle = M_hash_strvp_get_direct(ble_waiting, mac);
-				M_hash_strvp_remove(ble_waiting, mac, M_FALSE);
+				dev->handle = M_hash_strvp_get_direct(ble_waiting, uuid);
+				M_hash_strvp_remove(ble_waiting, uuid, M_FALSE);
 			}
 			if (dev->handle != NULL) {
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
@@ -532,7 +532,7 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 			}
 
 			/* Error events we remove the device from the cache. Assume it can't be used anymore. */
-			M_hash_strvp_remove(ble_devices, mac, M_TRUE);
+			M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
 			dev = NULL;
 
 			/* A connection failure will trigger this event. A read/write error will also trigger this event.
@@ -552,17 +552,17 @@ void M_io_ble_device_set_state(const char *mac, M_io_state_t state)
 	M_thread_mutex_unlock(lock);
 }
 
-M_bool M_io_ble_device_is_associated(const char *mac)
+M_bool M_io_ble_device_is_associated(const char *uuid)
 {
 	M_io_ble_device_t *dev;
 	M_bool             ret = M_FALSE;
 
 	M_thread_mutex_lock(lock);
 
-	if (M_hash_strvp_get(ble_devices, mac, (void **)&dev) && dev->handle != NULL)
+	if (M_hash_strvp_get(ble_devices, uuid, (void **)&dev) && dev->handle != NULL)
 		ret = M_TRUE;
 
-	if (!ret && M_hash_strvp_get(ble_waiting, mac, NULL))
+	if (!ret && M_hash_strvp_get(ble_waiting, uuid, NULL))
 		ret = M_TRUE;
 
 	M_thread_mutex_unlock(lock);
@@ -606,7 +606,7 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
 		M_hash_strvp_enumerate(dev->services, &hes);
 		while (M_hash_strvp_enumerate_next(dev->services, hes, &const_temp, NULL)) {
-			M_io_ble_enum_add(btenum, dev->name, dev->mac, const_temp, dev->last_seen, dev->state==M_IO_STATE_CONNECTED?M_TRUE:M_FALSE);
+			M_io_ble_enum_add(btenum, dev->name, dev->uuid, const_temp, dev->last_seen, dev->state==M_IO_STATE_CONNECTED?M_TRUE:M_FALSE);
 		}
 		M_hash_strvp_enumerate_free(hes);
 	}
@@ -636,7 +636,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 
 	M_thread_mutex_lock(lock);
 
-	if (M_hash_strvp_get(ble_devices, handle->mac, (void **)&dev)) {
+	if (M_hash_strvp_get(ble_devices, handle->uuid, (void **)&dev)) {
 		if (dev->handle != NULL) {
 			in_use = M_TRUE;
 		} else {
@@ -654,7 +654,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 			M_io_layer_release(layer);
 		}
 	} else {
-		M_hash_strvp_insert(ble_waiting, handle->mac, handle);
+		M_hash_strvp_insert(ble_waiting, handle->uuid, handle);
 		start_blind_scan();
 	}
 
@@ -675,8 +675,8 @@ void M_io_ble_close(M_io_handle_t *handle)
 
 	M_thread_mutex_lock(lock);
 
-	M_hash_strvp_remove(ble_waiting, handle->mac, M_FALSE);
-	if (M_hash_strvp_get(ble_devices, handle->mac, (void **)&dev)) {
+	M_hash_strvp_remove(ble_waiting, handle->uuid, M_FALSE);
+	if (M_hash_strvp_get(ble_devices, handle->uuid, (void **)&dev)) {
 		dev->handle = NULL;
 		p = (__bridge CBPeripheral *)dev->peripheral;
 		dispatch_async(dispatch_get_main_queue(), ^{
@@ -690,7 +690,7 @@ void M_io_ble_close(M_io_handle_t *handle)
 	M_thread_mutex_unlock(lock);
 }
 
-M_list_str_t *M_io_ble_get_device_services(const char *mac)
+M_list_str_t *M_io_ble_get_device_services(const char *uuid)
 {
 	const char          *const_temp;
 	M_io_ble_device_t   *dev;
@@ -699,7 +699,7 @@ M_list_str_t *M_io_ble_get_device_services(const char *mac)
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return NULL;
 	}
@@ -716,7 +716,7 @@ M_list_str_t *M_io_ble_get_device_services(const char *mac)
 	return l;
 }
 
-M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const char *service_uuid)
+M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid)
 {
 	const char          *const_temp;
 	M_io_ble_device_t   *dev;
@@ -726,7 +726,7 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return NULL;
 	}
@@ -748,7 +748,7 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *mac, const
 	return l;
 }
 
-void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response, size_t *without_response)
+void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response)
 {
 	CBPeripheral      *p;
 	M_io_ble_device_t *dev;
@@ -757,7 +757,7 @@ void M_io_ble_get_device_max_write_sizes(const char *mac, size_t *with_response,
 
 	M_thread_mutex_lock(lock);
 
-	if (!M_hash_strvp_get(ble_devices, mac, (void **)&dev)) {
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}

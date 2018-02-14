@@ -94,7 +94,7 @@ __BEGIN_DECLS
  *         for (i=0; i<len; i++) {
  *             M_printf("Device:\n");
  *             M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
- *             M_printf("\tMac: %s\n", M_io_ble_enum_mac(btenum, i));
+ *             M_printf("\tMac: %s\n", M_io_ble_enum_uuid(btenum, i));
  *             M_printf("\tConnected: %s\n", M_io_ble_enum_connected(btenum, i)?"Yes":"No");
  *             M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
  *             M_printf("\tSerivce: %s\n", M_io_ble_enum_service_uuid(btenum, i));
@@ -217,14 +217,14 @@ M_API size_t M_io_ble_enum_count(const M_io_ble_enum_t *btenum);
 M_API const char *M_io_ble_enum_name(const M_io_ble_enum_t *btenum, size_t idx);
 
 
-/*! MAC of ble device.
+/*! UUID of ble device.
  *
  * \param[in] btenum Bluetooth enumeration object.
  * \param[in] idx    Index in ble enumeration.
  *
  * \return String.
  */
-M_API const char *M_io_ble_enum_mac(const M_io_ble_enum_t *btenum, size_t idx);
+M_API const char *M_io_ble_enum_uuid(const M_io_ble_enum_t *btenum, size_t idx);
 
 
 /*! Whether the device is connected.
@@ -269,14 +269,14 @@ M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx
 /*! Create a ble connection.
  *
  * \param[out] io_out     io object for communication.
- * \param[in]  mac        Required MAC of the device.
+ * \param[in]  uuid       Required uuid of the device.
  * \param[in]  timeout_ms If the device has not already been seen a scan will
  *                        be performed. This time out is how long we should
  *                        wait to search for the device.
  *
  * \return Result.
  */
-M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms);
+M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms);
 
 
 /*! Get a list of service UUIDs provided by the device.

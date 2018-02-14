@@ -34,8 +34,8 @@ static void M_io_ble_enum_free_device(void *arg)
 {
 	M_io_ble_enum_device_t *device = arg;
 	M_free(device->name);
-	M_free(device->mac);
 	M_free(device->uuid);
+	M_free(device->service_uuid);
 	M_free(device);
 }
 
@@ -110,19 +110,19 @@ size_t M_io_ble_enum_count(const M_io_ble_enum_t *btenum)
 	return M_list_len(btenum->devices);
 }
 
-void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *mac, const char *uuid, M_time_t last_seen, M_bool connected)
+void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *uuid, const char *service_uuid, M_time_t last_seen, M_bool connected)
 {
 	M_io_ble_enum_device_t *device;
 
-	if (btenum == NULL || M_str_isempty(mac) || M_str_isempty(uuid))
+	if (btenum == NULL || M_str_isempty(uuid) || M_str_isempty(service_uuid))
 		return;
 
-	device            = M_malloc_zero(sizeof(*device));
-	device->name      = M_strdup(name);
-	device->mac       = M_strdup(mac);
-	device->uuid      = M_strdup(uuid);
-	device->last_seen = last_seen;
-	device->connected = connected;
+	device               = M_malloc_zero(sizeof(*device));
+	device->name         = M_strdup(name);
+	device->uuid         = M_strdup(uuid);
+	device->service_uuid = M_strdup(service_uuid);
+	device->last_seen    = last_seen;
+	device->connected    = connected;
 
 	M_list_insert(btenum->devices, device);
 }
@@ -138,7 +138,7 @@ const char *M_io_ble_enum_name(const M_io_ble_enum_t *btenum, size_t idx)
 	return device->name;
 }
 
-const char *M_io_ble_enum_mac(const M_io_ble_enum_t *btenum, size_t idx)
+const char *M_io_ble_enum_uuid(const M_io_ble_enum_t *btenum, size_t idx)
 {
 	const M_io_ble_enum_device_t *device;
 	if (btenum == NULL)
@@ -146,7 +146,7 @@ const char *M_io_ble_enum_mac(const M_io_ble_enum_t *btenum, size_t idx)
 	device = M_list_at(btenum->devices, idx);
 	if (device == NULL)
 		return NULL;
-	return device->mac;
+	return device->uuid;
 }
 
 M_bool M_io_ble_enum_connected(const M_io_ble_enum_t *btenum, size_t idx)
@@ -168,7 +168,7 @@ const char *M_io_ble_enum_service_uuid(const M_io_ble_enum_t *btenum, size_t idx
 	device = M_list_at(btenum->devices, idx);
 	if (device == NULL)
 		return NULL;
-	return device->uuid;
+	return device->service_uuid;
 }
 
 M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx)
@@ -191,7 +191,7 @@ M_list_str_t *M_io_ble_get_services(M_io_t *io)
 	handle = M_io_ble_get_io_handle(io);
 	if (handle == NULL)
 		return NULL;
-	return M_io_ble_get_device_services(handle->mac);
+	return M_io_ble_get_device_services(handle->uuid);
 }
 
 M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *service_uuid)
@@ -201,7 +201,7 @@ M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *servi
 	handle = M_io_ble_get_io_handle(io);
 	if (handle == NULL)
 		return NULL;
-	return M_io_ble_get_device_service_characteristics(handle->mac, service_uuid);
+	return M_io_ble_get_device_service_characteristics(handle->uuid, service_uuid);
 }
 
 void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response)
@@ -226,7 +226,7 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 		*with_response    = handle->max_write_w_response;
 		*without_response = handle->max_write_wo_response;
 	} else {
-		M_io_ble_get_device_max_write_sizes(handle->mac, with_response, without_response);
+		M_io_ble_get_device_max_write_sizes(handle->uuid, with_response, without_response);
 		handle->have_max_write        = M_TRUE;
 		handle->max_write_w_response  = *with_response;
 		handle->max_write_wo_response = *without_response;
@@ -235,16 +235,16 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_io_error_t M_io_ble_create(M_io_t **io_out, const char *mac, M_uint64 timeout_ms)
+M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms)
 {
 	M_io_handle_t    *handle;
 	M_io_callbacks_t *callbacks;
 	M_io_error_t      err;
 
-	if (io_out == NULL || M_str_isempty(mac))
+	if (io_out == NULL || M_str_isempty(uuid))
 		return M_IO_ERROR_INVALID;
 
-	handle = M_io_ble_open(mac, &err, timeout_ms);
+	handle = M_io_ble_open(uuid, &err, timeout_ms);
 	if (handle == NULL)
 		return M_IO_ERROR_INVALID;
 
