@@ -373,13 +373,19 @@ BOOL              blind_runnig = NO;
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
 	const char *uuid;
+	char        msg[256];
 
 	(void)central;
-	/* We always consider this an error condition and don't really care why. */
-	(void)error;
+
+	if (error != nil) {
+		M_snprintf(msg, sizeof(msg), "Failed to connect: %s", [[error localizedDescription] UTF8String]);
+	} else {
+		M_str_cpy(msg, sizeof(msg), "Failed to connect");
+	}
+
 
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Failed to connect");
+	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
@@ -397,6 +403,7 @@ BOOL              blind_runnig = NO;
 {
 	const char *uuid;
 	M_bool      associated;
+	char        msg[256];
 
 	if (peripheral == nil)
 		return;
@@ -408,7 +415,8 @@ BOOL              blind_runnig = NO;
 		if (!associated) {
 			[_manager cancelPeripheralConnection:peripheral];
 		}
-		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Service discovery failed");
+		M_snprintf(msg, sizeof(msg), "Service discovery failed: %s", [[error localizedDescription] UTF8String]);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
 
@@ -449,6 +457,7 @@ BOOL              blind_runnig = NO;
 {
 	const char *uuid;
 	const char *service_uuid;
+	char        msg[256];
 
 	if (peripheral == nil || service == nil)
 		return;
@@ -457,7 +466,8 @@ BOOL              blind_runnig = NO;
 	service_uuid = [[service.UUID UUIDString] UTF8String];
 
 	if (error != nil) {
-		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Characteristic discovery failed");
+		M_snprintf(msg, sizeof(msg), "Characteristic discovery failed: %s", [[error localizedDescription] UTF8String]);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
 
@@ -476,6 +486,7 @@ BOOL              blind_runnig = NO;
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
 	const char *uuid;
+	char        msg[256];
 
 	if (peripheral == nil || characteristic == nil)
 		return;
@@ -483,7 +494,8 @@ BOOL              blind_runnig = NO;
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 
 	if (error != nil) {
-		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, "Write filed");
+		M_snprintf(msg, sizeof(msg), "Write filed: %s", [[error localizedDescription] UTF8String]);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
 	M_io_ble_device_write_complete(uuid);
