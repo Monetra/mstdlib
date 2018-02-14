@@ -391,7 +391,7 @@ static M_bool sqlite_verify_integrity(M_sql_conn_t *conn, char *error, size_t er
 		goto done;
 	}
 
-	if (!M_str_eq_max(csv, "ok\n", 3)) {
+	if (!M_str_eq_max(csv, "ok\r\n", 3)) {
 		M_snprintf(error, error_size, "integrity_check returned inconsistencies, database is corrupt.");
 		err = M_SQL_ERROR_QUERY_FAILURE;
 		M_sql_driver_trace_message(M_FALSE, NULL, conn, err, error);
