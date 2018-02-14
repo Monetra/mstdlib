@@ -344,9 +344,9 @@ void M_io_ble_device_add_serivce(const char *uuid, const char *service_uuid)
 void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc)
 {
 	M_io_ble_device_t *dev;
-	M_hash_strvp_t    *characteristics;
+	M_hash_strvp_t    *service;
 
-	if (M_str_isempty(uuid))
+	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid) || cbc == nil)
 		return;
 
 	M_thread_mutex_lock(lock);
@@ -356,12 +356,12 @@ void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uu
 		return;
 	}
 
-	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&characteristics)) {
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
 		M_thread_mutex_unlock(lock);
 		return;
 	}
 
-	M_hash_strvp_insert(dev->services, characteristic_uuid, cbc);
+	M_hash_strvp_insert(service, characteristic_uuid, cbc);
 	dev->last_seen = M_time();
 
 	M_thread_mutex_unlock(lock);
@@ -495,8 +495,10 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 			}
 			if (dev->handle != NULL) {
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+		dev->handle->state = state;
+				M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
 				M_io_layer_release(layer);
+				dev->handle->can_write = M_TRUE;
 			} else {
 				/* We have a connect event but no io objects are attached.
 				 * Close the device since it won't be used by anything.
@@ -571,6 +573,91 @@ M_bool M_io_ble_device_is_associated(const char *uuid)
 	M_thread_mutex_unlock(lock);
 
 	return ret;
+}
+
+M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len, M_bool blind)
+{
+	NSData            *ndata;
+	M_io_ble_device_t *dev;
+	M_hash_strvp_t    *service;
+	void              *v;
+	CBCharacteristic  *c;
+	CBPeripheral      *p;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTFOUND;
+	}
+
+	/* We need the handle. */
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTCONNECTED;
+	}
+
+	/* Verify if we can write. */
+	if (!dev->handle->can_write) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_WOULDBLOCK;
+	}
+
+	/* Check if the service is valid.  */
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	/* Check if the characteristic is valid and get it. */
+	if (!M_hash_strvp_get(service, characteristic_uuid, &v)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	/* Get the BLE objects we want to operate on. */
+	c     = (__bridge CBCharacteristic *)v;
+	p     = (__bridge CBPeripheral *)dev->peripheral;
+	ndata = [NSData dataWithBytes:data length:data_len];
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		/* Pass the data off for writing. */
+		[scanner writeDataToPeripherial:p characteristic:c data:ndata blind:blind?YES:NO];
+	});
+
+	dev->handle->can_write = blind;
+	dev->last_seen         = M_time();
+	M_thread_mutex_unlock(lock);
+
+	return M_IO_ERROR_SUCCESS;
+}
+
+void M_io_ble_device_write_complete(const char *uuid)
+{
+	M_io_ble_device_t *dev;
+	M_io_layer_t      *layer;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	/* Inform the io object that we can write again. */
+	dev->handle->can_write = M_TRUE;
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+	M_io_layer_release(layer);
+
+	M_thread_mutex_unlock(lock);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

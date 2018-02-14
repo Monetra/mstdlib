@@ -47,5 +47,6 @@
 - (void)scanTimeout:(NSTimer *)timer;
 - (BOOL)connectToDevice:(CBPeripheral *)peripheral;
 - (void)disconnectFromDevice:(CBPeripheral *)peripheral;
+- (BOOL)writeDataToPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic data:(NSData *)data blind:(BOOL)blind;
 
 @end

@@ -80,7 +80,6 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	(void)layer;
 
 	if (*type == M_EVENT_TYPE_CONNECTED || *type == M_EVENT_TYPE_ERROR || *type == M_EVENT_TYPE_DISCONNECTED) {
 		/* Disable timer */
@@ -95,11 +94,33 @@ M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
-	(void)layer;
-	(void)buf;
-	(void)write_len;
-	(void)meta;
-	return M_IO_ERROR_NOTIMPL;
+	const char      *service_uuid;
+	const char      *characteristic_uuid;
+	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
+	M_hash_u64str_t *mdata;
+	M_io_error_t     ret;
+	M_bool           blind;
+
+	if (buf == NULL || write_len == NULL || *write_len == 0 || meta == NULL)
+		return M_IO_ERROR_INVALID;
+
+	if (handle->state != M_IO_STATE_CONNECTED)
+		return M_IO_ERROR_INVALID;
+
+	mdata = M_io_meta_get_layer_data(meta, layer);
+	if (mdata == NULL)
+		return M_IO_ERROR_INVALID;
+	
+	service_uuid        = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_SERVICE_UUID);
+	characteristic_uuid = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
+	blind               = M_str_istrue(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_BLIND_WRITE));
+	if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
+		return M_IO_ERROR_INVALID;
+
+	ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, blind);
+	if (ret == M_IO_ERROR_SUCCESS && blind)
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+	return ret;
 }
 
 M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
@@ -179,6 +200,7 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 		case M_IO_STATE_CONNECTED:
 			/* Trigger connected soft event when registered with event handle */
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+			handle->can_write = M_TRUE;
 
 			/* If there is data in the read buffer, signal there is data to be read as well */
 			if (M_buf_len(handle->read_data.data) != 0) {

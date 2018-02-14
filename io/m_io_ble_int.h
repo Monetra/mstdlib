@@ -29,6 +29,13 @@
 
 #define M_IO_BLE_NAME "BLE"
 
+typedef enum {
+	M_IO_BLE_META_KEY_UNKNOWN = 0,
+	M_IO_BLE_META_KEY_SERVICE_UUID,
+	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID,
+	M_IO_BLE_META_KEY_BLIND_WRITE
+} M_io_ble_meta_keys;
+
 typedef struct {
 	char     *name;
 	char     *uuid;

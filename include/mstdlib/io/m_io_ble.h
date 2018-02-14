@@ -308,6 +308,70 @@ M_API M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char 
  */
 M_API void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response);
 
+
+/*! Get the service associated with a meta object.
+ *
+ * \param[in] io   io object.
+ * \param[in] meta Meta.
+ *
+ * \return UUID
+ */
+M_API const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta);
+
+
+/*! Get the characteristic associated with a meta object.
+ *
+ * \param[in] io   io object.
+ * \param[in] meta Meta.
+ *
+ * \return UUID
+ */
+M_API const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta);
+
+
+/*! Get whether a write should be blind.
+ *
+ * \param[in] io   io object.
+ * \param[in] meta Meta.
+ *
+ * \return Bool.
+ */
+M_API M_bool M_io_ble_meta_get_blind_write(M_io_t *io, M_io_meta_t *meta);
+
+
+/*! Set the service associated with a meta object.
+ *
+ * \param[in] io           io object.
+ * \param[in] meta         Meta.
+ * \param[in] service_uuid UUID of service.
+ */
+M_API void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid);
+
+
+/*! Set the characteristic associated with a meta object.
+ *
+ * \param[in] io                  io object.
+ * \param[in] meta                Meta.
+ * \param[in] characteristic_uuid UUID of characteristic.
+ */
+M_API void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid);
+
+
+/*! Set whether a write should be blind.
+ *
+ * By default responses will not be sent blind.
+ *
+ * A blind response is when the write happens and the device is told
+ * not to notify that the write was successful. This is primarily used
+ * for push based updates where it doesn't necessarily matter if the
+ * data was processed.
+ *
+ * \param[in] io    io object.
+ * \param[in] meta  Meta.
+ * \param[in] blind Whether to send the data as a blind write.
+ */
+M_API void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind);
+
 /*! @} */
 
 __END_DECLS

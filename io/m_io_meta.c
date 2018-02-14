@@ -22,6 +22,7 @@
  */
 
 #include <mstdlib/mstdlib_io.h>
+#include "m_io_meta.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -38,7 +39,7 @@ struct M_io_meta {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_io_meta_data_t *M_io_meta_data_create(const char *layer_name, size_t layer_idx, void *data, M_io_meta_layer_data_destroy_t data_destroy)
+static M_io_meta_data_t *M_io_meta_data_create(const char *layer_name, size_t layer_idx, void *data, M_io_meta_layer_data_destroy_t data_destroy)
 {
 	M_io_meta_data_t *mdata;
 
@@ -51,7 +52,7 @@ M_io_meta_data_t *M_io_meta_data_create(const char *layer_name, size_t layer_idx
 	mdata->data         = data;
 	mdata->data_destroy = data_destroy;
 
-	return mata;
+	return mdata;
 }
 
 static void M_io_meta_data_destroy(void *p)
@@ -90,16 +91,15 @@ void M_io_meta_insert_layer_data(M_io_meta_t *meta, M_io_layer_t *layer, void *d
 
 void *M_io_meta_get_layer_data(M_io_meta_t *meta, M_io_layer_t *layer)
 {
-	void             *data     = NULL;
-	M_io_meta_data_t *mdata;
-	const char       *layer_name;
-	M_io_t           *io;
-	M_io_layer_t     *tlayer;
-	const char       *const_temp;
-	size_t            layer_idx;
-	size_t            i;
-	size_t            len;
-	M_bool            is_first = M_TRUE;
+	void                   *data     = NULL;
+	const M_io_meta_data_t *mdata;
+	const char             *layer_name;
+	M_io_t                 *io;
+	const char             *const_temp;
+	size_t                  layer_idx;
+	size_t                  i;
+	size_t                  len;
+	M_bool                  is_first = M_TRUE;
 
 	if (meta == NULL || layer == NULL)
 		return NULL;
@@ -160,5 +160,6 @@ void M_io_meta_destroy(M_io_meta_t *meta)
 {
 	if (meta == NULL)
 		return;
-	M_
+	M_list_destroy(meta->metas, M_TRUE);
+	M_free(meta);
 }

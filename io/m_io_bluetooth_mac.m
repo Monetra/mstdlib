@@ -204,7 +204,7 @@ M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *b
 
 	(void)meta;
 
-	if (buf == NULL || *write_len == 0)
+	if (buf == NULL || write_len == NULL || *write_len == 0)
 		return M_IO_ERROR_INVALID;
 
 	if (handle->state != M_IO_STATE_CONNECTED)
@@ -225,7 +225,7 @@ M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, siz
 
 	(void)meta;
 
-	if (buf == NULL || *read_len == 0)
+	if (buf == NULL || read_len == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
 	if (handle->state != M_IO_STATE_CONNECTED)

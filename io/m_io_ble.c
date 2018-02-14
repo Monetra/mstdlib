@@ -39,6 +39,38 @@ static void M_io_ble_enum_free_device(void *arg)
 	M_free(device);
 }
 
+static M_hash_dict_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
+{
+	M_hash_dict_t *d;
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle = NULL;
+	size_t         len;
+	size_t         i;
+
+	len = M_io_layer_count(io);
+	for (i=len; i-->0; ) {
+		layer = M_io_layer_acquire(io, i, M_IO_BLE_NAME);
+		if (layer != NULL) {
+			handle = M_io_layer_get_handle(layer);
+			break;
+		}
+	}
+
+	/* Couldn't find our layer. */
+	if (handle == NULL)
+		return NULL;
+
+	io = handle->io;
+	d  = M_io_meta_get_layer_data(meta, layer);
+	if (d == NULL) {
+		d = M_hash_u64str_create(8, 75, M_HASH_U64STR_NONE);
+		M_io_meta_insert_layer_data(meta, layer, d, (void (*)(void *))M_hash_dict_destroy);
+	}
+	M_io_layer_release(layer);
+
+	return d;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
@@ -254,4 +286,72 @@ M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout
 	M_io_callbacks_destroy(callbacks);
 
 	return M_IO_ERROR_SUCCESS;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
+{
+	const M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return NULL;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_SERVICE_UUID);
+}
+
+const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
+{
+	const M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return NULL;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
+}
+
+M_bool M_io_ble_meta_get_blind_write(M_io_t *io, M_io_meta_t *meta)
+{
+	const M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return NULL;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_BLIND_WRITE);
+}
+
+void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid)
+{
+	M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_SERVICE_UUID, service_uuid);
+}
+
+void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
+{
+	M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
+}
+
+void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind)
+{
+	M_hash_dict_t *d;
+
+	if (io == NULL || meta == NULL)
+		return;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_BLIND_WRITE, blind?"true":"false");
 }
