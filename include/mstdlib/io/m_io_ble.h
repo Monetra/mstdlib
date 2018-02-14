@@ -45,11 +45,84 @@ __BEGIN_DECLS
  * MFi is also known as the External Accessory / EAAccessory protocol.
  *
  *
+ * ## Overview
+ *
+ * BLE was designed to keep energy consumption to a minimum and allow for seamless device
+ * access. Unlike Bluetooth classic, devices are not paired to the system. Typical use
+ * is to scan for available devices, inspect their services, and connect to a device that
+ * provides services the application wants to use. A good example is a heart rate monitor.
+ *
+ * A health app doesn't care which heart rate monitor is being used it only cares about 
+ * getting hear rate data. Typically, the user will be presented with a list of suitable 
+ * devices in case multiple devices are detected (for example, multiple people going on
+ * a bike ride together).
+ *
+ * Since there is no pairing the device much be found by scanning for available devices.
+ * This happen in two ways. First M_io_ble_scan will look for and cache devices that can
+ * be seen by the OS. During a scan, stale devices (over 15 minutes old) will be removed.
+ *
+ * All devices that have been found during a scan (excluding ones that have been pruned)
+ * be listed as part of device enumeration. This means devices may no longer be present.
+ * Such as an iPhone being seen during scanning and later the owner of the phone leaving
+ * the room. There are no OS level events to notify that this has happened. At which
+ * point the seen device cache may be stale.
+ *
+ * The other way a scan can be initiated is by trying to connect to a device that has
+ * not been seen. Opening a device requires specifying the UUID of the device and if
+ * not found a scan will be started internally for either the duration of the timeout
+ * or until the device has been found. This can cause a delay between trying to open
+ * a device and receiving CONNECT or ERROR events.
+ *
+ * BLE devices provide services and there can be multiple services. Services provide
+ * characteristics and there can be multiple characteristics per service. Both
+ * services and characteristics can be defined using standardized profiles. See
+ * the Bluetooth GATT specifications.
+ *
+ * Since there are multiple, potentially, read and write end points it is required
+ * to specify the service and characteristic UUIDs. A write event much have them
+ * specified using the M_io_meta_t and associated BLE meta functions. A read will
+ * fill a provided meta object with the service and characteristic the data came from.
+ * This means only the read and write meta functions can be use with BLE. The none-meta
+ * functions will return an error.
+ *
+ * Characteristics can have multiple properties.
+ * - Read
+ * - Notify
+ * - Indicate
+ * - Write
+ * - Write without response
+ *
+ * BLE by default is not a stream based protocol like serial, HID, or Bluetooth classic.
+ * Characteristics with the read property can be requested to read data. This is an async
+ * request. M_io_ble facilitates this by using M_io_write_meta with a property indicator
+ * that specifies data is not being written but a request for read is being sent.
+ *
+ * Characteristics with the notify or indicate property can be subscribed to which will
+ * have them issue read events similar to a stream protocol. Reads will still require a meta
+ * object to specify which service and characteristic the data is from. Manual read requests
+ * may still be necessary. Notify and Indicate events are left to the device to imitate.
+ * The device may have internal rules which limit how often events are triggered. For example
+ * a heart rate monitor could notify every 2 seconds even though it's reading every 100 ms. A
+ * time service might send an event every second or it might send an event every minute.
+ *
+ * Characteristics won't receive read events be default. They need to be subscribed to first.
+ * Subscripts will not service a disconnect or destroy of an io object. Also, not all characteristics
+ * support this property even if it supports read. Conversely some support notify/indicate but
+ * not read.
+ *
+ * Write will write data to the device and the OS will issue an event whether the write as
+ * successful or failed. Mstdlib uses this to determine if there was a write error and will
+ * block subsequent writes (returns WOULDBLOCK) until an outstanding write has completed.
+ *
+ * Write without response is a blind write. No result is requested from the OS. The state
+ * of the write is not known after it is sent.
+ *
+ *
  * ## macOS requirements
  *
  * BLE events are only delivered to the main run loop. This is a design decision by Apple.
  * It is not possible to use an different run loop to receive events like can be done
- * with classic bluetooth or HID. BLE events are none blocking so there shouldn't be
+ * with classic Bluetooth or HID. BLE events are none blocking so there shouldn't be
  * performance impact with the events being delivered. As little work as possible is
  * performed during event processing to limit any impact of this design requirement.
  *
@@ -187,7 +260,7 @@ M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_dat
 
 /*! Create a ble enumeration object.
  *
- * You must call M_io_ble_scan_start to populate the enumeration.
+ * You must call M_io_ble_scan to populate the enumeration.
  * Failing to do so will result in an empty enumeration.
  *
  * Use to determine what ble devices are connected and
