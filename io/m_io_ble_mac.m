@@ -101,7 +101,7 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	M_io_error_t               ret;
 	M_io_ble_write_property_t  prop;
 
-	if (buf == NULL || write_len == NULL || *write_len == 0 || meta == NULL)
+	if (buf == NULL || meta == NULL)
 		return M_IO_ERROR_INVALID;
 
 	if (handle->state != M_IO_STATE_CONNECTED)
@@ -114,6 +114,9 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	service_uuid        = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_SERVICE_UUID);
 	characteristic_uuid = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
 	prop                = M_io_ble_write_property_from_str(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_WRITE_PROP));
+
+	if (prop != M_IO_BLE_WRITE_PROP_REQVAL && (write_len == NULL || *write_len == 0))
+		return M_IO_ERROR_INVALID;
 
 	if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
 		return M_IO_ERROR_INVALID;
