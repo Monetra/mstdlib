@@ -62,6 +62,7 @@ void M_io_ble_device_scan_finished(void);
 void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error);
 M_bool M_io_ble_device_is_associated(const char *uuid);
 M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len, M_bool blind);
+M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid, const char *characteristic_uuid);
 void M_io_ble_device_write_complete(const char *uuid);
 
 #endif /* __M_IO_BLE_MAC_H__ */

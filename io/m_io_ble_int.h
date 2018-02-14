@@ -33,7 +33,7 @@ typedef enum {
 	M_IO_BLE_META_KEY_UNKNOWN = 0,
 	M_IO_BLE_META_KEY_SERVICE_UUID,
 	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID,
-	M_IO_BLE_META_KEY_BLIND_WRITE
+	M_IO_BLE_META_KEY_WRITE_PROP
 } M_io_ble_meta_keys;
 
 typedef struct {
@@ -77,6 +77,8 @@ void M_io_ble_close(M_io_handle_t *handle);
 M_list_str_t *M_io_ble_get_device_services(const char *uuid);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
+const char *M_io_ble_write_property_to_str(M_io_ble_write_property_t prop);
+M_io_ble_write_property_t M_io_ble_write_property_from_str(const char *s);
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);

@@ -256,6 +256,39 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 	}
 }
 
+const char *M_io_ble_write_property_to_str(M_io_ble_write_property_t prop)
+{
+	const char *s = "write";
+
+	switch (prop) {
+		case M_IO_BLE_WRITE_PROP_WRITE:
+			s = "write";
+			break;
+		case M_IO_BLE_WRITE_PROP_WRITENORESP:
+			s = "writenoresp";
+			break;
+		case M_IO_BLE_WRITE_PROP_REQVAL:
+			s = "reqval";
+			break;
+	}
+
+	return s;
+}
+
+M_io_ble_write_property_t M_io_ble_write_property_from_str(const char *s)
+{
+	if (M_str_caseeq(s, "write"))
+		return M_IO_BLE_WRITE_PROP_WRITE;
+
+	if (M_str_caseeq(s, "writenoresp"))
+		return M_IO_BLE_WRITE_PROP_WRITENORESP;
+
+	if (M_str_caseeq(s, "reqval"))
+		return M_IO_BLE_WRITE_PROP_REQVAL;
+
+	return M_IO_BLE_WRITE_PROP_WRITE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms)
@@ -312,15 +345,15 @@ const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
 }
 
-M_bool M_io_ble_meta_get_blind_write(M_io_t *io, M_io_meta_t *meta)
+M_io_ble_write_property_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta)
 {
 	const M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
-		return M_FALSE;
+		return M_IO_BLE_WRITE_PROP_WRITE;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	return M_str_istrue(M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_BLIND_WRITE));
+	return M_io_ble_write_property_from_str(M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_WRITE_PROP));
 }
 
 void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid)
@@ -345,7 +378,7 @@ void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *
 	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
 }
 
-void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind)
+void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_write_property_t prop)
 {
 	M_hash_u64str_t *d;
 
@@ -353,5 +386,5 @@ void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind)
 		return;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_BLIND_WRITE, blind?"true":"false");
+	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_WRITE_PROP, M_io_ble_write_property_to_str(prop));
 }

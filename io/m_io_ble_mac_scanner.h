@@ -48,5 +48,6 @@
 - (BOOL)connectToDevice:(CBPeripheral *)peripheral;
 - (void)disconnectFromDevice:(CBPeripheral *)peripheral;
 - (BOOL)writeDataToPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic data:(NSData *)data blind:(BOOL)blind;
+- (BOOL)requestDataFromPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic;
 
 @end

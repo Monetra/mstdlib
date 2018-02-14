@@ -620,6 +620,9 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	CBCharacteristic  *c;
 	CBPeripheral      *p;
 
+	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid) || data == NULL || data_len == 0)
+		return M_IO_ERROR_INVALID;
+
 	M_thread_mutex_lock(lock);
 
 	/* Get the associated device. */
@@ -635,6 +638,7 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	}
 
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+
 	/* Verify if we can write. */
 	if (!dev->handle->can_write) {
 		M_io_layer_release(layer);
@@ -669,6 +673,63 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	dev->handle->can_write = blind;
 	dev->last_seen         = M_time();
 
+	M_io_layer_release(layer);
+	M_thread_mutex_unlock(lock);
+
+	return M_IO_ERROR_SUCCESS;
+}
+
+M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid, const char *characteristic_uuid)
+{
+	M_io_ble_device_t *dev;
+	M_hash_strvp_t    *service;
+	M_io_layer_t      *layer;
+	void              *v;
+	CBCharacteristic  *c;
+	CBPeripheral      *p;
+
+	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
+		return M_IO_ERROR_INVALID;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTFOUND;
+	}
+
+	/* We need the handle. */
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTCONNECTED;
+	}
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+
+	/* Check if the service is valid.  */
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	/* Check if the characteristic is valid and get it. */
+	if (!M_hash_strvp_get(service, characteristic_uuid, &v)) {
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	c = (__bridge CBCharacteristic *)v;
+	p = (__bridge CBPeripheral *)dev->peripheral;
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		/* Pass the data off for writing. */
+		[scanner requestDataFromPeripherial:p characteristic:c];
+	});
+
+	dev->last_seen = M_time();
 	M_io_layer_release(layer);
 	M_thread_mutex_unlock(lock);
 

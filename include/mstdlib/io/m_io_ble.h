@@ -142,6 +142,17 @@ __BEGIN_DECLS
  * @{
  */
 
+/*! Meta property types used by M_io_write_meta.
+ * 
+ * Specifies how the write should function. */
+typedef enum {
+	M_IO_BLE_WRITE_PROP_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
+	                                      written before writes can take place again. */
+	M_IO_BLE_WRITE_PROP_WRITENORESP, /*!< Write without confirmation response. Blind write. */
+	M_IO_BLE_WRITE_PROP_REQVAL       /*!< Request value for service and characteristic. Not
+	                                      an actual write but a pseudo write to poll for a
+	                                      read event. */
+} M_io_ble_write_property_t;
 
 struct M_io_ble_enum;
 typedef struct M_io_ble_enum M_io_ble_enum_t;
@@ -152,7 +163,7 @@ typedef struct M_io_ble_enum M_io_ble_enum_t;
  * appear in an enumeration.
  *
  * Opening a known device does not require explicitly scanning. Scanning
- * will happen implicity if the device has not been seen before.
+ * will happen implicitly if the device has not been seen before.
  *
  * Call m_io_destroy once finished with the scan io object.
  *
@@ -329,14 +340,14 @@ M_API const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta);
 M_API const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta);
 
 
-/*! Get whether a write should be blind.
+/*! Get the write property.
  *
  * \param[in] io   io object.
  * \param[in] meta Meta.
  *
- * \return Bool.
+ * \return prop.
  */
-M_API M_bool M_io_ble_meta_get_blind_write(M_io_t *io, M_io_meta_t *meta);
+M_API M_io_ble_write_property_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta);
 
 
 /*! Set the service associated with a meta object.
@@ -359,18 +370,14 @@ M_API void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const 
 
 /*! Set whether a write should be blind.
  *
- * By default responses will not be sent blind.
+ * If the property type is not set, the default is to have writes
+ * wait for confirmation response before subsequent writes will be allowed.
  *
- * A blind response is when the write happens and the device is told
- * not to notify that the write was successful. This is primarily used
- * for push based updates where it doesn't necessarily matter if the
- * data was processed.
- *
- * \param[in] io    io object.
- * \param[in] meta  Meta.
- * \param[in] blind Whether to send the data as a blind write.
+ * \param[in] io   io object.
+ * \param[in] meta Meta.
+ * \param[in] prop Property controlling
  */
-M_API void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind);
+M_API void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_write_property_t prop);
 
 /*! @} */
 

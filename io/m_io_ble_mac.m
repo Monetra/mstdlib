@@ -94,12 +94,12 @@ M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
-	const char      *service_uuid;
-	const char      *characteristic_uuid;
-	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
-	M_hash_u64str_t *mdata;
-	M_io_error_t     ret;
-	M_bool           blind;
+	const char                *service_uuid;
+	const char                *characteristic_uuid;
+	M_io_handle_t             *handle = M_io_layer_get_handle(layer);
+	M_hash_u64str_t           *mdata;
+	M_io_error_t               ret;
+	M_io_ble_write_property_t  prop;
 
 	if (buf == NULL || write_len == NULL || *write_len == 0 || meta == NULL)
 		return M_IO_ERROR_INVALID;
@@ -113,13 +113,20 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	
 	service_uuid        = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_SERVICE_UUID);
 	characteristic_uuid = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
-	blind               = M_str_istrue(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_BLIND_WRITE));
+	prop                = M_io_ble_write_property_from_str(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_WRITE_PROP));
+
 	if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
 		return M_IO_ERROR_INVALID;
 
-	ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, blind);
-	if (ret == M_IO_ERROR_SUCCESS && blind)
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+	if (prop == M_IO_BLE_WRITE_PROP_REQVAL) {
+		ret = M_io_ble_device_req_val(handle->uuid, service_uuid, characteristic_uuid);
+	} else {
+		ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, prop==M_IO_BLE_WRITE_PROP_WRITENORESP?M_TRUE:M_FALSE);
+		if (ret == M_IO_ERROR_SUCCESS && prop == M_IO_BLE_WRITE_PROP_WRITENORESP) {
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+		}
+	}
+
 	return ret;
 }
 

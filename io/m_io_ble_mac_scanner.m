@@ -283,6 +283,15 @@ BOOL              blind_runnig = NO;
 	return YES;
 }
 
+- (BOOL)requestDataFromPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic
+{
+	if (peripheral == nil || characteristic == nil)
+		return NO;
+
+	[peripheral readValueForCharacteristic:characteristic];
+	return YES;
+}
+
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
 	switch (central.state) {
