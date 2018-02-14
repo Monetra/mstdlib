@@ -39,13 +39,13 @@ static void M_io_ble_enum_free_device(void *arg)
 	M_free(device);
 }
 
-static M_hash_dict_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
+static M_hash_u64str_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 {
-	M_hash_dict_t *d;
-	M_io_layer_t  *layer;
-	M_io_handle_t *handle = NULL;
-	size_t         len;
-	size_t         i;
+	M_hash_u64str_t *d;
+	M_io_layer_t    *layer;
+	M_io_handle_t   *handle = NULL;
+	size_t           len;
+	size_t           i;
 
 	len = M_io_layer_count(io);
 	for (i=len; i-->0; ) {
@@ -292,7 +292,7 @@ M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout
 
 const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_dict_t *d;
+	const M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
 		return NULL;
@@ -303,7 +303,7 @@ const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
 
 const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_dict_t *d;
+	const M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
 		return NULL;
@@ -314,18 +314,18 @@ const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 
 M_bool M_io_ble_meta_get_blind_write(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_dict_t *d;
+	const M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
-		return NULL;
+		return M_FALSE;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_BLIND_WRITE);
+	return M_str_istrue(M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_BLIND_WRITE));
 }
 
 void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid)
 {
-	M_hash_dict_t *d;
+	M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
@@ -336,7 +336,7 @@ void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *servic
 
 void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
 {
-	M_hash_dict_t *d;
+	M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
@@ -347,7 +347,7 @@ void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *
 
 void M_io_ble_meta_set_blind_write(M_io_t *io, M_io_meta_t *meta, M_bool blind)
 {
-	M_hash_dict_t *d;
+	M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
