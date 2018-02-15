@@ -128,10 +128,10 @@ static void del_scan_trigger(void *p)
 
 @implementation M_io_ble_mac_scanner
 
-CBCentralManager *_manager     = nil;
-M_list_t         *triggers     = NULL; /* List of ScanTrigger objects */
-BOOL              powered_on   = NO;
-BOOL              blind_runnig = NO;
+CBCentralManager *_manager      = nil;
+M_list_t         *triggers      = NULL; /* List of ScanTrigger objects */
+BOOL              powered_on    = NO;
+BOOL              blind_running = NO;
 
 + (id)m_io_ble_mac_scanner
 {
@@ -192,7 +192,7 @@ BOOL              blind_runnig = NO;
 
 - (void)startScanBlind
 {
-	blind_runnig = YES;
+	blind_running = YES;
 
 	if (_manager.isScanning || !powered_on)
 		return;
@@ -202,7 +202,7 @@ BOOL              blind_runnig = NO;
 
 - (void)stopScanBlind
 {
-	blind_runnig = NO;
+	blind_running = NO;
 
 	/* Scan requests might still be outstanding. Don't
 	 * stop scanning if this is the case. This is to
@@ -225,7 +225,7 @@ BOOL              blind_runnig = NO;
 		return;
 
 	M_list_remove_at(triggers, idx);
-	if (M_list_len(triggers) == 0 && !blind_runnig) {
+	if (M_list_len(triggers) == 0 && !blind_running) {
 		[_manager stopScan];
 		M_io_ble_device_scan_finished();
 	}
@@ -278,7 +278,6 @@ BOOL              blind_runnig = NO;
 
 	if (blind)
 		type = CBCharacteristicWriteWithoutResponse;
-
 	[peripheral writeValue:data forCharacteristic:characteristic type:type];
 	return YES;
 }
@@ -297,7 +296,10 @@ BOOL              blind_runnig = NO;
 	switch (central.state) {
 		case CBManagerStatePoweredOn:
 			powered_on = YES;
-			if (!_manager.isScanning) {
+			/* Start a scan if something is waiting to find devices. A scan or M_io_ble_create
+			 * request could have come in before the manager had initalized. Or one could have
+			 * been running when a reset or other event happend and now we can resume scanning. */
+			if (!_manager.isScanning && (M_list_len(triggers) != 0 || blind_running)) {
 				[_manager scanForPeripheralsWithServices:nil options:nil];
 			}
 			break;
@@ -324,7 +326,11 @@ BOOL              blind_runnig = NO;
 	/* We need to cache before passing into a C function for some reason.
 	 * If we pass in the CBPeripheral * then do the bridging later
 	 * it doens't work. */
-	M_io_ble_cache_device((__bridge_retained CFTypeRef)peripheral); 	
+	M_io_ble_cache_device((__bridge_retained CFTypeRef)peripheral);
+
+	/* Ensure the peripheral has the proper delegate set. */
+	if (peripheral.delegate != self)
+		peripheral.delegate = self;
 
 	if (M_io_ble_device_need_read_services([[[peripheral identifier] UUIDString] UTF8String])) {
 		[_manager connectPeripheral:peripheral options:nil];
@@ -339,8 +345,7 @@ BOOL              blind_runnig = NO;
 
 	(void)central;
 
-	peripheral.delegate = self;
-	uuid                = [[[peripheral identifier] UUIDString] UTF8String];
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 
 	if (M_io_ble_device_need_read_services(uuid)) {
 		/* If we need services we need to request them regardless if there
@@ -499,5 +504,12 @@ BOOL              blind_runnig = NO;
 	}
 	M_io_ble_device_write_complete(uuid);
 }
+
+- (void)peripheral:(CBPeripheral *)peripheral didReadRSSI:(NSNumber *)RSSI error:(NSError *)error
+{
+/* XXX: Read event with RSSI info */
+	//NSLog(@"rssi = %@", RSSI);
+}
+
 
 @end

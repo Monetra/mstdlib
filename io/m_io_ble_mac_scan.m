@@ -316,8 +316,8 @@ void M_io_ble_cache_device(CFTypeRef peripheral)
 			p               = nil;
 			dev->peripheral = peripheral;
 		}
-		dev->last_seen = M_time();
 	}
+	dev->last_seen = M_time();
 
 	M_thread_mutex_unlock(lock);
 }
