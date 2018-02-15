@@ -58,6 +58,7 @@ void M_io_ble_device_clear_services(const char *uuid);
 M_bool M_io_ble_device_need_read_services(const char *uuid);
 M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *service_uuid);
 M_bool M_io_ble_device_have_all_characteristics(const char *uuid);
+void M_io_ble_device_update_name(const char *uuid, const char *name);
 void M_io_ble_device_scan_finished(void);
 void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error);
 M_bool M_io_ble_device_is_associated(const char *uuid);

@@ -526,6 +526,19 @@ NSUInteger        blind_cnt  = 0;
 	M_io_ble_device_write_complete(uuid);
 }
 
+- (void)peripheralDidUpdateName:(CBPeripheral *)peripheral
+{
+	const char *uuid;
+	const char *name;
+
+	if (peripheral == nil)
+		return;
+
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	name = [peripheral.name UTF8String];
+	M_io_ble_device_update_name(uuid, name);
+}
+
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
 	const char    *uuid;

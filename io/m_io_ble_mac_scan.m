@@ -472,6 +472,27 @@ M_bool M_io_ble_device_have_all_characteristics(const char *uuid)
 	return ret;
 }
 
+void M_io_ble_device_update_name(const char *uuid, const char *name)
+{
+	M_io_ble_device_t *dev;
+
+	if (M_str_isempty(uuid))
+		return;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	M_free(dev->name);
+	dev->name = M_strdup(name);
+
+	M_thread_mutex_unlock(lock);
+}
+
 void M_io_ble_device_scan_finished(void)
 {
 	M_io_ble_device_t   *dev;
