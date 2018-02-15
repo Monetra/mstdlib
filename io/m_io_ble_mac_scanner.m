@@ -514,6 +514,33 @@ BOOL              blind_running = NO;
 	M_io_ble_device_write_complete(uuid);
 }
 
+- (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
+{
+	const char    *uuid;
+	const char    *service_uuid;
+	const char    *characteristic_uuid;
+	NSData        *data;
+	const uint8_t *rdata;
+	char           msg[256];
+
+	if (peripheral == nil || characteristic == nil)
+		return;
+
+	if (error != nil) {
+		M_snprintf(msg, sizeof(msg), "Read failed: %s", [[error localizedDescription] UTF8String]);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
+		return;
+	}
+
+	uuid                = [[[peripheral identifier] UUIDString] UTF8String];
+	service_uuid        = [[characteristic.service.UUID UUIDString] UTF8String];
+	characteristic_uuid = [[characteristic.UUID UUIDString] UTF8String];
+   	data                = characteristic.value;
+   	rdata               = data.bytes;
+
+	M_io_ble_device_read_data(uuid, service_uuid, characteristic_uuid, rdata, data.length);
+}
+
 - (void)peripheral:(CBPeripheral *)peripheral didReadRSSI:(NSNumber *)RSSI error:(NSError *)error
 {
 	const char *uuid;
@@ -522,14 +549,13 @@ BOOL              blind_running = NO;
 	if (peripheral == nil)
 		return;
 
-	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-
 	if (error != nil) {
 		M_snprintf(msg, sizeof(msg), "RSSI request failed: %s", [[error localizedDescription] UTF8String]);
 		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
 
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 	M_io_ble_device_read_rssi(uuid, [RSSI longLongValue]);
 }
 

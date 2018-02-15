@@ -229,8 +229,11 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		case M_IO_BLE_RTYPE_RSSI:
 			/* Get the RSSI. */
 			M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_RSSI, rdata->d.rssi.val);
+			M_llist_remove_node(node);
 			break;
 	}
+
+	/* node should not be used after this point becase it may have been removed. */
 
 	return M_IO_ERROR_SUCCESS;
 }

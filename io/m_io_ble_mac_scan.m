@@ -801,6 +801,34 @@ void M_io_ble_device_write_complete(const char *uuid)
 	M_thread_mutex_unlock(lock);
 }
 
+void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len)
+{
+	M_io_ble_device_t *dev;
+	M_io_layer_t      *layer;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	/* Inform the io object that we read data. */
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	if (M_io_ble_rdata_queue_add_read(dev->handle->read_queue, service_uuid, characteristic_uuid, data, data_len))
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+	M_io_layer_release(layer);
+
+	M_io_layer_release(layer);
+	M_thread_mutex_unlock(lock);
+}
+
 void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 {
 	M_io_ble_device_t *dev;
@@ -821,8 +849,8 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 
 	/* Inform the io object that we read data. */
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-	M_io_ble_rdata_queue_add_rssi(dev->handle->read_queue, rssi);
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+	if (M_io_ble_rdata_queue_add_rssi(dev->handle->read_queue, rssi))
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 	M_io_layer_release(layer);
 
 	M_io_layer_release(layer);
