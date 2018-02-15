@@ -736,6 +736,45 @@ M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid,
 	return M_IO_ERROR_SUCCESS;
 }
 
+M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
+{
+	M_io_ble_device_t *dev;
+	M_io_layer_t      *layer;
+	CBPeripheral      *p;
+
+	if (M_str_isempty(uuid))
+		return M_IO_ERROR_INVALID;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTFOUND;
+	}
+
+	/* We need the handle. */
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTCONNECTED;
+	}
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+
+	p = (__bridge CBPeripheral *)dev->peripheral;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		/* Pass the data off for writing. */
+		[scanner requestRSSIFromPeripheral:p];
+	});
+
+	dev->last_seen = M_time();
+	M_io_layer_release(layer);
+	M_thread_mutex_unlock(lock);
+
+	return M_IO_ERROR_SUCCESS;
+}
+
+
 void M_io_ble_device_write_complete(const char *uuid)
 {
 	M_io_ble_device_t *dev;

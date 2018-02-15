@@ -49,23 +49,31 @@ struct M_io_ble_enum {
 };
 
 typedef struct {
-	char     service_uuid[256];
-	char     characteristic_uuid[256];
-	M_buf_t *data;
-} M_io_ble_data_t;
+	M_io_ble_rprop_t  prop;
+	union {
+		struct {
+			M_int64   val;
+		} rssi;
+		struct {
+			char      service_uuid[256];
+			char      characteristic_uuid[256];
+			M_buf_t  *data;
+		} read;
+	} d;
+} M_io_ble_rdata_t;
 
 struct M_io_handle {
-	M_io_t          *io;          /*!< io object handle is associated with. */
-	char             uuid[256];   /*!< UUID of device in use. */
-	M_io_ble_data_t  read_data;
-	M_event_timer_t *timer;       /*!< Timer to handle connection timeouts */
-	M_uint64         timeout_ms;  /*!< Timeout for connecting. */
-	char             error[256];  /*!< Error message. */
-	M_io_state_t     state;
-	M_bool           can_write;   /*!< Wether data can be written. Will be false if a write operation is processing. */
-	M_bool           have_max_write;
-	size_t           max_write_w_response;
-	size_t           max_write_wo_response;
+	M_io_t           *io;          /*!< io object handle is associated with. */
+	char              uuid[256];   /*!< UUID of device in use. */
+	M_io_ble_rdata_t  read_data;
+	M_event_timer_t  *timer;       /*!< Timer to handle connection timeouts */
+	M_uint64          timeout_ms;  /*!< Timeout for connecting. */
+	char              error[256];  /*!< Error message. */
+	M_io_state_t      state;
+	M_bool            can_write;   /*!< Wether data can be written. Will be false if a write operation is processing. */
+	M_bool            have_max_write;
+	size_t            max_write_w_response;
+	size_t            max_write_wo_response;
 };
 
 M_io_ble_enum_t *M_io_ble_enum_init(void);
@@ -77,8 +85,8 @@ void M_io_ble_close(M_io_handle_t *handle);
 M_list_str_t *M_io_ble_get_device_services(const char *uuid);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
-const char *M_io_ble_write_property_to_str(M_io_ble_write_property_t prop);
-M_io_ble_write_property_t M_io_ble_write_property_from_str(const char *s);
+const char *M_io_ble_write_property_to_str(M_io_ble_wprop_t prop);
+M_io_ble_wprop_t M_io_ble_write_property_from_str(const char *s);
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);

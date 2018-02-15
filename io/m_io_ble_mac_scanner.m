@@ -291,6 +291,15 @@ BOOL              blind_running = NO;
 	return YES;
 }
 
+- (BOOL)requestRSSIFromPeripheral:(CBPeripheral *)peripheral
+{
+	if (peripheral == nil)
+		return NO;
+
+	[peripheral readRSSI]; 
+	return YES;
+}
+
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
 	switch (central.state) {

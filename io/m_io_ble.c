@@ -256,37 +256,43 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 	}
 }
 
-const char *M_io_ble_write_property_to_str(M_io_ble_write_property_t prop)
+const char *M_io_ble_write_property_to_str(M_io_ble_wprop_t prop)
 {
 	const char *s = "write";
 
 	switch (prop) {
-		case M_IO_BLE_WRITE_PROP_WRITE:
+		case M_IO_BLE_WPROP_WRITE:
 			s = "write";
 			break;
-		case M_IO_BLE_WRITE_PROP_WRITENORESP:
+		case M_IO_BLE_WPROP_WRITENORESP:
 			s = "writenoresp";
 			break;
-		case M_IO_BLE_WRITE_PROP_REQVAL:
+		case M_IO_BLE_WPROP_REQVAL:
 			s = "reqval";
+			break;
+		case M_IO_BLE_WPROP_REQRSSI:
+			s = "reqrssi";
 			break;
 	}
 
 	return s;
 }
 
-M_io_ble_write_property_t M_io_ble_write_property_from_str(const char *s)
+M_io_ble_wprop_t M_io_ble_write_property_from_str(const char *s)
 {
 	if (M_str_caseeq(s, "write"))
-		return M_IO_BLE_WRITE_PROP_WRITE;
+		return M_IO_BLE_WPROP_WRITE;
 
 	if (M_str_caseeq(s, "writenoresp"))
-		return M_IO_BLE_WRITE_PROP_WRITENORESP;
+		return M_IO_BLE_WPROP_WRITENORESP;
 
 	if (M_str_caseeq(s, "reqval"))
-		return M_IO_BLE_WRITE_PROP_REQVAL;
+		return M_IO_BLE_WPROP_REQVAL;
 
-	return M_IO_BLE_WRITE_PROP_WRITE;
+	if (M_str_caseeq(s, "reqrssi"))
+		return M_IO_BLE_WPROP_REQRSSI;
+
+	return M_IO_BLE_WPROP_WRITE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -345,12 +351,12 @@ const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
 }
 
-M_io_ble_write_property_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta)
+M_io_ble_wprop_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta)
 {
 	const M_hash_u64str_t *d;
 
 	if (io == NULL || meta == NULL)
-		return M_IO_BLE_WRITE_PROP_WRITE;
+		return M_IO_BLE_WPROP_WRITE;
 
 	d = M_io_ble_get_meta_data(io, meta);
 	return M_io_ble_write_property_from_str(M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_WRITE_PROP));
@@ -378,7 +384,7 @@ void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *
 	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
 }
 
-void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_write_property_t prop)
+void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_wprop_t prop)
 {
 	M_hash_u64str_t *d;
 

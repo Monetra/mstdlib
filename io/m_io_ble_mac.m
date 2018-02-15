@@ -94,12 +94,12 @@ M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
-	const char                *service_uuid;
-	const char                *characteristic_uuid;
-	M_io_handle_t             *handle = M_io_layer_get_handle(layer);
-	M_hash_u64str_t           *mdata;
-	M_io_error_t               ret;
-	M_io_ble_write_property_t  prop;
+	const char       *service_uuid;
+	const char       *characteristic_uuid;
+	M_io_handle_t    *handle = M_io_layer_get_handle(layer);
+	M_hash_u64str_t  *mdata;
+	M_io_error_t      ret;
+	M_io_ble_wprop_t  prop;
 
 	if (buf == NULL || meta == NULL)
 		return M_IO_ERROR_INVALID;
@@ -111,24 +111,39 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (mdata == NULL)
 		return M_IO_ERROR_INVALID;
 	
+	prop = M_io_ble_write_property_from_str(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_WRITE_PROP));
+	switch (prop) {
+		case M_IO_BLE_WPROP_REQVAL:
+		case M_IO_BLE_WPROP_REQRSSI:
+			break;
+		case M_IO_BLE_WPROP_WRITE:
+		case M_IO_BLE_WPROP_WRITENORESP:
+			if (write_len == NULL || *write_len == 0) {
+				return M_IO_ERROR_INVALID;
+			}
+			break;
+	}
+
 	service_uuid        = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_SERVICE_UUID);
 	characteristic_uuid = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
-	prop                = M_io_ble_write_property_from_str(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_WRITE_PROP));
-
-	if (prop != M_IO_BLE_WRITE_PROP_REQVAL && (write_len == NULL || *write_len == 0))
-		return M_IO_ERROR_INVALID;
-
 	if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
 		return M_IO_ERROR_INVALID;
 
-	if (prop == M_IO_BLE_WRITE_PROP_REQVAL) {
-		ret = M_io_ble_device_req_val(handle->uuid, service_uuid, characteristic_uuid);
-	} else {
-		ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, prop==M_IO_BLE_WRITE_PROP_WRITENORESP?M_TRUE:M_FALSE);
-		if (ret == M_IO_ERROR_SUCCESS && prop == M_IO_BLE_WRITE_PROP_WRITENORESP) {
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
-		}
+	switch (prop) {
+		case M_IO_BLE_WPROP_REQVAL:
+			ret = M_io_ble_device_req_val(handle->uuid, service_uuid, characteristic_uuid);
+			break;
+		case M_IO_BLE_WPROP_REQRSSI:
+			ret = M_io_ble_device_req_rssi(handle->uuid);
+			break;
+		case M_IO_BLE_WPROP_WRITE:
+		case M_IO_BLE_WPROP_WRITENORESP:
+			ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, prop==M_IO_BLE_WPROP_WRITENORESP?M_TRUE:M_FALSE);
+			break;
 	}
+
+	if (ret == M_IO_ERROR_SUCCESS && prop == M_IO_BLE_WPROP_WRITENORESP)
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 
 	return ret;
 }
@@ -213,7 +228,7 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 			handle->can_write = M_TRUE;
 
 			/* If there is data in the read buffer, signal there is data to be read as well */
-			if (M_buf_len(handle->read_data.data) != 0) {
+			if (M_buf_len(handle->read_data.d.read.data) != 0) {
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 			}
 			break;

@@ -219,13 +219,25 @@ __BEGIN_DECLS
  * 
  * Specifies how the write should function. */
 typedef enum {
-	M_IO_BLE_WRITE_PROP_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
-	                                      written before writes can take place again. */
-	M_IO_BLE_WRITE_PROP_WRITENORESP, /*!< Write without confirmation response. Blind write. */
-	M_IO_BLE_WRITE_PROP_REQVAL       /*!< Request value for service and characteristic. Not
-	                                      an actual write but a pseudo write to poll for a
-	                                      read event. */
-} M_io_ble_write_property_t;
+	M_IO_BLE_WPROP_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
+	                                 written before writes can take place again. */
+	M_IO_BLE_WPROP_WRITENORESP, /*!< Write without confirmation response. Blind write. */
+	M_IO_BLE_WPROP_REQVAL,      /*!< Request value for service and characteristic. Not
+	                                 an actual write but a pseudo write to poll for a
+	                                 read event. */
+	M_IO_BLE_WPROP_REQRSSI      /*!< Request RSSI value. */
+} M_io_ble_wprop_t;
+
+
+/*! Meta property types used by M_io_read_meta.
+ *
+ * Specifies what type of read is being returned.
+ */
+typedef enum {
+	M_IO_BLE_RPROP_READ = 0, /*!< Regular read of data from service and characteristic. */
+	M_IO_BLE_RPROP_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
+} M_io_ble_rprop_t;
+
 
 struct M_io_ble_enum;
 typedef struct M_io_ble_enum M_io_ble_enum_t;
@@ -420,7 +432,7 @@ M_API const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
  *
  * \return prop.
  */
-M_API M_io_ble_write_property_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta);
+M_API M_io_ble_wprop_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta);
 
 
 /*! Set the service associated with a meta object.
@@ -450,7 +462,7 @@ M_API void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const 
  * \param[in] meta Meta.
  * \param[in] prop Property controlling
  */
-M_API void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_write_property_t prop);
+M_API void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_wprop_t prop);
 
 /*! @} */
 
