@@ -31,9 +31,11 @@
 
 typedef enum {
 	M_IO_BLE_META_KEY_UNKNOWN = 0,
-	M_IO_BLE_META_KEY_SERVICE_UUID,
-	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID,
-	M_IO_BLE_META_KEY_WRITE_PROP
+	M_IO_BLE_META_KEY_SERVICE_UUID,        /* str */
+	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, /* str */
+	M_IO_BLE_META_KEY_WRITE_TYPE,          /* int (M_io_ble_wtype_t) */
+	M_IO_BLE_META_KEY_READ_TYPE,           /* int (M_io_ble_rtype_t) */
+	M_IO_BLE_META_KEY_RSSI                 /* int */
 } M_io_ble_meta_keys;
 
 typedef struct {
@@ -49,15 +51,15 @@ struct M_io_ble_enum {
 };
 
 typedef struct {
-	M_io_ble_rprop_t  prop;
+	M_io_ble_rtype_t  type;
 	union {
 		struct {
-			M_int64   val;
+			M_int64    val;
 		} rssi;
 		struct {
-			char      service_uuid[256];
-			char      characteristic_uuid[256];
-			M_buf_t  *data;
+			char       service_uuid[256];
+			char       characteristic_uuid[256];
+			M_buf_t   *data;
 		} read;
 	} d;
 } M_io_ble_rdata_t;
@@ -65,7 +67,7 @@ typedef struct {
 struct M_io_handle {
 	M_io_t           *io;          /*!< io object handle is associated with. */
 	char              uuid[256];   /*!< UUID of device in use. */
-	M_io_ble_rdata_t  read_data;
+	M_llist_t        *read_queue;  /*!< List of M_io_ble_rdata_t objects with data that has been read. */
 	M_event_timer_t  *timer;       /*!< Timer to handle connection timeouts */
 	M_uint64          timeout_ms;  /*!< Timeout for connecting. */
 	char              error[256];  /*!< Error message. */
@@ -82,11 +84,13 @@ void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *uu
 void M_io_ble_connect(M_io_handle_t *handle);
 void M_io_ble_close(M_io_handle_t *handle);
 
+void M_io_ble_rdata_destroy(M_io_ble_rdata_t *d);
+void M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
+void M_io_ble_rdata_queue_add_rssi(M_llist_t *queue, M_int64 rssi);
+
 M_list_str_t *M_io_ble_get_device_services(const char *uuid);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
-const char *M_io_ble_write_property_to_str(M_io_ble_wprop_t prop);
-M_io_ble_wprop_t M_io_ble_write_property_from_str(const char *s);
 
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);

@@ -39,13 +39,13 @@ static void M_io_ble_enum_free_device(void *arg)
 	M_free(device);
 }
 
-static M_hash_u64str_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
+static M_hash_multi_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 {
-	M_hash_u64str_t *d;
-	M_io_layer_t    *layer;
-	M_io_handle_t   *handle = NULL;
-	size_t           len;
-	size_t           i;
+	M_hash_multi_t *d;
+	M_io_layer_t   *layer;
+	M_io_handle_t  *handle = NULL;
+	size_t          len;
+	size_t          i;
 
 	len = M_io_layer_count(io);
 	for (i=len; i-->0; ) {
@@ -63,8 +63,8 @@ static M_hash_u64str_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 	io = handle->io;
 	d  = M_io_meta_get_layer_data(meta, layer);
 	if (d == NULL) {
-		d = M_hash_u64str_create(8, 75, M_HASH_U64STR_NONE);
-		M_io_meta_insert_layer_data(meta, layer, d, (void (*)(void *))M_hash_dict_destroy);
+		d = M_hash_multi_create(M_HASH_MULTI_NONE);
+		M_io_meta_insert_layer_data(meta, layer, d, (void (*)(void *))M_hash_multi_destroy);
 	}
 	M_io_layer_release(layer);
 
@@ -256,45 +256,6 @@ void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *wit
 	}
 }
 
-const char *M_io_ble_write_property_to_str(M_io_ble_wprop_t prop)
-{
-	const char *s = "write";
-
-	switch (prop) {
-		case M_IO_BLE_WPROP_WRITE:
-			s = "write";
-			break;
-		case M_IO_BLE_WPROP_WRITENORESP:
-			s = "writenoresp";
-			break;
-		case M_IO_BLE_WPROP_REQVAL:
-			s = "reqval";
-			break;
-		case M_IO_BLE_WPROP_REQRSSI:
-			s = "reqrssi";
-			break;
-	}
-
-	return s;
-}
-
-M_io_ble_wprop_t M_io_ble_write_property_from_str(const char *s)
-{
-	if (M_str_caseeq(s, "write"))
-		return M_IO_BLE_WPROP_WRITE;
-
-	if (M_str_caseeq(s, "writenoresp"))
-		return M_IO_BLE_WPROP_WRITENORESP;
-
-	if (M_str_caseeq(s, "reqval"))
-		return M_IO_BLE_WPROP_REQVAL;
-
-	if (M_str_caseeq(s, "reqrssi"))
-		return M_IO_BLE_WPROP_REQRSSI;
-
-	return M_IO_BLE_WPROP_WRITE;
-}
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms)
@@ -331,66 +292,113 @@ M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout
 
 const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_u64str_t *d;
+	M_hash_multi_t *d;
+	const char     *const_temp = NULL;
 
 	if (io == NULL || meta == NULL)
 		return NULL;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_SERVICE_UUID);
+	if (!M_hash_multi_u64_get_str(d, M_IO_BLE_META_KEY_SERVICE_UUID, &const_temp))
+		return NULL;
+	return const_temp;
 }
 
 const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_u64str_t *d;
+	M_hash_multi_t *d;
+	const char     *const_temp = NULL;
 
 	if (io == NULL || meta == NULL)
 		return NULL;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	return M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
+	if (!M_hash_multi_u64_get_str(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, &const_temp))
+		return NULL;
+	return const_temp;
 }
 
-M_io_ble_wprop_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta)
+M_io_ble_wtype_t M_io_ble_meta_get_write_type(M_io_t *io, M_io_meta_t *meta)
 {
-	const M_hash_u64str_t *d;
+	M_hash_multi_t *d;
+	M_int64         i64v;
 
 	if (io == NULL || meta == NULL)
-		return M_IO_BLE_WPROP_WRITE;
+		return M_IO_BLE_WTYPE_WRITE;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	return M_io_ble_write_property_from_str(M_hash_u64str_get_direct(d, M_IO_BLE_META_KEY_WRITE_PROP));
+	if (!M_hash_multi_u64_get_int(d, M_IO_BLE_META_KEY_WRITE_TYPE, &i64v))
+		return M_IO_BLE_WTYPE_WRITE;
+	return (M_io_ble_wtype_t)i64v;
+}
+
+M_io_ble_rtype_t M_io_ble_meta_get_read_type(M_io_t *io, M_io_meta_t *meta)
+{
+	M_hash_multi_t *d;
+	M_int64         i64v;
+
+	if (io == NULL || meta == NULL)
+		return M_IO_BLE_RTYPE_READ;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	if (!M_hash_multi_u64_get_int(d, M_IO_BLE_META_KEY_READ_TYPE, &i64v))
+		return M_IO_BLE_RTYPE_READ;
+	return (M_io_ble_rtype_t)i64v;
+}
+
+M_bool M_io_ble_meta_get_rssi(M_io_t *io, M_io_meta_t *meta, M_int64 *rssi)
+{
+	M_hash_multi_t *d;
+	M_int64         i64v;
+
+	if (io == NULL || meta == NULL)
+		return M_FALSE;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	if (!M_hash_multi_u64_get_int(d, M_IO_BLE_META_KEY_READ_TYPE, &i64v))
+		return M_FALSE;
+
+	if ((M_io_ble_rtype_t)i64v != M_IO_BLE_RTYPE_RSSI)
+		return M_FALSE;
+
+	if (!M_hash_multi_u64_get_int(d, M_IO_BLE_META_KEY_RSSI, &i64v))
+		return M_FALSE;
+
+	if (rssi != NULL)
+		*rssi = i64v;
+
+	return M_TRUE;
 }
 
 void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid)
 {
-	M_hash_u64str_t *d;
+	M_hash_multi_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_SERVICE_UUID, service_uuid);
+	M_hash_multi_u64_insert_str(d, M_IO_BLE_META_KEY_SERVICE_UUID, service_uuid);
 }
 
 void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
 {
-	M_hash_u64str_t *d;
+	M_hash_multi_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
+	M_hash_multi_u64_insert_str(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
 }
 
-void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_wprop_t prop)
+void M_io_ble_meta_set_write_type(M_io_t *io, M_io_meta_t *meta, M_io_ble_wtype_t type)
 {
-	M_hash_u64str_t *d;
+	M_hash_multi_t *d;
 
 	if (io == NULL || meta == NULL)
 		return;
 
 	d = M_io_ble_get_meta_data(io, meta);
-	M_hash_u64str_insert(d, M_IO_BLE_META_KEY_WRITE_PROP, M_io_ble_write_property_to_str(prop));
+	M_hash_multi_u64_insert_int(d, M_IO_BLE_META_KEY_WRITE_TYPE, type);
 }

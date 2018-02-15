@@ -507,7 +507,7 @@ BOOL              blind_running = NO;
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 
 	if (error != nil) {
-		M_snprintf(msg, sizeof(msg), "Write filed: %s", [[error localizedDescription] UTF8String]);
+		M_snprintf(msg, sizeof(msg), "Write failed: %s", [[error localizedDescription] UTF8String]);
 		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
@@ -516,9 +516,21 @@ BOOL              blind_running = NO;
 
 - (void)peripheral:(CBPeripheral *)peripheral didReadRSSI:(NSNumber *)RSSI error:(NSError *)error
 {
-/* XXX: Read event with RSSI info */
-	//NSLog(@"rssi = %@", RSSI);
-}
+	const char *uuid;
+	char        msg[256];
 
+	if (peripheral == nil)
+		return;
+
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+
+	if (error != nil) {
+		M_snprintf(msg, sizeof(msg), "RSSI request failed: %s", [[error localizedDescription] UTF8String]);
+		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
+		return;
+	}
+
+	M_io_ble_device_read_rssi(uuid, [RSSI longLongValue]);
+}
 
 @end

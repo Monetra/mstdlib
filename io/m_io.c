@@ -302,7 +302,7 @@ M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, si
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL || buf == NULL || read_len == NULL) {
+	if (io == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -341,8 +341,12 @@ M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size
 {
 	M_io_error_t err;
 	size_t       layer_idx;
+	size_t       mylen_read;
 
-	if (io == NULL || buf == NULL || buf_len == 0 || len_read == NULL) {
+	if (len_read == NULL)
+		len_read = &mylen_read;
+
+	if (io == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -490,7 +494,7 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL || buf == NULL || write_len == NULL)
+	if (io == NULL)
 		return M_IO_ERROR_INVALID;
 
 	if (layer_id >= M_list_len(io->layer))
@@ -523,8 +527,12 @@ M_io_error_t M_io_write_meta(M_io_t *comm, const unsigned char *buf, size_t buf_
 {
 	M_io_error_t err;
 	size_t       layer_idx;
+	size_t       mylen_written;
 
-	if (comm == NULL || buf == NULL || buf_len == 0 || len_written == NULL) {
+	if (len_written == NULL)
+		len_written = &mylen_written;
+
+	if (comm == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}

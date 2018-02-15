@@ -31,6 +31,12 @@
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
 	M_io_handle_t *handle = NULL;
+	struct M_llist_callbacks llcbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_llist_free_func)M_io_ble_rdata_destroy
+	};
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
@@ -39,9 +45,10 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 		return NULL;
 	}
 
-	handle              = M_malloc_zero(sizeof(*handle));
+	handle             = M_malloc_zero(sizeof(*handle));
 	M_str_cpy(handle->uuid, sizeof(handle->uuid), uuid);
-	handle->timeout_ms  = M_io_ble_validate_timeout(timeout_ms);
+	handle->timeout_ms = M_io_ble_validate_timeout(timeout_ms);
+	handle->read_queue = M_llist_create(&llcbs, M_LLIST_NONE);
 
 	return handle;
 }
@@ -74,6 +81,7 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 	}
 
 	M_io_ble_close(handle);
+	M_llist_destroy(handle->read_queue, M_TRUE);
 	M_free(handle);
 }
 
@@ -94,55 +102,70 @@ M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
+	const char       *const_temp;
 	const char       *service_uuid;
 	const char       *characteristic_uuid;
 	M_io_handle_t    *handle = M_io_layer_get_handle(layer);
-	M_hash_u64str_t  *mdata;
+	M_hash_multi_t   *mdata;
 	M_io_error_t      ret;
-	M_io_ble_wprop_t  prop;
+	M_io_ble_wtype_t  type;
+	M_int64           i64v;
 
-	if (buf == NULL || meta == NULL)
+	/* Validate we have a meta object. If not we don't know what to do. */
+	if (meta == NULL)
 		return M_IO_ERROR_INVALID;
 
+	/* Are we connected to anything? */
 	if (handle->state != M_IO_STATE_CONNECTED)
 		return M_IO_ERROR_INVALID;
 
+	/* Get our meta data out of the meta object. */
 	mdata = M_io_meta_get_layer_data(meta, layer);
 	if (mdata == NULL)
 		return M_IO_ERROR_INVALID;
+
+	/* Pull the service and characteristic uuids. These might be empty but that's okay
+ 	 * right now. We'll validate them if we need to use them. */
+	const_temp = NULL;
+	M_hash_multi_u64_get_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, &const_temp);
+	service_uuid = const_temp;
+
+	const_temp = NULL;
+	M_hash_multi_u64_get_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, &const_temp) || M_str_isempty(const_temp);
+	characteristic_uuid = const_temp;
 	
-	prop = M_io_ble_write_property_from_str(M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_WRITE_PROP));
-	switch (prop) {
-		case M_IO_BLE_WPROP_REQVAL:
-		case M_IO_BLE_WPROP_REQRSSI:
-			break;
-		case M_IO_BLE_WPROP_WRITE:
-		case M_IO_BLE_WPROP_WRITENORESP:
-			if (write_len == NULL || *write_len == 0) {
+	/* Get the type of write being requested. */
+	if (!M_hash_multi_u64_get_int(mdata, M_IO_BLE_META_KEY_WRITE_TYPE, &i64v))
+		i64v = 0;
+	type = (M_io_ble_wtype_t)i64v;
+
+	/* Validate parameter for the write and do it. */
+	switch (type) {
+		case M_IO_BLE_WTYPE_REQVAL:
+			if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid)) {
 				return M_IO_ERROR_INVALID;
 			}
-			break;
-	}
 
-	service_uuid        = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_SERVICE_UUID);
-	characteristic_uuid = M_hash_u64str_get_direct(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID);
-	if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
-		return M_IO_ERROR_INVALID;
-
-	switch (prop) {
-		case M_IO_BLE_WPROP_REQVAL:
 			ret = M_io_ble_device_req_val(handle->uuid, service_uuid, characteristic_uuid);
 			break;
-		case M_IO_BLE_WPROP_REQRSSI:
+		case M_IO_BLE_WTYPE_REQRSSI:
 			ret = M_io_ble_device_req_rssi(handle->uuid);
 			break;
-		case M_IO_BLE_WPROP_WRITE:
-		case M_IO_BLE_WPROP_WRITENORESP:
-			ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, prop==M_IO_BLE_WPROP_WRITENORESP?M_TRUE:M_FALSE);
+		case M_IO_BLE_WTYPE_WRITE:
+		case M_IO_BLE_WTYPE_WRITENORESP:
+			if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid) ||
+					buf == NULL || write_len == NULL || *write_len == 0)
+			{
+				return M_IO_ERROR_INVALID;
+			}
+
+			ret = M_io_ble_device_write(handle->uuid, service_uuid, characteristic_uuid, buf, *write_len, type==M_IO_BLE_WTYPE_WRITENORESP?M_TRUE:M_FALSE);
 			break;
 	}
 
-	if (ret == M_IO_ERROR_SUCCESS && prop == M_IO_BLE_WPROP_WRITENORESP)
+	/* A succesful write without response can write again because there is no
+ 	 * reponse to tell us the device is ready. */
+	if (ret == M_IO_ERROR_SUCCESS && type == M_IO_BLE_WTYPE_WRITENORESP)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 
 	return ret;
@@ -150,11 +173,66 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
-	(void)layer;
-	(void)buf;
-	(void)read_len;
-	(void)meta;
-	return M_IO_ERROR_NOTIMPL;
+	M_io_handle_t    *handle = M_io_layer_get_handle(layer);
+	M_hash_multi_t   *mdata;
+	M_llist_node_t   *node;
+	M_io_ble_rdata_t *rdata;
+
+	/* Validae we have a meta object. If not we don't know what to do. */
+	if (meta == NULL)
+		return M_IO_ERROR_INVALID;
+
+	/* Are we connected to anything? */
+	if (handle->state != M_IO_STATE_CONNECTED)
+		return M_IO_ERROR_INVALID;
+
+	/* Get our meta data out of the meta object. If we don't have any then
+ 	 * this meta object hasn't been used with this layer. We'll add the internal
+	 * data so we can populate it. */
+	mdata = M_io_meta_get_layer_data(meta, layer);
+	if (mdata == NULL) {
+		mdata = M_hash_multi_create(M_HASH_MULTI_NONE);
+		M_io_meta_insert_layer_data(meta, layer, mdata, (void (*)(void *))M_hash_multi_destroy);
+	}
+
+	/* Get the first record in the read queue. If no
+ 	 * records we're all done. */
+	node = M_llist_first(handle->read_queue);
+	if (node == NULL)
+		return M_IO_ERROR_WOULDBLOCK;
+	rdata = M_llist_node_val(node);
+
+	/* Get the type of read the data is for. */
+	M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_READ_TYPE, rdata->type);
+	switch (rdata->type) {
+		case M_IO_BLE_RTYPE_READ:
+			if (buf == NULL || read_len == NULL) {
+				return M_IO_ERROR_INVALID;
+			}
+
+			/* Set the service and characteristic uuids for where the data came from. */
+			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, rdata->d.read.service_uuid);
+			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, rdata->d.read.characteristic_uuid);
+
+			/* Read as much data as we can. */
+			if (*read_len > M_buf_len(rdata->d.read.data))
+				*read_len = M_buf_len(rdata->d.read.data);
+
+			M_mem_copy(buf, M_buf_peek(rdata->d.read.data), *read_len);
+			M_buf_drop(rdata->d.read.data, *read_len);
+
+			/* If we've read everything we will drop this record. */
+			if (M_buf_len(rdata->d.read.data) == 0) {
+				M_llist_remove_node(node);
+			}
+			break;
+		case M_IO_BLE_RTYPE_RSSI:
+			/* Get the RSSI. */
+			M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_RSSI, rdata->d.rssi.val);
+			break;
+	}
+
+	return M_IO_ERROR_SUCCESS;
 }
 
 static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
@@ -228,7 +306,7 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 			handle->can_write = M_TRUE;
 
 			/* If there is data in the read buffer, signal there is data to be read as well */
-			if (M_buf_len(handle->read_data.d.read.data) != 0) {
+			if (M_llist_len(handle->read_queue) != 0) {
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 			}
 			break;

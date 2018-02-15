@@ -219,24 +219,24 @@ __BEGIN_DECLS
  * 
  * Specifies how the write should function. */
 typedef enum {
-	M_IO_BLE_WPROP_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
+	M_IO_BLE_WTYPE_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
 	                                 written before writes can take place again. */
-	M_IO_BLE_WPROP_WRITENORESP, /*!< Write without confirmation response. Blind write. */
-	M_IO_BLE_WPROP_REQVAL,      /*!< Request value for service and characteristic. Not
+	M_IO_BLE_WTYPE_WRITENORESP, /*!< Write without confirmation response. Blind write. */
+	M_IO_BLE_WTYPE_REQVAL,      /*!< Request value for service and characteristic. Not
 	                                 an actual write but a pseudo write to poll for a
 	                                 read event. */
-	M_IO_BLE_WPROP_REQRSSI      /*!< Request RSSI value. */
-} M_io_ble_wprop_t;
+	M_IO_BLE_WTYPE_REQRSSI      /*!< Request RSSI value. */
+} M_io_ble_wtype_t;
 
 
-/*! Meta property types used by M_io_read_meta.
+/*! Meta types used by M_io_read_meta.
  *
  * Specifies what type of read is being returned.
  */
 typedef enum {
-	M_IO_BLE_RPROP_READ = 0, /*!< Regular read of data from service and characteristic. */
-	M_IO_BLE_RPROP_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
-} M_io_ble_rprop_t;
+	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. */
+	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
+} M_io_ble_rtype_t;
 
 
 struct M_io_ble_enum;
@@ -425,14 +425,37 @@ M_API const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta);
 M_API const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta);
 
 
-/*! Get the write property.
+/*! Get the write type.
  *
  * \param[in] io   io object.
  * \param[in] meta Meta.
  *
- * \return prop.
+ * \return type.
  */
-M_API M_io_ble_wprop_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta);
+M_API M_io_ble_wtype_t M_io_ble_meta_get_write_type(M_io_t *io, M_io_meta_t *meta);
+
+
+/*! Get the read type.
+ *
+ * \param[in] io   io object.
+ * \param[in] meta Meta.
+ *
+ * \return type.
+ */
+M_API M_io_ble_rtype_t M_io_ble_meta_get_read_type(M_io_t *io, M_io_meta_t *meta);
+
+
+/*! Get the RSSI value from an RSSI read.
+ *
+ * RSSI value is in decibels.
+ *
+ * \param[in]  io   io object.
+ * \param[in]  meta Meta.
+ * \param[out] rssi RSSI value.
+ *
+ * \return M_TRUE if RSSI read. Otherwise, M_FALSE.
+ */
+M_API M_bool M_io_ble_meta_get_rssi(M_io_t *io, M_io_meta_t *meta, M_int64 *rssi);
 
 
 /*! Set the service associated with a meta object.
@@ -455,14 +478,14 @@ M_API void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const 
 
 /*! Set whether a write should be blind.
  *
- * If the property type is not set, the default is to have writes
+ * If the type is not set, the default is to have writes
  * wait for confirmation response before subsequent writes will be allowed.
  *
  * \param[in] io   io object.
  * \param[in] meta Meta.
- * \param[in] prop Property controlling
+ * \param[in] type Property controlling
  */
-M_API void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_wprop_t prop);
+M_API void M_io_ble_meta_set_write_type(M_io_t *io, M_io_meta_t *meta, M_io_ble_wtype_t type);
 
 /*! @} */
 

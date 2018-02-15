@@ -37,6 +37,7 @@ set(sources
 	m_io_trace.c
 	m_io_hid.c
 	m_io_ble.c
+	m_io_ble_rdata.c
 	m_io_bluetooth.c
 	m_event.c
 	m_event_timer.c
