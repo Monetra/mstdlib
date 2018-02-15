@@ -128,10 +128,10 @@ static void del_scan_trigger(void *p)
 
 @implementation M_io_ble_mac_scanner
 
-CBCentralManager *_manager      = nil;
-M_list_t         *triggers      = NULL; /* List of ScanTrigger objects */
-BOOL              powered_on    = NO;
-BOOL              blind_running = NO;
+CBCentralManager *_manager   = nil;
+M_list_t         *triggers   = NULL; /* List of ScanTrigger objects */
+BOOL              powered_on = NO;
+NSUInteger        blind_cnt  = 0;
 
 + (id)m_io_ble_mac_scanner
 {
@@ -192,7 +192,7 @@ BOOL              blind_running = NO;
 
 - (void)startScanBlind
 {
-	blind_running = YES;
+	blind_cnt++;
 
 	if (_manager.isScanning || !powered_on)
 		return;
@@ -202,14 +202,17 @@ BOOL              blind_running = NO;
 
 - (void)stopScanBlind
 {
-	blind_running = NO;
+	if (blind_cnt == 0)
+		return;
+
+	blind_cnt--;
 
 	/* Scan requests might still be outstanding. Don't
 	 * stop scanning if this is the case. This is to
 	 * stop blind scans in case they were started without
 	 * using a trigger. Trying to connect to a specific
 	 * device uses blind scans. */
-	if (!_manager.isScanning || M_list_len(triggers) != 0)
+	if (!_manager.isScanning || M_list_len(triggers) != 0 || blind_cnt != 0)
 		return;
 
 	[_manager stopScan];
@@ -225,7 +228,7 @@ BOOL              blind_running = NO;
 		return;
 
 	M_list_remove_at(triggers, idx);
-	if (M_list_len(triggers) == 0 && !blind_running) {
+	if (M_list_len(triggers) == 0 && blind_cnt == 0) {
 		[_manager stopScan];
 		M_io_ble_device_scan_finished();
 	}
@@ -308,7 +311,7 @@ BOOL              blind_running = NO;
 			/* Start a scan if something is waiting to find devices. A scan or M_io_ble_create
 			 * request could have come in before the manager had initalized. Or one could have
 			 * been running when a reset or other event happend and now we can resume scanning. */
-			if (!_manager.isScanning && (M_list_len(triggers) != 0 || blind_running)) {
+			if (!_manager.isScanning && (M_list_len(triggers) != 0 || blind_cnt != 0)) {
 				[_manager scanForPeripheralsWithServices:nil options:nil];
 			}
 			break;
