@@ -88,6 +88,7 @@ void M_io_ble_rdata_destroy(M_io_ble_rdata_t *d);
 M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
 M_bool M_io_ble_rdata_queue_add_rssi(M_llist_t *queue, M_int64 rssi);
 
+M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uuid, const char *characteristic_uuid, M_bool enable);
 M_list_str_t *M_io_ble_get_device_services(const char *uuid);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);

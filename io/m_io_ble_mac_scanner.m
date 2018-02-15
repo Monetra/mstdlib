@@ -303,6 +303,15 @@ NSUInteger        blind_cnt  = 0;
 	return YES;
 }
 
+- (BOOL)requestNotifyFromPeripheral:peripheral forCharacteristic:(CBCharacteristic *)characteristic enabled:(BOOL)enabled
+{
+	if (characteristic == nil)
+		return NO;
+
+	[peripheral setNotifyValue:enabled forCharacteristic:characteristic];
+	return YES;
+}
+
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
 	switch (central.state) {

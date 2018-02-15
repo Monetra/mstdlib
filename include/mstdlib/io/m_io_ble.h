@@ -375,6 +375,22 @@ M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx
 M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms);
 
 
+
+/*! Request read event's when the characteristic's value changes.
+ *
+ * Not all characteristic's support notifications. If not supported polling with M_io_write_meta
+ * using M_IO_BLE_WTYPE_REQVAL is the only way to retrieve the current value.
+ *
+ * \param[in] io                  io object.
+ * \param[in] service_uuid        UUID of service.
+ * \param[in] characteristic_uuid UUID of characteristic.
+ * \param[in] enable              Receive notifications?
+ *
+ * \return Result
+ */
+M_API M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid, M_bool enable);
+
+
 /*! Get a list of service UUIDs provided by the device.
  *
  * \param[in] io io object.

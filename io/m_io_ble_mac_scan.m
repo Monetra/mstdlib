@@ -977,6 +977,63 @@ void M_io_ble_close(M_io_handle_t *handle)
 	M_thread_mutex_unlock(lock);
 }
 
+M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uuid, const char *characteristic_uuid, M_bool enable)
+{
+	M_io_ble_device_t *dev;
+	M_hash_strvp_t    *service;
+	M_io_layer_t      *layer;
+	void              *v;
+	CBCharacteristic  *c;
+	CBPeripheral      *p;
+
+	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
+		return M_IO_ERROR_INVALID;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTFOUND;
+	}
+
+	/* We don't need the handle but we can't subscribe to devices that aren't connected. */
+	if (dev->handle == NULL || dev->state != M_IO_STATE_CONNECTED) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_NOTCONNECTED;
+	}
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+
+	/* Check if the service is valid.  */
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	/* Check if the characteristic is valid and get it. */
+	if (!M_hash_strvp_get(service, characteristic_uuid, &v)) {
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return M_IO_ERROR_INVALID;
+	}
+
+	c = (__bridge CBCharacteristic *)v;
+	p = (__bridge CBPeripheral *)dev->peripheral;
+
+	dispatch_async(dispatch_get_main_queue(), ^{
+		/* Update notification. */
+		[scanner requestNotifyFromPeripheral:p forCharacteristic:c enabled:enable?YES:NO];
+	});
+
+	dev->last_seen = M_time();
+	M_io_layer_release(layer);
+	M_thread_mutex_unlock(lock);
+
+	return M_IO_ERROR_SUCCESS;
+}
+
 M_list_str_t *M_io_ble_get_device_services(const char *uuid)
 {
 	const char          *const_temp;

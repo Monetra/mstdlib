@@ -53,7 +53,6 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 	return handle;
 }
 
-
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);

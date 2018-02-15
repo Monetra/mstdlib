@@ -50,5 +50,6 @@
 - (BOOL)writeDataToPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic data:(NSData *)data blind:(BOOL)blind;
 - (BOOL)requestDataFromPeripherial:(CBPeripheral *)peripheral characteristic:(CBCharacteristic *)characteristic;
 - (BOOL)requestRSSIFromPeripheral:(CBPeripheral *)peripheral;
+- (BOOL)requestNotifyFromPeripheral:peripheral forCharacteristic:(CBCharacteristic *)characteristic enabled:(BOOL)enabled;
 
 @end
