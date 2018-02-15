@@ -31,11 +31,12 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	return NULL;
 }
 
-M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid)
+M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid, M_bool enable)
 {
 	(void)io;
 	(void)service_uuid;
 	(void)characteristic_uuid;
+	(void)enable;
 	return M_IO_ERROR_NOTIMPL;
 }
 
@@ -77,11 +78,11 @@ const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
 	return NULL;
 }
 
-M_io_ble_write_property_t M_io_ble_meta_get_write_prop(M_io_t *io, M_io_meta_t *meta)
+M_io_ble_wtype_t M_io_ble_meta_get_write_type(M_io_t *io, M_io_meta_t *meta)
 {
 	(void)io;
 	(void)meta;
-	return M_IO_BLE_WRITE_PROP_WRITE;
+	return M_IO_BLE_WTYPE_WRITE;
 }
 
 M_io_ble_rtype_t M_io_ble_meta_get_read_type(M_io_t *io, M_io_meta_t *meta)
@@ -114,11 +115,11 @@ void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *
 	(void)characteristic_uuid;
 }
 
-void M_io_ble_meta_set_write_prop(M_io_t *io, M_io_meta_t *meta, M_io_ble_write_property_t prop)
+void M_io_ble_meta_set_write_type(M_io_t *io, M_io_meta_t *meta, M_io_ble_wtype_t type)
 {
 	(void)io;
 	(void)meta;
-	(void)prop;
+	(void)type;
 }
 
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms)
