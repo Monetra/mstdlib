@@ -52,6 +52,7 @@ before_build:
 
 build_script:
   # Make build-mstdlib directory. Download c-ares, sqlite amalgamation and libcheck. Build and install libcheck.
+  - mkdir C:\projects\build-mstdlib
   - cmake -DBUILDDIR=C:\projects\build-mstdlib -DCMAKE_BUILD_TYPE=%configuration% -P "%APPVEYOR_BUILD_FOLDER%\setup_thirdparty.cmake"
   # Build mstdlib.
   - cd C:\projects\build-mstdlib
