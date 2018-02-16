@@ -381,7 +381,6 @@ NSUInteger        blind_cnt  = 0;
 				if (M_io_ble_device_need_read_characteristics(uuid, service_uuid)) {
 					[peripheral discoverCharacteristics:nil forService:service];
 					read_characteristics = M_TRUE;
-					break;
 				}
 			}
 			if (!read_characteristics) {
@@ -473,9 +472,12 @@ NSUInteger        blind_cnt  = 0;
 	(void)invalidatedServices;
 
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-
 	M_io_ble_device_clear_services(uuid);
-	[peripheral discoverServices:nil];
+
+	/* We issue a disconnect event because there could have been subscriptions which
+	 * have now been cleared. It's better to pretend we got a disconnect and have
+	 * the connection setup again by the caller. */
+	[self disconnectFromDevice:peripheral];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error
