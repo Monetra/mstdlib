@@ -31,9 +31,9 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	return NULL;
 }
 
-M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid, M_bool enable)
+M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uuid, const char *characteristic_uuid, M_bool enable)
 {
-	(void)io;
+	(void)uuid;
 	(void)service_uuid;
 	(void)characteristic_uuid;
 	(void)enable;
