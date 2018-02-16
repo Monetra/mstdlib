@@ -40,7 +40,7 @@ install:
   # Download and extract ninja, add it to PATH.
   - mkdir C:\projects\ninja
   - cd C:\projects\ninja
-  - appveyor DownloadFile "https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-win.zip" -FileName ninja.zip
+  - appveyor DownloadFile "https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip" -FileName ninja.zip
   - 7z x ninja.zip > nul
   - set PATH=C:\projects\ninja;%PATH%
   - ninja --version
