@@ -71,20 +71,7 @@ static M_hash_multi_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 	return d;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
-{
-	/* We have timeout default of 1 minute when 0 and a max of 5 minutes. */
-	if (timeout_ms == 0)
-		timeout_ms = 60000;
-	if (timeout_ms >= 300000)
-		timeout_ms = 300000;
-
-	return timeout_ms;
-}
-
-M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io)
+static M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io)
 {
 	M_io_layer_t  *layer;
 	M_io_handle_t *handle = NULL;
@@ -101,6 +88,20 @@ M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io)
 		}
 	}
 	return handle;
+}
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
+{
+	/* We have timeout default of 1 minute when 0 and a max of 5 minutes. */
+	if (timeout_ms == 0)
+		timeout_ms = 60000;
+	if (timeout_ms >= 300000)
+		timeout_ms = 300000;
+
+	return timeout_ms;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

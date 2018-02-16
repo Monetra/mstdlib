@@ -80,6 +80,7 @@ struct M_io_handle {
 
 M_io_ble_enum_t *M_io_ble_enum_init(void);
 void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *uuid, const char *service_uuid, M_time_t last_seen, M_bool connected);
+M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 
 void M_io_ble_connect(M_io_handle_t *handle);
 void M_io_ble_close(M_io_handle_t *handle);
@@ -88,13 +89,13 @@ void M_io_ble_rdata_destroy(M_io_ble_rdata_t *d);
 M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
 M_bool M_io_ble_rdata_queue_add_rssi(M_llist_t *queue, M_int64 rssi);
 
+
+/* Used by ble.c but not in the file. */
+
 M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uuid, const char *characteristic_uuid, M_bool enable);
 M_list_str_t *M_io_ble_get_device_services(const char *uuid);
 M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, const char *service_uuid);
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
-
-M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
-M_io_handle_t *M_io_ble_get_io_handle(M_io_t *io);
 
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms);
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

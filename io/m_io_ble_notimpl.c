@@ -64,64 +64,6 @@ void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response
 	}
 }
 
-const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
-{
-	(void)io;
-	(void)meta;
-	return NULL;
-}
-
-const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
-{
-	(void)io;
-	(void)meta;
-	return NULL;
-}
-
-M_io_ble_wtype_t M_io_ble_meta_get_write_type(M_io_t *io, M_io_meta_t *meta)
-{
-	(void)io;
-	(void)meta;
-	return M_IO_BLE_WTYPE_WRITE;
-}
-
-M_io_ble_rtype_t M_io_ble_meta_get_read_type(M_io_t *io, M_io_meta_t *meta)
-{
-	(void)io;
-	(void)meta;
-	return M_IO_BLE_RTYPE_READ;
-}
-
-M_bool M_io_ble_meta_get_rssi(M_io_t *io, M_io_meta_t *meta, M_int64 *rssi)
-{
-	(void)io;
-	(void)meta;
-	if (rssi != NULL)
-		*rssi = 0;
-	return M_FALSE;
-}
-
-void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *service_uuid)
-{
-	(void)io;
-	(void)meta;
-	(void)service_uuid;
-}
-
-void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
-{
-	(void)io;
-	(void)meta;
-	(void)characteristic_uuid;
-}
-
-void M_io_ble_meta_set_write_type(M_io_t *io, M_io_meta_t *meta, M_io_ble_wtype_t type)
-{
-	(void)io;
-	(void)meta;
-	(void)type;
-}
-
 M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
 	(void)mac;
