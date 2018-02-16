@@ -35,9 +35,9 @@
 @end
 
 
-@interface M_io_ble_mac_scanner: NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>
+@interface M_io_ble_mac_manager: NSObject <CBCentralManagerDelegate, CBPeripheralDelegate>
 
-+ (id)m_io_ble_mac_scanner;
++ (id)m_io_ble_mac_manager;
 - (id)init;
 
 - (void)setManager:(CBCentralManager *)manager;

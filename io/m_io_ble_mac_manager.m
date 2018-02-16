@@ -62,7 +62,7 @@
 #include <mstdlib/io/m_io_ble.h>
 #include "m_io_ble_int.h"
 #include "m_io_ble_mac.h"
-#import "m_io_ble_mac_scanner.h"
+#import "m_io_ble_mac_manager.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -126,16 +126,16 @@ static void del_scan_trigger(void *p)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-@implementation M_io_ble_mac_scanner
+@implementation M_io_ble_mac_manager
 
 CBCentralManager *_manager   = nil;
 M_list_t         *triggers   = NULL; /* List of ScanTrigger objects */
 BOOL              powered_on = NO;
 NSUInteger        blind_cnt  = 0;
 
-+ (id)m_io_ble_mac_scanner
++ (id)m_io_ble_mac_manager
 {
-	return [[M_io_ble_mac_scanner alloc] init];
+	return [[M_io_ble_mac_manager alloc] init];
 }
 
 - (id)init
@@ -500,7 +500,7 @@ NSUInteger        blind_cnt  = 0;
 		M_io_ble_device_add_characteristic(uuid, service_uuid, [[c.UUID UUIDString] UTF8String], (__bridge_retained CFTypeRef)c);
 	}
 
-	/* The scanner is running on a single thread (the main one) so
+	/* The manager is running on a single thread (the main one) so
 	 * this event will never be processed in parallel and cause two
 	 * connected states to be set. Discovering characteristics only
 	 * happens once so we also don't need to worry about that either. */

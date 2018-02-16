@@ -27,7 +27,7 @@
 #include "m_io_int.h"
 #include "m_io_ble_int.h"
 #include "m_io_ble_mac.h"
-#include "m_io_ble_mac_scanner.h"
+#include "m_io_ble_mac_manager.h"
 
 #include <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
@@ -37,7 +37,7 @@
  * CBCentralManager will only trigger events on the main run loop. If it's not
  * running there won't be any events!
  *
- * The scanner object is only going to be run on on the main queue and this
+ * The manager object is only going to be run on on the main queue and this
  * need to ensure that happens. This is to prevent any cross thread access and
  * event delivery. Always disptach these async if it's sync and the main run
  * loop is not running we'll get a segfault due to bad access.
@@ -81,7 +81,7 @@ const M_int64 LAST_SEEN_EXPIRE = 15*60;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_io_ble_mac_scanner *scanner     = nil;
+static M_io_ble_mac_manager *manager     = nil;
 static CBCentralManager     *cbc_manager = nil;
 static M_hash_strvp_t       *ble_devices = NULL; /* key = UUID (device), val = M_io_ble_device_t. */
 static M_hash_strvp_t       *ble_waiting = NULL; /* key = UUID (device), val = M_io_handle_t. */
@@ -100,9 +100,9 @@ static void M_io_ble_cleanup(void *arg)
 	/* Kill the references so ARC sees the object
  	 * isn't used and will clean it up. */
 	dispatch_sync(dispatch_get_main_queue(), ^{
-		[scanner setManager:nil];
+		[manager setManager:nil];
 	});
-	scanner     = nil;
+	manager     = nil;
 	cbc_manager = nil;
 
 	M_hash_strvp_destroy(ble_devices, M_TRUE);
@@ -229,9 +229,9 @@ static void M_io_ble_manager_init(void)
 		ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
 		lock        = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 		cond        = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-		scanner     = [M_io_ble_mac_scanner m_io_ble_mac_scanner];
-		cbc_manager = [[CBCentralManager alloc] initWithDelegate:scanner queue:nil];
-		[scanner setManager:cbc_manager];
+		manager     = [M_io_ble_mac_manager m_io_ble_mac_manager];
+		cbc_manager = [[CBCentralManager alloc] initWithDelegate:manager queue:nil];
+		[manager setManager:cbc_manager];
 
 		M_library_cleanup_register(M_io_ble_cleanup, NULL);
 	});
@@ -245,7 +245,7 @@ static void start_blind_scan(void)
 		return;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[scanner startScanBlind];
+		[manager startScanBlind];
 	});
 }
 
@@ -257,7 +257,7 @@ static void stop_blind_scan(void)
 		return;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
-		[scanner stopScanBlind];
+		[manager stopScanBlind];
 	});
 }
 
@@ -560,15 +560,15 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 				 * Close the device since it won't be used by anything.
 				 * This could happen due to timing.
 				 *
-				 * 1. Scanner sees device is associated because it has a
+				 * 1. Manager sees device is associated because it has a
 				 *    handle in the waiting queue.
-				 * 2. The device does not have characteristics so Scanner
+				 * 2. The device does not have characteristics so Manager
 				 *    requests them.
 				 * 3. Handle times out while device is getting characteristics.
 				 * 4. Handle is gone so the device will not longer be associated. */
 				p = (__bridge CBPeripheral *)dev->peripheral;
 				dispatch_async(dispatch_get_main_queue(), ^{
-					[scanner disconnectFromDevice:p];
+					[manager disconnectFromDevice:p];
 				});
 			}
 			stop_blind_scan();
@@ -688,7 +688,7 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Pass the data off for writing. */
-		[scanner writeDataToPeripherial:p characteristic:c data:ndata blind:blind?YES:NO];
+		[manager writeDataToPeripherial:p characteristic:c data:ndata blind:blind?YES:NO];
 	});
 
 	dev->handle->can_write = blind;
@@ -747,7 +747,7 @@ M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid,
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Pass the data off for writing. */
-		[scanner requestDataFromPeripherial:p characteristic:c];
+		[manager requestDataFromPeripherial:p characteristic:c];
 	});
 
 	dev->last_seen = M_time();
@@ -785,7 +785,7 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 	p = (__bridge CBPeripheral *)dev->peripheral;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Pass the data off for writing. */
-		[scanner requestRSSIFromPeripheral:p];
+		[manager requestRSSIFromPeripheral:p];
 	});
 
 	dev->last_seen = M_time();
@@ -893,7 +893,7 @@ M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_dat
 		tw      = trigger_wrapper_create(NULL, callback, cb_data);
 		trigger = M_event_trigger_add(event, scan_done_cb, tw);
 		trigger_wrapper_set_trigger(tw, trigger);
-		[scanner startScan:trigger timeout_ms:timeout_ms];
+		[manager startScan:trigger timeout_ms:timeout_ms];
 	});
 	return M_TRUE;
 }
@@ -953,7 +953,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		p   = (__bridge CBPeripheral *)dev->peripheral;
 		ret = YES;
 		dispatch_sync(dispatch_get_main_queue(), ^{
-			ret = [scanner connectToDevice:p];
+			ret = [manager connectToDevice:p];
 		});
 		if (!ret) {
 			M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error: Already in use or BLE not avaliable");
@@ -988,7 +988,7 @@ void M_io_ble_close(M_io_handle_t *handle)
 		dev->handle = NULL;
 		p = (__bridge CBPeripheral *)dev->peripheral;
 		dispatch_async(dispatch_get_main_queue(), ^{
-			[scanner disconnectFromDevice:p];
+			[manager disconnectFromDevice:p];
 		});
 	}
 
@@ -1045,7 +1045,7 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Update notification. */
-		[scanner requestNotifyFromPeripheral:p forCharacteristic:c enabled:enable?YES:NO];
+		[manager requestNotifyFromPeripheral:p forCharacteristic:c enabled:enable?YES:NO];
 	});
 
 	dev->last_seen = M_time();
