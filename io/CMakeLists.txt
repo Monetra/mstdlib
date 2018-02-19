@@ -38,7 +38,7 @@ set(sources
 	m_io_netdns.c
 	m_io_meta.c
 	m_io_trace.c
-	
+
 	# Stubs
 	m_io_ble.c
 	m_io_ble_rdata.c
@@ -95,7 +95,23 @@ if (ANDROID)
 endif ()
 
 # Bluetooth LE
-if (CMAKE_SYSTEM_NAME MATCHES "Darwin" OR IOS OR IOSSIM)
+set(supports_ble FALSE)
+if (IOS OR IOSSIM)
+	set(supports_ble TRUE)
+elseif (APPLE)
+	# MacOS only supports our use case for BLE in version 10.13 or later.
+	if (CMAKE_OSX_DEPLOYMENT_TARGET)
+		if (NOT CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "10.13")
+			set(supports_ble TRUE)
+		endif ()
+	else ()
+		if (NOT CMAKE_SYSTEM_VERSION VERSION_LESS "17.0.0") # MacOS 10.13 --> v17.0.0
+			set(supports_ble TRUE)
+		endif ()
+	endif ()
+endif ()
+
+if (supports_ble)
 	list(APPEND sources
 		m_io_ble_mac_cache.m
 		m_io_ble_mac_manager.m
