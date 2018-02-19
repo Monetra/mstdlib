@@ -883,7 +883,7 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms)
 {
 	M_io_ble_manager_init();
-	if (cbc_manager == NULL)
+	if (cbc_manager == nil)
 		return M_FALSE;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -934,7 +934,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 	__block BOOL       ret;
 
 	M_io_ble_manager_init();
-	if (cbc_manager == NULL) {
+	if (cbc_manager == nil) {
 		M_snprintf(handle->error, sizeof(handle->error), "Failed to initalize BLE manager");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
