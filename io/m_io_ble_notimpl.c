@@ -133,3 +133,9 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 	(void)layer;
 	return M_FALSE;
 }
+
+M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms)
+{
+	(void)event; (void)callback; (void)cb_data; (void)timeout_ms;
+	return M_FALSE;
+}
