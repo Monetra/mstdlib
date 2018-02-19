@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_ble Bluetooth LE (Low Energy) IO functions
  *  \ingroup m_eventio_base
- * 
+ *
  * Bluetooth LE (Low Energy) IO functions.
  *
  * Supported OS:
@@ -52,8 +52,8 @@ __BEGIN_DECLS
  * is to scan for available devices, inspect their services, and connect to a device that
  * provides services the application wants to use. A good example is a heart rate monitor.
  *
- * A health app doesn't care which heart rate monitor is being used it only cares about 
- * getting hear rate data. Typically, the user will be presented with a list of suitable 
+ * A health app doesn't care which heart rate monitor is being used it only cares about
+ * getting hear rate data. Typically, the user will be presented with a list of suitable
  * devices in case multiple devices are detected (for example, multiple people going on
  * a bike ride together).
  *
@@ -216,7 +216,7 @@ __BEGIN_DECLS
  */
 
 /*! Meta property types used by M_io_write_meta.
- * 
+ *
  * Specifies how the write should function. */
 typedef enum {
 	M_IO_BLE_WTYPE_WRITE = 0,   /*!< Normal write. Waits for confirmation data was
@@ -253,7 +253,7 @@ typedef struct M_io_ble_enum M_io_ble_enum_t;
  * Call m_io_destroy once finished with the scan io object.
  *
  * \param[out] event      Event handle to receive scan events.
- *  \param[in] callback   User-specified callback to call when the scan finishes 
+ *  \param[in] callback   User-specified callback to call when the scan finishes
  *  \param[in] cb_data    Optional. User-specified data supplied to user-specified callback when
  *                        executed.
  * \param[in]  timeout_ms How long the scan should run before stopping.
@@ -267,7 +267,7 @@ typedef struct M_io_ble_enum M_io_ble_enum_t;
  * \return M_TRUE if the scan was started and the callback will be called.
  *         Otherwise M_FALSE, the callback will not be called.
  */
-M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms);
+M_API M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms);
 
 
 /*! Create a ble enumeration object.
@@ -279,7 +279,7 @@ M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_dat
  * what services are being offered. This is a
  * list of associated devices not necessarily what's actively connected.
  *
- * The enumeration is based on available services. Meaning a device may 
+ * The enumeration is based on available services. Meaning a device may
  * be listed multiple times if it exposes multiple services.
  *
  * \return Bluetooth enumeration object.
@@ -295,7 +295,7 @@ M_API void M_io_ble_enum_destroy(M_io_ble_enum_t *btenum);
 
 
 /*! Number of ble objects in the enumeration.
- * 
+ *
  * \param[in] btenum Bluetooth enumeration object.
  *
  * \return Count of ble devices.
