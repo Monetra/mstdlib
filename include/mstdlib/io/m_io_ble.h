@@ -231,7 +231,7 @@ __BEGIN_DECLS
  * #include <CoreFoundation/CoreFoundation.h>
  *
  * M_event_t    *el;
- * M_io_t       *io;
+ * M_io_t       *dio;
  * CFRunLoopRef  mrl = NULL;
  *
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -246,7 +246,7 @@ __BEGIN_DECLS
  *             break;
  *         case M_EVENT_TYPE_DISCONNECTED:
  *             M_printf("DISCONNECTED!!!\n");
- *             M_io_destroy(io);
+ *             M_io_destroy(dio);
  *             if (mrl != NULL)
  *                 CFRunLoopStop(mrl);
  *             break;
@@ -255,7 +255,7 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_ACCEPT:
  *             break;
  *         case M_EVENT_TYPE_ERROR:
- *             M_io_destroy(io);
+ *             M_io_destroy(dio);
  *             if (mrl != NULL)
  *                 CFRunLoopStop(mrl);
  *             break;
@@ -276,8 +276,8 @@ __BEGIN_DECLS
  *     (void)cb_arg;
  *
  *     // XXX: Set the id to the device you want to connect to.
- *     M_io_ble_create(&io, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
- *     M_event_add(el, io, events, NULL);
+ *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
+ *     M_event_add(el, dio, events, NULL);
  *
  *     M_printf("SCAN DONE\n");
  * }
@@ -330,7 +330,7 @@ __BEGIN_DECLS
  * #include <CoreFoundation/CoreFoundation.h>
  *
  * M_event_t    *el;
- * M_io_t       *io;
+ * M_io_t       *dio;
  * CFRunLoopRef  mrl = NULL;
  *
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -342,7 +342,7 @@ __BEGIN_DECLS
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED!!!\n");
- *             M_io_disconnect(io);
+ *             M_io_disconnect(dio);
  *             break;
  *         case M_EVENT_TYPE_DISCONNECTED:
  *             M_printf("DISCONNECTED!!!\n");
@@ -350,7 +350,7 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_WRITE:
  *         case M_EVENT_TYPE_ACCEPT:
  *         case M_EVENT_TYPE_ERROR:
- *             M_io_destroy(io);
+ *             M_io_destroy(dio);
  *             if (mrl != NULL)
  *                 CFRunLoopStop(mrl);
  *             break;
@@ -379,8 +379,8 @@ __BEGIN_DECLS
  *     M_thread_attr_destroy(tattr);
  *
  *     // XXX: Set the id to the device you want to connect to.
- *     M_io_ble_create(&io, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
- *     M_event_add(el, io, events, NULL);
+ *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
+ *     M_event_add(el, dio, events, NULL);
  *
  *     mrl = CFRunLoopGetCurrent();
  *     CFRunLoopRun();
@@ -388,6 +388,106 @@ __BEGIN_DECLS
  *     M_event_done_with_disconnect(el, 5*1000);
  *     M_thread_join(el_thread, NULL);
  *
+ *     return 0;
+ * }
+ * \endcode
+ *
+ * #### Application that lists services and their characteristics for a specific device
+ *
+ * \code{.c}
+ * // Build:
+ * // clang -g -fobjc-arc -framework CoreFoundation test_ble_interrogate.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
+ * //
+ * // Run:
+ * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
+ * 
+ * #include <mstdlib/mstdlib.h>
+ * #include <mstdlib/mstdlib_thread.h>
+ * #include <mstdlib/mstdlib_io.h>
+ * #include <mstdlib/io/m_io_ble.h>
+ * 
+ * #include <CoreFoundation/CoreFoundation.h>
+ * 
+ * M_event_t    *el;
+ * M_io_t       *dio;
+ * CFRunLoopRef  mrl = NULL;
+ * 
+ * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+ * {
+ *     M_list_str_t *services;
+ *     M_list_str_t *characteristics;
+ *     size_t        len;
+ *     size_t        len2;
+ *     size_t        i;
+ *     size_t        j;
+ * 
+ *     (void)el;
+ *     (void)io;
+ *     (void)thunk;
+ * 
+ *     switch (etype) {
+ *         case M_EVENT_TYPE_CONNECTED:
+ *             M_printf("CONNECTED!!!\n");
+ * 
+ *             services = M_io_ble_get_services(dio);
+ *             len      = M_list_str_len(services);
+ *             for (i=0; i<len; i++) {
+ *                 M_printf("service = %s:\n", M_list_str_at(services, i));
+ *                 characteristics = M_io_ble_get_service_characteristics(dio, M_list_str_at(services, i));
+ *                 len2            = M_list_str_len(characteristics);
+ *                 for (j=0; j<len2; j++) {
+ *                     M_printf("\t%s\n", M_list_str_at(characteristics, j));
+ *                 }
+ *                 M_list_str_destroy(characteristics);
+ *             }
+ *             M_list_str_destroy(services);
+ * 
+ *             M_io_disconnect(dio);
+ *             break;
+ *         case M_EVENT_TYPE_DISCONNECTED:
+ *             M_printf("DISCONNECTED!!!\n");
+ *         case M_EVENT_TYPE_READ:
+ *         case M_EVENT_TYPE_WRITE:
+ *         case M_EVENT_TYPE_ACCEPT:
+ *         case M_EVENT_TYPE_ERROR:
+ *             M_io_destroy(dio);
+ *             if (mrl != NULL)
+ *                 CFRunLoopStop(mrl);
+ *             break;
+ *         case M_EVENT_TYPE_OTHER:
+ *             break;
+ *     }
+ * }
+ * 
+ * static void *run_el(void *arg)
+ * {
+ *     (void)arg;
+ *     M_event_loop(el, M_TIMEOUT_INF);
+ *     return NULL;
+ * }
+ * 
+ * int main(int argc, char **argv)
+ * {
+ *     M_threadid_t     el_thread;
+ *     M_thread_attr_t *tattr;
+ * 
+ *     el = M_event_create(M_EVENT_FLAG_NONE);
+ * 
+ *     tattr = M_thread_attr_create();
+ *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
+ *     el_thread = M_thread_create(tattr, run_el, NULL);
+ *     M_thread_attr_destroy(tattr);
+ * 
+ *     // XXX: Set the id to the device you want to connect to.
+ *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
+ *     M_event_add(el, dio, events, NULL);
+ * 
+ *     mrl = CFRunLoopGetCurrent();
+ *     CFRunLoopRun();
+ * 
+ *     M_event_done_with_disconnect(el, 5*1000);
+ *     M_thread_join(el_thread, NULL);
+ * 
  *     return 0;
  * }
  * \endcode
