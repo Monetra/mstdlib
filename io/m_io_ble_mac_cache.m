@@ -411,33 +411,6 @@ M_bool M_io_ble_device_need_read_services(const char *uuid)
 	return ret;
 }
 
-M_bool M_io_ble_device_need_read_characteristics(const char *uuid, const char *service_uuid)
-{
-	M_io_ble_device_t *dev;
-	M_hash_strvp_t    *characteristics;
-	M_bool             ret = M_FALSE;
-
-	M_thread_mutex_lock(lock);
-
-	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
-		M_thread_mutex_unlock(lock);
-		return M_TRUE;
-	}
-
-	if (M_hash_strvp_num_keys(dev->services) == 0)
-		ret = M_TRUE;
-	
-	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&characteristics)) {
-		ret = M_FALSE;
-	} else if (M_hash_strvp_num_keys(characteristics) == 0) {
-		ret = M_TRUE;
-	}
-
-	M_thread_mutex_unlock(lock);
-
-	return ret;
-}
-
 M_bool M_io_ble_device_have_all_characteristics(const char *uuid)
 {
 	M_io_ble_device_t   *dev;

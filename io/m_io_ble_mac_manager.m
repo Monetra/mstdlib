@@ -374,19 +374,7 @@ NSUInteger        blind_cnt  = 0;
 		[peripheral discoverServices:nil];
 	} else { /* We have services */
 		if (M_io_ble_device_is_associated(uuid)) {
-			/* Check if we already have characteristics for all of the services.
-			 * If we're missing any we need to request it. */
-			for (CBService *service in peripheral.services) {
-				service_uuid = [[service.UUID UUIDString] UTF8String];
-				if (M_io_ble_device_need_read_characteristics(uuid, service_uuid)) {
-					[peripheral discoverCharacteristics:nil forService:service];
-					read_characteristics = M_TRUE;
-				}
-			}
-			if (!read_characteristics) {
-				/* We have all the characteristics so we're good to use the device. */
-				M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
-			}
+			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
 		} else {
 			/* Not associated and we have services so we don't need to do anything. */
 			[_manager cancelPeripheralConnection:peripheral];
@@ -432,33 +420,23 @@ NSUInteger        blind_cnt  = 0;
 	if (peripheral == nil)
 		return;
 
-	uuid       = [[[peripheral identifier] UUIDString] UTF8String];
-	associated = M_io_ble_device_is_associated(uuid);
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 
 	if (error != nil) {
-		if (!associated) {
-			[_manager cancelPeripheralConnection:peripheral];
-		}
 		M_snprintf(msg, sizeof(msg), "Service discovery failed: %s", [[error localizedDescription] UTF8String]);
 		M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
 		return;
 	}
 
-	for (CBService *service in peripheral.services) {
-		M_io_ble_device_add_serivce(uuid, [[service.UUID UUIDString] UTF8String]);
-		if (associated) {
-			/* Something is waiting to use this peripheral so we need
-			 * to request the characteristics for all services. */
-			[peripheral discoverCharacteristics:nil forService:service];
-		}
-	}
-
-	if (!associated) {
-		/* Nothing is waiting to use the peripheral so we must have been opened
-		 * by a enumerating scan. We don't need the device anymore because we
-		 * have everything we need. */
+	if ([peripheral.services count] == 0) {
 		[_manager cancelPeripheralConnection:peripheral];
 		M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
+		return;
+	}
+
+	for (CBService *service in peripheral.services) {
+		M_io_ble_device_add_serivce(uuid, [[service.UUID UUIDString] UTF8String]);
+		[peripheral discoverCharacteristics:nil forService:service];
 	}
 }
 
@@ -506,8 +484,14 @@ NSUInteger        blind_cnt  = 0;
 	 * this event will never be processed in parallel and cause two
 	 * connected states to be set. Discovering characteristics only
 	 * happens once so we also don't need to worry about that either. */
-	if (M_io_ble_device_have_all_characteristics(uuid))
-		M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
+	if (M_io_ble_device_have_all_characteristics(uuid)) {
+		if (M_io_ble_device_is_associated) {
+			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
+		} else {
+			[_manager cancelPeripheralConnection:peripheral];
+			M_io_ble_device_set_state(uuid, M_IO_STATE_DISCONNECTING, NULL);
+		}
+	}
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
