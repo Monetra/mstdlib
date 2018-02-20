@@ -26,6 +26,8 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_list_str.h>
+#include <mstdlib/base/m_time.h>
 #include <mstdlib/io/m_io.h>
 #include <mstdlib/io/m_event.h>
 
@@ -485,7 +487,7 @@ __BEGIN_DECLS
  *     wmeta = M_io_meta_create();
  *     M_io_ble_meta_set_write_type(dio, wmeta, M_IO_BLE_WTYPE_REQVAL);
  *     M_io_ble_meta_set_service(dio, wmeta, "1111");
- *     M_io_ble_meta_set_charateristic(dio, wmeta, "2222");
+ *     M_io_ble_meta_set_characteristic(dio, wmeta, "2222");
  *     M_event_add(el, dio, events, NULL);
  *
  *     mrl = CFRunLoopGetCurrent();
@@ -790,7 +792,7 @@ __BEGIN_DECLS
  *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
  *     meta = M_io_meta_create();
  *     M_io_ble_meta_set_service(dio, meta, "1111");
- *     M_io_ble_meta_set_charateristic(dio, meta, "2222");
+ *     M_io_ble_meta_set_characteristic(dio, meta, "2222");
  *     M_event_add(el, dio, events, NULL);
  *
  *     mrl = CFRunLoopGetCurrent();
@@ -827,7 +829,7 @@ typedef enum {
  */
 typedef enum {
 	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. */
-	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
+	M_IO_BLE_RTYPE_RSSI      /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
 } M_io_ble_rtype_t;
 
 
@@ -1081,7 +1083,7 @@ M_API void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *
  * \param[in] meta                Meta.
  * \param[in] characteristic_uuid UUID of characteristic.
  */
-M_API void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid);
+M_API void M_io_ble_meta_set_characteristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid);
 
 
 /*! Set whether a write should be blind.

@@ -42,7 +42,7 @@ static void M_io_ble_enum_free_device(void *arg)
 static M_hash_multi_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 {
 	M_hash_multi_t *d;
-	M_io_layer_t   *layer;
+	M_io_layer_t   *layer  = NULL;
 	M_io_handle_t  *handle = NULL;
 	size_t          len;
 	size_t          i;
@@ -393,7 +393,7 @@ void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *servic
 	M_hash_multi_u64_insert_str(d, M_IO_BLE_META_KEY_SERVICE_UUID, service_uuid);
 }
 
-void M_io_ble_meta_set_charateristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
+void M_io_ble_meta_set_characteristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid)
 {
 	M_hash_multi_t *d;
 
