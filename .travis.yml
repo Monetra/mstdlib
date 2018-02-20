@@ -58,11 +58,11 @@ jobs:
     - os: osx
       osx_image: xcode9
       env:
-        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
+        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite"
     - os: osx
       osx_image: xcode9
       env:
-        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl"
+        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl --with-sqlite-dir=/usr/local/opt/sqlite"
     - stage: Static Analysis
       os: linux
       env: 
@@ -101,7 +101,7 @@ jobs:
     - os: osx
       osx_image: xcode9
       env:
-        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
+        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite"
       compiler: clang
 
 
