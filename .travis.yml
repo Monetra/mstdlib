@@ -119,10 +119,10 @@ before_script:
 
 script:
     - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds ; fi
-    - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check ; fi
+    - if [ "$BUILD_TYPE" = "cmake" ]     ; then cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 && cmake --build _builds --target check ; fi
     - if [ "$BUILD_TYPE" = "asan" ]      ; then cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DM_ASAN=TRUE -H. -B_builds ; fi
-    - if [ "$BUILD_TYPE" = "asan" ]      ; then cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check ; fi
+    - if [ "$BUILD_TYPE" = "asan" ]      ; then cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 && cmake --build _builds --target check ; fi
     - if [ "$BUILD_TYPE" = "autotools" ] ; then ./buildconf.sh && mkdir build && cd build && ../configure ${CONFIG_OPTS} ; fi
     - if [ "$BUILD_TYPE" = "autotools" ] ; then make -j2 && LD_LIBRARY_PATH=`pwd`/sql/sqlite/.libs:/usr/local/lib DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check ; fi
     - if [ "$BUILD_TYPE" = "analyze" ]   ; then ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -H. -B_builds ; fi
-    - if [ "$BUILD_TYPE" = "analyze" ]   ; then travis_wait 30 ${SCAN_BUILD} cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check ; fi
+    - if [ "$BUILD_TYPE" = "analyze" ]   ; then travis_wait 30 ${SCAN_BUILD} cmake --build _builds && cmake -E env CTEST_OUTPUT_ON_FAILURE=1 && cmake --build _builds --target check ; fi
