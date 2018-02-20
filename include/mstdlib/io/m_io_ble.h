@@ -859,7 +859,7 @@ typedef struct M_io_ble_enum M_io_ble_enum_t;
  * \return M_TRUE if the scan was started and the callback will be called.
  *         Otherwise M_FALSE, the callback will not be called.
  */
-M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms);
+M_API M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms);
 
 
 /*! Create a ble enumeration object.
