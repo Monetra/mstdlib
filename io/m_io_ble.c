@@ -300,6 +300,36 @@ M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout
 	return M_IO_ERROR_SUCCESS;
 }
 
+M_io_error_t M_io_ble_create_with_service(M_io_t **io_out, const char *service_uuid, M_uint64 timeout_ms)
+{
+	M_io_handle_t    *handle;
+	M_io_callbacks_t *callbacks;
+	M_io_error_t      err;
+
+	if (io_out == NULL || M_str_isempty(service_uuid))
+		return M_IO_ERROR_INVALID;
+
+	handle = M_io_ble_open_with_service(service_uuid, &err, timeout_ms);
+	if (handle == NULL)
+		return M_IO_ERROR_INVALID;
+
+	*io_out   = M_io_init(M_IO_TYPE_STREAM);
+	callbacks = M_io_callbacks_create();
+	M_io_callbacks_reg_init(callbacks, M_io_ble_init_cb);
+	M_io_callbacks_reg_read(callbacks, M_io_ble_read_cb);
+	M_io_callbacks_reg_write(callbacks, M_io_ble_write_cb);
+	M_io_callbacks_reg_processevent(callbacks, M_io_ble_process_cb);
+	M_io_callbacks_reg_unregister(callbacks, M_io_ble_unregister_cb);
+	M_io_callbacks_reg_destroy(callbacks, M_io_ble_destroy_cb);
+	M_io_callbacks_reg_disconnect(callbacks, M_io_ble_disconnect_cb);
+	M_io_callbacks_reg_state(callbacks, M_io_ble_state_cb);
+	M_io_callbacks_reg_errormsg(callbacks, M_io_ble_errormsg_cb);
+	M_io_layer_add(*io_out, M_IO_BLE_NAME, handle, callbacks);
+	M_io_callbacks_destroy(callbacks);
+
+	return M_IO_ERROR_SUCCESS;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)

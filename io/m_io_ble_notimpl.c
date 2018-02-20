@@ -72,6 +72,13 @@ M_io_handle_t *M_io_ble_open(const char *mac, M_io_error_t *ioerr, M_uint64 time
 	return NULL;
 }
 
+M_io_handle_t *M_io_ble_open_with_service(const char *service_uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
+{
+	(void)service_uuid;
+	(void)timeout_ms;
+	*ioerr = M_IO_ERROR_NOTIMPL;
+	return NULL;
+}
 
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {

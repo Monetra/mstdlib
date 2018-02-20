@@ -65,14 +65,15 @@ typedef struct {
 } M_io_ble_rdata_t;
 
 struct M_io_handle {
-	M_io_t           *io;          /*!< io object handle is associated with. */
-	char              uuid[256];   /*!< UUID of device in use. */
-	M_llist_t        *read_queue;  /*!< List of M_io_ble_rdata_t objects with data that has been read. */
-	M_event_timer_t  *timer;       /*!< Timer to handle connection timeouts */
-	M_uint64          timeout_ms;  /*!< Timeout for connecting. */
-	char              error[256];  /*!< Error message. */
+	M_io_t           *io;                /*!< io object handle is associated with. */
+	char              uuid[256];         /*!< UUID of device in use. */
+	char              service_uuid[256]; /*!< UUID of service used for connecting using service. */
+	M_llist_t        *read_queue;        /*!< List of M_io_ble_rdata_t objects with data that has been read. */
+	M_event_timer_t  *timer;             /*!< Timer to handle connection timeouts */
+	M_uint64          timeout_ms;        /*!< Timeout for connecting. */
+	char              error[256];        /*!< Error message. */
 	M_io_state_t      state;
-	M_bool            can_write;   /*!< Wether data can be written. Will be false if a write operation is processing. */
+	M_bool            can_write;         /*!< Wether data can be written. Will be false if a write operation is processing. */
 	M_bool            have_max_write;
 	size_t            max_write_w_response;
 	size_t            max_write_wo_response;
@@ -98,6 +99,7 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, cons
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response);
 
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms);
+M_io_handle_t *M_io_ble_open_with_service(const char *service_uuid, M_io_error_t *ioerr, M_uint64 timeout_ms);
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);
 M_io_state_t M_io_ble_state_cb(M_io_layer_t *layer);
 void M_io_ble_destroy_cb(M_io_layer_t *layer);

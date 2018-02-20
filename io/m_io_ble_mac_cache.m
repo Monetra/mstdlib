@@ -81,12 +81,13 @@ const M_int64 LAST_SEEN_EXPIRE = 15*60;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_io_ble_mac_manager *manager     = nil;
-static CBCentralManager     *cbc_manager = nil;
-static M_hash_strvp_t       *ble_devices = NULL; /* key = UUID (device), val = M_io_ble_device_t. */
-static M_hash_strvp_t       *ble_waiting = NULL; /* key = UUID (device), val = M_io_handle_t. */
-static M_thread_mutex_t     *lock        = NULL;
-static M_thread_cond_t      *cond        = NULL;
+static M_io_ble_mac_manager *manager             = nil;
+static CBCentralManager     *cbc_manager         = nil;
+static M_hash_strvp_t       *ble_devices         = NULL; /* key = UUID (device), val = M_io_ble_device_t. */
+static M_hash_strvp_t       *ble_waiting         = NULL; /* key = UUID (device), val = M_io_handle_t. */
+static M_hash_strvp_t       *ble_waiting_service = NULL; /* key = UUID (service), val = M_io_handle_t. */
+static M_thread_mutex_t     *lock                = NULL;
+static M_thread_cond_t      *cond                = NULL;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -107,6 +108,7 @@ static void M_io_ble_cleanup(void *arg)
 
 	M_hash_strvp_destroy(ble_devices, M_TRUE);
 	M_hash_strvp_destroy(ble_waiting, M_TRUE);
+	M_hash_strvp_destroy(ble_waiting_service, M_TRUE);
 
 	M_thread_mutex_destroy(lock);
 	M_thread_cond_destroy(cond);
@@ -225,12 +227,13 @@ static void M_io_ble_manager_init(void)
 
 	/* Setup the scanning objects. */
 	dispatch_once(&d, ^{
-		ble_devices = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
-		ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
-		lock        = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-		cond        = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-		manager     = [M_io_ble_mac_manager m_io_ble_mac_manager];
-		cbc_manager = [[CBCentralManager alloc] initWithDelegate:manager queue:nil];
+		ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
+		ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+		ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+		lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		cond                = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+		manager             = [M_io_ble_mac_manager m_io_ble_mac_manager];
+		cbc_manager         = [[CBCentralManager alloc] initWithDelegate:manager queue:nil];
 		[manager setManager:cbc_manager];
 
 		M_library_cleanup_register(M_io_ble_cleanup, NULL);
@@ -241,7 +244,7 @@ static void start_blind_scan(void)
 {
 	/* Don't start a scan if there aren't any
 	 * devices that need to be scanned for. */
-	if (M_hash_strvp_num_keys(ble_waiting) == 0)
+	if (M_hash_strvp_num_keys(ble_waiting) == 0 && M_hash_strvp_num_keys(ble_waiting_service) == 0)
 		return;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -249,11 +252,43 @@ static void start_blind_scan(void)
 	});
 }
 
+static M_bool connect_to_device(M_io_ble_device_t *dev, M_io_handle_t *handle, M_bool *in_use)
+{
+	CBPeripheral  *p;
+	__block BOOL   ret;
+	M_bool         myin_use;
+
+	if (in_use == NULL)
+		in_use = &myin_use;
+	*in_use = M_FALSE;
+
+	if (dev == NULL)
+		return M_FALSE;
+
+	if (dev->handle != NULL) {
+		*in_use = M_TRUE;
+		return M_FALSE;
+	}
+
+	dev->handle = handle;
+	p           = (__bridge CBPeripheral *)dev->peripheral;
+	ret         = YES;
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		ret = [manager connectToDevice:p];
+	});
+
+	if (!ret) {
+		dev->handle = NULL;
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
 static void stop_blind_scan(void)
 {
 	/* Don't stop the scan if there are handles waiting
 	 * for a device to be found. */
-	if (M_hash_strvp_num_keys(ble_waiting) != 0)
+	if (M_hash_strvp_num_keys(ble_waiting) != 0 && M_hash_strvp_num_keys(ble_waiting_service) == 0)
 		return;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -280,12 +315,15 @@ void M_io_ble_cbc_event_reset(void)
 		M_io_layer_release(layer);
 		dev->handle = NULL;
 	}
+	M_hash_strvp_enumerate_free(he);
 
 	M_hash_strvp_destroy(ble_devices, M_TRUE);
 	ble_devices = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
 	/* Will notify all waiting io objects with an error. */
 	M_hash_strvp_destroy(ble_waiting, M_TRUE);
 	ble_waiting = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+	M_hash_strvp_destroy(ble_waiting_service, M_TRUE);
+	ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
 
 	M_thread_mutex_unlock(lock);
 }
@@ -501,9 +539,12 @@ void M_io_ble_device_scan_finished(void)
 
 void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error)
 {
-	M_io_ble_device_t *dev;
-	M_io_layer_t      *layer;
-	CBPeripheral      *p;
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_enum_t *he;
+	M_io_layer_t        *layer;
+	M_io_handle_t       *handle;
+	CBPeripheral        *p;
+	const char          *service_uuid;
 
 	M_thread_mutex_lock(lock);
 
@@ -517,12 +558,34 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 
 	switch (state) {
 		case M_IO_STATE_CONNECTED:
-			/* If we found a device then we want to associate it. */
+			/* If we found a device and it's already associated then we want try to associate it. */
 			if (dev->handle == NULL) {
+				/* Try checking for a device uuid. */
 				dev->handle = M_hash_strvp_get_direct(ble_waiting, uuid);
 				M_hash_strvp_remove(ble_waiting, uuid, M_FALSE);
+
+				/* Couldn't find it by device uuid maybe we're opening using a service uuid. */
+				if (dev->handle == NULL && M_hash_strvp_num_keys(ble_waiting_service) != 0) {
+					const char *remove_uuid = NULL;
+
+					/* Go through all of this devices services and see if anything is waiting for one. */
+					M_hash_strvp_enumerate(dev->services, &he);
+					while (M_hash_strvp_enumerate_next(dev->services, he, &service_uuid, NULL)) {
+						if (M_hash_strvp_get(ble_waiting_service, service_uuid, (void **)&handle)) {
+							M_str_cpy(handle->uuid, sizeof(handle->uuid), dev->uuid);
+							dev->handle = handle;
+							remove_uuid = service_uuid;
+							break;
+						}
+					}
+					M_hash_strvp_enumerate_free(he);
+
+					M_hash_strvp_remove(ble_waiting_service, remove_uuid, M_FALSE);
+				}
 			}
+
 			if (dev->handle != NULL) {
+				/* We have successfully associated! */
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 				dev->handle->state     = state;
 				dev->handle->can_write = M_TRUE;
@@ -588,8 +651,10 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 
 M_bool M_io_ble_device_is_associated(const char *uuid)
 {
-	M_io_ble_device_t *dev;
-	M_bool             ret = M_FALSE;
+	M_io_ble_device_t   *dev = NULL;
+	M_hash_strvp_enum_t *he;
+	const char          *service_uuid;
+	M_bool               ret = M_FALSE;
 
 	M_thread_mutex_lock(lock);
 
@@ -598,6 +663,17 @@ M_bool M_io_ble_device_is_associated(const char *uuid)
 
 	if (!ret && M_hash_strvp_get(ble_waiting, uuid, NULL))
 		ret = M_TRUE;
+
+	if (!ret && dev != NULL && M_hash_strvp_num_keys(ble_waiting_service) != 0) {
+		M_hash_strvp_enumerate(dev->services, &he);
+		while (M_hash_strvp_enumerate_next(dev->services, he, &service_uuid, NULL)) {
+			if (M_hash_strvp_get(ble_waiting_service, service_uuid, NULL)) {
+				ret = M_TRUE;
+				break;
+			}
+		}
+		M_hash_strvp_enumerate_free(he);
+	}
 
 	M_thread_mutex_unlock(lock);
 
@@ -900,11 +976,13 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 
 void M_io_ble_connect(M_io_handle_t *handle)
 {
-	M_io_ble_device_t *dev;
-	M_io_layer_t      *layer;
-	CBPeripheral      *p;
-	M_bool             in_use = M_FALSE;
-	__block BOOL       ret;
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_enum_t *he;
+	M_io_layer_t        *layer;
+	const char          *service_uuid;
+	M_bool               in_use = M_FALSE;
+	M_bool               ret    = M_TRUE;
+	M_bool               found  = M_FALSE;
 
 	M_io_ble_manager_init();
 	if (cbc_manager == nil) {
@@ -917,26 +995,40 @@ void M_io_ble_connect(M_io_handle_t *handle)
 
 	M_thread_mutex_lock(lock);
 
-	if (M_hash_strvp_get(ble_devices, handle->uuid, (void **)&dev)) {
-		if (dev->handle != NULL) {
-			in_use = M_TRUE;
-		} else {
-			dev->handle = handle;
-		}
-		p   = (__bridge CBPeripheral *)dev->peripheral;
-		ret = YES;
-		dispatch_sync(dispatch_get_main_queue(), ^{
-			ret = [manager connectToDevice:p];
-		});
-		if (!ret) {
-			M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error: Already in use or BLE not avaliable");
-			layer = M_io_layer_acquire(handle->io, 0, NULL);
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
-			M_io_layer_release(layer);
+	if (!M_str_isempty(handle->uuid)) {
+		if (M_hash_strvp_get(ble_devices, handle->uuid, (void **)&dev)) {
+			ret   = connect_to_device(dev, handle, &in_use);
+			found = M_TRUE;
 		}
 	} else {
-		M_hash_strvp_insert(ble_waiting, handle->uuid, handle);
+		/* Looking for service. */
+		M_hash_strvp_enumerate(ble_devices, &he);
+		while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
+			if (M_hash_strvp_get(dev->services, service_uuid, NULL)) {
+				in_use = M_FALSE;
+				ret    = connect_to_device(dev, handle, &in_use);
+				if (!ret && in_use) {
+					/* Couldn't use this device because it's in use. Keep looking. */
+					found = M_TRUE;
+					continue;
+				}
+				found = M_TRUE;
+				break;
+			}
+		}
+		M_hash_strvp_enumerate_free(he);
+	}
+
+	/* We couldn't find a cached device so lets search for one. */
+	if (!found) {
+		if (!M_str_isempty(handle->uuid)) {
+			M_hash_strvp_insert(ble_waiting, handle->uuid, handle);
+		} else {
+			M_hash_strvp_insert(ble_waiting_service, handle->uuid, handle);
+		}
 		start_blind_scan();
+		M_thread_mutex_unlock(lock);
+		return;
 	}
 
 	if (in_use) {
@@ -944,8 +1036,20 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return;
 	}
 
+	if (!ret) {
+		M_snprintf(handle->error, sizeof(handle->error), "Device connect fatal error: Already in use or BLE not avaliable");
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	/* We successfully started the device connection sequence. */
 	M_thread_mutex_unlock(lock);
 }
 

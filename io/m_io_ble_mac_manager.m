@@ -361,8 +361,6 @@ NSUInteger        blind_cnt  = 0;
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
 	const char *uuid;
-	const char *service_uuid;
-	M_bool      read_characteristics = M_FALSE;
 
 	(void)central;
 
@@ -414,7 +412,6 @@ NSUInteger        blind_cnt  = 0;
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
 	const char *uuid;
-	M_bool      associated;
 	char        msg[256];
 
 	if (peripheral == nil)
@@ -485,7 +482,7 @@ NSUInteger        blind_cnt  = 0;
 	 * connected states to be set. Discovering characteristics only
 	 * happens once so we also don't need to worry about that either. */
 	if (M_io_ble_device_have_all_characteristics(uuid)) {
-		if (M_io_ble_device_is_associated) {
+		if (M_io_ble_device_is_associated(uuid)) {
 			M_io_ble_device_set_state(uuid, M_IO_STATE_CONNECTED, NULL);
 		} else {
 			[_manager cancelPeripheralConnection:peripheral];

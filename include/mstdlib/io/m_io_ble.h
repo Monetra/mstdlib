@@ -1069,6 +1069,20 @@ M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx
 M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms);
 
 
+/*! Create a ble connection to a device that provides a given service.
+ *
+ * This connects to the first device found exposing the requested service.
+ *
+ * \param[out] io_out      io object for communication.
+ * \param[in] service_uuid UUID of service.
+ * \param[in]  timeout_ms  If the device has not already been seen a scan will
+ *                         be performed. This time out is how long we should
+ *                         wait to search for the device.
+ *
+ * \return Result.
+ */
+M_API M_io_error_t M_io_ble_create_with_service(M_io_t **io_out, const char *service_uuid, M_uint64 timeout_ms);
+
 
 /*! Request read event's when the characteristic's value changes.
  *

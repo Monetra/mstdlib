@@ -53,6 +53,31 @@ M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 tim
 	return handle;
 }
 
+M_io_handle_t *M_io_ble_open_with_service(const char *service_uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
+{
+	M_io_handle_t *handle = NULL;
+	struct M_llist_callbacks llcbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_llist_free_func)M_io_ble_rdata_destroy
+	};
+
+	*ioerr = M_IO_ERROR_SUCCESS;
+
+	if (M_str_isempty(service_uuid)) {
+		*ioerr = M_IO_ERROR_INVALID;
+		return NULL;
+	}
+
+	handle             = M_malloc_zero(sizeof(*handle));
+	M_str_cpy(handle->service_uuid, sizeof(handle->service_uuid), service_uuid);
+	handle->timeout_ms = M_io_ble_validate_timeout(timeout_ms);
+	handle->read_queue = M_llist_create(&llcbs, M_LLIST_NONE);
+
+	return handle;
+}
+
 M_bool M_io_ble_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
