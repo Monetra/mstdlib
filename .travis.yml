@@ -119,7 +119,12 @@ install:
       brew install openssl doxygen mariadb-connector-c libiodbc libpq check c-ares sqlite llvm
       brew link --force llvm
     fi
-
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux"]; then
+      update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+      update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+      update-alternatives --set gcc /usr/bin/gcc-7
+    fi
 
 # Put in 3rd party sources and chain build
 #before_script:
