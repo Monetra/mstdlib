@@ -92,14 +92,21 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
             - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
+            - llvm-toolchain-trusty-5.0
           packages:
             - cmake
             - libssl-dev
+            - doxygen
             - libpq-dev
             - libmariadbd-dev
             - unixodbc-dev
+            - check
+            - clang-5.0
+            - clang-tools-5.0
             - libsqlite3-dev
             - libc-ares-dev
+            - gcc-7
+            - g++-7
     - stage: Runtime Analysis
       os: linux
       env: 
