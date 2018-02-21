@@ -168,14 +168,14 @@ static char *M_settings_determine_filename(const char *organization, const char 
 
 	/* Now that we have the base location add the config file info locations. */
 	buf = M_buf_create();
-	if (organization != NULL && *organization != '\0' && application != NULL && *application != '\0') {
+	if (!M_str_isempty(organization) && !M_str_isempty(application)) {
 		M_list_str_insert(parts, organization);
 		M_buf_add_str(buf, application);
 		M_buf_add_str(buf, ext);
-	} else if ((organization == NULL || *organization == '\0') && application != NULL && *application != '\0') {
+	} else if (M_str_isempty(organization) && !M_str_isempty(application)) {
 		M_buf_add_str(buf, application);
 		M_buf_add_str(buf, ext);
-	} else if (organization != NULL && *organization != '\0' && (application == NULL || *application == '\0')) {
+	} else if (!M_str_isempty(organization) && M_str_isempty(application)) {
 		M_buf_add_str(buf, organization);
 		M_buf_add_str(buf, ext);
 	} else {
@@ -214,7 +214,7 @@ M_settings_t *M_settings_create(const char *organization, const char *applicatio
 	M_settings_t *settings;
 	char         *filename;
 
-	if ((organization == NULL || *organization == '\0') && (application == NULL || *application == '\0'))
+	if (M_str_isempty(organization) && M_str_isempty(application))
 		return NULL;
 
 	filename = M_settings_determine_filename(organization, application, scope, type);
@@ -230,7 +230,7 @@ M_settings_t *M_settings_create_file(const char *filename, M_settings_type_t typ
 	M_settings_t *settings;
 	M_fs_error_t  res;
 
-	if (filename == NULL || *filename == '\0')
+	if (M_str_isempty(filename))
 		return NULL;
 
 	type = M_settings_determine_type(type);
@@ -288,7 +288,7 @@ M_settings_access_t M_settings_access(const M_settings_t *settings)
 		access |= M_SETTINGS_ACCESS_READ;
 
 	/* We need to find what part of the path actually exists to determine if we can write. */
-	while (name != NULL && *name != '\0' && *name != '.' && M_fs_perms_can_access(name, 0) != M_FS_ERROR_SUCCESS) {
+	while (!M_str_isempty(name) && *name != '.' && M_fs_perms_can_access(name, 0) != M_FS_ERROR_SUCCESS) {
 		char *dname = M_fs_path_dirname(name, M_FS_SYSTEM_AUTO);
 		M_free(name);
 		name = dname;
@@ -345,7 +345,7 @@ char *M_settings_full_key(const char *group, const char *key)
 		return NULL;
 
 	buf = M_buf_create();
-	if (group != NULL && *group != '\0') {
+	if (!M_str_isempty(group)) {
 		M_buf_add_str(buf, group);
 		M_buf_add_byte(buf, '/');
 	}
@@ -363,7 +363,7 @@ void M_settings_split_key(const char *s, char **group, char **key)
 		*group = NULL;
 	if (key)
 		*key = NULL;
-	if (s == NULL || *s == '\0')
+	if (M_str_isempty(s))
 		return;
 
 	d = M_strdup(s);
@@ -390,11 +390,11 @@ void M_settings_set_value(M_hash_dict_t *dict, const char *group, const char *ke
 {
 	char *mykey;
 
-	if (dict == NULL || key == NULL || *key == '\0')
+	if (dict == NULL || M_str_isempty(key))
 		return;
 
 	mykey = M_settings_full_key(group, key);
-	if (value == NULL || *value == '\0') {
+	if (M_str_isempty(value)) {
 		M_hash_dict_remove(dict, mykey);
 	} else {
 		M_hash_dict_insert(dict, mykey, value);
@@ -442,18 +442,17 @@ M_list_str_t *M_settings_groups(M_hash_dict_t *dict, const char *group)
 	while (M_hash_dict_enumerate_next(dict, dictenum, &key, NULL)) {
 		/* Get the full group for this key. */
 		M_settings_split_key(key, &s_group, &s_key);
-		if ((group == NULL || *group == '\0') ||
-			(M_str_eq_max(group, s_group, len)))
+		if (M_str_isempty(group) || M_str_eq_max(group, s_group, len))
 		{
 			/* If we have a group remove the given group from the key's group. */
-			if (group != NULL && *group != '\0' && s_group != NULL && s_group != '\0') {
+			if (!M_str_isempty(group) && !M_str_isempty(s_group)) {
 				slen = M_str_len(s_group);
 				M_mem_move(s_group, s_group+len, slen-len);
 				s_group[slen-len] = '\0';
 			}
 
 			/* There is no sub group. */
-			if (s_group == NULL || *s_group == '\0') {
+			if (M_str_isempty(s_group)) {
 				M_free(s_group);
 				M_free(s_key);
 				continue;
