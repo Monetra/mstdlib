@@ -55,16 +55,16 @@ __BEGIN_DECLS
  * provides services the application wants to use. A good example is a heart rate monitor.
  *
  * A health app doesn't care which heart rate monitor is being used it only cares about
- * getting hear rate data. Typically, the user will be presented with a list of suitable
+ * getting heart rate data. Typically, the user will be presented with a list of suitable
  * devices in case multiple devices are detected (for example, multiple people going on
  * a bike ride together).
  *
- * Since there is no pairing the device much be found by scanning for available devices.
- * This happen in two ways. First M_io_ble_scan will look for and cache devices that can
+ * Since there is no pairing the device must be found by scanning for available devices.
+ * This happens in two ways. First, M_io_ble_scan will look for and cache devices that can
  * be seen by the OS. During a scan, stale devices (over 15 minutes old) will be removed.
  *
  * All devices that have been found during a scan (excluding ones that have been pruned)
- * be listed as part of device enumeration. This means devices may no longer be present.
+ * will be listed as part of device enumeration. This means devices may no longer be present.
  * Such as an iPhone being seen during scanning and later the owner of the phone leaving
  * the room. There are no OS level events to notify that this has happened. At which
  * point the seen device cache may be stale.
@@ -81,10 +81,10 @@ __BEGIN_DECLS
  * the Bluetooth GATT specifications.
  *
  * Since there are multiple, potentially, read and write end points it is required
- * to specify the service and characteristic UUIDs. A write event much have them
+ * to specify the service and characteristic UUIDs. A write event must have them
  * specified using the M_io_meta_t and associated BLE meta functions. A read will
  * fill a provided meta object with the service and characteristic the data came from.
- * This means only the read and write meta functions can be use with BLE. The none-meta
+ * This means only the read and write meta functions can be use with BLE. The non-meta
  * functions will return an error.
  *
  * Characteristics can have multiple properties.
@@ -94,7 +94,7 @@ __BEGIN_DECLS
  * - Write
  * - Write without response
  *
- * BLE by default is not a stream based protocol like serial, HID, or Bluetooth classic.
+ * BLE by default is not a stream-based protocol like serial, HID, or Bluetooth classic.
  * Characteristics with the read property can be requested to read data. This is an async
  * request. M_io_ble facilitates this by using M_io_write_meta with a property indicator
  * that specifies data is not being written but a request for read is being sent.
@@ -107,13 +107,13 @@ __BEGIN_DECLS
  * a heart rate monitor could notify every 2 seconds even though it's reading every 100 ms. A
  * time service might send an event every second or it might send an event every minute.
  *
- * Characteristics won't receive read events be default. They need to be subscribed to first.
+ * Characteristics won't receive read events by default. They need to be subscribed to first.
  * Subscripts will not service a disconnect or destroy of an io object. Also, not all characteristics
  * support this property even if it supports read. Conversely some support notify/indicate but
  * not read.
  *
- * Write will write data to the device and the OS will issue an event whether the write as
- * successful or failed. Mstdlib uses this to determine if there was a write error and will
+ * Write will write data to the device and the OS will issue an event whether the write
+ * succeeded or failed. Mstdlib uses this to determine if there was a write error and will
  * block subsequent writes (returns WOULDBLOCK) until an outstanding write has completed.
  *
  * Write without response is a blind write. No result is requested from the OS. The state
@@ -124,11 +124,11 @@ __BEGIN_DECLS
  *
  * BLE events are only delivered to the main run loop. This is a design decision by Apple.
  * It is not possible to use an different run loop to receive events like can be done
- * with classic Bluetooth or HID. BLE events are none blocking so there shouldn't be
+ * with classic Bluetooth or HID. BLE events are non-blocking so there shouldn't be any
  * performance impact with the events being delivered. As little work as possible is
  * performed during event processing to limit any impact of this design requirement.
  *
- * A C application will need to manually start the macOS main runloop otherwise no events
+ * A C application will need to manually start the macOS main runloop, otherwise no events
  * will be delivered and no BLE operations will work.
  *
  * ### Examples
@@ -536,7 +536,7 @@ __BEGIN_DECLS
  *             M_io_read_meta(dio, msg, sizeof(msg)-1, &len, rmeta);
  *             msg[len]            = '\0';
  *             service_uuid        = M_io_ble_meta_get_service(dio, rmeta);
- *             characteristic_uuid = M_io_ble_meta_get_charateristic(dio, rmeta);
+ *             characteristic_uuid = M_io_ble_meta_get_characteristic(dio, rmeta);
  *
  *             M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
  *
@@ -646,7 +646,7 @@ __BEGIN_DECLS
  *             M_io_read_meta(dio, msg, sizeof(msg), &len, rmeta);
  *             msg[len]            = '\0';
  *             service_uuid        = M_io_ble_meta_get_service(dio, rmeta);
- *             characteristic_uuid = M_io_ble_meta_get_charateristic(dio, rmeta);
+ *             characteristic_uuid = M_io_ble_meta_get_characteristic(dio, rmeta);
  *
  *             M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
  *
@@ -1146,7 +1146,7 @@ M_API const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta);
  *
  * \return UUID
  */
-M_API const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta);
+M_API const char *M_io_ble_meta_get_characteristic(M_io_t *io, M_io_meta_t *meta);
 
 
 /*! Get the write type.

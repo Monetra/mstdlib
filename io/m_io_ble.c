@@ -346,7 +346,7 @@ const char *M_io_ble_meta_get_service(M_io_t *io, M_io_meta_t *meta)
 	return const_temp;
 }
 
-const char *M_io_ble_meta_get_charateristic(M_io_t *io, M_io_meta_t *meta)
+const char *M_io_ble_meta_get_characteristic(M_io_t *io, M_io_meta_t *meta)
 {
 	M_hash_multi_t *d;
 	const char     *const_temp = NULL;
