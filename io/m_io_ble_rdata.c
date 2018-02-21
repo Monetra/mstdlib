@@ -91,7 +91,11 @@ M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid,
 		rdata = M_io_ble_rdata_create(M_IO_BLE_RTYPE_READ);
 		M_str_cpy(rdata->d.read.service_uuid, sizeof(rdata->d.read.service_uuid), service_uuid);
 		M_str_cpy(rdata->d.read.characteristic_uuid, sizeof(rdata->d.read.characteristic_uuid), characteristic_uuid);
-		n = M_llist_insert(queue, rdata);
+		if (M_llist_insert(queue, rdata) == NULL) {
+			/* Shouldn't ever happen, but just in case: */
+			M_io_ble_rdata_destroy(rdata);
+			return M_FALSE;
+		}
 	}
 
 	M_buf_add_bytes(rdata->d.read.data, data, data_len);

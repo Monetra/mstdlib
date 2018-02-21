@@ -60,7 +60,6 @@ static M_hash_multi_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 	if (handle == NULL)
 		return NULL;
 
-	io = handle->io;
 	d  = M_io_meta_get_layer_data(meta, layer);
 	if (d == NULL) {
 		d = M_hash_multi_create(M_HASH_MULTI_NONE);
