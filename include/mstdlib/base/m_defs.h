@@ -51,19 +51,19 @@
 
 #if defined(__clang__)
 #  ifndef __has_attribute
-#    define __has_attribute(x)                 0
+#    define  __has_attribute(x)                0
 #  endif
 #  ifndef __has_feature
-#    define __has_feature(x)                   0
+#    define  __has_feature(x)                  0
 #  endif
 #  ifndef __has_extension
-#    define __has_extension                    __has_feature
+#    define  __has_extension                   __has_feature
 #  endif
-#  define M_COMPILER_SUPPORTS(ATTR, VER)       (__has_attribute(ATTR) || __has_extension(ATTR))
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    (__has_attribute(ATTR) || __has_extension(ATTR))
 #elif defined(__GNUC__)
-#  define M_COMPILER_SUPPORTS(ATTR, VER)       (GCC_VERSION >= VER)
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    (GCC_VERSION >= VER)
 #else
-#  define M_COMPILER_SUPPORTS(ATTR, VER)       0
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    0
 #endif
 
 
@@ -115,14 +115,14 @@
 /*! Tell compiler that the function may be treated as if any non-NULL pointer
  * returned cannot alias any other pointer valid when function returns and the
  * memory contents are undefined. */
-#  define M_MALLOC                             __attribute__((malloc))
-#  define M_MALLOC_ALIASED
+#  define    M_MALLOC                          __attribute__((malloc))
+#  define    M_MALLOC_ALIASED
 #else
-#  define M_MALLOC
-#  define M_MALLOC_ALIASED
+#  define    M_MALLOC
+#  define    M_MALLOC_ALIASED
 #endif
 
-#define M_FREE(arg)
+#define      M_FREE(arg)
 
 #if M_COMPILER_SUPPORTS(__deprecated__, 0)
    /*! Warn about the usage of a function. */
