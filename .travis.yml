@@ -23,6 +23,8 @@ addons:
       - clang-tools-5.0
       - libsqlite3-dev
       - libc-ares-dev
+      - gcc-7
+      - g++-7
 
 # Add coverity certificate to system ca-certificates
 before_install:
