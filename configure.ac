@@ -344,8 +344,8 @@ dnl
 
 AX_APPEND_COMPILE_FLAGS([\
 	-W -Wall -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch \
-	-Wdouble-promotion -Wformat -Wnonnull -Winit-self -Wimplicit-int \
-	-Wimplicit-function-declaration -Wimplicit -Wignored-qualifiers -Wmain \
+	-Wdouble-promotion -Wformat -Wnonnull -Winit-self \
+	-Wignored-qualifiers -Wmain \
 	-Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point \
 	-Wreturn-type -Wswitch -Wtrigraphs -Wunused-but-set-parameter \
 	-Wunused-but-set-variable -Wunused-function -Wunused-label \
@@ -353,19 +353,21 @@ AX_APPEND_COMPILE_FLAGS([\
 	-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas \
 	-Wmissing-format-attribute -Warray-bounds \
 	-Wtrampolines -Wfloat-equal \
-	-Wdeclaration-after-statement -Wundef -Wshadow -Wunsafe-loop-optimizations \
-	-Wpointer-arith -Wtype-limits -Wbad-function-cast -Wcast-qual \
+	-Wdeclaration-after-statement -Wundef -Wshadow \
+	-Wpointer-arith -Wtype-limits \
 	-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body \
 	-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess \
-	-Waddress -Wlogical-op -Waggregate-return \
+	-Waddress -Wlogical-op \
 	-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition \
 	-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations \
 	-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls \
-	-Wnested-externs -Winline -Winvalid-pch -Wvariadic-macros -Wvarargs \
-	-Wvector-operation-performance -Wvla -Wpointer-sign \
-	-Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat \
-	-Wformat-security -Woverlength-strings -Wsign-conversion -Wstrict-aliasing \
-	-Wstrict-overflow -Wsync-nand -Wvolatile-register-var -Wconversion \
+	-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs \
+	-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat \
+	-Wformat-security -Wstrict-aliasing \
+	-Wstrict-overflow -Wsync-nand -Wvolatile-register-var \
+	-Wconversion -Wsign-conversion \
+	-Werror=implicit-int \
+	-Werror=implicit-function-declaration \
 	-Werror=partial-availability \
 ], [CFLAGS], [-Werror])
 
