@@ -60,20 +60,21 @@ __BEGIN_DECLS
  * a bike ride together).
  *
  * Since there is no pairing the device must be found by scanning for available devices.
- * This happens in two ways. First, M_io_ble_scan will look for and cache devices that can
- * be seen by the OS. During a scan, stale devices (over 15 minutes old) will be removed.
- *
  * All devices that have been found during a scan (excluding ones that have been pruned)
  * will be listed as part of device enumeration. This means devices may no longer be present.
  * Such as an iPhone being seen during scanning and later the owner of the phone leaving
- * the room. There are no OS level events to notify that this has happened. At which
- * point the seen device cache may be stale.
+ * the room. There are no OS level events to notify that this has happened.
  *
- * The other way a scan can be initiated is by trying to connect to a device that has
- * not been seen. Opening a device requires specifying the UUID of the device and if
+ * When necessary, a scan can be initiated is by trying to connect to a device.
+ * Opening a device requires specifying a device identifier or service UUID and if
  * not found a scan will be started internally for either the duration of the timeout
  * or until the device has been found. This can cause a delay between trying to open
  * a device and receiving CONNECT or ERROR events.
+ *
+ * Device identifiers will vary between OS's. macOS for example assigns a device specific
+ * UUID to devices it sees. Android returns the device's MAC address. There is no way
+ * to read a device's MAC address on macOS. Identifiers are subject to change periodically.
+ * iOS will randomly change the device's MAC address every few hours to prevent tracking.
  *
  * BLE devices provide services and there can be multiple services. Services provide
  * characteristics and there can be multiple characteristics per service. Both
@@ -136,82 +137,90 @@ __BEGIN_DECLS
  * #### Application that scans for 30 seconds and enumerates all devices and their services that were seen.
  *
  * \code{.c}
- *     // Build:
- *     // clang -g -fobjc-arc -framework CoreFoundation test_ble_enum.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
- *     //
- *     // Run:
- *     // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
+ * // Build:
+ * // clang -g -fobjc-arc -framework CoreFoundation test_ble_enum.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
+ * //
+ * // Run:
+ * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
  *
- *     #include <mstdlib/mstdlib.h>
- *     #include <mstdlib/mstdlib_thread.h>
- *     #include <mstdlib/mstdlib_io.h>
- *     #include <mstdlib/io/m_io_ble.h>
+ * #include <mstdlib/mstdlib.h>
+ * #include <mstdlib/mstdlib_thread.h>
+ * #include <mstdlib/mstdlib_io.h>
+ * #include <mstdlib/io/m_io_ble.h>
  *
- *     #include <CoreFoundation/CoreFoundation.h>
+ * #include <CoreFoundation/CoreFoundation.h>
  *
- *     M_event_t    *el;
- *     CFRunLoopRef  mrl = NULL;
+ * M_event_t    *el;
+ * CFRunLoopRef  mrl = NULL;
  *
- *     static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
- *     {
- *         M_io_ble_enum_t *btenum;
- *         size_t           len;
- *         size_t           i;
+ * static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+ * {
+ *     M_io_ble_enum_t *btenum;
+ *     M_list_str_t    *service_uuids;
+ *     size_t           len;
+ *     size_t           len2;
+ *     size_t           i;
+ *     size_t           j;
  *
- *         (void)event;
- *         (void)type;
- *         (void)io;
- *         (void)cb_arg;
+ *     (void)event;
+ *     (void)type;
+ *     (void)io;
+ *     (void)cb_arg;
  *
- *         btenum = M_io_ble_enum();
+ *     btenum = M_io_ble_enum();
  *
- *         len = M_io_ble_enum_count(btenum);
- *         M_printf("Num devs = %zu\n", len);
- *         for (i=0; i<len; i++) {
- *             M_printf("Device:\n");
- *             M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
- *             M_printf("\tUUID: %s\n", M_io_ble_enum_uuid(btenum, i));
- *             M_printf("\tConnected: %s\n", M_io_ble_enum_connected(btenum, i)?"Yes":"No");
- *             M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
- *             M_printf("\tSerivce: %s\n", M_io_ble_enum_service_uuid(btenum, i));
+ *     len = M_io_ble_enum_count(btenum);
+ *     M_printf("Num devs = %zu\n", len);
+ *     for (i=0; i<len; i++) {
+ *         M_printf("Device:\n");
+ *         M_printf("\tName: %s\n", M_io_ble_enum_name(btenum, i));
+ *         M_printf("\tIdentifier: %s\n", M_io_ble_enum_identifier(btenum, i));
+ *         M_printf("\tLast Seen: %llu\n", M_io_ble_enum_last_seen(btenum, i));
+ *         M_printf("\tSerivces:\n");
+ *         service_uuids = M_io_ble_enum_service_uuids(btenum, i);
+ *         len2 = M_list_str_len(service_uuids);
+ *         for (j=0; j<len2; j++) {
+ *             M_printf("\t\t: %s\n", M_list_str_at(service_uuids, j));
  *         }
- *
- *         M_io_ble_enum_destroy(btenum);
- *
- *         if (mrl != NULL)
- *             CFRunLoopStop(mrl);
+ *         M_list_str_destroy(service_uuids);
  *     }
  *
- *     static void *run_el(void *arg)
- *     {
- *         (void)arg;
- *         M_event_loop(el, M_TIMEOUT_INF);
- *         return NULL;
- *     }
+ *     M_io_ble_enum_destroy(btenum);
  *
- *     int main(int argc, char **argv)
- *     {
- *         M_threadid_t     el_thread;
- *         M_thread_attr_t *tattr;
+ *     if (mrl != NULL)
+ *         CFRunLoopStop(mrl);
+ * }
  *
- *         el = M_event_create(M_EVENT_FLAG_NONE);
+ * static void *run_el(void *arg)
+ * {
+ *     (void)arg;
+ *     M_event_loop(el, M_TIMEOUT_INF);
+ *     return NULL;
+ * }
  *
- *         tattr = M_thread_attr_create();
- *         M_thread_attr_set_create_joinable(tattr, M_TRUE);
- *         el_thread = M_thread_create(tattr, run_el, NULL);
- *         M_thread_attr_destroy(tattr);
+ * int main(int argc, char **argv)
+ * {
+ *     M_threadid_t     el_thread;
+ *     M_thread_attr_t *tattr;
  *
- *         M_io_ble_scan(el, scan_done_cb, NULL, 30000);
+ *     el = M_event_create(M_EVENT_FLAG_NONE);
  *
- *         mrl = CFRunLoopGetCurrent();
- *         CFRunLoopRun();
+ *     tattr = M_thread_attr_create();
+ *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
+ *     el_thread = M_thread_create(tattr, run_el, NULL);
+ *     M_thread_attr_destroy(tattr);
  *
- *         // 5 sec timeout.
- *         M_event_done_with_disconnect(el, 5*1000);
- *         M_thread_join(el_thread, NULL);
+ *     M_io_ble_scan(el, scan_done_cb, NULL, 30000);
  *
- *         return 0;
- *     }
+ *     mrl = CFRunLoopGetCurrent();
+ *     CFRunLoopRun();
+ *
+ *     // 5 sec timeout.
+ *     M_event_done_with_disconnect(el, 5*1000);
+ *     M_thread_join(el_thread, NULL);
+ *
+ *     return 0;
+ * }
  * \endcode
  *
  * #### Application that scans for 30 seconds and connects to a specified device which has been seen and cached (hopefully).
@@ -942,6 +951,7 @@ typedef enum {
 struct M_io_ble_enum;
 typedef struct M_io_ble_enum M_io_ble_enum_t;
 
+
 /*! Start a BLE scan.
  *
  * A scan needs to take place for nearby devices to be found. Once found they will
@@ -1003,6 +1013,16 @@ M_API void M_io_ble_enum_destroy(M_io_ble_enum_t *btenum);
 M_API size_t M_io_ble_enum_count(const M_io_ble_enum_t *btenum);
 
 
+/*! UUID of ble device.
+ *
+ * \param[in] btenum Bluetooth enumeration object.
+ * \param[in] idx    Index in ble enumeration.
+ *
+ * \return String.
+ */
+M_API const char *M_io_ble_enum_identifier(const M_io_ble_enum_t *btenum, size_t idx);
+
+
 /*! Name of ble device as reported by the device.
  *
  * \param[in] btenum Bluetooth enumeration object.
@@ -1013,40 +1033,17 @@ M_API size_t M_io_ble_enum_count(const M_io_ble_enum_t *btenum);
 M_API const char *M_io_ble_enum_name(const M_io_ble_enum_t *btenum, size_t idx);
 
 
-/*! UUID of ble device.
+/*! UUIDs of services reported by device.
  *
- * \param[in] btenum Bluetooth enumeration object.
- * \param[in] idx    Index in ble enumeration.
- *
- * \return String.
- */
-M_API const char *M_io_ble_enum_uuid(const M_io_ble_enum_t *btenum, size_t idx);
-
-
-/*! Whether the device is connected.
- *
- * This does not mean it is currently in use. It means the device is present
- * and connected to the OS. This is mainly a way to determine if a device
- * in the enumeration is still within range and can be used.
- *
- * Not all systems are able to report the connected status making this function
- * less useful than you would think.
- *
- * \return M_TRUE if the device is connected, otherwise M_FALSE.
- *         If it is not possible to determine the connected status this
- *         function will return M_TRUE.
- */
-M_API M_bool M_io_ble_enum_connected(const M_io_ble_enum_t *btenum, size_t idx);
-
-
-/*! Uuid of service reported by device.
+ * This could be empty if the device has not been opened. Some devices
+ * do not advertise this unless they are opened and interrogated.
  *
  * \param[in]  btenum Bluetooth enumeration object.
  * \param[in]  idx    Index in ble enumeration.
  *
- * \return String.
+ * \return String list of UUIDs.
  */
-M_API const char *M_io_ble_enum_service_uuid(const M_io_ble_enum_t *btenum, size_t idx);
+M_API M_list_str_t *M_io_ble_enum_service_uuids(const M_io_ble_enum_t *btenum, size_t idx);
 
 
 /*! Last time the device was seen.
@@ -1065,14 +1062,14 @@ M_API M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx
 /*! Create a ble connection.
  *
  * \param[out] io_out     io object for communication.
- * \param[in]  uuid       Required uuid of the device.
+ * \param[in]  identifier Required identifier of the device.
  * \param[in]  timeout_ms If the device has not already been seen a scan will
  *                        be performed. This time out is how long we should
  *                        wait to search for the device.
  *
  * \return Result.
  */
-M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 timeout_ms);
+M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *identifier, M_uint64 timeout_ms);
 
 
 /*! Create a ble connection to a device that provides a given service.

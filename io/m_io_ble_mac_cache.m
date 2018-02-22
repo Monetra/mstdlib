@@ -83,6 +83,9 @@ const M_int64 LAST_SEEN_EXPIRE = 15*60;
 
 static M_io_ble_mac_manager *manager             = nil;
 static CBCentralManager     *cbc_manager         = nil;
+
+static M_hash_strvp_t       *seen_devices        = NULL;
+
 static M_hash_strvp_t       *ble_devices         = NULL; /* key = UUID (device), val = M_io_ble_device_t. */
 static M_hash_strvp_t       *ble_waiting         = NULL; /* key = UUID (device), val = M_io_handle_t. */
 static M_hash_strvp_t       *ble_waiting_service = NULL; /* key = UUID (service), val = M_io_handle_t. */
@@ -106,6 +109,7 @@ static void M_io_ble_cleanup(void *arg)
 	manager     = nil;
 	cbc_manager = nil;
 
+	M_hash_strvp_destroy(seen_devices, M_TRUE);
 	M_hash_strvp_destroy(ble_devices, M_TRUE);
 	M_hash_strvp_destroy(ble_waiting, M_TRUE);
 	M_hash_strvp_destroy(ble_waiting_service, M_TRUE);
@@ -227,6 +231,7 @@ static void M_io_ble_manager_init(void)
 
 	/* Setup the scanning objects. */
 	dispatch_once(&d, ^{
+		seen_devices        = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_destroy);
 		ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
 		ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
 		ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
@@ -328,6 +333,28 @@ void M_io_ble_cbc_event_reset(void)
 	M_thread_mutex_unlock(lock);
 }
 
+void M_io_ble_saw_device(const char *uuid, const char *name, const M_list_str_t *service_uuids)
+{
+	M_io_ble_enum_device_t *edev;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(seen_devices, uuid, &edev)) {
+		edev = M_malloc_zero(sizeof(*edev));
+		M_str_cpy(edev->identifier, sizeof(edev->identifier), uuid);
+		M_hash_strvp_insert(seen_devices, uuid, edev);
+	}
+
+	if (!M_str_isempty(name))
+		M_str_cpy(edev->name, sizeof(edev->name), name);
+
+	M_list_str_merge(&edev->service_uuids, M_list_str_duplicate(service_uuids), M_FALSE);
+
+	edev->last_seen = M_time();
+
+	M_thread_mutex_unlock(lock);
+}
+
 void M_io_ble_cache_device(CFTypeRef peripheral)
 {
 	CBPeripheral      *p;
@@ -336,8 +363,10 @@ void M_io_ble_cache_device(CFTypeRef peripheral)
 
 	M_thread_mutex_lock(lock);
 
+
 	p    = (__bridge CBPeripheral *)peripheral;
 	uuid = [[[p identifier] UUIDString] UTF8String];
+
 	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
 		dev = M_io_ble_device_create(peripheral, [p.name UTF8String], uuid);
 		if (dev == NULL) {
@@ -974,23 +1003,18 @@ M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_dat
 
 M_io_ble_enum_t *M_io_ble_enum(void)
 {
-	M_io_ble_enum_t     *btenum;
-	M_hash_strvp_enum_t *he;
-	M_hash_strvp_enum_t *hes;
-	M_io_ble_device_t   *dev;
-	const char          *const_temp;
+	M_io_ble_enum_t        *btenum;
+	M_hash_strvp_enum_t    *he;
+	M_io_ble_enum_device_t *edev;
+	const char             *const_temp;
 
 	btenum = M_io_ble_enum_init();
 
 	M_thread_mutex_lock(lock);
 
-	M_hash_strvp_enumerate(ble_devices, &he);
-	while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
-		M_hash_strvp_enumerate(dev->services, &hes);
-		while (M_hash_strvp_enumerate_next(dev->services, hes, &const_temp, NULL)) {
-			M_io_ble_enum_add(btenum, dev->name, dev->uuid, const_temp, dev->last_seen, dev->handle!=NULL?M_TRUE:M_FALSE);
-		}
-		M_hash_strvp_enumerate_free(hes);
+	M_hash_strvp_enumerate(seen_devices, &he);
+	while (M_hash_strvp_enumerate_next(seen_devices, he, NULL, (void **)&edev)) {
+		M_io_ble_enum_add(btenum, edev);
 	}
 	M_hash_strvp_enumerate_free(he);
 
@@ -1153,7 +1177,7 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Update notification. */
-		[manager requestNotifyFromPeripheral:p forCharacteristic:c enabled:enable?YES:NO];
+		[manager requestNotifyFromPeripheral:p forCharacteristic:c fromServiceUUID:[NSString stringWithUTF8String:service_uuid] enabled:enable?YES:NO];
 	});
 
 	dev->last_seen = M_time();

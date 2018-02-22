@@ -48,6 +48,7 @@ typedef struct {
 } M_io_ble_device_t;
 
 void M_io_ble_cbc_event_reset(void);
+void M_io_ble_saw_device(const char *uuid, const char *name, const M_list_str_t *service_uuids);
 void M_io_ble_cache_device(CFTypeRef peripheral);
 void M_io_ble_device_add_serivce(const char *uuid, const char *serivice_uuid);
 void M_io_ble_device_add_characteristic(const char *uuid, const char *service_uuid, const char *characteristic_uuid, CFTypeRef cbc);

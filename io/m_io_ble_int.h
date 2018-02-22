@@ -40,11 +40,10 @@ typedef enum {
 } M_io_ble_meta_keys;
 
 typedef struct {
-	char     *name;
-	char     *uuid;
-	char     *service_uuid;
-	M_time_t  last_seen;
-	M_bool    connected;
+	char          identifier[256];
+	char          name[256];
+	M_list_str_t *service_uuids;
+	M_time_t      last_seen;
 } M_io_ble_enum_device_t;
 
 struct M_io_ble_enum {
@@ -85,7 +84,7 @@ struct M_io_handle {
 };
 
 M_io_ble_enum_t *M_io_ble_enum_init(void);
-void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const char *name, const char *uuid, const char *service_uuid, M_time_t last_seen, M_bool connected);
+void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const M_io_ble_enum_device_t *edev);
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 
 M_bool M_io_ble_connect(M_io_handle_t *handle);

@@ -303,10 +303,23 @@ NSUInteger        blind_cnt  = 0;
 	return YES;
 }
 
-- (BOOL)requestNotifyFromPeripheral:peripheral forCharacteristic:(CBCharacteristic *)characteristic enabled:(BOOL)enabled
+- (BOOL)requestNotifyFromPeripheral:(CBPeripheral *)peripheral forCharacteristic:(CBCharacteristic *)characteristic fromServiceUUID:(NSString *)service_uuid enabled:(BOOL)enabled
 {
+	/* We're passing in the service UUID instead of getting it from the characteristic
+	 * because for some unknown reason the characteristic.service.UUID causes a bad
+	 * memory read and crash. */
+	const char *uuid;
+	const char *characteristic_uuid;
+
 	if (characteristic == nil)
 		return NO;
+
+	if ((enabled && characteristic.isNotifying) || (!enabled && !characteristic.isNotifying)) {
+		uuid                = [[[peripheral identifier] UUIDString] UTF8String];
+		characteristic_uuid = [[characteristic.UUID UUIDString] UTF8String];
+		M_io_ble_device_notify_done(uuid, [service_uuid UTF8String], characteristic_uuid);
+		return YES;
+	}
 
 	[peripheral setNotifyValue:enabled forCharacteristic:characteristic];
 	return YES;
@@ -340,9 +353,23 @@ NSUInteger        blind_cnt  = 0;
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary<NSString *,id> *)advertisementData RSSI:(NSNumber *)RSSI
 {
+	const char   *uuid;
+	const char   *name;
+	M_list_str_t *service_uuids;
+
 	(void)central;
-	(void)advertisementData;
 	(void)RSSI;
+
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	name = [[advertisementData objectForKey:CBAdvertisementDataLocalNameKey] UTF8String];
+
+	service_uuids = M_list_str_create(M_LIST_STR_SORTASC);
+	for (CBUUID *nuuid in [advertisementData objectForKey:CBAdvertisementDataServiceUUIDsKey]) {
+		M_list_str_insert(service_uuids, [[nuuid UUIDString] UTF8String]);
+	}
+
+	M_io_ble_saw_device(uuid, name, service_uuids);
+	M_list_str_destroy(service_uuids);
 
 	/* We need to cache before passing into a C function for some reason.
 	 * If we pass in the CBPeripheral * then do the bridging later
