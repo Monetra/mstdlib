@@ -207,17 +207,6 @@ M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid, M_bool enable)
-{
-	M_io_handle_t *handle;
-
-	handle = M_io_ble_get_io_handle(io);
-	if (handle == NULL)
-		return M_IO_ERROR_INVALID;
-	return M_io_ble_set_device_notify(handle->uuid, service_uuid, characteristic_uuid, enable);
-}
-
-
 M_list_str_t *M_io_ble_get_services(M_io_t *io)
 {
 	M_io_handle_t *handle;
@@ -431,6 +420,17 @@ void M_io_ble_meta_set_characteristic(M_io_t *io, M_io_meta_t *meta, const char 
 
 	d = M_io_ble_get_meta_data(io, meta);
 	M_hash_multi_u64_insert_str(d, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, characteristic_uuid);
+}
+
+void M_io_ble_meta_set_notify(M_io_t *io, M_io_meta_t *meta, M_bool enable)
+{
+	M_hash_multi_t *d;
+
+	if (io == NULL || meta == NULL)
+		return;
+
+	d = M_io_ble_get_meta_data(io, meta);
+	M_hash_multi_u64_insert_bool(d, M_IO_BLE_META_KEY_NOTIFY, enable);
 }
 
 void M_io_ble_meta_set_write_type(M_io_t *io, M_io_meta_t *meta, M_io_ble_wtype_t type)

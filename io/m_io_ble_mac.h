@@ -67,5 +67,6 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid);
 void M_io_ble_device_write_complete(const char *uuid);
 void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
 void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi);
+void M_io_ble_device_notify_done(const char *uuid, const char *service_uuid, const char *characteristic_uuid);
 
 #endif /* __M_IO_BLE_MAC_H__ */

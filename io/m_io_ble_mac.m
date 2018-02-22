@@ -134,6 +134,7 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	M_io_error_t      ret;
 	M_io_ble_wtype_t  type;
 	M_int64           i64v;
+	M_bool            enable = M_TRUE;
 
 	/* Validate we have a meta object. If not we don't know what to do. */
 	if (meta == NULL)
@@ -174,6 +175,16 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 			break;
 		case M_IO_BLE_WTYPE_REQRSSI:
 			ret = M_io_ble_device_req_rssi(handle->uuid);
+			break;
+		case M_IO_BLE_WTYPE_REQNOTIFY:
+			if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid)) {
+				return M_IO_ERROR_INVALID;
+			}
+			/* Default to ture if not set. */
+			if (!M_hash_multi_u64_get_bool(mdata, M_IO_BLE_META_KEY_NOTIFY, &enable)) {
+				enable = M_TRUE;
+			}
+			ret = M_io_ble_set_device_notify(handle->uuid, service_uuid, characteristic_uuid, enable);
 			break;
 		case M_IO_BLE_WTYPE_WRITE:
 		case M_IO_BLE_WTYPE_WRITENORESP:
@@ -253,6 +264,11 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 		case M_IO_BLE_RTYPE_RSSI:
 			/* Get the RSSI. */
 			M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_RSSI, rdata->d.rssi.val);
+			M_llist_remove_node(node);
+			break;
+		case M_IO_BLE_RTYPE_NOTIFY:
+			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, rdata->d.notify.service_uuid);
+			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, rdata->d.notify.characteristic_uuid);
 			M_llist_remove_node(node);
 			break;
 	}

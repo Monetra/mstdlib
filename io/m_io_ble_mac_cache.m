@@ -927,6 +927,32 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 	M_thread_mutex_unlock(lock);
 }
 
+void M_io_ble_device_notify_done(const char *uuid, const char *service_uuid, const char *characteristic_uuid)
+{
+	M_io_ble_device_t *dev;
+	M_io_layer_t      *layer;
+
+	M_thread_mutex_lock(lock);
+
+	/* Get the associated device. */
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	if (dev->handle == NULL) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	if (M_io_ble_rdata_queue_add_notify(dev->handle->read_queue, service_uuid, characteristic_uuid))
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+	M_io_layer_release(layer);
+
+	M_thread_mutex_unlock(lock);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_io_ble_scan(M_event_t *event, M_event_callback_t callback, void *cb_data, M_uint64 timeout_ms)

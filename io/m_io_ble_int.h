@@ -35,7 +35,8 @@ typedef enum {
 	M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, /* str */
 	M_IO_BLE_META_KEY_WRITE_TYPE,          /* int (M_io_ble_wtype_t) */
 	M_IO_BLE_META_KEY_READ_TYPE,           /* int (M_io_ble_rtype_t) */
-	M_IO_BLE_META_KEY_RSSI                 /* int */
+	M_IO_BLE_META_KEY_RSSI,                /* int */
+	M_IO_BLE_META_KEY_NOTIFY               /* bool */
 } M_io_ble_meta_keys;
 
 typedef struct {
@@ -61,6 +62,10 @@ typedef struct {
 			char       characteristic_uuid[256];
 			M_buf_t   *data;
 		} read;
+		struct {
+			char       service_uuid[256];
+			char       characteristic_uuid[256];
+		} notify;
 	} d;
 } M_io_ble_rdata_t;
 
@@ -89,6 +94,7 @@ void M_io_ble_close(M_io_handle_t *handle, M_bool kill);
 void M_io_ble_rdata_destroy(M_io_ble_rdata_t *d);
 M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
 M_bool M_io_ble_rdata_queue_add_rssi(M_llist_t *queue, M_int64 rssi);
+M_bool M_io_ble_rdata_queue_add_notify(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid);
 
 
 /* Used by ble.c but not in the file. */

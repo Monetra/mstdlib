@@ -625,7 +625,7 @@ __BEGIN_DECLS
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_int64      rssi  = M_INT64_MIN;
- *     M_io_meta_t *rmeta = NULL;
+ *     M_io_meta_t *meta  = NULL;
  *     const char  *service_uuid;
  *     const char  *characteristic_uuid;
  *     char         msg[256];
@@ -639,19 +639,23 @@ __BEGIN_DECLS
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED!!!\n");
  *             // XXX: Set notify service and characteristic.
- *             M_io_ble_set_notify(dio, "1111", "2222", M_TRUE);
+ *             meta = M_io_meta_create();
+ *             M_io_ble_meta_set_service(dio, meta, "1111");
+ *             M_io_ble_meta_set_characteristic(dio, meta, "2222");
+ *             M_io_ble_meta_set_notify(dio, M_TRUE);
+ *             M_io_write_meta(dio, NULL, 0, NULL, meta);
+ *             M_io_meta_destroy(meta);
  *             break;
  *         case M_EVENT_TYPE_READ:
- *             rmeta = M_io_meta_create();
- *             M_io_read_meta(dio, msg, sizeof(msg), &len, rmeta);
- *             msg[len]            = '\0';
- *             service_uuid        = M_io_ble_meta_get_service(dio, rmeta);
- *             characteristic_uuid = M_io_ble_meta_get_characteristic(dio, rmeta);
- *
- *             M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
- *
- *             M_io_meta_destroy(rmeta);
- *
+ *             meta = M_io_meta_create();
+ *             M_io_read_meta(dio, msg, sizeof(msg), &len, meta);
+ *             if (M_io_ble_meta_get_read_type(io, meta) == M_IO_BLE_RTYPE_READ) {
+ *                 msg[len]            = '\0';
+ *                 service_uuid        = M_io_ble_meta_get_service(dio, meta);
+ *                 characteristic_uuid = M_io_ble_meta_get_characteristic(dio, meta);
+ *                 M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
+ *             }
+ *             M_io_meta_destroy(meta);
  *             M_thread_sleep(100000);
  *             break;
  *         case M_EVENT_TYPE_WRITE:
@@ -919,7 +923,8 @@ typedef enum {
 	M_IO_BLE_WTYPE_REQVAL,      /*!< Request value for service and characteristic. Not
 	                                 an actual write but a pseudo write to poll for a
 	                                 read event. */
-	M_IO_BLE_WTYPE_REQRSSI      /*!< Request RSSI value. */
+	M_IO_BLE_WTYPE_REQRSSI,     /*!< Request RSSI value. */
+	M_IO_BLE_WTYPE_REQNOTIFY    /*!< Request to change notify state. */
 } M_io_ble_wtype_t;
 
 
@@ -929,7 +934,8 @@ typedef enum {
  */
 typedef enum {
 	M_IO_BLE_RTYPE_READ = 0, /*!< Regular read of data from service and characteristic. */
-	M_IO_BLE_RTYPE_RSSI      /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
+	M_IO_BLE_RTYPE_RSSI,     /*!< RSSI data read. Use M_io_ble_meta_get_rssi. */
+	M_IO_BLE_RTYPE_NOTIFY    /*!< Notify state changed. */
 } M_io_ble_rtype_t;
 
 
@@ -1084,21 +1090,6 @@ M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *uuid, M_uint64 t
 M_API M_io_error_t M_io_ble_create_with_service(M_io_t **io_out, const char *service_uuid, M_uint64 timeout_ms);
 
 
-/*! Request read event's when the characteristic's value changes.
- *
- * Not all characteristic's support notifications. If not supported polling with M_io_write_meta
- * using M_IO_BLE_WTYPE_REQVAL is the only way to retrieve the current value.
- *
- * \param[in] io                  io object.
- * \param[in] service_uuid        UUID of service.
- * \param[in] characteristic_uuid UUID of characteristic.
- * \param[in] enable              Receive notifications?
- *
- * \return Result
- */
-M_API M_io_error_t M_io_ble_set_notify(M_io_t *io, const char *service_uuid, const char *characteristic_uuid, M_bool enable);
-
-
 /*! Get a list of service UUIDs provided by the device.
  *
  * \param[in] io io object.
@@ -1198,6 +1189,19 @@ M_API void M_io_ble_meta_set_service(M_io_t *io, M_io_meta_t *meta, const char *
  * \param[in] characteristic_uuid UUID of characteristic.
  */
 M_API void M_io_ble_meta_set_characteristic(M_io_t *io, M_io_meta_t *meta, const char *characteristic_uuid);
+
+
+/*! Set whether to receive notifications for characterisic data changes
+ *
+ * If not called the default is to enable notifications.
+ *
+ * Not all characteristic's support notifications. If not supported polling with M_io_write_meta
+ * using M_IO_BLE_WTYPE_REQVAL is the only way to retrieve the current value.
+ * \param[in] io     io object.
+ * \param[in] meta   Meta.
+ * \param[in] enable Enable or disable receiving notifications.
+ */
+M_API void M_io_ble_meta_set_notify(M_io_t *io, M_io_meta_t *meta, M_bool enable);
 
 
 /*! Set whether a write should be blind.
