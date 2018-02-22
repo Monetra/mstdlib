@@ -67,7 +67,7 @@ static M_io_error_t M_io_trace_read_cb(M_io_layer_t *layer, unsigned char *buf, 
 
 	err = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, read_len, meta);
 	if (err == M_IO_ERROR_SUCCESS) {
-		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_READ, M_EVENT_TYPE_READ, buf, *read_len);
+		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_READ, M_EVENT_TYPE_READ, buf, read_len==NULL?0:*read_len);
 	}
 	return err;
 }
@@ -83,7 +83,7 @@ static M_io_error_t M_io_trace_write_cb(M_io_layer_t *layer, const unsigned char
 
 	err = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, write_len, meta);
 	if (err == M_IO_ERROR_SUCCESS) {
-		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_WRITE, M_EVENT_TYPE_WRITE, buf, *write_len);
+		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_WRITE, M_EVENT_TYPE_WRITE, buf, write_len==NULL?0:*write_len);
 	}
 	return err;
 }
