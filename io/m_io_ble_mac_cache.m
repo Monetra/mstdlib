@@ -554,7 +554,6 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 	}
 
 	dev->last_seen = M_time();
-	dev->state     = state;
 
 	switch (state) {
 		case M_IO_STATE_CONNECTED:
@@ -989,7 +988,7 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
 		M_hash_strvp_enumerate(dev->services, &hes);
 		while (M_hash_strvp_enumerate_next(dev->services, hes, &const_temp, NULL)) {
-			M_io_ble_enum_add(btenum, dev->name, dev->uuid, const_temp, dev->last_seen, dev->state==M_IO_STATE_CONNECTED?M_TRUE:M_FALSE);
+			M_io_ble_enum_add(btenum, dev->name, dev->uuid, const_temp, dev->last_seen, dev->handle!=NULL?M_TRUE:M_FALSE);
 		}
 		M_hash_strvp_enumerate_free(hes);
 	}
@@ -1128,7 +1127,7 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 	}
 
 	/* We don't need the handle but we can't subscribe to devices that aren't connected. */
-	if (dev->handle == NULL || dev->state != M_IO_STATE_CONNECTED) {
+	if (dev->handle == NULL) {
 		M_thread_mutex_unlock(lock);
 		return M_IO_ERROR_NOTCONNECTED;
 	}

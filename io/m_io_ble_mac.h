@@ -45,8 +45,6 @@ typedef struct {
 	M_hash_strvp_t *services;
 	M_io_handle_t  *handle;
 	M_time_t        last_seen;  /* Over 30 minutes remove. Check after scan finishes. */
-	M_io_state_t    state;
-	M_bool          can_write;
 } M_io_ble_device_t;
 
 void M_io_ble_cbc_event_reset(void);
