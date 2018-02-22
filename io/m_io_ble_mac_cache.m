@@ -535,19 +535,37 @@ void M_io_ble_device_update_name(const char *uuid, const char *name)
 
 void M_io_ble_device_scan_finished(void)
 {
-	M_io_ble_device_t   *dev;
-	M_hash_strvp_enum_t *he;
-	const char          *uuid;
-	M_list_str_t        *uuids;
-	M_time_t             expire;
-	size_t               len;
-	size_t               i;
+	M_io_ble_device_t      *dev;
+	M_io_ble_enum_device_t *edev;
+	M_hash_strvp_enum_t    *he;
+	const char             *uuid;
+	M_list_str_t           *uuids;
+	M_time_t                expire;
+	size_t                  len;
+	size_t                  i;
 
 	M_thread_mutex_lock(lock);
 
 	/* Clear out all old devices that may not
 	 * be around anymore. */
-	uuids = M_list_str_create(M_LIST_STR_NONE);
+	uuids  = M_list_str_create(M_LIST_STR_NONE);
+	expire = M_time()-LAST_SEEN_EXPIRE;
+	M_hash_strvp_enumerate(seen_devices, &he);
+	while (M_hash_strvp_enumerate_next(seen_devices, he, &uuid, (void **)&edev)) {
+		if (edev->last_seen < expire) {
+			M_list_str_insert(uuids, uuid);
+		}
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	len = M_list_str_len(uuids);
+	for (i=0; i<len; i++) {
+		M_hash_strvp_remove(seen_devices, M_list_str_at(uuids, i), M_TRUE);
+	}
+	M_list_str_destroy(uuids);
+
+	/* XXX */
+	uuids  = M_list_str_create(M_LIST_STR_NONE);
 	expire = M_time()-LAST_SEEN_EXPIRE;
 	M_hash_strvp_enumerate(ble_devices, &he);
 	while (M_hash_strvp_enumerate_next(ble_devices, he, &uuid, (void **)&dev)) {
