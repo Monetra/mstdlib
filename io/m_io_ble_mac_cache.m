@@ -974,7 +974,7 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	return btenum;
 }
 
-void M_io_ble_connect(M_io_handle_t *handle)
+M_bool M_io_ble_connect(M_io_handle_t *handle)
 {
 	M_io_ble_device_t   *dev;
 	M_hash_strvp_enum_t *he;
@@ -990,7 +990,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
-		return;
+		return M_FALSE;
 	}
 
 	M_thread_mutex_lock(lock);
@@ -1001,7 +1001,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 			found = M_TRUE;
 		}
 	} else {
-		/* Looking for service. */
+		/* Try looking for service. */
 		M_hash_strvp_enumerate(ble_devices, &he);
 		while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
 			if (M_hash_strvp_get(dev->services, service_uuid, NULL)) {
@@ -1028,7 +1028,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		}
 		start_blind_scan();
 		M_thread_mutex_unlock(lock);
-		return;
+		return M_TRUE;
 	}
 
 	if (in_use) {
@@ -1037,7 +1037,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
-		return;
+		return M_FALSE;
 	}
 
 	if (!ret) {
@@ -1046,14 +1046,15 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
-		return;
+		return M_FALSE;
 	}
 
 	/* We successfully started the device connection sequence. */
 	M_thread_mutex_unlock(lock);
+	return M_TRUE;
 }
 
-void M_io_ble_close(M_io_handle_t *handle)
+void M_io_ble_close(M_io_handle_t *handle, M_bool kill)
 {
 	M_io_ble_device_t *dev;
 	CBPeripheral      *p;
@@ -1061,6 +1062,7 @@ void M_io_ble_close(M_io_handle_t *handle)
 	M_thread_mutex_lock(lock);
 
 	M_hash_strvp_remove(ble_waiting, handle->uuid, M_FALSE);
+	M_hash_strvp_remove(ble_waiting_service, handle->service_uuid, M_FALSE);
 	if (M_hash_strvp_get(ble_devices, handle->uuid, (void **)&dev)) {
 		dev->handle = NULL;
 		p = (__bridge CBPeripheral *)dev->peripheral;
@@ -1072,6 +1074,10 @@ void M_io_ble_close(M_io_handle_t *handle)
 	stop_blind_scan();
 
 	handle->state = M_IO_STATE_DISCONNECTED;
+
+	if (kill)
+		M_hash_strvp_remove(ble_devices, handle->uuid, M_TRUE);
+
 	M_thread_mutex_unlock(lock);
 }
 

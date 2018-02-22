@@ -104,7 +104,7 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 		handle->timer = NULL;
 	}
 
-	M_io_ble_close(handle);
+	M_io_ble_close(handle, M_FALSE);
 	M_llist_destroy(handle->read_queue, M_TRUE);
 	M_free(handle);
 }
@@ -276,16 +276,15 @@ static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dum
 	handle->timer = NULL;
 
 	if (handle->state == M_IO_STATE_CONNECTING) {
-		M_io_ble_close(handle);
 		M_snprintf(handle->error, sizeof(handle->error), "Timeout waiting on connect");
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	} else if (handle->state == M_IO_STATE_DISCONNECTING) {
-		M_io_ble_close(handle);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	} else {
 		/* Shouldn't ever happen */
 	}
 
+	M_io_ble_close(handle, M_TRUE);
 	M_io_layer_release(layer);
 }
 
@@ -296,7 +295,7 @@ M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 	if (handle->state != M_IO_STATE_CONNECTED && handle->state != M_IO_STATE_DISCONNECTING)
 		return M_TRUE;
 
-	M_io_ble_close(handle);
+	M_io_ble_close(handle, M_FALSE);
 	return M_TRUE;
 }
 
@@ -321,7 +320,9 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 		case M_IO_STATE_INIT:
 			handle->state = M_IO_STATE_CONNECTING;
 			handle->io    = io;
-			M_io_ble_connect(handle);
+			if (!M_io_ble_connect(handle)) {
+				return M_FALSE;
+			}
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:
 			/* start timer to time out operation */
