@@ -549,6 +549,24 @@ NSUInteger        blind_cnt  = 0;
 	M_io_ble_device_read_data(uuid, service_uuid, characteristic_uuid, rdata, data.length);
 }
 
+- (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
+{
+	const char *uuid;
+	const char *characteristic_uuid;
+	char        msg[256];
+
+	if (peripheral == nil)
+		return;
+
+	if (error == nil)
+		return;
+
+	uuid                = [[[peripheral identifier] UUIDString] UTF8String];
+	characteristic_uuid = [[characteristic.UUID UUIDString] UTF8String];
+	M_snprintf(msg, sizeof(msg), "Set notify failed for characteristic (%s): %s", characteristic_uuid, [[error localizedDescription] UTF8String]);
+	M_io_ble_device_set_state(uuid, M_IO_STATE_ERROR, msg);
+}
+
 - (void)peripheral:(CBPeripheral *)peripheral didReadRSSI:(NSNumber *)RSSI error:(NSError *)error
 {
 	const char *uuid;
