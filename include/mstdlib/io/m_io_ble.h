@@ -619,53 +619,66 @@ __BEGIN_DECLS
  * //
  * // Run:
  * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
- *
+ * 
  * #include <mstdlib/mstdlib.h>
  * #include <mstdlib/mstdlib_thread.h>
  * #include <mstdlib/mstdlib_io.h>
  * #include <mstdlib/io/m_io_ble.h>
- *
+ * 
  * #include <CoreFoundation/CoreFoundation.h>
- *
+ * 
  * M_event_t    *el;
  * M_io_t       *dio;
  * CFRunLoopRef  mrl = NULL;
- *
+ * 
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_int64      rssi  = M_INT64_MIN;
- *     M_io_meta_t *meta  = NULL;
+ *     M_io_meta_t *meta = NULL;
  *     const char  *service_uuid;
  *     const char  *characteristic_uuid;
  *     char         msg[256];
  *     size_t       len;
- *
+ * 
  *     (void)el;
  *     (void)io;
  *     (void)thunk;
- *
+ * 
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED!!!\n");
+ * 
  *             // XXX: Set notify service and characteristic.
  *             meta = M_io_meta_create();
+ *             M_io_ble_meta_set_write_type(dio, meta, M_IO_BLE_WTYPE_REQNOTIFY);
  *             M_io_ble_meta_set_service(dio, meta, "1111");
  *             M_io_ble_meta_set_characteristic(dio, meta, "2222");
- *             M_io_ble_meta_set_notify(dio, M_TRUE);
  *             M_io_write_meta(dio, NULL, 0, NULL, meta);
  *             M_io_meta_destroy(meta);
  *             break;
  *         case M_EVENT_TYPE_READ:
  *             meta = M_io_meta_create();
- *             M_io_read_meta(dio, msg, sizeof(msg), &len, meta);
- *             if (M_io_ble_meta_get_read_type(io, meta) == M_IO_BLE_RTYPE_READ) {
- *                 msg[len]            = '\0';
- *                 service_uuid        = M_io_ble_meta_get_service(dio, meta);
- *                 characteristic_uuid = M_io_ble_meta_get_characteristic(dio, meta);
- *                 M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
+ * 
+ *             if (M_io_read_meta(dio, msg, sizeof(msg), &len, meta) != M_IO_ERROR_SUCCESS) {
+ *                 M_io_meta_destroy(meta);
+ *                 break;
  *             }
+ *             if (M_io_ble_meta_get_read_type(dio, meta) == M_IO_BLE_RTYPE_NOTIFY) {
+ *                 M_printf("Notify enabled\n");
+ *                 M_io_meta_destroy(meta);
+ *                 break;
+ *             } else if (M_io_ble_meta_get_read_type(dio, meta) != M_IO_BLE_RTYPE_READ) {
+ *                 M_io_meta_destroy(meta);
+ *                 break;
+ *             }
+ * 
+ *             msg[len]            = '\0';
+ *             service_uuid        = M_io_ble_meta_get_service(dio, meta);
+ *             characteristic_uuid = M_io_ble_meta_get_characteristic(dio, meta);
+ * 
+ *             M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
+ * 
  *             M_io_meta_destroy(meta);
- *             M_thread_sleep(100000);
  *             break;
  *         case M_EVENT_TYPE_WRITE:
  *             break;
@@ -684,36 +697,36 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- *
+ * 
  * static void *run_el(void *arg)
  * {
  *     (void)arg;
  *     M_event_loop(el, M_TIMEOUT_INF);
  *     return NULL;
  * }
- *
+ * 
  * int main(int argc, char **argv)
  * {
  *     M_threadid_t     el_thread;
  *     M_thread_attr_t *tattr;
- *
+ * 
  *     el = M_event_create(M_EVENT_FLAG_NONE);
- *
+ * 
  *     tattr = M_thread_attr_create();
  *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
  *     el_thread = M_thread_create(tattr, run_el, NULL);
  *     M_thread_attr_destroy(tattr);
- *
+ * 
  *     // XXX: Set the id to the device you want to connect to.
  *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
  *     M_event_add(el, dio, events, NULL);
- *
+ * 
  *     mrl = CFRunLoopGetCurrent();
  *     CFRunLoopRun();
- *
+ * 
  *     M_event_done_with_disconnect(el, 5*1000);
  *     M_thread_join(el_thread, NULL);
- *
+ * 
  *     return 0;
  * }
  * \endcode

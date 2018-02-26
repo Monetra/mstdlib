@@ -88,7 +88,7 @@ void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const M_io_ble_enum_device_t *ed
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 
 M_bool M_io_ble_connect(M_io_handle_t *handle);
-void M_io_ble_close(M_io_handle_t *handle, M_bool kill);
+void M_io_ble_close(M_io_handle_t *handle);
 
 void M_io_ble_rdata_destroy(M_io_ble_rdata_t *d);
 M_bool M_io_ble_rdata_queue_add_read(M_llist_t *queue, const char *service_uuid, const char *characteristic_uuid, const unsigned char *data, size_t data_len);
