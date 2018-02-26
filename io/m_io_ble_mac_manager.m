@@ -177,7 +177,7 @@ NSUInteger        blind_cnt  = 0;
 		return;
 
 	[_manager stopScan];
-	M_io_ble_device_scan_finished();
+	M_io_ble_device_reap_seen();
 }
 
 - (void)scanTimeout:(NSTimer *)timer
@@ -191,7 +191,7 @@ NSUInteger        blind_cnt  = 0;
 	M_list_remove_at(triggers, idx);
 	if (M_list_len(triggers) == 0 && blind_cnt == 0) {
 		[_manager stopScan];
-		M_io_ble_device_scan_finished();
+		M_io_ble_device_reap_seen();
 	}
 }
 

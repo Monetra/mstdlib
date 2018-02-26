@@ -72,7 +72,6 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* XXX: 
- * - Update last seen in the ble_seen for every action on a device when open.
  * - Set enum connected based on if in ble_devices
  */ 
 
@@ -177,7 +176,7 @@ static M_io_ble_device_t *M_io_ble_device_create(CBPeripheral *peripheral)
 
 		for (CBCharacteristic *c in s.characteristics) {
 			characteristic_uuid = [[c.UUID UUIDString] UTF8String];
-			M_hash_strvp_insert(characteristics, characteristic_uuid, (void *)(__bridge_retained CFTypeRef)c);
+			M_hash_strvp_insert(characteristics, characteristic_uuid, (__bridge_retained CFTypeRef)c);
 		}
 	}
 
@@ -254,21 +253,32 @@ static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void
 	trigger_wrapper_destroy(tw);
 }
 
+static void M_io_ble_reset_caches(void)
+{
+	M_hash_strvp_destroy(ble_seen, M_TRUE);
+	M_hash_strvp_destroy(ble_devices, M_TRUE);
+	M_hash_strvp_destroy(ble_peripherals, M_TRUE);
+	/* Will notify all waiting io objects with an error. */
+	M_hash_strvp_destroy(ble_waiting, M_TRUE);
+	M_hash_strvp_destroy(ble_waiting_service , M_TRUE);
+	ble_seen            = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_free_device);
+	ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
+	ble_peripherals     = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_remove_cache);
+	ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+	ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+}
+
 static void M_io_ble_manager_init(void)
 {
 	static dispatch_once_t  d = 0;
 
 	/* Setup the scanning objects. */
 	dispatch_once(&d, ^{
-		ble_seen            = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_free_device);
-		ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
-		ble_peripherals     = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_remove_cache);
-		ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
-		ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
-		lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-		cond                = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-		manager             = [M_io_ble_mac_manager m_io_ble_mac_manager];
-		cbc_manager         = [[CBCentralManager alloc] initWithDelegate:manager queue:nil];
+		M_io_ble_reset_caches();
+		lock        = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		cond        = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+		manager     = [M_io_ble_mac_manager m_io_ble_mac_manager];
+		cbc_manager = [[CBCentralManager alloc] initWithDelegate:manager queue:nil];
 		[manager setManager:cbc_manager];
 
 		M_library_cleanup_register(M_io_ble_cleanup, NULL);
@@ -299,6 +309,16 @@ static void stop_blind_scan(void)
 	});
 }
 
+/* MUST BE IN A LOCK TO CALL THIS FUNCTION! */
+static void update_seen(const char *uuid)
+{
+	M_io_ble_enum_device_t *edev;
+
+	if (!M_hash_strvp_get(ble_seen, uuid, (void **)&edev))
+		return;
+	edev->last_seen = M_time();
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_cbc_event_reset(void)
@@ -308,6 +328,10 @@ void M_io_ble_cbc_event_reset(void)
 	M_hash_strvp_enum_t *he;
 
 	M_thread_mutex_lock(lock);
+
+	/* We need to issue a disconnect for each device individually because destroying
+ 	 * the device in the cache won't generate one. We can't have destroy genereate
+	 * because we could be removing from the cache for a disconnect or an error event. */
 	M_hash_strvp_enumerate(ble_devices, &he);
 	while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
 		if (dev->handle == NULL) {
@@ -320,17 +344,8 @@ void M_io_ble_cbc_event_reset(void)
 	}
 	M_hash_strvp_enumerate_free(he);
 
-	M_hash_strvp_destroy(ble_devices, M_TRUE);
-	ble_devices = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
-
-	M_hash_strvp_destroy(ble_peripherals, M_TRUE);
-	ble_peripherals = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_remove_cache);
-
-	/* Will notify all waiting io objects with an error. */
-	M_hash_strvp_destroy(ble_waiting, M_TRUE);
-	M_hash_strvp_destroy(ble_waiting_service, M_TRUE);
-	ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
-	ble_waiting_service = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);
+	/* Reset the caches because everything is cleared. */
+	M_io_ble_reset_caches();
 
 	M_thread_mutex_unlock(lock);
 }
@@ -350,7 +365,8 @@ void M_io_ble_saw_device(const char *uuid, const char *name, const M_list_str_t 
 	if (!M_str_isempty(name))
 		M_str_cpy(edev->name, sizeof(edev->name), name);
 
-	M_list_str_merge(&edev->service_uuids, M_list_str_duplicate(service_uuids), M_FALSE);
+	M_list_str_destroy(edev->service_uuids);
+	edev->service_uuids = M_list_str_duplicate(service_uuids);
 
 	edev->last_seen = M_time();
 
@@ -377,7 +393,7 @@ void M_io_ble_device_update_name(const char *uuid, const char *name)
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_scan_finished(void)
+void M_io_ble_device_reap_seen(void)
 {
 	M_io_ble_enum_device_t *edev;
 	M_hash_strvp_enum_t    *he;
@@ -389,8 +405,7 @@ void M_io_ble_device_scan_finished(void)
 
 	M_thread_mutex_lock(lock);
 
-	/* Clear out all old devices that may not
-	 * be around anymore. */
+	/* Generate a list of UUIDs that have expired. */
 	uuids  = M_list_str_create(M_LIST_STR_NONE);
 	expire = M_time()-LAST_SEEN_EXPIRE;
 	M_hash_strvp_enumerate(ble_seen, &he);
@@ -401,6 +416,7 @@ void M_io_ble_device_scan_finished(void)
 	}
 	M_hash_strvp_enumerate_free(he);
 
+	/* Go though the list of expired UUIDs and remove them. */
 	len = M_list_str_len(uuids);
 	for (i=0; i<len; i++) {
 		M_hash_strvp_remove(ble_seen, M_list_str_at(uuids, i), M_TRUE);
@@ -422,7 +438,7 @@ void M_io_ble_device_cache_peripherial(CBPeripheral *peripheral)
 		return;
 
 	p = (__bridge_retained CFTypeRef)peripheral;
-	M_hash_strvp_insert(ble_peripherals, uuid, (void *)p);
+	M_hash_strvp_insert(ble_peripherals, uuid, p);
 
 	M_thread_mutex_unlock(lock);
 }
@@ -510,6 +526,7 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 	}
 	stop_blind_scan();
 
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -569,6 +586,7 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 
 	/* DO not use dev after this point because it could have been destroyed. */
 
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -660,6 +678,7 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	dev->handle->can_write = blind;
 
 	M_io_layer_release(layer);
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 
 	return M_IO_ERROR_SUCCESS;
@@ -716,6 +735,8 @@ M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid,
 	});
 
 	M_io_layer_release(layer);
+
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 
 	return M_IO_ERROR_SUCCESS;
@@ -753,6 +774,8 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 	});
 
 	M_io_layer_release(layer);
+
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 
 	return M_IO_ERROR_SUCCESS;
@@ -782,6 +805,7 @@ void M_io_ble_device_write_complete(const char *uuid)
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 	M_io_layer_release(layer);
 
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -810,6 +834,8 @@ void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const
 	M_io_layer_release(layer);
 
 	M_io_layer_release(layer);
+
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -838,6 +864,8 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 	M_io_layer_release(layer);
 
 	M_io_layer_release(layer);
+
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -864,6 +892,7 @@ void M_io_ble_device_notify_done(const char *uuid, const char *service_uuid, con
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 	M_io_layer_release(layer);
 
+	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -892,6 +921,8 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	M_io_ble_enum_t        *btenum;
 	M_hash_strvp_enum_t    *he;
 	M_io_ble_enum_device_t *edev;
+
+	M_io_ble_device_reap_seen();
 
 	btenum = M_io_ble_enum_init();
 

@@ -48,7 +48,7 @@ void M_io_ble_cbc_event_reset(void);
 void M_io_ble_saw_device(const char *uuid, const char *name, const M_list_str_t *service_uuids);
 
 void M_io_ble_device_update_name(const char *uuid, const char *name);
-void M_io_ble_device_scan_finished(void);
+void M_io_ble_device_reap_seen(void);
 void M_io_ble_device_cache_peripherial(CBPeripheral *peripheral);
 void M_io_ble_device_set_connected(CBPeripheral *peripheral);
 void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error);
