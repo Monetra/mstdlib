@@ -206,7 +206,7 @@ NSUInteger        blind_cnt  = 0;
 	ScanTrigger *st = timer.userInfo;
 	size_t       idx;
 
-	if (st == nil || !M_list_index_of(triggers, (__bridge void *)st, M_LIST_MATCH_VAL, &idx))
+	if (st == nil || !M_list_index_of(triggers, (__bridge CFTypeRef)st, M_LIST_MATCH_VAL, &idx))
 		return;
 
 	M_list_remove_at(triggers, idx);
