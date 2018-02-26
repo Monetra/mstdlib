@@ -362,9 +362,7 @@ void M_io_ble_saw_device(const char *uuid, const char *name, const M_list_str_t 
 	if (!M_str_isempty(name))
 		M_str_cpy(edev->name, sizeof(edev->name), name);
 
-	M_list_str_destroy(edev->service_uuids);
 	M_list_str_merge(&edev->service_uuids, M_list_str_duplicate(service_uuids), M_FALSE);
-
 	edev->last_seen = M_time();
 
 	M_thread_mutex_unlock(lock);
