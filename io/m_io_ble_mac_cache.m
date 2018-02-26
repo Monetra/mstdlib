@@ -107,9 +107,6 @@ static void M_io_ble_cleanup(void *arg)
 
 	/* Kill the references so ARC sees the object
  	 * isn't used and will clean it up. */
-	dispatch_sync(dispatch_get_main_queue(), ^{
-		[manager setManager:nil];
-	});
 	manager     = nil;
 	cbc_manager = nil;
 

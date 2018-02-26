@@ -123,8 +123,10 @@ NSUInteger        blind_cnt  = 0;
 - (void)dealloc
 {
 	_manager = nil;
-	M_list_destroy(triggers, M_TRUE);
-	M_io_ble_cbc_event_reset();
+	/* This should only be called on MSTDLIB library deinit.
+	 * We don't want to try to trigger anything because the
+	 * event loop should have already been destoroyed. */
+	M_list_destroy(triggers, M_FALSE);
 }
 
 - (void)setManager:(CBCentralManager *)manager
