@@ -263,45 +263,89 @@ M_hash_dict_t *M_hash_dict_duplicate(const M_hash_dict_t *h)
 }
 
 
-char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+typedef enum {
+	M_HASHDICT_QUOTE_TYPE_OFF = 1,
+	M_HASHDICT_QUOTE_TYPE_ON  = 2,
+	M_HASHDICT_QUOTE_TYPE_ESCAPE = 3
+} M_hashdict_quote_type_t;
+
+
+static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, size_t val_len, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
 {
-	M_buf_t            *buf;
+	size_t                  i;
+	M_hashdict_quote_type_t quote_type = (flags & M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE)?M_HASHDICT_QUOTE_TYPE_ON:M_HASHDICT_QUOTE_TYPE_OFF;
+
+	/* Empty, non-null strings get quoted to indicate they're zero-length strings, not NULL. */
+	if (val != NULL && M_str_isempty(val))
+		quote_type = M_HASHDICT_QUOTE_TYPE_ON;
+
+	for (i=0; i<val_len; i++) {
+		if (val[i] == delim || val[i] == kv_delim)
+			quote_type = M_HASHDICT_QUOTE_TYPE_ON;
+
+		if (val[i] == quote || val[i] == escape)
+			return M_HASHDICT_QUOTE_TYPE_ESCAPE;
+	}
+	return quote_type;
+}
+
+
+M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+{
 	M_hash_dict_enum_t *hashenum = NULL;
 	const char         *key;
 	const char         *val;
 
-	(void)flags;
-
 	if (dict == NULL || M_hash_dict_num_keys(dict) == 0)
-		return NULL;
+		return M_FALSE;
 
-	buf = M_buf_create();
 	M_hash_dict_enumerate(dict, &hashenum);
 	while (M_hash_dict_enumerate_next(dict, hashenum, &key, &val)) {
+		M_hashdict_quote_type_t quote_type = M_hash_dict_serialize_quotetype(val, M_str_len(val), delim, kv_delim, quote, escape, flags);
+
+		/* Output Key */
 		M_buf_add_str(buf, key);
+
+		/* Output delim between key and value */
 		M_buf_add_byte(buf, (unsigned char)kv_delim);
-		if (val != NULL) {
+
+		/* Output quote if necessary */
+		if (quote_type != M_HASHDICT_QUOTE_TYPE_OFF)
 			M_buf_add_byte(buf, (unsigned char)quote);
-			if (M_str_chr(val, quote) != NULL) {
-				/* If string contains a double-quote, escape it with the escape character */
-				for ( ; *val != '\0'; val++) {
-					if (*val == quote)
-						M_buf_add_byte(buf, (unsigned char)escape);
-					M_buf_add_byte(buf, (unsigned char)*val);
-				}
-			} else {
-				/* Value doesn't contain a double quote, just output it */
-				M_buf_add_str(buf, val);
+
+		/* Output value, if we know it needs to be escaped, loop over it */
+		if (quote_type == M_HASHDICT_QUOTE_TYPE_ESCAPE) {
+			for ( ; *val != '\0'; val++) {
+				if (*val == quote || *val == escape)
+					M_buf_add_byte(buf, (unsigned char)escape);
+				M_buf_add_byte(buf, (unsigned char)*val);
 			}
-			M_buf_add_byte(buf, (unsigned char)quote);
 		} else {
-			/* Value is NULL, don't even put quotes around it so when we parse it
-			 * back out we know to insert NULL as the value */
+			M_buf_add_str(buf, val);
 		}
+
+		/* Output quote if necessary  */
+		if (quote_type != M_HASHDICT_QUOTE_TYPE_OFF)
+			M_buf_add_byte(buf, (unsigned char)quote);
+
+		/* Output delimiter at end of each value */
 		M_buf_add_byte(buf, (unsigned char)delim);
 	}
 
 	M_hash_dict_enumerate_free(hashenum);
+	return M_TRUE;
+}
+
+
+char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+{
+	M_buf_t *buf = M_buf_create();
+
+	if (!M_hash_dict_serialize_buf(dict, buf, delim, kv_delim, quote, escape, flags)) {
+		M_buf_cancel(buf);
+		return NULL;
+	}
+
 	return M_buf_finish_str(buf, NULL);
 }
 
