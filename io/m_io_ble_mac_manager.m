@@ -48,24 +48,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static int compar_scan_trigger(const void *a, const void *b, void *thunk)
-{
-	const ScanTrigger *sta = (__bridge ScanTrigger *)(*(void * const *)a);
-	const ScanTrigger *stb = (__bridge ScanTrigger *)(*(void * const *)b);
-
-	(void)thunk;
-
-	if (sta == NULL || stb == NULL)
-		return 0;
-
-	/* Compare based on trigger pointer */
-	if (sta.trigger == stb.trigger)
-		return 0;
-	if (sta.trigger < stb.trigger)
-		return -1;
-	return 1;
-}
-
 static void del_scan_trigger(void *p)
 {
 	ScanTrigger *st = (__bridge_transfer ScanTrigger *)p;
@@ -123,7 +105,7 @@ NSUInteger        blind_cnt  = 0;
 - (id)init
 {
 	struct M_list_callbacks lcbs = {
-		compar_scan_trigger,
+		NULL,
 		NULL,
 		NULL,
 		(M_list_free_func)del_scan_trigger
@@ -133,10 +115,7 @@ NSUInteger        blind_cnt  = 0;
 	if (!self)
 		return nil;
 
-	/* All matching is based on value because the ScanTrigger object
-	 * created in startScan has a different pointer than the one
-	 * sent to scanTimeout. Even though they're the same object. */
-	triggers = M_list_create(&lcbs, M_LIST_SET_VAL);
+	triggers = M_list_create(&lcbs, M_LIST_NONE);
 
 	return self;
 }
@@ -206,7 +185,7 @@ NSUInteger        blind_cnt  = 0;
 	ScanTrigger *st = timer.userInfo;
 	size_t       idx;
 
-	if (st == nil || !M_list_index_of(triggers, (__bridge CFTypeRef)st, M_LIST_MATCH_VAL, &idx))
+	if (st == nil || !M_list_index_of(triggers, (__bridge CFTypeRef)st, M_LIST_MATCH_PTR, &idx))
 		return;
 
 	M_list_remove_at(triggers, idx);
