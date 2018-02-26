@@ -30,13 +30,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void M_io_ble_enum_free_device(void *arg)
-{
-	M_io_ble_enum_device_t *device = arg;
-	M_list_str_destroy(device->service_uuids);
-	M_free(device);
-}
-
 static M_hash_multi_t *M_io_ble_get_meta_data(M_io_t *io, M_io_meta_t *meta)
 {
 	M_hash_multi_t *d;
@@ -101,6 +94,14 @@ M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms)
 	return timeout_ms;
 }
 
+void M_io_ble_enum_free_device(M_io_ble_enum_device_t *dev)
+{
+	if (dev == NULL)
+		return;
+	M_list_str_destroy(dev->service_uuids);
+	M_free(dev);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_enum_destroy(M_io_ble_enum_t *btenum)
@@ -118,7 +119,7 @@ M_io_ble_enum_t *M_io_ble_enum_init(void)
 		NULL,
 		NULL,
 		NULL,
-		M_io_ble_enum_free_device
+		(M_list_free_func)M_io_ble_enum_free_device
 	};
 	btenum->devices = M_list_create(&listcbs, M_LIST_NONE);
 	return btenum;

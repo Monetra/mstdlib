@@ -260,7 +260,7 @@ static void M_io_ble_manager_init(void)
 
 	/* Setup the scanning objects. */
 	dispatch_once(&d, ^{
-		ble_seen        = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_destroy);
+		ble_seen            = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_free_device);
 		ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
 		ble_peripherals     = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_remove_cache);
 		ble_waiting         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_waiting_destroy);

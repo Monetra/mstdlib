@@ -86,6 +86,7 @@ struct M_io_handle {
 M_io_ble_enum_t *M_io_ble_enum_init(void);
 void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const M_io_ble_enum_device_t *edev);
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
+void M_io_ble_enum_free_device(M_io_ble_enum_device_t *dev);
 
 M_bool M_io_ble_connect(M_io_handle_t *handle);
 void M_io_ble_close(M_io_handle_t *handle);
