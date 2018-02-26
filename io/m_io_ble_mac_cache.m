@@ -261,6 +261,7 @@ static void M_io_ble_reset_caches(void)
 	/* Will notify all waiting io objects with an error. */
 	M_hash_strvp_destroy(ble_waiting, M_TRUE);
 	M_hash_strvp_destroy(ble_waiting_service , M_TRUE);
+
 	ble_seen            = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void (*)(void *))M_io_ble_enum_free_device);
 	ble_devices         = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_destroy);
 	ble_peripherals     = M_hash_strvp_create(8, 75, M_HASH_STRVP_NONE, (void (*)(void *))M_io_ble_device_remove_cache);
