@@ -993,7 +993,10 @@ void M_io_ble_close(M_io_handle_t *handle)
 		});
 	}
 
-	/* XXX: Should this be here? */
+	/* We could be here from a timeout during open. We'd never get a disconnect
+	 * or error event that would have stopped a blind scan. Stopping blind scans
+	 * are protected so we don't need to worry about stopping a scan that should
+	 * actually be running. */
 	stop_blind_scan();
 
 	handle->state = M_IO_STATE_DISCONNECTED;
