@@ -446,16 +446,15 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 
 	M_thread_mutex_lock(lock);
 
-	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	stop_blind_scan();
 
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 	if (M_hash_strvp_get(ble_devices, uuid, NULL)) {
-		/* There is already an association. We shouldn't have gotten
-		 * another connect event... This most likely means the services
-		 * and characteristic objects we have are invalid. We'll issue
-		 * a disconnect because the state is just wrong. */
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[manager disconnectFromDevice:peripheral];
-		});
+		/* There is already an association. We have seen multiple
+		 * connect events generated. What happens is we get duplicate
+		 * events for discovering services and characteristics which
+		 * in turn causes multiple connected events to be sent.
+		 * We'll ignore this event when the device is already connected. */
 		M_thread_mutex_unlock(lock);
 		return;
 	}
@@ -516,7 +515,6 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 		});
 		M_io_ble_device_destroy(dev);
 	}
-	stop_blind_scan();
 
 	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
@@ -543,11 +541,12 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 				M_io_layer_release(layer);
-
-				M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
-				dev = NULL;
 			}
+
+			M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
 			M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
+			dev = NULL;
+
 			break;
 		case M_IO_STATE_ERROR:
 			if (dev->handle != NULL) {
@@ -588,6 +587,14 @@ M_bool M_io_ble_device_waiting_connect(const char *uuid, const M_list_str_t *ser
 	size_t i;
 
 	M_thread_mutex_lock(lock);
+
+	/* If we've already cached the peripheral then we're in the process
+	 * of connecting. We'll return false so we don't try to connect
+	 * again while we're connecting. */
+	if (M_hash_strvp_get(ble_peripherals, uuid, NULL)) {
+		M_thread_mutex_unlock(lock);
+		return M_FALSE;
+	}
 
 	if (M_hash_strvp_get(ble_waiting, uuid, NULL)) {
 		M_thread_mutex_unlock(lock);

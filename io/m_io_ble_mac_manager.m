@@ -307,6 +307,10 @@ NSUInteger        blind_cnt  = 0;
 	uuid = [[[peripheral identifier] UUIDString] UTF8String];
 	name = [[advertisementData objectForKey:CBAdvertisementDataLocalNameKey] UTF8String];
 
+	/* If no services are advertised we don't want to try to use this device. */
+	if ([[advertisementData objectForKey:CBAdvertisementDataServiceUUIDsKey] count] == 0)
+		return;
+
 	service_uuids = M_list_str_create(M_LIST_STR_SORTASC);
 	for (CBUUID *nuuid in [advertisementData objectForKey:CBAdvertisementDataServiceUUIDsKey]) {
 		M_list_str_insert(service_uuids, [[nuuid UUIDString] UTF8String]);
@@ -314,11 +318,11 @@ NSUInteger        blind_cnt  = 0;
 
 	M_io_ble_saw_device(uuid, name, service_uuids);
 
-	/* Ensure the peripheral has the proper delegate set. */
-	if (peripheral.delegate != self)
-		peripheral.delegate = self;
-
 	if (M_io_ble_device_waiting_connect(uuid, service_uuids) && peripheral.state == CBPeripheralStateDisconnected) {
+		if (peripheral.delegate != self) {
+			peripheral.delegate = self;
+		}
+
 		M_io_ble_device_cache_peripherial(peripheral);
 		[_manager connectPeripheral:peripheral options:nil];
 	}
