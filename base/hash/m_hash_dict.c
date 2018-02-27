@@ -279,6 +279,9 @@ static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, 
 	if (val != NULL && M_str_isempty(val))
 		quote_type = M_HASHDICT_QUOTE_TYPE_ON;
 
+	if (val == NULL)
+		return quote_type;
+
 	for (i=0; i<val_len; i++) {
 		if (val[i] == delim || val[i] == kv_delim)
 			quote_type = M_HASHDICT_QUOTE_TYPE_ON;
