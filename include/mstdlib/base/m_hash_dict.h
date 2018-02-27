@@ -28,6 +28,7 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_buf.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
