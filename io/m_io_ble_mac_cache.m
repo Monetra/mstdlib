@@ -744,7 +744,6 @@ M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid,
 M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 {
 	M_io_ble_device_t *dev;
-	M_io_layer_t      *layer;
 	CBPeripheral      *p;
 
 	if (M_str_isempty(uuid))
@@ -764,15 +763,11 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 		return M_IO_ERROR_NOTCONNECTED;
 	}
 
-	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-
 	p = (__bridge CBPeripheral *)dev->peripheral;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		/* Pass the data off for writing. */
 		[manager requestRSSIFromPeripheral:p];
 	});
-
-	M_io_layer_release(layer);
 
 	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
@@ -832,8 +827,6 @@ void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 	M_io_layer_release(layer);
 
-	M_io_layer_release(layer);
-
 	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
@@ -860,8 +853,6 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	if (M_io_ble_rdata_queue_add_rssi(dev->handle->read_queue, rssi))
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
-	M_io_layer_release(layer);
-
 	M_io_layer_release(layer);
 
 	update_seen(uuid);
