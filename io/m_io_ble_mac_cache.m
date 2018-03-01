@@ -67,6 +67,10 @@
  * them when connected. Read and write events will marshal data into and out
  * of the handle. Event's will also be triggered on the handle. If a handle
  * is not associated with a device then events will be ignored.
+ *
+ * Any access to dev->handle will be within a M_io_layer_acquire. This is to
+ * prevent the cbc_manager from trying to add data to the handle's write queue
+ * while it's trying to be read from a read_cb.
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -197,14 +201,10 @@ static void M_io_ble_waiting_destroy(M_io_handle_t *handle)
 {
 	M_io_layer_t *layer;
 
-	if (handle == NULL)
+	if (handle == NULL || handle->io == NULL)
 		return;
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	if (handle->io == NULL) {
-		M_io_layer_release(layer);
-		return;
-	}
 	M_snprintf(handle->error, sizeof(handle->error), "Timeout");
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	M_io_layer_release(layer);
@@ -550,10 +550,10 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 			break;
 		case M_IO_STATE_ERROR:
 			if (dev->handle != NULL) {
-				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 				if (M_str_isempty(error)) {
 					error = "Generic error";
 				}
+				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 				M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 				M_io_layer_release(layer);
@@ -957,7 +957,7 @@ M_bool M_io_ble_connect(M_io_handle_t *handle)
 	if (!M_str_isempty(handle->uuid)) {
 		M_hash_strvp_insert(ble_waiting, handle->uuid, handle);
 	} else {
-		M_hash_strvp_insert(ble_waiting_service, handle->uuid, handle);
+		M_hash_strvp_insert(ble_waiting_service, handle->service_uuid, handle);
 	}
 	start_blind_scan();
 
