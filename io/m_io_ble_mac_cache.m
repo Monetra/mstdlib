@@ -520,7 +520,7 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 	M_thread_mutex_unlock(lock);
 }
 
-void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error)
+static void M_io_ble_device_set_disconnected(const char *uuid)
 {
 	M_io_ble_device_t *dev;
 	M_io_layer_t      *layer;
@@ -532,41 +532,70 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 		return;
 	}
 
+	if (dev->handle == NULL) {
+		M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
+		M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_release(layer);
+
+	M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
+	M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
+	M_thread_mutex_unlock(lock);
+}
+
+static void M_io_ble_device_set_error(const char *uuid, const char *error)
+{
+	M_io_ble_device_t *dev;
+	M_io_layer_t      *layer;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	/* A connection failure will trigger this event. A read/write error will also trigger this event.
+	 * It's okay to try to stop the blind scan here. If there are waiting devices the scan
+	 * won't be stopped. */
+	stop_blind_scan();
+
+	if (dev->handle == NULL) {
+		M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
+		M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	if (M_str_isempty(error))
+		error = "Generic error";
+
+	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_release(layer);
+
+	M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
+	M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
+	M_thread_mutex_unlock(lock);
+}
+
+void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char *error)
+{
 	switch (state) {
 		case M_IO_STATE_CONNECTED:
 			/* There is a function for this state because it needs to do more. */
 			break;
 		case M_IO_STATE_DISCONNECTED:
-			if (dev->handle != NULL) {
-				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
-				M_io_layer_release(layer);
-			}
-
-			M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
-			M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
-			dev = NULL;
-
+			M_io_ble_device_set_disconnected(uuid);
 			break;
 		case M_IO_STATE_ERROR:
-			if (dev->handle != NULL) {
-				if (M_str_isempty(error)) {
-					error = "Generic error";
-				}
-				layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-				M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
-				M_io_layer_release(layer);
-			}
-
-			M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
-			M_hash_strvp_remove(ble_peripherals, uuid, M_TRUE);
-			dev = NULL;
-
-			/* A connection failure will trigger this event. A read/write error will also trigger this event.
-			 * It's okay to try to stop the blind scan here. If there are waiting devices the scan
-			 * won't be stopped. */
-			stop_blind_scan();
+			M_io_ble_device_set_error(uuid, error);
 			break;
 		case M_IO_STATE_INIT:
 		case M_IO_STATE_CONNECTING:
@@ -575,8 +604,7 @@ void M_io_ble_device_set_state(const char *uuid, M_io_state_t state, const char 
 			break;
 	}
 
-	/* DO not use dev after this point because it could have been destroyed. */
-
+	M_thread_mutex_lock(lock);
 	update_seen(uuid);
 	M_thread_mutex_unlock(lock);
 }
@@ -627,7 +655,8 @@ M_io_error_t M_io_ble_device_write(const char *uuid, const char *service_uuid, c
 	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid) || data == NULL || data_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	M_thread_mutex_lock(lock);
+	if (!M_thread_mutex_trylock(lock))
+		return M_IO_ERROR_WOULDBLOCK;
 
 	/* Get the associated device. */
 	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
@@ -695,7 +724,8 @@ M_io_error_t M_io_ble_device_req_val(const char *uuid, const char *service_uuid,
 	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
 		return M_IO_ERROR_INVALID;
 
-	M_thread_mutex_lock(lock);
+	if (!M_thread_mutex_trylock(lock))
+		return M_IO_ERROR_WOULDBLOCK;
 
 	/* Get the associated device. */
 	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
@@ -749,7 +779,8 @@ M_io_error_t M_io_ble_device_req_rssi(const char *uuid)
 	if (M_str_isempty(uuid))
 		return M_IO_ERROR_INVALID;
 
-	M_thread_mutex_lock(lock);
+	if (!M_thread_mutex_trylock(lock))
+		return M_IO_ERROR_WOULDBLOCK;
 
 	/* Get the associated device. */
 	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
@@ -929,18 +960,17 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	return btenum;
 }
 
-M_bool M_io_ble_connect(M_io_handle_t *handle)
+M_bool M_io_ble_init_int(void)
+{
+	M_io_ble_manager_init();
+	if (cbc_manager != nil)
+		return M_TRUE;
+	return M_FALSE;
+}
+
+void M_io_ble_connect(M_io_handle_t *handle)
 {
 	M_io_layer_t *layer;
-
-	M_io_ble_manager_init();
-	if (cbc_manager == nil) {
-		M_snprintf(handle->error, sizeof(handle->error), "Failed to initalize BLE manager");
-		layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
-		M_io_layer_release(layer);
-		return M_FALSE;
-	}
 
 	M_thread_mutex_lock(lock);
 
@@ -950,7 +980,7 @@ M_bool M_io_ble_connect(M_io_handle_t *handle)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
-		return M_FALSE;
+		return;
 	}
 
 	/* Cache that we want to get a device. */
@@ -962,7 +992,6 @@ M_bool M_io_ble_connect(M_io_handle_t *handle)
 	start_blind_scan();
 
 	M_thread_mutex_unlock(lock);
-	return M_TRUE;
 }
 
 void M_io_ble_close(M_io_handle_t *handle)

@@ -21,12 +21,92 @@
  * THE SOFTWARE.
  */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 #include "m_config.h"
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/io/m_io_ble.h>
 #include "m_io_ble_int.h"
 #include "m_io_ble_int.h"
 #include "m_io_ble_mac.h"
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Since there is a global cache shared by both our event loop(s) and the macOS
+ * run loop we need to worry about locks. We don't want to run anything from these
+ * callbacks directly. The callbacks have an implict layer lock which could cause
+ * a dead lock if we call cache functions directly.
+ *
+ * For example:
+ * 1. OS read event is triggered.
+ * 2. M_io_ble_device_read_data is called.
+ * 3. M_io_ble_device_read_data locks the ble lock.
+ * 4. M_io_ble_destroy_cb is called. This has an implict io layer lock.
+ * 5. M_io_ble_destroy_cb calls M_io_ble_close.
+ * 6. M_io_ble_close blocks while it waits for the ble lock.
+ * 7. M_io_ble_device_read_data attempts to lock the io layer.
+ * 8. We have a dead lock because M_io_ble_device_read_data has
+ *    the ble lock which M_io_ble_close needs in order to release
+ *    the io layer lock but that can't happen until M_io_ble_device_read_data 
+ *    release the ble lock but it can't until ...
+ *
+ * To deal with this we have a destroy and close runner event functions
+ * which will run after the functions with the implicit layer locks have
+ * exited.
+ *
+ * Write functions are an exception to this pattern because there isn't a good
+ * way to buffer the write data. Also, we want the write function to give us
+ * an error condition. Instead we use a try lock in the cache functions. If
+ * the try lock fails they'll return M_IO_ERROR_WOULDBLOCK letting the caller
+ * know they need to try again.
+ */
+
+static void M_io_ble_connect_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle = arg;
+
+	(void)event;
+	(void)type;
+	(void)dummy_io;
+
+	if (arg == NULL)
+		return;
+
+	M_io_ble_connect(handle);
+}
+
+static void M_io_ble_destroy_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle = arg;
+
+	(void)event;
+	(void)type;
+	(void)dummy_io;
+
+	if (arg == NULL)
+		return;
+
+	handle->timer = NULL;
+	M_io_ble_close(handle);
+	M_llist_destroy(handle->read_queue, M_TRUE);
+	M_free(handle);
+}
+
+static void M_io_ble_close_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle = arg;
+
+	(void)event;
+	(void)type;
+	(void)dummy_io;
+
+	if (arg == NULL)
+		return;
+
+	handle->timer = NULL;
+	M_io_ble_close(handle);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
 {
@@ -104,9 +184,8 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 		handle->timer = NULL;
 	}
 
-	M_io_ble_close(handle);
-	M_llist_destroy(handle->read_queue, M_TRUE);
-	M_free(handle);
+	handle->io = NULL;
+	M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_destroy_runner, handle);
 }
 
 M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
@@ -199,8 +278,10 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	}
 
 	/* A succesful write without response can write again because there is no
- 	 * reponse to tell us the device is ready. */
-	if (ret == M_IO_ERROR_SUCCESS && type == M_IO_BLE_WTYPE_WRITENORESP)
+	 * reponse to tell us the device is ready. If we got a would block error
+	 * and we can write that means we weren't able to get the ble lock and we
+	 * a retry is needed. */
+	if ((ret == M_IO_ERROR_SUCCESS && type == M_IO_BLE_WTYPE_WRITENORESP) || (ret == M_IO_ERROR_WOULDBLOCK && handle->can_write))
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 
 	return ret;
@@ -299,9 +380,9 @@ static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dum
 	} else {
 		/* Shouldn't ever happen */
 	}
+	M_io_layer_release(layer);
 
 	M_io_ble_close(handle);
-	M_io_layer_release(layer);
 }
 
 M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
@@ -311,7 +392,7 @@ M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 	if (handle->state != M_IO_STATE_CONNECTED && handle->state != M_IO_STATE_DISCONNECTING)
 		return M_TRUE;
 
-	M_io_ble_close(handle);
+	M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_close_runner, handle);
 	return M_TRUE;
 }
 
@@ -336,9 +417,10 @@ M_bool M_io_ble_init_cb(M_io_layer_t *layer)
 		case M_IO_STATE_INIT:
 			handle->state = M_IO_STATE_CONNECTING;
 			handle->io    = io;
-			if (!M_io_ble_connect(handle)) {
+			if (!M_io_ble_init_int()) {
 				return M_FALSE;
 			}
+			M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_connect_runner, handle);
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:
 			/* start timer to time out operation */
