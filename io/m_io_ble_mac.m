@@ -74,23 +74,6 @@ static void M_io_ble_connect_runner(M_event_t *event, M_event_type_t type, M_io_
 	M_io_ble_connect(handle);
 }
 
-static void M_io_ble_destroy_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
-{
-	M_io_handle_t *handle = arg;
-
-	(void)event;
-	(void)type;
-	(void)dummy_io;
-
-	if (arg == NULL)
-		return;
-
-	handle->timer = NULL;
-	M_io_ble_close(handle);
-	M_llist_destroy(handle->read_queue, M_TRUE);
-	M_free(handle);
-}
-
 static void M_io_ble_close_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
 {
 	M_io_handle_t *handle = arg;
@@ -185,7 +168,9 @@ void M_io_ble_destroy_cb(M_io_layer_t *layer)
 	}
 
 	handle->io = NULL;
-	M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_destroy_runner, handle);
+	M_io_ble_close(handle);
+	M_llist_destroy(handle->read_queue, M_TRUE);
+	M_free(handle);
 }
 
 M_bool M_io_ble_process_cb(M_io_layer_t *layer, M_event_type_t *type)
@@ -392,6 +377,7 @@ M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 	if (handle->state != M_IO_STATE_CONNECTED && handle->state != M_IO_STATE_DISCONNECTING)
 		return M_TRUE;
 
+	handle->state = M_IO_STATE_DISCONNECTING;
 	M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_close_runner, handle);
 	return M_TRUE;
 }
