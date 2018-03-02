@@ -155,10 +155,9 @@ NSUInteger        blind_cnt  = 0;
 
 - (void)startScanBlind
 {
-	blind_cnt++;
-
 	if (_manager.isScanning || !powered_on)
 		return;
+	blind_cnt++;
 
 	[_manager scanForPeripheralsWithServices:nil options:nil];
 }
@@ -167,7 +166,6 @@ NSUInteger        blind_cnt  = 0;
 {
 	if (blind_cnt == 0)
 		return;
-
 	blind_cnt--;
 
 	/* Scan requests might still be outstanding. Don't
@@ -175,10 +173,11 @@ NSUInteger        blind_cnt  = 0;
 	 * stop blind scans in case they were started without
 	 * using a trigger. Trying to connect to a specific
 	 * device uses blind scans. */
-	if (!_manager.isScanning || M_list_len(triggers) != 0 || blind_cnt != 0)
+	if (M_list_len(triggers) != 0 || blind_cnt != 0)
 		return;
 
-	[_manager stopScan];
+	if (_manager.isScanning)
+		[_manager stopScan];
 	M_io_ble_device_reap_seen();
 }
 
