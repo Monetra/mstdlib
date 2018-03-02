@@ -489,7 +489,9 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 		}
 		M_hash_strvp_enumerate_free(he);
 
-		M_hash_strvp_remove(ble_waiting_service, remove_uuid, M_FALSE);
+		if (dev->handle != NULL) {
+			M_hash_strvp_remove(ble_waiting_service, remove_uuid, M_FALSE);
+		}
 	}
 
 	if (dev->handle != NULL) {
