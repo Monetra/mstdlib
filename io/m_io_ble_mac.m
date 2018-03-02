@@ -343,10 +343,12 @@ static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dum
 	handle->timer = NULL;
 
 	if (handle->state == M_IO_STATE_CONNECTING) {
+		handle->state = M_IO_STATE_ERROR;
 		M_snprintf(handle->error, sizeof(handle->error), "Timeout waiting on connect");
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	} else if (handle->state == M_IO_STATE_DISCONNECTING) {
 		M_io_ble_close(handle);
+		handle->state = M_IO_STATE_DISCONNECTED;
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	} else {
 		/* Shouldn't ever happen */
