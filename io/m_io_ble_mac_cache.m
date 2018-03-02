@@ -206,6 +206,7 @@ static void M_io_ble_waiting_destroy(M_io_handle_t *handle)
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	M_snprintf(handle->error, sizeof(handle->error), "Timeout");
+	handle->state = M_IO_STATE_ERROR;
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	M_io_layer_release(layer);
 }
@@ -540,6 +541,7 @@ static void M_io_ble_device_set_disconnected(const char *uuid)
 	}
 
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	dev->handle->state = M_IO_STATE_DISCONNECTED;
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	M_io_layer_release(layer);
 
@@ -576,6 +578,7 @@ static void M_io_ble_device_set_error(const char *uuid, const char *error)
 		error = "Generic error";
 
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+	dev->handle->state = M_IO_STATE_ERROR;
 	M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	M_io_layer_release(layer);
@@ -1017,8 +1020,6 @@ void M_io_ble_close(M_io_handle_t *handle)
 	 * are protected so we don't need to worry about stopping a scan that should
 	 * actually be running. */
 	stop_blind_scan();
-
-	handle->state = M_IO_STATE_DISCONNECTED;
 
 	M_hash_strvp_remove(ble_devices, handle->uuid, M_TRUE);
 	M_hash_strvp_remove(ble_peripherals, handle->uuid, M_TRUE);
