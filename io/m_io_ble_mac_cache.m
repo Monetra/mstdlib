@@ -1038,7 +1038,8 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 	if (M_str_isempty(uuid) || M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid))
 		return M_IO_ERROR_INVALID;
 
-	M_thread_mutex_lock(lock);
+	if (!M_thread_mutex_trylock(lock))
+		return M_IO_ERROR_WOULDBLOCK;
 
 	/* Get the associated device. */
 	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
