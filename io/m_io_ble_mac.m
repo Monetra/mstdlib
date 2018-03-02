@@ -74,21 +74,6 @@ static void M_io_ble_connect_runner(M_event_t *event, M_event_type_t type, M_io_
 	M_io_ble_connect(handle);
 }
 
-static void M_io_ble_close_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
-{
-	M_io_handle_t *handle = arg;
-
-	(void)event;
-	(void)type;
-	(void)dummy_io;
-
-	if (arg == NULL)
-		return;
-
-	handle->timer = NULL;
-	M_io_ble_close(handle);
-}
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_handle_t *M_io_ble_open(const char *uuid, M_io_error_t *ioerr, M_uint64 timeout_ms)
@@ -361,6 +346,7 @@ static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dum
 		M_snprintf(handle->error, sizeof(handle->error), "Timeout waiting on connect");
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 	} else if (handle->state == M_IO_STATE_DISCONNECTING) {
+		M_io_ble_close(handle);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	} else {
 		/* Shouldn't ever happen */
@@ -378,7 +364,8 @@ M_bool M_io_ble_disconnect_cb(M_io_layer_t *layer)
 		return M_TRUE;
 
 	handle->state = M_IO_STATE_DISCONNECTING;
-	M_event_queue_task(M_io_get_event(M_io_layer_get_io(layer)), M_io_ble_close_runner, handle);
+	/* Can't be in a layer lock when M_io_ble_close is called. */
+	handle->timer = M_event_timer_oneshot(M_io_get_event(M_io_layer_get_io(layer)), 1, M_TRUE, M_io_ble_timer_cb, handle);
 	return M_TRUE;
 }
 
