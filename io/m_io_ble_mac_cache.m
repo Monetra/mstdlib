@@ -977,6 +977,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 	if (M_hash_strvp_get(ble_devices, handle->uuid, NULL)) {
 		M_snprintf(handle->error, sizeof(handle->error), "Device in use");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		handle->state = M_IO_STATE_ERROR;
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
