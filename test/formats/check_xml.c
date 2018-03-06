@@ -165,6 +165,10 @@ static struct {
 	    M_XML_READER_NONE, M_XML_WRITER_NONE                                                                         },
 	{ "<a><b>x</b>&#xD;</a>", "<a><b>x</b>\r</a>",
 	    M_XML_READER_NONE, M_XML_WRITER_NONE                                                                         },
+	{ "\x7f\x0a\x3c 123>a\x7f\x0a\x3c/\x20 123 >",
+	  "\x7f\x3c" "123>a\x7f\x3c" "/123>",
+	    M_XML_READER_NONE, M_XML_WRITER_NONE                                                                         },
+
 	{ NULL, NULL, 0, 0 }
 };
 
@@ -206,6 +210,9 @@ static struct {
 	{ "<?xml>",                  M_XML_ERROR_MISSING_PROCESSING_INSTRUCTION_END },
 	{ "<a></A>",                 M_XML_ERROR_UNEXPECTED_CLOSE                   },
 	{ "<a></a><b></b>",          M_XML_ERROR_EXPECTED_END                       },
+	{ "\x7f\x0a\x65\x65\x65\x67\x74\x79\x70\x3c\x21\x20\x2d\x2d\x0a\x2d",  M_XML_ERROR_MISSING_CLOSE_TAG },
+	{ "\x7f\x0a\x65\x65\x65\x67\x74\x79\x70\x3c\x21\x20\x2d\x2d\x0a\x2d>", M_XML_ERROR_MISSING_CLOSE_TAG },
+	{ "\x7f\x0a\x3c 123>a<\x7f\x0a\x3c/\x20 123 >",                        M_XML_ERROR_MISSING_CLOSE_TAG },
 	{ NULL, 0 }
 };
 
