@@ -498,6 +498,7 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 		/* We have successfully associated! */
 		M_hash_strvp_insert(ble_devices, uuid, dev);
 		layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
+		M_str_cpy(dev->handle->uuid, sizeof(dev->handle->uuid), uuid);
 		dev->handle->state     = M_IO_STATE_CONNECTED;
 		dev->handle->can_write = M_TRUE;
 		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
