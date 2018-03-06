@@ -371,7 +371,7 @@ void *M_mem_mem(const void *haystack, size_t haystack_len, const void *needle, s
 	const M_uint8 *pos;
 	const M_uint8 *ret = NULL;
 
-	if (haystack == NULL || haystack_len == 0) {
+	if (haystack == NULL || haystack_len == 0 || needle_len > haystack_len) {
 		return NULL;
 	}
 	if (needle == NULL || needle_len == 0) {
