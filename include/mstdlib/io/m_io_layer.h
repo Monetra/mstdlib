@@ -70,13 +70,21 @@ typedef struct M_io_callbacks M_io_callbacks_t;
 
 
 /*! Find the appropriate layer and grab the handle and lock it.
+ *
+ * \warning Locking the layer locks the entire event loop. Only very
+ *          short operations that will not block should be performed
+ *          while a layer lock is being held.
+ *
  *  \param[in] io        Pointer to io object
  *  \param[in] layer_id  id of layer to lock, or M_IO_LAYER_FIND_FIRST_ID to search for layer.
  *  \param[in] name      Name of layer to lock.  This can be used as a sanity check to ensure
  *                       the layer id really matches the layer type.  Use NULL if name matching
  *                       is not required.  If M_IO_LAYER_FIND_FIRST_ID is used for the layer_id,
  *                       this parameter cannot be NULL.
+ *
  * \return locked io layer, or NULL on failure
+ *
+ * \see M_io_layer_release
  */
 M_API M_io_layer_t *M_io_layer_acquire(M_io_t *io, size_t layer_id, const char *name);
 
@@ -118,7 +126,12 @@ M_API M_bool M_io_callbacks_reg_unregister(M_io_callbacks_t *callbacks, void (*c
 /*! Register callback to start a graceful disconnect sequence.  Optional. */
 M_API M_bool M_io_callbacks_reg_disconnect(M_io_callbacks_t *callbacks, M_bool (*cb_disconnect)(M_io_layer_t *layer));
 
-/*! Register callback to destroy any state (M_io_handle_t *). Mandatory. */
+/*! Register callback to destroy any state (M_io_handle_t *). Mandatory.
+ *
+ * The event loop has already been disassociated from the layer when this
+ * callback is called. The layer will not be locked and M_io_layer_acquire
+ * will not lock the layer as the layer cannot be locked.
+ */
 M_API M_bool M_io_callbacks_reg_destroy(M_io_callbacks_t *callbacks, void (*cb_destroy)(M_io_layer_t *layer));
 
 /*! Register callback to get the layer state. Optional if not base layer, required if base layer. */
