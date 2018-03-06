@@ -316,16 +316,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Find the appropriate layer and grab the handle and lock it. </p>
+<p>Find the appropriate layer and grab the handle and lock it.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Locking the layer locks the entire event loop. Only very short operations that will not block should be performed while a layer lock is being held.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>Pointer to io object </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">layer_id</td><td>id of layer to lock, or M_IO_LAYER_FIND_FIRST_ID to search for layer. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Name of layer to lock. This can be used as a sanity check to ensure the layer id really matches the layer type. Use NULL if name matching is not required. If M_IO_LAYER_FIND_FIRST_ID is used for the layer_id, this parameter cannot be NULL. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Name of layer to lock. This can be used as a sanity check to ensure the layer id really matches the layer type. Use NULL if name matching is not required. If M_IO_LAYER_FIND_FIRST_ID is used for the layer_id, this parameter cannot be NULL.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>locked io layer, or NULL on failure </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>locked io layer, or NULL on failure</dd></dl>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__io__layer.html#ga4a296392e2a2a26c505575085e4ce177">M_io_layer_release</a> </dd></dl>
 
 </div>
 </div>
@@ -626,7 +628,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Register callback to destroy any state (M_io_handle_t *). Mandatory. </p>
+<p>Register callback to destroy any state (M_io_handle_t *). Mandatory.</p>
+<p>The event loop has already been disassociated from the layer when this callback is called. The layer will not be locked and M_io_layer_acquire will not lock the layer as the layer cannot be locked. </p>
 
 </div>
 </div>
@@ -1002,7 +1005,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 6 2018 16:30:13 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Tue Mar 6 2018 20:10:06 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
