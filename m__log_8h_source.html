@@ -848,363 +848,369 @@ $(document).ready(function(){initNavTree('m__log_8h_source.html','');});
 <div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment"> * If the library was compiled on a platform that doesn&#39;t allow console output (e.g., Android), this function</span></div>
 <div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment"> * will return \link M_LOG_MODULE_UNSUPPORTED\endlink when called, and no module will be added to the logger.</span></div>
 <div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment"> * \param[in] log             logger object</span></div>
-<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment"> * \param[in] type            what stream to output to (stdout, stderr)</span></div>
-<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment"> * \param[in] max_queue_bytes max size of queue used to buffer asynchronous writes to the stream</span></div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment"> * \param[in] out_mod         handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment"> * \return                    error code</span></div>
-<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__stream.html#gaf7362a0692ef03a115c4e3dbe9bbd4d1">M_log_module_add_stream</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaad0494abe774c0cd4d8ccd08b83707ac">M_stream_type_t</a> type, <span class="keywordtype">size_t</span> max_queue_bytes,</div>
-<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;    <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of Stream group */</span></div>
-<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;</div>
-<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;</div>
-<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;</div>
-<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="comment">/*! \addtogroup m_log_nslog NSLog Module</span></div>
-<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="comment"> *  \ingroup    m_log</span></div>
-<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;<span class="comment"> * Functions to enable logging to macOS/iOS logging subsytem (NSLog).</span></div>
-<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;<span class="comment"> * Only available when building for Apple platforms.</span></div>
-<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160;<span class="comment">/*! Add a module to output to macOS/iOS logging subsystem (if we&#39;re building for an Apple platform).</span></div>
-<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled for an Apple device, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
-<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
-<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;<span class="comment"> * \param[in] log             logger object</span></div>
-<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;<span class="comment"> * \param[in] max_queue_bytes max size of queue used to buffer asynchronous writer to NSLog</span></div>
-<div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;<span class="comment"> * \param[in] out_mod         handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;<span class="comment"> * \return                    error code</span></div>
-<div class="line"><a name="l00784"></a><span class="lineno">  784</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__nslog.html#ga68dc33ab1debbfe8f5d6730c275fb39c">M_log_module_add_nslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of NSLog group */</span></div>
-<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160;</div>
-<div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;</div>
-<div class="line"><a name="l00790"></a><span class="lineno">  790</span>&#160;</div>
-<div class="line"><a name="l00791"></a><span class="lineno">  791</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00792"></a><span class="lineno">  792</span>&#160;<span class="comment">/*! \addtogroup m_log_android Android Module</span></div>
-<div class="line"><a name="l00793"></a><span class="lineno">  793</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
-<div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;<span class="comment"> * Functions to enable logging to Android logging subsystem (__android_log_write).</span></div>
-<div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;<span class="comment"> * Only available when building for the Android platform.</span></div>
-<div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l00800"></a><span class="lineno">  800</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160;<span class="comment">/*! Add a module to output to Android logging subsystem (if we&#39;re building for Android).</span></div>
-<div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;<span class="comment"> * Note: Android logging messages may be truncated by the subsystem to an implementation-specific</span></div>
-<div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;<span class="comment"> *       line length limit (usually 1023 chars).</span></div>
-<div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;<span class="comment"> * Android logging allows passing a \c NULL or empty string for the product name - in this case, the &quot;global&quot;</span></div>
-<div class="line"><a name="l00808"></a><span class="lineno">  808</span>&#160;<span class="comment"> * product name is used, not the name of the program like in syslog.</span></div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment"> * \warning</span></div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment"> * Normally, you should only add at most one stream output module to a given M_log_t object. This is because</span></div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment"> * having multiple backends write to the same console stream may cause the output from each thread to become</span></div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment"> * intermingled and unreadable. Plus, there&#39;s only one global thing you&#39;re writing too, it doesn&#39;t make any</span></div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment"> * sense to output to it from a bunch of separate worker threads. Just use one backend per destination.</span></div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment"> * \param[in] log             logger object</span></div>
+<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="comment"> * \param[in] type            what stream to output to (stdout, stderr)</span></div>
+<div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;<span class="comment"> * \param[in] max_queue_bytes max size of queue used to buffer asynchronous writes to the stream</span></div>
+<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment"> * \param[in] out_mod         handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;<span class="comment"> * \return                    error code</span></div>
+<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__stream.html#gaf7362a0692ef03a115c4e3dbe9bbd4d1">M_log_module_add_stream</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaad0494abe774c0cd4d8ccd08b83707ac">M_stream_type_t</a> type, <span class="keywordtype">size_t</span> max_queue_bytes,</div>
+<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;    <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00766"></a><span class="lineno">  766</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of Stream group */</span></div>
+<div class="line"><a name="l00767"></a><span class="lineno">  767</span>&#160;</div>
+<div class="line"><a name="l00768"></a><span class="lineno">  768</span>&#160;</div>
+<div class="line"><a name="l00769"></a><span class="lineno">  769</span>&#160;</div>
+<div class="line"><a name="l00770"></a><span class="lineno">  770</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00771"></a><span class="lineno">  771</span>&#160;<span class="comment">/*! \addtogroup m_log_nslog NSLog Module</span></div>
+<div class="line"><a name="l00772"></a><span class="lineno">  772</span>&#160;<span class="comment"> *  \ingroup    m_log</span></div>
+<div class="line"><a name="l00773"></a><span class="lineno">  773</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00774"></a><span class="lineno">  774</span>&#160;<span class="comment"> * Functions to enable logging to macOS/iOS logging subsytem (NSLog).</span></div>
+<div class="line"><a name="l00775"></a><span class="lineno">  775</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00776"></a><span class="lineno">  776</span>&#160;<span class="comment"> * Only available when building for Apple platforms.</span></div>
+<div class="line"><a name="l00777"></a><span class="lineno">  777</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00778"></a><span class="lineno">  778</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l00779"></a><span class="lineno">  779</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00780"></a><span class="lineno">  780</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00781"></a><span class="lineno">  781</span>&#160;<span class="comment">/*! Add a module to output to macOS/iOS logging subsystem (if we&#39;re building for an Apple platform).</span></div>
+<div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled for an Apple device, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
+<div class="line"><a name="l00784"></a><span class="lineno">  784</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
+<div class="line"><a name="l00785"></a><span class="lineno">  785</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00786"></a><span class="lineno">  786</span>&#160;<span class="comment"> * \param[in] log             logger object</span></div>
+<div class="line"><a name="l00787"></a><span class="lineno">  787</span>&#160;<span class="comment"> * \param[in] max_queue_bytes max size of queue used to buffer asynchronous writer to NSLog</span></div>
+<div class="line"><a name="l00788"></a><span class="lineno">  788</span>&#160;<span class="comment"> * \param[in] out_mod         handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l00789"></a><span class="lineno">  789</span>&#160;<span class="comment"> * \return                    error code</span></div>
+<div class="line"><a name="l00790"></a><span class="lineno">  790</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00791"></a><span class="lineno">  791</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__nslog.html#ga68dc33ab1debbfe8f5d6730c275fb39c">M_log_module_add_nslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l00792"></a><span class="lineno">  792</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00793"></a><span class="lineno">  793</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of NSLog group */</span></div>
+<div class="line"><a name="l00794"></a><span class="lineno">  794</span>&#160;</div>
+<div class="line"><a name="l00795"></a><span class="lineno">  795</span>&#160;</div>
+<div class="line"><a name="l00796"></a><span class="lineno">  796</span>&#160;</div>
+<div class="line"><a name="l00797"></a><span class="lineno">  797</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00798"></a><span class="lineno">  798</span>&#160;<span class="comment">/*! \addtogroup m_log_android Android Module</span></div>
+<div class="line"><a name="l00799"></a><span class="lineno">  799</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
+<div class="line"><a name="l00800"></a><span class="lineno">  800</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00801"></a><span class="lineno">  801</span>&#160;<span class="comment"> * Functions to enable logging to Android logging subsystem (__android_log_write).</span></div>
+<div class="line"><a name="l00802"></a><span class="lineno">  802</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00803"></a><span class="lineno">  803</span>&#160;<span class="comment"> * Only available when building for the Android platform.</span></div>
+<div class="line"><a name="l00804"></a><span class="lineno">  804</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00805"></a><span class="lineno">  805</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l00806"></a><span class="lineno">  806</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00807"></a><span class="lineno">  807</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00808"></a><span class="lineno">  808</span>&#160;<span class="comment">/*! Add a module to output to Android logging subsystem (if we&#39;re building for Android).</span></div>
 <div class="line"><a name="l00809"></a><span class="lineno">  809</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00810"></a><span class="lineno">  810</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled for Android, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
-<div class="line"><a name="l00811"></a><span class="lineno">  811</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
+<div class="line"><a name="l00810"></a><span class="lineno">  810</span>&#160;<span class="comment"> * Note: Android logging messages may be truncated by the subsystem to an implementation-specific</span></div>
+<div class="line"><a name="l00811"></a><span class="lineno">  811</span>&#160;<span class="comment"> *       line length limit (usually 1023 chars).</span></div>
 <div class="line"><a name="l00812"></a><span class="lineno">  812</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00813"></a><span class="lineno">  813</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
-<div class="line"><a name="l00814"></a><span class="lineno">  814</span>&#160;<span class="comment"> * \param[in]  product         short tag string: name of program, or \c NULL to use &quot;global&quot; tag</span></div>
-<div class="line"><a name="l00815"></a><span class="lineno">  815</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to android log</span></div>
-<div class="line"><a name="l00816"></a><span class="lineno">  816</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l00817"></a><span class="lineno">  817</span>&#160;<span class="comment"> * \return                     error code</span></div>
-<div class="line"><a name="l00818"></a><span class="lineno">  818</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00819"></a><span class="lineno">  819</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__android.html#gacf656276175b8b0b9910724c98bb2f5b">M_log_module_add_android</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <span class="keywordtype">size_t</span> max_queue_bytes,</div>
-<div class="line"><a name="l00820"></a><span class="lineno">  820</span>&#160;    <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00821"></a><span class="lineno">  821</span>&#160;</div>
-<div class="line"><a name="l00822"></a><span class="lineno">  822</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00823"></a><span class="lineno">  823</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with an Android log priority.</span></div>
-<div class="line"><a name="l00824"></a><span class="lineno">  824</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00825"></a><span class="lineno">  825</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with an Android log priority, the default priority of \link M_ANDROID_LOG_INFO\endlink</span></div>
-<div class="line"><a name="l00826"></a><span class="lineno">  826</span>&#160;<span class="comment"> * will be used for that tag.</span></div>
-<div class="line"><a name="l00827"></a><span class="lineno">  827</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00828"></a><span class="lineno">  828</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
-<div class="line"><a name="l00829"></a><span class="lineno">  829</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
-<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
-<div class="line"><a name="l00831"></a><span class="lineno">  831</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
-<div class="line"><a name="l00832"></a><span class="lineno">  832</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l00813"></a><span class="lineno">  813</span>&#160;<span class="comment"> * Android logging allows passing a \c NULL or empty string for the product name - in this case, the &quot;global&quot;</span></div>
+<div class="line"><a name="l00814"></a><span class="lineno">  814</span>&#160;<span class="comment"> * product name is used, not the name of the program like in syslog.</span></div>
+<div class="line"><a name="l00815"></a><span class="lineno">  815</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00816"></a><span class="lineno">  816</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled for Android, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
+<div class="line"><a name="l00817"></a><span class="lineno">  817</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
+<div class="line"><a name="l00818"></a><span class="lineno">  818</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00819"></a><span class="lineno">  819</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
+<div class="line"><a name="l00820"></a><span class="lineno">  820</span>&#160;<span class="comment"> * \param[in]  product         short tag string: name of program, or \c NULL to use &quot;global&quot; tag</span></div>
+<div class="line"><a name="l00821"></a><span class="lineno">  821</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to android log</span></div>
+<div class="line"><a name="l00822"></a><span class="lineno">  822</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l00823"></a><span class="lineno">  823</span>&#160;<span class="comment"> * \return                     error code</span></div>
+<div class="line"><a name="l00824"></a><span class="lineno">  824</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00825"></a><span class="lineno">  825</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__android.html#gacf656276175b8b0b9910724c98bb2f5b">M_log_module_add_android</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <span class="keywordtype">size_t</span> max_queue_bytes,</div>
+<div class="line"><a name="l00826"></a><span class="lineno">  826</span>&#160;    <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l00827"></a><span class="lineno">  827</span>&#160;</div>
+<div class="line"><a name="l00828"></a><span class="lineno">  828</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00829"></a><span class="lineno">  829</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with an Android log priority.</span></div>
+<div class="line"><a name="l00830"></a><span class="lineno">  830</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00831"></a><span class="lineno">  831</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with an Android log priority, the default priority of \link M_ANDROID_LOG_INFO\endlink</span></div>
+<div class="line"><a name="l00832"></a><span class="lineno">  832</span>&#160;<span class="comment"> * will be used for that tag.</span></div>
 <div class="line"><a name="l00833"></a><span class="lineno">  833</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00834"></a><span class="lineno">  834</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
-<div class="line"><a name="l00835"></a><span class="lineno">  835</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
-<div class="line"><a name="l00836"></a><span class="lineno">  836</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
-<div class="line"><a name="l00837"></a><span class="lineno">  837</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
-<div class="line"><a name="l00838"></a><span class="lineno">  838</span>&#160;<span class="comment"> * \return             error code</span></div>
-<div class="line"><a name="l00839"></a><span class="lineno">  839</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00840"></a><span class="lineno">  840</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__android.html#gabd98a13d8459a8bb09460e5db6b20af8">M_log_module_android_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
-<div class="line"><a name="l00841"></a><span class="lineno">  841</span>&#160;    <a class="code" href="group__m__log__common.html#ga5beb4e09edf76a7f8fa85898e26892ab">M_android_log_priority_t</a> priority);</div>
-<div class="line"><a name="l00842"></a><span class="lineno">  842</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00843"></a><span class="lineno">  843</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of Android group */</span></div>
-<div class="line"><a name="l00844"></a><span class="lineno">  844</span>&#160;</div>
-<div class="line"><a name="l00845"></a><span class="lineno">  845</span>&#160;</div>
-<div class="line"><a name="l00846"></a><span class="lineno">  846</span>&#160;</div>
-<div class="line"><a name="l00847"></a><span class="lineno">  847</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00848"></a><span class="lineno">  848</span>&#160;<span class="comment">/*! \addtogroup m_log_file Filesystem Module</span></div>
-<div class="line"><a name="l00849"></a><span class="lineno">  849</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
-<div class="line"><a name="l00850"></a><span class="lineno">  850</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00851"></a><span class="lineno">  851</span>&#160;<span class="comment"> * Functions to enable logging to a group of files on disk. Includes support for log rotation and compression.</span></div>
-<div class="line"><a name="l00852"></a><span class="lineno">  852</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00853"></a><span class="lineno">  853</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l00854"></a><span class="lineno">  854</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00855"></a><span class="lineno">  855</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00856"></a><span class="lineno">  856</span>&#160;<span class="comment">/*! Add a module to output to a rotating list of files on disk.</span></div>
-<div class="line"><a name="l00857"></a><span class="lineno">  857</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00858"></a><span class="lineno">  858</span>&#160;<span class="comment"> * When archiving a file, the uncompressed file name will be appended directly onto whatever archive command is</span></div>
-<div class="line"><a name="l00859"></a><span class="lineno">  859</span>&#160;<span class="comment"> * supplied by the user, then executed in its own process. In order for rotation to work correctly, the output</span></div>
-<div class="line"><a name="l00860"></a><span class="lineno">  860</span>&#160;<span class="comment"> * file produced by the command must be exactly equal to &lt;tt&gt;[uncompressed file][archive_file_ext]&lt;/tt&gt;.</span></div>
-<div class="line"><a name="l00861"></a><span class="lineno">  861</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00862"></a><span class="lineno">  862</span>&#160;<span class="comment"> * The automatic file rotation parameters (\a autorotate_size and \a autorotate_time_s) can be disabled by setting</span></div>
-<div class="line"><a name="l00863"></a><span class="lineno">  863</span>&#160;<span class="comment"> * them to a value of 0. If both are disabled, rotations will only happen when M_log_module_file_rotate() is explicitly</span></div>
-<div class="line"><a name="l00864"></a><span class="lineno">  864</span>&#160;<span class="comment"> * called by the user.</span></div>
-<div class="line"><a name="l00865"></a><span class="lineno">  865</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00866"></a><span class="lineno">  866</span>&#160;<span class="comment"> * The behavior of time-based autorotate is platform dependent. On platforms that allow you to query file creation time</span></div>
-<div class="line"><a name="l00867"></a><span class="lineno">  867</span>&#160;<span class="comment"> * (e.g., Windows, macOS, BSD), the age of the file is calculated from its creation date. On platforms that don&#39;t keep</span></div>
-<div class="line"><a name="l00868"></a><span class="lineno">  868</span>&#160;<span class="comment"> * track of file creation time (e.g., Linux), the age of the file is calculated using an internal timer that starts</span></div>
-<div class="line"><a name="l00869"></a><span class="lineno">  869</span>&#160;<span class="comment"> * when the file is first opened. On such platforms, the age of the head log file is effectively reset to zero whenever</span></div>
-<div class="line"><a name="l00870"></a><span class="lineno">  870</span>&#160;<span class="comment"> * you restart the process.</span></div>
+<div class="line"><a name="l00834"></a><span class="lineno">  834</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
+<div class="line"><a name="l00835"></a><span class="lineno">  835</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
+<div class="line"><a name="l00836"></a><span class="lineno">  836</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
+<div class="line"><a name="l00837"></a><span class="lineno">  837</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
+<div class="line"><a name="l00838"></a><span class="lineno">  838</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l00839"></a><span class="lineno">  839</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00840"></a><span class="lineno">  840</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
+<div class="line"><a name="l00841"></a><span class="lineno">  841</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
+<div class="line"><a name="l00842"></a><span class="lineno">  842</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
+<div class="line"><a name="l00843"></a><span class="lineno">  843</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
+<div class="line"><a name="l00844"></a><span class="lineno">  844</span>&#160;<span class="comment"> * \return             error code</span></div>
+<div class="line"><a name="l00845"></a><span class="lineno">  845</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00846"></a><span class="lineno">  846</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__android.html#gabd98a13d8459a8bb09460e5db6b20af8">M_log_module_android_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
+<div class="line"><a name="l00847"></a><span class="lineno">  847</span>&#160;    <a class="code" href="group__m__log__common.html#ga5beb4e09edf76a7f8fa85898e26892ab">M_android_log_priority_t</a> priority);</div>
+<div class="line"><a name="l00848"></a><span class="lineno">  848</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00849"></a><span class="lineno">  849</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of Android group */</span></div>
+<div class="line"><a name="l00850"></a><span class="lineno">  850</span>&#160;</div>
+<div class="line"><a name="l00851"></a><span class="lineno">  851</span>&#160;</div>
+<div class="line"><a name="l00852"></a><span class="lineno">  852</span>&#160;</div>
+<div class="line"><a name="l00853"></a><span class="lineno">  853</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00854"></a><span class="lineno">  854</span>&#160;<span class="comment">/*! \addtogroup m_log_file Filesystem Module</span></div>
+<div class="line"><a name="l00855"></a><span class="lineno">  855</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
+<div class="line"><a name="l00856"></a><span class="lineno">  856</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00857"></a><span class="lineno">  857</span>&#160;<span class="comment"> * Functions to enable logging to a group of files on disk. Includes support for log rotation and compression.</span></div>
+<div class="line"><a name="l00858"></a><span class="lineno">  858</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00859"></a><span class="lineno">  859</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l00860"></a><span class="lineno">  860</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00861"></a><span class="lineno">  861</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00862"></a><span class="lineno">  862</span>&#160;<span class="comment">/*! Add a module to output to a rotating list of files on disk.</span></div>
+<div class="line"><a name="l00863"></a><span class="lineno">  863</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00864"></a><span class="lineno">  864</span>&#160;<span class="comment"> * When archiving a file, the uncompressed file name will be appended directly onto whatever archive command is</span></div>
+<div class="line"><a name="l00865"></a><span class="lineno">  865</span>&#160;<span class="comment"> * supplied by the user, then executed in its own process. In order for rotation to work correctly, the output</span></div>
+<div class="line"><a name="l00866"></a><span class="lineno">  866</span>&#160;<span class="comment"> * file produced by the command must be exactly equal to &lt;tt&gt;[uncompressed file][archive_file_ext]&lt;/tt&gt;.</span></div>
+<div class="line"><a name="l00867"></a><span class="lineno">  867</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00868"></a><span class="lineno">  868</span>&#160;<span class="comment"> * The automatic file rotation parameters (\a autorotate_size and \a autorotate_time_s) can be disabled by setting</span></div>
+<div class="line"><a name="l00869"></a><span class="lineno">  869</span>&#160;<span class="comment"> * them to a value of 0. If both are disabled, rotations will only happen when M_log_module_file_rotate() is explicitly</span></div>
+<div class="line"><a name="l00870"></a><span class="lineno">  870</span>&#160;<span class="comment"> * called by the user.</span></div>
 <div class="line"><a name="l00871"></a><span class="lineno">  871</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00872"></a><span class="lineno">  872</span>&#160;<span class="comment"> * \param[in]  log               logger object</span></div>
-<div class="line"><a name="l00873"></a><span class="lineno">  873</span>&#160;<span class="comment"> * \param[in]  log_file_path     main log file to output (if relative path, interpreted relative to current working dir)</span></div>
-<div class="line"><a name="l00874"></a><span class="lineno">  874</span>&#160;<span class="comment"> * \param[in]  num_to_keep       number of older rotated log files to keep on disk, or 0 to keep no old files</span></div>
-<div class="line"><a name="l00875"></a><span class="lineno">  875</span>&#160;<span class="comment"> * \param[in]  autorotate_size   size (in bytes) after which the main log file is rotated, or 0 to disable size autorotate</span></div>
-<div class="line"><a name="l00876"></a><span class="lineno">  876</span>&#160;<span class="comment"> * \param[in]  autorotate_time_s time (in seconds) after which the main log file is rotated, or 0 to disable time autorotate</span></div>
-<div class="line"><a name="l00877"></a><span class="lineno">  877</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes   max size of queue used to buffer asynchronous writes to the log file</span></div>
-<div class="line"><a name="l00878"></a><span class="lineno">  878</span>&#160;<span class="comment"> * \param[in]  archive_cmd       command used to compress old log files (e.g., &quot;bzip2 -f&quot;). If NULL, compression is disabled.</span></div>
-<div class="line"><a name="l00879"></a><span class="lineno">  879</span>&#160;<span class="comment"> * \param[in]  archive_file_ext  extension added to files by \a archive_cmd (e.g., &quot;.bz2&quot;). If NULL, compression is disabled.</span></div>
-<div class="line"><a name="l00880"></a><span class="lineno">  880</span>&#160;<span class="comment"> * \param[out] out_mod           handle for created module, or \c NULL if there was an error.</span></div>
-<div class="line"><a name="l00881"></a><span class="lineno">  881</span>&#160;<span class="comment"> * \return                       error code</span></div>
-<div class="line"><a name="l00882"></a><span class="lineno">  882</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00883"></a><span class="lineno">  883</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__file.html#gad3ec781b1fd629505ebabaeafc7a1a88">M_log_module_add_file</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *log_file_path, <span class="keywordtype">size_t</span> num_to_keep,</div>
-<div class="line"><a name="l00884"></a><span class="lineno">  884</span>&#160;    M_uint64 autorotate_size, M_uint64 autorotate_time_s, <span class="keywordtype">size_t</span> max_queue_bytes, const <span class="keywordtype">char</span> *archive_cmd,</div>
-<div class="line"><a name="l00885"></a><span class="lineno">  885</span>&#160;    const <span class="keywordtype">char</span> *archive_file_ext, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00886"></a><span class="lineno">  886</span>&#160;</div>
-<div class="line"><a name="l00887"></a><span class="lineno">  887</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00888"></a><span class="lineno">  888</span>&#160;<span class="comment">/*! Manually trigger a file rotation.</span></div>
-<div class="line"><a name="l00889"></a><span class="lineno">  889</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00890"></a><span class="lineno">  890</span>&#160;<span class="comment"> * This can be used to rotate the main log file on some other condition than size - like receiving SIGHUP, or on</span></div>
-<div class="line"><a name="l00891"></a><span class="lineno">  891</span>&#160;<span class="comment"> * some sort of timer. If the internal message queue is empty, the rotation will happen immediately. If not, the</span></div>
-<div class="line"><a name="l00892"></a><span class="lineno">  892</span>&#160;<span class="comment"> * rotation will happen after the internal worker thread finishes writing the message it&#39;s currently working on.</span></div>
-<div class="line"><a name="l00893"></a><span class="lineno">  893</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00894"></a><span class="lineno">  894</span>&#160;<span class="comment"> * \param[in] log    logger object</span></div>
-<div class="line"><a name="l00895"></a><span class="lineno">  895</span>&#160;<span class="comment"> * \param[in] module handle of module to operate on</span></div>
-<div class="line"><a name="l00896"></a><span class="lineno">  896</span>&#160;<span class="comment"> * \return           error code</span></div>
-<div class="line"><a name="l00897"></a><span class="lineno">  897</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00898"></a><span class="lineno">  898</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__file.html#gaadff86db8e86bb3c68424b07f67ee1be">M_log_module_file_rotate</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module);</div>
-<div class="line"><a name="l00899"></a><span class="lineno">  899</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00900"></a><span class="lineno">  900</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of file group */</span></div>
-<div class="line"><a name="l00901"></a><span class="lineno">  901</span>&#160;</div>
-<div class="line"><a name="l00902"></a><span class="lineno">  902</span>&#160;</div>
-<div class="line"><a name="l00903"></a><span class="lineno">  903</span>&#160;</div>
-<div class="line"><a name="l00904"></a><span class="lineno">  904</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00905"></a><span class="lineno">  905</span>&#160;<span class="comment">/*! \addtogroup m_log_syslog Syslog Module</span></div>
-<div class="line"><a name="l00906"></a><span class="lineno">  906</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
-<div class="line"><a name="l00907"></a><span class="lineno">  907</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00908"></a><span class="lineno">  908</span>&#160;<span class="comment"> * Functions to enable logging to a local syslog server.</span></div>
-<div class="line"><a name="l00909"></a><span class="lineno">  909</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00910"></a><span class="lineno">  910</span>&#160;<span class="comment"> * Only available on some platforms.</span></div>
-<div class="line"><a name="l00911"></a><span class="lineno">  911</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00912"></a><span class="lineno">  912</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00872"></a><span class="lineno">  872</span>&#160;<span class="comment"> * The behavior of time-based autorotate is platform dependent. On platforms that allow you to query file creation time</span></div>
+<div class="line"><a name="l00873"></a><span class="lineno">  873</span>&#160;<span class="comment"> * (e.g., Windows, macOS, BSD), the age of the file is calculated from its creation date. On platforms that don&#39;t keep</span></div>
+<div class="line"><a name="l00874"></a><span class="lineno">  874</span>&#160;<span class="comment"> * track of file creation time (e.g., Linux), the age of the file is calculated using an internal timer that starts</span></div>
+<div class="line"><a name="l00875"></a><span class="lineno">  875</span>&#160;<span class="comment"> * when the file is first opened. On such platforms, the age of the head log file is effectively reset to zero whenever</span></div>
+<div class="line"><a name="l00876"></a><span class="lineno">  876</span>&#160;<span class="comment"> * you restart the process.</span></div>
+<div class="line"><a name="l00877"></a><span class="lineno">  877</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00878"></a><span class="lineno">  878</span>&#160;<span class="comment"> * \param[in]  log               logger object</span></div>
+<div class="line"><a name="l00879"></a><span class="lineno">  879</span>&#160;<span class="comment"> * \param[in]  log_file_path     main log file to output (if relative path, interpreted relative to current working dir)</span></div>
+<div class="line"><a name="l00880"></a><span class="lineno">  880</span>&#160;<span class="comment"> * \param[in]  num_to_keep       number of older rotated log files to keep on disk, or 0 to keep no old files</span></div>
+<div class="line"><a name="l00881"></a><span class="lineno">  881</span>&#160;<span class="comment"> * \param[in]  autorotate_size   size (in bytes) after which the main log file is rotated, or 0 to disable size autorotate</span></div>
+<div class="line"><a name="l00882"></a><span class="lineno">  882</span>&#160;<span class="comment"> * \param[in]  autorotate_time_s time (in seconds) after which the main log file is rotated, or 0 to disable time autorotate</span></div>
+<div class="line"><a name="l00883"></a><span class="lineno">  883</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes   max size of queue used to buffer asynchronous writes to the log file</span></div>
+<div class="line"><a name="l00884"></a><span class="lineno">  884</span>&#160;<span class="comment"> * \param[in]  archive_cmd       command used to compress old log files (e.g., &quot;bzip2 -f&quot;). If NULL, compression is disabled.</span></div>
+<div class="line"><a name="l00885"></a><span class="lineno">  885</span>&#160;<span class="comment"> * \param[in]  archive_file_ext  extension added to files by \a archive_cmd (e.g., &quot;.bz2&quot;). If NULL, compression is disabled.</span></div>
+<div class="line"><a name="l00886"></a><span class="lineno">  886</span>&#160;<span class="comment"> * \param[out] out_mod           handle for created module, or \c NULL if there was an error.</span></div>
+<div class="line"><a name="l00887"></a><span class="lineno">  887</span>&#160;<span class="comment"> * \return                       error code</span></div>
+<div class="line"><a name="l00888"></a><span class="lineno">  888</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00889"></a><span class="lineno">  889</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__file.html#gad3ec781b1fd629505ebabaeafc7a1a88">M_log_module_add_file</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *log_file_path, <span class="keywordtype">size_t</span> num_to_keep,</div>
+<div class="line"><a name="l00890"></a><span class="lineno">  890</span>&#160;    M_uint64 autorotate_size, M_uint64 autorotate_time_s, <span class="keywordtype">size_t</span> max_queue_bytes, const <span class="keywordtype">char</span> *archive_cmd,</div>
+<div class="line"><a name="l00891"></a><span class="lineno">  891</span>&#160;    const <span class="keywordtype">char</span> *archive_file_ext, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l00892"></a><span class="lineno">  892</span>&#160;</div>
+<div class="line"><a name="l00893"></a><span class="lineno">  893</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00894"></a><span class="lineno">  894</span>&#160;<span class="comment">/*! Manually trigger a file rotation.</span></div>
+<div class="line"><a name="l00895"></a><span class="lineno">  895</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00896"></a><span class="lineno">  896</span>&#160;<span class="comment"> * This can be used to rotate the main log file on some other condition than size - like receiving SIGHUP, or on</span></div>
+<div class="line"><a name="l00897"></a><span class="lineno">  897</span>&#160;<span class="comment"> * some sort of timer. If the internal message queue is empty, the rotation will happen immediately. If not, the</span></div>
+<div class="line"><a name="l00898"></a><span class="lineno">  898</span>&#160;<span class="comment"> * rotation will happen after the internal worker thread finishes writing the message it&#39;s currently working on.</span></div>
+<div class="line"><a name="l00899"></a><span class="lineno">  899</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00900"></a><span class="lineno">  900</span>&#160;<span class="comment"> * \param[in] log    logger object</span></div>
+<div class="line"><a name="l00901"></a><span class="lineno">  901</span>&#160;<span class="comment"> * \param[in] module handle of module to operate on</span></div>
+<div class="line"><a name="l00902"></a><span class="lineno">  902</span>&#160;<span class="comment"> * \return           error code</span></div>
+<div class="line"><a name="l00903"></a><span class="lineno">  903</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00904"></a><span class="lineno">  904</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__file.html#gaadff86db8e86bb3c68424b07f67ee1be">M_log_module_file_rotate</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module);</div>
+<div class="line"><a name="l00905"></a><span class="lineno">  905</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00906"></a><span class="lineno">  906</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of file group */</span></div>
+<div class="line"><a name="l00907"></a><span class="lineno">  907</span>&#160;</div>
+<div class="line"><a name="l00908"></a><span class="lineno">  908</span>&#160;</div>
+<div class="line"><a name="l00909"></a><span class="lineno">  909</span>&#160;</div>
+<div class="line"><a name="l00910"></a><span class="lineno">  910</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00911"></a><span class="lineno">  911</span>&#160;<span class="comment">/*! \addtogroup m_log_syslog Syslog Module</span></div>
+<div class="line"><a name="l00912"></a><span class="lineno">  912</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
 <div class="line"><a name="l00913"></a><span class="lineno">  913</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00914"></a><span class="lineno">  914</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l00915"></a><span class="lineno">  915</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00916"></a><span class="lineno">  916</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00917"></a><span class="lineno">  917</span>&#160;<span class="comment">/*! Add a module to output to syslog (if supported by this platform).</span></div>
-<div class="line"><a name="l00918"></a><span class="lineno">  918</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00919"></a><span class="lineno">  919</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
-<div class="line"><a name="l00920"></a><span class="lineno">  920</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00921"></a><span class="lineno">  921</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled with syslog support, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
-<div class="line"><a name="l00922"></a><span class="lineno">  922</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
-<div class="line"><a name="l00923"></a><span class="lineno">  923</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00924"></a><span class="lineno">  924</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
-<div class="line"><a name="l00925"></a><span class="lineno">  925</span>&#160;<span class="comment"> * \param[in]  product         short tag string passed to syslog: if \c NULL, will be set to program name</span></div>
-<div class="line"><a name="l00926"></a><span class="lineno">  926</span>&#160;<span class="comment"> * \param[in]  facility        facility type to associate with all log messages, gets passed directly to syslog</span></div>
-<div class="line"><a name="l00927"></a><span class="lineno">  927</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to syslog</span></div>
-<div class="line"><a name="l00928"></a><span class="lineno">  928</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l00929"></a><span class="lineno">  929</span>&#160;<span class="comment"> * \return                     error code</span></div>
-<div class="line"><a name="l00930"></a><span class="lineno">  930</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00931"></a><span class="lineno">  931</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__syslog.html#ga39bcc0c2b167413bf7cd16e49f624133">M_log_module_add_syslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <a class="code" href="group__m__log__common.html#gae989c31aaadfca433d924355faea2afa">M_syslog_facility_t</a> facility,</div>
-<div class="line"><a name="l00932"></a><span class="lineno">  932</span>&#160;    <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00933"></a><span class="lineno">  933</span>&#160;</div>
-<div class="line"><a name="l00934"></a><span class="lineno">  934</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00935"></a><span class="lineno">  935</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with a syslog priority.</span></div>
-<div class="line"><a name="l00936"></a><span class="lineno">  936</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will</span></div>
-<div class="line"><a name="l00938"></a><span class="lineno">  938</span>&#160;<span class="comment"> * be used for that tag.</span></div>
-<div class="line"><a name="l00939"></a><span class="lineno">  939</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00940"></a><span class="lineno">  940</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
-<div class="line"><a name="l00941"></a><span class="lineno">  941</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
-<div class="line"><a name="l00942"></a><span class="lineno">  942</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
-<div class="line"><a name="l00943"></a><span class="lineno">  943</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
-<div class="line"><a name="l00944"></a><span class="lineno">  944</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l00914"></a><span class="lineno">  914</span>&#160;<span class="comment"> * Functions to enable logging to a local syslog server.</span></div>
+<div class="line"><a name="l00915"></a><span class="lineno">  915</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00916"></a><span class="lineno">  916</span>&#160;<span class="comment"> * Only available on some platforms.</span></div>
+<div class="line"><a name="l00917"></a><span class="lineno">  917</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00918"></a><span class="lineno">  918</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00919"></a><span class="lineno">  919</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00920"></a><span class="lineno">  920</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l00921"></a><span class="lineno">  921</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00922"></a><span class="lineno">  922</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00923"></a><span class="lineno">  923</span>&#160;<span class="comment">/*! Add a module to output to syslog (if supported by this platform).</span></div>
+<div class="line"><a name="l00924"></a><span class="lineno">  924</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00925"></a><span class="lineno">  925</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00926"></a><span class="lineno">  926</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00927"></a><span class="lineno">  927</span>&#160;<span class="comment"> * If the library wasn&#39;t compiled with syslog support, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink</span></div>
+<div class="line"><a name="l00928"></a><span class="lineno">  928</span>&#160;<span class="comment"> * when called, and no module will be added to the logger.</span></div>
+<div class="line"><a name="l00929"></a><span class="lineno">  929</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00930"></a><span class="lineno">  930</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
+<div class="line"><a name="l00931"></a><span class="lineno">  931</span>&#160;<span class="comment"> * \param[in]  product         short tag string passed to syslog: if \c NULL, will be set to program name</span></div>
+<div class="line"><a name="l00932"></a><span class="lineno">  932</span>&#160;<span class="comment"> * \param[in]  facility        facility type to associate with all log messages, gets passed directly to syslog</span></div>
+<div class="line"><a name="l00933"></a><span class="lineno">  933</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to syslog</span></div>
+<div class="line"><a name="l00934"></a><span class="lineno">  934</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l00935"></a><span class="lineno">  935</span>&#160;<span class="comment"> * \return                     error code</span></div>
+<div class="line"><a name="l00936"></a><span class="lineno">  936</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__syslog.html#ga39bcc0c2b167413bf7cd16e49f624133">M_log_module_add_syslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <a class="code" href="group__m__log__common.html#gae989c31aaadfca433d924355faea2afa">M_syslog_facility_t</a> facility,</div>
+<div class="line"><a name="l00938"></a><span class="lineno">  938</span>&#160;    <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l00939"></a><span class="lineno">  939</span>&#160;</div>
+<div class="line"><a name="l00940"></a><span class="lineno">  940</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00941"></a><span class="lineno">  941</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with a syslog priority.</span></div>
+<div class="line"><a name="l00942"></a><span class="lineno">  942</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00943"></a><span class="lineno">  943</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will</span></div>
+<div class="line"><a name="l00944"></a><span class="lineno">  944</span>&#160;<span class="comment"> * be used for that tag.</span></div>
 <div class="line"><a name="l00945"></a><span class="lineno">  945</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00946"></a><span class="lineno">  946</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
-<div class="line"><a name="l00947"></a><span class="lineno">  947</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
-<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
-<div class="line"><a name="l00949"></a><span class="lineno">  949</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
-<div class="line"><a name="l00950"></a><span class="lineno">  950</span>&#160;<span class="comment"> * \return             error code</span></div>
-<div class="line"><a name="l00951"></a><span class="lineno">  951</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00952"></a><span class="lineno">  952</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__syslog.html#ga37f3d919de260aab35fbe30b3b05067f">M_log_module_syslog_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
-<div class="line"><a name="l00953"></a><span class="lineno">  953</span>&#160;    <a class="code" href="group__m__log__common.html#gae8930caa6ff473862599faf5002ffece">M_syslog_priority_t</a> priority);</div>
-<div class="line"><a name="l00954"></a><span class="lineno">  954</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00955"></a><span class="lineno">  955</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of syslog group */</span></div>
-<div class="line"><a name="l00956"></a><span class="lineno">  956</span>&#160;</div>
-<div class="line"><a name="l00957"></a><span class="lineno">  957</span>&#160;</div>
-<div class="line"><a name="l00958"></a><span class="lineno">  958</span>&#160;</div>
-<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;<span class="comment">/*! \addtogroup m_log_tcp_syslog TCP Syslog Module</span></div>
-<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
-<div class="line"><a name="l00962"></a><span class="lineno">  962</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00963"></a><span class="lineno">  963</span>&#160;<span class="comment"> * Functions to enable logging to a remote syslog server over TCP.</span></div>
-<div class="line"><a name="l00964"></a><span class="lineno">  964</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00965"></a><span class="lineno">  965</span>&#160;<span class="comment"> * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds</span></div>
-<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;<span class="comment"> * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was</span></div>
-<div class="line"><a name="l00967"></a><span class="lineno">  967</span>&#160;<span class="comment"> * chosen to ensure compatibility across a wide range of syslog servers.</span></div>
+<div class="line"><a name="l00946"></a><span class="lineno">  946</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
+<div class="line"><a name="l00947"></a><span class="lineno">  947</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
+<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
+<div class="line"><a name="l00949"></a><span class="lineno">  949</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
+<div class="line"><a name="l00950"></a><span class="lineno">  950</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l00951"></a><span class="lineno">  951</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00952"></a><span class="lineno">  952</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
+<div class="line"><a name="l00953"></a><span class="lineno">  953</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
+<div class="line"><a name="l00954"></a><span class="lineno">  954</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
+<div class="line"><a name="l00955"></a><span class="lineno">  955</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
+<div class="line"><a name="l00956"></a><span class="lineno">  956</span>&#160;<span class="comment"> * \return             error code</span></div>
+<div class="line"><a name="l00957"></a><span class="lineno">  957</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00958"></a><span class="lineno">  958</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__syslog.html#ga37f3d919de260aab35fbe30b3b05067f">M_log_module_syslog_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
+<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;    <a class="code" href="group__m__log__common.html#gae8930caa6ff473862599faf5002ffece">M_syslog_priority_t</a> priority);</div>
+<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of syslog group */</span></div>
+<div class="line"><a name="l00962"></a><span class="lineno">  962</span>&#160;</div>
+<div class="line"><a name="l00963"></a><span class="lineno">  963</span>&#160;</div>
+<div class="line"><a name="l00964"></a><span class="lineno">  964</span>&#160;</div>
+<div class="line"><a name="l00965"></a><span class="lineno">  965</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;<span class="comment">/*! \addtogroup m_log_tcp_syslog TCP Syslog Module</span></div>
+<div class="line"><a name="l00967"></a><span class="lineno">  967</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
 <div class="line"><a name="l00968"></a><span class="lineno">  968</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00969"></a><span class="lineno">  969</span>&#160;<span class="comment"> * Messages are written asynchronously, as part of an existing event loop owned by the caller.</span></div>
+<div class="line"><a name="l00969"></a><span class="lineno">  969</span>&#160;<span class="comment"> * Functions to enable logging to a remote syslog server over TCP.</span></div>
 <div class="line"><a name="l00970"></a><span class="lineno">  970</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00971"></a><span class="lineno">  971</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
-<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00973"></a><span class="lineno">  973</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l00974"></a><span class="lineno">  974</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00975"></a><span class="lineno">  975</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00976"></a><span class="lineno">  976</span>&#160;<span class="comment">/*! Add a module to output to a remote syslog server over TCP.</span></div>
-<div class="line"><a name="l00977"></a><span class="lineno">  977</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00978"></a><span class="lineno">  978</span>&#160;<span class="comment"> * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds</span></div>
-<div class="line"><a name="l00979"></a><span class="lineno">  979</span>&#160;<span class="comment"> * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was</span></div>
-<div class="line"><a name="l00980"></a><span class="lineno">  980</span>&#160;<span class="comment"> * chosen to ensure compatibility across a wide range of syslog servers.</span></div>
-<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00971"></a><span class="lineno">  971</span>&#160;<span class="comment"> * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds</span></div>
+<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;<span class="comment"> * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was</span></div>
+<div class="line"><a name="l00973"></a><span class="lineno">  973</span>&#160;<span class="comment"> * chosen to ensure compatibility across a wide range of syslog servers.</span></div>
+<div class="line"><a name="l00974"></a><span class="lineno">  974</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00975"></a><span class="lineno">  975</span>&#160;<span class="comment"> * Messages are written asynchronously, as part of an existing event loop owned by the caller.</span></div>
+<div class="line"><a name="l00976"></a><span class="lineno">  976</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00977"></a><span class="lineno">  977</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00978"></a><span class="lineno">  978</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00979"></a><span class="lineno">  979</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l00980"></a><span class="lineno">  980</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;<span class="comment">/*! Add a module to output to a remote syslog server over TCP.</span></div>
 <div class="line"><a name="l00983"></a><span class="lineno">  983</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00984"></a><span class="lineno">  984</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
-<div class="line"><a name="l00985"></a><span class="lineno">  985</span>&#160;<span class="comment"> * \param[in]  product         short tag string for syslog, usually the name of the program sending log info</span></div>
-<div class="line"><a name="l00986"></a><span class="lineno">  986</span>&#160;<span class="comment"> * \param[in]  facility        facility type to associate with all log messages, gets passed directly to syslog</span></div>
-<div class="line"><a name="l00987"></a><span class="lineno">  987</span>&#160;<span class="comment"> * \param[in]  host            hostname of destination syslog server</span></div>
-<div class="line"><a name="l00988"></a><span class="lineno">  988</span>&#160;<span class="comment"> * \param[in]  port            port of destination syslog server (usually 514)</span></div>
-<div class="line"><a name="l00989"></a><span class="lineno">  989</span>&#160;<span class="comment"> * \param[in]  dns             external DNS resolver cache to use (not owned by logger)</span></div>
-<div class="line"><a name="l00990"></a><span class="lineno">  990</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to syslog</span></div>
-<div class="line"><a name="l00991"></a><span class="lineno">  991</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l00992"></a><span class="lineno">  992</span>&#160;<span class="comment"> * \return                     error code</span></div>
-<div class="line"><a name="l00993"></a><span class="lineno">  993</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00994"></a><span class="lineno">  994</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga10f001c1a1085a4de70209eb3c59ff97">M_log_module_add_tcp_syslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <a class="code" href="group__m__log__common.html#gae989c31aaadfca433d924355faea2afa">M_syslog_facility_t</a> facility,</div>
-<div class="line"><a name="l00995"></a><span class="lineno">  995</span>&#160;    const <span class="keywordtype">char</span> *host, M_uint16 port, <a class="code" href="group__m__dns.html#ga6d7651186321b1cc222aa53bd0fa3d22">M_dns_t</a> *dns, <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l00996"></a><span class="lineno">  996</span>&#160;</div>
-<div class="line"><a name="l00997"></a><span class="lineno">  997</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00998"></a><span class="lineno">  998</span>&#160;<span class="comment">/*! Set TCP connection timeout.</span></div>
-<div class="line"><a name="l00999"></a><span class="lineno">  999</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01000"></a><span class="lineno"> 1000</span>&#160;<span class="comment"> * Note that, in addition to normal connection parameters, the TCP module will automatically try to reconnect on</span></div>
-<div class="line"><a name="l01001"></a><span class="lineno"> 1001</span>&#160;<span class="comment"> * disconnect or error after a short delay, no matter what you set here.</span></div>
-<div class="line"><a name="l01002"></a><span class="lineno"> 1002</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01003"></a><span class="lineno"> 1003</span>&#160;<span class="comment"> * \param[in] log        logger object</span></div>
-<div class="line"><a name="l01004"></a><span class="lineno"> 1004</span>&#160;<span class="comment"> * \param[in] module     handle of module to operate on</span></div>
-<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;<span class="comment"> * \param[in] timeout_ms connection timeout, in milliseconds</span></div>
-<div class="line"><a name="l01006"></a><span class="lineno"> 1006</span>&#160;<span class="comment"> * \return               error code</span></div>
-<div class="line"><a name="l01007"></a><span class="lineno"> 1007</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01008"></a><span class="lineno"> 1008</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga63e0b9468d9febec845813e08fa211bf">M_log_module_tcp_syslog_set_connect_timeout_ms</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module,</div>
-<div class="line"><a name="l01009"></a><span class="lineno"> 1009</span>&#160;    M_uint64 timeout_ms);</div>
-<div class="line"><a name="l01010"></a><span class="lineno"> 1010</span>&#160;</div>
-<div class="line"><a name="l01011"></a><span class="lineno"> 1011</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01012"></a><span class="lineno"> 1012</span>&#160;<span class="comment">/*! Set TCP keep alive parameters for the connection.</span></div>
-<div class="line"><a name="l01013"></a><span class="lineno"> 1013</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01014"></a><span class="lineno"> 1014</span>&#160;<span class="comment"> * If this function isn&#39;t called, the following default values are used:</span></div>
-<div class="line"><a name="l01015"></a><span class="lineno"> 1015</span>&#160;<span class="comment"> * \li &lt;tt&gt;idle_time_s = 4 seconds&lt;/tt&gt;</span></div>
-<div class="line"><a name="l01016"></a><span class="lineno"> 1016</span>&#160;<span class="comment"> * \li &lt;tt&gt;retry_time_s = 15 seconds&lt;/tt&gt;</span></div>
-<div class="line"><a name="l01017"></a><span class="lineno"> 1017</span>&#160;<span class="comment"> * \li &lt;tt&gt;retry_count = 3&lt;/tt&gt;</span></div>
-<div class="line"><a name="l01018"></a><span class="lineno"> 1018</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01019"></a><span class="lineno"> 1019</span>&#160;<span class="comment"> * \param[in] log          logger object</span></div>
-<div class="line"><a name="l01020"></a><span class="lineno"> 1020</span>&#160;<span class="comment"> * \param[in] module       handle of module to operate on</span></div>
-<div class="line"><a name="l01021"></a><span class="lineno"> 1021</span>&#160;<span class="comment"> * \param[in] idle_time_s  tcp idle timeout, in seconds</span></div>
-<div class="line"><a name="l01022"></a><span class="lineno"> 1022</span>&#160;<span class="comment"> * \param[in] retry_time_s tcp retry time, in seconds</span></div>
-<div class="line"><a name="l01023"></a><span class="lineno"> 1023</span>&#160;<span class="comment"> * \param[in] retry_count  tcp allowed number of retries</span></div>
-<div class="line"><a name="l01024"></a><span class="lineno"> 1024</span>&#160;<span class="comment"> * \return                 error code</span></div>
-<div class="line"><a name="l01025"></a><span class="lineno"> 1025</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01026"></a><span class="lineno"> 1026</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga1cba1159314393d5846cdc6cdb798bfb">M_log_module_tcp_syslog_set_keepalives</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 idle_time_s,</div>
-<div class="line"><a name="l01027"></a><span class="lineno"> 1027</span>&#160;    M_uint64 retry_time_s, M_uint64 retry_count);</div>
-<div class="line"><a name="l01028"></a><span class="lineno"> 1028</span>&#160;</div>
-<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with a syslog priority tag.</span></div>
-<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will</span></div>
-<div class="line"><a name="l01033"></a><span class="lineno"> 1033</span>&#160;<span class="comment"> * be used for that tag.</span></div>
-<div class="line"><a name="l01034"></a><span class="lineno"> 1034</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01035"></a><span class="lineno"> 1035</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
-<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
-<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
-<div class="line"><a name="l01038"></a><span class="lineno"> 1038</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
-<div class="line"><a name="l01039"></a><span class="lineno"> 1039</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l00984"></a><span class="lineno">  984</span>&#160;<span class="comment"> * This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds</span></div>
+<div class="line"><a name="l00985"></a><span class="lineno">  985</span>&#160;<span class="comment"> * octet-counting framing as described in RFC 6587 for transmission over TCP. This legacy format was</span></div>
+<div class="line"><a name="l00986"></a><span class="lineno">  986</span>&#160;<span class="comment"> * chosen to ensure compatibility across a wide range of syslog servers.</span></div>
+<div class="line"><a name="l00987"></a><span class="lineno">  987</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00988"></a><span class="lineno">  988</span>&#160;<span class="comment"> * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.</span></div>
+<div class="line"><a name="l00989"></a><span class="lineno">  989</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00990"></a><span class="lineno">  990</span>&#160;<span class="comment"> * \param[in]  log             logger object</span></div>
+<div class="line"><a name="l00991"></a><span class="lineno">  991</span>&#160;<span class="comment"> * \param[in]  product         short tag string for syslog, usually the name of the program sending log info</span></div>
+<div class="line"><a name="l00992"></a><span class="lineno">  992</span>&#160;<span class="comment"> * \param[in]  facility        facility type to associate with all log messages, gets passed directly to syslog</span></div>
+<div class="line"><a name="l00993"></a><span class="lineno">  993</span>&#160;<span class="comment"> * \param[in]  host            hostname of destination syslog server</span></div>
+<div class="line"><a name="l00994"></a><span class="lineno">  994</span>&#160;<span class="comment"> * \param[in]  port            port of destination syslog server (usually 514)</span></div>
+<div class="line"><a name="l00995"></a><span class="lineno">  995</span>&#160;<span class="comment"> * \param[in]  dns             external DNS resolver cache to use (not owned by logger)</span></div>
+<div class="line"><a name="l00996"></a><span class="lineno">  996</span>&#160;<span class="comment"> * \param[in]  max_queue_bytes max size of queue used to buffer asynchronous writes to syslog</span></div>
+<div class="line"><a name="l00997"></a><span class="lineno">  997</span>&#160;<span class="comment"> * \param[out] out_mod         handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l00998"></a><span class="lineno">  998</span>&#160;<span class="comment"> * \return                     error code</span></div>
+<div class="line"><a name="l00999"></a><span class="lineno">  999</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01000"></a><span class="lineno"> 1000</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga10f001c1a1085a4de70209eb3c59ff97">M_log_module_add_tcp_syslog</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, const <span class="keywordtype">char</span> *product, <a class="code" href="group__m__log__common.html#gae989c31aaadfca433d924355faea2afa">M_syslog_facility_t</a> facility,</div>
+<div class="line"><a name="l01001"></a><span class="lineno"> 1001</span>&#160;    const <span class="keywordtype">char</span> *host, M_uint16 port, <a class="code" href="group__m__dns.html#ga6d7651186321b1cc222aa53bd0fa3d22">M_dns_t</a> *dns, <span class="keywordtype">size_t</span> max_queue_bytes, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l01002"></a><span class="lineno"> 1002</span>&#160;</div>
+<div class="line"><a name="l01003"></a><span class="lineno"> 1003</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01004"></a><span class="lineno"> 1004</span>&#160;<span class="comment">/*! Set TCP connection timeout.</span></div>
+<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01006"></a><span class="lineno"> 1006</span>&#160;<span class="comment"> * Note that, in addition to normal connection parameters, the TCP module will automatically try to reconnect on</span></div>
+<div class="line"><a name="l01007"></a><span class="lineno"> 1007</span>&#160;<span class="comment"> * disconnect or error after a short delay, no matter what you set here.</span></div>
+<div class="line"><a name="l01008"></a><span class="lineno"> 1008</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01009"></a><span class="lineno"> 1009</span>&#160;<span class="comment"> * \param[in] log        logger object</span></div>
+<div class="line"><a name="l01010"></a><span class="lineno"> 1010</span>&#160;<span class="comment"> * \param[in] module     handle of module to operate on</span></div>
+<div class="line"><a name="l01011"></a><span class="lineno"> 1011</span>&#160;<span class="comment"> * \param[in] timeout_ms connection timeout, in milliseconds</span></div>
+<div class="line"><a name="l01012"></a><span class="lineno"> 1012</span>&#160;<span class="comment"> * \return               error code</span></div>
+<div class="line"><a name="l01013"></a><span class="lineno"> 1013</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01014"></a><span class="lineno"> 1014</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga63e0b9468d9febec845813e08fa211bf">M_log_module_tcp_syslog_set_connect_timeout_ms</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module,</div>
+<div class="line"><a name="l01015"></a><span class="lineno"> 1015</span>&#160;    M_uint64 timeout_ms);</div>
+<div class="line"><a name="l01016"></a><span class="lineno"> 1016</span>&#160;</div>
+<div class="line"><a name="l01017"></a><span class="lineno"> 1017</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01018"></a><span class="lineno"> 1018</span>&#160;<span class="comment">/*! Set TCP keep alive parameters for the connection.</span></div>
+<div class="line"><a name="l01019"></a><span class="lineno"> 1019</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01020"></a><span class="lineno"> 1020</span>&#160;<span class="comment"> * If this function isn&#39;t called, the following default values are used:</span></div>
+<div class="line"><a name="l01021"></a><span class="lineno"> 1021</span>&#160;<span class="comment"> * \li &lt;tt&gt;idle_time_s = 4 seconds&lt;/tt&gt;</span></div>
+<div class="line"><a name="l01022"></a><span class="lineno"> 1022</span>&#160;<span class="comment"> * \li &lt;tt&gt;retry_time_s = 15 seconds&lt;/tt&gt;</span></div>
+<div class="line"><a name="l01023"></a><span class="lineno"> 1023</span>&#160;<span class="comment"> * \li &lt;tt&gt;retry_count = 3&lt;/tt&gt;</span></div>
+<div class="line"><a name="l01024"></a><span class="lineno"> 1024</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01025"></a><span class="lineno"> 1025</span>&#160;<span class="comment"> * \param[in] log          logger object</span></div>
+<div class="line"><a name="l01026"></a><span class="lineno"> 1026</span>&#160;<span class="comment"> * \param[in] module       handle of module to operate on</span></div>
+<div class="line"><a name="l01027"></a><span class="lineno"> 1027</span>&#160;<span class="comment"> * \param[in] idle_time_s  tcp idle timeout, in seconds</span></div>
+<div class="line"><a name="l01028"></a><span class="lineno"> 1028</span>&#160;<span class="comment"> * \param[in] retry_time_s tcp retry time, in seconds</span></div>
+<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;<span class="comment"> * \param[in] retry_count  tcp allowed number of retries</span></div>
+<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;<span class="comment"> * \return                 error code</span></div>
+<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#ga1cba1159314393d5846cdc6cdb798bfb">M_log_module_tcp_syslog_set_keepalives</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 idle_time_s,</div>
+<div class="line"><a name="l01033"></a><span class="lineno"> 1033</span>&#160;    M_uint64 retry_time_s, M_uint64 retry_count);</div>
+<div class="line"><a name="l01034"></a><span class="lineno"> 1034</span>&#160;</div>
+<div class="line"><a name="l01035"></a><span class="lineno"> 1035</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;<span class="comment">/*! Associate the given user-defined tag(s) with a syslog priority tag.</span></div>
+<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01038"></a><span class="lineno"> 1038</span>&#160;<span class="comment"> * If you don&#39;t associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will</span></div>
+<div class="line"><a name="l01039"></a><span class="lineno"> 1039</span>&#160;<span class="comment"> * be used for that tag.</span></div>
 <div class="line"><a name="l01040"></a><span class="lineno"> 1040</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01041"></a><span class="lineno"> 1041</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
-<div class="line"><a name="l01042"></a><span class="lineno"> 1042</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
-<div class="line"><a name="l01043"></a><span class="lineno"> 1043</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
-<div class="line"><a name="l01044"></a><span class="lineno"> 1044</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
-<div class="line"><a name="l01045"></a><span class="lineno"> 1045</span>&#160;<span class="comment"> * \return             error code</span></div>
-<div class="line"><a name="l01046"></a><span class="lineno"> 1046</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01047"></a><span class="lineno"> 1047</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#gaad09c42c4f086367f601b2db9a949b0e">M_log_module_tcp_syslog_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
-<div class="line"><a name="l01048"></a><span class="lineno"> 1048</span>&#160;    <a class="code" href="group__m__log__common.html#gae8930caa6ff473862599faf5002ffece">M_syslog_priority_t</a> priority);</div>
-<div class="line"><a name="l01049"></a><span class="lineno"> 1049</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01050"></a><span class="lineno"> 1050</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of tcp_syslog group */</span></div>
-<div class="line"><a name="l01051"></a><span class="lineno"> 1051</span>&#160;</div>
-<div class="line"><a name="l01052"></a><span class="lineno"> 1052</span>&#160;</div>
-<div class="line"><a name="l01053"></a><span class="lineno"> 1053</span>&#160;</div>
-<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01055"></a><span class="lineno"> 1055</span>&#160;<span class="comment">/*! \addtogroup m_log_membuf Memory Buffer Module</span></div>
-<div class="line"><a name="l01056"></a><span class="lineno"> 1056</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
-<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;<span class="comment"> * Functions to enable logging sensitive data to a temporary memory buffer.</span></div>
-<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;<span class="comment"> * Membuf modules only accept messages until they are full, then they stop accepting messages and hang out in memory</span></div>
-<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;<span class="comment"> * until they&#39;re either explicitly retrieved by the caller with M_log_module_take_membuf(), or they reach their</span></div>
-<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;<span class="comment"> * expiration time and are automatically destroyed.</span></div>
+<div class="line"><a name="l01041"></a><span class="lineno"> 1041</span>&#160;<span class="comment"> * \see M_LOG_ALL_TAGS</span></div>
+<div class="line"><a name="l01042"></a><span class="lineno"> 1042</span>&#160;<span class="comment"> * \see M_log_all_tags_lt</span></div>
+<div class="line"><a name="l01043"></a><span class="lineno"> 1043</span>&#160;<span class="comment"> * \see M_log_all_tags_lte</span></div>
+<div class="line"><a name="l01044"></a><span class="lineno"> 1044</span>&#160;<span class="comment"> * \see M_log_all_tags_gt</span></div>
+<div class="line"><a name="l01045"></a><span class="lineno"> 1045</span>&#160;<span class="comment"> * \see M_log_all_tags_gte</span></div>
+<div class="line"><a name="l01046"></a><span class="lineno"> 1046</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01047"></a><span class="lineno"> 1047</span>&#160;<span class="comment"> * \param[in] log      logger object</span></div>
+<div class="line"><a name="l01048"></a><span class="lineno"> 1048</span>&#160;<span class="comment"> * \param[in] module   handle of module to operate on</span></div>
+<div class="line"><a name="l01049"></a><span class="lineno"> 1049</span>&#160;<span class="comment"> * \param[in] tags     user-defined power-of-two tag (or multiple power-of-two tags, OR&#39;d together)</span></div>
+<div class="line"><a name="l01050"></a><span class="lineno"> 1050</span>&#160;<span class="comment"> * \param[in] priority single priority value to associate with the given tags</span></div>
+<div class="line"><a name="l01051"></a><span class="lineno"> 1051</span>&#160;<span class="comment"> * \return             error code</span></div>
+<div class="line"><a name="l01052"></a><span class="lineno"> 1052</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01053"></a><span class="lineno"> 1053</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__tcp__syslog.html#gaad09c42c4f086367f601b2db9a949b0e">M_log_module_tcp_syslog_set_tag_priority</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, M_uint64 tags,</div>
+<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;    <a class="code" href="group__m__log__common.html#gae8930caa6ff473862599faf5002ffece">M_syslog_priority_t</a> priority);</div>
+<div class="line"><a name="l01055"></a><span class="lineno"> 1055</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01056"></a><span class="lineno"> 1056</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of tcp_syslog group */</span></div>
+<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;</div>
+<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;</div>
+<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;</div>
+<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;<span class="comment">/*! \addtogroup m_log_membuf Memory Buffer Module</span></div>
+<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;<span class="comment"> *  \ingroup m_log</span></div>
 <div class="line"><a name="l01063"></a><span class="lineno"> 1063</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;<span class="comment"> * @{</span></div>
-<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01066"></a><span class="lineno"> 1066</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;<span class="comment">/*! Add a module to output to a buffer in memory.</span></div>
-<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01069"></a><span class="lineno"> 1069</span>&#160;<span class="comment"> * This is intended for temporary, in-memory storage of sensitive data that can&#39;t be stored long-term.</span></div>
-<div class="line"><a name="l01070"></a><span class="lineno"> 1070</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;<span class="comment"> * Messages are accepted from the time the buffer is added, until the buffer is full. After that, no new messages</span></div>
-<div class="line"><a name="l01072"></a><span class="lineno"> 1072</span>&#160;<span class="comment"> * are stored, and the contents are preserved until either the module is removed, or the expiration time is reached.</span></div>
-<div class="line"><a name="l01073"></a><span class="lineno"> 1073</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01074"></a><span class="lineno"> 1074</span>&#160;<span class="comment"> * \param[in]  log           logger object</span></div>
-<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment"> * \param[in]  buf_size      max size (in bytes) of memory buffer</span></div>
-<div class="line"><a name="l01076"></a><span class="lineno"> 1076</span>&#160;<span class="comment"> * \param[in]  buf_time_s    max time (in seconds) to allow buffer to exist in memory before it&#39;s automatically deleted</span></div>
-<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment"> * \param[in]  expire_cb     callback to call when a memory buffer is automatically deleted</span></div>
-<div class="line"><a name="l01078"></a><span class="lineno"> 1078</span>&#160;<span class="comment"> * \param[in]  expire_thunk  any state used by the expire callback (not owned by log, you must delete it yourself)</span></div>
-<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;<span class="comment"> * \param[out] out_mod       handle for created module, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;<span class="comment"> * \return                   error code</span></div>
-<div class="line"><a name="l01081"></a><span class="lineno"> 1081</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__membuf.html#gab0d5c672f055a436336dabe9850d4426">M_log_module_add_membuf</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <span class="keywordtype">size_t</span> buf_size, M_uint64 buf_time_s,</div>
-<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;    <a class="code" href="group__m__log__common.html#ga791782404fe5184d0b9a6a4b367d9615">M_log_expire_cb</a> expire_cb, <span class="keywordtype">void</span> *expire_thunk, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
-<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;</div>
-<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;<span class="comment">/*! Remove a membuf module from the log and return the internal memory store.</span></div>
-<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;<span class="comment"> * This method should be used if you need to preserve the data stored in the buffer. If you just want</span></div>
-<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;<span class="comment"> * to remove the module and you don&#39;t care about the memory buffer contents, you should call the normal</span></div>
-<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;<span class="comment"> * M_log_module_remove() function instead.</span></div>
-<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;<span class="comment"> * \see M_log_module_remove</span></div>
+<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;<span class="comment"> * Functions to enable logging sensitive data to a temporary memory buffer.</span></div>
+<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01066"></a><span class="lineno"> 1066</span>&#160;<span class="comment"> * Membuf modules only accept messages until they are full, then they stop accepting messages and hang out in memory</span></div>
+<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;<span class="comment"> * until they&#39;re either explicitly retrieved by the caller with M_log_module_take_membuf(), or they reach their</span></div>
+<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;<span class="comment"> * expiration time and are automatically destroyed.</span></div>
+<div class="line"><a name="l01069"></a><span class="lineno"> 1069</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01070"></a><span class="lineno"> 1070</span>&#160;<span class="comment"> * @{</span></div>
+<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01072"></a><span class="lineno"> 1072</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01073"></a><span class="lineno"> 1073</span>&#160;<span class="comment">/*! Add a module to output to a buffer in memory.</span></div>
+<div class="line"><a name="l01074"></a><span class="lineno"> 1074</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment"> * This is intended for temporary, in-memory storage of sensitive data that can&#39;t be stored long-term.</span></div>
+<div class="line"><a name="l01076"></a><span class="lineno"> 1076</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment"> * Messages are accepted from the time the buffer is added, until the buffer is full. After that, no new messages</span></div>
+<div class="line"><a name="l01078"></a><span class="lineno"> 1078</span>&#160;<span class="comment"> * are stored, and the contents are preserved until either the module is removed, or the expiration time is reached.</span></div>
+<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;<span class="comment"> * \param[in]  log           logger object</span></div>
+<div class="line"><a name="l01081"></a><span class="lineno"> 1081</span>&#160;<span class="comment"> * \param[in]  buf_size      max size (in bytes) of memory buffer</span></div>
+<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;<span class="comment"> * \param[in]  buf_time_s    max time (in seconds) to allow buffer to exist in memory before it&#39;s automatically deleted</span></div>
+<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;<span class="comment"> * \param[in]  expire_cb     callback to call when a memory buffer is automatically deleted</span></div>
+<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;<span class="comment"> * \param[in]  expire_thunk  any state used by the expire callback (not owned by log, you must delete it yourself)</span></div>
+<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;<span class="comment"> * \param[out] out_mod       handle for created module, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;<span class="comment"> * \return                   error code</span></div>
+<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__membuf.html#gab0d5c672f055a436336dabe9850d4426">M_log_module_add_membuf</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <span class="keywordtype">size_t</span> buf_size, M_uint64 buf_time_s,</div>
+<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;    <a class="code" href="group__m__log__common.html#ga791782404fe5184d0b9a6a4b367d9615">M_log_expire_cb</a> expire_cb, <span class="keywordtype">void</span> *expire_thunk, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> **out_mod);</div>
+<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;</div>
+<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;<span class="comment">/*! Remove a membuf module from the log and return the internal memory store.</span></div>
 <div class="line"><a name="l01093"></a><span class="lineno"> 1093</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;<span class="comment"> * \param[in]  log     logger object</span></div>
-<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;<span class="comment"> * \param[in]  module  handle of module to operate on</span></div>
-<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160;<span class="comment"> * \param[out] out_buf buffer containing membuf data, or \c NULL if there was an error</span></div>
-<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;<span class="comment"> * \return             error code</span></div>
-<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__membuf.html#gadeab6519c8e80ef50edd2a6c46a57f15">M_log_module_take_membuf</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> **out_buf);</div>
-<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of membuf group */</span></div>
-<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;</div>
-<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;</div>
-<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;</div>
-<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;</div>
-<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* M_LOG_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;<span class="comment"> * This method should be used if you need to preserve the data stored in the buffer. If you just want</span></div>
+<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;<span class="comment"> * to remove the module and you don&#39;t care about the memory buffer contents, you should call the normal</span></div>
+<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160;<span class="comment"> * M_log_module_remove() function instead.</span></div>
+<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;<span class="comment"> * \see M_log_module_remove</span></div>
+<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;<span class="comment"> * \param[in]  log     logger object</span></div>
+<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;<span class="comment"> * \param[in]  module  handle of module to operate on</span></div>
+<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;<span class="comment"> * \param[out] out_buf buffer containing membuf data, or \c NULL if there was an error</span></div>
+<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;<span class="comment"> * \return             error code</span></div>
+<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;M_API <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a> <a class="code" href="group__m__log__membuf.html#gadeab6519c8e80ef50edd2a6c46a57f15">M_log_module_take_membuf</a>(<a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a> *log, <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *module, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> **out_buf);</div>
+<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;<span class="comment">/*! @} */</span> <span class="comment">/* End of membuf group */</span></div>
+<div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;</div>
+<div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;</div>
+<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;</div>
+<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;</div>
+<div class="line"><a name="l01113"></a><span class="lineno"> 1113</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* M_LOG_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__log__common_html_gga5beb4e09edf76a7f8fa85898e26892aba72fa928e2182747ee6f65543a7b1b7cf"><div class="ttname"><a href="group__m__log__common.html#gga5beb4e09edf76a7f8fa85898e26892aba72fa928e2182747ee6f65543a7b1b7cf">M_ANDROID_LOG_DEBUG</a></div><div class="ttdef"><b>Definition:</b> m_log.h:304</div></div>
 <div class="ttc" id="group__m__log__common_html_ga11296f366e6edf201946d3b8333d94c7"><div class="ttname"><a href="group__m__log__common.html#ga11296f366e6edf201946d3b8333d94c7">M_log_set_time_format</a></div><div class="ttdeci">M_log_error_t M_log_set_time_format(M_log_t *log, const char *fmt)</div></div>
 <div class="ttc" id="group__m__log__common_html_gaad0494abe774c0cd4d8ccd08b83707ac"><div class="ttname"><a href="group__m__log__common.html#gaad0494abe774c0cd4d8ccd08b83707ac">M_stream_type_t</a></div><div class="ttdeci">M_stream_type_t</div><div class="ttdef"><b>Definition:</b> m_log.h:250</div></div>
@@ -1321,7 +1327,7 @@ $(document).ready(function(){initNavTree('m__log_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_031f61c33603d41b850d8b453fe541c6.html">log</a></li><li class="navelem"><b>m_log.h</b></li>
-    <li class="footer">Generated on Fri Mar 9 2018 15:07:30 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Mon Mar 12 2018 21:53:00 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
