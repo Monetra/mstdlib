@@ -748,6 +748,12 @@ M_API M_log_error_t M_log_module_remove(M_log_t *log, M_log_module_t *module);
  * If the library was compiled on a platform that doesn't allow console output (e.g., Android), this function
  * will return \link M_LOG_MODULE_UNSUPPORTED\endlink when called, and no module will be added to the logger.
  *
+ * \warning
+ * Normally, you should only add at most one stream output module to a given M_log_t object. This is because
+ * having multiple backends write to the same console stream may cause the output from each thread to become
+ * intermingled and unreadable. Plus, there's only one global thing you're writing too, it doesn't make any
+ * sense to output to it from a bunch of separate worker threads. Just use one backend per destination.
+ *
  * \param[in] log             logger object
  * \param[in] type            what stream to output to (stdout, stderr)
  * \param[in] max_queue_bytes max size of queue used to buffer asynchronous writes to the stream
