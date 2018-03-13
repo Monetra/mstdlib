@@ -6,6 +6,7 @@ var group__m__queue =
     [ "M_queue_destroy", "group__m__queue.html#ga8befbc0e0de303aed27b3c03e9a2ef38", null ],
     [ "M_queue_insert", "group__m__queue.html#ga2760d02a3813d6aca5f39f765f54dc0f", null ],
     [ "M_queue_remove", "group__m__queue.html#ga5dc28106b0988ebc2cbad2899c92a82a", null ],
+    [ "M_queue_exists", "group__m__queue.html#ga1a7f22bb9b2b17a32827b0b0460800d5", null ],
     [ "M_queue_take", "group__m__queue.html#ga1eda33f7c6d1cf072b7e1f54e38f6480", null ],
     [ "M_queue_take_first", "group__m__queue.html#ga498ea44c35371e91b51485f5fe0b239a", null ],
     [ "M_queue_len", "group__m__queue.html#gafd9d754490bd571fde389c549782aa1d", null ],

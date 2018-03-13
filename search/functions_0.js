@@ -1231,6 +1231,7 @@ var searchData=
   ['m_5fprintf',['M_printf',['../group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8',1,'m_fmt.h']]],
   ['m_5fqueue_5fcreate',['M_queue_create',['../group__m__queue.html#ga0d0a553977be6ba6bc025c2f4107906f',1,'m_queue.h']]],
   ['m_5fqueue_5fdestroy',['M_queue_destroy',['../group__m__queue.html#ga8befbc0e0de303aed27b3c03e9a2ef38',1,'m_queue.h']]],
+  ['m_5fqueue_5fexists',['M_queue_exists',['../group__m__queue.html#ga1a7f22bb9b2b17a32827b0b0460800d5',1,'m_queue.h']]],
   ['m_5fqueue_5ffirst',['M_queue_first',['../group__m__queue.html#ga417417af1aff439d7f0c5e26d825de2c',1,'m_queue.h']]],
   ['m_5fqueue_5fforeach',['M_queue_foreach',['../group__m__queue.html#ga031c5693b9567fe0fe674702ddb1e615',1,'m_queue.h']]],
   ['m_5fqueue_5fforeach_5ffree',['M_queue_foreach_free',['../group__m__queue.html#gad12fc88033a133fcfec416226791e604',1,'m_queue.h']]],

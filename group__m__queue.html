@@ -119,6 +119,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga2760d02a3813d6aca5f39f765f54dc0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5dc28106b0988ebc2cbad2899c92a82a"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__queue.html#ga5dc28106b0988ebc2cbad2899c92a82a">M_queue_remove</a> (<a class="el" href="group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c">M_queue_t</a> *queue, void *member)</td></tr>
 <tr class="separator:ga5dc28106b0988ebc2cbad2899c92a82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1a7f22bb9b2b17a32827b0b0460800d5"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__queue.html#ga1a7f22bb9b2b17a32827b0b0460800d5">M_queue_exists</a> (<a class="el" href="group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c">M_queue_t</a> *queue, void *member)</td></tr>
+<tr class="separator:ga1a7f22bb9b2b17a32827b0b0460800d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1eda33f7c6d1cf072b7e1f54e38f6480"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__queue.html#ga1eda33f7c6d1cf072b7e1f54e38f6480">M_queue_take</a> (<a class="el" href="group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c">M_queue_t</a> *queue, void *member)</td></tr>
 <tr class="separator:ga1eda33f7c6d1cf072b7e1f54e38f6480"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga498ea44c35371e91b51485f5fe0b239a"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__queue.html#ga498ea44c35371e91b51485f5fe0b239a">M_queue_take_first</a> (<a class="el" href="group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c">M_queue_t</a> *queue)</td></tr>
@@ -307,6 +309,41 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE on failure such as object not found. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga1a7f22bb9b2b17a32827b0b0460800d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_queue_exists </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c">M_queue_t</a> *&#160;</td>
+          <td class="paramname"><em>queue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>member</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>See if queue member still exists. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">queue</td><td>Initialized queue object returned by <a class="el" href="group__m__queue.html#ga0d0a553977be6ba6bc025c2f4107906f">M_queue_create()</a> </td></tr>
+    <tr><td class="paramname">member</td><td>User-supplied queue object (pointer) to find. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if member exists, M_FALSE otherwise. </dd></dl>
 
 </div>
 </div>
@@ -512,7 +549,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 13 2018 20:24:52 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Tue Mar 13 2018 21:07:34 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
