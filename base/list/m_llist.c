@@ -163,10 +163,8 @@ static void M_llist_node_destory(M_llist_node_t *n, M_bool destroy_val)
 	if (n == NULL) 
 		return; 
 
-	if (destroy_val) { 
-		if (destroy_val) 
-			n->parent->value_free(n->val); 
-	} 
+	if (destroy_val)
+		n->parent->value_free(n->val);
 	n->val = NULL; 
 
 	if (n->parent->flags & M_LLIST_SORTED) { 
@@ -453,12 +451,18 @@ static M_bool M_llist_take_remove_node(M_llist_node_t *n, M_bool is_remove, void
 				if (i == 0) {
 					d->tail = n->links.sorted.prev[i];
 				}
+				if (n->links.sorted.prev[i] != NULL) {
+					n->links.sorted.prev[i]->links.sorted.next[i] = NULL;
+				}
 			} else {
 				n->links.sorted.next[i]->links.sorted.prev[i] = n->links.sorted.prev[i];
 			}
 
 			if (n->links.sorted.prev[i] == NULL) {
 				d->head.sorted.head[i] = n->links.sorted.next[i];
+				if (n->links.sorted.next[i] != NULL) {
+					n->links.sorted.next[i]->links.sorted.prev[i] = NULL;
+				}
 			} else {
 				n->links.sorted.prev[i]->links.sorted.next[i] = n->links.sorted.next[i];
 			}
