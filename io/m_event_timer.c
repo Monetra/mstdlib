@@ -427,9 +427,6 @@ void M_event_timer_process(M_event_t *event)
 		/* We always remove the timer from the list as we may add it back in if it is to be rescheduled */
 		M_queue_take(event->u.loop.timers, timer);
 
-		/* Unlock event lock since we won't need it until we loop again */
-		M_event_unlock(event);
-
 		/* See if timer expired, if so mark it as such */
 		if (M_event_timer_tvset(&timer->end_tv)) {
 			M_timeval_t tv;
@@ -443,7 +440,15 @@ void M_event_timer_process(M_event_t *event)
 		if (timer->started) {
 			timer->cnt++;
 			timer->executing = M_TRUE;
+
+			/* Unlock event lock since the callback may take some time */
+			M_event_unlock(event);
+
 			timer->callback(event, M_EVENT_TYPE_OTHER, NULL, timer->cb_data);
+
+			/* Relock to possibly re-queue or loop */
+			M_event_lock(event);
+
 			timer->executing = M_FALSE;
 			cnt++;
 		}
@@ -453,9 +458,6 @@ void M_event_timer_process(M_event_t *event)
 //M_printf("%s(): stopping timer %p-- max fire count\n", __FUNCTION__, timer); fflush(stdout);
 			timer->started = M_FALSE;
 		}
-
-		/* Relock to possibly re-queue or loop */
-		M_event_lock(event);
 
 		/* If autodestroy and timer went to stopped mode, kill it */
 		if (!timer->started && timer->autodestroy) {
