@@ -121,7 +121,7 @@ M_API M_bool M_queue_remove(M_queue_t *queue, void *member);
  * \param member User-supplied queue object (pointer) to find.
  * \return M_TRUE if member exists, M_FALSE otherwise.
  */
-M_bool M_queue_exists(M_queue_t *queue, void *member);
+M_API M_bool M_queue_exists(M_queue_t *queue, void *member);
 
 
 /*! Take control of a user-supplied queue object (pointer).  This will remove the
