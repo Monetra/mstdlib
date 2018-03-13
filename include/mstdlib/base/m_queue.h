@@ -116,6 +116,14 @@ M_API M_bool M_queue_insert(M_queue_t *queue, void *member);
 M_API M_bool M_queue_remove(M_queue_t *queue, void *member);
 
 
+/*! See if queue member still exists.
+ * \param queue  Initialized queue object returned by M_queue_create()
+ * \param member User-supplied queue object (pointer) to find.
+ * \return M_TRUE if member exists, M_FALSE otherwise.
+ */
+M_bool M_queue_exists(M_queue_t *queue, void *member);
+
+
 /*! Take control of a user-supplied queue object (pointer).  This will remove the
  *  object from the list without freeing the object (assuming free_cb was registered).
  *  If no free_cb was registered in M_queue_create(), this has the same behavior
