@@ -134,6 +134,8 @@ M_event_timer_t *M_event_timer_add(M_event_t *event, M_event_callback_t callback
 }
 
 
+static void M_event_timer_remove_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg);
+
 M_bool M_event_timer_remove(M_event_timer_t *timer)
 {
 	M_event_t *event;
@@ -142,6 +144,13 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 		return M_FALSE;
 
 	event = timer->event;
+
+	/* Queue a destroy task to run for this in the owning event loop */
+	if (event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
+		M_event_queue_task(event, M_event_timer_remove_cb, timer);
+		return M_TRUE; /* queued to remove */
+	}
+
 	M_event_lock(event);
 	if (timer->executing) {
 		/* Tell it to autodestroy at completion of execution instead of immediate destroy
@@ -158,6 +167,21 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 	M_event_unlock(event);
 
 	return M_TRUE;
+}
+
+
+static void M_event_timer_remove_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_event_timer_t *timer = cb_arg;
+	(void)event;
+	(void)type;
+	(void)io;
+
+	/* Destroyed out from under us */
+	if (!M_queue_exists(event->u.loop.timers, timer))
+		return;
+
+	M_event_timer_remove(timer);
 }
 
 
@@ -424,8 +448,8 @@ void M_event_timer_process(M_event_t *event)
 	while ((timer = M_queue_first(event->u.loop.timers)) != NULL && timer != last_timer && timer->started && M_time_timeval_diff(&timer->next_run, &curr) >= 0) {
 //M_printf("%s(): processing timer %p\n", __FUNCTION__, timer); fflush(stdout);
 		last_timer = timer;
-		/* We always remove the timer from the list as we may add it back in if it is to be rescheduled */
-		M_queue_take(event->u.loop.timers, timer);
+		/* We always dequeue the timer from the list as we may add it back in if it is to be rescheduled */
+		M_event_timer_dequeue(timer);
 
 		/* See if timer expired, if so mark it as such */
 		if (M_event_timer_tvset(&timer->end_tv)) {
@@ -473,8 +497,8 @@ void M_event_timer_process(M_event_t *event)
 		if (timer->started)
 			M_event_timer_schedule(timer);
 
-		/* re-insert */
-		M_queue_insert(event->u.loop.timers, timer);
+		/* re-enqueue */
+		M_event_timer_enqueue(timer);
 
 		/* Pull current time as we do not know how long this iteration took */
 		M_time_elapsed_start(&curr);
