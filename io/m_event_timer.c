@@ -245,7 +245,8 @@ M_bool M_event_timer_start(M_event_timer_t *timer, M_uint64 interval_ms)
 	}
 
 	M_event_lock(timer->event);
-	M_event_timer_dequeue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_dequeue(timer);
 	timer->interval_ms = interval_ms;
 	timer->cnt         = 0;
 	M_mem_set(&timer->next_run, 0, sizeof(timer->next_run));
@@ -253,10 +254,13 @@ M_bool M_event_timer_start(M_event_timer_t *timer, M_uint64 interval_ms)
 	if (rv) {
 //M_printf("%s(): timer %p started for %llu ms\n", __FUNCTION__, timer, interval_ms); fflush(stdout);
 		timer->started = M_TRUE;
-		M_event_timer_enqueue(timer);
-		M_event_wake(timer->event);
+		if (!timer->executing) { /* Recursion! */
+			M_event_timer_enqueue(timer);
+			M_event_wake(timer->event);
+		}
 	} else {
-		M_event_timer_enqueue(timer);
+		if (!timer->executing) /* Recursion! */
+			M_event_timer_enqueue(timer);
 	}
 	M_event_unlock(timer->event);
 
@@ -270,9 +274,11 @@ static M_bool M_event_timer_stop_int(M_event_timer_t *timer, M_bool allow_autode
 		return M_FALSE;
 
 	M_event_lock(timer->event);
-	M_event_timer_dequeue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_dequeue(timer);
 	timer->started = M_FALSE;
-	M_event_timer_enqueue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_enqueue(timer);
 	M_event_unlock(timer->event);
 //M_printf("%s(): timer %p stopped\n", __FUNCTION__, timer); fflush(stdout);
 
