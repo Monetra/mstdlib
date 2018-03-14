@@ -444,6 +444,13 @@ function(install_system_deplibs lib_dest runtime_dest)
 			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_WINPTHREAD_LIBRARY}")
 		endif ()
 
+		find_library(MINGW_SSP_LIBRARY NAMES
+			libssp-0
+		)
+		if (MINGW_SSP_LIBRARY)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${MINGW_SSP_LIBRARY}")
+		endif ()
+
 		find_library(MINGW_GCC_LIBRARY NAMES
 			libgcc_s_dw2-1  # dwarf-2 exceptions (32-bit only, exceptions can't be thrown over system DLL's)
 			libgcc_s_seh-1  # SEH (Windows native) exceptions (64-bit only)
@@ -466,7 +473,7 @@ function(install_system_deplibs lib_dest runtime_dest)
 	endif ()
 
 	# If we're compiling on AIX or Solaris with GCC instead of the default system compiler, make sure to
-	# include libgcc_s.
+	# include GCC runtime libraries (libgcc_s, and libssp for stack protector).
 	if ((CMAKE_SYSTEM_NAME MATCHES "AIX" OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND CMAKE_C_COMPILER_ID MATCHES "GNU")
 		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
 		string(REGEX REPLACE "(/)*bin(/)*.*$" "" search_dir "${search_dir}")
@@ -475,12 +482,21 @@ function(install_system_deplibs lib_dest runtime_dest)
 		else ()
 			set(ext .so)
 		endif ()
+
 		find_library(LIBGCC_S
 			NAMES libgcc_s${ext}
 			PATHS "${search_dir}"
 		)
 		if (LIBGCC_S)
 			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBGCC_S}")
+		endif ()
+
+		find_library(LIBSSP
+			NAMES libssp${ext}
+			PATHS "${search_dir}"
+		)
+		if (LIBSSP)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBSSP}")
 		endif ()
 	endif ()
 
