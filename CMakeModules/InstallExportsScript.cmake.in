@@ -1,0 +1,16 @@
+
+# Automatically search for package dependencies, if we're using a new enough version of CMake.
+if (NOT CMAKE_VERSION LESS 3.0)
+	include(CMakeFindDependencyMacro)
+
+	set(@EXPORT_NAME@_deps "@EXPORT_DEPS@")
+
+	foreach(dep ${@EXPORT_NAME@_deps})
+		find_dependency(${dep})
+	endforeach()
+
+	unset(@EXPORT_NAME@_deps)
+endif ()
+
+# Include auto-generated file containing imported targets from this package.
+include("${CMAKE_CURRENT_LIST_DIR}/@EXPORT_NAME@Targets.cmake")

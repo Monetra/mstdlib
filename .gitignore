@@ -3,6 +3,8 @@
 
 # We often build in build/ ignore that
 build/
+build32/
+build64/
 build-*/
 build_*/
 
