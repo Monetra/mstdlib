@@ -473,23 +473,22 @@ add_subdirectory(test)
 file(GLOB_RECURSE headers_and_scripts *.h *.lua *.yml)
 add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${headers_and_scripts})
 
-# If mstdlib is the root project, make sure to include required system libs (if any).
-if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
-	# Install any required system libs, if any (usually just MSVC redistributables on windows, or winpthreads if building with MinGW).
-	install_system_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin)
-endif ()
 
 if (MSTDLIB_INSTALL_EXPORTS)
 	install_exports(Mstdlib "${MSTDLIB_INSTALL_LOCATION_SHARE}/Mstdlib/cmake")
 endif ()
 
+
 # If we're not being chain-built, and install is enabled, add code to allow package creation.
 if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
-	set(CPACK_GENERATOR ZIP)
+	# Install required system libs, if any (MSVC redistributables or MinGW runtimes, for example).
+	install_system_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin)
+
+	set(CPACK_GENERATOR)
 
 	if (WIN32)
 		# Check to see if Wix is available. If it is, enable wix packaging by default.
-		if (NOT CYGWIN AND (EXISTS "$ENV{WIX}" OR EXISTS "${CPACK_WIX_ROOT}"))
+		if (EXISTS "$ENV{WIX}" OR EXISTS "${CPACK_WIX_ROOT}")
 			set(wix_default TRUE)
 		else ()
 			set(wix_default FALSE)
@@ -499,24 +498,48 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 		if (M_PACKAGE_WIX)
 			list(APPEND CPACK_GENERATOR WIX)
 
-			# Uniterm builds that share the same GUID are allowed to replace one another on an install (i.e., upgrade in place).
-			set(CPACK_WIX_UPGRADE_GUID 174F7115-8000-40D7-A78F-07DF0D2022B3)
+			# Mstdlib builds that share the same GUID are allowed to replace one another on an install (i.e., upgrade in place).
+			# Since this is a library, need to allow 64-bit and 32-bit versions to both be installed at the same time on Windows.
+			if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+				set(CPACK_WIX_UPGRADE_GUID 174F7115-8000-40D7-A78F-07DF0D2022B3)
+				set(CPACK_PACKAGE_NAME "${PROJECT_NAME} (64-bit)")
+			else ()
+				set(CPACK_WIX_UPGRADE_GUID C0C5BFAF-5A5A-496F-B4F2-7AA55D873C3A)
+				set(CPACK_PACKAGE_NAME "${PROJECT_NAME} (32-bit)")
+			endif ()
+
+			# Set these variables to add branding graphics to the Windows installer.
+			set(img_dir                "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+			set(CPACK_WIX_PRODUCT_ICON "${img_dir}/mstdlib.ico")
+			set(CPACK_WIX_UI_BANNER    "${img_dir}/wix_banner.bmp") # image at top of all pages besides welcome and completion, 493 x 58 px
+			set(CPACK_WIX_UI_DIALOG    "${img_dir}/wix_dialog.bmp") # background image on welcome and completion pages, 493 x 312 px
 
 			# These variables determine what info shows up for mstdlib in add/remove programs.
-			set(CPACK_WIX_PROPERTY_ARPHELPLINK     https://github.com/Monetra/mstdlib)
+			set(CPACK_WIX_PROPERTY_ARPHELPLINK     https://github.com/monetra/mstdlib)
 			set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT https://monetra.github.io/mstdlib)
 
 			# Add installed Mstdlib to the package registry.
-			set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY Mstdlib)
+			set(CPACK_WIX_CMAKE_PACKAGE_REGISTRY   Mstdlib)
+
+			# Don't want to put version number in default installation directory.
+			set(CPACK_PACKAGE_INSTALL_DIRECTORY    "${PROJECT_NAME}")
 		endif ()
 	elseif (APPLE)
-		# TODO: implement app bundling, the stuff commented out below isn't done yet
+		# TODO: add DMG package here, after we get mstdlib reorganized as a framework on macos
+		list(APPEND CPACK_GENERATOR ZIP)
 	else () # Linux, FreeBSD, etc.
+		# Self-extracting tarball (see https://github.com/drbenmorgan/StudyPack).
+		option(M_PACKAGE_STGZ "Generate self-extracting tarball installer?" TRUE)
+		if (M_PACKAGE_STGZ)
+			list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/postinstall/stgz_script")
+			list(APPEND CPACK_GENERATOR STGZ)
+		endif ()
+
 		# Check to see if rpm is available.
 		find_program(RPMBUILD_EXECUTABLE rpmbuild)
 		mark_as_advanced(FORCE RPMBUILD_EXECUTABLE)
 		if (RPMBUILD_EXECUTABLE)
-			option(M_PACKAGE_RPM "Add RPM to packaging output" TRUE)
+			option(M_PACKAGE_RPM "Add RPM to packaging output" FALSE)
 		else ()
 			set(M_PACKAGE_RPM FALSE)
 		endif ()
@@ -533,21 +556,48 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 	endif ()
 	set(CPACK_VERBATIM_VARIABLES TRUE)
 
-	set(CPACK_PACKAGE_VENDOR                "Main Street Softworks")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY   "M Standard Library (mstdlib)")
-	set(CPACK_RESOURCE_FILE_README  "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-	if (WIN32)
-		set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
-		file(COPY "LICENSE" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-		file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/LICENSE" "${CPACK_RESOURCE_FILE_LICENSE}")
-	else ()
-		set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-	endif ()
+	set(CPACK_PACKAGE_VENDOR              "Main Street Softworks")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "M Standard Library (mstdlib)")
+	set(CPACK_RESOURCE_FILE_README        "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+	set(CPACK_PACKAGE_ICON                "${CMAKE_CURRENT_SOURCE_DIR}/resources/mstdlib.ico")
+
+	string(TIMESTAMP COPYRIGHT_YEAR "%Y")
+	configure_file(license.txt.in license.txt @ONLY)
+	set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
 
 	set_package_name(${PROJECT_NAME} ${PROJECT_VERSION})
 
 	set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 	set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 	set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+	# Add "dist" target - builds, packages, then runs any post-package steps (note that any commands will be run in the root build dir).
+	set(postpkg
+		COMMAND "${CMAKE_COMMAND}" --build . --config $<CONFIG> # Build "all" target
+		COMMAND "${CMAKE_CPACK_COMMAND}"                        # Run cpack
+	)
+
+	if (WIX IN_LIST CPACK_GENERATOR)
+		# Sign the .msi file after creating it, if a signing certificate name or file path has been provided.
+		include(CodeSign)
+		code_sign_is_enabled(can_sign)
+		if (can_sign)
+			set(M_SIGN_UAC_URL "https://github.com/monetra/mstdlib")
+			set(FILES_TO_SIGN "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.msi")
+			configure_file(CMakeModules/CodeSignScript.cmake.in sign_wix_msi.cmake)
+			list(APPEND postpkg
+				COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Code signing ${CPACK_PACKAGE_FILE_NAME}.msi"
+				COMMAND "${CMAKE_COMMAND}" -P "sign_wix_msi.cmake"
+			)
+		endif ()
+	endif ()
+
+	add_custom_target(dist
+		${postpkg}
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+		VERBATIM
+		USES_TERMINAL
+	)
+
 	include(CPack)
 endif ()
