@@ -151,7 +151,8 @@ Functions</h2></td></tr>
 <p>Comparision function prototype.</p>
 <p>Used the same as qsort or bsearch!</p>
 <p>The internal array holding the data elements is a void pointer which means the compar function has a reference to the index of the array (void **). That means you may need to dereference more time than you think. E.g: </p>
-<pre class="fragment">M_uint64 i1 = *(*((M_uint64 * const *)arg1));
+<pre class="fragment">my_type_t *t1 = *((my_type_t * const *)arg1);
+M_uint64   i1 = *(*((M_uint64 * const *)arg1));
 </pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
@@ -823,7 +824,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 15 2018 18:06:28 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Thu Mar 15 2018 19:30:07 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
