@@ -10,7 +10,7 @@ include(CMakePackageConfigHelpers)
 
 function(install_exports export_name export_dest)
 	# Generate *Version.cmake file and install it.
-	set(ver_file "${CMAKE_CURRENT_BINARY_DIR}/${export_name}Version.cmake")
+	set(ver_file "${CMAKE_CURRENT_BINARY_DIR}/${export_name}ConfigVersion.cmake")
 
 	include(CMakePackageConfigHelpers)
 	write_basic_package_version_file("${ver_file}" COMPATIBILITY SameMajorVersion)
