@@ -316,7 +316,14 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 			# If requested by caller, copy the DLL's to the build dir in addition to installing them.
 			# If the file with the same name and timestamp already exists at the destination, nothing will be copied.
 			if (do_copy)
-				file(COPY "${path}" DESTINATION "${INSTALL_DEPLIBS_COPY_DEST}")
+				if (CMAKE_CONFIGURATION_TYPES)
+					foreach(conf ${CMAKE_CONFIGURATION_TYPES})
+						file(MAKE_DIRECTORY "${INSTALL_DEPLIBS_COPY_DEST}/${conf}")
+						file(COPY "${path}" DESTINATION "${INSTALL_DEPLIBS_COPY_DEST}/${conf}")
+					endforeach()
+				else ()
+					file(COPY "${path}" DESTINATION "${INSTALL_DEPLIBS_COPY_DEST}")
+				endif ()
 			endif ()
 		else ()
 			set(dest "${lib_dest}")
