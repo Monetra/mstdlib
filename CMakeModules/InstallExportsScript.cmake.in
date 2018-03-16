@@ -13,9 +13,19 @@ if (NOT CMAKE_VERSION LESS 3.0)
 	endif ()
 
 	foreach(dep ${@EXPORT_NAME@_deps})
-		if (dep MATCHES "(.*):([0-9.x_-]+)")
+		if (dep MATCHES "(.*):([0-9.]+)")
+			# Parse out version spec, if present.
+			#                         match_1  match_2
+			#   Mstdlib:1.0.0     --> Mstdlib   1.0.0
+			#   Mstdlib:1.0.0-64  --> Mstdlib   1.0.0
+			#   Mstdlib:1.0.0beta --> Mstdlib   1.0.0
 			find_dependency(${CMAKE_MATCH_1} ${CMAKE_MATCH_2})
 		else ()
+			# Remove any component identifier or badly formatted version spec
+			#   Mstdlib::tls       --> Mstdlib
+			#   Mstdlib:weird8.9*! --> Mstdlib
+			#   Mstdlib:           --> Mstdlib
+			string(REGEX REPLACE ":.*$" "" dep "${dep}")
 			find_dependency(${dep})
 		endif ()
 	endforeach()
