@@ -67,7 +67,14 @@ fi
 
 cpack_version
 echo "This is a self-extracting archive."
-toplevel="`pwd`"
+if id | grep "uid=0" > /dev/null 2> /dev/null; then
+  # If running as root, default prefix is /usr/local.
+  toplevel="/usr/local"
+else
+  # If not root, default prefix is current working directory.
+  toplevel="`pwd`"
+fi
+
 if [ "x${cpack_prefix_dir}x" != "xx" ]
 then
   toplevel="${cpack_prefix_dir}"

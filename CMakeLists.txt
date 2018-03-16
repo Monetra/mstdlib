@@ -79,6 +79,10 @@ if (NOT MSTDLIB_ARCHIVE_OUTPUT_DIRECTORY)
 endif ()
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${MSTDLIB_ARCHIVE_OUTPUT_DIRECTORY}")
 
+# Set RPATH so that executables can find their libs in the install package.
+if (NOT WIN32 AND NOT APPLE)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/")
+endif ()
 
 # Add target containing include directories for "internal" headers that are used across
 # the different modules in mstdlib. (config.h, m_config.h, config.w32.h, base/m_defs_int.h)
@@ -564,11 +568,11 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 	set(CPACK_PACKAGE_VENDOR              "Main Street Softworks")
 	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "M Standard Library (mstdlib)")
 	set(CPACK_RESOURCE_FILE_README        "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-	set(CPACK_PACKAGE_ICON                "${CMAKE_CURRENT_SOURCE_DIR}/resources/mstdlib.ico")
 
 	string(TIMESTAMP COPYRIGHT_YEAR "%Y")
 	configure_file(license.txt.in license.txt @ONLY)
 	set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/license.txt")
+	set(CPACK_PACKAGE_ICON          "${CMAKE_CURRENT_SOURCE_DIR}/resources/mstdlib.ico")
 
 	set_package_name(${PROJECT_NAME} ${PROJECT_VERSION})
 
@@ -582,6 +586,13 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 		COMMAND "${CMAKE_CPACK_COMMAND}"                        # Run cpack
 	)
 
+	if (STGZ IN_LIST CPACK_GENERATOR)
+		# We'd rather have the self-extracting tarball's extension be *.run, instead of *.sh.
+		list(APPEND postpkg
+			COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Renaming ${CPACK_PACKAGE_FILE_NAME}.sh to ${CPACK_PACKAGE_FILE_NAME}.run"
+			COMMAND "${CMAKE_COMMAND}" -E rename "${CPACK_PACKAGE_FILE_NAME}.sh" "${CPACK_PACKAGE_FILE_NAME}.run"
+		)
+	endif ()
 	if (WIX IN_LIST CPACK_GENERATOR)
 		# Sign the .msi file after creating it, if a signing certificate name or file path has been provided.
 		include(CodeSign)
