@@ -14,6 +14,7 @@ M_uint64 active_server_connections;
 M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
+M_uint64 delay_response_ms;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
 
@@ -44,7 +45,7 @@ static const char *event_type_str(M_event_type_t type)
 }
 
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -160,6 +161,18 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 }
 
 
+static void net_serverconn_write_goodbye_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_io_t *comm = cb_arg;
+	size_t  mysize;
+	(void)event;
+	(void)type;
+	(void)io;
+	M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
+	event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+}
+
+
 static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *data)
 {
 	unsigned char buf[1024];
@@ -178,8 +191,11 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_io_read(comm, buf, sizeof(buf), &mysize);
 			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
-				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-				event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+				if (delay_response_ms) {
+					M_event_timer_oneshot(event, delay_response_ms, M_TRUE, net_serverconn_write_goodbye_cb, comm);
+				} else {
+					net_serverconn_write_goodbye_cb(event, 0, NULL, comm);
+				}
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -241,10 +257,9 @@ static const char *event_err_msg(M_event_err_t err)
 }
 
 
-static M_event_err_t check_event_net_test(M_uint64 num_connections)
+static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool)
 {
-	M_event_t         *event = M_event_pool_create(0);
-//	M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
+	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_dns_t           *dns   = M_dns_create();
 	size_t             i;
@@ -258,6 +273,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	active_server_connections = 0;
 	client_connection_count   = 0;
 	server_connection_count   = 0;
+	delay_response_ms         = delay_ms;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("starting %llu connection test", num_connections);
@@ -306,6 +322,13 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	/* Then clean up last io object */
 	M_io_destroy(netserver);
 
+	event_debug("statistics:");
+	event_debug("\twake count     : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
+	event_debug("\tprocess time ms: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
+	event_debug("\tosevent count  : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
+	event_debug("\tsoftevent count: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
+	event_debug("\ttimer count    : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
+
 	/* Test destroying event first to make sure it can handle this */
 	M_event_destroy(event);
 
@@ -321,15 +344,22 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_event_net)
+START_TEST(check_event_net_pool)
 {
 	M_uint64 tests[] = { 1, 25, 50, /* 100, */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {
-		M_event_err_t err = check_event_net_test(tests[i]);
+		M_event_err_t err = check_event_net_test(tests[i], 0, M_TRUE);
 		ck_assert_msg(err == M_EVENT_ERR_DONE, "%d cnt%d expected M_EVENT_ERR_DONE got %s", (int)i, (int)tests[i], event_err_msg(err));
 	}
+}
+END_TEST
+
+START_TEST(check_event_net_stat)
+{
+	M_event_err_t err = check_event_net_test(1, 300, M_FALSE);
+	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 }
 END_TEST
 
@@ -338,13 +368,17 @@ END_TEST
 static Suite *event_net_suite(void)
 {
 	Suite *suite;
-	TCase *tc_event_net;
+	TCase *tc;
 
-	suite = suite_create("event_net");
+	suite = suite_create("event_net_pool");
 
-	tc_event_net = tcase_create("event_net");
-	tcase_add_test(tc_event_net, check_event_net);
-	suite_add_tcase(suite, tc_event_net);
+	tc    = tcase_create("event_net_pool");
+	tcase_add_test(tc, check_event_net_pool);
+	suite_add_tcase(suite, tc);
+
+	tc    = tcase_create("event_net_stat");
+	tcase_add_test(tc, check_event_net_stat);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
