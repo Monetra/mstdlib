@@ -21,7 +21,8 @@ var group__m__event =
       [ "M_EVENT_FLAG_NONE", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1ac7efcb61cf28fa27d4a0a3daf68aaecf", null ],
       [ "M_EVENT_FLAG_NOWAKE", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1a66ea43f6ded6e7175f1bebc4eb5528a1", null ],
       [ "M_EVENT_FLAG_EXITONEMPTY", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1a528ef8c95e55e761a36e28f7af58818d", null ],
-      [ "M_EVENT_FLAG_EXITONEMPTY_NOTIMERS", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490", null ]
+      [ "M_EVENT_FLAG_EXITONEMPTY_NOTIMERS", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490", null ],
+      [ "M_EVENT_FLAG_SCALABLE_ONLY", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1ae700043b0e68bf5d44c08076c4bb6a08", null ]
     ] ],
     [ "M_event_statistic_t", "group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94", [
       [ "M_EVENT_STATISTIC_WAKE_COUNT", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3", null ],

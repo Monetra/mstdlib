@@ -148,7 +148,9 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1a528ef8c95e55e761a36e28f7af58818d">M_EVENT_FLAG_EXITONEMPTY</a> = 1 &lt;&lt; 1, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490">M_EVENT_FLAG_EXITONEMPTY_NOTIMERS</a> = 1 &lt;&lt; 2
+&#160;&#160;<a class="el" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490">M_EVENT_FLAG_EXITONEMPTY_NOTIMERS</a> = 1 &lt;&lt; 2, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1ae700043b0e68bf5d44c08076c4bb6a08">M_EVENT_FLAG_SCALABLE_ONLY</a> = 1 &lt;&lt; 3
 <br/>
  }</td></tr>
 <tr class="separator:ga72bc04891ff7b6142b7672a207ae74b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -540,6 +542,9 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490"></a>M_EVENT_FLAG_EXITONEMPTY_NOTIMERS</em>&#160;</td><td class="fielddoc">
 <p>When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga72bc04891ff7b6142b7672a207ae74b1ae700043b0e68bf5d44c08076c4bb6a08"></a>M_EVENT_FLAG_SCALABLE_ONLY</em>&#160;</td><td class="fielddoc">
+<p>Only utilize the 'scalable/large' event subsystem instead of dynamically switching at a certain load. Useful mostly for test cases, in general this should not be used. </p>
 </td></tr>
 </table>
 
@@ -1663,7 +1668,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Mar 18 2018 21:21:47 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Sun Mar 18 2018 23:00:32 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
