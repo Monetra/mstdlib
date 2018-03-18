@@ -152,6 +152,19 @@ Enumerations</h2></td></tr>
 <br/>
  }</td></tr>
 <tr class="separator:ga72bc04891ff7b6142b7672a207ae74b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8029bf4cff7d869798fc5fabbf8e2f94"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3">M_EVENT_STATISTIC_WAKE_COUNT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94aa546970249e3cc51b47aaecde65a83e6">M_EVENT_STATISTIC_OSEVENT_COUNT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a2ef31d3084884e2eba43a9467bb8995e">M_EVENT_STATISTIC_SOFTEVENT_COUNT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a682a5bef541cd69fbc28d7083ac2162a">M_EVENT_STATISTIC_TIMER_COUNT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a97bc33cd96cb680965f709c12d158f2b">M_EVENT_STATISTIC_PROCESS_TIME_MS</a>
+<br/>
+ }</td></tr>
+<tr class="separator:ga8029bf4cff7d869798fc5fabbf8e2f94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4466239df0e524aa31e71acb924e54d5"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga4466239df0e524aa31e71acb924e54d5">M_event_timer_modes</a> { <br/>
 &#160;&#160;<a class="el" href="group__m__event.html#gga4466239df0e524aa31e71acb924e54d5a46cf8f8103ddaa1a7976f6fef6683a29">M_EVENT_TIMER_MODE_RELATIVE</a> = 1, 
 <br/>
@@ -242,8 +255,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga8fb286ac5ca7c7fedc1aa26fd4f640b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3831d7b04aedd127e271f384393f475f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a">M_event_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga3831d7b04aedd127e271f384393f475f">M_event_get_status</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga3831d7b04aedd127e271f384393f475f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa335b517a777ba416483f687b18830c5"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gaa335b517a777ba416483f687b18830c5">M_event_process_time_ms</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
-<tr class="separator:gaa335b517a777ba416483f687b18830c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9b7deba21cf3cc91a9105fed2bb0791"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791">M_event_get_statistic</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="el" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a> type)</td></tr>
+<tr class="separator:gaf9b7deba21cf3cc91a9105fed2bb0791"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9f313f5d9599f6aed4a29e82a13e576b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga9f313f5d9599f6aed4a29e82a13e576b">M_event_num_objects</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga9f313f5d9599f6aed4a29e82a13e576b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -527,6 +540,36 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490"></a>M_EVENT_FLAG_EXITONEMPTY_NOTIMERS</em>&#160;</td><td class="fielddoc">
 <p>When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="ga8029bf4cff7d869798fc5fabbf8e2f94"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Possible values to pass to <a class="el" href="group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791">M_event_get_statistic()</a> </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3"></a>M_EVENT_STATISTIC_WAKE_COUNT</em>&#160;</td><td class="fielddoc">
+<p>Get the number of times the event loop has woken due to some sort of event </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8029bf4cff7d869798fc5fabbf8e2f94aa546970249e3cc51b47aaecde65a83e6"></a>M_EVENT_STATISTIC_OSEVENT_COUNT</em>&#160;</td><td class="fielddoc">
+<p>Get the number of OS-delivered events </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8029bf4cff7d869798fc5fabbf8e2f94a2ef31d3084884e2eba43a9467bb8995e"></a>M_EVENT_STATISTIC_SOFTEVENT_COUNT</em>&#160;</td><td class="fielddoc">
+<p>Get the number of soft-events delivered </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8029bf4cff7d869798fc5fabbf8e2f94a682a5bef541cd69fbc28d7083ac2162a"></a>M_EVENT_STATISTIC_TIMER_COUNT</em>&#160;</td><td class="fielddoc">
+<p>Get the number of timer (or queued) events delivered </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8029bf4cff7d869798fc5fabbf8e2f94a97bc33cd96cb680965f709c12d158f2b"></a>M_EVENT_STATISTIC_PROCESS_TIME_MS</em>&#160;</td><td class="fielddoc">
+<p>Get the about of non-idle time spent by the event loop in ms </p>
 </td></tr>
 </table>
 
@@ -1554,28 +1597,39 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gaa335b517a777ba416483f687b18830c5"></a>
+<a class="anchor" id="gaf9b7deba21cf3cc91a9105fed2bb0791"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_uint64 M_event_process_time_ms </td>
+          <td class="memname">M_uint64 M_event_get_statistic </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *&#160;</td>
-          <td class="paramname"><em>event</em></td><td>)</td>
+          <td class="paramname"><em>event</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Retrieve the number of milliseconds spent processing events, roughly equivalent to actual CPU time, not including idle time waiting on events to come in.</p>
+<p>Retrieve the specified statistic.</p>
 <p>Will return results for the actual handle passed. If the handle is a child of an event pool, it will only return the child's processing time. If all processing time is desired, use <a class="el" href="group__m__event.html#ga9187e4d2237e25973975e200b4d52ff7">M_event_get_pool()</a> to get the pool handle before calling this function.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">event</td><td>Initialized event handle</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">event</td><td>Initialized event handle </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">type</td><td>Type of statistic to return</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>milliseconds spent processing events. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>statistic as 64bit integer </dd></dl>
 
 </div>
 </div>
@@ -1609,7 +1663,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Mar 16 2018 20:11:00 for Mstdlib-1.0.0 by
+    <li class="footer">Generated on Sun Mar 18 2018 21:01:34 for Mstdlib-1.0.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

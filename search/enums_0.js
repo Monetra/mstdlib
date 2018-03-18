@@ -12,6 +12,7 @@ var searchData=
   ['m_5fendian_5ft',['M_endian_t',['../group__m__endian.html#ga02da5a0d367fd4db6676cfdc4f7eeba2',1,'m_endian.h']]],
   ['m_5fevent_5ferr',['M_event_err',['../group__m__event.html#ga3d93964ec33daa93f69ee7205f341e9f',1,'m_event.h']]],
   ['m_5fevent_5fflags',['M_EVENT_FLAGS',['../group__m__event.html#ga72bc04891ff7b6142b7672a207ae74b1',1,'m_event.h']]],
+  ['m_5fevent_5fstatistic_5ft',['M_event_statistic_t',['../group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94',1,'m_event.h']]],
   ['m_5fevent_5fstatus',['M_event_status',['../group__m__event.html#gae0d1f0926d83227c5e7dddfbedf7e8ef',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fmodes',['M_event_timer_modes',['../group__m__event.html#ga4466239df0e524aa31e71acb924e54d5',1,'m_event.h']]],
   ['m_5fevent_5ftype',['M_event_type',['../group__m__event.html#ga5d54358d8088f050bcdb141c6c0b21e7',1,'m_event.h']]],

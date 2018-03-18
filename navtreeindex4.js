@@ -1,5 +1,11 @@
 var NAVTREEINDEX4 =
 {
+"group__m__hashtable__generic.html#structM__hashtable__callbacks":[0,0,1,1,11,4],
+"group__m__hashtable__generic.html#structM__hashtable__enum":[0,0,1,1,11,0],
+"group__m__hashtable__generic.html#structM__hashtable__enum_8entry_8ordered":[0,0,1,1,11,3],
+"group__m__hashtable__generic.html#structM__hashtable__enum_8entry_8unordered":[0,0,1,1,11,2],
+"group__m__hashtable__generic.html#unionM__hashtable__enum_8entry":[0,0,1,1,11,1],
+"group__m__ini.html":[0,1,1],
 "group__m__ini.html#ga030d04eac62a431fa9c828355f6b5ab8":[0,1,1,41],
 "group__m__ini.html#ga056b85c6b41c5b402b7413ec39f003f4":[0,1,1,49],
 "group__m__ini.html#ga0ec5ac408f31997ca37b82290b8569fc":[0,1,1,53],
@@ -243,11 +249,5 @@ var NAVTREEINDEX4 =
 "group__m__io__jni.html#ga45085868045becacde7aa0ad8ef1d03d":[0,2,2,0,12],
 "group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b":[0,2,2,0,13],
 "group__m__io__jni.html#ga60d8e9438feab71ff79f1bcd99ca8450":[0,2,2,0,27],
-"group__m__io__jni.html#ga73f476926c71a478fe26792fc7238597":[0,2,2,0,10],
-"group__m__io__jni.html#ga7b1333e6a034d6dcf41211c4e81d3be6":[0,2,2,0,24],
-"group__m__io__jni.html#ga81795761f21cd2e117a969ba66fc7cdb":[0,2,2,0,31],
-"group__m__io__jni.html#ga8506fe4a9abdea0df8bc26d19ce16a98":[0,2,2,0,32],
-"group__m__io__jni.html#ga897b5b297485555a9a0db505c083b5f4":[0,2,2,0,14],
-"group__m__io__jni.html#ga91c1f5b45465e2b3b685f03b627b9e3b":[0,2,2,0,16],
-"group__m__io__jni.html#ga9e55862e4f0671e9878e0472b07565f2":[0,2,2,0,20]
+"group__m__io__jni.html#ga73f476926c71a478fe26792fc7238597":[0,2,2,0,10]
 };

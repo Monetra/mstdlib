@@ -23,6 +23,13 @@ var group__m__event =
       [ "M_EVENT_FLAG_EXITONEMPTY", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1a528ef8c95e55e761a36e28f7af58818d", null ],
       [ "M_EVENT_FLAG_EXITONEMPTY_NOTIMERS", "group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490", null ]
     ] ],
+    [ "M_event_statistic_t", "group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94", [
+      [ "M_EVENT_STATISTIC_WAKE_COUNT", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3", null ],
+      [ "M_EVENT_STATISTIC_OSEVENT_COUNT", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94aa546970249e3cc51b47aaecde65a83e6", null ],
+      [ "M_EVENT_STATISTIC_SOFTEVENT_COUNT", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a2ef31d3084884e2eba43a9467bb8995e", null ],
+      [ "M_EVENT_STATISTIC_TIMER_COUNT", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a682a5bef541cd69fbc28d7083ac2162a", null ],
+      [ "M_EVENT_STATISTIC_PROCESS_TIME_MS", "group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a97bc33cd96cb680965f709c12d158f2b", null ]
+    ] ],
     [ "M_event_timer_modes", "group__m__event.html#ga4466239df0e524aa31e71acb924e54d5", [
       [ "M_EVENT_TIMER_MODE_RELATIVE", "group__m__event.html#gga4466239df0e524aa31e71acb924e54d5a46cf8f8103ddaa1a7976f6fef6683a29", null ],
       [ "M_EVENT_TIMER_MODE_MONOTONIC", "group__m__event.html#gga4466239df0e524aa31e71acb924e54d5a2cf9eb5d4bc66b0c162e045e325800c9", null ]
@@ -68,6 +75,6 @@ var group__m__event =
     [ "M_event_return", "group__m__event.html#ga41a54262e3c0c742e6672ad860006da0", null ],
     [ "M_event_done_with_disconnect", "group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4", null ],
     [ "M_event_get_status", "group__m__event.html#ga3831d7b04aedd127e271f384393f475f", null ],
-    [ "M_event_process_time_ms", "group__m__event.html#gaa335b517a777ba416483f687b18830c5", null ],
+    [ "M_event_get_statistic", "group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791", null ],
     [ "M_event_num_objects", "group__m__event.html#ga9f313f5d9599f6aed4a29e82a13e576b", null ]
 ];
