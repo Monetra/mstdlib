@@ -124,6 +124,11 @@ static void M_event_loop_init(M_event_t *event, M_uint32 flags)
 
 	if (!(event->u.loop.flags & M_EVENT_FLAG_NOWAKE))
 		event->u.loop.parent_wake = M_io_osevent_create(event);
+
+	/* Only use the large event loop implemetnation if flag specifies. */
+	if (flags & M_EVENT_FLAG_SCALABLE_ONLY) {
+		event->u.loop.impl_short = event->u.loop.impl_large;
+	}
 }
 
 

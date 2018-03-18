@@ -232,7 +232,10 @@ enum M_EVENT_FLAGS {
 	M_EVENT_FLAG_NONE                 = 0,      /*!< No specialized flags */
 	M_EVENT_FLAG_NOWAKE               = 1 << 0, /*!< We will never need to wake the event loop from another thread */
 	M_EVENT_FLAG_EXITONEMPTY          = 1 << 1, /*!< Exit the event loop when there are no registered events */
-	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2  /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
+	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2, /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
+	M_EVENT_FLAG_SCALABLE_ONLY        = 1 << 3  /*!< Only utilize the 'scalable/large' event subsystem instead of dynamically
+	                                             *   switching at a certain load.  Useful mostly for test cases, in general
+	                                             *   this should not be used. */
 };
 
 /*! Possible values to pass to M_event_get_statistic() */
