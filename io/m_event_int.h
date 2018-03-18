@@ -150,6 +150,11 @@ struct M_event_loop {
 	M_hashtable_t      *pending_events;       /*!< M_io_t * or M_event_timer_t * to M_event_pending_t * ordered hashtable (in insertion order for prioritization) */
 
 	M_uint64            process_time_ms;      /*!< Number of milliseconds spent processing events (to track load) */
+	M_uint64            wake_cnt;             /*!< Number of times event loop has been woken */
+	M_uint64            osevent_cnt;          /*!< Number of OS-triggered events */
+	M_uint64            softevent_cnt;        /*!< Number of soft events */
+	M_uint64            timer_cnt;            /*!< Number of timer events */
+
 	M_event_impl_cbs_t *impl_large;           /*!< Implementation callbacks when the event list is large (required) */
 	M_event_impl_cbs_t *impl_short;           /*!< Implementation callbacks when the event list is short (optional) */
 	M_event_impl_cbs_t *impl;                 /*!< Which callback is currently in use */

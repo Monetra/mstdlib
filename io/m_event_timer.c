@@ -510,5 +510,6 @@ void M_event_timer_process(M_event_t *event)
 		M_time_elapsed_start(&curr);
 	}
 
+	event->u.loop.timer_cnt += cnt;
 //M_printf("%s(): delivered %zu events\n", __FUNCTION__, cnt);
 }

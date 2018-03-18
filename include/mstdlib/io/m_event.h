@@ -235,6 +235,15 @@ enum M_EVENT_FLAGS {
 	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2  /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
 };
 
+/*! Possible values to pass to M_event_get_statistic() */
+typedef enum {
+	M_EVENT_STATISTIC_WAKE_COUNT,       /*!< Get the number of times the event loop has woken due to some sort of event */
+	M_EVENT_STATISTIC_OSEVENT_COUNT,    /*!< Get the number of OS-delivered events */
+	M_EVENT_STATISTIC_SOFTEVENT_COUNT,  /*!< Get the number of soft-events delivered */
+	M_EVENT_STATISTIC_TIMER_COUNT,      /*!< Get the number of timer (or queued) events delivered */
+	M_EVENT_STATISTIC_PROCESS_TIME_MS   /*!< Get the about of non-idle time spent by the event loop in ms */
+} M_event_statistic_t;
+
 
 /*! Create a base event loop object.
  * 
@@ -695,8 +704,7 @@ M_API void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_ms);
 M_API M_event_status_t M_event_get_status(M_event_t *event);
 
 
-/*! Retrieve the number of milliseconds spent processing events, roughly equivalent to
- *  actual CPU time, not including idle time waiting on events to come in.
+/*! Retrieve the specified statistic.
  *
  *  Will return results for the actual handle passed.  If the handle is a child of
  *  an event pool, it will only return the child's processing time.  If all processing
@@ -704,10 +712,11 @@ M_API M_event_status_t M_event_get_status(M_event_t *event);
  *  this function.
  *
  *  \param[in] event       Initialized event handle
+ *  \param[in] type        Type of statistic to return
  *
- *  \return milliseconds spent processing events.
+ *  \return statistic as 64bit integer
  */
-M_API M_uint64 M_event_process_time_ms(M_event_t *event);
+M_API M_uint64 M_event_get_statistic(M_event_t *event, M_event_statistic_t type);
 
 
 /*! Retrieve the number of M_io_t objects plus the number of M_event_timer_t objects
