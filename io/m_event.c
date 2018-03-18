@@ -538,7 +538,7 @@ M_event_t *M_event_distribute(M_event_t *event)
 
 	/* If a pool, choose the best thread */
 	for (i=0; i<event->u.pool.thread_count; i++) {
-		M_uint64 curr_time  = M_event_process_time_ms(&event->u.pool.thread_evloop[i]);
+		M_uint64 curr_time  = M_event_get_statistic(&event->u.pool.thread_evloop[i], M_EVENT_STATISTIC_PROCESS_TIME_MS);
 		size_t   curr_count = M_event_num_objects(&event->u.pool.thread_evloop[i]);
 
 		/* If the event loop has nothing, it automatically wins */
@@ -870,6 +870,7 @@ void M_event_deliver_io(M_event_t *event, M_io_t *io, M_event_type_t type)
 	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP || io == NULL)
 		return;
 
+	event->u.loop.osevent_cnt++;
 	M_event_queue_pending(event, io, 0 /* real events always start at layer 0 */, type);
 }
 
@@ -900,6 +901,7 @@ static void M_event_softevent_process(M_event_t *event)
 					M_uint16 mask = (M_uint16)((M_uint16)1 << (M_uint16)i);
 					M_event_queue_pending(event, softevent->io, j, (M_event_type_t)i);
 					softevent->events[j] &= (M_uint16)(~mask);
+					event->u.loop.softevent_cnt++;
 				}
 			}
 		}
@@ -1064,9 +1066,9 @@ M_event_status_t M_event_get_status(M_event_t *event)
 }
 
 
-M_uint64 M_event_process_time_ms(M_event_t *event)
+M_uint64 M_event_get_statistic(M_event_t *event, M_event_statistic_t type)
 {
-	M_uint64 ms = 0;
+	M_uint64 cnt = 0;
 
 	if (event == NULL)
 		return 0;
@@ -1074,15 +1076,31 @@ M_uint64 M_event_process_time_ms(M_event_t *event)
 	if (event->type == M_EVENT_BASE_TYPE_POOL) {
 		size_t i;
 		for (i=0; i<event->u.pool.thread_count; i++)
-			ms += M_event_process_time_ms(&event->u.pool.thread_evloop[i]);
-		return ms;
+			cnt += M_event_get_statistic(&event->u.pool.thread_evloop[i], type);
+		return cnt;
 	}
 
 	M_event_lock(event);
-	ms = event->u.loop.process_time_ms;
+	switch (type) {
+		case M_EVENT_STATISTIC_WAKE_COUNT:
+			cnt = event->u.loop.wake_cnt;
+			break;
+		case M_EVENT_STATISTIC_OSEVENT_COUNT:
+			cnt = event->u.loop.osevent_cnt;
+			break;
+		case M_EVENT_STATISTIC_SOFTEVENT_COUNT:
+			cnt = event->u.loop.softevent_cnt;
+			break;
+		case M_EVENT_STATISTIC_TIMER_COUNT:
+			cnt = event->u.loop.timer_cnt;
+			break;
+		case M_EVENT_STATISTIC_PROCESS_TIME_MS:
+			cnt = event->u.loop.process_time_ms;
+			break;
+	}
 	M_event_unlock(event);
 
-	return ms;
+	return cnt;
 }
 
 
@@ -1213,6 +1231,7 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 
 		M_event_lock(event);
 
+		event->u.loop.wake_cnt++;
 		event->u.loop.waiting            = M_FALSE;
 
 		/* ----- Process Events ----- */
