@@ -271,17 +271,21 @@ if (WIN32)
 	# Take password from environment variable, if not already set by other means.
 	if (NOT M_SIGN_PASSWORD)
 		set(M_SIGN_PASSWORD "$ENV{M_SIGN_PASSWORD}")
-	endif()
+	endif ()
 
 	# Set up timestamp lists (both lists must be the same length).
 	set(_internal_codesign_timestamp_list_sha1
 		"http://timestamp.globalsign.com/scripts/timestamp.dll"
 		"http://timestamp.comodoca.com"
+		"http://tsa.starfieldtech.com"
+		"http://timestamp.entrust.net/TSS/AuthenticodeTS"
 		"http://timestamp.digicert.com"
 	)
 	set(_internal_codesign_timestamp_list_sha2
-		"http://timestamp.globalsign.com/scripts/timestamp.dll?signature=sha2"
+		"http://timestamp.globalsign.com/?signature=sha2"
 		"http://timestamp.comodoca.com"
+		"http://tsa.starfieldtech.com"
+		"http://timestamp.entrust.net/TSS/RFC3161sha2TS"
 		"http://timestamp.digicert.com"
 	)
 	list(LENGTH _internal_codesign_timestamp_list_sha2
@@ -593,7 +597,7 @@ function(code_sign_files_win32)
 				elseif (i LESS "${_internal_codesign_num_timestamps}")
 					message("Failed to reach timestamp server:\n${err_output}")
 					message("Waiting 10 seconds before trying a different server...")
-					execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 10 OUTPUT_QUIET ERROR_QUIET)
+					execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 8 OUTPUT_QUIET ERROR_QUIET)
 					# Change timestamp server.
 					code_sign_next_ts_server()
 					# Regenerate single-sign/dual-sign commands.
