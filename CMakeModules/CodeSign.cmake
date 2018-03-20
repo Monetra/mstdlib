@@ -275,18 +275,18 @@ if (WIN32)
 
 	# Set up timestamp lists (both lists must be the same length).
 	set(_internal_codesign_timestamp_list_sha1
+		"http://timestamp.digicert.com"
 		"http://timestamp.globalsign.com/scripts/timestamp.dll"
 		"http://timestamp.comodoca.com"
 		"http://tsa.starfieldtech.com"
 		"http://timestamp.entrust.net/TSS/AuthenticodeTS"
-		"http://timestamp.digicert.com"
 	)
 	set(_internal_codesign_timestamp_list_sha2
+		"http://timestamp.digicert.com"
 		"http://timestamp.globalsign.com/?signature=sha2"
 		"http://timestamp.comodoca.com"
 		"http://tsa.starfieldtech.com"
 		"http://timestamp.entrust.net/TSS/RFC3161sha2TS"
-		"http://timestamp.digicert.com"
 	)
 	list(LENGTH _internal_codesign_timestamp_list_sha2
 		_internal_codesign_num_timestamps
