@@ -1,6 +1,6 @@
 var NAVTREE =
 [
-  [ "Mstdlib-1.0.0", "index.html", [
+  [ "Mstdlib-1.2.0", "index.html", [
     [ "Modules", "modules.html", "modules" ],
     [ "Data Structures", null, [
       [ "Data Structures", "annotated.html", "annotated" ],
