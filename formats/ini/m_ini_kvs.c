@@ -108,8 +108,7 @@ M_bool M_ini_kvs_rename(M_ini_kvs_t *dict, const char *key, const char *new_key)
 {
 	void   *vals;
 
-	if (dict == NULL || dict->dict == NULL || key == NULL || *key == '\0' ||
-	    new_key == NULL || new_key == '\0' ||
+	if (dict == NULL || dict->dict == NULL || M_str_isempty(key) || M_str_isempty(new_key) ||
 	    key[M_str_len(key)-1] == '/' || new_key[M_str_len(new_key)-1] == '/')
 	{
 		return M_FALSE;

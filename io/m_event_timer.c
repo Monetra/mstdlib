@@ -134,6 +134,8 @@ M_event_timer_t *M_event_timer_add(M_event_t *event, M_event_callback_t callback
 }
 
 
+static void M_event_timer_remove_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg);
+
 M_bool M_event_timer_remove(M_event_timer_t *timer)
 {
 	M_event_t *event;
@@ -142,6 +144,13 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 		return M_FALSE;
 
 	event = timer->event;
+
+	/* Queue a destroy task to run for this in the owning event loop */
+	if (event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
+		M_event_queue_task(event, M_event_timer_remove_cb, timer);
+		return M_TRUE; /* queued to remove */
+	}
+
 	M_event_lock(event);
 	if (timer->executing) {
 		/* Tell it to autodestroy at completion of execution instead of immediate destroy
@@ -158,6 +167,21 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 	M_event_unlock(event);
 
 	return M_TRUE;
+}
+
+
+static void M_event_timer_remove_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_event_timer_t *timer = cb_arg;
+	(void)event;
+	(void)type;
+	(void)io;
+
+	/* Destroyed out from under us */
+	if (!M_queue_exists(event->u.loop.timers, timer))
+		return;
+
+	M_event_timer_remove(timer);
 }
 
 
@@ -221,7 +245,8 @@ M_bool M_event_timer_start(M_event_timer_t *timer, M_uint64 interval_ms)
 	}
 
 	M_event_lock(timer->event);
-	M_event_timer_dequeue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_dequeue(timer);
 	timer->interval_ms = interval_ms;
 	timer->cnt         = 0;
 	M_mem_set(&timer->next_run, 0, sizeof(timer->next_run));
@@ -229,10 +254,13 @@ M_bool M_event_timer_start(M_event_timer_t *timer, M_uint64 interval_ms)
 	if (rv) {
 //M_printf("%s(): timer %p started for %llu ms\n", __FUNCTION__, timer, interval_ms); fflush(stdout);
 		timer->started = M_TRUE;
-		M_event_timer_enqueue(timer);
-		M_event_wake(timer->event);
+		if (!timer->executing) { /* Recursion! */
+			M_event_timer_enqueue(timer);
+			M_event_wake(timer->event);
+		}
 	} else {
-		M_event_timer_enqueue(timer);
+		if (!timer->executing) /* Recursion! */
+			M_event_timer_enqueue(timer);
 	}
 	M_event_unlock(timer->event);
 
@@ -246,9 +274,11 @@ static M_bool M_event_timer_stop_int(M_event_timer_t *timer, M_bool allow_autode
 		return M_FALSE;
 
 	M_event_lock(timer->event);
-	M_event_timer_dequeue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_dequeue(timer);
 	timer->started = M_FALSE;
-	M_event_timer_enqueue(timer);
+	if (!timer->executing) /* Recursion! */
+		M_event_timer_enqueue(timer);
 	M_event_unlock(timer->event);
 //M_printf("%s(): timer %p stopped\n", __FUNCTION__, timer); fflush(stdout);
 
@@ -424,11 +454,8 @@ void M_event_timer_process(M_event_t *event)
 	while ((timer = M_queue_first(event->u.loop.timers)) != NULL && timer != last_timer && timer->started && M_time_timeval_diff(&timer->next_run, &curr) >= 0) {
 //M_printf("%s(): processing timer %p\n", __FUNCTION__, timer); fflush(stdout);
 		last_timer = timer;
-		/* We always remove the timer from the list as we may add it back in if it is to be rescheduled */
-		M_queue_take(event->u.loop.timers, timer);
-
-		/* Unlock event lock since we won't need it until we loop again */
-		M_event_unlock(event);
+		/* We always dequeue the timer from the list as we may add it back in if it is to be rescheduled */
+		M_event_timer_dequeue(timer);
 
 		/* See if timer expired, if so mark it as such */
 		if (M_event_timer_tvset(&timer->end_tv)) {
@@ -443,7 +470,15 @@ void M_event_timer_process(M_event_t *event)
 		if (timer->started) {
 			timer->cnt++;
 			timer->executing = M_TRUE;
+
+			/* Unlock event lock since the callback may take some time */
+			M_event_unlock(event);
+
 			timer->callback(event, M_EVENT_TYPE_OTHER, NULL, timer->cb_data);
+
+			/* Relock to possibly re-queue or loop */
+			M_event_lock(event);
+
 			timer->executing = M_FALSE;
 			cnt++;
 		}
@@ -453,9 +488,6 @@ void M_event_timer_process(M_event_t *event)
 //M_printf("%s(): stopping timer %p-- max fire count\n", __FUNCTION__, timer); fflush(stdout);
 			timer->started = M_FALSE;
 		}
-
-		/* Relock to possibly re-queue or loop */
-		M_event_lock(event);
 
 		/* If autodestroy and timer went to stopped mode, kill it */
 		if (!timer->started && timer->autodestroy) {
@@ -471,12 +503,13 @@ void M_event_timer_process(M_event_t *event)
 		if (timer->started)
 			M_event_timer_schedule(timer);
 
-		/* re-insert */
-		M_queue_insert(event->u.loop.timers, timer);
+		/* re-enqueue */
+		M_event_timer_enqueue(timer);
 
 		/* Pull current time as we do not know how long this iteration took */
 		M_time_elapsed_start(&curr);
 	}
 
+	event->u.loop.timer_cnt += cnt;
 //M_printf("%s(): delivered %zu events\n", __FUNCTION__, cnt);
 }

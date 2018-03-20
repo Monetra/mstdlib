@@ -323,8 +323,24 @@ M_API M_hash_dict_t *M_hash_dict_duplicate(const M_hash_dict_t *h) M_MALLOC;
 
 /*! Possible flags for M_hash_dict_serialize() */
 typedef enum {
-	M_HASH_DICT_SER_FLAG_NONE    = 0
+	M_HASH_DICT_SER_FLAG_NONE         = 0,      /*!< Default flags */
+	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE = 1 << 0  /*!< Always quote the value even if not necesary */
 } M_hash_dict_ser_flag_t;
+
+
+/*! Serialize a dictionary and write it to the provided M_buf_t.
+ *
+ * \param[in] dict     Dictionary to serialize
+ * \param[in] buf      Destination buffer to write to, already initialized.
+ * \param[in] delim    Delimiter between key/value pairs (recommended ';')
+ * \param[in] kv_delim Delimiter between the key and value (recommended '=')
+ * \param[in] quote    Quote character (recommended '"')
+ * \param[in] escape   Escape character (recommended '\' or '"')
+ * \param[in] flags    Bitmap of possible M_hash_dict_ser_flag_t flags
+ * \return M_TRUE on success or M_FALSE on failure.
+ */
+M_API M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
+
 
 /*! Serialize a dictionary into a string as per the definition.
  *

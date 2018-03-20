@@ -794,10 +794,10 @@ static ssize_t M_str_fmt_handle_control(M_str_fmt_t *data, M_parser_t *parser, M
 					}
 					break;
 				}
-				/* Fall through.
- 				 *
- 				 * 'I' without 64 or 32 after is
- 				 * the same as 'z' */
+				/* 'I' without 64 or 32 after is
+				 * the same as 'z'
+				 */
+				/* Falls through. */
 			case 'z':
 				if (data_type != M_STR_FMT_DATA_TYPE_INT) {
 					goto parse_error;

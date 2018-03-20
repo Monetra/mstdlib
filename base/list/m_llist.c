@@ -163,10 +163,8 @@ static void M_llist_node_destory(M_llist_node_t *n, M_bool destroy_val)
 	if (n == NULL) 
 		return; 
 
-	if (destroy_val) { 
-		if (destroy_val) 
-			n->parent->value_free(n->val); 
-	} 
+	if (destroy_val)
+		n->parent->value_free(n->val);
 	n->val = NULL; 
 
 	if (n->parent->flags & M_LLIST_SORTED) { 

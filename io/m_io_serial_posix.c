@@ -211,7 +211,7 @@ static void M_io_serial_unregister_cb(M_io_layer_t *layer)
 }
 
 
-static M_io_error_t M_io_serial_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_serial_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
@@ -220,7 +220,7 @@ static M_io_error_t M_io_serial_read_cb(M_io_layer_t *layer, unsigned char *buf,
 	if (layer == NULL || handle == NULL)
 		return M_IO_ERROR_INVALID;
 
-	err = M_io_posix_read(io, handle->fd, buf, read_len, &handle->last_error_sys);
+	err = M_io_posix_read(io, handle->fd, buf, read_len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		M_io_serial_close(layer);
 
@@ -228,7 +228,7 @@ static M_io_error_t M_io_serial_read_cb(M_io_layer_t *layer, unsigned char *buf,
 }
 
 
-static M_io_error_t M_io_serial_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_serial_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
@@ -236,7 +236,7 @@ static M_io_error_t M_io_serial_write_cb(M_io_layer_t *layer, const unsigned cha
 	if (layer == NULL || handle == NULL)
 		return M_IO_ERROR_INVALID;
 
-	err = M_io_posix_write(io, handle->fd, buf, write_len, &handle->last_error_sys);
+	err = M_io_posix_write(io, handle->fd, buf, write_len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		M_io_serial_close(layer);
 

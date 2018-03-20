@@ -159,13 +159,13 @@ static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf)
 				M_buf_add_str(buf, "\\/");
 				break;
 			case '"':
-				/* Fall through.
- 				 * We have a " in the middle of a string we're quoting.
+				/* fall-thru */
+ 				/* We have a " in the middle of a string we're quoting.
 				 * This will end up writing \" to escape it. */
 			case '\\':
 				M_buf_add_byte(buf, '\\');
-				/* Fall through.
- 				 * We have a \ in the middle of a string we're quoting.
+				/* fall-thru */
+ 				/* We have a \ in the middle of a string we're quoting.
 				 * This will end up writing \\ to escape it. */
 			default:
 				if ((unsigned char)c < 32) {

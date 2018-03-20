@@ -70,13 +70,21 @@ typedef struct M_io_callbacks M_io_callbacks_t;
 
 
 /*! Find the appropriate layer and grab the handle and lock it.
+ *
+ * \warning Locking the layer locks the entire event loop. Only very
+ *          short operations that will not block should be performed
+ *          while a layer lock is being held.
+ *
  *  \param[in] io        Pointer to io object
  *  \param[in] layer_id  id of layer to lock, or M_IO_LAYER_FIND_FIRST_ID to search for layer.
  *  \param[in] name      Name of layer to lock.  This can be used as a sanity check to ensure
  *                       the layer id really matches the layer type.  Use NULL if name matching
  *                       is not required.  If M_IO_LAYER_FIND_FIRST_ID is used for the layer_id,
  *                       this parameter cannot be NULL.
+ *
  * \return locked io layer, or NULL on failure
+ *
+ * \see M_io_layer_release
  */
 M_API M_io_layer_t *M_io_layer_acquire(M_io_t *io, size_t layer_id, const char *name);
 
@@ -104,10 +112,10 @@ M_API M_bool M_io_callbacks_reg_init(M_io_callbacks_t *callbacks, M_bool (*cb_in
 M_API M_bool M_io_callbacks_reg_accept(M_io_callbacks_t *callbacks, M_io_error_t (*cb_accept)(M_io_t *new_conn, M_io_layer_t *orig_layer));
 
 /*! Register callback to read from the connection. Optional if not base layer, required if base layer */
-M_API M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len));
+M_API M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta));
 
 /*! Register callback to write to the connection. Optional if not base layer, required if base layer */
-M_API M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len));
+M_API M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta));
 
 /*! Register callback to process events.  Optional. */
 M_API M_bool M_io_callbacks_reg_processevent(M_io_callbacks_t *callbacks, M_bool (*cb_process_event)(M_io_layer_t *layer, M_event_type_t *type));
@@ -118,7 +126,12 @@ M_API M_bool M_io_callbacks_reg_unregister(M_io_callbacks_t *callbacks, void (*c
 /*! Register callback to start a graceful disconnect sequence.  Optional. */
 M_API M_bool M_io_callbacks_reg_disconnect(M_io_callbacks_t *callbacks, M_bool (*cb_disconnect)(M_io_layer_t *layer));
 
-/*! Register callback to destroy any state (M_io_handle_t *). Mandatory. */
+/*! Register callback to destroy any state (M_io_handle_t *). Mandatory.
+ *
+ * The event loop has already been disassociated from the layer when this
+ * callback is called. The layer will not be locked and M_io_layer_acquire
+ * will not lock the layer as the layer cannot be locked.
+ */
 M_API M_bool M_io_callbacks_reg_destroy(M_io_callbacks_t *callbacks, void (*cb_destroy)(M_io_layer_t *layer));
 
 /*! Register callback to get the layer state. Optional if not base layer, required if base layer. */
@@ -149,10 +162,10 @@ M_API M_io_handle_t *M_io_layer_get_handle(M_io_layer_t *layer);
 M_API size_t M_io_layer_get_index(M_io_layer_t *layer);
 
 /*! Perform a read operation at the given layer index */
-M_API M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len);
+M_API M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
 
 /*! Perform a write operation at the given layer index */
-M_API M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len);
+M_API M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 
 M_API M_bool M_io_error_is_critical(M_io_error_t err);
 

@@ -120,11 +120,13 @@ M_bool M_io_posix_errormsg(int err, char *error, size_t err_len)
 }
 
 
-M_io_error_t M_io_posix_read(M_io_t *io, int fd, unsigned char *buf, size_t *read_len, int *sys_error)
+M_io_error_t M_io_posix_read(M_io_t *io, int fd, unsigned char *buf, size_t *read_len, int *sys_error, M_io_meta_t *meta)
 {
 	size_t         request_len;
 	ssize_t        retval;
 	M_io_error_t   err;
+
+	(void)meta;
 
 	if (io == NULL || buf == NULL || read_len == NULL || *read_len == 0 || sys_error == NULL)
 		return M_IO_ERROR_INVALID;
@@ -160,12 +162,14 @@ M_io_error_t M_io_posix_read(M_io_t *io, int fd, unsigned char *buf, size_t *rea
 }
 
 
-M_io_error_t M_io_posix_write(M_io_t *io, int fd, const unsigned char *buf, size_t *write_len, int *sys_error)
+M_io_error_t M_io_posix_write(M_io_t *io, int fd, const unsigned char *buf, size_t *write_len, int *sys_error, M_io_meta_t *meta)
 {
 	size_t                     request_len;
 	ssize_t                    retval;
 	M_io_error_t               err;
 	M_io_posix_sigpipe_state_t sigpipe_state;
+
+	(void)meta;
 
 	if (io == NULL || buf == NULL || write_len == NULL || *write_len == 0 || sys_error == NULL)
 		return M_IO_ERROR_INVALID;

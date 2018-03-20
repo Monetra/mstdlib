@@ -110,6 +110,20 @@ M_bool M_queue_take(M_queue_t *queue, void *member)
 }
 
 
+M_bool M_queue_exists(M_queue_t *queue, void *member)
+{
+	M_llist_node_t *node;
+
+	if (queue == NULL || member == NULL)
+		return M_FALSE;
+
+	if (!M_hashtable_get(queue->hash, member, (void **)&node))
+		return M_FALSE;
+
+	return M_TRUE;
+}
+
+
 size_t M_queue_len(M_queue_t *queue)
 {
 	if (queue == NULL)

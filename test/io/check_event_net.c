@@ -14,6 +14,7 @@ M_uint64 active_server_connections;
 M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
+M_uint64 delay_response_ms;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
 
@@ -160,6 +161,18 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 }
 
 
+static void net_serverconn_write_goodbye_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_io_t *comm = cb_arg;
+	size_t  mysize;
+	(void)event;
+	(void)type;
+	(void)io;
+	M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
+	event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+}
+
+
 static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *data)
 {
 	unsigned char buf[1024];
@@ -178,8 +191,11 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_io_read(comm, buf, sizeof(buf), &mysize);
 			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
-				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-				event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+				if (delay_response_ms) {
+					M_event_timer_oneshot(event, delay_response_ms, M_TRUE, net_serverconn_write_goodbye_cb, comm);
+				} else {
+					net_serverconn_write_goodbye_cb(event, 0, NULL, comm);
+				}
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -241,10 +257,17 @@ static const char *event_err_msg(M_event_err_t err)
 }
 
 
-static M_event_err_t check_event_net_test(M_uint64 num_connections)
+typedef struct {
+	M_uint64 process_time_ms;
+	M_uint64 wake_cnt;
+	M_uint64 osevent_cnt;
+	M_uint64 softevent_cnt;
+	M_uint64 timer_cnt;
+} stats_t;
+
+static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool, M_bool scalable_only, stats_t *stats)
 {
-	M_event_t         *event = M_event_pool_create(0);
-//	M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
+	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(scalable_only?M_EVENT_FLAG_SCALABLE_ONLY:M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_dns_t           *dns   = M_dns_create();
 	size_t             i;
@@ -258,6 +281,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	active_server_connections = 0;
 	client_connection_count   = 0;
 	server_connection_count   = 0;
+	delay_response_ms         = delay_ms;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	event_debug("starting %llu connection test", num_connections);
@@ -306,6 +330,21 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 	/* Then clean up last io object */
 	M_io_destroy(netserver);
 
+	if (stats != NULL) {
+		stats->wake_cnt        = M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT);
+		stats->process_time_ms = M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS);
+		stats->osevent_cnt     = M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT);
+		stats->softevent_cnt   = M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT);
+		stats->timer_cnt       = M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT);
+	}
+
+	event_debug("statistics:");
+	event_debug("\twake count     : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
+	event_debug("\tprocess time ms: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
+	event_debug("\tosevent count  : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
+	event_debug("\tsoftevent count: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
+	event_debug("\ttimer count    : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
+
 	/* Test destroying event first to make sure it can handle this */
 	M_event_destroy(event);
 
@@ -321,14 +360,65 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_event_net)
+START_TEST(check_event_net_pool)
 {
 	M_uint64 tests[] = { 1, 25, 50, /* 100, */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {
-		M_event_err_t err = check_event_net_test(tests[i]);
+		M_event_err_t err = check_event_net_test(tests[i], 0, M_TRUE, M_FALSE, NULL);
 		ck_assert_msg(err == M_EVENT_ERR_DONE, "%d cnt%d expected M_EVENT_ERR_DONE got %s", (int)i, (int)tests[i], event_err_msg(err));
+	}
+}
+END_TEST
+
+START_TEST(check_event_net_stat)
+{
+	M_event_err_t err;
+	size_t        i;
+
+#define STATS_INIT { 0, 0, 0, 0, 0 }
+	struct {
+		const char *name;
+		M_uint64    num_conns;
+		M_uint64    delay_response_ms;
+		M_bool      scalable_only;
+		stats_t     stats;
+	} tests[] = {
+		{ "small 1 conn no delay   ", 1,   0, M_FALSE, STATS_INIT },
+		{ "small 1 conn 15ms delay ", 1,  15, M_FALSE, STATS_INIT },
+		{ "small 1 conn 300ms delay", 1, 300, M_FALSE, STATS_INIT },
+		{ "large 1 conn no delay   ", 1,   0, M_TRUE,  STATS_INIT },
+		{ "large 1 conn 15ms delay ", 1,  15, M_TRUE,  STATS_INIT },
+		{ "large 1 conn 300ms delay", 1, 300, M_TRUE,  STATS_INIT },
+		{ "small 2 conn no delay   ", 2,   0, M_FALSE, STATS_INIT },
+		{ "small 2 conn 15ms delay ", 2,  15, M_FALSE, STATS_INIT },
+		{ "small 2 conn 300ms delay", 2, 300, M_FALSE, STATS_INIT },
+		{ "large 2 conn no delay   ", 2,   0, M_TRUE,  STATS_INIT },
+		{ "large 2 conn 15ms delay ", 2,  15, M_TRUE,  STATS_INIT },
+		{ "large 2 conn 300ms delay", 2, 300, M_TRUE,  STATS_INIT },
+		{ "small 5 conn no delay   ", 5,   0, M_FALSE, STATS_INIT },
+		{ "small 5 conn 15ms delay ", 5,  15, M_FALSE, STATS_INIT },
+		{ "small 5 conn 300ms delay", 5, 300, M_FALSE, STATS_INIT },
+		{ "large 5 conn no delay   ", 5,   0, M_TRUE,  STATS_INIT },
+		{ "large 5 conn 15ms delay ", 5,  15, M_TRUE,  STATS_INIT },
+		{ "large 5 conn 300ms delay", 5, 300, M_TRUE,  STATS_INIT },
+		{ NULL, 0, 0, M_FALSE, STATS_INIT }
+	};
+
+	for (i=0; tests[i].name != NULL; i++) {
+		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].scalable_only, &tests[i].stats);
+		ck_assert_msg(err == M_EVENT_ERR_DONE, "%s expected M_EVENT_ERR_DONE got %s", tests[i].name, event_err_msg(err));
+	}
+
+	M_printf("===================\n");
+	for (i=0; tests[i].name != NULL; i++) {
+		M_printf("%s: statistics\n", tests[i].name);
+		M_printf("\twake count:      %llu\n", tests[i].stats.wake_cnt);
+		M_printf("\tosevent count:   %llu\n", tests[i].stats.osevent_cnt);
+		M_printf("\tsoftevent count: %llu\n", tests[i].stats.softevent_cnt);
+		M_printf("\ttimer count:     %llu\n", tests[i].stats.timer_cnt);
+		M_printf("\tprocess time ms: %llu\n", tests[i].stats.process_time_ms);
 	}
 }
 END_TEST
@@ -338,13 +428,17 @@ END_TEST
 static Suite *event_net_suite(void)
 {
 	Suite *suite;
-	TCase *tc_event_net;
+	TCase *tc;
 
-	suite = suite_create("event_net");
+	suite = suite_create("event_net_pool");
 
-	tc_event_net = tcase_create("event_net");
-	tcase_add_test(tc_event_net, check_event_net);
-	suite_add_tcase(suite, tc_event_net);
+	tc    = tcase_create("event_net_pool");
+	tcase_add_test(tc, check_event_net_pool);
+	suite_add_tcase(suite, tc);
+
+	tc    = tcase_create("event_net_stat");
+	tcase_add_test(tc, check_event_net_stat);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }

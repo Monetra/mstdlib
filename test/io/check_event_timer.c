@@ -152,19 +152,18 @@ struct timer_test {
 };
 struct timer_test timer_tests[] = {
 	/* start ,  end, intvl,  max, cnt,                         mode, trigger?, delay, expected, tolerance */
-	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,     0,       10, 0 },
-	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       10, 0 },
-	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,     0,       10, 0 },
-	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       10, 0 },
-	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,   300,       10, 0 },
-	{       0, 1625,   150, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,   300,       10, 0 },
-	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,   300,        8, 0 },
-	{       0, 1625,   150, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,   300,        8, 0 },
-	/* Interval is so short we had to add a tolerence as time isn't all that reliable */
-	{     100,  225,    50,  500,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,        3, 1 },
-	{     100,  225,    50,  500,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,        3, 1 },
-	{       0,    0,    50, 1200,  10, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       10, 1 },
-	{       0,    0,    50, 1200,  10,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       10, 1 },
+	{       0, 1800,   400, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,     0,       4,  0 },
+	{       0, 1800,   400, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       4,  0 },
+	{       0, 1800,   400, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,     0,       4,  1 },
+	{       0, 1800,   400, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       4,  1 },
+	{       0, 1800,   400, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,   M_TRUE,   300,       4,  0 },
+	{       0, 1800,   400, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,   300,       4,  0 },
+	{       0, 1800,   400, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,   M_TRUE,   300,       3,  1 },
+	{       0, 1800,   400, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,   300,       3,  1 },
+	{     700, 1800,   400, 2000,   0, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       3,  0 },
+	{     700, 1800,   400, 2000,   0,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       3,  1 },
+	{       0,    0,    50, 2000,   5, M_EVENT_TIMER_MODE_MONOTONIC,  M_FALSE,     0,       5,  0 },
+	{       0,    0,    50, 2000,   5,  M_EVENT_TIMER_MODE_RELATIVE,  M_FALSE,     0,       5,  0 },
 };
 
 START_TEST(check_event_timer)

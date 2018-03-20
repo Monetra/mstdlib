@@ -77,6 +77,7 @@
 #include <mstdlib/io/m_io_net.h>
 #include <mstdlib/io/m_io_pipe.h>
 #include <mstdlib/io/m_event.h>
+#include <mstdlib/io/m_io_ble.h>
 #include <mstdlib/io/m_io_block.h>
 #include <mstdlib/io/m_io_bluetooth.h>
 #include <mstdlib/io/m_io_bwshaping.h>

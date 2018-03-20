@@ -49,7 +49,8 @@ __BEGIN_DECLS
  * the compar function has a reference to the index of the array (void **). That
  * means you may need to dereference more time than you think. E.g: 
  *
- *     M_uint64 i1 = *(*((M_uint64 * const *)arg1));
+ *     my_type_t *t1 = *((my_type_t * const *)arg1);
+ *     M_uint64   i1 = *(*((M_uint64 * const *)arg1));
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.

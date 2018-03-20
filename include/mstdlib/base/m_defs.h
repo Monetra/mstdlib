@@ -33,27 +33,39 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #ifndef __FUNCTION__
-#  define __FUNCTION__ __func__
+#  define __FUNCTION__                         __func__
 #endif
 
 #ifdef __GNUC__
-#  define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  define GCC_VERSION                          (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #else
 #  ifndef __inline__
 #    ifdef __SCO_VERSION__ 
-#      define  __inline__                      inline
+#      define __inline__                       inline
 #    else
-#      define  __inline__                      __inline
+#      define __inline__                       __inline
 #    endif
 #  endif
 #endif
 
-#ifndef __has_attribute
-#  define __has_attribute(x) 0
+
+#if defined(__clang__)
+#  ifndef __has_attribute
+#    define  __has_attribute(x)                0
+#  endif
+#  ifndef __has_feature
+#    define  __has_feature(x)                  0
+#  endif
+#  ifndef __has_extension
+#    define  __has_extension                   __has_feature
+#  endif
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    (__has_attribute(ATTR) || __has_extension(ATTR))
+#elif defined(__GNUC__)
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    (GCC_VERSION >= VER)
+#else
+#  define    M_COMPILER_SUPPORTS(ATTR, VER)    0
 #endif
 
-#define __CLANG_ATTR(x) (defined(__clang__) && __has_attribute(x))
-#define __GNUC_SUPPORT(v) (defined(__GNUC__) && GCC_VERSION >= v)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* Prototype Wrapping- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -74,7 +86,7 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Dynamic shared object and dynamic-link library support */
-#if defined(_MSC_VER) || defined(_MSC_FULL_VER)
+#ifdef _WIN32 /* Both MinGW and Visual Studio support declspec. */
 #  ifdef MSTDLIB_STATIC
 #    define  M_DLL_IMPORT
 #    define  M_DLL_EXPORT
@@ -82,7 +94,7 @@
 #    define  M_DLL_IMPORT                      __declspec(dllimport)
 #    define  M_DLL_EXPORT                      __declspec(dllexport)
 #  endif
-#elif defined(__GNUC__) && GCC_VERSION >= 40000
+#elif M_COMPILER_SUPPORTS(visibility, 40000)
 #  define    M_DLL_IMPORT                      __attribute__((visibility ("default")))
 #  define    M_DLL_EXPORT                      __attribute__((visibility ("default")))
 #else
@@ -99,13 +111,10 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* Attributes  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if __CLANG_ATTR(ownership_returns)
-#  define    M_MALLOC                         __attribute__((malloc)) /* __attribute__((ownership_returns(malloc))) */
-#  define    M_MALLOC_ALIASED                 /*  __attribute__((ownership_returns(malloc))) */
-#elif defined(__GNUC__)
-   /*! Tell compiler that the function may be treated as if any non-NULL pointer
-    * returned cannot alias any other pointer valid when function returns and the
-    * memory contents are undefined. */
+#if M_COMPILER_SUPPORTS(malloc, 0)
+/*! Tell compiler that the function may be treated as if any non-NULL pointer
+ * returned cannot alias any other pointer valid when function returns and the
+ * memory contents are undefined. */
 #  define    M_MALLOC                          __attribute__((malloc))
 #  define    M_MALLOC_ALIASED
 #else
@@ -113,20 +122,16 @@
 #  define    M_MALLOC_ALIASED
 #endif
 
-#if __CLANG_ATTR(ownership_takes)
-#  define M_FREE(arg)                          /* __attribute__((ownership_takes(malloc, arg))) */
-#else
-#  define M_FREE(arg)
-#endif
+#define      M_FREE(arg)
 
-#if defined(__GNUC__) || __CLANG_ATTR(__deprecated__)
+#if M_COMPILER_SUPPORTS(__deprecated__, 0)
    /*! Warn about the usage of a function. */
 #  define    M_DEPRECATED(proto)               proto __attribute__((__deprecated__))
 #else
 #  define    M_DEPRECATED(proto)               proto
 #endif
 
-#if (defined(__GNUC__) || __CLANG_ATTR(__format__)) && !defined(_WIN32)
+#if M_COMPILER_SUPPORTS(__format__, 0) && !defined(_WIN32)
    /*! Warn about format strings that are inconsistent with given arguments */
 #  define    M_PRINTF(fmt_idx, arg_idx)        __attribute__((__format__(__printf__,fmt_idx,arg_idx)))
 #else
@@ -136,7 +141,7 @@
 
 /* Warn about caller ignoring the result of this function.
  */
-#if __GNUC_SUPPORT(30400) || __CLANG_ATTR(warn_unused_result)
+#if M_COMPILER_SUPPORTS(warn_unused_result, 30400)
 #  define    M_WARN_UNUSED_RESULT              __attribute__((warn_unused_result))
 #else
 #  define    M_WARN_UNUSED_RESULT
@@ -147,7 +152,7 @@
  * This must not be set when building the library itself because GCC will
  * optimize out NULL checks that are in place to prevent crashes due to misuse.
  */
-#if !defined(MSTDLIB_INTERNAL) && (__GNUC_SUPPORT(30400) || __CLANG_ATTR(nonnull))
+#if !defined(MSTDLIB_INTERNAL) && M_COMPILER_SUPPORTS(nonnull, 30400)
 #  define    M_WARN_NONNULL(arg)               __attribute__((nonnull(arg)))
 #else
 /* Other compilers might not support VA_ARGS */
@@ -157,23 +162,27 @@
 /*! Tell compiler that the function return value points to memory where the
  * size is given by one or two of the functions parameters.
  */
-#if __GNUC_SUPPORT(40300) || __CLANG_ATTR(alloc_size)
-#  define    M_ALLOC_SIZE(size)                 __attribute__((alloc_size(size)))
+#if M_COMPILER_SUPPORTS(alloc_size, 40300)
+#  define    M_ALLOC_SIZE(size)                __attribute__((alloc_size(size)))
 #else
 #  define    M_ALLOC_SIZE(size)
 #endif
 
 /*! When debugging, produce a unit for an inline.
  */
-#  if defined(__GNUC__) && !defined(M_BLACKLIST_FUNC)
-#    define    M_BLACKLIST_FUNC                  1
-#  endif
+#if defined(__GNUC__) && !defined(M_BLACKLIST_FUNC)
+#  define    M_BLACKLIST_FUNC                  1
+#endif
 
 /*! Warn about the usage of a function with a message.
  *
- * Supress deprecation warnings on Windows, and in C++ code that's using Qt.
+ * Suppress deprecation warnings on Windows, and in C++ code that's using Qt.
+ *
+ * Clang only allows you to add the deprecation attribute when you initially declare the function, so you
+ * can't use it to mark functions from other libraries as deprecated. So, we can't use the deprecated
+ * attribute with clang.
  */
-#if __GNUC_SUPPORT(40500) && !defined(QT_VERSION) && !defined(_WIN32) /* || __CLANG_ATTR(deprecated) */
+#if defined(__GNUC__) && !defined(__clang__) && (GCC_VERSION >= 40500) && !defined(QT_VERSION) && !defined(_WIN32)
 #  define    M_DEPRECATED_MSG(msg,proto)       proto __attribute__((deprecated(msg)));
 #else
 #  define    M_DEPRECATED_MSG(msg,proto)

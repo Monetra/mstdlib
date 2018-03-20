@@ -11,6 +11,11 @@ LDADD       = $(top_builddir)/base/libmstdlib.la
 
 TESTS_ENVIRONMENT = $(VALGRIND_ENVIRONMENT)
 CK_VERBOSITY = verbose
+## With this, the test scripts will be able to print diagnostic
+## messages to the original standard error stream, even if the test
+## driver redirects the stderr of the test scripts to a log file
+## before executing them.
+AM_TESTS_FD_REDIRECT = 9>&2
 
 ######################################################################
 

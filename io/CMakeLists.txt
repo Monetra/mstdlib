@@ -24,7 +24,11 @@ else ()
 endif ()
 
 
+# Some of these are going to be stubs with
+# OS specific implementations added later.
+# E.g. HID, BLE, Bluetooth, serial.
 set(sources
+	# No OS specific implementations
 	m_dns.c
 	m_io.c
 	m_io_block.c
@@ -32,15 +36,23 @@ set(sources
 	m_io_loopback.c
 	m_io_net.c
 	m_io_netdns.c
-	m_io_serial.c
+	m_io_meta.c
 	m_io_trace.c
-	m_io_hid.c
+
+	# Stubs
+	m_io_ble.c
+	m_io_ble_rdata.c
 	m_io_bluetooth.c
+	m_io_hid.c
+	m_io_serial.c
+
+	# Event
 	m_event.c
 	m_event_timer.c
 	m_event_trigger.c
 )
 
+# Serial, HID
 if (WIN32 OR MINGW)
 	list(APPEND sources
 		m_event_win32.c
@@ -67,8 +79,6 @@ else ()
 	elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
 		list(APPEND sources
 			m_io_mac_common.c
-			m_io_bluetooth_mac.m
-			m_io_bluetooth_mac_rfcomm.m
 			m_io_hid_mac.c
 			m_io_mac_runlooper.c
 		)
@@ -79,22 +89,58 @@ else ()
 	endif ()
 endif ()
 
+# JNI
 if (ANDROID)
 	list(APPEND sources m_io_jni.c)
 endif ()
 
+# Bluetooth LE
+set(supports_ble FALSE)
+if (IOS OR IOSSIM)
+	set(supports_ble TRUE)
+elseif (APPLE)
+	# MacOS only supports our use case for BLE in version 10.13 or later.
+	if (CMAKE_OSX_DEPLOYMENT_TARGET)
+		if (NOT CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "10.13")
+			set(supports_ble TRUE)
+		endif ()
+	else ()
+		if (NOT CMAKE_SYSTEM_VERSION VERSION_LESS "17.0.0") # MacOS 10.13 --> v17.0.0
+			set(supports_ble TRUE)
+		endif ()
+	endif ()
+endif ()
+
+if (supports_ble)
+	list(APPEND sources
+		m_io_ble_mac_cache.m
+		m_io_ble_mac_manager.m
+		m_io_ble_mac.m
+	)
+else ()
+	list(APPEND sources m_io_ble_notimpl.c)
+endif ()
+
+# Bluetooth Classic
 if (ANDROID)
 	list(APPEND sources m_io_bluetooth_android.c)
-elseif (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin" OR IOS OR IOSSIM)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
+	list(APPEND sources
+		m_io_bluetooth_mac.m
+		m_io_bluetooth_mac_rfcomm.m
+	)
+else ()
 	list(APPEND sources m_io_bluetooth_notimpl.c)
 endif ()
 
+# MFi
 if (IOS OR IOSSIM)
 	list(APPEND sources m_io_mfi_ea.m m_io_mfi.m)
 else ()
 	list(APPEND sources m_io_mfi_notimpl.c)
 endif ()
 
+# Queue
 if (HAVE_KQUEUE)
 	list(APPEND sources m_event_kqueue.c)
 elseif (HAVE_EPOLL)
@@ -181,6 +227,11 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	find_library(COREFOUNDATION NAMES CoreFoundation)
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREFOUNDATION}"
+	)
+
+	find_library(COREBLUETOOTH NAMES CoreBluetooth)
+	target_link_libraries(${PROJECT_NAME}
+		PUBLIC "${COREBLUETOOTH}"
 	)
 endif ()
 

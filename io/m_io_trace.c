@@ -57,7 +57,7 @@ static void M_io_trace_unregister_cb(M_io_layer_t *layer)
 }
 
 
-static M_io_error_t M_io_trace_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_trace_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_error_t   err;
@@ -65,15 +65,15 @@ static M_io_error_t M_io_trace_read_cb(M_io_layer_t *layer, unsigned char *buf, 
 	if (layer == NULL || handle == NULL)
 		return M_IO_ERROR_INVALID;
 
-	err = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, read_len);
+	err = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, read_len, meta);
 	if (err == M_IO_ERROR_SUCCESS) {
-		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_READ, M_EVENT_TYPE_READ, buf, *read_len);
+		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_READ, M_EVENT_TYPE_READ, buf, read_len==NULL?0:*read_len);
 	}
 	return err;
 }
 
 
-static M_io_error_t M_io_trace_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_trace_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_error_t   err;
@@ -81,9 +81,9 @@ static M_io_error_t M_io_trace_write_cb(M_io_layer_t *layer, const unsigned char
 	if (layer == NULL || handle == NULL)
 		return M_IO_ERROR_INVALID;
 
-	err = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, write_len);
+	err = M_io_layer_write(M_io_layer_get_io(layer), M_io_layer_get_index(layer)-1, buf, write_len, meta);
 	if (err == M_IO_ERROR_SUCCESS) {
-		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_WRITE, M_EVENT_TYPE_WRITE, buf, *write_len);
+		handle->callback(handle->cb_arg, M_IO_TRACE_TYPE_WRITE, M_EVENT_TYPE_WRITE, buf, write_len==NULL?0:*write_len);
 	}
 	return err;
 }

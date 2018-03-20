@@ -198,11 +198,13 @@ M_bool M_io_bluetooth_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	return M_FALSE;
 }
 
-M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (buf == NULL || *write_len == 0)
+	(void)meta;
+
+	if (buf == NULL || write_len == NULL || *write_len == 0)
 		return M_IO_ERROR_INVALID;
 
 	if (handle->state != M_IO_STATE_CONNECTED)
@@ -217,11 +219,13 @@ M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *b
 	return M_IO_ERROR_SUCCESS;
 }
 
-M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_bluetooth_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (buf == NULL || *read_len == 0)
+	(void)meta;
+
+	if (buf == NULL || read_len == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
 	if (handle->state != M_IO_STATE_CONNECTED)
@@ -267,6 +271,7 @@ static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 
 	M_io_layer_release(layer);
 }
+
 M_bool M_io_bluetooth_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);

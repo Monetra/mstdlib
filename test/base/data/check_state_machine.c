@@ -454,7 +454,7 @@ START_TEST(check_sm_reset)
 	M_state_machine_insert_state(sm, STATE_D, 1, "STATE_D", state_d, NULL, NULL);
 
 	d = 1;
-	status = M_state_machine_run(sm, (void *)&d);
+	M_state_machine_run(sm, (void *)&d);
 	M_state_machine_reset(sm, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
 	status = M_state_machine_run(sm, (void *)&d);
 

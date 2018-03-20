@@ -370,12 +370,14 @@ void M_io_w32overlap_destroy_cb(M_io_layer_t *layer)
 }
 
 
-M_io_error_t M_io_w32overlap_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_w32overlap_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	size_t         len;
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_io_type_t    type   = M_io_get_type(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)meta;
 
 	if (io == NULL || layer == NULL || buf == NULL || read_len == NULL || *read_len == 0 || (type != M_IO_TYPE_READER && type != M_IO_TYPE_STREAM))
 		return M_IO_ERROR_INVALID;
@@ -409,12 +411,14 @@ M_io_error_t M_io_w32overlap_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 }
 
 
-M_io_error_t M_io_w32overlap_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_w32overlap_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	size_t         len;
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_io_type_t    type   = M_io_get_type(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)meta;
 
 	if (io == NULL || layer == NULL || buf == NULL || write_len == NULL || *write_len == 0 || (type != M_IO_TYPE_WRITER && type != M_IO_TYPE_STREAM))
 		return M_IO_ERROR_INVALID;

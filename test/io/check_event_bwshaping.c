@@ -212,8 +212,8 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_bool check_event_bwshaping_test(void)
 {
-	M_event_t     *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY|M_EVENT_FLAG_NOWAKE);
-	M_io_t        *netclient;
+	M_event_t     *event     = M_event_create(M_EVENT_FLAG_EXITONEMPTY|M_EVENT_FLAG_NOWAKE);
+	M_io_t        *netclient = NULL;
 	M_event_err_t  err;
 	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 
@@ -221,12 +221,12 @@ static M_bool check_event_bwshaping_test(void)
 
 	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
-		return M_FALSE;
+		goto done_error;
 	}
 
 	if (M_io_add_bwshaping(netserver, &server_id) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to add bwshaping to server");
-		return M_FALSE;
+		goto done_error;
 	}
 #if 0
 	if (!M_io_bwshaping_set_throttle(netserver, server_id, M_IO_BWSHAPING_DIRECTION_IN, 100 * 1024 * 1024)) {
@@ -237,39 +237,39 @@ static M_bool check_event_bwshaping_test(void)
 
 	if (!M_io_bwshaping_set_throttle_period(netserver, server_id, M_IO_BWSHAPING_DIRECTION_IN, 2, 50)) {
 		event_debug("failed to add throttle period to server");
-		return M_FALSE;
+		goto done_error;
 	}
 	if (!M_io_bwshaping_set_throttle_mode(netserver, server_id, M_IO_BWSHAPING_DIRECTION_IN, M_IO_BWSHAPING_MODE_TRICKLE)) {
 		event_debug("failed to add trickle mode to server");
-		return M_FALSE;
+		goto done_error;
 	}
 #if 0
 	if (!M_io_bwshaping_set_latency(netserver, server_id, M_IO_BWSHAPING_DIRECTION_IN, 100)) {
 		event_debug("failed to add latency to server");
-		return M_FALSE;
+		goto done_error;
 	}
 #endif
 	event_debug("listener started");
 	if (!M_event_add(event, netserver, net_server_cb, NULL)) {
 		event_debug("failed to add net server");
-		return M_FALSE;
+		goto done_error;
 	}
 	event_debug("listener added to event");
 
 	if (M_io_net_client_create(&netclient, NULL, "127.0.0.1", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net client");
-		return M_FALSE;
+		goto done_error;
 	}
 
 	if (M_io_add_bwshaping(netclient, &client_id) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to add bwshaping to client");
-		return M_FALSE;
+		goto done_error;
 	}
 
 
 	if (!M_event_add(event, netclient, net_client_cb, net_data_create())) {
 		event_debug("failed to add net client");
-		return M_FALSE;
+		goto done_error;
 	}
 	event_debug("added client connections to event loop");
 
@@ -284,6 +284,13 @@ static M_bool check_event_bwshaping_test(void)
 
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 	return err==M_EVENT_ERR_DONE?M_TRUE:M_FALSE;
+
+done_error:
+	M_io_destroy(netserver);
+	M_event_destroy(event);
+	M_library_cleanup();
+	event_debug("exited");
+	return M_FALSE;
 }
 
 

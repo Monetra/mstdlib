@@ -357,8 +357,7 @@ M_bool M_ini_kv_rename(M_ini_t *ini, const char *key, const char *new_key)
 	char   *stored_key;
 	M_bool  ret;
 
-	if (ini == NULL || key == NULL || *key == '\0' ||
-	    new_key == NULL || new_key == '\0' ||
+	if (ini == NULL || M_str_isempty(key) || M_str_isempty(new_key) ||
 		/* Sections need to be renamed as sections and keys as keys. Cannot rename a key to a section
  		 * or a section to a key. */
 	    (key[M_str_len(key)-1] == '/' && new_key[M_str_len(key)-1] != '/') ||

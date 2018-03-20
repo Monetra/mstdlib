@@ -199,7 +199,7 @@ M_uint16                  _mtu     = 0;
 		send_len = (M_uint16)len;
 	}
 	
-	ioret = [_channel writeAsync:M_buf_peek(_handle->writebuf) length:send_len refcon:NULL];
+	ioret = [_channel writeAsync:((void *)M_buf_peek(_handle->writebuf)) length:send_len refcon:NULL];
 	ioerr = M_io_mac_ioreturn_to_err(ioret);
 	if (ioerr == M_IO_ERROR_SUCCESS) {
 		/* Save how much data we're writing so we can remove it from the buffer once the

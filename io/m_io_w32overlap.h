@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -79,8 +79,8 @@ M_bool M_io_w32overlap_process_cb(M_io_layer_t *layer, M_event_type_t *type);
 void M_io_w32overlap_unregister_cb(M_io_layer_t *layer);
 void M_io_w32overlap_destroy_handle(M_io_handle_t *handle);
 void M_io_w32overlap_destroy_cb(M_io_layer_t *layer);
-M_io_error_t M_io_w32overlap_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len);
-M_io_error_t M_io_w32overlap_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len);
+M_io_error_t M_io_w32overlap_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
+M_io_error_t M_io_w32overlap_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 M_io_state_t M_io_w32overlap_state_cb(M_io_layer_t *layer);
 M_bool M_io_w32overlap_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);
 M_bool M_io_w32overlap_disconnect_cb(M_io_layer_t *layer);
@@ -93,8 +93,8 @@ M_bool M_io_w32overlap_busyemu_process_cb(M_io_layer_t *layer, M_event_type_t *t
 void M_io_w32overlap_busyemu_unregister_cb(M_io_layer_t *layer);
 void M_io_w32overlap_busyemu_destroy_handle(M_io_handle_t *handle);
 void M_io_w32overlap_busyemu_destroy_cb(M_io_layer_t *layer);
-M_io_error_t M_io_w32overlap_busyemu_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len);
-M_io_error_t M_io_w32overlap_busyemu_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len);
+M_io_error_t M_io_w32overlap_busyemu_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta);
+M_io_error_t M_io_w32overlap_busyemu_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta);
 M_io_state_t M_io_w32overlap_busyemu_state_cb(M_io_layer_t *layer);
 M_bool M_io_w32overlap_busyemu_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);
 M_bool M_io_w32overlap_busyemu_disconnect_cb(M_io_layer_t *layer);

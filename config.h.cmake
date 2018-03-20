@@ -2,7 +2,17 @@
 #cmakedefine HAVE_STRING_H
 #cmakedefine HAVE_STRINGS_H
 #cmakedefine HAVE_ERRNO_H
+
 #cmakedefine HAVE_UNISTD_H
+/* Work Around MacOS SDKs that do this stupid logic:
+ *    #if !defined(HAVE_UNISTD_H) || HAVE_UNISTD_H
+ * Public headers really should NEVER depend on things like HAVE_*
+ */
+#ifdef HAVE_UNISTD_H
+#  undef HAVE_UNISTD_H
+#  define HAVE_UNISTD_H 1
+#endif
+
 #cmakedefine HAVE_SYS_IOCTL_H
 #cmakedefine HAVE_SYS_SELECT_H
 #cmakedefine HAVE_SYS_TIME_H

@@ -516,7 +516,7 @@ static M_io_error_t M_io_bwshaping_accept_cb(M_io_t *io, M_io_layer_t *orig_laye
 }
 
 
-static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len)
+static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	size_t         max_write = 0;
 	M_io_handle_t *handle    = M_io_layer_get_handle(layer);
@@ -549,7 +549,7 @@ static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned 
 		}
 
 		request_len = *write_len;
-		err         = M_io_layer_write(io, M_io_layer_get_index(layer)-1, buf, write_len);
+		err         = M_io_layer_write(io, M_io_layer_get_index(layer)-1, buf, write_len, meta);
 
 		if (err == M_IO_ERROR_SUCCESS) {
 			M_io_bwshaping_add_transfer(handle, *write_len, M_IO_BWSHAPING_DIRECTION_OUT);
@@ -570,7 +570,7 @@ static M_io_error_t M_io_bwshaping_write_cb(M_io_layer_t *layer, const unsigned 
 }
 
 
-static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len)
+static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	size_t         max_read = 0;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -605,7 +605,7 @@ static M_io_error_t M_io_bwshaping_read_cb(M_io_layer_t *layer, unsigned char *b
 		}
 
 		request_len = *read_len;
-		err         = M_io_layer_read(io, M_io_layer_get_index(layer)-1, buf, read_len);
+		err         = M_io_layer_read(io, M_io_layer_get_index(layer)-1, buf, read_len, meta);
 
 		if (err == M_IO_ERROR_SUCCESS) {
 			M_io_bwshaping_add_transfer(handle, *read_len, M_IO_BWSHAPING_DIRECTION_IN);

@@ -28,6 +28,8 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_parser.h>
+#include <mstdlib/base/m_buf.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -55,6 +57,11 @@ typedef enum M_io_type M_io_type_t;
 /*! io object. */
 struct M_io;
 typedef struct M_io M_io_t;
+
+
+/*! io meta object. */
+struct M_io_meta;
+typedef struct M_io_meta M_io_meta_t;
 
 
 /*! io error. */
@@ -111,6 +118,20 @@ typedef enum M_io_state M_io_state_t;
 M_API const char *M_io_error_string(M_io_error_t error);
 
 
+/*! Create an io meta data object.
+ *
+ * \return io meta data object.
+ */
+M_API M_io_meta_t *M_io_meta_create(void);
+
+
+/*! Destory an io meta data object.
+ *
+ * \param[in] meta meta data object.
+ */
+M_API void M_io_meta_destroy(M_io_meta_t *meta);
+
+
 /*! Read from an io object.
  *
  * \param[in]  comm     io object.
@@ -119,6 +140,8 @@ M_API const char *M_io_error_string(M_io_error_t error);
  * \param[out] len_read Number of bytes fread from the io object.
  *
  * \return Result.
+ *
+ * \see M_io_read_meta
  */
 M_API M_io_error_t M_io_read(M_io_t *comm, unsigned char *buf, size_t buf_len, size_t *len_read);
 
@@ -131,6 +154,8 @@ M_API M_io_error_t M_io_read(M_io_t *comm, unsigned char *buf, size_t buf_len, s
  * \param[out] buf  Buffer to store data read from io object.
  *
  * \return Result.
+ *
+ * \see M_io_read_into_buf_meta
  */
 M_API M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf);
 
@@ -143,8 +168,55 @@ M_API M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf);
  * \param[out] parser Parser to store data read from io object.
  *
  * \return Result.
+ *
+ * \see M_io_read_into_parser_meta
  */
 M_API M_io_error_t M_io_read_into_parser(M_io_t *comm, M_parser_t *parser);
+
+
+/*! Read from an io object with a meta data object.
+ *
+ * \param[in]  comm     io object.
+ * \param[out] buf      Buffer to store data read from io object.
+ * \param[in]  buf_len  Lenght of provided buffer.
+ * \param[out] len_read Number of bytes fread from the io object.
+ * \param[in]  meta     Meta data object.
+ *
+ * \return Result.
+ *
+ * \see M_io_read
+ */
+M_API M_io_error_t M_io_read_meta(M_io_t *comm, unsigned char *buf, size_t buf_len, size_t *len_read, M_io_meta_t *meta);
+
+
+/*! Read from an io object into an M_buf_t with a meta data object.
+ *
+ * This will read all available data into the buffer.
+ *
+ * \param[in]  comm io object.
+ * \param[out] buf  Buffer to store data read from io object.
+ * \param[in]  meta Meta data object.
+ *
+ * \return Result.
+ *
+ * \see M_io_read_into_buf
+ */
+M_API M_io_error_t M_io_read_into_buf_meta(M_io_t *comm, M_buf_t *buf, M_io_meta_t *meta);
+
+
+/*! Read from an io object into an M_parser_t with a meta data object.
+ *
+ * This will read all available data into the buffer.
+ *
+ * \param[in]  comm   io object.
+ * \param[out] parser Parser to store data read from io object.
+ * \param[in]  meta   Meta data object.
+ *
+ * \return Result.
+ *
+ * \see M_io_read_into_parser
+ */
+M_API M_io_error_t M_io_read_into_parser_meta(M_io_t *comm, M_parser_t *parser, M_io_meta_t *meta);
 
 
 /*! Clear/Flush the read buffer to consume all data and dispose of it.
@@ -169,6 +241,8 @@ M_API M_io_error_t M_io_read_clear(M_io_t *io);
  * \param[out] len_written Number of bytes from the buffer written.
  *
  * \return Result.
+ *
+ * \see M_io_write_meta
  */
 M_API M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf_len, size_t *len_written);
 
@@ -183,8 +257,46 @@ M_API M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf
  * \param[in]  buf  Buffer to write from.
  *
  * \return Result.
+ *
+ * \see M_io_write_from_buf_meta
  */
 M_API M_io_error_t M_io_write_from_buf(M_io_t *comm, M_buf_t *buf);
+
+
+/*! Write data to an io object with a meta data object.
+ *
+ * This function will attempt to write as much data as possible. If not all data
+ * is written the application should wait until the next write event and then try
+ * writing more data.
+ *
+ * \param[in]  comm        io object.
+ * \param[in]  buf         Buffer to write from.
+ * \param[in]  buf_len     Number of bytes in buffer to write.
+ * \param[out] len_written Number of bytes from the buffer written.
+ * \param[in]  meta        Meta data object.
+ *
+ * \return Result.
+ *
+ * \see M_io_write
+ */
+M_API M_io_error_t M_io_write_meta(M_io_t *comm, const unsigned char *buf, size_t buf_len, size_t *len_written, M_io_meta_t *meta);
+
+
+/*! Write data to an io object from an M_buf_t with a meta data object.
+ *
+ * This function will attempt to write as much data as possible. If not all data
+ * is written the application should wait until the next write event and then try
+ * writing more data.
+ *
+ * \param[in]  comm io object.
+ * \param[in]  buf  Buffer to write from.
+ * \param[in]  meta Meta data object.
+ *
+ * \return Result.
+ *
+ * \see M_io_write_from_buf
+ */
+M_API M_io_error_t M_io_write_from_buf_meta(M_io_t *comm, M_buf_t *buf, M_io_meta_t *meta);
 
 
 /*! Accept an io connection.

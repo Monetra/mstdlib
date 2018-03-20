@@ -25,6 +25,7 @@
 #include "mstdlib/mstdlib_io.h"
 #include "m_event_int.h"
 #include "m_io_int.h"
+#include "m_io_meta.h"
 #ifndef _WIN32
 #  include <unistd.h>
 #  include <fcntl.h>
@@ -295,13 +296,13 @@ void M_io_disconnect(M_io_t *comm)
 }
 
 
-M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len)
+M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
 	ssize_t       i;
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL || buf == NULL || read_len == NULL) {
+	if (io == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -317,7 +318,7 @@ M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, si
 		if (layer->cb.cb_read == NULL)
 			continue;
 
-		err = layer->cb.cb_read(layer, buf, read_len);
+		err = layer->cb.cb_read(layer, buf, read_len, meta);
 		break;
 	}
 
@@ -331,13 +332,21 @@ fail:
 	return err;
 }
 
-
 M_io_error_t M_io_read(M_io_t *io, unsigned char *buf, size_t buf_len, size_t *len_read)
+{
+	return M_io_read_meta(io, buf, buf_len, len_read, NULL);
+}
+
+M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size_t *len_read, M_io_meta_t *meta)
 {
 	M_io_error_t err;
 	size_t       layer_idx;
+	size_t       mylen_read;
 
-	if (io == NULL || buf == NULL || buf_len == 0 || len_read == NULL) {
+	if (len_read == NULL)
+		len_read = &mylen_read;
+
+	if (io == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -350,7 +359,7 @@ M_io_error_t M_io_read(M_io_t *io, unsigned char *buf, size_t buf_len, size_t *l
 	}
 
 	*len_read = buf_len;
-	err       = M_io_layer_read(io, layer_idx-1, buf, len_read);
+	err       = M_io_layer_read(io, layer_idx-1, buf, len_read, meta);
 	if (err != M_IO_ERROR_SUCCESS)
 		*len_read = 0;
 
@@ -390,8 +399,12 @@ M_io_error_t M_io_read_clear(M_io_t *io)
 	return err;
 }
 
-
 M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf)
+{
+	return M_io_read_into_buf_meta(comm, buf, NULL);
+}
+
+M_io_error_t M_io_read_into_buf_meta(M_io_t *comm, M_buf_t *buf, M_io_meta_t *meta)
 {
 	size_t         buf_len;
 	size_t         len_read;
@@ -407,7 +420,7 @@ M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf)
 		buf_len  = 1024; /* Requested size */
 		len_read = 0;
 		wbuf     = M_buf_direct_write_start(buf, &buf_len); /* Actual size is probably much larger */
-		err      = M_io_read(comm, wbuf, buf_len, &len_read);
+		err      = M_io_read_meta(comm, wbuf, buf_len, &len_read, meta);
 		M_buf_direct_write_end(buf, len_read);
 
 		/* Cancel loop on error */
@@ -428,8 +441,12 @@ M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf)
 	return err;
 }
 
-
 M_io_error_t M_io_read_into_parser(M_io_t *comm, M_parser_t *parser)
+{
+	return M_io_read_into_parser_meta(comm, parser, NULL);
+}
+
+M_io_error_t M_io_read_into_parser_meta(M_io_t *comm, M_parser_t *parser, M_io_meta_t *meta)
 {
 	size_t         buf_len;
 	size_t         len_read;
@@ -448,7 +465,7 @@ M_io_error_t M_io_read_into_parser(M_io_t *comm, M_parser_t *parser)
 		/* Must have passed in a const parser */
 		if (wbuf == NULL)
 			return M_IO_ERROR_INVALID;
-		err      = M_io_read(comm, wbuf, buf_len, &len_read);
+		err      = M_io_read_meta(comm, wbuf, buf_len, &len_read, meta);
 		M_parser_direct_write_end(parser, len_read);
 
 		/* Cancel loop on error */
@@ -471,13 +488,13 @@ M_io_error_t M_io_read_into_parser(M_io_t *comm, M_parser_t *parser)
 
 
 
-M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len)
+M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	ssize_t       i;
 	M_io_error_t  err   = M_IO_ERROR_ERROR;
 	M_io_layer_t *layer = NULL;
 
-	if (io == NULL || buf == NULL || write_len == NULL)
+	if (io == NULL)
 		return M_IO_ERROR_INVALID;
 
 	if (layer_id >= M_list_len(io->layer))
@@ -489,7 +506,7 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 		if (layer->cb.cb_write == NULL)
 			continue;
 
-		err = layer->cb.cb_write(layer, buf, write_len);
+		err = layer->cb.cb_write(layer, buf, write_len, meta);
 		break;
 	}
 
@@ -501,13 +518,21 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 	return err;
 }
 
-
 M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf_len, size_t *len_written)
+{
+	return M_io_write_meta(comm, buf, buf_len, len_written, NULL);
+}
+
+M_io_error_t M_io_write_meta(M_io_t *comm, const unsigned char *buf, size_t buf_len, size_t *len_written, M_io_meta_t *meta)
 {
 	M_io_error_t err;
 	size_t       layer_idx;
+	size_t       mylen_written;
 
-	if (comm == NULL || buf == NULL || buf_len == 0 || len_written == NULL) {
+	if (len_written == NULL)
+		len_written = &mylen_written;
+
+	if (comm == NULL) {
 		err = M_IO_ERROR_INVALID;
 		goto fail;
 	}
@@ -519,7 +544,7 @@ M_io_error_t M_io_write(M_io_t *comm, const unsigned char *buf, size_t buf_len, 
 	}
 
 	*len_written = buf_len;
-	err = M_io_layer_write(comm, layer_idx-1, buf, len_written);
+	err = M_io_layer_write(comm, layer_idx-1, buf, len_written, meta);
 	if (err != M_IO_ERROR_SUCCESS)
 		*len_written = 0;
 
@@ -539,8 +564,12 @@ fail:
 	return err;
 }
 
-
 M_io_error_t M_io_write_from_buf(M_io_t *comm, M_buf_t *buf)
+{
+	return M_io_write_from_buf_meta(comm, buf, NULL);
+}
+
+M_io_error_t M_io_write_from_buf_meta(M_io_t *comm, M_buf_t *buf, M_io_meta_t *meta)
 {
 	size_t         len_written;
 	M_io_error_t err;
@@ -551,7 +580,7 @@ M_io_error_t M_io_write_from_buf(M_io_t *comm, M_buf_t *buf)
 	if (M_buf_len(buf) == 0)
 		return M_IO_ERROR_SUCCESS;
 
-	err = M_io_write(comm, (const unsigned char *)M_buf_peek(buf), M_buf_len(buf), &len_written);
+	err = M_io_write_meta(comm, (const unsigned char *)M_buf_peek(buf), M_buf_len(buf), &len_written, meta);
 	if (err == M_IO_ERROR_SUCCESS) {
 		M_buf_drop(buf, len_written);
 	}
@@ -688,7 +717,7 @@ M_bool M_io_callbacks_reg_accept(M_io_callbacks_t *callbacks, M_io_error_t (*cb_
 	return M_TRUE;
 }
 
-M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len))
+M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_read)(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta))
 {
 	if (callbacks == NULL)
 		return M_FALSE;
@@ -696,7 +725,7 @@ M_bool M_io_callbacks_reg_read(M_io_callbacks_t *callbacks, M_io_error_t (*cb_re
 	return M_TRUE;
 }
 
-M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len))
+M_bool M_io_callbacks_reg_write(M_io_callbacks_t *callbacks, M_io_error_t (*cb_write)(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta))
 {
 	if (callbacks == NULL)
 		return M_FALSE;
