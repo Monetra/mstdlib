@@ -170,7 +170,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			}
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
-			KBps = (M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN) / (M_io_bwshaping_get_totalms(comm, server_id) / 1000)) / 1024;
+			KBps = (M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN) / M_MAX(1, (M_io_bwshaping_get_totalms(comm, server_id) / 1000))) / 1024;
 			M_printf("Speed: %llu.%03llu MB/s\n", KBps/1024, KBps % 1024);
 			M_io_destroy(comm);
 			M_io_destroy(netserver);
