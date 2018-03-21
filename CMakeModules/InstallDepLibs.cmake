@@ -5,6 +5,9 @@
 # Accepts a list of paths and/or import targets. Import targets that are static libs or executables
 # are silently ignored.
 #
+# The "lib dest" and "runtime dest" parameters given to install_deplibs are allowed to contain generator
+# expressions.
+#
 # Functions:
 # install_deplibs([lib dest] [runtime dest] [... lib files or import targets ...])
 #     Install the given list of lib dependencies to CMAKE_INSTALL_PREFIX, alongside the project. Can be passed

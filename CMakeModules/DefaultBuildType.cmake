@@ -30,6 +30,16 @@ set(default_build_type
 
 string(REPLACE ";" ", " build_options_str "${build_options}")
 
+# If we're using a multi-config generator, set build type options to our custom list, then
+# return early.
+if (CMAKE_CONFIGURATION_TYPES)
+	if (CMAKE_BUILD_TYPE)
+		message(STATUS "Ignoring CMAKE_BUILD_TYPE, you're using a multi-config generator.")
+	endif ()
+	
+	set(CMAKE_CONFIGURATION_TYPES "${build_options}" CACHE STRING "List of build configs that can be chosen in IDE")
+	return()
+endif ()
 
 # Make sure the chosen build type is in the list of options.
 if (CMAKE_BUILD_TYPE)
