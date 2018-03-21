@@ -157,7 +157,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 		case M_EVENT_TYPE_ERROR:
 			event_debug("pipe reader %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, reader_id));
-			KBps = (M_io_bwshaping_get_totalbytes(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN) / (M_io_bwshaping_get_totalms(comm, reader_id) / 1000)) / 1024;
+			KBps = (M_io_bwshaping_get_totalbytes(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN) / M_MAX(1, (M_io_bwshaping_get_totalms(comm, reader_id) / 1000))) / 1024;
 			M_printf("Speed: %llu.%03llu MB/s\n", KBps/1024, KBps % 1024);
 			M_io_destroy(comm);
 			net_data_destroy(data);

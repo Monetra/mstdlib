@@ -688,6 +688,9 @@ M_sql_error_t M_sql_connpool_start(M_sql_connpool_t *pool, char *error, size_t e
 {
 	M_sql_error_t err = M_SQL_ERROR_SUCCESS;
 
+	if (pool == NULL)
+		return M_SQL_ERROR_INVALID_USE;
+
 	M_thread_mutex_lock(pool->lock);
 	if (pool->started) {
 		err = M_SQL_ERROR_INVALID_USE;
