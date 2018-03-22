@@ -28,7 +28,6 @@ function(_harden_check_compile_flag outvarname flag lang)
 endfunction()
 
 function(_harden_check_link_flag outvarname flag)
-	set(CMAKE_REQUIRED_FLAGS     ${flag})
 	set(CMAKE_REQUIRED_LIBRARIES ${flag})
 	string(MAKE_C_IDENTIFIER "HAVE_${flag}" flagvar)
 	check_c_compiler_flag("" ${flagvar})
@@ -84,10 +83,7 @@ else ()
 		if (MINGW AND has_flag)
 			# MinGW has a bug where you need to explicitly link to -lssp in some cases when stack
 			# protector is enabled.
-			_harden_check_link_flag(has_flag "-lssp")
-			if (has_flag)
-				link_libraries(-lssp)
-			endif ()
+			list(APPEND _link_flags "-lssp")
 		endif ()
 	endif ()
 
