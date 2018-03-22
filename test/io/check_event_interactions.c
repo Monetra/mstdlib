@@ -23,11 +23,16 @@ static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	(void)io;
 	(void)thunk;
 
-	for (size_t i=0; i<100; i++) {
+	/* Try to run start a bunch of times on the same event timer */
+	for (size_t i=0; i<25; i++) {
 		M_event_timer_start(timer1, 0);
+		/* Sleep enough to yeild execution for each incase more timers go off */
+		M_thread_sleep(15000);
 	}
+
 	M_event_done(el2);
-	M_thread_sleep(10000000);
+	/* Sleep long enough that we know the thread1 callback is complete */
+	M_thread_sleep(2000000);
 	M_event_done(el1);
 }
 
@@ -38,10 +43,13 @@ static void el_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	(void)io;
 	(void)thunk;
 
-	M_thread_sleep(1000000);
+	count++;
+
+	/* Sleep long enough that we know all thread2 M_event_timer_start()'s have been called */
+	M_thread_sleep(500000);
+
 	M_event_timer_remove(timer1);
 	timer1 = NULL;
-	count++;
 }
 
 static void *run_el2(void *arg)
@@ -82,8 +90,9 @@ START_TEST(check_event_interactions)
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
 	t1 = M_thread_create(tattr, run_el1, NULL);
-	/* Sleep to be sure el1 is up. */
+	/* Give up time slice to make sure thread 1 is fully initialized */
 	M_thread_sleep(100000);
+
 	t2 = M_thread_create(tattr, run_el2, NULL);
 	M_thread_attr_destroy(tattr);
 
