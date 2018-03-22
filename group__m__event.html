@@ -205,6 +205,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga6be59e7ccf75016c997b4919c9a709da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9187e4d2237e25973975e200b4d52ff7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga9187e4d2237e25973975e200b4d52ff7">M_event_get_pool</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga9187e4d2237e25973975e200b4d52ff7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3290ebedcb7c54ba34c9e626808adad8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga3290ebedcb7c54ba34c9e626808adad8">M_io_get_event</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
+<tr class="separator:ga3290ebedcb7c54ba34c9e626808adad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga603f06976101b21e00517deb529f86bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga603f06976101b21e00517deb529f86bb">M_event_destroy</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga603f06976101b21e00517deb529f86bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga755cf00991529e324be3f9f49a5d5476"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga755cf00991529e324be3f9f49a5d5476">M_event_add</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <a class="el" href="group__m__event.html#ga83ff5644cc466ea36241757dee26d629">M_event_callback_t</a> callback, void *cb_data)</td></tr>
@@ -730,6 +732,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to event pool, or self if not part of a pool (or if a pool object already passed in). </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga3290ebedcb7c54ba34c9e626808adad8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a>* M_io_get_event </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the registered event handle for the io object</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>IO object.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Event loop object associated with the io object. </dd></dl>
 
 </div>
 </div>
@@ -1668,7 +1694,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 22 2018 14:21:21 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 22 2018 15:03:53 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

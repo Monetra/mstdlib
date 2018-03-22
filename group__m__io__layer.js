@@ -12,7 +12,6 @@ var group__m__io__layer =
     [ "M_io_layer_release", "group__m__io__layer.html#ga4a296392e2a2a26c505575085e4ce177", null ],
     [ "M_io_init", "group__m__io__layer.html#ga442adec732ebd1ba459531f202733a65", null ],
     [ "M_io_get_type", "group__m__io__layer.html#gac666dc833a02d04d943fb0415908d914", null ],
-    [ "M_io_get_event", "group__m__io__layer.html#ga3290ebedcb7c54ba34c9e626808adad8", null ],
     [ "M_io_callbacks_create", "group__m__io__layer.html#ga3f380ff15a9dae6358abdd041777d300", null ],
     [ "M_io_callbacks_reg_init", "group__m__io__layer.html#ga8f5d7c26cf5f6d098cfc20c726dbdd04", null ],
     [ "M_io_callbacks_reg_accept", "group__m__io__layer.html#gabd56f7000fb05fbdbfa7effe4c8acf4b", null ],

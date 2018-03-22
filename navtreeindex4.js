@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aaecbe61ac29093c9d37b846e4cd0fbaf":[0,0,1,1,11,10,4],
 "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8ad2001c81452a606a343fdd4bb0056db0":[0,0,1,1,11,10,1],
 "group__m__hashtable__generic.html#structM__hashtable__callbacks":[0,0,1,1,11,4],
 "group__m__hashtable__generic.html#structM__hashtable__enum":[0,0,1,1,11,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX4 =
 "group__m__io__jni.html#ga2b82b08ef43e2d315935df7e43a6f22f":[0,2,2,0,30],
 "group__m__io__jni.html#ga32caf70934534b40226c29a3ecff371e":[0,2,2,0,8],
 "group__m__io__jni.html#ga45085868045becacde7aa0ad8ef1d03d":[0,2,2,0,12],
-"group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b":[0,2,2,0,13],
-"group__m__io__jni.html#ga60d8e9438feab71ff79f1bcd99ca8450":[0,2,2,0,27]
+"group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b":[0,2,2,0,13]
 };

@@ -50,6 +50,7 @@ var group__m__event =
     [ "M_event_create", "group__m__event.html#gae169dca80125767d87fe196f32ea8d74", null ],
     [ "M_event_pool_create", "group__m__event.html#ga6be59e7ccf75016c997b4919c9a709da", null ],
     [ "M_event_get_pool", "group__m__event.html#ga9187e4d2237e25973975e200b4d52ff7", null ],
+    [ "M_io_get_event", "group__m__event.html#ga3290ebedcb7c54ba34c9e626808adad8", null ],
     [ "M_event_destroy", "group__m__event.html#ga603f06976101b21e00517deb529f86bb", null ],
     [ "M_event_add", "group__m__event.html#ga755cf00991529e324be3f9f49a5d5476", null ],
     [ "M_event_edit_io_cb", "group__m__event.html#gabf02fc9c3f66ffe794be24e0957507e7", null ],
