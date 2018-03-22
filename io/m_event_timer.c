@@ -31,7 +31,10 @@ struct M_event_timer {
 	M_timeval_t          start_tv;
 	M_uint64             interval_ms;
 	size_t               fire_cnt;
-	M_bool               autodestroy; /* Either explicitly set, or set due to a self-destroy during execution */
+	M_bool               autodestroy;
+	M_bool               delay_destroy; /* Set due to a self-destroy during execution. 
+	                                     * Cannot overload autodestroy as another thread calling _start()
+	                                     * can cause odd behavior. */
 	M_event_timer_mode_t mode;
 	M_event_callback_t   callback;
 	void                *cb_data;
@@ -153,10 +156,7 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 
 	M_event_lock(event);
 	if (timer->executing) {
-		/* Tell it to autodestroy at completion of execution instead of immediate destroy
-		 * as otherwise we'd free data that would still be used */
-		timer->fire_cnt    = 1;
-		timer->autodestroy = M_TRUE;
+		timer->delay_destroy = M_TRUE;
 		M_event_unlock(event);
 		return M_TRUE;
 	}
@@ -491,6 +491,12 @@ void M_event_timer_process(M_event_t *event)
 
 		/* If autodestroy and timer went to stopped mode, kill it */
 		if (!timer->started && timer->autodestroy) {
+			M_free(timer);
+			continue;
+		}
+
+		/* If self-deleted during the callback, cleanup now */
+		if (timer->delay_destroy) {
 			M_free(timer);
 			continue;
 		}
