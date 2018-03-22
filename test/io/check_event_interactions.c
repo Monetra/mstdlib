@@ -90,7 +90,7 @@ START_TEST(check_event_interactions)
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(count != 0, "Timer started by different thread fired extra times: %zu", count);
+	ck_assert_msg(count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", count);
 }
 END_TEST
 
