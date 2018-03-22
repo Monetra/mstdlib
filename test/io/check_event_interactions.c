@@ -8,11 +8,11 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_event_t       *el1;
-static M_event_t       *el2;
-static M_event_timer_t *timer1;
-static M_event_timer_t *timer2;
-static size_t           count = 0;
+static M_event_t       *el1    = NULL;
+static M_event_t       *el2    = NULL;
+static M_event_timer_t *timer1 = NULL;
+static M_event_timer_t *timer2 = NULL;
+static size_t           count  = 0;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -48,11 +48,6 @@ static void *run_el2(void *arg)
 {
 	(void)arg;
 
-	el2    = M_event_create(M_EVENT_FLAG_NONE);
-	timer2 = M_event_timer_add(el2, el_cb2, NULL);
-	M_event_timer_set_firecount(timer2, 1);
-	M_event_timer_start(timer2, 0);
-
 	M_event_loop(el2, M_TIMEOUT_INF);
 	M_event_destroy(el2);
 	return NULL;
@@ -61,10 +56,6 @@ static void *run_el2(void *arg)
 static void *run_el1(void *arg)
 {
 	(void)arg;
-
-	el1    = M_event_create(M_EVENT_FLAG_NONE);
-	timer1 = M_event_timer_add(el1, el_cb, NULL);
-	M_event_timer_set_firecount(timer1, 1);
 
 	M_event_loop(el1, M_TIMEOUT_INF);
 	M_event_destroy(el1);
@@ -79,16 +70,27 @@ START_TEST(check_event_interactions)
 	M_threadid_t     t1;
 	M_threadid_t     t2;
 
+	el1    = M_event_create(M_EVENT_FLAG_NONE);
+	timer1 = M_event_timer_add(el1, el_cb, NULL);
+	M_event_timer_set_firecount(timer1, 1);
+
+	el2    = M_event_create(M_EVENT_FLAG_NONE);
+	timer2 = M_event_timer_add(el2, el_cb2, NULL);
+	M_event_timer_set_firecount(timer2, 1);
+	M_event_timer_start(timer2, 0);
+
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
 	t1 = M_thread_create(tattr, run_el1, NULL);
+	/* Sleep to be sure el1 is up. */
+	M_thread_sleep(100000);
 	t2 = M_thread_create(tattr, run_el2, NULL);
 	M_thread_attr_destroy(tattr);
 
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(count == 1, "Timer started by different thread fired extra times");
+	ck_assert_msg(count != 0, "Timer started by different thread fired extra times: %zu", count);
 }
 END_TEST
 
