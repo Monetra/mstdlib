@@ -256,7 +256,7 @@ START_TEST(check_dns)
 	ck_assert_msg(M_tls_clientctx_set_default_trust(ctx), "failed to load default trust list");
 #endif
 
-	M_io_net_client_create(&netclient, dns, HOST, PORT, M_IO_NET_ANY);
+	ck_assert_msg(M_io_net_client_create(&netclient, dns, HOST, PORT, M_IO_NET_ANY) == M_IO_ERROR_SUCCESS, "failed to initialize net client");
 	ck_assert_msg(netclient != NULL, "net client failed to initialized");
 
 #ifdef USE_SSL

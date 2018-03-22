@@ -309,6 +309,15 @@ M_API M_event_t *M_event_pool_create(size_t max_threads);
 M_API M_event_t *M_event_get_pool(M_event_t *event);
 
 
+/*! Get the registered event handle for the io object
+ *
+ * \param[in] io IO object.
+ *
+ *  \return Event loop object associated with the io object.
+ */
+M_API M_event_t *M_io_get_event(M_io_t *io);
+
+
 /*! Destroy the event loop or pool object
  * 
  *  \param[in] event Pointer to event handle either returned by M_event_create(), M_event_pool_create(),

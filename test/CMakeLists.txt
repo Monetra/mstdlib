@@ -117,6 +117,7 @@ if (MSTDLIB_BUILD_IO)
 		io/check_event_bwshaping.c
 	)
 	list(APPEND slow_tests
+		io/check_event_interactions.c
 		io/check_event_timer.c
 	)
 	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

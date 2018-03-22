@@ -97,10 +97,6 @@ M_API M_io_t *M_io_init(M_io_type_t type);
 /*! Get the type of the io object */
 M_API M_io_type_t M_io_get_type(M_io_t *io);
 
-/*! Get the registered event handle for the io object */
-M_API M_event_t *M_io_get_event(M_io_t *io);
-
-
 /*! Create M_io_callbacks_t object that can be passed to M_io_layer_add */
 M_API M_io_callbacks_t *M_io_callbacks_create(void);
 
