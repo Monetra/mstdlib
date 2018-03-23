@@ -174,13 +174,14 @@ endif ()
 
 
 # Check and set compiler flags.
+get_property(_enabled_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 foreach(flag ${_compile_flags})
 	_harden_check_compile_flag(has_flag "${flag}" "C")
 	if (has_flag)
 		string(APPEND CMAKE_C_FLAGS " ${flag}")
 	endif ()
 
-	if ("CXX" IN_LIST languages)
+	if ("CXX" IN_LIST _enabled_languages)
 		# If C++ is enabled as a language, add the compile flags to CXX flags too.
 		_harden_check_compile_flag(has_flag "${flag}" "CXX")
 		if (has_flag)
