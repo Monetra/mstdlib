@@ -19,6 +19,7 @@ include(SystemExtensions)
 include(InstallDepLibs)
 include(InstallExports) # Provides install_exports()
 include(SetPackageName) # Provides set_package_name()
+include(MingwCompat)    # Provides convert_mingw_implibs_to_vs()
 
 include(AddressSanitizer) # Provides M_ASAN option, if supported by compiler
 include(Harden)
@@ -418,7 +419,6 @@ else ()
 		# Intentionally leave out archive dest, don't want to install static versions of plugins.
 	)
 endif ()
-
 
 # Subdirs.
 add_subdirectory(include)

@@ -82,6 +82,8 @@ if (WIN32 AND MINGW)
 	)
 endif ()
 
+convert_mingw_implibs_to_vs(mstdlib_sql)
+
 # Plugins
 option(MSTDLIB_SQL_STATIC "Link SQL plugins statically, instead of dynamically at runtime" ${MSTDLIB_STATIC})
 if (NOT MSTDLIB_SQL_STATIC AND MSTDLIB_STATIC AND NOT MSTDLIB_STATIC_PIC)

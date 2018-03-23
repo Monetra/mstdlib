@@ -198,6 +198,7 @@ if (WIN32 AND MINGW)
 	)
 endif ()
 
+convert_mingw_implibs_to_vs(mstdlib)
 
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
