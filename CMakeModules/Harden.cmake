@@ -39,10 +39,11 @@ function(_harden_check_link_flag outvarname flag)
 endfunction()
 
 
-set(_compile_flags)     # Flags to apply when compiling C/C++ code.
-set(_link_flags)        # Flags to apply to all links.
-set(_link_flags_exe)    # Flags to apply when linking executables.
-set(_link_flags_shared) # Flags to apply when linking shared libraries.
+set(_compile_flags)       # Flags to apply when compiling C/C++ code.
+set(_link_flags)          # Flags to apply to all links.
+set(_link_flags_exe)      # Flags to apply when linking executables.
+set(_link_flags_shared)   # Flags to apply when linking shared libraries.
+set(_link_flags_implicit) # Extra system link flags added at end of line for all targets.
 
 
 if (MSVC)
@@ -83,7 +84,7 @@ else ()
 		if (MINGW AND has_flag)
 			# MinGW has a bug where you need to explicitly link to -lssp in some cases when stack
 			# protector is enabled.
-			list(APPEND _link_flags "-lssp")
+			list(APPEND _link_flags_implicit "-lssp")
 		endif ()
 	endif ()
 
@@ -214,5 +215,16 @@ foreach (flag ${_link_flags_shared})
 	if (has_flag)
 		string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${flag}")
 		string(APPEND CMAKE_MODULE_LINKER_FLAGS " ${flag}")
+	endif ()
+endforeach ()
+
+# Check and add to implicit system linker flags.
+foreach (flag ${_link_flags_implicit})
+	_harden_check_link_flag(has_flag "${flag}")
+	if (has_flag)
+		list(APPEND CMAKE_C_IMPLICIT_LINK_LIBRARIES "${flag}")
+		if ("CXX" IN_LIST _enabled_languages)
+			list(APPEND CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "${flag}")
+		endif ()
 	endif ()
 endforeach ()
