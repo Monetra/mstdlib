@@ -1,0 +1,60 @@
+# Script that can be called as a post-build command to convert MinGW import libraries to ones
+# that are compatible with Visual Studio. Don't use directly, will be used internally by
+# convert_mingw_implibs_to_vs() in MingwCompat.cmake.
+cmake_minimum_required(VERSION 3.4.3)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Use configure_file() and file(GENERATE ...) to pass in general platform info, settings and paths.
+
+set(CMAKE_MODULE_PATH   "@CMAKE_MODULE_PATH@")
+set(CMAKE_SIZEOF_VOID_P "@CMAKE_SIZEOF_VOID_P@")
+
+set(MSVC_TOOL_DIR       "@MSVC_TOOL_DIR@")
+set(MSVC_LIB            "@MSVC_LIB@")
+set(MSVC_LIB_BATCH      "@MSVC_LIB_BATCH@")
+
+
+set(dll "$<TARGET_FILE:@TARGET@>")
+get_filename_component(dll_name "${dll}" NAME)
+get_filename_component(dll_dir  "${dll}" DIRECTORY)
+
+set(implib "$<TARGET_LINKER_FILE:@TARGET@>")
+get_filename_component(implib_name "${implib}" NAME)
+get_filename_component(implib_dir  "${implib}" DIRECTORY)
+
+# Copy the MinGW import lib, give it a .dll.a extension, for comparison.
+string(REGEX REPLACE "\.lib$" ".dll.a"  mimplib "${implib}")
+file(RENAME "${implib}" "${mimplib}")
+
+# .def files will be placed in same directory as implib by link command (see MingwCompat.cmake).
+set(def_name "@TARGET@.def")
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Call lib.exe from Visual Studio to generate a .lib file from the .def file.
+
+if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set(arch "X86")
+else ()
+	set(arch "X64")
+endif ()
+
+if (MSVC_LIB_BATCH)
+	set(cmd cmd /C "${MSVC_LIB_BATCH} /def:${def_name} /out:${implib_name} /machine:${arch}")
+else ()
+	set(ENV{PATH} "${MSVC_TOOL_DIR};$ENV{PATH}")
+	set(cmd "${MSVC_LIB}" /def:${def_name} /out:${implib_name} /machine:${arch})
+endif ()
+
+execute_process(COMMAND ${cmd}
+	WORKING_DIRECTORY "${implib_dir}"
+	RESULT_VARIABLE   res
+	ERROR_VARIABLE    out
+	OUTPUT_VARIABLE   out
+)
+
+if (NOT res EQUAL 0)
+	string(STRIP "${out}" out)
+	message(FATAL_ERROR "Error calling lib.exe on ${def_name}:\n${out}")
+endif ()

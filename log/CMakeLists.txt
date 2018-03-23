@@ -94,6 +94,8 @@ if (WIN32 AND MINGW)
 	)
 endif ()
 
+convert_mingw_implibs_to_vs(mstdlib_log)
+
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${lib_dest})
