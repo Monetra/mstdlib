@@ -69,7 +69,7 @@ typedef struct {
 /* The only reason this is a helper function is to keep the openlog settings in one place. */
 static void open_syslog(writer_thunk_t *wdata)
 {
-	openlog(wdata->product, LOG_CONS|LOG_NOWAIT, wdata->facility);
+	openlog(wdata->product, LOG_CONS|LOG_NOWAIT, (int)wdata->facility);
 }
 
 
@@ -133,7 +133,7 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 	}
 
 	/* Parse priority byte off of end of message. */
-	priority         = char_to_priority(msg[msg_len - 1]);
+	priority         = (int)(char_to_priority(msg[msg_len - 1]));
 	msg[msg_len - 1] = '\0';
 
 	/* Send message to syslog. */
