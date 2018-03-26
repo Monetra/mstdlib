@@ -79,6 +79,8 @@ START_TEST(check_bbuf_add_bit)
 	M_bit_buf_add_bit(bbuf, 1); check_lens(bbuf, 3, 1);
 	to_bytes;
 	ck_assert_ptr_ne(bytes, NULL);
+	if (bytes == NULL) /* This is a hack to suppress false warnings in clang static analyzer */
+		return;
 	ck_assert_uint_eq(nbytes, 1);
 	ck_assert_uint_eq(bytes[0] & 0xE0, 0xA0);
 

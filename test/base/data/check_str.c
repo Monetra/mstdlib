@@ -8,17 +8,14 @@
 
 extern Suite *str_suite(void);
 
-size_t       i;
-size_t       test_len;
-char        *test;
-M_uint8    **testm = (M_uint8 **)&test;
-char        *str1;
-char        *str2;
-size_t       num;
-size_t      *len_array;
-int         *ints;
-char       **strs;
-const char  *cstr;
+static size_t       i;
+static char        *test;
+static char        *str1;
+static char        *str2;
+static size_t       num;
+static int         *ints;
+static char       **strs;
+static const char  *cstr;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -384,6 +381,8 @@ START_TEST(check_explode_lines)
 {
 	strs = M_str_explode_lines(3, 7, "12345 12345 1 1234567 123", M_TRUE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL) /* This is a hack to suppress false warnings in clang static analyzer */
+		return;
 	ck_assert_msg(num == 3);
 	ck_assert_msg(M_str_eq(strs[0], "12345"));
 	ck_assert_msg(M_str_eq(strs[1], "12345 1"));
@@ -425,6 +424,8 @@ START_TEST(check_explode_lines_small)
 {
 	strs = M_str_explode_lines(1, 7, "123 56 ", M_FALSE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 1);
 	ck_assert_msg(M_str_eq(strs[0], "123 56"));
 	M_str_explode_free(strs, num);
@@ -435,6 +436,8 @@ START_TEST(check_explode_str_multi_space)
 {
 	strs = M_str_explode_lines(3, 7, "12  56  \t\n 123\t  7 \n", M_FALSE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 2);
 	ck_assert_msg(M_str_eq(strs[0], "12  56"));
 	ck_assert_msg(M_str_eq(strs[1], "123\t  7"));
@@ -446,6 +449,8 @@ START_TEST(check_explode_lines_full)
 {
 	strs = M_str_explode_lines(3, 3, "123456789", M_TRUE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 3);
 	ck_assert_msg(M_str_eq(strs[0], "123"));
 	ck_assert_msg(M_str_eq(strs[1], "456"));
@@ -458,6 +463,8 @@ START_TEST(check_explode_lines_full_no_truncate)
 {
 	strs = M_str_explode_lines(3, 3, "123456789", M_FALSE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 3);
 	ck_assert_msg(M_str_eq(strs[0], "123"));
 	ck_assert_msg(M_str_eq(strs[1], "456"));
@@ -470,6 +477,8 @@ START_TEST(check_explode_lines_skip_full)
 {
 	strs = M_str_explode_lines(4, 3, "1 234 567890", M_FALSE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 4);
 	ck_assert_msg(M_str_eq(strs[0], "1"));
 	ck_assert_msg(M_str_eq(strs[1], "234"));
@@ -483,6 +492,8 @@ START_TEST(check_explode_lines_skip_empty)
 {
 	strs = M_str_explode_lines(2, 3, "1                ", M_FALSE, &num);
 	ck_assert_msg(strs != NULL);
+	if (strs == NULL)
+		return;
 	ck_assert_msg(num == 1);
 	ck_assert_msg(M_str_eq(strs[0], "1"));
 	M_str_explode_free(strs, num);
