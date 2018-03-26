@@ -773,7 +773,7 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, size_t row, size_t col
 
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
-			bcol->data.i8vals[row]  = M_sql_driver_stmt_bind_get_bool(stmt, row, col);
+			bcol->data.i8vals[row]  = (M_int8)(M_sql_driver_stmt_bind_get_bool(stmt, row, col));
 			break;
 
 		case M_SQL_DATA_TYPE_INT16:
