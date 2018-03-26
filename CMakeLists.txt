@@ -403,8 +403,15 @@ endif ()
 set(lib_dest
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION ${MSTDLIB_INSTALL_LOCATION_LIBS}
-	ARCHIVE DESTINATION ${MSTDLIB_INSTALL_LOCATION_LIBS}
 )
+# Note: only install static and import libs if we're installing headers - otherwise, this isn't
+#       intended to be a package you can actually build against, we're just distributing the
+#       libraries as chain-built dependencies.
+if (MSTDLIB_INSTALL_HEADERS)
+	list(APPEND lib_dest
+		ARCHIVE DESTINATION ${MSTDLIB_INSTALL_LOCATION_LIBS}
+	)
+endif ()
 
 if (WIN32)
 	# On windows, we want to place module DLL's in the same directory as the library DLL's.
