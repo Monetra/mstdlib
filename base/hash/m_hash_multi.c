@@ -199,8 +199,8 @@ static M_bool M_hash_multi_get_object_vp(M_hash_multi_object_t *o, void **val)
 
 static void M_hash_multi_destroy_object(M_hash_multi_object_t *o, M_hash_multi_free_func free_func)
 {
-	void    *vp_val;
-	M_int32  val_type;
+	void                    *vp_val;
+	M_hash_multi_val_type_t  val_type;
 
 	if (o == NULL)
 		return;
