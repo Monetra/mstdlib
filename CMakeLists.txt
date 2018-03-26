@@ -51,7 +51,7 @@ option(MSTDLIB_STATIC          "Build as a static library"                      
 option(MSTDLIB_STATIC_PIC      "Build the static library as PIC (position independent)" FALSE)
 option(MSTDLIB_INSTALL_HEADERS "Install headers"                                        TRUE)
 option(MSTDLIB_INSTALL_LIBS    "Install libraries"                                      TRUE)
-option(MSTDLIB_INSTALL_EXPORTS "Install export file"                                    ${MSTDLIB_INSTALL_LIBS})
+option(MSTDLIB_INSTALL_EXPORTS "Install export file"                                    ${MSTDLIB_INSTALL_HEADERS})
 option(MSTDLIB_BUILD_TESTS     "Build tests"                                            TRUE)
 option(MSTDLIB_BUILD_DOCS      "Build doxygen docs"                                     TRUE)
 option(MSTDLIB_USE_VALGRIND    "Run tests with valgrind when running 'make check'"      ${valgrind_default})
