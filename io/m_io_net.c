@@ -238,6 +238,10 @@ static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned ch
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_error_t   err    = M_IO_ERROR_ERROR;
 
+#if !defined(MSG_NOSIGNAL) && !defined(_WIN32) /* && !defined(SO_NOSIGPIPE) */
+	M_io_posix_sigpipe_state_t sigpipe_state;
+#endif
+
 	(void)meta;
 
 	if (handle->state != M_IO_NET_STATE_CONNECTED) {
@@ -247,8 +251,6 @@ static M_io_error_t M_io_net_write_cb_int(M_io_layer_t *layer, const unsigned ch
 	}
 
 #if !defined(MSG_NOSIGNAL) && !defined(_WIN32) /* && !defined(SO_NOSIGPIPE) */
-	M_io_posix_sigpipe_state_t sigpipe_state;
-
 	M_io_posix_sigpipe_block(&sigpipe_state);
 #endif
 
