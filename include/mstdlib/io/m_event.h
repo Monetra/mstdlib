@@ -99,7 +99,7 @@ __BEGIN_DECLS
  *         (void)io;
  *         (void)thunk;
  *     
- *         M_event_done_with_disconnect(el, 1000);
+ *         M_event_done_with_disconnect(el, 0, 1000);
  *     }
  *     
  *     static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -695,13 +695,17 @@ M_API void M_event_return(M_event_t *event);
  *  This does not clean up the resources for the event loop and it is safe to
  *  re-execute the same event loop handle once it has returned.
  *
- *  \param[in] event       Initialized event handle
- *  \param[in] timeout_ms  Number of milliseconds to wait on IO handles to close
- *                         before giving up.  This should be set to some reasonable
- *                         number to accommodate for proper disconnect sequences.
- *                         A good starting point may be 5s (5000ms).
+ *  \param[in] event                         Initialized event handle
+ *  \param[in] timeout_before_disconnect_ms  Number of milliseconds to wait for io objects to
+ *                                           exit on their own before issuing a disconnect.  May
+ *                                           be set to 0 to immediately start a disconnect sequence
+ *                                           on all IO objects.
+ *  \param[in] disconnect_timeout_ms         Number of milliseconds to wait on IO handles to close
+ *                                           after issuing a disconnect, before giving up.  This should
+ *                                           be set to some reasonable number to accommodate for proper
+ *                                           disconnect sequences. A good starting point may be 5s (5000ms).
  */
-M_API void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_ms);
+M_API void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_before_disconnect_ms, M_uint64 disconnect_timeout_ms);
 
 
 /*! Get the current running status of the event loop.
