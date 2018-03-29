@@ -794,7 +794,21 @@ May be called simultaneously from multiple threads. If the content of filter_thu
 <p>Destroy the logger (blocking).</p>
 <p>Sends a message to each module requesting that it stop at the next opportunity. Once all internal worker threads have stopped, destroys all the modules and the logger.</p>
 <p>If the timeout is reached before all modules have stopped, non-blocking destroys will be triggered for the remaining modules.</p>
-<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__log__common.html#gad68c2c25e5740670385d81824d3b998b">M_log_destroy</a></dd></dl>
+<p>In order to avoid blocking the event loop, backend modules like TCP syslog which are event-based (no worker threads) will not block when this function is called. Instead, they will execute a normal non-blocking destroy. To give these backends time to exit cleanly, make sure to call <a class="el" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect()</a> after this function, and pass non-zero values to both timeouts.</p>
+<p>Example: </p>
+<div class="fragment"><div class="line"><a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a>  event_loop = ...;</div>
+<div class="line"><a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a>   *log        = <a class="code" href="group__m__log__common.html#ga047a827cc4dd3ce8fbade99af21eab70">M_log_create</a>(..., event_loop, ...);</div>
+<div class="line">...</div>
+<div class="line"><span class="comment">// Block up to five seconds while threaded backends try to exit cleanly.</span></div>
+<div class="line">M_log_destroy_blocking(log, 5000);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Wait up to five seconds for top-level handlers added by event-based log backends to close their</span></div>
+<div class="line"><span class="comment">// own I/O objects. Then, wait up to 1 second to force clean disconnects on any I/O objects</span></div>
+<div class="line"><span class="comment">// that are still open.</span></div>
+<div class="line"><a class="code" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a>(event_loop, 5000, 1000);</div>
+<div class="line"></div>
+<div class="line"><a class="code" href="group__m__event.html#ga603f06976101b21e00517deb529f86bb">M_event_destroy</a>(event_loop);</div>
+</div><!-- fragment --><dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__log__common.html#gad68c2c25e5740670385d81824d3b998b">M_log_destroy</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">log</td><td>logger object </td></tr>
@@ -1698,7 +1712,7 @@ If you have modules that depend on an external event loop (like tcp_syslog), you
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 29 2018 20:50:55 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 29 2018 22:10:04 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
