@@ -255,8 +255,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga91277642f8c76eb816003d2cea649897"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga41a54262e3c0c742e6672ad860006da0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga41a54262e3c0c742e6672ad860006da0">M_event_return</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga41a54262e3c0c742e6672ad860006da0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8fb286ac5ca7c7fedc1aa26fd4f640b4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, M_uint64 timeout_ms)</td></tr>
-<tr class="separator:ga8fb286ac5ca7c7fedc1aa26fd4f640b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf1b183d71c9f577e0779e9f44eb06896"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, M_uint64 timeout_before_disconnect_ms, M_uint64 disconnect_timeout_ms)</td></tr>
+<tr class="separator:gaf1b183d71c9f577e0779e9f44eb06896"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3831d7b04aedd127e271f384393f475f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a">M_event_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga3831d7b04aedd127e271f384393f475f">M_event_get_status</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event)</td></tr>
 <tr class="separator:ga3831d7b04aedd127e271f384393f475f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf9b7deba21cf3cc91a9105fed2bb0791"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791">M_event_get_statistic</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="el" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a> type)</td></tr>
@@ -310,7 +310,7 @@ Functions</h2></td></tr>
 <div class="line">    (void)io;</div>
 <div class="line">    (void)thunk;</div>
 <div class="line"></div>
-<div class="line">    <a class="code" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a>(el, 1000);</div>
+<div class="line">    <a class="code" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a>(el, 0, 1000);</div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> run_cb(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *el, <a class="code" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> etype, <a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">void</span> *thunk)</div>
@@ -642,7 +642,7 @@ Functions</h2></td></tr>
 <p>Possible return codes for <a class="el" href="group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd">M_event_loop()</a> </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga3d93964ec33daa93f69ee7205f341e9faf606120c776d8a403a717c1823f0238d"></a>M_EVENT_ERR_DONE</em>&#160;</td><td class="fielddoc">
-<p>The event loop either exited due to <a class="el" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done()</a> or <a class="el" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect()</a> or there were no objects remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY </p>
+<p>The event loop either exited due to <a class="el" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done()</a> or <a class="el" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect()</a> or there were no objects remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga3d93964ec33daa93f69ee7205f341e9fa14835b933f79dfbd3a995b525be8b958"></a>M_EVENT_ERR_TIMEOUT</em>&#160;</td><td class="fielddoc">
 <p>The timeout specified in <a class="el" href="group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd">M_event_loop()</a> has expired </p>
@@ -1566,7 +1566,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga8fb286ac5ca7c7fedc1aa26fd4f640b4"></a>
+<a class="anchor" id="gaf1b183d71c9f577e0779e9f44eb06896"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1580,7 +1580,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">M_uint64&#160;</td>
-          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+          <td class="paramname"><em>timeout_before_disconnect_ms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint64&#160;</td>
+          <td class="paramname"><em>disconnect_timeout_ms</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1596,7 +1602,8 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">event</td><td>Initialized event handle </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Number of milliseconds to wait on IO handles to close before giving up. This should be set to some reasonable number to accommodate for proper disconnect sequences. A good starting point may be 5s (5000ms). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_before_disconnect_ms</td><td>Number of milliseconds to wait for io objects to exit on their own before issuing a disconnect. May be set to 0 to immediately start a disconnect sequence on all IO objects. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">disconnect_timeout_ms</td><td>Number of milliseconds to wait on IO handles to close after issuing a disconnect, before giving up. This should be set to some reasonable number to accommodate for proper disconnect sequences. A good starting point may be 5s (5000ms). </td></tr>
   </table>
   </dd>
 </dl>
@@ -1694,7 +1701,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 29 2018 16:00:05 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 29 2018 20:50:55 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

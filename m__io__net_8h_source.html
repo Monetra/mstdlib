@@ -203,7 +203,7 @@ $(document).ready(function(){initNavTree('m__io__net_8h_source.html','');});
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment"> *                 break;</span></div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment"> *             case M_EVENT_TYPE_DISCONNECTED:</span></div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment"> *             case M_EVENT_TYPE_ERROR:</span></div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="comment"> *                 M_event_done_with_disconnect(el, 1000);</span></div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="comment"> *                 M_event_done_with_disconnect(el, 0, 1000);</span></div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="comment"> *                 break;</span></div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment"> *             case M_EVENT_TYPE_ACCEPT:</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment"> *             case M_EVENT_TYPE_OTHER:</span></div>
@@ -307,7 +307,7 @@ $(document).ready(function(){initNavTree('m__io__net_8h_source.html','');});
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="comment"> *     {</span></div>
 <div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;<span class="comment"> *         ldata_t *ldata = data;</span></div>
 <div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="comment"> *         (void)next;</span></div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="comment"> *         M_event_done_with_disconnect(ldata-&gt;el, 1000);</span></div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="comment"> *         M_event_done_with_disconnect(ldata-&gt;el, 0, 1000);</span></div>
 <div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="comment"> *     }</span></div>
 <div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;<span class="comment"> *     </span></div>
 <div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;<span class="comment"> *     static void connection_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)</span></div>
@@ -636,7 +636,7 @@ $(document).ready(function(){initNavTree('m__io__net_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_783acf310e7994032d5f0ed9cac27ea1.html">io</a></li><li class="navelem"><b>m_io_net.h</b></li>
-    <li class="footer">Generated on Thu Mar 29 2018 16:00:04 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 29 2018 20:50:54 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

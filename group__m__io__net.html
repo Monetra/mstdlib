@@ -218,7 +218,7 @@ Functions</h2></td></tr>
 <div class="line">            <span class="keywordflow">break</span>;</div>
 <div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__event.html#gga5d54358d8088f050bcdb141c6c0b21e7a6cead05362ca89b2cc7353bf6b4c2c6e">M_EVENT_TYPE_DISCONNECTED</a>:</div>
 <div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__event.html#gga5d54358d8088f050bcdb141c6c0b21e7adce269f93799cdca69ac20235895d0ac">M_EVENT_TYPE_ERROR</a>:</div>
-<div class="line">            <a class="code" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a>(el, 1000);</div>
+<div class="line">            <a class="code" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a>(el, 0, 1000);</div>
 <div class="line">            <span class="keywordflow">break</span>;</div>
 <div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__event.html#gga5d54358d8088f050bcdb141c6c0b21e7a571c000a93b3c198364a32e5e145f2d0">M_EVENT_TYPE_ACCEPT</a>:</div>
 <div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__event.html#gga5d54358d8088f050bcdb141c6c0b21e7a89a67d4e5f2bdcadc1ffa3ba0473a6cf">M_EVENT_TYPE_OTHER</a>:</div>
@@ -315,7 +315,7 @@ Functions</h2></td></tr>
 <div class="line">{</div>
 <div class="line">    ldata_t *ldata = data;</div>
 <div class="line">    (void)next;</div>
-<div class="line">    <a class="code" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a>(ldata-&gt;el, 1000);</div>
+<div class="line">    <a class="code" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a>(ldata-&gt;el, 0, 1000);</div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> connection_cb(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *el, <a class="code" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> etype, <a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">void</span> *thunk)</div>
@@ -989,7 +989,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 29 2018 16:00:05 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 29 2018 20:50:55 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

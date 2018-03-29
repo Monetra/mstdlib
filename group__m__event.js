@@ -75,7 +75,7 @@ var group__m__event =
     [ "M_event_loop", "group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd", null ],
     [ "M_event_done", "group__m__event.html#ga91277642f8c76eb816003d2cea649897", null ],
     [ "M_event_return", "group__m__event.html#ga41a54262e3c0c742e6672ad860006da0", null ],
-    [ "M_event_done_with_disconnect", "group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4", null ],
+    [ "M_event_done_with_disconnect", "group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896", null ],
     [ "M_event_get_status", "group__m__event.html#ga3831d7b04aedd127e271f384393f475f", null ],
     [ "M_event_get_statistic", "group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791", null ],
     [ "M_event_num_objects", "group__m__event.html#ga9f313f5d9599f6aed4a29e82a13e576b", null ]

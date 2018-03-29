@@ -199,7 +199,7 @@ $(document).ready(function(){initNavTree('m__event_8h_source.html','');});
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment"> *         (void)io;</span></div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="comment"> *         (void)thunk;</span></div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="comment"> *     </span></div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment"> *         M_event_done_with_disconnect(el, 1000);</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment"> *         M_event_done_with_disconnect(el, 0, 1000);</span></div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment"> *     }</span></div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment"> *     </span></div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment"> *     static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)</span></div>
@@ -795,61 +795,65 @@ $(document).ready(function(){initNavTree('m__event_8h_source.html','');});
 <div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;<span class="comment"> *  This does not clean up the resources for the event loop and it is safe to</span></div>
 <div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;<span class="comment"> *  re-execute the same event loop handle once it has returned.</span></div>
 <div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment"> *  \param[in] timeout_ms  Number of milliseconds to wait on IO handles to close</span></div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment"> *                         before giving up.  This should be set to some reasonable</span></div>
-<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment"> *                         number to accommodate for proper disconnect sequences.</span></div>
-<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment"> *                         A good starting point may be 5s (5000ms).</span></div>
-<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, M_uint64 timeout_ms);</div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;</div>
-<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment">/*! Get the current running status of the event loop.</span></div>
-<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;<span class="comment"> * </span></div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;<span class="comment"> *  If an event child handle is passed instead of the pool handle, it will</span></div>
-<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment"> *  automatically escalate to the pool handle.</span></div>
-<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
-<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment"> *  \return one of M_event_status_t results.</span></div>
-<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;M_API <a class="code" href="group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a">M_event_status_t</a> <a class="code" href="group__m__event.html#ga3831d7b04aedd127e271f384393f475f">M_event_get_status</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event);</div>
-<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;</div>
-<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment">/*! Retrieve the specified statistic.</span></div>
-<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;<span class="comment"> *  Will return results for the actual handle passed.  If the handle is a child of</span></div>
-<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment"> *  an event pool, it will only return the child&#39;s processing time.  If all processing</span></div>
-<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment"> *  time is desired, use M_event_get_pool() to get the pool handle before calling</span></div>
-<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment"> *  this function.</span></div>
-<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
-<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment"> *  \param[in] type        Type of statistic to return</span></div>
-<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment"> *  \return statistic as 64bit integer</span></div>
-<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;M_API M_uint64 <a class="code" href="group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791">M_event_get_statistic</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="code" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a> type);</div>
-<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;</div>
-<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment">/*! Retrieve the number of M_io_t objects plus the number of M_event_timer_t objects</span></div>
-<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;<span class="comment"> *  associated with an event handle</span></div>
-<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment"> *  Will return results for the actual handle passed.  If the handle is a child of</span></div>
-<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment"> *  an event pool, it will only return the child&#39;s processing time.  If all processing</span></div>
-<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment"> *  time is desired, use M_event_get_pool() to get the pool handle before calling</span></div>
-<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment"> *  this function.</span></div>
-<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
-<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment"> *  \return count of objects.</span></div>
-<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment">  */</span></div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__event.html#ga9f313f5d9599f6aed4a29e82a13e576b">M_event_num_objects</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event);</div>
-<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;</div>
-<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;</div>
-<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment"> *  \param[in] event                         Initialized event handle</span></div>
+<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment"> *  \param[in] timeout_before_disconnect_ms  Number of milliseconds to wait for io objects to</span></div>
+<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment"> *                                           exit on their own before issuing a disconnect.  May</span></div>
+<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment"> *                                           be set to 0 to immediately start a disconnect sequence</span></div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment"> *                                           on all IO objects.</span></div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment"> *  \param[in] disconnect_timeout_ms         Number of milliseconds to wait on IO handles to close</span></div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;<span class="comment"> *                                           after issuing a disconnect, before giving up.  This should</span></div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;<span class="comment"> *                                           be set to some reasonable number to accommodate for proper</span></div>
+<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment"> *                                           disconnect sequences. A good starting point may be 5s (5000ms).</span></div>
+<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, M_uint64 timeout_before_disconnect_ms, M_uint64 disconnect_timeout_ms);</div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;</div>
+<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment">/*! Get the current running status of the event loop.</span></div>
+<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment"> * </span></div>
+<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment"> *  If an event child handle is passed instead of the pool handle, it will</span></div>
+<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment"> *  automatically escalate to the pool handle.</span></div>
+<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
+<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment"> *  \return one of M_event_status_t results.</span></div>
+<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;M_API <a class="code" href="group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a">M_event_status_t</a> <a class="code" href="group__m__event.html#ga3831d7b04aedd127e271f384393f475f">M_event_get_status</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event);</div>
+<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;</div>
+<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment">/*! Retrieve the specified statistic.</span></div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment"> *  Will return results for the actual handle passed.  If the handle is a child of</span></div>
+<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment"> *  an event pool, it will only return the child&#39;s processing time.  If all processing</span></div>
+<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment"> *  time is desired, use M_event_get_pool() to get the pool handle before calling</span></div>
+<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment"> *  this function.</span></div>
+<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
+<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;<span class="comment"> *  \param[in] type        Type of statistic to return</span></div>
+<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment"> *  \return statistic as 64bit integer</span></div>
+<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;M_API M_uint64 <a class="code" href="group__m__event.html#gaf9b7deba21cf3cc91a9105fed2bb0791">M_event_get_statistic</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="code" href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a> type);</div>
+<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;</div>
+<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment">/*! Retrieve the number of M_io_t objects plus the number of M_event_timer_t objects</span></div>
+<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment"> *  associated with an event handle</span></div>
+<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment"> *  Will return results for the actual handle passed.  If the handle is a child of</span></div>
+<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment"> *  an event pool, it will only return the child&#39;s processing time.  If all processing</span></div>
+<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;<span class="comment"> *  time is desired, use M_event_get_pool() to get the pool handle before calling</span></div>
+<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment"> *  this function.</span></div>
+<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment"> *  \param[in] event       Initialized event handle</span></div>
+<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment"> *  \return count of objects.</span></div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment">  */</span></div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__event.html#ga9f313f5d9599f6aed4a29e82a13e576b">M_event_num_objects</a>(<a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event);</div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;</div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;</div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="group__m__event_html_gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3"><div class="ttname"><a href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a7e2ec5871682f023dafc8ce14eec50f3">M_EVENT_STATISTIC_WAKE_COUNT</a></div><div class="ttdef"><b>Definition:</b> m_event.h:243</div></div>
 <div class="ttc" id="group__m__event_html_ga83ff5644cc466ea36241757dee26d629"><div class="ttname"><a href="group__m__event.html#ga83ff5644cc466ea36241757dee26d629">M_event_callback_t</a></div><div class="ttdeci">void(* M_event_callback_t)(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)</div><div class="ttdef"><b>Definition:</b> m_event.h:227</div></div>
 <div class="ttc" id="group__m__event_html_gga4466239df0e524aa31e71acb924e54d5a2cf9eb5d4bc66b0c162e045e325800c9"><div class="ttname"><a href="group__m__event.html#gga4466239df0e524aa31e71acb924e54d5a2cf9eb5d4bc66b0c162e045e325800c9">M_EVENT_TIMER_MODE_MONOTONIC</a></div><div class="ttdef"><b>Definition:</b> m_event.h:512</div></div>
@@ -866,7 +870,6 @@ $(document).ready(function(){initNavTree('m__event_8h_source.html','');});
 <div class="ttc" id="group__m__event_html_ga804fd582353c5c71a984141921a9bd6b"><div class="ttname"><a href="group__m__event.html#ga804fd582353c5c71a984141921a9bd6b">M_event_timer_get_remaining_ms</a></div><div class="ttdeci">M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer)</div></div>
 <div class="ttc" id="group__m__event_html_gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490"><div class="ttname"><a href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1aec67bef19d068700f0372808c69a5490">M_EVENT_FLAG_EXITONEMPTY_NOTIMERS</a></div><div class="ttdef"><b>Definition:</b> m_event.h:235</div></div>
 <div class="ttc" id="group__m__event_html_ggae0d1f0926d83227c5e7dddfbedf7e8efa24c8749f6b408df5bd4470b593c9bd1c"><div class="ttname"><a href="group__m__event.html#ggae0d1f0926d83227c5e7dddfbedf7e8efa24c8749f6b408df5bd4470b593c9bd1c">M_EVENT_STATUS_RETURN</a></div><div class="ttdef"><b>Definition:</b> m_event.h:608</div></div>
-<div class="ttc" id="group__m__event_html_ga8fb286ac5ca7c7fedc1aa26fd4f640b4"><div class="ttname"><a href="group__m__event.html#ga8fb286ac5ca7c7fedc1aa26fd4f640b4">M_event_done_with_disconnect</a></div><div class="ttdeci">void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_ms)</div></div>
 <div class="ttc" id="group__m__event_html_ga41a54262e3c0c742e6672ad860006da0"><div class="ttname"><a href="group__m__event.html#ga41a54262e3c0c742e6672ad860006da0">M_event_return</a></div><div class="ttdeci">void M_event_return(M_event_t *event)</div></div>
 <div class="ttc" id="group__m__event_html_ga8029bf4cff7d869798fc5fabbf8e2f94"><div class="ttname"><a href="group__m__event.html#ga8029bf4cff7d869798fc5fabbf8e2f94">M_event_statistic_t</a></div><div class="ttdeci">M_event_statistic_t</div><div class="ttdef"><b>Definition:</b> m_event.h:242</div></div>
 <div class="ttc" id="group__m__event_html_gae710da0d90387a5c4b71e8ae3bba1e0f"><div class="ttname"><a href="group__m__event.html#gae710da0d90387a5c4b71e8ae3bba1e0f">M_event_queue_task</a></div><div class="ttdeci">M_bool M_event_queue_task(M_event_t *event, M_event_callback_t callback, void *cb_data)</div></div>
@@ -918,6 +921,7 @@ $(document).ready(function(){initNavTree('m__event_8h_source.html','');});
 <div class="ttc" id="group__m__event_html_gga8029bf4cff7d869798fc5fabbf8e2f94a682a5bef541cd69fbc28d7083ac2162a"><div class="ttname"><a href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94a682a5bef541cd69fbc28d7083ac2162a">M_EVENT_STATISTIC_TIMER_COUNT</a></div><div class="ttdef"><b>Definition:</b> m_event.h:246</div></div>
 <div class="ttc" id="group__m__event_html_gac0bdd95d42641e30f805d2ef9a8b0708"><div class="ttname"><a href="group__m__event.html#gac0bdd95d42641e30f805d2ef9a8b0708">M_event_timer_set_starttv</a></div><div class="ttdeci">M_bool M_event_timer_set_starttv(M_event_timer_t *timer, M_timeval_t *start_tv)</div></div>
 <div class="ttc" id="group__m__event_html_gga8029bf4cff7d869798fc5fabbf8e2f94aa546970249e3cc51b47aaecde65a83e6"><div class="ttname"><a href="group__m__event.html#gga8029bf4cff7d869798fc5fabbf8e2f94aa546970249e3cc51b47aaecde65a83e6">M_EVENT_STATISTIC_OSEVENT_COUNT</a></div><div class="ttdef"><b>Definition:</b> m_event.h:244</div></div>
+<div class="ttc" id="group__m__event_html_gaf1b183d71c9f577e0779e9f44eb06896"><div class="ttname"><a href="group__m__event.html#gaf1b183d71c9f577e0779e9f44eb06896">M_event_done_with_disconnect</a></div><div class="ttdeci">void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_before_disconnect_ms, M_uint64 disconnect_timeout_ms)</div></div>
 <div class="ttc" id="group__m__event_html_ggae0d1f0926d83227c5e7dddfbedf7e8efa5d3560019b6aa99d030fe0c79bd08987"><div class="ttname"><a href="group__m__event.html#ggae0d1f0926d83227c5e7dddfbedf7e8efa5d3560019b6aa99d030fe0c79bd08987">M_EVENT_STATUS_DONE</a></div><div class="ttdef"><b>Definition:</b> m_event.h:609</div></div>
 <div class="ttc" id="group__m__event_html_ga6be59e7ccf75016c997b4919c9a709da"><div class="ttname"><a href="group__m__event.html#ga6be59e7ccf75016c997b4919c9a709da">M_event_pool_create</a></div><div class="ttdeci">M_event_t * M_event_pool_create(size_t max_threads)</div></div>
 <div class="ttc" id="group__m__event_html_gga5d54358d8088f050bcdb141c6c0b21e7a1713e94c1e0750f168d255f580fd4ad9"><div class="ttname"><a href="group__m__event.html#gga5d54358d8088f050bcdb141c6c0b21e7a1713e94c1e0750f168d255f580fd4ad9">M_EVENT_TYPE_WRITE</a></div><div class="ttdef"><b>Definition:</b> m_event.h:184</div></div>
@@ -931,7 +935,7 @@ $(document).ready(function(){initNavTree('m__event_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_783acf310e7994032d5f0ed9cac27ea1.html">io</a></li><li class="navelem"><b>m_event.h</b></li>
-    <li class="footer">Generated on Thu Mar 29 2018 16:00:04 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Mar 29 2018 20:50:54 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
