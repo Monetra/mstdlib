@@ -76,7 +76,7 @@ static void net_check_cleanup(M_event_t *event)
 			M_io_destroy(netserver);
 			netserver = NULL;
 //	event_debug("%s(): ev:%p Calling M_event_done_with_disconnect", __FUNCTION__, event);
-			M_event_done_with_disconnect(event, 5);
+			M_event_done_with_disconnect(event, 0, 5*1000);
 		}
 	}
 //	event_debug("%s(): ev:%p RETURN", __FUNCTION__, event);
