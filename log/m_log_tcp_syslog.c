@@ -216,6 +216,70 @@ static void add_framed_message(M_buf_t *buf, const char *msg, module_thunk_t *md
 }
 
 
+static void get_next_message(module_thunk_t *mdata)
+{
+	char   *msg;
+	size_t  msg_len;
+
+	if (mdata->num_dropped > 0) {
+		char drop_msg[128] = {0};
+		M_snprintf(drop_msg, sizeof(drop_msg) - 1, "%llu messages were dropped (buffer full)\n",
+			(unsigned long long)mdata->num_dropped);
+		add_framed_message(mdata->msg_buf, drop_msg, mdata, M_SYSLOG_WARNING);
+		mdata->num_dropped = 0;
+	}
+
+	msg     = M_llist_str_take_node(M_llist_str_last(mdata->msgs));
+	msg_len = M_str_len(msg);
+
+	mdata->stored_bytes -= msg_len;
+
+	M_buf_add_bytes(mdata->msg_buf, msg, msg_len);
+
+	M_free(msg);
+}
+
+
+static M_bool blocking_write(module_thunk_t *mdata, M_bool flush, size_t timeout_ms)
+{
+	M_io_error_t err = M_IO_ERROR_SUCCESS;
+	M_timeval_t  tm;
+	M_bool       ret;
+
+	M_time_elapsed_start(&tm);
+
+	M_thread_mutex_lock(mdata->msg_lock);
+
+	while ((err == M_IO_ERROR_SUCCESS || err == M_IO_ERROR_WOULDBLOCK) && M_time_elapsed(&tm) < timeout_ms
+		&& (M_buf_len(mdata->msg_buf) > 0 || (flush && M_llist_str_len(mdata->msgs) > 0))) {
+
+		if (M_buf_len(mdata->msg_buf) == 0) {
+			get_next_message(mdata);
+		}
+
+		/* Ask TCP layer to send as much of the message as it can. */
+		err = M_io_write_from_buf(mdata->io, mdata->msg_buf);
+	}
+
+	/* Return true if we finished writing everything, false otherwise. */
+	ret = (M_buf_len(mdata->msg_buf) == 0 && (!flush || M_llist_str_len(mdata->msgs) == 0))? M_TRUE : M_FALSE;
+
+	/* If flush was successful, try to output an extra message saying so. */
+	if (ret && flush) {
+		add_framed_message(mdata->msg_buf, "TCP syslog logger shut down cleanly (no remaining messages)", mdata,
+			M_SYSLOG_INFO);
+		err = M_IO_ERROR_SUCCESS;
+		while ((err == M_IO_ERROR_SUCCESS || err == M_IO_ERROR_WOULDBLOCK) && M_time_elapsed(&tm) < timeout_ms
+			&& M_buf_len(mdata->msg_buf) > 0) {
+			err = M_io_write_from_buf(mdata->io, mdata->msg_buf);
+		}
+	}
+
+	M_thread_mutex_unlock(mdata->msg_lock);
+
+	return ret;
+}
+
 
 /* ---- PRIVATE: callbacks for internal IO object. ---- */
 
@@ -230,7 +294,8 @@ static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void 
 	(void)io;
 
 	/* Note: will get TYPE_OTHER event if manually triggered by log_write_cb. */
-	if (type == M_EVENT_TYPE_WRITE || type == M_EVENT_TYPE_OTHER || type == M_EVENT_TYPE_CONNECTED) {
+	if (type == M_EVENT_TYPE_WRITE || type == M_EVENT_TYPE_OTHER || type == M_EVENT_TYPE_CONNECTED
+		|| (type == M_EVENT_TYPE_DISCONNECTED && mdata->flush_flag)) {
 
 		M_thread_mutex_lock(mdata->msg_lock);
 
@@ -239,9 +304,6 @@ static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void 
 			 * and stick it in the msg buf.
 			 */
 			if (M_buf_len(mdata->msg_buf) == 0) {
-				char   *msg;
-				size_t  msg_len;
-
 				/* stop_flag being set means that somebody requested a clean disconnect while we were in the middle of
 				 * sending a message. Now we're done sending the message, though, so go ahead and register the
 				 * disconnect.
@@ -260,22 +322,7 @@ static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void 
 					return;
 				}
 
-				if (mdata->num_dropped > 0) {
-					char drop_msg[128] = {0};
-					M_snprintf(drop_msg, sizeof(drop_msg) - 1, "%llu messages were dropped (buffer full)\n",
-						(unsigned long long)mdata->num_dropped);
-					add_framed_message(mdata->msg_buf, drop_msg, mdata, M_SYSLOG_WARNING);
-					mdata->num_dropped = 0;
-				}
-
-				msg     = M_llist_str_take_node(M_llist_str_last(mdata->msgs));
-				msg_len = M_str_len(msg);
-
-				mdata->stored_bytes -= msg_len;
-
-				M_buf_add_bytes(mdata->msg_buf, msg, msg_len);
-
-				M_free(msg);
+				get_next_message(mdata);
 			}
 
 			/* Ask TCP layer to send as much of the message as it can. */
@@ -565,6 +612,23 @@ static void log_destroy_cb(void *thunk, M_bool flush)
 }
 
 
+static M_bool log_destroy_blocking_cb(void *thunk, M_bool flush, M_uint64 timeout_ms)
+{
+	module_thunk_t *mdata = thunk;
+	M_bool          ret;
+
+	/* Do a blocking write. Will block unitl current message is finished if flush==M_FALSE,
+	 * or until all messages are written if flush==M_TRUE. Will return early if we hit the
+	 * timeout.
+	 */
+	ret = blocking_write(mdata, flush, timeout_ms);
+
+	log_destroy_cb(thunk, flush);
+
+	return ret;
+}
+
+
 
 /* ---- PUBLIC: tcp_syslog-specific module functions ---- */
 
@@ -606,16 +670,17 @@ M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_s
 	mdata->trigger = M_event_trigger_add(mdata->event, io_event_cb, mdata);
 
 	/* General module settings. */
-	mod                          = M_malloc_zero(sizeof(*mod));
-	mod->type                    = M_LOG_MODULE_TSYSLOG;
-	mod->flush_on_destroy        = log->flush_on_destroy;
-	mod->module_thunk            = mdata;
-	mod->module_write_cb         = log_write_cb;
-	mod->module_reopen_cb        = log_reopen_cb;
-	mod->module_suspend_cb       = log_suspend_cb;
-	mod->module_resume_cb        = log_resume_cb;
-	mod->module_emergency_cb     = log_emergency_cb;
-	mod->destroy_module_thunk_cb = log_destroy_cb;
+	mod                                   = M_malloc_zero(sizeof(*mod));
+	mod->type                             = M_LOG_MODULE_TSYSLOG;
+	mod->flush_on_destroy                 = log->flush_on_destroy;
+	mod->module_thunk                     = mdata;
+	mod->module_write_cb                  = log_write_cb;
+	mod->module_reopen_cb                 = log_reopen_cb;
+	mod->module_suspend_cb                = log_suspend_cb;
+	mod->module_resume_cb                 = log_resume_cb;
+	mod->module_emergency_cb              = log_emergency_cb;
+	mod->destroy_module_thunk_cb          = log_destroy_cb;
+	mod->destroy_module_thunk_blocking_cb = log_destroy_blocking_cb;
 
 	if (out_mod != NULL) {
 		*out_mod = mod;
