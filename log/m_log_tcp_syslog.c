@@ -76,6 +76,11 @@ typedef struct {
 } module_thunk_t;
 
 
+static void timer_reconnect_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *thunk);
+
+static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *thunk);
+
+
 static module_thunk_t *module_thunk_create(const char *product, M_syslog_facility_t facility, const char *host,
 	M_uint16 port, M_event_t *event, M_dns_t *dns, M_uint64 max_bytes, const char *line_end_str)
 {
@@ -122,6 +127,8 @@ static M_io_error_t module_thunk_reconnect(module_thunk_t *mdata)
 		return M_IO_ERROR_INVALID;
 	}
 
+	mdata->trigger = M_event_trigger_add(mdata->event, io_event_cb, mdata);
+
 	mdata->io = NULL;
 
 	ret = M_io_net_client_create(&mdata->io, mdata->dns, mdata->dest_host, mdata->port, M_IO_NET_ANY);
@@ -141,6 +148,9 @@ static void module_thunk_destroy(module_thunk_t *mdata)
 	if (mdata == NULL) {
 		return;
 	}
+
+	M_event_trigger_remove(mdata->trigger);
+	mdata->trigger = NULL;
 
 	M_io_destroy(mdata->io);
 
@@ -240,51 +250,7 @@ static void get_next_message(module_thunk_t *mdata)
 }
 
 
-static M_bool blocking_write(module_thunk_t *mdata, M_bool flush, size_t timeout_ms)
-{
-	M_io_error_t err = M_IO_ERROR_SUCCESS;
-	M_timeval_t  tm;
-	M_bool       ret;
-
-	M_time_elapsed_start(&tm);
-
-	M_thread_mutex_lock(mdata->msg_lock);
-
-	while ((err == M_IO_ERROR_SUCCESS || err == M_IO_ERROR_WOULDBLOCK) && M_time_elapsed(&tm) < timeout_ms
-		&& (M_buf_len(mdata->msg_buf) > 0 || (flush && M_llist_str_len(mdata->msgs) > 0))) {
-
-		if (M_buf_len(mdata->msg_buf) == 0) {
-			get_next_message(mdata);
-		}
-
-		/* Ask TCP layer to send as much of the message as it can. */
-		err = M_io_write_from_buf(mdata->io, mdata->msg_buf);
-	}
-
-	/* Return true if we finished writing everything, false otherwise. */
-	ret = (M_buf_len(mdata->msg_buf) == 0 && (!flush || M_llist_str_len(mdata->msgs) == 0))? M_TRUE : M_FALSE;
-
-	/* If flush was successful, try to output an extra message saying so. */
-	if (ret && flush) {
-		add_framed_message(mdata->msg_buf, "TCP syslog logger shut down cleanly (no remaining messages)", mdata,
-			M_SYSLOG_INFO);
-		err = M_IO_ERROR_SUCCESS;
-		while ((err == M_IO_ERROR_SUCCESS || err == M_IO_ERROR_WOULDBLOCK) && M_time_elapsed(&tm) < timeout_ms
-			&& M_buf_len(mdata->msg_buf) > 0) {
-			err = M_io_write_from_buf(mdata->io, mdata->msg_buf);
-		}
-	}
-
-	M_thread_mutex_unlock(mdata->msg_lock);
-
-	return ret;
-}
-
-
 /* ---- PRIVATE: callbacks for internal IO object. ---- */
-
-static void timer_reconnect_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *thunk);
-
 
 static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *thunk)
 {
@@ -294,8 +260,7 @@ static void io_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void 
 	(void)io;
 
 	/* Note: will get TYPE_OTHER event if manually triggered by log_write_cb. */
-	if (type == M_EVENT_TYPE_WRITE || type == M_EVENT_TYPE_OTHER || type == M_EVENT_TYPE_CONNECTED
-		|| (type == M_EVENT_TYPE_DISCONNECTED && mdata->flush_flag)) {
+	if (type == M_EVENT_TYPE_WRITE || type == M_EVENT_TYPE_OTHER || type == M_EVENT_TYPE_CONNECTED) {
 
 		M_thread_mutex_lock(mdata->msg_lock);
 
@@ -533,7 +498,6 @@ static M_log_error_t log_resume_cb(M_log_module_t *mod, M_event_t *event)
 
 	mdata->suspend_flag = M_FALSE;
 	mdata->event        = event;
-	mdata->trigger      = M_event_trigger_add(mdata->event, io_event_cb, mdata);
 
 	module_thunk_reconnect(mdata);
 	M_event_add(mdata->event, mdata->io, io_event_cb, mdata);
@@ -582,9 +546,6 @@ static void log_destroy_cb(void *thunk, M_bool flush)
 		return;
 	}
 
-	M_event_trigger_remove(mdata->trigger);
-	mdata->trigger = NULL;
-
 	if (mdata->io == NULL) {
 		/* If io object is already destroyed (due to active suspend, or error), just kill the whole module thunk. */
 		module_thunk_destroy(mdata);
@@ -599,33 +560,18 @@ static void log_destroy_cb(void *thunk, M_bool flush)
 		/* The exit flag tells module thunk to destroy itself after the disconnect finishes, instead of reconnecting. */
 		mdata->exit_flag  = M_TRUE;
 
-		/* If we don't have a partial message pending, go ahead and queue up a disconnect event.
-		 * Otherwise, the stop_flag will ensure that a disconnect gets queued after the partial message
-		 * is fully sent.
+		/* If we don't have any messages left we need to write, go ahead and queue up a disconnect event.
+		 * Otherwise, the stop_flag will ensure that a disconnect gets queued by the event handler when
+		 * we're ready to disconnect.
 		 */
-		if (M_buf_len(mdata->msg_buf) == 0) {
+		if (M_buf_len(mdata->msg_buf) == 0 && (!flush || M_llist_str_len(mdata->msgs) == 0)) {
 			M_io_disconnect(mdata->io);
+		} else {
+			M_event_trigger_signal(mdata->trigger);
 		}
 
 		M_thread_mutex_unlock(mdata->msg_lock);
 	}
-}
-
-
-static M_bool log_destroy_blocking_cb(void *thunk, M_bool flush, M_uint64 timeout_ms)
-{
-	module_thunk_t *mdata = thunk;
-	M_bool          ret;
-
-	/* Do a blocking write. Will block unitl current message is finished if flush==M_FALSE,
-	 * or until all messages are written if flush==M_TRUE. Will return early if we hit the
-	 * timeout.
-	 */
-	ret = blocking_write(mdata, flush, timeout_ms);
-
-	log_destroy_cb(thunk, flush);
-
-	return ret;
 }
 
 
@@ -667,7 +613,6 @@ M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_s
 		module_thunk_destroy(mdata);
 		return M_LOG_GENERIC_FAIL;
 	}
-	mdata->trigger = M_event_trigger_add(mdata->event, io_event_cb, mdata);
 
 	/* General module settings. */
 	mod                                   = M_malloc_zero(sizeof(*mod));
@@ -680,7 +625,6 @@ M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_s
 	mod->module_resume_cb                 = log_resume_cb;
 	mod->module_emergency_cb              = log_emergency_cb;
 	mod->destroy_module_thunk_cb          = log_destroy_cb;
-	mod->destroy_module_thunk_blocking_cb = log_destroy_blocking_cb;
 
 	if (out_mod != NULL) {
 		*out_mod = mod;
