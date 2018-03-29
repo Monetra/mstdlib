@@ -175,7 +175,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_printf("Speed: %llu.%03llu MB/s\n", KBps/1024, KBps % 1024);
 			M_io_destroy(comm);
 			M_io_destroy(netserver);
-			M_event_done_with_disconnect(event, 5*1000 /* 5 sec */);
+			M_event_done_with_disconnect(event, 0, 5*1000 /* 5 sec */);
 			net_data_destroy(data);
 			break;
 		default:

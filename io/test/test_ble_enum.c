@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	CFRunLoopRun();
 
 	// 5 sec timeout.
-	M_event_done_with_disconnect(el, 5*1000);
+	M_event_done_with_disconnect(el, 0, 5*1000);
 	M_thread_join(el_thread, NULL);
 
 	return 0;

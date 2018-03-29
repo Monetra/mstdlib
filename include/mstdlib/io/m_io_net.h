@@ -103,7 +103,7 @@ __BEGIN_DECLS
  *                 break;
  *             case M_EVENT_TYPE_DISCONNECTED:
  *             case M_EVENT_TYPE_ERROR:
- *                 M_event_done_with_disconnect(el, 1000);
+ *                 M_event_done_with_disconnect(el, 0, 1000);
  *                 break;
  *             case M_EVENT_TYPE_ACCEPT:
  *             case M_EVENT_TYPE_OTHER:
@@ -207,7 +207,7 @@ __BEGIN_DECLS
  *     {
  *         ldata_t *ldata = data;
  *         (void)next;
- *         M_event_done_with_disconnect(ldata->el, 1000);
+ *         M_event_done_with_disconnect(ldata->el, 0, 1000);
  *     }
  *     
  *     static void connection_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
