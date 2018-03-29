@@ -372,6 +372,27 @@ M_API void M_log_destroy(M_log_t *log);
  * If the timeout is reached before all modules have stopped, non-blocking destroys will be triggered for
  * the remaining modules.
  *
+ * In order to avoid blocking the event loop, backend modules like TCP syslog which are event-based (no
+ * worker threads) will not block when this function is called. Instead, they will execute a normal
+ * non-blocking destroy. To give these backends time to exit cleanly, make sure to call
+ * M_event_done_with_disconnect() after this function, and pass non-zero values to both timeouts.
+ *
+ * Example:
+ * \code
+ * M_event_t  event_loop = ...;
+ * M_log_t   *log        = M_log_create(..., event_loop, ...);
+ * ...
+ * // Block up to five seconds while threaded backends try to exit cleanly.
+ * M_log_destroy_blocking(log, 5000);
+ *
+ * // Wait up to five seconds for top-level handlers added by event-based log backends to close their
+ * // own I/O objects. Then, wait up to 1 second to force clean disconnects on any I/O objects
+ * // that are still open.
+ * M_event_done_with_disconnect(event_loop, 5000, 1000);
+ *
+ * M_event_destroy(event_loop);
+ * \endcode
+ *
  * \see M_log_destroy
  *
  * \param[in] log        logger object
