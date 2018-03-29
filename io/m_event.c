@@ -921,7 +921,7 @@ static void M_event_softevent_process(M_event_t *event)
 	}
 }
 
-static void M_event_done_With_disconnect_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+static void M_event_done_with_disconnect_cb(M_event_t *event, M_event_type_t type, M_io_t *io_dummy, void *cb_arg)
 {
 	M_uint64 disconnect_timeout_ms = (M_uint64)((M_uintptr)cb_arg);
 	M_uint64            elapsed_ms;
@@ -931,14 +931,18 @@ static void M_event_done_With_disconnect_cb(M_event_t *event, M_event_type_t typ
 	size_t              i;
 
 	(void)type;
-	(void)io;
+	(void)io_dummy;
+
+	if (disconnect_timeout_ms == M_UINTPTR_MAX)
+		disconnect_timeout_ms = M_TIMEOUT_INF;
 
 	/* Executed from within the event loop */
 	M_event_lock(event);
 
 	elapsed_ms = M_time_elapsed(&event->u.loop.start_tv);
-	if (timeout_ms == M_TIMEOUT_INF || elapsed_ms + timeout_ms < event->u.loop.timeout_ms) {
-		event->u.loop.timeout_ms = elapsed_ms + timeout_ms;
+
+	if (disconnect_timeout_ms == M_TIMEOUT_INF || elapsed_ms + disconnect_timeout_ms < event->u.loop.timeout_ms) {
+		event->u.loop.timeout_ms = elapsed_ms + disconnect_timeout_ms;
 	}
 
 	/* Iterate across all registered IOs and issue a disconnect. We have to generate a
@@ -982,7 +986,9 @@ static void M_event_done_with_disconnect_int(M_event_t *event, M_uint64 timeout_
 	M_event_unlock(event);
 
 	/* Add timer to start issuing disconnects on owned objects */
-	M_event_timer_oneshot(event, timeout_before_disconnect_ms, M_TRUE, M_event_done_with_disconnect_cb, (M_uintptr)disconnect_timeout_ms);
+	if (disconnect_timeout_ms > M_UINTPTR_MAX)
+		disconnect_timeout_ms = M_UINTPTR_MAX;
+	M_event_timer_oneshot(event, timeout_before_disconnect_ms, M_TRUE, M_event_done_with_disconnect_cb, (void *)((M_uintptr)disconnect_timeout_ms));
 }
 
 
