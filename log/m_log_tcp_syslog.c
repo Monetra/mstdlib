@@ -23,6 +23,9 @@
 
 /* Implementation for remote (TCP) syslog logging module.
  *
+ * TODO: most of the code in here should be refactored out into an m_event_writer_t class, because it
+ *       will be common to any event-based logging module. Wait to do this until we have more than
+ *       one event-based module.
  */
 #include "m_config.h"
 #include <m_log_int.h>
@@ -615,16 +618,16 @@ M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_s
 	}
 
 	/* General module settings. */
-	mod                                   = M_malloc_zero(sizeof(*mod));
-	mod->type                             = M_LOG_MODULE_TSYSLOG;
-	mod->flush_on_destroy                 = log->flush_on_destroy;
-	mod->module_thunk                     = mdata;
-	mod->module_write_cb                  = log_write_cb;
-	mod->module_reopen_cb                 = log_reopen_cb;
-	mod->module_suspend_cb                = log_suspend_cb;
-	mod->module_resume_cb                 = log_resume_cb;
-	mod->module_emergency_cb              = log_emergency_cb;
-	mod->destroy_module_thunk_cb          = log_destroy_cb;
+	mod                          = M_malloc_zero(sizeof(*mod));
+	mod->type                    = M_LOG_MODULE_TSYSLOG;
+	mod->flush_on_destroy        = log->flush_on_destroy;
+	mod->module_thunk            = mdata;
+	mod->module_write_cb         = log_write_cb;
+	mod->module_reopen_cb        = log_reopen_cb;
+	mod->module_suspend_cb       = log_suspend_cb;
+	mod->module_resume_cb        = log_resume_cb;
+	mod->module_emergency_cb     = log_emergency_cb;
+	mod->destroy_module_thunk_cb = log_destroy_cb;
 
 	if (out_mod != NULL) {
 		*out_mod = mod;
