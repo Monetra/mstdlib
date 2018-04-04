@@ -146,15 +146,21 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 	if (timer == NULL || timer->event == NULL)
 		return M_FALSE;
 
+	/* Stop the timer so it won't execute before it's destoryed.
+ 	 * In case destory needs to be queued. */
+
 	event = timer->event;
+
+	M_event_lock(event);
+	timer->started = M_FALSE;
 
 	/* Queue a destroy task to run for this in the owning event loop */
 	if (event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
 		M_event_queue_task(event, M_event_timer_remove_cb, timer);
+		M_event_unlock(event);
 		return M_TRUE; /* queued to remove */
 	}
 
-	M_event_lock(event);
 	if (timer->executing) {
 		timer->delay_destroy = M_TRUE;
 		M_event_unlock(event);
