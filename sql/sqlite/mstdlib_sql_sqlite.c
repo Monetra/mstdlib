@@ -509,6 +509,7 @@ static void sqlite_cb_disconnect(M_sql_driver_conn_t *conn)
 static size_t sqlite_num_process_rows(M_sql_driver_conn_t *dconn, size_t num_params_per_row, size_t num_rows)
 {
 	int    max_params;
+	int    max_compound;
 	size_t max_rows;
 
 	if (num_rows == 1)
@@ -517,15 +518,29 @@ static size_t sqlite_num_process_rows(M_sql_driver_conn_t *dconn, size_t num_par
 	if (num_params_per_row == 0)
 		return 1;
 
+	/* Maximum number of bound variables */
 	max_params = sqlite3_limit(dconn->conn, SQLITE_LIMIT_VARIABLE_NUMBER, -1);
 	if (max_params <= 0)
 		return 1;
-	max_rows = ((size_t)max_params) / num_params_per_row;
 
+	/* Maximum limit on compound select, on some versions of SQLite this appears to
+	 * also apply per row on insert */
+	max_compound =  sqlite3_limit(dconn->conn, SQLITE_LIMIT_COMPOUND_SELECT, -1);
+	if (max_compound <= 0)
+		return 1;
+
+	/* Get max rows based on total maximum parameters compared to params per row */
+	max_rows = ((size_t)max_params) / num_params_per_row;
 	if (max_rows == 0)
 		return 1;
 
-	return M_MIN(num_rows, max_rows);
+	/* Reduce maximum rows to compound limit, if applicable */
+	max_rows = M_MIN((size_t)max_compound, max_rows);
+
+	/* Reduce maximum rows to actual number of rows provided, if applicable */
+	max_rows = M_MIN(num_rows, max_rows);
+
+	return max_rows;
 }
 
 
