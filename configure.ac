@@ -1033,7 +1033,7 @@ if test "${build_mstdlib_sql}" = "yes" ; then
 	if test "${build_mstdlib_sql_sqlite}" != "no" ; then
 		dnl chain build if thirdparty/sqlite-amalgamation exists, otherwise search for it
 		if test -d "${srcdir}/thirdparty/sqlite-amalgamation" ; then
-			SQLITE_CPPFLAGS='-I$(top_srcdir)/thirdparty/sqlite-amalgamation -DSQLITE_MUTEX_APPDEF=1 -DSQLITE_THREADSAFE=1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_DEPRECATED=1'
+			SQLITE_CPPFLAGS='-I$(top_srcdir)/thirdparty/sqlite-amalgamation -DSQLITE_MUTEX_APPDEF=1 -DSQLITE_THREADSAFE=1 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_MAX_VARIABLE_NUMBER=32768'
 			SQLITE_LIBADD=""
 			SQLITE_LDFLAGS=""
 			AC_SUBST(SQLITE_CPPFLAGS)

@@ -505,18 +505,34 @@ static void sqlite_cb_disconnect(M_sql_driver_conn_t *conn)
 	M_free(conn);
 }
 
-static size_t sqlite_num_process_rows(size_t num_rows)
+
+static size_t sqlite_num_process_rows(M_sql_driver_conn_t *dconn, size_t num_params_per_row, size_t num_rows)
 {
-#define SQLITE_MAX_PROCESS_ROWS 25
-	return M_MIN(num_rows, SQLITE_MAX_PROCESS_ROWS);
+	int    max_params;
+	size_t max_rows;
+
+	if (num_rows == 1)
+		return num_rows;
+
+	if (num_params_per_row == 0)
+		return 1;
+
+	max_params = sqlite3_limit(dconn->conn, SQLITE_LIMIT_VARIABLE_NUMBER, -1);
+	if (max_params <= 0)
+		return 1;
+	max_rows = ((size_t)max_params) / num_params_per_row;
+
+	if (max_rows == 0)
+		return 1;
+
+	return M_MIN(num_rows, max_rows);
 }
 
 
 static char *sqlite_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)
 {
-	(void)conn;
 	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD,
-	                                num_params, sqlite_num_process_rows(num_rows),
+	                                num_params, sqlite_num_process_rows(M_sql_driver_conn_get_conn(conn), num_params, num_rows),
 	                                error, error_size);
 }
 
@@ -564,7 +580,7 @@ static M_sql_error_t sqlite_bind_params(M_sql_driver_conn_t *conn, M_sql_driver_
 	size_t num_cols;
 	int    rc;
 
-	num_rows = sqlite_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
+	num_rows = sqlite_num_process_rows(conn, M_sql_driver_stmt_bind_cnt(stmt), M_sql_driver_stmt_bind_rows(stmt));
 	num_cols = M_sql_driver_stmt_bind_cnt(stmt);
 
 	for (row = 0; row < num_rows; row++) {
@@ -749,7 +765,7 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 
 	/* Get number of rows that are processed at once, SQLite supports the mysql-style
 	 * comma-delimited values for inserting multiple rows. */
-	*rows_executed = sqlite_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
+	*rows_executed = sqlite_num_process_rows(driver_conn, M_sql_driver_stmt_bind_cnt(stmt), M_sql_driver_stmt_bind_rows(stmt));
 
 	while (1) {
 		real_rc = sqlite3_step(driver_stmt->stmt);
