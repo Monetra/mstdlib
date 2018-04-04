@@ -146,12 +146,12 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 	if (timer == NULL || timer->event == NULL)
 		return M_FALSE;
 
-	/* Stop the timer so it won't execute before it's destoryed.
- 	 * In case destory needs to be queued. */
 
 	event = timer->event;
-
 	M_event_lock(event);
+
+	/* Stop the timer so it won't execute before it's destroyed.
+ 	 * In case destroy needs to be queued. */
 	timer->started = M_FALSE;
 
 	/* Queue a destroy task to run for this in the owning event loop */
