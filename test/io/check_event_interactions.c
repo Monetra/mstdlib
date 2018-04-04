@@ -67,7 +67,7 @@ static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void 
 		M_event_timer_start(timer1, 0);
 
 		/* Sleep enough to yield execution for each in case more timers go off */
-		M_thread_sleep(15000);
+		M_thread_sleep(1500);
 	}
 
 	M_event_done(el2);
@@ -89,7 +89,7 @@ static void el_stop_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 		M_event_timer_start(timer1, 0);
 
 		/* Sleep enough to yield execution for each in case more timers go off */
-		M_thread_sleep(15000);
+		M_thread_sleep(1500);
 	}
 
 	M_event_done(el2);
