@@ -8,114 +8,117 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_event_t       *el1    = NULL;
-static M_event_t       *el2    = NULL;
-static M_event_timer_t *timer1 = NULL;
-static M_event_timer_t *timer2 = NULL;
-static size_t           count_stack  = 0;
-static size_t           count_remove = 0;
-static size_t           count_stop   = 0;
+typedef struct {
+	M_event_t       *el1;
+	M_event_t       *el2;
+	M_event_timer_t *timer1;
+	M_event_timer_t *timer2;
+	size_t           count;
+} cb_data_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
+	cb_data_t *data = thunk;
+
 	(void)el;
 	(void)etype;
 	(void)io;
-	(void)thunk;
 
 	/* Try to run start a bunch of times on the same event timer */
 	for (size_t i=0; i<25; i++) {
-		M_event_timer_start(timer1, 0);
+		M_event_timer_start(data->timer1, 0);
 		/* Sleep enough to yield execution for each in case more timers go off */
 		M_thread_sleep(15000);
 	}
 
-	M_event_done(el2);
+	M_event_done(data->el2);
 	/* Sleep long enough that we know the thread1 callback is complete */
 	M_thread_sleep(2000000);
-	M_event_done(el1);
+	M_event_done(data->el1);
 }
 
 static void el_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	size_t *count = thunk;
+	cb_data_t *data = thunk;
 
 	(void)el;
 	(void)etype;
 	(void)io;
 
-	(*count)++;
+	data->count++;
 
 	/* Sleep long enough that we know all thread2 M_event_timer_start()'s have been called */
 	M_thread_sleep(500000);
 
-	M_event_timer_remove(timer1);
-	timer1 = NULL;
+	M_event_timer_remove(data->timer1);
+	data->timer1 = NULL;
 }
 
 static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
+	cb_data_t *data = thunk;
+
 	(void)el;
 	(void)etype;
 	(void)io;
-	(void)thunk;
 
 	/* Try to run start a bunch of times on the same event timer */
 	for (size_t i=0; i<25; i++) {
-		M_event_timer_remove(timer1);
-		timer1 = M_event_timer_add(el1, el_cb, &count_remove);
-		M_event_timer_set_firecount(timer1, 1);
-		M_event_timer_start(timer1, 0);
+		M_event_timer_remove(data->timer1);
+		data->timer1 = M_event_timer_add(data->el1, el_cb, data);
+		M_event_timer_set_firecount(data->timer1, 1);
+		M_event_timer_start(data->timer1, 0);
 
 		/* Sleep enough to yield execution for each in case more timers go off */
-		M_thread_sleep(1500);
+		M_thread_sleep(15000);
 	}
 
-	M_event_done(el2);
+	M_event_done(data->el2);
 	/* Sleep long enough that we know the thread1 callback is complete */
 	M_thread_sleep(2000000);
-	M_event_done(el1);
+	M_event_done(data->el1);
 }
 
 static void el_stop_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
+	cb_data_t *data = thunk;
+
 	(void)el;
 	(void)etype;
 	(void)io;
-	(void)thunk;
 
 	/* Try to run start a bunch of times on the same event timer */
 	for (size_t i=0; i<25; i++) {
-		M_event_timer_stop(timer1);
-		M_event_timer_start(timer1, 0);
+		M_event_timer_stop(data->timer1);
+		M_event_timer_start(data->timer1, 0);
 
 		/* Sleep enough to yield execution for each in case more timers go off */
-		M_thread_sleep(1500);
+		M_thread_sleep(15000);
 	}
 
-	M_event_done(el2);
+	M_event_done(data->el2);
 	/* Sleep long enough that we know the thread1 callback is complete */
 	M_thread_sleep(2000000);
-	M_event_done(el1);
+	M_event_done(data->el1);
 }
 
 static void *run_el2(void *arg)
 {
-	(void)arg;
+	cb_data_t *data = arg;
 
-	M_event_loop(el2, M_TIMEOUT_INF);
-	M_event_destroy(el2);
+	M_event_loop(data->el2, M_TIMEOUT_INF);
+	M_event_destroy(data->el2);
 	return NULL;
 }
 
 static void *run_el1(void *arg)
 {
-	(void)arg;
+	cb_data_t *data = arg;
 
-	M_event_loop(el1, M_TIMEOUT_INF);
-	M_event_destroy(el1);
+	M_event_loop(data->el1, M_TIMEOUT_INF);
+	M_event_destroy(data->el1);
 	return NULL;
 }
 
@@ -126,29 +129,32 @@ START_TEST(check_event_stacking_start)
 	M_thread_attr_t *tattr;
 	M_threadid_t     t1;
 	M_threadid_t     t2;
+	cb_data_t        data;
 
-	el1    = M_event_create(M_EVENT_FLAG_NONE);
-	timer1 = M_event_timer_add(el1, el_cb, &count_stack);
-	M_event_timer_set_firecount(timer1, 1);
+	M_mem_set(&data, 0, sizeof(data));
 
-	el2    = M_event_create(M_EVENT_FLAG_NONE);
-	timer2 = M_event_timer_add(el2, el_cb2, NULL);
-	M_event_timer_set_firecount(timer2, 1);
-	M_event_timer_start(timer2, 0);
+	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
+	M_event_timer_set_firecount(data.timer1, 1);
+
+	data.el2    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer2 = M_event_timer_add(data.el2, el_cb2, &data);
+	M_event_timer_set_firecount(data.timer2, 1);
+	M_event_timer_start(data.timer2, 0);
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	t1 = M_thread_create(tattr, run_el1, NULL);
+	t1 = M_thread_create(tattr, run_el1, &data);
 	/* Give up time slice to make sure thread 1 is fully initialized */
 	M_thread_sleep(100000);
 
-	t2 = M_thread_create(tattr, run_el2, NULL);
+	t2 = M_thread_create(tattr, run_el2, &data);
 	M_thread_attr_destroy(tattr);
 
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(count_stack == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", count_stack);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
 }
 END_TEST
 
@@ -157,29 +163,32 @@ START_TEST(check_event_remove)
 	M_thread_attr_t *tattr;
 	M_threadid_t     t1;
 	M_threadid_t     t2;
+	cb_data_t        data;
 
-	el1    = M_event_create(M_EVENT_FLAG_NONE);
-	timer1 = M_event_timer_add(el1, el_cb, &count_remove);
-	M_event_timer_set_firecount(timer1, 1);
+	M_mem_set(&data, 0, sizeof(data));
 
-	el2    = M_event_create(M_EVENT_FLAG_NONE);
-	timer2 = M_event_timer_add(el2, el_remove_cb2, NULL);
-	M_event_timer_set_firecount(timer2, 1);
-	M_event_timer_start(timer2, 0);
+	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
+	M_event_timer_set_firecount(data.timer1, 1);
+
+	data.el2    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer2 = M_event_timer_add(data.el2, el_remove_cb2, &data);
+	M_event_timer_set_firecount(data.timer2, 1);
+	M_event_timer_start(data.timer2, 0);
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	t1 = M_thread_create(tattr, run_el1, NULL);
+	t1 = M_thread_create(tattr, run_el1, &data);
 	/* Give up time slice to make sure thread 1 is fully initialized */
 	M_thread_sleep(100000);
 
-	t2 = M_thread_create(tattr, run_el2, NULL);
+	t2 = M_thread_create(tattr, run_el2, &data);
 	M_thread_attr_destroy(tattr);
 
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(count_remove == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", count_remove);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
 }
 END_TEST
 
@@ -188,29 +197,32 @@ START_TEST(check_event_stop)
 	M_thread_attr_t *tattr;
 	M_threadid_t     t1;
 	M_threadid_t     t2;
+	cb_data_t        data;
 
-	el1    = M_event_create(M_EVENT_FLAG_NONE);
-	timer1 = M_event_timer_add(el1, el_cb, &count_stop);
-	M_event_timer_set_firecount(timer1, 1);
+	M_mem_set(&data, 0, sizeof(data));
 
-	el2    = M_event_create(M_EVENT_FLAG_NONE);
-	timer2 = M_event_timer_add(el2, el_stop_cb2, NULL);
-	M_event_timer_set_firecount(timer2, 1);
-	M_event_timer_start(timer2, 0);
+	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
+	M_event_timer_set_firecount(data.timer1, 1);
+
+	data.el2    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer2 = M_event_timer_add(data.el2, el_stop_cb2, &data);
+	M_event_timer_set_firecount(data.timer2, 1);
+	M_event_timer_start(data.timer2, 0);
 
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	t1 = M_thread_create(tattr, run_el1, NULL);
+	t1 = M_thread_create(tattr, run_el1, &data);
 	/* Give up time slice to make sure thread 1 is fully initialized */
 	M_thread_sleep(100000);
 
-	t2 = M_thread_create(tattr, run_el2, NULL);
+	t2 = M_thread_create(tattr, run_el2, &data);
 	M_thread_attr_destroy(tattr);
 
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(count_stop == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", count_stop);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
 }
 END_TEST
 
