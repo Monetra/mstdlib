@@ -336,6 +336,50 @@ START_TEST(check_event_many)
 }
 END_TEST
 
+START_TEST(check_event_many2)
+{
+	M_thread_attr_t *tattr;
+	M_list_t        *l;
+	M_event_timer_t *timer;
+	M_rand_t        *rander;
+	M_threadid_t     t1;
+	size_t           i;
+	cb_data_t        data;
+	struct M_list_callbacks cbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_list_free_func)M_event_timer_remove
+	};
+
+	M_mem_set(&data, 0, sizeof(data));
+
+	data.num = 100000;
+	data.el1 = M_event_create(M_EVENT_FLAG_NONE);
+
+
+	l      = M_list_create(&cbs, M_LIST_NONE);
+	rander = M_rand_create(0);
+	for (i=0; i<data.num; i++) {
+		timer = M_event_timer_oneshot(data.el1, M_rand_range(rander, 0, data.num/2), M_FALSE, el_many_cb, &data);
+		M_list_insert(l, timer);
+	}
+	M_rand_destroy(rander);
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	t1 = M_thread_create(tattr, run_els, &data);
+	M_thread_attr_destroy(tattr);
+
+	M_thread_join(t1, NULL);
+
+	M_list_destroy(l, M_TRUE);
+	M_event_destroy(data.el1);
+
+	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Checks the following:
@@ -384,6 +428,11 @@ static Suite *event_interactions_suite(void)
 
 	tc = tcase_create("event_many");
 	tcase_add_test(tc, check_event_many);
+	tcase_set_timeout(tc, 60);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("event_many2");
+	tcase_add_test(tc, check_event_many2);
 	tcase_set_timeout(tc, 60);
 	suite_add_tcase(suite, tc);
 
