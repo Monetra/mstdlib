@@ -46,7 +46,7 @@ static void el_self_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 
 	data->count++;
 
-	if (data->count < 5) {
+	if (data->count < data->num) {
 		M_event_timer_start(data->timer1, 0);
 	} else {
 		M_event_timer_remove(data->timer1);
@@ -76,7 +76,7 @@ static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	(void)io;
 
 	/* Try to run start a bunch of times on the same event timer */
-	for (size_t i=0; i<25; i++) {
+	for (size_t i=0; i<data->num; i++) {
 		M_event_timer_start(data->timer1, 0);
 		/* Sleep enough to yield execution for each in case more timers go off */
 		M_thread_sleep(15000);
@@ -97,7 +97,7 @@ static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void 
 	(void)io;
 
 	/* Try to run start a bunch of times on the same event timer */
-	for (size_t i=0; i<25; i++) {
+	for (size_t i=0; i<data->num; i++) {
 		M_event_timer_remove(data->timer1);
 		data->timer1 = M_event_timer_add(data->el1, el_cb, data);
 		M_event_timer_set_firecount(data->timer1, 1);
@@ -122,7 +122,7 @@ static void el_stop_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 	(void)io;
 
 	/* Try to run start a bunch of times on the same event timer */
-	for (size_t i=0; i<25; i++) {
+	for (size_t i=0; i<data->num; i++) {
 		M_event_timer_stop(data->timer1);
 		M_event_timer_start(data->timer1, 0);
 
@@ -173,6 +173,7 @@ START_TEST(check_event_stacking_start)
 
 	M_mem_set(&data, 0, sizeof(data));
 
+	data.num    = 25;
 	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
 	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
 	M_event_timer_set_firecount(data.timer1, 1);
@@ -207,6 +208,7 @@ START_TEST(check_event_remove)
 
 	M_mem_set(&data, 0, sizeof(data));
 
+	data.num    = 25;
 	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
 	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
 	M_event_timer_set_firecount(data.timer1, 1);
@@ -241,6 +243,7 @@ START_TEST(check_event_stop)
 
 	M_mem_set(&data, 0, sizeof(data));
 
+	data.num    = 25;
 	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
 	data.timer1 = M_event_timer_add(data.el1, el_cb, &data);
 	M_event_timer_set_firecount(data.timer1, 1);
@@ -274,6 +277,7 @@ START_TEST(check_event_self)
 
 	M_mem_set(&data, 0, sizeof(data));
 
+	data.num    = 5;
 	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
 	data.timer1 = M_event_timer_add(data.el1, el_self_cb, &data);
 	M_event_timer_set_firecount(data.timer1, 1);
@@ -304,7 +308,6 @@ START_TEST(check_event_many)
 		NULL,
 		(M_list_free_func)M_event_timer_remove
 	};
-
 
 	M_mem_set(&data, 0, sizeof(data));
 
