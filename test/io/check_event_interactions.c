@@ -18,6 +18,41 @@ typedef struct {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static void el_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	cb_data_t *data = thunk;
+
+	(void)el;
+	(void)etype;
+	(void)io;
+
+	data->count++;
+
+	/* Sleep long enough that we know all thread2 M_event_timer_start()'s have been called */
+	M_thread_sleep(500000);
+
+	M_event_timer_remove(data->timer1);
+	data->timer1 = NULL;
+}
+
+static void el_self_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	cb_data_t *data = thunk;
+
+	(void)el;
+	(void)etype;
+	(void)io;
+
+	data->count++;
+
+	if (data->count < 5) {
+		M_event_timer_start(data->timer1, 0);
+	} else {
+		M_event_timer_remove(data->timer1);
+		M_event_done(data->el1);
+	}
+}
+
 static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	cb_data_t *data = thunk;
@@ -37,23 +72,6 @@ static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	/* Sleep long enough that we know the thread1 callback is complete */
 	M_thread_sleep(2000000);
 	M_event_done(data->el1);
-}
-
-static void el_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	cb_data_t *data = thunk;
-
-	(void)el;
-	(void)etype;
-	(void)io;
-
-	data->count++;
-
-	/* Sleep long enough that we know all thread2 M_event_timer_start()'s have been called */
-	M_thread_sleep(500000);
-
-	M_event_timer_remove(data->timer1);
-	data->timer1 = NULL;
 }
 
 static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -226,6 +244,30 @@ START_TEST(check_event_stop)
 }
 END_TEST
 
+START_TEST(check_event_self)
+{
+	M_thread_attr_t *tattr;
+	M_threadid_t     t1;
+	cb_data_t        data;
+
+	M_mem_set(&data, 0, sizeof(data));
+
+	data.el1    = M_event_create(M_EVENT_FLAG_NONE);
+	data.timer1 = M_event_timer_add(data.el1, el_self_cb, &data);
+	M_event_timer_set_firecount(data.timer1, 1);
+	M_event_timer_start(data.timer1, 0);
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	t1 = M_thread_create(tattr, run_el1, &data);
+	M_thread_attr_destroy(tattr);
+
+	M_thread_join(t1, NULL);
+
+	ck_assert_msg(data.count == 5, "Timer started by different thread fired unexpected number of times (%zu) expected (5)", data.count);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Checks the following:
@@ -264,6 +306,11 @@ static Suite *event_interactions_suite(void)
 
 	tc = tcase_create("event_stop");
 	tcase_add_test(tc, check_event_stop);
+	tcase_set_timeout(tc, 60);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("event_self");
+	tcase_add_test(tc, check_event_self);
 	tcase_set_timeout(tc, 60);
 	suite_add_tcase(suite, tc);
 
