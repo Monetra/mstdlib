@@ -14,6 +14,7 @@ typedef struct {
 	M_event_t        *el2;
 	M_event_timer_t  *timer1;
 	M_event_timer_t  *timer2;
+	M_list_t         *timers;
 	size_t            count;
 	size_t            num;
 } cb_data_t;
@@ -69,6 +70,33 @@ static void el_many_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	if (data->count == data->num)
 		M_event_done(data->el1);
 
+	M_thread_mutex_unlock(data->mutex);
+}
+
+static void el_many_remove_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	cb_data_t       *data = thunk;
+	M_event_timer_t *timer;
+
+	(void)el;
+	(void)etype;
+	(void)io;
+
+	M_thread_mutex_lock(data->mutex);
+
+	data->count++;
+
+	M_list_remove_at(data->timers, M_rand_range(NULL, 0, M_list_len(data->timers)));
+	M_list_remove_at(data->timers, M_rand_range(NULL, 0, M_list_len(data->timers)));
+	M_list_remove_at(data->timers, M_rand_range(NULL, 0, M_list_len(data->timers)));
+
+	if (M_list_len(data->timers) == 0) {
+		M_event_done(data->el1);
+	} else {
+		timer = M_event_timer_oneshot(el, M_rand_range(NULL, 0, 500), M_FALSE, el_many_remove_cb, data);
+		M_list_insert(data->timers, timer);
+	}
+//M_printf("cnt=%zu, len=%zu\n", data->count, M_list_len(data->timers));
 	M_thread_mutex_unlock(data->mutex);
 }
 
@@ -302,7 +330,6 @@ END_TEST
 START_TEST(check_event_many)
 {
 	M_thread_attr_t *tattr;
-	M_list_t        *l;
 	M_event_timer_t *timer;
 	M_threadid_t     t1;
 	size_t           i;
@@ -320,12 +347,12 @@ START_TEST(check_event_many)
 	data.el1   = M_event_pool_create(0);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	l = M_list_create(&cbs, M_LIST_NONE);
+	data.timers = M_list_create(&cbs, M_LIST_NONE);
 	for (i=0; i<data.num; i++) {
 		timer = M_event_timer_add(data.el1, el_many_cb, &data);
 		M_event_timer_set_firecount(timer, 1);
 		M_event_timer_start(timer, 0);
-		M_list_insert(l, timer);
+		M_list_insert(data.timers, timer);
 	}
 
 	tattr = M_thread_attr_create();
@@ -335,7 +362,7 @@ START_TEST(check_event_many)
 
 	M_thread_join(t1, NULL);
 
-	M_list_destroy(l, M_TRUE);
+	M_list_destroy(data.timers, M_TRUE);
 	M_event_destroy(data.el1);
 	M_thread_mutex_destroy(data.mutex);
 
@@ -346,7 +373,6 @@ END_TEST
 START_TEST(check_event_many2)
 {
 	M_thread_attr_t *tattr;
-	M_list_t        *l;
 	M_event_timer_t *timer;
 	M_rand_t        *rander;
 	M_threadid_t     t1;
@@ -365,11 +391,11 @@ START_TEST(check_event_many2)
 	data.el1   = M_event_pool_create(0);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	l      = M_list_create(&cbs, M_LIST_NONE);
-	rander = M_rand_create(0);
+	data.timers = M_list_create(&cbs, M_LIST_NONE);
+	rander      = M_rand_create(0);
 	for (i=0; i<data.num; i++) {
 		timer = M_event_timer_oneshot(data.el1, M_rand_range(rander, 0, 50000), M_FALSE, el_many_cb, &data);
-		M_list_insert(l, timer);
+		M_list_insert(data.timers, timer);
 	}
 	M_rand_destroy(rander);
 
@@ -380,11 +406,57 @@ START_TEST(check_event_many2)
 
 	M_thread_join(t1, NULL);
 
-	M_list_destroy(l, M_TRUE);
+	M_list_destroy(data.timers, M_TRUE);
 	M_event_destroy(data.el1);
 	M_thread_mutex_destroy(data.mutex);
 
 	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+}
+END_TEST
+
+START_TEST(check_event_many_remove)
+{
+	M_thread_attr_t *tattr;
+	M_event_timer_t *timer;
+	M_rand_t        *rander;
+	M_threadid_t     t1;
+	size_t           i;
+	cb_data_t        data;
+	struct M_list_callbacks cbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_list_free_func)M_event_timer_remove
+	};
+
+	M_mem_set(&data, 0, sizeof(data));
+
+	data.num   = 1000000;
+	data.el1   = M_event_pool_create(0);
+	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+
+	data.timers = M_list_create(&cbs, M_LIST_NONE);
+	rander      = M_rand_create(0);
+	for (i=0; i<data.num; i++) {
+		timer = M_event_timer_oneshot(data.el1, M_rand_range(rander, 0, 50000), M_FALSE, el_many_remove_cb, &data);
+		M_list_insert(data.timers, timer);
+	}
+	M_rand_destroy(rander);
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	t1 = M_thread_create(tattr, run_els, &data);
+	M_thread_attr_destroy(tattr);
+
+	M_thread_join(t1, NULL);
+
+	M_list_destroy(data.timers, M_TRUE);
+	M_event_destroy(data.el1);
+	M_thread_mutex_destroy(data.mutex);
+
+	/* Don't care how many times it's called we only care that we don't time out because everything
+ 	 * should have been removed or run and the event cb stopped. */
+	ck_assert_msg(data.count > 1, "Many queued timers removed and added called too few times");
 }
 END_TEST
 
@@ -441,6 +513,11 @@ static Suite *event_interactions_suite(void)
 
 	tc = tcase_create("event_many2");
 	tcase_add_test(tc, check_event_many2);
+	tcase_set_timeout(tc, 60);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("event_many_remove");
+	tcase_add_test(tc, check_event_many_remove);
 	tcase_set_timeout(tc, 60);
 	suite_add_tcase(suite, tc);
 
