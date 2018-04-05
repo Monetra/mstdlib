@@ -290,7 +290,7 @@ START_TEST(check_event_self)
 
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(data.count == 5, "Timer started by different thread fired unexpected number of times (%zu) expected (5)", data.count);
+	ck_assert_msg(data.count == 5, "Timer calling itself fired unexpected number of times (%zu) expected (%zu)", data.count, data.num);
 }
 END_TEST
 
@@ -332,7 +332,7 @@ START_TEST(check_event_many)
 	M_list_destroy(l, M_TRUE);
 	M_event_destroy(data.el1);
 
-	ck_assert_msg(data.count == data.num, "Timer started by different thread fired unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
 }
 END_TEST
 
