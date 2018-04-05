@@ -9,12 +9,13 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 typedef struct {
-	M_event_t       *el1;
-	M_event_t       *el2;
-	M_event_timer_t *timer1;
-	M_event_timer_t *timer2;
-	size_t           count;
-	size_t           num;
+	M_thread_mutex_t *mutex;
+	M_event_t        *el1;
+	M_event_t        *el2;
+	M_event_timer_t  *timer1;
+	M_event_timer_t  *timer2;
+	size_t            count;
+	size_t            num;
 } cb_data_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -62,9 +63,13 @@ static void el_many_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	(void)etype;
 	(void)io;
 
+	M_thread_mutex_lock(data->mutex);
+
 	data->count++;
 	if (data->count == data->num)
 		M_event_done(data->el1);
+
+	M_thread_mutex_unlock(data->mutex);
 }
 
 static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -311,8 +316,9 @@ START_TEST(check_event_many)
 
 	M_mem_set(&data, 0, sizeof(data));
 
-	data.num = 100000;
-	data.el1 = M_event_create(M_EVENT_FLAG_NONE);
+	data.num   = 1000000;
+	data.el1   = M_event_pool_create(0);
+	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	l = M_list_create(&cbs, M_LIST_NONE);
 	for (i=0; i<data.num; i++) {
@@ -331,6 +337,7 @@ START_TEST(check_event_many)
 
 	M_list_destroy(l, M_TRUE);
 	M_event_destroy(data.el1);
+	M_thread_mutex_destroy(data.mutex);
 
 	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
 }
@@ -354,14 +361,14 @@ START_TEST(check_event_many2)
 
 	M_mem_set(&data, 0, sizeof(data));
 
-	data.num = 100000;
-	data.el1 = M_event_create(M_EVENT_FLAG_NONE);
-
+	data.num   = 1000000;
+	data.el1   = M_event_pool_create(0);
+	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	l      = M_list_create(&cbs, M_LIST_NONE);
 	rander = M_rand_create(0);
 	for (i=0; i<data.num; i++) {
-		timer = M_event_timer_oneshot(data.el1, M_rand_range(rander, 0, data.num/2), M_FALSE, el_many_cb, &data);
+		timer = M_event_timer_oneshot(data.el1, M_rand_range(rander, 0, 50000), M_FALSE, el_many_cb, &data);
 		M_list_insert(l, timer);
 	}
 	M_rand_destroy(rander);
@@ -375,6 +382,7 @@ START_TEST(check_event_many2)
 
 	M_list_destroy(l, M_TRUE);
 	M_event_destroy(data.el1);
+	M_thread_mutex_destroy(data.mutex);
 
 	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
 }
