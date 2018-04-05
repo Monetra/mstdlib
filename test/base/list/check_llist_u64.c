@@ -420,48 +420,87 @@ START_TEST(check_llist_u64_merge)
 }
 END_TEST
 
+START_TEST(check_llist_u64_many)
+{
+	M_llist_u64_t      *d;
+	M_llist_u64_node_t *n;
+	M_uint64            v;
+	M_uint64            tv = 0;
+	size_t              len;
+	size_t              i;
+	size_t              cnt;
+	size_t              num=800000;
+
+	d = M_llist_u64_create(M_LLIST_U64_SORTASC);
+	for (i=num; i-->0; ) {
+		M_llist_u64_insert(d, i);
+	}
+
+	len = M_llist_u64_len(d);
+	ck_assert_msg(num == len, "len (%zu) != num (%zu)", len, num);
+
+	cnt = 1;
+	n   = M_llist_u64_first(d);
+	tv  = M_llist_u64_node_val(n);
+	while (1) {
+		n = M_llist_u64_node_next(n);
+		if (n == NULL)
+			break;
+
+		cnt++;
+		v = M_llist_u64_node_val(n);
+		ck_assert_msg(v >= tv, "Invalid order, Not ascending");
+		tv = v;
+
+	}
+
+	ck_assert_msg(cnt == len, "cnt (%zu) != num (%zu)", cnt, num);
+
+	M_llist_u64_destroy(d);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_llist_u64_suite(void)
 {
 	Suite *suite;
-	TCase *tc_llist_u64_insert;
-	TCase *tc_llist_u64_insert_before_after;
-	TCase *tc_llist_u64_first_last_find;
-	TCase *tc_llist_u64_take_remove_count;
-	TCase *tc_llist_u64_next_prev;
-	TCase *tc_llist_u64_duplicate;
-	TCase *tc_llist_u64_merge;
+	TCase *tc;
 
 	suite = suite_create("llist_u64");
 
-	tc_llist_u64_insert = tcase_create("check_llist_u64_insert");
-	tcase_add_test(tc_llist_u64_insert, check_llist_u64_insert);
-	suite_add_tcase(suite, tc_llist_u64_insert);
+	tc = tcase_create("check_llist_u64_insert");
+	tcase_add_test(tc, check_llist_u64_insert);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_insert_before_after = tcase_create("check_llist_u64_insert_before_after");
-	tcase_add_test(tc_llist_u64_insert_before_after, check_llist_u64_insert_before_after);
-	suite_add_tcase(suite, tc_llist_u64_insert_before_after);
+	tc = tcase_create("check_llist_u64_insert_before_after");
+	tcase_add_test(tc, check_llist_u64_insert_before_after);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_first_last_find = tcase_create("check_llist_u64_first_last_find");
-	tcase_add_test(tc_llist_u64_first_last_find, check_llist_u64_first_last_find);
-	suite_add_tcase(suite, tc_llist_u64_first_last_find);
+	tc = tcase_create("check_llist_u64_first_last_find");
+	tcase_add_test(tc, check_llist_u64_first_last_find);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_take_remove_count = tcase_create("check_llist_u64_take_remove_count");
-	tcase_add_test(tc_llist_u64_take_remove_count, check_llist_u64_take_remove_count);
-	suite_add_tcase(suite, tc_llist_u64_take_remove_count);
+	tc = tcase_create("check_llist_u64_take_remove_count");
+	tcase_add_test(tc, check_llist_u64_take_remove_count);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_next_prev = tcase_create("check_llist_u64_next_prev");
-	tcase_add_test(tc_llist_u64_next_prev, check_llist_u64_next_prev);
-	suite_add_tcase(suite, tc_llist_u64_next_prev);
+	tc = tcase_create("check_llist_u64_next_prev");
+	tcase_add_test(tc, check_llist_u64_next_prev);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_duplicate = tcase_create("check_llist_u64_duplicate");
-	tcase_add_test(tc_llist_u64_duplicate, check_llist_u64_duplicate);
-	suite_add_tcase(suite, tc_llist_u64_duplicate);
+	tc = tcase_create("check_llist_u64_duplicate");
+	tcase_add_test(tc, check_llist_u64_duplicate);
+	suite_add_tcase(suite, tc);
 
-	tc_llist_u64_merge = tcase_create("check_llist_u64_merge");
-	tcase_add_test(tc_llist_u64_merge, check_llist_u64_merge);
-	suite_add_tcase(suite, tc_llist_u64_merge);
+	tc = tcase_create("check_llist_u64_merge");
+	tcase_add_test(tc, check_llist_u64_merge);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_llist_u64_many");
+	tcase_add_test(tc, check_llist_u64_many);
+	tcase_set_timeout(tc, 60);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
