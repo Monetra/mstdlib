@@ -433,7 +433,7 @@ START_TEST(check_event_many_remove)
 
 	M_mem_set(&data, 0, sizeof(data));
 
-	data.num   = 100000;
+	data.num   = 25000; /* Need a low number for slow travis build systems */
 	data.el1   = M_event_pool_create(0);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -520,7 +520,7 @@ static Suite *event_interactions_suite(void)
 
 	tc = tcase_create("event_many_remove");
 	tcase_add_test(tc, check_event_many_remove);
-	tcase_set_timeout(tc, 60);
+	tcase_set_timeout(tc, 90);
 	suite_add_tcase(suite, tc);
 
 	return suite;
