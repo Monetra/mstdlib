@@ -323,6 +323,7 @@ var searchData=
   ['m_5fevent_5ftimer_5fstop',['M_event_timer_stop',['../group__m__event.html#ga7cc2ffa4f595f828e84a0a42eb3bbabb',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5ft',['M_event_timer_t',['../group__m__event.html#gaf7cc7058deaf2fd06e4a4733d16c9b52',1,'m_event.h']]],
   ['m_5fevent_5ftrigger_5fadd',['M_event_trigger_add',['../group__m__event.html#ga41874454cc5c17e8842de0153632bdef',1,'m_event.h']]],
+  ['m_5fevent_5ftrigger_5fedit_5fcb',['M_event_trigger_edit_cb',['../group__m__event.html#gac39654ad670e4e878d381707fba37b88',1,'m_event.h']]],
   ['m_5fevent_5ftrigger_5fremove',['M_event_trigger_remove',['../group__m__event.html#ga5aa2de8f897a4ae1be1553f1128eafa7',1,'m_event.h']]],
   ['m_5fevent_5ftrigger_5fsignal',['M_event_trigger_signal',['../group__m__event.html#gafcaab58b8fcd4253cd2bfe924563e13b',1,'m_event.h']]],
   ['m_5fevent_5ftrigger_5ft',['M_event_trigger_t',['../group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc',1,'m_event.h']]],

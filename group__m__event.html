@@ -219,6 +219,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga41874454cc5c17e8842de0153632bdef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5aa2de8f897a4ae1be1553f1128eafa7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga5aa2de8f897a4ae1be1553f1128eafa7">M_event_trigger_remove</a> (<a class="el" href="group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc">M_event_trigger_t</a> *trigger)</td></tr>
 <tr class="separator:ga5aa2de8f897a4ae1be1553f1128eafa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac39654ad670e4e878d381707fba37b88"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gac39654ad670e4e878d381707fba37b88">M_event_trigger_edit_cb</a> (<a class="el" href="group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc">M_event_trigger_t</a> *trigger, <a class="el" href="group__m__event.html#ga83ff5644cc466ea36241757dee26d629">M_event_callback_t</a> callback, void *cb_data)</td></tr>
+<tr class="separator:gac39654ad670e4e878d381707fba37b88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafcaab58b8fcd4253cd2bfe924563e13b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#gafcaab58b8fcd4253cd2bfe924563e13b">M_event_trigger_signal</a> (<a class="el" href="group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc">M_event_trigger_t</a> *trigger)</td></tr>
 <tr class="separator:gafcaab58b8fcd4253cd2bfe924563e13b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3fb88400e7101b24886e55e0e24d495b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__event.html#gaf7cc7058deaf2fd06e4a4733d16c9b52">M_event_timer_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__event.html#ga3fb88400e7101b24886e55e0e24d495b">M_event_timer_add</a> (<a class="el" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *event, <a class="el" href="group__m__event.html#ga83ff5644cc466ea36241757dee26d629">M_event_callback_t</a> callback, void *cb_data)</td></tr>
@@ -964,6 +966,49 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="gac39654ad670e4e878d381707fba37b88"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_event_trigger_edit_cb </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc">M_event_trigger_t</a> *&#160;</td>
+          <td class="paramname"><em>trigger</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__event.html#ga83ff5644cc466ea36241757dee26d629">M_event_callback_t</a>&#160;</td>
+          <td class="paramname"><em>callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>cb_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Edit the callback associated with a trigger object in the event subsystem.</p>
+<p>Editing allows a user to re-purpose a timer object while processing events without needing to remove and add a new object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">trigger</td><td>Trigger returned from <a class="el" href="group__m__event.html#ga41874454cc5c17e8842de0153632bdef">M_event_trigger_add()</a> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback</td><td>Callback to set. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">cb_data</td><td>Data passed to callback function. NULL will remove the cb_data.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE on error, such as if the callback is NULL. </dd></dl>
 
 </div>
 </div>
@@ -1746,7 +1791,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Apr 6 2018 21:17:18 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Apr 6 2018 21:26:58 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -57,6 +57,7 @@ var group__m__event =
     [ "M_event_remove", "group__m__event.html#ga9c06f42d9f80ad3632538c077ed844d9", null ],
     [ "M_event_trigger_add", "group__m__event.html#ga41874454cc5c17e8842de0153632bdef", null ],
     [ "M_event_trigger_remove", "group__m__event.html#ga5aa2de8f897a4ae1be1553f1128eafa7", null ],
+    [ "M_event_trigger_edit_cb", "group__m__event.html#gac39654ad670e4e878d381707fba37b88", null ],
     [ "M_event_trigger_signal", "group__m__event.html#gafcaab58b8fcd4253cd2bfe924563e13b", null ],
     [ "M_event_timer_add", "group__m__event.html#ga3fb88400e7101b24886e55e0e24d495b", null ],
     [ "M_event_timer_start", "group__m__event.html#ga2809669810c4005a6750c4dfe21bf8a5", null ],
