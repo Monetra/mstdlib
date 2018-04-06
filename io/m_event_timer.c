@@ -38,6 +38,9 @@ struct M_event_timer {
 	M_event_timer_mode_t mode;
 	M_event_callback_t   callback;
 	void                *cb_data;
+	/* Callback and data to change to if the timer is executing. */
+	M_event_callback_t   callback_next;
+	void                *cb_data_next;
 
 	/* State data */
 	M_event_t           *event;
@@ -202,6 +205,31 @@ static void M_event_timer_remove_cb(M_event_t *event, M_event_type_t type, M_io_
 		return;
 
 	M_event_timer_remove(timer);
+}
+
+
+M_bool M_event_timer_edit_cb(M_event_timer_t *timer, M_event_callback_t callback, void *cb_data)
+{
+	if (timer == NULL || timer->event == NULL || callback == NULL)
+		return M_FALSE;
+
+	M_event_lock(timer->event);
+
+	/* If we're executing we can't change the callback
+	 * or data because we could end up with a thread
+	 * misread if we try to change it as it's being used.
+	 * We'll "queue" it to be changed once it's finished
+	 * executing. */
+	if (timer->executing) {
+		timer->callback_next = callback;
+		timer->cb_data_next  = cb_data;
+	} else {
+		timer->callback = callback;
+		timer->cb_data  = cb_data;
+	}
+
+	M_event_unlock(timer->event);
+	return M_TRUE;
 }
 
 
@@ -500,6 +528,18 @@ void M_event_timer_process(M_event_t *event)
 			M_event_lock(event);
 
 			timer->executing = M_FALSE;
+
+			/* If we have callback changes pending go ahead and
+			 * change them. The only time they'll be pending is
+			 * if they were set while executing was true. Basically,
+			 * when the callback and data was being used. */
+			if (timer->callback_next != NULL) {
+				timer->callback      = timer->callback_next;
+				timer->cb_data       = timer->cb_data_next;
+				timer->callback_next = NULL;
+				timer->cb_data_next  = NULL;
+			}
+
 			cnt++;
 		}
 
