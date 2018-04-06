@@ -150,22 +150,36 @@ M_bool M_event_timer_remove(M_event_timer_t *timer)
 	event = timer->event;
 	M_event_lock(event);
 
-	/* Stop the timer so it won't execute before it's destroyed.
- 	 * In case destroy needs to be queued. */
-	timer->started = M_FALSE;
-
 	/* Queue a destroy task to run for this in the owning event loop */
 	if (event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
 		M_event_queue_task(event, M_event_timer_remove_cb, timer);
+
+		/* Stop the timer so it won't execute before it's destroyed.
+		 * In case destroy needs to be queued. */
+		timer->started = M_FALSE;
+
+		/* Since the timer->started flag is used as part of the sort operation,
+		 * we have to de-queue and re-enqueue the timer.  But if somehow the
+		 * timer is executing at the same time, we skip this since its not
+		 * in queue at all */
+		if (!timer->executing) {
+			M_event_timer_dequeue(timer);
+			M_event_timer_enqueue(timer);
+		}
+
 		M_event_unlock(event);
 		return M_TRUE; /* queued to remove */
 	}
 
 	if (timer->executing) {
+		/* Timer is dequeued and currently executing so will be cleaned up at
+		 * the end of the callback */
+		timer->started       = M_FALSE;
 		timer->delay_destroy = M_TRUE;
 		M_event_unlock(event);
 		return M_TRUE;
 	}
+
 	M_event_timer_dequeue(timer);
 //M_printf("%s(): timer %p destroyed\n", __FUNCTION__, timer); fflush(stdout);
 
