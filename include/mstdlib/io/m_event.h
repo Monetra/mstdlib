@@ -584,6 +584,20 @@ M_API M_event_timer_t *M_event_timer_oneshot(M_event_t *event, M_uint64 interval
 M_API M_bool M_event_timer_remove(M_event_timer_t *timer);
 
 
+/*! Edit the callback associated with a timer object in the event subsystem.
+ *
+ *  Editing allows a user to re-purpose a timer object while processing events without
+ *  needing to remove and add a new object.
+ *
+ *  \param[in] timer    Timer handle returned by M_event_timer_add()
+ *  \param[in] callback Callback to set.
+ *  \param[in] cb_data  Data passed to callback function.  NULL will remove the cb_data.
+ *
+ *  \return M_FALSE on error, such as if the callback is NULL.
+ */
+M_API M_bool M_event_timer_edit_cb(M_event_timer_t *timer, M_event_callback_t callback, void *cb_data);
+
+
 /*! Queue a task to run in the same thread as the event loop.
  * 
  *  This is threadsafe to call, and convenient when wanting to avoid
