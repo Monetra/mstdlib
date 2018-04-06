@@ -396,6 +396,20 @@ M_API M_event_trigger_t *M_event_trigger_add(M_event_t *event, M_event_callback_
 M_API void M_event_trigger_remove(M_event_trigger_t *trigger);
 
 
+/*! Edit the callback associated with a trigger object in the event subsystem.
+ *
+ *  Editing allows a user to re-purpose a timer object while processing events without
+ *  needing to remove and add a new object.
+ *
+ *  \param[in] trigger Trigger returned from M_event_trigger_add()
+ *  \param[in] callback Callback to set.
+ *  \param[in] cb_data  Data passed to callback function.  NULL will remove the cb_data.
+ *
+ *  \return M_FALSE on error, such as if the callback is NULL.
+ */
+M_API M_bool M_event_trigger_edit_cb(M_event_trigger_t *trigger, M_event_callback_t callback, void *cb_data);
+
+
 /*! Signal the registered callback associated with the trigger to be called.  This is threadsafe and
  *  may be called cross thread.  If multiple signals are delivered before the callback is called, the
  *  duplicate signals will be silently discarded.

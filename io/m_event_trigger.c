@@ -164,3 +164,11 @@ void M_event_trigger_remove(M_event_trigger_t *trigger)
 		return;
 	M_io_destroy(trigger->io);
 }
+
+
+M_bool M_event_trigger_edit_cb(M_event_trigger_t *trigger, M_event_callback_t callback, void *cb_data)
+{
+	if (trigger == NULL || callback == NULL)
+		return M_FALSE;
+	return M_event_edit_io_cb(trigger->io, callback, cb_data);
+}
