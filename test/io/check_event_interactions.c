@@ -32,7 +32,7 @@ static void el_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	data->count++;
 
 	/* Sleep long enough that we know all thread2 M_event_timer_start()'s have been called */
-	M_thread_sleep(500000);
+	M_thread_sleep(1000000);
 
 	M_event_timer_remove(data->timer1);
 	data->timer1 = NULL;
