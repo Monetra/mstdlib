@@ -345,7 +345,7 @@ START_TEST(check_event_many)
 
 	M_mem_set(&data, 0, sizeof(data));
 
-	data.num   = 1000000;
+	data.num   = 100000;
 	data.el1   = M_event_pool_create(0);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -389,7 +389,7 @@ START_TEST(check_event_many2)
 
 	M_mem_set(&data, 0, sizeof(data));
 
-	data.num   = 1000000;
+	data.num   = 100000;
 	data.el1   = M_event_pool_create(0);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
