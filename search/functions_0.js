@@ -208,6 +208,7 @@ var searchData=
   ['m_5fevent_5fremove',['M_event_remove',['../group__m__event.html#ga9c06f42d9f80ad3632538c077ed844d9',1,'m_event.h']]],
   ['m_5fevent_5freturn',['M_event_return',['../group__m__event.html#ga41a54262e3c0c742e6672ad860006da0',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fadd',['M_event_timer_add',['../group__m__event.html#ga3fb88400e7101b24886e55e0e24d495b',1,'m_event.h']]],
+  ['m_5fevent_5ftimer_5fedit_5fcb',['M_event_timer_edit_cb',['../group__m__event.html#ga845455e6ca5795ef34dbd148a08d12d2',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fget_5fremaining_5fms',['M_event_timer_get_remaining_ms',['../group__m__event.html#ga804fd582353c5c71a984141921a9bd6b',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fget_5fstatus',['M_event_timer_get_status',['../group__m__event.html#gabdfd1c19b7c99ee9d8411b87beeb5a4f',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5foneshot',['M_event_timer_oneshot',['../group__m__event.html#gabf6eeab8c12ebe666cf38557e57b105f',1,'m_event.h']]],

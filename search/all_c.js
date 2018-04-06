@@ -304,6 +304,7 @@ var searchData=
   ['m_5fevent_5fstatus_5ft',['M_event_status_t',['../group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a',1,'m_event.h']]],
   ['m_5fevent_5ft',['M_event_t',['../group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fadd',['M_event_timer_add',['../group__m__event.html#ga3fb88400e7101b24886e55e0e24d495b',1,'m_event.h']]],
+  ['m_5fevent_5ftimer_5fedit_5fcb',['M_event_timer_edit_cb',['../group__m__event.html#ga845455e6ca5795ef34dbd148a08d12d2',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fget_5fremaining_5fms',['M_event_timer_get_remaining_ms',['../group__m__event.html#ga804fd582353c5c71a984141921a9bd6b',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fget_5fstatus',['M_event_timer_get_status',['../group__m__event.html#gabdfd1c19b7c99ee9d8411b87beeb5a4f',1,'m_event.h']]],
   ['m_5fevent_5ftimer_5fmode_5fmonotonic',['M_EVENT_TIMER_MODE_MONOTONIC',['../group__m__event.html#gga4466239df0e524aa31e71acb924e54d5a2cf9eb5d4bc66b0c162e045e325800c9',1,'m_event.h']]],

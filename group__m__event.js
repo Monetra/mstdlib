@@ -71,6 +71,7 @@ var group__m__event =
     [ "M_event_timer_get_status", "group__m__event.html#gabdfd1c19b7c99ee9d8411b87beeb5a4f", null ],
     [ "M_event_timer_oneshot", "group__m__event.html#gabf6eeab8c12ebe666cf38557e57b105f", null ],
     [ "M_event_timer_remove", "group__m__event.html#ga45d217b7fc4c1310975855ccc2b894e9", null ],
+    [ "M_event_timer_edit_cb", "group__m__event.html#ga845455e6ca5795ef34dbd148a08d12d2", null ],
     [ "M_event_queue_task", "group__m__event.html#gae710da0d90387a5c4b71e8ae3bba1e0f", null ],
     [ "M_event_loop", "group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd", null ],
     [ "M_event_done", "group__m__event.html#ga91277642f8c76eb816003d2cea649897", null ],
