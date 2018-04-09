@@ -81,8 +81,8 @@ else ()
 			endif ()
 		endif ()
 
-		if (MINGW AND has_flag)
-			# MinGW has a bug where you need to explicitly link to -lssp in some cases when stack
+		if ((MINGW OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND has_flag)
+			# MinGW/Solaris require you to explicitly link to libssp in some cases when stack
 			# protector is enabled.
 			list(APPEND _link_flags_implicit "-lssp")
 		endif ()
