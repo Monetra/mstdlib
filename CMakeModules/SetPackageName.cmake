@@ -36,11 +36,20 @@ function(set_package_name name version)
 	set(CPACK_PACKAGE_FILE_NAME "${name}-${sysname}")
 
 	if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-		string(APPEND CPACK_PACKAGE_FILE_NAME "-arm")
-		# Note: 64-bit ARM is always hard-float. But for 32-bit, need to inform user that it was built with hard-float
-		#       by adding 'hf'.
-		if (arch EQUAL 32 AND (CMAKE_C_FLAGS MATCHES "-mfloat-abi=hardfp" OR CMAKE_CXX_FLAGS MATCHES "-mfloat-abi=hardfp"))
-			string(APPEND CPACK_PACKAGE_FILE_NAME "hf")
+		# 64-bit ARM is always hard-float. But for 32-bit, need to detect if user forced it to use soft float.
+		#
+		# In 32-bit builds, this assumes that the compiler defaults to the hard float ABI. This is true for
+		# Raspberry Pi, but for example the ARM compiler defaults to the softfp ABI.
+		#
+		# Detecting the default compiler options and the various possible flags for GCC, clang, and the ARM
+		# compiler is too much work for just a name, so we'll assume it defaults to hard float. If the user
+		# gets the wrong name, they can fix by explicitly setting the ABI they want to use with
+		# -mfloat-abi={soft,softfp,hard}.
+		#
+		if (arch EQUAL 32 AND (CMAKE_C_FLAGS MATCHES "-mfloat-abi=soft" OR CMAKE_CXX_FLAGS MATCHES "-mfloat-abi=soft"))
+			string(APPEND CPACK_PACKAGE_FILE_NAME "-arm")
+		else ()
+			string(APPEND CPACK_PACKAGE_FILE_NAME "-armhf")
 		endif ()
 	endif ()
 
