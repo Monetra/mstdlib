@@ -139,6 +139,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga39c8da55725f5bca9fad614d99fe12eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga234fe497b4957ebdd5bfe6c267bdddb0"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0">M_bit_parser_read_strdup</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits)</td></tr>
 <tr class="separator:ga234fe497b4957ebdd5bfe6c267bdddb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf8c146aac12b0488312682bfb664dbf0"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0">M_bit_parser_read_uint</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits, M_uint64 *res)</td></tr>
+<tr class="separator:gaf8c146aac12b0488312682bfb664dbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e">M_bit_parser_consume_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t max_bits)</td></tr>
 <tr class="separator:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga58b2386de30a47d1f862b53943bafcce"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce">M_bit_parser_read_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 *bit, size_t *nbits_in_range, size_t max_bits)</td></tr>
@@ -668,6 +670,55 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gaf8c146aac12b0488312682bfb664dbf0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_read_uint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint64 *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read multiple bits, convert directly to an unsigned integer.</p>
+<p>The bits are converted to a single big-endian unsigned integer.</p>
+<p>For example, if a bit parser contains '11100', you should see the following: </p>
+<ul>
+<li>M_bit_parser_read_uint(bparser, 3, &amp;num) &ndash;&gt; num == 7 </li>
+<li>M_bit_parser_read_uint(bparser, 4, &amp;num) &ndash;&gt; num == 14 </li>
+<li>M_bit_parser_read_uint(bparser, 5, &amp;num) &ndash;&gt; num == 28</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to read (must be &gt;= 1 and &lt;= 64) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">res</td><td>read bits, converted to an unsigned integer </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE on failure </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga504fd87c0b2795aec4ca99d0cdf0f42e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -761,7 +812,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Apr 9 2018 16:50:51 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Apr 9 2018 21:11:01 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

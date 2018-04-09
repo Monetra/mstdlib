@@ -67,6 +67,7 @@ var searchData=
   ['m_5fbit_5fparser_5fread_5fbit_5fbuf',['M_bit_parser_read_bit_buf',['../group__m__bit__parser.html#ga39c8da55725f5bca9fad614d99fe12eb',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fread_5frange',['M_bit_parser_read_range',['../group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fread_5fstrdup',['M_bit_parser_read_strdup',['../group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0',1,'m_bit_parser.h']]],
+  ['m_5fbit_5fparser_5fread_5fuint',['M_bit_parser_read_uint',['../group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5freset',['M_bit_parser_reset',['../group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5frewind_5fto_5fstart',['M_bit_parser_rewind_to_start',['../group__m__bit__parser.html#ga986c60e63b4df895bc8eaac30584853e',1,'m_bit_parser.h']]],
   ['m_5fbprintf',['M_bprintf',['../group__m__fmt.html#gaede402cdca9e7bcc2e3320f65a49934d',1,'m_fmt.h']]],
