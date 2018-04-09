@@ -371,10 +371,17 @@ static void mysql_cb_disconnect(M_sql_driver_conn_t *conn)
 }
 
 
-static size_t mysql_num_process_rows(size_t num_rows)
+static size_t mysql_num_process_rows(size_t num_rows, size_t params_per_row)
 {
-#define MYSQL_MAX_PROCESS_ROWS 100
-	return M_MIN(num_rows, MYSQL_MAX_PROCESS_ROWS);
+	size_t max_rows;
+
+	if (num_rows <= 1 || params_per_row == 0)
+		return 1;
+
+	/* MySQL can support up to 64K rows at once */
+	max_rows = M_UINT16_MAX / params_per_row;
+
+	return M_MIN(num_rows, max_rows);
 }
 
 
@@ -382,7 +389,7 @@ static char *mysql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 {
 	(void)conn;
 	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD,
-	                                num_params, mysql_num_process_rows(num_rows),
+	                                num_params, mysql_num_process_rows(num_rows, num_params),
 	                                error, error_size);
 }
 
@@ -433,8 +440,8 @@ static M_sql_error_t mysql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_s
 {
 	M_sql_error_t err      = M_SQL_ERROR_SUCCESS;
 	unsigned int  merr;
-	size_t        num_rows = mysql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
 	size_t        num_cols = M_sql_driver_stmt_bind_cnt(stmt);
+	size_t        num_rows = mysql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt), num_cols);
 	size_t        row;
 	size_t        i;
 
@@ -751,7 +758,7 @@ static M_sql_error_t mysql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 
 	/* Get number of rows that are processed at once, supports
 	 * comma-delimited values for inserting multiple rows. */
-	*rows_executed = mysql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
+	*rows_executed = mysql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt), M_sql_driver_stmt_bind_cnt(stmt));
 
 	if (mysql_stmt_execute(driver_stmt->stmt) != 0) {
 		unsigned int merr = mysql_stmt_errno(driver_stmt->stmt);
