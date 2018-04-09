@@ -246,6 +246,23 @@ M_API M_bool M_bit_parser_read_bit_buf(M_bit_parser_t *bparser, M_bit_buf_t *bbu
 M_API char *M_bit_parser_read_strdup(M_bit_parser_t *bparser, size_t nbits);
 
 
+/*! Read multiple bits, convert directly to an unsigned integer.
+ *
+ * The bits are converted to a single big-endian unsigned integer.
+ *
+ * For example, if a bit parser contains '11100', you should see the following:
+ * \li M_bit_parser_read_uint(bparser, 3, &num) --> num == 7
+ * \li M_bit_parser_read_uint(bparser, 4, &num) --> num == 14
+ * \li M_bit_parser_read_uint(bparser, 5, &num) --> num == 28
+ *
+ * \param[in]  bparser bit parser to read bits from
+ * \param[in]  nbits   number of bits to read (must be >= 1 and <= 64)
+ * \param[out] res     read bits, converted to an unsigned integer
+ * \return             M_TRUE on success, M_FALSE on failure
+ */
+M_API M_bool M_bit_parser_read_uint(M_bit_parser_t *bparser, size_t nbits, M_uint64 *res);
+
+
 /*! Skip bits until we hit a bit different than the current one.
  *
  * For example, if the parser contains "11100001", calling this function will move the parser's position

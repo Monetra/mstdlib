@@ -286,6 +286,36 @@ char *M_bit_parser_read_strdup(M_bit_parser_t *bparser, size_t nbits)
 }
 
 
+M_bool M_bit_parser_read_uint(M_bit_parser_t *bparser, size_t nbits, M_uint64 *res)
+{
+	size_t  i;
+
+	if (res == NULL) {
+		return M_FALSE;
+	}
+
+	*res = 0;
+
+	if (bparser == NULL || nbits == 0 || nbits > 64 || M_bit_parser_len(bparser) < nbits) {
+		return M_FALSE;
+	}
+
+	for (i=0; i<nbits; i++) {
+		M_uint8 bit = 0;
+
+		peek_next_bit(bparser, &bit);
+		bparser->offset++;
+
+		/* Move current contents up by one bit position. */
+		*res <<= 1;
+		/* Store next bit in lowest bit position. */
+		*res = (M_uint64)(*res | bit);
+	}
+
+	return M_TRUE;
+}
+
+
 M_bool M_bit_parser_consume_range(M_bit_parser_t *bparser, size_t max_bits)
 {
 	M_uint8 bit;
