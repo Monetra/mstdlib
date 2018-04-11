@@ -134,7 +134,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Formatted String output.</p>
-<p>%&lt;character&gt; is used to denote the data type of the argument. Arguments are passed after the format string.</p>
+<p>%&lt;character&gt; is used to denote the data type of the function arguments. Arguments are passed after the format string. flags and other modifiers are specified between the % and conversion characters. E.g. %&lt;behavior&gt;&lt;character&gt;</p>
 <h1>Supported features</h1>
 <h2>Flags</h2>
 <table class="doxtable">
@@ -143,7 +143,7 @@ Functions</h2></td></tr>
 <tr>
 <td>'-' </td><td>Left justify output. Default is to right justify. Overrides the '0' flag if both are set. </td></tr>
 <tr>
-<td>'+' </td><td>Always add the sign for numeric output. Default is only to add sign for negative. Overrides the ' ' flag if both are set. </td></tr>
+<td>'+' </td><td>Always add the sign (+-) for numeric output. Default is only to add sign for negative. Overrides the ' ' flag if both are set. </td></tr>
 <tr>
 <td>'#' </td><td>Add the appropriate prefix to the output of numerics. 0x or 0X for Hex. 0 for Octal. </td></tr>
 <tr>
@@ -152,12 +152,12 @@ Functions</h2></td></tr>
 <td>'0' </td><td>Pad numerics with 0. Default padding is space (' '). </td></tr>
 </table>
 <h2>Width and precision</h2>
-<p>A decimal (.) separated value with each side is option can be specified, &lt;width&gt;.&lt;precision&gt;.</p>
-<p>The width is the minimum output size. Padding will be added if the output would be smaller than the width. If the output size exceeds the width the width is ignored and the full output will be used.</p>
-<p>Precision for strings is how much to read of the string. If the value is larger than the length of the string, the string length will be used. E.g. ("%.2s", "abc") will result in "ab" for the output.</p>
+<p>A decimal (.) separated value can be specified to control the width and precision of the argument. &lt;width&gt;.&lt;precision&gt;.</p>
+<p>The width is the minimum output size. Padding will be added if the output would be smaller than the width. If the output size exceeds the width, the width is ignored and the full input will be output.</p>
+<p>Precision for strings controls the length that should be output. If the value is larger than the length of the string, the string length will be used. E.g. ("%.2s", "abc") will result in "ab" for the output.</p>
 <p>Precision for floating point determines the number of decimal places to output. The default is 6. It's recommended the maximum precision specified be no large than 14 digits. Digits over 14 can have platform specific rounding differences.</p>
-<p>If either or both sides of the decimal do not have a value the side is ignored. This allows any combination of width and precision to be specified.</p>
-<p>A '*' can be specified for either which will read the value from an argument. The argument is an int. The arguments are read right to left. E.g. ("%*.*s", 4, 2, "abc") will result in "  ab".</p>
+<p>Width and precision are both optional. You can specify one, the other, or both. E.g. "%.2s", "%8.s".</p>
+<p>A '*' can be used instead of a decmail value and will read the size from an argument. The argument is an int. The arguments are read right to left. E.g. ("%*.*s", 4, 2, "abc") will result in "  ab".</p>
 <h2>Size modifiers</h2>
 <p>Specify the data size of a given argument.</p>
 <table class="doxtable">
@@ -192,13 +192,13 @@ Functions</h2></td></tr>
 <tr>
 <td>x, X </td><td>Unsigned integer. Output as hex. 'x' outputs lowercase, 'X' outputs uppercase. </td></tr>
 <tr>
-<td>P, P </td><td>Unsigned pointer. Output as hex. 'x' outputs lowercase, 'X' outputs uppercase. </td></tr>
+<td>p, P </td><td>Unsigned pointer. Output as hex. 'p' outputs lowercase, 'P' outputs uppercase. </td></tr>
 <tr>
 <td>e, E, f, F, g, G </td><td>Double. All will output in the form [-]ddd.ddd. Default 6 decimal digits unless otherwise precision is otherwise specified. </td></tr>
 <tr>
-<td>c </td><td>signed character. </td></tr>
+<td>c </td><td>Signed character. </td></tr>
 <tr>
-<td>s </td><td>Strong (const char *). </td></tr>
+<td>s </td><td>String (const char *). </td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a class="anchor" id="gabf703f32266e0e6f2029d23bca9bd266"></a>
@@ -742,7 +742,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Apr 11 2018 18:07:22 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 11 2018 21:32:48 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
