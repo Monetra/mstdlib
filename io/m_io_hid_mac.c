@@ -46,7 +46,13 @@ struct M_io_handle {
 	M_thread_mutex_t *write_lock;
 	M_thread_cond_t  *write_cond;
 	char              error[256]; /*!< Error buffer for description of last system error. */
-	M_bool            in_write;
+	M_bool            in_write;   /*!< writebuf is manipulated from multiple threads and cannot be put
+	                                   in a lock because writing to the OS is a blocking operation. We
+	                                   the write callback to be able to return would block when there
+	                                   is data buffered and currently being written. We use this flag
+	                                   to know if we can manipulate writebuf which we can guarantee
+	                                   is only modified or read within a lock. There is one place
+	                                   where the writebuf is partly locked. Explained in the write thread. */
 	char             *path;
 	char              manufacturer[256];
 	char              product[256];
@@ -115,6 +121,11 @@ static void *M_io_hid_write_loop(void *arg)
 	CFIndex        len;
 
 	while (handle->run) {
+		/* Within this locked block in_write is false
+		 * but writebuf is only modified in the write
+		 * callback when it's holding the lock. We don't
+		 * have to worry about checking the length here
+		 * while data is being added. */
 		M_thread_mutex_lock(handle->write_lock);
 		if (M_buf_len(handle->writebuf) == 0) {
 			M_thread_cond_wait(handle->write_cond, handle->write_lock);
@@ -636,9 +647,13 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	M_thread_mutex_lock(handle->write_lock);
 
-	/* Note: we have to finish with the previous write before we can start the next one. This is
+	/* Note: We have to finish with the previous write before we can start the next one. This is
 	 *       because HID writes aren't streams, they have to be performed in the exact same chunk
 	 *       sizes that we received them in (each report is zero-padded and has a particular size).
+	 *
+	 * if in_write is false the write thread will be blocked from reading from or modifying the writebuf because
+	 * we're holding the lock. The write thread will only do something with writebuf when in_write is true or
+	 * it holds the lock.
 	 */
 	if (handle->in_write || M_buf_len(handle->writebuf) > 0) {
 		M_thread_mutex_unlock(handle->write_lock);
