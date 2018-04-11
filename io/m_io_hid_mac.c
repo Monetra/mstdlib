@@ -142,33 +142,39 @@ static void *M_io_hid_write_loop(void *arg)
 		}
 		ioret = IOHIDDeviceSetReport(handle->device, kIOHIDReportTypeOutput, reportid, data, len);
 		ioerr = M_io_mac_ioreturn_to_err(ioret);
-		/* Lock the layer so we can send events. */
-		layer = M_io_layer_acquire(handle->io, 0, NULL);
+
 		if (M_io_error_is_critical(ioerr)) {
+			M_thread_mutex_lock(handle->write_lock);
+			handle->in_write = M_FALSE;
+			M_thread_mutex_unlock(handle->write_lock);
+
+			layer = M_io_layer_acquire(handle->io, 0, NULL);
 			M_snprintf(handle->error, sizeof(handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
 			M_io_hid_close_device(handle);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
 			M_io_layer_release(layer);
-
-			M_thread_mutex_lock(handle->write_lock);
-			handle->in_write = M_FALSE;
-			M_thread_mutex_unlock(handle->write_lock);
 			break;
 		}
-		/* clear the write buf since we've written the data. If
- 		 * there was a recoverable error we don't clear the buf
-		 * because the write event will trigger this to run
-		 * again and the write will be retried. */
+
 		if (ioerr == M_IO_ERROR_SUCCESS) {
 			M_buf_truncate(handle->writebuf, 0);
 		}
 
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
-		M_io_layer_release(layer);
-
 		M_thread_mutex_lock(handle->write_lock);
 		handle->in_write = M_FALSE;
 		M_thread_mutex_unlock(handle->write_lock);
+
+		/* Must do this AFTER write flag is set back to false. Otherwise, WRITE event
+		 * handlers on main thread might be executed before the write flag is updated,
+		 * causing them to get M_IO_WOULDBLOCK and then sit forever waiting for another
+		 * WRITE event that will never be sent.
+		 */
+		if (ioerr == M_IO_ERROR_SUCCESS) {
+			layer = M_io_layer_acquire(handle->io, 0, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+			M_io_layer_release(layer);
+		}
+
 	}
 
 	return NULL;
@@ -628,11 +634,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	(void)meta;
 
-	/* If we can't lock then the write thread has the lock.
- 	 * We can't put anything into the buffer while it's
-	 * processing so return would block. */
-	if (!M_thread_mutex_trylock(handle->write_lock))
-		return M_IO_ERROR_WOULDBLOCK;
+	M_thread_mutex_lock(handle->write_lock);
 
 	/* Note: we have to finish with the previous write before we can start the next one. This is
 	 *       because HID writes aren't streams, they have to be performed in the exact same chunk
