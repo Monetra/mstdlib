@@ -634,7 +634,11 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (!M_thread_mutex_trylock(handle->write_lock))
 		return M_IO_ERROR_WOULDBLOCK;
 
-	if (handle->in_write) {
+	/* Note: we have to finish with the previous write before we can start the next one. This is
+	 *       because HID writes aren't streams, they have to be performed in the exact same chunk
+	 *       sizes that we received them in (each report is zero-padded and has a particular size).
+	 */
+	if (handle->in_write || M_buf_len(handle->writebuf) > 0) {
 		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_WOULDBLOCK;
 	}
