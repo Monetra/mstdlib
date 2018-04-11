@@ -39,6 +39,19 @@ static void M_io_layer_free_cb(void *arg)
 	M_free(layer);
 }
 
+static size_t M_io_layer_get_real_id(M_io_t *io, size_t idx)
+{
+	size_t len;
+
+	if (idx == M_IO_LAYER_FIND_FIRST_ID) {
+		len = M_list_len(io->layer);
+		if (len > 0) {
+			idx = len-1;
+		}
+	}
+	return idx;
+}
+
 M_io_t *M_io_init(M_io_type_t type)
 {
 	struct M_list_callbacks layer_cbs = {
@@ -131,7 +144,8 @@ M_io_layer_t *M_io_layer_at(M_io_t *io, size_t layer_id)
 	if (io == NULL)
 		return NULL;
 
-	ptr = M_list_at(io->layer, layer_id);
+	layer_id = M_io_layer_get_real_id(io, layer_id);
+	ptr      = M_list_at(io->layer, layer_id);
 	if (ptr == NULL)
 		return NULL;
 
@@ -658,11 +672,13 @@ const char *M_io_layer_name(M_io_t *io, size_t idx)
 {
 	const M_io_layer_t *layer;
 	const char         *name = NULL;
+
 	if (io == NULL)
 		return NULL;
 
 	M_io_lock(io);
 
+	idx   = M_io_layer_get_real_id(io, idx);
 	layer = M_list_at(io->layer, idx);
 	if (layer != NULL)
 		name = layer->name;
