@@ -118,8 +118,9 @@ M_END_IGNORE_REDECLARATIONS
  *
  * Formatted String output.
  *
- * %\<character\> is used to denote the data type of the argument. Arguments are passed
- * after the format string.
+ * %\<character\> is used to denote the data type of the function arguments. Arguments are passed
+ * after the format string. flags and other modifiers are specified between the % and conversion
+ * characters. E.g. %\<behavior\>\<character\>
  *
  * # Supported features
  *
@@ -128,30 +129,30 @@ M_END_IGNORE_REDECLARATIONS
  * Flag | Description
  * -----|------------
  * '-'  | Left justify output. Default is to right justify. Overrides the '0' flag if both are set.
- * '+'  | Always add the sign for numeric output. Default is only to add sign for negative. Overrides the ' ' flag if both are set.
+ * '+'  | Always add the sign (+-) for numeric output. Default is only to add sign for negative. Overrides the ' ' flag if both are set.
  * '#'  | Add the appropriate prefix to the output of numerics. 0x or 0X for Hex. 0 for Octal.
  * ' '  | Use a space as if it were the sign for positive numbers.
  * '0'  | Pad numerics with 0. Default padding is space (' ').
  *
  * ## Width and precision
  *
- * A decimal (.) separated value with each side is option can be specified, \<width\>.\<precision\>.
+ * A decimal (.) separated value can be specified to control the width and precision of the argument.
+ * \<width\>.\<precision\>.
  *
  * The width is the minimum output size. Padding will be added if the output would be smaller
- * than the width. If the output size exceeds the width the width is ignored and the full output
- * will be used.
+ * than the width. If the output size exceeds the width, the width is ignored and the full input 
+ * will be output.
  *
- * Precision for strings is how much to read of the string. If the value is larger than the length
+ * Precision for strings controls the length that should be output. If the value is larger than the length
  * of the string, the string length will be used. E.g. ("%.2s", "abc") will result in "ab" for the output.
  *
  * Precision for floating point determines the number of decimal places to output. The default is 6.
  * It's recommended the maximum precision specified be no large than 14 digits. Digits over 14 can have
  * platform specific rounding differences.
  *
- * If either or both sides of the decimal do not have a value the side is ignored. This allows any
- * combination of width and precision to be specified.
+ * Width and precision are both optional. You can specify one, the other, or both. E.g. "%.2s", "%8.s".
  *
- * A '*' can be specified for either which will read the value from an argument. The argument is an
+ * A '*' can be used instead of a decmail value and will read the size from an argument. The argument is an
  * int. The arguments are read right to left. E.g. ("%*.*s", 4, 2, "abc") will result in "  ab".
  *
  * ## Size modifiers
@@ -178,10 +179,10 @@ M_END_IGNORE_REDECLARATIONS
  * o, O             | Unsigned integer. Output as octal.
  * u                | Unsigned integer.
  * x, X             | Unsigned integer. Output as hex. 'x' outputs lowercase, 'X' outputs uppercase.
- * P, P             | Unsigned pointer. Output as hex. 'x' outputs lowercase, 'X' outputs uppercase.
+ * p, P             | Unsigned pointer. Output as hex. 'p' outputs lowercase, 'P' outputs uppercase.
  * e, E, f, F, g, G | Double. All will output in the form [-]ddd.ddd. Default 6 decimal digits unless otherwise precision is otherwise specified.
- * c                | signed character.
- * s                | Strong (const char *).
+ * c                | Signed character.
+ * s                | String (const char *).
  *
  * @{
  */
