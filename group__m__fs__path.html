@@ -127,6 +127,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga3f69a4ee9f45754a694687e0fa4690cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5736cfd3b6b904f9b815fceb3c04c6fe"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__path.html#ga5736cfd3b6b904f9b815fceb3c04c6fe">M_fs_path_user_confdir</a> (<a class="el" href="group__m__fs__common.html#gaefd55a9dc71e62dfa0ad82b76c31ca9e">M_fs_system_t</a> sys_type)</td></tr>
 <tr class="separator:ga5736cfd3b6b904f9b815fceb3c04c6fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e290a643f72a1ba3f6dac3e37dbcde9"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__path.html#ga0e290a643f72a1ba3f6dac3e37dbcde9">M_fs_path_tmpdir</a> (<a class="el" href="group__m__fs__common.html#gaefd55a9dc71e62dfa0ad82b76c31ca9e">M_fs_system_t</a> sys_type)</td></tr>
+<tr class="separator:ga0e290a643f72a1ba3f6dac3e37dbcde9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0ff7d295bac9d48e523224a46e902217"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__path.html#ga0ff7d295bac9d48e523224a46e902217">M_fs_path_get_cwd</a> (char **cwd)</td></tr>
 <tr class="separator:ga0ff7d295bac9d48e523224a46e902217"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga124f7ef47ca041b4955424ab570fc71a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__path.html#ga124f7ef47ca041b4955424ab570fc71a">M_fs_path_set_cwd</a> (const char *path)</td></tr>
@@ -570,6 +572,33 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga0e290a643f72a1ba3f6dac3e37dbcde9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_fs_path_tmpdir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__fs__common.html#gaefd55a9dc71e62dfa0ad82b76c31ca9e">M_fs_system_t</a>&#160;</td>
+          <td class="paramname"><em>sys_type</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Temporary directory set by the system that the application can use for temporary storage.</p>
+<dl class="section warning"><dt>Warning</dt><dd>This is <em>NOT</em> a secure location.</dd></dl>
+<p>Other processes on the system can share this directory. It's recommend to create an applications specific subdirectory to use for temporary files. Again, this is <em>NOT</em> intended to be used for secure files or when secure files are necessary.</p>
+<p>This should only be used for temporary storage of files being manipulated. For example, unpacking a compressed archive then moving the files to the destination. Or saving to a temporary file then using M_fs_move to ensure an atomic write.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">sys_type</td><td>The system path logic and separator to use.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The path to a temporary dir, otherwise NULL on error. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga0ff7d295bac9d48e523224a46e902217"></a>
 <div class="memitem">
 <div class="memproto">
@@ -718,7 +747,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Apr 11 2018 22:00:58 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Apr 12 2018 19:43:18 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -50,11 +50,12 @@ var NAVTREEINDEX2 =
 "group__m__fs__operations.html#gaf62c09de35648a572517a78638f13159":[0,0,10,7,0],
 "group__m__fs__operations.html#gafc77632fe3f667f5c6bfbdd1bbb4c5d2":[0,0,10,7,3],
 "group__m__fs__path.html":[0,0,10,2],
-"group__m__fs__path.html#ga0ff7d295bac9d48e523224a46e902217":[0,0,10,2,12],
-"group__m__fs__path.html#ga124f7ef47ca041b4955424ab570fc71a":[0,0,10,2,13],
+"group__m__fs__path.html#ga0e290a643f72a1ba3f6dac3e37dbcde9":[0,0,10,2,12],
+"group__m__fs__path.html#ga0ff7d295bac9d48e523224a46e902217":[0,0,10,2,13],
+"group__m__fs__path.html#ga124f7ef47ca041b4955424ab570fc71a":[0,0,10,2,14],
 "group__m__fs__path.html#ga22039550e30b65a8c3b564f404ef9847":[0,0,10,2,3],
 "group__m__fs__path.html#ga261c7565006deaa354485456e46d3072":[0,0,10,2,0],
-"group__m__fs__path.html#ga2c08ab8fbb6c65ad24c9a526cd860256":[0,0,10,2,14],
+"group__m__fs__path.html#ga2c08ab8fbb6c65ad24c9a526cd860256":[0,0,10,2,15],
 "group__m__fs__path.html#ga35e3eace633ee5c29459b65e3b80b6da":[0,0,10,2,6],
 "group__m__fs__path.html#ga3f69a4ee9f45754a694687e0fa4690cd":[0,0,10,2,10],
 "group__m__fs__path.html#ga4b10e793fbabd83afc9c846dcc0b85ec":[0,0,10,2,4],
@@ -63,7 +64,7 @@ var NAVTREEINDEX2 =
 "group__m__fs__path.html#ga8062d1f6544fde30a811e0661083b06e":[0,0,10,2,1],
 "group__m__fs__path.html#ga911b4e607c1eb096819af835693edd99":[0,0,10,2,8],
 "group__m__fs__path.html#gac98c8a9f3593004fb11e676fe7ab75b9":[0,0,10,2,5],
-"group__m__fs__path.html#gae775e4a1066ce51cdd9946e74663f890":[0,0,10,2,15],
+"group__m__fs__path.html#gae775e4a1066ce51cdd9946e74663f890":[0,0,10,2,16],
 "group__m__fs__path.html#gaf241980bae4f11eee15bb78b7bb0c53f":[0,0,10,2,9],
 "group__m__fs__path.html#gaf7ffda139e36f8ed570e2c8999ede21f":[0,0,10,2,7],
 "group__m__fs__perms.html":[0,0,10,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393faff7602e314806fc16af9405bed7b1bca":[0,0,1,1,3,2,3],
 "group__m__hash__stridx.html":[0,0,1,1,4],
 "group__m__hash__stridx.html#ga0123986bcb05d045f2c3611f5e2df2e2":[0,0,1,1,4,14],
-"group__m__hash__stridx.html#ga046b5bb9e48f810ec4205f330cc8211f":[0,0,1,1,4,6],
-"group__m__hash__stridx.html#ga0b5372516400c2d5bb50854b9302ea21":[0,0,1,1,4,10]
+"group__m__hash__stridx.html#ga046b5bb9e48f810ec4205f330cc8211f":[0,0,1,1,4,6]
 };

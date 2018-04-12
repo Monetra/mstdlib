@@ -12,6 +12,7 @@ var group__m__fs__path =
     [ "M_fs_path_dirname", "group__m__fs__path.html#gaf241980bae4f11eee15bb78b7bb0c53f", null ],
     [ "M_fs_path_basename", "group__m__fs__path.html#ga3f69a4ee9f45754a694687e0fa4690cd", null ],
     [ "M_fs_path_user_confdir", "group__m__fs__path.html#ga5736cfd3b6b904f9b815fceb3c04c6fe", null ],
+    [ "M_fs_path_tmpdir", "group__m__fs__path.html#ga0e290a643f72a1ba3f6dac3e37dbcde9", null ],
     [ "M_fs_path_get_cwd", "group__m__fs__path.html#ga0ff7d295bac9d48e523224a46e902217", null ],
     [ "M_fs_path_set_cwd", "group__m__fs__path.html#ga124f7ef47ca041b4955424ab570fc71a", null ],
     [ "M_fs_path_readlink", "group__m__fs__path.html#ga2c08ab8fbb6c65ad24c9a526cd860256", null ],
