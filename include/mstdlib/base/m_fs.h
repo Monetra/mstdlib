@@ -831,9 +831,30 @@ M_API char *M_fs_path_basename(const char *path, M_fs_system_t sys_type);
  * \param[in] sys_type The system path logic and separator to use.
  *
  * \return The path to the config dir, otherwise NULL on error.
- *
  */
 M_API char *M_fs_path_user_confdir(M_fs_system_t sys_type);
+
+
+
+/*! Temporary directory set by the system that the application can use for temporary storage.
+ *
+ * \warning This is _NOT_ a secure location.
+ *
+ * Other processes on the system can share this directory.
+ * It's recommend to create an applications specific subdirectory to use for temporary
+ * files. Again, this is _NOT_ intended to be used for secure files or when secure files
+ * are necessary.
+ *
+ * This should only be used for temporary storage
+ * of files being manipulated. For example, unpacking a compressed archive then moving
+ * the files to the destination. Or saving to a temporary file then using M_fs_move to
+ * ensure an atomic write.
+ *
+ * \param[in] sys_type The system path logic and separator to use.
+ *
+ * \return The path to a temporary dir, otherwise NULL on error.
+ */
+M_API char *M_fs_path_tmpdir(M_fs_system_t sys_type);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

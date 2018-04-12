@@ -37,6 +37,10 @@
 #  include "fs/m_fs_int_unx.h"
 #endif
 
+#if defined(__APPLE__) || defined(IOS)
+#include "fs/m_fs_int_mac.h"
+#endif
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
