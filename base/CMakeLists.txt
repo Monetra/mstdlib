@@ -48,6 +48,7 @@ set(sources
 	fs/m_fs_path_norm.c
 	fs/m_fs_perms.c
 	fs/m_fs_progress.c
+	fs/m_fs_mac.m
 
 	# hash:
 	hash/m_hash_dict.c
@@ -176,6 +177,13 @@ endif ()
 if (WIN32 OR MINGW)
 	target_link_libraries(${PROJECT_NAME}
 		PRIVATE winmm.lib Advapi32.lib Authz.lib Shlwapi.lib Shell32.lib
+	)
+endif ()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+	find_library(FOUNDATION NAMES Foundation)
+	target_link_libraries(${PROJECT_NAME}
+		PUBLIC "${FOUNDATION}"
 	)
 endif ()
 

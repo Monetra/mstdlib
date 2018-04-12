@@ -210,7 +210,7 @@ static M_bool M_fs_path_norm_home(M_list_str_t **dirs, M_fs_system_t sys_type)
 {
 	char          *home = NULL;
 	M_list_str_t  *temp;
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__APPLE__)
 	struct passwd *pwd_result;
 	struct passwd  pwd;
 	char          *env_home;
@@ -235,6 +235,8 @@ static M_bool M_fs_path_norm_home(M_list_str_t **dirs, M_fs_system_t sys_type)
 			M_free(home);
 			home = NULL;
 		}
+#elif defined(__APPLE__) || defined(IOS)
+		home = M_fs_path_mac_home();
 #else
 		/* Get the dir pointed to by the env and fall back to the pwd db entry
 		 * if the env var hasn't been set. */
