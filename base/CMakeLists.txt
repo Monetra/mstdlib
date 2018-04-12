@@ -48,7 +48,6 @@ set(sources
 	fs/m_fs_path_norm.c
 	fs/m_fs_perms.c
 	fs/m_fs_progress.c
-	fs/m_fs_mac.m
 
 	# hash:
 	hash/m_hash_dict.c
@@ -128,6 +127,13 @@ else ()
 		fs/m_fs_perms_unx.c
 		# platform:
 		platform/m_platform_unx.c
+	)
+endif ()
+
+if (APPLE)
+	list(APPEND sources
+		# fs:
+		fs/m_fs_mac.m
 	)
 endif ()
 
