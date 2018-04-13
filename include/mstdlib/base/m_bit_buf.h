@@ -39,7 +39,11 @@ __BEGIN_DECLS
  *
  * Allows for buffered writing of data that's organized per-bit, instead of per-byte.
  *
- * When done adding data the contents of the buffer can be output as a continuous byte-array, either
+ * Also allows for changing bits that were previously added to the buffer (see M_bit_buf_update_bit()). This
+ * allows for random-access setting of individual bits. For example, if you're generating a bit-level image,
+ * you can fill the buffer with zero bits, and then set individual bits afterwards in whatever order you wish.
+ *
+ * When you're done adding data, the contents of the buffer can be output as a continuous byte-array, either
  * raw as an (M_uint8 *), or inside a regular per-byte M_buf_t.
  *
  * Example (creating a buffer, adding data, finishing the buffer):
@@ -181,6 +185,16 @@ M_API void M_bit_buf_fill(M_bit_buf_t *bbuf, M_uint8 bit, size_t len_bits);
  * \param[in]     bit  1 (to add a set bit) or 0 (to add an unset bit)
  */
 M_API void M_bit_buf_add_bit(M_bit_buf_t *bbuf, M_uint8 bit);
+
+
+/*! Change one of the bits already in the buffer.
+ *
+ * \param[in] bbuf    Bit buffer
+ * \param[in] bit_idx index of bit to change, must be less than M_bit_buf_len()
+ * \param[in] bit     1 to set the bit, 0 to unset it
+ * \return            M_TRUE on success, M_FALSE if requested bit index too large (not in buffer yet)
+ */
+M_API M_bool M_bit_buf_update_bit(M_bit_buf_t *bbuf, size_t bit_idx, M_uint8 bit);
 
 
 /*! Add bits from the given variable-length chunk of data.

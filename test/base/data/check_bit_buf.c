@@ -103,6 +103,36 @@ START_TEST(check_bbuf_add_bit)
 END_TEST
 
 
+START_TEST(check_bbuf_update_bit)
+{
+	init_test;
+	M_bit_buf_add_bitstr(bbuf, "1101 0011 0010 1100", M_BIT_BUF_PAD_NONE);
+
+	check_lens(bbuf, 16, 2);
+
+	M_bit_buf_update_bit(bbuf, 3,  0);
+	M_bit_buf_update_bit(bbuf, 0,  0);
+	M_bit_buf_update_bit(bbuf, 7,  0);
+	M_bit_buf_update_bit(bbuf, 11, 1);
+	M_bit_buf_update_bit(bbuf, 15, 1);
+
+	check_lens(bbuf, 16, 2);
+
+	to_bytes;
+
+	/* Expected result: 0100 0010 0011 1101
+	 *               0x  4    2    3    D
+	 */
+
+	ck_assert_uint_eq(nbytes, 2);
+	ck_assert_uint_eq(bytes[0], 0x42);
+	ck_assert_uint_eq(bytes[1], 0x3D);
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bbuf_fill)
 {
 	init_test;
@@ -286,6 +316,7 @@ int main(void)
 	suite = suite_create("check_bit_buf (M_bit_buf_t)");
 
 	add_test(suite, check_bbuf_add_bit);
+	add_test(suite, check_bbuf_update_bit);
 	add_test(suite, check_bbuf_fill);
 	add_test(suite, check_bbuf_add);
 	add_test(suite, check_bbuf_add_bytes);

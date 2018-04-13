@@ -201,6 +201,43 @@ void M_bit_buf_add_bit(M_bit_buf_t *bbuf, M_uint8 bit)
 }
 
 
+M_bool M_bit_buf_update_bit(M_bit_buf_t *bbuf, size_t bit_idx, M_uint8 bit)
+{
+	size_t      byte_idx;
+	M_uint8     bit_pos;
+	const char *ptr;
+	M_uint8    *byte;
+	M_uint8     bits_to_set;
+
+	if (bit_idx >= bbuf->nbits) {
+		return M_FALSE;
+	}
+
+	byte_idx = bit_idx / 8;       /* which byte contains the bit to set */
+	bit_pos  = 7 - (bit_idx % 8); /* location within byte of bit to set */
+
+	if (byte_idx >= M_buf_len(bbuf->bits)) {
+		/* Shouldn't ever happen unless we have a bug someplace else, but verify just in case. */
+		return M_FALSE;
+	}
+
+	ptr  = M_buf_peek(bbuf->bits);
+	byte = M_CAST_OFF_CONST(M_uint8 *, ptr) + byte_idx;
+
+	bits_to_set = (M_uint8)(1 << bit_pos);
+	if (bit == 0) {
+		/* Unset the bit. */
+		bits_to_set = (M_uint8)(~bits_to_set);
+		*byte &= bits_to_set;
+	} else {
+		/* Set the bit. */
+		*byte |= bits_to_set;
+	}
+
+	return M_TRUE;
+}
+
+
 void M_bit_buf_add_bytes(M_bit_buf_t *bbuf, const void *vbytes, size_t nbits)
 {
 	const M_uint8 *bytes        = vbytes;
