@@ -142,6 +142,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga6053e2932cb614c5adc6649587a505a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad490e244ebedcdfe88f41eb74d853369"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#gad490e244ebedcdfe88f41eb74d853369">M_bit_buf_add_bit</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, M_uint8 bit)</td></tr>
 <tr class="separator:gad490e244ebedcdfe88f41eb74d853369"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga47895be86ee3f3747515f5432d78fb50"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50">M_bit_buf_update_bit</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, size_t bit_idx, M_uint8 bit)</td></tr>
+<tr class="separator:ga47895be86ee3f3747515f5432d78fb50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga81c50d3c8357be3f55bcdb79c1288b37"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga81c50d3c8357be3f55bcdb79c1288b37">M_bit_buf_add_bytes</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, const void *bytes, size_t nbits)</td></tr>
 <tr class="separator:ga81c50d3c8357be3f55bcdb79c1288b37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga584cbab4ab98afcc8fd43db950a922ad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga584cbab4ab98afcc8fd43db950a922ad">M_bit_buf_add</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, M_uint64 bits, size_t nbits, <a class="el" href="group__m__bit__buf.html#ga13c8cbc06199bff5786f20097e2087fa">M_bit_buf_pad_t</a> pad)</td></tr>
@@ -153,7 +155,8 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Allows for buffered writing of data that's organized per-bit, instead of per-byte.</p>
-<p>When done adding data the contents of the buffer can be output as a continuous byte-array, either raw as an (M_uint8 *), or inside a regular per-byte M_buf_t.</p>
+<p>Also allows for changing bits that were previously added to the buffer (see <a class="el" href="group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50">M_bit_buf_update_bit()</a>). This allows for random-access setting of individual bits. For example, if you're generating a bit-level image, you can fill the buffer with zero bits, and then set individual bits afterwards in whatever order you wish.</p>
+<p>When you're done adding data, the contents of the buffer can be output as a continuous byte-array, either raw as an (M_uint8 *), or inside a regular per-byte M_buf_t.</p>
 <p>Example (creating a buffer, adding data, finishing the buffer):</p>
 <div class="fragment"><div class="line"><a class="code" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf;</div>
 <div class="line">M_uint8     *out;</div>
@@ -502,6 +505,48 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga47895be86ee3f3747515f5432d78fb50"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_buf_update_bit </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>bbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bit_idx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>bit</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Change one of the bits already in the buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bbuf</td><td>Bit buffer </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bit_idx</td><td>index of bit to change, must be less than <a class="el" href="group__m__bit__buf.html#ga5bd6f6861e42545ad2b0ad6407c7d0bc">M_bit_buf_len()</a> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bit</td><td>1 to set the bit, 0 to unset it </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE if requested bit index too large (not in buffer yet) </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga81c50d3c8357be3f55bcdb79c1288b37"></a>
 <div class="memitem">
 <div class="memproto">
@@ -678,7 +723,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Apr 13 2018 17:12:35 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Apr 13 2018 17:46:16 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
