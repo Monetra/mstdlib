@@ -563,7 +563,7 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 	}
 
 	/* Determine if the driver supports automatic IPD (ability to get parameter data types) population */
-	rc = SQLGetConnectAttr((*conn)->dbc_handle, SQL_ATTR_AUTO_IPD, (SQLPOINTER)&auto_pop_ipd, SQL_IS_INTEGER, NULL);
+	rc = SQLGetConnectAttr((*conn)->dbc_handle, SQL_ATTR_AUTO_IPD, (SQLPOINTER)&auto_pop_ipd, SQL_IS_UINTEGER, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 #if 0
 		/* NOTE: FreeTDS returns an error trying to retrieve this attribute, just assume not supported */
@@ -578,8 +578,14 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 		/* Driver supports automatic IPD population, enable it! */
 		rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ENABLE_AUTO_IPD, (SQLPOINTER)SQL_TRUE, SQL_IS_INTEGER);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-			err = odbc_format_error("SQLSetConnectAttr(SQL_ATTR_ENABLE_AUTO_IPD=SQL_TRUE) failed", *conn, NULL, rc, error, error_size);
-			goto done;
+			M_sql_error_t myerr;
+			char          myerror[256];
+			myerr = odbc_format_error("SQLSetConnectAttr(SQL_ATTR_ENABLE_AUTO_IPD=SQL_TRUE) failed", *conn, NULL, rc, myerror, sizeof(myerror));
+			M_sql_driver_trace_message(M_FALSE /* Not debug */, pool, NULL, myerr, myerror);
+
+			/* Lets not treat this as a hard failure
+			 * goto done;
+			 */
 		}
 #endif
 	}
