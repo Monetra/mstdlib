@@ -709,10 +709,9 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 	if (dstmt == NULL)
 		return;
 
-	SQLFreeHandle(SQL_HANDLE_STMT, dstmt->stmt);
-
 	odbc_clear_driver_stmt(dstmt);
 
+	SQLFreeHandle(SQL_HANDLE_STMT, dstmt->stmt);
 
 	M_free(dstmt);
 }
