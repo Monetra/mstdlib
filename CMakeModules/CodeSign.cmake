@@ -44,28 +44,33 @@
 # M_SIGN_DUAL              - dual-sign with SHA1 and SHA256. (Default: only sign with SHA256)
 # M_SIGN_UAC_URL           - if provided, this URL will be displayed to user on UAC dialog (Default: no URL)
 #
+# On Windows, the name passed to M_SIGN_CERT_NAME should match all or part of the "Subject Name" field in the
+# stored certificate.
 #
-#   On Windows, the name passed to M_SIGN_CERT_NAME should match all or part of the "Subject Name" field in the stored certificate.
 #
 # MacOS-only options:
 # ---------------------------------------
 # M_SIGN_KEYCHAIN      - keychain where cert is located (optional: defaults to login keychain, if not provided)
+# M_SIGN_ENTITLEMENTS  - path to entitlements file (optional: default is no entitlements file)
 #
-#   On MacOS, the name passed to M_SIGN_CERT_NAME should match all or part of the "Common Name" field in the certificate.
-#   Examples of certificate names:
-#      "iPhone Distribution: Main Street Softworks, Inc."
-#      "Mac Developer: John Smith" (Used for testing and development on personal machine)
-#      "3rd Party Mac Developer Application: Main Street Softworks, Inc." (ONLY USE FOR APP STORE)
-#      "Developer ID Application: Main Street Softworks, Inc." (USE FOR DIRECT DISTRIBUTION OUTSIDE THE APP STORE)
+# For details on using the entitlements file to enable app sandboxing, see here:
+#   https://developer.apple.com/library/content/documentation/Miscellaneous/Reference/EntitlementKeyReference
 #
-#   If there is only one certificate loaded on your machine for each type of platform / deployment scenario, you
-#   can get away with specifying only the generic part (up to the colon). For example, if only one Mac distribution
-#   certificate is installed on the machine, setting M_SIGN_CERT_NAME to "Mac Developer Application" will find the
-#   proper key.
+# On MacOS, the name passed to M_SIGN_CERT_NAME should match all or part of the "Common Name" field in the certificate.
+# Examples of certificate names:
+#    "iPhone Distribution: Main Street Softworks, Inc."
+#    "Mac Developer: John Smith" (Used for testing and development on personal machine)
+#    "3rd Party Mac Developer Application: Main Street Softworks, Inc." (ONLY USE FOR APP STORE)
+#    "Developer ID Application: Main Street Softworks, Inc." (USE FOR DIRECT DISTRIBUTION OUTSIDE THE APP STORE)
+#
+# If there is only one certificate loaded on your machine for each type of platform / deployment scenario, you
+# can get away with specifying only the generic part (up to the colon). For example, if only one Mac distribution
+# certificate is installed on the machine, setting M_SIGN_CERT_NAME to "Mac Developer Application" will find the
+# proper key.
+#
 #
 # Examples:
 # ---------------------------------------
-#
 # Windows .pfx file, with no password:
 #   $> cmake -DM_SIGN_CERT_FILE=C:\path\to\file.pfx
 #
@@ -493,8 +498,15 @@ function(code_sign_get_cmd_macos out_cmd)
 		message(FATAL_ERROR "Cannot sign code, could not find 'codesign' executable")
 	endif ()
 
-	set(cmd "${CODESIGN}" -s "${M_SIGN_CERT_NAME}" --timestamp --signature-size=12000)
-	if (M_SIGN_KEYCHAIN AND NOT M_SIGN_KEYCHAIN STREQUAL "NONE")
+	set(cmd "${CODESIGN}")
+
+	if (M_SIGN_ENTITLEMENTS)
+		list(APPEND cmd --entitlements "${M_SIGN_ENTITLEMENTS}")
+	endif ()
+   
+	list(APPEND cmd -s "${M_SIGN_CERT_NAME}" --timestamp --signature-size=12000)
+
+	if (M_SIGN_KEYCHAIN)
 		list(APPEND cmd --keychain "${M_SIGN_KEYCHAIN}")
 	endif ()
 

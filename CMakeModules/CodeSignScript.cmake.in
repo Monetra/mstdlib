@@ -28,6 +28,7 @@ set(M_SIGN_CERT_STORE_GLOBAL "@M_SIGN_CERT_STORE_GLOBAL@")
 set(M_SIGN_DUAL              "@M_SIGN_DUAL@")
 set(M_SIGN_UAC_URL           "@M_SIGN_UAC_URL@")
 set(M_SIGN_KEYCHAIN          "@M_SIGN_KEYCHAIN@")
+set(M_SIGN_ENTITLEMENTS      "@M_SIGN_ENTITLEMENTS@")
 
 
 include(CodeSign)
