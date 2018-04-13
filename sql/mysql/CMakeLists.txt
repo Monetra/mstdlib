@@ -49,6 +49,21 @@ if (MSTDLIB_INSTALL_SQL_MYSQL)
 	install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin MySQL::mysql)
 endif ()
 
+# Handle annoying extra iconv.dll dependency in Cygwin/MinGW Windows cross-compile packages.
+if (WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
+	if (NOT TARGET Qt5::Core)
+		#TODO: add tracking system to InstallDepLibs() to prevent multiple inclusion of the same dep file.
+		#      For now, just detect if we're already bundling Qt dependencies, and leave off iconv.dll if we are.
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
+		find_library(ICONV NAMES iconv.dll)
+		if (ICONV)
+			if (MSTDLIB_INSTALL_SQL_MYSQL)
+				install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin "${ICONV}")
+			endif ()
+		endif ()
+	endif ()
+endif ()
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Build and install module.
