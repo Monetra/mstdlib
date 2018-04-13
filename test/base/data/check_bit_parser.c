@@ -23,8 +23,11 @@
 	M_uint8         bit     = 0;\
 	size_t          nbits   = 0;\
 	char           *str     = NULL;\
+	M_uint64        num     = 0;\
 	(void)bit;\
 	(void)nbits;\
+	(void)str;\
+	(void)num;\
 	M_bit_buf_add_bitstr(builder, bitstr, M_BIT_BUF_PAD_NONE);\
 	bparser = M_bit_parser_create(M_bit_buf_peek(builder), M_bit_buf_len(builder))
 
@@ -39,6 +42,7 @@
 	str     = NULL;\
 	bit     = 0;\
 	nbits   = 0;\
+	num     = 0;\
 	bparser = M_bit_parser_create(M_bit_buf_peek(builder), M_bit_buf_len(builder))
 
 
@@ -345,6 +349,31 @@ START_TEST(check_bparser_reset)
 END_TEST
 
 
+START_TEST(check_bparser_read_uint)
+{
+	init_test("01011");
+	check_len(bparser, 5);
+
+	ck_assert(M_bit_parser_read_uint(bparser, 3, &num));
+	ck_assert_uint_eq(num, 2);
+
+	num = 0;
+	ck_assert(M_bit_parser_read_uint(bparser, 2, &num));
+	ck_assert_uint_eq(num, 3);
+
+	check_len(bparser, 0);
+
+	/* Maximum representable value. */
+	reset_test("11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111");
+	check_len(bparser, 64);
+	ck_assert(M_bit_parser_read_uint(bparser, 64, &num));
+	ck_assert_uint_eq(num, M_UINT64_MAX);
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bparser_create_const)
 {
 	M_bit_parser_t *bparser  = NULL;
@@ -383,6 +412,7 @@ int main(void)
 	add_test(suite, check_bparser_read_peek_bit);
 	add_test(suite, check_bparser_read_bit_buf);
 	add_test(suite, check_bparser_read_strdup);
+	add_test(suite, check_bparser_read_uint);
 	add_test(suite, check_bparser_read_range);
 	add_test(suite, check_bparser_consume);
 	add_test(suite, check_bparser_consume_range);
