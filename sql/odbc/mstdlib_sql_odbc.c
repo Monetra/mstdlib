@@ -576,7 +576,7 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 	if (auto_pop_ipd == SQL_TRUE) {
 #ifdef SQL_ATTR_ENABLE_AUTO_IPD /* DB2 PASE doesn't appear to have this */
 		/* Driver supports automatic IPD population, enable it! */
-		rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ENABLE_AUTO_IPD, (SQLPOINTER)SQL_TRUE, SQL_IS_INTEGER);
+		rc = SQLSetConnectAttr((*conn)->dbc_handle, SQL_ATTR_ENABLE_AUTO_IPD, (SQLPOINTER)SQL_TRUE, SQL_IS_UINTEGER);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			M_sql_error_t myerr;
 			char          myerror[256];
