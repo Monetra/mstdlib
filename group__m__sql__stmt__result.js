@@ -7,8 +7,7 @@ var group__m__sql__stmt__result =
       [ "M_SQL_DATA_TYPE_INT32", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae", null ],
       [ "M_SQL_DATA_TYPE_INT64", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227", null ],
       [ "M_SQL_DATA_TYPE_TEXT", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba4198d25518297d44e9c8b9c97fb974ad", null ],
-      [ "M_SQL_DATA_TYPE_BINARY", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5", null ],
-      [ "M_SQL_DATA_TYPE_NULL", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba04a38fc7a397cfab2c70e572394637e8", null ]
+      [ "M_SQL_DATA_TYPE_BINARY", "group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5", null ]
     ] ],
     [ "M_sql_stmt_result_affected_rows", "group__m__sql__stmt__result.html#gacde5b6d1cd003706f683433570c01231", null ],
     [ "M_sql_stmt_result_num_rows", "group__m__sql__stmt__result.html#ga671286710e48ea0ef5d433fceb5d81e7", null ],

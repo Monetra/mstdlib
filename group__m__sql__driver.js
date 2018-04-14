@@ -127,6 +127,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_stmt_bind_get_int16", "group__m__sql__driver.html#gac46dece6e78ae132d5bf5abc86027bb8", null ],
     [ "M_sql_driver_stmt_bind_get_int32", "group__m__sql__driver.html#ga46d34ebddee4be596e0cc1eb27ed578a", null ],
     [ "M_sql_driver_stmt_bind_get_int64", "group__m__sql__driver.html#gad5fe241445b5dd17c9c6a752e6f84ca6", null ],
+    [ "M_sql_driver_stmt_bind_isnull", "group__m__sql__driver.html#ga25a90bb8cef1088ed0e44215e6fa6d38", null ],
     [ "M_sql_driver_stmt_bind_get_text", "group__m__sql__driver.html#ga838fec9dd221ab2f6535a19fecc369cf", null ],
     [ "M_sql_driver_stmt_bind_get_text_len", "group__m__sql__driver.html#ga26482a00c5d20fbf70ed0115d7c01beb", null ],
     [ "M_sql_driver_stmt_bind_get_binary", "group__m__sql__driver.html#ga5c80941abef7bcb09cff781ba218ab3a", null ],

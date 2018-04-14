@@ -562,7 +562,6 @@ var searchData=
   ['m_5fsql_5fdata_5ftype_5fint16',['M_SQL_DATA_TYPE_INT16',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba828428f9faa222ed326083ffdeeee6ec',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fdata_5ftype_5fint32',['M_SQL_DATA_TYPE_INT32',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fdata_5ftype_5fint64',['M_SQL_DATA_TYPE_INT64',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227',1,'m_sql_stmt.h']]],
-  ['m_5fsql_5fdata_5ftype_5fnull',['M_SQL_DATA_TYPE_NULL',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba04a38fc7a397cfab2c70e572394637e8',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fdata_5ftype_5ftext',['M_SQL_DATA_TYPE_TEXT',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba4198d25518297d44e9c8b9c97fb974ad',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fdata_5ftype_5funknown',['M_SQL_DATA_TYPE_UNKNOWN',['../group__m__sql__stmt__result.html#ggae672a1a5ceb3af4f3a01347ffd839beba3ff1cadda0c32a960b59712261123029',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fdriver_5fbitop_5fcap_5ffunc',['M_SQL_DRIVER_BITOP_CAP_FUNC',['../group__m__sql__driver.html#gga02c224c26f838de6ae8a15f008b3e2d5a11d1aeeff86a3cfe70eb59aaf16a774f',1,'m_sql_driver.h']]],
