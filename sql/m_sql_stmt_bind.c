@@ -98,18 +98,19 @@ static M_sql_stmt_bind_col_t *M_sql_stmt_bind_new_col(M_sql_stmt_t *stmt)
 	return &stmt->bind_rows[row].cols[stmt->bind_rows[row].col_cnt-1];
 }
 
-M_sql_error_t M_sql_stmt_bind_null(M_sql_stmt_t *stmt)
-{
-	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
-	col->type = M_SQL_DATA_TYPE_NULL;
-	return M_SQL_ERROR_SUCCESS;
-}
-
 M_sql_error_t M_sql_stmt_bind_bool(M_sql_stmt_t *stmt, M_bool val)
 {
 	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
 	col->type = M_SQL_DATA_TYPE_BOOL;
 	col->v.b  = val;
+	return M_SQL_ERROR_SUCCESS;
+}
+
+M_sql_error_t M_sql_stmt_bind_bool_null(M_sql_stmt_t *stmt)
+{
+	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
+	col->type   = M_SQL_DATA_TYPE_BOOL;
+	col->isnull = M_TRUE;
 	return M_SQL_ERROR_SUCCESS;
 }
 
@@ -121,11 +122,27 @@ M_sql_error_t M_sql_stmt_bind_int16(M_sql_stmt_t *stmt, M_int16 val)
 	return M_SQL_ERROR_SUCCESS;
 }
 
+M_sql_error_t M_sql_stmt_bind_int16_null(M_sql_stmt_t *stmt)
+{
+	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
+	col->type   = M_SQL_DATA_TYPE_INT16;
+	col->isnull = M_TRUE;
+	return M_SQL_ERROR_SUCCESS;
+}
+
 M_sql_error_t M_sql_stmt_bind_int32(M_sql_stmt_t *stmt, M_int32 val)
 {
 	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
 	col->type  = M_SQL_DATA_TYPE_INT32;
 	col->v.i32 = val;
+	return M_SQL_ERROR_SUCCESS;
+}
+
+M_sql_error_t M_sql_stmt_bind_int32_null(M_sql_stmt_t *stmt)
+{
+	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
+	col->type   = M_SQL_DATA_TYPE_INT32;
+	col->isnull = M_TRUE;
 	return M_SQL_ERROR_SUCCESS;
 }
 
@@ -137,22 +154,30 @@ M_sql_error_t M_sql_stmt_bind_int64(M_sql_stmt_t *stmt, M_int64 val)
 	return M_SQL_ERROR_SUCCESS;
 }
 
+M_sql_error_t M_sql_stmt_bind_int64_null(M_sql_stmt_t *stmt)
+{
+	M_sql_stmt_bind_col_t *col = M_sql_stmt_bind_new_col(stmt);
+	col->type   = M_SQL_DATA_TYPE_INT64;
+	col->isnull = M_TRUE;
+	return M_SQL_ERROR_SUCCESS;
+}
+
 M_sql_error_t M_sql_stmt_bind_text_const(M_sql_stmt_t *stmt, const char *text, size_t max_len)
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (text == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                  = M_sql_stmt_bind_new_col(stmt);
 	col->type            = M_SQL_DATA_TYPE_TEXT;
-	col->v.text.is_const = M_TRUE;
-	col->v.text.data     = M_CAST_OFF_CONST(char *, text);
-	if (max_len == 0) {
-		col->v.text.max_len = M_str_len(text);
+	if (text == NULL) {
+		col->isnull      = M_TRUE;
 	} else {
-		col->v.text.max_len = M_str_len_max(text, max_len);
+		col->v.text.is_const = M_TRUE;
+		col->v.text.data     = M_CAST_OFF_CONST(char *, text);
+		if (max_len == 0) {
+			col->v.text.max_len = M_str_len(text);
+		} else {
+			col->v.text.max_len = M_str_len_max(text, max_len);
+		}
 	}
 	return M_SQL_ERROR_SUCCESS;
 }
@@ -161,18 +186,18 @@ M_sql_error_t M_sql_stmt_bind_text_own(M_sql_stmt_t *stmt, char *text, size_t ma
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (text == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                  = M_sql_stmt_bind_new_col(stmt);
 	col->type            = M_SQL_DATA_TYPE_TEXT;
-	col->v.text.is_const = M_FALSE;
-	col->v.text.data     = text;
-	if (max_len == 0) {
-		col->v.text.max_len = M_str_len(text);
+	if (text == NULL) {
+		col->isnull      = M_TRUE;
 	} else {
-		col->v.text.max_len = M_str_len_max(text, max_len);
+		col->v.text.is_const = M_FALSE;
+		col->v.text.data     = text;
+		if (max_len == 0) {
+			col->v.text.max_len = M_str_len(text);
+		} else {
+			col->v.text.max_len = M_str_len_max(text, max_len);
+		}
 	}
 	return M_SQL_ERROR_SUCCESS;
 }
@@ -181,19 +206,19 @@ M_sql_error_t M_sql_stmt_bind_text_dup(M_sql_stmt_t *stmt, const char *text, siz
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (text == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                  = M_sql_stmt_bind_new_col(stmt);
 	col->type            = M_SQL_DATA_TYPE_TEXT;
-	col->v.text.is_const = M_FALSE;
-	if (max_len == 0) {
-		col->v.text.max_len = M_str_len(text);
+	if (text == NULL) {
+		col->isnull      = M_TRUE;
 	} else {
-		col->v.text.max_len = M_str_len_max(text, max_len);
+		col->v.text.is_const = M_FALSE;
+		if (max_len == 0) {
+			col->v.text.max_len = M_str_len(text);
+		} else {
+			col->v.text.max_len = M_str_len_max(text, max_len);
+		}
+		col->v.text.data     = M_strdup_max(text, col->v.text.max_len);
 	}
-	col->v.text.data     = M_strdup_max(text, col->v.text.max_len);
 	return M_SQL_ERROR_SUCCESS;
 }
 
@@ -201,15 +226,15 @@ M_sql_error_t M_sql_stmt_bind_binary_const(M_sql_stmt_t *stmt, const M_uint8 *bi
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (bin == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                    = M_sql_stmt_bind_new_col(stmt);
 	col->type              = M_SQL_DATA_TYPE_BINARY;
-	col->v.binary.is_const = M_TRUE;
-	col->v.binary.data     = M_CAST_OFF_CONST(M_uint8 *, bin);
-	col->v.binary.len      = bin_len;
+	if (bin == NULL) {
+		col->isnull        = M_TRUE;
+	} else {
+		col->v.binary.is_const = M_TRUE;
+		col->v.binary.data     = M_CAST_OFF_CONST(M_uint8 *, bin);
+		col->v.binary.len      = bin_len;
+	}
 
 	return M_SQL_ERROR_SUCCESS;
 }
@@ -218,15 +243,15 @@ M_sql_error_t M_sql_stmt_bind_binary_own(M_sql_stmt_t *stmt, M_uint8 *bin, size_
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (bin == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                    = M_sql_stmt_bind_new_col(stmt);
 	col->type              = M_SQL_DATA_TYPE_BINARY;
-	col->v.binary.is_const = M_FALSE;
-	col->v.binary.data     = bin;
-	col->v.binary.len      = bin_len;
+	if (bin == NULL) {
+		col->isnull        = M_TRUE;
+	} else {
+		col->v.binary.is_const = M_FALSE;
+		col->v.binary.data     = bin;
+		col->v.binary.len      = bin_len;
+	}
 
 	return M_SQL_ERROR_SUCCESS;
 }
@@ -235,15 +260,15 @@ M_sql_error_t M_sql_stmt_bind_binary_dup(M_sql_stmt_t *stmt, const M_uint8 *bin,
 {
 	M_sql_stmt_bind_col_t *col;
 
-	if (bin == NULL) {
-		return M_sql_stmt_bind_null(stmt);
-	}
-
 	col                    = M_sql_stmt_bind_new_col(stmt);
 	col->type              = M_SQL_DATA_TYPE_BINARY;
-	col->v.binary.is_const = M_FALSE;
-	col->v.binary.data     = M_memdup(bin, bin_len);
-	col->v.binary.len      = bin_len;
+	if (bin == NULL) {
+		col->isnull        = M_TRUE;
+	} else {
+		col->v.binary.is_const = M_FALSE;
+		col->v.binary.data     = M_memdup(bin, bin_len);
+		col->v.binary.len      = bin_len;
+	}
 
 	return M_SQL_ERROR_SUCCESS;
 }

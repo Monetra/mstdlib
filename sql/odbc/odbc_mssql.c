@@ -109,7 +109,6 @@ M_bool mssql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t
 			}
 			return M_TRUE;
 		/* These data types don't really exist */
-		case M_SQL_DATA_TYPE_NULL:
 		case M_SQL_DATA_TYPE_UNKNOWN:
 			break;
 	}

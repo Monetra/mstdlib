@@ -500,8 +500,8 @@ M_API size_t M_sql_driver_stmt_bind_rows(M_sql_stmt_t *stmt);
 M_API size_t M_sql_driver_stmt_bind_cnt(M_sql_stmt_t *stmt);
 M_API M_sql_data_type_t M_sql_driver_stmt_bind_get_type(M_sql_stmt_t *stmt, size_t row, size_t idx);
 
-/*! Some columns with multiple rows might have a NULL data type, this searches for the
- *  "real" datatype, first non-null */
+/*! Some columns with multiple rows might have a NULL data type bound with the wrong type,
+ *  this searches for the "real" datatype, first non-null */
 M_API M_sql_data_type_t M_sql_driver_stmt_bind_get_col_type(M_sql_stmt_t *stmt, size_t idx);
 
 /*! Get the maximum size of a column if there are multiple rows bound */
@@ -527,6 +527,7 @@ M_API M_bool M_sql_driver_stmt_bind_get_bool(M_sql_stmt_t *stmt, size_t row, siz
 M_API M_int16 M_sql_driver_stmt_bind_get_int16(M_sql_stmt_t *stmt, size_t row, size_t idx);
 M_API M_int32 M_sql_driver_stmt_bind_get_int32(M_sql_stmt_t *stmt, size_t row, size_t idx);
 M_API M_int64 M_sql_driver_stmt_bind_get_int64(M_sql_stmt_t *stmt, size_t row, size_t idx);
+M_API M_bool M_sql_driver_stmt_bind_isnull(M_sql_stmt_t *stmt, size_t row, size_t idx);
 M_API const char *M_sql_driver_stmt_bind_get_text(M_sql_stmt_t *stmt, size_t row, size_t idx);
 M_API size_t M_sql_driver_stmt_bind_get_text_len(M_sql_stmt_t *stmt, size_t row, size_t idx);
 M_API const M_uint8 *M_sql_driver_stmt_bind_get_binary(M_sql_stmt_t *stmt, size_t row, size_t idx);

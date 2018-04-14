@@ -306,19 +306,17 @@ M_sql_error_t M_sql_conn_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt)
 			}
 		}
 		for (i=0; i<stmt->bind_rows[0].col_cnt; i++) {
-			M_sql_data_type_t type = M_SQL_DATA_TYPE_NULL;
+			M_sql_data_type_t type = M_SQL_DATA_TYPE_UNKNOWN;
 			size_t            j;
 
 			for (j=0; j<stmt->bind_row_cnt; j++) {
 				M_sql_data_type_t mytype = stmt->bind_rows[j].cols[i].type;
-				if (mytype != M_SQL_DATA_TYPE_NULL) {
-					if (type != M_SQL_DATA_TYPE_NULL && mytype != type) {
-						M_snprintf(stmt->error_msg, sizeof(stmt->error_msg), "Row %zu column %zu has type %u, expected %u", j, i, mytype, type);
-						err = M_SQL_ERROR_PREPARE_INVALID;
-						goto done;
-					}
-					type = mytype; /* Cache for future checks */
+				if (type != M_SQL_DATA_TYPE_UNKNOWN && mytype != type) {
+					M_snprintf(stmt->error_msg, sizeof(stmt->error_msg), "Row %zu column %zu has type %u, expected %u", j, i, mytype, type);
+					err = M_SQL_ERROR_PREPARE_INVALID;
+					goto done;
 				}
+				type = mytype; /* Cache for future checks */
 			}
 		}
 	}

@@ -393,9 +393,10 @@ M_sql_data_type_t M_sql_driver_stmt_bind_get_col_type(M_sql_stmt_t *stmt, size_t
 {
 	size_t row;
 	size_t num_rows        = M_sql_driver_stmt_bind_rows(stmt);
-	M_sql_data_type_t type = M_SQL_DATA_TYPE_NULL;
+	M_sql_data_type_t type = M_SQL_DATA_TYPE_UNKNOWN;
 
-	for (row = 0; row < num_rows && type == M_SQL_DATA_TYPE_NULL; row++) {
+	/* Iterate across incase someone decided to use something weird for null binding */
+	for (row = 0; row < num_rows && M_sql_driver_stmt_bind_isnull(stmt, row, idx); row++) {
 		type = M_sql_driver_stmt_bind_get_type(stmt, row, idx);
 	}
 
@@ -437,12 +438,21 @@ size_t M_sql_driver_stmt_bind_get_max_col_size(M_sql_stmt_t *stmt, size_t idx)
 			}
 			return max_size;
 
-		case M_SQL_DATA_TYPE_NULL:
 		case M_SQL_DATA_TYPE_UNKNOWN:
 			break;
 	}
 
 	return 0;
+}
+
+
+M_bool M_sql_driver_stmt_bind_isnull(M_sql_stmt_t *stmt, size_t row, size_t idx)
+{
+	if (stmt == NULL || row >= M_sql_driver_stmt_bind_rows(stmt) ||
+	    idx >= M_sql_driver_stmt_bind_cnt(stmt)) {
+		return M_TRUE;
+	}
+	return stmt->bind_rows[row].cols[idx].isnull;
 }
 
 
@@ -573,6 +583,9 @@ size_t M_sql_driver_stmt_bind_get_text_len(M_sql_stmt_t *stmt, size_t row, size_
 
 	row += stmt->bind_row_offset; /* Multi-row partial execution */
 
+	if (stmt->bind_rows[row].cols[idx].isnull)
+		return 0;
+
 	return stmt->bind_rows[row].cols[idx].v.text.max_len;
 }
 
@@ -598,6 +611,9 @@ size_t M_sql_driver_stmt_bind_get_binary_len(M_sql_stmt_t *stmt, size_t row, siz
 	}
 
 	row += stmt->bind_row_offset; /* Multi-row partial execution */
+
+	if (stmt->bind_rows[row].cols[idx].isnull)
+		return 0;
 
 	return stmt->bind_rows[row].cols[idx].v.binary.len;
 }

@@ -288,13 +288,6 @@ M_API void M_sql_stmt_bind_clear(M_sql_stmt_t *stmt);
  */
  M_API void M_sql_stmt_bind_new_row(M_sql_stmt_t *stmt);
 
-/*! Bind NULL as next column to prepared statement handle
- *
- * \param[in] stmt Initialized #M_sql_stmt_t object
- * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
- */
-M_API M_sql_error_t M_sql_stmt_bind_null(M_sql_stmt_t *stmt);
-
 /*! Bind M_bool as next column to prepared statement handle
  *
  * \param[in] stmt Initialized #M_sql_stmt_t object
@@ -302,6 +295,16 @@ M_API M_sql_error_t M_sql_stmt_bind_null(M_sql_stmt_t *stmt);
  * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
  */
 M_API M_sql_error_t M_sql_stmt_bind_bool(M_sql_stmt_t *stmt, M_bool val);
+
+/*! Bind M_bool NULL column to prepared statement handle
+ *
+ * Due to quirks with ODBC, you must know the data type of the bound parameter when
+ * binding NULL values.
+ *
+ * \param[in] stmt Initialized #M_sql_stmt_t object
+ * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
+ */
+M_API M_sql_error_t M_sql_stmt_bind_bool_null(M_sql_stmt_t *stmt);
 
 /*! Bind M_int16 as next column to prepared statement handle
  *
@@ -311,6 +314,16 @@ M_API M_sql_error_t M_sql_stmt_bind_bool(M_sql_stmt_t *stmt, M_bool val);
  */
 M_API M_sql_error_t M_sql_stmt_bind_int16(M_sql_stmt_t *stmt, M_int16 val);
 
+/*! Bind M_int16 NULL column to prepared statement handle
+ *
+ * Due to quirks with ODBC, you must know the data type of the bound parameter when
+ * binding NULL values.
+ *
+ * \param[in] stmt Initialized #M_sql_stmt_t object
+ * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
+ */
+M_API M_sql_error_t M_sql_stmt_bind_int16_null(M_sql_stmt_t *stmt);
+
 /*! Bind M_int32 as next column to prepared statement handle
  *
  * \param[in] stmt Initialized #M_sql_stmt_t object
@@ -318,6 +331,16 @@ M_API M_sql_error_t M_sql_stmt_bind_int16(M_sql_stmt_t *stmt, M_int16 val);
  * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
  */
 M_API M_sql_error_t M_sql_stmt_bind_int32(M_sql_stmt_t *stmt, M_int32 val);
+
+/*! Bind M_int32 NULL column to prepared statement handle
+ *
+ * Due to quirks with ODBC, you must know the data type of the bound parameter when
+ * binding NULL values.
+ *
+ * \param[in] stmt Initialized #M_sql_stmt_t object
+ * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
+ */
+M_API M_sql_error_t M_sql_stmt_bind_int32_null(M_sql_stmt_t *stmt);
 
 /*! Bind M_int64 as next column to prepared statement handle
  *
@@ -327,11 +350,21 @@ M_API M_sql_error_t M_sql_stmt_bind_int32(M_sql_stmt_t *stmt, M_int32 val);
  */
 M_API M_sql_error_t M_sql_stmt_bind_int64(M_sql_stmt_t *stmt, M_int64 val);
 
+/*! Bind M_int64 NULL column to prepared statement handle
+ *
+ * Due to quirks with ODBC, you must know the data type of the bound parameter when
+ * binding NULL values.
+ *
+ * \param[in] stmt Initialized #M_sql_stmt_t object
+ * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
+ */
+M_API M_sql_error_t M_sql_stmt_bind_int64_null(M_sql_stmt_t *stmt);
+
 /*! Bind a const string/text as next column to prepared statement handle
  *
  * \param[in] stmt    Initialized #M_sql_stmt_t object
  * \param[in] text    Constant string, that is guaranteed to be available until the statement is executed, to bind to
- *                    statement.
+ *                    statement.  Pass NULL for a NULL value.
  * \param[in] max_len Maximum length of text/string value to use, use 0 for no maximum.
  * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
  */
@@ -361,7 +394,7 @@ M_API M_sql_error_t M_sql_stmt_bind_text_dup(M_sql_stmt_t *stmt, const char *tex
  *
  * \param[in] stmt    Initialized #M_sql_stmt_t object
  * \param[in] bin     Constant binary data, that is guaranteed to be available until the statement is executed, to bind to
- *                    statement.
+ *                    statement. Pass NULL for a NULL value.
  * \param[in] bin_len Length of binary value to use.  Only values up to 64k are allowed.
  * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t values on failure.
  */
@@ -462,8 +495,7 @@ typedef enum {
 	M_SQL_DATA_TYPE_INT32   = 3, /*!< 32bit signed integer */
 	M_SQL_DATA_TYPE_INT64   = 4, /*!< 64bit signed integer */
 	M_SQL_DATA_TYPE_TEXT    = 5, /*!< Textual data type such as VARCHAR or TEXT, with possible length */
-	M_SQL_DATA_TYPE_BINARY  = 6, /*!< Binary data type such as BLOB or BINARY, with possible length */
-	M_SQL_DATA_TYPE_NULL    = 7  /*!< NOTE: used internally only, will not be returned by M_sql_stmt_result_col_type() */
+	M_SQL_DATA_TYPE_BINARY  = 6  /*!< Binary data type such as BLOB or BINARY, with possible length */
 } M_sql_data_type_t;
 
 /*! Retrieve the data type of the returned column.

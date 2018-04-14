@@ -500,7 +500,9 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 	char                        *connstr;
 	SQLSMALLINT                  outlen; /* Junk value */
 	size_t                       i;
+#if 0
 	SQLINTEGER                   auto_pop_ipd = SQL_FALSE;
+#endif
 
 	*conn              = M_malloc_zero(sizeof(**conn));
 	(*conn)->pool_data = data;
@@ -562,14 +564,15 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 		goto done;
 	}
 
+/* We no longer need to derive the data type as we aren't doing NULL insertion trickery anymore */
+#if 0
 	/* Determine if the driver supports automatic IPD (ability to get parameter data types) population */
 	rc = SQLGetConnectAttr((*conn)->dbc_handle, SQL_ATTR_AUTO_IPD, (SQLPOINTER)&auto_pop_ipd, SQL_IS_UINTEGER, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-#if 0
-		/* NOTE: FreeTDS returns an error trying to retrieve this attribute, just assume not supported */
-		err = odbc_format_error("SQLGetConnectAttr(SQL_ATTR_AUTO_IPD) failed", *conn, NULL, rc, error, error_size);
-		goto done;
-#endif
+		/* NOTE: FreeTDS returns an error trying to retrieve this attribute, just assume not supported
+		 * err = odbc_format_error("SQLGetConnectAttr(SQL_ATTR_AUTO_IPD) failed", *conn, NULL, rc, error, error_size);
+		 * goto done;
+		 */
 		auto_pop_ipd = SQL_FALSE;
 	}
 
@@ -589,6 +592,7 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 		}
 #endif
 	}
+#endif
 
 	/* Grab database name */
 	rc = SQLGetInfo((*conn)->dbc_handle, SQL_DBMS_NAME, (*conn)->dbms_name, sizeof((*conn)->dbms_name)-1, &outlen);
@@ -717,12 +721,8 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 }
 
 
-static void odbc_bind_set_type(M_sql_driver_stmt_t *dstmt, size_t col, M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
+static void odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
-	SQLULEN     junk_size     = 0;
-	SQLSMALLINT junk_digits   = 0;
-	SQLSMALLINT junk_nullable = 0;
-
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			*ValueType                = SQL_C_STINYINT;
@@ -757,15 +757,6 @@ static void odbc_bind_set_type(M_sql_driver_stmt_t *dstmt, size_t col, M_sql_dat
 			break;
 
 		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-		case M_SQL_DATA_TYPE_NULL:
-			/* For some reason dbs are happier converting varbinary NULL to varchar NULL than vice-versa */
-			*ParameterType            = SQL_LONGVARBINARY;
-
-			/* For NULL values, get the parametertype to use -- ignore error, not all drivers support this*/
-			SQLDescribeParam(dstmt->stmt, (SQLUSMALLINT)(col+1), ParameterType, &junk_size, &junk_digits, &junk_nullable);
-
-			/* Its NULL, doesn't matter */
-			*ValueType                = SQL_C_DEFAULT;
 			break;
 	}
 }
@@ -775,6 +766,11 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, size_t row, size_t col
 {
 	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
+
+	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
+		bcol->lens[row] = SQL_NULL_DATA;
+		return;
+	}
 
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
@@ -806,8 +802,6 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, size_t row, size_t col
 			break;
 
 		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-		case M_SQL_DATA_TYPE_NULL:
-			bcol->lens[row]         = SQL_NULL_DATA;
 			break;
 	}
 }
@@ -895,7 +889,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				break;
 		}
 
-		odbc_bind_set_type(dstmt, i, type, &ValueType, &ParameterType);
+		odbc_bind_set_type(type, &ValueType, &ParameterType);
 
 		for (row = 0; row < num_rows; row++) {
 			odbc_bind_set_value_array(stmt, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
@@ -932,6 +926,11 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, size_t row, size_t col,
 	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
 
+	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
+		*len   = SQL_NULL_DATA;
+		return;
+	}
+
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			*value = M_sql_driver_stmt_bind_get_bool_addr(stmt, row, col);
@@ -962,8 +961,6 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, size_t row, size_t col,
 			break;
 
 		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-		case M_SQL_DATA_TYPE_NULL:
-			*len   = SQL_NULL_DATA;
 			break;
 	}
 }
@@ -1005,7 +1002,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);
 			size_t               idx            = (row * num_cols) + i;
 
-			odbc_bind_set_type(dstmt, i, type, &ValueType, &ParameterType);
+			odbc_bind_set_type(type, &ValueType, &ParameterType);
 			odbc_bind_set_value_flat(stmt, row, i, &ParameterValue, &dstmt->bind_flat_lens[idx]);
 
 			if (ParameterValue != NULL) {
