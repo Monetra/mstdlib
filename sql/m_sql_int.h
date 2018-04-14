@@ -145,6 +145,7 @@ void M_sql_connpool_remove_groupinsert(M_sql_connpool_t *pool, const char *query
 /*! Definition for statement bind column */
 typedef struct {
 	M_sql_data_type_t type;    /*!< Data type of column */
+	M_bool            isnull;  /*!< Column data is NULL */
 	union {
 		M_bool   b;            /*!< Used when type == M_SQL_DATA_TYPE_BOOL */
 		M_int16  i16;          /*!< Used when type == M_SQL_DATA_TYPE_INT16 */

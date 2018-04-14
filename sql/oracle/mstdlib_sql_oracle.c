@@ -538,9 +538,6 @@ static ub2 oracle_get_datatype(M_sql_data_type_t type)
 			return SQLT_AFC;
 		case M_SQL_DATA_TYPE_BINARY:
 			return SQLT_LBI;
-		case M_SQL_DATA_TYPE_NULL:
-			/* NULL field? no idea what data type to really use */
-			return SQLT_AFC;
 		case M_SQL_DATA_TYPE_UNKNOWN:
 			break; /* WTF? */
 	}
@@ -563,8 +560,15 @@ static sb4 oracle_bind_cb(dvoid *ictxp, OCIBind *bindp, ub4 iter, ub4 index, voi
 
 	*piecep = OCI_ONE_PIECE;
 	*indpp  = &data->ind;
-
 	data->ind = 0; /* Not NULL */
+
+	/* Handle NULL */
+	if (M_sql_driver_bind_isnull(stmt, row, col)) {
+		*bufpp    = NULL;
+		*alenp    = 0;
+		data->ind = -1; /* Indicate NULL */
+		return OCI_CONTINUE;
+	}
 
 	switch (M_sql_driver_stmt_bind_get_type(stmt, row, col)) {
 		case M_SQL_DATA_TYPE_BOOL:
@@ -606,10 +610,6 @@ static sb4 oracle_bind_cb(dvoid *ictxp, OCIBind *bindp, ub4 iter, ub4 index, voi
 			break;
 
 		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-		case M_SQL_DATA_TYPE_NULL:
-			*bufpp    = NULL;
-			*alenp    = 0;
-			data->ind = -1; /* Indicate NULL */
 			break;
 
 	}
@@ -652,7 +652,7 @@ static M_sql_error_t oracle_bind_params(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t
 		M_sql_data_type_t type         = M_sql_driver_stmt_bind_get_col_type(stmt, i);
 		ub2               oci_type     = oracle_get_datatype(type);
 
-		if (oci_type == 0){
+		if (oci_type == 0) {
 			err = M_SQL_ERROR_PREPARE_INVALID;
 			M_snprintf(error, error_size, "unable to dereference oracle datatype for col %zu", i);
 			goto done;
@@ -679,10 +679,9 @@ static M_sql_error_t oracle_bind_params(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t
 		/* The non-driver statement handle changes between calls, always re-set this */
 		dstmt->bind[i].stmt     = stmt;
 
-		/* If the statement has been bound before, we can reuse it if the type is the same or the
-		 * new type is NULL, and the previous reported max size is greater than or equal to
-		 * the current calculated max column size */
-		if (dstmt->bind[i].bind != NULL && (dstmt->bind[i].type == type || type == M_SQL_DATA_TYPE_NULL) &&
+		/* If the statement has been bound before, we can reuse it if the type is the same and the
+		 * previous reported max size is greater than or equal to the current calculated max column size */
+		if (dstmt->bind[i].bind != NULL && dstmt->bind[i].type == type &&
 		    max_col_size <= dstmt->bind[i].max_size) {
 			continue;
 		}
