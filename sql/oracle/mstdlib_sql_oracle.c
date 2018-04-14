@@ -563,7 +563,7 @@ static sb4 oracle_bind_cb(dvoid *ictxp, OCIBind *bindp, ub4 iter, ub4 index, voi
 	data->ind = 0; /* Not NULL */
 
 	/* Handle NULL */
-	if (M_sql_driver_bind_isnull(stmt, row, col)) {
+	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
 		*bufpp    = NULL;
 		*alenp    = 0;
 		data->ind = -1; /* Indicate NULL */
