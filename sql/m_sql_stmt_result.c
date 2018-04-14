@@ -295,7 +295,7 @@ M_sql_error_t M_sql_stmt_result_binary(M_sql_stmt_t *stmt, size_t row, size_t co
 	*bin      = NULL;
 	*bin_size = 0;
 
-	if (stmt->result->col_defs[col].type != M_SQL_DATA_TYPE_BINARY && stmt->result->col_defs[col].type != M_SQL_DATA_TYPE_NULL)
+	if (stmt->result->col_defs[col].type != M_SQL_DATA_TYPE_BINARY)
 		return M_SQL_ERROR_INVALID_TYPE;
 
 	if (stmt->result->cellinfo[row * stmt->result->num_cols + col].length != 0) {

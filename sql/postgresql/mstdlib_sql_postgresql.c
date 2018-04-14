@@ -394,8 +394,14 @@ typedef enum {
 } pgsql_oids;
 
 
-static Oid pgsql_datatype_to_oid(M_sql_data_type_t type)
+static Oid pgsql_datatype_to_oid(M_sql_stmt_t *stmt, size_t row, size_t col)
 {
+	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
+
+	if (M_sql_driver_stmt_bind_isnull(stmt, row, col))
+		return 0; /* Server is supposed to "infer".  Otherwise we'll actually get an error if we default to
+			       * TEXTOID because TEXTOID may not match the real column type */
+
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL: /* Can't use BOOLOID as you cannot bind an integer 0/1 to it which we require */
 		case M_SQL_DATA_TYPE_INT16:
@@ -412,10 +418,6 @@ static Oid pgsql_datatype_to_oid(M_sql_data_type_t type)
 
 		case M_SQL_DATA_TYPE_BINARY:
 			return BYTEAOID;
-
-		case M_SQL_DATA_TYPE_NULL:
-			return 0; /* Server is supposed to "infer".  Otherwise we'll actually get an error if we default to
-			           * TEXTOID because TEXTOID may not match the real column type */
 
 		case M_SQL_DATA_TYPE_UNKNOWN:
 			break;
@@ -452,7 +454,7 @@ static M_sql_error_t pgsql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_s
 	for (row = 0; row < num_rows; row++) {
 		for (i = 0; i < num_cols; i++) {
 			size_t         paramid = ((row * num_cols) + i);
-			Oid            oid     = pgsql_datatype_to_oid(M_sql_driver_stmt_bind_get_type(stmt, row, i));
+			Oid            oid     = pgsql_datatype_to_oid(stmt, row, i);
 
 			if (rebind && oid != driver_stmt->bind.oids[paramid]) {
 				M_snprintf(error, error_size, "original bind row %zu col %zu has Oid %d, new Oid %d", row, i, driver_stmt->bind.oids[paramid], oid);
@@ -463,6 +465,13 @@ static M_sql_error_t pgsql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_s
 				/* If oid isn't "inferred", we can use binary */
 				driver_stmt->bind.formats[paramid] = 1;  /* Prefer binary */
 			}
+
+			if (M_sql_driver_stmt_bind_isnull(stmt, row, i)) {
+				driver_stmt->bind.values[paramid]      = NULL;
+				driver_stmt->bind.lengths[paramid]     = 0;
+				continue;
+			}
+
 			switch (M_sql_driver_stmt_bind_get_type(stmt, row, i)) {
 				/* NOTE: PostgreSQL wants all binary data in their "native" form, this mainly means that all
 				 *       Integer values must be in NetworkByteOrder */
@@ -496,10 +505,6 @@ static M_sql_error_t pgsql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_s
 					driver_stmt->bind.data[paramid].binary = M_sql_driver_stmt_bind_get_binary(stmt, row, i);
 					driver_stmt->bind.values[paramid]      = (const char *)driver_stmt->bind.data[paramid].binary;
 					driver_stmt->bind.lengths[paramid]     = (int)M_sql_driver_stmt_bind_get_binary_len(stmt, row, i);
-					break;
-				case M_SQL_DATA_TYPE_NULL:
-					driver_stmt->bind.values[paramid]      = NULL;
-					driver_stmt->bind.lengths[paramid]     = 0;
 					break;
 				default:
 					M_snprintf(error, error_size, "Unknown parameter type for row %zu, col %zu", row, i);

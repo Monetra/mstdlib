@@ -601,33 +601,34 @@ static M_sql_error_t sqlite_bind_params(M_sql_driver_conn_t *conn, M_sql_driver_
 	for (row = 0; row < num_rows; row++) {
 		for (i = 0; i < num_cols; i++) {
 			int paramid = (int)((row * num_cols) + i + 1);
-			switch (M_sql_driver_stmt_bind_get_type(stmt, row, i)) {
-				case M_SQL_DATA_TYPE_BOOL:
-					rc = sqlite3_bind_int(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_bool(stmt, row, i)?1:0);
-					break;
-				case M_SQL_DATA_TYPE_INT16:
-					rc = sqlite3_bind_int(driver_stmt->stmt, paramid, (int)M_sql_driver_stmt_bind_get_int16(stmt, row, i));
-					break;
-				case M_SQL_DATA_TYPE_INT32:
-					rc = sqlite3_bind_int(driver_stmt->stmt, paramid, (int)M_sql_driver_stmt_bind_get_int32(stmt, row, i));
-					break;
-				case M_SQL_DATA_TYPE_INT64:
-					rc = sqlite3_bind_int64(driver_stmt->stmt, paramid, (sqlite_int64)M_sql_driver_stmt_bind_get_int64(stmt, row, i));
-					break;
-				case M_SQL_DATA_TYPE_TEXT:
-					rc = sqlite3_bind_text(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_text(stmt, row, i),
-					                       (int)M_sql_driver_stmt_bind_get_text_len(stmt, row, i), SQLITE_TRANSIENT);
-					break;
-				case M_SQL_DATA_TYPE_BINARY:
-					rc = sqlite3_bind_blob(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_binary(stmt, row, i),
-					                       (int)M_sql_driver_stmt_bind_get_binary_len(stmt, row, i), SQLITE_TRANSIENT);
-					break;
-				case M_SQL_DATA_TYPE_NULL:
-					rc = sqlite3_bind_null(driver_stmt->stmt, paramid);
-					break;
-				default:
-					rc = SQLITE_MISUSE;
-					break;
+			if (M_sql_driver_stmt_bind_isnull(stmt, row, i)) {
+				rc = sqlite3_bind_null(driver_stmt->stmt, paramid);
+			} else {
+				switch (M_sql_driver_stmt_bind_get_type(stmt, row, i)) {
+					case M_SQL_DATA_TYPE_BOOL:
+						rc = sqlite3_bind_int(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_bool(stmt, row, i)?1:0);
+						break;
+					case M_SQL_DATA_TYPE_INT16:
+						rc = sqlite3_bind_int(driver_stmt->stmt, paramid, (int)M_sql_driver_stmt_bind_get_int16(stmt, row, i));
+						break;
+					case M_SQL_DATA_TYPE_INT32:
+						rc = sqlite3_bind_int(driver_stmt->stmt, paramid, (int)M_sql_driver_stmt_bind_get_int32(stmt, row, i));
+						break;
+					case M_SQL_DATA_TYPE_INT64:
+						rc = sqlite3_bind_int64(driver_stmt->stmt, paramid, (sqlite_int64)M_sql_driver_stmt_bind_get_int64(stmt, row, i));
+						break;
+					case M_SQL_DATA_TYPE_TEXT:
+						rc = sqlite3_bind_text(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_text(stmt, row, i),
+						                       (int)M_sql_driver_stmt_bind_get_text_len(stmt, row, i), SQLITE_TRANSIENT);
+						break;
+					case M_SQL_DATA_TYPE_BINARY:
+						rc = sqlite3_bind_blob(driver_stmt->stmt, paramid, M_sql_driver_stmt_bind_get_binary(stmt, row, i),
+						                       (int)M_sql_driver_stmt_bind_get_binary_len(stmt, row, i), SQLITE_TRANSIENT);
+						break;
+					default:
+						rc = SQLITE_MISUSE;
+						break;
+				}
 			}
 			if (rc != SQLITE_OK) {
 				M_snprintf(error, error_size, "Failed to bind parameter %d:%d - id %d (%d): %s", (int)row+1, (int)i+1, paramid, rc, sqlite3_errmsg(conn->conn));
@@ -732,8 +733,7 @@ static M_sql_data_type_t sqlite_type_to_mtype(int type, const char *decltype, si
 			return M_SQL_DATA_TYPE_BINARY;
 
 		case SQLITE_NULL:
-			return M_SQL_DATA_TYPE_NULL;
-
+			return M_SQL_DATA_TYPE_UNKNOWN;
 		case SQLITE_TEXT:
 		case SQLITE_FLOAT:
 		default:
@@ -859,7 +859,7 @@ static M_sql_error_t sqlite_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, cha
 			}
 
 			/* NOTE: Funky FixUp! */
-			if (M_sql_stmt_result_col_type(stmt, i, NULL) == M_SQL_DATA_TYPE_NULL && type != SQLITE_NULL) {
+			if (M_sql_stmt_result_col_type(stmt, i, NULL) == M_SQL_DATA_TYPE_UNKNOWN && type != SQLITE_NULL) {
 				const char       *decltype   = sqlite3_column_decltype(driver_stmt->stmt, (int)i);
 				size_t            mtype_size = 0;
 				M_sql_data_type_t mtype      = sqlite_type_to_mtype(type, decltype, &mtype_size);
@@ -1000,7 +1000,6 @@ static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_dat
 			}
 			return M_TRUE;
 		/* These data types don't really exist */
-		case M_SQL_DATA_TYPE_NULL:
 		case M_SQL_DATA_TYPE_UNKNOWN:
 			break;
 	}
