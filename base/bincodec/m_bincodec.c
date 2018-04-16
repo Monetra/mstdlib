@@ -28,7 +28,7 @@
 #include "bincodec/m_hex.h"
 #include "bincodec/m_bincodec_conv.h"
 
-static size_t M_bincodec_decode_size(size_t inLen, M_bincodec_codec_t codec)
+size_t M_bincodec_decode_size(size_t inLen, M_bincodec_codec_t codec)
 {
 	switch (codec) {
 		case M_BINCODEC_BASE64:
