@@ -78,13 +78,18 @@ if (ODBC_INCLUDE_DIR)
 	# Find static library.
 	if (NOT WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
-		find_library(ODBC_STATIC_LIBRARY
-			NAMES         ${_libnames}
-			NAMES_PER_DIR
-			HINTS         ${ODBC_DIR}
-			PATH_SUFFIXES ${_lib_path_suffixes}
-			NO_DEFAULT_PATH
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(ODBC_STATIC_LIBRARY
+				NAMES         ${_libnames}
+				NAMES_PER_DIR
+				HINTS         ${ODBC_DIR}
+				PATH_SUFFIXES ${_lib_path_suffixes}
+				${defpath}
+			)
+			if (ODBC_STATIC_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(ODBC_STATIC_LIBRARY)
 		if (ODBC_STATIC_LIBRARY)
 			set(ODBC_odbc_static_FOUND TRUE)
@@ -94,13 +99,18 @@ if (ODBC_INCLUDE_DIR)
 	
 	# Find shared library (will pick up static lib if shared not found).
 	set(CMAKE_FIND_LIBRARY_SUFFIXES "${_old_suffixes}")
-	find_library(ODBC_LIBRARY
-		NAMES         ${_libnames}
-		NAMES_PER_DIR
-		HINTS         ${ODBC_DIR}
-		PATH_SUFFIXES ${_lib_path_suffixes}
-		NO_DEFAULT_PATH
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(ODBC_LIBRARY
+			NAMES         ${_libnames}
+			NAMES_PER_DIR
+			HINTS         ${ODBC_DIR}
+			PATH_SUFFIXES ${_lib_path_suffixes}
+			${defpath}
+		)
+		if (ODBC_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(ODBC_LIBRARY)
 	if (ODBC_LIBRARY AND NOT ODBC_LIBRARY STREQUAL ODBC_STATIC_LIBRARY)
 		set(ODBC_odbc_shared_FOUND TRUE)

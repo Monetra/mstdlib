@@ -117,13 +117,18 @@ if (PostgreSQL_INCLUDE_DIR)
 		set(PostgreSQL_STATIC_LIBRARY "PostgreSQL_STATIC_LIBRARY-NOTFOUND" CACHE PATH "Path to libpq static lib")
 	else ()
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
-		find_library(PostgreSQL_STATIC_LIBRARY
-			NAMES         pq libpq
-			NAMES_PER_DIR
-			HINTS         ${PostgreSQL_DIR}
-			PATH_SUFFIXES lib
-			NO_DEFAULT_PATH
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(PostgreSQL_STATIC_LIBRARY
+				NAMES         pq libpq
+				NAMES_PER_DIR
+				HINTS         ${PostgreSQL_DIR}
+				PATH_SUFFIXES lib
+				${defpath}
+			)
+			if (PostgreSQL_STATIC_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 	endif ()
 	add_to_cachelog(PostgreSQL_STATIC_LIBRARY)
 	if (PostgreSQL_STATIC_LIBRARY)
@@ -136,13 +141,18 @@ if (PostgreSQL_INCLUDE_DIR)
 	if (WIN32)
 		list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ".a") #BigSQL installer names the import lib with a .a extension
 	endif ()
-	find_library(PostgreSQL_LIBRARY
-		NAMES         pq libpq
-		NAMES_PER_DIR
-		HINTS         ${PostgreSQL_DIR}
-		PATH_SUFFIXES lib
-		NO_DEFAULT_PATH
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(PostgreSQL_LIBRARY
+			NAMES         pq libpq
+			NAMES_PER_DIR
+			HINTS         ${PostgreSQL_DIR}
+			PATH_SUFFIXES lib
+			${defpath}
+		)
+		if (PostgreSQL_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(PostgreSQL_LIBRARY)
 	if (PostgreSQL_LIBRARY AND NOT PostgreSQL_LIBRARY STREQUAL PostgreSQL_STATIC_LIBRARY)
 		set(PostgreSQL_pq_shared_FOUND TRUE)
@@ -152,13 +162,18 @@ if (PostgreSQL_INCLUDE_DIR)
 	# Find the DLL (if any).
 	if (WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		find_library(PostgreSQL_DLL_LIBRARY
-			NAMES         pq libpq
-			NAMES_PER_DIR
-			HINTS         ${PostgreSQL_DIR}
-			PATH_SUFFIXES bin lib ""
-			NO_DEFAULT_PATH
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(PostgreSQL_DLL_LIBRARY
+				NAMES         pq libpq
+				NAMES_PER_DIR
+				HINTS         ${PostgreSQL_DIR}
+				PATH_SUFFIXES bin lib ""
+				${defpath}
+			)
+			if (PostgreSQL_DLL_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(PostgreSQL_DLL_LIBRARY)
 	endif ()
 endif ()
