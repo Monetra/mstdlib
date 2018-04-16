@@ -54,6 +54,7 @@ if (DB2_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${DB2_DIR}
 			PATH_SUFFIXES ${_lib_path_suffixes}
+			NO_DEFAULT_PATH
 		)
 		add_to_cachelog(DB2_STATIC_LIBRARY)
 		if (DB2_STATIC_LIBRARY)
@@ -69,6 +70,7 @@ if (DB2_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${DB2_DIR}
 		PATH_SUFFIXES ${_lib_path_suffixes}
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(DB2_LIBRARY)
 	if (DB2_LIBRARY AND NOT DB2_LIBRARY STREQUAL DB2_STATIC_LIBRARY)

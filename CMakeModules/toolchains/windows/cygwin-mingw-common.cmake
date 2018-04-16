@@ -25,6 +25,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) # Only search for includes that are 
 set(CMAKE_CROSSCOMPILING FALSE)
 list(APPEND CMAKE_PREFIX_PATH
 	"${CMAKE_FIND_ROOT_PATH}/usr/local/ssl"
+	"${CMAKE_FIND_ROOT_PATH}/usr/local"
 	"${CMAKE_FIND_ROOT_PATH}"
 	/usr/${CMAKE_TOOLCHAIN_PREFIX} # Workaround for find_package bug, only needed when CMAKE_CROSSCOMPILING is false.
 )

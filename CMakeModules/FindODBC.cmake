@@ -83,6 +83,7 @@ if (ODBC_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${ODBC_DIR}
 			PATH_SUFFIXES ${_lib_path_suffixes}
+			NO_DEFAULT_PATH
 		)
 		add_to_cachelog(ODBC_STATIC_LIBRARY)
 		if (ODBC_STATIC_LIBRARY)
@@ -98,6 +99,7 @@ if (ODBC_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${ODBC_DIR}
 		PATH_SUFFIXES ${_lib_path_suffixes}
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(ODBC_LIBRARY)
 	if (ODBC_LIBRARY AND NOT ODBC_LIBRARY STREQUAL ODBC_STATIC_LIBRARY)

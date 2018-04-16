@@ -41,7 +41,7 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 
 # Set path guesses.
 set(_paths)
-if (WIN32)
+if (CMAKE_HOST_WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
@@ -164,6 +164,7 @@ if (MySQL_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${MySQL_DIR}
 		PATH_SUFFIXES lib lib/mariadb
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(MySQL_STATIC_LIBRARY)
 	if (MySQL_STATIC_LIBRARY)
@@ -178,6 +179,7 @@ if (MySQL_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${MySQL_DIR}
 		PATH_SUFFIXES lib lib/mariadb
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(MySQL_LIBRARY)
 	if (MySQL_LIBRARY AND NOT MySQL_LIBRARY STREQUAL MySQL_STATIC_LIBRARY)
@@ -193,6 +195,7 @@ if (MySQL_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${MySQL_DIR}
 			PATH_SUFFIXES bin lib bin/mariadb lib/mariadb ""
+			NO_DEFAULT_PATH
 		)
 		add_to_cachelog(MySQL_DLL_LIBRARY)
 	endif ()
