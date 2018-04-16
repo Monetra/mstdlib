@@ -30,7 +30,7 @@ if (PKG_CONFIG_FOUND)
 	PKG_CHECK_MODULES(PC_SQLite QUIET sqlite)
 endif ()
 
-if (WIN32)
+if (CMAKE_HOST_WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
@@ -91,6 +91,7 @@ if (SQLite_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
 		PATH_SUFFIXES lib ""
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(SQLite_STATIC_LIBRARY)
 	if (SQLite_STATIC_LIBRARY)
@@ -105,6 +106,7 @@ if (SQLite_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
 		PATH_SUFFIXES lib ""
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(SQLite_LIBRARY)
 	if (SQLite_LIBRARY AND NOT SQLite_LIBRARY STREQUAL SQLite_STATIC_LIBRARY)
@@ -120,6 +122,7 @@ if (SQLite_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${SQLite_DIR}
 			PATH_SUFFIXES bin lib ""
+			NO_DEFAULT_PATH
 		)
 		add_to_cachelog(SQLite_DLL_LIBRARY)
 	endif ()

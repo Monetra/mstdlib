@@ -39,7 +39,7 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 
 # Set path guesses.
 set(_paths)
-if (WIN32)
+if (CMAKE_HOST_WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
@@ -122,6 +122,7 @@ if (PostgreSQL_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${PostgreSQL_DIR}
 			PATH_SUFFIXES lib
+			NO_DEFAULT_PATH
 		)
 	endif ()
 	add_to_cachelog(PostgreSQL_STATIC_LIBRARY)
@@ -140,6 +141,7 @@ if (PostgreSQL_INCLUDE_DIR)
 		NAMES_PER_DIR
 		HINTS         ${PostgreSQL_DIR}
 		PATH_SUFFIXES lib
+		NO_DEFAULT_PATH
 	)
 	add_to_cachelog(PostgreSQL_LIBRARY)
 	if (PostgreSQL_LIBRARY AND NOT PostgreSQL_LIBRARY STREQUAL PostgreSQL_STATIC_LIBRARY)
@@ -155,6 +157,7 @@ if (PostgreSQL_INCLUDE_DIR)
 			NAMES_PER_DIR
 			HINTS         ${PostgreSQL_DIR}
 			PATH_SUFFIXES bin lib ""
+			NO_DEFAULT_PATH
 		)
 		add_to_cachelog(PostgreSQL_DLL_LIBRARY)
 	endif ()
