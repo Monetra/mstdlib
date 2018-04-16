@@ -721,7 +721,7 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 }
 
 
-static void odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
+static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
@@ -756,15 +756,16 @@ static void odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, S
 			*ParameterType            = SQL_LONGVARBINARY;
 			break;
 
-		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-			break;
+		case M_SQL_DATA_TYPE_UNKNOWN:
+			return M_FALSE;
 	}
+	return M_TRUE;
 }
 
 
 static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, size_t row, size_t col, size_t col_size, odbc_bind_cols_t *bcol)
 {
-	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
+	M_sql_data_type_t    type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
 
 	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
@@ -889,7 +890,10 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				break;
 		}
 
-		odbc_bind_set_type(type, &ValueType, &ParameterType);
+		if (!odbc_bind_set_type(type, &ValueType, &ParameterType)) {
+			M_snprintf(error, error_size, "Failed to determine data type col %zu", i);
+			goto done;
+		}
 
 		for (row = 0; row < num_rows; row++) {
 			odbc_bind_set_value_array(stmt, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
@@ -1002,7 +1006,10 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);
 			size_t               idx            = (row * num_cols) + i;
 
-			odbc_bind_set_type(type, &ValueType, &ParameterType);
+			if (!odbc_bind_set_type(type, &ValueType, &ParameterType)) {
+				M_snprintf(error, error_size, "Failed to determine data type for rows %zu col %zu", row, i);
+				goto done;
+			}
 			odbc_bind_set_value_flat(stmt, row, i, &ParameterValue, &dstmt->bind_flat_lens[idx]);
 
 			if (ParameterValue != NULL) {

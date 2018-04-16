@@ -396,8 +396,11 @@ M_sql_data_type_t M_sql_driver_stmt_bind_get_col_type(M_sql_stmt_t *stmt, size_t
 	M_sql_data_type_t type = M_SQL_DATA_TYPE_UNKNOWN;
 
 	/* Iterate across incase someone decided to use something weird for null binding */
-	for (row = 0; row < num_rows && M_sql_driver_stmt_bind_isnull(stmt, row, idx); row++) {
+	for (row = 0; row < num_rows; row++) {
 		type = M_sql_driver_stmt_bind_get_type(stmt, row, idx);
+
+		if (!M_sql_driver_stmt_bind_isnull(stmt, row, idx))
+			break;
 	}
 
 	return type;
