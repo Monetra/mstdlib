@@ -164,7 +164,7 @@ M_API char *M_bincodec_decode_str_alloc(const char *in, M_bincodec_codec_t codec
  * \param[in]  outLen The length of the output buffer.
  * \param[in]  codec  The binary codec to use for decoding.
  *
- * \return The number of bytes written into the output buffer.
+ * \return The number of bytes written into the output buffer, or 0 on error.
  */
 M_API size_t M_bincodec_decode(M_uint8 *out, size_t outLen, const char *in, size_t inLen, M_bincodec_codec_t codec);
 
