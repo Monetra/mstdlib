@@ -159,13 +159,18 @@ if (MySQL_INCLUDE_DIR)
 	
 	# Find static library.
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
-	find_library(MySQL_STATIC_LIBRARY
-		NAMES         ${_static_names}
-		NAMES_PER_DIR
-		HINTS         ${MySQL_DIR}
-		PATH_SUFFIXES lib lib/mariadb
-		NO_DEFAULT_PATH
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(MySQL_STATIC_LIBRARY
+			NAMES         ${_static_names}
+			NAMES_PER_DIR
+			HINTS         ${MySQL_DIR}
+			PATH_SUFFIXES lib lib/mariadb
+			${defpath}
+		)
+		if (MySQL_STATIC_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(MySQL_STATIC_LIBRARY)
 	if (MySQL_STATIC_LIBRARY)
 		set(MySQL_mysql_static_FOUND TRUE)
@@ -174,13 +179,18 @@ if (MySQL_INCLUDE_DIR)
 	
 	# Find shared library (will pick up static lib if shared not found).
 	set(CMAKE_FIND_LIBRARY_SUFFIXES "${_old_suffixes}")
-	find_library(MySQL_LIBRARY
-		NAMES         ${_shared_names}
-		NAMES_PER_DIR
-		HINTS         ${MySQL_DIR}
-		PATH_SUFFIXES lib lib/mariadb
-		NO_DEFAULT_PATH
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(MySQL_LIBRARY
+			NAMES         ${_shared_names}
+			NAMES_PER_DIR
+			HINTS         ${MySQL_DIR}
+			PATH_SUFFIXES lib lib/mariadb
+			${defpath}
+		)
+		if (MySQL_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(MySQL_LIBRARY)
 	if (MySQL_LIBRARY AND NOT MySQL_LIBRARY STREQUAL MySQL_STATIC_LIBRARY)
 		set(MySQL_mysql_shared_FOUND TRUE)
@@ -190,13 +200,18 @@ if (MySQL_INCLUDE_DIR)
 	# Find the DLL (if any).
 	if (WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		find_library(MySQL_DLL_LIBRARY
-			NAMES         ${_dll_names}
-			NAMES_PER_DIR
-			HINTS         ${MySQL_DIR}
-			PATH_SUFFIXES bin lib bin/mariadb lib/mariadb ""
-			NO_DEFAULT_PATH
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(MySQL_DLL_LIBRARY
+				NAMES         ${_dll_names}
+				NAMES_PER_DIR
+				HINTS         ${MySQL_DIR}
+				PATH_SUFFIXES bin lib bin/mariadb lib/mariadb ""
+				${defpath}
+			)
+			if (MySQL_DLL_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(MySQL_DLL_LIBRARY)
 	endif ()
 endif ()
