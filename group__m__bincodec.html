@@ -128,6 +128,8 @@ Functions</h2></td></tr>
 <tr class="separator:gae9363abe6749f40300b295bafcbc622c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga96cd5611d7cd019a23bfd8d920fa9ec8"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bincodec.html#ga96cd5611d7cd019a23bfd8d920fa9ec8">M_bincodec_encode</a> (char *out, size_t outLen, const M_uint8 *in, size_t inLen, size_t wrap, <a class="el" href="group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0">M_bincodec_codec_t</a> codec)</td></tr>
 <tr class="separator:ga96cd5611d7cd019a23bfd8d920fa9ec8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac4a5466d99590d572626749e2ee8634d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bincodec.html#gac4a5466d99590d572626749e2ee8634d">M_bincodec_decode_size</a> (size_t inLen, <a class="el" href="group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0">M_bincodec_codec_t</a> codec)</td></tr>
+<tr class="separator:gac4a5466d99590d572626749e2ee8634d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac1a87df28ffa1c499282c99305f4397e"><td class="memItemLeft" align="right" valign="top">M_uint8 *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bincodec.html#gac1a87df28ffa1c499282c99305f4397e">M_bincodec_decode_alloc</a> (const char *in, size_t inLen, size_t *outLen, <a class="el" href="group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0">M_bincodec_codec_t</a> codec) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:gac1a87df28ffa1c499282c99305f4397e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf511187dfcfc60ce881f90eedc37af29"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bincodec.html#gaf511187dfcfc60ce881f90eedc37af29">M_bincodec_decode_str_alloc</a> (const char *in, <a class="el" href="group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0">M_bincodec_codec_t</a> codec)</td></tr>
@@ -224,16 +226,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The maximumn number of bytes necessary to encode using the specified codec.</p>
+<p>The maximum number of bytes necessary to encode using the specified codec.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">inLen</td><td>The length of the input to encode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">inLen</td><td>Number of bytes that will be passed to the encoder. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">wrap</td><td>The maximum length of a given line. Longer lines will be split with a new line. Pass 0 if line splitting is not desired. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">codec</td><td>The binary coded used for encoding.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">codec</td><td>The binary codec that will be used for encoding.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The maximumn number of bytes that would be used to encode the data. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The maximum number of bytes needed to store the data after encoding. </dd></dl>
 
 </div>
 </div>
@@ -347,6 +349,41 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The number of bytes written into the output buffer. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gac4a5466d99590d572626749e2ee8634d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_bincodec_decode_size </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>inLen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0">M_bincodec_codec_t</a>&#160;</td>
+          <td class="paramname"><em>codec</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The maximum number of bytes necessary to encode using the specified codec.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">inLen</td><td>Number of bytes that will be passed to the decoder. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">codec</td><td>The binary codec that will be used for decoding.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The maximum number of bytes needed to store the data after decoding. </dd></dl>
 
 </div>
 </div>
@@ -625,7 +662,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Apr 16 2018 16:24:30 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Apr 16 2018 21:19:45 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

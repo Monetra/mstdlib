@@ -34,6 +34,7 @@ var searchData=
   ['m_5fbincodec_5fconvert_5falloc',['M_bincodec_convert_alloc',['../group__m__bincodec.html#gaad9d4bef987cdf0488307db55fa19122',1,'m_bincodec.h']]],
   ['m_5fbincodec_5fdecode',['M_bincodec_decode',['../group__m__bincodec.html#ga8d5db07b02875a58562113fed62ad4a9',1,'m_bincodec.h']]],
   ['m_5fbincodec_5fdecode_5falloc',['M_bincodec_decode_alloc',['../group__m__bincodec.html#gac1a87df28ffa1c499282c99305f4397e',1,'m_bincodec.h']]],
+  ['m_5fbincodec_5fdecode_5fsize',['M_bincodec_decode_size',['../group__m__bincodec.html#gac4a5466d99590d572626749e2ee8634d',1,'m_bincodec.h']]],
   ['m_5fbincodec_5fdecode_5fstr_5falloc',['M_bincodec_decode_str_alloc',['../group__m__bincodec.html#gaf511187dfcfc60ce881f90eedc37af29',1,'m_bincodec.h']]],
   ['m_5fbincodec_5fencode',['M_bincodec_encode',['../group__m__bincodec.html#ga96cd5611d7cd019a23bfd8d920fa9ec8',1,'m_bincodec.h']]],
   ['m_5fbincodec_5fencode_5falloc',['M_bincodec_encode_alloc',['../group__m__bincodec.html#gae9363abe6749f40300b295bafcbc622c',1,'m_bincodec.h']]],

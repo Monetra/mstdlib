@@ -9,6 +9,7 @@ var group__m__bincodec =
     [ "M_bincodec_encode_size", "group__m__bincodec.html#ga98c696693c7ebe8ef3a393958cfb487c", null ],
     [ "M_bincodec_encode_alloc", "group__m__bincodec.html#gae9363abe6749f40300b295bafcbc622c", null ],
     [ "M_bincodec_encode", "group__m__bincodec.html#ga96cd5611d7cd019a23bfd8d920fa9ec8", null ],
+    [ "M_bincodec_decode_size", "group__m__bincodec.html#gac4a5466d99590d572626749e2ee8634d", null ],
     [ "M_bincodec_decode_alloc", "group__m__bincodec.html#gac1a87df28ffa1c499282c99305f4397e", null ],
     [ "M_bincodec_decode_str_alloc", "group__m__bincodec.html#gaf511187dfcfc60ce881f90eedc37af29", null ],
     [ "M_bincodec_decode", "group__m__bincodec.html#ga8d5db07b02875a58562113fed62ad4a9", null ],
