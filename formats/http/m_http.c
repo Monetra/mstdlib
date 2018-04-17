@@ -21,6 +21,10 @@
  * THE SOFTWARE.
  */
 
+#include "m_config.h"
+
+#include <mstdlib/mstdlib.h>
+#include <mstdlib/mstdlib_formats.h>
 #include "http/m_http_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -155,7 +159,34 @@ void M_http_clear_chunk_trailer(M_http_t *http)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_http_message_type_t M_http_message_type(M_http_t *http)
+M_bool M_http_start_line_complete(const M_http_t *http)
+{
+	if (http->type == )
+		return M_FALSE;
+
+	switch (http->type) {
+		case M_HTTP_MESSAGE_TYPE_UNKNOWN:
+			return M_FALSE;
+		case M_HTTP_MESSAGE_TYPE_REQUEST:
+			if (http->method != M_HTTP_METHOD_UNKNOWN &&
+					!M_str_isempty(http->uri) &&
+					http->version != M_HTTP_VERSION_UNKNOWN)
+			{
+				return M_TRUE;
+			}
+		case M_HTTP_MESSAGE_TYPE_RESPONSE:
+			if (http->version != M_HTTP_VERSION_UNKNOWN &&
+					http->status_code != 0 &&
+					!M_str_isempty(http->reason_phrase))
+			{
+				return M_TRUE;
+			}
+	}
+
+	return M_FALSE;
+}
+
+M_http_message_type_t M_http_message_type(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_HTTP_MESSAGE_TYPE_UNKNOWN;
@@ -169,14 +200,14 @@ void M_http_set_message_type(M_http_t *http, M_http_message_type_t type)
 	http->type = type;
 }
 
-M_http_version_t M_http_version(M_http_t *http)
+M_http_version_t M_http_version(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_HTTP_VERSION_UNKNOWN;
 	return http->version;
 }
 
-void M_http_version(M_http_t *http, M_http_version_t version)
+void M_http_set_version(M_http_t *http, M_http_version_t version)
 {
 	if (http == NULL)
 		return;
@@ -185,7 +216,7 @@ void M_http_version(M_http_t *http, M_http_version_t version)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_uint32 M_http_status_code(M_http_t *http)
+M_uint32 M_http_status_code(const M_http_t *http)
 {
 	if (http == NULL)
 		return 0;
@@ -199,7 +230,7 @@ void M_http_set_status_code(M_http_t *http, M_uint32 code)
 	http->status_code = code;
 }
 
-const char *M_http_reason_phrase(M_http_t *http)
+const char *M_http_reason_phrase(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
@@ -216,21 +247,21 @@ void M_http_set_reason_phrase(M_http_t *http, const char *phrase)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_http_method_t M_http_method(M_http_t *http)
+M_http_method_t M_http_method(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_HTTP_METHOD_UNKNOWN;
 	return http->method;
 }
 
-void M_http_method(M_http_t *http, M_http_method_t method)
+void M_http_set_method(M_http_t *http, M_http_method_t method)
 {
 	if (http == NULL)
 		return;
 	http->method = method;
 }
 
-const char *M_http_uri(M_http_t *http)
+const char *M_http_uri(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
@@ -436,14 +467,14 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri)
 	return M_TRUE;
 }
 
-const char *M_http_host(M_http_t *http)
+const char *M_http_host(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->host;
 }
 
-M_bool M_http_port(M_http_t *http, M_uint16 *port)
+M_bool M_http_port(const M_http_t *http, M_uint16 *port)
 {
 	if (http == NULL)
 		return M_FALSE;
@@ -457,23 +488,35 @@ M_bool M_http_port(M_http_t *http, M_uint16 *port)
 	return M_TRUE;
 }
 
-const char *M_http_path(M_http_t *http)
+const char *M_http_path(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->path;
 }
 
-const char *M_http_query_string(M_http_t *http)
+const char *M_http_query_string(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->query_string;
 }
 
-const M_hash_dict_t *M_http_query_args(M_http_t *http)
+const M_hash_dict_t *M_http_query_args(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	reutrn http->query_args;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_bool M_http_error_is_error(M_http_error_t res)
+{
+	if (res == M_HTTP_ERROR_SUCCESS ||
+			res == M_HTTP_ERROR_SUCCESS_END)
+	{
+		return M_FALSE;
+	}
+	return M_TRUE;
 }
