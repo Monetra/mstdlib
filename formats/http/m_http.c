@@ -21,44 +21,7 @@
  * THE SOFTWARE.
  */
 
-
-#include "m_config.h"
-
-#include <mstdlib/mstdlib.h>
-#include <mstdlib/mstdlib_formats.h>
-
-/* XXX: Here until we add m_http.h to mstdlib_formats.h */
-#include <mstdlib/formats/m_http.h>
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-struct M_http {
-	M_http_message_type_t  type;
-	M_http_version_t       version;
-	M_uint32               status_code;
-	char                  *reason_phrase;
-	char                  *uri;
-	char                  *host;
-	M_uint16               port;
-	char                  *path;
-	char                  *query_string;
-	M_hash_dict_t         *query_args;
-	M_hash_dict_t         *headers;
-	M_hash_dict_t         *trailer;
-	M_list_str_t          *set_cookies;
-	M_buf_t               *body;
-	char                  *settings_payload;
-	size_t                 body_len;
-	M_http_method_t        method;
-	M_bool                 headers_complete;
-	M_bool                 body_complete;
-	M_bool                 chunked;
-	M_bool                 chunk_complete;
-	M_bool                 persist_conn;
-	M_bool                 want_upgrade;
-	M_bool                 want_upgrade_secure;
-	M_bool                 require_content_len;
-};
+#include "http/m_http_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -71,8 +34,8 @@ static void M_http_create_init(M_http_t *http)
  	 * because it's created when the URI is set. There is
 	 * no other way to manipulate it so we don't need
 	 * it before hand. */
-	http->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
-	http->trailer     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	http->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	http->trailer     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	http->set_cookies = M_list_str_create(M_LIST_STR_STABLE);
 	http->body        = M_buf_create();
 }
@@ -140,7 +103,7 @@ void M_http_clear_headers(M_http_t *http)
 		return;
 
 	M_hash_dict_destroy(http->headers);
-	http->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	http->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 
 	M_http_set_want_upgrade(http, M_FALSE, M_FALSE, NULL);
 	M_http_set_persistent_conn(http, M_FALSE);
@@ -187,7 +150,7 @@ void M_http_clear_chunk_trailer(M_http_t *http)
 		return;
 
 	M_hash_dict_destroy(http->trailer);
-	http->trailer = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	http->trailer = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -513,112 +476,4 @@ const M_hash_dict_t *M_http_query_args(M_http_t *http)
 	if (http == NULL)
 		return NULL;
 	reutrn http->query_args;
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_bool M_http_headers_complete(M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->headers_complete;
-}
-
-void M_http_set_headers_complete(M_http_t *http, M_bool complete)
-{
-	if (http == NULL)
-		return;
-	http->headers_complete = complete;
-}
-
-const M_hash_dict_t *M_http_headers(M_http_t *http)
-{
-	if (http == NULL)
-		return NULL;
-	return http->headers;
-}
-
-void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
-{
-	if (http == NULL)
-		return;
-
-	/* XXX: */
-}
-
-const M_list_str_t *M_http_get_set_cookie(M_http_t *http)
-{
-	if (http == NULL)
-		return NULL;
-	return http->set_cookies;
-}
-
-void M_http_set_cookie_remove(M_http_t *http, size_t idx)
-{
-	if (http == NULL)
-		return;
-	M_list_str_remove(http->set_cookies, idx);
-}
-
-void M_http_set_cookie_insert(M_http_t *http, const char *val)
-{
-	if (http == NULL)
-		return;
-	M_list_str_insert(http->set_cookies, val);
-}
-
-M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure, const char **settings_payload)
-{
-	if (http == NULL)
-		return M_FALSE;
-
-	if (secure != NULL)
-		*secure = http->want_upgrade_secure;
-	if (settings_payload != NULL)
-		*settings_payload = http->settings_payload;
-	return http->want_upgrade;
-}
-
-void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const char *settings_payload)
-{
-	if (http == NULL || (want && M_str_isempty(settings_payload)))
-		return;
-
-	http->want_upgrade        = want;
-	http->want_upgrade_secure = M_FALSE;
-	M_free(http->settings_payload);
-	http->settings_payload    = NULL;
-
-	M_hash_dict_remove(http->headers, "Connection");
-	M_hash_dict_remove(http->headers, "Upgrade");
-	M_hash_dict_remove(http->headers, "HTTP2-Settings");
-
-	if (want) {
-		M_hash_dict_insert(http->headers, "Connection", "Upgrade, HTTP2-Settings");
-		M_hash_dict_insert(http->headers, "Upgrade", secure?"h2":"h2c");
-		M_hash_dict_insert(http->headers, "HTTP2-Settings", settings_payload);
-
-		http->want_upgrade_secure = secure;
-		http->settings_payload    = M_strdup(settings_payload);
-	}
-}
-
-M_bool M_http_persistent_conn(M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->persist_conn;
-}
-
-void M_http_set_persistent_conn(M_http_t *http, M_bool persist)
-{
-	/* Upgrading to http 2 isn't compatible. */
-	if (http == NULL || http->want_upgrade)
-		return;
-
-	http->persist = persist;
-
-	M_hash_dict_remove(http->headers, "Connection");
-	if (persist)
-		M_hash_dict_insert(http->headers, "Connection", "keep-alive");
 }
