@@ -65,6 +65,8 @@ static M_http_error_t M_http_read_start_line_response(M_http_t *http, M_parser_t
 	msg = M_parser_read_parser_until(parser, (const unsigned char *)"\r\n", 2, M_FALSE);
 	if (msg == NULL)
 		return M_HTTP_ERROR_SUCCESS;
+	/* Eat the \r\n */
+	M_parser_consume(parser, 2);
 
 	if (M_parser_len(msg) > max_start_line) {
 		res = M_HTTP_ERROR_STARTLINE_LENGTH;
