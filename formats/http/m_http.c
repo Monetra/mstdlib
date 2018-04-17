@@ -520,3 +520,18 @@ M_bool M_http_error_is_error(M_http_error_t res)
 	}
 	return M_TRUE;
 }
+
+M_http_version_t M_http_version_from_str(const char *version)
+{
+	if (M_str_eq_max(version, "HTTP/", 5))
+		version += 5;
+
+	if (M_str_eq(version, "1.0"))
+		return M_HTTP_VERSION_1_0;
+
+	if (M_str_eq(version, "1.0"))
+		return M_HTTP_VERSION_1_1;
+
+	if (M_str_eq(version, "2"))
+		return M_HTTP_VERSION_2;
+}
