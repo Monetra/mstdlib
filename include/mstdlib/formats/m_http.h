@@ -51,6 +51,10 @@ typedef enum {
 	M_HTTP_ERROR_SUCCESS_END,
 
 	M_HTTP_ERROR_INVALIDUSE,
+	M_HTTP_ERROR_STARTLINE_LENGTH,
+	M_HTTP_ERROR_STARTLINE_MALFORMED,
+	M_HTTP_ERROR_UNKNOWN_VERSION,
+
 	M_HTTP_ERROR_REQUEST_LENGTH,
 	M_HTTP_ERROR_REQUEST_LINE_INVLD, /* 400 */
 	M_HTTP_ERROR_REQUEST_LINE_LENGTH, /* 414 (8k limit) */
@@ -77,7 +81,7 @@ typedef enum {
 	M_HTTP_VERSION_UNKNOWN, /*!< Unknown. */
 	M_HTTP_VERSION_1_0,     /*!< 1.0 */
 	M_HTTP_VERSION_1_1,     /*!< 1.1 */
-	/* M_HTTP_VERSION_2 */  /*!< 2 */
+	M_HTTP_VERSION_2        /*!< 2 */
 } M_http_message_type_t;
 
 
@@ -802,6 +806,17 @@ void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val);
  * \return M_TRUE if an error. Otherwise, M_FALSE.
  */
 M_bool M_http_error_is_error(M_http_error_t res);
+
+
+/*! Convert a version string into a version value.
+ *
+ * The version can start with "HTTP/" or without.
+ *
+ * \param[in] version Version string.
+ *
+ * \return version.
+ */
+M_http_version_t M_http_version_from_str(const char *version);
 
 /*! @} */
 
