@@ -24,9 +24,8 @@
 #ifndef __M_HTTP_INT_H__
 #define __M_HTTP_INT_H__
 
-#include "m_config.h"
 #include <mstdlib/mstdlib.h>
-#include <mstdlib/mstdlib_formats.h>
+#include "m_defs_int.h"
 
 /* XXX: Here until we add m_http.h to mstdlib_formats.h */
 #include <mstdlib/formats/m_http.h>
@@ -60,5 +59,10 @@ struct M_http {
 	M_bool                 want_upgrade_secure;
 	M_bool                 require_content_len;
 };
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
+char *M_http_header_int(const M_hash_dict_t *d, const char *key);
 
 #endif
