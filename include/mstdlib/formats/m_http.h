@@ -58,8 +58,7 @@ typedef enum {
 	M_HTTP_PARSE_RESULT_HEADER_FOLDING,
 	M_HTTP_PARSE_RESULT_METHOD_UNKNOWN, /* 501 */
 	M_HTTP_PARSE_RESULT_LENGTH_REQUIRED, /* 411 */
-	M_HTTP_PARSE_RESULT_MALFORMED,
-	M_HTTP_PARSE_RESULT_?,
+	M_HTTP_PARSE_RESULT_MALFORMED
 } M_http_parse_result_t;
 
 
@@ -158,6 +157,18 @@ void M_http_clear_set_cookie(M_http_t *http);
 void M_http_clear_body(M_http_t *http);
 
 
+/*! Clear chunk body and trailer.
+ *
+ * Chunked body and trailers should be cleared
+ * once all data from the chunk is processed.
+ * This will put the HTTP object in a state
+ * ready for reading in the next chunk.
+ *
+ * \param[in] http HTTP object.
+ */
+void M_http_clear_chunked(M_http_t *http);
+
+
 /*! Clear chunk body.
  *
  * \param[in] http HTTP object.
@@ -185,6 +196,12 @@ void M_http_clear_chunk_trailer(M_http_t *http);
  * It's not always possible to determine when a message ends.
  * For example no length is specified. In which case M_HTTP_PARSE_RESULT_SUCCESS_END 
  * will never be returned.
+ *
+ * When receiving chunked data there could be multiple chunks in the
+ * stream. M_HTTP_PARSE_RESULT_SUCCESS_END will be returned when a
+ * single chunk is processed. More calls to read are necessary starting
+ * from the return read_len position in the data to continuing reading
+ * the next chunks.
  *
  * \param[in]  http     HTTP object.
  * \param[in]  data     Raw data.
@@ -333,8 +350,10 @@ const char *M_http_uri(M_http_t *http);
  *
  * \param[in] http HTTP object.
  * \param[in] uri  The URI.
+ *
+ * \return M_TRUE if URI was successfully set (parsed). Otherwise, M_FALSE.
  */
-void M_http_set_uri(M_http_t *http, const char *uri);
+M_bool M_http_set_uri(M_http_t *http, const char *uri);
 
 
 /*! Host part of request URI.
@@ -482,12 +501,13 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val);
  *
  * This reads the Upgrade header and is a convince function.
  *
- * \param[in]  http   HTTP object.
- * \param[out] secure Whether upgrading to TLS is requested.
+ * \param[in]  http             HTTP object.
+ * \param[out] secure           Whether upgrading to TLS is requested.
+ * \param[out] settings_payload Payload of upgrade settings.
  *
  * \return M_TRUE if upgrade is requested. Otherwise, M_FALSE.
  */
-M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure);
+M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure, const char **settings_payload);
 
 
 /*! Set whether upgrade should be requested.
@@ -497,11 +517,12 @@ M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure);
  *
  * Sets the Upgrade header. Will overwrite the existing header data if already set.
  *
- * \param[in] http    HTTP object.
- * \param[in] request Whether upgrade should be requested.
- * \param[in] secure  Whether a secure upgrade should be requested.
+ * \param[in] http             HTTP object.
+ * \param[in] want             Whether upgrade should be requested.
+ * \param[in] secure           Whether a secure upgrade should be requested.
+ * \param[in] settings_payload Payload of upgrade settings.
  */
-void M_http_set_want_upgrade(M_http_t *http, M_bool request, M_bool secure);
+void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const char *settings_payload);
 
 
 /*! Is keep alive connection type set to indicate the connection is persistent.
@@ -520,7 +541,7 @@ M_bool M_http_persistent_conn(M_http_t *http);
  * \param[in] http    HTTP object.
  * \param[in] persist Whether to request a persistent connection.
  */
-void M_http_persistent_conn(M_http_t *http, M_bool persist);
+void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -610,7 +631,7 @@ M_bool M_http_chunk_complete(M_http_t *http);
  * \param[in] http     HTTP object.
  * \param[in] complete Whether loading is complete.
  */
-void M_http_chunk_set_complete(M_http_t *http, M_bool complete);
+void M_http_set_chunk_complete(M_http_t *http, M_bool complete);
 
 
 /*! The length of the chunked response data.
@@ -646,7 +667,7 @@ const unsigned char *M_http_chunk_data(M_http_t *http, size_t *len);
  * \param[in] data Data.
  * \param[in] len  Length of data.
  */
-void M_http_chunk_set_data(M_http_t *http, const unsigned char *data);
+void M_http_set_chunk_data(M_http_t *http, const unsigned char *data);
 
 
 /*! Get the chunk's trailing headers.
@@ -676,7 +697,7 @@ const M_hash_dict_t *M_http_chunk_trailer(M_http_t *http);
  *
  * \see M_http_clear_chunk_trailer
  */
-void M_http_chunk_set_trailer(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
+void M_http_set_chunk_trailer(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
 
 /*! @} */
 
