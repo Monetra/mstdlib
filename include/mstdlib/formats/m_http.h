@@ -47,19 +47,21 @@ typedef struct M_http M_http_t;
 
 /*! Result of parsing. */
 typedef enum {
-	M_HTTP_PARSE_RESULT_SUCCESS = 0,
-	M_HTTP_PARSE_RESULT_SUCCESS_END,
-	M_HTTP_PARSE_RESULT_REQUEST_LENGTH,
-	M_HTTP_PARSE_RESULT_REQUEST_LINE_INVLD, /* 400 */
-	M_HTTP_PARSE_RESULT_REQUEST_LINE_LENGTH, /* 414 (8k limit) */
-	M_HTTP_PARSE_RESULT_HEADER_INVLD,
-	M_HTTP_PARSE_RESULT_HEADER_LENGTH,
-	M_HTTP_PARSE_RESULT_HEADER_MULTILENGTHS, /* 400/502 */
-	M_HTTP_PARSE_RESULT_HEADER_FOLDING,
-	M_HTTP_PARSE_RESULT_METHOD_UNKNOWN, /* 501 */
-	M_HTTP_PARSE_RESULT_LENGTH_REQUIRED, /* 411 */
-	M_HTTP_PARSE_RESULT_MALFORMED
-} M_http_parse_result_t;
+	M_HTTP_ERROR_SUCCESS = 0,
+	M_HTTP_ERROR_SUCCESS_END,
+
+	M_HTTP_ERROR_INVALIDUSE,
+	M_HTTP_ERROR_REQUEST_LENGTH,
+	M_HTTP_ERROR_REQUEST_LINE_INVLD, /* 400 */
+	M_HTTP_ERROR_REQUEST_LINE_LENGTH, /* 414 (8k limit) */
+	M_HTTP_ERROR_HEADER_INVLD,
+	M_HTTP_ERROR_HEADER_LENGTH,
+	M_HTTP_ERROR_HEADER_MULTILENGTHS, /* 400/502 */
+	M_HTTP_ERROR_HEADER_FOLDING,
+	M_HTTP_ERROR_METHOD_UNKNOWN, /* 501 */
+	M_HTTP_ERROR_LENGTH_REQUIRED, /* 411 */
+	M_HTTP_ERROR_MALFORMED
+} M_http_error_t;
 
 
 /*! Message type. */
@@ -213,7 +215,7 @@ void M_http_clear_chunk_trailer(M_http_t *http);
  *         This can be returned from a since call or after multiple calls.
  *         Otherwise an error condition.
  */
-M_http_parse_result_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read);
+M_http_result_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read);
 
 
 /*! Structure an http object into a message stubble for sending.
@@ -242,10 +244,20 @@ M_http_parse_result_t M_http_read(M_http_t *http, const unsigned char *data, siz
  *
  * \return Data.
  */
-unsigned char *M_http_write(M_http_t *http, size_t *len);
+unsigned char *M_http_write(const M_http_t *http, size_t *len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+
+/*! Has the start line been loaded.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Bool.
+ */
+M_bool M_http_start_line_complete(const M_http_t *http);
+
 
 /*! The type (request/response) of message.
  *
@@ -253,7 +265,7 @@ unsigned char *M_http_write(M_http_t *http, size_t *len);
  *
  * \return Message type.
  */
-M_http_message_type_t M_http_message_type(M_http_t *http);
+M_http_message_type_t M_http_message_type(const M_http_t *http);
 
 
 /*! Set the type (request/response) of message.
@@ -270,7 +282,7 @@ void M_http_set_message_type(M_http_t *http, M_http_message_type_t type);
  *
  * \return Version.
  */
-M_http_version_t M_http_version(M_http_t *http);
+M_http_version_t M_http_version(const M_http_t *http);
 
 
 /*! Set the HTTP version.
@@ -278,7 +290,7 @@ M_http_version_t M_http_version(M_http_t *http);
  * \param[in] http    HTTP object.
  * \param[in] version Version.
  */
-void M_http_version(M_http_t *http, M_http_version_t version);
+void M_http_set_version(M_http_t *http, M_http_version_t version);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -289,7 +301,7 @@ void M_http_version(M_http_t *http, M_http_version_t version);
  *
  * \return Status code.
  */
-M_uint32 M_http_status_code(M_http_t *http);
+M_uint32 M_http_status_code(const M_http_t *http);
 
 
 /*! Set the response status code.
@@ -306,7 +318,7 @@ void M_http_set_status_code(M_http_t *http, M_uint32 code);
  *
  * \return String.
  */
-const char *M_http_reason_phrase(M_http_t *http);
+const char *M_http_reason_phrase(const M_http_t *http);
 
 
 /*! Set the response textual status reason.
@@ -325,7 +337,7 @@ void M_http_set_reason_phrase(M_http_t *http, const char *phrase);
  *
  * \return Method.
  */
-M_http_method_t M_http_method(M_http_t *http);
+M_http_method_t M_http_method(const M_http_t *http);
 
 
 /*! Set the request method.
@@ -333,7 +345,7 @@ M_http_method_t M_http_method(M_http_t *http);
  * \param[in] http   HTTP object.
  * \param[in] method Method.
  */
-void M_http_method(M_http_t *http, M_http_method_t method);
+void M_http_set_method(M_http_t *http, M_http_method_t method);
 
 
 /* Request URI.
@@ -344,7 +356,7 @@ void M_http_method(M_http_t *http, M_http_method_t method);
  *
  * \return String.
  */
-const char *M_http_uri(M_http_t *http);
+const char *M_http_uri(const M_http_t *http);
 
 /*! Set the request URI.
  *
@@ -366,7 +378,7 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri);
  *
  * \return String.
  */
-const char *M_http_host(M_http_t *http);
+const char *M_http_host(const M_http_t *http);
 
 
 /*! Port part of request URI.
@@ -378,7 +390,7 @@ const char *M_http_host(M_http_t *http);
  *
  * \return M_TRUE if port is present. Otherwise, M_FALSE.
  */
-M_bool M_http_port(M_http_t *http, M_uint16 *port);
+M_bool M_http_port(const M_http_t *http, M_uint16 *port);
 
 
 /*! Path from the request URI
@@ -387,7 +399,7 @@ M_bool M_http_port(M_http_t *http, M_uint16 *port);
  *
  * \return String.
  */
-const char *M_http_path(M_http_t *http);
+const char *M_http_path(const M_http_t *http);
 
 
 /*! Query string from the request URI.
@@ -398,7 +410,7 @@ const char *M_http_path(M_http_t *http);
  *
  * \see M_http_query_args
  */
-const char *M_http_query_string(M_http_t *http);
+const char *M_http_query_string(const M_http_t *http);
 
 
 /*! Query arguments from the request URI.
@@ -409,7 +421,7 @@ const char *M_http_query_string(M_http_t *http);
  *
  * \see M_http_query_string
  */
-const M_hash_dict_t *M_http_query_args(M_http_t *http);
+const M_hash_dict_t *M_http_query_args(const M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -425,7 +437,7 @@ const M_hash_dict_t *M_http_query_args(M_http_t *http);
  *
  * \return Bool.
  */ 
-M_bool M_http_headers_complete(M_http_t *http);
+M_bool M_http_headers_complete(const M_http_t *http);
 
 
 /*! Set whether all headers have been loaded.
@@ -448,7 +460,7 @@ void M_http_set_headers_complete(M_http_t *http, M_bool complete);
  *
  * \return Dict.
  */
-const M_hash_dict_t *M_http_headers(M_http_t *http);
+const M_hash_dict_t *M_http_headers(const M_http_t *http);
 
 
 /*! Get all values for a header combined into a single
@@ -461,7 +473,7 @@ const M_hash_dict_t *M_http_headers(M_http_t *http);
  *
  * \return String.
  */
-const char *M_http_header(M_http_t *http, const char key);
+char *M_http_header(const M_http_t *http, const char key);
 
 
 /*! Set the http headers.
@@ -494,7 +506,7 @@ void M_http_set_header(M_http_t *http, const char *key, const char *val);
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_set_header_append(M_http_t *http, const char *key, const char *val);
+void M_http_add_header(M_http_t *http, const char *key, const char *val);
 
 
 /*! Get the Set-Cookie headers.
@@ -503,7 +515,7 @@ void M_http_set_header_append(M_http_t *http, const char *key, const char *val);
  *
  * \return String list
  */
-const M_list_str_t *M_http_get_set_cookie(M_http_t *http);
+const M_list_str_t *M_http_get_set_cookie(const M_http_t *http);
 
 
 /*! Remove a value from the Set-Cookie header value list.
@@ -535,7 +547,7 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val);
  *
  * \return M_TRUE if upgrade is requested. Otherwise, M_FALSE.
  */
-M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure, const char **settings_payload);
+M_bool M_http_want_upgrade(const M_http_t *http, M_bool *secure, const char **settings_payload);
 
 
 /*! Set whether upgrade should be requested.
@@ -561,7 +573,7 @@ void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const c
  *
  * \return Whether the connection should remain open.
  */
-M_bool M_http_persistent_conn(M_http_t *http);
+M_bool M_http_persistent_conn(const M_http_t *http);
 
 
 /*! Sets whether the connection should remain open for subsequent messages.
@@ -588,7 +600,7 @@ void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
  *
  * \return Bool.
  */
-M_bool M_http_body_complete(M_http_t *http);
+M_bool M_http_body_complete(const M_http_t *http);
 
 
 /*! Set whether the body has been fully loaded.
@@ -614,16 +626,27 @@ void M_http_set_body_complete(M_http_t *http, M_bool complete);
  *
  * \return Data.
  */
-const unsigned char *M_http_body(M_http_t *http, size_t *len);
+const unsigned char *M_http_body(const M_http_t *http, size_t *len);
 
 
 /*! Set the body data.
+ *
+ * Clears existing body data.
  *
  * \param[in] http HTTP object.
  * \param[in] data Data.
  * \param[in] len  Length of data.
  */
 void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len);
+
+
+/*! Add to existing body data.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] data Data.
+ * \param[in] len  Length of data.
+ */
+void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -634,7 +657,7 @@ void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len);
  *
  * \return Bool
  */
-M_bool M_http_is_chunked(M_http_t *http);
+M_bool M_http_is_chunked(const M_http_t *http);
 
 
 /*! Specify that this is a chunked message.
@@ -651,7 +674,7 @@ void M_http_set_chunked(M_http_t *http, M_bool chunked);
  *
  * \return Bool.
  */
-M_bool M_http_chunk_complete(M_http_t *http);
+M_bool M_http_chunk_complete(const M_http_t *http);
 
 
 /*! Set whether the chunk data has been fully loaded.
@@ -676,7 +699,7 @@ void M_http_set_chunk_complete(M_http_t *http, M_bool complete);
  *
  * \return Length.
  */
-size_t M_http_chunk_len(M_http_t *http);
+size_t M_http_chunk_len(const M_http_t *http);
 
 
 /*! Get the chunk data.
@@ -686,7 +709,7 @@ size_t M_http_chunk_len(M_http_t *http);
  *
  * \return Data.
  */
-const unsigned char *M_http_chunk_data(M_http_t *http, size_t *len);
+const unsigned char *M_http_chunk_data(const M_http_t *http, size_t *len);
 
 
 /*! Set the chunked data.
@@ -695,7 +718,16 @@ const unsigned char *M_http_chunk_data(M_http_t *http, size_t *len);
  * \param[in] data Data.
  * \param[in] len  Length of data.
  */
-void M_http_set_chunk_data(M_http_t *http, const unsigned char *data);
+void M_http_set_chunk_data(M_http_t *http, const unsigned char *data, size_t len);
+
+
+/*! Add to existing chunked data.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] data Data.
+ * \param[in] len  Length of data.
+ */
+void M_http_chunk_data_append(M_http_t *http, const unsigned char *data, size_t len);
 
 
 /*! Get the chunk's trailing headers.
@@ -712,7 +744,20 @@ void M_http_set_chunk_data(M_http_t *http, const unsigned char *data);
  *
  * \return Dict.
  */
-const M_hash_dict_t *M_http_chunk_trailer(M_http_t *http);
+const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http);
+
+
+/*! Get all values for a trailer combined into a single
+ *
+ * Get the value of the header as a comma (,) separated list
+ * if multiple values were specified.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ *
+ * \return String.
+ */
+char *M_http_chunk_trailer(const M_http_t *http, const char key);
 
 
 /*! Set the chunk trailing headers.
@@ -725,7 +770,38 @@ const M_hash_dict_t *M_http_chunk_trailer(M_http_t *http);
  *
  * \see M_http_clear_chunk_trailer
  */
-void M_http_set_chunk_trailer(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
+void M_http_set_chunk_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
+
+
+/*! Set a single http trailer.
+ *
+ * Replacing any existing values.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_set_chunk_trailer(M_http_t *http, const char *key, const char *val);
+
+
+/*! Add a value to headers preserving existing values.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Is the result considered an error.
+ *
+ * \param[in] res Result
+ *
+ * \return M_TRUE if an error. Otherwise, M_FALSE.
+ */
+M_bool M_http_error_is_error(M_http_error_t res);
 
 /*! @} */
 
