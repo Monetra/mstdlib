@@ -442,18 +442,26 @@ void M_http_set_headers_complete(M_http_t *http, M_bool complete);
  * times with different attributes.
  *
  * This is a multi value dict to perceive the individual values when
- * the header is present multiple times. When a duplicate header is
- * encountered, the first value in the dict is a common (,) separated
- * list with all values. Multi indexes will be present after for each
- * individual element.
- *
- * Headers that only appear once will only have one entry.
+ * the header is present multiple times.
  *
  * \param[in] http HTTP object.
  *
  * \return Dict.
  */
 const M_hash_dict_t *M_http_headers(M_http_t *http);
+
+
+/*! Get all values for a header combined into a single
+ *
+ * Get the value of the header as a comma (,) separated list
+ * if multiple values were specified.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ *
+ * \return String.
+ */
+const char *M_http_header(M_http_t *http, const char key);
 
 
 /*! Set the http headers.
@@ -467,6 +475,26 @@ const M_hash_dict_t *M_http_headers(M_http_t *http);
  * \see M_http_clear_headers
  */
 void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
+
+
+/*! Set a single http header.
+ *
+ * Replacing any existing values.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_set_header(M_http_t *http, const char *key, const char *val);
+
+
+/*! Add a value to headers preserving existing values.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_set_header_append(M_http_t *http, const char *key, const char *val);
 
 
 /*! Get the Set-Cookie headers.
