@@ -487,12 +487,12 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val);
  *
  * \return M_TRUE if upgrade is requested. Otherwise, M_FALSE.
  */
-M_bool M_http_do_upgrade(M_http_t *http, M_bool *secure);
+M_bool M_http_want_upgrade(M_http_t *http, M_bool *secure);
 
 
 /*! Set whether upgrade should be requested.
  *
- * Only valid when version is set to 1.0.
+ * Only valid when version is set to 1.1.
  * Can be ignored by the client.
  *
  * Sets the Upgrade header. Will overwrite the existing header data if already set.
@@ -501,7 +501,7 @@ M_bool M_http_do_upgrade(M_http_t *http, M_bool *secure);
  * \param[in] request Whether upgrade should be requested.
  * \param[in] secure  Whether a secure upgrade should be requested.
  */
-void M_http_set_request_upgrade(M_http_t *http, M_bool request, M_bool secure);
+void M_http_set_want_upgrade(M_http_t *http, M_bool request, M_bool secure);
 
 
 /*! Is keep alive connection type set to indicate the connection is persistent.
@@ -527,13 +527,13 @@ void M_http_persistent_conn(M_http_t *http, M_bool persist);
 
 /*! Has the body been fully loaded.
  *
- * The body could be cleared when using streamed reads so the
- * data might not all be in the HTTP object. This specifies
- * that all data has been read at one point.
+ * The body could be cleared by the caller when using streamed reads so
+ * the data might not all be in the HTTP object. This specifies that all
+ * data has been read at one point.
  *
  * \note It's not always possible to know when all body data has
- *       been read. It is valid for a server to define a body as
- *       all bytes sent before connection close.
+ *       been read. It is valid for a server to define the body
+ *       length as all bytes sent before connection close.
  *
  * \param[in] http HTTP object.
  *
@@ -545,7 +545,9 @@ M_bool M_http_body_complete(M_http_t *http);
 /*! Set whether the body has been fully loaded.
  *
  * This does not update or change the length headers.
- * It is up to the caller to set any length headers.
+ * It is up to the caller to set any length headers
+ * because the body could be streamed outside of this
+ * object.
  *
  * \param[in] http     HTTP object.
  * \param[in] complete Whether loading is complete.
@@ -662,6 +664,7 @@ void M_http_chunk_set_data(M_http_t *http, const unsigned char *data);
  * \return Dict.
  */
 const M_hash_dict_t *M_http_chunk_trailer(M_http_t *http);
+
 
 /*! Set the chunk trailing headers.
  *
