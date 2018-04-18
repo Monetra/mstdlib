@@ -50,7 +50,7 @@ const unsigned char *M_http_body(const M_http_t *http, size_t *len)
 		return NULL;
 
 	*len = M_buf_len(http->body);
-	return M_buf_peek(http->body)
+	return (const unsigned char *)M_buf_peek(http->body);
 }
 
 void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len)
@@ -88,7 +88,7 @@ void M_http_set_chunked(M_http_t *http, M_bool chunked)
 M_bool M_http_chunk_complete(const M_http_t *http)
 {
 	if (http == NULL)
-		return;
+		return M_FALSE;
 	return http->chunk_complete;
 }
 
@@ -103,7 +103,7 @@ size_t M_http_chunk_len(const M_http_t *http)
 {
 	if (http == NULL)
 		return 0;
-	return http->body_len;
+	return http->body_len_total;
 }
 
 const unsigned char *M_http_chunk_data(const M_http_t *http, size_t *len)
@@ -118,22 +118,22 @@ void M_http_set_chunk_data(M_http_t *http, const unsigned char *data, size_t len
 
 void M_http_chunk_data_append(M_http_t *http, const unsigned char *data, size_t len)
 {
-	M_http_set_body_append(http, data, len);
+	M_http_body_append(http, data, len);
 }
 
 const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
-	return http->trailers;
+	return http->trailer;
 }
 
-const char *M_http_chunk_trailer(const M_http_t *http, const char key)
+const char *M_http_chunk_trailer(const M_http_t *http, const char *key)
 {
 	if (http == NULL)
 		return NULL;
 
-	return M_http_header_int(http->trailers, key);
+	return M_http_header_int(http->trailer, key);
 }
 
 void M_http_set_chunk_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
@@ -149,8 +149,8 @@ void M_http_set_chunk_trailer(M_http_t *http, const char *key, const char *val)
 	if (http == NULL)
 		return;
 
-	M_hash_dict_remove(http->trailers, key);
-	M_hash_dict_insert(htpp->trailers, key, val);
+	M_hash_dict_remove(http->trailer, key);
+	M_hash_dict_insert(http->trailer, key, val);
 }
 
 void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val)
@@ -158,7 +158,7 @@ void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val)
 	if (http == NULL)
 		return;
 
-	M_hash_dict_insert(http->trailers, key, val);
+	M_hash_dict_insert(http->trailer, key, val);
 }
 
 void M_http_set_body_length(M_http_t *http, size_t len)
@@ -181,4 +181,11 @@ size_t M_http_body_length_current(M_http_t *http)
 	if (http == NULL)
 		return 0;
 	return http->body_len_cur;
+}
+
+M_bool M_http_have_body_length(M_http_t *http)
+{
+	if (http == NULL)
+		return M_FALSE;
+	return http->have_body_len;
 }
