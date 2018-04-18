@@ -156,6 +156,105 @@ done:
 	return res;
 }
 
+static M_http_error_t M_http_read_headers_validate_upgrade(M_http_t *http, const M_hash_dict_t *headers)
+{
+	const char *type    = NULL;
+	const char *payload = NULL;
+	M_bool      upgrade = M_FALSE;
+	M_bool      secure  = M_FALSE;
+	size_t      i;
+	size_t      len;
+
+	len = M_hash_dict_multi_len(headers, "connection");
+	for (i=0; i<len; i++) {
+		val = M_hash_dict_multi_get_direct(headers, "connection", i);
+		if (M_str_caseeq(val, "upgrade")) {
+			upgrade = M_TRUE;
+		}
+	}
+
+	len = M_hash_dict_multi_len(headers, "upgrade");
+	if (len > 1)
+		return M_HTTP_ERROR_HEADER_DUPLICATE;
+	type = M_hash_dict_get_direct(http, "upgrade");
+	if (M_str_caseeq(const_temp, "h2"))
+		secure = M_TRUE;
+
+	len = M_hash_dict_multi_len(headers, "HTTP2-Settings");
+	if (len > 1)
+		return M_HTTP_ERROR_HEADER_DUPLICATE;
+	payload = M_hash_dict_get_direct(http, "HTTP2-Settings");
+
+	if (upgrade) {
+		if (M_str_isempty(type) || M_str_isempty(payload)) {
+			return M_HTTP_ERROR_UPGRADE;
+		}
+		if (M_str_caseeq(type, "h2")) {
+			secure = M_TRUE;
+		} else if (!M_str_caseeq(type, "h2c")) {
+			return M_HTTP_ERROR_UPGRADE;
+		}
+		M_http_set_want_upgrade(http, upgrade, secure, payload);
+	}
+
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_read_headers_validate(M_http_t *http)
+{
+	const M_hash_dict_t *headers;
+	const char          *val;
+	M_int64              i64v;
+	size_t               len;
+	size_t               i;
+
+	headers = M_http_headers(http);
+
+	/* Content-Length. */
+	len = M_hash_dict_multi_len(headers, "content-length");
+	if (len > 1) {
+		return M_HTTP_ERROR_HEADER_DUPLICATE;
+	} else if (len == 0 && M_http_require_content_length(http)) {
+		return M_HTTP_ERROR_LENGTH_REQUIRED;
+	} else if (len == 1 && M_hash_dict_get(headers, "transfer-encoding", NULL)) {
+		return M_HTTP_ERROR_MALFORMED;
+	} else if (len == 1) {
+		val = M_hash_dict_get_direct(headers, "content-length");
+		if (M_str_to_int64_ex(val, M_str_len(val), &i64v, NULL) != M_STR_INT_SUCCESS) {
+			return M_HTTP_ERROR_MALFORMED;
+		}
+		if (i64v < 0) {
+			return M_HTTP_ERROR_MALFORMED;
+		}
+		M_http_set_body_length(http, (size_t)i64v);
+	}
+
+	/* Transfer-Encoding. */
+	len = M_hash_dict_multi_len(headers, "transfer-encoding");
+	for (i=0; i<len; i++) {
+		val = M_hash_dict_multi_get_direct(headers, "transfer-encoding", i);
+		if (M_str_caseeq(val, "chunked")) {
+			M_http_set_chunked(http, M_TRUE);
+		}
+	}
+
+	/* Persistant connection. */
+	len = M_hash_dict_multi_len(headers, "connection");
+	for (i=0; i<len; i++) {
+		val = M_hash_dict_multi_get_direct(headers, "connection", i);
+		if (M_str_caseeq(val, "keep-alive")) {
+			M_http_set_persistent_conn(http, M_TRUE);
+		}
+	}
+
+	/* Upgrade requested. */
+	res = M_http_read_headers_validate_upgrade(http, headers);
+	if (M_http_error_is_error(res))
+		return res;
+
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
 {
 	M_parser_t      *msg;
@@ -165,6 +264,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
 	size_t           num_kv;
 	size_t           start_len;
 	size_t           i;
+	size_t           j;
 	M_http_error_t   res = M_HTTP_ERROR_SUCCESS;
 
 	start_len = M_parser_len(parser);
@@ -186,8 +286,10 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
 		goto done;
 	}
 	for (i=0; i<num_parts; i++) {
-		char *key;
-		char *val;
+		char   **sparts;
+		size_t   num_sparts;
+		char    *key;
+		char    *val;
 
 		/* Folding is deprecated and shouldn't be supported. */
 		if (M_parser_consume_whitespace(parts[i]) != 0) {
@@ -215,10 +317,27 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
 		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
 		val = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
 
+		M_str_trim(val);
+		if (M_str_isempty(key) || M_str_isempty(val)) {
+			res = M_HTTP_ERROR_HEADER_INVLD;
+			goto done;
+		}
+
 		if (M_str_caseeq(key, "set-cookie")) {
 			M_http_set_cookie_insert(http, val);
 		} else {
-			M_http_add_header(http, key, val);
+			/* If multi value expode them into their parts
+ 			 * for storage. */
+			sparts = M_str_explode_str(',', val, &num_sparts);
+			if (sparts == NULL)
+				num_sparts = 0;
+			for (j=0; j<num_sparts; j++) {
+				M_str_trim(sparts[j]);
+				if (M_str_isempty(sparts[j])) {
+					continue;
+				}
+				M_http_add_header(http, key, sparts[j]);
+			}
 		}
 		M_free(key);
 		M_free(val);
@@ -228,15 +347,9 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
 		num_kv = 0;
 	}
 
-	/* Check
- 	 *
-	 * - Content length:
- 	 *   - only 1
-	 *   - if required
-	 * - Chunked
-	 * - persist con
-	 * - want upgrade
-	 */ 
+	res = M_http_read_headers_validate(http);
+	if (M_http_error_is_error(res))
+		goto done;
 
 	M_http_set_headers_complete(http, M_TRUE);
 
@@ -245,8 +358,17 @@ done:
 	M_parser_split_free(parts, num_parts);
 	M_parser_destroy(msg);
 
-	if (!M_http_error_is_error(res))
+	if (M_http_error_is_error(res)) {
+		/* Kill the headers we set when there is an error
+ 		 * since we can't assume they're valid. */
+		M_http_clear_headers(http);
+		M_http_clear_chunked(http);
+		M_http_set_body_length(http, 0);
+		M_http_set_want_upgrade(http, M_FALSE);
+		M_http_set_persistent_conn(http, M_FALSE);
+	} else {
 		*len_read += start_len - M_parser_len(parser);
+	}
 	return res;
 }
 
