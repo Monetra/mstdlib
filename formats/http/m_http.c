@@ -59,7 +59,7 @@ static void M_http_clear_int(M_http_t *http)
 	M_hash_dict_destroy(http->trailer);
 	M_list_str_destroy(http->set_cookies);
 	M_buf_cancel(http->body);
-	M_free(settings_payload);
+	M_free(http->settings_payload);
 
 	M_mem_set(http, 0, sizeof(*http));
 }
@@ -88,7 +88,7 @@ void M_http_destroy(M_http_t *http)
 M_bool M_http_require_content_length(M_http_t *http)
 {
 	if (http == NULL)
-		return;
+		return M_FALSE;
 	return http->require_content_len;
 }
 
@@ -172,7 +172,7 @@ void M_http_clear_chunk_trailer(M_http_t *http)
 
 M_bool M_http_start_line_complete(const M_http_t *http)
 {
-	if (http->type == )
+	if (http == NULL)
 		return M_FALSE;
 
 	switch (http->type) {
@@ -201,7 +201,7 @@ M_http_message_type_t M_http_message_type(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_HTTP_MESSAGE_TYPE_UNKNOWN;
-	return http->type
+	return http->type;
 }
 
 void M_http_set_message_type(M_http_t *http, M_http_message_type_t type)
@@ -342,8 +342,10 @@ err:
 	return M_FALSE;
 }
 
-static M_bool M_http_uri_parser_path(M_parser_t *parser, char **path)
+static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **path)
 {
+	unsigned char byte;
+
 	if (parser == NULL || path == NULL)
 		return M_FALSE;
 
@@ -375,16 +377,19 @@ err:
 	return M_FALSE;
 }
 
-static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_string, M_hash_dict_t *query_args)
+static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_string, M_hash_dict_t **query_args)
 {
-	M_parser_t **parser_fields;
-	size_t       parser_fields_len;
-	M_parser_t **parser_kv;
-	size_t       parser_kv_len;
-	size_t       i;
+	M_parser_t    **parts     = NULL;
+	size_t          num_parts = 0;
+	M_parser_t    **kv        = NULL;
+	size_t          num_kv    = 0;
+	char           *qstr      = NULL;
+	M_hash_dict_t  *qargs     = NULL;
+	unsigned char   byte;
+	size_t          i;
 
 	if (parser == NULL || query_string == NULL || query_args == NULL)
-		return; M_FALSE;
+		return M_FALSE;
 
 	*query_string = NULL;
 	*query_args   = NULL;
@@ -395,72 +400,74 @@ static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_stri
 	if (!M_parser_read_byte(parser, &byte) || byte != '?')
 		goto err;
 
-	/* Skip the separator. */
-	M_parser_consume(parser, 1);
 	if (M_parser_len(parser) == 0)
 		return M_TRUE;
 
 	M_parser_mark(parser);
+	qstr = M_parser_read_strdup(parser, M_parser_len(parser));
+	M_parser_mark_rewind(parser);
 
-	parser_fields = M_parser_split(parser, '&', 0, M_PARSER_SPLIT_FLAG_NONE, &parser_fields_len);
-	if (parser_fields == NULL || parser_fields_len == 0)
+	parts = M_parser_split(parser, '&', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	if (parts == NULL || num_parts == 0)
 		goto err;
 
-	*query_args = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
-
-	for (i=0; i<parser_fields_len; i++) {
+	qargs = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	for (i=0; i<num_parts; i++) {
 		char *key;
 		char *val;
 
-		parser_kv = M_parser_split(parser_fields[i], '=', 0, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &parser_kv_len);
-		if (parser_kv == NULL || parser_kv_len != 2) {
+		kv = M_parser_split(parser, '=', 0, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
+		if (kv == NULL || num_kv != 2) {
 			goto err;
 		}
 
-		key = M_parser_read_strdup(parser_kv[0], M_parser_len(parser_kv[0]));
-		val = M_parser_read_strdup(parser_kv[1], M_parser_len(parser_kv[1]));
-		M_hash_dict_insert(*query_args, key, val);
+		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
+		val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
+		if (M_str_isempty(key) || M_str_isempty(val)) {
+			M_free(key);
+			M_free(val);
+			goto err;
+		}
+		M_hash_dict_insert(qargs, key, val);
 		M_free(key);
 		M_free(val);
 
-		M_parser_split_free(parser_kv, parser_kv_len);
-		parser_kv     = NULL;
-		parser_kv_len = 0;
+		M_parser_split_free(kv, num_kv);
+		kv     = NULL;
+		num_kv = 0;
 	}
-	M_parser_split_free(parser_fields, parser_fields_len);
 
-	*query_string = M_parser_read_strdup_mark(parser);
+	M_parser_split_free(kv, num_kv);
+	M_parser_split_free(parts, num_parts);
+
+	*query_string = qstr;
+	*query_args   = qargs;
 
 	return M_TRUE;
 
 err:
-	M_parser_split_free(parser_fields, parser_fields_len);
-	M_parser_split_free(parser_kv, parser_kv_len);
-	M_free(*query_string);
-	*query_string = NULL;
-	M_hash_dict_destroy(*query_args);
-	*query_args = NULL;
+	M_parser_split_free(kv, num_kv);
+	M_parser_split_free(parts, num_parts);
+	M_hash_dict_destroy(qargs);
+	M_free(qstr);
 	return M_FALSE;
 }
 
 M_bool M_http_set_uri(M_http_t *http, const char *uri)
 {
-	M_parser_t    *parser       = NULL;
-	char          *host         = NULL;
-	char          *path         = NULL;
-	char          *query_string = NULL;
-	M_hash_dict_t *query_args   = NULL;
-	M_uint64       port         = 0;
+	M_parser_t    *parser;
+	char          *host;
+	M_uint16       port;
+	char          *path;
+	char          *query_string;
+	M_hash_dict_t *query_args;
 
-	if (http == NULL)
-		return;
-
-	parser = M_parser_create_const(uri, M_str_len(uri), M_PARSER_FLAG_NONE);
+	parser = M_parser_create_const((const unsigned char *)uri, M_str_len(uri), M_PARSER_FLAG_NONE);
 	if (parser == NULL)
 		return M_FALSE;
 
 	if (!M_http_uri_parser_host(parser, &host, &port) ||
-			!M_http_uri_parser_path(parser, &path) ||
+			!M_http_uri_parser_path(http, parser, &path) ||
 			!M_http_uri_parser_query_args(parser, &query_string, &query_args))
 	{
 		return M_FALSE;
@@ -522,7 +529,7 @@ const M_hash_dict_t *M_http_query_args(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
-	reutrn http->query_args;
+	return http->query_args;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -550,6 +557,8 @@ M_http_version_t M_http_version_from_str(const char *version)
 
 	if (M_str_eq(version, "2"))
 		return M_HTTP_VERSION_2;
+
+	return M_HTTP_VERSION_UNKNOWN;
 }
 
 M_http_method_t M_http_method_from_str(const char *method)
