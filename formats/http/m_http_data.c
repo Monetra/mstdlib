@@ -67,6 +67,7 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
 	if (http == NULL || data == NULL || len == 0)
 		return;
 
+	http->body_len_cur += len;
 	M_buf_add_bytes(http->body, data, len);
 }
 
@@ -158,4 +159,26 @@ void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val)
 		return;
 
 	M_hash_dict_insert(http->trailers, key, val);
+}
+
+void M_http_set_body_length(M_http_t *http, size_t len)
+{
+	if (http == NULL)
+		return;
+	http->have_body_len  = M_TRUE;
+	http->body_len_total = len;
+}
+
+size_t M_http_body_length(M_http_t *http)
+{
+	if (http == NULL)
+		return 0;
+	return http->body_len_total;
+}
+
+size_t M_http_body_length_current(M_http_t *http)
+{
+	if (http == NULL)
+		return 0;
+	return http->body_len_cur;
 }
