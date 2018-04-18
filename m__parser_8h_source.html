@@ -1400,18 +1400,48 @@ $(document).ready(function(){initNavTree('m__parser_8h_source.html','');});
 <div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;<span class="comment"> *  \return array of parser objects or NULL on failure</span></div>
 <div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;M_API <a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **<a class="code" href="group__m__parser.html#gaff3a3e053b6e66cdc20919360867ac57">M_parser_split</a>(<a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> delim, <span class="keywordtype">size_t</span> maxcnt, M_uint32 flags, <span class="keywordtype">size_t</span> *num_output);</div>
-<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;<span class="comment">/*! Free child parser objects returned from M_parser_split</span></div>
-<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;<span class="comment"> * \param[in] parsers Array of parser objects</span></div>
-<div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;<span class="comment"> * \param[in] cnt     Count of objects as returned from M_parser_split</span></div>
-<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__parser.html#ga2f40799b9f60ee628d4b9aaa2523109e">M_parser_split_free</a>(<a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **parsers, <span class="keywordtype">size_t</span> cnt);</div>
-<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;</div>
-<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;</div>
-<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_PARSER_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;</div>
+<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;<span class="comment">/*! Split the data in the parser object by the pattern specified into</span></div>
+<div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;<span class="comment"> *  additional parser objects. </span></div>
+<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;<span class="comment"> *  \param[in,out] parser     Parser</span></div>
+<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;<span class="comment"> * \param[in]      pat        Sequence of bytes to search for.</span></div>
+<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;<span class="comment"> * \param[in]      pat_len    Length of pattern data.</span></div>
+<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;<span class="comment"> *  \param[in]     maxcnt     Maximum number of objects to create, remaining data will be part of the last object.</span></div>
+<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;<span class="comment"> *                            0 if no maximum.</span></div>
+<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;<span class="comment"> *  \param[in]     flags      M_PARSER_SPLIT_FLAGS flags controlling behavior of parser</span></div>
+<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;<span class="comment"> *  \param[out]    num_output The number of parser objects output</span></div>
+<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;<span class="comment"> *  \return array of parser objects or NULL on failure</span></div>
+<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;M_API <a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **<a class="code" href="group__m__parser.html#ga59e48742cd7bc0f3f04d98c8e23df14a">M_parser_split_pat</a>(<a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *pat, <span class="keywordtype">size_t</span> pat_len, <span class="keywordtype">size_t</span> maxcnt, M_uint32 flags, <span class="keywordtype">size_t</span> *num_output);</div>
+<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;</div>
+<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;<span class="comment">/*! Split the data in the parser object by the pattern specified into</span></div>
+<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;<span class="comment"> *  additional parser objects. </span></div>
+<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;<span class="comment"> *  \param[in,out] parser     Parser</span></div>
+<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;<span class="comment"> * \param[in]      pat        String to search for.</span></div>
+<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;<span class="comment"> *  \param[in]     maxcnt     Maximum number of objects to create, remaining data will be part of the last object.</span></div>
+<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;<span class="comment"> *                            0 if no maximum.</span></div>
+<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;<span class="comment"> *  \param[in]     flags      M_PARSER_SPLIT_FLAGS flags controlling behavior of parser</span></div>
+<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;<span class="comment"> *  \param[out]    num_output The number of parser objects output</span></div>
+<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;<span class="comment"> *  \return array of parser objects or NULL on failure</span></div>
+<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;M_API <a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **<a class="code" href="group__m__parser.html#ga8f2806d7af4f28c20c495180dac899ca">M_parser_split_str_pat</a>(<a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, <span class="keyword">const</span> <span class="keywordtype">char</span> *pat, <span class="keywordtype">size_t</span> maxcnt, M_uint32 flags, <span class="keywordtype">size_t</span> *num_output);</div>
+<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;</div>
+<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;<span class="comment">/*! Free child parser objects returned from M_parser_split</span></div>
+<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;<span class="comment"> * \param[in] parsers Array of parser objects</span></div>
+<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;<span class="comment"> * \param[in] cnt     Count of objects as returned from M_parser_split</span></div>
+<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__parser.html#ga2f40799b9f60ee628d4b9aaa2523109e">M_parser_split_free</a>(<a class="code" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **parsers, <span class="keywordtype">size_t</span> cnt);</div>
+<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;</div>
+<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;</div>
+<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_PARSER_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__parser_html_gae44bc093c68c07ba655d5efc18d8e556"><div class="ttname"><a href="group__m__parser.html#gae44bc093c68c07ba655d5efc18d8e556">M_parser_truncate_str_charset</a></div><div class="ttdeci">size_t M_parser_truncate_str_charset(M_parser_t *parser, const char *charset)</div></div>
 <div class="ttc" id="group__m__parser_html_ga08f2013de7df0efcd660ac7f2cf38a22"><div class="ttname"><a href="group__m__parser.html#ga08f2013de7df0efcd660ac7f2cf38a22">M_parser_truncate</a></div><div class="ttdeci">M_bool M_parser_truncate(M_parser_t *parser, size_t len)</div></div>
 <div class="ttc" id="group__m__parser_html_ga123cb0b91d056546ab9737933490176e"><div class="ttname"><a href="group__m__parser.html#ga123cb0b91d056546ab9737933490176e">M_parser_read_parser_charset</a></div><div class="ttdeci">M_parser_t * M_parser_read_parser_charset(M_parser_t *parser, unsigned const char *charset, size_t charset_len)</div></div>
@@ -1429,6 +1459,7 @@ $(document).ready(function(){initNavTree('m__parser_8h_source.html','');});
 <div class="ttc" id="group__m__parser_html_ga3d3c31e4bf731248fffc55274b968a6e"><div class="ttname"><a href="group__m__parser.html#ga3d3c31e4bf731248fffc55274b968a6e">M_parser_consume_str_charset</a></div><div class="ttdeci">size_t M_parser_consume_str_charset(M_parser_t *parser, const char *charset)</div></div>
 <div class="ttc" id="group__m__parser_html_ga92fee6f3045a04e33a5c075f09e72ba3"><div class="ttname"><a href="group__m__parser.html#ga92fee6f3045a04e33a5c075f09e72ba3">M_parser_read_stxetxlrc_message</a></div><div class="ttdeci">M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M_parser_t **out, M_uint32 lrc_frame_chars)</div></div>
 <div class="ttc" id="group__m__parser_html_ga95c6f1b66486d43585e8a2b9dedb49ca"><div class="ttname"><a href="group__m__parser.html#ga95c6f1b66486d43585e8a2b9dedb49ca">M_parser_read_str</a></div><div class="ttdeci">M_bool M_parser_read_str(M_parser_t *parser, size_t len, char *buf, size_t buf_len)</div></div>
+<div class="ttc" id="group__m__parser_html_ga8f2806d7af4f28c20c495180dac899ca"><div class="ttname"><a href="group__m__parser.html#ga8f2806d7af4f28c20c495180dac899ca">M_parser_split_str_pat</a></div><div class="ttdeci">M_parser_t ** M_parser_split_str_pat(M_parser_t *parser, const char *pat, size_t maxcnt, M_uint32 flags, size_t *num_output)</div></div>
 <div class="ttc" id="group__m__parser_html_gaab8428cf93d6cdf48705518084bf9555"><div class="ttname"><a href="group__m__parser.html#gaab8428cf93d6cdf48705518084bf9555">M_parser_read_strdup_hex</a></div><div class="ttdeci">char * M_parser_read_strdup_hex(M_parser_t *parser, size_t len)</div></div>
 <div class="ttc" id="group__m__decimal_html_ga7c1d6ded689031ea022be05e0a3bcbd8"><div class="ttname"><a href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a></div><div class="ttdeci">M_DECIMAL_RETVAL</div><div class="ttdef"><b>Definition:</b> m_decimal.h:85</div></div>
 <div class="ttc" id="group__m__parser_html_gaaf98ba19b8cdaddc55c486b49c123953"><div class="ttname"><a href="group__m__parser.html#gaaf98ba19b8cdaddc55c486b49c123953">M_parser_read_str_charset</a></div><div class="ttdeci">size_t M_parser_read_str_charset(M_parser_t *parser, const char *charset, char *buf, size_t buf_len)</div></div>
@@ -1489,6 +1520,7 @@ $(document).ready(function(){initNavTree('m__parser_8h_source.html','');});
 <div class="ttc" id="group__m__parser_html_ga94d17dbc917bc704c9fea3030e1f8b45"><div class="ttname"><a href="group__m__parser.html#ga94d17dbc917bc704c9fea3030e1f8b45">M_parser_consume_charset</a></div><div class="ttdeci">size_t M_parser_consume_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len)</div></div>
 <div class="ttc" id="group__m__parser_html_ga3cd7b444d6f5058b149bc4c7262d5cb7"><div class="ttname"><a href="group__m__parser.html#ga3cd7b444d6f5058b149bc4c7262d5cb7">M_parser_destroy</a></div><div class="ttdeci">void M_parser_destroy(M_parser_t *parser)</div></div>
 <div class="ttc" id="group__m__parser_html_ga7870ed0eeccac0f7fb2e38e2ed972e6b"><div class="ttname"><a href="group__m__parser.html#ga7870ed0eeccac0f7fb2e38e2ed972e6b">M_parser_current_line</a></div><div class="ttdeci">size_t M_parser_current_line(M_parser_t *parser)</div></div>
+<div class="ttc" id="group__m__parser_html_ga59e48742cd7bc0f3f04d98c8e23df14a"><div class="ttname"><a href="group__m__parser.html#ga59e48742cd7bc0f3f04d98c8e23df14a">M_parser_split_pat</a></div><div class="ttdeci">M_parser_t ** M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, size_t pat_len, size_t maxcnt, M_uint32 flags, size_t *num_output)</div></div>
 <div class="ttc" id="group__m__parser_html_gadbcbd98570e7838c421b18b5a25f7b66"><div class="ttname"><a href="group__m__parser.html#gadbcbd98570e7838c421b18b5a25f7b66">M_parser_reset</a></div><div class="ttdeci">size_t M_parser_reset(M_parser_t *parser)</div></div>
 <div class="ttc" id="group__m__parser_html_gaa88442d7f03374ae9a1e331a6a438dcd"><div class="ttname"><a href="group__m__parser.html#gaa88442d7f03374ae9a1e331a6a438dcd">M_parser_is_chr_predicate</a></div><div class="ttdeci">M_bool M_parser_is_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func)</div></div>
 <div class="ttc" id="group__m__parser_html_gaff3a3e053b6e66cdc20919360867ac57"><div class="ttname"><a href="group__m__parser.html#gaff3a3e053b6e66cdc20919360867ac57">M_parser_split</a></div><div class="ttdeci">M_parser_t ** M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t *num_output)</div></div>
@@ -1541,7 +1573,7 @@ $(document).ready(function(){initNavTree('m__parser_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_a4978744522068604823c107062e0240.html">base</a></li><li class="navelem"><b>m_parser.h</b></li>
-    <li class="footer">Generated on Tue Apr 17 2018 12:22:32 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 18 2018 15:10:17 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

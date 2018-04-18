@@ -124,5 +124,7 @@ var group__m__parser =
     [ "M_parser_is_not_charset", "group__m__parser.html#gabc8435d6e2e41ec21c14e6965adeb580", null ],
     [ "M_parser_is_not_str_charset", "group__m__parser.html#gab16f381ae01e5a47d36cb3b36c7ab3cc", null ],
     [ "M_parser_split", "group__m__parser.html#gaff3a3e053b6e66cdc20919360867ac57", null ],
+    [ "M_parser_split_pat", "group__m__parser.html#ga59e48742cd7bc0f3f04d98c8e23df14a", null ],
+    [ "M_parser_split_str_pat", "group__m__parser.html#ga8f2806d7af4f28c20c495180dac899ca", null ],
     [ "M_parser_split_free", "group__m__parser.html#ga2f40799b9f60ee628d4b9aaa2523109e", null ]
 ];

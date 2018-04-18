@@ -353,6 +353,10 @@ Functions</h2></td></tr>
 <tr class="separator:gab16f381ae01e5a47d36cb3b36c7ab3cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaff3a3e053b6e66cdc20919360867ac57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__parser.html#gaff3a3e053b6e66cdc20919360867ac57">M_parser_split</a> (<a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t *num_output)</td></tr>
 <tr class="separator:gaff3a3e053b6e66cdc20919360867ac57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga59e48742cd7bc0f3f04d98c8e23df14a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__parser.html#ga59e48742cd7bc0f3f04d98c8e23df14a">M_parser_split_pat</a> (<a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, const unsigned char *pat, size_t pat_len, size_t maxcnt, M_uint32 flags, size_t *num_output)</td></tr>
+<tr class="separator:ga59e48742cd7bc0f3f04d98c8e23df14a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8f2806d7af4f28c20c495180dac899ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__parser.html#ga8f2806d7af4f28c20c495180dac899ca">M_parser_split_str_pat</a> (<a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *parser, const char *pat, size_t maxcnt, M_uint32 flags, size_t *num_output)</td></tr>
+<tr class="separator:ga8f2806d7af4f28c20c495180dac899ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2f40799b9f60ee628d4b9aaa2523109e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__parser.html#ga2f40799b9f60ee628d4b9aaa2523109e">M_parser_split_free</a> (<a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> **parsers, size_t cnt)</td></tr>
 <tr class="separator:ga2f40799b9f60ee628d4b9aaa2523109e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -4202,6 +4206,125 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga59e48742cd7bc0f3f04d98c8e23df14a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a>** M_parser_split_pat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>parser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>pat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>pat_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>maxcnt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>num_output</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Split the data in the parser object by the pattern specified into additional parser objects.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">parser</td><td>Parser </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pat</td><td>Sequence of bytes to search for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pat_len</td><td>Length of pattern data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">maxcnt</td><td>Maximum number of objects to create, remaining data will be part of the last object. 0 if no maximum. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_PARSER_SPLIT_FLAGS flags controlling behavior of parser </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">num_output</td><td>The number of parser objects output </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>array of parser objects or NULL on failure </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8f2806d7af4f28c20c495180dac899ca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a>** M_parser_split_str_pat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__parser.html#ga60164be64f8c962c795e5927642fc473">M_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>parser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>pat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>maxcnt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>num_output</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Split the data in the parser object by the pattern specified into additional parser objects.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">parser</td><td>Parser </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pat</td><td>String to search for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">maxcnt</td><td>Maximum number of objects to create, remaining data will be part of the last object. 0 if no maximum. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_PARSER_SPLIT_FLAGS flags controlling behavior of parser </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">num_output</td><td>The number of parser objects output </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>array of parser objects or NULL on failure </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga2f40799b9f60ee628d4b9aaa2523109e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -4241,7 +4364,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Apr 17 2018 12:22:33 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 18 2018 15:10:17 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
