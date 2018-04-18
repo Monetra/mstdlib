@@ -37,6 +37,7 @@ struct M_http {
 	M_http_version_t       version;
 	M_uint32               status_code;
 	char                  *reason_phrase;
+	M_http_method_t        method;
 	char                  *uri;
 	char                  *host;
 	M_uint16               port;
@@ -49,7 +50,6 @@ struct M_http {
 	M_buf_t               *body;
 	char                  *settings_payload;
 	size_t                 body_len;
-	M_http_method_t        method;
 	M_bool                 headers_complete;
 	M_bool                 body_complete;
 	M_bool                 chunked;
@@ -64,5 +64,7 @@ struct M_http {
 
 void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
 char *M_http_header_int(const M_hash_dict_t *d, const char *key);
+void M_http_set_body_length(M_http_t *http, size_t len);
+size_t M_http_body_length(M_http_t *http);
 
 #endif
