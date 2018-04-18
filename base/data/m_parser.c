@@ -1489,8 +1489,12 @@ M_parser_t *M_parser_read_parser_mark(M_parser_t *parser)
 
 M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t *num_output)
 {
-	size_t               i;
-	size_t               cnt;
+	return M_parser_split_pat(parser, &delim, 1, maxcnt, flags, num_output);
+}
+
+M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, size_t pat_len, size_t maxcnt, M_uint32 flags, size_t *num_output)
+{
+	size_t               cnt = 0;
 	M_parser_t         **parsers;
 	const unsigned char *ptr;
 	size_t               ptrlen;
@@ -1501,12 +1505,14 @@ M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxc
 
 	/* Count number of delimiters to get number of output sections */
 	cnt = 1;
-	for (i=0; i<parser->data_len; i++) {
-		if (parser->data[i] == delim)
-			cnt++;
-		if (maxcnt != 0 && cnt == maxcnt)
+	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
+	while (M_parser_consume_until(parser, pat, pat_len, M_TRUE) != 0) {
+		cnt++;
+		if (maxcnt != 0 && cnt == maxcnt) {
 			break;
+		}
 	}
+	M_parser_mark_rewind_int(parser, M_PARSER_MARKED_INT);
 
 	if (cnt == 1 && flags & M_PARSER_SPLIT_FLAG_NODELIM_ERROR)
 		return NULL;
@@ -1529,7 +1535,7 @@ M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxc
 			M_parser_consume(parser, parser->data_len);
 		} else {
 			/* If we can't find the delimiter, just consume the rest of the input */
-			if (M_parser_consume_until(parser, &delim, 1, M_TRUE) == 0) {
+			if (M_parser_consume_until(parser, pat, pat_len, M_TRUE) == 0) {
 				M_parser_consume(parser, parser->data_len);
 			} else {
 				trim_delimiter = M_TRUE;
@@ -1537,10 +1543,10 @@ M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxc
 		}
 		ptr = M_parser_marked_buffer_start(parser, M_PARSER_MARKED_INT, &ptrlen);
 
-		/* M_parser_consume_until also consumes the specified character so trim
+		/* M_parser_consume_until also consumes the specified pat so trim
 		 * that if that is the function we called */
 		if (trim_delimiter && ptrlen)
-			ptrlen--;
+			ptrlen -= pat_len;
 
 		parsers[cnt] = M_parser_create(parser->flags);
 		M_parser_append(parsers[cnt], ptr, ptrlen);
@@ -1560,6 +1566,10 @@ M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxc
 	return parsers;
 }
 
+M_parser_t **M_parser_split_str_pat(M_parser_t *parser, const char *pat, size_t maxcnt, M_uint32 flags, size_t *num_output)
+{
+	return M_parser_split_pat(parser, (const unsigned char *)pat, M_str_len(pat), maxcnt, flags, num_output);
+}
 
 void M_parser_split_free(M_parser_t **parsers, size_t cnt)
 {
@@ -1573,7 +1583,7 @@ void M_parser_split_free(M_parser_t **parsers, size_t cnt)
 	M_free(parsers);
 }
 
-M_API M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M_parser_t **out, M_uint32 lrc_frame_chars)
+M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M_parser_t **out, M_uint32 lrc_frame_chars)
 {
 	unsigned char *data;
 	unsigned char  byte;
