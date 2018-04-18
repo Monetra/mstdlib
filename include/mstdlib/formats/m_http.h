@@ -51,18 +51,19 @@ typedef enum {
 	M_HTTP_ERROR_SUCCESS_END,
 
 	M_HTTP_ERROR_INVALIDUSE,
-	M_HTTP_ERROR_STARTLINE_LENGTH,
-	M_HTTP_ERROR_STARTLINE_MALFORMED,
+	M_HTTP_ERROR_STARTLINE_LENGTH, /* 414 (6k limit) */
+	M_HTTP_ERROR_STARTLINE_MALFORMED, /* 400 */
 	M_HTTP_ERROR_UNKNOWN_VERSION,
-
-	M_HTTP_ERROR_REQUEST_LENGTH,
-	M_HTTP_ERROR_REQUEST_LINE_INVLD, /* 400 */
-	M_HTTP_ERROR_REQUEST_LINE_LENGTH, /* 414 (8k limit) */
+	M_HTTP_ERROR_REQUEST_METHOD, /* 501 */
+	M_HTTP_ERROR_REQUEST_URI,
+	M_HTTP_ERROR_HEADER_LENGTH, /* 413 (8k limit) */
+	M_HTTP_ERROR_HEADER_NODATA,
+	M_HTTP_ERROR_HEADER_FOLD, /* 400/502 */
 	M_HTTP_ERROR_HEADER_INVLD,
-	M_HTTP_ERROR_HEADER_LENGTH,
-	M_HTTP_ERROR_HEADER_MULTILENGTHS, /* 400/502 */
+	M_HTTP_ERROR_HEADER_MALFORMEDVAL, /* 400 */
+
 	M_HTTP_ERROR_HEADER_FOLDING,
-	M_HTTP_ERROR_METHOD_UNKNOWN, /* 501 */
+	M_HTTP_ERROR_METHOD_UNKNOWN,
 	M_HTTP_ERROR_LENGTH_REQUIRED, /* 411 */
 	M_HTTP_ERROR_MALFORMED
 } M_http_error_t;
@@ -120,6 +121,17 @@ M_http_t *M_http_create(void);
  * \see M_http_clear
  */
 void M_http_destroy(M_http_t *http);
+
+
+/*! Has the content length header been set to required.
+ *
+ * Does not allow read until close body.
+ * Does not allow chunked encoding.
+ *
+ * \param[in] http    HTTP object.
+ * \param[in] require Require content length.
+ */
+M_bool M_http_require_content_length(M_http_t *http);
 
 
 /*! Require content length header to be present.
@@ -817,6 +829,15 @@ M_bool M_http_error_is_error(M_http_error_t res);
  * \return version.
  */
 M_http_version_t M_http_version_from_str(const char *version);
+
+
+/*! Convert a method string into a method value.
+ *
+ * \param[in] method Method string.
+ *
+ * \return method.
+ */
+M_http_method_t M_http_method_from_str(const char *method);
 
 /*! @} */
 

@@ -85,6 +85,13 @@ void M_http_destroy(M_http_t *http)
 	M_free(http);
 }
 
+M_bool M_http_require_content_length(M_http_t *http)
+{
+	if (http == NULL)
+		return;
+	return http->require_content_len;
+}
+
 void M_http_set_require_content_length(M_http_t *http, M_bool require)
 {
 	if (http == NULL)
@@ -341,7 +348,12 @@ static M_bool M_http_uri_parser_path(M_parser_t *parser, char **path)
 	if (M_parser_len(parser) == 0)
 		return M_TRUE;
 
-	if (!M_parser_read_byte(parser, &byte) || byte != '/')
+	if (!M_parser_read_byte(parser, &byte) || (byte != '/' && byte != '*'))
+		goto err;
+
+	/* Only the options method is allowed to apply to the server itself.
+ 	 * All other methods need an actual resoure. */
+	if (byte == '*' && M_http_method(http) != M_HTTP_METHOD_OPTIONS)
 		goto err;
 
 	*path = M_parser_read_strdup_until(parser, "?", M_FALSE);
@@ -534,4 +546,33 @@ M_http_version_t M_http_version_from_str(const char *version)
 
 	if (M_str_eq(version, "2"))
 		return M_HTTP_VERSION_2;
+}
+
+M_http_method_t M_http_method_from_str(const char *method)
+{
+	if (M_str_caseeq(method, "OPTIONS"))
+		return M_HTTP_METHOD_OPTIONS;
+
+	if (M_str_caseeq(method, "GET"))
+		return M_HTTP_METHOD_GET;
+
+	if (M_str_caseeq(method, "HEAD"))
+		return M_HTTP_METHOD_HEAD;
+
+	if (M_str_caseeq(method, "POST"))
+		return M_HTTP_METHOD_POST;
+
+	if (M_str_caseeq(method, "PUT"))
+		return M_HTTP_METHOD_PUT;
+
+	if (M_str_caseeq(method, "DELETE"))
+		return M_HTTP_METHOD_DELETE;
+
+	if (M_str_caseeq(method, "TRACE"))
+		return M_HTTP_METHOD_TRACE;
+
+	if (M_str_caseeq(method, "CONNECT"))
+		return M_HTTP_METHOD_CONNECT;
+
+	return M_HTTP_METHOD_UNKNOWN;
 }
