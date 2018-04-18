@@ -83,7 +83,7 @@ static M_http_error_t M_http_read_start_line_response(M_http_t *http, M_parser_t
 }
 
 /* request-line = method SP request-target SP HTTP-version CRLF */
-static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t *parser, size_t *len_read)
+static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t *parser)
 {
 	char            *temp;
 	M_http_method_t  method;
@@ -152,7 +152,7 @@ done:
 	M_parser_destroy(msg);
 
 	if (!M_http_error_is_error(res))
-		*len_read += start_len - M_parser_len(parser);
+		*(len_read) += start_len - M_parser_len(parser);
 	return res;
 }
 
@@ -255,7 +255,7 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser)
+static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
 	M_parser_t      *msg;
 	M_parser_t     **parts;
@@ -364,20 +364,49 @@ done:
 		M_http_clear_headers(http);
 		M_http_clear_chunked(http);
 		M_http_set_body_length(http, 0);
-		M_http_set_want_upgrade(http, M_FALSE);
+		M_http_set_want_upgrade(http, M_FALSE, M_FALSE, NULL);
 		M_http_set_persistent_conn(http, M_FALSE);
 	} else {
-		*len_read += start_len - M_parser_len(parser);
+		*(len_read) += start_len - M_parser_len(parser);
 	}
 	return res;
 }
 
-static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser)
+static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
 }
 
-static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser)
+static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
+	unsigned char buf[8*1024];
+	size_t total;
+	size_t cur;
+	size_t len;
+
+	total = M_http_body_length(http);
+
+	/* If total is unknown then everything is body
+ 	 * and it ends with the connection is closed. */
+	if (!M_http_have_body_length(http)) {
+		*(len_read) += M_parser_len(parser);
+		M_parser_read_buf(parser, buf, M_parser_len(parser));
+		return M_HTTP_ERROR_SUCCESS;
+	}
+
+	cur = M_http_body_length_current(http);
+	if (cur == total)
+		return M_HTTP_ERROR_SUCCESS_END;
+
+	do {
+		len          = M_parser_read_bytes_max(parser, total-cur, buf, sizeof(buf));
+		M_http_body_append(http, buf, len);
+		cur         += len;
+		*(len_read) += len;
+	} while (len > 0 && cur != total);
+
+	if (cur == total)
+		return M_HTTP_ERROR_SUCCESS_END;
+	return M_HTTP_ERROR_SUCCESS;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -399,14 +428,14 @@ M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t dat
 		goto done;
 
 	if (!M_http_headers_complete(http))
-		res = M_http_read_headers(http, parser);
+		res = M_http_read_headers(http, parser, len_read);
 	if (M_http_error_is_error(res) || !M_http_headers_complete(http))
 		goto done;
 
 	if (M_http_is_chunked(http)) {
-		res = M_http_read_chunked(http, parser);
+		res = M_http_read_chunked(http, parser, len_read);
 	} else {
-		res = M_http_read_body(http, parser);
+		res = M_http_read_body(http, parser, len_read);
 	}
 	if (M_http_error_is_error(res))
 		goto done;
