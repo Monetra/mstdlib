@@ -67,6 +67,7 @@ struct M_http {
 void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
 char *M_http_header_int(const M_hash_dict_t *d, const char *key);
 void M_http_set_body_length(M_http_t *http, size_t len);
+M_bool M_http_have_body_length(M_http_t *http);
 size_t M_http_body_length(M_http_t *http);
 size_t M_http_body_length_current(M_http_t *http);
 
