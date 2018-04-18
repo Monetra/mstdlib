@@ -82,7 +82,7 @@ typedef enum {
 	M_HTTP_VERSION_1_0,     /*!< 1.0 */
 	M_HTTP_VERSION_1_1,     /*!< 1.1 */
 	M_HTTP_VERSION_2        /*!< 2 */
-} M_http_message_type_t;
+} M_http_version_t;
 
 
 /*! HTTP methods. */
@@ -230,7 +230,7 @@ void M_http_clear_chunk_trailer(M_http_t *http);
  *         This can be returned from a since call or after multiple calls.
  *         Otherwise an error condition.
  */
-M_http_result_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read);
+M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read);
 
 
 /*! Structure an http object into a message stubble for sending.
@@ -488,7 +488,7 @@ const M_hash_dict_t *M_http_headers(const M_http_t *http);
  *
  * \return String.
  */
-char *M_http_header(const M_http_t *http, const char key);
+char *M_http_header(const M_http_t *http, const char *key);
 
 
 /*! Set the http headers.
@@ -772,7 +772,7 @@ const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http);
  *
  * \return String.
  */
-char *M_http_chunk_trailer(const M_http_t *http, const char key);
+const char *M_http_chunk_trailer(const M_http_t *http, const char *key);
 
 
 /*! Set the chunk trailing headers.

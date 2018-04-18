@@ -32,11 +32,9 @@
 
 void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
 {
-	M_hash_dict_t      *d;
 	M_list_str_t       *l;
 	M_hash_dict_enum_t *he;
 	const char         *key;
-	const char         *val;
 	size_t              len;
 	size_t              i;
 
@@ -61,12 +59,14 @@ void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *ne
  			 * the order they were set. */
 			l = M_list_str_create(M_LIST_STR_CASECMP|M_LIST_STR_SET);
 
-			len = M_hash_dict_multi_len(*cur_headers, key);
+			len = 0;
+			M_hash_dict_multi_len(*cur_headers, key, &len);
 			for (i=0; i<len; i++) {
 				M_list_str_insert(l, M_hash_dict_multi_get_direct(*cur_headers, key, i));
 			}
 
-			len = M_hash_dict_multi_len(new_headers, key);
+			len = 0;
+			M_hash_dict_multi_len(new_headers, key, &len);
 			for (i=0; i<len; i++) {
 				M_list_str_insert(l, M_hash_dict_multi_get_direct(new_headers, key, i));
 			}
@@ -129,7 +129,7 @@ const M_hash_dict_t *M_http_headers(const M_http_t *http)
 	return http->headers;
 }
 
-char *M_http_header(const M_http_t *http, const char key)
+char *M_http_header(const M_http_t *http, const char *key)
 {
 	if (http == NULL)
 		return NULL;
@@ -151,7 +151,7 @@ void M_http_set_header(M_http_t *http, const char *key, const char *val)
 		return;
 
 	M_hash_dict_remove(http->headers, key);
-	M_hash_dict_insert(htpp->headers, key, val);
+	M_hash_dict_insert(http->headers, key, val);
 }
 
 void M_http_add_header(M_http_t *http, const char *key, const char *val)
@@ -173,7 +173,7 @@ void M_http_set_cookie_remove(M_http_t *http, size_t idx)
 {
 	if (http == NULL)
 		return;
-	M_list_str_remove(http->set_cookies, idx);
+	M_list_str_remove_at(http->set_cookies, idx);
 }
 
 void M_http_set_cookie_insert(M_http_t *http, const char *val)
@@ -232,7 +232,7 @@ void M_http_set_persistent_conn(M_http_t *http, M_bool persist)
 	if (http == NULL || http->want_upgrade)
 		return;
 
-	http->persist = persist;
+	http->persist_conn = persist;
 
 	M_hash_dict_remove(http->headers, "Connection");
 	if (persist)

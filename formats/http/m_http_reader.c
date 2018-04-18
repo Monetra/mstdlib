@@ -42,20 +42,21 @@ static M_http_error_t M_http_read_version(M_http_t *http, M_parser_t *parser)
 		return M_HTTP_ERROR_MALFORMED;
 	M_parser_consume(parser, 5);
 
-	temp    = M_parser_read_strdup(msg, M_parser_len(parser));
+	temp    = M_parser_read_strdup(parser, M_parser_len(parser));
 	version = M_http_version_from_str(temp);
 	M_free(temp);
 	if (version == M_HTTP_VERSION_UNKNOWN)
 		return M_HTTP_ERROR_UNKNOWN_VERSION;
 	M_http_set_version(http, version);
 
-	return M_HTTP_PARSE_RESULT_SUCCESS;
+	return M_HTTP_ERROR_SUCCESS;
 }
 
 /* status-line  = HTTP-version SP status-code SP reason-phrase CRLF */
-static M_http_error_t M_http_read_start_line_response(M_http_t *http, M_parser_t **parts, size_t *num_parts)
+static M_http_error_t M_http_read_start_line_response(M_http_t *http, M_parser_t **parts, size_t num_parts)
 {
 	char           *temp;
+	M_uint64        u64v;
 	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
 
 	if (num_parts != 3)
@@ -69,21 +70,21 @@ static M_http_error_t M_http_read_start_line_response(M_http_t *http, M_parser_t
 	/* Part 2: Status code */
 	if (!M_parser_read_uint(parts[1], M_PARSER_INTEGER_ASCII, 0, 10, &u64v))
 		return M_HTTP_ERROR_STARTLINE_MALFORMED;
-	M_http_set_status_code(http, u64v);
+	M_http_set_status_code(http, (M_uint32)u64v);
 
 	/* Part 3: Reason phrase */
 	if (M_parser_len(parts[2]) == 0)
 		return M_HTTP_ERROR_STARTLINE_MALFORMED;
 
-	temp = M_parser_read_strdup(msg, M_parser_len(msg));
+	temp = M_parser_read_strdup(parts[2], M_parser_len(parts[2]));
 	M_http_set_reason_phrase(http, temp);
 	M_free(temp);
 
-	return M_HTTP_PARSE_RESULT_SUCCESS;
+	return M_HTTP_ERROR_SUCCESS;
 }
 
 /* request-line = method SP request-target SP HTTP-version CRLF */
-static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t *parser)
+static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t **parts, size_t num_parts)
 {
 	char            *temp;
 	M_http_method_t  method;
@@ -93,7 +94,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t 
 		return M_HTTP_ERROR_STARTLINE_MALFORMED;
 
 	/* Part 1: Method */
-	temp = M_parser_strdup(parts[0], M_parser_len(parts[0]));
+	temp = M_parser_read_strdup(parts[0], M_parser_len(parts[0]));
 	method = M_http_method_from_str(temp);
 	M_free(temp);
 	if (method == M_HTTP_METHOD_UNKNOWN)
@@ -101,7 +102,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t 
 	M_http_set_method(http, method);
 
 	/* Part 2: URI */
-	temp = M_parser_strdup(parts[0], M_parser_len(parts[0]));
+	temp = M_parser_read_strdup(parts[0], M_parser_len(parts[0]));
 	if (!M_http_set_uri(http, temp))
 		return M_HTTP_ERROR_REQUEST_URI;
 
@@ -115,11 +116,11 @@ static M_http_error_t M_http_read_start_line_request(M_http_t *http, M_parser_t 
 
 static M_http_error_t M_http_read_start_line(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
-	M_parser_t      *msg;
-	M_parser_t     **parts;
-	size_t           num_parts;
+	M_parser_t      *msg       = NULL;
+	M_parser_t     **parts     = NULL;
+	size_t           num_parts = 0;
 	size_t           start_len;
-	M_http_error_t   res = M_HTTP_ERROR_SUCCESS;
+	M_http_error_t   res       = M_HTTP_ERROR_SUCCESS;
 
 	start_len = M_parser_len(parser);
 
@@ -160,12 +161,14 @@ static M_http_error_t M_http_read_headers_validate_upgrade(M_http_t *http, const
 {
 	const char *type    = NULL;
 	const char *payload = NULL;
+	const char *val     = NULL;
 	M_bool      upgrade = M_FALSE;
 	M_bool      secure  = M_FALSE;
 	size_t      i;
 	size_t      len;
 
-	len = M_hash_dict_multi_len(headers, "connection");
+	len = 0;
+	M_hash_dict_multi_len(headers, "connection", &len);
 	for (i=0; i<len; i++) {
 		val = M_hash_dict_multi_get_direct(headers, "connection", i);
 		if (M_str_caseeq(val, "upgrade")) {
@@ -173,17 +176,19 @@ static M_http_error_t M_http_read_headers_validate_upgrade(M_http_t *http, const
 		}
 	}
 
-	len = M_hash_dict_multi_len(headers, "upgrade");
+	len = 0;
+	M_hash_dict_multi_len(headers, "upgrade", &len);
 	if (len > 1)
 		return M_HTTP_ERROR_HEADER_DUPLICATE;
-	type = M_hash_dict_get_direct(http, "upgrade");
-	if (M_str_caseeq(const_temp, "h2"))
+	type = M_hash_dict_get_direct(headers, "upgrade");
+	if (M_str_caseeq(type, "h2"))
 		secure = M_TRUE;
 
-	len = M_hash_dict_multi_len(headers, "HTTP2-Settings");
+	len = 0;
+	M_hash_dict_multi_len(headers, "HTTP2-Settings", &len);
 	if (len > 1)
 		return M_HTTP_ERROR_HEADER_DUPLICATE;
-	payload = M_hash_dict_get_direct(http, "HTTP2-Settings");
+	payload = M_hash_dict_get_direct(headers, "HTTP2-Settings");
 
 	if (upgrade) {
 		if (M_str_isempty(type) || M_str_isempty(payload)) {
@@ -207,11 +212,13 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 	M_int64              i64v;
 	size_t               len;
 	size_t               i;
+	M_http_error_t       res;
 
 	headers = M_http_headers(http);
 
 	/* Content-Length. */
-	len = M_hash_dict_multi_len(headers, "content-length");
+	len = 0;
+	M_hash_dict_multi_len(headers, "content-length", &len);
 	if (len > 1) {
 		return M_HTTP_ERROR_HEADER_DUPLICATE;
 	} else if (len == 0 && M_http_require_content_length(http)) {
@@ -220,7 +227,7 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 		return M_HTTP_ERROR_MALFORMED;
 	} else if (len == 1) {
 		val = M_hash_dict_get_direct(headers, "content-length");
-		if (M_str_to_int64_ex(val, M_str_len(val), &i64v, NULL) != M_STR_INT_SUCCESS) {
+		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS) {
 			return M_HTTP_ERROR_MALFORMED;
 		}
 		if (i64v < 0) {
@@ -230,7 +237,8 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 	}
 
 	/* Transfer-Encoding. */
-	len = M_hash_dict_multi_len(headers, "transfer-encoding");
+	len = 0;
+	M_hash_dict_multi_len(headers, "transfer-encoding", &len);
 	for (i=0; i<len; i++) {
 		val = M_hash_dict_multi_get_direct(headers, "transfer-encoding", i);
 		if (M_str_caseeq(val, "chunked")) {
@@ -239,7 +247,8 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 	}
 
 	/* Persistant connection. */
-	len = M_hash_dict_multi_len(headers, "connection");
+	len = 0;
+	M_hash_dict_multi_len(headers, "connection", &len);
 	for (i=0; i<len; i++) {
 		val = M_hash_dict_multi_get_direct(headers, "connection", i);
 		if (M_str_caseeq(val, "keep-alive")) {
@@ -258,10 +267,10 @@ static M_http_error_t M_http_read_headers_validate(M_http_t *http)
 static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
 	M_parser_t      *msg;
-	M_parser_t     **parts;
-	M_parser_t     **kv;
-	size_t           num_parts;
-	size_t           num_kv;
+	M_parser_t     **parts     = NULL;
+	M_parser_t     **kv        = NULL;
+	size_t           num_parts = 0;
+	size_t           num_kv    = 0;
 	size_t           start_len;
 	size_t           i;
 	size_t           j;
@@ -292,7 +301,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, si
 		char    *val;
 
 		/* Folding is deprecated and shouldn't be supported. */
-		if (M_parser_consume_whitespace(parts[i]) != 0) {
+		if (M_parser_consume_whitespace(parts[i], M_PARSER_WHITESPACE_NONE) != 0) {
 			res = M_HTTP_ERROR_HEADER_FOLD;
 			goto done;
 		}
@@ -304,7 +313,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, si
 		}
 
 		/* Spaces between the separator (:) and value are not allowd. */
-		if (M_parser_consume_whitespace(kv[1]) != 0) {
+		if (M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE) != 0) {
 			res = M_HTTP_ERROR_HEADER_MALFORMEDVAL;
 			goto done;
 		}
@@ -379,22 +388,17 @@ static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, si
 static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
 	unsigned char buf[8*1024];
-	size_t total;
-	size_t cur;
-	size_t len;
-
-	total = M_http_body_length(http);
+	M_bool        have_total;
+	size_t        total;
+	size_t        cur;
+	size_t        len;
 
 	/* If total is unknown then everything is body
  	 * and it ends with the connection is closed. */
-	if (!M_http_have_body_length(http)) {
-		*(len_read) += M_parser_len(parser);
-		M_parser_read_buf(parser, buf, M_parser_len(parser));
-		return M_HTTP_ERROR_SUCCESS;
-	}
-
-	cur = M_http_body_length_current(http);
-	if (cur == total)
+	have_total = M_http_have_body_length(http);
+	total      = M_http_body_length(http);
+	cur        = M_http_body_length_current(http);
+	if (have_total && cur == total)
 		return M_HTTP_ERROR_SUCCESS_END;
 
 	do {
@@ -402,9 +406,9 @@ static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_
 		M_http_body_append(http, buf, len);
 		cur         += len;
 		*(len_read) += len;
-	} while (len > 0 && cur != total);
+	} while ((!have_total && len > 0) || (len > 0 && have_total && cur != total));
 
-	if (cur == total)
+	if (have_total && cur == total)
 		return M_HTTP_ERROR_SUCCESS_END;
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -414,10 +418,10 @@ static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_
 M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read)
 {
 	M_parser_t     *parser;
-	M_http_error_t  res = M_HTTP_PARSE_RESULT_SUCCESS;
+	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
 
-	if (http == NULL || data == NULL || data_len == NULL || len_read == NULL)
-		return M_HTTP_PARSE_RESULT_INVALIDUSE;
+	if (http == NULL || data == NULL || data_len == 0 || len_read == NULL)
+		return M_HTTP_ERROR_INVALIDUSE;
 
 	*len_read = 0;
 	parser    = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
