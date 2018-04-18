@@ -134,6 +134,10 @@ void M_http_clear_body(M_http_t *http)
 	if (http == NULL)
 		return;
 
+	http->have_body_len  = M_FALSE;
+	http->body_len_total = 0;
+	http->body_len_cur   = 0;
+
 	M_buf_cancel(http->body);
 	http->body = M_buf_create();
 }
@@ -575,18 +579,4 @@ M_http_method_t M_http_method_from_str(const char *method)
 		return M_HTTP_METHOD_CONNECT;
 
 	return M_HTTP_METHOD_UNKNOWN;
-}
-
-void M_http_set_body_length(M_http_t *http, size_t len)
-{
-	if (http == NULL)
-		return;
-	http->body_len = len;
-}
-
-size_t M_http_body_length(M_http_t *http)
-{
-	if (http == NULL)
-		return 0;
-	return http->body_len;
 }
