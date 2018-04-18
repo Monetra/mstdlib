@@ -49,10 +49,12 @@ struct M_http {
 	M_list_str_t          *set_cookies;
 	M_buf_t               *body;
 	char                  *settings_payload;
-	size_t                 body_len;
+	M_bool                 have_body_len;
+	size_t                 body_len_total;
+	size_t                 body_len_cur;
 	M_bool                 headers_complete;
-	M_bool                 body_complete;
 	M_bool                 chunked;
+	M_bool                 body_complete;
 	M_bool                 chunk_complete;
 	M_bool                 persist_conn;
 	M_bool                 want_upgrade;
@@ -66,5 +68,6 @@ void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *ne
 char *M_http_header_int(const M_hash_dict_t *d, const char *key);
 void M_http_set_body_length(M_http_t *http, size_t len);
 size_t M_http_body_length(M_http_t *http);
+size_t M_http_body_length_current(M_http_t *http);
 
 #endif
