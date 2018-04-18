@@ -1301,6 +1301,36 @@ M_API M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const c
  */
 M_API M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t *num_output);
 
+
+/*! Split the data in the parser object by the pattern specified into
+ *  additional parser objects. 
+ *
+ *  \param[in,out] parser     Parser
+ * \param[in]      pat        Sequence of bytes to search for.
+ * \param[in]      pat_len    Length of pattern data.
+ *  \param[in]     maxcnt     Maximum number of objects to create, remaining data will be part of the last object.
+ *                            0 if no maximum.
+ *  \param[in]     flags      M_PARSER_SPLIT_FLAGS flags controlling behavior of parser
+ *  \param[out]    num_output The number of parser objects output
+ *  \return array of parser objects or NULL on failure
+ */
+M_API M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, size_t pat_len, size_t maxcnt, M_uint32 flags, size_t *num_output);
+
+
+/*! Split the data in the parser object by the pattern specified into
+ *  additional parser objects. 
+ *
+ *  \param[in,out] parser     Parser
+ * \param[in]      pat        String to search for.
+ *  \param[in]     maxcnt     Maximum number of objects to create, remaining data will be part of the last object.
+ *                            0 if no maximum.
+ *  \param[in]     flags      M_PARSER_SPLIT_FLAGS flags controlling behavior of parser
+ *  \param[out]    num_output The number of parser objects output
+ *  \return array of parser objects or NULL on failure
+ */
+M_API M_parser_t **M_parser_split_str_pat(M_parser_t *parser, const char *pat, size_t maxcnt, M_uint32 flags, size_t *num_output);
+
+
 /*! Free child parser objects returned from M_parser_split
  * \param[in] parsers Array of parser objects
  * \param[in] cnt     Count of objects as returned from M_parser_split

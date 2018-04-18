@@ -94,6 +94,50 @@ START_TEST(check_parser_bcd)
 }
 END_TEST
 
+START_TEST(check_parser_split)
+{
+	M_parser_t  *parser;
+	M_parser_t **parts;
+	char         buf[256];
+	size_t       num_parts;
+	const char  *split_text = "ABC\r\nTEST 123\r\nA\nB\rC\r\n\r\n";
+
+	parser = M_parser_create_const((const unsigned char *)split_text, M_str_len(split_text), M_PARSER_FLAG_NONE);
+	M_parser_mark(parser);
+
+	parts  = M_parser_split_str_pat(parser, "\r\n", 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	ck_assert_msg(parts != NULL && num_parts == 4, "Split 1 failed");
+
+	M_parser_read_str(parts[0], M_parser_len(parts[0]), buf, sizeof(buf));
+	ck_assert_msg(M_str_caseeq(buf, "ABC"), "Split 1 [0] got '%s', expected '%s'", buf, "ABC");
+
+	M_parser_read_str(parts[1], M_parser_len(parts[1]), buf, sizeof(buf));
+	ck_assert_msg(M_str_caseeq(buf, "TEST 123"), "Split 1 [1] got '%s', expected '%s'", buf, "TEST 123");
+
+	M_parser_read_str(parts[2], M_parser_len(parts[2]), buf, sizeof(buf));
+	ck_assert_msg(M_str_caseeq(buf, "A\nB\rC"), "Split 1 [2] got '%s', expected '%s'", buf, "A\nB\rC");
+
+	ck_assert_msg(M_parser_len(parts[3]) == 0, "Split 1 [3] has data, should be empty");
+
+	M_parser_split_free(parts, num_parts);
+
+
+	M_parser_mark_rewind(parser);
+	parts  = M_parser_split_str_pat(parser, "\r\n", 2, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	ck_assert_msg(parts != NULL && num_parts == 2, "Split 2 failed");
+
+	M_parser_read_str(parts[0], M_parser_len(parts[0]), buf, sizeof(buf));
+	ck_assert_msg(M_str_caseeq(buf, "ABC"), "Split 2 [0] got '%s', expected '%s'", buf, "ABC");
+
+	M_parser_read_str(parts[1], M_parser_len(parts[1]), buf, sizeof(buf));
+	ck_assert_msg(M_str_caseeq(buf, "TEST 123\r\nA\nB\rC\r\n\r\n"), "Split 2 [1] got '%s', expected '%s'", buf, "TEST 123A\nB\rC");
+
+	M_parser_split_free(parts, num_parts);
+
+	M_parser_destroy(parser);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *M_parser_suite(void)
@@ -102,6 +146,7 @@ static Suite *M_parser_suite(void)
 	TCase *tc_parser_read_strdup_hex;
 	TCase *tc_parser_read_buf_hex;
 	TCase *tc_parser_bcd;
+	TCase *tc_parser_split;
 
 	suite = suite_create("parser");
 
@@ -116,6 +161,10 @@ static Suite *M_parser_suite(void)
 	tc_parser_bcd = tcase_create("check_parser_bcd");
 	tcase_add_test(tc_parser_bcd, check_parser_bcd);
 	suite_add_tcase(suite, tc_parser_bcd);
+
+	tc_parser_split = tcase_create("check_parser_split");
+	tcase_add_test(tc_parser_split, check_parser_split);
+	suite_add_tcase(suite, tc_parser_split);
 
 	return suite;
 }
