@@ -32,6 +32,15 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef struct {
+	M_buf_t       *data;
+	M_hash_dict_t *trailers;
+	M_hash_dict_t *extensions;
+	M_bool         complete;
+	M_buf_t        data_len_total;
+	M_buf_t        data_len_cur;
+} M_http_chunk_t;
+
 struct M_http {
 	M_http_message_type_t  type;
 	M_http_version_t       version;
@@ -47,6 +56,7 @@ struct M_http {
 	M_hash_dict_t         *headers;
 	M_hash_dict_t         *trailer;
 	M_list_str_t          *set_cookies;
+	M_list_t              *chunks; /* M_http_chunk_t */
 	M_buf_t               *body;
 	char                  *settings_payload;
 	M_bool                 have_body_len;
@@ -55,7 +65,6 @@ struct M_http {
 	M_bool                 headers_complete;
 	M_bool                 chunked;
 	M_bool                 body_complete;
-	M_bool                 chunk_complete;
 	M_bool                 persist_conn;
 	M_bool                 want_upgrade;
 	M_bool                 want_upgrade_secure;

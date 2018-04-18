@@ -354,7 +354,7 @@ static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **
 	if (M_parser_len(parser) == 0)
 		return M_TRUE;
 
-	if (!M_parser_read_byte(parser, &byte) || (byte != '/' && byte != '*'))
+	if (!M_parser_peek_byte(parser, &byte) || (byte != '/' && byte != '*'))
 		goto err;
 
 	/* Only the options method is allowed to apply to the server itself.
