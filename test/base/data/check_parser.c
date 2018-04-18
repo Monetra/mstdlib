@@ -138,6 +138,7 @@ START_TEST(check_parser_split)
 }
 END_TEST
 
+<<<<<<< HEAD
 
 START_TEST(check_parser_boundary)
 {
@@ -211,6 +212,10 @@ static Suite *M_parser_suite(void)
 	tc = tcase_create("check_parser_boundary");
 	tcase_add_test(tc, check_parser_boundary);
 	suite_add_tcase(suite, tc);
+
+	tc_parser_split = tcase_create("check_parser_split");
+	tcase_add_test(tc_parser_split, check_parser_split);
+	suite_add_tcase(suite, tc_parser_split);
 
 	return suite;
 }
