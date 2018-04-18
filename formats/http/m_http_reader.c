@@ -383,6 +383,7 @@ done:
 
 static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
+	/* XXX: success_end when last (0) length chunk read. */
 }
 
 static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_t *len_read)
