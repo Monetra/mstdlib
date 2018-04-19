@@ -36,10 +36,11 @@ typedef struct {
 	M_buf_t       *data;
 	M_hash_dict_t *trailers;
 	M_hash_dict_t *extensions;
-	M_bool         complete;
-	M_bool         have_len;
-	size_t         len_total;
-	size_t         len_cur;
+	M_bool         extensions_complete;
+	M_bool         trailers_complete;
+	M_bool         have_body_len;
+	size_t         body_len;
+	size_t         body_len_seen;
 } M_http_chunk_t;
 
 struct M_http {
@@ -65,10 +66,9 @@ struct M_http {
 	M_bool                 want_upgrade_secure;
 	char                  *settings_payload;
 
-	M_bool                 body_complete;
 	M_bool                 have_body_len;
-	size_t                 body_len_total;
-	size_t                 body_len_cur;
+	size_t                 body_len;
+	size_t                 body_len_seen;
 	M_buf_t               *body;
 
 	M_bool                 chunked;
@@ -81,11 +81,6 @@ struct M_http {
 
 void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
 char *M_http_header_int(const M_hash_dict_t *d, const char *key);
-
-void M_http_set_body_length(M_http_t *http, size_t len);
-M_bool M_http_have_body_length(M_http_t *http);
-size_t M_http_body_length(M_http_t *http);
-size_t M_http_body_length_current(M_http_t *http);
 
 void M_http_chunk_destory(M_http_chunk_t *chunk);
 
