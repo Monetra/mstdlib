@@ -107,6 +107,8 @@ $(document).ready(function(){initNavTree('group__m__csv.html','');});
 Typedefs</h2></td></tr>
 <tr class="memitem:gacf2272c969191f154707f05645fde74f"><td class="memItemLeft" align="right" valign="top">typedef struct M_csv&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a></td></tr>
 <tr class="separator:gacf2272c969191f154707f05645fde74f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4bd67c3b7b597164ff0bbd03dad53a1"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gad4bd67c3b7b597164ff0bbd03dad53a1">M_csv_row_filter_cb</a> )(const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, size_t row, void *thunk)</td></tr>
+<tr class="separator:gad4bd67c3b7b597164ff0bbd03dad53a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -144,6 +146,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga5a7b2cf0005c9787b54649a399e49408"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf7f5fce14a43f400d48fc8eed0befb31"><td class="memItemLeft" align="right" valign="top">ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gaf7f5fce14a43f400d48fc8eed0befb31">M_csv_get_cell_num</a> (const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, const char *colname)</td></tr>
 <tr class="separator:gaf7f5fce14a43f400d48fc8eed0befb31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacce41904e71674bf0a7f45dee4afe35d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gacce41904e71674bf0a7f45dee4afe35d">M_csv_output_headers_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *headers)</td></tr>
+<tr class="separator:gacce41904e71674bf0a7f45dee4afe35d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab88ae6692f15d3f6e77d81d5ba427a0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gab88ae6692f15d3f6e77d81d5ba427a0d">M_csv_output_rows_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *headers, <a class="el" href="group__m__csv.html#gad4bd67c3b7b597164ff0bbd03dad53a1">M_csv_row_filter_cb</a> filter_cb, void *filter_thunk)</td></tr>
+<tr class="separator:gab88ae6692f15d3f6e77d81d5ba427a0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>CSV Parser.</p>
@@ -175,6 +181,28 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="gad4bd67c3b7b597164ff0bbd03dad53a1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef M_bool(* M_csv_row_filter_cb)(const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, size_t row, void *thunk)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Callback that can be used to filter rows from data returned by <a class="el" href="group__m__csv.html#gab88ae6692f15d3f6e77d81d5ba427a0d">M_csv_output_rows_buf()</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">csv</td><td>the csv being output. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>the idx of the current row being considered (NOT raw - 0 is the first row after the header). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>pointer to thunk object passed into <a class="el" href="group__m__csv.html#gab88ae6692f15d3f6e77d81d5ba427a0d">M_csv_output_rows_buf()</a> by caller. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE, if the row should be included in output. M_FALSE otherwise. </dd></dl>
 
 </div>
 </div>
@@ -646,12 +674,114 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gacce41904e71674bf0a7f45dee4afe35d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_csv_output_headers_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td>
+          <td class="paramname"><em>csv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td>
+          <td class="paramname"><em>headers</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Write the header row, in CSV format.</p>
+<p>When outputting CSV data, this should be called first, with the exact same list of headers that you'll be using later with <a class="el" href="group__m__csv.html#gab88ae6692f15d3f6e77d81d5ba427a0d">M_csv_output_rows_buf()</a>.</p>
+<p>If <em>headers</em> is NULL, all headers defined in the CSV data will be output, in the same order they were originally stored in.</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__csv.html#gab88ae6692f15d3f6e77d81d5ba427a0d">M_csv_output_rows_buf()</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">buf</td><td>buffer to place output in. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">csv</td><td>the CSV data to output. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">headers</td><td>names of columns to include in header row (will be written in this exact order). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gab88ae6692f15d3f6e77d81d5ba427a0d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_csv_output_rows_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td>
+          <td class="paramname"><em>csv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td>
+          <td class="paramname"><em>headers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__csv.html#gad4bd67c3b7b597164ff0bbd03dad53a1">M_csv_row_filter_cb</a>&#160;</td>
+          <td class="paramname"><em>filter_cb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>filter_thunk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Write the parsed data to the given buffer, in CSV format.</p>
+<p>If <em>headers</em> is not NULL, only the columns whose names match will be output, in the same order that the column headers are listed in <em>headers</em>. If there are names in <em>headers</em> which aren't present in the parsed CSV file, an empty value will be added for that column in every row.</p>
+<p>A filter callback may be used to omit certain rows from the output. If no filter callback is provided, all rows will be output.</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__csv.html#gacce41904e71674bf0a7f45dee4afe35d">M_csv_output_headers_buf()</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">buf</td><td>buffer to place output in </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">csv</td><td>the CSV data to output. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">headers</td><td>names of columns to include in output (also controls column order). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">filter_cb</td><td>callback to control which rows are output (may be NULL). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">filter_thunk</td><td>pointer to pass to <em>filter_cb</em> (may be NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Apr 18 2018 15:10:17 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Apr 19 2018 16:33:08 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
