@@ -34,10 +34,8 @@
 
 typedef struct {
 	M_buf_t       *body;
-	M_hash_dict_t *trailers;
 	M_hash_dict_t *extensions;
 	M_bool         extensions_complete;
-	M_bool         trailers_complete;
 	M_bool         have_body_len;
 	size_t         body_len;
 	size_t         body_len_seen;
@@ -61,6 +59,8 @@ struct M_http {
 	M_hash_dict_t         *headers;
 	M_list_str_t          *set_cookies;
 	M_bool                 persist_conn;
+	M_hash_dict_t         *trailers;
+	M_bool                 trailers_complete;
 
 	M_bool                 want_upgrade;
 	M_bool                 want_upgrade_secure;
@@ -78,10 +78,6 @@ struct M_http {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
-void M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val);
-char *M_http_header_int(const M_hash_dict_t *d, const char *key);
 
 void M_http_chunk_destory(M_http_chunk_t *chunk);
 
