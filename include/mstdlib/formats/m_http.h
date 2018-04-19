@@ -646,7 +646,7 @@ size_t M_http_body_length(M_http_t *http);
  * content-length header.
  *
  * \param[in] http HTTP object.
- * \param[in] Len  Length.
+ * \param[in] len  Length.
  */
 void M_http_set_body_length(M_http_t *http, size_t len);
 
@@ -660,8 +660,20 @@ void M_http_set_body_length(M_http_t *http, size_t len);
  * \param[in] http HTTP object.
  *
  * \return Length. 
+ *
+ * \see M_http_body_length_buffered
  */
 size_t M_http_body_length_seen(M_http_t *http);
+
+
+/*! Amount of body data is currently buffered.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Length. 
+ */
+size_t M_http_body_length_buffered(M_http_t *http);
+
 
 /*! Get the body data.
  *
@@ -694,6 +706,16 @@ void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len);
  * \param[in] len  Length of data.
  */
 void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len);
+
+
+/*! Drop the specified number of bytes from the beginning of the body data.
+ *
+ * Useful when doing partial reads of body data.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] len  Length of data.
+ */
+void M_http_body_drop(M_http_t *http, size_t len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -830,6 +852,32 @@ void M_http_chunk_remove(M_http_t *http, size_t num);
 size_t M_http_chunk_data_len(const M_http_t *http, size_t num);
 
 
+/*! Amount of chunk data that has been read.
+ *
+ * This is not the amount of data currently buffered
+ * in the object. This the amount of data that has
+ * passed through the object.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ *
+ * \return Length. 
+ *
+ * \see M_http_chunk_data_len_buffered
+ */
+size_t M_http_chunk_data_len_seen(const M_http_t *http, size_t num);
+
+
+/*! Amount of chunk data is currently buffered.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ *
+ * \return Length. 
+ */
+size_t M_http_chunk_data_len_buffered(const M_http_t *http, size_t num);
+
+
 /*! Get the chunk data.
  *
  * \param[in] http HTTP object.
@@ -859,6 +907,17 @@ void M_http_set_chunk_data(M_http_t *http, size_t num, const unsigned char *data
  * \param[in] len  Length of data.
  */
 void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *data, size_t len);
+
+
+/*! Drop the specified number of bytes from the beginning of the chunk data.
+ *
+ * Useful when doing partial reads of chunk data.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ * \param[in] len  Length of data.
+ */
+void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len);
 
 
 /*! Get the chunk's trailing headers.
@@ -939,10 +998,11 @@ const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num);
  * Get the value of of all extensions as a comma (;) separated list.
  *
  * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
  *
  * \return String.
  */
-const char *M_http_chunk_extension_string(const M_http_t *http);
+char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
 
 
 /*! Set the chunk extensions.

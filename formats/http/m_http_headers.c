@@ -86,24 +86,9 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 
 void M_http_set_header(M_http_t *http, const char *key, const char *val)
 {
-	char   **parts;
-	size_t   num_parts = 0;
-	size_t   i;
-
 	if (http == NULL || M_str_isempty(key))
 		return;
-
-	M_http_remove_header(http, key);
-
-	parts = M_str_explode_str(',', val, &num_parts);
-	if (parts == NULL || num_parts == 0)
-		return;
-
-	for (i=0; i<num_parts; i++) {
-		M_hash_dict_insert(http->headers, key, parts[i]);
-	}
-
-	M_str_explode_free(parts, num_parts);
+	M_http_set_header_int(http->headers, key, val);
 }
 
 void M_http_add_header(M_http_t *http, const char *key, const char *val)
