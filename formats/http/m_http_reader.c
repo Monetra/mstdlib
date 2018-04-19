@@ -312,7 +312,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, si
 			goto done;
 		}
 
-		/* Spaces between the separator (:) and value are not allowd. */
+		/* Spaces between the separator (:) and value are not allowed. */
 		if (M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE) != 0) {
 			res = M_HTTP_ERROR_HEADER_MALFORMEDVAL;
 			goto done;
@@ -337,7 +337,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, si
 		} else {
 			/* If multi value expode them into their parts
  			 * for storage. */
-			sparts = M_str_explode_str(',', val, &num_sparts);
+			sparts = M_str_explode_quoted(',', val, M_str_len(val), '"', '\\', 0, &num_sparts, NULL);
 			if (sparts == NULL)
 				num_sparts = 0;
 			for (j=0; j<num_sparts; j++) {
@@ -384,8 +384,12 @@ done:
 
 static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
+
+
+
 	size_t len = 0;
 
+	/* Get the lengh. It's either before any extensions or before the end of the line. */
 	M_parser_mark(parser);
 	if (M_parser_consume_until(parser, ';', 1, M_FALSE) > 0) {
 		len = M_parser_mark_len(parser);
