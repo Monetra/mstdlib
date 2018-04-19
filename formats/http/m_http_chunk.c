@@ -36,7 +36,7 @@ static M_http_chunk_t *M_http_chunk_create(void)
 
 	chunk = M_malloc_zero(sizeof(*chunk));
 	
-	chunk->data       = M_buf_create();
+	chunk->body       = M_buf_create();
 	chunk->trailers   = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	chunk->extensions = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
 
@@ -50,7 +50,7 @@ void M_http_chunk_destory(M_http_chunk_t *chunk)
 	if (chunk == NULL)
 		return;
 
-	M_buf_cancel(chunk->data);
+	M_buf_cancel(chunk->body);
 	M_hash_dict_destroy(chunk->trailers);
 	M_hash_dict_destroy(chunk->extensions);
 
@@ -109,7 +109,6 @@ M_bool M_http_chunk_complete(const M_http_t *http, size_t num)
 	if (chunk == NULL)
 		return M_FALSE;
 
-
 	if (chunk->extensions_complete   &&
 			chunk->trailers_complete &&
 			chunk->have_body_len     &&
@@ -117,30 +116,92 @@ M_bool M_http_chunk_complete(const M_http_t *http, size_t num)
 	{
 		return M_TRUE;
 	}
+
+	return M_FALSE;
 }
 
 M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return M_FALSE;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return M_FALSE;
+
+	return chunk->have_body_len;
 }
 
 void M_http_set_chunk_len_complete(M_http_t *http, size_t num, M_bool complete)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	chunk->have_body_len = complete;
 }
 
 M_bool M_http_chunk_extensions_complete(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return M_FALSE;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return M_FALSE;
+
+	return chunk->extensions_complete;
 }
 
 void M_http_set_chunk_extensions_complete(M_http_t *http, size_t num, M_bool complete)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	chunk->extensions_complete = complete;
 }
 
 M_bool M_http_chunk_trailers_complete(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return M_FALSE;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return M_FALSE;
+
+	return chunk->trailers_complete;
 }
 
 void M_http_set_chunk_trailers_complete(M_http_t *http, size_t num, M_bool complete)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	chunk->trailers_complete = complete;
 }
 
 size_t M_http_chunk_insert(M_http_t *http)
@@ -158,56 +219,275 @@ size_t M_http_chunk_insert(M_http_t *http)
 
 void M_http_chunk_remove(M_http_t *http, size_t num)
 {
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	M_list_remove_at(http->chunks, num);
 }
 
 size_t M_http_chunk_data_len(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return 0;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return 0;
+
+	return chunk->body_len;
+}
+
+size_t M_http_chunk_data_len_buffered(const M_http_t *http, size_t num)
+{
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return 0;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return 0;
+
+	return chunk->body_len_seen;
+}
+
+size_t M_http_chunk_data_len_seen(const M_http_t *http, size_t num)
+{
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return 0;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return 0;
+
+	return M_buf_len(chunk->body);
 }
 
 const unsigned char *M_http_chunk_data(const M_http_t *http, size_t num, size_t *len)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return NULL;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return NULL;
+
+	*len = M_buf_len(chunk->body);
+	return (const unsigned char *)M_buf_peek(chunk->body);
 }
 
 void M_http_set_chunk_data(M_http_t *http, size_t num, const unsigned char *data, size_t len)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || data == NULL || len == 0)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_buf_truncate(chunk->body, 0);
+	M_buf_add_bytes(chunk->body, data, len);
+	chunk->body_len      = M_buf_len(chunk->body);
+	chunk->body_len_seen = M_buf_len(chunk->body);
 }
 
 void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *data, size_t len)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || data == NULL || len == 0)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_buf_add_bytes(chunk->body, data, len);
+	chunk->body_len      = M_buf_len(chunk->body);
+	chunk->body_len_seen = M_buf_len(chunk->body);
+}
+
+void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len)
+{
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_buf_drop(chunk->body, len);
 }
 
 const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return NULL;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return NULL;
+
+	return chunk->trailers;
 }
 
 char *M_http_chunk_trailer(const M_http_t *http, size_t num, const char *key)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || M_str_isempty(key))
+		return NULL;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return NULL;
+
+	return M_http_header_int(chunk->trailers, key);
 }
 
 void M_http_set_chunk_trailers(M_http_t *http, size_t num, const M_hash_dict_t *headers, M_bool merge)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_http_set_headers_int(&chunk->trailers, headers, merge);
 }
 
 void M_http_set_chunk_trailer(M_http_t *http, size_t num, const char *key, const char *val)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || M_str_isempty(key))
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_http_set_header_int(chunk->trailers, key, val);
 }
 
 void M_http_add_chunk_trailer(M_http_t *http, size_t num, const char *key, const char *val)
 {
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || M_str_isempty(key))
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_hash_dict_insert(chunk->trailers, key, val);
 }
 
 const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return NULL;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return NULL;
+
+	return chunk->extensions;
 }
 
-const char *M_http_chunk_extension_string(const M_http_t *http)
+char *M_http_chunk_extension_string(const M_http_t *http, size_t num)
 {
+	const M_http_chunk_t *chunk;
+	M_hash_dict_enum_t   *he;
+	const char           *key;
+	const char           *val;
+	M_list_str_t         *l;
+	M_buf_t              *buf;
+	char                 *out;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return NULL;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return NULL;
+
+	l = M_list_str_create(M_LIST_STR_NONE);
+	buf = M_buf_create();
+
+	M_hash_dict_enumerate(chunk->extensions, &he);
+	while (M_hash_dict_enumerate_next(chunk->extensions, he, &key, &val)) {
+		M_buf_truncate(buf, 0);
+		M_buf_add_str(buf, key);
+		if (!M_str_isempty(val)) {
+			M_buf_add_byte(buf, '=');
+			M_buf_add_str(buf, val);
+		}
+		M_list_str_insert(l, M_buf_peek(buf));
+	}
+	M_hash_dict_enumerate_free(he);
+	M_buf_cancel(buf);
+
+	out = M_list_str_join(l, ';');
+	M_list_str_destroy(l);
+	return out;
 }
 
 void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions)
 {
+	M_http_chunk_t *chunk;
+	M_hash_dict_enum_t   *he;
+	const char           *key;
+	const char           *val;
+
+	if (http == NULL || M_list_len(http->chunks) >= num || extensions == NULL)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (chunk == NULL)
+		return;
+
+	M_hash_dict_destroy(chunk->extensions);
+	chunk->extensions = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+
+	M_hash_dict_enumerate(chunk->extensions, &he);
+	while (M_hash_dict_enumerate_next(extensions, he, &key, &val)) {
+		M_hash_dict_insert(chunk->extensions, key, val);
+	}
+	M_hash_dict_enumerate_free(he);
 }
 
 void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val)
 {
+	const M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return;
+
+	if (val == NULL)
+		val = "";
+
+	M_hash_dict_insert(chunk->extensions, key, val);
 }

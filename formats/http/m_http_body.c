@@ -52,6 +52,13 @@ size_t M_http_body_length_seen(M_http_t *http)
 	return http->body_len_seen;
 }
 
+size_t M_http_body_length_buffered(M_http_t *http)
+{
+	if (http == NULL)
+		return 0;
+	return M_buf_len(http->body);
+}
+
 M_bool M_http_have_body_length(M_http_t *http)
 {
 	if (http == NULL)
@@ -85,6 +92,7 @@ M_bool M_http_body_complete(const M_http_t *http)
 
 	if (http->body_len == http->body_len_seen)
 		return M_TRUE;
+	return M_FALSE;
 }
 
 const unsigned char *M_http_body(const M_http_t *http, size_t *len)
@@ -116,4 +124,11 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
 	if (http->body_len_seen > http->body_len)
 		http->body_len = http->body_len_seen;
 	M_buf_add_bytes(http->body, data, len);
+}
+
+void M_http_body_drop(M_http_t *http, size_t len)
+{
+	if (http == NULL || len == 0)
+		return;
+	M_buf_drop(http->body, len);
 }
