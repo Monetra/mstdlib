@@ -127,8 +127,7 @@ void M_http_destroy(M_http_t *http);
  * Does not allow read until close body.
  * Does not allow chunked encoding.
  *
- * \param[in] http    HTTP object.
- * \param[in] require Require content length.
+ * \param[in] http HTTP object.
  */
 M_bool M_http_require_content_length(M_http_t *http);
 
@@ -143,6 +142,7 @@ M_bool M_http_require_content_length(M_http_t *http);
  */
 void M_http_set_require_content_length(M_http_t *http, M_bool require);
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Clear contents of http object.
  *
@@ -155,16 +155,11 @@ void M_http_clear(M_http_t *http);
 
 /*! Clear headers.
  *
- * \param[in] http HTTP object.
- */
-void M_http_clear_headers(M_http_t *http);
-
-
-/*! Clear Set-Cookie header (Removes).
+ * Includes Set-Cookie header.
  *
  * \param[in] http HTTP object.
  */
-void M_http_clear_set_cookie(M_http_t *http);
+void M_http_clear_headers(M_http_t *http);
 
 
 /*! Clear body.
@@ -174,30 +169,15 @@ void M_http_clear_set_cookie(M_http_t *http);
 void M_http_clear_body(M_http_t *http);
 
 
-/*! Clear chunk body and trailer.
+/*! Remove all chunks.
  *
- * Chunked body and trailers should be cleared
- * once all data from the chunk is processed.
- * This will put the HTTP object in a state
- * ready for reading in the next chunk.
+ * Marks this as not having chunked data.
  *
  * \param[in] http HTTP object.
+ *
+ * \see M_http_chunk_remove
  */
 void M_http_clear_chunked(M_http_t *http);
-
-
-/*! Clear chunk body.
- *
- * \param[in] http HTTP object.
- */
-void M_http_clear_chunk_body(M_http_t *http);
-
-
-/*! Clear chunk trailer.
- *
- * \param[in] http HTTP object.
- */
-void M_http_clear_chunk_trailer(M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -490,10 +470,8 @@ char *M_http_header(const M_http_t *http, const char *key);
 
 /*! Set the http headers.
  *
- * If the dict is multi value the values will be concatenated into a comma (,) separated list.
- *
  * \param[in] http    HTTP object.
- * \param[in] headers Headers.
+ * \param[in] headers Headers. Can be multi value dict.
  * \param[in] merge   Merge into or replace the existing headers.
  *
  * \see M_http_clear_headers
@@ -503,7 +481,8 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 
 /*! Set a single http header.
  *
- * Replacing any existing values.
+ * Replaces existing values.
+ * Can be a comma (,) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
@@ -512,13 +491,27 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 void M_http_set_header(M_http_t *http, const char *key, const char *val);
 
 
-/*! Add a value to headers preserving existing values.
+/*! Add a value to a header.
+ *
+ * Preserves existing values.
+ * Cannot not be a comma (,) separated list.
+ * This adds a single value to any existing values
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
 void M_http_add_header(M_http_t *http, const char *key, const char *val);
+
+
+/*! Remove a header.
+ *
+ * Removes all values.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ */
+void M_http_remove_header(M_http_t *http, const char *key);
 
 
 /*! Get the Set-Cookie headers.
@@ -689,14 +682,88 @@ void M_http_set_chunked(M_http_t *http, M_bool chunked);
 size_t M_http_chunk_count(const M_http_t *http);
 
 
-/*! Has the chunk data been fully loaded.
+/*! Has the chunk been fully loaded.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ *
+ * \return Bool.
+ *
+ * \see M_http_chunk_len_complete
+ * \see M_http_chunk_extensions_complete
+ * \see M_http_chunk_trailers_complete
+ */
+M_bool M_http_chunk_complete(const M_http_t *http, size_t num);
+
+
+/*! Set whether the chunk has been fully loaded.
+ *
+ * \param[in] http     HTTP object.
+ * \param[in] num      Chunk number.
+ * \param[in] complete Whether loading is complete.
+ *
+ * \see M_http_set_chunk_len_complete
+ * \see M_http_set_chunk_extensions_complete
+ * \see M_http_set_chunk_trailers_complete
+ */
+void M_http_set_chunk_complete(M_http_t *http, size_t num, M_bool complete);
+
+
+/*! Has the chunk length been read.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  *
  * \return Bool.
  */
-M_bool M_http_chunk_complete(const M_http_t *http, size_t num);
+M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num);
+
+
+/*! Set whether the chunk length has been read.
+ *
+ * \param[in] http     HTTP object.
+ * \param[in] num      Chunk number.
+ * \param[in] complete Whether loading is complete.
+ */
+void M_http_set_chunk_len_complete(M_http_t *http, size_t num, M_bool complete);
+
+
+/*! Has the chunk extensions been read.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ *
+ * \return Bool.
+ */
+M_bool M_http_chunk_extensions_complete(const M_http_t *http, size_t num);
+
+
+/*! Set whether the chunk extensions have been read.
+ *
+ * \param[in] http     HTTP object.
+ * \param[in] num      Chunk number.
+ * \param[in] complete Whether loading is complete.
+ */
+void M_http_set_chunk_extensions_complete(M_http_t *http, size_t num, M_bool complete);
+
+
+/*! Has the chunk trailers been read.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ *
+ * \return Bool.
+ */
+M_bool M_http_chunk_trailers_complete(const M_http_t *http, size_t num);
+
+
+/*! Set whether the chunk trailers have been read.
+ *
+ * \param[in] http     HTTP object.
+ * \param[in] num      Chunk number.
+ * \param[in] complete Whether loading is complete.
+ */
+void M_http_set_chunk_trailers_complete(M_http_t *http, size_t num, M_bool complete);
 
 
 /*! Queue a new chunk.
@@ -714,15 +781,6 @@ size_t M_http_chunk_insert(M_http_t *http);
  * \param[in] num  Chunk number.
  */
 void M_http_chunk_remove(M_http_t *http, size_t num);
-
-
-/*! Set whether the chunk data has been fully loaded.
- *
- * \param[in] http     HTTP object.
- * \param[in] num      Chunk number.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_chunk_complete(M_http_t *http, size_t num, M_bool complete);
 
 
 /*! The length of the chunked response data.
@@ -795,12 +853,10 @@ const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http, size_t num);
  *
  * \return String.
  */
-const char *M_http_chunk_trailer(const M_http_t *http, size_t num, const char *key);
+char *M_http_chunk_trailer(const M_http_t *http, size_t num, const char *key);
 
 
 /*! Set the chunk trailing headers.
- *
- * If the dict is multi value the values will be concatenated into a comma (,) separated list.
  *
  * \param[in] http    HTTP object.
  * \param[in] num     Chunk number.
@@ -814,7 +870,8 @@ void M_http_set_chunk_trailers(M_http_t *http, size_t num, const M_hash_dict_t *
 
 /*! Set a single http trailer.
  *
- * Replacing any existing values.
+ * Replaces existing values.
+ * Can be a comma (,) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
@@ -824,7 +881,11 @@ void M_http_set_chunk_trailers(M_http_t *http, size_t num, const M_hash_dict_t *
 void M_http_set_chunk_trailer(M_http_t *http, size_t num, const char *key, const char *val);
 
 
-/*! Add a value to headers preserving existing values.
+/*! Add a value to a header.
+ *
+ * Preserves existing values.
+ * Cannot not be a comma (,) separated list.
+ * This adds a single value to any existing values
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
@@ -846,21 +907,20 @@ const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num);
 
 /*! Get all extensions combined into a single string.
  *
- * Get the value of the header as a comma (;) separated list.
+ * Get the value of of all extensions as a comma (;) separated list.
  *
  * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
  *
  * \return String.
  */
-const char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
+const char *M_http_chunk_extension_string(const M_http_t *http);
 
 
 /*! Set the chunk extensions.
  *
  * \param[in] http       HTTP object.
  * \param[in] num        Chunk number.
- * \param[in] extensions Headers.
+ * \param[in] extensions Extensions.
  *
  * \see M_http_clear_chunk_trailer
  */
@@ -869,12 +929,13 @@ void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t
 
 /*! Set a single chunk extension.
  *
- * Replacing any existing values.
+ * Replaces existing values.
+ * Cannot not be a comma (;) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
- * \param[in] key  Header name.
- * \param[in] val  Value.
+ * \param[in] key  Name.
+ * \param[in] val  Value. Can be NULL.
  */
 void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val);
 
