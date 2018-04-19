@@ -46,6 +46,7 @@ static void M_http_create_init(M_http_t *http)
 	 * no other way to manipulate it so we don't need
 	 * it before hand. */
 	http->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	http->trailers    = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	http->set_cookies = M_list_str_create(M_LIST_STR_STABLE);
 	http->body        = M_buf_create();
 	http->chunks      = M_list_create(&cbs, M_LIST_NONE);
@@ -63,6 +64,7 @@ static void M_http_clear_int(M_http_t *http)
 	M_free(http->query_string);
 	M_hash_dict_destroy(http->query_args);
 	M_hash_dict_destroy(http->headers);
+	M_hash_dict_destroy(http->trailers);
 	M_list_str_destroy(http->set_cookies);
 	M_buf_cancel(http->body);
 	M_free(http->settings_payload);

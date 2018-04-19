@@ -156,6 +156,7 @@ void M_http_clear(M_http_t *http);
 /*! Clear headers.
  *
  * Includes Set-Cookie header.
+ * Includes trailers.
  *
  * \param[in] http HTTP object.
  */
@@ -541,6 +542,8 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 /*! Is upgrading to http 2 requested.
  *
+ * Only valid when received in the header.
+ *
  * This can only be present when the version if 1.1.
  * This can be ignored if http 2 is not being supported.
  *
@@ -572,6 +575,8 @@ void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const c
 
 /*! Is keep alive connection type set to indicate the connection is persistent.
  *
+ * Only valid when received in the header.
+ *
  * Reads the Connection header to determine if "keep-alive" is requested.
  *
  * \param[in] http HTTP object.
@@ -587,6 +592,98 @@ M_bool M_http_persistent_conn(const M_http_t *http);
  * \param[in] persist Whether to request a persistent connection.
  */
 void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Have all trailers been loaded.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Bool.
+ */ 
+M_bool M_http_trailers_complete(const M_http_t *http);
+
+
+/*! Set whether all trailers have been loaded.
+ *
+ * \param[in] http     HTTP object.
+ * \param[in] complete Whether loading is complete.
+ */
+void M_http_set_trailers_complete(M_http_t *http, M_bool complete);
+
+
+/*! Are there trailers.
+ *
+ * This should be checked when chunking is being used
+ * all checks have been read. Trailers will have been
+ * loaded when a chunk with a body length of zero is
+ * marked as complete. Not all chunked messages will
+ * have trailing headers.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Bool.
+ */
+M_bool M_http_have_trailers(const M_http_t *http);
+
+
+/*! Get the trailing headers.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Multi value dict.
+ */
+const M_hash_dict_t *M_http_trailers(const M_http_t *http);
+
+
+/*! Get all values for a trailer combined into a single
+ *
+ * Get the value of the header as a comma (,) separated list
+ * if multiple values were specified.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ *
+ * \return String.
+ */
+char *M_http_trailer(const M_http_t *http, const char *key);
+
+
+/*! Set the trailing headers.
+ *
+ * \param[in] http    HTTP object.
+ * \param[in] headers Headers.
+ * \param[in] merge   Merge into or replace the existing headers.
+ *
+ * \see M_http_clear_chunk_trailer
+ */
+void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
+
+
+/*! Set a single http trailer.
+ *
+ * Replaces existing values.
+ * Can be a comma (,) separated list.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_set_trailer(M_http_t *http, const char *key, const char *val);
+
+
+/*! Add a value to a trailer.
+ *
+ * Preserves existing values.
+ * Cannot not be a comma (,) separated list.
+ * This adds a single value to any existing values
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -798,25 +895,6 @@ M_bool M_http_chunk_extensions_complete(const M_http_t *http, size_t num);
 void M_http_set_chunk_extensions_complete(M_http_t *http, size_t num, M_bool complete);
 
 
-/*! Has the chunk trailers been read.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Bool.
- */
-M_bool M_http_chunk_trailers_complete(const M_http_t *http, size_t num);
-
-
-/*! Set whether the chunk trailers have been read.
- *
- * \param[in] http     HTTP object.
- * \param[in] num      Chunk number.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_chunk_trailers_complete(M_http_t *http, size_t num, M_bool complete);
-
-
 /*! Queue a new chunk.
  *
  * \param[in] http HTTP object.
@@ -918,69 +996,6 @@ void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *d
  * \param[in] len  Length of data.
  */
 void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len);
-
-
-/*! Get the chunk's trailing headers.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Multi value dict.
- */
-const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http, size_t num);
-
-
-/*! Get all values for a trailer combined into a single
- *
- * Get the value of the header as a comma (,) separated list
- * if multiple values were specified.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] key  Header name.
- *
- * \return String.
- */
-char *M_http_chunk_trailer(const M_http_t *http, size_t num, const char *key);
-
-
-/*! Set the chunk trailing headers.
- *
- * \param[in] http    HTTP object.
- * \param[in] num     Chunk number.
- * \param[in] headers Headers.
- * \param[in] merge   Merge into or replace the existing headers.
- *
- * \see M_http_clear_chunk_trailer
- */
-void M_http_set_chunk_trailers(M_http_t *http, size_t num, const M_hash_dict_t *headers, M_bool merge);
-
-
-/*! Set a single http trailer.
- *
- * Replaces existing values.
- * Can be a comma (,) separated list.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] key  Header name.
- * \param[in] val  Value.
- */
-void M_http_set_chunk_trailer(M_http_t *http, size_t num, const char *key, const char *val);
-
-
-/*! Add a value to a header.
- *
- * Preserves existing values.
- * Cannot not be a comma (,) separated list.
- * This adds a single value to any existing values
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] key  Header name.
- * \param[in] val  Value.
- */
-void M_http_add_chunk_trailer(M_http_t *http, size_t num, const char *key, const char *val);
 
 
 /*! Get the chunk's extensions.
