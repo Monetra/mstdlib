@@ -22,12 +22,12 @@
 
 typedef struct  {
 	char to_keep[2];
-} thunk_t;
+} filter_thunk_t;
 
 static M_bool simple_row_filter(const M_csv_t *csv, size_t row, void *thunk)
 {
+	filter_thunk_t *data = (filter_thunk_t *)thunk;
 	const char     *val;
-	thunk_t *data = (thunk_t *)thunk;
 
 	val = M_csv_get_cell(csv, row, "h04");
 
@@ -35,6 +35,25 @@ static M_bool simple_row_filter(const M_csv_t *csv, size_t row, void *thunk)
 		return M_TRUE;
 	}
 	return M_FALSE;
+}
+
+typedef struct {
+	const char *header;
+	const char *from;
+	const char *to;
+} writer_thunk_t;
+
+static M_bool simple_cell_writer(M_buf_t *buf, const char *cell, const char *header, void *thunk)
+{
+	writer_thunk_t *data = (writer_thunk_t *)thunk;
+
+	if (M_str_isempty(cell) || !M_str_eq(header, data->header) || !M_str_eq(cell, data->from)) {
+		return M_FALSE;
+	}
+
+	M_buf_add_str(buf, data->to);
+
+	return M_TRUE;
 }
 
 #define add_test(SUITENAME, TESTNAME)\
@@ -80,7 +99,7 @@ START_TEST(check_write_basic)
 	ck_assert_ptr_ne(csv, NULL);
 
 	M_csv_output_headers_buf(buf, csv, NULL);
-	M_csv_output_rows_buf(buf, csv, NULL, NULL, NULL);
+	M_csv_output_rows_buf(buf, csv, NULL, NULL, NULL, NULL, NULL);
 
 	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", CSV_DATA, M_buf_peek(buf));*/
 	ck_assert_msg(M_str_eq(CSV_DATA, M_buf_peek(buf)), "Output data doesn't match input data");
@@ -107,7 +126,7 @@ START_TEST(check_write_change_headers)
 	M_list_str_insert(headers, "h01");
 
 	M_csv_output_headers_buf(buf, csv, headers);
-	M_csv_output_rows_buf(buf, csv, headers, NULL, NULL);
+	M_csv_output_rows_buf(buf, csv, headers, NULL, NULL, NULL, NULL);
 
 	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", expected, M_buf_peek(buf));*/
 	ck_assert_msg(M_str_eq(expected, M_buf_peek(buf)), "Output data doesn't match expected result");
@@ -120,11 +139,11 @@ END_TEST
 
 START_TEST(check_write_filter)
 {
-	M_csv_t      *csv      = M_csv_parse(CSV_DATA_SIMPLE, M_str_len(CSV_DATA_SIMPLE), ',', '"', M_CSV_FLAG_NONE);
-	M_buf_t      *buf      = M_buf_create();
-	M_list_str_t *headers  = M_list_str_create(M_LIST_STR_NONE);
-	thunk_t       fthunk;
-	const char   *expected =
+	M_csv_t        *csv      = M_csv_parse(CSV_DATA_SIMPLE, M_str_len(CSV_DATA_SIMPLE), ',', '"', M_CSV_FLAG_NONE);
+	M_buf_t        *buf      = M_buf_create();
+	M_list_str_t   *headers  = M_list_str_create(M_LIST_STR_NONE);
+	filter_thunk_t  fthunk;
+	const char     *expected =
 		"h03,h01\r\n"
 		"c23,c21\r\n"
 		"c33,c31\r\n";
@@ -138,7 +157,7 @@ START_TEST(check_write_filter)
 	M_list_str_insert(headers, "h01");
 
 	M_csv_output_headers_buf(buf, csv, headers);
-	M_csv_output_rows_buf(buf, csv, headers, simple_row_filter, &fthunk);
+	M_csv_output_rows_buf(buf, csv, headers, simple_row_filter, &fthunk, NULL, NULL);
 
 	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", expected, M_buf_peek(buf));*/
 	ck_assert_msg(M_str_eq(expected, M_buf_peek(buf)), "Output data doesn't match expected result");
@@ -148,6 +167,44 @@ START_TEST(check_write_filter)
 	M_list_str_destroy(headers);
 }
 END_TEST
+
+
+START_TEST(check_write_cell_edit)
+{
+	M_csv_t        *csv      = M_csv_parse(CSV_DATA_SIMPLE, M_str_len(CSV_DATA_SIMPLE), ',', '"', M_CSV_FLAG_NONE);
+	M_buf_t        *buf      = M_buf_create();
+	M_list_str_t   *headers  = M_list_str_create(M_LIST_STR_NONE);
+	filter_thunk_t  fthunk;
+	writer_thunk_t  wthunk;
+	const char     *expected =
+		"h03,h01\r\n"
+		"c23,c21\r\n"
+		"\"SUB,BED!\",c31\r\n";
+
+	fthunk.to_keep[0] = '7';
+	fthunk.to_keep[1] = '6';
+
+	wthunk.header = "h03";
+	wthunk.from   = "c33";
+	wthunk.to     = "SUB,BED!";
+
+	ck_assert_ptr_ne(csv, NULL);
+
+	M_list_str_insert(headers, "h03");
+	M_list_str_insert(headers, "h01");
+
+	M_csv_output_headers_buf(buf, csv, headers);
+	M_csv_output_rows_buf(buf, csv, headers, simple_row_filter, &fthunk, simple_cell_writer, &wthunk);
+
+	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", expected, M_buf_peek(buf));*/
+	ck_assert_msg(M_str_eq(expected, M_buf_peek(buf)), "Output data doesn't match expected result");
+
+	M_csv_destroy(csv);
+	M_buf_cancel(buf);
+	M_list_str_destroy(headers);
+}
+END_TEST
+
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -165,6 +222,7 @@ int main(void)
 	add_test(suite, check_write_basic);
 	add_test(suite, check_write_change_headers);
 	add_test(suite, check_write_filter);
+	add_test(suite, check_write_cell_edit);
 
 	sr = srunner_create(suite);
 	srunner_set_log(sr, "check_csv.log");

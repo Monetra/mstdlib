@@ -267,6 +267,17 @@ M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname);
 typedef M_bool (*M_csv_row_filter_cb)(const M_csv_t *csv, size_t row, void *thunk);
 
 
+/*! Callback that can be used to edit data from certain columns as its written out.
+ *
+ * \param[in] buf    buffer to write new version of cell data to.
+ * \param[in] cell   original cell data (may be empty/NULL, if cell was empty)
+ * \param[in] header header of column this cell came from
+ * \param[in] thunk  pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return           M_TRUE if we added a modified value to buf. M_FALSE if value was OK as-is.
+ */
+typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const char *header, void *thunk);
+
+
 /*! Write the header row, in CSV format.
  *
  * When outputting CSV data, this should be called first, with the exact same list of headers
@@ -300,9 +311,11 @@ M_API void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str
  * \param[in]  headers      names of columns to include in output (also controls column order).
  * \param[in]  filter_cb    callback to control which rows are output (may be NULL).
  * \param[in]  filter_thunk pointer to pass to \a filter_cb (may be NULL).
+ * \param[in]  writer_cb    callback to allow editing cell values (may be NULL).
+ * \param[in]  writer_thunk pointer to pass to \a writer_cb (may be NULL).
  */
 M_API void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
-	M_csv_row_filter_cb filter_cb, void *filter_thunk);
+	M_csv_row_filter_cb filter_cb, void *filter_thunk, M_csv_cell_writer_cb writer_cb, void *writer_thunk);
 
 /*! @} */
 

@@ -446,14 +446,36 @@ void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *he
 }
 
 
-void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
-	M_csv_row_filter_cb filter_cb, void *filter_thunk)
+static const char *rewrite_cell(const char *cell, const char *header, M_buf_t **cellbuf,
+	M_csv_cell_writer_cb writer_cb, void *thunk)
 {
-	size_t nrows  = M_csv_get_numrows(csv);
-	size_t ncols  = M_csv_get_numcols(csv);
-	size_t nhdrs  = M_list_str_len(headers);
-	size_t rowidx;
-	size_t i;
+	if (writer_cb == NULL) {
+		return cell;
+	}
+
+	if (*cellbuf == NULL) {
+		*cellbuf = M_buf_create();
+	}
+	M_buf_truncate(*cellbuf, 0);
+
+	if (writer_cb(*cellbuf, cell, header, thunk)) {
+		return M_buf_peek(*cellbuf);
+	}
+	return cell;
+}
+
+
+void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
+	M_csv_row_filter_cb filter_cb, void *filter_thunk, M_csv_cell_writer_cb writer_cb, void *writer_thunk)
+{
+	size_t      nrows   = M_csv_get_numrows(csv);
+	size_t      ncols   = M_csv_get_numcols(csv);
+	size_t      nhdrs   = M_list_str_len(headers);
+	size_t      rowidx;
+	size_t      i;
+	const char *header;
+	const char *cellval;
+	M_buf_t    *cellbuf = NULL;
 
 	for (rowidx=0; rowidx<nrows; rowidx++) {
 		if (filter_cb != NULL && !filter_cb(csv, rowidx, filter_thunk)) {
@@ -466,11 +488,18 @@ void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *heade
 			 * same order that they listed them in.
 			 */
 			for (i=0; i<nhdrs; i++) {
-				add_cell(buf, csv, M_csv_get_cell(csv, rowidx, M_list_str_at(headers, i)));
+				header  = M_list_str_at(headers, i);
+				cellval = M_csv_get_cell(csv, rowidx, header);
+				cellval = rewrite_cell(cellval, header, &cellbuf, writer_cb, writer_thunk);
+				add_cell(buf, csv, cellval);
 			}
 		} else {
+			/* Otherwise, just use the headers as we originally parsed them from the CSV data. */
 			for (i=0; i<ncols; i++) {
-				add_cell(buf, csv, M_csv_get_cellbynum(csv, rowidx, i));
+				header  = M_csv_get_header(csv, i);
+				cellval = M_csv_get_cellbynum(csv, rowidx, i);
+				cellval = rewrite_cell(cellval, header, &cellbuf, writer_cb, writer_thunk);
+				add_cell(buf, csv, cellval);
 			}
 		}
 
@@ -482,4 +511,6 @@ void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *heade
 		/* CSV spec requires \r\n at end of each row, can't just use \n here. */
 		M_buf_add_str(buf, "\r\n");
 	}
+
+	M_buf_cancel(cellbuf);
 }
