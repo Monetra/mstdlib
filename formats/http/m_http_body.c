@@ -30,6 +30,21 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+void M_http_clear_body(M_http_t *http)
+{
+	if (http == NULL)
+		return;
+
+	http->have_body_len  = M_FALSE;
+	http->body_len_total = 0;
+	http->body_len_cur   = 0;
+
+	M_buf_cancel(http->body);
+	http->body = M_buf_create();
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_bool M_http_body_complete(const M_http_t *http)
 {
 	if (http == NULL)
@@ -69,96 +84,6 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
 
 	http->body_len_cur += len;
 	M_buf_add_bytes(http->body, data, len);
-}
-
-M_bool M_http_is_chunked(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->chunked;
-}
-
-void M_http_set_chunked(M_http_t *http, M_bool chunked)
-{
-	if (http == NULL)
-		return;
-	http->chunked = chunked;
-}
-
-M_bool M_http_chunk_complete(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->chunk_complete;
-}
-
-void M_http_set_chunk_complete(M_http_t *http, M_bool complete)
-{
-	if (http == NULL)
-		return;
-	http->chunk_complete = complete;
-}
-
-size_t M_http_chunk_len(const M_http_t *http)
-{
-	if (http == NULL)
-		return 0;
-	return http->body_len_total;
-}
-
-const unsigned char *M_http_chunk_data(const M_http_t *http, size_t *len)
-{
-	return M_http_body(http, len);
-}
-
-void M_http_set_chunk_data(M_http_t *http, const unsigned char *data, size_t len)
-{
-	M_http_set_body(http, data, len);
-}
-
-void M_http_chunk_data_append(M_http_t *http, const unsigned char *data, size_t len)
-{
-	M_http_body_append(http, data, len);
-}
-
-const M_hash_dict_t *M_http_chunk_trailers(const M_http_t *http)
-{
-	if (http == NULL)
-		return NULL;
-	return http->trailer;
-}
-
-const char *M_http_chunk_trailer(const M_http_t *http, const char *key)
-{
-	if (http == NULL)
-		return NULL;
-
-	return M_http_header_int(http->trailer, key);
-}
-
-void M_http_set_chunk_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
-{
-	if (http == NULL)
-		return;
-
-	M_http_set_headers_int(&http->trailer, headers, merge);
-}
-
-void M_http_set_chunk_trailer(M_http_t *http, const char *key, const char *val)
-{
-	if (http == NULL)
-		return;
-
-	M_hash_dict_remove(http->trailer, key);
-	M_hash_dict_insert(http->trailer, key, val);
-}
-
-void M_http_add_chunk_trailer(M_http_t *http, const char *key, const char *val)
-{
-	if (http == NULL)
-		return;
-
-	M_hash_dict_insert(http->trailer, key, val);
 }
 
 void M_http_set_body_length(M_http_t *http, size_t len)
