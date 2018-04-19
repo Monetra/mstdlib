@@ -115,7 +115,7 @@ static void M_csv_remove_quotes(char *str, char quote)
  */
 static void add_cell(M_buf_t *buf, const M_csv_t *csv, const char *cell)
 {
-	if (!M_str_isempty(cell)) {
+	if (!M_str_isempty(cell) && csv != NULL) {
 		char        chars_to_quote[4] = {'\0'/*set to csv->delim below*/, '\n', '\r', '\0'};
 		M_bool      needs_quotes      = M_FALSE;
 		const char *next_quote;
@@ -417,6 +417,17 @@ const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *colname)
 	col = (size_t)ret;
 
 	return M_csv_get_cellbynum(csv, row, col);
+}
+
+
+void M_csv_output_set_control_chars(M_csv_t *csv, char delim, char quote)
+{
+	if (csv == NULL) {
+		return;
+	}
+
+	csv->quote = quote;
+	csv->delim = delim;
 }
 
 

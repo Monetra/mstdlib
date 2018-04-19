@@ -83,6 +83,27 @@ enum M_CSV_FLAGS {
 	M_CSV_FLAG_TRIM_WHITESPACE = 1 << 0 /*!< If a cell is not quoted, trim leading and trailing whitespace */
 };
 
+/*! Callback that can be used to filter rows from data returned by M_csv_output_rows_buf().
+ *
+ * \param[in] csv   the csv being output.
+ * \param[in] row   the idx of the current row being considered (NOT raw - 0 is the first row after the header).
+ * \param[in] thunk pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return          M_TRUE, if the row should be included in output. M_FALSE otherwise.
+ */
+typedef M_bool (*M_csv_row_filter_cb)(const M_csv_t *csv, size_t row, void *thunk);
+
+
+/*! Callback that can be used to edit data from certain columns as it's written out.
+ *
+ * \param[in] buf    buffer to write new version of cell data to.
+ * \param[in] cell   original cell data (may be empty/NULL, if cell was empty)
+ * \param[in] header header of column this cell came from
+ * \param[in] thunk  pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return           M_TRUE if we added a modified value to buf. M_FALSE if value was OK as-is.
+ */
+typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const char *header, void *thunk);
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Parse a string into a CSV object.
@@ -257,25 +278,19 @@ M_API const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *col
 M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname); 
 
 
-/*! Callback that can be used to filter rows from data returned by M_csv_output_rows_buf().
+/*! Use different delim and quote characters for output than for parsing.
  *
- * \param[in] csv   the csv being output.
- * \param[in] row   the idx of the current row being considered (NOT raw - 0 is the first row after the header).
- * \param[in] thunk pointer to thunk object passed into M_csv_output_rows_buf() by caller.
- * \return          M_TRUE, if the row should be included in output. M_FALSE otherwise.
- */
-typedef M_bool (*M_csv_row_filter_cb)(const M_csv_t *csv, size_t row, void *thunk);
-
-
-/*! Callback that can be used to edit data from certain columns as its written out.
+ * By default, M_csv_output_headers_buf() and M_csv_output_rows_buf() will use the same
+ * delimiter and quote characters that were used when parsing the data.
  *
- * \param[in] buf    buffer to write new version of cell data to.
- * \param[in] cell   original cell data (may be empty/NULL, if cell was empty)
- * \param[in] header header of column this cell came from
- * \param[in] thunk  pointer to thunk object passed into M_csv_output_rows_buf() by caller.
- * \return           M_TRUE if we added a modified value to buf. M_FALSE if value was OK as-is.
+ * However, if you need to use a different delimiter and/or quote character in your
+ * output, call this function first to change them.
+ *
+ * \param csv   The csv.
+ * \param delim delimiter char to use in subsequent write operations
+ * \param quote quote char to use in subsequent write operations
  */
-typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const char *header, void *thunk);
+void M_csv_output_set_control_chars(M_csv_t *csv, char delim, char quote);
 
 
 /*! Write the header row, in CSV format.
