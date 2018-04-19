@@ -384,6 +384,20 @@ done:
 
 static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
+	size_t len = 0;
+
+	M_parser_mark(parser);
+	if (M_parser_consume_until(parser, ';', 1, M_FALSE) > 0) {
+		len = M_parser_mark_len(parser);
+	} else if (M_parser_consume_str_until(parser, "\r\n", M_FALSE) > 0) {
+		len = M_parser_mark_len(parser);
+	}
+	M_parser_mark_rewind(parser);
+
+	/* No length specified yet. */
+	if (len == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
 	/* XXX: success_end when last (0) length chunk read. */
 }
 
