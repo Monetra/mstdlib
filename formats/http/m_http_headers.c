@@ -94,7 +94,7 @@ static void M_http_set_header_int(M_hash_dict_t *d, const char *key, const char 
 
 	M_hash_dict_remove(d, key);
 
-	parts = M_str_explode_str(',', val, &num_parts);
+	parts = M_str_explode_quoted(',', val, M_str_len(val), '"', '\\', 0, &num_parts, NULL);
 	if (parts == NULL || num_parts == 0)
 		return;
 
@@ -108,6 +108,7 @@ static void M_http_set_header_int(M_hash_dict_t *d, const char *key, const char 
 static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 {
 	M_list_str_t *l;
+	const char   *val;
 	char         *out;
 	size_t        len;
 	size_t        i;
@@ -120,7 +121,13 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 
 	l = M_list_str_create(M_LIST_STR_NONE);
 	for (i=0; i<len; i++) {
-		M_list_str_insert(l, M_hash_dict_multi_get_direct(d, key, i));
+		out = NULL;
+		val = M_hash_dict_multi_get_direct(d, key, i);
+		if (M_str_quote_if_necessary(&out, val, '"', '\\', ',')) {
+			val = out;
+		}
+		M_list_str_insert(l, val);
+		M_free(out);
 	}
 
 	out = M_list_str_join_str(l, ", ");
