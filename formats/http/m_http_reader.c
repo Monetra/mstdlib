@@ -385,6 +385,28 @@ done:
 static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
 
+	/* 1. read length
+ 	 * 2. read extesnsions
+	 * 3. read body.
+	 * 4. if len == 0 read trailers
+	 *
+	 * if parser len == 0
+	 *   return success
+	 * if last chunk complete
+	 *   create new chunk
+	 * if not have length
+	 *   read length
+	 * if have length and not have extensions 
+	 *   read extensions
+	 * if have extensions and len > 0 and not complete
+	 *   read body
+	 * if have extensions and len == 0
+	 *   read trailers
+	 * if len == 0 and have trailers
+	 *   return success end
+	 * return success
+	 */
+
 
 
 	size_t len = 0;
