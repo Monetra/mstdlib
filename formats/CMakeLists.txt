@@ -27,7 +27,6 @@ set(sources
 	http/m_http_body.c
 	http/m_http_chunk.c
 	http/m_http_headers.c
-	http/m_http_int.c
 	http/m_http_int.h
 	http/m_http_reader.c
 	http/m_http_uri.c
