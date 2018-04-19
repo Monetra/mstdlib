@@ -83,6 +83,28 @@ void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *ne
 	M_hash_dict_enumerate_free(he);
 }
 
+void M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
+{
+	char   **parts;
+	size_t   num_parts = 0;
+	size_t   i;
+
+	if (d == NULL || M_str_isempty(key))
+		return;
+
+	M_hash_dict_remove(d, key);
+
+	parts = M_str_explode_str(',', val, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		return;
+
+	for (i=0; i<num_parts; i++) {
+		M_hash_dict_insert(d, key, parts[i]);
+	}
+
+	M_str_explode_free(parts, num_parts);
+}
+
 char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 {
 	M_list_str_t *l;
