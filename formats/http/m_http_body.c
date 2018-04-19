@@ -30,17 +30,47 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+void M_http_set_body_length(M_http_t *http, size_t len)
+{
+	if (http == NULL)
+		return;
+	http->have_body_len = M_TRUE;
+	http->body_len      = len;
+}
+
+size_t M_http_body_length(M_http_t *http)
+{
+	if (http == NULL)
+		return 0;
+	return http->body_len;
+}
+
+size_t M_http_body_length_seen(M_http_t *http)
+{
+	if (http == NULL)
+		return 0;
+	return http->body_len_seen;
+}
+
+M_bool M_http_have_body_length(M_http_t *http)
+{
+	if (http == NULL)
+		return M_FALSE;
+	return http->have_body_len;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void M_http_clear_body(M_http_t *http)
 {
 	if (http == NULL)
 		return;
 
-	http->have_body_len  = M_FALSE;
-	http->body_len_total = 0;
-	http->body_len_cur   = 0;
+	http->have_body_len = M_FALSE;
+	http->body_len      = 0;
+	http->body_len_seen = 0;
 
-	M_buf_cancel(http->body);
-	http->body = M_buf_create();
+	M_buf_truncate(http->body, 0);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -49,14 +79,12 @@ M_bool M_http_body_complete(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_FALSE;
-	return http->body_complete;
-}
 
-void M_http_set_body_complete(M_http_t *http, M_bool complete)
-{
-	if (http == NULL)
-		return;
-	http->body_complete = complete;
+	if (!http->have_body_len)
+		return M_FALSE;
+
+	if (http->body_len == http->body_len_seen)
+		return M_TRUE;
 }
 
 const unsigned char *M_http_body(const M_http_t *http, size_t *len)
@@ -75,6 +103,8 @@ void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len)
 
 	M_buf_truncate(http->body, 0);
 	M_buf_add_bytes(http->body, data, len);
+	http->body_len      = len;
+	http->body_len_seen = len;
 }
 
 void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
@@ -82,35 +112,8 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
 	if (http == NULL || data == NULL || len == 0)
 		return;
 
-	http->body_len_cur += len;
+	http->body_len_seen += len;
+	if (http->body_len_seen > http->body_len)
+		http->body_len = http->body_len_seen;
 	M_buf_add_bytes(http->body, data, len);
-}
-
-void M_http_set_body_length(M_http_t *http, size_t len)
-{
-	if (http == NULL)
-		return;
-	http->have_body_len  = M_TRUE;
-	http->body_len_total = len;
-}
-
-size_t M_http_body_length(M_http_t *http)
-{
-	if (http == NULL)
-		return 0;
-	return http->body_len_total;
-}
-
-size_t M_http_body_length_current(M_http_t *http)
-{
-	if (http == NULL)
-		return 0;
-	return http->body_len_cur;
-}
-
-M_bool M_http_have_body_length(M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->have_body_len;
 }
