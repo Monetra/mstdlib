@@ -148,6 +148,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga5a7b2cf0005c9787b54649a399e49408"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf7f5fce14a43f400d48fc8eed0befb31"><td class="memItemLeft" align="right" valign="top">ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gaf7f5fce14a43f400d48fc8eed0befb31">M_csv_get_cell_num</a> (const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, const char *colname)</td></tr>
 <tr class="separator:gaf7f5fce14a43f400d48fc8eed0befb31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4732bd4f007496dde9ceefd88f3fff23"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#ga4732bd4f007496dde9ceefd88f3fff23">M_csv_output_set_control_chars</a> (<a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, char delim, char quote)</td></tr>
+<tr class="separator:ga4732bd4f007496dde9ceefd88f3fff23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacce41904e71674bf0a7f45dee4afe35d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gacce41904e71674bf0a7f45dee4afe35d">M_csv_output_headers_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *headers)</td></tr>
 <tr class="separator:gacce41904e71674bf0a7f45dee4afe35d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa24235b4324dc041e0a578410cf9e980"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gaa24235b4324dc041e0a578410cf9e980">M_csv_output_rows_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const <a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *headers, <a class="el" href="group__m__csv.html#gad4bd67c3b7b597164ff0bbd03dad53a1">M_csv_row_filter_cb</a> filter_cb, void *filter_thunk, <a class="el" href="group__m__csv.html#ga78626e2c45112e4a72d4f7d475bdc632">M_csv_cell_writer_cb</a> writer_cb, void *writer_thunk)</td></tr>
@@ -217,7 +219,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Callback that can be used to edit data from certain columns as its written out.</p>
+<p>Callback that can be used to edit data from certain columns as it's written out.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">buf</td><td>buffer to write new version of cell data to. </td></tr>
@@ -699,6 +701,49 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga4732bd4f007496dde9ceefd88f3fff23"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_csv_output_set_control_chars </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td>
+          <td class="paramname"><em>csv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>delim</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>quote</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Use different delim and quote characters for output than for parsing.</p>
+<p>By default, <a class="el" href="group__m__csv.html#gacce41904e71674bf0a7f45dee4afe35d">M_csv_output_headers_buf()</a> and <a class="el" href="group__m__csv.html#gaa24235b4324dc041e0a578410cf9e980">M_csv_output_rows_buf()</a> will use the same delimiter and quote characters that were used when parsing the data.</p>
+<p>However, if you need to use a different delimiter and/or quote character in your output, call this function first to change them.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">csv</td><td>The csv. </td></tr>
+    <tr><td class="paramname">delim</td><td>delimiter char to use in subsequent write operations </td></tr>
+    <tr><td class="paramname">quote</td><td>quote char to use in subsequent write operations </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="gacce41904e71674bf0a7f45dee4afe35d"></a>
 <div class="memitem">
 <div class="memproto">
@@ -820,7 +865,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Apr 19 2018 20:40:34 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Apr 19 2018 20:55:57 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

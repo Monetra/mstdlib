@@ -19,6 +19,7 @@ var group__m__csv =
     [ "M_csv_get_header", "group__m__csv.html#ga0a871e35a2f447d32e87ba8156b31e62", null ],
     [ "M_csv_get_cell", "group__m__csv.html#ga5a7b2cf0005c9787b54649a399e49408", null ],
     [ "M_csv_get_cell_num", "group__m__csv.html#gaf7f5fce14a43f400d48fc8eed0befb31", null ],
+    [ "M_csv_output_set_control_chars", "group__m__csv.html#ga4732bd4f007496dde9ceefd88f3fff23", null ],
     [ "M_csv_output_headers_buf", "group__m__csv.html#gacce41904e71674bf0a7f45dee4afe35d", null ],
     [ "M_csv_output_rows_buf", "group__m__csv.html#gaa24235b4324dc041e0a578410cf9e980", null ]
 ];
