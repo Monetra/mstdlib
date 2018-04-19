@@ -347,6 +347,7 @@ static M_http_error_t M_http_read_headers(M_http_t *http, M_parser_t *parser, si
 				}
 				M_http_add_header(http, key, sparts[j]);
 			}
+			M_str_explode_free(sparts, num_sparts);
 		}
 		M_free(key);
 		M_free(val);
@@ -420,6 +421,7 @@ M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t dat
 {
 	M_parser_t     *parser;
 	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
+	size_t          last_chunk;
 
 	if (http == NULL || data == NULL || data_len == 0 || len_read == NULL)
 		return M_HTTP_ERROR_INVALIDUSE;
@@ -445,9 +447,10 @@ M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t dat
 	if (M_http_error_is_error(res))
 		goto done;
 
+	last_chunk = M_http_chunk_count(http)-1;
 	if (res == M_HTTP_ERROR_SUCCESS && 
 			M_http_headers_complete(http) &&
-			((M_http_is_chunked(http) && M_http_chunk_complete(http)) ||
+			((M_http_is_chunked(http) && M_http_chunk_complete(http, last_chunk) && M_http_chunk_data_len(http, last_chunk) == 0) ||
 			M_http_body_complete(http)))
 	{
 		res = M_HTTP_ERROR_SUCCESS_END;

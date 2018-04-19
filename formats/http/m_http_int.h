@@ -37,8 +37,9 @@ typedef struct {
 	M_hash_dict_t *trailers;
 	M_hash_dict_t *extensions;
 	M_bool         complete;
-	M_buf_t        data_len_total;
-	M_buf_t        data_len_cur;
+	M_bool         have_len;
+	size_t         len_total;
+	size_t         len_cur;
 } M_http_chunk_t;
 
 struct M_http {
@@ -47,27 +48,32 @@ struct M_http {
 	M_uint32               status_code;
 	char                  *reason_phrase;
 	M_http_method_t        method;
+
 	char                  *uri;
 	char                  *host;
 	M_uint16               port;
 	char                  *path;
 	char                  *query_string;
 	M_hash_dict_t         *query_args;
+
+	M_bool                 headers_complete;
 	M_hash_dict_t         *headers;
-	M_hash_dict_t         *trailer;
 	M_list_str_t          *set_cookies;
-	M_list_t              *chunks; /* M_http_chunk_t */
-	M_buf_t               *body;
+	M_bool                 persist_conn;
+
+	M_bool                 want_upgrade;
+	M_bool                 want_upgrade_secure;
 	char                  *settings_payload;
+
+	M_bool                 body_complete;
 	M_bool                 have_body_len;
 	size_t                 body_len_total;
 	size_t                 body_len_cur;
-	M_bool                 headers_complete;
+	M_buf_t               *body;
+
 	M_bool                 chunked;
-	M_bool                 body_complete;
-	M_bool                 persist_conn;
-	M_bool                 want_upgrade;
-	M_bool                 want_upgrade_secure;
+	M_list_t              *chunks; /* M_http_chunk_t */
+
 	M_bool                 require_content_len;
 };
 
@@ -75,9 +81,12 @@ struct M_http {
 
 void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge);
 char *M_http_header_int(const M_hash_dict_t *d, const char *key);
+
 void M_http_set_body_length(M_http_t *http, size_t len);
 M_bool M_http_have_body_length(M_http_t *http);
 size_t M_http_body_length(M_http_t *http);
 size_t M_http_body_length_current(M_http_t *http);
+
+void M_http_chunk_destory(M_http_chunk_t *chunk);
 
 #endif
