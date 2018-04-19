@@ -391,24 +391,32 @@ static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_
 {
 	unsigned char buf[8*1024];
 	M_bool        have_total;
-	size_t        total;
-	size_t        cur;
-	size_t        len;
+	size_t        total = 0;
+	size_t        cur   = 0;
+	size_t        len   = 0;
 
 	/* If total is unknown then everything is body
  	 * and it ends with the connection is closed. */
 	have_total = M_http_have_body_length(http);
-	total      = M_http_body_length(http);
-	cur        = M_http_body_length_current(http);
-	if (have_total && cur == total)
-		return M_HTTP_ERROR_SUCCESS_END;
+	if (have_total) {
+		total = M_http_body_length(http);
+		cur   = M_http_body_length_seen(http);
+		if (total == 0 || cur == total) {
+			return M_HTTP_ERROR_SUCCESS_END;
+		}
+	}
 
 	do {
-		len          = M_parser_read_bytes_max(parser, total-cur, buf, sizeof(buf));
+		if (have_total) {
+			len = M_parser_read_bytes_max(parser, total-cur, buf, sizeof(buf));
+		} else {
+			len = M_parser_read_bytes_max(parser, sizeof(buf), buf, sizeof(buf));
+		}
+		/* Updates cur internally. */
 		M_http_body_append(http, buf, len);
 		cur         += len;
 		*(len_read) += len;
-	} while ((!have_total && len > 0) || (len > 0 && have_total && cur != total));
+	} while ((!have_total && len > 0) || (have_total && len > 0 && cur != total));
 
 	if (have_total && cur == total)
 		return M_HTTP_ERROR_SUCCESS_END;
