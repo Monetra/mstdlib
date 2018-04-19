@@ -601,6 +601,10 @@ void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
  *       been read. It is valid for a server to define the body
  *       length as all bytes sent before connection close.
  *
+ * If the length has been set the body M_http_body_length and
+ * M_http_body_length_seen will be equal when all data has
+ * been read by the http object.
+ *
  * \param[in] http HTTP object.
  *
  * \return Bool.
@@ -608,18 +612,56 @@ void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
 M_bool M_http_body_complete(const M_http_t *http);
 
 
-/*! Set whether the body has been fully loaded.
+/*! Has the body length been set.
  *
- * This does not update or change the length headers.
- * It is up to the caller to set any length headers
- * because the body could be streamed outside of this
- * object.
+ * Set either manally or though the Content-Length
+ * header. Content-Length is only used with
+ * M_http_read and is not read when adding it to
+ * the headers.
  *
- * \param[in] http     HTTP object.
- * \param[in] complete Whether loading is complete.
+ * \param[in] http HTTP object.
+ *
+ * \return M_TRUE if set. Otherwise, M_FALSE.
  */
-void M_http_set_body_complete(M_http_t *http, M_bool complete);
+M_bool M_http_have_body_length(M_http_t *http);
 
+
+/*! Get the body length.
+ *
+ * This is not the amount of data in the object.
+ * This is the total length as defined by the
+ * content-length header.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Length.
+ */
+size_t M_http_body_length(M_http_t *http);
+
+
+/*! Set the body length.
+ *
+ * This is not the amount of data in the object.
+ * This is the total length as defined by the
+ * content-length header.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] Len  Length.
+ */
+void M_http_set_body_length(M_http_t *http, size_t len);
+
+
+/*! Amount of body data that has been read.
+ *
+ * This is not the amount of data currently buffered
+ * in the object. This the amount of data that has
+ * passed through the object.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Length. 
+ */
+size_t M_http_body_length_seen(M_http_t *http);
 
 /*! Get the body data.
  *
@@ -694,19 +736,6 @@ size_t M_http_chunk_count(const M_http_t *http);
  * \see M_http_chunk_trailers_complete
  */
 M_bool M_http_chunk_complete(const M_http_t *http, size_t num);
-
-
-/*! Set whether the chunk has been fully loaded.
- *
- * \param[in] http     HTTP object.
- * \param[in] num      Chunk number.
- * \param[in] complete Whether loading is complete.
- *
- * \see M_http_set_chunk_len_complete
- * \see M_http_set_chunk_extensions_complete
- * \see M_http_set_chunk_trailers_complete
- */
-void M_http_set_chunk_complete(M_http_t *http, size_t num, M_bool complete);
 
 
 /*! Has the chunk length been read.

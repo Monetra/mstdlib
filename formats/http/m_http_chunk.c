@@ -93,14 +93,30 @@ void M_http_set_chunked(M_http_t *http, M_bool chunked)
 
 size_t M_http_chunk_count(const M_http_t *http)
 {
+	if (http == NULL)
+		return 0;
+	return M_list_len(http->chunks);
 }
 
 M_bool M_http_chunk_complete(const M_http_t *http, size_t num)
 {
-}
+	const M_http_chunk_t *chunk;
 
-void M_http_set_chunk_complete(M_http_t *http, size_t num, M_bool complete)
-{
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return M_FALSE;
+
+	chunk = M_list_at(http->chunks, num);
+	if (chunk == NULL)
+		return M_FALSE;
+
+
+	if (chunk->extensions_complete   &&
+			chunk->trailers_complete &&
+			chunk->have_body_len     &&
+			chunk->body_len == chunk->body_len_seen)
+	{
+		return M_TRUE;
+	}
 }
 
 M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num)
