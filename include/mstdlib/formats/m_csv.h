@@ -28,6 +28,8 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_buf.h>
+#include <mstdlib/base/m_list_str.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -253,6 +255,54 @@ M_API const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *col
  * \return Column number for the given name on success. Otherwise -1.
  */
 M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname); 
+
+
+/*! Callback that can be used to filter rows from data returned by M_csv_output_rows_buf().
+ *
+ * \param[in] csv   the csv being output.
+ * \param[in] row   the idx of the current row being considered (NOT raw - 0 is the first row after the header).
+ * \param[in] thunk pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return          M_TRUE, if the row should be included in output. M_FALSE otherwise.
+ */
+typedef M_bool (*M_csv_row_filter_cb)(const M_csv_t *csv, size_t row, void *thunk);
+
+
+/*! Write the header row, in CSV format.
+ *
+ * When outputting CSV data, this should be called first, with the exact same list of headers
+ * that you'll be using later with M_csv_output_rows_buf().
+ *
+ * If \a headers is NULL, all headers defined in the CSV data will be output, in the same order
+ * they were originally stored in.
+ *
+ * \see M_csv_output_rows_buf()
+ *
+ * \param[out] buf     buffer to place output in.
+ * \param[in]  csv     the CSV data to output.
+ * \param[in]  headers names of columns to include in header row (will be written in this exact order).
+ */
+M_API void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers);
+
+
+/*! Write the parsed data to the given buffer, in CSV format.
+ *
+ * If \a headers is not NULL, only the columns whose names match will be output, in the same order
+ * that the column headers are listed in \a headers. If there are names in \a headers which aren't
+ * present in the parsed CSV file, an empty value will be added for that column in every row.
+ *
+ * A filter callback may be used to omit certain rows from the output. If no filter callback is
+ * provided, all rows will be output.
+ *
+ * \see M_csv_output_headers_buf()
+ *
+ * \param[out] buf          buffer to place output in
+ * \param[in]  csv          the CSV data to output.
+ * \param[in]  headers      names of columns to include in output (also controls column order).
+ * \param[in]  filter_cb    callback to control which rows are output (may be NULL).
+ * \param[in]  filter_thunk pointer to pass to \a filter_cb (may be NULL).
+ */
+M_API void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
+	M_csv_row_filter_cb filter_cb, void *filter_thunk);
 
 /*! @} */
 

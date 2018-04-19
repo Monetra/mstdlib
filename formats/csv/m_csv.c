@@ -29,11 +29,13 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_csv {
-	char      ***data_arr;
-	size_t       num_rows;
-	size_t       num_cols;
-	char        *data_ptr;
-	M_hash_stridx_t *headers;
+	char            ***data_arr;
+	size_t             num_rows;
+	size_t             num_cols;
+	char              *data_ptr;
+	char               delim;
+	char               quote;
+	M_hash_stridx_t   *headers;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -103,6 +105,62 @@ static void M_csv_remove_quotes(char *str, char quote)
 	if (cnt == 1 && str[cnt-1] == quote)
 		str[cnt-1] = 0;
 }
+
+
+/* Helper function for M_csv_output_headers_buf() and M_csv_output_rows_buf().
+ *
+ * Adds required quotes, escapes and trailing delimiter to the given cell value, then writes it to output buffer.
+ *
+ * If cell value is empty, still adds the trailing delimiter.
+ */
+static void add_cell(M_buf_t *buf, const M_csv_t *csv, const char *cell)
+{
+	if (!M_str_isempty(cell)) {
+		char        chars_to_quote[4] = {'\0'/*set to csv->delim below*/, '\n', '\r', '\0'};
+		M_bool      needs_quotes      = M_FALSE;
+		const char *next_quote;
+		size_t      len               = M_str_len(cell);
+		size_t      chars_to_add;
+
+		chars_to_quote[0] = csv->delim;
+
+		/* If cell value starts/ends with whitespace, or if it contains delimiter or newline chars,
+		 * it needs to be wrapped in quotes.
+		 */
+		if (M_chr_isspace(*cell) || M_chr_isspace(cell[len - 1])
+			|| M_str_find_first_from_charset(cell, chars_to_quote) != NULL) {
+			needs_quotes = M_TRUE;
+
+			M_buf_add_char(buf, csv->quote);
+		}
+
+		/* If cell value contains any quote chars, we'll need to escape them by adding a second quote character
+		 * right after it.
+		 */
+		do {
+			next_quote   = M_mem_chr(cell, (M_uint8)csv->quote, len);
+
+			chars_to_add = (next_quote == NULL)? len : (size_t)(next_quote - cell) + 1;
+
+			M_buf_add_bytes(buf, cell, chars_to_add);
+			len  -= chars_to_add;
+			cell += chars_to_add;
+
+			if (next_quote != NULL) {
+				M_buf_add_char(buf, csv->quote);
+			}
+		} while (len > 0);
+
+		if (needs_quotes) {
+			M_buf_add_char(buf, csv->quote);
+		}
+	}
+
+	/* Always add delimiter character at end, even if cell is empty. */
+	M_buf_add_char(buf, csv->delim);
+}
+
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -235,6 +293,8 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 	csv->data_ptr = data;
 	csv->num_rows = num_rows;
 	csv->num_cols = num_cols;
+	csv->delim    = delim;
+	csv->quote    = quote;
 
 	/* Create lookup table for column names to indexes */
 	csv->headers  = M_hash_stridx_create(num_cols * 2, 75, M_HASH_STRIDX_CASECMP);
@@ -357,4 +417,69 @@ const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *colname)
 	col = (size_t)ret;
 
 	return M_csv_get_cellbynum(csv, row, col);
+}
+
+
+void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers)
+{
+	size_t i;
+	size_t ncols = M_csv_get_numcols(csv);
+	size_t nhdrs = M_list_str_len(headers);
+
+	if (nhdrs > 0) {
+		for (i=0; i<nhdrs; i++) {
+			add_cell(buf, csv, M_list_str_at(headers, i));
+		}
+	} else {
+		for (i=0; i<ncols; i++) {
+			add_cell(buf, csv, M_csv_get_header(csv, i));
+		}
+	}
+
+	/* add_cell() always adds a trailing delimiter character, so we need to remove the
+	 * trailing delimiter from the last cell in the row.
+	 */
+	M_buf_truncate(buf, M_buf_len(buf) - 1);
+
+	/* CSV spec REQUIRES \r\n at end of each row, can't just use \n here. */
+	M_buf_add_str(buf, "\r\n");
+}
+
+
+void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
+	M_csv_row_filter_cb filter_cb, void *filter_thunk)
+{
+	size_t nrows  = M_csv_get_numrows(csv);
+	size_t ncols  = M_csv_get_numcols(csv);
+	size_t nhdrs  = M_list_str_len(headers);
+	size_t rowidx;
+	size_t i;
+
+	for (rowidx=0; rowidx<nrows; rowidx++) {
+		if (filter_cb != NULL && !filter_cb(csv, rowidx, filter_thunk)) {
+			/* Skip this row, if the filter callback wants us to omit it. */
+			continue;
+		}
+
+		if (nhdrs > 0) {
+			/* If user passed in a list of headers, output only the columns they requested, in the
+			 * same order that they listed them in.
+			 */
+			for (i=0; i<nhdrs; i++) {
+				add_cell(buf, csv, M_csv_get_cell(csv, rowidx, M_list_str_at(headers, i)));
+			}
+		} else {
+			for (i=0; i<ncols; i++) {
+				add_cell(buf, csv, M_csv_get_cellbynum(csv, rowidx, i));
+			}
+		}
+
+		/* add_cell() always adds a trailing delimiter character, so we need to remove the
+		 * trailing delimiter from the last cell in the row.
+		 */
+		M_buf_truncate(buf, M_buf_len(buf) - 1);
+
+		/* CSV spec requires \r\n at end of each row, can't just use \n here. */
+		M_buf_add_str(buf, "\r\n");
+	}
 }
