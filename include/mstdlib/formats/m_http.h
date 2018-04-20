@@ -64,6 +64,8 @@ typedef enum {
 	M_HTTP_ERROR_HEADER_DUPLICATE, /* 400 */
 	M_HTTP_ERROR_LENGTH_REQUIRED, /* 411 */
 	M_HTTP_ERROR_UPGRADE,
+	M_HTTP_ERROR_CHUNK_LENGTH,
+	M_HTTP_ERROR_CHUNK_EXTENSION,
 	M_HTTP_ERROR_MALFORMED
 } M_http_error_t;
 
@@ -489,7 +491,7 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_set_header(M_http_t *http, const char *key, const char *val);
+M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
 
 
 /*! Add a value to a header.
@@ -670,7 +672,7 @@ void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool me
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_set_trailer(M_http_t *http, const char *key, const char *val);
+M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
 
 
 /*! Add a value to a trailer.
@@ -850,7 +852,7 @@ size_t M_http_chunk_count(const M_http_t *http);
  *
  * \return Bool.
  *
- * \see M_http_chunk_len_complete
+ * \see M_http_chunk_length_complete
  * \see M_http_chunk_extensions_complete
  * \see M_http_chunk_trailers_complete
  */
@@ -864,7 +866,7 @@ M_bool M_http_chunk_complete(const M_http_t *http, size_t num);
  *
  * \return Bool.
  */
-M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num);
+M_bool M_http_chunk_length_complete(const M_http_t *http, size_t num);
 
 
 /*! Set whether the chunk length has been read.
@@ -873,7 +875,7 @@ M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num);
  * \param[in] num      Chunk number.
  * \param[in] complete Whether loading is complete.
  */
-void M_http_set_chunk_len_complete(M_http_t *http, size_t num, M_bool complete);
+void M_http_set_chunk_length_complete(M_http_t *http, size_t num, M_bool complete);
 
 
 /*! Has the chunk extensions been read.
@@ -912,11 +914,7 @@ size_t M_http_chunk_insert(M_http_t *http);
 void M_http_chunk_remove(M_http_t *http, size_t num);
 
 
-/*! The length of the chunked response data.
- *
- * The length of chunked data within the object cannot
- * be set. For responses being generated the length will
- * be set on write.
+/*! The length of the chunked data.
  *
  * \note When the length is 0 this indicates it is the
  *       final chunk in the sequence and all data has
@@ -927,7 +925,20 @@ void M_http_chunk_remove(M_http_t *http, size_t num);
  *
  * \return Length.
  */
-size_t M_http_chunk_data_len(const M_http_t *http, size_t num);
+size_t M_http_chunk_data_length(const M_http_t *http, size_t num);
+
+
+/*! Set the chunked data length.
+ *
+ * This is not the amount of data in the object.
+ * This is the total length as defined by the
+ * length marker.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ * \param[in] len  Length.
+ */
+void M_http_set_chunk_data_length(M_http_t *http, size_t num, size_t len);
 
 
 /*! Amount of chunk data that has been read.
@@ -941,9 +952,9 @@ size_t M_http_chunk_data_len(const M_http_t *http, size_t num);
  *
  * \return Length. 
  *
- * \see M_http_chunk_data_len_buffered
+ * \see M_http_chunk_data_length_buffered
  */
-size_t M_http_chunk_data_len_seen(const M_http_t *http, size_t num);
+size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num);
 
 
 /*! Amount of chunk data is currently buffered.
@@ -953,7 +964,7 @@ size_t M_http_chunk_data_len_seen(const M_http_t *http, size_t num);
  *
  * \return Length. 
  */
-size_t M_http_chunk_data_len_buffered(const M_http_t *http, size_t num);
+size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num);
 
 
 /*! Get the chunk data.
@@ -1010,7 +1021,7 @@ const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num);
 
 /*! Get all extensions combined into a single string.
  *
- * Get the value of of all extensions as a comma (;) separated list.
+ * Get the value of of all extensions as a semicolon (;) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
@@ -1031,10 +1042,23 @@ char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
 void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions);
 
 
+/*! Set the extensions from a string.
+ *
+ * Can be a semicolon (;) separated list.
+ * If not a list this is the equivalent of calling
+ * M_http_set_chunk_extension without a value.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] num  Chunk number.
+ * \param[in] str  String.
+ */ 
+M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str);
+
+
 /*! Set a single chunk extension.
  *
  * Replaces existing values.
- * Cannot not be a comma (;) separated list.
+ * Cannot not be a semicolon (;) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.

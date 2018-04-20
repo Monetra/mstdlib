@@ -382,8 +382,102 @@ done:
 	return res;
 }
 
+static M_http_error_t M_http_read_chunked_length(M_http_t *http, M_parser_t *parser, size_t chunk_num, size_t *len_read)
+{
+	M_int64 i64v = 0;
+	size_t  len  = 0;
+	size_t  start_len;
+
+	start_len = M_parser_len(parser);
+
+	/* Get the lengh. It's either before any extensions or before the end of the line. */
+	M_parser_mark(parser);
+	if (M_parser_consume_until(parser, (const unsigned char *)";", 1, M_FALSE) > 0) {
+		len = M_parser_mark_len(parser);
+	} else if (M_parser_consume_str_until(parser, "\r\n", M_FALSE) > 0) {
+		len = M_parser_mark_len(parser);
+	}
+	M_parser_mark_rewind(parser);
+
+	/* No data length yet. */
+	if (len == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
+	if (!M_parser_read_int(parser, M_PARSER_INTEGER_ASCII, len, 16, &i64v) || i64v < 0)
+		return M_HTTP_ERROR_CHUNK_LENGTH;
+
+	M_http_set_chunk_data_length(http, chunk_num, (size_t)i64v);
+
+	/* XXX: Check if ; or \r\n. need to eat \r\n */
+
+	*(len_read) += start_len - M_parser_len(parser);
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_read_chunked_extensions(M_http_t *http, M_parser_t *parser, size_t chunk_num, size_t *len_read)
+{
+	char          *temp;
+	size_t         start_len;
+	unsigned char  byte;
+
+	start_len = M_parser_len(parser);
+
+	/* Check if we have an extension marker. */
+	if (!M_parser_peek_byte(parser, &byte))
+		return M_HTTP_ERROR_SUCCESS;
+
+	/* No extensions. */
+	if (byte != ';') {
+		M_http_set_chunk_extensions_complete(http, chunk_num, M_TRUE);
+		return M_HTTP_ERROR_SUCCESS;
+	}
+	
+	/* Read off the marker. */
+	M_parser_consume(parser, 1);
+
+	/* Get the extensions if they're all there. */
+	temp = M_parser_read_strdup_until(parser, "\r\n", M_FALSE);
+	if (temp == NULL)
+		return M_HTTP_ERROR_SUCCESS;
+	M_parser_consume(parser, 2);
+
+	if (!M_http_set_chunk_extensions_string(http, chunk_num, temp)) {
+		M_free(temp);
+		return M_HTTP_ERROR_CHUNK_EXTENSION;
+	}
+	M_free(temp);
+
+	M_http_set_chunk_extensions_complete(http, chunk_num, M_TRUE);
+	*(len_read) += start_len - M_parser_len(parser);
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, size_t *len_read)
 {
+	M_http_error_t res       = M_HTTP_ERROR_SUCCESS;
+	size_t         chunk_num = 0;
+
+	if (M_parser_len(parser) == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
+	if (M_http_chunk_count(http) == 0)
+		M_http_chunk_insert(http);
+	
+	chunk_num = M_http_chunk_count(http)-1;
+	if (M_http_chunk_complete(http, chunk_num)) {
+		M_http_chunk_insert(http);
+		chunk_num++;
+	}
+
+	if (!M_http_chunk_length_complete(http, chunk_num))
+		res = M_http_read_chunked_length(http, parser, chunk_num, len_read);
+	if (M_http_error_is_error(res) || !M_http_chunk_length_complete(http, chunk_num))
+		goto done;
+
+	if (!M_http_chunk_extensions_complete(http, chunk_num))
+		res = M_http_read_chunked_extensions(http, parser, chunk_num, len_read);
+	if (M_http_error_is_error(res) || !M_http_chunk_extensions_complete(http, chunk_num))
+		goto done;
 
 	/* 1. read length
  	 * 2. read extesnsions
@@ -407,24 +501,8 @@ static M_http_error_t M_http_read_chunked(M_http_t *http, M_parser_t *parser, si
 	 * return success
 	 */
 
-
-
-	size_t len = 0;
-
-	/* Get the lengh. It's either before any extensions or before the end of the line. */
-	M_parser_mark(parser);
-	if (M_parser_consume_until(parser, ';', 1, M_FALSE) > 0) {
-		len = M_parser_mark_len(parser);
-	} else if (M_parser_consume_str_until(parser, "\r\n", M_FALSE) > 0) {
-		len = M_parser_mark_len(parser);
-	}
-	M_parser_mark_rewind(parser);
-
-	/* No length specified yet. */
-	if (len == 0)
-		return M_HTTP_ERROR_SUCCESS;
-
-	/* XXX: success_end when last (0) length chunk read. */
+done:
+	return res;
 }
 
 static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_t *len_read)
@@ -468,8 +546,9 @@ static M_http_error_t M_http_read_body(M_http_t *http, M_parser_t *parser, size_
 M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read)
 {
 	M_parser_t     *parser;
-	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
-	size_t          last_chunk;
+	M_http_error_t  res         = M_HTTP_ERROR_SUCCESS;
+	size_t          last_chunk  = 0;
+	M_bool          have_chunks = M_FALSE;
 
 	if (http == NULL || data == NULL || data_len == 0 || len_read == NULL)
 		return M_HTTP_ERROR_INVALIDUSE;
@@ -495,10 +574,13 @@ M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t dat
 	if (M_http_error_is_error(res))
 		goto done;
 
-	last_chunk = M_http_chunk_count(http)-1;
+	if (M_http_chunk_count(http) > 0) {
+		have_chunks = M_TRUE;
+		last_chunk  = M_http_chunk_count(http)-1;
+	}
 	if (res == M_HTTP_ERROR_SUCCESS && 
 			M_http_headers_complete(http) &&
-			((M_http_is_chunked(http) && M_http_chunk_complete(http, last_chunk) && M_http_chunk_data_len(http, last_chunk) == 0) ||
+			((M_http_is_chunked(http) && have_chunks && M_http_chunk_complete(http, last_chunk) && M_http_chunk_data_length(http, last_chunk) == 0) ||
 			M_http_body_complete(http)))
 	{
 		res = M_HTTP_ERROR_SUCCESS_END;
