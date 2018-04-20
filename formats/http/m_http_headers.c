@@ -83,26 +83,27 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 	M_hash_dict_enumerate_free(he);
 }
 
-static void M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
+static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
 {
 	char   **parts;
 	size_t   num_parts = 0;
 	size_t   i;
 
 	if (d == NULL || M_str_isempty(key))
-		return;
+		return M_FALSE;
 
 	M_hash_dict_remove(d, key);
 
 	parts = M_str_explode_quoted(',', val, M_str_len(val), '"', '\\', 0, &num_parts, NULL);
 	if (parts == NULL || num_parts == 0)
-		return;
+		return M_FALSE;
 
 	for (i=0; i<num_parts; i++) {
 		M_hash_dict_insert(d, key, parts[i]);
 	}
 
 	M_str_explode_free(parts, num_parts);
+	return M_TRUE;
 }
 
 static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
@@ -197,11 +198,11 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 	M_http_set_headers_int(&http->headers, headers, merge);
 }
 
-void M_http_set_header(M_http_t *http, const char *key, const char *val)
+M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key))
-		return;
-	M_http_set_header_int(http->headers, key, val);
+		return M_FALSE;
+	return M_http_set_header_int(http->headers, key, val);
 }
 
 void M_http_add_header(M_http_t *http, const char *key, const char *val)
@@ -344,12 +345,12 @@ void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool me
 	M_http_set_headers_int(&http->trailers, headers, merge);
 }
 
-void M_http_set_trailer(M_http_t *http, const char *key, const char *val)
+M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key))
-		return;
+		return M_FALSE;
 
-	M_http_set_header_int(http->trailers, key, val);
+	return M_http_set_header_int(http->trailers, key, val);
 }
 
 void M_http_add_trailer(M_http_t *http, const char *key, const char *val)

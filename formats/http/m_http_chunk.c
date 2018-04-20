@@ -118,7 +118,7 @@ M_bool M_http_chunk_complete(const M_http_t *http, size_t num)
 	return M_FALSE;
 }
 
-M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num)
+M_bool M_http_chunk_length_complete(const M_http_t *http, size_t num)
 {
 	const M_http_chunk_t *chunk;
 
@@ -132,7 +132,7 @@ M_bool M_http_chunk_len_complete(const M_http_t *http, size_t num)
 	return chunk->have_body_len;
 }
 
-void M_http_set_chunk_len_complete(M_http_t *http, size_t num, M_bool complete)
+void M_http_set_chunk_length_complete(M_http_t *http, size_t num, M_bool complete)
 {
 	M_http_chunk_t *chunk;
 
@@ -195,7 +195,7 @@ void M_http_chunk_remove(M_http_t *http, size_t num)
 	M_list_remove_at(http->chunks, num);
 }
 
-size_t M_http_chunk_data_len(const M_http_t *http, size_t num)
+size_t M_http_chunk_data_length(const M_http_t *http, size_t num)
 {
 	const M_http_chunk_t *chunk;
 
@@ -209,7 +209,21 @@ size_t M_http_chunk_data_len(const M_http_t *http, size_t num)
 	return chunk->body_len;
 }
 
-size_t M_http_chunk_data_len_buffered(const M_http_t *http, size_t num)
+void M_http_set_chunk_data_length(M_http_t *http, size_t num, size_t len)
+{
+	M_http_chunk_t *chunk;
+
+	if (http == NULL || M_list_len(http->chunks) >= num)
+		return;
+
+	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
+	if (http == NULL)
+		return;
+	chunk->have_body_len = M_TRUE;
+	chunk->body_len      = len;
+}
+
+size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num)
 {
 	const M_http_chunk_t *chunk;
 
@@ -223,7 +237,7 @@ size_t M_http_chunk_data_len_buffered(const M_http_t *http, size_t num)
 	return chunk->body_len_seen;
 }
 
-size_t M_http_chunk_data_len_seen(const M_http_t *http, size_t num)
+size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num)
 {
 	const M_http_chunk_t *chunk;
 
@@ -256,7 +270,7 @@ void M_http_set_chunk_data(M_http_t *http, size_t num, const unsigned char *data
 {
 	M_http_chunk_t *chunk;
 
-	if (http == NULL || M_list_len(http->chunks) >= num || data == NULL || len == 0)
+	if (http == NULL || M_list_len(http->chunks) >= num)
 		return;
 
 	chunk = M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
@@ -280,9 +294,10 @@ void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *d
 	if (chunk == NULL)
 		return;
 
+	chunk->body_len_seen += len;
+	if (chunk->body_len_seen > chunk->body_len)
+		chunk->body_len = chunk->body_len_seen;
 	M_buf_add_bytes(chunk->body, data, len);
-	chunk->body_len      = M_buf_len(chunk->body);
-	chunk->body_len_seen = M_buf_len(chunk->body);
 }
 
 void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len)
@@ -373,6 +388,43 @@ void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t
 		M_hash_dict_insert(chunk->extensions, key, val);
 	}
 	M_hash_dict_enumerate_free(he);
+}
+
+M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str)
+{
+	char   **parts     = NULL;
+	size_t   num_parts = 0;
+	size_t   i;
+	M_bool   ret = M_TRUE;
+
+	parts = M_str_explode_str(';', str, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		return M_FALSE;
+
+	for (i=0; i<num_parts; i++) {
+		char       **kv     = NULL;
+		size_t       num_kv = 0;
+		const char  *key    = NULL;
+		const char  *val    = NULL;
+
+		kv = M_str_explode_str('=', parts[i], &num_kv);
+		if (kv == NULL || num_kv == 0 || num_kv > 2) {
+			M_str_explode_free(kv, num_kv);
+			ret = M_FALSE;
+			break;
+		}
+
+		key = kv[0];
+		if (num_kv == 2) {
+			val = kv[1];
+		} 
+		M_http_set_chunk_extension(http, num, key, val);
+
+		M_str_explode_free(kv, num_kv);
+	}
+
+	M_str_explode_free(parts, num_parts);
+	return ret;
 }
 
 void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val)
