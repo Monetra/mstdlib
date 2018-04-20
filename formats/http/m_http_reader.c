@@ -384,9 +384,10 @@ done:
 
 static M_http_error_t M_http_read_chunked_length(M_http_t *http, M_parser_t *parser, size_t chunk_num, size_t *len_read)
 {
-	M_int64 i64v = 0;
-	size_t  len  = 0;
-	size_t  start_len;
+	unsigned char byte;
+	M_int64       i64v = 0;
+	size_t        len  = 0;
+	size_t        start_len;
 
 	start_len = M_parser_len(parser);
 
@@ -408,7 +409,10 @@ static M_http_error_t M_http_read_chunked_length(M_http_t *http, M_parser_t *par
 
 	M_http_set_chunk_data_length(http, chunk_num, (size_t)i64v);
 
-	/* XXX: Check if ; or \r\n. need to eat \r\n */
+	/* We either have a ; or \r\n at the end of the buffer.
+ 	 * Consume the \r\n if that's what we have. */
+	if (M_parser_peek_byte(parser, &byte) && byte != ';')
+		M_parser_consume(parser, 2);
 
 	*(len_read) += start_len - M_parser_len(parser);
 	return M_HTTP_ERROR_SUCCESS;
@@ -439,6 +443,7 @@ static M_http_error_t M_http_read_chunked_extensions(M_http_t *http, M_parser_t 
 	temp = M_parser_read_strdup_until(parser, "\r\n", M_FALSE);
 	if (temp == NULL)
 		return M_HTTP_ERROR_SUCCESS;
+	/* Eat the \r\n. */
 	M_parser_consume(parser, 2);
 
 	if (!M_http_set_chunk_extensions_string(http, chunk_num, temp)) {
