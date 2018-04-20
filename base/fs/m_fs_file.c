@@ -270,7 +270,7 @@ M_fs_error_t M_fs_file_seek(M_fs_file_t *fd, M_int64 offset, M_fs_file_seek_t fr
 	/* If we're seeking ahead from the current position, and the destination is still inside
 	 * our read buffer, just drop bytes from the read buffer and update the read offset.
 	 */
-	if (offset > 0 && from == M_FS_FILE_SEEK_CUR && ((M_int64)M_buf_len(fd->read_buf)) >= offset) {
+	if (from == M_FS_FILE_SEEK_CUR && offset > 0 && M_buf_len(fd->read_buf) >= (M_uint64)offset) {
 		M_buf_drop(fd->read_buf, (size_t)offset);
 		/* Update the read offset to reflect what was skipped in the buffer. */
 		fd->read_offset -= offset;
