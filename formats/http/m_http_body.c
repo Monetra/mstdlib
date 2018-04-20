@@ -106,7 +106,7 @@ const unsigned char *M_http_body(const M_http_t *http, size_t *len)
 
 void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len)
 {
-	if (http == NULL || data == NULL || len == 0)
+	if (http == NULL)
 		return;
 
 	M_buf_truncate(http->body, 0);
