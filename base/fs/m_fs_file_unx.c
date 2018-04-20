@@ -203,7 +203,6 @@ M_fs_error_t M_fs_file_seek_sys(M_fs_file_t *fd, M_int64 offset, M_fs_file_seek_
 
 	while (offset != 0) {
 		M_int64 amt_to_move = offset;
-		M_fprintf(stderr, "offset: %lld\n", (long long)offset); /*DEBUG_161*/
 		if (sizeof(off_t) == 4) {
 			if (offset > M_INT32_MAX) {
 				amt_to_move = M_INT32_MAX;
