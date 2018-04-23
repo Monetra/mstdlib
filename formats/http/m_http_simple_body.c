@@ -26,11 +26,11 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_int.h"
+#include "http/m_http_simple_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_http_body_length(M_http_t *http, size_t *len)
+M_bool M_http_simple_body_length(M_http_simple_t *http, size_t *len)
 {
 	size_t mylen;
 
@@ -49,14 +49,14 @@ M_bool M_http_body_length(M_http_t *http, size_t *len)
 	return M_FALSE;
 }
 
-size_t M_http_body_length_seen(M_http_t *http)
+size_t M_http_simple_body_length_seen(M_http_simple_t *http)
 {
 	if (http == NULL)
 		return 0;
 	return http->body_len_seen;
 }
 
-size_t M_http_body_length_buffered(M_http_t *http)
+size_t M_http_simple_body_length_buffered(M_http_simple_t *http)
 {
 	if (http == NULL)
 		return 0;
@@ -65,7 +65,7 @@ size_t M_http_body_length_buffered(M_http_t *http)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const unsigned char *M_http_body(const M_http_t *http, size_t *len)
+const unsigned char *M_http_simple_body(const M_http_simple_t *http, size_t *len)
 {
 	if (http == NULL || len == NULL)
 		return NULL;
@@ -74,7 +74,7 @@ const unsigned char *M_http_body(const M_http_t *http, size_t *len)
 	return (const unsigned char *)M_buf_peek(http->body);
 }
 
-void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
+void M_http_simple_body_append(M_http_simple_t *http, const unsigned char *data, size_t len)
 {
 	if (http == NULL || data == NULL || len == 0)
 		return;
@@ -85,7 +85,7 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len)
 	M_buf_add_bytes(http->body, data, len);
 }
 
-void M_http_body_drop(M_http_t *http, size_t len)
+void M_http_simple_body_drop(M_http_simple_t *http, size_t len)
 {
 	if (http == NULL || len == 0)
 		return;

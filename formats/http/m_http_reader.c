@@ -26,7 +26,6 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_int.h"
 #include "http/m_http_reader_int.h"
 
 #define READ_BUF_SIZE (8*1024)
