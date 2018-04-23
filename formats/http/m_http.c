@@ -52,7 +52,7 @@ static void M_http_create_init(M_http_t *http)
 	http->chunks      = M_list_create(&cbs, M_LIST_NONE);
 }
 
-static void M_http_clear_int(M_http_t *http)
+static void M_http_reset_int(M_http_t *http)
 {
 	if (http == NULL)
 		return;
@@ -67,7 +67,6 @@ static void M_http_clear_int(M_http_t *http)
 	M_hash_dict_destroy(http->trailers);
 	M_list_str_destroy(http->set_cookies);
 	M_buf_cancel(http->body);
-	M_free(http->settings_payload);
 	M_list_destroy(http->chunks, M_TRUE);
 
 	M_mem_set(http, 0, sizeof(*http));
@@ -90,61 +89,20 @@ void M_http_destroy(M_http_t *http)
 	if (http == NULL)
 		return;
 
-	M_http_clear_int(http);
+	M_http_reset_int(http);
 	M_free(http);
 }
 
-M_bool M_http_require_content_length(M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->require_content_len;
-}
-
-void M_http_set_require_content_length(M_http_t *http, M_bool require)
-{
-	if (http == NULL)
-		return;
-	http->require_content_len = require;
-}
-
-void M_http_clear(M_http_t *http)
+void M_http_reset(M_http_t *http)
 {
 	if (http == NULL)
 		return;
 
-	M_http_clear_int(http);
+	M_http_reset_int(http);
 	M_http_create_init(http);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_bool M_http_start_line_complete(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-
-	switch (http->type) {
-		case M_HTTP_MESSAGE_TYPE_UNKNOWN:
-			return M_FALSE;
-		case M_HTTP_MESSAGE_TYPE_REQUEST:
-			if (http->method != M_HTTP_METHOD_UNKNOWN &&
-					!M_str_isempty(http->uri) &&
-					http->version != M_HTTP_VERSION_UNKNOWN)
-			{
-				return M_TRUE;
-			}
-		case M_HTTP_MESSAGE_TYPE_RESPONSE:
-			if (http->version != M_HTTP_VERSION_UNKNOWN &&
-					http->status_code != 0 &&
-					!M_str_isempty(http->reason_phrase))
-			{
-				return M_TRUE;
-			}
-	}
-
-	return M_FALSE;
-}
 
 M_http_message_type_t M_http_message_type(const M_http_t *http)
 {
@@ -221,15 +179,7 @@ void M_http_set_method(M_http_t *http, M_http_method_t method)
 	http->method = method;
 }
 
-M_bool M_http_error_is_error(M_http_error_t res)
-{
-	if (res == M_HTTP_ERROR_SUCCESS ||
-			res == M_HTTP_ERROR_SUCCESS_END)
-	{
-		return M_FALSE;
-	}
-	return M_TRUE;
-}
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_http_version_t M_http_version_from_str(const char *version)
 {
