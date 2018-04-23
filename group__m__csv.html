@@ -126,6 +126,8 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ga0037802a4a00ea9a8ad25fe5e9e58778"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#ga0037802a4a00ea9a8ad25fe5e9e58778">M_csv_parse</a> (const char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC</td></tr>
 <tr class="separator:ga0037802a4a00ea9a8ad25fe5e9e58778"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3290ddc1ca0e9e5e79d07a67bd0a7e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gaf3290ddc1ca0e9e5e79d07a67bd0a7e5">M_csv_parse_add_headers</a> (const char *data, size_t len, char delim, char quote, M_uint32 flags, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *headers)</td></tr>
+<tr class="separator:gaf3290ddc1ca0e9e5e79d07a67bd0a7e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacb61db627d57c0c9a2974c69e44334b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#gacb61db627d57c0c9a2974c69e44334b1">M_csv_parse_inplace</a> (char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC_ALIASED</td></tr>
 <tr class="separator:gacb61db627d57c0c9a2974c69e44334b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7769d42c3090b91fccb965d489469ec5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__csv.html#ga7769d42c3090b91fccb965d489469ec5">M_csv_destroy</a> (<a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a> *csv) M_FREE(1)</td></tr>
@@ -310,6 +312,69 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>CSV object.</dd></dl>
 <dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__csv.html#ga7769d42c3090b91fccb965d489469ec5">M_csv_destroy</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf3290ddc1ca0e9e5e79d07a67bd0a7e5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__csv.html#gacf2272c969191f154707f05645fde74f">M_csv_t</a>* M_csv_parse_add_headers </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>delim</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>quote</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td>
+          <td class="paramname"><em>headers</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Same as M_csv_parse, but add the given headers as the first row before parsing the data into the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>The data to parse. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>The length of data to parse. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>CSV delimiter character. Typically comma (','). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">quote</td><td>CSV quote character. Typically double quote ('"'). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Flags controlling parse behavior. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">headers</td><td>List of headers to add as first row of table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CSV object </dd></dl>
 
 </div>
 </div>
@@ -865,7 +930,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Apr 20 2018 18:46:53 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Apr 23 2018 14:31:31 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

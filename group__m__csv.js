@@ -8,6 +8,7 @@ var group__m__csv =
       [ "M_CSV_FLAG_TRIM_WHITESPACE", "group__m__csv.html#ggade9466bcfd2428a9884ca62ccf01926ead67008b29f047cab5f2d7239824e4744", null ]
     ] ],
     [ "M_csv_parse", "group__m__csv.html#ga0037802a4a00ea9a8ad25fe5e9e58778", null ],
+    [ "M_csv_parse_add_headers", "group__m__csv.html#gaf3290ddc1ca0e9e5e79d07a67bd0a7e5", null ],
     [ "M_csv_parse_inplace", "group__m__csv.html#gacb61db627d57c0c9a2974c69e44334b1", null ],
     [ "M_csv_destroy", "group__m__csv.html#ga7769d42c3090b91fccb965d489469ec5", null ],
     [ "M_csv_raw_num_rows", "group__m__csv.html#ga7e54370d2338c09f77e622f2ae64ef16", null ],

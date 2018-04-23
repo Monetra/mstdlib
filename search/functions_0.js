@@ -175,6 +175,7 @@ var searchData=
   ['m_5fcsv_5foutput_5frows_5fbuf',['M_csv_output_rows_buf',['../group__m__csv.html#gaa24235b4324dc041e0a578410cf9e980',1,'m_csv.h']]],
   ['m_5fcsv_5foutput_5fset_5fcontrol_5fchars',['M_csv_output_set_control_chars',['../group__m__csv.html#ga4732bd4f007496dde9ceefd88f3fff23',1,'m_csv.h']]],
   ['m_5fcsv_5fparse',['M_csv_parse',['../group__m__csv.html#ga0037802a4a00ea9a8ad25fe5e9e58778',1,'m_csv.h']]],
+  ['m_5fcsv_5fparse_5fadd_5fheaders',['M_csv_parse_add_headers',['../group__m__csv.html#gaf3290ddc1ca0e9e5e79d07a67bd0a7e5',1,'m_csv.h']]],
   ['m_5fcsv_5fparse_5finplace',['M_csv_parse_inplace',['../group__m__csv.html#gacb61db627d57c0c9a2974c69e44334b1',1,'m_csv.h']]],
   ['m_5fcsv_5fraw_5fcell',['M_csv_raw_cell',['../group__m__csv.html#ga82f2eca0f0f8bbcd857dabd60dd6e650',1,'m_csv.h']]],
   ['m_5fcsv_5fraw_5fnum_5fcols',['M_csv_raw_num_cols',['../group__m__csv.html#ga5b91704644640f0cef3c12d933525d05',1,'m_csv.h']]],
