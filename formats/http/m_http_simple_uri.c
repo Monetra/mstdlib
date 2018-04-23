@@ -26,13 +26,13 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_int.h"
+#include "http/m_http_simple_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* XXX: In the future this needs to be replaced with
  * a standard URI parsing module. */
-static M_bool M_http_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *port)
+static M_bool M_http_simple_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *port)
 {
 	M_uint64 myport = 0;
 
@@ -93,7 +93,7 @@ err:
 	return M_FALSE;
 }
 
-static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **path)
+static M_bool M_http_simple_uri_parser_path(M_http_simple_t *http, M_parser_t *parser, char **path)
 {
 	unsigned char byte;
 
@@ -110,7 +110,7 @@ static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **
 
 	/* Only the options method is allowed to apply to the server itself.
  	 * All other methods need an actual resoure. */
-	if (byte == '*' && M_http_method(http) != M_HTTP_METHOD_OPTIONS)
+	if (byte == '*' && M_http_simple_method(http) != M_HTTP_METHOD_OPTIONS)
 		goto err;
 
 	*path = M_parser_read_strdup_until(parser, "?", M_FALSE);
@@ -128,7 +128,7 @@ err:
 	return M_FALSE;
 }
 
-static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_string, M_hash_dict_t **query_args)
+static M_bool M_http_simple_uri_parser_query_args(M_parser_t *parser, char **query_string, M_hash_dict_t **query_args)
 {
 	M_parser_t    **parts     = NULL;
 	size_t          num_parts = 0;
@@ -206,14 +206,14 @@ err:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const char *M_http_uri(const M_http_t *http)
+const char *M_http_simple_uri(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->uri;
 }
 
-M_bool M_http_set_uri(M_http_t *http, const char *uri)
+M_bool M_http_simple_set_uri(M_http_simple_t *http, const char *uri)
 {
 	M_parser_t    *parser;
 	char          *host;
@@ -226,9 +226,9 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri)
 	if (parser == NULL)
 		return M_FALSE;
 
-	if (!M_http_uri_parser_host(parser, &host, &port) ||
-			!M_http_uri_parser_path(http, parser, &path) ||
-			!M_http_uri_parser_query_args(parser, &query_string, &query_args))
+	if (!M_http_simple_uri_parser_host(parser, &host, &port) ||
+			!M_http_simple_uri_parser_path(http, parser, &path) ||
+			!M_http_simple_uri_parser_query_args(parser, &query_string, &query_args))
 	{
 		return M_FALSE;
 	}
@@ -250,14 +250,14 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri)
 	return M_TRUE;
 }
 
-const char *M_http_host(const M_http_t *http)
+const char *M_http_simple_host(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->host;
 }
 
-M_bool M_http_port(const M_http_t *http, M_uint16 *port)
+M_bool M_http_simple_port(const M_http_simple_t *http, M_uint16 *port)
 {
 	if (http == NULL)
 		return M_FALSE;
@@ -271,21 +271,21 @@ M_bool M_http_port(const M_http_t *http, M_uint16 *port)
 	return M_TRUE;
 }
 
-const char *M_http_path(const M_http_t *http)
+const char *M_http_simple_path(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->path;
 }
 
-const char *M_http_query_string(const M_http_t *http)
+const char *M_http_simple_query_string(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->query_string;
 }
 
-const M_hash_dict_t *M_http_query_args(const M_http_t *http)
+const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
