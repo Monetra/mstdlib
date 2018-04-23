@@ -121,7 +121,9 @@ typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const cha
 M_API M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC;
 
 
-/*! Same as M_csv_parse, but add the given headers as the first row before parsing the data into the table.
+/*! Parse a string into a CSV object, using given column headers.
+ *
+ * Same as M_csv_parse, but add the given headers as the first row before parsing the data into the table.
  *
  * \param[in] data    The data to parse.
  * \param[in] len     The length of data to parse.
