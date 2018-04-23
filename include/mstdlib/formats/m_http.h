@@ -45,10 +45,36 @@ typedef struct M_http M_http_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef enum {
+	M_HTTP_READ_STEP_UNKNONW = 0,
+	M_HTTP_READ_STEP_START_LINE,
+	M_HTTP_READ_STEP_START_LINE_DONE,
+	M_HTTP_READ_STEP_HEADER,
+	M_HTTP_READ_STEP_HEADER_DONE,
+	M_HTTP_READ_STEP_BODY,
+	M_HTTP_READ_STEP_BODY_DONE,
+
+	M_HTTP_READ_STEP_CHUNK_START,
+	M_HTTP_READ_STEP_CHUNK_START_DONE,
+	M_HTTP_READ_STEP_CHUNK_DATA,
+	M_HTTP_READ_STEP_CHUNK_DATA_DONE,
+	M_HTTP_READ_STEP_TRAILER,
+	M_HTTP_READ_STEP_TRAILER_DONE,
+
+	M_HTTP_READ_STEP_DONE
+} M_http_read_step_t;
+
+
+typedef enum {
+	M_HTTP_READ_NONE = 0,
+	M_HTTP_READ_LEN_REQUIRED,
+	M_HTTP_READ_STOP_ON_DONE
+} M_http_read_flags_t;
+
+
 /*! Result of parsing. */
 typedef enum {
 	M_HTTP_ERROR_SUCCESS = 0,
-	M_HTTP_ERROR_SUCCESS_END,
 
 	M_HTTP_ERROR_INVALIDUSE,
 	M_HTTP_ERROR_STARTLINE_LENGTH, /* 414 (6k limit) */
@@ -59,6 +85,7 @@ typedef enum {
 	M_HTTP_ERROR_HEADER_LENGTH, /* 413 (8k limit) */
 	M_HTTP_ERROR_HEADER_NODATA,
 	M_HTTP_ERROR_HEADER_FOLD, /* 400/502 */
+	M_HTTP_ERROR_HEADER_NOTALLOWED,
 	M_HTTP_ERROR_HEADER_INVLD,
 	M_HTTP_ERROR_HEADER_MALFORMEDVAL, /* 400 */
 	M_HTTP_ERROR_HEADER_DUPLICATE, /* 400 */
@@ -115,72 +142,18 @@ M_http_t *M_http_create(void);
 
 /*! Destroy an http object.
  *
- * An http object can be reused with various internals cleared as needed.
- *
  * \param[in] http HTTP object.
- *
- * \see M_http_clear
  */
 void M_http_destroy(M_http_t *http);
 
 
-/*! Has the content length header been set to required.
- *
- * Does not allow read until close body.
- * Does not allow chunked encoding.
- *
- * \param[in] http HTTP object.
- */
-M_bool M_http_require_content_length(M_http_t *http);
-
-
-/*! Require content length header to be present.
- *
- * Does not allow read until close body.
- * Does not allow chunked encoding.
- *
- * \param[in] http    HTTP object.
- * \param[in] require Require content length.
- */
-void M_http_set_require_content_length(M_http_t *http, M_bool require);
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Clear contents of http object.
- *
- * This is the equivalent of calling all clear functions.
+/*! Reset the http object for resuse.
  *
  * \param[in] http HTTP object.
  */
-void M_http_clear(M_http_t *http);
-
-
-/*! Clear headers.
- *
- * Includes Set-Cookie header.
- * Includes trailers.
- *
- * \param[in] http HTTP object.
- */
-void M_http_clear_headers(M_http_t *http);
-
-
-/*! Clear body.
- *
- * \param[in] http HTTP object.
- */
-void M_http_clear_body(M_http_t *http);
-
-
-/*! Remove all chunks.
- *
- * Marks this as not having chunked data.
- *
- * \param[in] http HTTP object.
- *
- * \see M_http_chunk_remove
- */
-void M_http_clear_chunked(M_http_t *http);
+void M_http_reset(M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -198,22 +171,25 @@ void M_http_clear_chunked(M_http_t *http);
  * will never be returned.
  *
  * When receiving chunked data there could be multiple chunks in the
- * stream. M_HTTP_PARSE_RESULT_SUCCESS_END will be returned when a
- * single chunk is processed. More calls to read are necessary starting
+ * stream. M_HTTP_PARSE_RESULT_SUCCESS_CHUNK_END will be returned when a
+ * single chunk is fully processed. More calls to read are necessary starting
  * from the return read_len position in the data to continuing reading
  * the next chunks.
  *
  * \param[in]  http     HTTP object.
  * \param[in]  data     Raw data.
  * \param[in]  data_len Length of data.
+ * \param[in]  flags    M_http_read_flags_t flags controlling read behavior.
+ * \param[out] step     Read step currently being process.
  * \param[out] len_read Length of the data read. Can be less than data_len if the content length was reached.
  * 
- * \return M_HTTP_PARSE_RESULT_SUCCESS when a message has been read without error.
+ * \return M_HTTP_PARSE_RESULT_SUCCESS when a message has been read without error. There may be more data, check
+ *         the complete functions and len_read to determine if another call is needed.
  *         M_HTTP_PARSE_RESULT_SUCCESS_END when the message body has been read as defined by the content length.
  *         This can be returned from a since call or after multiple calls.
  *         Otherwise an error condition.
  */
-M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, size_t *len_read);
+M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, M_uint32 flags, M_http_read_step_t *step, size_t *len_read);
 
 
 /*! Structure an http object into a message stubble for sending.
@@ -246,16 +222,6 @@ unsigned char *M_http_write(const M_http_t *http, size_t *len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-
-/*! Has the start line been loaded.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool.
- */
-M_bool M_http_start_line_complete(const M_http_t *http);
-
 
 /*! The type (request/response) of message.
  *
@@ -424,28 +390,6 @@ const M_hash_dict_t *M_http_query_args(const M_http_t *http);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Have all headers been loaded.
- *
- * This will be set to M_TRUE once all headers have been
- * read. If streamed read this indicates whether there are
- * more headers that have not been parsed and any processing
- * using headers should wait.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool.
- */ 
-M_bool M_http_headers_complete(const M_http_t *http);
-
-
-/*! Set whether all headers have been loaded.
- *
- * \param[in] http     HTTP object.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_headers_complete(M_http_t *http, M_bool complete);
-
-
 /*! Currently loaded headers.
  *
  * Does not included the "Set-Cookie" header which can be sent multiple
@@ -458,7 +402,7 @@ void M_http_set_headers_complete(M_http_t *http, M_bool complete);
 const M_hash_dict_t *M_http_headers(const M_http_t *http);
 
 
-/*! Get all values for a header combined into a single
+/*! Get all values for a header combined into a string.
  *
  * Get the value of the header as a comma (,) separated list
  * if multiple values were specified.
@@ -474,10 +418,8 @@ char *M_http_header(const M_http_t *http, const char *key);
 /*! Set the http headers.
  *
  * \param[in] http    HTTP object.
- * \param[in] headers Headers. Can be multi value dict.
+ * \param[in] headers Headers. Can be multi value dict. NULL to clear.
  * \param[in] merge   Merge into or replace the existing headers.
- *
- * \see M_http_clear_headers
  */
 void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
 
@@ -489,7 +431,7 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
- * \param[in] val  Value.
+ * \param[in] val  Value. NULL to clear header.
  */
 M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
 
@@ -498,7 +440,7 @@ M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
  *
  * Preserves existing values.
  * Cannot not be a comma (,) separated list.
- * This adds a single value to any existing values
+ * This adds to any existing values
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
@@ -542,93 +484,7 @@ void M_http_set_cookie_remove(M_http_t *http, size_t idx);
 void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 
-/*! Is upgrading to http 2 requested.
- *
- * Only valid when received in the header.
- *
- * This can only be present when the version if 1.1.
- * This can be ignored if http 2 is not being supported.
- *
- * This reads the Upgrade header and is a convince function.
- *
- * \param[in]  http             HTTP object.
- * \param[out] secure           Whether upgrading to TLS is requested.
- * \param[out] settings_payload Payload of upgrade settings.
- *
- * \return M_TRUE if upgrade is requested. Otherwise, M_FALSE.
- */
-M_bool M_http_want_upgrade(const M_http_t *http, M_bool *secure, const char **settings_payload);
-
-
-/*! Set whether upgrade should be requested.
- *
- * Only valid when version is set to 1.1.
- * Can be ignored by the client.
- *
- * Sets the Upgrade header. Will overwrite the existing header data if already set.
- *
- * \param[in] http             HTTP object.
- * \param[in] want             Whether upgrade should be requested.
- * \param[in] secure           Whether a secure upgrade should be requested.
- * \param[in] settings_payload Payload of upgrade settings.
- */
-void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const char *settings_payload);
-
-
-/*! Is keep alive connection type set to indicate the connection is persistent.
- *
- * Only valid when received in the header.
- *
- * Reads the Connection header to determine if "keep-alive" is requested.
- *
- * \param[in] http HTTP object.
- *
- * \return Whether the connection should remain open.
- */
-M_bool M_http_persistent_conn(const M_http_t *http);
-
-
-/*! Sets whether the connection should remain open for subsequent messages.
- *
- * \param[in] http    HTTP object.
- * \param[in] persist Whether to request a persistent connection.
- */
-void M_http_set_persistent_conn(M_http_t *http, M_bool persist);
-
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Have all trailers been loaded.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool.
- */ 
-M_bool M_http_trailers_complete(const M_http_t *http);
-
-
-/*! Set whether all trailers have been loaded.
- *
- * \param[in] http     HTTP object.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_trailers_complete(M_http_t *http, M_bool complete);
-
-
-/*! Are there trailers.
- *
- * This should be checked when chunking is being used
- * all checks have been read. Trailers will have been
- * loaded when a chunk with a body length of zero is
- * marked as complete. Not all chunked messages will
- * have trailing headers.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool.
- */
-M_bool M_http_have_trailers(const M_http_t *http);
-
 
 /*! Get the trailing headers.
  *
@@ -655,10 +511,8 @@ char *M_http_trailer(const M_http_t *http, const char *key);
 /*! Set the trailing headers.
  *
  * \param[in] http    HTTP object.
- * \param[in] headers Headers.
+ * \param[in] headers Headers. NULL to clear
  * \param[in] merge   Merge into or replace the existing headers.
- *
- * \see M_http_clear_chunk_trailer
  */
 void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
 
@@ -670,7 +524,7 @@ void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool me
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
- * \param[in] val  Value.
+ * \param[in] val  Value. NULL to clear.
  */
 M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
 
@@ -690,64 +544,18 @@ void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Has the body been fully loaded.
- *
- * The body could be cleared by the caller when using streamed reads so
- * the data might not all be in the HTTP object. This specifies that all
- * data has been read at one point.
- *
- * \note It's not always possible to know when all body data has
- *       been read. It is valid for a server to define the body
- *       length as all bytes sent before connection close.
- *
- * If the length has been set the body M_http_body_length and
- * M_http_body_length_seen will be equal when all data has
- * been read by the http object.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool.
- */
-M_bool M_http_body_complete(const M_http_t *http);
-
-
-/*! Has the body length been set.
- *
- * Set either manally or though the Content-Length
- * header. Content-Length is only used with
- * M_http_read and is not read when adding it to
- * the headers.
- *
- * \param[in] http HTTP object.
- *
- * \return M_TRUE if set. Otherwise, M_FALSE.
- */
-M_bool M_http_have_body_length(M_http_t *http);
-
-
 /*! Get the body length.
  *
  * This is not the amount of data in the object.
  * This is the total length as defined by the
  * content-length header.
  *
- * \param[in] http HTTP object.
+ * \param[in]  http HTTP object.
+ * \param[out] len  They body length.
  *
- * \return Length.
+ * \return M_TRUE if the body length is known.
  */
-size_t M_http_body_length(M_http_t *http);
-
-
-/*! Set the body length.
- *
- * This is not the amount of data in the object.
- * This is the total length as defined by the
- * content-length header.
- *
- * \param[in] http HTTP object.
- * \param[in] len  Length.
- */
-void M_http_set_body_length(M_http_t *http, size_t len);
+M_bool M_http_body_length(M_http_t *http, size_t *len);
 
 
 /*! Amount of body data that has been read.
@@ -787,18 +595,10 @@ size_t M_http_body_length_buffered(M_http_t *http);
 const unsigned char *M_http_body(const M_http_t *http, size_t *len);
 
 
-/*! Set the body data.
- *
- * Clears existing body data.
- *
- * \param[in] http HTTP object.
- * \param[in] data Data.
- * \param[in] len  Length of data.
- */
-void M_http_set_body(M_http_t *http, const unsigned char *data, size_t len);
-
-
 /*! Add to existing body data.
+ *
+ * Increases seen length, and buffered length. If seen is greater than length
+ * will also increase length.
  *
  * \param[in] http HTTP object.
  * \param[in] data Data.
@@ -810,6 +610,7 @@ void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len);
 /*! Drop the specified number of bytes from the beginning of the body data.
  *
  * Useful when doing partial reads of body data.
+ * Only changes buffered length.
  *
  * \param[in] http HTTP object.
  * \param[in] len  Length of data.
@@ -826,75 +627,6 @@ void M_http_body_drop(M_http_t *http, size_t len);
  * \return Bool
  */
 M_bool M_http_is_chunked(const M_http_t *http);
-
-
-/*! Specify that this is a chunked message.
- *
- * \param[in] http    HTTP object.
- * \param[in] chunked Whether the message is chunked.
- */
-void M_http_set_chunked(M_http_t *http, M_bool chunked);
-
-
-/*! Number of available data chunks.
- *
- * \param[in] http HTTP object.
- *
- * \return Number of chunks. 
- */
-size_t M_http_chunk_count(const M_http_t *http);
-
-
-/*! Has the chunk been fully loaded.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Bool.
- *
- * \see M_http_chunk_length_complete
- * \see M_http_chunk_extensions_complete
- * \see M_http_chunk_trailers_complete
- */
-M_bool M_http_chunk_complete(const M_http_t *http, size_t num);
-
-
-/*! Has the chunk length been read.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Bool.
- */
-M_bool M_http_chunk_length_complete(const M_http_t *http, size_t num);
-
-
-/*! Set whether the chunk length has been read.
- *
- * \param[in] http     HTTP object.
- * \param[in] num      Chunk number.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_chunk_length_complete(M_http_t *http, size_t num, M_bool complete);
-
-
-/*! Has the chunk extensions been read.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Bool.
- */
-M_bool M_http_chunk_extensions_complete(const M_http_t *http, size_t num);
-
-
-/*! Set whether the chunk extensions have been read.
- *
- * \param[in] http     HTTP object.
- * \param[in] num      Chunk number.
- * \param[in] complete Whether loading is complete.
- */
-void M_http_set_chunk_extensions_complete(M_http_t *http, size_t num, M_bool complete);
 
 
 /*! Queue a new chunk.
@@ -914,6 +646,15 @@ size_t M_http_chunk_insert(M_http_t *http);
 void M_http_chunk_remove(M_http_t *http, size_t num);
 
 
+/*! Number of available data chunks.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return Number of chunks. 
+ */
+size_t M_http_chunk_count(const M_http_t *http);
+
+
 /*! The length of the chunked data.
  *
  * \note When the length is 0 this indicates it is the
@@ -926,19 +667,6 @@ void M_http_chunk_remove(M_http_t *http, size_t num);
  * \return Length.
  */
 size_t M_http_chunk_data_length(const M_http_t *http, size_t num);
-
-
-/*! Set the chunked data length.
- *
- * This is not the amount of data in the object.
- * This is the total length as defined by the
- * length marker.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] len  Length.
- */
-void M_http_set_chunk_data_length(M_http_t *http, size_t num, size_t len);
 
 
 /*! Amount of chunk data that has been read.
@@ -973,22 +701,18 @@ size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num);
  * \param[in] num  Chunk number.
  * \param[in] len  Length of data.
  *
+ * Data is returned raw and not decoded. It is up to the
+ * caller to perform any decoded specified in the header.
+ *
  * \return Data.
  */
 const unsigned char *M_http_chunk_data(const M_http_t *http, size_t num, size_t *len);
 
 
-/*! Set the chunked data.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] data Data.
- * \param[in] len  Length of data.
- */
-void M_http_set_chunk_data(M_http_t *http, size_t num, const unsigned char *data, size_t len);
-
-
 /*! Add to existing chunked data.
+ *
+ * Increases seen length, and buffered length. If seen is greater than length
+ * will also increase length.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
@@ -1001,6 +725,7 @@ void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *d
 /*! Drop the specified number of bytes from the beginning of the chunk data.
  *
  * Useful when doing partial reads of chunk data.
+ * Only changes buffered length.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
@@ -1036,8 +761,6 @@ char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
  * \param[in] http       HTTP object.
  * \param[in] num        Chunk number.
  * \param[in] extensions Extensions.
- *
- * \see M_http_clear_chunk_trailer
  */
 void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions);
 
@@ -1069,15 +792,6 @@ void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, con
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Is the result considered an error.
- *
- * \param[in] res Result
- *
- * \return M_TRUE if an error. Otherwise, M_FALSE.
- */
-M_bool M_http_error_is_error(M_http_error_t res);
-
 
 /*! Convert a version string into a version value.
  *
