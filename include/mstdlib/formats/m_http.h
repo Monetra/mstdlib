@@ -45,25 +45,6 @@ typedef struct M_http M_http_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-typedef enum {
-	M_HTTP_READ_STEP_UNKNONW = 0,
-	M_HTTP_READ_STEP_START_LINE,
-	M_HTTP_READ_STEP_START_LINE_DONE,
-	M_HTTP_READ_STEP_HEADER,
-	M_HTTP_READ_STEP_HEADER_DONE,
-	M_HTTP_READ_STEP_BODY,
-	M_HTTP_READ_STEP_BODY_DONE,
-
-	M_HTTP_READ_STEP_CHUNK_START,
-	M_HTTP_READ_STEP_CHUNK_START_DONE,
-	M_HTTP_READ_STEP_CHUNK_DATA,
-	M_HTTP_READ_STEP_CHUNK_DATA_DONE,
-	M_HTTP_READ_STEP_TRAILER,
-	M_HTTP_READ_STEP_TRAILER_DONE,
-
-	M_HTTP_READ_STEP_DONE
-} M_http_read_step_t;
-
 
 typedef enum {
 	M_HTTP_READ_NONE = 0,
@@ -77,6 +58,7 @@ typedef enum {
 	M_HTTP_ERROR_SUCCESS = 0,
 
 	M_HTTP_ERROR_INVALIDUSE,
+	M_HTTP_ERROR_STOP,
 	M_HTTP_ERROR_STARTLINE_LENGTH, /* 414 (6k limit) */
 	M_HTTP_ERROR_STARTLINE_MALFORMED, /* 400 */
 	M_HTTP_ERROR_UNKNOWN_VERSION,
@@ -93,6 +75,7 @@ typedef enum {
 	M_HTTP_ERROR_UPGRADE,
 	M_HTTP_ERROR_CHUNK_LENGTH,
 	M_HTTP_ERROR_CHUNK_EXTENSION,
+	M_HTTP_ERROR_CHUNK_MALFORMED,
 	M_HTTP_ERROR_MALFORMED
 } M_http_error_t;
 
@@ -180,7 +163,6 @@ void M_http_reset(M_http_t *http);
  * \param[in]  data     Raw data.
  * \param[in]  data_len Length of data.
  * \param[in]  flags    M_http_read_flags_t flags controlling read behavior.
- * \param[out] step     Read step currently being process.
  * \param[out] len_read Length of the data read. Can be less than data_len if the content length was reached.
  * 
  * \return M_HTTP_PARSE_RESULT_SUCCESS when a message has been read without error. There may be more data, check
@@ -189,7 +171,7 @@ void M_http_reset(M_http_t *http);
  *         This can be returned from a since call or after multiple calls.
  *         Otherwise an error condition.
  */
-M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, M_uint32 flags, M_http_read_step_t *step, size_t *len_read);
+M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
 
 
 /*! Structure an http object into a message stubble for sending.
