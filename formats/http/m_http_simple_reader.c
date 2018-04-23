@@ -26,7 +26,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_int.h"
+#include "http/m_http_simple_int.h"
 
 #define READ_BUF_SIZE (8*1024)
 
@@ -35,6 +35,7 @@ static size_t MAX_HEADERS_SIZE = 8*1024;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#if 0
 static M_http_error_t M_http_read_version(M_http_t *http, M_parser_t *parser)
 {
 	char             *temp;
@@ -583,3 +584,4 @@ done:
 	M_parser_destroy(parser);
 	return res;
 }
+#endif
