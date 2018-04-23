@@ -26,11 +26,11 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_int.h"
+#include "http/m_http_simple_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
+static void M_http_simple_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
 {
 	M_list_str_t       *l;
 	M_hash_dict_enum_t *he;
@@ -86,7 +86,7 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 	M_hash_dict_enumerate_free(he);
 }
 
-static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
+static M_bool M_http_simple_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
 {
 	char   **parts;
 	size_t   num_parts = 0;
@@ -114,7 +114,7 @@ static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const cha
 	return M_TRUE;
 }
 
-static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
+static char *M_http_simple_header_int(const M_hash_dict_t *d, const char *key)
 {
 	M_list_str_t *l;
 	const char   *val;
@@ -146,37 +146,37 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const M_hash_dict_t *M_http_headers(const M_http_t *http)
+const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->headers;
 }
 
-char *M_http_header(const M_http_t *http, const char *key)
+char *M_http_simple_header(const M_http_simple_t *http, const char *key)
 {
 	if (http == NULL)
 		return NULL;
 
-	return M_http_header_int(http->headers, key);
+	return M_http_simple_header_int(http->headers, key);
 }
 
-void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
+void M_http_simple_set_headers(M_http_simple_t *http, const M_hash_dict_t *headers, M_bool merge)
 {
 	if (http == NULL)
 		return;
 
-	M_http_set_headers_int(&http->headers, headers, merge);
+	M_http_simple_set_headers_int(&http->headers, headers, merge);
 }
 
-M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
+M_bool M_http_simple_set_header(M_http_simple_t *http, const char *key, const char *val)
 {
 	if (http == NULL)
 		return M_FALSE;
-	return M_http_set_header_int(http->headers, key, val);
+	return M_http_simple_set_header_int(http->headers, key, val);
 }
 
-void M_http_add_header(M_http_t *http, const char *key, const char *val)
+void M_http_simple_add_header(M_http_simple_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
 		return;
@@ -184,7 +184,7 @@ void M_http_add_header(M_http_t *http, const char *key, const char *val)
 	M_hash_dict_insert(http->headers, key, val);
 }
 
-void M_http_remove_header(M_http_t *http, const char *key)
+void M_http_simple_remove_header(M_http_simple_t *http, const char *key)
 {
 	if (http == NULL || M_str_isempty(key))
 		return;
@@ -192,21 +192,21 @@ void M_http_remove_header(M_http_t *http, const char *key)
 	M_hash_dict_remove(http->headers, key);
 }
 
-const M_list_str_t *M_http_get_set_cookie(const M_http_t *http)
+const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->set_cookies;
 }
 
-void M_http_set_cookie_remove(M_http_t *http, size_t idx)
+void M_http_simple_set_cookie_remove(M_http_simple_t *http, size_t idx)
 {
 	if (http == NULL)
 		return;
 	M_list_str_remove_at(http->set_cookies, idx);
 }
 
-void M_http_set_cookie_insert(M_http_t *http, const char *val)
+void M_http_simple_set_cookie_insert(M_http_simple_t *http, const char *val)
 {
 	if (http == NULL)
 		return;
@@ -216,7 +216,7 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const M_hash_dict_t *M_http_trailers(const M_http_t *http)
+const M_hash_dict_t *M_http_simple_trailers(const M_http_simple_t *http)
 {
 	if (http == NULL)
 		return NULL;
@@ -224,31 +224,31 @@ const M_hash_dict_t *M_http_trailers(const M_http_t *http)
 	return http->trailers;
 }
 
-char *M_http_trailer(const M_http_t *http, const char *key)
+char *M_http_simple_trailer(const M_http_simple_t *http, const char *key)
 {
 	if (http == NULL || M_str_isempty(key))
 		return NULL;
 
-	return M_http_header_int(http->trailers, key);
+	return M_http_simple_header_int(http->trailers, key);
 }
 
-void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
+void M_http_simple_set_trailers(M_http_simple_t *http, const M_hash_dict_t *headers, M_bool merge)
 {
 	if (http == NULL)
 		return;
 
-	M_http_set_headers_int(&http->trailers, headers, merge);
+	M_http_simple_set_headers_int(&http->trailers, headers, merge);
 }
 
-M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
+M_bool M_http_simple_set_trailer(M_http_simple_t *http, const char *key, const char *val)
 {
 	if (http == NULL)
 		return M_FALSE;
 
-	return M_http_set_header_int(http->trailers, key, val);
+	return M_http_simple_set_header_int(http->trailers, key, val);
 }
 
-void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
+void M_http_simple_add_trailer(M_http_simple_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
 		return;
