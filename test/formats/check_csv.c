@@ -151,7 +151,7 @@ START_TEST(check_write_basic)
 	M_csv_output_headers_buf(buf, csv, NULL);
 	M_csv_output_rows_buf(buf, csv, NULL, NULL, NULL, NULL, NULL);
 
-	M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", CSV_DATA, M_buf_peek(buf));
+	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", CSV_DATA, M_buf_peek(buf));*/
 	ck_assert_msg(M_str_eq(CSV_DATA, M_buf_peek(buf)), "Output data doesn't match input data");
 
 	M_csv_destroy(csv);
