@@ -113,32 +113,33 @@ static void M_csv_remove_quotes(char *str, char quote)
  *
  * If cell value is empty, still adds the trailing delimiter.
  */
-static void add_cell(M_buf_t *buf, const M_csv_t *csv, const char *cell)
+static void add_cell(M_buf_t *buf, char delim, char quote, const char *cell)
 {
-	if (!M_str_isempty(cell) && csv != NULL) {
-		char        chars_to_quote[4] = {'\0'/*set to csv->delim below*/, '\n', '\r', '\0'};
+	if (!M_str_isempty(cell)) {
+		char        chars_to_quote[5] = {'\0'/*set to delim below*/, '\0'/*set to quote below*/, '\n', '\r', '\0'};
 		M_bool      needs_quotes      = M_FALSE;
 		const char *next_quote;
 		size_t      len               = M_str_len(cell);
 		size_t      chars_to_add;
 
-		chars_to_quote[0] = csv->delim;
+		chars_to_quote[0] = delim;
+		chars_to_quote[1] = quote;
 
-		/* If cell value starts/ends with whitespace, or if it contains delimiter or newline chars,
+		/* If cell value starts/ends with whitespace, or if it contains delimiter, newline chars, or quotes,
 		 * it needs to be wrapped in quotes.
 		 */
 		if (M_chr_isspace(*cell) || M_chr_isspace(cell[len - 1])
 			|| M_str_find_first_from_charset(cell, chars_to_quote) != NULL) {
 			needs_quotes = M_TRUE;
 
-			M_buf_add_char(buf, csv->quote);
+			M_buf_add_char(buf, quote);
 		}
 
 		/* If cell value contains any quote chars, we'll need to escape them by adding a second quote character
 		 * right after it.
 		 */
 		do {
-			next_quote   = M_mem_chr(cell, (M_uint8)csv->quote, len);
+			next_quote   = M_mem_chr(cell, (M_uint8)quote, len);
 
 			chars_to_add = (next_quote == NULL)? len : (size_t)(next_quote - cell) + 1;
 
@@ -147,17 +148,17 @@ static void add_cell(M_buf_t *buf, const M_csv_t *csv, const char *cell)
 			cell += chars_to_add;
 
 			if (next_quote != NULL) {
-				M_buf_add_char(buf, csv->quote);
+				M_buf_add_char(buf, quote);
 			}
 		} while (len > 0);
 
 		if (needs_quotes) {
-			M_buf_add_char(buf, csv->quote);
+			M_buf_add_char(buf, quote);
 		}
 	}
 
 	/* Always add delimiter character at end, even if cell is empty. */
-	M_buf_add_char(buf, csv->delim);
+	M_buf_add_char(buf, delim);
 }
 
 
@@ -321,6 +322,40 @@ M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uin
 }
 
 
+M_csv_t *M_csv_parse_add_headers(const char *data, size_t len, char delim, char quote, M_uint32 flags,
+	M_list_str_t *headers)
+{
+	M_buf_t *buf;
+	size_t   i;
+	char    *out;
+	size_t   out_len;
+
+	if (data == NULL || len == 0) {
+		return NULL;
+	}
+
+	if (M_list_str_len(headers) == 0) {
+		return M_csv_parse(data, len, delim, quote, flags);
+	}
+
+	buf = M_buf_create();
+
+	/* Add header line to start of buffer. */
+	for (i=0; i<M_list_str_len(headers); i++) {
+		add_cell(buf, delim, quote, M_list_str_at(headers, i));
+	}
+	M_buf_truncate(buf, M_buf_len(buf) - 1); /* trim off last delim char */
+	M_buf_add_str(buf, "\r\n");
+
+	/* Add the rest of the table to the buffer. */
+	M_buf_add_bytes(buf, data, len);
+
+	/* Parse in-place. The returned CSV object takes ownership of 'out'. */
+	out = M_buf_finish_str(buf, &out_len);
+	return M_csv_parse_inplace(out, out_len, delim, quote, flags);
+}
+
+
 size_t M_csv_raw_num_rows(const M_csv_t *csv)
 {
 	if (csv == NULL)
@@ -439,11 +474,11 @@ void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *he
 
 	if (nhdrs > 0) {
 		for (i=0; i<nhdrs; i++) {
-			add_cell(buf, csv, M_list_str_at(headers, i));
+			add_cell(buf, csv->delim, csv->quote, M_list_str_at(headers, i));
 		}
 	} else {
 		for (i=0; i<ncols; i++) {
-			add_cell(buf, csv, M_csv_get_header(csv, i));
+			add_cell(buf, csv->delim, csv->quote, M_csv_get_header(csv, i));
 		}
 	}
 
@@ -502,7 +537,7 @@ void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *heade
 				header  = M_list_str_at(headers, i);
 				cellval = M_csv_get_cell(csv, rowidx, header);
 				cellval = rewrite_cell(cellval, header, &cellbuf, writer_cb, writer_thunk);
-				add_cell(buf, csv, cellval);
+				add_cell(buf, csv->delim, csv->quote, cellval);
 			}
 		} else {
 			/* Otherwise, just use the headers as we originally parsed them from the CSV data. */
@@ -510,7 +545,7 @@ void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *heade
 				header  = M_csv_get_header(csv, i);
 				cellval = M_csv_get_cellbynum(csv, rowidx, i);
 				cellval = rewrite_cell(cellval, header, &cellbuf, writer_cb, writer_thunk);
-				add_cell(buf, csv, cellval);
+				add_cell(buf, csv->delim, csv->quote, cellval);
 			}
 		}
 

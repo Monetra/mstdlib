@@ -9,9 +9,9 @@
 /* Helpers for tests. */
 
 #define CSV_DATA "" \
-	"header\"\"1,header2,\"hea,der3\",\"header4\t\"\r\n" \
+	"\"header\"\"1\",header2,\"hea,der3\",\"header4\t\"\r\n" \
 	"row1-h1,row1-h2,row1-h3,\r\n" \
-	"row2-h1,,row1-h3,row1-h4\r\n" \
+	"row2-h1,,row2-h3,row2-h4\r\n" \
 	"row3-h1,row3-h2,row3-h3,row3-h4\r\n"
 
 #define CSV_DATA_SIMPLE "" \
@@ -67,16 +67,6 @@ do {\
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_parse)
-{
-	M_csv_t *csv = M_csv_parse(CSV_DATA, M_str_len(CSV_DATA), ',', '"', M_CSV_FLAG_NONE);
-
-	ck_assert_msg(csv != NULL, "Unable to parse csv data");
-
-	M_csv_destroy(csv);
-}
-END_TEST
-
 START_TEST(check_parse_inplace)
 {
 	M_csv_t *csv;
@@ -91,6 +81,66 @@ START_TEST(check_parse_inplace)
 }
 END_TEST
 
+START_TEST(check_parse)
+{
+	M_csv_t *csv = M_csv_parse(CSV_DATA, M_str_len(CSV_DATA), ',', '"', M_CSV_FLAG_NONE);
+
+	ck_assert_msg(csv != NULL, "Unable to parse csv data");
+
+	M_csv_destroy(csv);
+}
+END_TEST
+
+START_TEST(check_parse_add_headers)
+{
+	M_csv_t      *csv;
+	const char   *data;
+	M_list_str_t *headers;
+	size_t        i;
+	size_t        j;
+	M_buf_t      *buf;
+
+	headers = M_list_str_create(M_LIST_STR_NONE);
+	M_list_str_insert(headers, "header\"1");
+	M_list_str_insert(headers, "header2");
+	M_list_str_insert(headers, "hea,der3");
+	M_list_str_insert(headers, "header4\t");
+
+	data = M_str_chr(CSV_DATA, '\n') + 1;
+	csv  = M_csv_parse_add_headers(data, M_str_len(data), ',', '"', M_CSV_FLAG_NONE, headers);
+	ck_assert_msg(csv != NULL, "Unable to parse csv data");
+
+	for (j=0; j<M_csv_get_numcols(csv); j++) {
+		const char *hdr      = M_csv_get_header(csv, j);
+		const char *expected = M_list_str_at(headers, j);
+		ck_assert_msg(M_str_eq(hdr, expected), "Header '%s' does not match expected value '%s'", hdr, expected);
+	}
+
+	buf = M_buf_create();
+	for (i=0; i<M_csv_get_numrows(csv); i++) {
+		for (j=0; j<M_csv_get_numcols(csv); j++) {
+			const char *val = M_csv_get_cellbynum(csv, i, j);
+			const char *exp;
+			if ((i==0 && j== 3) || (i==1 && j==1)) {
+				exp = "";
+			} else {
+				M_buf_truncate(buf, 0);
+				M_buf_add_str(buf, "row");
+				M_buf_add_uint(buf, i + 1);
+				M_buf_add_str(buf, "-h");
+				M_buf_add_uint(buf, j + 1);
+				exp = M_buf_peek(buf);
+			}
+			ck_assert_msg(M_str_eq(val, exp), "(%d,%d) '%s' does not match expected value '%s'", i, j, val, exp);
+		}
+	}
+
+	M_buf_cancel(buf);
+	M_csv_destroy(csv);
+	M_list_str_destroy(headers);
+}
+END_TEST
+
 START_TEST(check_write_basic)
 {
 	M_csv_t *csv = M_csv_parse(CSV_DATA, M_str_len(CSV_DATA), ',', '"', M_CSV_FLAG_NONE);
@@ -101,7 +151,7 @@ START_TEST(check_write_basic)
 	M_csv_output_headers_buf(buf, csv, NULL);
 	M_csv_output_rows_buf(buf, csv, NULL, NULL, NULL, NULL, NULL);
 
-	/*M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", CSV_DATA, M_buf_peek(buf));*/
+	M_printf("\nExpected:\n--[%s]--\n\nGot:\n--[%s]--\n", CSV_DATA, M_buf_peek(buf));
 	ck_assert_msg(M_str_eq(CSV_DATA, M_buf_peek(buf)), "Output data doesn't match input data");
 
 	M_csv_destroy(csv);
@@ -217,8 +267,9 @@ int main(void)
 
 	suite = suite_create("csv");
 
-	add_test(suite, check_parse);
 	add_test(suite, check_parse_inplace);
+	add_test(suite, check_parse);
+	add_test(suite, check_parse_add_headers);
 	add_test(suite, check_write_basic);
 	add_test(suite, check_write_change_headers);
 	add_test(suite, check_write_filter);
