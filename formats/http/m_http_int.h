@@ -35,8 +35,6 @@
 typedef struct {
 	M_buf_t       *body;
 	M_hash_dict_t *extensions;
-	M_bool         extensions_complete;
-	M_bool         have_body_len;
 	size_t         body_len;
 	size_t         body_len_seen;
 } M_http_chunk_t;
@@ -55,30 +53,25 @@ struct M_http {
 	char                  *query_string;
 	M_hash_dict_t         *query_args;
 
-	M_bool                 headers_complete;
+	M_http_read_step_t     read_step;
+	M_bool                 is_chunked;
+
+	size_t                 header_len;
 	M_hash_dict_t         *headers;
 	M_list_str_t          *set_cookies;
-	M_bool                 persist_conn;
 	M_hash_dict_t         *trailers;
-	M_bool                 trailers_complete;
 
-	M_bool                 want_upgrade;
-	M_bool                 want_upgrade_secure;
-	char                  *settings_payload;
-
+	M_buf_t               *body;
 	M_bool                 have_body_len;
 	size_t                 body_len;
 	size_t                 body_len_seen;
-	M_buf_t               *body;
 
-	M_bool                 chunked;
 	M_list_t              *chunks; /* M_http_chunk_t */
-
-	M_bool                 require_content_len;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_http_chunk_destory(M_http_chunk_t *chunk);
+M_http_chunk_t *M_http_chunk_get(const M_http_t *http, size_t num);
 
 #endif

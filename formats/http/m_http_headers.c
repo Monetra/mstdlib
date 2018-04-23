@@ -44,6 +44,9 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 	if (!merge) {
 		M_hash_dict_destroy(*cur_headers);
 		*cur_headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+		if (new_headers == NULL) {
+			return;
+		}
 		M_hash_dict_merge(cur_headers, M_hash_dict_duplicate(new_headers));
 		return;
 	}
@@ -92,6 +95,11 @@ static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const cha
 	if (d == NULL || M_str_isempty(key))
 		return M_FALSE;
 
+	if (M_str_isempty(val)) {
+		M_hash_dict_remove(d, key);
+		return M_TRUE;
+	}
+
 	M_hash_dict_remove(d, key);
 
 	parts = M_str_explode_quoted(',', val, M_str_len(val), '"', '\\', 0, &num_parts, NULL);
@@ -138,43 +146,6 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_http_clear_headers(M_http_t *http)
-{
-	if (http == NULL)
-		return;
-
-	M_hash_dict_destroy(http->headers);
-	http->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-
-	M_list_str_destroy(http->set_cookies);
-	http->set_cookies = M_list_str_create(M_LIST_STR_STABLE);
-
-	M_hash_dict_destroy(http->trailers);
-	http->trailers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-
-	M_http_set_want_upgrade(http, M_FALSE, M_FALSE, NULL);
-	M_http_set_persistent_conn(http, M_FALSE);
-
-	http->headers_complete  = M_FALSE;
-	http->trailers_complete = M_FALSE;
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_bool M_http_headers_complete(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->headers_complete;
-}
-
-void M_http_set_headers_complete(M_http_t *http, M_bool complete)
-{
-	if (http == NULL)
-		return;
-	http->headers_complete = complete;
-}
-
 const M_hash_dict_t *M_http_headers(const M_http_t *http)
 {
 	if (http == NULL)
@@ -192,7 +163,7 @@ char *M_http_header(const M_http_t *http, const char *key)
 
 void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge)
 {
-	if (http == NULL || headers == NULL)
+	if (http == NULL)
 		return;
 
 	M_http_set_headers_int(&http->headers, headers, merge);
@@ -200,14 +171,14 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 
 M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 {
-	if (http == NULL || M_str_isempty(key))
+	if (http == NULL)
 		return M_FALSE;
 	return M_http_set_header_int(http->headers, key, val);
 }
 
 void M_http_add_header(M_http_t *http, const char *key, const char *val)
 {
-	if (http == NULL || M_str_isempty(key))
+	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
 		return;
 
 	M_hash_dict_insert(http->headers, key, val);
@@ -242,84 +213,8 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val)
 	M_list_str_insert(http->set_cookies, val);
 }
 
-M_bool M_http_want_upgrade(const M_http_t *http, M_bool *secure, const char **settings_payload)
-{
-	if (http == NULL)
-		return M_FALSE;
-
-	if (secure != NULL)
-		*secure = http->want_upgrade_secure;
-	if (settings_payload != NULL)
-		*settings_payload = http->settings_payload;
-	return http->want_upgrade;
-}
-
-void M_http_set_want_upgrade(M_http_t *http, M_bool want, M_bool secure, const char *settings_payload)
-{
-	if (http == NULL || (want && M_str_isempty(settings_payload)))
-		return;
-
-	http->want_upgrade        = want;
-	http->want_upgrade_secure = M_FALSE;
-	M_free(http->settings_payload);
-	http->settings_payload    = NULL;
-
-	M_hash_dict_remove(http->headers, "Connection");
-	M_hash_dict_remove(http->headers, "Upgrade");
-	M_hash_dict_remove(http->headers, "HTTP2-Settings");
-
-	if (want) {
-		M_hash_dict_insert(http->headers, "Connection", "Upgrade, HTTP2-Settings");
-		M_hash_dict_insert(http->headers, "Upgrade", secure?"h2":"h2c");
-		M_hash_dict_insert(http->headers, "HTTP2-Settings", settings_payload);
-
-		http->want_upgrade_secure = secure;
-		http->settings_payload    = M_strdup(settings_payload);
-	}
-}
-
-M_bool M_http_persistent_conn(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->persist_conn;
-}
-
-void M_http_set_persistent_conn(M_http_t *http, M_bool persist)
-{
-	/* Upgrading to http 2 isn't compatible. */
-	if (http == NULL || http->want_upgrade)
-		return;
-
-	http->persist_conn = persist;
-
-	M_hash_dict_remove(http->headers, "Connection");
-	if (persist)
-		M_hash_dict_insert(http->headers, "Connection", "keep-alive");
-}
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_bool M_http_trailers_complete(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return http->trailers_complete;
-}
-
-void M_http_set_trailers_complete(M_http_t *http, M_bool complete)
-{
-	if (http == NULL)
-		return;
-	http->trailers_complete = complete;
-}
-
-M_bool M_http_have_trailers(const M_http_t *http)
-{
-	if (http == NULL)
-		return M_FALSE;
-	return M_hash_dict_num_keys(http->trailers) > 0 ? M_TRUE : M_FALSE;
-}
 
 const M_hash_dict_t *M_http_trailers(const M_http_t *http)
 {
@@ -347,7 +242,7 @@ void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool me
 
 M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 {
-	if (http == NULL || M_str_isempty(key))
+	if (http == NULL)
 		return M_FALSE;
 
 	return M_http_set_header_int(http->trailers, key, val);
@@ -355,7 +250,7 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 
 void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
 {
-	if (http == NULL || M_str_isempty(key))
+	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
 		return;
 
 	M_hash_dict_insert(http->trailers, key, val);
