@@ -34,7 +34,7 @@
 __BEGIN_DECLS
 
 /*! \addtogroup m_http_reader HTTP Stream Reader
- *  \ingroup m_formats_http
+ *  \ingroup m_http
  *
  * @{
  */

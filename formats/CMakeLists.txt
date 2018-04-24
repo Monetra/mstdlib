@@ -24,15 +24,14 @@ set(sources
 
 	# http:
 	http/m_http.c
+	http/m_http_body.c
+	http/m_http_chunk.c
+	http/m_http_headers.c
+	http/m_http_int.h
 	http/m_http_reader.c
 	http/m_http_reader_int.h
 	http/m_http_simple.c
-	http/m_http_simple_body.c
-	http/m_http_simple_chunk.c
-	http/m_http_simple_headers.c
-	http/m_http_simple_int.h
-	http/m_http_simple_reader.c
-	http/m_http_simple_uri.c
+	http/m_http_uri.c
 
 	# json:
 	json/m_json.c

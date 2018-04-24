@@ -33,21 +33,21 @@
 
 __BEGIN_DECLS
 
-/*! \addtogroup m_http_simple HTTP Simple
+/*! \addtogroup m_http HTTP Simple
  *  \ingroup m_formats_http
  *
  * @{
  */
 
-struct M_http_simple;
-typedef struct M_http_simple M_http_simple_t;
+struct M_http;
+typedef struct M_http M_http_t;
 
 
 typedef enum {
 	M_HTTP_SIMPLE_READ_NONE = 0,
 	M_HTTP_SIMPLE_READ_LEN_REQUIRED,
 	M_HTTP_SIMPLE_READ_NO_TRAILERS
-} M_http_simple_read_flags_t;
+} M_http_read_flags_t;
 
 
 /*! Create an http object.
@@ -57,14 +57,14 @@ typedef enum {
  *
  * \return Object.
  */
-M_http_simple_t *M_http_simple_create(void);
+M_http_t *M_http_create(void);
 
 
 /*! Destroy an http object.
  *
  * \param[in] http HTTP object.
  */
-void M_http_simple_destroy(M_http_simple_t *http);
+void M_http_destroy(M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -73,7 +73,7 @@ void M_http_simple_destroy(M_http_simple_t *http);
  *
  * \param[in] http HTTP object.
  */
-void M_http_simple_reset(M_http_simple_t *http);
+void M_http_reset(M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -84,7 +84,7 @@ void M_http_simple_reset(M_http_simple_t *http);
  * Multiple reads may be necessary for a single message in case
  * data is being streamed. Once M_HTTP_PARSE_RESULT_SUCCESS_END is
  * returned no new calls to read should be performed unless the
- * object is cleared with M_http_simple_clear.
+ * object is cleared with M_http_clear.
  *
  * It's not always possible to determine when a message ends.
  * For example no length is specified. In which case M_HTTP_PARSE_RESULT_SUCCESS_END 
@@ -99,7 +99,7 @@ void M_http_simple_reset(M_http_simple_t *http);
  * \param[in]  http     HTTP object.
  * \param[in]  data     Raw data.
  * \param[in]  data_len Length of data.
- * \param[in]  flags    M_http_simple_read_flags_t flags controlling read behavior.
+ * \param[in]  flags    M_http_read_flags_t flags controlling read behavior.
  * \param[out] len_read Length of the data read. Can be less than data_len if the content length was reached.
  * 
  * \return M_HTTP_PARSE_RESULT_SUCCESS when a message has been read without error. There may be more data, check
@@ -108,7 +108,7 @@ void M_http_simple_reset(M_http_simple_t *http);
  *         This can be returned from a since call or after multiple calls.
  *         Otherwise an error condition.
  */
-M_http_error_t M_http_simple_read(M_http_simple_t *http, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
+M_http_error_t M_http_read(M_http_t *http, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
 
 
 /*! Structure an http object into a message stubble for sending.
@@ -137,7 +137,7 @@ M_http_error_t M_http_simple_read(M_http_simple_t *http, const unsigned char *da
  *
  * \return Data.
  */
-unsigned char *M_http_simple_write(const M_http_simple_t *http, size_t *len);
+unsigned char *M_http_write(const M_http_t *http, size_t *len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -148,7 +148,7 @@ unsigned char *M_http_simple_write(const M_http_simple_t *http, size_t *len);
  *
  * \return Message type.
  */
-M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *http);
+M_http_message_type_t M_http_message_type(const M_http_t *http);
 
 
 /*! Set the type (request/response) of message.
@@ -156,7 +156,7 @@ M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *http);
  * \param[in] http HTTP object.
  * \param[in] type Message type.
  */
-void M_http_simple_set_message_type(M_http_simple_t *http, M_http_message_type_t type);
+void M_http_set_message_type(M_http_t *http, M_http_message_type_t type);
 
 
 /*! HTTP version.
@@ -165,7 +165,7 @@ void M_http_simple_set_message_type(M_http_simple_t *http, M_http_message_type_t
  *
  * \return Version.
  */
-M_http_version_t M_http_simple_version(const M_http_simple_t *http);
+M_http_version_t M_http_version(const M_http_t *http);
 
 
 /*! Set the HTTP version.
@@ -173,7 +173,7 @@ M_http_version_t M_http_simple_version(const M_http_simple_t *http);
  * \param[in] http    HTTP object.
  * \param[in] version Version.
  */
-void M_http_simple_set_version(M_http_simple_t *http, M_http_version_t version);
+void M_http_set_version(M_http_t *http, M_http_version_t version);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -184,7 +184,7 @@ void M_http_simple_set_version(M_http_simple_t *http, M_http_version_t version);
  *
  * \return Status code.
  */
-M_uint32 M_http_simple_status_code(const M_http_simple_t *http);
+M_uint32 M_http_status_code(const M_http_t *http);
 
 
 /*! Set the response status code.
@@ -192,7 +192,7 @@ M_uint32 M_http_simple_status_code(const M_http_simple_t *http);
  * \param[in] http HTTP object.
  * \param[in] code Status code.
  */
-void M_http_simple_set_status_code(M_http_simple_t *http, M_uint32 code);
+void M_http_set_status_code(M_http_t *http, M_uint32 code);
 
 
 /*! Response textual status reason.
@@ -201,7 +201,7 @@ void M_http_simple_set_status_code(M_http_simple_t *http, M_uint32 code);
  *
  * \return String.
  */
-const char *M_http_simple_reason_phrase(const M_http_simple_t *http);
+const char *M_http_reason_phrase(const M_http_t *http);
 
 
 /*! Set the response textual status reason.
@@ -209,7 +209,7 @@ const char *M_http_simple_reason_phrase(const M_http_simple_t *http);
  * \param[in] http   HTTP object.
  * \param[in] phrase Textual reason phrase.
  */
-void M_http_simple_set_reason_phrase(M_http_simple_t *http, const char *phrase);
+void M_http_set_reason_phrase(M_http_t *http, const char *phrase);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -220,7 +220,7 @@ void M_http_simple_set_reason_phrase(M_http_simple_t *http, const char *phrase);
  *
  * \return Method.
  */
-M_http_method_t M_http_simple_method(const M_http_simple_t *http);
+M_http_method_t M_http_method(const M_http_t *http);
 
 
 /*! Set the request method.
@@ -228,7 +228,7 @@ M_http_method_t M_http_simple_method(const M_http_simple_t *http);
  * \param[in] http   HTTP object.
  * \param[in] method Method.
  */
-void M_http_simple_set_method(M_http_simple_t *http, M_http_method_t method);
+void M_http_set_method(M_http_t *http, M_http_method_t method);
 
 
 /* Request URI.
@@ -239,7 +239,7 @@ void M_http_simple_set_method(M_http_simple_t *http, M_http_method_t method);
  *
  * \return String.
  */
-const char *M_http_simple_uri(const M_http_simple_t *http);
+const char *M_http_uri(const M_http_t *http);
 
 /*! Set the request URI.
  *
@@ -248,7 +248,7 @@ const char *M_http_simple_uri(const M_http_simple_t *http);
  *
  * \return M_TRUE if URI was successfully set (parsed). Otherwise, M_FALSE.
  */
-M_bool M_http_simple_set_uri(M_http_simple_t *http, const char *uri);
+M_bool M_http_set_uri(M_http_t *http, const char *uri);
 
 
 /*! Host part of request URI.
@@ -261,7 +261,7 @@ M_bool M_http_simple_set_uri(M_http_simple_t *http, const char *uri);
  *
  * \return String.
  */
-const char *M_http_simple_host(const M_http_simple_t *http);
+const char *M_http_host(const M_http_t *http);
 
 
 /*! Port part of request URI.
@@ -273,7 +273,7 @@ const char *M_http_simple_host(const M_http_simple_t *http);
  *
  * \return M_TRUE if port is present. Otherwise, M_FALSE.
  */
-M_bool M_http_simple_port(const M_http_simple_t *http, M_uint16 *port);
+M_bool M_http_port(const M_http_t *http, M_uint16 *port);
 
 
 /*! Path from the request URI
@@ -282,7 +282,7 @@ M_bool M_http_simple_port(const M_http_simple_t *http, M_uint16 *port);
  *
  * \return String.
  */
-const char *M_http_simple_path(const M_http_simple_t *http);
+const char *M_http_path(const M_http_t *http);
 
 
 /*! Query string from the request URI.
@@ -291,9 +291,9 @@ const char *M_http_simple_path(const M_http_simple_t *http);
  *
  * \return String.
  *
- * \see M_http_simple_query_args
+ * \see M_http_query_args
  */
-const char *M_http_simple_query_string(const M_http_simple_t *http);
+const char *M_http_query_string(const M_http_t *http);
 
 
 /*! Query arguments from the request URI.
@@ -302,9 +302,9 @@ const char *M_http_simple_query_string(const M_http_simple_t *http);
  *
  * \return Multi value dict.
  *
- * \see M_http_simple_query_string
+ * \see M_http_query_string
  */
-const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *http);
+const M_hash_dict_t *M_http_query_args(const M_http_t *http);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -318,7 +318,7 @@ const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *http);
  *
  * \return Multi value dict.
  */
-const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *http);
+const M_hash_dict_t *M_http_headers(const M_http_t *http);
 
 
 /*! Get all values for a header combined into a string.
@@ -331,7 +331,7 @@ const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *http);
  *
  * \return String.
  */
-char *M_http_simple_header(const M_http_simple_t *http, const char *key);
+char *M_http_header(const M_http_t *http, const char *key);
 
 
 /*! Set the http headers.
@@ -340,7 +340,7 @@ char *M_http_simple_header(const M_http_simple_t *http, const char *key);
  * \param[in] headers Headers. Can be multi value dict. NULL to clear.
  * \param[in] merge   Merge into or replace the existing headers.
  */
-void M_http_simple_set_headers(M_http_simple_t *http, const M_hash_dict_t *headers, M_bool merge);
+void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
 
 
 /*! Set a single http header.
@@ -352,7 +352,7 @@ void M_http_simple_set_headers(M_http_simple_t *http, const M_hash_dict_t *heade
  * \param[in] key  Header name.
  * \param[in] val  Value. NULL to clear header.
  */
-M_bool M_http_simple_set_header(M_http_simple_t *http, const char *key, const char *val);
+M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
 
 
 /*! Add a value to a header.
@@ -365,7 +365,7 @@ M_bool M_http_simple_set_header(M_http_simple_t *http, const char *key, const ch
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_simple_add_header(M_http_simple_t *http, const char *key, const char *val);
+void M_http_add_header(M_http_t *http, const char *key, const char *val);
 
 
 /*! Remove a header.
@@ -375,7 +375,7 @@ void M_http_simple_add_header(M_http_simple_t *http, const char *key, const char
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
  */
-void M_http_simple_remove_header(M_http_simple_t *http, const char *key);
+void M_http_remove_header(M_http_t *http, const char *key);
 
 
 /*! Get the Set-Cookie headers.
@@ -384,7 +384,7 @@ void M_http_simple_remove_header(M_http_simple_t *http, const char *key);
  *
  * \return String list
  */
-const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *http);
+const M_list_str_t *M_http_get_set_cookie(const M_http_t *http);
 
 
 /*! Remove a value from the Set-Cookie header value list.
@@ -392,7 +392,7 @@ const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *http);
  * \param[in] http HTTP object.
  * \param[in] idx  Index to remove.
  */
-void M_http_simple_set_cookie_remove(M_http_simple_t *http, size_t idx);
+void M_http_set_cookie_remove(M_http_t *http, size_t idx);
 
 
 /*! Append a value from the Set-Cookie header value list.
@@ -400,7 +400,7 @@ void M_http_simple_set_cookie_remove(M_http_simple_t *http, size_t idx);
  * \param[in] http HTTP object.
  * \param[in] val  Value to append.
  */
-void M_http_simple_set_cookie_insert(M_http_simple_t *http, const char *val);
+void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -411,7 +411,7 @@ void M_http_simple_set_cookie_insert(M_http_simple_t *http, const char *val);
  *
  * \return Multi value dict.
  */
-const M_hash_dict_t *M_http_simple_trailers(const M_http_simple_t *http);
+const M_hash_dict_t *M_http_trailers(const M_http_t *http);
 
 
 /*! Get all values for a trailer combined into a single
@@ -424,7 +424,7 @@ const M_hash_dict_t *M_http_simple_trailers(const M_http_simple_t *http);
  *
  * \return String.
  */
-char *M_http_simple_trailer(const M_http_simple_t *http, const char *key);
+char *M_http_trailer(const M_http_t *http, const char *key);
 
 
 /*! Set the trailing headers.
@@ -433,7 +433,7 @@ char *M_http_simple_trailer(const M_http_simple_t *http, const char *key);
  * \param[in] headers Headers. NULL to clear
  * \param[in] merge   Merge into or replace the existing headers.
  */
-void M_http_simple_set_trailers(M_http_simple_t *http, const M_hash_dict_t *headers, M_bool merge);
+void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
 
 
 /*! Set a single http trailer.
@@ -445,7 +445,7 @@ void M_http_simple_set_trailers(M_http_simple_t *http, const M_hash_dict_t *head
  * \param[in] key  Header name.
  * \param[in] val  Value. NULL to clear.
  */
-M_bool M_http_simple_set_trailer(M_http_simple_t *http, const char *key, const char *val);
+M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
 
 
 /*! Add a value to a trailer.
@@ -458,7 +458,7 @@ M_bool M_http_simple_set_trailer(M_http_simple_t *http, const char *key, const c
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_simple_add_trailer(M_http_simple_t *http, const char *key, const char *val);
+void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -474,7 +474,7 @@ void M_http_simple_add_trailer(M_http_simple_t *http, const char *key, const cha
  *
  * \return M_TRUE if the body length is known.
  */
-M_bool M_http_simple_body_length(M_http_simple_t *http, size_t *len);
+M_bool M_http_body_length(M_http_t *http, size_t *len);
 
 
 /*! Amount of body data that has been read.
@@ -487,9 +487,9 @@ M_bool M_http_simple_body_length(M_http_simple_t *http, size_t *len);
  *
  * \return Length. 
  *
- * \see M_http_simple_body_length_buffered
+ * \see M_http_body_length_buffered
  */
-size_t M_http_simple_body_length_seen(M_http_simple_t *http);
+size_t M_http_body_length_seen(M_http_t *http);
 
 
 /*! Amount of body data is currently buffered.
@@ -498,7 +498,7 @@ size_t M_http_simple_body_length_seen(M_http_simple_t *http);
  *
  * \return Length. 
  */
-size_t M_http_simple_body_length_buffered(M_http_simple_t *http);
+size_t M_http_body_length_buffered(M_http_t *http);
 
 
 /*! Get the body data.
@@ -511,7 +511,7 @@ size_t M_http_simple_body_length_buffered(M_http_simple_t *http);
  *
  * \return Data.
  */
-const unsigned char *M_http_simple_body(const M_http_simple_t *http, size_t *len);
+const unsigned char *M_http_body(const M_http_t *http, size_t *len);
 
 
 /*! Add to existing body data.
@@ -523,7 +523,7 @@ const unsigned char *M_http_simple_body(const M_http_simple_t *http, size_t *len
  * \param[in] data Data.
  * \param[in] len  Length of data.
  */
-void M_http_simple_body_append(M_http_simple_t *http, const unsigned char *data, size_t len);
+void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len);
 
 
 /*! Drop the specified number of bytes from the beginning of the body data.
@@ -534,7 +534,7 @@ void M_http_simple_body_append(M_http_simple_t *http, const unsigned char *data,
  * \param[in] http HTTP object.
  * \param[in] len  Length of data.
  */
-void M_http_simple_body_drop(M_http_simple_t *http, size_t len);
+void M_http_body_drop(M_http_t *http, size_t len);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -545,7 +545,7 @@ void M_http_simple_body_drop(M_http_simple_t *http, size_t len);
  *
  * \return Bool
  */
-M_bool M_http_simple_is_chunked(const M_http_simple_t *http);
+M_bool M_http_is_chunked(const M_http_t *http);
 
 
 /*! Queue a new chunk.
@@ -554,7 +554,7 @@ M_bool M_http_simple_is_chunked(const M_http_simple_t *http);
  *
  * \return Chunk number.
  */
-size_t M_http_simple_chunk_insert(M_http_simple_t *http);
+size_t M_http_chunk_insert(M_http_t *http);
 
 
 /*! Remove a chunk.
@@ -562,7 +562,7 @@ size_t M_http_simple_chunk_insert(M_http_simple_t *http);
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  */
-void M_http_simple_chunk_remove(M_http_simple_t *http, size_t num);
+void M_http_chunk_remove(M_http_t *http, size_t num);
 
 
 /*! Number of available data chunks.
@@ -571,7 +571,7 @@ void M_http_simple_chunk_remove(M_http_simple_t *http, size_t num);
  *
  * \return Number of chunks. 
  */
-size_t M_http_simple_chunk_count(const M_http_simple_t *http);
+size_t M_http_chunk_count(const M_http_t *http);
 
 
 /*! The length of the chunked data.
@@ -585,7 +585,7 @@ size_t M_http_simple_chunk_count(const M_http_simple_t *http);
  *
  * \return Length.
  */
-size_t M_http_simple_chunk_data_length(const M_http_simple_t *http, size_t num);
+size_t M_http_chunk_data_length(const M_http_t *http, size_t num);
 
 
 /*! Amount of chunk data that has been read.
@@ -599,9 +599,9 @@ size_t M_http_simple_chunk_data_length(const M_http_simple_t *http, size_t num);
  *
  * \return Length. 
  *
- * \see M_http_simple_chunk_data_length_buffered
+ * \see M_http_chunk_data_length_buffered
  */
-size_t M_http_simple_chunk_data_length_seen(const M_http_simple_t *http, size_t num);
+size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num);
 
 
 /*! Amount of chunk data is currently buffered.
@@ -611,7 +611,7 @@ size_t M_http_simple_chunk_data_length_seen(const M_http_simple_t *http, size_t 
  *
  * \return Length. 
  */
-size_t M_http_simple_chunk_data_length_buffered(const M_http_simple_t *http, size_t num);
+size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num);
 
 
 /*! Get the chunk data.
@@ -625,7 +625,7 @@ size_t M_http_simple_chunk_data_length_buffered(const M_http_simple_t *http, siz
  *
  * \return Data.
  */
-const unsigned char *M_http_simple_chunk_data(const M_http_simple_t *http, size_t num, size_t *len);
+const unsigned char *M_http_chunk_data(const M_http_t *http, size_t num, size_t *len);
 
 
 /*! Add to existing chunked data.
@@ -638,7 +638,7 @@ const unsigned char *M_http_simple_chunk_data(const M_http_simple_t *http, size_
  * \param[in] data Data.
  * \param[in] len  Length of data.
  */
-void M_http_simple_chunk_data_append(M_http_simple_t *http, size_t num, const unsigned char *data, size_t len);
+void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *data, size_t len);
 
 
 /*! Drop the specified number of bytes from the beginning of the chunk data.
@@ -650,7 +650,7 @@ void M_http_simple_chunk_data_append(M_http_simple_t *http, size_t num, const un
  * \param[in] num  Chunk number.
  * \param[in] len  Length of data.
  */
-void M_http_simple_chunk_data_drop(M_http_simple_t *http, size_t num, size_t len);
+void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len);
 
 
 /*! Get the chunk's extensions.
@@ -660,7 +660,7 @@ void M_http_simple_chunk_data_drop(M_http_simple_t *http, size_t num, size_t len
  *
  * \return Dict.
  */
-const M_hash_dict_t *M_http_simple_chunk_extensions(const M_http_simple_t *http, size_t num);
+const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num);
 
 
 /*! Get all extensions combined into a single string.
@@ -672,7 +672,7 @@ const M_hash_dict_t *M_http_simple_chunk_extensions(const M_http_simple_t *http,
  *
  * \return String.
  */
-char *M_http_simple_chunk_extension_string(const M_http_simple_t *http, size_t num);
+char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
 
 
 /*! Set the chunk extensions.
@@ -681,20 +681,20 @@ char *M_http_simple_chunk_extension_string(const M_http_simple_t *http, size_t n
  * \param[in] num        Chunk number.
  * \param[in] extensions Extensions.
  */
-void M_http_simple_set_chunk_extensions(M_http_simple_t *http, size_t num, const M_hash_dict_t *extensions);
+void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions);
 
 
 /*! Set the extensions from a string.
  *
  * Can be a semicolon (;) separated list.
  * If not a list this is the equivalent of calling
- * M_http_simple_set_chunk_extension without a value.
+ * M_http_set_chunk_extension without a value.
  *
  * \param[in] http HTTP object.
  * \param[in] num  Chunk number.
  * \param[in] str  String.
  */ 
-M_bool M_http_simple_set_chunk_extensions_string(M_http_simple_t *http, size_t num, const char *str);
+M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str);
 
 
 /*! Set a single chunk extension.
@@ -707,7 +707,7 @@ M_bool M_http_simple_set_chunk_extensions_string(M_http_simple_t *http, size_t n
  * \param[in] key  Name.
  * \param[in] val  Value. Can be NULL.
  */
-void M_http_simple_set_chunk_extension(M_http_simple_t *http, size_t num, const char *key, const char *val);
+void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val);
 
 
 /*! @} */

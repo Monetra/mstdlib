@@ -26,13 +26,13 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_simple_int.h"
+#include "http/m_http_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_http_simple_chunk_t *M_http_simple_chunk_create(void)
+static M_http_chunk_t *M_http_chunk_create(void)
 {
-	M_http_simple_chunk_t *chunk;
+	M_http_chunk_t *chunk;
 
 	chunk = M_malloc_zero(sizeof(*chunk));
 	
@@ -44,7 +44,7 @@ static M_http_simple_chunk_t *M_http_simple_chunk_create(void)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_http_simple_chunk_destory(M_http_simple_chunk_t *chunk)
+void M_http_chunk_destory(M_http_chunk_t *chunk)
 {
 	if (chunk == NULL)
 		return;
@@ -55,43 +55,43 @@ void M_http_simple_chunk_destory(M_http_simple_chunk_t *chunk)
 	M_free(chunk);
 }
 
-M_http_simple_chunk_t *M_http_simple_chunk_get(const M_http_simple_t *http, size_t num)
+M_http_chunk_t *M_http_chunk_get(const M_http_t *http, size_t num)
 {
 	if (http == NULL)
 		return NULL;
-	return M_CAST_OFF_CONST(M_http_simple_chunk_t *, M_list_at(http->chunks, num));
+	return M_CAST_OFF_CONST(M_http_chunk_t *, M_list_at(http->chunks, num));
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_http_simple_is_chunked(const M_http_simple_t *http)
+M_bool M_http_is_chunked(const M_http_t *http)
 {
 	if (http == NULL)
 		return M_FALSE;
 	return http->is_chunked;
 }
 
-size_t M_http_simple_chunk_count(const M_http_simple_t *http)
+size_t M_http_chunk_count(const M_http_t *http)
 {
 	if (http == NULL)
 		return 0;
 	return M_list_len(http->chunks);
 }
 
-size_t M_http_simple_chunk_insert(M_http_simple_t *http)
+size_t M_http_chunk_insert(M_http_t *http)
 {
-	M_http_simple_chunk_t *chunk;
+	M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return 0;
 
-	chunk = M_http_simple_chunk_create();
+	chunk = M_http_chunk_create();
 	M_list_insert(http->chunks, chunk);
 
 	return M_list_len(http->chunks)-1;
 }
 
-void M_http_simple_chunk_remove(M_http_simple_t *http, size_t num)
+void M_http_chunk_remove(M_http_t *http, size_t num)
 {
 	if (http == NULL)
 		return;
@@ -99,53 +99,53 @@ void M_http_simple_chunk_remove(M_http_simple_t *http, size_t num)
 	M_list_remove_at(http->chunks, num);
 }
 
-size_t M_http_simple_chunk_data_length(const M_http_simple_t *http, size_t num)
+size_t M_http_chunk_data_length(const M_http_t *http, size_t num)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return 0;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return 0;
 	return chunk->body_len;
 }
 
-size_t M_http_simple_chunk_data_length_seen(const M_http_simple_t *http, size_t num)
+size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return 0;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return 0;
 	return chunk->body_len_seen;
 }
 
-size_t M_http_simple_chunk_data_length_buffered(const M_http_simple_t *http, size_t num)
+size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return 0;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return 0;
 	return M_buf_len(chunk->body);
 }
 
-const unsigned char *M_http_simple_chunk_data(const M_http_simple_t *http, size_t num, size_t *len)
+const unsigned char *M_http_chunk_data(const M_http_t *http, size_t num, size_t *len)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return NULL;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return NULL;
 
@@ -153,14 +153,14 @@ const unsigned char *M_http_simple_chunk_data(const M_http_simple_t *http, size_
 	return (const unsigned char *)M_buf_peek(chunk->body);
 }
 
-void M_http_simple_chunk_data_append(M_http_simple_t *http, size_t num, const unsigned char *data, size_t len)
+void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *data, size_t len)
 {
-	M_http_simple_chunk_t *chunk;
+	M_http_chunk_t *chunk;
 
 	if (http == NULL || data == NULL || len == 0)
 		return;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return;
 
@@ -170,23 +170,23 @@ void M_http_simple_chunk_data_append(M_http_simple_t *http, size_t num, const un
 	M_buf_add_bytes(chunk->body, data, len);
 }
 
-void M_http_simple_chunk_data_drop(M_http_simple_t *http, size_t num, size_t len)
+void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len)
 {
-	M_http_simple_chunk_t *chunk;
+	M_http_chunk_t *chunk;
 
 	if (http == NULL || M_list_len(http->chunks) >= num)
 		return;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return;
 
 	M_buf_drop(chunk->body, len);
 }
 
-const M_hash_dict_t *M_http_simple_chunk_extensions(const M_http_simple_t *http, size_t num)
+const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return NULL;
@@ -197,9 +197,9 @@ const M_hash_dict_t *M_http_simple_chunk_extensions(const M_http_simple_t *http,
 	return chunk->extensions;
 }
 
-char *M_http_simple_chunk_extension_string(const M_http_simple_t *http, size_t num)
+char *M_http_chunk_extension_string(const M_http_t *http, size_t num)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 	M_hash_dict_enum_t   *he;
 	const char           *key;
 	const char           *val;
@@ -210,7 +210,7 @@ char *M_http_simple_chunk_extension_string(const M_http_simple_t *http, size_t n
 	if (http == NULL)
 		return NULL;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return NULL;
 
@@ -235,9 +235,9 @@ char *M_http_simple_chunk_extension_string(const M_http_simple_t *http, size_t n
 	return out;
 }
 
-void M_http_simple_set_chunk_extensions(M_http_simple_t *http, size_t num, const M_hash_dict_t *extensions)
+void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions)
 {
-	M_http_simple_chunk_t *chunk;
+	M_http_chunk_t *chunk;
 	M_hash_dict_enum_t   *he;
 	const char           *key;
 	const char           *val;
@@ -245,7 +245,7 @@ void M_http_simple_set_chunk_extensions(M_http_simple_t *http, size_t num, const
 	if (http == NULL || extensions == NULL)
 		return;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return;
 
@@ -259,7 +259,7 @@ void M_http_simple_set_chunk_extensions(M_http_simple_t *http, size_t num, const
 	M_hash_dict_enumerate_free(he);
 }
 
-M_bool M_http_simple_set_chunk_extensions_string(M_http_simple_t *http, size_t num, const char *str)
+M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str)
 {
 	char   **parts     = NULL;
 	size_t   num_parts = 0;
@@ -290,7 +290,7 @@ M_bool M_http_simple_set_chunk_extensions_string(M_http_simple_t *http, size_t n
 		if (num_kv == 2) {
 			val = kv[1];
 		} 
-		M_http_simple_set_chunk_extension(http, num, key, val);
+		M_http_set_chunk_extension(http, num, key, val);
 
 		M_str_explode_free(kv, num_kv);
 	}
@@ -299,14 +299,14 @@ M_bool M_http_simple_set_chunk_extensions_string(M_http_simple_t *http, size_t n
 	return ret;
 }
 
-void M_http_simple_set_chunk_extension(M_http_simple_t *http, size_t num, const char *key, const char *val)
+void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val)
 {
-	const M_http_simple_chunk_t *chunk;
+	const M_http_chunk_t *chunk;
 
 	if (http == NULL)
 		return;
 
-	chunk = M_http_simple_chunk_get(http, num);
+	chunk = M_http_chunk_get(http, num);
 	if (chunk == NULL)
 		return;
 
