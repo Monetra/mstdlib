@@ -46,8 +46,7 @@ typedef enum {
 	M_HTTP_SIMPLE_READ_NONE = 0,
 	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
 	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
-	M_HTTP_SIMPLE_READ_FAIL_TRAILERS,  /*!< Fail if tailers sent. */
-	M_HTTP_SIMPLE_READ_READ_TRAILERS   /*!< Do read tailers. Otherwise, Ignore. */
+	M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if tailers sent. Otherwise, they are ignored. */
 } M_http_simple_read_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
