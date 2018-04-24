@@ -42,17 +42,17 @@ __BEGIN_DECLS
 struct M_http_reader;
 typedef struct M_http_reader M_http_reader_t;
 
-typedef M_bool (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
-typedef M_bool (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
-typedef M_bool (*M_http_reader_header_done_func)(void *thunk);
-typedef M_bool (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
-typedef M_bool (*M_http_reader_body_done_func)(void *thunk);
-typedef M_bool (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, void *thunk);
-typedef M_bool (*M_http_reader_chunk_extensions_done_func)(void *thunk);
-typedef M_bool (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, void *thunk);
-typedef M_bool (*M_http_reader_chunk_data_done_func)(void *thunk);
-typedef M_bool (*M_http_reader_trailer_func)(const char *key, const char *val, void *thunk);
-typedef M_bool (*M_http_reader_trailer_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
+typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
+typedef M_http_error_t (*M_http_reader_header_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_trailer_func)(const char *key, const char *val, void *thunk);
+typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

@@ -56,7 +56,6 @@ struct M_http_simple {
 
 	M_bool                 is_chunked;
 
-	size_t                 header_len;
 	M_hash_dict_t         *headers;
 	M_list_str_t          *set_cookies;
 	M_hash_dict_t         *trailers;
@@ -67,6 +66,8 @@ struct M_http_simple {
 	size_t                 body_len_seen;
 
 	M_list_t              *chunks; /* M_http_simple_chunk_t */
+
+	M_http_simple_read_flags_t rflags;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
