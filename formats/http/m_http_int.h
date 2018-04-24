@@ -21,14 +21,15 @@
  * THE SOFTWARE.
  */
 
-#ifndef __M_HTTP_SIMPLE_INT_H__
-#define __M_HTTP_SIMPLE_INT_H__
+#ifndef __M_HTTP_INT_H__
+#define __M_HTTP_INT_H__
 
 #include <mstdlib/mstdlib.h>
 #include "m_defs_int.h"
 
 /* XXX: Here until we add m_http.h to mstdlib_formats.h */
 #include <mstdlib/formats/m_http.h>
+#include <mstdlib/formats/m_http_reader.h>
 #include <mstdlib/formats/m_http_simple.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -38,9 +39,9 @@ typedef struct {
 	M_hash_dict_t *extensions;
 	size_t         body_len;
 	size_t         body_len_seen;
-} M_http_simple_chunk_t;
+} M_http_chunk_t;
 
-struct M_http_simple {
+struct M_http {
 	M_http_message_type_t  type;
 	M_http_version_t       version;
 	M_uint32               status_code;
@@ -65,14 +66,20 @@ struct M_http_simple {
 	size_t                 body_len;
 	size_t                 body_len_seen;
 
-	M_list_t              *chunks; /* M_http_simple_chunk_t */
-
-	M_http_simple_read_flags_t rflags;
+	M_list_t              *chunks; /* M_http_chunk_t */
 };
+
+struct M_http_simple {
+	M_http_t                   *http;
+	M_http_simple_read_flags_t  rflags;
+	M_bool                      rdone;
+} ;
+
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_http_simple_chunk_destory(M_http_simple_chunk_t *chunk);
-M_http_simple_chunk_t *M_http_simple_chunk_get(const M_http_simple_t *http, size_t num);
+void M_http_chunk_destory(M_http_chunk_t *chunk);
+M_http_chunk_t *M_http_chunk_get(const M_http_t *http, size_t num);
 
 #endif
