@@ -34,7 +34,7 @@
 __BEGIN_DECLS
 
 /*! \addtogroup m_http_simple HTTP Simple
- *  \ingroup m_formats_http
+ *  \ingroup m_http
  *
  * @{
  */
@@ -42,35 +42,35 @@ __BEGIN_DECLS
 struct M_http_simple;
 typedef struct M_http_simple M_http_simple_t;
 
-
 typedef enum {
 	M_HTTP_SIMPLE_READ_NONE = 0,
 	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
 	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
 	M_HTTP_SIMPLE_READ_FAIL_TRAILERS,  /*!< Fail if tailers sent. */
-	M_HTTP_SIMPLE_READ_NO_TRAILERS     /*!< Do not read tailers. */
+	M_HTTP_SIMPLE_READ_READ_TRAILERS   /*!< Do read tailers. Otherwise, Ignore. */
 } M_http_simple_read_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_http_simple_destory(M_http_simple_t *http);
+void M_http_simple_destroy(M_http_simple_t *http);
 
-M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *http);
-M_http_version_t M_http_simple_version(const M_http_simple_t *http);
-M_uint32 M_http_simple_status_code(const M_http_simple_t *http);
-const char *M_http_simple_reason_phrase(const M_http_simple_t *http);
-M_http_method_t M_http_simple_method(const M_http_simple_t *http);
-const char *M_http_simple_uri(const M_http_simple_t *http);
-M_bool M_http_simple_port(const M_http_simple_t *http, M_uint16 *port);
-const char *M_http_simple_path(const M_http_simple_t *http);
-const char *M_http_simple_query_string(const M_http_simple_t *http);
-const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *http);
-const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *http);
-const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *http);
+M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *simple);
+M_http_version_t M_http_simple_version(const M_http_simple_t *simple);
+M_uint32 M_http_simple_status_code(const M_http_simple_t *simple);
+const char *M_http_simple_reason_phrase(const M_http_simple_t *simple);
+M_http_method_t M_http_simple_method(const M_http_simple_t *simple);
+const char *M_http_simple_uri(const M_http_simple_t *simple);
+M_bool M_http_simple_port(const M_http_simple_t *simple, M_uint16 *port);
+const char *M_http_simple_path(const M_http_simple_t *simple);
+const char *M_http_simple_query_string(const M_http_simple_t *simple);
+const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *simple);
+const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *simple);
+char *M_http_simple_header(const M_http_simple_t *simple, const char *key);
+const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_http_error_t M_http_simple_read(M_http_simple_t **http, const char *data, size_t len, M_uint32 flags, size_t *len_read);
+M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
