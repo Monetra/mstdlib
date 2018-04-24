@@ -120,7 +120,6 @@ static M_http_error_t M_http_simple_chunk_extensions_cb(const char *key, const c
 
 	if (simple->rflags & M_HTTP_SIMPLE_READ_FAIL_EXTENSION)
 		return M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED;
-
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -150,16 +149,11 @@ static M_http_error_t M_http_simple_trailer_cb(const char *key, const char *val,
 {
 	M_http_simple_t *simple = thunk;
 
+	(void)key;
+	(void)val;
+
 	if (simple->rflags & M_HTTP_SIMPLE_READ_FAIL_TRAILERS)
 		return M_HTTP_ERROR_TRAILER_NOTALLOWED;
-
-	if (!(simple->rflags & M_HTTP_SIMPLE_READ_READ_TRAILERS))
-		return M_HTTP_ERROR_SUCCESS;
-
-	/* Trailers are really headers just at the end. Put these in headers
- 	 * since this is a "simple" object. */
-	M_http_set_header(simple->http, key, val);
-
 	return M_HTTP_ERROR_SUCCESS;
 }
 
