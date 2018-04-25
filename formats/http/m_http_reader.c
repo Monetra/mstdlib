@@ -271,7 +271,7 @@ static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* status-line  = HTTP-version SP status-code SP reason-phrase CRLF */
+/* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
 static M_http_error_t M_http_read_start_line_response(M_http_reader_t *httpr, M_parser_t **parts, size_t num_parts)
 {
 	char             *reason;

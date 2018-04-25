@@ -201,6 +201,22 @@ M_http_version_t M_http_version_from_str(const char *version)
 	return M_HTTP_VERSION_UNKNOWN;
 }
 
+const char *M_http_version_to_str(M_http_version_t version)
+{
+	switch (version) {
+		case M_HTTP_VERSION_1_0:
+			return "HTTP/1.0";
+		case M_HTTP_VERSION_1_1:
+			return "HTTP/1.1";
+		case M_HTTP_VERSION_2:
+			return "HTTP/2";
+		case M_HTTP_VERSION_UNKNOWN:
+			break;
+	}
+
+	return NULL;
+}
+
 M_http_method_t M_http_method_from_str(const char *method)
 {
 	if (M_str_caseeq(method, "OPTIONS"))
@@ -228,4 +244,30 @@ M_http_method_t M_http_method_from_str(const char *method)
 		return M_HTTP_METHOD_CONNECT;
 
 	return M_HTTP_METHOD_UNKNOWN;
+}
+
+const char *M_http_method_to_str(M_http_method_t method)
+{
+	switch (method) {
+		case M_HTTP_METHOD_OPTIONS:
+			return "OPTIONS";
+		case M_HTTP_METHOD_GET:
+			return "GET";
+		case M_HTTP_METHOD_HEAD:
+			return "HEAD";
+		case M_HTTP_METHOD_POST:
+			return "POST";
+		case M_HTTP_METHOD_PUT:
+			return "PUT";
+		case M_HTTP_METHOD_DELETE:
+			return "DELETE";
+		case M_HTTP_METHOD_TRACE:
+			return "TRACE";
+		case M_HTTP_METHOD_CONNECT:
+			return "CONNECT";
+		case M_HTTP_METHOD_UNKNOWN:
+			break;
+	}
+
+	return NULL;
 }

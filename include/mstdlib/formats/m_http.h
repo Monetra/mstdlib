@@ -718,6 +718,7 @@ void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, con
  */
 M_http_version_t M_http_version_from_str(const char *version);
 
+const char *M_http_version_to_str(M_http_version_t version);
 
 /*! Convert a method string into a method value.
  *
@@ -726,6 +727,8 @@ M_http_version_t M_http_version_from_str(const char *version);
  * \return method.
  */
 M_http_method_t M_http_method_from_str(const char *method);
+
+const char *M_http_method_to_str(M_http_method_t method);
 
 /*! @} */
 
