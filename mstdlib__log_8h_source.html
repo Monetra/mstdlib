@@ -352,20 +352,61 @@ $(document).ready(function(){initNavTree('mstdlib__log_8h_source.html','');});
 <div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="comment"> *         return EXIT_SUCCESS;</span></div>
 <div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;<span class="comment"> *     }</span></div>
 <div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;<span class="comment"> * \endcode</span></div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="preprocessor">#include &lt;mstdlib/log/m_async_writer.h&gt;</span></div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="preprocessor">#include &lt;mstdlib/log/m_log.h&gt;</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* MSTDLIB_LOG_H */</span><span class="preprocessor"></span></div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment"> * Example (simple logging to a file):</span></div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="comment"> * \code{.c}</span></div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="comment"> *     #include &lt;mstdlib/mstdlib.h&gt;</span></div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="comment"> *     #include &lt;mstdlib/mstdlib_log.h&gt;</span></div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="comment"> *     #include &lt;mstdlib/mstdlib_thread.h&gt;</span></div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;<span class="comment"> *     </span></div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="comment"> *     typedef enum {</span></div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment"> *         TAG_1 = 1 &lt;&lt; 0</span></div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="comment"> *     } tags_t;</span></div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;<span class="comment"> *     </span></div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="comment"> *     int main(int argc, char **argv)</span></div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="comment"> *     {</span></div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="comment"> *         M_log_t        *log;</span></div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="comment"> *         M_log_module_t *mod_file;</span></div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;<span class="comment"> *         M_log_error_t   res;</span></div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="comment"> *         size_t          i;</span></div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;<span class="comment"> *     </span></div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;<span class="comment"> *         log = M_log_create(M_LOG_LINE_END_NATIVE, M_TRUE, NULL);</span></div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="comment"> *         M_log_set_tag_name(log, TAG_1,  &quot;tag_1_name&quot;);</span></div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="comment"> *         // Use /dev/stdout (*nix/macOS) as a pretend file. We could have specified an actual file that</span></div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="comment"> *         // exists or not but this is a good way to see what&#39;s happening.</span></div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;<span class="comment"> *         res = M_log_module_add_file(log, &quot;/dev/stdout&quot;, 15, 150000, 0, 150000, NULL, NULL, &amp;mod_file);</span></div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;<span class="comment"> *         if (res != M_LOG_SUCCESS) {</span></div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;<span class="comment"> *             M_fprintf(stderr, &quot;Could not add file module: %s\n&quot;, M_log_err_to_str(res));</span></div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="comment"> *             M_log_destroy(log);</span></div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="comment"> *             return 1;</span></div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="comment"> *         } else {</span></div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="comment"> *             M_log_module_set_accepted_tags(log, mod_file, TAG_1);</span></div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="comment"> *         }</span></div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="comment"> *     </span></div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="comment"> *         for (i=0; i&lt;12; i++) {</span></div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="comment"> *             M_log_printf(log, TAG_1, NULL, &quot;Test.. %zu ...\n&quot;, i+1);</span></div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="comment"> *             M_thread_sleep(10*10000);</span></div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="comment"> *         }</span></div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="comment"> *     </span></div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="comment"> *         M_log_destroy_blocking(log, 5000);</span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="comment"> *         return 0;</span></div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="comment"> *     }</span></div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;<span class="comment"> * \endcode</span></div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="preprocessor">#include &lt;mstdlib/log/m_async_writer.h&gt;</span></div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="preprocessor">#include &lt;mstdlib/log/m_log.h&gt;</span></div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* MSTDLIB_LOG_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="preprocessor"></span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><b>mstdlib_log.h</b></li>
-    <li class="footer">Generated on Wed Apr 25 2018 12:47:24 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 25 2018 20:01:50 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -364,12 +364,49 @@ Modules</h2></td></tr>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">return</span> EXIT_SUCCESS;</div>
 <div class="line">}</div>
+</div><!-- fragment --><p>Example (simple logging to a file):</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib.h&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_log.h&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_thread.h&gt;</span></div>
+<div class="line"></div>
+<div class="line"><span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
+<div class="line">    TAG_1 = 1 &lt;&lt; 0</div>
+<div class="line">} tags_t;</div>
+<div class="line"></div>
+<div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> **argv)</div>
+<div class="line">{</div>
+<div class="line">    <a class="code" href="group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d">M_log_t</a>        *log;</div>
+<div class="line">    <a class="code" href="group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53">M_log_module_t</a> *mod_file;</div>
+<div class="line">    <a class="code" href="group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672">M_log_error_t</a>   res;</div>
+<div class="line">    <span class="keywordtype">size_t</span>          i;</div>
+<div class="line"></div>
+<div class="line">    log = <a class="code" href="group__m__log__common.html#ga047a827cc4dd3ce8fbade99af21eab70">M_log_create</a>(<a class="code" href="group__m__log__common.html#gga30bbd00fb22bc02ccab5430640387357a9000b0d26226274b09571831d5631773">M_LOG_LINE_END_NATIVE</a>, M_TRUE, NULL);</div>
+<div class="line">    <a class="code" href="group__m__log__common.html#ga14b387cbdb39546dfad2476e7e6730cd">M_log_set_tag_name</a>(log, TAG_1,  <span class="stringliteral">&quot;tag_1_name&quot;</span>);</div>
+<div class="line">    <span class="comment">// Use /dev/stdout (*nix/macOS) as a pretend file. We could have specified an actual file that</span></div>
+<div class="line">    <span class="comment">// exists or not but this is a good way to see what&#39;s happening.</span></div>
+<div class="line">    res = <a class="code" href="group__m__log__file.html#gad3ec781b1fd629505ebabaeafc7a1a88">M_log_module_add_file</a>(log, <span class="stringliteral">&quot;/dev/stdout&quot;</span>, 15, 150000, 0, 150000, NULL, NULL, &amp;mod_file);</div>
+<div class="line">    <span class="keywordflow">if</span> (res != <a class="code" href="group__m__log__common.html#ggab5f4f197e827f0ecab0b79f0f2478672ac9ea11b5dde45747bcd05224db585048">M_LOG_SUCCESS</a>) {</div>
+<div class="line">        <a class="code" href="group__m__fmt.html#ga244d7165926719558f6472697f1fafa9">M_fprintf</a>(stderr, <span class="stringliteral">&quot;Could not add file module: %s\n&quot;</span>, <a class="code" href="group__m__log__common.html#ga7a60b3635bd2c4db809f47ce8089ffad">M_log_err_to_str</a>(res));</div>
+<div class="line">        <a class="code" href="group__m__log__common.html#gad68c2c25e5740670385d81824d3b998b">M_log_destroy</a>(log);</div>
+<div class="line">        <span class="keywordflow">return</span> 1;</div>
+<div class="line">    } <span class="keywordflow">else</span> {</div>
+<div class="line">        <a class="code" href="group__m__log__common.html#ga1f4ddc20190c5f51991f18fae2cc897d">M_log_module_set_accepted_tags</a>(log, mod_file, TAG_1);</div>
+<div class="line">    }</div>
+<div class="line"></div>
+<div class="line">    <span class="keywordflow">for</span> (i=0; i&lt;12; i++) {</div>
+<div class="line">        <a class="code" href="group__m__log__common.html#gaf5790176e869dbbef6b11e63080307a1">M_log_printf</a>(log, TAG_1, NULL, <span class="stringliteral">&quot;Test.. %zu ...\n&quot;</span>, i+1);</div>
+<div class="line">        <a class="code" href="group__m__thread__common__create.html#gad157454b4bc8ece94d2c02e3a3c5b3a0">M_thread_sleep</a>(10*10000);</div>
+<div class="line">    }</div>
+<div class="line"></div>
+<div class="line">    <a class="code" href="group__m__log__common.html#ga910bc157931e27cd47d17f6eddf67b8e">M_log_destroy_blocking</a>(log, 5000);</div>
+<div class="line">    <span class="keywordflow">return</span> 0;</div>
+<div class="line">}</div>
 </div><!-- fragment --> </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Apr 25 2018 12:47:24 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 25 2018 20:01:50 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
