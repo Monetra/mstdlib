@@ -252,6 +252,47 @@
  *         return EXIT_SUCCESS;
  *     }
  * \endcode
+ *
+ * Example (simple logging to a file):
+ *
+ * \code{.c}
+ *     #include <mstdlib/mstdlib.h>
+ *     #include <mstdlib/mstdlib_log.h>
+ *     #include <mstdlib/mstdlib_thread.h>
+ *     
+ *     typedef enum {
+ *         TAG_1 = 1 << 0
+ *     } tags_t;
+ *     
+ *     int main(int argc, char **argv)
+ *     {
+ *         M_log_t        *log;
+ *         M_log_module_t *mod_file;
+ *         M_log_error_t   res;
+ *         size_t          i;
+ *     
+ *         log = M_log_create(M_LOG_LINE_END_NATIVE, M_TRUE, NULL);
+ *         M_log_set_tag_name(log, TAG_1,  "tag_1_name");
+ *         // Use /dev/stdout (*nix/macOS) as a pretend file. We could have specified an actual file that
+ *         // exists or not but this is a good way to see what's happening.
+ *         res = M_log_module_add_file(log, "/dev/stdout", 15, 150000, 0, 150000, NULL, NULL, &mod_file);
+ *         if (res != M_LOG_SUCCESS) {
+ *             M_fprintf(stderr, "Could not add file module: %s\n", M_log_err_to_str(res));
+ *             M_log_destroy(log);
+ *             return 1;
+ *         } else {
+ *             M_log_module_set_accepted_tags(log, mod_file, TAG_1);
+ *         }
+ *     
+ *         for (i=0; i<12; i++) {
+ *             M_log_printf(log, TAG_1, NULL, "Test.. %zu ...\n", i+1);
+ *             M_thread_sleep(10*10000);
+ *         }
+ *     
+ *         M_log_destroy_blocking(log, 5000);
+ *         return 0;
+ *     }
+ * \endcode
  */
 
 #include <mstdlib/log/m_async_writer.h>
