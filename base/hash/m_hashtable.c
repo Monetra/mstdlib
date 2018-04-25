@@ -847,15 +847,24 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 
 	/* Since will be doing direct pointer copying of keys and values,
 	 * rather than reallocing and freeing the old ones.  Make sure
-	 * the free() callbacks are both no-ops */
+	 * the free() callbacks are both no-ops. We can't destory
+	 * src because it has pointers to keys and values that are
+	 * in dest. */
 	src->key_free   = M_hashtable_free_func_default;
 	src->value_free = M_hashtable_free_func_default;
 
 	/* Enumerate the table to be merged into our destination, and insert the
 	 * direct key/value pairs WITHOUT duplicating them */
 	if (M_hashtable_enumerate(src, &hashenum) != 0) {
+		/* Multi-value src will have enumerate_next return key multiple times
+		 * with each value. If dest is a multi-value all of the values will
+		 * end up being added. Otherwise only the last value from src will
+		 * make it into dest. */
 		while (M_hashtable_enumerate_next(src, &hashenum, &key, &value)) {
-			/* Track keys that are in dest and src so we can destroy them. */
+			/* Track keys from src that are in dest and src so we can destroy them.
+			 * If the key arleady exists in dest, dest's key won't be touched.
+			 * The src key needs to be destoryed so we put it in a temporary to
+			 * track it for destruction later. */
 			if (M_hashtable_get(*dest, key, NULL)) {
 				M_hashtable_insert_direct(h3, M_HASHTABLE_INSERT_NODUP, key, NULL);
 			}
