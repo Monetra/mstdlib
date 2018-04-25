@@ -99,7 +99,7 @@ typedef  signed   char        M_int8;
 #  define  SSIZE_MIN  M_INTPTR_MIN
 #endif
 #ifndef SIZE_MAX
-#  define  SIZE_MAX  M_UINTPTR_MAX
+#  define  SIZE_MAX   ((size_t)M_UINTPTR_MAX)
 #endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

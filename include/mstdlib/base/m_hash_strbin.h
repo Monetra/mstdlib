@@ -266,6 +266,9 @@ M_API size_t M_hash_strbin_enumerate(const M_hash_strbin_t *h, M_hash_strbin_enu
 
 /*! Retrieve the next item from a hashtable enumeration.
  *
+ * If multi-value, keys will appear multiple times as each value will be
+ * retrieved individually.
+ *
  * \param[in]     h         Hashtable being referenced.
  * \param[in,out] hashenum  State variable for tracking the enumeration process.
  * \param[out]    key       Value of next enumerated key. Optional, may be NULL
@@ -291,6 +294,10 @@ M_API void M_hash_strbin_enumerate_free(M_hash_strbin_enum_t *hashenum);
  * The second (src) hashtable will be destroyed automatically upon completion of this function. Any key/value
  * pointers for the hashtable will be directly copied over to the destination hashtable, they will not be
  * duplicated. Any keys which exist in 'dest' that also exist in 'src' will be overwritten by the 'src' value.
+ *
+ * If dest and src are multi-value, all values from src will be copied into dest and the values from
+ * dest will not be removed. If dest is not multi-value and src is, then only the last value in src will
+ * be present in dest. If dest is multi-value and src is not, then the value from src will be added to dest.
  *
  * \param[in,out] dest Pointer by reference to the hashtable receiving the key/value pairs.
  *                     if dest is NULL, the src address will simply be copied to dest.

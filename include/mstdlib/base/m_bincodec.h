@@ -75,14 +75,14 @@ typedef enum {
  * Encode
  */
 
-/*! The maximumn number of bytes necessary to encode using the specified codec.
+/*! The maximum number of bytes necessary to encode using the specified codec.
  *
- * \param[in] inLen The length of the input to encode.
+ * \param[in] inLen Number of bytes that will be passed to the encoder.
  * \param[in] wrap  The maximum length of a given line. Longer lines will be split with a new line. Pass 0 if
  *                  line splitting is not desired.
- * \param[in] codec The binary coded used for encoding.
+ * \param[in] codec The binary codec that will be used for encoding.
  *
- * \return The maximumn number of bytes that would be used to encode the data.
+ * \return The maximum number of bytes needed to store the data after encoding.
  */
 M_API size_t M_bincodec_encode_size(size_t inLen, size_t wrap, M_bincodec_codec_t codec);
 
@@ -121,6 +121,16 @@ M_API size_t M_bincodec_encode(char *out, size_t outLen, const M_uint8 *in, size
  * Decode
  */
 
+
+/*! The maximum number of bytes necessary to encode using the specified codec.
+ *
+ * \param[in] inLen Number of bytes that will be passed to the decoder.
+ * \param[in] codec The binary codec that will be used for decoding.
+ *
+ * \return The maximum number of bytes needed to store the data after decoding.
+ */
+M_API size_t M_bincodec_decode_size(size_t inLen, M_bincodec_codec_t codec);
+
 /*! Decodes data passed into it using the specified binary codec.
  *
  * \param[in]  in     The string data to decode.
@@ -154,7 +164,7 @@ M_API char *M_bincodec_decode_str_alloc(const char *in, M_bincodec_codec_t codec
  * \param[in]  outLen The length of the output buffer.
  * \param[in]  codec  The binary codec to use for decoding.
  *
- * \return The number of bytes written into the output buffer.
+ * \return The number of bytes written into the output buffer, or 0 on error.
  */
 M_API size_t M_bincodec_decode(M_uint8 *out, size_t outLen, const char *in, size_t inLen, M_bincodec_codec_t codec);
 

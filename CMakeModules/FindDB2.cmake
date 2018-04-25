@@ -49,12 +49,18 @@ if (DB2_INCLUDE_DIR)
 	# Find static library.
 	if (NOT WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
-		find_library(DB2_STATIC_LIBRARY
-			NAMES         ${_libnames}
-			NAMES_PER_DIR
-			HINTS         ${DB2_DIR}
-			PATH_SUFFIXES ${_lib_path_suffixes}
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(DB2_STATIC_LIBRARY
+				NAMES         ${_libnames}
+				NAMES_PER_DIR
+				HINTS         ${DB2_DIR}
+				PATH_SUFFIXES ${_lib_path_suffixes}
+				${defpath}
+			)
+			if (DB2_STATIC_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(DB2_STATIC_LIBRARY)
 		if (DB2_STATIC_LIBRARY)
 			set(DB2_db2_static_FOUND TRUE)
@@ -64,12 +70,18 @@ if (DB2_INCLUDE_DIR)
 	
 	# Find shared library (will pick up static lib if shared not found).
 	set(CMAKE_FIND_LIBRARY_SUFFIXES "${_old_suffixes}")
-	find_library(DB2_LIBRARY
-		NAMES         ${_libnames}
-		NAMES_PER_DIR
-		HINTS         ${DB2_DIR}
-		PATH_SUFFIXES ${_lib_path_suffixes}
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(DB2_LIBRARY
+			NAMES         ${_libnames}
+			NAMES_PER_DIR
+			HINTS         ${DB2_DIR}
+			PATH_SUFFIXES ${_lib_path_suffixes}
+			${defpath}
+		)
+		if (DB2_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(DB2_LIBRARY)
 	if (DB2_LIBRARY AND NOT DB2_LIBRARY STREQUAL DB2_STATIC_LIBRARY)
 		set(DB2_db2_shared_FOUND TRUE)
