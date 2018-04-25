@@ -332,3 +332,65 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 	}
 	return res;
 }
+
+unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+{
+	M_http_t           *http;
+	M_buf_t            *buf;
+	M_hash_dict_enum_t *he;
+	const char         *key;
+	const char         *val;
+	size_t              len;
+	size_t              i;
+
+	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN || (headers == NULL && (data == NULL || len == 0)))
+		return NULL;
+
+	buf  = M_buf_create();
+
+	/* Start line = method uri version */
+	M_buf_add_str(buf, M_http_method_to_str(method));
+	M_buf_add_byte(buf, ' ');
+
+	/* XXX: Convert spaces to ? */
+	M_buf_add_str(buf, uri);
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_str(buf, M_http_version_to_str(version));
+	M_buf_add_str(buf, "\r\n");
+
+	/* Add the headers. */
+	http    = M_http_create(void);
+	M_http_set_headers(http, headers, M_FALSE);
+	headers = M_http_headers(http);
+
+	M_hash_dict_enumerate(headers, &he);
+	while (M_hash_dict_enumerate_next(headers, he, &key, NULL)) {
+		M_buf_add_str(buf, key);
+		M_buf_add_byte(buf, ':');
+		temp = M_http_header(http, key);
+		M_buf_add_str(buf, temp);
+		M_free(temp);
+		M_buf_add_str(buf, "\r\n");
+	}
+	M_hash_dict_enumerate_free(he);
+
+	/* End of start/headers. */
+	M_buf_add_str(buf, "\r\n");
+
+
+
+	/* XXX Need to check these. They are not allowed at all
+	 * cl allowed but only if body is NULL. */
+	if (!M_str_isempty(headers, "transfer-encoding", NULL))
+		return NULL;
+	if (!M_str_isempty(headers, "content-length", NULL))
+		return NULL;
+
+
+	return M_buf_finish(buf, len);
+}
+
+unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+{
+}

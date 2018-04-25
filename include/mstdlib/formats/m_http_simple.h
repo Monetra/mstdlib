@@ -73,8 +73,8 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, M_hash_dict_t *headers, const char *data, size_t len);
-char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, M_hash_dict_t *headers, const char *data, size_t len);
+unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t datea_len, size_t *len);
+unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
 
 /*! @} */
 
