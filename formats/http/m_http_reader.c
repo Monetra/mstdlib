@@ -306,6 +306,7 @@ static M_http_error_t M_http_read_start_line_response(M_http_reader_t *httpr, M_
 /* request-line = method SP request-target SP HTTP-version CRLF */
 static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_parser_t **parts, size_t num_parts)
 {
+	M_http_t         *http    = NULL;
 	char             *temp    = NULL;
 	char             *uri     = NULL;
 	M_http_method_t   method  = M_HTTP_METHOD_UNKNOWN;
@@ -323,12 +324,13 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 		return M_HTTP_ERROR_REQUEST_METHOD;
 
 	/* Part 2: URI */
-	uri = M_parser_read_strdup(parts[0], M_parser_len(parts[0]));
-	/* XXX: Validate URI .*/
-#if 0
-	if (!M_http_set_uri(httpr, temp))
-		return M_HTTP_ERROR_REQUEST_URI;
-#endif
+	uri  = M_parser_read_strdup(parts[0], M_parser_len(parts[0]));
+	http = M_http_create();
+	/* Validate the uri. */
+	if (!M_http_set_uri(http, uri)) {
+		res = M_HTTP_ERROR_REQUEST_URI;
+		goto done;
+	}
 
 	/* Part 3: Version */
 	res = M_http_read_version(parts[0], &version);
@@ -339,6 +341,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 	res = httpr->cbs.start_func(M_HTTP_MESSAGE_TYPE_REQUEST, version, method, uri, 0, NULL, httpr->thunk);
 
 done:
+	M_http_destroy(http);
 	M_free(uri);
 	return res;
 }
