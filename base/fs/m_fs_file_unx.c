@@ -193,11 +193,6 @@ M_fs_error_t M_fs_file_seek_sys(M_fs_file_t *fd, M_int64 offset, M_fs_file_seek_
 	if (fd == NULL || fd->fd == -1)
 		return M_FS_ERROR_INVALID;
 
-	/* XXX: Instead of checking that we're not larger for all seek types we could split the value and run
- 	 * seek multiple times. */
-	if (sizeof(off_t) == 4 && (offset > M_INT32_MAX || offset < M_INT32_MIN))
-		return M_FS_ERROR_SEEK;
-	
 	if (from == M_FS_FILE_SEEK_END) {
 		whence = SEEK_END;
 	} else if (from == M_FS_FILE_SEEK_CUR) {
@@ -206,9 +201,21 @@ M_fs_error_t M_fs_file_seek_sys(M_fs_file_t *fd, M_int64 offset, M_fs_file_seek_
 		whence = SEEK_SET;
 	}
 
-	ret = lseek(fd->fd, (off_t)offset, whence);
-	if (ret == -1) {
-		return M_fs_error_from_syserr(errno);
+	while (offset != 0) {
+		M_int64 amt_to_move = offset;
+		if (sizeof(off_t) == 4) {
+			if (offset > M_INT32_MAX) {
+				amt_to_move = M_INT32_MAX;
+			} else if (offset < M_INT32_MIN) {
+				amt_to_move = M_INT32_MIN;
+			}
+		}
+
+		ret = lseek(fd->fd, (off_t)amt_to_move, whence);
+		if (ret == -1) {
+			return M_fs_error_from_syserr(errno);
+		}
+		offset -= amt_to_move;
 	}
 
 	return M_FS_ERROR_SUCCESS;

@@ -35,7 +35,7 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 
 # Set path guesses.
 set(_paths)
-if (WIN32)
+if (CMAKE_HOST_WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
@@ -113,13 +113,19 @@ if (Oracle_INCLUDE_DIR)
 	endif ()
 	
 	# Find shared library.
-	find_library(Oracle_LIBRARY
-		NAMES         oci clntsh liboci libclntsh
-		NAMES_PER_DIR
-		HINTS         ${Oracle_DIR}
-		PATHS         ${_paths}
-		PATH_SUFFIXES lib sdk/lib sdk/lib/msvc
-	)
+	foreach (defpath "NO_DEFAULT_PATH" "")
+		find_library(Oracle_LIBRARY
+			NAMES         oci clntsh liboci libclntsh
+			NAMES_PER_DIR
+			HINTS         ${Oracle_DIR}
+			PATHS         ${_paths}
+			PATH_SUFFIXES lib sdk/lib sdk/lib/msvc
+			${defpath}
+		)
+		if (Oracle_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(Oracle_LIBRARY)
 	if (Oracle_LIBRARY)
 		set(Oracle_oci_FOUND TRUE)
@@ -128,12 +134,18 @@ if (Oracle_INCLUDE_DIR)
 	# Find the DLL (if any).
 	if (WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		find_library(Oracle_DLL_LIBRARY
-			NAMES         oci
-			NAMES_PER_DIR
-			HINTS         ${Oracle_DIR}
-			PATH_SUFFIXES bin lib ""
-		)
+		foreach (defpath "NO_DEFAULT_PATH" "")
+			find_library(Oracle_DLL_LIBRARY
+				NAMES         oci
+				NAMES_PER_DIR
+				HINTS         ${Oracle_DIR}
+				PATH_SUFFIXES bin lib ""
+				${defpath}
+			)
+			if (Oracle_DLL_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(Oracle_DLL_LIBRARY)
 	endif ()
 endif ()
@@ -197,7 +209,7 @@ endfunction()
 # Note: Oracle 12 on Windows doesn't have any extra dependencies besides oci.dll.
 
 # Oracle 11 and 12 (linux only):
-_oracle_add_extra_dep(NNZ12 nnz12 libnnz12)
+_oracle_add_extra_dep(NNZ nnz12 libnnz12 nnz11 libnnz11)
 # Oracle 12 only (linux only):
 _oracle_add_extra_dep(CLNTSHCORE clntshcore libclntshcore)
 _oracle_add_extra_dep(MQL1 mql1 libmql1)

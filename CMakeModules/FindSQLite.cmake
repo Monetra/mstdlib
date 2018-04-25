@@ -30,7 +30,7 @@ if (PKG_CONFIG_FOUND)
 	PKG_CHECK_MODULES(PC_SQLite QUIET sqlite)
 endif ()
 
-if (WIN32)
+if (CMAKE_HOST_WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
@@ -86,12 +86,18 @@ if (SQLite_INCLUDE_DIR)
 
 	# Find static library.
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
-	find_library(SQLite_STATIC_LIBRARY
-		NAMES         sqlite_static sqlite3_static sqlitestatic sqlite3static sqlite sqlite3
-		NAMES_PER_DIR
-		HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
-		PATH_SUFFIXES lib ""
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(SQLite_STATIC_LIBRARY
+			NAMES         sqlite_static sqlite3_static sqlitestatic sqlite3static sqlite sqlite3
+			NAMES_PER_DIR
+			HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
+			PATH_SUFFIXES lib ""
+			${defpath}
+		)
+		if (SQLite_STATIC_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(SQLite_STATIC_LIBRARY)
 	if (SQLite_STATIC_LIBRARY)
 		set(SQLite_sqlite_static_FOUND TRUE)
@@ -100,12 +106,18 @@ if (SQLite_INCLUDE_DIR)
 
 	# Find shared library (will pick up static lib if shared not found).
 	set(CMAKE_FIND_LIBRARY_SUFFIXES "${_old_suffixes}")
-	find_library(SQLite_LIBRARY
-		NAMES         sqlite sqlite3 sqlite_satic sqlite3_static sqlitestatic sqlite3static
-		NAMES_PER_DIR
-		HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
-		PATH_SUFFIXES lib ""
-	)
+	foreach(defpath "NO_DEFAULT_PATH" "")
+		find_library(SQLite_LIBRARY
+			NAMES         sqlite sqlite3 sqlite_satic sqlite3_static sqlitestatic sqlite3static
+			NAMES_PER_DIR
+			HINTS         ${SQLite_DIR} ${PC_SQLite_LIBRARY_DIRS}
+			PATH_SUFFIXES lib ""
+			${defpath}
+		)
+		if (SQLite_LIBRARY)
+			break()
+		endif ()
+	endforeach()
 	add_to_cachelog(SQLite_LIBRARY)
 	if (SQLite_LIBRARY AND NOT SQLite_LIBRARY STREQUAL SQLite_STATIC_LIBRARY)
 		set(SQLite_sqlite_shared_FOUND TRUE)
@@ -115,12 +127,18 @@ if (SQLite_INCLUDE_DIR)
 	# Look for the DLL.
 	if (WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		find_library(SQLite_DLL_LIBRARY
-			NAMES         sqlite sqlite3
-			NAMES_PER_DIR
-			HINTS         ${SQLite_DIR}
-			PATH_SUFFIXES bin lib ""
-		)
+		foreach(defpath "NO_DEFAULT_PATH" "")
+			find_library(SQLite_DLL_LIBRARY
+				NAMES         sqlite sqlite3
+				NAMES_PER_DIR
+				HINTS         ${SQLite_DIR}
+				PATH_SUFFIXES bin lib ""
+				${defpath}
+			)
+			if (SQLite_DLL_LIBRARY)
+				break()
+			endif ()
+		endforeach()
 		add_to_cachelog(SQLite_DLL_LIBRARY)
 	endif ()
 endif ()
