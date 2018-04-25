@@ -360,52 +360,59 @@ $(document).ready(function(){initNavTree('m__hash__stridx_8h_source.html','');})
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="comment">/*! Retrieve the next item from a hashtable enumeration.</span></div>
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="comment"> * \param[in]     h        Hashtable being referenced.</span></div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment"> * \param[in,out] hashenum State variable for tracking the enumeration process.</span></div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="comment"> * \param[out]    key      Value of next enumerated key. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;<span class="comment"> * \param[out]    value    Value of next enumerated value. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="comment"> * \return M_TRUE if enumeration succeeded, M_FALSE if no more keys.</span></div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;M_API M_bool <a class="code" href="group__m__hash__stridx.html#ga90b69375839f8e4d3fbe92506a29271e">M_hash_stridx_enumerate_next</a>(<span class="keyword">const</span> <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h, <a class="code" href="group__m__hash__stridx.html#gaebae4b9922dc8da8f482945614865ef5">M_hash_stridx_enum_t</a> *hashenum, <span class="keyword">const</span> <span class="keywordtype">char</span> **key, <span class="keywordtype">size_t</span> *value);</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;<span class="comment">/*! Destroy an enumeration state.</span></div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="comment"> * \param[in] hashenum Enumeration to destroy.</span></div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hash__stridx.html#ga5df208ccec154fde226f6ad49b3d9429">M_hash_stridx_enumerate_free</a>(<a class="code" href="group__m__hash__stridx.html#gaebae4b9922dc8da8f482945614865ef5">M_hash_stridx_enum_t</a> *hashenum);</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="comment">/*! Merge two hashtables together.</span></div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="comment"> * The second (src) hashtable will be destroyed automatically upon completion of this function. Any key/value</span></div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="comment"> * pointers for the hashtable will be directly copied over to the destination hashtable, they will not be</span></div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="comment"> * duplicated. Any keys which exist in &#39;dest&#39; that also exist in &#39;src&#39; will be overwritten by the &#39;src&#39; value.</span></div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="comment"> * \param[in,out] dest Pointer by reference to the hashtable receiving the key/value pairs.</span></div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="comment"> *                     if dest is NULL, the src address will simply be copied to dest.</span></div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="comment"> * \param[in,out] src  Pointer to the hashtable giving up its key/value pairs.</span></div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hash__stridx.html#ga234ec38993246d5431cbfd4963175ca0">M_hash_stridx_merge</a>(<a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> **dest, <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *src) M_FREE(2);</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="comment">/*! Duplicate an existing hashtable.</span></div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;<span class="comment"> * Copying all keys and values.</span></div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="comment"> * \param[in] h Hashtable to be copied.</span></div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="comment"> * \return Duplicated hashtable.</span></div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;M_API <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *<a class="code" href="group__m__hash__stridx.html#ga67529591c21ed9f6793743a9d47714c3">M_hash_stridx_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h) M_MALLOC;</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_HASH_STRIDX_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="comment"> * If multi-value, keys will appear multiple times as each value will be</span></div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment"> * retrieved individually.</span></div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;<span class="comment"> * \param[in]     h        Hashtable being referenced.</span></div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="comment"> * \param[in,out] hashenum State variable for tracking the enumeration process.</span></div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="comment"> * \param[out]    key      Value of next enumerated key. Optional, pass NULL if not needed.</span></div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="comment"> * \param[out]    value    Value of next enumerated value. Optional, pass NULL if not needed.</span></div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;<span class="comment"> * \return M_TRUE if enumeration succeeded, M_FALSE if no more keys.</span></div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;M_API M_bool <a class="code" href="group__m__hash__stridx.html#ga90b69375839f8e4d3fbe92506a29271e">M_hash_stridx_enumerate_next</a>(<span class="keyword">const</span> <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h, <a class="code" href="group__m__hash__stridx.html#gaebae4b9922dc8da8f482945614865ef5">M_hash_stridx_enum_t</a> *hashenum, <span class="keyword">const</span> <span class="keywordtype">char</span> **key, <span class="keywordtype">size_t</span> *value);</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="comment">/*! Destroy an enumeration state.</span></div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;<span class="comment"> * \param[in] hashenum Enumeration to destroy.</span></div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hash__stridx.html#ga5df208ccec154fde226f6ad49b3d9429">M_hash_stridx_enumerate_free</a>(<a class="code" href="group__m__hash__stridx.html#gaebae4b9922dc8da8f482945614865ef5">M_hash_stridx_enum_t</a> *hashenum);</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="comment">/*! Merge two hashtables together.</span></div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="comment"> * The second (src) hashtable will be destroyed automatically upon completion of this function. Any key/value</span></div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="comment"> * pointers for the hashtable will be directly copied over to the destination hashtable, they will not be</span></div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="comment"> * duplicated. Any keys which exist in &#39;dest&#39; that also exist in &#39;src&#39; will be overwritten by the &#39;src&#39; value.</span></div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="comment"> * If dest and src are multi-value, all values from src will be copied into dest and the values from</span></div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="comment"> * dest will not be removed. If dest is not multi-value and src is, then only the last value in src will</span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="comment"> * be present in dest. If dest is multi-value and src is not, then the value from src will be added to dest.</span></div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;<span class="comment"> * \param[in,out] dest Pointer by reference to the hashtable receiving the key/value pairs.</span></div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;<span class="comment"> *                     if dest is NULL, the src address will simply be copied to dest.</span></div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;<span class="comment"> * \param[in,out] src  Pointer to the hashtable giving up its key/value pairs.</span></div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hash__stridx.html#ga234ec38993246d5431cbfd4963175ca0">M_hash_stridx_merge</a>(<a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> **dest, <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *src) M_FREE(2);</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment">/*! Duplicate an existing hashtable.</span></div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="comment"> * Copying all keys and values.</span></div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;<span class="comment"> * \param[in] h Hashtable to be copied.</span></div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="comment"> * \return Duplicated hashtable.</span></div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;M_API <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *<a class="code" href="group__m__hash__stridx.html#ga67529591c21ed9f6793743a9d47714c3">M_hash_stridx_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h) M_MALLOC;</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_HASH_STRIDX_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__hash__stridx_html_gga463fb5a7972297cfd5fb3cf4dce8033cabe6ff83722bec82c8311eba911519071"><div class="ttname"><a href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033cabe6ff83722bec82c8311eba911519071">M_HASH_STRIDX_KEYS_SORTDESC</a></div><div class="ttdef"><b>Definition:</b> m_hash_stridx.h:70</div></div>
 <div class="ttc" id="group__m__hash__stridx_html_ga221e84296fc162cde08dafc0c9154d4c"><div class="ttname"><a href="group__m__hash__stridx.html#ga221e84296fc162cde08dafc0c9154d4c">M_hash_stridx_multi_get_direct</a></div><div class="ttdeci">size_t M_hash_stridx_multi_get_direct(const M_hash_stridx_t *h, const char *key, size_t idx)</div></div>
 <div class="ttc" id="group__m__hash__stridx_html_gga463fb5a7972297cfd5fb3cf4dce8033ca5ac9af6c6c54315da24a8eda00452b9c"><div class="ttname"><a href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033ca5ac9af6c6c54315da24a8eda00452b9c">M_HASH_STRIDX_NONE</a></div><div class="ttdef"><b>Definition:</b> m_hash_stridx.h:61</div></div>
@@ -443,7 +450,7 @@ $(document).ready(function(){initNavTree('m__hash__stridx_8h_source.html','');})
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_a4978744522068604823c107062e0240.html">base</a></li><li class="navelem"><b>m_hash_stridx.h</b></li>
-    <li class="footer">Generated on Mon Apr 23 2018 15:22:04 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 25 2018 12:47:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

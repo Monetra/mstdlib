@@ -1018,6 +1018,7 @@ value_free</td>
       </table>
 </div><div class="memdoc">
 <p>Retrieve the next item from a h enumeration.</p>
+<p>If multi-value, keys will appear multiple times as each value will be retrieved individually.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">h</td><td>Hashtable being referenced. </td></tr>
@@ -1056,6 +1057,7 @@ value_free</td>
 </div><div class="memdoc">
 <p>Merge two hashtables together.</p>
 <p>The second (src) h will be destroyed automatically upon completion of this function. Any key/value pointers for the h will be directly copied over to the destination h, they will not be duplicated. Any keys which exist in 'dest' that also exist in 'src' will be overwritten by the 'src' value.</p>
+<p>If dest and src are multi-value, all values from src will be copied into dest and the values from dest will not be removed. If dest is not multi-value and src is, then only the last value in src will be present in dest. If dest is multi-value and src is not, then the value from src will be added to dest. A value_equality function in dest is very important to ensure duplicate values are not present in a given key with multiple values.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">dest</td><td>Pointer by reference to the h receiving the key/value pairs. if dest is NULL, the src address will simply be copied to dest. </td></tr>
@@ -1096,7 +1098,7 @@ value_free</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Apr 23 2018 15:22:04 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Apr 25 2018 12:47:24 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
