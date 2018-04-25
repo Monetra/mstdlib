@@ -65,7 +65,7 @@ static M_http_error_t M_http_simple_header_done_cb(void *thunk)
 	M_int64              i64v;
 
 	headers = M_http_headers(simple->http);
-	val     = M_hash_dict_multi_get_direct(headers, "content-length", 1);
+	val     = M_hash_dict_get_direct(headers, "content-length");
 
 	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
 		return M_HTTP_ERROR_LENGTH_REQUIRED;
@@ -161,6 +161,75 @@ static M_http_error_t M_http_simple_trailer_done_cb(void *thunk)
 {
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* Adds headers and body. */
+static M_bool M_http_simple_write_int(M_buf_t *buf, const M_hash_dict_t *headers, const char *data, size_t data_len)
+{
+	M_http_t           *http = NULL;
+	M_hash_dict_enum_t *he;
+	const char         *key;
+	const char         *val;
+	char                tempa[32];
+	M_int64             i64v;
+
+	/* We want to push the headers into the http to ensure they're in a
+ 	 * properly configured hashtable. We need to ensure flags like casecomp
+	 * are enabled. */
+	http = M_http_create();
+	if (headers != NULL) {
+		M_http_set_headers(http, headers, M_FALSE);
+		headers = M_http_headers(http);
+	}
+
+	/* Validate some headers. */
+	if (data != NULL && data_len != 0) {
+		/* Can't have transfer-encoding AND data. */
+		if (M_hash_dict_get(headers, "transfer-encoding", NULL)) {
+			goto err;
+		}
+
+		if (M_hash_dict_get(headers, "content-length", &val)) {
+			/* If content-length is already set we need to ensure it matches data
+ 			 * since this is considered a complete message. */
+			if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
+				goto err;
+			}
+
+			if ((size_t)i64v != data_len) {
+				goto err;
+			}
+		} else {
+			M_snprintf(tempa, sizeof(tempa), "%zu", data_len);
+			M_http_set_header(http, "content-length", tempa);
+		}
+	}
+
+	/* We're not going to convert duplicates into a list.
+ 	 * We'll write them as individual ones. */
+	M_hash_dict_enumerate(headers, &he);
+	while (M_hash_dict_enumerate_next(headers, he, &key, &val)) {
+		M_buf_add_str(buf, key);
+		M_buf_add_byte(buf, ':');
+		M_buf_add_str(buf, val);
+		M_buf_add_str(buf, "\r\n");
+	}
+	M_hash_dict_enumerate_free(he);
+
+	/* End of start/headers. */
+	M_buf_add_str(buf, "\r\n");
+
+	/* Add the body data. */
+	M_buf_add_bytes(buf, data, data_len);
+
+	M_http_destroy(http);
+	return M_TRUE;
+
+err:
+	M_http_destroy(http);
+	return M_FALSE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -335,20 +404,14 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 
 unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
-	M_http_t           *http;
-	M_buf_t            *buf;
-	M_hash_dict_enum_t *he;
-	const char         *key;
-	const char         *val;
-	size_t              len;
-	size_t              i;
+	M_buf_t *buf;
 
 	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN || (headers == NULL && (data == NULL || len == 0)))
 		return NULL;
 
-	buf  = M_buf_create();
+	buf = M_buf_create();
 
-	/* Start line = method uri version */
+	/* request-line = method SP request-target SP HTTP-version CRLF */
 	M_buf_add_str(buf, M_http_method_to_str(method));
 	M_buf_add_byte(buf, ' ');
 
@@ -359,38 +422,35 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	M_buf_add_str(buf, M_http_version_to_str(version));
 	M_buf_add_str(buf, "\r\n");
 
-	/* Add the headers. */
-	http    = M_http_create(void);
-	M_http_set_headers(http, headers, M_FALSE);
-	headers = M_http_headers(http);
-
-	M_hash_dict_enumerate(headers, &he);
-	while (M_hash_dict_enumerate_next(headers, he, &key, NULL)) {
-		M_buf_add_str(buf, key);
-		M_buf_add_byte(buf, ':');
-		temp = M_http_header(http, key);
-		M_buf_add_str(buf, temp);
-		M_free(temp);
-		M_buf_add_str(buf, "\r\n");
+	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
+		M_buf_cancel(buf);
+		return NULL;
 	}
-	M_hash_dict_enumerate_free(he);
-
-	/* End of start/headers. */
-	M_buf_add_str(buf, "\r\n");
-
-
-
-	/* XXX Need to check these. They are not allowed at all
-	 * cl allowed but only if body is NULL. */
-	if (!M_str_isempty(headers, "transfer-encoding", NULL))
-		return NULL;
-	if (!M_str_isempty(headers, "content-length", NULL))
-		return NULL;
-
-
 	return M_buf_finish(buf, len);
 }
 
 unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
+	M_buf_t *buf;
+
+	if (version == M_HTTP_VERSION_UNKNOWN || M_str_isempty(reason))
+		return NULL;
+
+	buf = M_buf_create();
+
+	/* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
+	M_buf_add_str(buf, M_http_version_to_str(version));
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_int(buf, code);
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_str(buf, reason);
+	M_buf_add_str(buf, "\r\n");
+
+	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
+		M_buf_cancel(buf);
+		return NULL;
+	}
+	return M_buf_finish(buf, len);
 }
