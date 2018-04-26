@@ -8,8 +8,6 @@ if (NOT EXISTS "${TARGET_FILE}")
 	message(FATAL_ERROR "md5 checksum failed: given file ${TARGET_FILE} does not exist!")
 endif ()
 
-get_filename_component(target_file_name "${TARGET_FILE}" NAME)
-
 execute_process(COMMAND ${CMAKE_COMMAND} -E md5sum ${TARGET_FILE}
 	RESULT_VARIABLE res
 	OUTPUT_VARIABLE md5sum
@@ -18,7 +16,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E md5sum ${TARGET_FILE}
 )
 
 if (NOT res EQUAL 0)
-	message(FATAL_ERROR "md5 checksum failed: ${err}")
+	message(FATAL_ERROR "md5 checksum creation failed: ${err}")
 endif ()
 
 file(WRITE "${TARGET_FILE}.md5" "${md5sum}\n")
