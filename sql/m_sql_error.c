@@ -91,20 +91,6 @@ M_bool M_sql_error_is_error(M_sql_error_t err)
 }
 
 
-M_bool M_sql_error_is_rollback(M_sql_error_t err)
-{
-	if (err == M_SQL_ERROR_QUERY_DEADLOCK || err == M_SQL_ERROR_USER_RETRY)
-		return M_TRUE;
-	return M_FALSE;
-}
-
-
-M_bool M_sql_error_is_fatal(M_sql_error_t err)
-{
-	return (M_sql_error_is_error(err) && !M_sql_error_is_rollback(err) && !M_sql_error_is_disconnect(err));
-}
-
-
 M_bool M_sql_error_is_disconnect(M_sql_error_t err)
 {
 	switch (err) {
@@ -121,4 +107,20 @@ M_bool M_sql_error_is_disconnect(M_sql_error_t err)
 	}
 	return M_FALSE;
 }
+
+M_bool M_sql_error_is_rollback(M_sql_error_t err)
+{
+	if (err == M_SQL_ERROR_QUERY_DEADLOCK || err == M_SQL_ERROR_USER_RETRY)
+		return M_TRUE;
+	if (M_sql_error_is_disconnect(err))
+		return M_TRUE;
+	return M_FALSE;
+}
+
+
+M_bool M_sql_error_is_fatal(M_sql_error_t err)
+{
+	return (M_sql_error_is_error(err) && !M_sql_error_is_rollback(err) && !M_sql_error_is_disconnect(err));
+}
+
 
