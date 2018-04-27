@@ -164,12 +164,12 @@ Functions</h2></td></tr>
 <tr class="separator:ga737da880cae25712e80590f755629717"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab8ad99c470f310750e92c6bae2e8a918"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#gab8ad99c470f310750e92c6bae2e8a918">M_sql_error_is_error</a> (<a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> err)</td></tr>
 <tr class="separator:gab8ad99c470f310750e92c6bae2e8a918"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga79b3538d1dcbf15c56ae8cdb8a3cd007"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#ga79b3538d1dcbf15c56ae8cdb8a3cd007">M_sql_error_is_disconnect</a> (<a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> err)</td></tr>
+<tr class="separator:ga79b3538d1dcbf15c56ae8cdb8a3cd007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga45b7402f024f0a4f23c4a315671aa82a"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#ga45b7402f024f0a4f23c4a315671aa82a">M_sql_error_is_rollback</a> (<a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> err)</td></tr>
 <tr class="separator:ga45b7402f024f0a4f23c4a315671aa82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga04152cf1cf37ffec7b63aac9829a3697"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#ga04152cf1cf37ffec7b63aac9829a3697">M_sql_error_is_fatal</a> (<a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> err)</td></tr>
 <tr class="separator:ga04152cf1cf37ffec7b63aac9829a3697"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga79b3538d1dcbf15c56ae8cdb8a3cd007"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#ga79b3538d1dcbf15c56ae8cdb8a3cd007">M_sql_error_is_disconnect</a> (<a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> err)</td></tr>
-<tr class="separator:ga79b3538d1dcbf15c56ae8cdb8a3cd007"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>SQL Error handling </p>
@@ -315,6 +315,30 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga79b3538d1dcbf15c56ae8cdb8a3cd007"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_error_is_disconnect </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td>
+          <td class="paramname"><em>err</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns if the error code is due to a fatal communications error. If this occurs, the connection will be automatically destroyed and next use will try to establish a new connection</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>Error to evaluate. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if connectivity failure, M_FALSE if not. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga45b7402f024f0a4f23c4a315671aa82a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -366,36 +390,12 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga79b3538d1dcbf15c56ae8cdb8a3cd007"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">M_bool M_sql_error_is_disconnect </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td>
-          <td class="paramname"><em>err</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Returns if the error code is due to a fatal communications error. If this occurs, the connection will be automatically destroyed and next use will try to establish a new connection</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>Error to evaluate. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>M_TRUE if connectivity failure, M_FALSE if not. </dd></dl>
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Apr 26 2018 15:13:55 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Apr 27 2018 13:45:03 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

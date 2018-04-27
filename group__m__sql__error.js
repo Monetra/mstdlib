@@ -29,7 +29,7 @@ var group__m__sql__error =
     ] ],
     [ "M_sql_error_string", "group__m__sql__error.html#ga737da880cae25712e80590f755629717", null ],
     [ "M_sql_error_is_error", "group__m__sql__error.html#gab8ad99c470f310750e92c6bae2e8a918", null ],
+    [ "M_sql_error_is_disconnect", "group__m__sql__error.html#ga79b3538d1dcbf15c56ae8cdb8a3cd007", null ],
     [ "M_sql_error_is_rollback", "group__m__sql__error.html#ga45b7402f024f0a4f23c4a315671aa82a", null ],
-    [ "M_sql_error_is_fatal", "group__m__sql__error.html#ga04152cf1cf37ffec7b63aac9829a3697", null ],
-    [ "M_sql_error_is_disconnect", "group__m__sql__error.html#ga79b3538d1dcbf15c56ae8cdb8a3cd007", null ]
+    [ "M_sql_error_is_fatal", "group__m__sql__error.html#ga04152cf1cf37ffec7b63aac9829a3697", null ]
 ];
