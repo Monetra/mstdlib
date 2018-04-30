@@ -39,32 +39,21 @@ static M_textcodec_ehandler_t M_textcodec_validate_ehandler(M_textcodec_ehandler
 	return M_TEXTCODEC_EHANDLER_FAIL;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	M_buf_t             *buf;
-	M_textcodec_error_t  res;
-
-	if (out == NULL)
-		return M_TEXTCODEC_ERROR_FAIL;
-	*out = NULL;
-
-	buf = M_buf_create();
-	res = M_textcodec_encode_buf(buf, in, ehandler, codec);
-	if (M_textcodec_error_is_error(res)) {
-		M_buf_cancel(buf);
-		return res;
+	switch (buf->type) {
+		case M_TEXTCODEC_BUFFER_TYPE_BUF:
+			if (buf->u.buf == NULL) {
+				return M_TEXTCODEC_ERROR_INVALID_PARAM;
+			}
+			break;
+		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
+			if (buf->u.parser == NULL) {
+				return M_TEXTCODEC_ERROR_INVALID_PARAM;
+			}
+			break;
 	}
-
-	*out = M_buf_finish_str(buf, NULL);
-	return res;
-}
-
-M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
-{
-	if (buf == NULL)
-		return M_TEXTCODEC_ERROR_FAIL;
 
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
@@ -84,30 +73,20 @@ M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textc
 	return M_TEXTCODEC_ERROR_FAIL;
 }
 
-M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	M_buf_t             *buf;
-	M_textcodec_error_t  res;
-
-	if (out == NULL)
-		return M_TEXTCODEC_ERROR_FAIL;
-	*out = NULL;
-
-	buf = M_buf_create();
-	res = M_textcodec_decode_buf(buf, in, ehandler, codec);
-	if (M_textcodec_error_is_error(res)) {
-		M_buf_cancel(buf);
-		return res;
+	switch (buf->type) {
+		case M_TEXTCODEC_BUFFER_TYPE_BUF:
+			if (buf->u.buf == NULL) {
+				return M_TEXTCODEC_ERROR_INVALID_PARAM;
+			}
+			break;
+		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
+			if (buf->u.parser == NULL) {
+				return M_TEXTCODEC_ERROR_INVALID_PARAM;
+			}
+			break;
 	}
-
-	*out = M_buf_finish_str(buf, NULL);
-	return res;
-}
-
-M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
-{
-	if (buf == NULL)
-		return M_TEXTCODEC_ERROR_FAIL;
 
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
@@ -127,15 +106,102 @@ M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textc
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_buf_t             *buf;
+	M_textcodec_error_t  res;
+
+	if (out == NULL)
+		return M_TEXTCODEC_ERROR_INVALID_PARAM;
+	*out = NULL;
+
+	buf = M_buf_create();
+	res = M_textcodec_encode_buf(buf, in, ehandler, codec);
+	if (M_textcodec_error_is_error(res)) {
+		M_buf_cancel(buf);
+		return res;
+	}
+
+	*out = M_buf_finish_str(buf, NULL);
+	return res;
+}
+
+M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_textcodec_buffer_t wbuf;
+
+	M_mem_set(&wbuf, 0, sizeof(wbuf));
+	wbuf.type  = M_TEXTCODEC_BUFFER_TYPE_BUF;
+	wbuf.u.buf = buf;
+
+	return M_textcodec_encode_int(&wbuf, in, ehandler, codec);
+}
+
+M_textcodec_error_t M_textcodec_encode_parser(M_parser_t *parser, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_textcodec_buffer_t wbuf;
+
+	M_mem_set(&wbuf, 0, sizeof(wbuf));
+	wbuf.type     = M_TEXTCODEC_BUFFER_TYPE_PARSER;
+	wbuf.u.parser = parser;
+
+	return M_textcodec_encode_int(&wbuf, in, ehandler, codec);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_buf_t             *buf;
+	M_textcodec_error_t  res;
+
+	if (out == NULL)
+		return M_TEXTCODEC_ERROR_INVALID_PARAM;
+	*out = NULL;
+
+	buf = M_buf_create();
+	res = M_textcodec_encode_buf(buf, in, ehandler, codec);
+	if (M_textcodec_error_is_error(res)) {
+		M_buf_cancel(buf);
+		return res;
+	}
+
+	*out = M_buf_finish_str(buf, NULL);
+	return res;
+}
+
+M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_textcodec_buffer_t wbuf;
+
+	M_mem_set(&wbuf, 0, sizeof(wbuf));
+	wbuf.type  = M_TEXTCODEC_BUFFER_TYPE_BUF;
+	wbuf.u.buf = buf;
+
+	return M_textcodec_decode_int(&wbuf, in, ehandler, codec);
+}
+
+M_textcodec_error_t M_textcodec_decode_parser(M_parser_t *parser, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	M_textcodec_buffer_t wbuf;
+
+	M_mem_set(&wbuf, 0, sizeof(wbuf));
+	wbuf.type     = M_TEXTCODEC_BUFFER_TYPE_PARSER;
+	wbuf.u.parser = parser;
+
+	return M_textcodec_decode_int(&wbuf, in, ehandler, codec);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_bool M_textcodec_error_is_error(M_textcodec_error_t err)
 {
 	switch (err) {
 		case M_TEXTCODEC_ERROR_SUCCESS:
 		case M_TEXTCODEC_ERROR_SUCCESS_EHANDLER:
 			return M_FALSE;
-		case M_TEXTCODEC_ERROR_FAIL:
-		case M_TEXTCODEC_ERROR_BADINPUT:
-			break;
+		default:
+			return M_TRUE;
 	}
 	return M_TRUE;
 }

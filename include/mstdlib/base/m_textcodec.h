@@ -68,14 +68,15 @@ typedef enum {
 	M_TEXTCODEC_ERROR_SUCCESS,          /*!< Successfully converted. */
 	M_TEXTCODEC_ERROR_SUCCESS_EHANDLER, /*!< Succesfully converted based on error handling logic. */
 	M_TEXTCODEC_ERROR_FAIL,             /*!< Failure to convert. */
-	M_TEXTCODEC_ERROR_BADINPUT          /*!< Input not in specified encoding. This cannot always be detected and
+	M_TEXTCODEC_ERROR_BADINPUT,         /*!< Input not in specified encoding. This cannot always be detected and
 	                                         should not be used as a means of determining input encoding. */
+	M_TEXTCODEC_ERROR_INVALID_PARAM,    /*!< Invalid parameter. */
 } M_textcodec_error_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Encode a utf-8 string into a given text codec.
+/*! Encode a utf-8 string using the requested text encoding.
  *
  * \param[out] out      Encoded string.
  * \param[in]  in       Input utf-8 string.
@@ -87,7 +88,7 @@ typedef enum {
 M_API M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
-/*! Encode a utf-8 string into a given text codec using an M_buf.
+/*! Encode a utf-8 string into an M_buf_t using the requested text encoding.
  *
  * \param[in] buf      Buffer to put encoded string data.
  * \param[in] in       Input utf-8 string.
@@ -99,7 +100,21 @@ M_API M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textc
 M_API M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
-/*! Decode a string into utf-8.
+/*! Encode a utf-8 string into an M_parser_t using the requested text encoding.
+ *
+ * \param[in] parser   Parser to put encoded string data.
+ * \param[in] in       Input utf-8 string.
+ * \param[in] ehandler Error handling logic to use.
+ * \param[in] codec    Encoding to use for output.
+ *
+ * \return Result.
+ */
+M_API M_textcodec_error_t M_textcodec_encode_parser(M_parser_t *parser, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Decode a string to utf-8.
  *
  * \param[out] out      utf-8 string.
  * \param[in]  in       Input encoded string.
@@ -111,7 +126,7 @@ M_API M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M
 M_API M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
-/*! Decode a string into utf-8 using an M_buf.
+/*! Decode a string to utf-8 into a M_buf_t.
  *
  * \param[in] buf      Buffer to put decoded utf-8 string data.
  * \param[in] in       Input encoded string.
@@ -121,6 +136,18 @@ M_API M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textc
  * \return Result.
  */
 M_API M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+
+
+/*! Decode a string to utf-8 into a M_parser_t.
+ *
+ * \param[in] parser   Parser to put decoded utf-8 string data.
+ * \param[in] in       Input encoded string.
+ * \param[in] ehandler Error handling logic to use.
+ * \param[in] codec    Encoding of the input string.
+ *
+ * \return Result.
+ */
+M_API M_textcodec_error_t M_textcodec_decode_parser(M_parser_t *parser, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

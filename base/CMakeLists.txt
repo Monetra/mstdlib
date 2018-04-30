@@ -94,6 +94,7 @@ set(sources
 
 	# textcodec
 	textcodec/m_textcodec.c
+	textcodec/m_textcodec_buffer.c
 	textcodec/m_textcodec_ascii.c
 	textcodec/m_textcodec_percent.c
 
