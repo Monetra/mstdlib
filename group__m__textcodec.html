@@ -114,6 +114,8 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="separator:gabce257a204b55a46ad9835114b8673df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7503523b8dfaaf72e6d63e05201ab536"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a08f835a40cb8c0b6ec2d9f547ee16ce8">M_TEXTCODEC_UNKNOWN</a>, 
+<br/>
 &#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8">M_TEXTCODEC_ASCII</a>, 
 <br/>
 &#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d">M_TEXTCODEC_PERCENT_URL</a>, 
@@ -154,6 +156,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga31fab48c0ea5f7d56a3a7abe9979940e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa5d0fef66ddb84b87b1a884c8866c593"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__textcodec.html#gaa5d0fef66ddb84b87b1a884c8866c593">M_textcodec_error_is_error</a> (<a class="el" href="group__m__textcodec.html#gaa22fe6fec7d582fd36d45cabba4e8352">M_textcodec_error_t</a> err)</td></tr>
 <tr class="separator:gaa5d0fef66ddb84b87b1a884c8866c593"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaebb0451cb6274d927e04ac65cf0c903a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__textcodec.html#gaebb0451cb6274d927e04ac65cf0c903a">M_textcodec_codec_from_str</a> (const char *s)</td></tr>
+<tr class="separator:gaebb0451cb6274d927e04ac65cf0c903a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gace01600af9e4ad02a7186f58992cba0a"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__textcodec.html#gace01600af9e4ad02a7186f58992cba0a">M_textcodec_codec_to_str</a> (<a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a> codec)</td></tr>
+<tr class="separator:gace01600af9e4ad02a7186f58992cba0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Text codec converstion. E.g. utf-8 to utf-16.</p>
@@ -194,17 +200,20 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Text codecs that can be used for encoding and decoding. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8"></a>M_TEXTCODEC_ASCII</em>&#160;</td><td class="fielddoc">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536a08f835a40cb8c0b6ec2d9f547ee16ce8"></a>M_TEXTCODEC_UNKNOWN</em>&#160;</td><td class="fielddoc">
+<p>Unknown / invalid codec. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8"></a>M_TEXTCODEC_ASCII</em>&#160;</td><td class="fielddoc">
 <p>Ascii. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d"></a>M_TEXTCODEC_PERCENT_URL</em>&#160;</td><td class="fielddoc">
-<p>Percent with space as %20 for use as a URL rules. </p>
+<p>Percent with space as %20 for use as a URL rules. Must be utf-8. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25"></a>M_TEXTCODEC_PERCENT_URLPLUS</em>&#160;</td><td class="fielddoc">
-<p>Percent with space as + for use as a URL. </p>
+<p>Percent with space as + for use as a URL. Must be utf-8. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f"></a>M_TEXTCODEC_PERCENT_FORM</em>&#160;</td><td class="fielddoc">
-<p>Percent suitable for use as form data. </p>
+<p>Percent suitable for use as form data. Must be utf-8. </p>
 </td></tr>
 </table>
 
@@ -559,12 +568,60 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gaebb0451cb6274d927e04ac65cf0c903a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a> M_textcodec_codec_from_str </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the codec from the string name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>Codec as a string.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Codec. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gace01600af9e4ad02a7186f58992cba0a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_textcodec_codec_to_str </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a>&#160;</td>
+          <td class="paramname"><em>codec</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Covert the codec to its string name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">codec</td><td>Codec.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Apr 30 2018 19:02:45 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Apr 30 2018 21:01:58 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

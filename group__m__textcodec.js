@@ -6,6 +6,7 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_EHANDLER_IGNORE", "group__m__textcodec.html#ggabce257a204b55a46ad9835114b8673dfa1dc19bad8733d77148f555405174eb8c", null ]
     ] ],
     [ "M_textcodec_codec_t", "group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536", [
+      [ "M_TEXTCODEC_UNKNOWN", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a08f835a40cb8c0b6ec2d9f547ee16ce8", null ],
       [ "M_TEXTCODEC_ASCII", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8", null ],
       [ "M_TEXTCODEC_PERCENT_URL", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d", null ],
       [ "M_TEXTCODEC_PERCENT_URLPLUS", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25", null ],
@@ -24,5 +25,7 @@ var group__m__textcodec =
     [ "M_textcodec_decode", "group__m__textcodec.html#ga2be060498085f6c2954b01e32417836e", null ],
     [ "M_textcodec_decode_buf", "group__m__textcodec.html#gab74ce08dea5b4922d231bf752d258b24", null ],
     [ "M_textcodec_decode_parser", "group__m__textcodec.html#ga31fab48c0ea5f7d56a3a7abe9979940e", null ],
-    [ "M_textcodec_error_is_error", "group__m__textcodec.html#gaa5d0fef66ddb84b87b1a884c8866c593", null ]
+    [ "M_textcodec_error_is_error", "group__m__textcodec.html#gaa5d0fef66ddb84b87b1a884c8866c593", null ],
+    [ "M_textcodec_codec_from_str", "group__m__textcodec.html#gaebb0451cb6274d927e04ac65cf0c903a", null ],
+    [ "M_textcodec_codec_to_str", "group__m__textcodec.html#gace01600af9e4ad02a7186f58992cba0a", null ]
 ];
