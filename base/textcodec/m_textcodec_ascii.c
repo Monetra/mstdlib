@@ -28,7 +28,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_ascii(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_encode_ascii(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
 	M_textcodec_error_t res = M_TEXTCODEC_ERROR_SUCCESS;
 	size_t              len;
@@ -39,7 +39,7 @@ M_textcodec_error_t M_textcodec_encode_ascii(M_buf_t *buf, const char *in, M_tex
 		char c = in[i];
 
 		if (M_chr_isascii(c)) {
-			M_buf_add_byte(buf, (unsigned char)c);
+			M_textcodec_buffer_add_byte(buf, (unsigned char)c);
 			continue;
 		}
 
@@ -47,7 +47,7 @@ M_textcodec_error_t M_textcodec_encode_ascii(M_buf_t *buf, const char *in, M_tex
 			case M_TEXTCODEC_EHANDLER_FAIL:
 				return M_TEXTCODEC_ERROR_FAIL;
 			case M_TEXTCODEC_EHANDLER_REPLACE:
-				M_buf_add_byte(buf, '?');
+				M_textcodec_buffer_add_byte(buf, '?');
 				res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 				break;
 			case M_TEXTCODEC_EHANDLER_IGNORE:
@@ -59,14 +59,14 @@ M_textcodec_error_t M_textcodec_encode_ascii(M_buf_t *buf, const char *in, M_tex
 	return res;
 }
 
-M_textcodec_error_t M_textcodec_decode_ascii(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_decode_ascii(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
 	size_t len;
 	size_t i;
 
 	if (M_str_ispredicate(in, M_chr_isascii)) {
 		/* Ascii is a subset of utf-8. */
-		M_buf_add_str(buf, in);
+		M_textcodec_buffer_add_str(buf, in);
 		return M_TEXTCODEC_ERROR_SUCCESS;
 	}
 
@@ -80,7 +80,7 @@ M_textcodec_error_t M_textcodec_decode_ascii(M_buf_t *buf, const char *in, M_tex
 		char c = in[i];
 
 		if (M_chr_isascii(c)) {
-			M_buf_add_byte(buf, (unsigned char)c);
+			M_textcodec_buffer_add_byte(buf, (unsigned char)c);
 			continue;
 		}
 
@@ -89,8 +89,8 @@ M_textcodec_error_t M_textcodec_decode_ascii(M_buf_t *buf, const char *in, M_tex
 				/* Handled earlier. */
 				break;
 			case M_TEXTCODEC_EHANDLER_REPLACE:
-				M_buf_add_byte(buf, 0xFF);
-				M_buf_add_byte(buf, 0xFD);
+				M_textcodec_buffer_add_byte(buf, 0xFF);
+				M_textcodec_buffer_add_byte(buf, 0xFD);
 				break;
 			case M_TEXTCODEC_EHANDLER_IGNORE:
 				break;

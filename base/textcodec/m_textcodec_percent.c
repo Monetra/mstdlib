@@ -28,7 +28,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_percent(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
 	size_t              len;
 	size_t              i;
@@ -72,18 +72,18 @@ M_textcodec_error_t M_textcodec_encode_percent(M_buf_t *buf, const char *in, M_t
 
 		/* If we don't need to do any proessing add the character as is. */
 		if (!process) {
-			M_buf_add_byte(buf, (unsigned char)c);
+			M_textcodec_buffer_add_byte(buf, (unsigned char)c);
 			continue;
 		}
 		
 		if (c == ' ') {
 			switch (codec) {
 				case M_TEXTCODEC_PERCENT_URL:
-					M_buf_add_str(buf, "%20");
+					M_textcodec_buffer_add_str(buf, "%20");
 					break;
 				case M_TEXTCODEC_PERCENT_URLPLUS:
 				case M_TEXTCODEC_PERCENT_FORM:
-					M_buf_add_byte(buf, '+');
+					M_textcodec_buffer_add_byte(buf, '+');
 					break;
 				default:
 					break;
@@ -97,7 +97,7 @@ M_textcodec_error_t M_textcodec_encode_percent(M_buf_t *buf, const char *in, M_t
 				case M_TEXTCODEC_EHANDLER_FAIL:
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
-					M_buf_add_byte(buf, '?');
+					M_textcodec_buffer_add_byte(buf, '?');
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 					break;
 				case M_TEXTCODEC_EHANDLER_IGNORE:
@@ -105,15 +105,15 @@ M_textcodec_error_t M_textcodec_encode_percent(M_buf_t *buf, const char *in, M_t
 					break;
 			}
 		} else {
-			M_buf_add_byte(buf, '%');
-			M_buf_add_bytes(buf, hex, num);
+			M_textcodec_buffer_add_byte(buf, '%');
+			M_textcodec_buffer_add_bytes(buf, (const unsigned char *)hex, num);
 		}
 	}
 
 	return res;
 }
 
-M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+M_textcodec_error_t M_textcodec_decode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
 	M_parser_t          *parser;
 	M_textcodec_error_t  res = M_TEXTCODEC_ERROR_SUCCESS;
@@ -133,12 +133,12 @@ M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_t
 
 		M_parser_read_byte(parser, &byte);
 		if (byte == '+' && (codec == M_TEXTCODEC_PERCENT_URLPLUS || codec == M_TEXTCODEC_PERCENT_FORM)) {
-			M_buf_add_byte(buf, ' ');
+			M_textcodec_buffer_add_byte(buf, ' ');
 			continue;
 		}
 
 		if (byte != '%') {
-			M_buf_add_byte(buf, byte);
+			M_textcodec_buffer_add_byte(buf, byte);
 			continue;
 		}
 
@@ -148,8 +148,8 @@ M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_t
 					M_parser_destroy(parser);
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
-					M_buf_add_byte(buf, 0xFF);
-					M_buf_add_byte(buf, 0xFD);
+					M_textcodec_buffer_add_byte(buf, 0xFF);
+					M_textcodec_buffer_add_byte(buf, 0xFD);
 					M_parser_consume(parser, M_parser_len(parser));
 					/* Fall through. */
 				case M_TEXTCODEC_EHANDLER_IGNORE:
@@ -167,8 +167,8 @@ M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_t
 					M_parser_destroy(parser);
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
-					M_buf_add_byte(buf, 0xFF);
-					M_buf_add_byte(buf, 0xFD);
+					M_textcodec_buffer_add_byte(buf, 0xFF);
+					M_textcodec_buffer_add_byte(buf, 0xFD);
 					/* Fall through. */
 				case M_TEXTCODEC_EHANDLER_IGNORE:
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
@@ -176,7 +176,7 @@ M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_t
 			}
 			continue;
 		} else {
-			M_buf_add_bytes(buf, dec, 1);
+			M_textcodec_buffer_add_bytes(buf, dec, 1);
 		}
 	}
 
