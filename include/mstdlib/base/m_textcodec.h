@@ -42,8 +42,7 @@ __BEGIN_DECLS
  * output from decode will be utf-8.
  *
  * @{
- */
-
+ */ 
 /*! Error handling logic. */
 typedef enum {
 	M_TEXTCODEC_EHANDLER_FAIL,    /*!< Errors should be considered a hard failure. */
@@ -56,10 +55,15 @@ typedef enum {
 
 /*! Text codecs that can be used for encoding and decoding. */
 typedef enum {
+	M_TEXTCODEC_UNKNOWN,         /*!< Unknown / invalid codec. */
 	M_TEXTCODEC_ASCII,           /*!< Ascii. */
-	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. */
-	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. */
-	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. */
+	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
+#if 0
+	M_TEXTCODEC_ISO88591,        /*!<  ISO-8859-1. Latin 1. */
+	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252. */
+#endif
 } M_textcodec_codec_t;
 
 
@@ -159,6 +163,24 @@ M_API M_textcodec_error_t M_textcodec_decode_parser(M_parser_t *parser, const ch
  * \return M_TRUE if error, M_FALSE if not.
  */
 M_API M_bool M_textcodec_error_is_error(M_textcodec_error_t err);
+
+
+/*! Get the codec from the string name.
+ *
+ * \param[in] s Codec as a string.
+ *
+ * \return Codec.
+ */
+M_API M_textcodec_codec_t M_textcodec_codec_from_str(const char *s);
+
+
+/*! Covert the codec to its string name.
+ *
+ * \param[in] codec Codec.
+ *
+ * \return String.
+ */
+M_API const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec);
 
 /*! @} */
 
