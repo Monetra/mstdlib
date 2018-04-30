@@ -163,6 +163,47 @@ static M_http_error_t M_http_simple_trailer_done_cb(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
+{
+#if 0
+	const M_hash_dict_t *headers;
+	const char          *const_temp;
+	char                *dec;
+	M_textcodec_codec_t  codec;
+	size_t               len;
+	size_t               i;
+
+	headers = M_http_headers(simple->http);
+	len     = M_hash_dict_multi_len(headers, "content-type");
+	for (i=0; i<len; i++) {
+		const_temp = M_hash_dict_multi_get_direct(headers, "content-type");
+		1. check charset
+		2. check for form encoding
+	}
+
+	if (codec == unknown)
+		return M_HTTP_ERROR_SUCCESS;
+
+	1. Split multi part now or later?
+
+	1. decode charset.
+	2. decode form encoding
+	tcerr = M_textcodec_decode(&dec, M_http_body(simple->http), M_TEXTCODEC_EHANDLER_FAIL, codec);
+	if (M_textcodec_error_is_error(tcerr))
+		return M_HTTP_ERROR_TEXTCODEC_FAILURE;
+
+	1. Kill current body data.
+	2. Set newly decoded body data.
+	3. set charset to utf-8
+	4. change form encoding to ?, just remove?
+	M_http_body_drop(simple->http, M_http_body_length_buffered(simple->http));
+	M_http_body_append(simple->http, dec);
+	M_free(dec);
+
+#endif
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Adds headers and body. */
@@ -399,6 +440,13 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 		M_http_simple_destroy(*simple);
 		*simple = NULL;
 	}
+
+	res = M_http_simple_decode_body(*simple);
+	if (res != M_HTTP_ERROR_SUCCESS) {
+		M_http_simple_destroy(*simple);
+		*simple = NULL;
+	}
+
 	return res;
 }
 
