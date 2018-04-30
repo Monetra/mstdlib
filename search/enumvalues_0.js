@@ -725,6 +725,7 @@ var searchData=
   ['m_5ftextcodec_5fehandler_5freplace',['M_TEXTCODEC_EHANDLER_REPLACE',['../group__m__textcodec.html#ggabce257a204b55a46ad9835114b8673dfa38e6c06f55f99f0d565e8064198a8554',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5ferror_5fbadinput',['M_TEXTCODEC_ERROR_BADINPUT',['../group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352a0718a963085cd78cd0fb0b00d4615ea3',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5ferror_5ffail',['M_TEXTCODEC_ERROR_FAIL',['../group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ac88239bc368725a891aab9b854f3e16f',1,'m_textcodec.h']]],
+  ['m_5ftextcodec_5ferror_5finvalid_5fparam',['M_TEXTCODEC_ERROR_INVALID_PARAM',['../group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ada94a71b2904322f52d461cffbc2ce6c',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5ferror_5fsuccess',['M_TEXTCODEC_ERROR_SUCCESS',['../group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ae0be42e9b00a73f5a94d1bd235b8ca9d',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5ferror_5fsuccess_5fehandler',['M_TEXTCODEC_ERROR_SUCCESS_EHANDLER',['../group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352aee0baa9ae80805823fcba2e806e7e837',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5fpercent_5fform',['M_TEXTCODEC_PERCENT_FORM',['../group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f',1,'m_textcodec.h']]],
