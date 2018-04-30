@@ -28,14 +28,12 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_ascii(char **out, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_encode_ascii(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	M_buf_t             *buf;
-	M_textcodec_error_t  res = M_TEXTCODEC_ERROR_SUCCESS;
-	size_t               len;
-	size_t               i;
+	M_textcodec_error_t res = M_TEXTCODEC_ERROR_SUCCESS;
+	size_t              len;
+	size_t              i;
 
-	buf = M_buf_create();
 	len = M_str_len(in);
 	for (i=0; i<len; i++) {
 		char c = in[i];
@@ -47,7 +45,6 @@ M_textcodec_error_t M_textcodec_encode_ascii(char **out, const char *in, M_textc
 
 		switch (ehandler) {
 			case M_TEXTCODEC_EHANDLER_FAIL:
-				M_buf_cancel(buf);
 				return M_TEXTCODEC_ERROR_FAIL;
 			case M_TEXTCODEC_EHANDLER_REPLACE:
 				M_buf_add_byte(buf, '?');
@@ -59,19 +56,17 @@ M_textcodec_error_t M_textcodec_encode_ascii(char **out, const char *in, M_textc
 		}
 	}
 
-	*out = M_buf_finish_str(buf, NULL);
 	return res;
 }
 
-M_textcodec_error_t M_textcodec_decode_ascii(char **out, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_decode_ascii(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	M_buf_t *buf;
-	size_t   len;
-	size_t   i;
+	size_t len;
+	size_t i;
 
 	if (M_str_ispredicate(in, M_chr_isascii)) {
 		/* Ascii is a subset of utf-8. */
-		*out = M_strdup(in);
+		M_buf_add_str(buf, in);
 		return M_TEXTCODEC_ERROR_SUCCESS;
 	}
 
@@ -80,7 +75,6 @@ M_textcodec_error_t M_textcodec_decode_ascii(char **out, const char *in, M_textc
 		return M_TEXTCODEC_ERROR_BADINPUT;
 
 	/* Ignore or replace anything that's not ascii. */
-	buf = M_buf_create();
 	len = M_str_len(in);
 	for (i=0; i<len; i++) {
 		char c = in[i];
@@ -103,6 +97,5 @@ M_textcodec_error_t M_textcodec_decode_ascii(char **out, const char *in, M_textc
 		}
 	}
 
-	*out = M_buf_finish_str(buf, NULL);
 	return M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 }

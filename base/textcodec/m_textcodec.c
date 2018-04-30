@@ -43,25 +43,42 @@ static M_textcodec_ehandler_t M_textcodec_validate_ehandler(M_textcodec_ehandler
 
 M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
+	M_buf_t             *buf;
+	M_textcodec_error_t  res;
+
 	if (out == NULL)
 		return M_TEXTCODEC_ERROR_FAIL;
 	*out = NULL;
 
-	if (M_str_isempty(in)) {
-		*out = M_strdup("");
-		return M_TEXTCODEC_ERROR_SUCCESS;
+	buf = M_buf_create();
+	res = M_textcodec_encode_buf(buf, in, ehandler, codec);
+	if (M_textcodec_error_is_error(res)) {
+		M_buf_cancel(buf);
+		return res;
 	}
+
+	*out = M_buf_finish_str(buf, NULL);
+	return res;
+}
+
+M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	if (buf == NULL)
+		return M_TEXTCODEC_ERROR_FAIL;
+
+	if (M_str_isempty(in))
+		return M_TEXTCODEC_ERROR_SUCCESS;
 
 	/* XXX: Validate input is utf-8 and do something if not. */
 
 	ehandler = M_textcodec_validate_ehandler(ehandler);
 	switch (codec) {
 		case M_TEXTCODEC_ASCII:
-			return M_textcodec_encode_ascii(out, in, ehandler);
+			return M_textcodec_encode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_PERCENT_URL:
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
-			return M_textcodec_encode_percent(out, in, ehandler, codec);
+			return M_textcodec_encode_percent(buf, in, ehandler, codec);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -69,23 +86,40 @@ M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_e
 
 M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
+	M_buf_t             *buf;
+	M_textcodec_error_t  res;
+
 	if (out == NULL)
 		return M_TEXTCODEC_ERROR_FAIL;
 	*out = NULL;
 
-	if (M_str_isempty(in)) {
-		*out = M_strdup("");
-		return M_TEXTCODEC_ERROR_SUCCESS;
+	buf = M_buf_create();
+	res = M_textcodec_decode_buf(buf, in, ehandler, codec);
+	if (M_textcodec_error_is_error(res)) {
+		M_buf_cancel(buf);
+		return res;
 	}
+
+	*out = M_buf_finish_str(buf, NULL);
+	return res;
+}
+
+M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+{
+	if (buf == NULL)
+		return M_TEXTCODEC_ERROR_FAIL;
+
+	if (M_str_isempty(in))
+		return M_TEXTCODEC_ERROR_SUCCESS;
 
 	ehandler = M_textcodec_validate_ehandler(ehandler);
 	switch (codec) {
 		case M_TEXTCODEC_ASCII:
-			return M_textcodec_decode_ascii(out, in, ehandler);
+			return M_textcodec_decode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_PERCENT_URL:
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
-			return M_textcodec_decode_percent(out, in, ehandler, codec);
+			return M_textcodec_decode_percent(buf, in, ehandler, codec);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;

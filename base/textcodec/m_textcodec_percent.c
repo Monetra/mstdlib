@@ -28,14 +28,12 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_percent(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+M_textcodec_error_t M_textcodec_encode_percent(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	M_buf_t             *buf;
-	size_t               len;
-	size_t               i;
-	M_textcodec_error_t  res = M_TEXTCODEC_ERROR_SUCCESS;
+	size_t              len;
+	size_t              i;
+	M_textcodec_error_t res = M_TEXTCODEC_ERROR_SUCCESS;
 
-	buf = M_buf_create();
 	len = M_str_len(in);
 	for (i=0; i<len; i++) {
 		M_bool process = M_FALSE;
@@ -97,7 +95,6 @@ M_textcodec_error_t M_textcodec_encode_percent(char **out, const char *in, M_tex
 		if (num == 0) {
 			switch (ehandler) {
 				case M_TEXTCODEC_EHANDLER_FAIL:
-					M_buf_cancel(buf);
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
 					M_buf_add_byte(buf, '?');
@@ -113,14 +110,12 @@ M_textcodec_error_t M_textcodec_encode_percent(char **out, const char *in, M_tex
 		}
 	}
 
-	*out = M_buf_finish_str(buf, NULL);
 	return res;
 }
 
-M_textcodec_error_t M_textcodec_decode_percent(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
+M_textcodec_error_t M_textcodec_decode_percent(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
 	M_parser_t          *parser;
-	M_buf_t             *buf;
 	M_textcodec_error_t  res = M_TEXTCODEC_ERROR_SUCCESS;
 
 	if (ehandler == M_TEXTCODEC_EHANDLER_FAIL && !M_str_ispredicate(in, M_chr_isascii))
@@ -130,7 +125,6 @@ M_textcodec_error_t M_textcodec_decode_percent(char **out, const char *in, M_tex
 	if (parser == NULL)
 		return M_TEXTCODEC_ERROR_FAIL;
 
-	buf = M_buf_create();
 	while (M_parser_len(parser) > 0) {
 		unsigned char byte;
 		char          hex[4] = { 0 };
@@ -151,7 +145,6 @@ M_textcodec_error_t M_textcodec_decode_percent(char **out, const char *in, M_tex
 		if (M_parser_len(parser) < 2) {
 			switch (ehandler) {
 				case M_TEXTCODEC_EHANDLER_FAIL:
-					M_buf_cancel(buf);
 					M_parser_destroy(parser);
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
@@ -171,7 +164,6 @@ M_textcodec_error_t M_textcodec_decode_percent(char **out, const char *in, M_tex
 		if (num == 0) {
 			switch (ehandler) {
 				case M_TEXTCODEC_EHANDLER_FAIL:
-					M_buf_cancel(buf);
 					M_parser_destroy(parser);
 					return M_TEXTCODEC_ERROR_FAIL;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
@@ -189,6 +181,5 @@ M_textcodec_error_t M_textcodec_decode_percent(char **out, const char *in, M_tex
 	}
 
 	M_parser_destroy(parser);
-	*out = M_buf_finish_str(buf, NULL);
 	return res;
 }

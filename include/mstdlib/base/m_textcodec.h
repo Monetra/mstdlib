@@ -84,7 +84,19 @@ typedef enum {
  *
  * \return Result.
  */
-M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+M_API M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+
+
+/*! Encode a utf-8 string into a given text codec using an M_buf.
+ *
+ * \param[in] buf      Buffer to put encoded string data.
+ * \param[in] in       Input utf-8 string.
+ * \param[in] ehandler Error handling logic to use.
+ * \param[in] codec    Encoding to use for output.
+ *
+ * \return Result.
+ */
+M_API M_textcodec_error_t M_textcodec_encode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
 /*! Decode a string into utf-8.
@@ -96,7 +108,19 @@ M_textcodec_error_t M_textcodec_encode(char **out, const char *in, M_textcodec_e
  *
  * \return Result.
  */
-M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+M_API M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
+
+
+/*! Decode a string into utf-8 using an M_buf.
+ *
+ * \param[in] buf      Buffer to put decoded utf-8 string data.
+ * \param[in] in       Input encoded string.
+ * \param[in] ehandler Error handling logic to use.
+ * \param[in] codec    Encoding of the input string.
+ *
+ * \return Result.
+ */
+M_API M_textcodec_error_t M_textcodec_decode_buf(M_buf_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -107,7 +131,7 @@ M_textcodec_error_t M_textcodec_decode(char **out, const char *in, M_textcodec_e
  *
  * \return M_TRUE if error, M_FALSE if not.
  */
-M_bool M_textcodec_error_is_error(M_textcodec_error_t err);
+M_API M_bool M_textcodec_error_is_error(M_textcodec_error_t err);
 
 /*! @} */
 
