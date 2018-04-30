@@ -264,6 +264,15 @@ M_API const char *M_sql_error_string(M_sql_error_t err);
  */
 M_API M_bool M_sql_error_is_error(M_sql_error_t err);
 
+/*! Returns if the error code is due to a fatal communications error.
+ *  If this occurs, the connection will be automatically destroyed and
+ *  next use will try to establish a new connection
+ *
+ *  \param[in] err Error to evaluate.
+ *  \return M_TRUE if connectivity failure, M_FALSE if not.
+ */
+M_API M_bool M_sql_error_is_disconnect(M_sql_error_t err);
+
 /*! Returns if the error code represents a rollback condition.
  *
  *  There may be multiple types of failures that are rollback conditions such
@@ -289,15 +298,6 @@ M_API M_bool M_sql_error_is_rollback(M_sql_error_t err);
  *  \return M_TRUE if fatal error, M_FALSE if not.
  */
 M_API M_bool M_sql_error_is_fatal(M_sql_error_t err);
-
-/*! Returns if the error code is due to a fatal communications error.
- *  If this occurs, the connection will be automatically destroyed and
- *  next use will try to establish a new connection
- *
- *  \param[in] err Error to evaluate.
- *  \return M_TRUE if connectivity failure, M_FALSE if not.
- */
-M_API M_bool M_sql_error_is_disconnect(M_sql_error_t err);
 
 
 /*! @} */

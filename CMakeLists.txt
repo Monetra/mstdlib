@@ -592,12 +592,15 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 		COMMAND "${CMAKE_COMMAND}" --build . --config $<CONFIG> # Build "all" target
 		COMMAND "${CMAKE_CPACK_COMMAND}"                        # Run cpack
 	)
+	set(md5_script "${CMAKE_CURRENT_SOURCE_DIR}/postinstall/make_md5_file.cmake")
 
 	if (STGZ IN_LIST CPACK_GENERATOR)
 		# We'd rather have the self-extracting tarball's extension be *.run, instead of *.sh.
 		list(APPEND postpkg
 			COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Renaming ${CPACK_PACKAGE_FILE_NAME}.sh to ${CPACK_PACKAGE_FILE_NAME}.run"
 			COMMAND "${CMAKE_COMMAND}" -E rename "${CPACK_PACKAGE_FILE_NAME}.sh" "${CPACK_PACKAGE_FILE_NAME}.run"
+			COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Generating ${CPACK_PACKAGE_FILE_NAME}.run.md5"
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=${CPACK_PACKAGE_FILE_NAME}.run" -P "${md5_script}"
 		)
 	endif ()
 	if (WIX IN_LIST CPACK_GENERATOR)
@@ -611,6 +614,8 @@ if (MSTDLIB_INSTALL_LIBS AND (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR
 			list(APPEND postpkg
 				COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Code signing ${CPACK_PACKAGE_FILE_NAME}.msi"
 				COMMAND "${CMAKE_COMMAND}" -P "sign_wix_msi.cmake"
+				COMMAND "${CMAKE_COMMAND}" -E echo "PostPkg: Generating ${CPACK_PACKAGE_FILE_NAME}.msi.md5"
+				COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=${CPACK_PACKAGE_FILE_NAME}.msi" -P "${md5_script}"
 			)
 		endif ()
 	endif ()

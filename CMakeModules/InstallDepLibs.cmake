@@ -439,7 +439,7 @@ endfunction()
 # install_deplibs([lib dest] [runtime dest])
 function(install_system_deplibs lib_dest runtime_dest)
 	# Install any required system libs, if any (usually just MSVC redistributables on windows).
-	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE) # tell module not to install, just save to CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
 	include(InstallRequiredSystemLibraries) # sets CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
 
 	# If we're cross-compiling to windows from cygwin using MinGW, make sure to include winpthreads.
