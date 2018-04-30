@@ -28,40 +28,70 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_textcodec_ehandler_t M_textcodec_validate_ehandler(M_textcodec_ehandler_t ehandler)
+static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
+	M_bool fail;
+
+	fail = M_TRUE;
+	switch (codec) {
+		case M_TEXTCODEC_UNKNOWN:
+		case M_TEXTCODEC_ASCII:
+		case M_TEXTCODEC_PERCENT_URL:
+		case M_TEXTCODEC_PERCENT_URLPLUS:
+		case M_TEXTCODEC_PERCENT_FORM:
+#if 0
+		case M_TEXTCODEC_ISO88591:
+		case M_TEXTCODEC_CP1252:
+#endif
+			fail = M_FALSE;
+			break;
+	}
+	if (fail)
+		return M_FALSE;
+
+	fail = M_TRUE;
+	switch (buf->type) {
+		case M_TEXTCODEC_BUFFER_TYPE_BUF:
+			if (buf->u.buf != NULL) {
+				fail = M_FALSE;
+			}
+			break;
+		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
+			if (buf->u.parser != NULL) {
+				fail = M_FALSE;
+			}
+			break;
+	}
+	if (fail)
+		return M_FALSE;
+
+	fail = M_TRUE;
 	switch (ehandler) {
 		case M_TEXTCODEC_EHANDLER_FAIL:
 		case M_TEXTCODEC_EHANDLER_REPLACE:
 		case M_TEXTCODEC_EHANDLER_IGNORE:
-			return ehandler;
+			fail = M_FALSE;
+			break;
 	}
-	return M_TEXTCODEC_EHANDLER_FAIL;
-}
+	if (fail)
+		return M_FALSE;
 
+	return M_TRUE;
+}
 
 static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	switch (buf->type) {
-		case M_TEXTCODEC_BUFFER_TYPE_BUF:
-			if (buf->u.buf == NULL) {
-				return M_TEXTCODEC_ERROR_INVALID_PARAM;
-			}
-			break;
-		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
-			if (buf->u.parser == NULL) {
-				return M_TEXTCODEC_ERROR_INVALID_PARAM;
-			}
-			break;
-	}
+	if (!M_textcodec_validate_params(buf, ehandler, codec))
+		return M_TEXTCODEC_ERROR_INVALID_PARAM;
 
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
 
 	/* XXX: Validate input is utf-8 and do something if not. */
 
-	ehandler = M_textcodec_validate_ehandler(ehandler);
 	switch (codec) {
+		case M_TEXTCODEC_UNKNOWN:
+			break;
 		case M_TEXTCODEC_ASCII:
 			return M_textcodec_encode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_PERCENT_URL:
@@ -75,24 +105,15 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 
 static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	switch (buf->type) {
-		case M_TEXTCODEC_BUFFER_TYPE_BUF:
-			if (buf->u.buf == NULL) {
-				return M_TEXTCODEC_ERROR_INVALID_PARAM;
-			}
-			break;
-		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
-			if (buf->u.parser == NULL) {
-				return M_TEXTCODEC_ERROR_INVALID_PARAM;
-			}
-			break;
-	}
+	if (!M_textcodec_validate_params(buf, ehandler, codec))
+		return M_TEXTCODEC_ERROR_INVALID_PARAM;
 
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
 
-	ehandler = M_textcodec_validate_ehandler(ehandler);
 	switch (codec) {
+		case M_TEXTCODEC_UNKNOWN:
+			break;
 		case M_TEXTCODEC_ASCII:
 			return M_textcodec_decode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_PERCENT_URL:
@@ -204,4 +225,77 @@ M_bool M_textcodec_error_is_error(M_textcodec_error_t err)
 			return M_TRUE;
 	}
 	return M_TRUE;
+}
+
+M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
+{
+	if (M_str_isempty(s))
+		return M_TEXTCODEC_UNKNOWN;
+
+	if (M_str_caseeq(s, "ascii") || M_str_caseeq(s, "us-ascii"))
+		return M_TEXTCODEC_ASCII;
+
+	if (M_str_caseeq(s, "percent") || M_str_caseeq(s, "url"))
+		return M_TEXTCODEC_PERCENT_URL;
+
+	if (M_str_caseeq(s, "percent_plus") || M_str_caseeq(s, "url_plus") ||
+			M_str_caseeq(s, "percent-plus") || M_str_caseeq(s, "url-plus") ||
+			M_str_caseeq(s, "percentplus") || M_str_caseeq(s, "urlplus"))
+	{
+		return M_TEXTCODEC_PERCENT_URLPLUS;
+	}
+
+	if (M_str_caseeq(s, "application/x-www-form-urlencoded") ||
+			M_str_caseeq(s, "x-www-form-urlencoded") ||
+			M_str_caseeq(s, "www-form-urlencoded") ||
+			M_str_caseeq(s, "form-urlencoded"))
+	{
+		return M_TEXTCODEC_PERCENT_FORM;
+	}
+
+#if 0
+	if (M_str_caseeq(s, "latin_1")        || 
+			M_str_caseeq(s, "latin-1")    || 
+			M_str_caseeq(s, "latin1")     || 
+			M_str_caseeq(s, "latin 1")    || 
+			M_str_caseeq(s, "latin")      || 
+			M_str_caseeq(s, "iso-8859-1") || 
+			M_str_caseeq(s, "iso8859-1")  || 
+			M_str_caseeq(s, "iso88591")   || 
+			M_str_caseeq(s, "8859")       || 
+			M_str_caseeq(s, "88591")      || 
+			M_str_caseeq(s, "cp819"))
+	{
+		return M_TEXTCODEC_ISO88591;
+	}
+
+	if (M_str_caseeq(s, "cp1252") || M_str_caseeq(s, "windows-1252"))
+		return M_TEXTCODEC_CP1252;
+#endif
+
+	return M_TEXTCODEC_UNKNOWN;
+}
+
+const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
+{
+	switch (codec) {
+		case M_TEXTCODEC_UNKNOWN:
+			break;
+		case M_TEXTCODEC_ASCII:
+			return "ascii";
+		case M_TEXTCODEC_PERCENT_URL:
+			return "percent";
+		case M_TEXTCODEC_PERCENT_URLPLUS:
+			return "percent_plus";
+		case M_TEXTCODEC_PERCENT_FORM:
+			return "application/x-www-form-urlencoded";
+#if 0
+		case M_TEXTCODEC_ISO88591:
+			return "latin_1";
+		case M_TEXTCODEC_CP1252:
+			return "cp1252";
+#endif
+	}
+
+	return "unknown";
 }
