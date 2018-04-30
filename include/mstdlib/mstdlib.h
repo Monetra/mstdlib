@@ -57,6 +57,7 @@
 #include <mstdlib/base/m_sort.h>
 #include <mstdlib/base/m_state_machine.h>
 #include <mstdlib/base/m_str.h>
+#include <mstdlib/base/m_textcodec.h>
 #include <mstdlib/base/m_time.h>
 #include <mstdlib/base/m_types.h>
 
