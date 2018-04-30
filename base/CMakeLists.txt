@@ -92,6 +92,11 @@ set(sources
 	sort/m_sort_mergesort.c
 	sort/m_sort_qsort.c
 
+	# textcodec
+	textcodec/m_textcodec.c
+	textcodec/m_textcodec_ascii.c
+	textcodec/m_textcodec_percent.c
+
 	# time:
 	time/m_time.c
 	time/m_time_elapsed.c
