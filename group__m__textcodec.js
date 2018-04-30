@@ -18,6 +18,8 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_ERROR_BADINPUT", "group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352a0718a963085cd78cd0fb0b00d4615ea3", null ]
     ] ],
     [ "M_textcodec_encode", "group__m__textcodec.html#gab7e2b2a668f399be3479974a29116241", null ],
+    [ "M_textcodec_encode_buf", "group__m__textcodec.html#ga281076bfa2e899d2b953bdcab112833f", null ],
     [ "M_textcodec_decode", "group__m__textcodec.html#ga2be060498085f6c2954b01e32417836e", null ],
+    [ "M_textcodec_decode_buf", "group__m__textcodec.html#gab74ce08dea5b4922d231bf752d258b24", null ],
     [ "M_textcodec_error_is_error", "group__m__textcodec.html#gaa5d0fef66ddb84b87b1a884c8866c593", null ]
 ];
