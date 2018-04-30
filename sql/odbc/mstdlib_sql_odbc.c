@@ -723,6 +723,10 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 
 static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
+	/* Uninitialized warning suppress (won't ever actually be used). */
+	*ValueType     = 0;
+	*ParameterType = 0;
+
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			*ValueType                = SQL_C_STINYINT;
@@ -853,7 +857,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 
 	for (i = 0; i < num_cols; i++) {
 		SQLSMALLINT          ValueType     = 0;
-		SQLSMALLINT          ParameterType;
+		SQLSMALLINT          ParameterType = 0;
 		SQLULEN              ColumnSize    = M_sql_driver_stmt_bind_get_max_col_size(stmt, i);
 		M_sql_data_type_t    type          = M_sql_driver_stmt_bind_get_col_type(stmt, i);
 		SQLPOINTER           ParameterValue;
@@ -1000,7 +1004,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 	for (row = 0; row < num_rows; row++) {
 		for (i = 0; i < num_cols; i++) {
 			SQLSMALLINT          ValueType      = 0;
-			SQLSMALLINT          ParameterType;
+			SQLSMALLINT          ParameterType  = 0;
 			SQLULEN              ColumnSize     = 0;
 			SQLPOINTER           ParameterValue = NULL;
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);

@@ -32,6 +32,15 @@ set(def_name "@TARGET@.def")
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Add LIBRARY "<libname>" line at beginning of DEF file, if not already present.
+# Have to do this to properly support symbols exported from EXE files; otherwise,
+# if the LIBRARY line is missing, will default to a .DLL extension in the dependency list.
+file(READ "${implib_dir}/${def_name}" def_file)
+set(def_file "LIBRARY \"${dll_name}\"\n${def_file}")
+file(WRITE "${implib_dir}/${def_name}" "${def_file}")
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call lib.exe from Visual Studio to generate a .lib file from the .def file.
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)

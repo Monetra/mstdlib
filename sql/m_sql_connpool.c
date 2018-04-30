@@ -1052,10 +1052,13 @@ void M_sql_conn_set_state_from_error(M_sql_conn_t *conn, M_sql_error_t err)
 	if (conn == NULL)
 		return;
 
-	if (M_sql_error_is_disconnect(err))
+	if (M_sql_error_is_disconnect(err)) {
 		conn->state = M_SQL_CONN_STATE_FAILED;
-	if (M_sql_error_is_rollback(err))
+	} else if (M_sql_error_is_rollback(err)) {
+		/* Rollback might also be set on disconnect, so check disconnect *first*
+		 * to differentiate */
 		conn->state = M_SQL_CONN_STATE_ROLLBACK;
+	}
 
 	/* Nothing else should change the state */
 }
