@@ -136,6 +136,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga08c9c7082b3b18a51d4f309a479fb6ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac0288704775cbd37451dd6c2af6e99ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__utf8.html#ga28785f3b98f542c6f04fed54b7e341ed">M_utf8_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#gac0288704775cbd37451dd6c2af6e99ed">M_utf8_get_chr_buf</a> (const char *str, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const char **next)</td></tr>
 <tr class="separator:gac0288704775cbd37451dd6c2af6e99ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae18a6594fe23d0e366be45f8a26cfac4"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#gae18a6594fe23d0e366be45f8a26cfac4">M_utf8_next_chr</a> (const char *str)</td></tr>
+<tr class="separator:gae18a6594fe23d0e366be45f8a26cfac4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga989dd12114633da92c6ccc8c22d20c2e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__utf8.html#ga28785f3b98f542c6f04fed54b7e341ed">M_utf8_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#ga989dd12114633da92c6ccc8c22d20c2e">M_utf8_from_cp</a> (char *buf, size_t buf_size, size_t *len, M_uint32 cp)</td></tr>
 <tr class="separator:ga989dd12114633da92c6ccc8c22d20c2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad5046eaacdefcdf9e93b0d3cb5895642"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__utf8.html#ga28785f3b98f542c6f04fed54b7e341ed">M_utf8_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#gad5046eaacdefcdf9e93b0d3cb5895642">M_utf8_from_cp_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, M_uint32 cp)</td></tr>
@@ -411,6 +413,31 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gae18a6594fe23d0e366be45f8a26cfac4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_utf8_next_chr </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the location of the next utf-8 sequence.</p>
+<p>Does not validate characters. Useful when parsing an invalid string and wanting to move past to ignore or replace invalid characters.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>utf-8 string.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to next character in sequence. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga989dd12114633da92c6ccc8c22d20c2e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -601,7 +628,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue May 1 2018 21:00:15 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Tue May 1 2018 21:27:10 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -15,6 +15,7 @@ var group__m__utf8 =
     [ "M_utf8_get_cp", "group__m__utf8.html#gaca7630ce9a8d7902ab53f5dca17526d5", null ],
     [ "M_utf8_get_chr", "group__m__utf8.html#ga08c9c7082b3b18a51d4f309a479fb6ad", null ],
     [ "M_utf8_get_chr_buf", "group__m__utf8.html#gac0288704775cbd37451dd6c2af6e99ed", null ],
+    [ "M_utf8_next_chr", "group__m__utf8.html#gae18a6594fe23d0e366be45f8a26cfac4", null ],
     [ "M_utf8_from_cp", "group__m__utf8.html#ga989dd12114633da92c6ccc8c22d20c2e", null ],
     [ "M_utf8_from_cp_buf", "group__m__utf8.html#gad5046eaacdefcdf9e93b0d3cb5895642", null ],
     [ "M_utf8_cp_at", "group__m__utf8.html#gad214aedc1ff331120d6758952170916f", null ],
