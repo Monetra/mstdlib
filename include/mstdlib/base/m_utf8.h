@@ -51,7 +51,7 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_bool M_utf8_is_valid(const char *str);
+M_API M_bool M_utf8_is_valid(const char *str, const char **endptr);
 M_API M_bool M_utf8_is_valid_cp(M_uint32 cp);
 M_API size_t M_utf8_len(const char *str);
 

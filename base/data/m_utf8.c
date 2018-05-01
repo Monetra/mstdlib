@@ -75,16 +75,43 @@ static size_t M_utf8_cp_width(M_uint32 cp)
 	return 0;
 }
 
+static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *len)
+{
+	const char     *next = str;
+	M_utf8_error_t  res  = M_UTF8_ERROR_SUCESS;
+
+	if (M_str_isempty(str))
+		return 0;
+
+	while (*next != '\0' && res == M_UTF8_ERROR_SUCESS) {
+		if (endptr != NULL) {
+			*endptr = next;
+		}
+
+		res = M_utf8_to_cp(str, NULL, &next);
+		str = next;
+
+		if (len != NULL) {
+			(*len)++;
+		}
+	}
+	if (res != M_UTF8_ERROR_SUCESS)
+		return M_FALSE;
+
+	return M_TRUE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_utf8_is_valid(const char *str)
+M_bool M_utf8_is_valid(const char *str, const char **endptr)
 {
+	if (endptr != NULL)
+		*endptr = str;
+
 	if (M_str_isempty(str))
 		return M_TRUE;
 
-	if (M_utf8_len(str) > 0)
-		return M_TRUE;
-	return M_FALSE;
+	return M_utf8_validate_int(str, endptr, NULL);
 }
 
 M_bool M_utf8_is_valid_cp(M_uint32 cp)
@@ -222,21 +249,10 @@ M_utf8_error_t M_utf8_from_cp_buf(M_buf_t *buf, M_uint32 cp)
 
 size_t M_utf8_len(const char *str)
 {
-	const char     *next = str;
-	size_t          len  = 0;
-	M_utf8_error_t  res  = M_UTF8_ERROR_SUCESS;
+	size_t len = 0;
 
-	if (M_str_isempty(str))
+	if (!M_utf8_validate_int(str, NULL, &len))
 		return 0;
-
-	while (*next != '\0' && res == M_UTF8_ERROR_SUCESS) {
-		res = M_utf8_to_cp(str, NULL, &next);
-		str = next;
-		len++;
-	}
-	if (res != M_UTF8_ERROR_SUCESS)
-		len = 0;
-
 	return len;
 }
 
