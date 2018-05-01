@@ -35,6 +35,7 @@ set(sources
 	data/m_str_hexdump.c
 	data/m_str_num.c
 	data/m_str_patmatch.c
+	data/m_utf8.c
 
 	# fs:
 	fs/m_fs.c

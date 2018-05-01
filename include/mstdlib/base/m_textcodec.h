@@ -43,6 +43,8 @@ __BEGIN_DECLS
  *
  * @{
  */ 
+
+
 /*! Error handling logic. */
 typedef enum {
 	M_TEXTCODEC_EHANDLER_FAIL,    /*!< Errors should be considered a hard failure. */
