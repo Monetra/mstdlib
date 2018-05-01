@@ -11,10 +11,12 @@ var group__m__utf8 =
     ] ],
     [ "M_utf8_is_valid", "group__m__utf8.html#ga55ceb25389e82f13613fc2f70a863972", null ],
     [ "M_utf8_is_valid_cp", "group__m__utf8.html#ga1c40407b7d3fd9e4ef82b0cead46bd8c", null ],
-    [ "M_utf8_len", "group__m__utf8.html#gad9449c7b9ee0223116229aeb962db54e", null ],
-    [ "M_utf8_to_cp", "group__m__utf8.html#ga5d7405ad5befbf3e2976efd48b150bff", null ],
+    [ "M_utf8_cnt", "group__m__utf8.html#ga7500ddf2748796e69b0b44419adb7be8", null ],
+    [ "M_utf8_get_cp", "group__m__utf8.html#gaca7630ce9a8d7902ab53f5dca17526d5", null ],
+    [ "M_utf8_get_chr", "group__m__utf8.html#ga08c9c7082b3b18a51d4f309a479fb6ad", null ],
+    [ "M_utf8_get_chr_buf", "group__m__utf8.html#gac0288704775cbd37451dd6c2af6e99ed", null ],
     [ "M_utf8_from_cp", "group__m__utf8.html#ga989dd12114633da92c6ccc8c22d20c2e", null ],
     [ "M_utf8_from_cp_buf", "group__m__utf8.html#gad5046eaacdefcdf9e93b0d3cb5895642", null ],
     [ "M_utf8_cp_at", "group__m__utf8.html#gad214aedc1ff331120d6758952170916f", null ],
-    [ "M_utf8_chr_at", "group__m__utf8.html#ga03f7b4a469f26ae6616fd9759118e9b1", null ]
+    [ "M_utf8_chr_at", "group__m__utf8.html#gaba30ddffc5d328abf55175fe8eb212b7", null ]
 ];
