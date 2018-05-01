@@ -39,32 +39,150 @@ __BEGIN_DECLS
  * @{
  */ 
 
+/*! Error codes. */
 typedef enum {
-	M_UTF8_ERROR_SUCESS,
-	M_UTF8_ERROR_BAD_START,
-	M_UTF8_ERROR_TRUNCATED,
-	M_UTF8_ERROR_EXPECT_CONTINUE,
-	M_UTF8_ERROR_BAD_CODE_POINT,
-	M_UTF8_ERROR_OVERLONG,
-	M_UTF8_ERROR_INVALID_PARAM
+	M_UTF8_ERROR_SUCESS,          /*!< Success. */
+	M_UTF8_ERROR_BAD_START,       /*!< Start of byte sequence is invalid. */
+	M_UTF8_ERROR_TRUNCATED,       /*!< The utf-8 character length exceeds the data length. */
+	M_UTF8_ERROR_EXPECT_CONTINUE, /*!< A conurbation marker was expected but not found. */
+	M_UTF8_ERROR_BAD_CODE_POINT,  /*!< Code point is invalid. */
+	M_UTF8_ERROR_OVERLONG,        /*!< Overlong encoding encountered. */
+	M_UTF8_ERROR_INVALID_PARAM    /*!< Input parameter is invalid. */
 } M_utf8_error_t;
 
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Check if a given string is valid utf-8 encoded.
+ *
+ * \param[in]  str    utf-8 string.
+ * \param[out] endptr On error, will be set to the character that caused the failure.
+ *
+ * \return M_TRUE if str is a valid utf-8 sequence. Otherwise, M_FALSE.
+ */
 M_API M_bool M_utf8_is_valid(const char *str, const char **endptr);
+
+
+/*! Check if a given code point is valid for utf-8.
+ *
+ * \param[in] cp Code point.
+ *
+ * \return M_TRUE if code point is valid for utf-8. Otherwise, M_FALSE.
+ */
 M_API M_bool M_utf8_is_valid_cp(M_uint32 cp);
-M_API size_t M_utf8_len(const char *str);
+
+
+/*! Ge the number of utf-8 characters in a string.
+ *
+ * This is the number of characters not the number of bytes in the string.
+ * M_str_len will only return the same value if the string is only ascii.
+ *
+ * \param[in] str utf-8 string.
+ *
+ * \return Number of characters on success. On failure will return 0. Use
+ *         M_str_isempty to determine if 0 is a failure or empty string.
+ */
+M_API size_t M_utf8_cnt(const char *str);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_utf8_error_t M_utf8_to_cp(const char *str, M_uint32 *cp, const char **next);
+/*! Read a utf-8 sequence as a code point.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[out] cp   Code point. Can be NULL.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next);
+
+
+/*! Read a utf-8 sequence.
+ *
+ * Output is _not_ NULL terminated.
+ *
+ * \param[in]  str      utf-8 string.
+ * \param[in]  buf      Buffer to put utf-8 sequence. Can be NULL.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[out] next     Start of next character. Will point to NULL terminator
+ *                      if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+
+
+/*! Read a utf-8 sequence into an M_buf_t.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put utf-8 sequence.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr_buf(const char *str, M_buf_t *buf, const char **next);
+
+
+/*! Convert a code point to a utf-8 sequence.
+ *
+ * Output is _not_ NULL terminated.
+ *
+ * \param[in]  buf      Buffer to put utf-8 sequence.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[in]  cp       Code point to convert from.
+ *
+ * \return Result.
+ */
 M_API M_utf8_error_t M_utf8_from_cp(char *buf, size_t buf_size, size_t *len, M_uint32 cp);
+
+
+/*! Convert a code point to a utf-8 sequence writing to an M_buf_t.
+ *
+ * \param[in] buf Buffer to put utf-8 sequence.
+ * \param[in] cp  Code point to convert from.
+ *
+ * \return Result.
+ */
 M_API M_utf8_error_t M_utf8_from_cp_buf(M_buf_t *buf, M_uint32 cp);
 
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Get the code point at a given index.
+ *
+ * Index is based on M_utf8_cnt _not_ the number of bytes.
+ * This causes a *full* scan of the string. Iteration should use
+ * M_utf8_get_cp.
+ *
+ * \param[in]  str utf-8 string.
+ * \param[in]  idx Index.
+ * \param[out] cp  Code point.
+ *
+ * \return Result.
+ */
 M_API M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp);
-M_API M_utf8_error_t M_utf8_chr_at(char *buf, size_t buf_size, size_t *len, const char *str, size_t idx);
+
+
+/*! Get the utf-8 sequence at a given index.
+ *
+ * Index is based on M_utf8_cnt _not_ the number of bytes.
+ * This causes a *full* scan of the string. Iteration should use
+ * M_utf8_get_chr.
+ *
+ * \param[in]  str      utf-8 string.
+ * \param[in]  buf      Buffer to put utf-8 sequence.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[in]  idx      Index.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t *len, size_t idx);
 
 /*! @} */
 

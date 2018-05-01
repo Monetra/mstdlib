@@ -88,7 +88,7 @@ static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *
 			*endptr = next;
 		}
 
-		res = M_utf8_to_cp(str, NULL, &next);
+		res = M_utf8_get_cp(str, NULL, &next);
 		str = next;
 
 		if (len != NULL) {
@@ -127,7 +127,7 @@ M_bool M_utf8_is_valid_cp(M_uint32 cp)
 	return M_TRUE;
 }
 
-M_utf8_error_t M_utf8_to_cp(const char *str, M_uint32 *cp, const char **next)
+M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 {
 	M_uint32 mycp;
 	size_t   width = 0;
@@ -192,6 +192,35 @@ M_utf8_error_t M_utf8_to_cp(const char *str, M_uint32 *cp, const char **next)
 	return M_UTF8_ERROR_SUCESS;
 }
 
+M_utf8_error_t M_utf8_get_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next)
+{
+	M_utf8_error_t res;
+	M_uint32       cp;
+
+	/* We do a dobule converstion because getting the cp will do validation
+ 	 * such as over long. */
+	res = M_utf8_get_cp(str, &cp, next);
+	if (res != M_UTF8_ERROR_SUCESS)
+		return res;
+
+	if (buf == NULL || buf_size == 0)
+		return M_UTF8_ERROR_SUCESS;
+	return M_utf8_from_cp(buf, buf_size, len, cp);
+}
+
+M_utf8_error_t M_utf8_get_chr_buf(const char *str, M_buf_t *buf, const char **next)
+{
+	char           mybuf[8] = { 0 };
+	size_t         len;
+	M_utf8_error_t res;
+
+	res = M_utf8_get_chr(str, mybuf, sizeof(mybuf), &len, next);
+	if (res == M_UTF8_ERROR_SUCESS)
+		M_buf_add_bytes(buf, mybuf, len);
+
+	return res;
+}
+
 M_utf8_error_t M_utf8_from_cp(char *buf, size_t buf_size, size_t *len, M_uint32 cp)
 {
 	size_t width;
@@ -247,7 +276,7 @@ M_utf8_error_t M_utf8_from_cp_buf(M_buf_t *buf, M_uint32 cp)
 	return res;
 }
 
-size_t M_utf8_len(const char *str)
+size_t M_utf8_cnt(const char *str)
 {
 	size_t len = 0;
 
@@ -266,7 +295,7 @@ M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp)
 		return M_UTF8_ERROR_INVALID_PARAM;
 
 	while (*next != '\0' && res == M_UTF8_ERROR_SUCESS) {
-		res = M_utf8_to_cp(str, cp, &next);
+		res = M_utf8_get_cp(str, cp, &next);
 		str = next;
 		if (i == idx)
 			break;
@@ -281,7 +310,7 @@ M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp)
 	return M_UTF8_ERROR_SUCESS;
 }
 
-M_utf8_error_t M_utf8_chr_at(char *buf, size_t buf_size, size_t *len, const char *str, size_t idx)
+M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t *len, size_t idx)
 {
 	M_utf8_error_t res;
 	M_uint32       cp;
