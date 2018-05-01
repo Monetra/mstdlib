@@ -124,6 +124,23 @@ M_bool M_utf8_is_valid_cp(M_uint32 cp)
 	if (cp >= 0xD800 && cp <= 0xDFFF)
 		return M_FALSE;
 
+	/* Noncharacters */
+	if (cp == 0xFFFE || cp == 0xFFFF ||
+		cp == 0x1FFFE || cp == 0x1FFFF ||
+		cp == 0x2FFFE || cp == 0x2FFFF ||
+		cp == 0x3FFFE || cp == 0x3FFFF ||
+		cp == 0x4FFFE || cp == 0x4FFFF ||
+		cp == 0x5FFFE || cp == 0x5FFFF ||
+		cp == 0x6FFFE || cp == 0x6FFFF ||
+		cp == 0x7FFFE || cp == 0x7FFFF ||
+		cp == 0x8FFFE || cp == 0x8FFFF ||
+		cp == 0x9FFFE || cp == 0x9FFFF ||
+		cp == 0x10FFFE || cp == 0x10FFFF ||
+		(cp >= 0xFDD0 && cp <= 0xFDEF))
+	{
+		return M_FALSE;
+	}
+
 	return M_TRUE;
 }
 
