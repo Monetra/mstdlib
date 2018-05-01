@@ -132,6 +132,18 @@ M_API M_utf8_error_t M_utf8_get_chr(const char *str, char *buf, size_t buf_size,
 M_API M_utf8_error_t M_utf8_get_chr_buf(const char *str, M_buf_t *buf, const char **next);
 
 
+/*! Get the location of the next utf-8 sequence.
+ *
+ * Does not validate characters. Useful when parsing an invalid string and
+ * wanting to move past to ignore or replace invalid characters.
+ *
+ * \param[in] str utf-8 string.
+ *
+ * \return Pointer to next character in sequence.
+ */
+M_API char *M_utf8_next_chr(const char *str);
+
+
 /*! Convert a code point to a utf-8 sequence.
  *
  * Output is _not_ NULL terminated.
