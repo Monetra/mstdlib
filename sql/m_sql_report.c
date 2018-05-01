@@ -634,6 +634,9 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 
 		/* If we've output the max rows we're allowed to, exit out */
 		if (max_rows != 0 && rows_output == max_rows) {
+			/* Advance one row because we've already processed it. Next
+			 * run we want to start on the next row. */
+			(*state)->rowidx++;
 			/* Make sure we indicate we need to loop, even if the real error is M_SQL_ERROR_SUCCESS
 			 * since we're breaking out early */
 			err = M_SQL_ERROR_SUCCESS_ROW;
