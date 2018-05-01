@@ -24,6 +24,7 @@
 #include "m_config.h"
 
 #include <mstdlib/mstdlib.h>
+#include "m_defs_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -236,6 +237,21 @@ M_utf8_error_t M_utf8_get_chr_buf(const char *str, M_buf_t *buf, const char **ne
 		M_buf_add_bytes(buf, mybuf, len);
 
 	return res;
+}
+
+char *M_utf8_next_chr(const char *str)
+{
+	if (M_str_isempty(str))
+		return NULL;
+
+	/* Move forward to the next byte and check it. */
+	str++;
+
+	/* Keep going until we're past any continues. */
+	while (M_utf8_is_continue((unsigned char)*str))
+		str++;
+
+	return M_CAST_OFF_CONST(char *, str);
 }
 
 M_utf8_error_t M_utf8_from_cp(char *buf, size_t buf_size, size_t *len, M_uint32 cp)
