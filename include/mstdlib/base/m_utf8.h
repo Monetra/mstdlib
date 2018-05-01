@@ -36,6 +36,11 @@ __BEGIN_DECLS
 /*! \addtogroup m_utf8 utf-8 Handling
  *  \ingroup mstdlib_base
  *
+ * Targets unicode 10.0.
+ *
+ * \note Non-characters are considered an error conditions because
+ *       they do not have a defined meaning.
+ *
  * @{
  */ 
 
