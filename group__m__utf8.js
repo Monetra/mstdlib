@@ -9,7 +9,7 @@ var group__m__utf8 =
       [ "M_UTF8_ERROR_OVERLONG", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda7a1fab3a6652046658412879e1141e6d", null ],
       [ "M_UTF8_ERROR_INVALID_PARAM", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda447cf019fbb32d728c8ea4bee92b8c3e", null ]
     ] ],
-    [ "M_utf8_is_valid", "group__m__utf8.html#gaaef90325aed544aba7b2d9e6ba3bd0c5", null ],
+    [ "M_utf8_is_valid", "group__m__utf8.html#ga55ceb25389e82f13613fc2f70a863972", null ],
     [ "M_utf8_is_valid_cp", "group__m__utf8.html#ga1c40407b7d3fd9e4ef82b0cead46bd8c", null ],
     [ "M_utf8_len", "group__m__utf8.html#gad9449c7b9ee0223116229aeb962db54e", null ],
     [ "M_utf8_to_cp", "group__m__utf8.html#ga5d7405ad5befbf3e2976efd48b150bff", null ],

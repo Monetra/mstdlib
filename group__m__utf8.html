@@ -124,8 +124,8 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gaaef90325aed544aba7b2d9e6ba3bd0c5"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#gaaef90325aed544aba7b2d9e6ba3bd0c5">M_utf8_is_valid</a> (const char *str)</td></tr>
-<tr class="separator:gaaef90325aed544aba7b2d9e6ba3bd0c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga55ceb25389e82f13613fc2f70a863972"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#ga55ceb25389e82f13613fc2f70a863972">M_utf8_is_valid</a> (const char *str, const char **endptr)</td></tr>
+<tr class="separator:ga55ceb25389e82f13613fc2f70a863972"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1c40407b7d3fd9e4ef82b0cead46bd8c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#ga1c40407b7d3fd9e4ef82b0cead46bd8c">M_utf8_is_valid_cp</a> (M_uint32 cp)</td></tr>
 <tr class="separator:ga1c40407b7d3fd9e4ef82b0cead46bd8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad9449c7b9ee0223116229aeb962db54e"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__utf8.html#gad9449c7b9ee0223116229aeb962db54e">M_utf8_len</a> (const char *str)</td></tr>
@@ -172,7 +172,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gaaef90325aed544aba7b2d9e6ba3bd0c5"></a>
+<a class="anchor" id="ga55ceb25389e82f13613fc2f70a863972"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -180,8 +180,18 @@ Functions</h2></td></tr>
           <td class="memname">M_bool M_utf8_is_valid </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>str</em></td><td>)</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const char **&#160;</td>
+          <td class="paramname"><em>endptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -397,7 +407,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue May 1 2018 18:27:06 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Tue May 1 2018 18:38:50 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
