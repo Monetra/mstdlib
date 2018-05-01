@@ -19,5 +19,6 @@ var group__mstdlib__base =
     [ "Search and Sort", "group__m__sort.html", "group__m__sort" ],
     [ "State Machine", "group__m__state__machine.html", "group__m__state__machine" ],
     [ "Text Encoding Conversion", "group__m__textcodec.html", "group__m__textcodec" ],
-    [ "Time", "group__m__time.html", "group__m__time" ]
+    [ "Time", "group__m__time.html", "group__m__time" ],
+    [ "utf-8 Handling", "group__m__utf8.html", "group__m__utf8" ]
 ];
