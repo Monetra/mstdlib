@@ -87,7 +87,9 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
 
-	/* XXX: Validate input is utf-8 and do something if not. */
+	/* Validate input is utf-8. */
+	if (!M_utf8_is_valid(in, NULL) && ehandler == M_TEXTCODEC_EHANDLER_FAIL)
+		return M_TEXTCODEC_ERROR_BADINPUT;
 
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
