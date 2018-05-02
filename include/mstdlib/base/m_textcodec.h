@@ -56,6 +56,7 @@ typedef enum {
 /*! Text codecs that can be used for encoding and decoding. */
 typedef enum {
 	M_TEXTCODEC_UNKNOWN,         /*!< Unknown / invalid codec. */
+	M_TEXTCODEC_UTF8,            /*!< Utf-8. */
 	M_TEXTCODEC_ASCII,           /*!< Ascii. */
 	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */

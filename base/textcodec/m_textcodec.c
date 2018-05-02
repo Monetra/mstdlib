@@ -35,6 +35,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 	fail = M_TRUE;
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
+		case M_TEXTCODEC_UTF8:
 		case M_TEXTCODEC_ASCII:
 		case M_TEXTCODEC_PERCENT_URL:
 		case M_TEXTCODEC_PERCENT_URLPLUS:
@@ -91,6 +92,9 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
+			M_textcodec_buffer_add_str(buf, in);
+			return M_TEXTCODEC_ERROR_SUCCESS;
+		case M_TEXTCODEC_UTF8:
 			break;
 		case M_TEXTCODEC_ASCII:
 			return M_textcodec_encode_ascii(buf, in, ehandler);
@@ -118,6 +122,9 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
 			break;
+		case M_TEXTCODEC_UTF8:
+			M_textcodec_buffer_add_str(buf, in);
+			return M_TEXTCODEC_ERROR_SUCCESS;
 		case M_TEXTCODEC_ASCII:
 			return M_textcodec_decode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_PERCENT_URL:
@@ -240,6 +247,9 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 	if (M_str_isempty(s))
 		return M_TEXTCODEC_UNKNOWN;
 
+	if (M_str_caseeq(s, "utf8") || M_str_caseeq(s, "utf-8") || M_str_caseeq(s, "utf_8"))
+		return M_TEXTCODEC_UTF8;
+
 	if (M_str_caseeq(s, "ascii") || M_str_caseeq(s, "us-ascii"))
 		return M_TEXTCODEC_ASCII;
 
@@ -287,6 +297,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
 			break;
+		case M_TEXTCODEC_UTF8:
+			return "utf8";
 		case M_TEXTCODEC_ASCII:
 			return "ascii";
 		case M_TEXTCODEC_PERCENT_URL:
