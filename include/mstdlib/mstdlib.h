@@ -60,5 +60,6 @@
 #include <mstdlib/base/m_textcodec.h>
 #include <mstdlib/base/m_time.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_utf8.h>
 
 #endif /* __MSTDLIB_H__ */
