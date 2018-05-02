@@ -761,23 +761,21 @@ static ssize_t M_str_fmt_handle_control(M_str_fmt_t *data, M_parser_t *parser, M
 
 			/* Type modifiers. */
 			case 'h':
-				if (data_type != M_STR_FMT_DATA_TYPE_INT && data_type != M_STR_FMT_DATA_TYPE_SORT) {
-					goto parse_error;
-				}
-				if (data_type != M_STR_FMT_DATA_TYPE_INT) {
+				if (data_type == M_STR_FMT_DATA_TYPE_INT) {
 					data_type = M_STR_FMT_DATA_TYPE_SORT;
-				} else {
+				} else if (data_type == M_STR_FMT_DATA_TYPE_SORT) {
 					data_type = M_STR_FMT_DATA_TYPE_CHAR;
+				} else {
+					goto parse_error;
 				}
 				break;
 			case 'l':
-				if (data_type != M_STR_FMT_DATA_TYPE_INT && data_type != M_STR_FMT_DATA_TYPE_LONG) {
-					goto parse_error;
-				}
-				if (data_type == M_STR_FMT_DATA_TYPE_LONG) {
+				if (data_type == M_STR_FMT_DATA_TYPE_INT) {
+					data_type = M_STR_FMT_DATA_TYPE_LONG;
+				} else if (data_type == M_STR_FMT_DATA_TYPE_LONG) {
 					data_type = M_STR_FMT_DATA_TYPE_LONGLONG;
 				} else {
-					data_type = M_STR_FMT_DATA_TYPE_LONG;
+					goto parse_error;
 				}
 				break;
 			case 'I':
