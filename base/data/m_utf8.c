@@ -155,12 +155,11 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 	if (str == NULL)
 		return M_UTF8_ERROR_INVALID_PARAM;
 
-	if (*str == '\0') {
-		if (cp != NULL) {
-			*cp = 0;
-		}
+	if (cp != NULL)
+		*cp = 0;
+
+	if (*str == '\0')
 		return M_UTF8_ERROR_SUCESS;
-	}
 
 	len   = M_str_len(str);
 	width = M_utf8_byte_width((unsigned char)str[0]);
@@ -272,11 +271,8 @@ M_utf8_error_t M_utf8_from_cp(char *buf, size_t buf_size, size_t *len, M_uint32 
 		return M_UTF8_ERROR_TRUNCATED;
 
 	if (width == 1) {
-		M_mem_copy(buf, (char *)&cp, 1);
-		return M_UTF8_ERROR_SUCESS;
-	}
-
-	if (width == 2) {
+		buf[0] = (char)cp;
+	} else if (width == 2) {
 		buf[0] = (char)(0xC0 | ((cp >> 6) & 0x3F));
 		buf[1] = (char)(0x80 | (cp & 0x3F));
 	} else if (width == 3) {

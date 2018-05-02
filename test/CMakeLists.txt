@@ -61,6 +61,7 @@ set(tests
 	base/data/check_str.c
 	base/data/check_str_int64.c
 	base/data/check_str_uint64.c
+	base/data/check_utf8.c
 	base/fs/check_file.c
 	base/fs/check_path.c
 	base/hash/check_hash_dict.c
