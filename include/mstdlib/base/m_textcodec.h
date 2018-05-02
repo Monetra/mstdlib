@@ -49,9 +49,7 @@ __BEGIN_DECLS
 typedef enum {
 	M_TEXTCODEC_EHANDLER_FAIL,    /*!< Errors should be considered a hard failure. */
 	M_TEXTCODEC_EHANDLER_REPLACE, /*!< Encode replace with ?. Decode replace with U+FFFD. */
-	M_TEXTCODEC_EHANDLER_IGNORE,  /*!< Ignore data that cannot be encoded or decoded in the codec. */
-	/* XXX: M_TEXTCODEC_EHANDLER_TRANSLATE !< Translate characters to an satiable equivalent. E.g. ascii encoding of u+umlaut to u.
- 	                                    When translation is not possible will function like IGNORE. */
+	M_TEXTCODEC_EHANDLER_IGNORE   /*!< Ignore data that cannot be encoded or decoded in the codec. */
 } M_textcodec_ehandler_t;
 
 
@@ -62,9 +60,9 @@ typedef enum {
 	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
+	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252. */
 #if 0
 	M_TEXTCODEC_ISO88591,        /*!<  ISO-8859-1. Latin 1. */
-	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252. */
 #endif
 } M_textcodec_codec_t;
 
