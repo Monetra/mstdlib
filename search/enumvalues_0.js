@@ -720,6 +720,7 @@ var searchData=
   ['m_5fsyslog_5fnotice',['M_SYSLOG_NOTICE',['../group__m__log__common.html#ggae8930caa6ff473862599faf5002ffecea5bd9adec7ec5386c61073b6a2137078f',1,'m_log.h']]],
   ['m_5fsyslog_5fwarning',['M_SYSLOG_WARNING',['../group__m__log__common.html#ggae8930caa6ff473862599faf5002ffecea46d59af4b75014c1f9a8db145b63eb10',1,'m_log.h']]],
   ['m_5ftextcodec_5fascii',['M_TEXTCODEC_ASCII',['../group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8',1,'m_textcodec.h']]],
+  ['m_5ftextcodec_5fcp1252',['M_TEXTCODEC_CP1252',['../group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536ab3a4278d4ca985699e021140ab0e8779',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5fehandler_5ffail',['M_TEXTCODEC_EHANDLER_FAIL',['../group__m__textcodec.html#ggabce257a204b55a46ad9835114b8673dfaac88ff3ca8b99330d33c9e4a87d43dac',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5fehandler_5fignore',['M_TEXTCODEC_EHANDLER_IGNORE',['../group__m__textcodec.html#ggabce257a204b55a46ad9835114b8673dfa1dc19bad8733d77148f555405174eb8c',1,'m_textcodec.h']]],
   ['m_5ftextcodec_5fehandler_5freplace',['M_TEXTCODEC_EHANDLER_REPLACE',['../group__m__textcodec.html#ggabce257a204b55a46ad9835114b8673dfa38e6c06f55f99f0d565e8064198a8554',1,'m_textcodec.h']]],
