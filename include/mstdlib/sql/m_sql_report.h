@@ -149,6 +149,7 @@ M_API M_bool M_sql_report_set_fetch_cb(M_sql_report_t *report, M_sql_report_fetc
  *
  * \param[in]    stmt      Pointer to statement object being processed.
  * \param[in]    arg       Custom user-supplied argument for registered callbacks.
+ * \param[in]    name      Assigned report name of column being processed (not necessarily the name of the SQL column returned)
  * \param[in]    row       Row of result set currently being processed.
  * \param[in]    col       Index of result set column being processed, or -1 if no specific column is referenced.
  * \param[out]   buf       Pre-allocated #M_buf_t buffer is provided to write column output. The provided buffer is empty,
@@ -161,7 +162,7 @@ M_API M_bool M_sql_report_set_fetch_cb(M_sql_report_t *report, M_sql_report_fetc
  * \return \return #M_SQL_REPORT_SUCCESS on success or #M_SQL_REPORT_ERROR on failure which will cause report processing to stop
  *         or to just skip the row, return #M_SQL_REPORT_SKIP_ROW.
  */
-typedef M_sql_report_cberror_t (*M_sql_report_cell_cb_t)(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
+typedef M_sql_report_cberror_t (*M_sql_report_cell_cb_t)(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
 
 /*! Callback template for column passthru.
  *
@@ -169,7 +170,7 @@ typedef M_sql_report_cberror_t (*M_sql_report_cell_cb_t)(M_sql_stmt_t *stmt, voi
  *  base64 encoded as the report output mandates string data only.  If the cell is NULL, it will
  *  be output as blank.
  */
-M_API M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
+M_API M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
 
 /*! Callback template for outputting an integer column stored with a 2-digit implied decimal point as an actual
  *  decimal with 2 decimal places.  E.g.:
@@ -177,7 +178,7 @@ M_API M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, v
  *   -  100 -> 1.00
  *  If the cell is NULL, a blank column will be output instead of 0.00
  */
-M_API M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
+M_API M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
 
 /*! Callback template for outputting an integer column stored with a 5-digit implied decimal point as an actual
  *  decimal with 5 decimal places.  E.g.:
@@ -185,13 +186,13 @@ M_API M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, vo
  *   -  100000 -> 1.00000
  *  If the cell is NULL, a blank column will be output instead of 0.00000
  */
-M_API M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
+M_API M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
 
 /*! Callback template for outputting a boolean value column with yes or no.
  *
  *  If the cell is NULL, a blank column will be output instead of yes or no.
  */
-M_API M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
+M_API M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null);
 
 /*! Register column to be output in report.
  *
