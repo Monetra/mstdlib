@@ -165,42 +165,68 @@ static M_http_error_t M_http_simple_trailer_done_cb(void *thunk)
 
 static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 {
-#if 0
-	const M_hash_dict_t *headers;
 	const char          *const_temp;
 	char                *dec;
-	M_textcodec_codec_t  codec;
+	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
+	M_bool               have_charset = M_FALSE;
+	M_bool               have_encoded = M_FALSE;
 	size_t               len;
 	size_t               i;
+	size_t               encoded_idx;
+	size_t               charset_idx;
 
-	headers = M_http_headers(simple->http);
-	len     = M_hash_dict_multi_len(headers, "content-type");
+	char **parts;
+	size_t num_parts;
+
+	if (!M_hash_dict_multi_len(simple->http->headers, "content-type", &len))
+		len = 0;
 	for (i=0; i<len; i++) {
-		const_temp = M_hash_dict_multi_get_direct(headers, "content-type");
-		1. check charset
-		2. check for form encoding
+		const_temp = M_hash_dict_multi_get_direct(simple->http->headers, "content-type", i);
+		if (M_str_caseeq(parts[0], "application/x-www-form-urlencoded")) {
+			have_encoded = M_TRUE;
+			encoded_idx       = i;
+			continue;
+		}
+
+		parts = M_str_explode_str('=', const_temp, &num_parts);
+		if (parts == NULL || num_parts == 0) {
+			continue;
+		}
+
+		if (M_str_caseeq(parts[0], "charset") && num_parts == 2) {
+			have_charset = M_TRUE;
+			charset_idx       = i;
+			codec        = M_textcodec_codec_from_str(parts[1]);
+		}
+
+		M_str_explode_free(parts, num_parts);
 	}
 
-	if (codec == unknown)
-		return M_HTTP_ERROR_SUCCESS;
+	/* url-form decode the data. */
+	if (have_encoded) {
+		(void)M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, M_TEXTCODEC_PERCENT_FORM);
+		M_buf_truncate(simple->http->body, 0);
+		M_buf_add_str(simple->http->body, dec);
+		M_free(dec);
 
-	1. Split multi part now or later?
+		/* Data is no longer form encoded so remove it from the headers. */
+		M_hash_dict_multi_remove(simple->http->headers, "content-type", encoded_idx);
+	}
 
-	1. decode charset.
-	2. decode form encoding
-	tcerr = M_textcodec_decode(&dec, M_http_body(simple->http), M_TEXTCODEC_EHANDLER_FAIL, codec);
-	if (M_textcodec_error_is_error(tcerr))
-		return M_HTTP_ERROR_TEXTCODEC_FAILURE;
+	/* Decode the data to utf-8 if we can. */
+	if (codec != M_TEXTCODEC_UNKNOWN && codec != M_TEXTCODEC_UTF8) {
+		(void)M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, codec);
+		M_buf_truncate(simple->http->body, 0);
+		M_buf_add_str(simple->http->body, dec);
+		M_free(dec);
 
-	1. Kill current body data.
-	2. Set newly decoded body data.
-	3. set charset to utf-8
-	4. change form encoding to ?, just remove?
-	M_http_body_drop(simple->http, M_http_body_length_buffered(simple->http));
-	M_http_body_append(simple->http, dec);
-	M_free(dec);
+		/* Remove and set the charset since it's now utf-8. */
+		if (have_charset) {
+			M_hash_dict_multi_remove(simple->http->headers, "content-type", charset_idx);
+		}
+		M_hash_dict_insert(simple->http->headers, "content-type", "charset=utf-8");
+	}
 
-#endif
 	return M_HTTP_ERROR_SUCCESS;
 }
 
