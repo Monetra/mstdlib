@@ -4,17 +4,10 @@
 
 #include <mstdlib/mstdlib.h>
 
-/* A number of tests are from
+/* Soft tests are from
  * Markus Kuhn <http://www.cl.cam.ac.uk/~mgk25/> - 2015-08-28 - CC BY 4.0
+ * This license is for the test data used from there only.
  */
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-typedef struct {
-} cb_data_t;
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
