@@ -170,22 +170,26 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
 	M_bool               have_charset = M_FALSE;
 	M_bool               have_encoded = M_FALSE;
+	M_bool               multipart    = M_FALSE;
 	size_t               len;
 	size_t               i;
 	size_t               encoded_idx;
 	size_t               charset_idx;
 
-	char **parts;
-	size_t num_parts;
-
 	if (!M_hash_dict_multi_len(simple->http->headers, "content-type", &len))
 		len = 0;
 	for (i=0; i<len; i++) {
+		char **parts;
+		size_t num_parts;
+
 		const_temp = M_hash_dict_multi_get_direct(simple->http->headers, "content-type", i);
-		if (M_str_caseeq(parts[0], "application/x-www-form-urlencoded")) {
+		if (M_str_caseeq(const_temp, "application/x-www-form-urlencoded")) {
 			have_encoded = M_TRUE;
 			encoded_idx       = i;
 			continue;
+		} else if (M_str_caseeq(const_temp, "multipart/form-data")) {
+			multipart = M_TRUE;
+			break;
 		}
 
 		parts = M_str_explode_str('=', const_temp, &num_parts);
@@ -201,6 +205,9 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 
 		M_str_explode_free(parts, num_parts);
 	}
+
+	if (multipart)
+		return M_HTTP_ERROR_SUCCESS;
 
 	/* url-form decode the data. */
 	if (have_encoded) {
