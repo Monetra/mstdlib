@@ -98,7 +98,9 @@ set(sources
 	textcodec/m_textcodec_buffer.c
 	textcodec/m_textcodec_ascii.c
 	textcodec/m_textcodec_cp1252.c
+	textcodec/m_textcodec_cp_map.c
 	textcodec/m_textcodec_percent.c
+	textcodec/m_textcodec_iso88591.c
 
 	# time:
 	time/m_time.c
