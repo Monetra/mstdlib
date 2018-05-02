@@ -30,7 +30,7 @@
 
 /* Mapping table from The Unicode Consortium.
  * https://www.unicode.org/Public/MAPPINGS/ */
-static M_textcodec_cp_map_t cp1252_map[] = {
+static M_textcodec_cp_map_t iso88591_map[] = {
 	{ 0x00, 0x0000, "Null"                                       },
 	{ 0x01, 0x0001, "Start Of Heading"                           },
 	{ 0x02, 0x0002, "Start Of Text"                              },
@@ -159,33 +159,38 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0x7D, 0x007D, "Right Curly Bracket"                        },
 	{ 0x7E, 0x007E, "Tilde"                                      },
 	{ 0x7F, 0x007F, "Delete"                                     },
-	{ 0x80, 0x20AC, "Euro Sign"                                  },
-	{ 0x82, 0x201A, "Single Low-9 Quotation Mark"                },
-	{ 0x83, 0x0192, "Latin Small Letter F With Hook"             },
-	{ 0x84, 0x201E, "Double Low-9 Quotation Mark"                },
-	{ 0x85, 0x2026, "Horizontal Ellipsis"                        },
-	{ 0x86, 0x2020, "Dagger"                                     },
-	{ 0x87, 0x2021, "Double Dagger"                              },
-	{ 0x88, 0x02C6, "Modifier Letter Circumflex Accent"          },
-	{ 0x89, 0x2030, "Per Mille Sign"                             },
-	{ 0x8A, 0x0160, "Latin Capital Letter S With Caron"          },
-	{ 0x8B, 0x2039, "Single Left-Pointing Angle Quotation Mark"  },
-	{ 0x8C, 0x0152, "Latin Capital Ligature Oe"                  },
-	{ 0x8E, 0x017D, "Latin Capital Letter Z With Caron"          },
-	{ 0x91, 0x2018, "Left Single Quotation Mark"                 },
-	{ 0x92, 0x2019, "Right Single Quotation Mark"                },
-	{ 0x93, 0x201C, "Left Double Quotation Mark"                 },
-	{ 0x94, 0x201D, "Right Double Quotation Mark"                },
-	{ 0x95, 0x2022, "Bullet"                                     },
-	{ 0x96, 0x2013, "En Dash"                                    },
-	{ 0x97, 0x2014, "Em Dash"                                    },
-	{ 0x98, 0x02DC, "Small Tilde"                                },
-	{ 0x99, 0x2122, "Trade Mark Sign"                            },
-	{ 0x9A, 0x0161, "Latin Small Letter S With Caron"            },
-	{ 0x9B, 0x203A, "Single Right-Pointing Angle Quotation Mark" },
-	{ 0x9C, 0x0153, "Latin Small Ligature Oe"                    },
-	{ 0x9E, 0x017E, "Latin Small Letter Z With Caron"            },
-	{ 0x9F, 0x0178, "Latin Capital Letter Y With Diaeresis"      },
+	{ 0x80, 0x0080, "<Control>"                                  },
+	{ 0x81, 0x0081, "<Control>"                                  },
+	{ 0x82, 0x0082, "<Control>"                                  },
+	{ 0x83, 0x0083, "<Control>"                                  },
+	{ 0x84, 0x0084, "<Control>"                                  },
+	{ 0x85, 0x0085, "<Control>"                                  },
+	{ 0x86, 0x0086, "<Control>"                                  },
+	{ 0x87, 0x0087, "<Control>"                                  },
+	{ 0x88, 0x0088, "<Control>"                                  },
+	{ 0x89, 0x0089, "<Control>"                                  },
+	{ 0x8A, 0x008A, "<Control>"                                  },
+	{ 0x8B, 0x008B, "<Control>"                                  },
+	{ 0x8C, 0x008C, "<Control>"                                  },
+	{ 0x8D, 0x008D, "<Control>"                                  },
+	{ 0x8E, 0x008E, "<Control>"                                  },
+	{ 0x8F, 0x008F, "<Control>"                                  },
+	{ 0x90, 0x0090, "<Control>"                                  },
+	{ 0x91, 0x0091, "<Control>"                                  },
+	{ 0x92, 0x0092, "<Control>"                                  },
+	{ 0x93, 0x0093, "<Control>"                                  },
+	{ 0x94, 0x0094, "<Control>"                                  },
+	{ 0x95, 0x0095, "<Control>"                                  },
+	{ 0x96, 0x0096, "<Control>"                                  },
+	{ 0x97, 0x0097, "<Control>"                                  },
+	{ 0x98, 0x0098, "<Control>"                                  },
+	{ 0x99, 0x0099, "<Control>"                                  },
+	{ 0x9A, 0x009A, "<Control>"                                  },
+	{ 0x9B, 0x009B, "<Control>"                                  },
+	{ 0x9C, 0x009C, "<Control>"                                  },
+	{ 0x9D, 0x009D, "<Control>"                                  },
+	{ 0x9E, 0x009E, "<Control>"                                  },
+	{ 0x9F, 0x009F, "<Control>"                                  },
 	{ 0xA0, 0x00A0, "No-Break Space"                             },
 	{ 0xA1, 0x00A1, "Inverted Exclamation Mark"                  },
 	{ 0xA2, 0x00A2, "Cent Sign"                                  },
@@ -224,7 +229,7 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0xC3, 0x00C3, "Latin Capital Letter A With Tilde"          },
 	{ 0xC4, 0x00C4, "Latin Capital Letter A With Diaeresis"      },
 	{ 0xC5, 0x00C5, "Latin Capital Letter A With Ring Above"     },
-	{ 0xC6, 0x00C6, "Latin Capital Ligature Ae"                  },
+	{ 0xC6, 0x00C6, "Latin Capital Letter Ae"                    },
 	{ 0xC7, 0x00C7, "Latin Capital Letter C With Cedilla"        },
 	{ 0xC8, 0x00C8, "Latin Capital Letter E With Grave"          },
 	{ 0xC9, 0x00C9, "Latin Capital Letter E With Acute"          },
@@ -234,7 +239,7 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0xCD, 0x00CD, "Latin Capital Letter I With Acute"          },
 	{ 0xCE, 0x00CE, "Latin Capital Letter I With Circumflex"     },
 	{ 0xCF, 0x00CF, "Latin Capital Letter I With Diaeresis"      },
-	{ 0xD0, 0x00D0, "Latin Capital Letter Eth"                   },
+	{ 0xD0, 0x00D0, "Latin Capital Letter Eth (Icelandic)"       },
 	{ 0xD1, 0x00D1, "Latin Capital Letter N With Tilde"          },
 	{ 0xD2, 0x00D2, "Latin Capital Letter O With Grave"          },
 	{ 0xD3, 0x00D3, "Latin Capital Letter O With Acute"          },
@@ -248,15 +253,15 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0xDB, 0x00DB, "Latin Capital Letter U With Circumflex"     },
 	{ 0xDC, 0x00DC, "Latin Capital Letter U With Diaeresis"      },
 	{ 0xDD, 0x00DD, "Latin Capital Letter Y With Acute"          },
-	{ 0xDE, 0x00DE, "Latin Capital Letter Thorn"                 },
-	{ 0xDF, 0x00DF, "Latin Small Letter Sharp S"                 },
+	{ 0xDE, 0x00DE, "Latin Capital Letter Thorn (Icelandic)"     },
+	{ 0xDF, 0x00DF, "Latin Small Letter Sharp S (German)"        },
 	{ 0xE0, 0x00E0, "Latin Small Letter A With Grave"            },
 	{ 0xE1, 0x00E1, "Latin Small Letter A With Acute"            },
 	{ 0xE2, 0x00E2, "Latin Small Letter A With Circumflex"       },
 	{ 0xE3, 0x00E3, "Latin Small Letter A With Tilde"            },
 	{ 0xE4, 0x00E4, "Latin Small Letter A With Diaeresis"        },
 	{ 0xE5, 0x00E5, "Latin Small Letter A With Ring Above"       },
-	{ 0xE6, 0x00E6, "Latin Small Ligature Ae"                    },
+	{ 0xE6, 0x00E6, "Latin Small Letter Ae"                      },
 	{ 0xE7, 0x00E7, "Latin Small Letter C With Cedilla"          },
 	{ 0xE8, 0x00E8, "Latin Small Letter E With Grave"            },
 	{ 0xE9, 0x00E9, "Latin Small Letter E With Acute"            },
@@ -266,7 +271,7 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0xED, 0x00ED, "Latin Small Letter I With Acute"            },
 	{ 0xEE, 0x00EE, "Latin Small Letter I With Circumflex"       },
 	{ 0xEF, 0x00EF, "Latin Small Letter I With Diaeresis"        },
-	{ 0xF0, 0x00F0, "Latin Small Letter Eth"                     },
+	{ 0xF0, 0x00F0, "Latin Small Letter Eth (Icelandic)"         },
 	{ 0xF1, 0x00F1, "Latin Small Letter N With Tilde"            },
 	{ 0xF2, 0x00F2, "Latin Small Letter O With Grave"            },
 	{ 0xF3, 0x00F3, "Latin Small Letter O With Acute"            },
@@ -280,19 +285,19 @@ static M_textcodec_cp_map_t cp1252_map[] = {
 	{ 0xFB, 0x00FB, "Latin Small Letter U With Circumflex"       },
 	{ 0xFC, 0x00FC, "Latin Small Letter U With Diaeresis"        },
 	{ 0xFD, 0x00FD, "Latin Small Letter Y With Acute"            },
-	{ 0xFE, 0x00FE, "Latin Small Letter Thorn"                   },
-	{ 0xFF, 0x00FF, "Latin Small Letter Y With Diaeresis"        },
+	{ 0xFE, 0x00FE, "Latin Small Letter Thorn (Icelandic)"       },
+	{ 0xff, 0x00ff, "Latin Small Letter Y With Diaeresis"        },
 	{ 0, 0, NULL }
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_cp1252(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_encode_iso88591(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	return M_textcodec_encode_cp_map(buf, in, ehandler, cp1252_map);
+	return M_textcodec_encode_cp_map(buf, in, ehandler, iso88591_map);
 }
 
-M_textcodec_error_t M_textcodec_decode_cp1252(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_decode_iso88591(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	return M_textcodec_decode_cp_map(buf, in, ehandler, cp1252_map);
+	return M_textcodec_decode_cp_map(buf, in, ehandler, iso88591_map);
 }
