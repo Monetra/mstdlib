@@ -30,29 +30,42 @@
 
 M_textcodec_error_t M_textcodec_encode_ascii(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	M_textcodec_error_t res = M_TEXTCODEC_ERROR_SUCCESS;
-	size_t              len;
-	size_t              i;
+	const char          *next = in;
+	M_textcodec_error_t  res  = M_TEXTCODEC_ERROR_SUCCESS;
 
-	len = M_str_len(in);
-	for (i=0; i<len; i++) {
-		char c = in[i];
+	while (next != '\0' && !M_textcodec_error_is_error(res)) {
+		char           ubuf[8] = { 0 };
+		size_t         len     = 0;
+		M_utf8_error_t ures;
 
-		if (M_chr_isascii(c)) {
-			M_textcodec_buffer_add_byte(buf, (unsigned char)c);
-			continue;
+		/* read the next utf8 character. */
+		ures = M_utf8_get_chr(next, ubuf, sizeof(ubuf), &len, &next);
+
+		/* If we have an invalid we need to skip it. Since utf8 characters
+ 		 * can have multiple bytes we want to and replacement per cha cater
+		 * not per byte. */
+		if (ures != M_TEXTCODEC_ERROR_SUCCESS) {
+			next = M_utf8_next_chr(next);
 		}
 
-		switch (ehandler) {
-			case M_TEXTCODEC_EHANDLER_FAIL:
-				return M_TEXTCODEC_ERROR_FAIL;
-			case M_TEXTCODEC_EHANDLER_REPLACE:
-				M_textcodec_buffer_add_byte(buf, '?');
-				res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
-				break;
-			case M_TEXTCODEC_EHANDLER_IGNORE:
-				res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
-				break;
+		if (ures == M_TEXTCODEC_ERROR_SUCCESS && len == 1 && M_chr_isascii(ubuf[0])) {
+			/* Success and 1 ASCII character. Then we have an ASCII character! */
+			M_textcodec_buffer_add_byte(buf, (unsigned char)ubuf[0]);
+		} else {
+			/* Either we encountered an invalid utf8 sequence or it's
+ 			 * not ascii. */
+			switch (ehandler) {
+				case M_TEXTCODEC_EHANDLER_FAIL:
+					res = M_TEXTCODEC_ERROR_FAIL;
+					break;
+				case M_TEXTCODEC_EHANDLER_REPLACE:
+					M_textcodec_buffer_add_byte(buf, '?');
+					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
+					break;
+				case M_TEXTCODEC_EHANDLER_IGNORE:
+					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
+					break;
+			}
 		}
 	}
 
@@ -65,16 +78,16 @@ M_textcodec_error_t M_textcodec_decode_ascii(M_textcodec_buffer_t *buf, const ch
 	size_t i;
 
 	if (M_str_ispredicate(in, M_chr_isascii)) {
-		/* Ascii is a subset of utf-8. */
+		/* ASCII is a subset of utf-8. */
 		M_textcodec_buffer_add_str(buf, in);
 		return M_TEXTCODEC_ERROR_SUCCESS;
 	}
 
-	/* Not ascii and we fail on error. */
+	/* Not ASCII and we fail on error. */
 	if (ehandler == M_TEXTCODEC_EHANDLER_FAIL)
 		return M_TEXTCODEC_ERROR_BADINPUT;
 
-	/* Ignore or replace anything that's not ascii. */
+	/* Ignore or replace anything that's not ASCII. */
 	len = M_str_len(in);
 	for (i=0; i<len; i++) {
 		char c = in[i];
@@ -89,8 +102,7 @@ M_textcodec_error_t M_textcodec_decode_ascii(M_textcodec_buffer_t *buf, const ch
 				/* Handled earlier. */
 				break;
 			case M_TEXTCODEC_EHANDLER_REPLACE:
-				M_textcodec_buffer_add_byte(buf, 0xFF);
-				M_textcodec_buffer_add_byte(buf, 0xFD);
+				M_textcodec_buffer_add_str(buf, M_UTF8_REPLACE);
 				break;
 			case M_TEXTCODEC_EHANDLER_IGNORE:
 				break;

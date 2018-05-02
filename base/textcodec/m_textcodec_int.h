@@ -39,6 +39,8 @@ typedef struct {
 	} u;
 } M_textcodec_buffer_t;
 
+#define M_UTF8_REPLACE "\xFF\xFD"
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_textcodec_buffer_add_byte(M_textcodec_buffer_t *buf, unsigned char b);
