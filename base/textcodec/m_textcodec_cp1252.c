@@ -28,6 +28,8 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/* Mapping table from The Unicode Consortium.
+ * https://www.unicode.org/Public/MAPPINGS/ */
 static struct {
 	unsigned char  cp;
 	M_uint32       ucode;
