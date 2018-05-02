@@ -167,10 +167,12 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 {
 	const char          *const_temp;
 	char                *dec;
+	char                 tempa[32];
 	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
 	M_bool               have_charset = M_FALSE;
 	M_bool               have_encoded = M_FALSE;
 	M_bool               multipart    = M_FALSE;
+	M_bool               update_clen  = M_FALSE;
 	size_t               len;
 	size_t               i;
 	size_t               encoded_idx;
@@ -218,6 +220,7 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 
 		/* Data is no longer form encoded so remove it from the headers. */
 		M_hash_dict_multi_remove(simple->http->headers, "content-type", encoded_idx);
+		update_clen = M_TRUE;
 	}
 
 	/* Decode the data to utf-8 if we can. */
@@ -232,6 +235,13 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 			M_hash_dict_multi_remove(simple->http->headers, "content-type", charset_idx);
 		}
 		M_hash_dict_insert(simple->http->headers, "content-type", "charset=utf-8");
+		update_clen = M_TRUE;
+	}
+
+	if (update_clen) {
+		M_hash_dict_remove(simple->http->headers, "content-length");
+		M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
+		M_hash_dict_insert(simple->http->headers, "content-length", tempa);
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
