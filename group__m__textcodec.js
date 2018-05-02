@@ -7,6 +7,7 @@ var group__m__textcodec =
     ] ],
     [ "M_textcodec_codec_t", "group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536", [
       [ "M_TEXTCODEC_UNKNOWN", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a08f835a40cb8c0b6ec2d9f547ee16ce8", null ],
+      [ "M_TEXTCODEC_UTF8", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a1ec9161c65f18ab0f77f9488789300bf", null ],
       [ "M_TEXTCODEC_ASCII", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8", null ],
       [ "M_TEXTCODEC_PERCENT_URL", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d", null ],
       [ "M_TEXTCODEC_PERCENT_URLPLUS", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25", null ],
