@@ -156,11 +156,12 @@ M_bool M_sql_report_set_fetch_cb(M_sql_report_t *report, M_sql_report_fetch_cb_t
 }
 
 
-M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
+M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
 {
 	const char *text    = NULL;
 
 	(void)arg;
+	(void)name;
 
 	*is_null = M_TRUE;
 
@@ -195,13 +196,14 @@ M_sql_report_cberror_t M_sql_report_cell_cb_passthru(M_sql_stmt_t *stmt, void *a
 }
 
 
-M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
+M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
 {
 	M_int64     i64;
 	M_decimal_t dec;
 	M_uint8     num_dec = 5;
 
 	(void)arg;
+	(void)name;
 
 	*is_null = M_TRUE;
 
@@ -224,13 +226,14 @@ M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *ar
 }
 
 
-M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
+M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
 {
 	M_int64     i64;
 	M_decimal_t dec;
 	M_uint8     num_dec = 2;
 
 	(void)arg;
+	(void)name;
 
 	*is_null = M_TRUE;
 
@@ -253,11 +256,12 @@ M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *ar
 }
 
 
-M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, void *arg, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
+M_sql_report_cberror_t M_sql_report_cell_cb_boolyesno(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
 {
 	M_bool   b;
 
 	(void)arg;
+	(void)name;
 
 	*is_null = M_TRUE;
 
@@ -597,7 +601,7 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 					M_buf_add_bytes(buf, report->field_delim, report->field_delim_size);
 
 				M_buf_truncate((*state)->colbuf, 0);
-				cberr = (*state)->cols[j].cb(stmt, arg, (*state)->rowidx, (*state)->cols[j].sql_col_idx, (*state)->colbuf, &is_null);
+				cberr = (*state)->cols[j].cb(stmt, arg, (*state)->cols[j].name, (*state)->rowidx, (*state)->cols[j].sql_col_idx, (*state)->colbuf, &is_null);
 				if (cberr == M_SQL_REPORT_ERROR) {
 					M_snprintf(error, error_size, "row %zu, col (%zu) %s callback failed", (*state)->rowidx, j, (*state)->cols[j].name);
 					err = M_SQL_ERROR_INVALID_USE;
