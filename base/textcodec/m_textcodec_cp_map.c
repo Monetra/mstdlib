@@ -38,7 +38,7 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 	size_t               i;
 
 	/* Create our lookup. */
-	map = M_hash_u64u64_create(256, 75, M_HASH_U64U64_NONE);
+	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_NONE);
 	for (i=0; cp_map[i].descr!=NULL; i++) {
 		M_hash_u64u64_insert(map, cp_map[i].ucode, cp_map[i].cp);
 	}
@@ -91,7 +91,7 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 	size_t               i;
 
 	/* Create our lookup. */
-	map = M_hash_u64u64_create(256, 75, M_HASH_U64U64_NONE);
+	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_NONE);
 	for (i=0; cp_map[i].descr!=NULL; i++) {
 		M_hash_u64u64_insert(map, cp_map[i].cp, cp_map[i].ucode);
 	}
