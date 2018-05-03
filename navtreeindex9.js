@@ -1,5 +1,12 @@
 var NAVTREEINDEX9 =
 {
+"group__m__settings.html#gga97e72c8343b3c96c5d3700e645e19f21a1b0841612ea13947a9d11b02aaa5183e":[0,1,4,1,0],
+"group__m__settings.html#gga97e72c8343b3c96c5d3700e645e19f21af49e314911634fcbdadd8efa951f6265":[0,1,4,1,1],
+"group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fca2f7b8ceeab4a71e9fc5f3f64197cc2cd":[0,1,4,3,2],
+"group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fca503e880a3b84a24cc14674771000bb1a":[0,1,4,3,0],
+"group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fcad400ec53dbb507efe9a2d1ba94724c93":[0,1,4,3,1],
+"group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fcafd4d0356acc288f77af0d4842f18174b":[0,1,4,3,3],
+"group__m__sort.html":[0,0,16],
 "group__m__sort.html#ga21cd0f4e966519f6f67f7d547286751b":[0,0,16,11],
 "group__m__sort.html#ga28249946bdb3eff93a7ba42083e97dc8":[0,0,16,1],
 "group__m__sort.html#ga364600b19ecde0062422a2105fc10b64":[0,0,16,9],
@@ -242,12 +249,5 @@ var NAVTREEINDEX9 =
 "group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663aa1b29e4cc27fcf3aa0d4640f333b1248":[0,4,7,4,0],
 "group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663ae653082648a8e7a52158dd2f26008a97":[0,4,7,4,1],
 "group__m__sql__report.html#ggafbce3c1366f175c2a43b977798307186a1ebadcbe8578b669d2f90cb7c12f4d0f":[0,4,7,5,1],
-"group__m__sql__report.html#ggafbce3c1366f175c2a43b977798307186ad5233d762937d91b2488117db494ade7":[0,4,7,5,2],
-"group__m__sql__report.html#ggafbce3c1366f175c2a43b977798307186ae832c883f31e227d814e530699f59949":[0,4,7,5,0],
-"group__m__sql__schema.html":[0,4,9],
-"group__m__sql__schema.html#ga017f5076150553a77d1295fc211448cc":[0,4,9,4],
-"group__m__sql__schema.html#ga380c760a249b265986336b993c1fef8b":[0,4,9,0],
-"group__m__sql__schema.html#ga57861420bace709b2b04452e3db38971":[0,4,9,12],
-"group__m__sql__schema.html#ga57f3a11ac3d2ab7b926e3ae255e3903d":[0,4,9,6],
-"group__m__sql__schema.html#ga610e6d5c2aa796a1f9c6a6a7d3cca0cb":[0,4,9,3]
+"group__m__sql__report.html#ggafbce3c1366f175c2a43b977798307186ad5233d762937d91b2488117db494ade7":[0,4,7,5,2]
 };
