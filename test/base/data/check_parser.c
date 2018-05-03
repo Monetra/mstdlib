@@ -138,33 +138,79 @@ START_TEST(check_parser_split)
 }
 END_TEST
 
+
+START_TEST(check_parser_boundary)
+{
+	M_parser_t  *parser;
+	char         buf[32];
+	size_t       len;
+	size_t       i;
+	M_bool       found;
+	const char  *boundary = "AB7";
+	static struct {
+		const char *data;
+		const char *out_data;
+		M_bool      eat_pat;
+		M_bool      found;
+	} boundary_data[] = {
+		{ "1234",              "1234",              M_FALSE, M_FALSE },
+		{ "1234",              "1234",              M_TRUE,  M_FALSE },
+		{ "1234A",             "1234",              M_FALSE, M_FALSE },
+		{ "1234A",             "1234",              M_TRUE,  M_FALSE },
+		{ "1234AB",            "1234",              M_FALSE, M_FALSE },
+		{ "1234AB",            "1234",              M_TRUE,  M_FALSE },
+		{ "1234AB7",           "1234",              M_FALSE, M_TRUE  },
+		{ "1234AB7",           "1234AB7",           M_TRUE,  M_TRUE  },
+		{ "1234AB7AB7",        "1234",              M_FALSE, M_TRUE  },
+		{ "1234AB7AB7",        "1234AB7",           M_TRUE,  M_TRUE  },
+		{ "1234AB7*",          "1234",              M_FALSE, M_TRUE  },
+		{ "1234AB7*",          "1234AB7",           M_TRUE,  M_TRUE  },
+		{ "1234AB7*AB7",       "1234",              M_FALSE, M_TRUE  },
+		{ "1234AB7*AB7",       "1234AB7",           M_TRUE,  M_TRUE  },
+		{ "1234AB891AB97*AB7", "1234AB891AB97*",    M_FALSE, M_TRUE  },
+		{ "1234AB891AB97*AB7", "1234AB891AB97*AB7", M_TRUE,  M_TRUE  },
+		{ NULL, NULL, M_FALSE, M_FALSE },
+	};
+
+	for (i=0; boundary_data[i].data!=NULL; i++) {
+		parser = M_parser_create_const((const unsigned char *)boundary_data[i].data, M_str_len(boundary_data[i].data), M_PARSER_FLAG_NONE);
+		len    = M_parser_read_str_boundary(parser, buf, sizeof(buf), boundary, boundary_data[i].eat_pat, &found);
+		ck_assert_msg(M_str_eq(buf, boundary_data[i].out_data), "%zu: Wrong data read: got '%s', expected '%s'", i, buf, boundary_data[i].out_data);
+		ck_assert_msg(len == M_str_len(boundary_data[i].out_data), "%zu: Wrong length returned: got '%zu' expected '%zu", i, len, M_str_len(boundary_data[i].out_data));
+		ck_assert_msg(found == boundary_data[i].found, "%zu: boundary found not correct; got %d expected %d", found, boundary_data[i].found);
+		M_parser_destroy(parser);
+	}
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *M_parser_suite(void)
 {
 	Suite *suite;
-	TCase *tc_parser_read_strdup_hex;
-	TCase *tc_parser_read_buf_hex;
-	TCase *tc_parser_bcd;
-	TCase *tc_parser_split;
+	TCase *tc;
 
 	suite = suite_create("parser");
 
-	tc_parser_read_strdup_hex = tcase_create("check_parser_read_strdup_hex");
-	tcase_add_test(tc_parser_read_strdup_hex, check_parser_read_strdup_hex);
-	suite_add_tcase(suite, tc_parser_read_strdup_hex);
+	tc = tcase_create("check_parser_read_strdup_hex");
+	tcase_add_test(tc, check_parser_read_strdup_hex);
+	suite_add_tcase(suite, tc);
 
-	tc_parser_read_buf_hex = tcase_create("check_parser_read_buf_hex");
-	tcase_add_test(tc_parser_read_buf_hex, check_parser_read_buf_hex);
-	suite_add_tcase(suite, tc_parser_read_buf_hex);
+	tc = tcase_create("check_parser_read_buf_hex");
+	tcase_add_test(tc, check_parser_read_buf_hex);
+	suite_add_tcase(suite, tc);
 
-	tc_parser_bcd = tcase_create("check_parser_bcd");
-	tcase_add_test(tc_parser_bcd, check_parser_bcd);
-	suite_add_tcase(suite, tc_parser_bcd);
+	tc = tcase_create("check_parser_bcd");
+	tcase_add_test(tc, check_parser_bcd);
+	suite_add_tcase(suite, tc);
 
-	tc_parser_split = tcase_create("check_parser_split");
-	tcase_add_test(tc_parser_split, check_parser_split);
-	suite_add_tcase(suite, tc_parser_split);
+	tc = tcase_create("check_parser_split");
+	tcase_add_test(tc, check_parser_split);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_parser_boundary");
+	tcase_add_test(tc, check_parser_boundary);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
