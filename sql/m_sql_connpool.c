@@ -928,6 +928,10 @@ M_sql_conn_t *M_sql_connpool_acquire_conn(M_sql_connpool_t *pool, M_bool readonl
 			if (M_sql_error_is_error(M_sql_conn_create(&conn, pool, id, readonly, NULL, 0))) {
 				newconn_failed = M_TRUE;
 				M_thread_sleep(100000);
+
+				/* If we don't set this, nothing is available to signal us to wake again during an
+				 * outage, so we have priority since we were at the top of the list anyhow */
+				just_woken = M_TRUE;
 			}
 		}
 
