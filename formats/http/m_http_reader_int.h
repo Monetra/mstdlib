@@ -38,21 +38,33 @@ typedef enum {
 	M_HTTP_READER_STEP_BODY,
 	M_HTTP_READER_STEP_CHUNK_START,
 	M_HTTP_READER_STEP_CHUNK_DATA,
+	M_HTTP_READER_STEP_MULTIPART_PREAMBLE,
+	M_HTTP_READER_STEP_MULTIPART_HEADER,
+	M_HTTP_READER_STEP_MULTIPART_DATA,
+	M_HTTP_READER_STEP_MULTIPART_EPILOUGE,
 	M_HTTP_READER_STEP_TRAILER,
 	M_HTTP_READER_STEP_DONE
 } M_http_reader_step_t;
 
+typedef enum {
+	M_HTTP_READER_DATA_TYPE_BODY = 0,
+	M_HTTP_READER_DATA_TYPE_CHUNKED,
+	M_HTTP_READER_DATA_TYPE_MULTIPART
+} M_http_reader_data_type_t;
+
 struct M_http_reader{
 	struct M_http_reader_callbacks  cbs;
 	void                           *thunk;
+	char                           *boundary;
 	M_http_reader_step_t            rstep;
-	M_bool                          is_chunked;
+	M_http_reader_data_type_t       data_type;
 	size_t                          header_len;
 	M_bool                          have_body_len;
 	size_t                          body_len;
 	size_t                          body_len_seen;
 	size_t                          chunk_len;
 	size_t                          chunk_len_seen;
+	size_t                          multipart_idx;
 };
 
 #endif

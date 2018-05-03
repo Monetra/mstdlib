@@ -43,14 +43,27 @@ struct M_http_reader;
 typedef struct M_http_reader M_http_reader_t;
 
 typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
+
 typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
 typedef M_http_error_t (*M_http_reader_header_done_func)(void *thunk);
+
 typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
+
 typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, void *thunk);
 typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(void *thunk);
 typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(void *thunk);
+
+typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_header_func)(const char *key, const char *val, size_t part_idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_header_done_func)(size_t part_idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t part_idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_data_done_func)(size_t part_idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_epilouge_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_epilouge_done_func)(void *thunk);
+
 typedef M_http_error_t (*M_http_reader_trailer_func)(const char *key, const char *val, void *thunk);
 typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 
@@ -58,17 +71,25 @@ typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_http_reader_callbacks {
-	M_http_reader_start_func                  start_func;
-	M_http_reader_header_func                 header_func;
-	M_http_reader_header_done_func            header_done_func;
-	M_http_reader_body_func                   body_func;
-	M_http_reader_body_done_func              body_done_func;
-	M_http_reader_chunk_extensions_func       chunk_extensions_func;
-	M_http_reader_chunk_extensions_done_func  chunk_extensions_done_func;
-	M_http_reader_chunk_data_func             chunk_data_func;
-	M_http_reader_chunk_data_done_func        chunk_data_done_func;
-	M_http_reader_trailer_func                trailer_func;
-	M_http_reader_trailer_done_func           trailer_done_func;
+	M_http_reader_start_func                   start_func;
+	M_http_reader_header_func                  header_func;
+	M_http_reader_header_done_func             header_done_func;
+	M_http_reader_body_func                    body_func;
+	M_http_reader_body_done_func               body_done_func;
+	M_http_reader_chunk_extensions_func        chunk_extensions_func;
+	M_http_reader_chunk_extensions_done_func   chunk_extensions_done_func;
+	M_http_reader_chunk_data_func              chunk_data_func;
+	M_http_reader_chunk_data_done_func         chunk_data_done_func;
+	M_http_reader_multipart_preamble_func      multipart_preamble_func;
+	M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
+	M_http_reader_multipart_header_func        multipart_header_func;
+	M_http_reader_multipart_header_done_func   multipart_header_done_func;
+	M_http_reader_multipart_data_func          multipart_data_func;
+	M_http_reader_multipart_data_done_func     multipart_data_done_func;
+	M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
+	M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
+	M_http_reader_trailer_func                 trailer_func;
+	M_http_reader_trailer_done_func            trailer_done_func;
 };
 
 
