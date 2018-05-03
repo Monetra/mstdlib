@@ -490,6 +490,30 @@ M_API size_t M_parser_consume_whitespace(M_parser_t *parser, M_uint32 flags);
 M_API size_t M_parser_consume_until(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat);
 
 
+/*! Consume all bytes before a pat.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * Will stop consuming if a partial match of the pat is found.
+ * E.g. parser = "ABC1234" pat = "12345".
+ *      Will consume "ABC" leaving "12345".
+ *      If more data is added and and parser = "123461234".
+ *      Will consume "12346".
+ *      If more data is added and and parser = "1234612345"
+ *      Will consume everything is eat_path is M_TRUE. Otherwise, "12346".
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     pat     Sequence of bytes to search for.
+ * \param[in]     len     Length of pattern data.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return Number of bytes consumed. 0 if not found or if starts with a partial pat match.
+ */
+M_API size_t M_parser_consume_boundary(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found);
+
+
 /*! Consume all bytes matching the given charset.
  *
  * \param[in,out] parser      Parser object.
@@ -530,6 +554,29 @@ M_API size_t M_parser_consume_chr_predicate(M_parser_t *parser, M_chr_predicate_
  * \return Number of bytes consumed, or 0 if not found.
  */
 M_API size_t M_parser_consume_str_until(M_parser_t *parser, const char *pat, M_bool eat_pat);
+
+
+/*! Consume all bytes before a pat.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * Will stop consuming if a partial match of the pat is found.
+ * E.g. parser = "ABC1234" pat = "12345".
+ *      Will consume "ABC" leaving "12345".
+ *      If more data is added and and parser = "123461234".
+ *      Will consume "12346".
+ *      If more data is added and and parser = "1234612345"
+ *      Will consume everything is eat_path is M_TRUE. Otherwise, "12346".
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     pat     String to search for.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return Number of bytes consumed. 0 if not found or if starts with a partial pat match.
+ */
+M_API size_t M_parser_consume_str_boundary(M_parser_t *parser, const char *pat, M_bool eat_pat, M_bool *found);
 
 
 /*! Consume all bytes matching the given NULL-terminated charset.
@@ -700,6 +747,26 @@ M_API size_t M_parser_read_bytes_max(M_parser_t *parser, size_t len, unsigned ch
 M_API size_t M_parser_read_bytes_until(M_parser_t *parser, unsigned char *buf, size_t buf_len, const unsigned char *pat, size_t pat_len, M_bool eat_pat);
 
 
+/*! Read bytes (binary) until the specified pat is encountered in the data stream.
+ *
+ * The data read will not be NULL terminated.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[out]    buf     Buffer to hold output.
+ * \param[in]     buf_len Length of buffer to hold output.
+ * \param[in]     pat     Sequence of bytes to search for.
+ * \param[in]     len     Length of pattern data.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return number of bytes read, or 0 on error or no bytes available.
+ */
+M_API size_t M_parser_read_bytes_boundary(M_parser_t *parser, unsigned char *buf, size_t buf_len, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found);
+
+
 /*! Read bytes (binary) from the current buffer as long as the bytes match the
  * provided character set, output in the user-provided buffer and advance.
  *
@@ -815,6 +882,23 @@ M_API size_t M_parser_read_str_max(M_parser_t *parser, size_t len, char *buf, si
 M_API size_t M_parser_read_str_until(M_parser_t *parser, char *buf, size_t buf_len, const char *pat, M_bool eat_pat);
 
 
+/*! Read data until the specified pat is encountered in the data stream.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[out]    buf     Buffer to hold output.
+ * \param[in]     buf_len Length of buffer to hold output.
+ * \param[in]     pat     String to search for.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return number of bytes read, or 0 on error or no bytes available.
+ */
+M_API size_t M_parser_read_str_boundary(M_parser_t *parser, char *buf, size_t buf_len, const char *pat, M_bool eat_pat, M_bool *found);
+
+
 /*! Read data from the buffer for as long as it matches one of the bytes in the given character set and advance.
  *
  * Put the resulting bytes in the provided buffer.
@@ -914,6 +998,23 @@ M_API char *M_parser_read_strdup_hex(M_parser_t *parser, size_t len);
  * \return number of bytes read, or 0 on error or no bytes available.
  */
 M_API char *M_parser_read_strdup_until(M_parser_t *parser, const char *pat, M_bool eat_pat);
+
+
+/*! Read data until the specified pat is encountered in the data stream.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * Put the resulting bytes in a newly allocated buffer.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     pat     String to search for.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return number of bytes read, or 0 on error or no bytes available.
+ */
+M_API char *M_parser_read_strdup_boundary(M_parser_t *parser, const char *pat, M_bool eat_pat, M_bool *found);
 
 
 /*! Read data from the buffer for as long as it matches one of the bytes in the given character set and advance.
@@ -1027,6 +1128,25 @@ M_API size_t M_parser_read_buf_max(M_parser_t *parser, M_buf_t *buf, size_t len)
 M_API size_t M_parser_read_buf_until(M_parser_t *parser, M_buf_t *buf, const unsigned char *pat, size_t pat_len, M_bool eat_pat);
 
 
+/*! Read bytes (binary) until the specified pat is encountered in the data stream.
+ *
+ * The data read will not be NULL terminated.
+ *
+ * Will stop if parser ends with a partially matching pat. Will only eat the pattern
+ * if a full pat is found.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[out]    buf     Buffer to hold output.
+ * \param[in]     pat     Sequence of bytes to search for.
+ * \param[in]     len     Length of pattern data.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return number of bytes read, or 0 on error or no bytes available.
+ */
+M_API size_t M_parser_read_buf_boundary(M_parser_t *parser, M_buf_t *buf, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found);
+
+
 /*! Read bytes (binary) from the current buffer as long as the bytes match the
  * provided character set, output in the user-provided buffer and advance.
  *
@@ -1124,6 +1244,22 @@ M_API M_parser_t *M_parser_read_parser(M_parser_t *parser, size_t len);
  * \return parser.
  */
 M_API M_parser_t *M_parser_read_parser_until(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat);
+
+
+/*! Read data from the buffer until the specified sequence of bytes is encountered in the data stream.
+ *  All data is copied into a new memory segment.
+ *
+ *  Put the resulting bytes in a newly allocated parser.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     pat     Sequence of bytes to search for.
+ * \param[in]     len     Length of pattern data.
+ * \param[in]     eat_pat Should the sequence of bytes be consumed. Useful for ignoring data until end of comment.
+ * \param[out]    found   Was the full pat found. A partial boundy might still be in the parser if M_FALSE.
+ *
+ * \return parser.
+ */
+M_API M_parser_t *M_parser_read_parser_boundary(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found);
 
 
 /*! Read data from the buffer for as long as it matches one of the bytes in the given character set and advance.
