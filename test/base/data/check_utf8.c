@@ -43,6 +43,8 @@ START_TEST(check_utf8_correct)
 	ck_assert_msg(len == out_len, "Length (%zu) should equal out length (%zu)", len, out_len);
 	ck_assert_msg(M_str_eq(out, str), "str != out: expected '%s', got '%s'", str, out); 
 	ck_assert_msg(M_str_eq(out, (const char *)bytes), "bytes != out");
+
+	M_free(out);
 }
 END_TEST
 
