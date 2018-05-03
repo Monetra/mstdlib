@@ -882,6 +882,43 @@ size_t M_parser_consume_until(M_parser_t *parser, const unsigned char *pat, size
 }
 
 
+size_t M_parser_consume_boundary(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found)
+{
+	size_t consumed_len = 0;
+	M_bool myfound;
+	size_t i            = 0;
+	size_t j            = 0;
+
+	if (found == NULL)
+		found = &myfound;
+	*found = M_FALSE;
+
+	if (parser == NULL || pat == NULL || len == 0)
+		return 0;
+
+	do {
+		M_bool eq = (parser->data[i] == pat[j]);
+		i++;
+		if (eq) {
+			j++;
+			if (j >= len) {
+				*found = M_TRUE;
+			}
+		} else {
+			consumed_len = i;
+			j            = 0;
+		}
+	} while (i < parser->data_len && !(*found));
+
+	/* Skip past end of boundry if it was fully found. */
+	if (*found && eat_pat)
+		consumed_len += len;
+
+	M_parser_consume(parser, consumed_len);
+	return consumed_len;
+}
+
+
 size_t M_parser_consume_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len)
 {
 	return M_parser_consume_charset_int(parser, charset, charset_len, M_TRUE);
@@ -917,6 +954,10 @@ size_t M_parser_consume_str_until(M_parser_t *parser, const char *pat, M_bool ea
 	return M_parser_consume_until(parser, (const unsigned char *)pat, M_str_len(pat), eat_pat);
 }
 
+size_t M_parser_consume_str_boundary(M_parser_t *parser, const char *pat, M_bool eat_pat, M_bool *found)
+{
+	return M_parser_consume_boundary(parser, (const unsigned char *)pat, M_str_len(pat), eat_pat, found);
+}
 
 size_t M_parser_consume_not_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len)
 {
@@ -1097,6 +1138,29 @@ size_t M_parser_read_bytes_until(M_parser_t *parser, unsigned char *buf, size_t 
 }
 
 
+size_t M_parser_read_bytes_boundary(M_parser_t *parser, unsigned char *buf, size_t buf_len, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found)
+{
+	size_t rlen;
+
+	if (parser == NULL || buf == NULL || buf_len == 0 || pat == NULL || len == 0)
+		return 0;
+
+	/* Mark internal */
+	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
+
+	/* Consume the charset */
+	rlen = M_parser_consume_boundary(parser, pat, len, eat_pat, found);
+	if (rlen == 0) {
+		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
+		return 0;
+	}
+
+	/* Output the data from the marked position, this will also clear the mark */ 
+	return M_parser_read_bytes_mark_int(parser, M_PARSER_MARKED_INT, buf, buf_len);
+
+}
+
+
 size_t M_parser_read_bytes_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len, unsigned char *buf, size_t buf_len)
 {
 	if (parser == NULL || buf == NULL || buf_len == 0 || charset == NULL || charset_len == 0)
@@ -1194,6 +1258,21 @@ size_t M_parser_read_str_until(M_parser_t *parser, char *buf, size_t buf_len, co
 	return len;
 }
 
+
+size_t M_parser_read_str_boundary(M_parser_t *parser, char *buf, size_t buf_len, const char *pat, M_bool eat_pat, M_bool *found)
+{
+	size_t len;
+
+	if (parser == NULL || buf == NULL || buf_len == 0 || M_str_isempty(pat))
+		return 0;
+
+	len = M_parser_read_bytes_boundary(parser, (unsigned char *)buf, buf_len-1, (const unsigned char *)pat, M_str_len(pat), eat_pat, found);
+
+	/* NULL terminate */
+	if (buf_len)
+		buf[len] = 0;
+	return len;
+}
 
 size_t M_parser_read_str_charset(M_parser_t *parser, const char *charset, char *buf, size_t buf_len)
 {
@@ -1314,6 +1393,37 @@ char *M_parser_read_strdup_until(M_parser_t *parser, const char *pat, M_bool eat
 }
 
 
+char *M_parser_read_strdup_boundary(M_parser_t *parser, const char *pat, M_bool eat_pat, M_bool *found)
+{
+	size_t len;
+	char  *out = NULL;
+
+	if (parser == NULL || pat == NULL || *pat == '\0')
+		return NULL;
+
+	/* Mark internal */
+	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
+
+	/* Consume the charset */
+	len = M_parser_consume_str_boundary(parser, pat, eat_pat, found);
+	if (len == 0) {
+		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
+		return NULL;
+	}
+
+	out = M_malloc(len+1);
+
+	/* Output the data from the marked position, this will also clear the mark */
+	if (M_parser_read_bytes_mark_int(parser, M_PARSER_MARKED_INT, (unsigned char *)out, len) != len) {
+		M_free(out);
+		return NULL;
+	}
+
+	out[len] = 0;
+	return out;
+}
+
+
 char *M_parser_read_strdup_charset(M_parser_t *parser, const char *charset)
 {
 	size_t len;
@@ -1422,6 +1532,27 @@ M_parser_t *M_parser_read_parser_until(M_parser_t *parser, const unsigned char *
 
 	/* Consume the charset */
 	rlen = M_parser_consume_until(parser, pat, len, eat_pat);
+	if (rlen == 0) {
+		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
+		return NULL;
+	}
+
+	return M_parser_read_parser_mark_int(parser, M_PARSER_MARKED_INT);
+}
+
+
+M_parser_t *M_parser_read_parser_boundary(M_parser_t *parser, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found)
+{
+	size_t rlen;
+
+	if (parser == NULL || pat == NULL || len == 0)
+		return NULL;
+
+	/* Mark internal */
+	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
+
+	/* Consume the charset */
+	rlen = M_parser_consume_boundary(parser, pat, len, eat_pat, found);
 	if (rlen == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return NULL;
@@ -1710,6 +1841,27 @@ size_t M_parser_read_buf_until(M_parser_t *parser, M_buf_t *buf, const unsigned 
 
 	/* Consume the charset */
 	rlen = M_parser_consume_until(parser, pat, pat_len, eat_pat);
+	if (rlen == 0) {
+		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
+		return 0;
+	}
+
+	/* Output the data from the marked position, this will also clear the mark */ 
+	return M_parser_read_buf_mark_int(parser, M_PARSER_MARKED_INT, buf);
+}
+
+size_t M_parser_read_buf_boundary(M_parser_t *parser, M_buf_t *buf, const unsigned char *pat, size_t len, M_bool eat_pat, M_bool *found)
+{
+	size_t rlen;
+
+	if (parser == NULL || buf == NULL || pat == NULL || len == 0)
+		return 0;
+
+	/* Mark internal */
+	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
+
+	/* Consume the charset */
+	rlen = M_parser_consume_boundary(parser, pat, len, eat_pat, found);
 	if (rlen == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return 0;
