@@ -163,9 +163,45 @@ static M_http_error_t M_http_simple_trailer_done_cb(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_simple_decode_body_multipart(M_http_simple_t *simple, const char *boundary)
+{
+	M_parser_t      *parser    = NULL;
+	M_parser_t     **parts     = NULL;
+	size_t           num_parts = 0;
+	size_t           i;
+	M_http_error_t   res       = M_HTTP_ERROR_SUCCESS;
+
+	if (M_str_isempty(boundary))
+		return M_HTTP_ERROR_HEADER_INVALID;
+
+	M_asprintf(&full_boundry, "--%s", boundary);
+	parser = M_parser_create_const(M_buf_peek(simple->http->buf), M_buf_len(simple->http->buf), M_PARSER_FLAG_NONE);
+	parts  = M_parser_split_str_pat(parser, boundary, 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	if (parts ==  NULL || num_parts == 0) {
+		res = M_HTTP_ERROR_MULTIPART_MISSING;
+		goto done;
+	}
+
+	for (i=0; i<num_parts; i++) {
+		if (M_parser_len(parts[i]) == 0) {
+			continue;
+		}
+
+		/* Parse headers. */
+		/* read data. */
+		/* Put into multi part list. */
+	}
+
+done:
+	M_parser_split_free(parts, num_parts);
+	M_parser_destroy(parser);
+	return res;
+}
+
 static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 {
 	const char          *const_temp;
+	const char          *boundary;
 	char                *dec;
 	char                 tempa[32];
 	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
@@ -191,25 +227,31 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 			continue;
 		} else if (M_str_caseeq(const_temp, "multipart/form-data")) {
 			multipart = M_TRUE;
-			break;
-		}
-
-		parts = M_str_explode_str('=', const_temp, &num_parts);
-		if (parts == NULL || num_parts == 0) {
 			continue;
 		}
 
-		if (M_str_caseeq(parts[0], "charset") && num_parts == 2) {
+		parts = M_str_explode_str_quoted('=', const_temp, '"', '\\', 0, &num_parts);
+		if (parts == NULL || num_parts == 0) {
+			continue;
+		}
+		if (num_parts != 2) {
+			M_str_explode_free(parts, num_parts);
+			continue;
+		}
+
+		if (have_encoded && M_str_caseeq(parts[0], "charset")) {
 			have_charset = M_TRUE;
-			charset_idx       = i;
+			charset_idx  = i;
 			codec        = M_textcodec_codec_from_str(parts[1]);
+		} else if (multipart && M_str_caseeq(parts[0], "boundary")) {
+			boundary = parts[1];
 		}
 
 		M_str_explode_free(parts, num_parts);
 	}
 
 	if (multipart)
-		return M_HTTP_ERROR_SUCCESS;
+		return M_http_simple_decode_body_multipart(simple, boundary);
 
 	/* url-form decode the data. */
 	if (have_encoded) {
