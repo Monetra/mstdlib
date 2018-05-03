@@ -103,6 +103,66 @@ static M_http_error_t M_http_reader_chunk_data_done_func_default(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_reader_multipart_preamble_func_default(const unsigned char *data, size_t len, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_preamble_done_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_header_func_default(const char *key, const char *val, size_t part_idx, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)part_idx;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_header_done_func_default(size_t part_idx, void *thunk)
+{
+	(void)part_idx;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_data_func_default(const unsigned char *data, size_t len, size_t part_idx, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)part_idx;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_data_done_func_default(size_t part_idx, void *thunk)
+{
+	(void)part_idx;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_epilouge_func_default(const unsigned char *data, size_t len, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_multipart_epilouge_done_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_reader_trailer_func_default(const char *key, const char *val, void *thunk)
 {
 	(void)key;
@@ -136,7 +196,7 @@ static M_http_error_t M_http_read_version(M_parser_t *parser, M_http_version_t *
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_read_header_validate(M_http_reader_t *httpr, const char *key, const char *val)
+static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, const char *key, const char *val)
 {
 	M_int64 i64v;
 
@@ -144,7 +204,7 @@ static M_http_error_t M_http_read_header_validate(M_http_reader_t *httpr, const 
 		if (httpr->have_body_len) {
 			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
-		if (httpr->is_chunked) {
+		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
 			return M_HTTP_ERROR_MALFORMED;
 		}
 		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS) {
@@ -158,13 +218,35 @@ static M_http_error_t M_http_read_header_validate(M_http_reader_t *httpr, const 
 	}
 
 	if (M_str_caseeq(key, "transfer-encoding") && M_str_caseeq(val, "chunked")) {
-		if (httpr->is_chunked) {
+		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
 			return M_HTTP_ERROR_MALFORMED;
 		}
 		if (httpr->have_body_len) {
 			return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
 		}
-		httpr->is_chunked = M_TRUE;
+		httpr->data_type = M_HTTP_READER_DATA_TYPE_CHUNKED;
+	}
+
+	if (M_str_caseeq(key, "content-type")) {
+		if (M_str_caseeq(val, "multipart/form-data")) {
+			if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
+				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+			}
+
+			httpr->data_type = M_HTTP_READER_DATA_TYPE_MULTIPART;
+		}
+
+		if (M_str_caseeq_max(val, "boundary", 8)) {
+			val = M_str_chr(val, '=');
+			if (val == NULL) {
+				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+			}
+			val++;
+			if (M_str_isempty(val) || M_str_len(val) > 70) {
+				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+			}
+			httpr->boundary = M_strdup(val);
+		}
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -172,12 +254,16 @@ static M_http_error_t M_http_read_header_validate(M_http_reader_t *httpr, const 
 
 static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t *parser, M_bool is_header, M_bool *full_read)
 {
-	M_parser_t      *header    = NULL;
-	M_parser_t     **kv        = NULL;
-	char            *key       = NULL;
-	char            *val       = NULL;
-	size_t           num_kv    = 0;
-	M_http_error_t   res       = M_HTTP_ERROR_SUCCESS;
+	M_parser_t      *header      = NULL;
+	M_parser_t     **kv          = NULL;
+	char           **subvals     = NULL;
+	char            *key         = NULL;
+	char            *val         = NULL;
+	char            *subval      = NULL;
+	size_t           num_kv      = 0;
+	size_t           num_subvals = 0;
+	size_t           i;
+	M_http_error_t   res         = M_HTTP_ERROR_SUCCESS;
 
 	*full_read = M_FALSE;
 	if (M_parser_len(parser) == 0)
@@ -209,9 +295,10 @@ static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t 
 			break;
 		}
 
+		/* Split the key from the value. */
 		kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
 		if (kv == NULL || num_kv != 2) {
-			res = M_HTTP_ERROR_HEADER_INVLD;
+			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
@@ -221,8 +308,9 @@ static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t 
 			break;
 		}
 
+		/* Validate we actually have a key and value.  */
 		if (M_parser_len(kv[0]) == 0 || M_parser_len(kv[1]) == 0) {
-			res = M_HTTP_ERROR_HEADER_INVLD;
+			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
@@ -231,21 +319,52 @@ static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t 
 
 		M_str_trim(val);
 		if (M_str_isempty(key) || M_str_isempty(val)) {
-			res = M_HTTP_ERROR_HEADER_INVLD;
+			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
-		if (is_header) {
-			res = M_http_read_header_validate(httpr, key, val);
+		/* Values can be a comma (,) separated list. We want to treat these as if
+ 		 * the header is appearing multiple times. */
+		subvals = M_str_explode_str(',', val, &num_subvals);
+		/* We have to have somthing. */
+		if (subvals == NULL || num_subvals == 0) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		for (i=0; i<num_subvals; i++) {
+			subval = subvals[i];
+
+			/* We can't have an empty entr in the value list. */
+			M_str_trim(subval);
+			if (M_str_isempty(subval)) {
+				res = M_HTTP_ERROR_HEADER_INVALID;
+				break;
+			}
+
+			/* Do some basic validating. */
+			if (is_header) {
+				res = M_http_read_header_validate_kv(httpr, key, subval);
+				if (res != M_HTTP_ERROR_SUCCESS) {
+					break;
+				}
+			}
+
+			/* Pass along the data to our callback. Key will appear for every value. */
+			if (is_header) {
+				res = httpr->cbs.header_func(key, subval, httpr->thunk);
+			} else {
+				res = httpr->cbs.trailer_func(key, subval, httpr->thunk);
+			}
 			if (res != M_HTTP_ERROR_SUCCESS) {
 				break;
 			}
-		}
 
-		if (is_header) {
-			res = httpr->cbs.header_func(key, val, httpr->thunk);
-		} else {
-			res = httpr->cbs.trailer_func(key, val, httpr->thunk);
+			M_free(subval);
+			subval = NULL;
+			M_str_explode_free(subvals, num_subvals);
+			subvals     = NULL;
+			num_subvals = 0;
 		}
 		if (res != M_HTTP_ERROR_SUCCESS) {
 			break;
@@ -262,6 +381,8 @@ static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t 
 		header = NULL;
 	} while (res == M_HTTP_ERROR_SUCCESS && !(*full_read));
 
+	M_free(subval);
+	M_str_explode_free(subvals, num_subvals);
 	M_free(key);
 	M_free(val);
 	M_parser_split_free(kv, num_kv);
@@ -648,6 +769,76 @@ done:
 	return res;
 }
 
+static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
+{
+	M_parser_t     *msg = NULL;
+	char            boundary[128];
+	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
+	M_bool          found;
+
+	*full_read = M_FALSE;
+	if (M_parser_len(parser) == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
+	/* Check for an ending boundary to check which shouldn't be here. */
+	M_snprintf(boundary, sizeof(boundary), "\r\n--%s--", httpr->boundary);
+	msg = M_parser_read_parser_boundary(parser, (const unsigned char *)boundary, M_str_len(boundary), M_FALSE, &found);
+	if (found) {
+		M_parser_destroy(msg);
+		return M_HTTP_ERROR_MALFORMED;
+	}
+
+	/* Lets try this again looking for the actual boundary. */
+	M_snprintf(boundary, sizeof(boundary), "\r\n--%s\r\n", httpr->boundary);
+	msg = M_parser_read_parser_boundary(parser, (const unsigned char *)boundary, M_str_len(boundary), M_FALSE, &found);
+	/* No boundary yet. Start reading what data we have. */
+	if (msg == NULL)
+		return M_HTTP_ERROR_SUCCESS;
+
+	res = httpr->cbs.multipart_preamble_func(M_parser_peek(msg), M_parser_len(msg), httpr->thunk);
+	M_parser_destroy(msg);
+
+	if (found) {
+		*full_read = M_TRUE;
+		M_parser_consume(parser, M_str_len(boundary));
+	}
+
+	return res;
+}
+
+static M_http_error_t M_http_read_multipart(M_http_reader_t *httpr, M_parser_t *parser)
+{
+	M_http_error_t res       = M_HTTP_ERROR_SUCCESS;
+	M_bool         full_read = M_FALSE;
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_PREAMBLE) {
+		res = M_http_read_multipart_preamble(httpr, parser, &full_read);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read) {
+			goto done;
+		}
+
+		res = httpr->cbs.multipart_preamble_done_func(httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS) {
+			goto done;
+		}
+
+		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_HEADER;
+	}
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
+	}
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_DATA) {
+	}
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE) {
+	}
+
+done:
+	return res;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *data, size_t data_len, size_t *len_read)
@@ -692,8 +883,10 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
 			goto done;
 
-		if (httpr->is_chunked) {
+		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
+		} else if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
+			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_HEADER;
 		} else {
 			httpr->rstep = M_HTTP_READER_STEP_BODY;
 		}
@@ -725,6 +918,14 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 		res = M_http_read_chunked(httpr, parser);
 	}
 
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_PREAMBLE ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER   ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_DATA     ||
+		httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE)
+	{
+		res = M_http_read_multipart(httpr, parser);
+	}
+
 done:
 	*len_read = start_len - M_parser_len(parser);
 	M_parser_destroy(parser);
@@ -740,30 +941,46 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void 
 	httpr        = M_malloc_zero(sizeof(*httpr));
 	httpr->thunk = thunk;
 
-	httpr->cbs.start_func                 =  M_http_reader_start_func_default;
-	httpr->cbs.header_func                =  M_http_reader_header_func_default;
-	httpr->cbs.header_done_func           =  M_http_reader_header_done_func_default;
-	httpr->cbs.body_func                  =  M_http_reader_body_func_default;
-	httpr->cbs.body_done_func             =  M_http_reader_body_done_func_default;
-	httpr->cbs.chunk_extensions_func      =  M_http_reader_chunk_extensions_func_default;
-	httpr->cbs.chunk_extensions_done_func =  M_http_reader_chunk_extensions_done_func_default;
-	httpr->cbs.chunk_data_func            =  M_http_reader_chunk_data_func_default;
-	httpr->cbs.chunk_data_done_func       =  M_http_reader_chunk_data_done_func_default;
-	httpr->cbs.trailer_func               =  M_http_reader_trailer_func_default;
-	httpr->cbs.trailer_done_func          =  M_http_reader_trailer_done_func_default;
+	httpr->cbs.start_func                   = M_http_reader_start_func_default;
+	httpr->cbs.header_func                  = M_http_reader_header_func_default;
+	httpr->cbs.header_done_func             = M_http_reader_header_done_func_default;
+	httpr->cbs.body_func                    = M_http_reader_body_func_default;
+	httpr->cbs.body_done_func               = M_http_reader_body_done_func_default;
+	httpr->cbs.chunk_extensions_func        = M_http_reader_chunk_extensions_func_default;
+	httpr->cbs.chunk_extensions_done_func   = M_http_reader_chunk_extensions_done_func_default;
+	httpr->cbs.chunk_data_func              = M_http_reader_chunk_data_func_default;
+	httpr->cbs.chunk_data_done_func         = M_http_reader_chunk_data_done_func_default;
+	httpr->cbs.multipart_preamble_func      = M_http_reader_multipart_preamble_func_default;
+	httpr->cbs.multipart_preamble_done_func = M_http_reader_multipart_preamble_done_func_default;
+	httpr->cbs.multipart_header_func        = M_http_reader_multipart_header_func_default;
+	httpr->cbs.multipart_header_done_func   = M_http_reader_multipart_header_done_func_default;
+	httpr->cbs.multipart_data_func          = M_http_reader_multipart_data_func_default;
+	httpr->cbs.multipart_data_done_func     = M_http_reader_multipart_data_done_func_default;
+	httpr->cbs.multipart_epilouge_func      = M_http_reader_multipart_epilouge_func_default;
+	httpr->cbs.multipart_epilouge_done_func = M_http_reader_multipart_epilouge_done_func_default;
+	httpr->cbs.trailer_func                 = M_http_reader_trailer_func_default;
+	httpr->cbs.trailer_done_func            = M_http_reader_trailer_done_func_default;
 											 
 	if (cbs != NULL) {
-		if (cbs->start_func                  !=  NULL) httpr->cbs.start_func                 =  cbs->start_func;
-		if (cbs->header_func                 !=  NULL) httpr->cbs.header_func                =  cbs->header_func;
-		if (cbs->header_done_func            !=  NULL) httpr->cbs.header_done_func           =  cbs->header_done_func;
-		if (cbs->body_func                   !=  NULL) httpr->cbs.body_func                  =  cbs->body_func;
-		if (cbs->body_done_func              !=  NULL) httpr->cbs.body_done_func             =  cbs->body_done_func;
-		if (cbs->chunk_extensions_func       !=  NULL) httpr->cbs.chunk_extensions_func      =  cbs->chunk_extensions_func;
-		if (cbs->chunk_extensions_done_func  !=  NULL) httpr->cbs.chunk_extensions_done_func =  cbs->chunk_extensions_done_func;
-		if (cbs->chunk_data_func             !=  NULL) httpr->cbs.chunk_data_func            =  cbs->chunk_data_func;
-		if (cbs->chunk_data_done_func        !=  NULL) httpr->cbs.chunk_data_done_func       =  cbs->chunk_data_done_func;
-		if (cbs->trailer_func                !=  NULL) httpr->cbs.trailer_func               =  cbs->trailer_func;
-		if (cbs->trailer_done_func           !=  NULL) httpr->cbs.trailer_done_func          =  cbs->trailer_done_func;
+		if (cbs->start_func                   != NULL) httpr->cbs.start_func                   = cbs->start_func;
+		if (cbs->header_func                  != NULL) httpr->cbs.header_func                  = cbs->header_func;
+		if (cbs->header_done_func             != NULL) httpr->cbs.header_done_func             = cbs->header_done_func;
+		if (cbs->body_func                    != NULL) httpr->cbs.body_func                    = cbs->body_func;
+		if (cbs->body_done_func               != NULL) httpr->cbs.body_done_func               = cbs->body_done_func;
+		if (cbs->chunk_extensions_func        != NULL) httpr->cbs.chunk_extensions_func        = cbs->chunk_extensions_func;
+		if (cbs->chunk_extensions_done_func   != NULL) httpr->cbs.chunk_extensions_done_func   = cbs->chunk_extensions_done_func;
+		if (cbs->chunk_data_func              != NULL) httpr->cbs.chunk_data_func              = cbs->chunk_data_func;
+		if (cbs->chunk_data_done_func         != NULL) httpr->cbs.chunk_data_done_func         = cbs->chunk_data_done_func;
+		if (cbs->multipart_preamble_func      != NULL) httpr->cbs.multipart_preamble_func      = cbs->multipart_preamble_func;
+		if (cbs->multipart_preamble_done_func != NULL) httpr->cbs.multipart_preamble_done_func = cbs->multipart_preamble_done_func;
+		if (cbs->multipart_header_func        != NULL) httpr->cbs.multipart_header_func        = cbs->multipart_header_func;
+		if (cbs->multipart_header_done_func   != NULL) httpr->cbs.multipart_header_done_func   = cbs->multipart_header_done_func;
+		if (cbs->multipart_data_func          != NULL) httpr->cbs.multipart_data_func          = cbs->multipart_data_func;
+		if (cbs->multipart_data_done_func     != NULL) httpr->cbs.multipart_data_done_func     = cbs->multipart_data_done_func;
+		if (cbs->multipart_epilouge_func      != NULL) httpr->cbs.multipart_epilouge_func      = cbs->multipart_epilouge_func;
+		if (cbs->multipart_epilouge_done_func != NULL) httpr->cbs.multipart_epilouge_done_func = cbs->multipart_epilouge_done_func;
+		if (cbs->trailer_func                 != NULL) httpr->cbs.trailer_func                 = cbs->trailer_func;
+		if (cbs->trailer_done_func            != NULL) httpr->cbs.trailer_done_func            = cbs->trailer_done_func;
 	}
 
 	return httpr;
