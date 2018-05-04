@@ -28,10 +28,9 @@
 #include <mstdlib/mstdlib_formats.h>
 #include "http/m_http_reader_int.h"
 
-#define READ_BUF_SIZE (8*1024)
-
 static size_t MAX_START_LEN    = 6*1024;
 static size_t MAX_HEADERS_SIZE = 8*1024;
+#define READ_BUF_SIZE (8*1024)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -252,144 +251,6 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_read_header_int(M_http_reader_t *httpr, M_parser_t *parser, M_bool is_header, M_bool *full_read)
-{
-	M_parser_t      *header      = NULL;
-	M_parser_t     **kv          = NULL;
-	char           **subvals     = NULL;
-	char            *key         = NULL;
-	char            *val         = NULL;
-	char            *subval      = NULL;
-	size_t           num_kv      = 0;
-	size_t           num_subvals = 0;
-	size_t           i;
-	M_http_error_t   res         = M_HTTP_ERROR_SUCCESS;
-
-	*full_read = M_FALSE;
-	if (M_parser_len(parser) == 0)
-		return M_HTTP_ERROR_SUCCESS;
-
-	do {
-		header = M_parser_read_parser_until(parser, (const unsigned char *)"\r\n", 2, M_FALSE);
-		/* Not enough data so nothing to do. */
-		if (header == NULL)
-			break;
-		/* Eat the \r\n */
-		M_parser_consume(parser, 2);
-
-		/* An empty line means the end of the header. */
-		if (M_parser_len(header) == 0) {
-			*full_read = M_TRUE;
-			break;
-		}
-
-		httpr->header_len += M_parser_len(header);
-		if (httpr->header_len > MAX_HEADERS_SIZE) {
-			res = M_HTTP_ERROR_HEADER_LENGTH;
-			break;
-		}
-
-		/* Folding is deprecated and shouldn't be supported. */
-		if (M_parser_consume_whitespace(header, M_PARSER_WHITESPACE_NONE) != 0) {
-			res = M_HTTP_ERROR_HEADER_FOLD;
-			break;
-		}
-
-		/* Split the key from the value. */
-		kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
-		if (kv == NULL || num_kv != 2) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		/* Spaces between the separator (:) and value are not allowed. */
-		if (M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE) != 0) {
-			res = M_HTTP_ERROR_HEADER_MALFORMEDVAL;
-			break;
-		}
-
-		/* Validate we actually have a key and value.  */
-		if (M_parser_len(kv[0]) == 0 || M_parser_len(kv[1]) == 0) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-		val = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-
-		M_str_trim(val);
-		if (M_str_isempty(key) || M_str_isempty(val)) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		/* Values can be a comma (,) separated list. We want to treat these as if
- 		 * the header is appearing multiple times. */
-		subvals = M_str_explode_str(',', val, &num_subvals);
-		/* We have to have somthing. */
-		if (subvals == NULL || num_subvals == 0) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		for (i=0; i<num_subvals; i++) {
-			subval = subvals[i];
-
-			/* We can't have an empty entr in the value list. */
-			M_str_trim(subval);
-			if (M_str_isempty(subval)) {
-				res = M_HTTP_ERROR_HEADER_INVALID;
-				break;
-			}
-
-			/* Do some basic validating. */
-			if (is_header) {
-				res = M_http_read_header_validate_kv(httpr, key, subval);
-				if (res != M_HTTP_ERROR_SUCCESS) {
-					break;
-				}
-			}
-
-			/* Pass along the data to our callback. Key will appear for every value. */
-			if (is_header) {
-				res = httpr->cbs.header_func(key, subval, httpr->thunk);
-			} else {
-				res = httpr->cbs.trailer_func(key, subval, httpr->thunk);
-			}
-			if (res != M_HTTP_ERROR_SUCCESS) {
-				break;
-			}
-
-			M_free(subval);
-			subval = NULL;
-			M_str_explode_free(subvals, num_subvals);
-			subvals     = NULL;
-			num_subvals = 0;
-		}
-		if (res != M_HTTP_ERROR_SUCCESS) {
-			break;
-		}
-
-		M_free(key);
-		M_free(val);
-		key = NULL;
-		val = NULL;
-		M_parser_split_free(kv, num_kv);
-		kv     = NULL;
-		num_kv = 0;
-		M_parser_destroy(header);
-		header = NULL;
-	} while (res == M_HTTP_ERROR_SUCCESS && !(*full_read));
-
-	M_free(subval);
-	M_str_explode_free(subvals, num_subvals);
-	M_free(key);
-	M_free(val);
-	M_parser_split_free(kv, num_kv);
-	M_parser_destroy(header);
-	return res;
-}
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
@@ -514,8 +375,144 @@ done:
 
 static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
-	return M_http_read_header_int(httpr, parser, M_TRUE, full_read);
+	M_parser_t      *header      = NULL;
+	M_parser_t     **kv          = NULL;
+	char           **subvals     = NULL;
+	char            *key         = NULL;
+	char            *val         = NULL;
+	char            *subval      = NULL;
+	size_t           num_kv      = 0;
+	size_t           num_subvals = 0;
+	size_t           i;
+	M_http_error_t   res         = M_HTTP_ERROR_SUCCESS;
+
+	*full_read = M_FALSE;
+	if (M_parser_len(parser) == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
+	do {
+		header = M_parser_read_parser_until(parser, (const unsigned char *)"\r\n", 2, M_FALSE);
+		/* Not enough data so nothing to do. */
+		if (header == NULL)
+			break;
+		/* Eat the \r\n */
+		M_parser_consume(parser, 2);
+
+		/* An empty line means the end of the header. */
+		if (M_parser_len(header) == 0) {
+			*full_read = M_TRUE;
+			break;
+		}
+
+		httpr->header_len += M_parser_len(header);
+		if (httpr->header_len > MAX_HEADERS_SIZE) {
+			res = M_HTTP_ERROR_HEADER_LENGTH;
+			break;
+		}
+
+		/* Folding is deprecated and shouldn't be supported. */
+		if (M_parser_consume_whitespace(header, M_PARSER_WHITESPACE_NONE) != 0) {
+			res = M_HTTP_ERROR_HEADER_FOLD;
+			break;
+		}
+
+		/* Split the key from the value. */
+		kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
+		if (kv == NULL || num_kv != 2) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		/* Spaces between the separator (:) and value are not allowed. */
+		if (M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE) != 0) {
+			res = M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+			break;
+		}
+
+		/* Validate we actually have a key and value.  */
+		if (M_parser_len(kv[0]) == 0 || M_parser_len(kv[1]) == 0) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
+		val = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
+
+		M_str_trim(val);
+		if (M_str_isempty(key) || M_str_isempty(val)) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		/* Values can be a comma (,) separated list. We want to treat these as if
+ 		 * the header is appearing multiple times. */
+		subvals = M_str_explode_str(',', val, &num_subvals);
+		/* We have to have somthing. */
+		if (subvals == NULL || num_subvals == 0) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		for (i=0; i<num_subvals; i++) {
+			subval = subvals[i];
+
+			/* We can't have an empty entr in the value list. */
+			M_str_trim(subval);
+			if (M_str_isempty(subval)) {
+				res = M_HTTP_ERROR_HEADER_INVALID;
+				break;
+			}
+
+			/* Do some basic validating. */
+			if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
+				res = M_http_read_header_validate_kv(httpr, key, subval);
+				if (res != M_HTTP_ERROR_SUCCESS) {
+					break;
+				}
+			}
+
+			/* Pass along the data to our callback. Key will appear for every value. */
+			if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
+				res = httpr->cbs.header_func(key, subval, httpr->thunk);
+			} else if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
+				res = httpr->cbs.trailer_func(key, subval, httpr->thunk);
+			} else if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
+				res = httpr->cbs.multipart_header_func(key, subval, httpr->multipart_idx, httpr->thunk);
+			}
+			if (res != M_HTTP_ERROR_SUCCESS) {
+				break;
+			}
+
+			M_free(subval);
+			subval = NULL;
+			M_str_explode_free(subvals, num_subvals);
+			subvals     = NULL;
+			num_subvals = 0;
+		}
+		if (res != M_HTTP_ERROR_SUCCESS) {
+			break;
+		}
+
+		M_free(key);
+		M_free(val);
+		key = NULL;
+		val = NULL;
+		M_parser_split_free(kv, num_kv);
+		kv     = NULL;
+		num_kv = 0;
+		M_parser_destroy(header);
+		header = NULL;
+	} while (res == M_HTTP_ERROR_SUCCESS && !(*full_read));
+
+	M_free(subval);
+	M_str_explode_free(subvals, num_subvals);
+	M_free(key);
+	M_free(val);
+	M_parser_split_free(kv, num_kv);
+	M_parser_destroy(header);
+	return res;
 }
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -708,11 +705,6 @@ static M_http_error_t M_http_read_chunk_data(M_http_reader_t *httpr, M_parser_t 
 	return res;
 }
 
-static M_http_error_t M_http_read_trailer(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
-{
-	return M_http_read_header_int(httpr, parser, M_TRUE, full_read);
-}
-
 static M_http_error_t M_http_read_chunked(M_http_reader_t *httpr, M_parser_t *parser)
 {
 	M_http_error_t res       = M_HTTP_ERROR_SUCCESS;
@@ -744,29 +736,32 @@ static M_http_error_t M_http_read_chunked(M_http_reader_t *httpr, M_parser_t *pa
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
 
 			res = httpr->cbs.chunk_data_done_func(httpr->thunk);
-			if (res != M_HTTP_ERROR_SUCCESS) {
+			if (res != M_HTTP_ERROR_SUCCESS)
 				goto done;
-			}
 
 			return M_http_read_chunked(httpr, parser);
 		}
 	}
 
 	if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
-		res = M_http_read_trailer(httpr, parser, &full_read);
+		res = M_http_read_header(httpr, parser, &full_read);
 
 		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
 			goto done;
 
 		httpr->rstep = M_HTTP_READER_STEP_DONE;
 		res = httpr->cbs.trailer_done_func(httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
+		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
-		}
 	}
 
 done:
 	return res;
+}
+
+static void M_http_read_multipart_gen_boundary(M_http_reader_t *httpr, char *buf, size_t len, M_bool end)
+{
+	M_snprintf(buf, len, "\r\n--%s%s", httpr->boundary, end?"--":"");
 }
 
 static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
@@ -781,7 +776,7 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 		return M_HTTP_ERROR_SUCCESS;
 
 	/* Check for an ending boundary to check which shouldn't be here. */
-	M_snprintf(boundary, sizeof(boundary), "\r\n--%s--", httpr->boundary);
+	M_http_read_multipart_gen_boundary(httpr, boundary, sizeof(boundary), M_TRUE);
 	msg = M_parser_read_parser_boundary(parser, (const unsigned char *)boundary, M_str_len(boundary), M_FALSE, &found);
 	if (found) {
 		M_parser_destroy(msg);
@@ -789,9 +784,9 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 	}
 
 	/* Lets try this again looking for the actual boundary. */
-	M_snprintf(boundary, sizeof(boundary), "\r\n--%s\r\n", httpr->boundary);
+	M_http_read_multipart_gen_boundary(httpr, boundary, sizeof(boundary), M_FALSE);
 	msg = M_parser_read_parser_boundary(parser, (const unsigned char *)boundary, M_str_len(boundary), M_FALSE, &found);
-	/* No boundary yet. Start reading what data we have. */
+	/* No data yet. */
 	if (msg == NULL)
 		return M_HTTP_ERROR_SUCCESS;
 
@@ -806,13 +801,88 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 	return res;
 }
 
+static M_http_error_t M_http_read_multipart_data(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
+{
+	unsigned char  buf[READ_BUF_SIZE];
+	char           boundary[128];
+	size_t         len;
+	M_http_error_t res   = M_HTTP_ERROR_SUCCESS;
+	size_t         boundary_len;
+	M_bool         found = M_FALSE;
+
+	*full_read = M_FALSE;
+	if (M_parser_len(parser) == 0)
+		return M_HTTP_ERROR_SUCCESS;
+
+	M_http_read_multipart_gen_boundary(httpr, boundary, sizeof(boundary), M_FALSE);
+	boundary_len = M_str_len(boundary);
+	do {
+		len = M_parser_read_bytes_boundary(parser, buf, sizeof(buf), (unsigned char *)boundary, boundary_len, M_FALSE, &found); 
+		res = httpr->cbs.multipart_data_func(buf, len, httpr->multipart_idx, httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS) {
+			break;
+		}
+	} while (len > 0 && !found);
+
+	if (found) {
+		/* Eat the boundary. */
+		M_parser_consume(parser, boundary_len);
+		*full_read = M_TRUE;
+	}
+	return res;
+}
+
+static M_http_error_t M_http_read_multipart_check_end(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read, M_bool *have_end)
+{
+	(void)httpr;
+
+	*full_read = M_FALSE;
+	if (M_parser_len(parser) < 4)
+		return M_HTTP_ERROR_SUCCESS;
+
+	*full_read = M_TRUE;
+	if (M_parser_compare_str(parser, "--\r\n", 4, M_TRUE))
+		*have_end = M_TRUE;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_read_multipart_epilouge(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
+{
+	M_http_error_t res = M_HTTP_ERROR_SUCCESS;
+
+	*full_read = M_FALSE;
+	if (M_parser_len(parser) != 0) {
+		res = httpr->cbs.multipart_epilouge_func(M_parser_peek(parser), M_parser_len(parser), httpr->thunk);
+		M_parser_consume(parser, M_parser_len(parser));
+	}
+
+	if (httpr->have_body_len && httpr->body_len == httpr->body_len_seen)
+		*full_read = M_TRUE;
+	return res;
+}
+
 static M_http_error_t M_http_read_multipart(M_http_reader_t *httpr, M_parser_t *parser)
 {
-	M_http_error_t res       = M_HTTP_ERROR_SUCCESS;
-	M_bool         full_read = M_FALSE;
+	M_parser_t     *mpparser;
+	M_http_error_t  res       = M_HTTP_ERROR_SUCCESS;
+	M_bool          full_read = M_FALSE;
+	M_bool          have_end  = M_FALSE;
+
+	if (httpr->have_body_len && httpr->body_len == httpr->body_len_seen)
+		return M_HTTP_ERROR_SUCCESS;
+
+	/* Read the data we have left for this message. */
+	if (httpr->have_body_len) {
+		mpparser = M_parser_read_parser(parser, M_MIN(M_parser_len(parser), httpr->body_len-httpr->body_len_seen));
+	} else {
+		mpparser              = M_parser_read_parser(parser, M_parser_len(parser));
+		httpr->body_len_seen += M_parser_len(mpparser);
+	}
+	if (mpparser == NULL)
+		return M_HTTP_ERROR_SUCCESS;
 
 	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_PREAMBLE) {
-		res = M_http_read_multipart_preamble(httpr, parser, &full_read);
+		res = M_http_read_multipart_preamble(httpr, mpparser, &full_read);
 
 		if (res != M_HTTP_ERROR_SUCCESS || !full_read) {
 			goto done;
@@ -823,19 +893,66 @@ static M_http_error_t M_http_read_multipart(M_http_reader_t *httpr, M_parser_t *
 			goto done;
 		}
 
-		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_HEADER;
+		httpr->rstep      = M_HTTP_READER_STEP_MULTIPART_HEADER;
+		httpr->header_len = 0;
 	}
 
+header:
 	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
+		res = M_http_read_header(httpr, parser, &full_read);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
+			goto done;
+
+		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_DATA;
+		res = httpr->cbs.multipart_header_done_func(httpr->multipart_idx, httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS)
+			goto done;
 	}
 
 	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_DATA) {
+		res = M_http_read_multipart_data(httpr, mpparser, &full_read);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
+			goto done;
+
+		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_CHECK_END;
+		res = httpr->cbs.multipart_data_done_func(httpr->multipart_idx, httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS)
+			goto done;
+
+		httpr->multipart_idx++;
+	}
+
+	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_CHECK_END) {
+		res = M_http_read_multipart_check_end(httpr, mpparser, &full_read, &have_end);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
+			goto done;
+
+		if (have_end) {
+			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_EPILOUGE;
+		} else {
+			httpr->rstep      = M_HTTP_READER_STEP_MULTIPART_HEADER;
+			httpr->header_len = 0;
+			goto header;
+		}
 	}
 
 	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE) {
+		res = M_http_read_multipart_epilouge(httpr, mpparser, &full_read);
+
+		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
+			goto done;
+
+		httpr->rstep = M_HTTP_READER_STEP_DONE;
+		res = httpr->cbs.multipart_epilouge_done_func(httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS)
+			goto done;
 	}
 
 done:
+	M_parser_destroy(mpparser);
 	return res;
 }
 
@@ -856,9 +973,8 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 	if (httpr == NULL || data == NULL || data_len == 0)
 		return M_HTTP_ERROR_INVALIDUSE;
 
-	if (httpr->rstep == M_HTTP_READER_STEP_DONE) {
+	if (httpr->rstep == M_HTTP_READER_STEP_DONE)
 		return M_HTTP_ERROR_SUCCESS;
-	}
 
 	parser    = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
 	start_len = M_parser_len(parser);
@@ -886,15 +1002,14 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
 		} else if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
-			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_HEADER;
+			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_PREAMBLE;
 		} else {
 			httpr->rstep = M_HTTP_READER_STEP_BODY;
 		}
 
 		res = httpr->cbs.header_done_func(httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
+		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
-		}
 	}
 
 	/* Read the body (not chunked message). */
