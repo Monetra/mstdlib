@@ -41,6 +41,7 @@ typedef enum {
 	M_HTTP_READER_STEP_MULTIPART_PREAMBLE,
 	M_HTTP_READER_STEP_MULTIPART_HEADER,
 	M_HTTP_READER_STEP_MULTIPART_DATA,
+	M_HTTP_READER_STEP_MULTIPART_CHECK_END,
 	M_HTTP_READER_STEP_MULTIPART_EPILOUGE,
 	M_HTTP_READER_STEP_TRAILER,
 	M_HTTP_READER_STEP_DONE
@@ -62,8 +63,6 @@ struct M_http_reader{
 	M_bool                          have_body_len;
 	size_t                          body_len;
 	size_t                          body_len_seen;
-	size_t                          chunk_len;
-	size_t                          chunk_len_seen;
 	size_t                          multipart_idx;
 };
 
