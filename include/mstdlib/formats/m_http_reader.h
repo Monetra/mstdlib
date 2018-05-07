@@ -50,17 +50,17 @@ typedef M_http_error_t (*M_http_reader_header_done_func)(void *thunk);
 typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
 
-typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, void *thunk);
-typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(void *thunk);
-typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, void *thunk);
-typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(size_t idx, void *thunk);
 
 typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
-typedef M_http_error_t (*M_http_reader_multipart_header_func)(const char *key, const char *val, size_t part_idx, void *thunk);
-typedef M_http_error_t (*M_http_reader_multipart_header_done_func)(size_t part_idx, void *thunk);
-typedef M_http_error_t (*M_http_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t part_idx, void *thunk);
-typedef M_http_error_t (*M_http_reader_multipart_data_done_func)(size_t part_idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_header_func)(const char *key, const char *val, size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_header_done_func)(size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_multipart_data_done_func)(size_t idx, void *thunk);
 typedef M_http_error_t (*M_http_reader_multipart_epilouge_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_multipart_epilouge_done_func)(void *thunk);
 
