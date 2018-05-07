@@ -17,6 +17,8 @@
 #include <mstdlib/formats/m_csv.h>
 #include <mstdlib/formats/m_ini.h>
 #include <mstdlib/formats/m_json.h>
+#include <mstdlib/formats/m_http.h>
+#include <mstdlib/formats/m_http_reader.h>
 #include <mstdlib/formats/m_mtzfile.h>
 #include <mstdlib/formats/m_settings.h>
 #include <mstdlib/formats/m_table.h>
