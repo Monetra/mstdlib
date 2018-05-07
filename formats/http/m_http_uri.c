@@ -42,8 +42,8 @@ static M_bool M_http_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *
 	*host = NULL;
 	*port = 0;
 
-	/* Check if an absoulte URI that contains the host. */
-	if (!M_parser_compare_str(parser, "http://", 7, M_TRUE) && !M_parser_compare_str(parser, "https://", 8, M_TRUE))
+	/* Check if an absolute URI that contains the host. */
+	if (!M_parser_compare_str(parser, "http://", 7, M_FALSE) && !M_parser_compare_str(parser, "https://", 8, M_FALSE))
 		return M_TRUE;
 
 	/* Move past the prefix. */
@@ -52,9 +52,9 @@ static M_bool M_http_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *
 	/* Mark the start of the host. */
 	M_parser_mark(parser);
 
-	/* Having a ":" means we have a port so everyting before is
- 	 * the host. */
 	if (M_parser_consume_str_until(parser, ":", M_FALSE) != 0) {
+		/* Having a ":" means we have a port so everything before is
+		 * the host. */
 		*host = M_parser_read_strdup_mark(parser);
 
 		/* kill the ":". */
@@ -65,13 +65,9 @@ static M_bool M_http_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *
 			goto err;
 		}
 		*port = (M_uint16)myport;
-	}
-
-	/* No port was specified try to find the start of the path. */
-	if (*host == NULL) {
-		if (M_parser_consume_str_until(parser, "/", M_FALSE) != 0) {
-			*host = M_parser_read_strdup_mark(parser);
-		}
+	} else if (M_parser_consume_str_until(parser, "/", M_FALSE) != 0) {
+		/* No port was specified try to find the start of the path. */
+		*host = M_parser_read_strdup_mark(parser);
 	}
 
 	/* No port and no path, all we have is the host. */
@@ -81,7 +77,7 @@ static M_bool M_http_uri_parser_host(M_parser_t *parser, char **host, M_uint16 *
 	}
 
 	/* We should have host... */
-	if (*host == NULL)
+	if (M_str_isempty(*host))
 		goto err;
 
 	return M_TRUE;
