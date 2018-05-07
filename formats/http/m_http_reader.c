@@ -203,25 +203,30 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 		if (httpr->have_body_len) {
 			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
+		/* Ignore content length beause we have a transfer-encoding. */
 		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
-			return M_HTTP_ERROR_MALFORMED;
+			httpr->have_body_len = M_FALSE;
+			httpr->body_len      = 0;
+		} else {
+			if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS) {
+				return M_HTTP_ERROR_MALFORMED;
+			}
+			if (i64v < 0) {
+				return M_HTTP_ERROR_MALFORMED;
+			}
+			httpr->have_body_len = M_TRUE;
+			httpr->body_len      = (size_t)i64v;
 		}
-		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS) {
-			return M_HTTP_ERROR_MALFORMED;
-		}
-		if (i64v < 0) {
-			return M_HTTP_ERROR_MALFORMED;
-		}
-		httpr->have_body_len = M_TRUE;
-		httpr->body_len      = (size_t)i64v;
 	}
 
 	if (M_str_caseeq(key, "transfer-encoding") && M_str_caseeq(val, "chunked")) {
 		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
-			return M_HTTP_ERROR_MALFORMED;
+			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
+		/* Ignore content length when we have a transfer-encoding. */
 		if (httpr->have_body_len) {
-			return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+			httpr->have_body_len = M_FALSE;
+			httpr->body_len      = 0;
 		}
 		httpr->data_type = M_HTTP_READER_DATA_TYPE_CHUNKED;
 	}
@@ -229,7 +234,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 	if (M_str_caseeq(key, "content-type")) {
 		if (M_str_caseeq(val, "multipart/form-data")) {
 			if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
-				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
+				return M_HTTP_ERROR_HEADER_DUPLICATE;
 			}
 
 			httpr->data_type = M_HTTP_READER_DATA_TYPE_MULTIPART;
@@ -240,6 +245,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			if (val == NULL) {
 				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
 			}
+			/* Move path the '='. */
 			val++;
 			if (M_str_isempty(val) || M_str_len(val) > 70) {
 				return M_HTTP_ERROR_HEADER_MALFORMEDVAL;
@@ -979,8 +985,14 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 	parser    = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
 	start_len = M_parser_len(parser);
 
-	if (httpr->rstep == M_HTTP_READER_STEP_UNKNONW)
+	if (httpr->rstep == M_HTTP_READER_STEP_UNKNONW) {
+		/* We want to consume any and all new lines that might start the date.
+		 * If multiple http messages were packed together in one stream there could
+		 * be a new line at the end of the previous stream. We want to ignore this
+		 * because, while valid to be there, it's not really part of either message. */
+		M_parser_consume_whitespace(parser,M_PARSER_WHITESPACE_NONE);
 		httpr->rstep = M_HTTP_READER_STEP_START_LINE;
+	}
 
 	/* Read the start line. */
 	if (httpr->rstep == M_HTTP_READER_STEP_START_LINE) {

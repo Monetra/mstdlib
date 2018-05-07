@@ -104,14 +104,21 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void 
 
 /*! Destroy an http object.
  *
- * \param[in] http HTTP object.
+ * \param[in] httpr Http reader object.
  */
 void M_http_reader_destroy(M_http_reader_t *httpr);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Parse the data.
+/*! Parse http data.
+ *
+ * \param[in]  httpr    Http reader object.
+ * \param[in]  data     Data to parser.
+ * \param[in]  data_len Lenght of data.
+ * \param[out] len_read How much data was read.
+ *
+ * \return Result.
  */
 M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *data, size_t data_len, size_t *len_read);
 
