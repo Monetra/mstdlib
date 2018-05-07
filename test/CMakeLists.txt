@@ -85,6 +85,7 @@ if (MSTDLIB_BUILD_FORMATS)
 		formats/check_csv.c
 		formats/check_ini.c
 		formats/check_json.c
+		formats/check_http_reader.c
 		formats/check_mtzfile.c
 		formats/check_settings.c
 		formats/check_verify.c
