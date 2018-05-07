@@ -16,6 +16,8 @@ typedef struct {
 	char                  *reason;
 	M_hash_dict_t         *headers;
 	M_buf_t               *body;
+	M_list_str_t          *bpieces;
+	M_hash_dict_t         *cextensions;
 } httpr_test_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -66,6 +68,31 @@ typedef struct {
 	"User=For+Meeee&pw=ABC123&action=login" \
 	"\r\n"
 
+/* Chucked encoding. 1 chuck is headers as body
+ * with extensions.
+ * 1 chunk is header and data as body.
+ * 1 chunk is body only. No trailers. */
+#define http6_data "HTTP/1.1 200 OK\r\n" \
+	"Transfer-Encoding: chunked\r\n" \
+	"Content-Type: message/http\r\n" \
+	"Connection: close\r\n" \
+	"Server: server\r\n" \
+	"Connection: close\r\n" \
+	"\r\n" \
+	"3a;ext1;ext2=abc\r\n" \
+	"TRACE / HTTP/1.1\r\n" \
+	"Connection: keep-alive\r\n" \
+	"Host: google.com\r\n" \
+	"40\r\n" \
+	"\r\n" \
+	"Content-Type: text/html\r\n" \
+	"\r\n" \
+	"<html><body>Chunk 2</body></html>\r\n" \
+	"\r\n" \
+	"21\r\n" \
+	"<html><body>Chunk 3</body></html>\r\n" \
+	"0\r\n" \
+	"\r\n"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -73,9 +100,11 @@ static httpr_test_t *httpr_test_create(void)
 {
 	httpr_test_t *ht;
 
-	ht          = M_malloc_zero(sizeof(*ht));
-	ht->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-	ht->body    = M_buf_create();
+	ht              = M_malloc_zero(sizeof(*ht));
+	ht->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	ht->cextensions = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	ht->body        = M_buf_create();
+	ht->bpieces     = M_list_str_create(M_LIST_NONE);
 
 	return ht;
 }
@@ -85,7 +114,9 @@ static void httpr_test_destroy(httpr_test_t *ht)
 	M_free(ht->uri);
 	M_free(ht->reason);
 	M_hash_dict_destroy(ht->headers);
+	M_hash_dict_destroy(ht->cextensions);
 	M_buf_cancel(ht->body);
+	M_list_str_destroy(ht->bpieces);
 	M_free(ht);
 }
 
@@ -133,27 +164,51 @@ static M_http_error_t body_func(const unsigned char *data, size_t len, void *thu
 
 static M_http_error_t body_done_func(void *thunk)
 {
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t chunk_extensions_func(const char *key, const char *val, size_t idx, void *thunk)
+{
 	httpr_test_t *ht = thunk;
+
+	(void)idx;
+
+	M_hash_dict_insert(ht->cextensions, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t chunk_extensions_func(const char *key, const char *val, void *thunk)
+static M_http_error_t chunk_extensions_done_func(size_t idx, void *thunk)
 {
+	(void)idx;
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t chunk_extensions_done_func(void *thunk)
+static M_http_error_t chunk_data_func(const unsigned char *data, size_t len, size_t idx, void *thunk)
 {
+	httpr_test_t *ht = thunk;
+	M_buf_t      *buf;
+	const char   *const_temp;
+	char         *out;
+
+	buf        = M_buf_create();
+	const_temp = M_list_str_at(ht->bpieces, idx);
+	M_buf_add_str(buf, const_temp);
+	M_buf_add_bytes(buf, data, len);
+
+	M_list_str_remove_at(ht->bpieces, idx);
+	out = M_buf_finish_str(buf, NULL);
+	M_list_str_insert_at(ht->bpieces, out, idx);
+	M_free(out);
+
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t chunk_data_func(const unsigned char *data, size_t len, void *thunk)
+static M_http_error_t chunk_data_done_func(size_t idx, void *thunk)
 {
-	return M_HTTP_ERROR_SUCCESS;
-}
-
-static M_http_error_t chunk_data_done_func(void *thunk)
-{
+	(void)idx;
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -440,6 +495,63 @@ START_TEST(check_httpr5)
 	/* Body */
 	ck_assert_msg(M_str_eq(M_buf_peek(ht->body), body), "Body failed: got '%s', expected '%s'", M_buf_peek(ht->body), body);
 
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
+START_TEST(check_httpr6)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *body = "User=For+Meeee&pw=ABC123&action=login";
+	const char      *key;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http6_data, M_str_len(http6_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http6_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http6_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_RESPONSE, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_RESPONSE);
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_1, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+	ck_assert_msg(ht->code == 200, "Wrong code: got '%u', expected '%u'", ht->code, 200);
+	ck_assert_msg(M_str_eq(ht->reason, "OK"), "Wrong reason: got '%s', expected '%s'", ht->reason, "OK");
+
+
+	/* Headers. */
+	key  = "Transfer-Encoding";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "chunked";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Content-Type";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "message/http";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* chunks */
+	len = M_list_str_len(ht->bpieces);
+	ck_assert_msg(len == 3, "Wrong number of chunks: got '%zu', expected '%d'", len, 3);
+
+	gval = M_list_str_at(ht->bpieces, 0);
+	eval = "TRACE / HTTP/1.1\r\nConnection: keep-alive\r\nHost: google.com";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 0, gval, eval);
+
+	gval = M_list_str_at(ht->bpieces, 1);
+	eval = "\r\nContent-Type: text/html\r\n\r\n<html><body>Chunk 2</body></html>\r\n";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 1, gval, eval);
+
+	gval = M_list_str_at(ht->bpieces, 2);
+	eval = "<html><body>Chunk 3</body></html>";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 2, gval, eval);
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -473,6 +585,10 @@ static Suite *gen_suite(void)
 
 	tc = tcase_create("httpr5");
 	tcase_add_test(tc, check_httpr5);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr6");
+	tcase_add_test(tc, check_httpr6);
 	suite_add_tcase(suite, tc);
 
 	return suite;
