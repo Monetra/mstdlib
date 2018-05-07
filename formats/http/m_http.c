@@ -192,7 +192,7 @@ M_http_version_t M_http_version_from_str(const char *version)
 	if (M_str_eq(version, "1.0"))
 		return M_HTTP_VERSION_1_0;
 
-	if (M_str_eq(version, "1.0"))
+	if (M_str_eq(version, "1.1"))
 		return M_HTTP_VERSION_1_1;
 
 	if (M_str_eq(version, "2"))
