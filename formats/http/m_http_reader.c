@@ -74,30 +74,34 @@ static M_http_error_t M_http_reader_body_done_func_default(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_chunk_extensions_func_default(const char *key, const char *val, void *thunk)
+static M_http_error_t M_http_reader_chunk_extensions_func_default(const char *key, const char *val, size_t idx, void *thunk)
 {
 	(void)key;
 	(void)val;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_chunk_extensions_done_func_default(void *thunk)
+static M_http_error_t M_http_reader_chunk_extensions_done_func_default(size_t idx, void *thunk)
 {
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_chunk_data_func_default(const unsigned char *data, size_t len, void *thunk)
+static M_http_error_t M_http_reader_chunk_data_func_default(const unsigned char *data, size_t len, size_t idx, void *thunk)
 {
 	(void)data;
 	(void)len;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_chunk_data_done_func_default(void *thunk)
+static M_http_error_t M_http_reader_chunk_data_done_func_default(size_t idx, void *thunk)
 {
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -116,34 +120,34 @@ static M_http_error_t M_http_reader_multipart_preamble_done_func_default(void *t
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_multipart_header_func_default(const char *key, const char *val, size_t part_idx, void *thunk)
+static M_http_error_t M_http_reader_multipart_header_func_default(const char *key, const char *val, size_t idx, void *thunk)
 {
 	(void)key;
 	(void)val;
-	(void)part_idx;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_multipart_header_done_func_default(size_t part_idx, void *thunk)
+static M_http_error_t M_http_reader_multipart_header_done_func_default(size_t idx, void *thunk)
 {
-	(void)part_idx;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_multipart_data_func_default(const unsigned char *data, size_t len, size_t part_idx, void *thunk)
+static M_http_error_t M_http_reader_multipart_data_func_default(const unsigned char *data, size_t len, size_t idx, void *thunk)
 {
 	(void)data;
 	(void)len;
-	(void)part_idx;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_multipart_data_done_func_default(size_t part_idx, void *thunk)
+static M_http_error_t M_http_reader_multipart_data_done_func_default(size_t idx, void *thunk)
 {
-	(void)part_idx;
+	(void)idx;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -275,7 +279,7 @@ static M_http_error_t M_http_read_header_process(M_http_reader_t *httpr, const c
 	} else if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
 		res = httpr->cbs.trailer_func(key, val, httpr->thunk);
 	} else if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
-		res = httpr->cbs.multipart_header_func(key, val, httpr->multipart_idx, httpr->thunk);
+		res = httpr->cbs.multipart_header_func(key, val, httpr->part_idx, httpr->thunk);
 	}
 
 	return res;
@@ -584,7 +588,6 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 	size_t           len        = 0;
 	size_t           i;
 	M_int64          i64v       = 0;
-	unsigned char    byte;
 	M_http_error_t   res        = M_HTTP_ERROR_SUCCESS;
 
 	*full_read = M_FALSE;
@@ -603,7 +606,7 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 		goto done;
 	}
 
-	/* Get the lengh. It's either before any extensions or before the end of the line. */
+	/* Get the length. It's either before any extensions or before the end of the line. */
 	len = M_parser_len(msg);
 	M_parser_mark(msg);
 	if (M_parser_consume_until(msg, (const unsigned char *)";", 1, M_FALSE) > 0)
@@ -612,7 +615,7 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 
 	/* No length!?. */
 	if (len == 0) {
-		res = M_HTTP_ERROR_MALFORMED;
+		res = M_HTTP_ERROR_CHUNK_MALFORMED;
 		goto done;
 	}
 
@@ -622,57 +625,59 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 		goto done;
 	}
 	if (i64v < 0) {
-		res = M_HTTP_ERROR_MALFORMED;
+		res = M_HTTP_ERROR_CHUNK_MALFORMED;
 		goto done;
 	}
 	httpr->body_len      = (size_t)i64v; 
 	httpr->body_len_seen = 0;
 
-	/* Parse off extensions if they're present. */
-	if (M_parser_len(msg) > 0) {
-		if (!M_parser_peek_byte(msg, &byte) || byte != ';') {
-			res = M_HTTP_ERROR_CHUNK_EXTENSION;
-			goto done;
-		}
-
-		extensions = M_parser_read_strdup(msg, M_parser_len(msg));
-		parts      = M_str_explode_str(';', extensions, &num_parts);
-		if (parts == NULL || num_parts == 0) {
-			res = M_HTTP_ERROR_CHUNK_EXTENSION;
-			goto done;
-		}
-		for (i=0; i<num_parts; i++) {
-			kv = M_str_explode_str('=', parts[i], &num_kv);
-			if (kv == NULL || (num_kv != 1 && num_kv != 2)) {
-				res = M_HTTP_ERROR_CHUNK_EXTENSION;
-				goto done;
-			}
-
-			key = kv[0];
-			val = NULL;
-			if (num_kv== 2) {
-				val = kv[1];
-			}
-
-			res = httpr->cbs.chunk_extensions_func(key, val, httpr->thunk);
-			if (res != M_HTTP_ERROR_SUCCESS) {
-				goto done;
-			}
-
-			M_str_explode_free(kv, num_kv);
-			kv     = NULL;
-			num_kv = 0;
-		}
-		M_str_explode_free(parts, num_parts);
-		parts     = NULL;
-		num_parts = 0;
-		M_free(extensions);
-		extensions = NULL;
-
-		res = httpr->cbs.chunk_extensions_done_func(httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS)
-			goto done;
+	/* Any data left is extensions. */
+	if (M_parser_len(msg) == 0) {
+		res        = M_HTTP_ERROR_SUCCESS;
+		*full_read = M_TRUE;
+		goto done;
 	}
+
+	/* Eat the starting ';' denoting there are extensions. */
+	M_parser_consume(msg, 1);
+
+	extensions = M_parser_read_strdup(msg, M_parser_len(msg));
+	parts      = M_str_explode_str(';', extensions, &num_parts);
+	if (parts == NULL || num_parts == 0) {
+		res = M_HTTP_ERROR_CHUNK_EXTENSION;
+		goto done;
+	}
+	for (i=0; i<num_parts; i++) {
+		kv = M_str_explode_str('=', parts[i], &num_kv);
+		if (kv == NULL || (num_kv != 1 && num_kv != 2)) {
+			res = M_HTTP_ERROR_CHUNK_EXTENSION;
+			goto done;
+		}
+
+		key = kv[0];
+		val = NULL;
+		if (num_kv== 2) {
+			val = kv[1];
+		}
+
+		res = httpr->cbs.chunk_extensions_func(key, val, httpr->part_idx, httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS) {
+			goto done;
+		}
+
+		M_str_explode_free(kv, num_kv);
+		kv     = NULL;
+		num_kv = 0;
+	}
+	M_str_explode_free(parts, num_parts);
+	parts     = NULL;
+	num_parts = 0;
+	M_free(extensions);
+	extensions = NULL;
+
+	res = httpr->cbs.chunk_extensions_done_func(httpr->part_idx, httpr->thunk);
+	if (res != M_HTTP_ERROR_SUCCESS)
+		goto done;
 
 	*full_read = M_TRUE;
 
@@ -706,20 +711,19 @@ static M_http_error_t M_http_read_chunk_data(M_http_reader_t *httpr, M_parser_t 
 		len = M_parser_read_bytes_max(parser, M_MIN(sizeof(buf), httpr->body_len-httpr->body_len_seen), buf, sizeof(buf));
 		httpr->body_len_seen += len;
 
-		res = httpr->cbs.chunk_data_func(buf, len, httpr->thunk);
+		res = httpr->cbs.chunk_data_func(buf, len, httpr->part_idx, httpr->thunk);
 		if (res != M_HTTP_ERROR_SUCCESS) {
 			break;
 		}
 	} 
 
-	if (httpr->body_len == httpr->body_len_seen) {
-		if (M_parser_len(parser) >= 2) {
-			if (M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
-				M_parser_consume(parser, 2);
-				*full_read = M_TRUE;
-			} else {
-				res = M_HTTP_ERROR_CHUNK_MALFORMED;
-			}
+	/* Chunks are trailed by \r\n which is not part of the length. */
+	if (httpr->body_len == httpr->body_len_seen &&  M_parser_len(parser) >= 2) {
+		if (M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
+			M_parser_consume(parser, 2);
+			*full_read = M_TRUE;
+		} else {
+			return M_HTTP_ERROR_CHUNK_DATA_MALFORMED;
 		}
 	}
 	return res;
@@ -754,8 +758,9 @@ static M_http_error_t M_http_read_chunked(M_http_reader_t *httpr, M_parser_t *pa
 		} else {
 			/* If this isn't the last chunk start reading the next one. */
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
+			httpr->part_idx++;
 
-			res = httpr->cbs.chunk_data_done_func(httpr->thunk);
+			res = httpr->cbs.chunk_data_done_func(httpr->part_idx, httpr->thunk);
 			if (res != M_HTTP_ERROR_SUCCESS)
 				goto done;
 
@@ -838,7 +843,7 @@ static M_http_error_t M_http_read_multipart_data(M_http_reader_t *httpr, M_parse
 	boundary_len = M_str_len(boundary);
 	do {
 		len = M_parser_read_bytes_boundary(parser, buf, sizeof(buf), (unsigned char *)boundary, boundary_len, M_FALSE, &found); 
-		res = httpr->cbs.multipart_data_func(buf, len, httpr->multipart_idx, httpr->thunk);
+		res = httpr->cbs.multipart_data_func(buf, len, httpr->part_idx, httpr->thunk);
 		if (res != M_HTTP_ERROR_SUCCESS) {
 			break;
 		}
@@ -925,7 +930,7 @@ header:
 			goto done;
 
 		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_DATA;
-		res = httpr->cbs.multipart_header_done_func(httpr->multipart_idx, httpr->thunk);
+		res = httpr->cbs.multipart_header_done_func(httpr->part_idx, httpr->thunk);
 		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
 	}
@@ -937,11 +942,11 @@ header:
 			goto done;
 
 		httpr->rstep = M_HTTP_READER_STEP_MULTIPART_CHECK_END;
-		res = httpr->cbs.multipart_data_done_func(httpr->multipart_idx, httpr->thunk);
+		res = httpr->cbs.multipart_data_done_func(httpr->part_idx, httpr->thunk);
 		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
 
-		httpr->multipart_idx++;
+		httpr->part_idx++;
 	}
 
 	if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_CHECK_END) {
