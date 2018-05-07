@@ -336,7 +336,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 		return M_HTTP_ERROR_REQUEST_METHOD;
 
 	/* Part 2: URI */
-	uri  = M_parser_read_strdup(parts[0], M_parser_len(parts[0]));
+	uri  = M_parser_read_strdup(parts[1], M_parser_len(parts[1]));
 	http = M_http_create();
 	/* Validate the uri. */
 	if (!M_http_set_uri(http, uri)) {
@@ -345,7 +345,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 	}
 
 	/* Part 3: Version */
-	res = M_http_read_version(parts[0], &version);
+	res = M_http_read_version(parts[2], &version);
 	if (res != M_HTTP_ERROR_SUCCESS)
 		goto done;
 

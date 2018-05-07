@@ -29,7 +29,7 @@ typedef struct {
  	"\r\n"  \
 	"<html><body><h1>It works!</h1></body></html>"
 
-/* No Content length. Duplicate header. */
+/* No Content length. Duplicate header. Header list. */
 #define http2_data "HTTP/1.1 200 OK\r\n" \
 	"Date: Mon, 7 May 2018 01:02:03 GMT\r\n" \
 	"Content-Type: text/html\r\n" \
@@ -39,6 +39,33 @@ typedef struct {
 	"list_header: 1, 2, 3\r\n" \
  	"\r\n" \
 	"<html><body><h1>It works!</h1></body></html>"
+
+/* 1.0 GET request. */
+#define http3_data "GET https://www.google.com/index.html HTTP/1.0\r\n" \
+	"Host: www.google.com\r\n" \
+	"\r\n"
+
+/* 1.0 HEAD request no headers. */
+#define http4_data "HEAD / HTTP/1.0\r\n\r\n"
+
+/* Start with \r\n simulating multiple messages in a stream
+ * where they are separated by a new line. Body is form encoded.
+ * Ends with trailing \r\n that's not read. */
+#define http5_data "\r\n" \
+	"POST /login HTTP/1.1\r\n" \
+	"Host: 127.0.0.1\r\n" \
+	"Referer: https://127.0.0.1/login.html\r\n" \
+	"Accept-Language: en-us\r\n" \
+	"Content-Type: application/x-www-form-urlencoded\r\n" \
+	"Accept-Encoding: gzip, deflate\r\n" \
+	"User-Agent: Test Client\r\n" \
+	"Content-Length: 37\r\n" \
+	"Connection: Keep-Alive\r\n" \
+	"Cache-Control: no-cache\r\n" \
+	"\r\n" \
+	"User=For+Meeee&pw=ABC123&action=login" \
+	"\r\n"
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -212,7 +239,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_httpr_1)
+START_TEST(check_httpr1)
 {
 	M_http_reader_t *hr;
 	httpr_test_t    *ht;
@@ -265,7 +292,7 @@ START_TEST(check_httpr_1)
 }
 END_TEST
 
-START_TEST(check_httpr_2)
+START_TEST(check_httpr2)
 {
 	M_http_reader_t *hr;
 	httpr_test_t    *ht;
@@ -330,6 +357,95 @@ START_TEST(check_httpr_2)
 }
 END_TEST
 
+START_TEST(check_httpr3)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	M_http_error_t   res;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http3_data, M_str_len(http3_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http3_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http3_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
+	ck_assert_msg(ht->method == M_HTTP_METHOD_GET, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_GET);
+	ck_assert_msg(M_str_eq(ht->uri, "https://www.google.com/index.html"), "Wrong uri: got '%s', expected '%s'", ht->uri, "https://www.google.com/index.html");
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_0, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
+START_TEST(check_httpr4)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	M_http_error_t   res;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http4_data, M_str_len(http4_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http4_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http4_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
+	ck_assert_msg(ht->method == M_HTTP_METHOD_HEAD, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_HEAD);
+	ck_assert_msg(M_str_eq(ht->uri, "/"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/");
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_0, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
+START_TEST(check_httpr5)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *body = "User=For+Meeee&pw=ABC123&action=login";
+	const char      *key;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http5_data, M_str_len(http5_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http5_data)-2, "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http5_data)-2);
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
+	ck_assert_msg(ht->method == M_HTTP_METHOD_POST, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_POST);
+	ck_assert_msg(M_str_eq(ht->uri, "/login"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/login");
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_1, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+
+	/* Headers. */
+	key  = "Content-Type";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "application/x-www-form-urlencoded";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* Body */
+	ck_assert_msg(M_str_eq(M_buf_peek(ht->body), body), "Body failed: got '%s', expected '%s'", M_buf_peek(ht->body), body);
+
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *gen_suite(void)
@@ -339,12 +455,24 @@ static Suite *gen_suite(void)
 
 	suite = suite_create("http_reader");
 
-	tc = tcase_create("httpr_1");
-	tcase_add_test(tc, check_httpr_1);
+	tc = tcase_create("httpr1");
+	tcase_add_test(tc, check_httpr1);
 	suite_add_tcase(suite, tc);
 
-	tc = tcase_create("httpr_2");
-	tcase_add_test(tc, check_httpr_2);
+	tc = tcase_create("httpr2");
+	tcase_add_test(tc, check_httpr2);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr3");
+	tcase_add_test(tc, check_httpr3);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr4");
+	tcase_add_test(tc, check_httpr4);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr5");
+	tcase_add_test(tc, check_httpr5);
 	suite_add_tcase(suite, tc);
 
 	return suite;
