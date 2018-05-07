@@ -189,7 +189,7 @@ static M_http_error_t M_http_read_version(M_parser_t *parser, M_http_version_t *
 	temp     = M_parser_read_strdup(parser, M_parser_len(parser));
 	*version = M_http_version_from_str(temp);
 	M_free(temp);
-	if (version == M_HTTP_VERSION_UNKNOWN)
+	if (*version == M_HTTP_VERSION_UNKNOWN)
 		return M_HTTP_ERROR_UNKNOWN_VERSION;
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -255,6 +255,30 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_read_header_process(M_http_reader_t *httpr, const char *key, const char *val)
+{
+	M_http_error_t res;
+
+	/* Do some basic validating. */
+	if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
+		res = M_http_read_header_validate_kv(httpr, key, val);
+		if (res != M_HTTP_ERROR_SUCCESS) {
+			return res;
+		}
+	}
+
+	/* Pass along the data to our callback. Key will appear for every value. */
+	if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
+		res = httpr->cbs.header_func(key, val, httpr->thunk);
+	} else if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
+		res = httpr->cbs.trailer_func(key, val, httpr->thunk);
+	} else if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
+		res = httpr->cbs.multipart_header_func(key, val, httpr->multipart_idx, httpr->thunk);
+	}
+
+	return res;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -363,7 +387,7 @@ static M_http_error_t M_http_read_start_line(M_http_reader_t *httpr, M_parser_t 
 		goto done;
 	}
 
-	if (M_parser_compare_str(parser, "HTTP/", 5, M_FALSE)) {
+	if (M_parser_compare_str(parts[0], "HTTP/", 5, M_FALSE)) {
 		res = M_http_read_start_line_response(httpr, parts, num_parts);
 	} else {
 		res = M_http_read_start_line_request(httpr, parts, num_parts);
@@ -397,18 +421,20 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		return M_HTTP_ERROR_SUCCESS;
 
 	do {
-		header = M_parser_read_parser_until(parser, (const unsigned char *)"\r\n", 2, M_FALSE);
-		/* Not enough data so nothing to do. */
-		if (header == NULL)
-			break;
-		/* Eat the \r\n */
-		M_parser_consume(parser, 2);
-
 		/* An empty line means the end of the header. */
-		if (M_parser_len(header) == 0) {
+		if (M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
 			*full_read = M_TRUE;
+			M_parser_consume(parser, 2);
 			break;
 		}
+
+		header = M_parser_read_parser_until(parser, (const unsigned char *)"\r\n", 2, M_FALSE);
+		/* Not enough data so nothing to do. */
+		if (M_parser_len(header) == 0) {
+			break;
+		}
+		/* Eat the \r\n */
+		M_parser_consume(parser, 2);
 
 		httpr->header_len += M_parser_len(header);
 		if (httpr->header_len > MAX_HEADERS_SIZE) {
@@ -429,11 +455,9 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 			break;
 		}
 
-		/* Spaces between the separator (:) and value are not allowed. */
-		if (M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE) != 0) {
-			res = M_HTTP_ERROR_HEADER_MALFORMEDVAL;
-			break;
-		}
+		/* Spaces between the separator (:) and value are not allowed, but we still see them.
+ 		 * We'll just ignore spaces. */
+		M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
 
 		/* Validate we actually have a key and value.  */
 		if (M_parser_len(kv[0]) == 0 || M_parser_len(kv[1]) == 0) {
@@ -442,7 +466,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		}
 
 		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-		val = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
+		val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
 
 		M_str_trim(val);
 		if (M_str_isempty(key) || M_str_isempty(val)) {
@@ -450,49 +474,40 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 			break;
 		}
 
-		/* Values can be a comma (,) separated list. We want to treat these as if
- 		 * the header is appearing multiple times. */
-		subvals = M_str_explode_str(',', val, &num_subvals);
-		/* We have to have somthing. */
-		if (subvals == NULL || num_subvals == 0) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
-		}
-
-		for (i=0; i<num_subvals; i++) {
-			subval = subvals[i];
-
-			/* We can't have an empty entr in the value list. */
-			M_str_trim(subval);
-			if (M_str_isempty(subval)) {
+		/* Some keys are special and ',' aren't used as separate's but valid
+ 		 * parts of the value. */
+		if (M_str_caseeq(key, "date")) {
+			res = M_http_read_header_process(httpr, key, val);
+		} else {
+			/* Values can be a comma (,) separated list. We want to treat these as if
+			 * the header is appearing multiple times. */
+			subvals = M_str_explode_str(',', val, &num_subvals);
+			/* We have to have something. */
+			if (subvals == NULL || num_subvals == 0) {
 				res = M_HTTP_ERROR_HEADER_INVALID;
 				break;
 			}
 
-			/* Do some basic validating. */
-			if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
-				res = M_http_read_header_validate_kv(httpr, key, subval);
+			for (i=0; i<num_subvals; i++) {
+				subval = M_strdup(subvals[i]);
+
+				/* We can't have an empty entry in the value list. */
+				M_str_trim(subval);
+				if (M_str_isempty(subval)) {
+					res = M_HTTP_ERROR_HEADER_INVALID;
+					break;
+				}
+
+				res = M_http_read_header_process(httpr, key, subval);
 				if (res != M_HTTP_ERROR_SUCCESS) {
 					break;
 				}
+
+				M_free(subval);
+				subval = NULL;
 			}
 
-			/* Pass along the data to our callback. Key will appear for every value. */
-			if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
-				res = httpr->cbs.header_func(key, subval, httpr->thunk);
-			} else if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
-				res = httpr->cbs.trailer_func(key, subval, httpr->thunk);
-			} else if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
-				res = httpr->cbs.multipart_header_func(key, subval, httpr->multipart_idx, httpr->thunk);
-			}
-			if (res != M_HTTP_ERROR_SUCCESS) {
-				break;
-			}
-
-			M_free(subval);
-			subval = NULL;
 			M_str_explode_free(subvals, num_subvals);
-			subvals     = NULL;
 			num_subvals = 0;
 		}
 		if (res != M_HTTP_ERROR_SUCCESS) {
@@ -511,7 +526,6 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 	} while (res == M_HTTP_ERROR_SUCCESS && !(*full_read));
 
 	M_free(subval);
-	M_str_explode_free(subvals, num_subvals);
 	M_free(key);
 	M_free(val);
 	M_parser_split_free(kv, num_kv);
