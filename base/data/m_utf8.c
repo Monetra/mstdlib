@@ -79,12 +79,12 @@ static size_t M_utf8_cp_width(M_uint32 cp)
 static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *len)
 {
 	const char     *next = str;
-	M_utf8_error_t  res  = M_UTF8_ERROR_SUCESS;
+	M_utf8_error_t  res  = M_UTF8_ERROR_SUCCESS;
 
 	if (M_str_isempty(str))
 		return 0;
 
-	while (*next != '\0' && res == M_UTF8_ERROR_SUCESS) {
+	while (*next != '\0' && res == M_UTF8_ERROR_SUCCESS) {
 		if (endptr != NULL) {
 			*endptr = next;
 		}
@@ -96,7 +96,7 @@ static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *
 			(*len)++;
 		}
 	}
-	if (res != M_UTF8_ERROR_SUCESS)
+	if (res != M_UTF8_ERROR_SUCCESS)
 		return M_FALSE;
 
 	return M_TRUE;
@@ -159,7 +159,7 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 		*cp = 0;
 
 	if (*str == '\0')
-		return M_UTF8_ERROR_SUCESS;
+		return M_UTF8_ERROR_SUCCESS;
 
 	len   = M_str_len(str);
 	width = M_utf8_byte_width((unsigned char)str[0]);
@@ -172,7 +172,7 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 	/* Single byte values are as is. */
 	if (width == 1) {
 		*cp = (M_uint32)str[0];
-		return M_UTF8_ERROR_SUCESS;
+		return M_UTF8_ERROR_SUCCESS;
 	}
 
 	/* Validate the next bytes in the sequence are continues. */
@@ -206,7 +206,7 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 		*cp = mycp;
 	if (next != NULL)
 		*next = str+width;
-	return M_UTF8_ERROR_SUCESS;
+	return M_UTF8_ERROR_SUCCESS;
 }
 
 M_utf8_error_t M_utf8_get_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next)
@@ -217,11 +217,11 @@ M_utf8_error_t M_utf8_get_chr(const char *str, char *buf, size_t buf_size, size_
 	/* We do a dobule converstion because getting the cp will do validation
  	 * such as over long. */
 	res = M_utf8_get_cp(str, &cp, next);
-	if (res != M_UTF8_ERROR_SUCESS)
+	if (res != M_UTF8_ERROR_SUCCESS)
 		return res;
 
 	if (buf == NULL || buf_size == 0)
-		return M_UTF8_ERROR_SUCESS;
+		return M_UTF8_ERROR_SUCCESS;
 	return M_utf8_from_cp(buf, buf_size, len, cp);
 }
 
@@ -232,7 +232,7 @@ M_utf8_error_t M_utf8_get_chr_buf(const char *str, M_buf_t *buf, const char **ne
 	M_utf8_error_t res;
 
 	res = M_utf8_get_chr(str, mybuf, sizeof(mybuf), &len, next);
-	if (res == M_UTF8_ERROR_SUCESS)
+	if (res == M_UTF8_ERROR_SUCCESS)
 		M_buf_add_bytes(buf, mybuf, len);
 
 	return res;
@@ -289,7 +289,7 @@ M_utf8_error_t M_utf8_from_cp(char *buf, size_t buf_size, size_t *len, M_uint32 
 	}
 
 	*len = width;
-	return M_UTF8_ERROR_SUCESS;
+	return M_UTF8_ERROR_SUCCESS;
 }
 
 M_utf8_error_t M_utf8_from_cp_buf(M_buf_t *buf, M_uint32 cp)
@@ -299,7 +299,7 @@ M_utf8_error_t M_utf8_from_cp_buf(M_buf_t *buf, M_uint32 cp)
 	M_utf8_error_t res;
 
 	res = M_utf8_from_cp(mybuf, sizeof(mybuf), &len, cp);
-	if (res == M_UTF8_ERROR_SUCESS)
+	if (res == M_UTF8_ERROR_SUCCESS)
 		M_buf_add_bytes(buf, mybuf, len);
 
 	return res;
@@ -317,26 +317,26 @@ size_t M_utf8_cnt(const char *str)
 M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp)
 {
 	const char     *next = str;
-	M_utf8_error_t  res  = M_UTF8_ERROR_SUCESS;
+	M_utf8_error_t  res  = M_UTF8_ERROR_SUCCESS;
 	size_t          i    = 0;
 
 	if (M_str_isempty(str))
 		return M_UTF8_ERROR_INVALID_PARAM;
 
-	while (*next != '\0' && res == M_UTF8_ERROR_SUCESS) {
+	while (*next != '\0' && res == M_UTF8_ERROR_SUCCESS) {
 		res = M_utf8_get_cp(str, cp, &next);
 		str = next;
 		if (i == idx)
 			break;
 		i++;
 	}
-	if (res != M_UTF8_ERROR_SUCESS)
+	if (res != M_UTF8_ERROR_SUCCESS)
 		return res;
 
 	if (i != idx)
 		return M_UTF8_ERROR_INVALID_PARAM;
 
-	return M_UTF8_ERROR_SUCESS;
+	return M_UTF8_ERROR_SUCCESS;
 }
 
 M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t *len, size_t idx)
@@ -345,7 +345,7 @@ M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t
 	M_uint32       cp;
 
 	res = M_utf8_cp_at(str, idx, &cp);
-	if (res != M_UTF8_ERROR_SUCESS)
+	if (res != M_UTF8_ERROR_SUCCESS)
 		return res;
 
 	return M_utf8_from_cp(buf, buf_size, len, cp);

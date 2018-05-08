@@ -55,11 +55,11 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 		/* If we have an invalid we need to skip it. Since utf8 characters
  		 * can have multiple bytes we want to and replacement per cha cater
 		 * not per byte. */
-		if (ures != M_TEXTCODEC_ERROR_SUCCESS) {
+		if (ures != M_UTF8_ERROR_SUCCESS) {
 			next = M_utf8_next_chr(next);
 		}
 
-		if (ures == M_TEXTCODEC_ERROR_SUCCESS && M_hash_u64u64_get(map, ucode, &u64v)) {
+		if (ures == M_UTF8_ERROR_SUCCESS && M_hash_u64u64_get(map, ucode, &u64v)) {
 			cp = (unsigned char)u64v;
 			M_textcodec_buffer_add_byte(buf, cp);
 		} else {
@@ -110,7 +110,7 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 			ures = M_utf8_from_cp(ubuf, sizeof(ubuf), &ulen, (M_uint32)u64v);
 		}
 
-		if (have && ures == M_UTF8_ERROR_SUCESS) {
+		if (have && ures == M_UTF8_ERROR_SUCCESS) {
 			M_textcodec_buffer_add_bytes(buf, (unsigned char *)ubuf, ulen);
 		} else {
 			switch (ehandler) {
