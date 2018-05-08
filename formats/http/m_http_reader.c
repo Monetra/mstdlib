@@ -862,11 +862,11 @@ static M_http_error_t M_http_read_multipart_check_end(M_http_reader_t *httpr, M_
 	(void)httpr;
 
 	*full_read = M_FALSE;
-	if (M_parser_len(parser) < 4)
+	if (M_parser_len(parser) < 2)
 		return M_HTTP_ERROR_SUCCESS;
 
 	*full_read = M_TRUE;
-	if (M_parser_compare_str(parser, "--\r\n", 4, M_TRUE))
+	if (M_parser_compare_str(parser, "--", 2, M_TRUE))
 		*have_end = M_TRUE;
 	return M_HTTP_ERROR_SUCCESS;
 }
