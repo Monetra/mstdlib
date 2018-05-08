@@ -1,7 +1,7 @@
 var group__m__utf8 =
 [
     [ "M_utf8_error_t", "group__m__utf8.html#ga28785f3b98f542c6f04fed54b7e341ed", [
-      [ "M_UTF8_ERROR_SUCESS", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda6911199d4945dbfb14a438c66cd3277b", null ],
+      [ "M_UTF8_ERROR_SUCCESS", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341edaf5aecfa7fdb08312d8f95dce6f3f743c", null ],
       [ "M_UTF8_ERROR_BAD_START", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda6665f61e1e10baded3941a2aa8b868c7", null ],
       [ "M_UTF8_ERROR_TRUNCATED", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda8aaab6d8e32b0303aed01d102783b537", null ],
       [ "M_UTF8_ERROR_EXPECT_CONTINUE", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341edad260b091c2922632f81e40857b77bcca", null ],
