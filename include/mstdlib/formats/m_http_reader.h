@@ -54,6 +54,7 @@ typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, c
 typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(size_t idx, void *thunk);
 typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
 typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(size_t idx, void *thunk);
+typedef M_http_error_t (*M_http_reader_chunk_data_finished_func)(void *thunk);
 
 typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
@@ -80,6 +81,7 @@ struct M_http_reader_callbacks {
 	M_http_reader_chunk_extensions_done_func   chunk_extensions_done_func;
 	M_http_reader_chunk_data_func              chunk_data_func;
 	M_http_reader_chunk_data_done_func         chunk_data_done_func;
+	M_http_reader_chunk_data_finished_func     chunk_data_finished_func;
 	M_http_reader_multipart_preamble_func      multipart_preamble_func;
 	M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
 	M_http_reader_multipart_header_func        multipart_header_func;
