@@ -109,6 +109,7 @@ typedef struct {
 	"Trailer 2: Also a trailer\r\n" \
 	"\r\n"
 
+/* Multipart data. */
 #define http8_data "POST /upload/data HTTP/1.1\r\n" \
 	"Host: 127.0.0.1\r\n" \
 	"Accept: image/gif, image/jpeg, */*\r\n" \
@@ -131,6 +132,7 @@ typedef struct {
 	"<h1>Home page on main server</h1>\r\n" \
 	"-----------------------------7d41b838504d8--"
 
+/* Multipart preamble and epilouge. */
 #define http9_data "POST /upload/data HTTP/1.1\r\n" \
 	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
 	"\r\n" \
@@ -140,6 +142,22 @@ typedef struct {
 	"Part data\r\n" \
 	"-----------------------------7d41b838504d8--\r\n" \
 	"epilouge" \
+
+/* 3 messages stacked into one stream. */
+#define http10_data "HTTP/1.1 200 OK\r\n" \
+	"Content-Length:9\r\n" \
+	"\r\n" \
+	"Message 1\r\n" \
+	"\r\n" \
+	"\r\n" \
+	"HTTP/1.1 200 OK\r\n" \
+	"Content-Length:9\r\n" \
+	"\r\n" \
+	"Message 2\r\n" \
+	"HTTP/1.1 200 OK\r\n" \
+	"\r\n" \
+	"Message 3"
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -773,6 +791,60 @@ START_TEST(check_httpr9)
 }
 END_TEST
 
+START_TEST(check_httpr10)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len      = 0;
+	size_t           len_read = 0;
+
+	/* message 1. */
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http10_data+len, M_str_len(http10_data)-len, &len_read);
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed message %d: %d", 1, res);
+	len += len_read;
+
+	gval = M_buf_peek(ht->body);
+	eval = "Message 1";
+	ck_assert_msg(M_str_eq(gval, eval), "Message %d body does not match: got '%s', expected '%s'", 1, gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+
+	/* message 2. */
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http10_data+len, M_str_len(http10_data)-len, &len_read);
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed message %d: %d", 2, res);
+	len += len_read;
+
+	gval = M_buf_peek(ht->body);
+	eval = "Message 2";
+	ck_assert_msg(M_str_eq(gval, eval), "Message %d body does not match: got '%s', expected '%s'", 2, gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+
+	/* message 3. */
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http10_data+len, M_str_len(http10_data)-len, &len_read);
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed message %d: %d", 3, res);
+	len += len_read;
+
+	gval = M_buf_peek(ht->body);
+	eval = "Message 3";
+	ck_assert_msg(M_str_eq(gval, eval), "Message %d body does not match: got '%s', expected '%s'", 3, gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *gen_suite(void)
@@ -816,6 +888,10 @@ static Suite *gen_suite(void)
 
 	tc = tcase_create("httpr8");
 	tcase_add_test(tc, check_httpr9);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr10");
+	tcase_add_test(tc, check_httpr10);
 	suite_add_tcase(suite, tc);
 
 	return suite;
