@@ -16,6 +16,8 @@ typedef struct {
 	char                  *reason;
 	M_hash_dict_t         *headers;
 	M_buf_t               *body;
+	M_buf_t               *preamble;
+	M_buf_t               *epilouge;
 	M_list_str_t          *bpieces;
 	M_hash_dict_t         *cextensions;
 } httpr_test_t;
@@ -129,6 +131,16 @@ typedef struct {
 	"<h1>Home page on main server</h1>\r\n" \
 	"-----------------------------7d41b838504d8--"
 
+#define http9_data "POST /upload/data HTTP/1.1\r\n" \
+	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
+	"\r\n" \
+	"preamble\r\n" \
+	"-----------------------------7d41b838504d8\r\n" \
+	"\r\n" \
+	"Part data\r\n" \
+	"-----------------------------7d41b838504d8--\r\n" \
+	"epilouge" \
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static httpr_test_t *httpr_test_create(void)
@@ -139,6 +151,8 @@ static httpr_test_t *httpr_test_create(void)
 	ht->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	ht->cextensions = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	ht->body        = M_buf_create();
+	ht->preamble    = M_buf_create();
+	ht->epilouge    = M_buf_create();
 	ht->bpieces     = M_list_str_create(M_LIST_NONE);
 
 	return ht;
@@ -151,6 +165,8 @@ static void httpr_test_destroy(httpr_test_t *ht)
 	M_hash_dict_destroy(ht->headers);
 	M_hash_dict_destroy(ht->cextensions);
 	M_buf_cancel(ht->body);
+	M_buf_cancel(ht->preamble);
+	M_buf_cancel(ht->epilouge);
 	M_list_str_destroy(ht->bpieces);
 	M_free(ht);
 }
@@ -249,6 +265,9 @@ static M_http_error_t chunk_data_done_func(size_t idx, void *thunk)
 
 static M_http_error_t multipart_preamble_func(const unsigned char *data, size_t len, void *thunk)
 {
+	httpr_test_t *ht = thunk;
+
+	M_buf_add_bytes(ht->preamble, data, len);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -285,6 +304,9 @@ static M_http_error_t multipart_data_done_func(size_t idx, void *thunk)
 
 static M_http_error_t multipart_epilouge_func(const unsigned char *data, size_t len, void *thunk)
 {
+	httpr_test_t *ht = thunk;
+
+	M_buf_add_bytes(ht->epilouge, data, len);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -305,6 +327,7 @@ static M_http_error_t trailer_done_func(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static M_http_reader_t *gen_reader(void *thunk)
 {
@@ -712,6 +735,44 @@ START_TEST(check_httpr8)
 }
 END_TEST
 
+START_TEST(check_httpr9)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http9_data, M_str_len(http9_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http9_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http9_data));
+
+	/* data. */
+	len = M_list_str_len(ht->bpieces);
+	ck_assert_msg(len == 1, "Wrong number of parts: got '%zu', expected '%d'", len, 1);
+
+	gval = M_buf_peek(ht->preamble);
+	eval = "preamble";
+	ck_assert_msg(M_str_eq(gval, eval), "Wrong preamble data: got '%s', expected '%s'", gval, eval);
+
+	gval = M_list_str_at(ht->bpieces, 0);
+	eval = "Part data";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 0, gval, eval);
+
+	gval = M_buf_peek(ht->epilouge);
+	eval = "epilouge";
+	ck_assert_msg(M_str_eq(gval, eval), "Wrong epilouge data: got '%s', expected '%s'", gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *gen_suite(void)
@@ -751,6 +812,10 @@ static Suite *gen_suite(void)
 
 	tc = tcase_create("httpr8");
 	tcase_add_test(tc, check_httpr8);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr8");
+	tcase_add_test(tc, check_httpr9);
 	suite_add_tcase(suite, tc);
 
 	return suite;

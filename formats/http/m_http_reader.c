@@ -830,9 +830,19 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 	if (msg == NULL)
 		return M_HTTP_ERROR_SUCCESS;
 
-	res = httpr->cbs.multipart_preamble_func(M_parser_peek(msg), M_parser_len(msg), httpr->thunk);
-	M_parser_destroy(msg);
+	if (M_parser_len(msg) > 2) {
+		M_parser_mark(msg);
+		M_parser_consume(msg, M_parser_len(msg)-2);
+		if (!M_parser_compare_str(msg, "\r\n", 2, M_FALSE)) {
+			/* The boundary should start with a \r\n. The only time it doesn't
+			 * is if there is no preamble. */
+			return M_HTTP_ERROR_MULTIPART_INVALID;
+		}
+		M_parser_mark_rewind(msg);
+		res = httpr->cbs.multipart_preamble_func(M_parser_peek(msg), M_parser_len(msg)-2, httpr->thunk);
+	}
 
+	M_parser_destroy(msg);
 	return res;
 }
 
@@ -891,6 +901,18 @@ static M_http_error_t M_http_read_multipart_epilouge(M_http_reader_t *httpr, M_p
 	M_http_error_t res = M_HTTP_ERROR_SUCCESS;
 
 	*full_read = M_FALSE;
+
+	if (!httpr->have_epilouge) {
+		if (M_parser_len(parser) < 2) {
+			return M_HTTP_ERROR_SUCCESS;
+		} else if (!M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
+			/* If an epilogue is present it will start with a \r\n to separate it from the -- ending marker. */
+			return M_HTTP_ERROR_MULTIPART_INVALID;
+		}
+		M_parser_consume(parser, 2);
+		httpr->have_epilouge = M_TRUE;
+	}
+
 	if (M_parser_len(parser) != 0) {
 		res = httpr->cbs.multipart_epilouge_func(M_parser_peek(parser), M_parser_len(parser), httpr->thunk);
 		M_parser_consume(parser, M_parser_len(parser));
