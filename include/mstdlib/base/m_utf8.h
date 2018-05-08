@@ -46,7 +46,7 @@ __BEGIN_DECLS
 
 /*! Error codes. */
 typedef enum {
-	M_UTF8_ERROR_SUCESS,          /*!< Success. */
+	M_UTF8_ERROR_SUCCESS,         /*!< Success. */
 	M_UTF8_ERROR_BAD_START,       /*!< Start of byte sequence is invalid. */
 	M_UTF8_ERROR_TRUNCATED,       /*!< The utf-8 character length exceeds the data length. */
 	M_UTF8_ERROR_EXPECT_CONTINUE, /*!< A conurbation marker was expected but not found. */

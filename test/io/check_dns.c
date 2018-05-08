@@ -201,6 +201,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 			if (!got_response) {
 				M_event_return(event);
 				event_debug("net client %p ERROR", io);
+				M_io_destroy(io);
 				break;
 			}
 
