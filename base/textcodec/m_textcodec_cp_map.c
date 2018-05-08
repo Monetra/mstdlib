@@ -26,7 +26,7 @@
 #include <mstdlib/mstdlib.h>
 #include "textcodec/m_textcodec_int.h"
 
-const char CP_REPLACE = '?';
+static const char CP_REPLACE = '?';
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -69,7 +69,7 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 					res = M_TEXTCODEC_ERROR_FAIL;
 					break;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
-					M_textcodec_buffer_add_byte(buf, CP_REPLACE);
+					M_textcodec_buffer_add_byte(buf, (M_uint8)CP_REPLACE);
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 					break;
 				case M_TEXTCODEC_EHANDLER_IGNORE:
@@ -101,8 +101,8 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 		unsigned char  c = (unsigned char)in[i];
 		M_uint64       u64v;
 		char           ubuf[16];
-		M_utf8_error_t ures;
-		size_t         ulen;
+		M_utf8_error_t ures     = M_UTF8_ERROR_SUCCESS;
+		size_t         ulen     = 0;
 		M_bool         have;
 
 		have = M_hash_u64u64_get(map, c, &u64v);
