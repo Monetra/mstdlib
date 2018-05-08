@@ -107,20 +107,25 @@ typedef struct {
 	"Trailer 2: Also a trailer\r\n" \
 	"\r\n"
 
-#define http8_data "POST /bin/upload HTTP/1.1\r\n" \
+#define http8_data "POST /upload/data HTTP/1.1\r\n" \
 	"Host: 127.0.0.1\r\n" \
 	"Accept: image/gif, image/jpeg, */*\r\n" \
 	"Accept-Language: en-us\r\n" \
 	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
 	"Accept-Encoding: gzip, deflate\r\n" \
 	"User-Agent: Test Client\r\n" \
-	"Content-Length: 342\r\n" \
+	"Content-Length: 333\r\n" \
 	"Connection: Keep-Alive\r\n" \
 	"Cache-Control: no-cache\r\n" \
 	"\r\n" \
-	"-----------------------------7d41b838504d8 Content-Disposition: form-data; name="username"\r\n" \
+	"-----------------------------7d41b838504d8\r\n" \
+	"Content-Dispositio1: form-data; name=\"username\"\r\n" \
+	"\r\n" \
 	"For Meeee\r\n" \
-	"-----------------------------7d41b838504d8 Content-Disposition: form-data; name="fileID"; filename="/temp.html" Content-Type: text/plain\r\n" \
+	"-----------------------------7d41b838504d8\r\n" \
+	"Content-Dispositio2: form-data; name=\"fileID\"; filename=\"/temp.html\"\r\n" \
+	"Content-Typ2: text/plain\r\n" \
+	"\r\n" \
 	"<h1>Home page on main server</h1>\r\n" \
 	"-----------------------------7d41b838504d8--"
 
@@ -249,26 +254,32 @@ static M_http_error_t multipart_preamble_func(const unsigned char *data, size_t 
 
 static M_http_error_t multipart_preamble_done_func(void *thunk)
 {
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t multipart_header_func(const char *key, const char *val, size_t part_idx, void *thunk)
+static M_http_error_t multipart_header_func(const char *key, const char *val, size_t idx, void *thunk)
 {
+	(void)idx;
+	return header_func(key, val, thunk);
+}
+
+static M_http_error_t multipart_header_done_func(size_t idx, void *thunk)
+{
+	(void)idx;
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t multipart_header_done_func(size_t part_idx, void *thunk)
+static M_http_error_t multipart_data_func(const unsigned char *data, size_t len, size_t idx, void *thunk)
 {
-	return M_HTTP_ERROR_SUCCESS;
+	return chunk_data_func(data, len, idx, thunk);
 }
 
-static M_http_error_t multipart_data_func(const unsigned char *data, size_t len, size_t part_idx, void *thunk)
+static M_http_error_t multipart_data_done_func(size_t idx, void *thunk)
 {
-	return M_HTTP_ERROR_SUCCESS;
-}
-
-static M_http_error_t multipart_data_done_func(size_t part_idx, void *thunk)
-{
+	(void)idx;
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -279,19 +290,18 @@ static M_http_error_t multipart_epilouge_func(const unsigned char *data, size_t 
 
 static M_http_error_t multipart_epilouge_done_func(void *thunk)
 {
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
 static M_http_error_t trailer_func(const char *key, const char *val, void *thunk)
 {
-	httpr_test_t *ht = thunk;
-
-	M_hash_dict_insert(ht->headers, key, val);
-	return M_HTTP_ERROR_SUCCESS;
+	return header_func(key, val, thunk);
 }
 
 static M_http_error_t trailer_done_func(void *thunk)
 {
+	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -650,6 +660,58 @@ START_TEST(check_httpr7)
 }
 END_TEST
 
+START_TEST(check_httpr8)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *key;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http8_data, M_str_len(http8_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http8_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http8_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_REQUEST, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_REQUEST);
+	ck_assert_msg(ht->method == M_HTTP_METHOD_POST, "Wrong method: got '%d', expected '%d'", ht->method, M_HTTP_METHOD_POST);
+	ck_assert_msg(M_str_eq(ht->uri, "/upload/data"), "Wrong uri: got '%s', expected '%s'", ht->uri, "/upload/data");
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_1, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+
+	/* Part Headers. */
+	key  = "Content-Dispositio1";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "form-data; name=\"username\"";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Content-Typ2";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "text/plain";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* Part data. */
+	len = M_list_str_len(ht->bpieces);
+	ck_assert_msg(len == 2, "Wrong number of parts: got '%zu', expected '%d'", len, 2);
+
+	gval = M_list_str_at(ht->bpieces, 0);
+	eval = "For Meeee";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 1, gval, eval);
+
+	gval = M_list_str_at(ht->bpieces, 1);
+	eval = "<h1>Home page on main server</h1>";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 1, gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *gen_suite(void)
@@ -685,6 +747,10 @@ static Suite *gen_suite(void)
 
 	tc = tcase_create("httpr7");
 	tcase_add_test(tc, check_httpr7);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr8");
+	tcase_add_test(tc, check_httpr8);
 	suite_add_tcase(suite, tc);
 
 	return suite;
