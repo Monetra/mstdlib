@@ -77,7 +77,6 @@ typedef struct {
 	"Content-Type: message/http\r\n" \
 	"Connection: close\r\n" \
 	"Server: server\r\n" \
-	"Connection: close\r\n" \
 	"\r\n" \
 	"3a;ext1;ext2=abc\r\n" \
 	"TRACE / HTTP/1.1\r\n" \
@@ -93,6 +92,37 @@ typedef struct {
 	"<html><body>Chunk 3</body></html>\r\n" \
 	"0\r\n" \
 	"\r\n"
+
+/* Chunked with trailer. */
+#define http7_data "HTTP/1.1 200 OK\r\n" \
+	"Transfer-Encoding: chunked\r\n" \
+	"Content-Type: message/http\r\n" \
+	"Connection: close\r\n" \
+	"Server: server\r\n" \
+	"\r\n" \
+	"1F\r\n" \
+	"<html><body>Chunk</body></html>\r\n" \
+	"0\r\n" \
+	"Trailer 1: I am a trailer\r\n" \
+	"Trailer 2: Also a trailer\r\n" \
+	"\r\n"
+
+#define http8_data "POST /bin/upload HTTP/1.1\r\n" \
+	"Host: 127.0.0.1\r\n" \
+	"Accept: image/gif, image/jpeg, */*\r\n" \
+	"Accept-Language: en-us\r\n" \
+	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
+	"Accept-Encoding: gzip, deflate\r\n" \
+	"User-Agent: Test Client\r\n" \
+	"Content-Length: 342\r\n" \
+	"Connection: Keep-Alive\r\n" \
+	"Cache-Control: no-cache\r\n" \
+	"\r\n" \
+	"-----------------------------7d41b838504d8 Content-Disposition: form-data; name="username"\r\n" \
+	"For Meeee\r\n" \
+	"-----------------------------7d41b838504d8 Content-Disposition: form-data; name="fileID"; filename="/temp.html" Content-Type: text/plain\r\n" \
+	"<h1>Home page on main server</h1>\r\n" \
+	"-----------------------------7d41b838504d8--"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -254,6 +284,9 @@ static M_http_error_t multipart_epilouge_done_func(void *thunk)
 
 static M_http_error_t trailer_func(const char *key, const char *val, void *thunk)
 {
+	httpr_test_t *ht = thunk;
+
+	M_hash_dict_insert(ht->headers, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -504,7 +537,6 @@ START_TEST(check_httpr6)
 {
 	M_http_reader_t *hr;
 	httpr_test_t    *ht;
-	const char      *body = "User=For+Meeee&pw=ABC123&action=login";
 	const char      *key;
 	const char      *gval;
 	const char      *eval;
@@ -537,7 +569,17 @@ START_TEST(check_httpr6)
 	eval = "message/http";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
-	/* chunks */
+	/* Chunks extensions. */
+	key = "ext1";
+	ck_assert_msg(M_hash_dict_get(ht->cextensions, key, &gval), "%s failed: Not found");
+	ck_assert_msg(gval == NULL, "%s failed: got '%s', expected NULL", key, gval);
+
+	key  = "ext2";
+	gval = M_hash_dict_get_direct(ht->cextensions, key);
+	eval = "abc";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* Chunks data. */
 	len = M_list_str_len(ht->bpieces);
 	ck_assert_msg(len == 3, "Wrong number of chunks: got '%zu', expected '%d'", len, 3);
 
@@ -552,6 +594,56 @@ START_TEST(check_httpr6)
 	gval = M_list_str_at(ht->bpieces, 2);
 	eval = "<html><body>Chunk 3</body></html>";
 	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 2, gval, eval);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
+START_TEST(check_httpr7)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	const char      *key;
+	const char      *gval;
+	const char      *eval;
+	M_http_error_t   res;
+	size_t           len;
+	size_t           len_read;
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http7_data, M_str_len(http7_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http7_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http7_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_RESPONSE, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_RESPONSE);
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_1, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+	ck_assert_msg(ht->code == 200, "Wrong code: got '%u', expected '%u'", ht->code, 200);
+	ck_assert_msg(M_str_eq(ht->reason, "OK"), "Wrong reason: got '%s', expected '%s'", ht->reason, "OK");
+
+
+	/* Trailers. */
+	key  = "Trailer 1";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "I am a trailer";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Trailer 2";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "Also a trailer";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+
+	/* Chunks data. */
+	len = M_list_str_len(ht->bpieces);
+	ck_assert_msg(len == 1, "Wrong number of chunks: got '%zu', expected '%d'", len, 1);
+
+	gval = M_list_str_at(ht->bpieces, 0);
+	eval = "<html><body>Chunk</body></html>";
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 1, gval, eval);
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -589,6 +681,10 @@ static Suite *gen_suite(void)
 
 	tc = tcase_create("httpr6");
 	tcase_add_test(tc, check_httpr6);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("httpr7");
+	tcase_add_test(tc, check_httpr7);
 	suite_add_tcase(suite, tc);
 
 	return suite;
