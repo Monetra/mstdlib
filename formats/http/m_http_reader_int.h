@@ -64,6 +64,8 @@ struct M_http_reader{
 	size_t                          body_len;
 	size_t                          body_len_seen;
 	size_t                          part_idx;
+	M_bool                          have_end;
+	M_bool                          have_part;
 };
 
 #endif
