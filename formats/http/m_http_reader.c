@@ -106,6 +106,12 @@ static M_http_error_t M_http_reader_chunk_data_done_func_default(size_t idx, voi
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_reader_chunk_data_finished_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_reader_multipart_preamble_func_default(const unsigned char *data, size_t len, void *thunk)
 {
 	(void)data;
@@ -461,7 +467,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		}
 
 		/* Spaces between the separator (:) and value are not allowed, but we still see them.
- 		 * We'll just ignore spaces. */
+		 * We'll just ignore spaces. */
 		M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
 
 		/* Validate we actually have a key and value.  */
@@ -480,7 +486,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		}
 
 		/* Some keys are special and ',' aren't used as separate's but valid
- 		 * parts of the value. */
+		 * parts of the value. */
 		if (M_str_caseeq(key, "date")) {
 			res = M_http_read_header_process(httpr, key, val);
 		} else {
@@ -706,7 +712,7 @@ static M_http_error_t M_http_read_chunk_data(M_http_reader_t *httpr, M_parser_t 
 		return M_HTTP_ERROR_SUCCESS;
 
 	/* Set len to something so the loop will run if we're waiting
- 	 * for body data. */
+	 * for body data. */
 	len = 1;
 	while (len > 0 && httpr->body_len != httpr->body_len_seen) {
 		len = M_parser_read_bytes_max(parser, M_MIN(sizeof(buf), httpr->body_len-httpr->body_len_seen), buf, sizeof(buf));
@@ -754,8 +760,13 @@ static M_http_error_t M_http_read_chunked(M_http_reader_t *httpr, M_parser_t *pa
 		if (httpr->body_len == 0) {
 			httpr->rstep  = M_HTTP_READER_STEP_TRAILER;
 			/* Reset the header len because we'll use it for the trailer.
- 			 * We're reading trailing header after all. */
+			 * We're reading trailing header after all. */
 			httpr->header_len = 0;
+
+			res = httpr->cbs.chunk_data_finished_func(httpr->thunk);
+			if (res != M_HTTP_ERROR_SUCCESS) {
+				goto done;
+			}
 		} else {
 			/* If this isn't the last chunk start reading the next one. */
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
@@ -1137,6 +1148,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void 
 	httpr->cbs.chunk_extensions_done_func   = M_http_reader_chunk_extensions_done_func_default;
 	httpr->cbs.chunk_data_func              = M_http_reader_chunk_data_func_default;
 	httpr->cbs.chunk_data_done_func         = M_http_reader_chunk_data_done_func_default;
+	httpr->cbs.chunk_data_finished_func     = M_http_reader_chunk_data_finished_func_default;
 	httpr->cbs.multipart_preamble_func      = M_http_reader_multipart_preamble_func_default;
 	httpr->cbs.multipart_preamble_done_func = M_http_reader_multipart_preamble_done_func_default;
 	httpr->cbs.multipart_header_func        = M_http_reader_multipart_header_func_default;
@@ -1158,6 +1170,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void 
 		if (cbs->chunk_extensions_done_func   != NULL) httpr->cbs.chunk_extensions_done_func   = cbs->chunk_extensions_done_func;
 		if (cbs->chunk_data_func              != NULL) httpr->cbs.chunk_data_func              = cbs->chunk_data_func;
 		if (cbs->chunk_data_done_func         != NULL) httpr->cbs.chunk_data_done_func         = cbs->chunk_data_done_func;
+		if (cbs->chunk_data_finished_func     != NULL) httpr->cbs.chunk_data_finished_func     = cbs->chunk_data_finished_func;
 		if (cbs->multipart_preamble_func      != NULL) httpr->cbs.multipart_preamble_func      = cbs->multipart_preamble_func;
 		if (cbs->multipart_preamble_done_func != NULL) httpr->cbs.multipart_preamble_done_func = cbs->multipart_preamble_done_func;
 		if (cbs->multipart_header_func        != NULL) httpr->cbs.multipart_header_func        = cbs->multipart_header_func;
