@@ -34,7 +34,7 @@ START_TEST(check_utf8_correct)
 	buf = M_buf_create();
 	for (i=0; i<cnt; i++) {
 		res = M_utf8_get_cp(next, &cp, &next);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCESS, "%zu: get cp failed: %d", res);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: get cp failed: %d", res);
 		ck_assert_msg(cp == cps[i], "%zu: cp failed: expected '%x', got '%x'", i, cps[i], cp);
 		M_utf8_from_cp_buf(buf, cp);
 	}
@@ -43,6 +43,8 @@ START_TEST(check_utf8_correct)
 	ck_assert_msg(len == out_len, "Length (%zu) should equal out length (%zu)", len, out_len);
 	ck_assert_msg(M_str_eq(out, str), "str != out: expected '%s', got '%s'", str, out); 
 	ck_assert_msg(M_str_eq(out, (const char *)bytes), "bytes != out");
+
+	M_free(out);
 }
 END_TEST
 

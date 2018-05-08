@@ -1,0 +1,33 @@
+This directory contains toolchain files for cross-compiling with CMake.
+
+
+Usage Instructions
+------------------
+Pass the path to the toolchain file in the variable CMAKE_TOOLCHAIN_FILE when calling CMake.
+
+For example, if we're building mstdlib, and targeting Windows 64-bit from Cygwin:
+   ~/mstdlib/                        - root source directory
+   ~/mstdlib/CMakeModules/toolchains - toolchains directory
+   ~/mstdlib/build64                 - build directory
+
+You'd call CMake from the build directory like this:
+   $> cmake -DCMAKE_TOOLCHAIN_FILE=../CMakeModules/toolchains/cygwin-win-64 ..
+
+
+Naming Conventions
+------------------
+Try to keep toolchain file names concise, and easy to remember.
+
+Suggested naming pattern: [host os]-[target os]-[arch]
+
+   host os  = {cygwin,win,linux,mac}
+
+   taget os = {cygwin,win,linux,mac,ios,android}
+
+   arch=32    --> x86
+   arch=64    --> x86_64
+   arch=arm32 --> 32-bit arm
+   arch=arm64 --> 64-bit arm
+
+   etc.
+
