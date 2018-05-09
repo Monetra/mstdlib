@@ -42,40 +42,247 @@ __BEGIN_DECLS
 struct M_http_reader;
 typedef struct M_http_reader M_http_reader_t;
 
+/*! Function definition for the start line.
+ *
+ * \param[in] type    Type of message.
+ * \param[in] version HTTP version.
+ * \param[in] method  If request, method of request.
+ * \param[in] uri     If request, uri requested.
+ * \param[in] code    If response, numeric response code.
+ * \param[in] reason  If response, response reason.
+ * \param[in] thunk   Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
 
+/*! Function definition for reading headers.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. Values with semicolon (;) separated
+ * parameters are not split.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
+
+/*! Function definition for header parsing completion.
+ *
+ * \param[in] format The format data was sent using.
+ * \param[in] thunk  Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_header_done_func)(M_http_data_format_t format, void *thunk);
 
+/*! Function definition for reading body data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of body parsing.
+ *
+ * This will only be called if the Content-Length header was specified.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
 
+/*! Function definition for reading chunk extensions.
+ *
+ * Extensions are not required to have values.
+ *
+ * \param[in] key   Key.
+ * \param[in] val   Value.
+ * \param[in] idx   Chunk number the extension belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, size_t idx, void *thunk);
+
+/*! Function definition for completion of chunk extension parsing.
+ *
+ * Will only be called if there were chunk extensions.
+ *
+ * \param[in] idx   Chunk number that had extensions.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for reading chunk data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] idx   Chunk number the data belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+
+/*! Function definition for completion of chunk data.
+ *
+ * \param[in] idx   Chunk number that has been completely processed.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for completion of parsing all chunks.
+ *
+ * Only called when data is chunked.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_chunk_data_finished_func)(void *thunk);
 
+/*! Function definition for reading multipart preamble.
+ *
+ * Typically the preamble should be ignored if present.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of multipart preamble parsing.
+ *
+ * Only called if a preamble was present.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
+
+/*! Function definition for reading multipart part headers.
+ *
+ * \param[in] key   Key.
+ * \param[in] val   Value.
+ * \param[in] idx   Part number the header belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_header_func)(const char *key, const char *val, size_t idx, void *thunk);
+
+/*! Function definition for completion of multipart part header parsing.
+ *
+ * \param[in] idx   Part number.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_header_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for reading multipart part data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] idx   Partnumber the data belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+
+/*! Function definition for completion of multipart part data.
+ *
+ * \param[in] idx   Chunk number that has been completely processed.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_data_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for completion of parsing all multipart parts.
+ *
+ * Only called when data is chunked.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_data_finished_func)(void *thunk);
+
+/*! Function definition for reading multipart epilogue.
+ *
+ * Typically the epilogue should be ignored if present.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_epilouge_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of multipart epilogue parsing.
+ *
+ * Only called if a epilogue was present.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_multipart_epilouge_done_func)(void *thunk);
 
+/*! Function definition for reading trailing headers.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. Values with semicolon (;) separated
+ * parameters are not split.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_trailer_func)(const char *key, const char *val, void *thunk);
+
+/*! Function definition for trailing header parsing completion.
+ *
+ * Only called if trailing headers were present.
+ *
+ * \param[in] format The format data was sent using.
+ * \param[in] thunk  Thunk.
+ *
+ * \return Result
+ */
 typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Flags controlling reader behavior. */
 typedef enum {
-	M_HTTP_READER_NONE = 0,
-	M_HTTP_READER_SKIP_START,
+	M_HTTP_READER_NONE = 0,  /*!< Default operation. */
+	M_HTTP_READER_SKIP_START /*!< Skip parsing start line. Data starts with headers. */
 } M_http_reader_flags_t;
 
+
+/*! Callbacks for various stages of parsing. */
 struct M_http_reader_callbacks {
 	M_http_reader_start_func                   start_func;
 	M_http_reader_header_func                  header_func;
@@ -93,6 +300,7 @@ struct M_http_reader_callbacks {
 	M_http_reader_multipart_header_done_func   multipart_header_done_func;
 	M_http_reader_multipart_data_func          multipart_data_func;
 	M_http_reader_multipart_data_done_func     multipart_data_done_func;
+	M_http_reader_multipart_data_finished_func multipart_data_finished_func;
 	M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
 	M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
 	M_http_reader_trailer_func                 trailer_func;
@@ -103,6 +311,10 @@ struct M_http_reader_callbacks {
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Create an http reader object.
+ *
+ * \param[in] cbs   Callbacks for processing.
+ * \param[in] flags Flags controlling behavior.
+ * \param[in] thunk Thunk passed to callbacks.
  *
  * \return Object.
  */
@@ -122,7 +334,7 @@ void M_http_reader_destroy(M_http_reader_t *httpr);
  *
  * \param[in]  httpr    Http reader object.
  * \param[in]  data     Data to parser.
- * \param[in]  data_len Lenght of data.
+ * \param[in]  data_len Length of data.
  * \param[out] len_read How much data was read.
  *
  * \return Result.
@@ -134,4 +346,3 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 __END_DECLS
 
 #endif /* __M_HTTP_READER_H__ */
-

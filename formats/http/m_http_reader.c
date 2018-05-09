@@ -159,6 +159,12 @@ static M_http_error_t M_http_reader_multipart_data_done_func_default(size_t idx,
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_reader_multipart_data_finished_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_reader_multipart_epilouge_func_default(const unsigned char *data, size_t len, void *thunk)
 {
 	(void)data;
@@ -1013,6 +1019,11 @@ header:
 
 		if (httpr->have_end) {
 			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_EPILOUGE;
+
+			res = httpr->cbs.multipart_data_finished_func(httpr->thunk);
+			if (res != M_HTTP_ERROR_SUCCESS) {
+				goto done;
+			}
 		} else {
 			httpr->rstep      = M_HTTP_READER_STEP_MULTIPART_HEADER;
 			httpr->header_len = 0;
@@ -1165,6 +1176,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 	httpr->cbs.multipart_header_done_func   = M_http_reader_multipart_header_done_func_default;
 	httpr->cbs.multipart_data_func          = M_http_reader_multipart_data_func_default;
 	httpr->cbs.multipart_data_done_func     = M_http_reader_multipart_data_done_func_default;
+	httpr->cbs.multipart_data_finished_func = M_http_reader_multipart_data_finished_func_default;
 	httpr->cbs.multipart_epilouge_func      = M_http_reader_multipart_epilouge_func_default;
 	httpr->cbs.multipart_epilouge_done_func = M_http_reader_multipart_epilouge_done_func_default;
 	httpr->cbs.trailer_func                 = M_http_reader_trailer_func_default;
@@ -1187,6 +1199,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 		if (cbs->multipart_header_done_func   != NULL) httpr->cbs.multipart_header_done_func   = cbs->multipart_header_done_func;
 		if (cbs->multipart_data_func          != NULL) httpr->cbs.multipart_data_func          = cbs->multipart_data_func;
 		if (cbs->multipart_data_done_func     != NULL) httpr->cbs.multipart_data_done_func     = cbs->multipart_data_done_func;
+		if (cbs->multipart_data_finished_func != NULL) httpr->cbs.multipart_data_finished_func = cbs->multipart_data_finished_func;
 		if (cbs->multipart_epilouge_func      != NULL) httpr->cbs.multipart_epilouge_func      = cbs->multipart_epilouge_func;
 		if (cbs->multipart_epilouge_done_func != NULL) httpr->cbs.multipart_epilouge_done_func = cbs->multipart_epilouge_done_func;
 		if (cbs->trailer_func                 != NULL) httpr->cbs.trailer_func                 = cbs->trailer_func;
