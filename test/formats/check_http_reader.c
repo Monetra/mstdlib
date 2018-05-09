@@ -327,6 +327,12 @@ static M_http_error_t multipart_data_done_func(size_t idx, void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t multipart_data_finished_func(void *thunk)
+{
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t multipart_epilouge_func(const unsigned char *data, size_t len, void *thunk)
 {
 	httpr_test_t *ht = thunk;
@@ -374,6 +380,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 		multipart_header_done_func,
 		multipart_data_func,
 		multipart_data_done_func,
+		multipart_data_finished_func,
 		multipart_epilouge_func,
 		multipart_epilouge_done_func,
 		trailer_func,
