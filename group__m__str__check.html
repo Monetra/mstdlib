@@ -125,6 +125,8 @@ Functions</h2></td></tr>
 <tr class="separator:gac22ca85b4fc00956b6c0d229a8dcae82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga26d0ad2df47001eac324b617862522e4"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__check.html#ga26d0ad2df47001eac324b617862522e4">M_str_isspace</a> (const char *s) M_WARN_UNUSED_RESULT</td></tr>
 <tr class="separator:ga26d0ad2df47001eac324b617862522e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf5ed6643605170e4e7b1a5c0428210ce"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__check.html#gaf5ed6643605170e4e7b1a5c0428210ce">M_str_isascii</a> (const char *s) M_WARN_UNUSED_RESULT</td></tr>
+<tr class="separator:gaf5ed6643605170e4e7b1a5c0428210ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8e3607ecba8e91b9990557d04dddcfe8"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__check.html#ga8e3607ecba8e91b9990557d04dddcfe8">M_str_isgraph</a> (const char *s) M_WARN_UNUSED_RESULT</td></tr>
 <tr class="separator:ga8e3607ecba8e91b9990557d04dddcfe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae0fee26dc342fcda9e67ceb2a01d9439"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__check.html#gae0fee26dc342fcda9e67ceb2a01d9439">M_str_isprint</a> (const char *s) M_WARN_UNUSED_RESULT</td></tr>
@@ -483,6 +485,30 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Check whether each character of a string s is a space.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>NULL-terminated string.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if all characters match. Otherwise M_FALSE. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf5ed6643605170e4e7b1a5c0428210ce"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_str_isascii </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Checks for 7-bit ASCII character.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>NULL-terminated string.</td></tr>
@@ -1670,7 +1696,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 9 2018 00:01:48 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed May 9 2018 15:50:58 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

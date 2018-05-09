@@ -11,6 +11,7 @@ var group__m__str__check =
     [ "M_str_isalpha", "group__m__str__check.html#ga2ad062ef098497e8161468b2e92ef59c", null ],
     [ "M_str_isalphasp", "group__m__str__check.html#gac22ca85b4fc00956b6c0d229a8dcae82", null ],
     [ "M_str_isspace", "group__m__str__check.html#ga26d0ad2df47001eac324b617862522e4", null ],
+    [ "M_str_isascii", "group__m__str__check.html#gaf5ed6643605170e4e7b1a5c0428210ce", null ],
     [ "M_str_isgraph", "group__m__str__check.html#ga8e3607ecba8e91b9990557d04dddcfe8", null ],
     [ "M_str_isprint", "group__m__str__check.html#gae0fee26dc342fcda9e67ceb2a01d9439", null ],
     [ "M_str_ishex", "group__m__str__check.html#gaf22a68093d4b7c81a5601351ce530934", null ],
