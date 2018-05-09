@@ -47,18 +47,13 @@ typedef enum {
 	M_HTTP_READER_STEP_DONE
 } M_http_reader_step_t;
 
-typedef enum {
-	M_HTTP_READER_DATA_TYPE_BODY = 0,
-	M_HTTP_READER_DATA_TYPE_CHUNKED,
-	M_HTTP_READER_DATA_TYPE_MULTIPART
-} M_http_reader_data_type_t;
-
 struct M_http_reader{
 	struct M_http_reader_callbacks  cbs;
+	M_http_reader_flags_t           flags;
 	void                           *thunk;
 	char                           *boundary;
 	M_http_reader_step_t            rstep;
-	M_http_reader_data_type_t       data_type;
+	M_http_data_format_t            data_type;
 	size_t                          header_len;
 	M_bool                          have_body_len;
 	size_t                          body_len;

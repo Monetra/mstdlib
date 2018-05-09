@@ -54,8 +54,9 @@ static M_http_error_t M_http_reader_header_func_default(const char *key, const c
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_reader_header_done_func_default(void *thunk)
+static M_http_error_t M_http_reader_header_done_func_default(M_http_data_format_t format, void *thunk)
 {
+	(void)format;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -213,8 +214,8 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 		if (httpr->have_body_len) {
 			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
-		/* Ignore content length beause we have a transfer-encoding. */
-		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
+		/* Ignore content length because we have a transfer-encoding. */
+		if (httpr->data_type == M_HTTP_DATA_FORMAT_CHUNKED) {
 			httpr->have_body_len = M_FALSE;
 			httpr->body_len      = 0;
 		} else {
@@ -224,13 +225,16 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			if (i64v < 0) {
 				return M_HTTP_ERROR_MALFORMED;
 			}
+			if (i64v == 0) {
+				httpr->data_type = M_HTTP_DATA_FORMAT_NONE;
+			}
 			httpr->have_body_len = M_TRUE;
 			httpr->body_len      = (size_t)i64v;
 		}
 	}
 
 	if (M_str_caseeq(key, "transfer-encoding") && M_str_caseeq(val, "chunked")) {
-		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
+		if (httpr->data_type == M_HTTP_DATA_FORMAT_CHUNKED) {
 			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
 		/* Ignore content length when we have a transfer-encoding. */
@@ -238,16 +242,16 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			httpr->have_body_len = M_FALSE;
 			httpr->body_len      = 0;
 		}
-		httpr->data_type = M_HTTP_READER_DATA_TYPE_CHUNKED;
+		httpr->data_type = M_HTTP_DATA_FORMAT_CHUNKED;
 	}
 
 	if (M_str_caseeq(key, "content-type")) {
 		if (M_str_caseeq_max(val, "multipart/form-data", 19)) {
-			if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
+			if (httpr->data_type == M_HTTP_DATA_FORMAT_MULTIPART) {
 				return M_HTTP_ERROR_HEADER_DUPLICATE;
 			}
 
-			httpr->data_type = M_HTTP_READER_DATA_TYPE_MULTIPART;
+			httpr->data_type = M_HTTP_DATA_FORMAT_MULTIPART;
 		}
 
 		val = M_str_casestr(val, "boundary");
@@ -1062,7 +1066,11 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 		 * be a new line at the end of the previous stream. We want to ignore this
 		 * because, while valid to be there, it's not really part of either message. */
 		M_parser_consume_whitespace(parser,M_PARSER_WHITESPACE_NONE);
-		httpr->rstep = M_HTTP_READER_STEP_START_LINE;
+		if (httpr->flags & M_HTTP_READER_SKIP_START) {
+			httpr->rstep = M_HTTP_READER_STEP_HEADER;
+		} else {
+			httpr->rstep = M_HTTP_READER_STEP_START_LINE;
+		}
 	}
 
 	/* Read the start line. */
@@ -1082,15 +1090,15 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 		if (res != M_HTTP_ERROR_SUCCESS || !full_read)
 			goto done;
 
-		if (httpr->data_type == M_HTTP_READER_DATA_TYPE_CHUNKED) {
+		if (httpr->data_type == M_HTTP_DATA_FORMAT_CHUNKED) {
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
-		} else if (httpr->data_type == M_HTTP_READER_DATA_TYPE_MULTIPART) {
+		} else if (httpr->data_type == M_HTTP_DATA_FORMAT_MULTIPART) {
 			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_PREAMBLE;
 		} else {
 			httpr->rstep = M_HTTP_READER_STEP_BODY;
 		}
 
-		res = httpr->cbs.header_done_func(httpr->thunk);
+		res = httpr->cbs.header_done_func(httpr->data_type, httpr->thunk);
 		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
 	}
@@ -1132,12 +1140,14 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void *thunk)
+M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uint32 flags, void *thunk)
 {
 	M_http_reader_t *httpr;
 
-	httpr        = M_malloc_zero(sizeof(*httpr));
-	httpr->thunk = thunk;
+	httpr            = M_malloc_zero(sizeof(*httpr));
+	httpr->flags     = flags;
+	httpr->thunk     = thunk;
+	httpr->data_type = M_HTTP_DATA_FORMAT_BODY;
 
 	httpr->cbs.start_func                   = M_http_reader_start_func_default;
 	httpr->cbs.header_func                  = M_http_reader_header_func_default;
