@@ -57,16 +57,23 @@ static M_http_error_t M_http_simple_header_cb(const char *key, const char *val, 
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_simple_header_done_cb(void *thunk)
+static M_http_error_t M_http_simple_header_done_cb(M_http_data_format_t format, void *thunk)
 {
-	M_http_simple_t     *simple = thunk;
-	const M_hash_dict_t *headers;
-	const char          *val;
-	M_int64              i64v;
+	M_http_simple_t *simple = thunk;
+	const char      *val;
+	M_int64          i64v;
 
-	headers = M_http_headers(simple->http);
-	val     = M_hash_dict_get_direct(headers, "content-length");
+	switch (format) {
+		case M_HTTP_DATA_FORMAT_NONE:
+		case M_HTTP_DATA_FORMAT_BODY:
+		case M_HTTP_DATA_FORMAT_CHUNKED:
+			break;
+		case M_HTTP_DATA_FORMAT_MULTIPART:
+		case M_HTTP_DATA_FORMAT_UNKNOWN:
+			return M_HTTP_ERROR_UNSUPPORTED_DATA;
+	}
 
+	val = M_hash_dict_get_direct(simple->http->headers, "content-length");
 	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
 		return M_HTTP_ERROR_LENGTH_REQUIRED;
 	} else if (!M_str_isempty(val)) {
@@ -79,7 +86,8 @@ static M_http_error_t M_http_simple_header_done_cb(void *thunk)
 			simple->rdone = M_TRUE;
 		}
 
-		simple->http->body_len = (size_t)i64v;
+		simple->http->body_len      = (size_t)i64v;
+		simple->http->have_body_len = M_TRUE;
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -87,15 +95,14 @@ static M_http_error_t M_http_simple_header_done_cb(void *thunk)
 
 static M_http_error_t M_http_simple_body_cb(const unsigned char *data, size_t len, void *thunk)
 {
-	M_http_simple_t     *simple = thunk;
-	const M_hash_dict_t *headers;
+	M_http_simple_t *simple = thunk;
 
 	M_http_body_append(simple->http, data, len);
 
 	/* If we don't have a content length and we have a body we can only assume all
- 	 * the data has been sent in. */
-	headers = M_http_headers(simple->http);
-	if (!M_hash_dict_multi_len(headers, "content-length", &len))
+ 	 * the data has been sent in. We only know when we have all data once the connection
+	 * is closed. We assume the caller has already received all data. */
+	if (!simple->http->have_body_len)
 		simple->rdone = M_TRUE;
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -109,33 +116,30 @@ static M_http_error_t M_http_simple_body_done_cb(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_simple_chunk_extensions_cb(const char *key, const char *val, void *thunk)
+static M_http_error_t M_http_simple_chunk_extensions_cb(const char *key, const char *val, size_t idx, void *thunk)
 {
 	M_http_simple_t *simple = thunk;
 
 	(void)key;
 	(void)val;
+	(void)idx;
 
 	if (simple->rflags & M_HTTP_SIMPLE_READ_FAIL_EXTENSION)
 		return M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_simple_chunk_extensions_done_cb(void *thunk)
-{
-	(void)thunk;
-	return M_HTTP_ERROR_SUCCESS;
-}
-
-static M_http_error_t M_http_simple_chunk_data_cb(const unsigned char *data, size_t len, void *thunk)
+static M_http_error_t M_http_simple_chunk_data_cb(const unsigned char *data, size_t len, size_t idx, void *thunk)
 {
 	M_http_simple_t *simple = thunk;
+
+	(void)idx;
 
 	M_http_body_append(simple->http, data, len);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_simple_chunk_data_done_cb(void *thunk)
+static M_http_error_t M_http_simple_chunk_data_finished_cb(void *thunk)
 {
 	M_http_simple_t *simple = thunk;
 
@@ -157,44 +161,43 @@ static M_http_error_t M_http_simple_trailer_cb(const char *key, const char *val,
 
 static M_http_error_t M_http_simple_trailer_done_cb(void *thunk)
 {
-	(void)thunk;
-	return M_HTTP_ERROR_SUCCESS;
-}
+	M_http_simple_t *simple = thunk;
 
-static M_http_error_t M_http_simple_decode_body_multipart(M_http_simple_t *simple, const char *boundary)
-{
+	simple->rdone = M_TRUE;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
 static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 {
 	const char          *const_temp;
-	const char          *boundary;
 	char                *dec;
 	char                 tempa[32];
 	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
 	M_bool               have_charset = M_FALSE;
 	M_bool               have_encoded = M_FALSE;
-	M_bool               multipart    = M_FALSE;
 	M_bool               update_clen  = M_FALSE;
 	size_t               len;
 	size_t               i;
 	size_t               encoded_idx;
 	size_t               charset_idx;
 
+	if (simple->rflags & M_HTTP_SIMPLE_READ_NODECODE_BODY)
+		return M_HTTP_ERROR_SUCCESS;
+
 	if (!M_hash_dict_multi_len(simple->http->headers, "content-type", &len))
 		len = 0;
+
 	for (i=0; i<len; i++) {
-		char **parts;
-		size_t num_parts;
+		char   **parts;
+		size_t   num_parts;
+
+		if (have_encoded && have_charset)
+			break;
 
 		const_temp = M_hash_dict_multi_get_direct(simple->http->headers, "content-type", i);
 		if (M_str_caseeq(const_temp, "application/x-www-form-urlencoded")) {
 			have_encoded = M_TRUE;
-			encoded_idx       = i;
-			continue;
-		} else if (M_str_caseeq(const_temp, "multipart/form-data")) {
-			multipart = M_TRUE;
+			encoded_idx  = i;
 			continue;
 		}
 
@@ -211,15 +214,10 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 			have_charset = M_TRUE;
 			charset_idx  = i;
 			codec        = M_textcodec_codec_from_str(parts[1]);
-		} else if (multipart && M_str_caseeq(parts[0], "boundary")) {
-			boundary = parts[1];
 		}
 
 		M_str_explode_free(parts, num_parts);
 	}
-
-	if (multipart)
-		return M_http_simple_decode_body_multipart(simple, boundary);
 
 	/* url-form decode the data. */
 	if (have_encoded) {
@@ -244,10 +242,14 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 		if (have_charset) {
 			M_hash_dict_multi_remove(simple->http->headers, "content-type", charset_idx);
 		}
+		/* Let everyone know we have utf-8 data and it's not encoded. There isn't any way to know what the
+ 		 * underlying content type is and there isn't a decoded version of x-www-form-urlencoded
+		 * so we only set the charset. */
 		M_hash_dict_insert(simple->http->headers, "content-type", "charset=utf-8");
 		update_clen = M_TRUE;
 	}
 
+	/* We've decoded the data so we need to updat ehte content length. */
 	if (update_clen) {
 		M_hash_dict_remove(simple->http->headers, "content-length");
 		M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
@@ -269,7 +271,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const M_hash_dict_t *headers
 	char                tempa[32];
 	M_int64             i64v;
 
-	/* We want to push the headers into the http to ensure they're in a
+	/* We want to push the headers into an http object to ensure they're in a
  	 * properly configured hashtable. We need to ensure flags like casecomp
 	 * are enabled. */
 	http = M_http_create();
@@ -463,11 +465,20 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 		M_http_simple_body_cb,
 		M_http_simple_body_done_cb,
 		M_http_simple_chunk_extensions_cb,
-		M_http_simple_chunk_extensions_done_cb,
+		NULL, /* chunk_extensions_done_cb */
 		M_http_simple_chunk_data_cb,
-		M_http_simple_chunk_data_done_cb,
+		NULL, /* chunk_data_done_cb */
+		M_http_simple_chunk_data_finished_cb,
+		NULL, /* multipart_preamble_cb */
+		NULL, /* multipart_preamble_done_cb */
+		NULL, /* multipart_header_cb */
+		NULL, /* multipart_header_done_cb */
+		NULL, /* multipart_data_cb */
+		NULL, /* multipart_data_done_cb */
+		NULL, /* multipart_epilouge_cb */
+		NULL, /* multipart_epilouge_done_cb */
 		M_http_simple_trailer_cb,
-		M_http_simple_trailer_done_cb,
+		M_http_simple_trailer_done_cb
 	};
 
 	if (len_read == NULL)
@@ -482,7 +493,7 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 	if (data == NULL || data_len == 0)
 		return M_HTTP_ERROR_SUCCESS;
 
-	reader = M_http_reader_create(&cbs, *simple);
+	reader = M_http_reader_create(&cbs, M_HTTP_READER_NONE, *simple);
 	res    = M_http_reader_read(reader, data, data_len, len_read);
 	M_http_reader_destroy(reader);
 
@@ -516,8 +527,19 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	M_buf_add_str(buf, M_http_method_to_str(method));
 	M_buf_add_byte(buf, ' ');
 
-	/* XXX: Convert spaces to ? */
-	M_buf_add_str(buf, uri);
+	/* We expect the uri to be encoded. We'll check for spaces and
+ 	 * non-ascii characters. If found we'll encode it to be safe because
+	 * we don't want to build an invalid request. We're going to use URL
+	 * encoding with %20 for spaces. Some web sites want %20 and some want
+	 * +. We have no way to know so we'll go with %20 since it's more common. */
+	if (M_str_chr(uri, ' ') != NULL || !M_str_isascii(uri)) {
+		if (M_textcodec_encode_buf(buf, uri, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL) != M_TEXTCODEC_ERROR_SUCCESS) {
+			M_buf_cancel(buf);
+			return NULL;
+		}
+	} else {
+		M_buf_add_str(buf, uri);
+	}
 	M_buf_add_byte(buf, ' ');
 
 	M_buf_add_str(buf, M_http_version_to_str(version));
@@ -534,7 +556,7 @@ unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 co
 {
 	M_buf_t *buf;
 
-	if (version == M_HTTP_VERSION_UNKNOWN || M_str_isempty(reason))
+	if (version == M_HTTP_VERSION_UNKNOWN)
 		return NULL;
 
 	buf = M_buf_create();
@@ -546,6 +568,8 @@ unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 co
 	M_buf_add_int(buf, code);
 	M_buf_add_byte(buf, ' ');
 
+	if (M_str_isempty(reason))
+		reason = M_http_code_to_reason(code);
 	M_buf_add_str(buf, reason);
 	M_buf_add_str(buf, "\r\n");
 

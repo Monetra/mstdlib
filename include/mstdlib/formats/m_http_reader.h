@@ -45,7 +45,7 @@ typedef struct M_http_reader M_http_reader_t;
 typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
 
 typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
-typedef M_http_error_t (*M_http_reader_header_done_func)(void *thunk);
+typedef M_http_error_t (*M_http_reader_header_done_func)(M_http_data_format_t format, void *thunk);
 
 typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
 typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
@@ -70,6 +70,11 @@ typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+typedef enum {
+	M_HTTP_READER_NONE = 0,
+	M_HTTP_READER_SKIP_START,
+} M_http_reader_flags_t;
 
 struct M_http_reader_callbacks {
 	M_http_reader_start_func                   start_func;
@@ -101,7 +106,7 @@ struct M_http_reader_callbacks {
  *
  * \return Object.
  */
-M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, void *thunk);
+M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uint32 flags, void *thunk);
 
 
 /*! Destroy an http object.
