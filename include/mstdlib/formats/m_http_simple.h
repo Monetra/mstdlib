@@ -44,6 +44,7 @@ typedef struct M_http_simple M_http_simple_t;
 
 typedef enum {
 	M_HTTP_SIMPLE_READ_NONE = 0,
+	M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (form or charset). */
 	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
 	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
 	M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if tailers sent. Otherwise, they are ignored. */

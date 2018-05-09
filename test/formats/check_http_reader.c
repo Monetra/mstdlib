@@ -217,9 +217,10 @@ static M_http_error_t header_func(const char *key, const char *val, void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t header_done_func(void *thunk)
+static M_http_error_t header_done_func(M_http_data_format_t format, void *thunk)
 {
 	(void)thunk;
+	(void)format;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -379,7 +380,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 		trailer_done_func
 	};
 
-	hr = M_http_reader_create(&cbs, thunk);
+	hr = M_http_reader_create(&cbs, M_HTTP_READER_NONE, thunk);
 	return hr;
 }
 

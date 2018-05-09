@@ -76,6 +76,7 @@ typedef enum {
 	M_HTTP_ERROR_MULTIPART_MISSING,
 	M_HTTP_ERROR_MULTIPART_MISSING_DATA,
 	M_HTTP_ERROR_MULTIPART_INVALID,
+	M_HTTP_ERROR_UNSUPPORTED_DATA,
 	M_HTTP_ERROR_TEXTCODEC_FAILURE,
 	M_HTTP_ERROR_USER_FAILURE,
 } M_http_error_t;
@@ -110,6 +111,16 @@ typedef enum {
 	M_HTTP_METHOD_TRACE,       /*!< Trace. */
 	M_HTTP_METHOD_CONNECT      /*!< Connect. */
 } M_http_method_t;
+
+
+/*! HTTP Content type. */
+typedef enum {
+	M_HTTP_DATA_FORMAT_UNKNOWN = 0, /*! Could not determine the format of the data. */
+	M_HTTP_DATA_FORMAT_NONE,        /*!< There is no data, Content-Length = 0. */
+	M_HTTP_DATA_FORMAT_BODY,        /*!< Body. */
+	M_HTTP_DATA_FORMAT_CHUNKED,     /*!< Data is chunked. */
+	M_HTTP_DATA_FORMAT_MULTIPART    /*!< Data is multipart. */
+} M_http_data_format_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -734,6 +745,8 @@ const char *M_http_version_to_str(M_http_version_t version);
 M_http_method_t M_http_method_from_str(const char *method);
 
 const char *M_http_method_to_str(M_http_method_t method);
+
+const char *M_http_code_to_reason(M_uint32 code);
 
 /*! @} */
 
