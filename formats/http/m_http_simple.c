@@ -475,6 +475,7 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 		NULL, /* multipart_header_done_cb */
 		NULL, /* multipart_data_cb */
 		NULL, /* multipart_data_done_cb */
+		NULL, /* multipart_data_finished_cb. */
 		NULL, /* multipart_epilouge_cb */
 		NULL, /* multipart_epilouge_done_cb */
 		M_http_simple_trailer_cb,
