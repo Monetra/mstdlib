@@ -245,6 +245,15 @@ M_API M_bool M_str_isalphasp(const char *s) M_WARN_UNUSED_RESULT;
 M_API M_bool M_str_isspace(const char *s) M_WARN_UNUSED_RESULT;
 
 
+/*! Checks for 7-bit ASCII character.
+ *
+ * \param[in] s NULL-terminated string.
+ *
+ * \return M_TRUE if all characters match. Otherwise M_FALSE.
+ */
+M_API M_bool M_str_isascii(const char *s) M_WARN_UNUSED_RESULT;
+
+
 /*! Check whether each character of a string s is printable except space.
  *
  * \param[in] s NULL-terminated string.

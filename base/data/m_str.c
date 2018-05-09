@@ -445,6 +445,11 @@ M_bool M_str_isspace(const char *s)
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_isspace);
 }
 
+M_bool M_str_isascii(const char *s)
+{
+	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_isascii);
+}
+
 M_bool M_str_isgraph(const char *s)
 {
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_isgraph);
