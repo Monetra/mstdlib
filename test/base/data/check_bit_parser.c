@@ -167,7 +167,7 @@ START_TEST(check_bparser_read_strdup)
 
 	M_free(str);
 	str = M_bit_parser_read_strdup(bparser, 2);
-	ck_assert(str != NULL);
+	ck_assert(str == NULL);
 
 	M_free(str);
 	str = M_bit_parser_read_strdup(bparser, 1);
