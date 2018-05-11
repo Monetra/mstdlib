@@ -165,6 +165,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga8a11dc1aa0bc31f10a1289043464f966"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3c4c5a89a3aaac19e65287111895c213"><td class="memItemLeft" align="right" valign="top">M_uint8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__mem.html#ga3c4c5a89a3aaac19e65287111895c213">M_mem_calc_crc8_ccitt</a> (const void *s, size_t s_len)</td></tr>
 <tr class="separator:ga3c4c5a89a3aaac19e65287111895c213"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga25cee0a6d112826fe3fe0a8b2eeb9571"><td class="memItemLeft" align="right" valign="top">M_uint16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__mem.html#ga25cee0a6d112826fe3fe0a8b2eeb9571">M_mem_calc_crc16_ccitt</a> (const void *s, size_t s_len)</td></tr>
+<tr class="separator:ga25cee0a6d112826fe3fe0a8b2eeb9571"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7d13486661a48da9e476aac1eaf70ea0"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__mem.html#ga7d13486661a48da9e476aac1eaf70ea0">M_mem_swap_bytes</a> (M_uint8 *s, size_t s_len, size_t idx1, size_t idx2)</td></tr>
 <tr class="separator:ga7d13486661a48da9e476aac1eaf70ea0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -1230,7 +1232,44 @@ posix_memalign(&amp;ptr, sysconf(_SC_PAGESIZE), size);
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>CRC value. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>CRC-8/CCITT value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga25cee0a6d112826fe3fe0a8b2eeb9571"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_uint16 M_mem_calc_crc16_ccitt </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>s_len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Calculate a CRC (CRC-16/CCITT).</p>
+<p>This is a 16-bit cyclic redundancy check (CRC), using the CCITT standard polynomial: <code>x^16 + x^12 + x^5 + 1</code>. It's calculated using an initial value of 0xFFFF, with no final XOR of the output CRC.</p>
+<p>Implementation is based on public-domain code that can be found here: <a href="http://automationwiki.com/index.php/CRC-16-CCITT">http://automationwiki.com/index.php/CRC-16-CCITT</a></p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>Pointer to data to perform check on. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s_len</td><td>Size of memory area s. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CRC-16/CCITT value. </dd></dl>
 
 </div>
 </div>
@@ -1288,7 +1327,7 @@ posix_memalign(&amp;ptr, sysconf(_SC_PAGESIZE), size);
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 10 2018 18:38:00 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri May 11 2018 14:15:59 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

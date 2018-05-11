@@ -27,5 +27,6 @@ var group__m__mem =
     [ "M_mem_count", "group__m__mem.html#ga6dbc87988f4345efccbb3eee092bc17b", null ],
     [ "M_mem_calc_lrc", "group__m__mem.html#ga8a11dc1aa0bc31f10a1289043464f966", null ],
     [ "M_mem_calc_crc8_ccitt", "group__m__mem.html#ga3c4c5a89a3aaac19e65287111895c213", null ],
+    [ "M_mem_calc_crc16_ccitt", "group__m__mem.html#ga25cee0a6d112826fe3fe0a8b2eeb9571", null ],
     [ "M_mem_swap_bytes", "group__m__mem.html#ga7d13486661a48da9e476aac1eaf70ea0", null ]
 ];

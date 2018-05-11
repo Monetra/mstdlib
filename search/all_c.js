@@ -1852,6 +1852,7 @@ var searchData=
   ['m_5fmax',['M_MAX',['../group__m__math.html#gab1487e621f9a5d3cdf462fa174d5f6b9',1,'m_math.h']]],
   ['m_5fmdprintf',['M_mdprintf',['../group__m__fmt.html#ga039a664b106158dd9c58470090b33d00',1,'m_fmt.h']]],
   ['memory',['Memory',['../group__m__mem.html',1,'']]],
+  ['m_5fmem_5fcalc_5fcrc16_5fccitt',['M_mem_calc_crc16_ccitt',['../group__m__mem.html#ga25cee0a6d112826fe3fe0a8b2eeb9571',1,'m_mem.h']]],
   ['m_5fmem_5fcalc_5fcrc8_5fccitt',['M_mem_calc_crc8_ccitt',['../group__m__mem.html#ga3c4c5a89a3aaac19e65287111895c213',1,'m_mem.h']]],
   ['m_5fmem_5fcalc_5flrc',['M_mem_calc_lrc',['../group__m__mem.html#ga8a11dc1aa0bc31f10a1289043464f966',1,'m_mem.h']]],
   ['m_5fmem_5fchr',['M_mem_chr',['../group__m__mem.html#ga28a693c14e182dbf122ccdd062588062',1,'m_mem.h']]],
