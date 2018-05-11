@@ -529,9 +529,24 @@ M_API unsigned char M_mem_calc_lrc(const void *s, size_t s_len);
  *
  * \param[in] s     Pointer to data to perform check on.
  * \param[in] s_len Size of memory area s.
- * \return          CRC value.
+ * \return          CRC-8/CCITT value.
  */
 M_API M_uint8 M_mem_calc_crc8_ccitt(const void *s, size_t s_len);
+
+
+/*! Calculate a CRC (CRC-16/CCITT).
+ *
+ * This is a 16-bit cyclic redundancy check (CRC), using the CCITT standard
+ * polynomial: <tt>x^16 + x^12 + x^5 + 1</tt>. It's calculated using an initial
+ * value of 0xFFFF, with no final XOR of the output CRC.
+ *
+ * Implementation is based on public-domain code that can be found here: http://automationwiki.com/index.php/CRC-16-CCITT
+ *
+ * \param[in] s     Pointer to data to perform check on.
+ * \param[in] s_len Size of memory area s.
+ * \return          CRC-16/CCITT value.
+ */
+M_API M_uint16 M_mem_calc_crc16_ccitt(const void *s, size_t s_len);
 
 
 /*! Swap byes between positions.
