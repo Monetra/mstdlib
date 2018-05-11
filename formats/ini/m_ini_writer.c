@@ -237,7 +237,7 @@ static void M_ini_writer_tree_add_kv(M_ini_t *ini, M_ini_kvs_t *kvs)
 	char             *key;
 	size_t            len;
 	size_t            i;
-	size_t            first_sect_idx;
+	size_t            first_sect_idx  = 0;
 	M_bool            find_first_sect = M_TRUE;
 
 	M_ini_kvs_enumerate(kvs, &kvsenum);
