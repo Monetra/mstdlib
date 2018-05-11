@@ -146,7 +146,7 @@ START_TEST(check_write_basic)
 	M_csv_t *csv = M_csv_parse(CSV_DATA, M_str_len(CSV_DATA), ',', '"', M_CSV_FLAG_NONE);
 	M_buf_t *buf = M_buf_create();
 
-	ck_assert_ptr_ne(csv, NULL);
+	ck_assert(csv != NULL);
 
 	M_csv_output_headers_buf(buf, csv, NULL);
 	M_csv_output_rows_buf(buf, csv, NULL, NULL, NULL, NULL, NULL);
@@ -170,7 +170,7 @@ START_TEST(check_write_change_headers)
 		"c23,c21\r\n"
 		"c33,c31\r\n";
 
-	ck_assert_ptr_ne(csv, NULL);
+	ck_assert(csv != NULL);
 
 	M_list_str_insert(headers, "h03");
 	M_list_str_insert(headers, "h01");
@@ -201,7 +201,7 @@ START_TEST(check_write_filter)
 	fthunk.to_keep[0] = '7';
 	fthunk.to_keep[1] = '6';
 
-	ck_assert_ptr_ne(csv, NULL);
+	ck_assert(csv != NULL);
 
 	M_list_str_insert(headers, "h03");
 	M_list_str_insert(headers, "h01");
@@ -238,7 +238,7 @@ START_TEST(check_write_cell_edit)
 	wthunk.from   = "c33";
 	wthunk.to     = "SUB,BED!";
 
-	ck_assert_ptr_ne(csv, NULL);
+	ck_assert(csv != NULL);
 
 	M_list_str_insert(headers, "h03");
 	M_list_str_insert(headers, "h01");
