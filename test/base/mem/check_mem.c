@@ -463,6 +463,28 @@ START_TEST(check_mem_calc_crc8_ccitt)
 }
 END_TEST
 
+START_TEST(check_mem_calc_crc16_ccitt)
+{
+	M_uint8 test1_data[] = {
+		'1', '2', '3', '4', '5', '6', '7', '8', '9'
+	};
+	M_uint8 test2_data[] = {
+		0x01, 0x02, 0x03, 0x04, 0x05
+	};
+	M_uint8 test3_data[] = {
+		0x56, 0x69, 0x56, 0x4F, 0x74, 0x65, 0x63, 0x68, 0x00, 0x43, 0x18, 0x00, 0x00, 0x00
+	};
+
+	size_t test1_len = sizeof(test1_data) / sizeof(*test1_data);
+	size_t test2_len = sizeof(test2_data) / sizeof(*test2_data);
+	size_t test3_len = sizeof(test3_data) / sizeof(*test3_data);
+
+	ck_assert(M_mem_calc_crc16_ccitt(test1_data, test1_len) == 0x29B1);
+	ck_assert(M_mem_calc_crc16_ccitt(test2_data, test2_len) == 0x9304);
+	ck_assert(M_mem_calc_crc16_ccitt(test3_data, test3_len) == 0xA1F5);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *mem_suite(void)
@@ -545,6 +567,7 @@ static Suite *mem_suite(void)
 
 	tc_mem_checksum = tcase_create("mem_checksum");
 	tcase_add_test(tc_mem_checksum, check_mem_calc_crc8_ccitt);
+	tcase_add_test(tc_mem_checksum, check_mem_calc_crc16_ccitt);
 	suite_add_tcase(suite, tc_mem_checksum);
 
 	return suite;
