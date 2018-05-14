@@ -61,6 +61,7 @@ typedef enum {
 	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
+	M_TEXTCODEC_CP874,           /*!< Windows code page 874, Thai. */
 	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252, Western Europe. */
 	M_TEXTCODEC_ISO8859_1,       /*!< ISO-8859-1. Latin 1, Western Europe. */
 	M_TEXTCODEC_ISO8859_2,       /*!< ISO-8859-2. Latin 2, Central and Eastern Europe. */
