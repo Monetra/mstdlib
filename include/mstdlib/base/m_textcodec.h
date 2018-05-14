@@ -62,7 +62,7 @@ typedef enum {
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
 	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252. */
-	M_TEXTCODEC_ISO8859_1,       /*!< ISO-8859-1. Latin 1, West Europe. */
+	M_TEXTCODEC_ISO8859_1,       /*!< ISO-8859-1. Latin 1, Western Europe. */
 	M_TEXTCODEC_ISO8859_2,       /*!< ISO-8859-2. Latin 2, Central and Eastern Europe. */
 	M_TEXTCODEC_ISO8859_3,       /*!< ISO-8859-3. Latin 3, Esperanto, Maltese. */
 	M_TEXTCODEC_ISO8859_4,       /*!< ISO-8859-4. Latin 4, Baltic languages. */
@@ -72,6 +72,7 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_8,       /*!< ISO-8859-8. Hebrew. */
 	M_TEXTCODEC_ISO8859_9,       /*!< ISO-8859-9. Latin 5, Turkish. */
 	M_TEXTCODEC_ISO8859_10,      /*!< ISO-8859-10. Latin 6, Nordic languages. */
+	M_TEXTCODEC_ISO8859_11,      /*!< ISO-8859-11. Latin 7, Thai. */
 } M_textcodec_codec_t;
 
 
