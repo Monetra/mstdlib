@@ -68,6 +68,7 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_4,       /*!< ISO-8859-4. Latin 4. */
 	M_TEXTCODEC_ISO8859_5,       /*!< ISO-8859-5. Cyrillic. */
 	M_TEXTCODEC_ISO8859_6,       /*!< ISO-8859-6. Arabic. */
+	M_TEXTCODEC_ISO8859_7,       /*!< ISO-8859-7. Greek. */
 } M_textcodec_codec_t;
 
 
