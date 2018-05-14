@@ -45,6 +45,8 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_CP1251:
 		case M_TEXTCODEC_CP1252:
 		case M_TEXTCODEC_CP1253:
+		case M_TEXTCODEC_CP1254:
+		case M_TEXTCODEC_CP1255:
 		case M_TEXTCODEC_ISO8859_1:
 		case M_TEXTCODEC_ISO8859_2:
 		case M_TEXTCODEC_ISO8859_3:
@@ -130,6 +132,10 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_cp1252(buf, in, ehandler);
 		case M_TEXTCODEC_CP1253:
 			return M_textcodec_encode_cp1253(buf, in, ehandler);
+		case M_TEXTCODEC_CP1254:
+			return M_textcodec_encode_cp1254(buf, in, ehandler);
+		case M_TEXTCODEC_CP1255:
+			return M_textcodec_encode_cp1255(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_1:
 			return M_textcodec_encode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
@@ -195,6 +201,10 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_cp1252(buf, in, ehandler);
 		case M_TEXTCODEC_CP1253:
 			return M_textcodec_decode_cp1253(buf, in, ehandler);
+		case M_TEXTCODEC_CP1254:
+			return M_textcodec_decode_cp1254(buf, in, ehandler);
+		case M_TEXTCODEC_CP1255:
+			return M_textcodec_decode_cp1255(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_1:
 			return M_textcodec_decode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
@@ -375,6 +385,12 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 
 	if (M_str_caseeq(s, "cp1253") || M_str_caseeq(s, "windows-1253"))
 		return M_TEXTCODEC_CP1253;
+
+	if (M_str_caseeq(s, "cp1254") || M_str_caseeq(s, "windows-1254"))
+		return M_TEXTCODEC_CP1254;
+
+	if (M_str_caseeq(s, "cp1255") || M_str_caseeq(s, "windows-1255"))
+		return M_TEXTCODEC_CP1255;
 
 	if (M_str_caseeq(s, "latin_1")        || 
 			M_str_caseeq(s, "latin-1")    || 
@@ -598,6 +614,10 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "cp1252";
 		case M_TEXTCODEC_CP1253:
 			return "cp1253";
+		case M_TEXTCODEC_CP1254:
+			return "cp1254";
+		case M_TEXTCODEC_CP1255:
+			return "cp1255";
 		case M_TEXTCODEC_ISO8859_1:
 			return "latin_1";
 		case M_TEXTCODEC_ISO8859_2:
