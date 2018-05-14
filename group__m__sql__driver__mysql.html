@@ -108,7 +108,7 @@ $(document).ready(function(){initNavTree('group__m__sql__driver__mysql.html','')
 </div><!-- fragment --></li>
 <li>ssl: Optional. Defaults to false, if true enables SSL/TLS to the server.</li>
 <li>mysql_engine: Optional. Used during table creation, defaults to INNODB. The default data storage engine to use with mysql. Typically it is recommended to leave this at the default.</li>
-<li>mysql_charset: Optional. Used during table creation, defaults to UTF8.</li>
+<li>mysql_charset: Optional. Used during table creation, defaults to utfmb4.</li>
 <li>max_isolation: Optional. Sets the maximum isolation level used for transactions. This is used to overwrite requests for SERIALIZABLE isolation levels, useful with Galera-based clusters that do not truly support Serializable isolation. Should use "SELECT ... FOR UPDATE" type syntax for row locking. Available settings: "REPEATABLE READ", READ COMMITTED" </li>
 </ul>
 </div><!-- contents -->
@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('group__m__sql__driver__mysql.html','')
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon May 14 2018 12:42:05 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon May 14 2018 13:00:53 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
