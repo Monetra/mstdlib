@@ -8,11 +8,13 @@
 #include <mstdlib/mstdlib_tls.h>
 
 #define USE_SSL
-#define HOST "www.google.com"
 
 #ifdef USE_SSL
 #  define PORT 443
-#  define URL "https://www.google.com/"
+/* Note, www.google.com for some reason doesn't like FALLBACK_SCSV which we enable
+ * by default as of early 2018.  Seems like a google bug to me.  Lets use someone else. */
+#  define URL "https://www.twitter.com/"
+#  define HOST "www.twitter.com"
 #else
 #  define PORT 80
 #  define URL "http://www.google.com/"
@@ -21,7 +23,7 @@
 M_bool got_response = M_FALSE;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
