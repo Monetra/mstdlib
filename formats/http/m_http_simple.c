@@ -172,7 +172,7 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 	const char          *const_temp;
 	char                *dec;
 	char                 tempa[32];
-	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO88591;
+	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO8859_1;
 	M_bool               have_charset = M_FALSE;
 	M_bool               have_encoded = M_FALSE;
 	M_bool               update_clen  = M_FALSE;
