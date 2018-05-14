@@ -99,6 +99,7 @@ set(sources
 	textcodec/m_textcodec_ascii.c
 	textcodec/m_textcodec_cp874.c
 	textcodec/m_textcodec_cp1250.c
+	textcodec/m_textcodec_cp1251.c
 	textcodec/m_textcodec_cp1252.c
 	textcodec/m_textcodec_cp_map.c
 	textcodec/m_textcodec_percent.c
