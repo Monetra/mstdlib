@@ -104,6 +104,7 @@ set(sources
 	textcodec/m_textcodec_cp1253.c
 	textcodec/m_textcodec_cp1254.c
 	textcodec/m_textcodec_cp1255.c
+	textcodec/m_textcodec_cp1256.c
 	textcodec/m_textcodec_cp_map.c
 	textcodec/m_textcodec_percent.c
 	textcodec/m_textcodec_iso8859_1.c
