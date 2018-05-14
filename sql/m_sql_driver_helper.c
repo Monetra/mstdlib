@@ -208,7 +208,7 @@ M_bool M_sql_driver_validate_connstr(const M_hash_dict_t *conndict, const M_sql_
 				if (!M_str_caseeq(val, "1") && !M_str_caseeq(val, "0") &&
 				    !M_str_caseeq(val, "y") && !M_str_caseeq(val, "n") &&
 				    !M_str_caseeq(val, "yes") && !M_str_caseeq(val, "no") &&
-				    !M_str_caseeq(val, "true") && !M_str_caseeq(val, "true") &&
+				    !M_str_caseeq(val, "true") && !M_str_caseeq(val, "false") &&
 				    !M_str_caseeq(val, "on") && !M_str_caseeq(val, "off")) {
 					M_snprintf(error, error_size, "param %s not boolean", key);
 					goto done;

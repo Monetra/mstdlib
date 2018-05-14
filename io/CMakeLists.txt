@@ -210,7 +210,12 @@ if (ANDROID)
 endif ()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-	if (NOT IOS AND NOT IOSSIM)
+	if (IOS OR IOSSIM)
+		find_library(EXTERNALACCESSORY NAMES ExternalAccessory)
+		target_link_libraries(${PROJECT_NAME}
+			PUBLIC "${EXTERNALACCESSORY}"
+		)
+	else ()
 		find_library(IOKIT NAMES IOKit)
 		target_link_libraries(${PROJECT_NAME}
 			PUBLIC "${IOKIT}"
@@ -228,7 +233,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREFOUNDATION}"
 	)
-
 	find_library(COREBLUETOOTH NAMES CoreBluetooth)
 	target_link_libraries(${PROJECT_NAME}
 		PUBLIC "${COREBLUETOOTH}"

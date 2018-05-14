@@ -262,7 +262,7 @@ static void M_threadpool_queue_insert(M_threadpool_parent_t *parent, void (*task
 	while (1) {
 
 		/* Spawn a new thread on demand if needed */
-		if (pool->num_idle_threads == 0 && pool->num_threads < pool->max_threads)
+		if (pool->num_idle_threads <= M_llist_len(pool->queue) && pool->num_threads < pool->max_threads)
 			M_threadpool_thread_spawn(pool);
 
 		if (pool->queue_waiters == 0 || i_just_woke_up) {
