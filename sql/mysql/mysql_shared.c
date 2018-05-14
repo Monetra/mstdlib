@@ -200,6 +200,6 @@ void mysql_createtable_suffix(M_sql_connpool_t *pool, M_hash_dict_t *settings, M
 	M_buf_add_str(query, " CHARSET=");
 	const_temp = M_hash_dict_get_direct(settings, "mysql_charset");
 	if (M_str_isempty(const_temp))
-		const_temp = "UTF8";
+		const_temp = "utf8mb4";
 	M_buf_add_str(query, const_temp);
 }

@@ -84,7 +84,7 @@ __BEGIN_DECLS
  *  - mysql_engine: Optional.  Used during table creation, defaults to INNODB.  The default
  *    data storage engine to use with mysql.  Typically it is recommended to leave
  *    this at the default.
- *  - mysql_charset: Optional.  Used during table creation, defaults to UTF8.
+ *  - mysql_charset: Optional.  Used during table creation, defaults to utfmb4.
  *  - max_isolation: Optional. Sets the maximum isolation level used for transactions.
  *    This is used to overwrite requests for SERIALIZABLE isolation levels,
  *    useful with Galera-based clusters that do not truly support Serializable
@@ -170,7 +170,7 @@ __BEGIN_DECLS
  *    to use with mysql.  Typically it is recommended to leave this at the
  *    default.
  *  - mysql_charset: Optional.  Used during table creation when the destination
- *    database is MySQL, defaults to UTF8.
+ *    database is MySQL, defaults to utf8mb4.
  */
 
 /*! \addtogroup m_sql_error SQL Error handling functions
