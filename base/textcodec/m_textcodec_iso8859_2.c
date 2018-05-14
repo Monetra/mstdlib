@@ -30,7 +30,7 @@
 
 /* Mapping table from The Unicode Consortium.
  * https://www.unicode.org/Public/MAPPINGS/ */
-static M_textcodec_cp_map_t iso88592_map[] = {
+static M_textcodec_cp_map_t iso8859_2_map[] = {
 	{ 0x00, 0x0000, "NULL"                                     },
 	{ 0x01, 0x0001, "Start Of Heading"                         },
 	{ 0x02, 0x0002, "Start Of Text"                            },
@@ -292,13 +292,13 @@ static M_textcodec_cp_map_t iso88592_map[] = {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_textcodec_error_t M_textcodec_encode_iso88592(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_encode_iso8859_2(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	return M_textcodec_encode_cp_map(buf, in, ehandler, iso88592_map);
+	return M_textcodec_encode_cp_map(buf, in, ehandler, iso8859_2_map);
 }
 
-M_textcodec_error_t M_textcodec_decode_iso88592(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
+M_textcodec_error_t M_textcodec_decode_iso8859_2(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	return M_textcodec_decode_cp_map(buf, in, ehandler, iso88592_map);
+	return M_textcodec_decode_cp_map(buf, in, ehandler, iso8859_2_map);
 }
 
