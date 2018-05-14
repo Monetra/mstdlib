@@ -256,4 +256,3 @@ M_textcodec_error_t M_textcodec_decode_iso8859_6(M_textcodec_buffer_t *buf, cons
 {
 	return M_textcodec_decode_cp_map(buf, in, ehandler, iso8859_6_map);
 }
-
