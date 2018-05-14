@@ -46,6 +46,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_ISO8859_3:
 		case M_TEXTCODEC_ISO8859_4:
 		case M_TEXTCODEC_ISO8859_5:
+		case M_TEXTCODEC_ISO8859_6:
 			fail = M_FALSE;
 			break;
 	}
@@ -118,6 +119,8 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_iso8859_4(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_5:
 			return M_textcodec_encode_iso8859_5(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_6:
+			return M_textcodec_encode_iso8859_6(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -155,6 +158,8 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_iso8859_4(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_5:
 			return M_textcodec_decode_iso8859_5(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_6:
+			return M_textcodec_decode_iso8859_6(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -363,6 +368,16 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ISO8859_5;
 	}
 
+	if (M_str_caseeq(s, "arabic")         || 
+			M_str_caseeq(s, "iso-8859-6") || 
+			M_str_caseeq(s, "iso8859-6")  || 
+			M_str_caseeq(s, "iso8859_6")  || 
+			M_str_caseeq(s, "iso88596")   || 
+			M_str_caseeq(s, "88596"))
+	{
+		return M_TEXTCODEC_ISO8859_6;
+	}
+
 	return M_TEXTCODEC_UNKNOWN;
 }
 
@@ -393,6 +408,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "latin_4";
 		case M_TEXTCODEC_ISO8859_5:
 			return "cyrillic";
+		case M_TEXTCODEC_ISO8859_6:
+			return "arabic";
 	}
 
 	return "unknown";
