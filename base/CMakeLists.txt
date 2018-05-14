@@ -111,6 +111,7 @@ set(sources
 	textcodec/m_textcodec_iso8859_9.c
 	textcodec/m_textcodec_iso8859_10.c
 	textcodec/m_textcodec_iso8859_11.c
+	textcodec/m_textcodec_iso8859_13.c
 
 	# time:
 	time/m_time.c
