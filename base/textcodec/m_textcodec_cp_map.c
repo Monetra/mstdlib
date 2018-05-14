@@ -28,6 +28,20 @@
 
 static const char CP_REPLACE = '?';
 
+/* The static mappings are put into a hashtable to aid with lookup. For all but very
+ * short strings the lookup will be faster when creating the hashtable than looping
+ * through the static mapping for every characters.
+ *
+ * The mapping hashtables are created as multi value to aid with best fit matching.
+ * Best fit matches must always be at the end of the mapping so their utf-8 values
+ * are after the mapped value and will not be used. Best match is mainly going from
+ * utf-8 to to the code page of choice.
+ *
+ * Best fit matching does not allow multiple character conversions. It is a single
+ * code point mapping. For example, '...' as one utf-8 character cannot be represented
+ * in ASCII because the ASCII equivelent "..." requires three characters.
+ */
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_cp_map_t *cp_map)
@@ -38,7 +52,7 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 	size_t               i;
 
 	/* Create our lookup. */
-	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_NONE);
+	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_MULTI_VALUE);
 	for (i=0; cp_map[i].descr!=NULL; i++) {
 		M_hash_u64u64_insert(map, cp_map[i].ucode, cp_map[i].cp);
 	}
@@ -91,7 +105,7 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 	size_t               i;
 
 	/* Create our lookup. */
-	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_NONE);
+	map = M_hash_u64u64_create(512, 75, M_HASH_U64U64_MULTI_VALUE);
 	for (i=0; cp_map[i].descr!=NULL; i++) {
 		M_hash_u64u64_insert(map, cp_map[i].cp, cp_map[i].ucode);
 	}
