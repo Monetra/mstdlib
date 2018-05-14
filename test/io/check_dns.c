@@ -21,7 +21,7 @@
 M_bool got_response = M_FALSE;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -196,6 +196,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 				char errmsg[256];
 				M_io_get_error_string(io, errmsg, sizeof(errmsg));
 				event_debug("net client %p errmsg: %s", io, errmsg);
+				ck_assert_msg(got_response, "No response, Received error '%s'", errmsg);
 			}
 			/* If we really didn't get a response, it is an error */
 			if (!got_response) {
