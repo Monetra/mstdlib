@@ -12,6 +12,8 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_PERCENT_URL", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d", null ],
       [ "M_TEXTCODEC_PERCENT_URLPLUS", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25", null ],
       [ "M_TEXTCODEC_PERCENT_FORM", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f", null ],
+      [ "M_TEXTCODEC_CP037", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a533f6b8d7ac1cc5709c9e92e99d6e4f9", null ],
+      [ "M_TEXTCODEC_CP500", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536afd951727c04cd2ae93cbf127ae521876", null ],
       [ "M_TEXTCODEC_CP874", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af913366aa5dbcb806f165c11aba7292d", null ],
       [ "M_TEXTCODEC_CP1250", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af30be0f8ae699dd3beee439b35ede3da", null ],
       [ "M_TEXTCODEC_CP1251", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536afbca32ba5242a3e85adbfe7badd0406c", null ],
