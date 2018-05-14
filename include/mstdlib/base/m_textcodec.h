@@ -65,6 +65,7 @@ typedef enum {
 	M_TEXTCODEC_CP1250,          /*!< Windows code page 1250, Central and Eastern Europe. */
 	M_TEXTCODEC_CP1251,          /*!< Windows code page 1251, Bulgarian, Byelorussian, Macedonian, Russian, Serbian. */
 	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252, Western Europe. */
+	M_TEXTCODEC_CP1253,          /*!< Windows code page 1253, Greek. */
 	M_TEXTCODEC_ISO8859_1,       /*!< ISO-8859-1. Latin 1, Western Europe. */
 	M_TEXTCODEC_ISO8859_2,       /*!< ISO-8859-2. Latin 2, Central and Eastern Europe. */
 	M_TEXTCODEC_ISO8859_3,       /*!< ISO-8859-3. Latin 3, Esperanto, Maltese. */

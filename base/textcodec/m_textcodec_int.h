@@ -78,6 +78,9 @@ M_textcodec_error_t M_textcodec_decode_cp1251(M_textcodec_buffer_t *buf, const c
 M_textcodec_error_t M_textcodec_encode_cp1252(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
 M_textcodec_error_t M_textcodec_decode_cp1252(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
 
+M_textcodec_error_t M_textcodec_encode_cp1253(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
+M_textcodec_error_t M_textcodec_decode_cp1253(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec);
