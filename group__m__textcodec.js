@@ -16,7 +16,18 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_ISO8859_1", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a8f4bbf26789193ea86ccd15651e89996", null ],
       [ "M_TEXTCODEC_ISO8859_2", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536ac33ccdff333ad4f8a451b1b2600ab47a", null ],
       [ "M_TEXTCODEC_ISO8859_3", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a285b35881cf433ef58ff31cc711acf01", null ],
-      [ "M_TEXTCODEC_ISO8859_4", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a7cd718275b00a790461d465c6373df58", null ]
+      [ "M_TEXTCODEC_ISO8859_4", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a7cd718275b00a790461d465c6373df58", null ],
+      [ "M_TEXTCODEC_ISO8859_5", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af1c54be44a7e3aadecf4dc57e2048ef2", null ],
+      [ "M_TEXTCODEC_ISO8859_6", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a96f533debf370d7b2de2bce4880dba08", null ],
+      [ "M_TEXTCODEC_ISO8859_7", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a9e80eb6330be095dc98b0c9799005250", null ],
+      [ "M_TEXTCODEC_ISO8859_8", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536ac42a77d93d806d2e92c5f132dfdae93c", null ],
+      [ "M_TEXTCODEC_ISO8859_9", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af760ed76b7a739656c90d8d27fff5961", null ],
+      [ "M_TEXTCODEC_ISO8859_10", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a2c39d95a509972bc69abdddba50f9836", null ],
+      [ "M_TEXTCODEC_ISO8859_11", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536ac3c6ade24f3717bc31acae799a3f3d58", null ],
+      [ "M_TEXTCODEC_ISO8859_13", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a50608334c0183e173e2f698d9ab1e7ee", null ],
+      [ "M_TEXTCODEC_ISO8859_14", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536aa109ac25c56d823d54f9cd5bc1373690", null ],
+      [ "M_TEXTCODEC_ISO8859_15", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536aaa4bdae712b98231aed820091db2abaa", null ],
+      [ "M_TEXTCODEC_ISO8859_16", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a4721dcdfe1603b946622601f87c7cdc6", null ]
     ] ],
     [ "M_textcodec_error_t", "group__m__textcodec.html#gaa22fe6fec7d582fd36d45cabba4e8352", [
       [ "M_TEXTCODEC_ERROR_SUCCESS", "group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ae0be42e9b00a73f5a94d1bd235b8ca9d", null ],
