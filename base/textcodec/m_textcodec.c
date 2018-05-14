@@ -49,6 +49,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_CP1255:
 		case M_TEXTCODEC_CP1256:
 		case M_TEXTCODEC_CP1257:
+		case M_TEXTCODEC_CP1258:
 		case M_TEXTCODEC_ISO8859_1:
 		case M_TEXTCODEC_ISO8859_2:
 		case M_TEXTCODEC_ISO8859_3:
@@ -142,6 +143,8 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_cp1256(buf, in, ehandler);
 		case M_TEXTCODEC_CP1257:
 			return M_textcodec_encode_cp1257(buf, in, ehandler);
+		case M_TEXTCODEC_CP1258:
+			return M_textcodec_encode_cp1258(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_1:
 			return M_textcodec_encode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
@@ -215,6 +218,8 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_cp1256(buf, in, ehandler);
 		case M_TEXTCODEC_CP1257:
 			return M_textcodec_decode_cp1257(buf, in, ehandler);
+		case M_TEXTCODEC_CP1258:
+			return M_textcodec_decode_cp1258(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_1:
 			return M_textcodec_decode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
@@ -407,6 +412,9 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 
 	if (M_str_caseeq(s, "cp1257") || M_str_caseeq(s, "windows-1257"))
 		return M_TEXTCODEC_CP1257;
+
+	if (M_str_caseeq(s, "cp1258") || M_str_caseeq(s, "windows-1258"))
+		return M_TEXTCODEC_CP1258;
 
 	if (M_str_caseeq(s, "latin_1")        || 
 			M_str_caseeq(s, "latin-1")    || 
@@ -638,6 +646,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "cp1256";
 		case M_TEXTCODEC_CP1257:
 			return "cp1257";
+		case M_TEXTCODEC_CP1258:
+			return "cp1258";
 		case M_TEXTCODEC_ISO8859_1:
 			return "latin_1";
 		case M_TEXTCODEC_ISO8859_2:
