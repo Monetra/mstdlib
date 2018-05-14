@@ -43,6 +43,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_CP1252:
 		case M_TEXTCODEC_ISO8859_1:
 		case M_TEXTCODEC_ISO8859_2:
+		case M_TEXTCODEC_ISO8859_3:
 			fail = M_FALSE;
 			break;
 	}
@@ -109,6 +110,8 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
 			return M_textcodec_encode_iso8859_2(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_3:
+			return M_textcodec_encode_iso8859_3(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -140,6 +143,8 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_iso8859_1(buf, in, ehandler);
 		case M_TEXTCODEC_ISO8859_2:
 			return M_textcodec_decode_iso8859_2(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_3:
+			return M_textcodec_decode_iso8859_3(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -284,6 +289,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 			M_str_caseeq(s, "latin1")     || 
 			M_str_caseeq(s, "latin 1")    || 
 			M_str_caseeq(s, "latin")      || 
+			M_str_caseeq(s, "l1")         || 
 			M_str_caseeq(s, "iso-8859-1") || 
 			M_str_caseeq(s, "iso8859-1")  || 
 			M_str_caseeq(s, "iso8859_1")  || 
@@ -299,6 +305,7 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 			M_str_caseeq(s, "latin-2")    || 
 			M_str_caseeq(s, "latin2")     || 
 			M_str_caseeq(s, "latin 2")    || 
+			M_str_caseeq(s, "l2")         || 
 			M_str_caseeq(s, "iso-8859-2") || 
 			M_str_caseeq(s, "iso8859-2")  || 
 			M_str_caseeq(s, "iso8859_2")  || 
@@ -306,6 +313,20 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 			M_str_caseeq(s, "88592"))
 	{
 		return M_TEXTCODEC_ISO8859_2;
+	}
+
+	if (M_str_caseeq(s, "latin_3")        || 
+			M_str_caseeq(s, "latin-3")    || 
+			M_str_caseeq(s, "latin3")     || 
+			M_str_caseeq(s, "latin 3")    || 
+			M_str_caseeq(s, "l3")         || 
+			M_str_caseeq(s, "iso-8859-3") || 
+			M_str_caseeq(s, "iso8859-3")  || 
+			M_str_caseeq(s, "iso8859_3")  || 
+			M_str_caseeq(s, "iso88593")   || 
+			M_str_caseeq(s, "88593"))
+	{
+		return M_TEXTCODEC_ISO8859_3;
 	}
 
 	return M_TEXTCODEC_UNKNOWN;
@@ -332,6 +353,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "latin_1";
 		case M_TEXTCODEC_ISO8859_2:
 			return "latin_2";
+		case M_TEXTCODEC_ISO8859_3:
+			return "latin_3";
 	}
 
 	return "unknown";

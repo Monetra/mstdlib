@@ -64,6 +64,7 @@ typedef enum {
 	M_TEXTCODEC_CP1252,          /*!< Windows code page 1252. */
 	M_TEXTCODEC_ISO8859_1,       /*!< ISO-8859-1. Latin 1. */
 	M_TEXTCODEC_ISO8859_2,       /*!< ISO-8859-2. Latin 2. */
+	M_TEXTCODEC_ISO8859_3,       /*!< ISO-8859-3. Latin 3. */
 } M_textcodec_codec_t;
 
 
