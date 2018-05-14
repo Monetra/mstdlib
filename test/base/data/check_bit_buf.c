@@ -78,11 +78,11 @@ START_TEST(check_bbuf_add_bit)
 	M_bit_buf_add_bit(bbuf, 0); check_lens(bbuf, 2, 1);
 	M_bit_buf_add_bit(bbuf, 1); check_lens(bbuf, 3, 1);
 	to_bytes;
-	ck_assert_ptr_ne(bytes, NULL);
+	ck_assert(bytes != NULL);
 	if (bytes == NULL) /* This is a hack to suppress false warnings in clang static analyzer */
 		return;
-	ck_assert_uint_eq(nbytes, 1);
-	ck_assert_uint_eq(bytes[0] & 0xE0, 0xA0);
+	ck_assert(nbytes == 1);
+	ck_assert((bytes[0] & 0xE0) == 0xA0);
 
 	reset_test;
 	/* Add following binary: 0110 1101 10
@@ -94,9 +94,9 @@ START_TEST(check_bbuf_add_bit)
 	}
 	check_lens(bbuf, 10, 2);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0x6D);
-	ck_assert_uint_eq(bytes[1] & 0xC0, 0x80);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0x6D);
+	ck_assert((bytes[1] & 0xC0) == 0x80);
 
 	cleanup_test;
 }
@@ -124,9 +124,9 @@ START_TEST(check_bbuf_update_bit)
 	 *               0x  4    2    3    D
 	 */
 
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0x42);
-	ck_assert_uint_eq(bytes[1], 0x3D);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0x42);
+	ck_assert(bytes[1] == 0x3D);
 
 	cleanup_test;
 }
@@ -143,9 +143,9 @@ START_TEST(check_bbuf_fill)
 	 */
 	check_lens(bbuf, 15, 2);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0xFF);
-	ck_assert_uint_eq(bytes[1] & 0xFE, 0xFE);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0xFF);
+	ck_assert((bytes[1] & 0xFE) == 0xFE);
 
 	cleanup_test;
 }
@@ -164,10 +164,10 @@ START_TEST(check_bbuf_add)
 	 */
 	check_lens(bbuf, 21, 3);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 3);
-	ck_assert_uint_eq(bytes[0], 0x5E);
-	ck_assert_uint_eq(bytes[1], 0x6F);
-	ck_assert_uint_eq(bytes[2], 0x78);
+	ck_assert(nbytes == 3);
+	ck_assert(bytes[0] == 0x5E);
+	ck_assert(bytes[1] == 0x6F);
+	ck_assert(bytes[2] == 0x78);
 
 	reset_test;
 	M_bit_buf_add(bbuf, 0x0123456789ABCDEF, 21, M_BIT_BUF_PAD_BEFORE);
@@ -177,10 +177,10 @@ START_TEST(check_bbuf_add)
 	 */
 	check_lens(bbuf, 24, 3);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 3);
-	ck_assert_uint_eq(bytes[0], 0x0B);
-	ck_assert_uint_eq(bytes[1], 0xCD);
-	ck_assert_uint_eq(bytes[2], 0xEF);
+	ck_assert(nbytes == 3);
+	ck_assert(bytes[0] == 0x0B);
+	ck_assert(bytes[1] == 0xCD);
+	ck_assert(bytes[2] == 0xEF);
 
 	reset_test;
 	M_bit_buf_add(bbuf, 0x0123456789ABCDEF, 21, M_BIT_BUF_PAD_AFTER);
@@ -190,10 +190,10 @@ START_TEST(check_bbuf_add)
 	 */
 	check_lens(bbuf, 24, 3);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 3);
-	ck_assert_uint_eq(bytes[0], 0x5E);
-	ck_assert_uint_eq(bytes[1], 0x6F);
-	ck_assert_uint_eq(bytes[2], 0x78);
+	ck_assert(nbytes == 3);
+	ck_assert(bytes[0] == 0x5E);
+	ck_assert(bytes[1] == 0x6F);
+	ck_assert(bytes[2] == 0x78);
 
 	cleanup_test;
 }
@@ -209,12 +209,12 @@ START_TEST(check_bbuf_add_bytes)
 	M_bit_buf_add_bytes(bbuf, data, data_bits);
 	check_lens(bbuf, data_bits, 5);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 5);
-	ck_assert_uint_eq(bytes[0], data[0]);
-	ck_assert_uint_eq(bytes[1], data[1]);
-	ck_assert_uint_eq(bytes[2], data[2]);
-	ck_assert_uint_eq(bytes[3], data[3]);
-	ck_assert_uint_eq(bytes[4] & 0xF0, data[4] & 0xF0);
+	ck_assert(nbytes == 5);
+	ck_assert(bytes[0] == data[0]);
+	ck_assert(bytes[1] == data[1]);
+	ck_assert(bytes[2] == data[2]);
+	ck_assert(bytes[3] == data[3]);
+	ck_assert((bytes[4] & 0xF0) == (data[4] & 0xF0));
 
 	cleanup_test;
 }
@@ -228,23 +228,23 @@ START_TEST(check_bbuf_add_bitstr)
 	ck_assert(M_bit_buf_add_bitstr(bbuf, "1001", M_BIT_BUF_PAD_NONE));
 	check_lens(bbuf, 4, 1);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 1);
-	ck_assert_uint_eq(bytes[0] & 0xF0, 0x90);
+	ck_assert(nbytes == 1);
+	ck_assert((bytes[0] & 0xF0) == 0x90);
 
 	reset_test;
 	ck_assert(M_bit_buf_add_bitstr(bbuf, " 1 0 \n\t0   1 ", M_BIT_BUF_PAD_NONE));
 	check_lens(bbuf, 4, 1);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 1);
-	ck_assert_uint_eq(bytes[0] & 0xF0, 0x90);
+	ck_assert(nbytes == 1);
+	ck_assert((bytes[0] & 0xF0) == 0x90);
 
 	reset_test;
 	ck_assert(M_bit_buf_add_bitstr(bbuf, "1011 0001 1", M_BIT_BUF_PAD_NONE));
 	check_lens(bbuf, 9, 2);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0xB1);
-	ck_assert_uint_eq(bytes[1] & 0x80, 0x80);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0xB1);
+	ck_assert((bytes[1] & 0x80) == 0x80);
 
 	reset_test;
 	ck_assert(M_bit_buf_add_bitstr(bbuf, "1011 0001 1", M_BIT_BUF_PAD_BEFORE));
@@ -254,9 +254,9 @@ START_TEST(check_bbuf_add_bitstr)
 	 */
 	check_lens(bbuf, 16, 2);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0x01);
-	ck_assert_uint_eq(bytes[1], 0x63);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0x01);
+	ck_assert(bytes[1] == 0x63);
 
 	reset_test;
 	ck_assert(M_bit_buf_add_bitstr(bbuf, "1011 0001 1", M_BIT_BUF_PAD_AFTER));
@@ -266,9 +266,9 @@ START_TEST(check_bbuf_add_bitstr)
 	 */
 	check_lens(bbuf, 16, 2);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 2);
-	ck_assert_uint_eq(bytes[0], 0xB1);
-	ck_assert_uint_eq(bytes[1], 0x80);
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0xB1);
+	ck_assert(bytes[1] == 0x80);
 
 	cleanup_test;
 }
@@ -284,8 +284,8 @@ START_TEST(check_bbuf_truncate)
 	M_bit_buf_truncate(bbuf, 6);
 	check_lens(bbuf, 6, 1);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 1);
-	ck_assert_uint_eq(bytes[0] & 0xFC, 0xB0);
+	ck_assert(nbytes == 1);
+	ck_assert((bytes[0] & 0xFC) == 0xB0);
 
 	reset_test;
 	M_bit_buf_add_bitstr(bbuf, "1011 0001 1001 1", M_BIT_BUF_PAD_NONE);
@@ -295,8 +295,8 @@ START_TEST(check_bbuf_truncate)
 	M_bit_buf_truncate(bbuf, 3);
 	check_lens(bbuf, 3, 1);
 	to_bytes;
-	ck_assert_uint_eq(nbytes, 1);
-	ck_assert_uint_eq(bytes[0] & 0xE0, 0xA0);
+	ck_assert(nbytes == 1);
+	ck_assert((bytes[0] & 0xE0) == 0xA0);
 
 	cleanup_test;
 }

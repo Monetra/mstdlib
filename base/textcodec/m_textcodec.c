@@ -41,7 +41,8 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
 		case M_TEXTCODEC_CP1252:
-		case M_TEXTCODEC_ISO88591:
+		case M_TEXTCODEC_ISO8859_1:
+		case M_TEXTCODEC_ISO8859_2:
 			fail = M_FALSE;
 			break;
 	}
@@ -104,8 +105,10 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_percent(buf, in, ehandler, codec);
 		case M_TEXTCODEC_CP1252:
 			return M_textcodec_encode_cp1252(buf, in, ehandler);
-		case M_TEXTCODEC_ISO88591:
-			return M_textcodec_encode_iso88591(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_1:
+			return M_textcodec_encode_iso8859_1(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_2:
+			return M_textcodec_encode_iso8859_2(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -133,8 +136,10 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_percent(buf, in, ehandler, codec);
 		case M_TEXTCODEC_CP1252:
 			return M_textcodec_decode_cp1252(buf, in, ehandler);
-		case M_TEXTCODEC_ISO88591:
-			return M_textcodec_decode_iso88591(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_1:
+			return M_textcodec_decode_iso8859_1(buf, in, ehandler);
+		case M_TEXTCODEC_ISO8859_2:
+			return M_textcodec_decode_iso8859_2(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -281,12 +286,26 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 			M_str_caseeq(s, "latin")      || 
 			M_str_caseeq(s, "iso-8859-1") || 
 			M_str_caseeq(s, "iso8859-1")  || 
+			M_str_caseeq(s, "iso8859_1")  || 
 			M_str_caseeq(s, "iso88591")   || 
 			M_str_caseeq(s, "8859")       || 
 			M_str_caseeq(s, "88591")      || 
 			M_str_caseeq(s, "cp819"))
 	{
-		return M_TEXTCODEC_ISO88591;
+		return M_TEXTCODEC_ISO8859_1;
+	}
+
+	if (M_str_caseeq(s, "latin_2")        || 
+			M_str_caseeq(s, "latin-2")    || 
+			M_str_caseeq(s, "latin2")     || 
+			M_str_caseeq(s, "latin 2")    || 
+			M_str_caseeq(s, "iso-8859-2") || 
+			M_str_caseeq(s, "iso8859-2")  || 
+			M_str_caseeq(s, "iso8859_2")  || 
+			M_str_caseeq(s, "iso88592")   || 
+			M_str_caseeq(s, "88592"))
+	{
+		return M_TEXTCODEC_ISO8859_2;
 	}
 
 	return M_TEXTCODEC_UNKNOWN;
@@ -309,8 +328,10 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "application/x-www-form-urlencoded";
 		case M_TEXTCODEC_CP1252:
 			return "cp1252";
-		case M_TEXTCODEC_ISO88591:
+		case M_TEXTCODEC_ISO8859_1:
 			return "latin_1";
+		case M_TEXTCODEC_ISO8859_2:
+			return "latin_2";
 	}
 
 	return "unknown";

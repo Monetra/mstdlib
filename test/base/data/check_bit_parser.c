@@ -134,8 +134,8 @@ START_TEST(check_bparser_read_bit_buf)
 
 	ck_assert(M_bit_parser_read_bit_buf(bparser, bbuf, 1));
 	check_len(bparser, 10);
-	ck_assert_uint_eq(M_bit_buf_len(bbuf), 1);
-	ck_assert_uint_eq(M_bit_buf_peek(bbuf)[0] & 0x80, 0x80);
+	ck_assert(M_bit_buf_len(bbuf) == 1);
+	ck_assert((M_bit_buf_peek(bbuf)[0] & 0x80) == 0x80);
 	M_bit_buf_truncate(bbuf, 0);
 
 	/* expected results: 011 0100 011
@@ -144,9 +144,9 @@ START_TEST(check_bparser_read_bit_buf)
 	 */
 	ck_assert(M_bit_parser_read_bit_buf(bparser, bbuf, M_bit_parser_len(bparser)));
 	check_len(bparser, 0);
-	ck_assert_uint_eq(M_bit_buf_len(bbuf), 10);
-	ck_assert_uint_eq(M_bit_buf_peek(bbuf)[0], 0x68);
-	ck_assert_uint_eq(M_bit_buf_peek(bbuf)[1] & 0xC0, 0xC0);
+	ck_assert(M_bit_buf_len(bbuf) == 10);
+	ck_assert(M_bit_buf_peek(bbuf)[0] == 0x68);
+	ck_assert((M_bit_buf_peek(bbuf)[1] & 0xC0) == 0xC0);
 
 	cleanup_test;
 }
@@ -167,7 +167,7 @@ START_TEST(check_bparser_read_strdup)
 
 	M_free(str);
 	str = M_bit_parser_read_strdup(bparser, 2);
-	ck_assert_ptr_eq(str, NULL);
+	ck_assert(str == NULL);
 
 	M_free(str);
 	str = M_bit_parser_read_strdup(bparser, 1);
@@ -189,28 +189,28 @@ START_TEST(check_bparser_read_range)
 
 	ck_assert(M_bit_parser_read_range(bparser, &bit, &nbits, M_bit_parser_len(bparser)));
 	check_len(bparser, 13);
-	ck_assert_uint_eq(bit, 1);
-	ck_assert_uint_eq(nbits, 1);
+	ck_assert(bit == 1);
+	ck_assert(nbits == 1);
 
 	ck_assert(M_bit_parser_read_range(bparser, &bit, &nbits, M_bit_parser_len(bparser)));
 	check_len(bparser, 12);
-	ck_assert_uint_eq(bit, 0);
-	ck_assert_uint_eq(nbits, 1);
+	ck_assert(bit == 0);
+	ck_assert(nbits == 1);
 
 	ck_assert(M_bit_parser_read_range(bparser, &bit, &nbits, M_bit_parser_len(bparser)));
 	check_len(bparser, 9);
-	ck_assert_uint_eq(bit, 1);
-	ck_assert_uint_eq(nbits, 3);
+	ck_assert(bit == 1);
+	ck_assert(nbits == 3);
 
 	ck_assert(M_bit_parser_read_range(bparser, &bit, &nbits, 4));
 	check_len(bparser, 5);
-	ck_assert_uint_eq(bit, 0);
-	ck_assert_uint_eq(nbits, 4);
+	ck_assert(bit == 0);
+	ck_assert(nbits == 4);
 
 	ck_assert(M_bit_parser_read_range(bparser, &bit, &nbits, M_bit_parser_len(bparser) + 1));
 	check_len(bparser, 0);
-	ck_assert_uint_eq(bit, 0);
-	ck_assert_uint_eq(nbits, 5);
+	ck_assert(bit == 0);
+	ck_assert(nbits == 5);
 
 	ck_assert(!M_bit_parser_read_range(bparser, &bit, &nbits, 1));
 	check_len(bparser, 0);
@@ -304,10 +304,10 @@ START_TEST(check_bparser_rewind_mark)
 	reset_test("1011 0010 0001 0101");
 	M_bit_parser_consume(bparser, 7);
 	M_bit_parser_mark(bparser);
-	ck_assert_uint_eq(M_bit_parser_mark_len(bparser), 0);
+	ck_assert(M_bit_parser_mark_len(bparser) == 0);
 	M_bit_parser_consume(bparser, 4);
 	check_len(bparser, 5);
-	ck_assert_uint_eq(M_bit_parser_mark_len(bparser), 4);
+	ck_assert(M_bit_parser_mark_len(bparser) == 4);
 
 	M_bit_parser_mark_rewind(bparser);
 	check_len(bparser, 9);
@@ -336,11 +336,11 @@ START_TEST(check_bparser_reset)
 
 	/* Validate that everything got reset correctly. */
 	check_len(bparser, 9);
-	ck_assert_uint_eq(M_bit_parser_current_offset(bparser), 0);
-	ck_assert_uint_eq(M_bit_parser_mark_len(bparser), 0);
+	ck_assert(M_bit_parser_current_offset(bparser) == 0);
+	ck_assert(M_bit_parser_mark_len(bparser) == 0);
 	M_bit_parser_mark_rewind(bparser);
-	ck_assert_uint_eq(M_bit_parser_current_offset(bparser), 0);
-	ck_assert_uint_eq(M_bit_parser_mark_len(bparser), 0);
+	ck_assert(M_bit_parser_current_offset(bparser) == 0);
+	ck_assert(M_bit_parser_mark_len(bparser) == 0);
 	M_free(str); str = M_bit_parser_read_strdup(bparser, M_bit_parser_len(bparser));
 	check_bitstr_eq(str, "1101 0010 0");
 
@@ -355,11 +355,11 @@ START_TEST(check_bparser_read_uint)
 	check_len(bparser, 5);
 
 	ck_assert(M_bit_parser_read_uint(bparser, 3, &num));
-	ck_assert_uint_eq(num, 2);
+	ck_assert(num == 2);
 
 	num = 0;
 	ck_assert(M_bit_parser_read_uint(bparser, 2, &num));
-	ck_assert_uint_eq(num, 3);
+	ck_assert(num == 3);
 
 	check_len(bparser, 0);
 
@@ -367,7 +367,7 @@ START_TEST(check_bparser_read_uint)
 	reset_test("11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111");
 	check_len(bparser, 64);
 	ck_assert(M_bit_parser_read_uint(bparser, 64, &num));
-	ck_assert_uint_eq(num, M_UINT64_MAX);
+	ck_assert(num == M_UINT64_MAX);
 
 	cleanup_test;
 }

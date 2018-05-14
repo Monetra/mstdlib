@@ -100,7 +100,8 @@ set(sources
 	textcodec/m_textcodec_cp1252.c
 	textcodec/m_textcodec_cp_map.c
 	textcodec/m_textcodec_percent.c
-	textcodec/m_textcodec_iso88591.c
+	textcodec/m_textcodec_iso8859_1.c
+	textcodec/m_textcodec_iso8859_2.c
 
 	# time:
 	time/m_time.c
