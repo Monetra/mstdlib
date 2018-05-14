@@ -40,6 +40,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_PERCENT_URL:
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
+		case M_TEXTCODEC_CP037:
 		case M_TEXTCODEC_CP874:
 		case M_TEXTCODEC_CP1250:
 		case M_TEXTCODEC_CP1251:
@@ -125,6 +126,8 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
 			return M_textcodec_encode_percent(buf, in, ehandler, codec);
+		case M_TEXTCODEC_CP037:
+			return M_textcodec_encode_cp037(buf, in, ehandler);
 		case M_TEXTCODEC_CP874:
 			return M_textcodec_encode_cp874(buf, in, ehandler);
 		case M_TEXTCODEC_CP1250:
@@ -200,6 +203,8 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 		case M_TEXTCODEC_PERCENT_URLPLUS:
 		case M_TEXTCODEC_PERCENT_FORM:
 			return M_textcodec_decode_percent(buf, in, ehandler, codec);
+		case M_TEXTCODEC_CP037:
+			return M_textcodec_decode_cp037(buf, in, ehandler);
 		case M_TEXTCODEC_CP874:
 			return M_textcodec_decode_cp874(buf, in, ehandler);
 		case M_TEXTCODEC_CP1250:
@@ -385,6 +390,9 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 	{
 		return M_TEXTCODEC_PERCENT_FORM;
 	}
+
+	if (M_str_caseeq(s, "cp037") || M_str_caseeq(s, "ibm037"), M_str_caseeq(s, "ibm039"))
+		return M_TEXTCODEC_CP037;
 
 	if (M_str_caseeq(s, "cp874") || M_str_caseeq(s, "windows-874"))
 		return M_TEXTCODEC_CP874;
@@ -628,6 +636,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "percent_plus";
 		case M_TEXTCODEC_PERCENT_FORM:
 			return "application/x-www-form-urlencoded";
+		case M_TEXTCODEC_CP037:
+			return "cp037";
 		case M_TEXTCODEC_CP874:
 			return "cp874";
 		case M_TEXTCODEC_CP1250:
