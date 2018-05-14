@@ -74,6 +74,9 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_10,      /*!< ISO-8859-10. Latin 6, Nordic languages. */
 	M_TEXTCODEC_ISO8859_11,      /*!< ISO-8859-11. Thai. */
 	M_TEXTCODEC_ISO8859_13,      /*!< ISO-8859-13. Latin 7, Baltic languages. */
+	M_TEXTCODEC_ISO8859_14,      /*!< ISO-8859-14. Latin 8, Celtic languages. */
+	M_TEXTCODEC_ISO8859_15,      /*!< ISO-8859-15. Latin 9, Western Europe. */
+	M_TEXTCODEC_ISO8859_16       /*!< ISO-8859-16. Latin 10, South-Eastern Europe. */
 } M_textcodec_codec_t;
 
 
