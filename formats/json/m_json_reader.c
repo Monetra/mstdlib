@@ -322,9 +322,12 @@ static M_json_node_t *M_json_read_string(M_parser_t *parser, M_uint32 flags, M_j
 	M_buf_t             *buf;
 	char                *out;
 	const unsigned char *s;
+	char                 uchr[8];
+	M_uint32             codepoint;
 	unsigned char        c;
 	unsigned char        ce;
 	unsigned char        cp = 0;
+	size_t               uchr_len;
 
 	(void)flags;
 
@@ -335,22 +338,25 @@ static M_json_node_t *M_json_read_string(M_parser_t *parser, M_uint32 flags, M_j
 	while (M_parser_peek_byte(parser, &c) && c != '"' && cp != '\\') {
 		/* Control character. */
 		if (c < 32) {
-			if (c == '\n') {
-				*error = M_JSON_ERROR_UNEXPECTED_NEWLINE;
+			if (flags & M_JSON_READER_REPLACE_BAD_CHARS) {
+				M_buf_add_byte(buf, '?');
 			} else {
-				*error = M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR;
+				if (c == '\n') {
+					*error = M_JSON_ERROR_UNEXPECTED_NEWLINE;
+				} else {
+					*error = M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR;
+				}
+				M_buf_cancel(buf);
+				return NULL;
 			}
-			M_buf_cancel(buf);
-			return NULL;
-		} else if (c > 127) {
-			/* XXX: Support this */
-			M_buf_add_byte(buf, '?');
 		/* Escape. */
 		} else if (c == '\\') {
 			/* Set ce to something invalid so the default case will pick it up when we don't have enough bytes left. */
 			ce = 0;
 			if (M_parser_len(parser) >= 2) {
-				s = M_parser_peek(parser)+1;
+				/* We don't want to advance the parser so we're using
+				 * a temporary string and some string conversion directly. */
+				s  = M_parser_peek(parser)+1;
 				ce = *s;
 			}
 			switch (ce) {
@@ -380,18 +386,39 @@ static M_json_node_t *M_json_read_string(M_parser_t *parser, M_uint32 flags, M_j
 					M_buf_add_byte(buf, '\t');
 					break;
 				case 'u':
-					/* XXX: Handle unicode escapes */
-					if (M_parser_len(parser) < 6   ||
-						!M_chr_ishex((char)*(s+1)) ||
-						!M_chr_ishex((char)*(s+2)) ||
-						!M_chr_ishex((char)*(s+3)) ||
-						!M_chr_ishex((char)*(s+4)))
+					/* Check if we have enough data, it's a hex number, and it's a valid
+					 * character we can add to the buffer. */
+					if (M_parser_len(parser) < 6                                                            ||
+						!M_str_ishex_max((const char *)s+1, 4)                                              ||
+						M_str_to_uint32_ex((const char *)s+1, 4, 16, &codepoint, NULL) != M_STR_INT_SUCCESS ||
+						M_utf8_from_cp(uchr, sizeof(uchr), &uchr_len, codepoint) != M_UTF8_ERROR_SUCCESS)
 					{
-						M_buf_cancel(buf);
-						*error = M_JSON_ERROR_INVALID_UNICODE_ESACPE;
-						return NULL;
+						if (flags & M_JSON_READER_REPLACE_BAD_CHARS) {
+							size_t j;
+							/* Something isn't right. Remove the fist character because
+ 							 * we know it's going to be bad. Go though up to 3 more and remove them
+							 * if they're hex. We want to try to fully remove the \u escape and this
+							 * will handle if it's a bad code point or not fully 4 hex characters. */
+							M_parser_consume(parser, 1);
+							for (j=1; j<4; j++) {
+								if (M_chr_ishex((char)s[1+j])) {
+									M_parser_consume(parser, 1);
+								}
+							}
+							M_buf_add_byte(buf, '?');
+							break;
+						} else {
+							M_buf_cancel(buf);
+							*error = M_JSON_ERROR_INVALID_UNICODE_ESACPE;
+							return NULL;
+						}
 					}
-					M_buf_add_byte(buf, '?');
+					if (flags & M_JSON_READER_DONT_DECODE_UNICODE) {
+						M_buf_add_str(buf, "\\u");
+						M_buf_add_bytes(buf, s+1, 4);
+					} else {
+						M_buf_add_bytes(buf, uchr, uchr_len);
+					}
 					M_parser_consume(parser, 4);
 					break;
 				default:

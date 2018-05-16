@@ -40,9 +40,6 @@ __BEGIN_DECLS
  *
  * Mostly EMCA-404 compliant JSON manipulation.
  *
- * Not supported:
- * - Unicode escape conversion.
- *
  * Additional Features:
  * - Comments (C/C++)
  *
@@ -112,10 +109,15 @@ typedef enum {
 	M_JSON_READER_ALLOW_DECIMAL_TRUNCATION = 1 << 0, /*!< Allow decimal truncation. A decimal read and truncated will
 	                                                      not be treated as an error. */
 	M_JSON_READER_DISALLOW_COMMENTS        = 1 << 1, /*!< Treat comments as an error. */
-	M_JSON_READER_OBJECT_UNIQUE_KEYS       = 1 << 2  /*!< Return a parse error when an object has repeating keys. By	
+	M_JSON_READER_OBJECT_UNIQUE_KEYS       = 1 << 2, /*!< Return a parse error when an object has repeating keys. By	
 	                                                      default the later key in the object will be the one used and
 	                                                      earlier keys ignored. This requires all keys in the object to
 	                                                      be unique. */
+	M_JSON_READER_DONT_DECODE_UNICODE      = 1 << 3, /*!< By default unicode escapes will be decoded into their utf-8
+	                                                      byte sequence. Use this with care because "\u" will be put
+	                                                      in the string. Writing will produce "\\u" because the writer
+	                                                      will not understand this is a non-decoded unicode escape. */
+	M_JSON_READER_REPLACE_BAD_CHARS        = 1 << 4  /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
 } M_json_reader_flags_t;
 
 
@@ -124,8 +126,11 @@ typedef enum {
 	M_JSON_WRITER_NONE                   = 0,      /*!< No indent. All data on a single line. */
 	M_JSON_WRITER_PRETTYPRINT_SPACE      = 1 << 0, /*!< 2 space indent. */
 	M_JSON_WRITER_PRETTYPRINT_TAB        = 1 << 1, /*!< Tab indent. */
-	M_JSON_WRITER_PRETTYPRINT_WINLINEEND = 1 << 2  /*!< Windows line ending "\r\n" instead of Unix line ending "\n".
+	M_JSON_WRITER_PRETTYPRINT_WINLINEEND = 1 << 2, /*!< Windows line ending "\r\n" instead of Unix line ending "\n".
 	                                                    Requires space or tab pretty printing. */
+	M_JSON_WRITER_DONT_ENCODE_UNICODE    = 1 << 3, /*!< By default utf-8 characters will be enocded into unicode
+	                                                    escapes. */
+	M_JSON_WRITER_REPLACE_BAD_CHARS      = 1 << 4  /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
 } M_json_writer_flags_t;
 
 

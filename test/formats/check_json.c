@@ -187,14 +187,17 @@ static struct {
 	{ "[ 2 ] /* abc */",    "[\n  2\n]",                      M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
 	{ "[ 2 ] /* abc */",    "[\r\n  2\r\n]",                  M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
 	/* \u escapes. */
-	{ "[ \"\\uABCD\" ]",        "[\"?\"]",                    M_JSON_WRITER_NONE                                                   },
-	{ "[ \"\\uABCD\" ]",        "[\n\t\"?\"\n]",              M_JSON_WRITER_PRETTYPRINT_TAB                                        },
-	{ "[ \"\\uABCD\" ]",        "[\n  \"?\"\n]",              M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
-	{ "[ \"\\uABCD\" ]",        "[\r\n  \"?\"\r\n]",          M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
-	{ "[ \"\\uABCD\\uDCBA\" ]", "[\"??\"]",                   M_JSON_WRITER_NONE                                                   },
-	{ "[ \"\\uABCD\\uDCBA\" ]", "[\n\t\"??\"\n]",             M_JSON_WRITER_PRETTYPRINT_TAB                                        },
-	{ "[ \"\\uABCD\\uDCBA\" ]", "[\n  \"??\"\n]",             M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
-	{ "[ \"\\uABCD\\uDCBA\" ]", "[\r\n  \"??\"\r\n]",         M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
+	{ "[ \"\\uABCD\" ]",        "[\"\\uABCD\"]",                  M_JSON_WRITER_NONE                                                   },
+	{ "[ \"\\uABCD\" ]",        "[\n\t\"\\uABCD\"\n]",            M_JSON_WRITER_PRETTYPRINT_TAB                                        },
+	{ "[ \"\\uAbcd\" ]",        "[\n  \"\\uABCD\"\n]",            M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
+	{ "[ \"\\uaBCD\" ]",        "[\r\n  \"\\uABCD\"\r\n]",        M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
+	{ "[ \"\\uAbcD\\uA23D\" ]", "[\"\\uABCD\\uA23D\"]",           M_JSON_WRITER_NONE                                                   },
+	{ "[ \"\\uaBCD\\uA23d\" ]", "[\n\t\"\\uABCD\\uA23D\"\n]",     M_JSON_WRITER_PRETTYPRINT_TAB                                        },
+	{ "[ \"\\uAbCD\\uA23D\" ]", "[\n  \"\\uABCD\\uA23D\"\n]",     M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
+	{ "[ \"\\uABcD\\ua23d\" ]", "[\r\n  \"\\uABCD\\uA23D\"\r\n]", M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
+	{ "[ \"ꯍ\" ]",              "[\"\\uABCD\"]",                  M_JSON_WRITER_NONE                                                   },
+	{ "[ \"ꈽ\" ]",             "[\"\\uA23D\"]",                  M_JSON_WRITER_NONE                                                   },
+	{ "[ \"ꈽ\" ]",             "[\"ꈽ\"]",                       M_JSON_WRITER_DONT_ENCODE_UNICODE                                    },
 	{ NULL, NULL, M_JSON_WRITER_NONE    }
 };
 
@@ -312,6 +315,9 @@ static struct {
 	{ "[ \n2 ] /* abc */",           M_JSON_READER_DISALLOW_COMMENTS,        M_TRUE,  NULL,      2, 5 },
 	/* Decimal truncation. */
 	{ "[ 9.999999999999999999999 ]", M_JSON_READER_ALLOW_DECIMAL_TRUNCATION, M_FALSE, "[9.99999999999999999]", 0, 0 },
+	{ "[ \"\\uABr\" ]",              M_JSON_READER_REPLACE_BAD_CHARS,        M_FALSE, "[\"?r\"]", 0, 0 },
+	{ "[ \"\\uDCBA\" ]",             M_JSON_READER_REPLACE_BAD_CHARS,        M_FALSE, "[\"?\"]", 0, 0 },
+	{ "[ \"\\uABCD\" ]",             M_JSON_READER_DONT_DECODE_UNICODE,      M_FALSE, "[\"\\\\uABCD\"]", 0, 0 },
 	{ NULL, 0, M_FALSE, NULL, 0, 0 }
 };
 

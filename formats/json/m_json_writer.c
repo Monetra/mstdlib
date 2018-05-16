@@ -126,11 +126,14 @@ static M_bool M_json_write_node_array(const M_json_node_t *node, M_buf_t *buf, s
 	return M_TRUE;
 }
 
-static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf)
+static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf, M_uint32 flags)
 {
-	char     c;
-	size_t   len;
-	size_t   i;
+	const char *p;
+	char        uchr[8];
+	char        c;
+	M_uint32    cp;
+	size_t      len;
+	size_t      i;
 
 	if (buf == NULL || node == NULL || node->type != M_JSON_TYPE_STRING)
 		return M_FALSE;
@@ -160,20 +163,43 @@ static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf)
 				break;
 			case '"':
 				/* fall-thru */
- 				/* We have a " in the middle of a string we're quoting.
+				/* We have a " in the middle of a string we're quoting.
 				 * This will end up writing \" to escape it. */
 			case '\\':
 				M_buf_add_byte(buf, '\\');
 				/* fall-thru */
- 				/* We have a \ in the middle of a string we're quoting.
+				/* We have a \ in the middle of a string we're quoting.
 				 * This will end up writing \\ to escape it. */
 			default:
 				if ((unsigned char)c < 32) {
-					/* XXX: Unsupported control chacter. Error? */
-					M_buf_add_byte(buf, '?');
+					/* Control character. */
+					if (flags & M_JSON_WRITER_REPLACE_BAD_CHARS) {
+						M_buf_add_byte(buf, '?');
+					} else {
+						return M_FALSE;
+					}
 				} else if ((unsigned char)c > 127) {
-					/* XXX: Support encoding this as \u */
-					M_buf_add_byte(buf, '?');
+					if (M_utf8_get_cp(node->data.json_string+i, &cp, &p) != M_UTF8_ERROR_SUCCESS) {
+						if (flags & M_JSON_WRITER_REPLACE_BAD_CHARS) {
+							M_buf_add_byte(buf, '?');
+						} else {
+							return M_FALSE;
+						}
+						break;
+					}
+
+					if (flags & M_JSON_WRITER_DONT_ENCODE_UNICODE) {
+						M_buf_add_bytes(buf, node->data.json_string+i, (size_t)(p - (node->data.json_string+i)));
+					} else {
+						M_buf_add_str(buf, "\\u");
+						M_snprintf(uchr, sizeof(uchr), "%04.X", cp);
+						M_buf_add_str(buf, uchr);
+					}
+					/* advance i to the end of the bytes read. Back off 1 because
+					 * when we come back around to the start of the loop it will
+					 * move one forward. This needs to be the byte before the next
+					 * one that will be processed. */
+					i += (size_t)(p - (node->data.json_string+i)-1);
 				} else {
 					M_buf_add_byte(buf, (unsigned char)c);
 				}
@@ -232,7 +258,7 @@ static M_bool M_json_write_node(const M_json_node_t *node, M_buf_t *buf, size_t 
 		case M_JSON_TYPE_ARRAY:
 			return M_json_write_node_array(node, buf, depth, flags);
 		case M_JSON_TYPE_STRING:
-			return M_json_write_node_string(node, buf);
+			return M_json_write_node_string(node, buf, flags);
 		case M_JSON_TYPE_INTEGER:
 			return M_json_write_node_integer(node, buf);
 		case M_JSON_TYPE_DECIMAL:
