@@ -136,7 +136,11 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ea1ecbd17952ff180447bc6ac8b1af7e94">M_JSON_READER_DISALLOW_COMMENTS</a> = 1 &lt;&lt; 1, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eaf38a73b74469496df699870672b15bce">M_JSON_READER_OBJECT_UNIQUE_KEYS</a> = 1 &lt;&lt; 2
+&#160;&#160;<a class="el" href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eaf38a73b74469496df699870672b15bce">M_JSON_READER_OBJECT_UNIQUE_KEYS</a> = 1 &lt;&lt; 2, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eae939acce94a3eb6a1692a91becea2308">M_JSON_READER_DONT_DECODE_UNICODE</a> = 1 &lt;&lt; 3, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ead45e66804dc32cbc9d16258351f3fc2b">M_JSON_READER_REPLACE_BAD_CHARS</a> = 1 &lt;&lt; 4
 <br/>
  }</td></tr>
 <tr class="separator:ga4f1afe464f5e61d3d6a8b3ea24beab2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,7 +151,11 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca0058d4f0750cebe6e4c826e910ddf252">M_JSON_WRITER_PRETTYPRINT_TAB</a> = 1 &lt;&lt; 1, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c">M_JSON_WRITER_PRETTYPRINT_WINLINEEND</a> = 1 &lt;&lt; 2
+&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c">M_JSON_WRITER_PRETTYPRINT_WINLINEEND</a> = 1 &lt;&lt; 2, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f">M_JSON_WRITER_DONT_ENCODE_UNICODE</a> = 1 &lt;&lt; 3, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7">M_JSON_WRITER_REPLACE_BAD_CHARS</a> = 1 &lt;&lt; 4
 <br/>
  }</td></tr>
 <tr class="separator:ga63635736f37f73ef0c594496bed1ca7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -308,10 +316,6 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Mostly EMCA-404 compliant JSON manipulation.</p>
-<p>Not supported:</p>
-<ul>
-<li>Unicode escape conversion.</li>
-</ul>
 <p>Additional Features:</p>
 <ul>
 <li>Comments (C/C++)</li>
@@ -422,6 +426,12 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga4f1afe464f5e61d3d6a8b3ea24beab2eaf38a73b74469496df699870672b15bce"></a>M_JSON_READER_OBJECT_UNIQUE_KEYS</em>&#160;</td><td class="fielddoc">
 <p>Return a parse error when an object has repeating keys. By default the later key in the object will be the one used and earlier keys ignored. This requires all keys in the object to be unique. </p>
 </td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga4f1afe464f5e61d3d6a8b3ea24beab2eae939acce94a3eb6a1692a91becea2308"></a>M_JSON_READER_DONT_DECODE_UNICODE</em>&#160;</td><td class="fielddoc">
+<p>By default unicode escapes will be decoded into their utf-8 byte sequence. Use this with care because "\u" will be put in the string. Writing will produce "\\u" because the writer will not understand this is a non-decoded unicode escape. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga4f1afe464f5e61d3d6a8b3ea24beab2ead45e66804dc32cbc9d16258351f3fc2b"></a>M_JSON_READER_REPLACE_BAD_CHARS</em>&#160;</td><td class="fielddoc">
+<p>Replace bad characters (invalid utf-8 sequences with "?"). </p>
+</td></tr>
 </table>
 
 </div>
@@ -448,6 +458,12 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c"></a>M_JSON_WRITER_PRETTYPRINT_WINLINEEND</em>&#160;</td><td class="fielddoc">
 <p>Windows line ending "\r\n" instead of Unix line ending "\n". Requires space or tab pretty printing. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f"></a>M_JSON_WRITER_DONT_ENCODE_UNICODE</em>&#160;</td><td class="fielddoc">
+<p>By default utf-8 characters will be enocded into unicode escapes. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7"></a>M_JSON_WRITER_REPLACE_BAD_CHARS</em>&#160;</td><td class="fielddoc">
+<p>Replace bad characters (invalid utf-8 sequences with "?"). </p>
 </td></tr>
 </table>
 
@@ -2287,7 +2303,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon May 14 2018 19:11:32 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed May 16 2018 18:48:13 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -15,13 +15,17 @@ var group__m__json =
       [ "M_JSON_READER_NONE", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eafb32b9e2b39489ab4360ee2b81576616", null ],
       [ "M_JSON_READER_ALLOW_DECIMAL_TRUNCATION", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ea5c7a69c11afa222b76124fbbbbe1bcfb", null ],
       [ "M_JSON_READER_DISALLOW_COMMENTS", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ea1ecbd17952ff180447bc6ac8b1af7e94", null ],
-      [ "M_JSON_READER_OBJECT_UNIQUE_KEYS", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eaf38a73b74469496df699870672b15bce", null ]
+      [ "M_JSON_READER_OBJECT_UNIQUE_KEYS", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eaf38a73b74469496df699870672b15bce", null ],
+      [ "M_JSON_READER_DONT_DECODE_UNICODE", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2eae939acce94a3eb6a1692a91becea2308", null ],
+      [ "M_JSON_READER_REPLACE_BAD_CHARS", "group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ead45e66804dc32cbc9d16258351f3fc2b", null ]
     ] ],
     [ "M_json_writer_flags_t", "group__m__json.html#ga63635736f37f73ef0c594496bed1ca7c", [
       [ "M_JSON_WRITER_NONE", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7cafef85b99e167e01357f491f25b9deaa9", null ],
       [ "M_JSON_WRITER_PRETTYPRINT_SPACE", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca80389bc0ddaa5178ecb7ef7870a0cc8e", null ],
       [ "M_JSON_WRITER_PRETTYPRINT_TAB", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca0058d4f0750cebe6e4c826e910ddf252", null ],
-      [ "M_JSON_WRITER_PRETTYPRINT_WINLINEEND", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c", null ]
+      [ "M_JSON_WRITER_PRETTYPRINT_WINLINEEND", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c", null ],
+      [ "M_JSON_WRITER_DONT_ENCODE_UNICODE", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f", null ],
+      [ "M_JSON_WRITER_REPLACE_BAD_CHARS", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7", null ]
     ] ],
     [ "M_json_error_t", "group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06", [
       [ "M_JSON_ERROR_SUCCESS", "group__m__json.html#ggaa8f38cc98ce6c3d373a95c613d721b06a27efbfb292692fadf0e7fed299e05dba", null ],
