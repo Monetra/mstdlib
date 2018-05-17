@@ -345,7 +345,7 @@ M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp)
 M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t *len, size_t idx)
 {
 	M_utf8_error_t res;
-	M_uint32       cp;
+	M_uint32       cp = 0;
 
 	res = M_utf8_cp_at(str, idx, &cp);
 	if (res != M_UTF8_ERROR_SUCCESS)

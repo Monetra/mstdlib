@@ -57,7 +57,7 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 		M_hash_u64u64_insert(map, cp_map[i].ucode, cp_map[i].cp);
 	}
 
-	while (next != '\0' && !M_textcodec_error_is_error(res)) {
+	while (*next != '\0' && !M_textcodec_error_is_error(res)) {
 		M_uint64       u64v;
 		M_uint32       ucode;
 		unsigned char  cp;
@@ -133,6 +133,7 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 					break;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
 					M_textcodec_buffer_add_str(buf, M_UTF8_REPLACE);
+					/* Fall though. */
 				case M_TEXTCODEC_EHANDLER_IGNORE:
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 					break;

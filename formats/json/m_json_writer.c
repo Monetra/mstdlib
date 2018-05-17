@@ -192,7 +192,7 @@ static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf, 
 						M_buf_add_bytes(buf, node->data.json_string+i, (size_t)(p - (node->data.json_string+i)));
 					} else {
 						M_buf_add_str(buf, "\\u");
-						M_snprintf(uchr, sizeof(uchr), "%04.X", cp);
+						M_snprintf(uchr, sizeof(uchr), "%04X", cp);
 						M_buf_add_str(buf, uchr);
 					}
 					/* advance i to the end of the bytes read. Back off 1 because
