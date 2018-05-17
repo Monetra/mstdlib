@@ -36,10 +36,47 @@ __BEGIN_DECLS
 /*! \addtogroup m_textcodec Text Encoding Conversion
  *  \ingroup mstdlib_base
  *
- * Text codec converstion. E.g. utf-8 to utf-16.
+ * Text codec conversion. E.g. utf-8 to X and X to utf-8.
  *
  * utf-8 is used as the base codec. Input for encode should be utf-8 and
  * output from decode will be utf-8.
+ *
+ *
+ * Codec           | Name                              | Alias
+ * ----------------|-----------------------------------|------
+ * UTF8            | utf8                              | utf-8, utf_8
+ * ASCII           | ascii                             | us-ascii
+ * CP037           | cp037                             | ibm037, ibm-037, ibm039, ibm-039
+ * CP500           | cp500                             | ibm500, ibm-500, ebcdic-cp-be, ebcdic-cp-ch
+ * CP874           | cp874                             | windows-874
+ * CP1250          | cp1250                            | windows-1250
+ * CP1251          | cp1251                            | windows-1251
+ * CP1252          | cp1252                            | windows-1252
+ * CP1253          | cp1253                            | windows-1253
+ * CP1254          | cp1254                            | windows-1254
+ * CP1255          | cp1255                            | windows-1255
+ * CP1256          | cp1256                            | windows-1256
+ * CP1257          | cp1257                            | windows-1257
+ * CP1258          | cp1258                            | windows-1258
+ * ISO8859_1       | latin_1                           | latin-1, latin1, latin 1, latin, l1, iso-8859-1, iso8859-1, iso8859_1, iso88591, 8859, 88591, cp819
+ * ISO8859_2       | latin_2                           | latin-2, latin2, latin 2, l2, iso-8859-2, iso8859-2, iso8859_2, iso88592, 88592
+ * ISO8859_3       | latin_3                           | latin-3, latin3, latin 3, l3, iso-8859-3, iso8859-3, iso8859_3, iso88593, 88593
+ * ISO8859_4       | latin_4                           | latin-4, latin4, latin 4, l4, iso-8859-4, iso8859-4, iso8859_4, iso88594, 88594
+ * ISO8859_5       | cyrillic                          | iso-8859-5, iso8859-5, iso8859_5, iso88595, 88595
+ * ISO8859_6       | arabic                            | iso-8859-6, iso8859-6, iso8859_6, iso88596, 88596
+ * ISO8859_7       | greek                             | iso-8859-7, iso8859-7, iso8859_7, iso88597, 88597
+ * ISO8859_8       | hebrew                            | iso-8859-8, iso8859-8, iso8859_8, iso88598, 88598
+ * ISO8859_9       | latin_5                           | latin-5, latin5, latin 5, l5, iso-8859-9, iso8859-9, iso8859_9, iso88599, 88599
+ * ISO8859_10      | latin_6                           | latin-6, latin6, latin 6, l6, iso-8859-10, iso8859-10, iso8859_10, iso885910, 885910
+ * ISO8859_11      | thai                              | iso-8859-11, iso8859-11, iso8859_11, iso885911, 885911
+ * ISO8859_13      | latin_7                           | latin-7, latin7, latin 7, l7, iso-8859-13, iso8859-13, iso8859_13, iso885913, 885913
+ * ISO8859_14      | latin_8                           | latin-8, latin8, latin 8, l8, iso-8859-14, iso8859-14, iso8859_14, iso885914, 885914
+ * ISO8859_15      | latin_9                           | latin-9, latin9, latin 9, l9, iso-8859-15, iso8859-15, iso8859_15, iso885915, 885915
+ * ISO8859_16      | latin_10                          | latin-10, latin10, latin 10, l10, iso-8859-16, iso8859-16, iso8859_16, iso885916, 885916
+ * PERCENT_URL     | percent                           | url
+ * PERCENT_URLPLUS | percent_plus                      | url_plus, , percent-plus, url-plus, percentplus, urlplus
+ * PERCENT_FORM    | application/x-www-form-urlencoded | x-www-form-urlencoded, www-form-urlencoded, form-urlencoded
+ * PUNYCODE        | punycode                          | puny
  *
  * @{
  */ 
@@ -88,7 +125,8 @@ typedef enum {
 	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
-	M_TEXTCODEC_PUNYCODE         /*!< IDNA Punycode (RFC 3492). Primarily used for DNS. */
+	M_TEXTCODEC_PUNYCODE         /*!< IDNA Punycode (RFC 3492). Primarily used for DNS.
+	                                  Error handlers will be ignore and all error conditions are failures. */
 } M_textcodec_codec_t;
 
 
