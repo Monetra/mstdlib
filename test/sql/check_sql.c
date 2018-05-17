@@ -71,6 +71,12 @@ static const char *sql_trace_type(M_sql_trace_t event_type)
 			return "DRIVER_DEBUG";
 		case M_SQL_TRACE_DRIVER_ERROR:
 			return "DRIVER_ERROR";
+		case M_SQL_TRACE_STALL_QUERY:
+			return "STALL_QUERY";
+		case M_SQL_TRACE_STALL_TRANS_IDLE:
+			return "STALL_TRANS_IDLE";
+		case M_SQL_TRACE_STALL_TRANS_LONG:
+			return "STALL_TRANS_LONG";
 	}
 	return NULL;
 }
@@ -126,6 +132,9 @@ static void sql_trace(M_sql_trace_t event_type, const M_sql_trace_data_t *data, 
 		case M_SQL_TRACE_EXECUTE_FINISH:
 		case M_SQL_TRACE_TRANFAIL:
 		case M_SQL_TRACE_FETCH_FINISH:
+		case M_SQL_TRACE_STALL_QUERY:
+		case M_SQL_TRACE_STALL_TRANS_IDLE:
+		case M_SQL_TRACE_STALL_TRANS_LONG:
 			M_buf_add_str(buf, " (");
 			M_buf_add_uint(buf, M_sql_trace_get_duration_ms(data));
 			M_buf_add_str(buf, "ms)");
@@ -137,6 +146,7 @@ static void sql_trace(M_sql_trace_t event_type, const M_sql_trace_data_t *data, 
 	switch (event_type) {
 		case M_SQL_TRACE_FETCH_FINISH:
 		case M_SQL_TRACE_DISCONNECTED:
+		case M_SQL_TRACE_STALL_TRANS_IDLE:
 			M_buf_add_str(buf, " (overall ");
 			M_buf_add_uint(buf, M_sql_trace_get_total_duration_ms(data));
 			M_buf_add_str(buf, "ms)");
@@ -151,9 +161,13 @@ static void sql_trace(M_sql_trace_t event_type, const M_sql_trace_data_t *data, 
 		case M_SQL_TRACE_FETCH_START:
 		case M_SQL_TRACE_FETCH_FINISH:
 		case M_SQL_TRACE_TRANFAIL:
-			M_buf_add_str(buf, " UserQuery='");
-			M_buf_add_str(buf, M_sql_trace_get_query_user(data));
-			M_buf_add_str(buf, "'");
+		case M_SQL_TRACE_STALL_QUERY:
+		case M_SQL_TRACE_STALL_TRANS_LONG:
+			if (M_sql_trace_get_query_user(data) != NULL) {
+				M_buf_add_str(buf, " UserQuery='");
+				M_buf_add_str(buf, M_sql_trace_get_query_user(data));
+				M_buf_add_str(buf, "'");
+			}
 			break;
 		default:
 			break;
@@ -164,9 +178,13 @@ static void sql_trace(M_sql_trace_t event_type, const M_sql_trace_data_t *data, 
 		case M_SQL_TRACE_FETCH_START:
 		case M_SQL_TRACE_FETCH_FINISH:
 		case M_SQL_TRACE_TRANFAIL:
-			M_buf_add_str(buf, " PreparedQuery='");
-			M_buf_add_str(buf, M_sql_trace_get_query_prepared(data));
-			M_buf_add_str(buf, "'");
+		case M_SQL_TRACE_STALL_QUERY:
+		case M_SQL_TRACE_STALL_TRANS_LONG:
+			if (M_sql_trace_get_query_prepared(data) != NULL) {
+				M_buf_add_str(buf, " PreparedQuery='");
+				M_buf_add_str(buf, M_sql_trace_get_query_prepared(data));
+				M_buf_add_str(buf, "'");
+			}
 			break;
 		default:
 			break;
@@ -178,10 +196,14 @@ static void sql_trace(M_sql_trace_t event_type, const M_sql_trace_data_t *data, 
 		case M_SQL_TRACE_FETCH_START:
 		case M_SQL_TRACE_FETCH_FINISH:
 		case M_SQL_TRACE_TRANFAIL:
-			M_buf_add_str(buf, " bind_rows=");
-			M_buf_add_uint(buf, M_sql_trace_get_bind_rows(data));
-			M_buf_add_str(buf, " bind_cols=");
-			M_buf_add_uint(buf, M_sql_trace_get_bind_cols(data));
+		case M_SQL_TRACE_STALL_QUERY:
+		case M_SQL_TRACE_STALL_TRANS_LONG:
+			if (M_sql_trace_get_bind_rows(data) > 0) {
+				M_buf_add_str(buf, " bind_rows=");
+				M_buf_add_uint(buf, M_sql_trace_get_bind_rows(data));
+				M_buf_add_str(buf, " bind_cols=");
+				M_buf_add_uint(buf, M_sql_trace_get_bind_cols(data));
+			}
 			break;
 		default:
 			break;

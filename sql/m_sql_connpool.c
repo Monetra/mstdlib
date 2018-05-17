@@ -1058,6 +1058,30 @@ void M_sql_conn_release_stmt(M_sql_conn_t *conn)
 }
 
 
+M_sql_stmt_t *M_sql_conn_get_curr_stmt(M_sql_conn_t *conn)
+{
+	return conn->curr_stmt;
+}
+
+
+M_uint64 M_sql_conn_duration_query_ms(M_sql_conn_t *conn)
+{
+	return M_time_elapsed(&conn->query_start_tv);
+}
+
+
+M_uint64 M_sql_conn_duration_trans_ms(M_sql_conn_t *conn)
+{
+	return M_time_elapsed(&conn->trans_start_tv);
+}
+
+
+M_uint64 M_sql_conn_duration_trans_last_ms(M_sql_conn_t *conn)
+{
+	return M_time_elapsed(&conn->trans_last_tv);
+}
+
+
 const M_sql_driver_t *M_sql_conn_get_driver(M_sql_conn_t *conn)
 {
 	if (conn == NULL)
