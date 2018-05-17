@@ -10,7 +10,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
-      - llvm-toolchain-trusty-5.0
+      - llvm-toolchain-trusty-6.0
     packages:
       - cmake
       - libssl-dev
@@ -19,8 +19,8 @@ addons:
       - libmariadbd-dev
       - unixodbc-dev
       - check
-      - clang-5.0
-      - clang-tools-5.0
+      - clang-6.0
+      - clang-tools-6.0
       - libsqlite3-dev
       - libc-ares-dev
       - gcc-7
@@ -68,7 +68,7 @@ jobs:
     - stage: Static Analysis
       os: linux
       env: 
-        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-5.0"
+        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-6.0"
       compiler: clang
     - os: osx
       osx_image: xcode9
@@ -92,7 +92,7 @@ jobs:
           sources:
             - ubuntu-toolchain-r-test
             - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-trusty-6.0
           packages:
             - cmake
             - libssl-dev
@@ -101,8 +101,8 @@ jobs:
             - libmariadbd-dev
             - unixodbc-dev
             - check
-            - clang-5.0
-            - clang-tools-5.0
+            - clang-6.0
+            - clang-tools-6.0
             - libsqlite3-dev
             - libc-ares-dev
             - gcc-7
