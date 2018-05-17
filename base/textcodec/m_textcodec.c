@@ -386,7 +386,9 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 	if (M_str_caseeq(s, "cp037") ||
 			M_str_caseeq(s, "ibm037"), M_str_caseeq(s, "ibm-037") ||
 			M_str_caseeq(s, "ibm039"), M_str_caseeq(s, "ibm-039"))
+	{
 		return M_TEXTCODEC_CP037;
+	}
 
 	if (M_str_caseeq(s, "cp500") || M_str_caseeq(s, "ibm500") || M_str_caseeq(s, "ibm-500") ||
 			M_str_caseeq(s, "ebcdic-cp-be") || M_str_caseeq(s, "ebcdic-cp-ch"))

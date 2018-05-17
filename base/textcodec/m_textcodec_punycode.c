@@ -132,7 +132,7 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 		}
 	}
 
-	h = M_textcodec_buffer_len(buf);
+	h = (M_uint32)M_textcodec_buffer_len(buf);
 	b = h;
 
 	/* Add the delim to the output. */
@@ -251,7 +251,7 @@ M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const
 		size_t   oldi = i;
 		size_t   len2;
 		size_t   k;
-		size_t   t;
+		M_uint32 t;
 
 		for (k=base; k<SIZE_MAX; k+=base) {
 			/* Check for bad digit. Something like a control character. */
@@ -278,8 +278,8 @@ M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const
 		/* Update our counters. */
 		len2  = M_list_str_len(l) + 1;
 		bias  = adapt((M_uint32)(i - oldi), (M_uint32)len2, oldi==0?M_TRUE:M_FALSE);
-		n    += i / len2;
-		i    %= len2;
+		n    += (M_uint32)(i / len2);
+		i    %= (M_uint32)len2;
 
 		/* Insert the decoded character. */
 		if (M_utf8_from_cp(tempa, sizeof(tempa), &len2, n) != M_UTF8_ERROR_SUCCESS)

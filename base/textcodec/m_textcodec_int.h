@@ -52,7 +52,7 @@ typedef struct {
 M_bool M_textcodec_buffer_add_byte(M_textcodec_buffer_t *buf, unsigned char b);
 M_bool M_textcodec_buffer_add_bytes(M_textcodec_buffer_t *buf, const unsigned char *bs, size_t len);
 M_bool M_textcodec_buffer_add_str(M_textcodec_buffer_t *buf, const char *s);
-M_bool M_textcodec_buffer_len(M_textcodec_buffer_t *buf);
+size_t M_textcodec_buffer_len(M_textcodec_buffer_t *buf);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
