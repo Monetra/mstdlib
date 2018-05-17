@@ -40,9 +40,9 @@ static const M_uint32 initial_n    = 128;
 
 static M_uint32 adapt(M_uint32 delta, M_uint32 numpoints, M_bool firsttime)
 {
-	const M_uint32 v = 5;  /* ((base - tmin) * tmax) / 2 */
-	const M_uint32 w = 35; /* base - tmin */
-	const M_uint32 x = 36; /* base - tmin + 1 */
+	const M_uint32 v = 455; /* ((base - tmin) * tmax) / 2 */
+	const M_uint32 w = 35;  /* base - tmin */
+	const M_uint32 x = 36;  /* base - tmin + 1 */
 	M_uint32       k = 0;
 
 	if (firsttime) {
@@ -76,7 +76,7 @@ static M_uint32 decode_digit(M_uint32 d)
 	if (d >= 0x61 && d <= 0x7A)
 		return d - 0x61;
 	if (d >= 0x30 && d <= 0x39)
-		return d - 0x26;
+		return d - 0x16;
 	return base;
 }
 

@@ -74,6 +74,7 @@ set(tests
 	base/math/check_rand.c
 	base/math/check_round.c
 	base/mem/check_mem.c
+	base/textcodec/check_puny.c
 	base/time/check_time_fmt.c
 	base/time/check_time_tm.c
 	base/time/check_time_tz.c
