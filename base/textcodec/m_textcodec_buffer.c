@@ -63,3 +63,14 @@ M_bool M_textcodec_buffer_add_str(M_textcodec_buffer_t *buf, const char *s)
 	}
 	return M_FALSE;
 }
+
+M_bool M_textcodec_buffer_len(M_textcodec_buffer_t *buf)
+{
+	switch (buf->type) {
+		case M_TEXTCODEC_BUFFER_TYPE_BUF:
+			return M_buf_len(buf->u.buf);
+		case M_TEXTCODEC_BUFFER_TYPE_PARSER:
+			return M_parser_len(buf->u.parser);
+	}
+	return 0;
+}

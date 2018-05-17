@@ -110,7 +110,6 @@ set(sources
 	textcodec/m_textcodec_cp1257.c
 	textcodec/m_textcodec_cp1258.c
 	textcodec/m_textcodec_cp_map.c
-	textcodec/m_textcodec_percent.c
 	textcodec/m_textcodec_iso8859_1.c
 	textcodec/m_textcodec_iso8859_2.c
 	textcodec/m_textcodec_iso8859_3.c
@@ -126,6 +125,8 @@ set(sources
 	textcodec/m_textcodec_iso8859_14.c
 	textcodec/m_textcodec_iso8859_15.c
 	textcodec/m_textcodec_iso8859_16.c
+	textcodec/m_textcodec_percent.c
+	textcodec/m_textcodec_punycode.c
 
 	# time:
 	time/m_time.c

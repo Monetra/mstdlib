@@ -52,6 +52,7 @@ typedef struct {
 M_bool M_textcodec_buffer_add_byte(M_textcodec_buffer_t *buf, unsigned char b);
 M_bool M_textcodec_buffer_add_bytes(M_textcodec_buffer_t *buf, const unsigned char *bs, size_t len);
 M_bool M_textcodec_buffer_add_str(M_textcodec_buffer_t *buf, const char *s);
+M_bool M_textcodec_buffer_len(M_textcodec_buffer_t *buf);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -106,6 +107,11 @@ M_textcodec_error_t M_textcodec_decode_cp1258(M_textcodec_buffer_t *buf, const c
 
 M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec);
 M_textcodec_error_t M_textcodec_decode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
+M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
