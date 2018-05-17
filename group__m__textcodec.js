@@ -9,9 +9,6 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_UNKNOWN", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a08f835a40cb8c0b6ec2d9f547ee16ce8", null ],
       [ "M_TEXTCODEC_UTF8", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a1ec9161c65f18ab0f77f9488789300bf", null ],
       [ "M_TEXTCODEC_ASCII", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abf02410beda3f14ab4d03f08053eb9f8", null ],
-      [ "M_TEXTCODEC_PERCENT_URL", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d", null ],
-      [ "M_TEXTCODEC_PERCENT_URLPLUS", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25", null ],
-      [ "M_TEXTCODEC_PERCENT_FORM", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f", null ],
       [ "M_TEXTCODEC_CP037", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a533f6b8d7ac1cc5709c9e92e99d6e4f9", null ],
       [ "M_TEXTCODEC_CP500", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536afd951727c04cd2ae93cbf127ae521876", null ],
       [ "M_TEXTCODEC_CP874", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af913366aa5dbcb806f165c11aba7292d", null ],
@@ -38,7 +35,11 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_ISO8859_13", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a50608334c0183e173e2f698d9ab1e7ee", null ],
       [ "M_TEXTCODEC_ISO8859_14", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536aa109ac25c56d823d54f9cd5bc1373690", null ],
       [ "M_TEXTCODEC_ISO8859_15", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536aaa4bdae712b98231aed820091db2abaa", null ],
-      [ "M_TEXTCODEC_ISO8859_16", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a4721dcdfe1603b946622601f87c7cdc6", null ]
+      [ "M_TEXTCODEC_ISO8859_16", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a4721dcdfe1603b946622601f87c7cdc6", null ],
+      [ "M_TEXTCODEC_PERCENT_URL", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536abdaa31d955b3a633a9796cf2f2b48a6d", null ],
+      [ "M_TEXTCODEC_PERCENT_URLPLUS", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af73710f1d6f15ae999d640326b08bf25", null ],
+      [ "M_TEXTCODEC_PERCENT_FORM", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f", null ],
+      [ "M_TEXTCODEC_PUNYCODE", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06", null ]
     ] ],
     [ "M_textcodec_error_t", "group__m__textcodec.html#gaa22fe6fec7d582fd36d45cabba4e8352", [
       [ "M_TEXTCODEC_ERROR_SUCCESS", "group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ae0be42e9b00a73f5a94d1bd235b8ca9d", null ],
