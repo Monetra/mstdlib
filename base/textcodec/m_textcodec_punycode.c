@@ -108,6 +108,7 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 	/* All ASCII then nothing to encode. */
 	if (M_str_isascii(in)) {
 		M_textcodec_buffer_add_str(buf, in);
+		M_textcodec_buffer_add_byte(buf, '-');
 		return M_TEXTCODEC_ERROR_SUCCESS;
 	}
 
@@ -135,7 +136,8 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 	b = h;
 
 	/* Add the delim to the output. */
-	M_textcodec_buffer_add_byte(buf, '-');
+	if (h != 0)
+		M_textcodec_buffer_add_byte(buf, '-');
 
 	while (M_list_u64_len(non_basic) > 0) {
 		M_uint32 c = 0;
@@ -202,15 +204,16 @@ fail:
 
 M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler)
 {
-	M_list_str_t        *l        = NULL;
-	char                *p;
-	char                 tempa[8];
-	M_uint32             d;
-	M_uint32             bias     = initial_bias;
-	M_uint32             n        = initial_n;
-	size_t               len;
-	size_t               b;
-	M_uint32             i;
+	M_list_str_t *l        = NULL;
+	const char   *p;
+	char         *out;
+	char          tempa[8];
+	M_uint32      d;
+	M_uint32      bias     = initial_bias;
+	M_uint32      n        = initial_n;
+	size_t        len;
+	size_t        b;
+	M_uint32      i;
 
 	(void)ehandler;
 
@@ -218,35 +221,26 @@ M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const
 	if (!M_str_isascii(in))
 		return M_TEXTCODEC_ERROR_BADINPUT;
 
-	/* Find the delimiter. */
-	p   = M_str_rchr(in, '-');
-
-	/* If we don't have a delim or we end with - then there are no special
- 	 * characters to decode. We'll just strip the delim (if there) and output
-	 * the string. Lets shortcut if we know there is notating to decode. */
-	len = M_str_len(in);
-	if (p == NULL || (size_t)(p-in) == len) {
-		if (p != NULL && *p == '-') {
-			len--;
-		}
-		M_textcodec_buffer_add_bytes(buf, (const unsigned char *)in, len);
-		return M_TEXTCODEC_ERROR_SUCCESS;
-	}
-
 	/* Create a list to hold all of our characters. We can't use an M_buf_t
  	 * because 1 charter could be multiple bytes (going to utf-8) and we
 	 * need to insert in the middle of the string. */
 	l = M_list_str_create(M_LIST_STR_NONE);
 
-	/* Put all characters before the delim into our list. */
-	len = (size_t)(p - in);
-	for (i=0; i<len; i++) {
-		M_snprintf(tempa, sizeof(tempa), "%c", in[i]);
-		M_list_str_insert(l, tempa);
-	}
+	/* Find the delimiter. */
+	p = M_str_rchr(in, '-');
+	if (p == NULL) {
+		p = in;
+	} else {
+		/* Put all characters before the delim into our list. */
+		len = (size_t)(p - in);
+		for (i=0; i<len; i++) {
+			M_snprintf(tempa, sizeof(tempa), "%c", in[i]);
+			M_list_str_insert(l, tempa);
+		}
 
-	/* Move past the delim. */
-	p++;
+		/* Move past the delim. */
+		p++;
+	}
 
 	/* Read all the characters after the delim which are converted to the
  	 * utf-8 characters and inserted in the proper location. */
@@ -296,9 +290,9 @@ M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const
 	}
 
 	/* Join all of our chanters into a string. */
-	p = M_list_str_join_str(l, "");
-	M_textcodec_buffer_add_str(buf, p);
-	M_free(p);
+	out = M_list_str_join_str(l, "");
+	M_textcodec_buffer_add_str(buf, out);
+	M_free(out);
 
 	M_list_str_destroy(l);
 	return M_TEXTCODEC_ERROR_SUCCESS;
