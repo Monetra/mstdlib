@@ -78,19 +78,17 @@ static size_t M_utf8_cp_width(M_uint32 cp)
 
 static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *len)
 {
-	const char     *next = str;
-	M_utf8_error_t  res  = M_UTF8_ERROR_SUCCESS;
+	M_utf8_error_t res = M_UTF8_ERROR_SUCCESS;
 
 	if (M_str_isempty(str))
 		return 0;
 
-	while (*next != '\0' && res == M_UTF8_ERROR_SUCCESS) {
+	while (*str != '\0' && res == M_UTF8_ERROR_SUCCESS) {
 		if (endptr != NULL) {
-			*endptr = next;
+			*endptr = str;
 		}
 
-		res = M_utf8_get_cp(str, NULL, &next);
-		str = next;
+		res = M_utf8_get_cp(str, NULL, &str);
 
 		if (len != NULL) {
 			(*len)++;
@@ -171,7 +169,12 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 
 	/* Single byte values are as is. */
 	if (width == 1) {
-		*cp = (M_uint32)str[0];
+		if (cp != NULL) {
+			*cp = (M_uint32)str[0];
+		}
+		if (next != NULL) {
+			*next = str+1;
+		}
 		return M_UTF8_ERROR_SUCCESS;
 	}
 

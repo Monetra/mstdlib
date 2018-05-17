@@ -58,9 +58,6 @@ typedef enum {
 	M_TEXTCODEC_UNKNOWN,         /*!< Unknown / invalid codec. */
 	M_TEXTCODEC_UTF8,            /*!< Utf-8. */
 	M_TEXTCODEC_ASCII,           /*!< Ascii. */
-	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
-	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
-	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
 	M_TEXTCODEC_CP037,           /*!< EBCDIC US Canada. */
 	M_TEXTCODEC_CP500,           /*!< EBCDIC International. */
 	M_TEXTCODEC_CP874,           /*!< Windows code page 874, Thai. */
@@ -87,7 +84,11 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_13,      /*!< ISO-8859-13. Latin 7, Baltic languages. */
 	M_TEXTCODEC_ISO8859_14,      /*!< ISO-8859-14. Latin 8, Celtic languages. */
 	M_TEXTCODEC_ISO8859_15,      /*!< ISO-8859-15. Latin 9, Western Europe. */
-	M_TEXTCODEC_ISO8859_16       /*!< ISO-8859-16. Latin 10, South-Eastern Europe. */
+	M_TEXTCODEC_ISO8859_16,      /*!< ISO-8859-16. Latin 10, South-Eastern Europe. */
+	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
+	M_TEXTCODEC_PUNYCODE         /*!< IDNA Punycode (RFC 3492). Primarily used for DNS. */
 } M_textcodec_codec_t;
 
 
