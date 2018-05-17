@@ -66,6 +66,10 @@ M_uint64 M_sql_conn_duration_last_ms(M_sql_conn_t *conn);
 
 void M_sql_conn_use_stmt(M_sql_conn_t *conn, M_sql_stmt_t *stmt);
 void M_sql_conn_release_stmt(M_sql_conn_t *conn);
+M_sql_stmt_t *M_sql_conn_get_curr_stmt(M_sql_conn_t *conn);
+M_uint64 M_sql_conn_duration_query_ms(M_sql_conn_t *conn);
+M_uint64 M_sql_conn_duration_trans_ms(M_sql_conn_t *conn);
+M_uint64 M_sql_conn_duration_trans_last_ms(M_sql_conn_t *conn);
 
 
 /*! Set the current connection state.

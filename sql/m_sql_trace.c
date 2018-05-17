@@ -60,6 +60,9 @@ static void M_sql_trace_message(M_sql_trace_t type, M_sql_connpool_t *pool, M_sq
 	if (pool == NULL)
 		pool = M_sql_driver_conn_get_pool(conn);
 
+	if (stmt == NULL)
+		stmt = M_sql_conn_get_curr_stmt(conn);
+
 	/* We must have a pool handle */
 	if (pool == NULL)
 		return;
@@ -164,6 +167,12 @@ M_uint64 M_sql_trace_get_duration_ms(const M_sql_trace_data_t *data)
 			return M_sql_stmt_duration_start_ms(data->stmt);
 		case M_SQL_TRACE_FETCH_FINISH:    /* Time it took to retrieve the rows after execution. */
 			return M_sql_stmt_duration_last_ms(data->stmt);
+		case M_SQL_TRACE_STALL_QUERY:
+			return M_sql_conn_duration_query_ms(data->conn);
+		case M_SQL_TRACE_STALL_TRANS_IDLE:
+			return M_sql_conn_duration_trans_last_ms(data->conn);
+		case M_SQL_TRACE_STALL_TRANS_LONG:
+			return M_sql_conn_duration_trans_ms(data->conn);
 
 		case M_SQL_TRACE_FETCH_START:
 		case M_SQL_TRACE_EXECUTE_START:
@@ -191,6 +200,9 @@ M_uint64 M_sql_trace_get_total_duration_ms(const M_sql_trace_data_t *data)
 
 		case M_SQL_TRACE_DISCONNECTED: /* Total time from connection establishment to disconnect end. */
 			return M_sql_conn_duration_start_ms(data->conn);
+
+		case M_SQL_TRACE_STALL_TRANS_IDLE:
+			return M_sql_conn_duration_trans_ms(data->conn);
 
 		default:
 			break;
