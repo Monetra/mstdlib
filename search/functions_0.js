@@ -1319,6 +1319,7 @@ var searchData=
   ['m_5fsql_5fconnpool_5fserver_5fversion',['M_sql_connpool_server_version',['../group__m__sql__conn.html#ga972a2a1a1222c1944997bcd0de194277',1,'m_sql.h']]],
   ['m_5fsql_5fconnpool_5fset_5ftimeouts',['M_sql_connpool_set_timeouts',['../group__m__sql__conn.html#ga41d833f20685195f16c511a94adc6e58',1,'m_sql.h']]],
   ['m_5fsql_5fconnpool_5fstart',['M_sql_connpool_start',['../group__m__sql__conn.html#ga914764d101fe47dfb48b36f83d3c87e8',1,'m_sql.h']]],
+  ['m_5fsql_5fconnpool_5ftrace_5fstalls',['M_sql_connpool_trace_stalls',['../group__m__sql__trace.html#ga187f61df30e6870ee534a3a9de80ccfb',1,'m_sql_trace.h']]],
   ['m_5fsql_5fdriver_5fappend_5fbitop',['M_sql_driver_append_bitop',['../group__m__sql__driver.html#ga086940408f0f4faca942ab43d7a15da5',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fappend_5fupdlock',['M_sql_driver_append_updlock',['../group__m__sql__driver.html#gafd136e6f1a35228ef962371d833319ec',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fconn_5fget_5fconn',['M_sql_driver_conn_get_conn',['../group__m__sql__driver.html#ga979bf726b60868f5925c7ec94734d360',1,'m_sql_driver.h']]],

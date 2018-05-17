@@ -32,6 +32,7 @@ var group__m__sql__trace =
       [ "M_SQL_CONN_TYPE_READONLY", "group__m__sql__trace.html#gga92af031d020feb375738bf3a43d19de5a070cd1eb3a122317c65eaaabaae6941a", null ]
     ] ],
     [ "M_sql_connpool_add_trace", "group__m__sql__trace.html#ga9e61fcf37de34309c19217100088039d", null ],
+    [ "M_sql_connpool_trace_stalls", "group__m__sql__trace.html#ga187f61df30e6870ee534a3a9de80ccfb", null ],
     [ "M_sql_trace_ignore_tranfail", "group__m__sql__trace.html#ga0bda8b6d969dac03229240ea29d52cc6", null ],
     [ "M_sql_trace_get_error_string", "group__m__sql__trace.html#ga8b2f6da1ba102c1eaa8c6294971bdf83", null ],
     [ "M_sql_trace_get_error", "group__m__sql__trace.html#gadb2e2bfde27cd30c5d8beb642fdb8cb4", null ],

@@ -2151,6 +2151,7 @@ var searchData=
   ['m_5fsql_5fconnpool_5fset_5ftimeouts',['M_sql_connpool_set_timeouts',['../group__m__sql__conn.html#ga41d833f20685195f16c511a94adc6e58',1,'m_sql.h']]],
   ['m_5fsql_5fconnpool_5fstart',['M_sql_connpool_start',['../group__m__sql__conn.html#ga914764d101fe47dfb48b36f83d3c87e8',1,'m_sql.h']]],
   ['m_5fsql_5fconnpool_5ft',['M_sql_connpool_t',['../group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352',1,'m_sql.h']]],
+  ['m_5fsql_5fconnpool_5ftrace_5fstalls',['M_sql_connpool_trace_stalls',['../group__m__sql__trace.html#ga187f61df30e6870ee534a3a9de80ccfb',1,'m_sql_trace.h']]],
   ['m_5fsql_5fconnstr_5fparams',['M_sql_connstr_params',['../group__m__sql__driver.html#structM__sql__connstr__params',1,'']]],
   ['m_5fsql_5fconnstr_5ftype_5falpha',['M_SQL_CONNSTR_TYPE_ALPHA',['../group__m__sql__driver.html#ggac47d3c940551d97b1f18e95cf26956e8ad27fb9a6bbf948c0d88c47d6796fb1fe',1,'m_sql_driver.h']]],
   ['m_5fsql_5fconnstr_5ftype_5falphanum',['M_SQL_CONNSTR_TYPE_ALPHANUM',['../group__m__sql__driver.html#ggac47d3c940551d97b1f18e95cf26956e8a8235bc062545036850b6bb4010145060',1,'m_sql_driver.h']]],
