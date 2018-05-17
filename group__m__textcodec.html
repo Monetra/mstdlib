@@ -220,8 +220,78 @@ Functions</h2></td></tr>
 <tr class="separator:gace01600af9e4ad02a7186f58992cba0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Text codec converstion. E.g. utf-8 to utf-16.</p>
-<p>utf-8 is used as the base codec. Input for encode should be utf-8 and output from decode will be utf-8. </p>
+<p>Text codec conversion. E.g. utf-8 to X and X to utf-8.</p>
+<p>utf-8 is used as the base codec. Input for encode should be utf-8 and output from decode will be utf-8.</p>
+<table class="doxtable">
+<tr>
+<th>Codec </th><th>Name </th><th>Alias  </th></tr>
+<tr>
+<td>UTF8 </td><td>utf8 </td><td>utf-8, utf_8 </td></tr>
+<tr>
+<td>ASCII </td><td>ascii </td><td>us-ascii </td></tr>
+<tr>
+<td>CP037 </td><td>cp037 </td><td>ibm037, ibm-037, ibm039, ibm-039 </td></tr>
+<tr>
+<td>CP500 </td><td>cp500 </td><td>ibm500, ibm-500, ebcdic-cp-be, ebcdic-cp-ch </td></tr>
+<tr>
+<td>CP874 </td><td>cp874 </td><td>windows-874 </td></tr>
+<tr>
+<td>CP1250 </td><td>cp1250 </td><td>windows-1250 </td></tr>
+<tr>
+<td>CP1251 </td><td>cp1251 </td><td>windows-1251 </td></tr>
+<tr>
+<td>CP1252 </td><td>cp1252 </td><td>windows-1252 </td></tr>
+<tr>
+<td>CP1253 </td><td>cp1253 </td><td>windows-1253 </td></tr>
+<tr>
+<td>CP1254 </td><td>cp1254 </td><td>windows-1254 </td></tr>
+<tr>
+<td>CP1255 </td><td>cp1255 </td><td>windows-1255 </td></tr>
+<tr>
+<td>CP1256 </td><td>cp1256 </td><td>windows-1256 </td></tr>
+<tr>
+<td>CP1257 </td><td>cp1257 </td><td>windows-1257 </td></tr>
+<tr>
+<td>CP1258 </td><td>cp1258 </td><td>windows-1258 </td></tr>
+<tr>
+<td>ISO8859_1 </td><td>latin_1 </td><td>latin-1, latin1, latin 1, latin, l1, iso-8859-1, iso8859-1, iso8859_1, iso88591, 8859, 88591, cp819 </td></tr>
+<tr>
+<td>ISO8859_2 </td><td>latin_2 </td><td>latin-2, latin2, latin 2, l2, iso-8859-2, iso8859-2, iso8859_2, iso88592, 88592 </td></tr>
+<tr>
+<td>ISO8859_3 </td><td>latin_3 </td><td>latin-3, latin3, latin 3, l3, iso-8859-3, iso8859-3, iso8859_3, iso88593, 88593 </td></tr>
+<tr>
+<td>ISO8859_4 </td><td>latin_4 </td><td>latin-4, latin4, latin 4, l4, iso-8859-4, iso8859-4, iso8859_4, iso88594, 88594 </td></tr>
+<tr>
+<td>ISO8859_5 </td><td>cyrillic </td><td>iso-8859-5, iso8859-5, iso8859_5, iso88595, 88595 </td></tr>
+<tr>
+<td>ISO8859_6 </td><td>arabic </td><td>iso-8859-6, iso8859-6, iso8859_6, iso88596, 88596 </td></tr>
+<tr>
+<td>ISO8859_7 </td><td>greek </td><td>iso-8859-7, iso8859-7, iso8859_7, iso88597, 88597 </td></tr>
+<tr>
+<td>ISO8859_8 </td><td>hebrew </td><td>iso-8859-8, iso8859-8, iso8859_8, iso88598, 88598 </td></tr>
+<tr>
+<td>ISO8859_9 </td><td>latin_5 </td><td>latin-5, latin5, latin 5, l5, iso-8859-9, iso8859-9, iso8859_9, iso88599, 88599 </td></tr>
+<tr>
+<td>ISO8859_10 </td><td>latin_6 </td><td>latin-6, latin6, latin 6, l6, iso-8859-10, iso8859-10, iso8859_10, iso885910, 885910 </td></tr>
+<tr>
+<td>ISO8859_11 </td><td>thai </td><td>iso-8859-11, iso8859-11, iso8859_11, iso885911, 885911 </td></tr>
+<tr>
+<td>ISO8859_13 </td><td>latin_7 </td><td>latin-7, latin7, latin 7, l7, iso-8859-13, iso8859-13, iso8859_13, iso885913, 885913 </td></tr>
+<tr>
+<td>ISO8859_14 </td><td>latin_8 </td><td>latin-8, latin8, latin 8, l8, iso-8859-14, iso8859-14, iso8859_14, iso885914, 885914 </td></tr>
+<tr>
+<td>ISO8859_15 </td><td>latin_9 </td><td>latin-9, latin9, latin 9, l9, iso-8859-15, iso8859-15, iso8859_15, iso885915, 885915 </td></tr>
+<tr>
+<td>ISO8859_16 </td><td>latin_10 </td><td>latin-10, latin10, latin 10, l10, iso-8859-16, iso8859-16, iso8859_16, iso885916, 885916 </td></tr>
+<tr>
+<td>PERCENT_URL </td><td>percent </td><td>url </td></tr>
+<tr>
+<td>PERCENT_URLPLUS </td><td>percent_plus </td><td>url_plus, , percent-plus, url-plus, percentplus, urlplus </td></tr>
+<tr>
+<td>PERCENT_FORM </td><td>application/x-www-form-urlencoded </td><td>x-www-form-urlencoded, www-form-urlencoded, form-urlencoded </td></tr>
+<tr>
+<td>PUNYCODE </td><td>punycode </td><td>puny </td></tr>
+</table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a class="anchor" id="gabce257a204b55a46ad9835114b8673df"></a>
 <div class="memitem">
@@ -358,7 +428,7 @@ Functions</h2></td></tr>
 <p>Percent suitable for use as form data. Must be utf-8. </p>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06"></a>M_TEXTCODEC_PUNYCODE</em>&#160;</td><td class="fielddoc">
-<p>IDNA Punycode (RFC 3492). Primarily used for DNS. </p>
+<p>IDNA Punycode (RFC 3492). Primarily used for DNS. Error handlers will be ignore and all error conditions are failures. </p>
 </td></tr>
 </table>
 
@@ -766,7 +836,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 17 2018 19:21:09 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 17 2018 20:57:12 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
