@@ -46,7 +46,7 @@ jobs:
     - stage: normal builds
       os: linux
       env: 
-        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="" GHPAGES_DEPLOY="yes"
+        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="" GHPAGES_DEPLOY="yes" CC="clang-6.0"
       compiler: clang
     - os: linux
       env:
@@ -68,7 +68,7 @@ jobs:
     - stage: Static Analysis
       os: linux
       env: 
-        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-6.0"
+        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-6.0" CC="clang-6.0"
       compiler: clang
     - os: osx
       osx_image: xcode9
@@ -110,7 +110,7 @@ jobs:
     - stage: Runtime Analysis
       os: linux
       env: 
-        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR=""
+        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="" CC="clang-6.0"
       compiler: clang
     - os: osx
       osx_image: xcode9
