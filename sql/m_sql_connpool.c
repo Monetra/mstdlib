@@ -1038,6 +1038,42 @@ const M_sql_driver_t *M_sql_connpool_get_driver(M_sql_connpool_t *pool)
 }
 
 
+void M_sql_connpool_trace_stalls(M_sql_connpool_t *pool, M_uint64 max_query_s, M_uint64 max_trans_idle_s, M_uint64 max_trans_s)
+{
+#define TRACE_NUM_QUEUES 2
+	M_queue_t *queues[TRACE_NUM_QUEUES];
+	size_t     i;
+	if (pool == NULL)
+		return;
+
+	M_thread_mutex_lock(pool->lock);
+
+	queues[0] = pool->pool_primary.used_conns;
+	queues[1] = pool->pool_readonly.used_conns;
+
+	for (i=0; i < TRACE_NUM_QUEUES; i++) {
+		M_queue_foreach_t *q_foreach = NULL;
+		void              *member    = NULL;
+
+		while (M_queue_foreach(queues[i], &q_foreach, &member)) {
+			M_sql_conn_t *conn = member;
+
+			if (max_query_s && conn->curr_stmt && max_query_s * 1000 <= M_time_elapsed(&conn->query_start_tv)) {
+				M_sql_trace_message_conn(M_SQL_TRACE_STALL_QUERY, conn, M_SQL_ERROR_UNSET, NULL);
+			}
+			if (max_trans_idle_s && conn->in_trans && max_trans_idle_s * 1000 <= M_time_elapsed(&conn->trans_last_tv)) {
+				M_sql_trace_message_conn(M_SQL_TRACE_STALL_TRANS_IDLE, conn, M_SQL_ERROR_UNSET, NULL);
+			}
+			if (max_trans_s && conn->in_trans && max_trans_s * 1000 <= M_time_elapsed(&conn->trans_start_tv)) {
+				M_sql_trace_message_conn(M_SQL_TRACE_STALL_TRANS_LONG, conn, M_SQL_ERROR_UNSET, NULL);
+			}
+		}
+	}
+
+	M_thread_mutex_unlock(pool->lock);
+}
+
+
 void M_sql_conn_use_stmt(M_sql_conn_t *conn, M_sql_stmt_t *stmt)
 {
 	M_thread_mutex_lock(conn->pool->lock);
@@ -1060,24 +1096,32 @@ void M_sql_conn_release_stmt(M_sql_conn_t *conn)
 
 M_sql_stmt_t *M_sql_conn_get_curr_stmt(M_sql_conn_t *conn)
 {
+	if (conn == NULL)
+		return NULL;
 	return conn->curr_stmt;
 }
 
 
 M_uint64 M_sql_conn_duration_query_ms(M_sql_conn_t *conn)
 {
+	if (conn == NULL)
+		return 0;
 	return M_time_elapsed(&conn->query_start_tv);
 }
 
 
 M_uint64 M_sql_conn_duration_trans_ms(M_sql_conn_t *conn)
 {
+	if (conn == NULL)
+		return 0;
 	return M_time_elapsed(&conn->trans_start_tv);
 }
 
 
 M_uint64 M_sql_conn_duration_trans_last_ms(M_sql_conn_t *conn)
 {
+	if (conn == NULL)
+		return 0;
 	return M_time_elapsed(&conn->trans_last_tv);
 }
 
