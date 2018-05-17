@@ -21,7 +21,10 @@ var group__m__sql__trace =
       [ "M_SQL_TRACE_CONNFAIL", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a48b7bd0eb164868c98084675acdd3561", null ],
       [ "M_SQL_TRACE_TRANFAIL", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a9ccafc53f16f257d3d64fd7102e5d1f7", null ],
       [ "M_SQL_TRACE_DRIVER_DEBUG", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90afac671930b10bfcf5ad10895521a8381", null ],
-      [ "M_SQL_TRACE_DRIVER_ERROR", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a97dc635a20efa1ea215c3b7ba45de16a", null ]
+      [ "M_SQL_TRACE_DRIVER_ERROR", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a97dc635a20efa1ea215c3b7ba45de16a", null ],
+      [ "M_SQL_TRACE_STALL_QUERY", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a386f75f6095e2bd872e52b497f9fe04f", null ],
+      [ "M_SQL_TRACE_STALL_TRANS_IDLE", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a313287c8a5c89e0db85faf57caa5715d", null ],
+      [ "M_SQL_TRACE_STALL_TRANS_LONG", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a6a36b97ad5e4c6027d8c2d7bab5c5a2c", null ]
     ] ],
     [ "M_sql_conn_type_t", "group__m__sql__trace.html#ga92af031d020feb375738bf3a43d19de5", [
       [ "M_SQL_CONN_TYPE_UNKNOWN", "group__m__sql__trace.html#gga92af031d020feb375738bf3a43d19de5a3b6b89e69ed246d28aa5bf3ab7ce6093", null ],
