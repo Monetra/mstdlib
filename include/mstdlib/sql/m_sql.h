@@ -461,7 +461,7 @@ M_API M_sql_error_t M_sql_connpool_start(M_sql_connpool_t *pool, char *error, si
 M_API M_sql_error_t M_sql_connpool_destroy(M_sql_connpool_t *pool);
 
 
-/*! Count of active/connected SQL connections.
+/*! Count of active/connected SQL connections (but not ones that are in process of being brought online).
  * 
  *  \param[in] pool     Initialized pool object
  *  \param[in] readonly M_TRUE if querying for readonly connections, M_FALSE for primary
@@ -585,10 +585,6 @@ M_API M_uint64 M_sql_rollback_delay_ms(M_sql_connpool_t *pool);
 
 
 /*! @} */
-
-
-
-
 
 
 
