@@ -43,8 +43,9 @@ typedef enum {
 /*! Holds sub-pool specific data */
 typedef struct {
 	M_llist_t         *conns;          /*!< List of idle M_sql_conn_t objects */
-	size_t             used_conns;     /*!< Connections in-use, checked out by active processes */
-	size_t             max_conns;      /*!< M_list_len(conns) + used_conns will always be <= this value */
+	M_queue_t         *used_conns;     /*!< Connections in-use, checked out by active processes */
+	size_t             new_conns;      /*!< New connections being established at this moment */
+	size_t             max_conns;      /*!< (M_list_len(conns) + M_queue_len(used_conns) + new_conns) will always be <= this value */
 
 	M_bool             is_initialized; /*!< Set to M_TRUE after first connection is brought up to prevent re-running a first connect sequence */
 	M_sql_conn_info_t *info;           /*!< Array of connection status information, one per connection */
@@ -58,9 +59,7 @@ typedef struct {
 
 
 struct M_sql_conn {
-	M_timeval_t            start_tv;         /*!< Time connection was started (really before connect), but use this for reconnect_time_s too */
-	M_timeval_t            last_used_tv;     /*!< Time connection was last used, this is used for max_idle_time_s */
-	M_uint64               connect_time_ms;  /*!< This is how many millisecons the connection took to establish */
+	/* Core parameters */
 	size_t                 id;               /*!< ID of connection, (0 - max_conns] */
 	size_t                 host_idx;         /*!< Host index currently connected to */
 	M_bool                 in_trans;         /*!< M_TRUE if in an SQL transaction, M_FALSE if a single SQL query */
@@ -69,6 +68,17 @@ struct M_sql_conn {
 	M_cache_strvp_t       *stmt_cache;       /*!< Client-side prepared statement cache */
 	M_sql_connpool_t      *pool;             /*!< Pointer to parent pool */
 	M_sql_connpool_data_t *pool_data;        /*!< Pointer to parent sub-pool (primary vs readonly) */
+
+	/* Basic stats */
+	M_timeval_t            start_tv;         /*!< Time connection was started (really before connect), but use this for reconnect_time_s too */
+	M_timeval_t            last_used_tv;     /*!< Time connection was last used, this is used for max_idle_time_s */
+	M_uint64               connect_time_ms;  /*!< This is how many milliseconds the connection took to establish */
+
+	/* Stall Monitoring, require lock of pool->lock to modify/read */
+	M_timeval_t            trans_start_tv;   /*!< Time transaction was started (if in_trans) */
+	M_timeval_t            trans_last_tv;    /*!< Time last query ended in transaction, same as trans_start_tv if no queries performed */
+	M_timeval_t            query_start_tv;   /*!< Time query was started (if in query, as per curr_stmt) */
+	M_sql_stmt_t          *curr_stmt;        /*!< Currently executing statement handle */
 };
 
 
@@ -351,6 +361,7 @@ static M_bool M_sql_connpool_add_subpool(M_sql_connpool_t *pool, M_bool is_reado
 
 	data->cond           = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
 	data->conns          = M_llist_create(NULL, M_LLIST_NONE);
+	data->used_conns     = M_queue_create(NULL, NULL);
 	data->info           = M_malloc_zero(sizeof(*data->info) * max_conns);
 	data->max_conns      = max_conns;
 	data->host_offline_t = M_malloc_zero(sizeof(*data->host_offline_t) * data->num_hosts);
@@ -663,8 +674,8 @@ static M_sql_error_t M_sql_connpool_stop(M_sql_connpool_t *pool)
 	M_thread_mutex_lock(pool->lock);
 
 	/* If in active use, fail to destroy */
-	if (pool->pool_primary.used_conns || pool->pool_primary.num_waiters ||
-	    pool->pool_readonly.used_conns || pool->pool_readonly.num_waiters) {
+	if (M_queue_len(pool->pool_primary.used_conns) || pool->pool_primary.num_waiters || pool->pool_primary.new_conns ||
+	    M_queue_len(pool->pool_readonly.used_conns) || pool->pool_readonly.num_waiters || pool->pool_readonly.new_conns) {
 		M_thread_mutex_unlock(pool->lock);
 		return M_SQL_ERROR_INUSE;
 	}
@@ -794,7 +805,9 @@ M_sql_error_t M_sql_connpool_destroy(M_sql_connpool_t *pool)
 
 	/* Clean up */
 	M_llist_destroy(pool->pool_primary.conns, M_TRUE);
+	M_queue_destroy(pool->pool_primary.used_conns);
 	M_llist_destroy(pool->pool_readonly.conns, M_TRUE);
+	M_queue_destroy(pool->pool_readonly.used_conns);
 	M_free(pool->pool_primary.info);
 	M_free(pool->pool_readonly.info);
 	M_thread_cond_destroy(pool->pool_primary.cond);
@@ -828,7 +841,8 @@ size_t M_sql_connpool_active_conns(M_sql_connpool_t *pool, M_bool readonly)
 	} else {
 		pool_data = &pool->pool_primary;
 	}
-	cnt = M_llist_len(pool_data->conns) + pool_data->used_conns;
+	/* but not pool_data->new_conns */
+	cnt = M_llist_len(pool_data->conns) + M_queue_len(pool_data->used_conns);
 
 	M_thread_mutex_unlock(pool->lock);
 
@@ -846,6 +860,25 @@ static size_t M_sql_connpool_get_unused_id(M_sql_connpool_data_t *pool_data)
 	}
 
 	return 0;
+}
+
+
+static void M_sql_connpool_set_used(M_sql_connpool_data_t *pool_data, M_sql_conn_t *conn, M_bool for_trans, M_bool is_new)
+{
+	/* Add connection to used_conns */
+	M_queue_insert(pool_data->used_conns, conn);
+
+	/* If a new connection, since we added it to used_conns, decrement */
+	if (is_new)
+		pool_data->new_conns--;
+
+	/* Mark if this connection is used by a transaction rather than a single statement */
+	conn->in_trans = for_trans;
+
+	if (for_trans) {
+		M_time_elapsed_start(&conn->trans_start_tv);
+		M_time_elapsed_start(&conn->trans_last_tv);
+	}
 }
 
 
@@ -877,10 +910,10 @@ M_sql_conn_t *M_sql_connpool_acquire_conn(M_sql_connpool_t *pool, M_bool readonl
 		}
 
 		/* Ugh, we just tried to reconnect, and it failed. We need to decrement
-		 * the used_conns counter and de-reserve the id that failed and try the
+		 * the new_conns counter and de-reserve the id that failed and try the
 		 * whole shebang over again */
 		if (newconn_failed) {
-			pool_data->used_conns--;
+			pool_data->new_conns--;
 			pool_data->info[id] = M_SQL_CONN_INFO_FAILED;
 			newconn_failed      = M_FALSE;
 		}
@@ -889,7 +922,7 @@ M_sql_conn_t *M_sql_connpool_acquire_conn(M_sql_connpool_t *pool, M_bool readonl
 		 * not wait our turn, so if there's waiters, wait our turn.  If connections are
 		 * growable, then we might need to spawn a new one. */
 		while ((pool_data->num_waiters && !just_woken) ||
-		       (M_llist_len(pool_data->conns) == 0 && pool_data->used_conns == pool_data->max_conns)) {
+		       (M_llist_len(pool_data->conns) == 0 && (M_queue_len(pool_data->used_conns) + pool_data->new_conns) == pool_data->max_conns)) {
 			pool_data->num_waiters++;
 			M_thread_cond_wait(pool_data->cond, pool->lock);
 			pool_data->num_waiters--;
@@ -909,35 +942,38 @@ M_sql_conn_t *M_sql_connpool_acquire_conn(M_sql_connpool_t *pool, M_bool readonl
 			continue;
 		}
 
-		pool_data->used_conns++;
-
 		/* We're going to establish a new connection, we need to reserve an
 		 * id while we hold the pool lock */
 		if (conn == NULL) {
+			pool_data->new_conns++;
 			id                  = M_sql_connpool_get_unused_id(pool_data);
 			pool_data->info[id] = M_SQL_CONN_INFO_UP;
+		} else {
+			M_sql_connpool_set_used(pool_data, conn, for_trans, M_FALSE);
 		}
 
 		M_thread_mutex_unlock(pool->lock);
 
 		/* If conn is NULL here, that means we've been told to spawn a new connection,
-		 * used_conns has already be incremented while the pool lock was held so we
+		 * new_conns has already be incremented while the pool lock was held so we
 		 * know too many won't be spawned. */
 		/* Successfully retrieved a connection */
 		if (conn == NULL) {
 			if (M_sql_error_is_error(M_sql_conn_create(&conn, pool, id, readonly, NULL, 0))) {
+				conn           = NULL;
 				newconn_failed = M_TRUE;
 				M_thread_sleep(100000);
 
 				/* If we don't set this, nothing is available to signal us to wake again during an
 				 * outage, so we have priority since we were at the top of the list anyhow */
 				just_woken = M_TRUE;
+			} else {
+				M_thread_mutex_lock(pool->lock);
+				M_sql_connpool_set_used(pool_data, conn, for_trans, M_TRUE);
+				M_thread_mutex_unlock(pool->lock);
 			}
 		}
-
 	} while(newconn_failed || conn == NULL);
-
-	conn->in_trans = for_trans;
 
 	return conn;
 }
@@ -959,9 +995,8 @@ void M_sql_connpool_release_conn(M_sql_conn_t *conn)
 
 	is_readonly = (&pool->pool_readonly == pool_data); 
 
-	/* Connection is no longer used/reserved ... this is mostly for dynamic
-	 * reconnect purposes */
-	pool_data->used_conns--;
+	/* Connection is no longer used/reserved */
+	M_queue_remove(pool_data->used_conns, conn);
 
 	/* If connection is failed, destroy it */
 	if (M_sql_conn_get_state(conn) == M_SQL_CONN_STATE_FAILED) {
@@ -980,8 +1015,9 @@ void M_sql_connpool_release_conn(M_sql_conn_t *conn)
 		/* Keep last used time to track max_idle_time_s */
 		M_time_elapsed_start(&conn->last_used_tv);
 
-		/* Make sure we unset the in_trans */
-		conn->in_trans = M_FALSE;
+		/* Make sure we unset the in_trans and curr_stmt handles */
+		conn->in_trans  = M_FALSE;
+		conn->curr_stmt = NULL;
 
 		/* Return to pool */
 		M_llist_insert(pool_data->conns, conn);
@@ -999,6 +1035,26 @@ const M_sql_driver_t *M_sql_connpool_get_driver(M_sql_connpool_t *pool)
 		return NULL;
 
 	return pool->driver;
+}
+
+
+void M_sql_conn_use_stmt(M_sql_conn_t *conn, M_sql_stmt_t *stmt)
+{
+	M_thread_mutex_lock(conn->pool->lock);
+	M_time_elapsed_start(&conn->query_start_tv);
+	conn->curr_stmt = stmt;
+	M_thread_mutex_unlock(conn->pool->lock);
+}
+
+
+void M_sql_conn_release_stmt(M_sql_conn_t *conn)
+{
+	M_thread_mutex_lock(conn->pool->lock);
+	if (conn->in_trans) {
+		M_time_elapsed_start(&conn->trans_last_tv);
+	}
+	conn->curr_stmt = NULL;
+	M_thread_mutex_unlock(conn->pool->lock);
 }
 
 
