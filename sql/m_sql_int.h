@@ -64,6 +64,10 @@ const M_sql_driver_t *M_sql_conn_get_driver(M_sql_conn_t *conn);
 M_uint64 M_sql_conn_duration_start_ms(M_sql_conn_t *conn);
 M_uint64 M_sql_conn_duration_last_ms(M_sql_conn_t *conn);
 
+void M_sql_conn_use_stmt(M_sql_conn_t *conn, M_sql_stmt_t *stmt);
+void M_sql_conn_release_stmt(M_sql_conn_t *conn);
+
+
 /*! Set the current connection state.
  *
  * \param[in] conn Connection acquired with M_sql_connpool_acquireconn()

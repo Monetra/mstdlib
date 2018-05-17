@@ -459,7 +459,6 @@ M_API M_sql_stmt_t *M_sql_conn_execute_simple(M_sql_conn_t *conn, const char *qu
  */
 M_API M_bool M_sql_driver_validate_connstr(const M_hash_dict_t *conndict, const M_sql_connstr_params_t *params, char *error, size_t error_size);
 
-
 M_API M_sql_hostport_t *M_sql_driver_parse_hostport(const char *hostport, M_uint16 default_port, size_t *out_len, char *error, size_t error_size);
 
 /*! Retrieve a handle to the driver-specific connection object.
