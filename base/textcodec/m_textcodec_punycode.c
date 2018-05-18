@@ -96,12 +96,13 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 {
 	M_list_u64_t *non_basic = NULL;
 	const char   *p;
-	M_uint32      n     = initial_n;
-	M_uint32      m     = 0;
-	M_uint32      b     = 0;
-	M_uint32      h     = 0;
-	M_uint32      delta = 0;
-	M_uint32      bias  = initial_bias;
+	M_buf_t      *outbuf    = NULL;
+	M_uint32      n         = initial_n;
+	M_uint32      m         = 0;
+	M_uint32      b         = 0;
+	M_uint32      h         = 0;
+	M_uint32      delta     = 0;
+	M_uint32      bias      = initial_bias;
 
 	(void)ehandler;
 
@@ -117,6 +118,8 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 	if (!M_utf8_is_valid(in, NULL))
 		return M_TEXTCODEC_ERROR_BADINPUT;
 
+	outbuf = M_buf_create();
+
 	/* When we go though the list we need to work from smallest to largest codepoint
  	 * and we only want to process them once. */
 	non_basic = M_list_u64_create(M_LIST_U64_SORTASC|M_LIST_U64_SET);
@@ -126,18 +129,18 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 	p = in;
 	while (p != NULL && *p != '\0' && M_utf8_get_cp(p, &m, &p) == M_UTF8_ERROR_SUCCESS) {
 		if (m < 0x80) {
-			M_textcodec_buffer_add_byte(buf, (unsigned char)m);
+			M_buf_add_byte(outbuf, (unsigned char)m);
 		} else {
 			M_list_u64_insert(non_basic, m);
 		}
 	}
 
-	h = (M_uint32)M_textcodec_buffer_len(buf);
+	h = (M_uint32)M_buf_len(outbuf);
 	b = h;
 
 	/* Add the delim to the output. */
 	if (h != 0)
-		M_textcodec_buffer_add_byte(buf, '-');
+		M_buf_add_byte(outbuf, '-');
 
 	while (M_list_u64_len(non_basic) > 0) {
 		M_uint32 c = 0;
@@ -180,11 +183,11 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 				if (q < t)
 					break;
 
-				M_textcodec_buffer_add_byte(buf, (unsigned char)encode_digit(t + (q - t) % (base - t)));
+				M_buf_add_byte(outbuf, (unsigned char)encode_digit(t + (q - t) % (base - t)));
 				q = (q - t) / (base - t);
 			}
 
-			M_textcodec_buffer_add_byte(buf, (unsigned char)encode_digit(q));
+			M_buf_add_byte(outbuf, (unsigned char)encode_digit(q));
 			bias = adapt(delta, h+1, h==b?M_TRUE:M_FALSE);
 			delta = 0;
 			h++;
@@ -194,10 +197,13 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 		n++;
 	}
 
+	M_textcodec_buffer_add_bytes(buf, (const unsigned char *)M_buf_peek(outbuf), M_buf_len(outbuf));
+	M_buf_cancel(outbuf);
 	M_list_u64_destroy(non_basic);
 	return M_TEXTCODEC_ERROR_SUCCESS;
 
 fail:
+	M_buf_cancel(outbuf);
 	M_list_u64_destroy(non_basic);
 	return M_TEXTCODEC_ERROR_FAIL;
 }
