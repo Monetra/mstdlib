@@ -119,13 +119,13 @@ endif ()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SQLite Amalgamation
 file(REMOVE_RECURSE "${srcdir}/thirdparty/sqlite-amalgamation")
-set(sqlite_name sqlite-amalgamation-3220000)
+set(sqlite_name sqlite-amalgamation-3230100)
 message("Downloading and extracting ${sqlite_name}.zip into ${src_dir}/thirdparty/sqlite-amalgamation ...")
 file(DOWNLOAD https://sqlite.org/2018/${sqlite_name}.zip
 	"${srcdir}/thirdparty/${sqlite_name}.zip"
 	INACTIVITY_TIMEOUT 3
 	TIMEOUT 20
-	EXPECTED_HASH SHA1=cc91d8907ebfafae6752ac9694ddd566cfa5db5d
+	EXPECTED_HASH SHA1=98729f2c2d57d166e3d6d9862744c1d66388e286
 	STATUS res
 )
 if (NOT res MATCHES "^0;")
