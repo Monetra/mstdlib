@@ -123,8 +123,8 @@ set(sqlite_name sqlite-amalgamation-3230100)
 message("Downloading and extracting ${sqlite_name}.zip into ${src_dir}/thirdparty/sqlite-amalgamation ...")
 file(DOWNLOAD https://sqlite.org/2018/${sqlite_name}.zip
 	"${srcdir}/thirdparty/${sqlite_name}.zip"
-	INACTIVITY_TIMEOUT 3
-	TIMEOUT 20
+	INACTIVITY_TIMEOUT 5
+	TIMEOUT 40
 	EXPECTED_HASH SHA1=98729f2c2d57d166e3d6d9862744c1d66388e286
 	STATUS res
 )
