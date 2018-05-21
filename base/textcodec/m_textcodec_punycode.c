@@ -127,7 +127,7 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 	while (p != NULL && *p != '\0' && M_utf8_get_cp(p, &m, &p) == M_UTF8_ERROR_SUCCESS) {
 		if (m < 0x80) {
 			h++;
-			M_textcodec_buffer_add_byte(buf, m);
+			M_textcodec_buffer_add_byte(buf, (unsigned char)m);
 		} else {
 			M_list_u64_insert(non_basic, m);
 		}
@@ -179,11 +179,11 @@ M_textcodec_error_t M_textcodec_encode_punycode(M_textcodec_buffer_t *buf, const
 				if (q < t)
 					break;
 
-				M_textcodec_buffer_add_byte(buf, encode_digit(t + (q - t) % (base - t)));
+				M_textcodec_buffer_add_byte(buf, (unsigned char)encode_digit(t + (q - t) % (base - t)));
 				q = (q - t) / (base - t);
 			}
 
-			M_textcodec_buffer_add_byte(buf, encode_digit(q));
+			M_textcodec_buffer_add_byte(buf, (unsigned char)encode_digit(q));
 			bias = adapt(delta, h+1, h==b?M_TRUE:M_FALSE);
 			delta = 0;
 			h++;
