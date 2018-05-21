@@ -7,7 +7,8 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_tls.h>
 
-#define USE_SSL
+//#define USE_SSL
+//#define IDNA
 
 #ifdef USE_SSL
 #  define PORT 443
@@ -17,7 +18,15 @@
 #  define HOST "www.twitter.com"
 #else
 #  define PORT 80
-#  define URL "http://www.google.com/"
+#  ifdef IDNA
+#    define HOST "domaintest.みんな"
+#    define URL "http://domaintest.みんな/"
+//#    define HOST "اختبارنطاق.شبكة"
+//#    define URL  "http://اختبارنطاق.شبكة/"
+#  else
+#    define URL  "http://www.google.com/"
+#    define HOST "www.google.com"
+#  endif
 #endif
 
 M_bool got_response = M_FALSE;
