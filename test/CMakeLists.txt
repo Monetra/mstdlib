@@ -74,15 +74,11 @@ set(tests
 	base/math/check_rand.c
 	base/math/check_round.c
 	base/mem/check_mem.c
+	base/textcodec/check_puny.c
 	base/time/check_time_fmt.c
 	base/time/check_time_tm.c
 	base/time/check_time_tz.c
 )
-if (NOT WIN32)
-	list(APPEND tests
-		base/textcodec/check_puny.c
-	)
-endif ()
 set(slow_tests)
 #formats
 if (MSTDLIB_BUILD_FORMATS)
@@ -190,6 +186,11 @@ foreach (test_src ${tests})
 
 	add_executable(${test_prog} ${test_src})
 	target_link_libraries(${test_prog} PRIVATE ${test_deps})
+	if (MSVC)
+		# Some unit tests in here have embedded UTF-8 characters. Need to specify an extra flag to
+		# get VS to accept the file.
+		target_compile_options(${test_prog} PRIVATE -utf-8)
+	endif ()
 
 	if (WIN32 AND test_prog STREQUAL "check_sql")
 		target_compile_definitions(${test_prog} PRIVATE _CRT_SECURE_NO_DEPRECATE) #because check_sql uses getenv(...)
