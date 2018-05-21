@@ -1082,10 +1082,59 @@ static M_bool M_dns_host_is_addr(const char *host, int *type)
 }
 
 
+static char *M_dns_punyhostname(const char *hostname)
+{
+	char         **parts     = NULL;
+	M_list_str_t  *l;
+	M_buf_t       *buf;
+	char          *out       = NULL;
+	size_t         num_parts = 0;
+	size_t         i;
+
+	/* Each part is encoded separately. */
+	parts = M_str_explode_str('.', hostname, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		return NULL;
+
+	/* We're going to use a list because it will make it easy
+ 	 * to join all the parts back together. */
+	l = M_list_str_create(M_LIST_STR_NONE);
+	for (i=0; i<num_parts; i++) {
+		/* Ascii parts don't need to be encoded> */
+		if (M_str_isascii(parts[i])) {
+			M_list_str_insert(l, parts[i]);
+			continue;
+		}
+
+		buf = M_buf_create();
+		/* Add the IDNA prefix to denote this is an encoded part. */
+		M_buf_add_str(buf, "xn--");
+
+		/* Encode. */
+		if (M_textcodec_encode_buf(buf, parts[i], M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE) != M_TEXTCODEC_ERROR_SUCCESS) {
+			M_buf_cancel(buf);
+			M_str_explode_free(parts, num_parts);
+			return NULL;
+		}
+
+		out = M_buf_finish_str(buf, NULL);
+		M_list_str_insert(l, out);
+		M_free(out);
+	}
+	M_str_explode_free(parts, num_parts);
+
+	/* Put it all together. */
+	out = M_list_str_join(l, '.');
+	M_list_str_destroy(l);
+	return out;
+}
+
+
 M_io_t *M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_uint16 port, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data)
 {
 	M_dns_entry_t *entry;
 	M_io_t        *io;
+	char          *punyhost = NULL;
 	int            aftype;
 
 	if (callback == NULL)
@@ -1163,6 +1212,19 @@ M_io_t *M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname
 		return NULL;
 	}
 
+	/* IDNA host name if necessary because lookups should always be
+ 	 * ASCII only. Which is the purpouse of IDNA punycode encoding
+	 * domains that have non-ASCII characters. */
+	if (!M_str_isascii(hostname)) {
+		/* Punycode encode international domain names. */
+		punyhost = M_dns_punyhostname(hostname);
+		if (punyhost == NULL) {
+			callback(NULL, cb_data, M_DNS_RESULT_INVALID);
+			return NULL;
+		}
+		hostname = punyhost;
+	}
+
 	M_thread_mutex_lock(dns->lock);
 	entry = M_dns_get_entry(dns, hostname, M_FALSE);
 	if (entry != NULL && (entry->ipv4_cache_t + (M_time_t)dns->query_cache_timeout_s > M_time() || entry->ipv6_cache_t + (M_time_t)dns->query_cache_timeout_s > M_time())) {
@@ -1171,6 +1233,7 @@ M_io_t *M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname
 
 		callback(ipaddrs, cb_data, M_DNS_RESULT_SUCCESS_CACHE);
 		M_list_str_destroy(ipaddrs);
+		M_free(punyhost);
 		return NULL;
 	}
 	M_thread_mutex_unlock(dns->lock);
@@ -1178,9 +1241,11 @@ M_io_t *M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname
 	io = M_io_dns_create(dns, event, hostname, port, type, callback, cb_data);
 	if (io == NULL) {
 		callback(NULL, cb_data, M_DNS_RESULT_INVALID);
+		M_free(punyhost);
 		return NULL;
 	}
 
+	M_free(punyhost);
 	return io;
 }
 
