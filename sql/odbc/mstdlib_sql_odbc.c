@@ -243,6 +243,7 @@ static M_sql_error_t odbc_err_to_error(M_sql_driver_conn_t *dconn, SQLINTEGER er
 		{ "HYT01", M_SQL_ERROR_CONN_LOST        }, /* Connection Timeout */
 		{ "40000", M_SQL_ERROR_QUERY_DEADLOCK   }, /* Transaction Rollback */
 		{ "40001", M_SQL_ERROR_QUERY_DEADLOCK   }, /* Serialization Failure */
+		{ "23000", M_SQL_ERROR_QUERY_CONSTRAINT }, /* Integrity constraint violation */
 		{ "40002", M_SQL_ERROR_QUERY_CONSTRAINT }, /* TRANSACTION INTEGRITY CONSTRAINT VIOLATION */
 		{ "40003", M_SQL_ERROR_QUERY_DEADLOCK   }, /* STATEMENT COMPLETION UNKNOWN */
 		{ "40P01", M_SQL_ERROR_QUERY_DEADLOCK   }, /* DEADLOCK DETECTED */
