@@ -34,6 +34,9 @@ set(sources
 	settings/m_settings_reader.c
 	settings/m_settings_writer.c
 
+	# table:
+	table/m_table.c
+
 	# time:
 	time/m_mtzfile.c
 
