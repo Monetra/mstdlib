@@ -150,9 +150,23 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Comparision function prototype.</p>
 <p>Used the same as qsort or bsearch!</p>
-<p>The internal array holding the data elements is a void pointer which means the compar function has a reference to the index of the array (void **). That means you may need to dereference more time than you think. E.g: </p>
-<pre class="fragment">my_type_t *t1 = *((my_type_t * const *)arg1);
-M_uint64   i1 = *(*((M_uint64 * const *)arg1));
+<p>The internal array holding the data elements is a void pointer which means the compar function has a reference to the index of the array (void **). That means you may need to dereference more time than you think if base is an array of pointer. E.g: </p>
+<pre class="fragment">Array: my_type_t **data;
+Deref: my_type_t *t1 = *((my_type_t * const *)arg1);
+
+Array: M_uint64 **data;
+Deref: M_uint64 i1 = *(*((M_uint64 * const *)arg1));
+</pre><p>If base is an arrary of fixed data. E.g: </p>
+<pre class="fragment">my_type_t *data;
+data = M_malloc_zero(sizeof(*data) * cnt));
+data[0].v1 = "a";
+data[0].v2 = "b";
+...
+Deref: const my_type_t *t1 = arg1;
+
+
+M_uint64 *data = { 1, 2, 3 };
+Deref: M_uint64 i1 = *((M_uint64 const *)arg1);
 </pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
@@ -455,7 +469,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style string comparison in ascending order.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">const char **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -498,7 +514,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style string comparison in descending order.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">const char **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -541,7 +559,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style string comparison in ascending order case insensitive.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">const char **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -584,7 +604,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style string comparison in descending order case insensitive.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">const char **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -627,7 +649,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style unsigned integer comparison in ascending order.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">M_uint64 **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -670,7 +694,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
       </table>
 </div><div class="memdoc">
 <p>qsort style unsigned integer comparison in descending order.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">M_uint64 **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -714,7 +740,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
 </div><div class="memdoc">
 <p>qsort style wrapped binary data comparison for data that has been wrapped using M_bin_wrap.</p>
 <p>The binary data will be compared using M_mem_cmpsort.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">M_uint8 **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -762,7 +790,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
 </div><div class="memdoc">
 <p>qsort style unsigned integer comparison in ascending order.</p>
 <p>The pointer themselves are compared; <em>not</em> the value they point to.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">void **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -806,7 +836,9 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
 </div><div class="memdoc">
 <p>qsort style unsigned integer comparison in descending order.</p>
 <p>The pointer themselves are compared; <em>not</em> the value they point to.</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Base must be an array of pointers to values. </p>
+<pre class="fragment">void **array;
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">arg1</td><td>The first arg to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">arg2</td><td>The second arg to compare. </td></tr>
@@ -824,7 +856,7 @@ M_uint64   i1 = *(*((M_uint64 * const *)arg1));
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 23 2018 19:01:13 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed May 23 2018 20:44:44 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
