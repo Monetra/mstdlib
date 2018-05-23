@@ -19,6 +19,7 @@
 #include <mstdlib/formats/m_json.h>
 #include <mstdlib/formats/m_mtzfile.h>
 #include <mstdlib/formats/m_settings.h>
+#include <mstdlib/formats/m_table.h>
 #include <mstdlib/formats/m_verify.h>
 #include <mstdlib/formats/m_xml.h>
 
