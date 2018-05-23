@@ -400,7 +400,6 @@ M_list_t *M_list_create(const struct M_list_callbacks *callbacks, M_uint32 flags
 		if (callbacks->value_free       != NULL) d->value_free       = callbacks->value_free;
 	}
 
-
 	return d;
 }
 

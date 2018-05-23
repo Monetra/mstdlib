@@ -4,7 +4,7 @@
 
 #include <mstdlib/mstdlib.h>
 
-/* Soft tests are from
+/* Some tests are from
  * Markus Kuhn <http://www.cl.cam.ac.uk/~mgk25/> - 2015-08-28 - CC BY 4.0
  * This license is for the test data used from there only.
  */
