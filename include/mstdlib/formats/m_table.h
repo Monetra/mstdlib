@@ -51,44 +51,48 @@ typedef struct M_table M_table_t;
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 typedef enum {
-	M_TABLE_INSERT_NONE         = 0,      /*!< Fail the insert if the header, or index does not exist. */
-	M_TABLE_INSERT_EXPAND       = 1 << 0, /*!< Add the header if it does not exist. If by index, add cell and
-	                                           any empty cells before the index as needed. */
-	M_TABLE_INSERT_IGNOREHEADER = 1 << 1  /*!< Ignore the header if it does not exist. */
+	M_TABLE_INSERT_NONE       = 0,      /*!< Fail the insert if the header, or index does not exist. */
+	M_TABLE_INSERT_EXPAND     = 1 << 0, /*!< Add a named column if it does not exist. */
+	M_TABLE_INSERT_IGNORECOLS = 1 << 1  /*!< Ignore names if a corresponding named header does not exist. */
 } M_table_insert_flags_t;
+
+typedef enum {
+	M_TALBE_NONE             = 0,     /*!< Default operation. */
+	M_TABLE_CASECMP_COLNAMES = 1 << 0 /*!< Compare column names case insensitive. */
+} M_table_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_table_t *M_table_create(void) M_MALLOC;
 void M_table_destroy(M_table_t *table) M_FREE;
 
-/* Always expands. */
-void M_table_header_insert(M_table_t *table, const char *name);
-void M_table_header_insert_at(M_table_t *table, const char *name, size_t idx);
-const char *M_table_header_at(M_table_t *table, size_t idx);
-M_bool M_table_header_remove_at(M_table_t *table, size_t idx);
-size_t M_table_header_count(M_table_t *table);
+/* Name is optional */
+void M_table_column_insert(M_table_t *table, const char *colname);
+M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *colname);
+
+const char *M_table_column_name(M_table_t *table, size_t idx);
+void M_table_column_set_name(M_table_t *table, size_t idx, const char *colname);
+size_t M_table_column_idx(M_table_t *table, const char *colname);
+void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_compar_t sort_func);
+void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t sort_func);
+void M_table_column_order(M_table_t *table, M_sort_compar_t sort_func);
+void M_table_column_remove(M_table_t *table, const char *colname);
+void M_table_column_remove_at(M_table_t *table, size_t idx);
+void M_table_column_count(M_table_t *table);
 
 void M_table_row_insert(M_table_t *table);
-M_bool M_table_row_insert_at(M_table_t *table, size_t idx, M_uint32 flags);
-M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *d, M_uint32 flags);
-M_hash_dict_t *M_table_row_dict(M_table_t *table, size_t idx);
-size_t M_table_row_count(M_table_t *table);
-void M_table_row_set_count(M_table_t *table, size_t count);
+M_bool M_table_row_insert_at(M_table_t *table, size_t idx);
+void M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags);
+M_bool M_table_row_insert_dict_at(M_table_t *table, size_t idx, const M_hash_dict_t *data, M_uint32 flags);
+void M_table_column_remove(M_table_t *table, size_t idx);
+void M_table_row_count(M_table_t *table);
 
-void M_table_column_insert(M_table_t *table);
-M_bool M_table_column_insert_at(M_table_t *table, size_t idx, M_uint32 flags);
-size_t M_table_column_count(M_table_t *table);
-void M_table_column_set_count(M_table_t *table, size_t num);
-
-M_bool M_table_cell_insert(M_table_t *table, size_t row, const char *header, const char *val, M_uint32 flags);
-M_bool M_table_cell_insert_idx(M_table_t *table, size_t row, size_t col, const char *val, M_uint32 flags);
-
-M_bool M_table_cell_remove(M_table_t *table, size_t row, const char *header);
-M_bool M_table_cell_remove_idx(M_table_t *table, size_t row, size_t col);
-
-const char *M_table_cell_at(M_table_t *table, size_t row, const char *header);
-const char *M_table_cell_at_idx(M_table_t *table, size_t row, size_t col);
+void M_table_cell_insert(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags);
+M_bool M_table_cell_insert_at(M_table_t *table, size_t row, size_t col, const char *val);
+M_bool M_table_cell_clear(M_table_t *table, size_t row, const char *colname);
+M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col);
+const char *M_table_cell(M_table_t *table, size_t row, const char *colname);
+const char *M_table_cell_at(M_table_t *table, size_t row, size_t col);
 
 /*! @} */
 
