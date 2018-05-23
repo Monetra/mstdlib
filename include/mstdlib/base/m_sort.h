@@ -47,10 +47,27 @@ __BEGIN_DECLS
  *
  * The internal array holding the data elements is a void pointer which means
  * the compar function has a reference to the index of the array (void **). That
- * means you may need to dereference more time than you think. E.g: 
+ * means you may need to dereference more time than you think if base is an array
+ * of pointer. E.g: 
  *
- *     my_type_t *t1 = *((my_type_t * const *)arg1);
- *     M_uint64   i1 = *(*((M_uint64 * const *)arg1));
+ *     Array: my_type_t **data;
+ *     Deref: my_type_t *t1 = *((my_type_t * const *)arg1);
+ *
+ *     Array: M_uint64 **data;
+ *     Deref: M_uint64 i1 = *(*((M_uint64 * const *)arg1));
+ *
+ * If base is an arrary of fixed data. E.g:
+ *
+ *     my_type_t *data;
+ *     data = M_malloc_zero(sizeof(*data) * cnt));
+ *     data[0].v1 = "a";
+ *     data[0].v2 = "b";
+ *     ...
+ *     Deref: const my_type_t *t1 = arg1;
+ * 
+ *
+ *     M_uint64 *data = { 1, 2, 3 };
+ *     Deref: M_uint64 i1 = *((M_uint64 const *)arg1);
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
@@ -131,6 +148,10 @@ M_API void M_sort_mergesort(void *base, size_t nmemb, size_t esize, M_sort_compa
 
 /*! qsort style string comparison in ascending order.
  *
+ * Base must be an array of pointers to values.
+ * 
+ *     const char **array;
+ *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
@@ -143,6 +164,10 @@ M_API int M_sort_compar_str(const void *arg1, const void *arg2, void *thunk);
 
 
 /*! qsort style string comparison in descending order.
+ *
+ * Base must be an array of pointers to values.
+ * 
+ *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
@@ -157,6 +182,10 @@ M_API int M_sort_compar_str_desc(const void *arg1, const void *arg2, void *thunk
 
 /*! qsort style string comparison in ascending order case insensitive.
  *
+ * Base must be an array of pointers to values.
+ * 
+ *     const char **array;
+ *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
@@ -169,6 +198,10 @@ M_API int M_sort_compar_str_casecmp(const void *arg1, const void *arg2, void *th
 
 
 /*! qsort style string comparison in descending order case insensitive.
+ *
+ * Base must be an array of pointers to values.
+ * 
+ *     const char **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
@@ -186,6 +219,10 @@ M_API int M_sort_compar_str_casecmp_desc(const void *arg1, const void *arg2, voi
 
 /*! qsort style unsigned integer comparison in ascending order.
  *
+ * Base must be an array of pointers to values.
+ *
+ *     M_uint64 **array;
+ *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
@@ -198,6 +235,10 @@ M_API int M_sort_compar_u64(const void *arg1, const void *arg2, void *thunk);
 
 
 /*! qsort style unsigned integer comparison in descending order.
+ *
+ * Base must be an array of pointers to values.
+ *
+ *     M_uint64 **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
@@ -216,6 +257,10 @@ M_API int M_sort_compar_u64_desc(const void *arg1, const void *arg2, void *thunk
 /*! qsort style wrapped binary data comparison for data that has been wrapped using M_bin_wrap.
  *
  * The binary data will be compared using M_mem_cmpsort.
+ *
+ * Base must be an array of pointers to values.
+ *
+ *     M_uint8 **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
@@ -237,6 +282,10 @@ M_API int M_sort_compar_binwraped(const void *arg1, const void *arg2, void *thun
  *
  * The pointer themselves are compared; _not_ the value they point to.
  *
+ * Base must be an array of pointers to values.
+ *
+ *     void **array;
+ *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
  * \param[in] thunk Additional data to use for comparison.
@@ -251,6 +300,10 @@ M_API int M_sort_compar_vp(const void *arg1, const void *arg2, void *thunk);
 /*! qsort style unsigned integer comparison in descending order.
  *
  * The pointer themselves are compared; _not_ the value they point to.
+ *
+ * Base must be an array of pointers to values.
+ *
+ *     void **array;
  *
  * \param[in] arg1  The first arg to compare.
  * \param[in] arg2  The second arg to compare.
