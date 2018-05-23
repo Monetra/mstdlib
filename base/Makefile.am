@@ -29,6 +29,7 @@ libmstdlib_la_SOURCES =                \
 	data/m_str_hexdump.c               \
 	data/m_str_num.c                   \
 	data/m_str_patmatch.c              \
+	data/m_utf8.c                      \
 	\
 	fs/m_fs.c                          \
 	fs/m_fs_dir.c                      \
@@ -47,10 +48,12 @@ libmstdlib_la_SOURCES =                \
 	hash/m_hash_multi.c                \
 	hash/m_hash_strbin.c               \
 	hash/m_hash_stridx.c               \
+	hash/m_hash_stru64.c               \
 	hash/m_hash_strvp.c                \
 	hash/m_hashtable.c                 \
 	hash/m_hash_u64bin.c               \
 	hash/m_hash_u64str.c               \
+	hash/m_hash_u64u64.c               \
 	hash/m_hash_u64vp.c                \
 	\
 	list/m_list.c                      \
@@ -77,6 +80,41 @@ libmstdlib_la_SOURCES =                \
 	sort/m_sort_compar.c               \
 	sort/m_sort_mergesort.c            \
 	sort/m_sort_qsort.c                \
+	\
+	textcodec/m_textcodec_ascii.c      \
+	textcodec/m_textcodec_buffer.c     \
+	textcodec/m_textcodec.c            \
+	textcodec/m_textcodec_cp037.c      \
+	textcodec/m_textcodec_cp1250.c     \
+	textcodec/m_textcodec_cp1251.c     \
+	textcodec/m_textcodec_cp1252.c     \
+	textcodec/m_textcodec_cp1253.c     \
+	textcodec/m_textcodec_cp1254.c     \
+	textcodec/m_textcodec_cp1255.c     \
+	textcodec/m_textcodec_cp1256.c     \
+	textcodec/m_textcodec_cp1257.c     \
+	textcodec/m_textcodec_cp1258.c     \
+	textcodec/m_textcodec_cp500.c      \
+	textcodec/m_textcodec_cp874.c      \
+	textcodec/m_textcodec_cp_map.c     \
+	textcodec/m_textcodec_int.h        \
+	textcodec/m_textcodec_iso8859_10.c \
+	textcodec/m_textcodec_iso8859_11.c \
+	textcodec/m_textcodec_iso8859_13.c \
+	textcodec/m_textcodec_iso8859_14.c \
+	textcodec/m_textcodec_iso8859_15.c \
+	textcodec/m_textcodec_iso8859_16.c \
+	textcodec/m_textcodec_iso8859_1.c  \
+	textcodec/m_textcodec_iso8859_2.c  \
+	textcodec/m_textcodec_iso8859_3.c  \
+	textcodec/m_textcodec_iso8859_4.c  \
+	textcodec/m_textcodec_iso8859_5.c  \
+	textcodec/m_textcodec_iso8859_6.c  \
+	textcodec/m_textcodec_iso8859_7.c  \
+	textcodec/m_textcodec_iso8859_8.c  \
+	textcodec/m_textcodec_iso8859_9.c  \
+	textcodec/m_textcodec_percent.c    \
+	textcodec/m_textcodec_punycode.c   \
 	\
 	time/m_time.c                      \
 	time/m_time_elapsed.c              \
