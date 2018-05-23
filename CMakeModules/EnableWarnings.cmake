@@ -89,33 +89,56 @@ if (MSVC)
 	endif ()
 
 	set(_cxx_flags "${_flags}")
+elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
+	# Intel's compiler warning flags are more like Visual Studio than GCC, though the numbers aren't the same.
+	set(_flags
+		# Use warning level 3, quite wordy.
+		-w3
+		# Disable warnings we don't care about (add more as they are encountered).
+		-wd383    # Spammy warning about initializing from a temporary object in C++ (which is done all the time ...).
+		-wd11074  # Diagnostic related to inlining.
+		-wd11076  # Diagnostic related to inlining.
+	)
+
+	set(_cxx_flags "${_flags}")
 else ()
-	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio):
+	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio or Intel):
 	# C Flags:
 	set(_flags
-		-W -Wall -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch
-		-Wdouble-promotion -Wformat -Wnonnull -Winit-self
-		-Wignored-qualifiers -Wmain
-		-Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point
-		-Wreturn-type -Wswitch -Wtrigraphs -Wunused-but-set-parameter
-		-Wunused-but-set-variable -Wunused-function -Wunused-label
-		-Wunused-local-typedefs -Wunused-parameter -Wunused-variable -Wunused-value
-		-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas
-		-Wmissing-format-attribute -Warray-bounds
-		-Wtrampolines -Wfloat-equal
-		-Wdeclaration-after-statement -Wundef -Wshadow
-		-Wpointer-arith -Wtype-limits
-		-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body
-		-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess
-		-Waddress -Wlogical-op
-		-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition
-		-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations
-		-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls
-		-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs
-		-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat
-		-Wformat-security -Wstrict-aliasing
-		-Wstrict-overflow -Wsync-nand -Wvolatile-register-var
-		-Wconversion -Wsign-conversion
+		-Wall
+		-Wextra
+
+		# Enable additional warnings not covered by Wall and Wextra.
+		-Wcast-align
+		-Wconversion
+		-Wdeclaration-after-statement
+		-Wdouble-promotion
+		-Wfloat-equal
+		-Wformat-security
+		-Winit-self
+		-Wjump-misses-init
+		-Wlogical-op
+		-Wmissing-braces
+		-Wmissing-declarations
+		-Wmissing-format-attribute
+		-Wmissing-include-dirs
+		-Wmissing-prototypes
+		-Wnested-externs
+		-Wno-coverage-mismatch
+		-Wold-style-definition
+		-Wpacked
+		-Wpointer-arith
+		-Wredundant-decls
+		-Wshadow
+		-Wsign-conversion
+		-Wstrict-overflow
+		-Wstrict-prototypes
+		-Wtrampolines
+		-Wundef
+		-Wunused
+		-Wvariadic-macros
+		-Wvla
+		-Wwrite-strings
 
 		# Treat implicit variable typing and implicit function declarations as errors.
 		-Werror=implicit-int
@@ -129,20 +152,17 @@ else ()
 	set(_cxx_flags
 		-Wall
 		-Wextra
-		-Wcast-align
-		-Wmissing-declarations
-		-Wredundant-decls
-		-Wformat
-		-Wmissing-format-attribute
-		-Wformat-security
-		-Wtype-limits
-		-Wcast-align
-		-Winvalid-pch
-		-Wvarargs
-		-Wvla
-		-Wendif-labels
-		-Wpacked-bitfield-compat
 
+		# Enable additional warnings not covered by Wall and Wextra.
+		-Wcast-align
+		-Wformat-security
+		-Wmissing-declarations
+		-Wmissing-format-attribute
+		-Wpacked-bitfield-compat
+		-Wredundant-decls
+		-Wvla
+
+		# Turn off unused parameter warnings with C++ (they happen often in C++ and Qt).
 		-Wno-unused-parameter
 	)
 
@@ -152,9 +172,9 @@ else ()
 
 	if (NOT (WIN32 AND (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")))
 		list(APPEND _cxx_flags
-			-Wsign-conversion
 			-Wconversion
 			-Wfloat-equal
+			-Wsign-conversion
 		)
 	endif ()
 endif ()
