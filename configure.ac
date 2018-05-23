@@ -53,7 +53,7 @@ dnl ------- LIBCHECK ---------
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES(CHECK, [check >= 0.9.4],,[AC_MSG_RESULT([not found with pkgconfig])])
 check_dirs="/usr /usr/local /usr/local/check"
-AC_ARG_WITH(check-dir, 
+AC_ARG_WITH(check-dir,
 	AC_HELP_STRING([--with-check-dir=<dir>], [Paths to search for libcheck (default=$check_dirs)]),
 	[ check_dirs=$withval ],
 	[ ])
@@ -184,7 +184,7 @@ AC_CHECK_TYPE([struct sockaddr_storage], [ AC_DEFINE(HAVE_SOCKADDR_STORAGE, [], 
              #include <sys/socket.h>
              #include <netinet/in.h>
  ] )
- 
+
 dnl structures
 AC_MSG_CHECKING(to see if struct dirent has d_type)
 AC_TRY_COMPILE([
@@ -343,29 +343,38 @@ dnl CFLAGS
 dnl
 
 AX_APPEND_COMPILE_FLAGS([\
-	-W -Wall -Wextra -Wchar-subscripts -Wcomment -Wno-coverage-mismatch \
-	-Wdouble-promotion -Wformat -Wnonnull -Winit-self \
-	-Wignored-qualifiers -Wmain \
-	-Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point \
-	-Wreturn-type -Wswitch -Wtrigraphs -Wunused-but-set-parameter \
-	-Wunused-but-set-variable -Wunused-function -Wunused-label \
-	-Wunused-local-typedefs -Wunused-parameter -Wunused-variable -Wunused-value \
-	-Wunused -Wuninitialized -Wmaybe-uninitialized -Wunknown-pragmas \
-	-Wmissing-format-attribute -Warray-bounds \
-	-Wtrampolines -Wfloat-equal \
-	-Wdeclaration-after-statement -Wundef -Wshadow \
-	-Wpointer-arith -Wtype-limits \
-	-Wcast-align -Wwrite-strings -Wclobbered -Wempty-body \
-	-Wenum-compare -Wjump-misses-init -Wsign-compare -Wsizeof-pointer-memaccess \
-	-Waddress -Wlogical-op \
-	-Wstrict-prototypes -Wold-style-declaration -Wold-style-definition \
-	-Wmissing-parameter-type -Wmissing-prototypes -Wmissing-declarations \
-	-Wmissing-field-initializers -Woverride-init -Wpacked -Wredundant-decls \
-	-Wnested-externs -Winvalid-pch -Wvariadic-macros -Wvarargs \
-	-Wvla -Wpointer-sign -Wdisabled-optimization -Wendif-labels -Wpacked-bitfield-compat \
-	-Wformat-security -Wstrict-aliasing \
-	-Wstrict-overflow -Wsync-nand -Wvolatile-register-var \
-	-Wconversion -Wsign-conversion \
+	-Wall \
+	-Wextra \
+	-Wcast-align \
+	-Wconversion \
+	-Wdeclaration-after-statement \
+	-Wdouble-promotion \
+	-Wfloat-equal \
+	-Wformat-security \
+	-Winit-self \
+	-Wjump-misses-init \
+	-Wlogical-op \
+	-Wmissing-braces \
+	-Wmissing-declarations \
+	-Wmissing-format-attribute \
+	-Wmissing-include-dirs \
+	-Wmissing-prototypes \
+	-Wnested-externs \
+	-Wno-coverage-mismatch \
+	-Wold-style-definition \
+	-Wpacked \
+	-Wpointer-arith \
+	-Wredundant-decls \
+	-Wshadow \
+	-Wsign-conversion \
+	-Wstrict-overflow \
+	-Wstrict-prototypes \
+	-Wtrampolines \
+	-Wundef \
+	-Wunused \
+	-Wvariadic-macros \
+	-Wvla \
+	-Wwrite-strings \
 	-Werror=implicit-int \
 	-Werror=implicit-function-declaration \
 	-Werror=partial-availability \
@@ -632,7 +641,7 @@ AC_CHECK_FUNC(getpwuid_r, [
 					entry = malloc(len);
 					memset(entry, 0, len);
 					dir = opendir(".");
-					(void)readdir_r(dir, entry, &result); 
+					(void)readdir_r(dir, entry, &result);
 					free(entry);
 					closedir(dir);
 	], readdir="3",
@@ -651,7 +660,7 @@ AC_CHECK_FUNC(getpwuid_r, [
 					entry = malloc(len);
 					memset(entry, 0, len);
 					dir = opendir(".");
-					(void)readdir_r(dir, entry); 
+					(void)readdir_r(dir, entry);
 					free(entry);
 					closedir(dir);
 		], readdir="2"
