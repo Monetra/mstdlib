@@ -524,14 +524,48 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment"> * \return CSV data.</span></div>
 <div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6">M_table_write_csv</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keywordtype">char</span> delim, <span class="keywordtype">char</span> quote, M_bool write_header);</div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;</div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;</div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;</div>
-<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_TABLE_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;<span class="comment">/*! Load JSON formatted data into the table.</span></div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment"> * Should be in the form list of a objects who&#39;s keys are headers and value are cell value</span></div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="comment"> * for the row at the given list index.</span></div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;<span class="comment"> * E.g.:</span></div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;<span class="comment"> *     [</span></div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;<span class="comment"> *       { header1: &quot;value&quot;, header2: &quot;value&quot; },</span></div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="comment"> *       { header1: &quot;value&quot;, header2: &quot;value&quot; }</span></div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="comment"> *     ]</span></div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;<span class="comment"> * \param[in] table Table.</span></div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;<span class="comment"> * \param[in] data  JSON string data.</span></div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;<span class="comment"> * \param[in] len   Length of data to load.</span></div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;<span class="comment"> * \return M_TRUE if the data was loaded. Otherwise, M_FALSE.</span></div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;M_API M_bool <a class="code" href="group__m__table.html#ga2c637cdec0125ca4aa308610795da99d">M_table_load_json</a>(<a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keyword">const</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> len);</div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;<span class="comment">/*! Write the table as JSON.</span></div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;<span class="comment"> * All columns must be named!</span></div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;<span class="comment"> * \param[in] table Table.</span></div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;<span class="comment"> * \param[in] flags M_json_writer_flags_t flags controlling writing.</span></div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;<span class="comment"> * \return JSON data.</span></div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0">M_table_write_json</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, M_uint32 flags);</div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;</div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_TABLE_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__table_html_gab641fc241e452cdb7e11a32c72444fa8"><div class="ttname"><a href="group__m__table.html#gab641fc241e452cdb7e11a32c72444fa8">M_table_column_sort_data_at</a></div><div class="ttdeci">void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, size_t secondary_idx, M_sort_compar_t secondary_sort, void *thunk)</div></div>
 <div class="ttc" id="group__m__table_html_gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb"><div class="ttname"><a href="group__m__table.html#gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb">M_TABLE_COLNAME_CASECMP</a></div><div class="ttdef"><b>Definition:</b> m_table.h:60</div></div>
 <div class="ttc" id="group__m__table_html_ga0c0bdad8923a12a84fcf87bbf593ce11"><div class="ttname"><a href="group__m__table.html#ga0c0bdad8923a12a84fcf87bbf593ce11">M_table_cell</a></div><div class="ttdeci">const char * M_table_cell(const M_table_t *table, size_t row, const char *colname)</div></div>
@@ -555,6 +589,7 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div class="ttc" id="group__m__table_html_gaff54718eceb84f3821ce6a023f3a3758"><div class="ttname"><a href="group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758">M_table_load_csv</a></div><div class="ttdeci">M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, char delim, char quote, M_uint32 flags, M_bool have_header)</div></div>
 <div class="ttc" id="group__m__table_html_gae6d1f909e37ad3a5318abb215fac049c"><div class="ttname"><a href="group__m__table.html#gae6d1f909e37ad3a5318abb215fac049c">M_table_duplicate</a></div><div class="ttdeci">M_table_t * M_table_duplicate(const M_table_t *table) M_MALLOC</div></div>
 <div class="ttc" id="group__m__sort_html_gacddbc7ac40cf63ca40b081bd44375517"><div class="ttname"><a href="group__m__sort.html#gacddbc7ac40cf63ca40b081bd44375517">M_sort_compar_t</a></div><div class="ttdeci">int(* M_sort_compar_t)(const void *, const void *, void *)</div><div class="ttdef"><b>Definition:</b> m_sort.h:78</div></div>
+<div class="ttc" id="group__m__table_html_gab779f780d77b59fa2b2eb0c47f9380e0"><div class="ttname"><a href="group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0">M_table_write_json</a></div><div class="ttdeci">char * M_table_write_json(const M_table_t *table, M_uint32 flags)</div></div>
 <div class="ttc" id="group__m__table_html_ga856757aaa37899edf9d9e2b99f4a265b"><div class="ttname"><a href="group__m__table.html#ga856757aaa37899edf9d9e2b99f4a265b">M_table_column_remove</a></div><div class="ttdeci">void M_table_column_remove(M_table_t *table, const char *colname)</div></div>
 <div class="ttc" id="group__m__table_html_ga7ab8c0b883a785a19cdf8eeb38f62f85"><div class="ttname"><a href="group__m__table.html#ga7ab8c0b883a785a19cdf8eeb38f62f85">M_table_cell_set</a></div><div class="ttdeci">M_bool M_table_cell_set(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags)</div></div>
 <div class="ttc" id="group__m__table_html_ga75b3b3107dd6e4df16b382db21758d40"><div class="ttname"><a href="group__m__table.html#ga75b3b3107dd6e4df16b382db21758d40">M_table_create</a></div><div class="ttdeci">M_table_t * M_table_create(M_uint32 flags) M_MALLOC</div></div>
@@ -565,6 +600,7 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div class="ttc" id="group__m__table_html_ga81e17edb5c2703874a7e3268b241c153"><div class="ttname"><a href="group__m__table.html#ga81e17edb5c2703874a7e3268b241c153">M_table_column_remove_at</a></div><div class="ttdeci">void M_table_column_remove_at(M_table_t *table, size_t idx)</div></div>
 <div class="ttc" id="group__m__table_html_ga13b040287491f2193f1453c665b4c12f"><div class="ttname"><a href="group__m__table.html#ga13b040287491f2193f1453c665b4c12f">M_table_destroy</a></div><div class="ttdeci">void M_table_destroy(M_table_t *table) M_FREE(1)</div></div>
 <div class="ttc" id="group__m__hash__dict_html_ga01ab9873e5c24644b27b099a032bea00"><div class="ttname"><a href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a></div><div class="ttdeci">struct M_hash_dict M_hash_dict_t</div><div class="ttdef"><b>Definition:</b> m_hash_dict.h:52</div></div>
+<div class="ttc" id="group__m__table_html_ga2c637cdec0125ca4aa308610795da99d"><div class="ttname"><a href="group__m__table.html#ga2c637cdec0125ca4aa308610795da99d">M_table_load_json</a></div><div class="ttdeci">M_bool M_table_load_json(M_table_t *table, const char *data, size_t len)</div></div>
 <div class="ttc" id="group__m__table_html_ggadfce4a554bdbe75e5be2bfcd8eb8fafaa45ecec8135e5535fea90cec79d1ee709"><div class="ttname"><a href="group__m__table.html#ggadfce4a554bdbe75e5be2bfcd8eb8fafaa45ecec8135e5535fea90cec79d1ee709">M_TABLE_INSERT_NONE</a></div><div class="ttdef"><b>Definition:</b> m_table.h:51</div></div>
 <div class="ttc" id="group__m__table_html_ga8adcdafe7f6bed9af912d1f582d77527"><div class="ttname"><a href="group__m__table.html#ga8adcdafe7f6bed9af912d1f582d77527">M_table_row_remove_empty_rows</a></div><div class="ttdeci">size_t M_table_row_remove_empty_rows(M_table_t *table)</div></div>
 <div class="ttc" id="group__m__table_html_ga22cd788c59e7fb62d9063e93dde97809"><div class="ttname"><a href="group__m__table.html#ga22cd788c59e7fb62d9063e93dde97809">M_table_cell_clear</a></div><div class="ttdeci">M_bool M_table_cell_clear(M_table_t *table, size_t row, const char *colname)</div></div>
@@ -579,7 +615,7 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_83479f3e62efc9ab117abb614c65a425.html">formats</a></li><li class="navelem"><b>m_table.h</b></li>
-    <li class="footer">Generated on Thu May 24 2018 16:24:59 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 24 2018 20:12:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -191,6 +191,10 @@ Functions</h2></td></tr>
 <tr class="separator:gaff54718eceb84f3821ce6a023f3a3758"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga891825f08b9755e45b9ec0c8f11d6fd6"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6">M_table_write_csv</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, char delim, char quote, M_bool write_header)</td></tr>
 <tr class="separator:ga891825f08b9755e45b9ec0c8f11d6fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c637cdec0125ca4aa308610795da99d"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga2c637cdec0125ca4aa308610795da99d">M_table_load_json</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, const char *data, size_t len)</td></tr>
+<tr class="separator:ga2c637cdec0125ca4aa308610795da99d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab779f780d77b59fa2b2eb0c47f9380e0"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0">M_table_write_json</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, M_uint32 flags)</td></tr>
+<tr class="separator:gab779f780d77b59fa2b2eb0c47f9380e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generic table construction and manipulation. </p>
@@ -1465,12 +1469,96 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga2c637cdec0125ca4aa308610795da99d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_table_load_json </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Load JSON formatted data into the table.</p>
+<p>Should be in the form list of a objects who's keys are headers and value are cell value for the row at the given list index.</p>
+<p>E.g.: </p>
+<pre class="fragment">[
+  { header1: "value", header2: "value" },
+  { header1: "value", header2: "value" }
+]
+</pre><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>JSON string data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of data to load.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the data was loaded. Otherwise, M_FALSE. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gab779f780d77b59fa2b2eb0c47f9380e0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_table_write_json </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Write the table as JSON.</p>
+<p>All columns must be named!</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_json_writer_flags_t flags controlling writing.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>JSON data. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 24 2018 16:25:00 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 24 2018 20:12:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
