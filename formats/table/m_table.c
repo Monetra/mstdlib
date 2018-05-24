@@ -295,8 +295,8 @@ M_table_t *M_table_create(M_uint32 flags)
 	table->rows      = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_hash_u64str_destroy);
 
 	/* Other. */
-	table->flags = flags;
 	table->rand  = M_rand_create(0);
+	table->flags = flags;
 
 	return table;
 }
@@ -715,4 +715,36 @@ const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col)
 	colid = M_list_u64_at(table->col_order, col);
 
 	return M_table_cell_get_int(table, rowid, colid);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API M_table_t *M_table_duplicate(const M_table_t *table)
+{
+	M_table_t           *rt;
+	M_hash_u64vp_enum_t *he;
+	M_hash_u64str_t     *row_data;
+	M_uint64             rowid;
+
+	if (table == NULL)
+		return NULL;
+
+	rt = M_malloc_zero(sizeof(*table));
+
+	rt->col_order   = M_list_u64_duplicate(table->col_order);
+	rt->col_id_name = M_hash_u64str_duplicate(table->col_id_name);
+	rt->col_name_id = M_hash_stru64_duplicate(table->col_name_id);
+	rt->row_order   = M_list_u64_duplicate(table->row_order);
+
+	rt->rows = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_hash_u64str_destroy);
+	M_hash_u64vp_enumerate(table->rows, &he);
+	while (M_hash_u64vp_enumerate_next(table->rows, he, &rowid, (void **)&row_data)) {
+		M_hash_u64vp_insert(rt->rows, rowid, M_hash_u64str_duplicate(row_data));
+	}
+	M_hash_u64vp_enumerate_free(he);
+
+	rt->rand  = M_rand_create(0);
+	rt->flags = table->flags;
+
+	return rt;
 }

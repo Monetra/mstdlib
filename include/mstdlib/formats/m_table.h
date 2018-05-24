@@ -370,6 +370,17 @@ M_API const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Duplicate a table.
+ *
+ * \param[in] table Table.
+ * 
+ * \return Table.
+ */
+M_API M_table_t *M_table_duplicate(const M_table_t *table);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 /*! Load CSV formatted data into the table.
  *
  * \param[in] table       Table.
