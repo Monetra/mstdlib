@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- *
+ * 
  * Copyright (c) 2018 Main Street Softworks, Inc.
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -63,42 +63,50 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_table_t *M_table_create(M_uint32 flags) M_MALLOC;
-M_API void M_table_destroy(M_table_t *table) M_FREE(1);
+M_table_t *M_table_create(M_uint32 flags) M_MALLOC;
+void M_table_destroy(M_table_t *table) M_FREE(1);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Name is optional */
-M_API M_bool M_table_column_insert(M_table_t *table, const char *colname);
-M_API M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *colname);
+M_bool M_table_column_insert(M_table_t *table, const char *colname);
+M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *colname);
 
-M_API const char *M_table_column_name(M_table_t *table, size_t idx);
-M_API M_bool M_table_column_set_name(M_table_t *table, size_t idx, const char *colname);
-M_API M_bool M_table_column_idx(M_table_t *table, const char *colname, size_t *idx);
-M_API void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_compar_t primary_sort, M_sort_compar_t secondary_sort, void *thunk);
-M_API void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, M_sort_compar_t secondary_sort, void *thunk);
-M_API void M_table_column_order(M_table_t *table, M_sort_compar_t sort, void *thunk);
-M_API void M_table_column_remove(M_table_t *table, const char *colname);
-M_API void M_table_column_remove_at(M_table_t *table, size_t idx);
-M_API size_t M_table_column_count(M_table_t *table);
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-M_API void M_table_row_insert(M_table_t *table);
-M_API M_bool M_table_row_insert_at(M_table_t *table, size_t idx);
-M_API M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags);
-M_API M_bool M_table_row_insert_dict_at(M_table_t *table, size_t idx, const M_hash_dict_t *data, M_uint32 flags);
-M_API void M_table_row_remove(M_table_t *table, size_t idx);
-M_API size_t M_table_row_count(M_table_t *table);
+const char *M_table_column_name(M_table_t *table, size_t idx);
+M_bool M_table_column_set_name(M_table_t *table, size_t idx, const char *colname);
+M_bool M_table_column_idx(M_table_t *table, const char *colname, size_t *idx);
+void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_compar_t primary_sort, const char *secondary_colname, M_sort_compar_t secondary_sort, void *thunk);
+void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, size_t secondary_idx, M_sort_compar_t secondary_sort, void *thunk);
+void M_table_column_order(M_table_t *table, M_sort_compar_t sort, void *thunk);
+void M_table_column_remove(M_table_t *table, const char *colname);
+void M_table_column_remove_at(M_table_t *table, size_t idx);
+size_t M_table_column_remove_empty_columns(M_table_t *table);
+size_t M_table_column_count(M_table_t *table);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_bool M_table_cell_insert(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags);
-M_API M_bool M_table_cell_insert_at(M_table_t *table, size_t row, size_t col, const char *val);
-M_API M_bool M_table_cell_clear(M_table_t *table, size_t row, const char *colname);
-M_API M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col);
-M_API const char *M_table_cell(M_table_t *table, size_t row, const char *colname);
-M_API const char *M_table_cell_at(M_table_t *table, size_t row, size_t col);
+size_t M_table_row_insert(M_table_t *table);
+M_bool M_table_row_insert_at(M_table_t *table, size_t idx);
+M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags);
+M_bool M_table_row_insert_dict_at(M_table_t *table, size_t idx, const M_hash_dict_t *data, M_uint32 flags);
+void M_table_row_remove(M_table_t *table, size_t idx);
+size_t M_table_row_remove_empty_rows(M_table_t *table);
+size_t M_table_row_count(M_table_t *table);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_bool M_table_cell_insert(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags);
+M_bool M_table_cell_insert_at(M_table_t *table, size_t row, size_t col, const char *val);
+M_bool M_table_cell_clear(M_table_t *table, size_t row, const char *colname);
+M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col);
+const char *M_table_cell(M_table_t *table, size_t row, const char *colname);
+const char *M_table_cell_at(M_table_t *table, size_t row, size_t col);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* flags = enum M_CSV_FLAGS */
+M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, char delim, char quote, M_uint32 flags, M_bool have_header);
+char *M_table_write_csv(M_table_t *table, char delim, char quote, M_bool write_header);
 
 /*! @} */
 

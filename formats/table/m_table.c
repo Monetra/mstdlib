@@ -29,19 +29,21 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_table {
-	M_list_u64_t    *col_order;      /* List of column ids. */
-	M_hash_u64str_t *col_id_name;    /* Column ids -> column names. */
-	M_hash_stru64_t *col_name_id;    /* Column name -> column id. */
+	M_list_u64_t    *col_order;            /* List of column ids. */
+	M_hash_u64str_t *col_id_name;          /* Column ids -> column names. */
+	M_hash_stru64_t *col_name_id;          /* Column name -> column id. */
 
-	M_list_u64_t    *row_order;      /* List of row ids. */
-	M_hash_u64vp_t  *rows;           /* Row id -> M_hash_u64str_t (column id -> value) */
+	M_list_u64_t    *row_order;            /* List of row ids. */
+	M_hash_u64vp_t  *rows;                 /* Row id -> M_hash_u64str_t (column id -> value) */
 
-	M_rand_t        *rand;           /* Used for generating ids. */
+	M_rand_t        *rand;                 /* Used for generating ids. */
+	M_uint32         flags;                /* Flags from creation. */
 
-	M_sort_compar_t  primary_sort;   /* Primary sorting function when sorting. */
-	M_sort_compar_t  secondary_sort; /* Secondary sorting function when sorting. */
-	void            *sort_thunk;     /* Thunk passed to sort functions. */
-	M_uint64         sort_colid;     /* Column id that row data should be sorted on. */
+	M_sort_compar_t  primary_sort;         /* Primary sorting function when sorting. */
+	M_sort_compar_t  secondary_sort;       /* Secondary sorting function when sorting. */
+	void            *sort_thunk;           /* Thunk passed to sort functions. */
+	M_uint64         sort_colid;           /* Column id that row data should be sorted on. */
+	M_uint64         secondary_sort_colid; /* Column id that row data should be secondarily sorted on. */
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -101,8 +103,18 @@ static int table_coldata_compar(const void *arg1, const void *arg2, void *thunk)
 
 	/* Sort based on the column name. */
 	ret = table->primary_sort(&v1, &v2, table->sort_thunk);
-	if (ret == 0)
+
+	/* If they're the same run a secondary sort if present. */
+	if (ret == 0 && table->secondary_sort != NULL) {
+		/* Get the value for the secondary column. */
+		if (!M_hash_u64str_get(d1, table->secondary_sort_colid, &v1))
+			v1 = "";
+		if (!M_hash_u64str_get(d2, table->secondary_sort_colid, &v2))
+			v2 = "";
+
+		/* Sort the secondary column. */
 		ret = table->secondary_sort(&v1, &v2, table->sort_thunk);
+	}
 	return ret;
 }
 
@@ -117,7 +129,7 @@ static M_uint64 generate_id(M_table_t *table, M_bool is_cols)
 	return id;
 }
 
-static void M_table_column_sort_data_int(M_table_t *table, M_uint64 colid, M_sort_compar_t primary_sort, M_sort_compar_t secondary_sort, void *thunk)
+static void M_table_column_sort_data_int(M_table_t *table, M_uint64 colid, M_sort_compar_t primary_sort, M_uint64 secondary_colid, M_sort_compar_t secondary_sort, void *thunk)
 {
 	M_uint64 *rowids;
 	size_t    len;
@@ -135,17 +147,26 @@ static void M_table_column_sort_data_int(M_table_t *table, M_uint64 colid, M_sor
 
 	/* Sort. */
 	table->primary_sort = primary_sort;
-	if (table->primary_sort == NULL)
-		table->primary_sort = M_sort_compar_str;
-
+	if (table->primary_sort == NULL) {
+		if (table->flags & M_TABLE_COLNAME_CASECMP) {
+			table->primary_sort = M_sort_compar_str_casecmp;
+		} else {
+			table->primary_sort = M_sort_compar_str;
+		}
+	}
 	table->secondary_sort = secondary_sort;
-	table->sort_thunk     = thunk;
-	table->sort_colid     = colid;
+
+	table->sort_thunk           = thunk;
+	table->sort_colid           = colid;
+	table->secondary_sort_colid = secondary_colid;
+
 	M_sort_qsort(rowids, len, sizeof(rowids[0]), table_coldata_compar, table);
-	table->primary_sort   = NULL;
-	table->secondary_sort = NULL;
-	table->sort_thunk     = NULL;
-	table->sort_colid     = 0;
+
+	table->primary_sort         = NULL;
+	table->secondary_sort       = NULL;
+	table->sort_thunk           = NULL;
+	table->sort_colid           = 0;
+	table->secondary_sort_colid = 0;
 
 	/* Copy the ids in the now sorted order back into the table list. */
 	M_list_u64_destroy(table->row_order);
@@ -274,7 +295,8 @@ M_table_t *M_table_create(M_uint32 flags)
 	table->rows      = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_hash_u64str_destroy);
 
 	/* Other. */
-	table->rand = M_rand_create(0);
+	table->flags = flags;
+	table->rand  = M_rand_create(0);
 
 	return table;
 }
@@ -353,9 +375,10 @@ M_bool M_table_column_idx(M_table_t *table, const char *colname, size_t *idx)
 	return M_list_u64_index_of(table->col_order, colid, idx);
 }
 
-void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_compar_t primary_sort, M_sort_compar_t secondary_sort, void *thunk)
+void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_compar_t primary_sort, const char *secondary_colname, M_sort_compar_t secondary_sort, void *thunk)
 {
-	M_uint64 colid;
+	M_uint64 colid           = 0;
+	M_uint64 secondary_colid = 0;
 
 	if (table == NULL || M_str_isempty(colname))
 		return;
@@ -363,18 +386,26 @@ void M_table_column_sort_data(M_table_t *table, const char *colname, M_sort_comp
 	if (!M_hash_stru64_get(table->col_name_id, colname, &colid))
 		return;
 
-	M_table_column_sort_data_int(table, colid, primary_sort, secondary_sort, thunk);
+	if (!M_str_isempty(secondary_colname)) {
+		if (!M_hash_stru64_get(table->col_name_id, secondary_colname, &secondary_colid)) {
+			return;
+		}
+	}
+
+	M_table_column_sort_data_int(table, colid, primary_sort, secondary_colid, secondary_sort, thunk);
 }
 
-void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, M_sort_compar_t secondary_sort, void *thunk)
+void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, size_t secondary_idx, M_sort_compar_t secondary_sort, void *thunk)
 {
 	M_uint64 colid;
+	M_uint64 secondary_colid;
 
-	if (table == NULL || idx <= M_list_u64_len(table->col_order))
+	if (table == NULL || idx <= M_list_u64_len(table->col_order) || secondary_idx <= M_list_u64_len(table->col_order))
 		return;
 
-	colid = M_list_u64_at(table->col_order, idx);
-	M_table_column_sort_data_int(table, colid, primary_sort, secondary_sort, thunk);
+	colid           = M_list_u64_at(table->col_order, idx);
+	secondary_colid = M_list_u64_at(table->col_order, secondary_idx);
+	M_table_column_sort_data_int(table, colid, primary_sort, secondary_idx, secondary_sort, thunk);
 }
 
 void M_table_column_order(M_table_t *table, M_sort_compar_t sort, void *thunk)
