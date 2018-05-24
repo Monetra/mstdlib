@@ -561,6 +561,32 @@ void M_table_row_remove(M_table_t *table, size_t idx)
 	M_hash_u64vp_remove(table->rows, rowid, M_TRUE);
 }
 
+size_t M_table_row_remove_empty_rows(M_table_t *table)
+{
+	M_hash_u64str_t *row_data;
+	M_uint64         rowid;
+	size_t           len;
+	size_t           i;
+	size_t           cnt = 0;
+
+	if (table == NULL)
+		return 0;
+
+	len = M_list_u64_len(table->row_order);
+	for (i=len; i-->0; ) {
+		rowid = M_list_u64_at(table->row_order, i);
+		row_data = M_hash_u64vp_get_direct(table->rows, rowid);
+
+		if (row_data == NULL || M_hash_u64str_num_keys(row_data) == 0) {
+			M_list_u64_remove_at(table->row_order, i);
+			M_hash_u64vp_remove(table->rows, rowid, M_TRUE);
+			cnt++;
+		}
+	}
+
+	return cnt;
+}
+
 size_t M_table_row_count(M_table_t *table)
 {
 	if (table == NULL)
