@@ -171,10 +171,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga8adcdafe7f6bed9af912d1f582d77527"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga25cb18cab3f6f7e2b2426df17d183410"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga25cb18cab3f6f7e2b2426df17d183410">M_table_row_count</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table)</td></tr>
 <tr class="separator:ga25cb18cab3f6f7e2b2426df17d183410"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga53f4fea923ca74aa56b5a760abd6d7bf"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga53f4fea923ca74aa56b5a760abd6d7bf">M_table_cell_insert</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, const char *colname, const char *val, M_uint32 flags)</td></tr>
-<tr class="separator:ga53f4fea923ca74aa56b5a760abd6d7bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad4bcac01d6367bd5ac4071a258b872f1"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#gad4bcac01d6367bd5ac4071a258b872f1">M_table_cell_insert_at</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, size_t col, const char *val)</td></tr>
-<tr class="separator:gad4bcac01d6367bd5ac4071a258b872f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7ab8c0b883a785a19cdf8eeb38f62f85"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga7ab8c0b883a785a19cdf8eeb38f62f85">M_table_cell_set</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, const char *colname, const char *val, M_uint32 flags)</td></tr>
+<tr class="separator:ga7ab8c0b883a785a19cdf8eeb38f62f85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8b158258f17324d22d2f2b493184b851"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga8b158258f17324d22d2f2b493184b851">M_table_cell_set_at</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, size_t col, const char *val)</td></tr>
+<tr class="separator:ga8b158258f17324d22d2f2b493184b851"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga22cd788c59e7fb62d9063e93dde97809"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga22cd788c59e7fb62d9063e93dde97809">M_table_cell_clear</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, const char *colname)</td></tr>
 <tr class="separator:ga22cd788c59e7fb62d9063e93dde97809"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6fd0d21a7d3fbe030a897010913eafc5"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga6fd0d21a7d3fbe030a897010913eafc5">M_table_cell_clear_at</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, size_t col)</td></tr>
@@ -189,12 +189,7 @@ Functions</h2></td></tr>
 <tr class="separator:ga93d05f3d2a4788fcc5d4c358d36b59c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Generic table construction.</p>
-<p>Notes:</p>
-<ul>
-<li>Headers optional.</li>
-<li>Expand flag will allow adding data without setting explicit table size. </li>
-</ul>
+<p>Generic table construction and manipulation. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a class="anchor" id="ga9f19451707534e4eee48d5344016dff3"></a>
 <div class="memitem">
@@ -218,6 +213,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Flags controlling behavior of insert by column name operations. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggadfce4a554bdbe75e5be2bfcd8eb8fafaa45ecec8135e5535fea90cec79d1ee709"></a>M_TABLE_INSERT_NONE</em>&#160;</td><td class="fielddoc">
 <p>Fail the insert if the header, or index does not exist. </p>
@@ -241,6 +237,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Flags controlling table construction. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga6f0c1509cd7a7118b3787c1441a44154a964b379575615be60b275a944d33cda4"></a>M_TABLE_NONE</em>&#160;</td><td class="fielddoc">
 <p>Default operation. </p>
@@ -266,6 +263,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Create a table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_table_flags_t controlling behavior of the table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>return Table. </p>
 
 </div>
 </div>
@@ -282,6 +287,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Destroy a table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -308,6 +320,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert a new column into the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Optional name associated with the column.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE when the column is successfully added. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -340,6 +361,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert a new column into the table at a specified index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index to insert at. Cannot be larger than the number of columns (last idx+1). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Optional name associated with the column.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE when the column is successfully added. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -366,6 +397,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the name associated with a column.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Column index.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>NULL if no name associated. Otherwise, name. Name can be an empty string is it was set to an empty string. </dd></dl>
 
 </div>
 </div>
@@ -398,6 +438,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Associate a name with a column.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Column index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Name.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success. Otherwise, M_FALSE. Can fail if a column with the given name already exists. </dd></dl>
 
 </div>
 </div>
@@ -430,6 +480,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the index for a column with a given name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">idx</td><td>Index of column</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the column exists. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -480,6 +540,19 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sort rows based on data in a given column name.</p>
+<p>Supports secondary column sorting when values in the primary column are equivalent.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name for primary sorting. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">primary_sort</td><td>Sort comparison function for <code>colname</code>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">secondary_colname</td><td>Column name for secondary sorting. Only used when values from primary sort are equivalent. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">secondary_sort</td><td>Sort comparison function for <code>secondary_colname</code>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk passed to comparison functions. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -530,6 +603,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sort rows based on data in a given column index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Column index used for sorting. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">primary_sort</td><td>Sort comparison function for <code>colname</code>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">secondary_idx</td><td>Column index for secondary sorting. Only used when values from primary sort are equivalent. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">secondary_sort</td><td>Sort comparison function for <code>secondary_colname</code>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk passed to comparison functions. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -562,6 +647,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sort column based on names.</p>
+<p>It is not required for all columns to be named. Unnamed columns will be passed to the sort function as an empty string ("").</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sort</td><td>Sort comparison function. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk passed to comparison function. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -588,6 +683,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Remove a column with a given name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -614,6 +717,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Remove a column at a given index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Column index. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -630,6 +741,10 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Remove empty columns.</p>
+<p>A column is empty when no rows have data for that column.</p>
+<p>param[in] table Table.</p>
+<dl class="section return"><dt>Returns</dt><dd>Number of columns removed. </dd></dl>
 
 </div>
 </div>
@@ -646,6 +761,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the number of columns in the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Column count. </dd></dl>
 
 </div>
 </div>
@@ -662,6 +785,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Inset a row into the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Index the row was inserted at. </dd></dl>
 
 </div>
 </div>
@@ -688,6 +819,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert a row into the table at a given index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index to insert at. Cannot be larger than the number of rows (last idx+1).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the row was inserted. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -720,6 +860,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert data from a dict into the table.</p>
+<p>Dictionary key is the column name and the value is the cell value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Data to insert. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_table_insert_flags_t flags controlling insert behavior. Specifically handling of situations where the key in data is not a current column.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the row was inserted. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -758,6 +909,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert data from a dict into the table at a given idex.</p>
+<p>Dictionary key is the column name and the value is the cell value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index to insert at. Cannot be larger than the number of rows (last idx+1). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Data to insert. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_table_insert_flags_t flags controlling insert behavior. Specifically handling of situations where the key in data is not a current column.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the row was inserted. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -784,6 +947,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Remove a row.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Row index. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -800,6 +971,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Remove all empty rows from the table.</p>
+<p>A row is considered empty if there is no data in any column. An empty string is considered data and the row will not be removed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of rows removed. </dd></dl>
 
 </div>
 </div>
@@ -816,15 +996,23 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the number of rows in the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of rows. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga53f4fea923ca74aa56b5a760abd6d7bf"></a>
+<a class="anchor" id="ga7ab8c0b883a785a19cdf8eeb38f62f85"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_table_cell_insert </td>
+          <td class="memname">M_bool M_table_cell_set </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
           <td class="paramname"><em>table</em>, </td>
@@ -860,15 +1048,27 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set data in a given cell by column name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set. NULL will clear. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_table_insert_flags_t flags controlling insert behavior. Specifically handling of situations where the <code>colname</code> is not a current column.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the value was set. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="gad4bcac01d6367bd5ac4071a258b872f1"></a>
+<a class="anchor" id="ga8b158258f17324d22d2f2b493184b851"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_table_cell_insert_at </td>
+          <td class="memname">M_bool M_table_cell_set_at </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
           <td class="paramname"><em>table</em>, </td>
@@ -898,6 +1098,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set data in a given cell by index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">col</td><td>Column index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set. NULL will clear.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the value was set. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -930,6 +1141,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Clear the data from a cell by column name.</p>
+<p>This is the equivalent to calling <code>M_table_cell_set</code> with a NULL value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the cell was cleared. Otherwise, M_FALSE. Clearing a column that does not exist is considered success. </dd></dl>
 
 </div>
 </div>
@@ -962,6 +1184,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Clear the data from a cell by column index.</p>
+<p>This is the equivalent to calling <code>M_table_cell_set</code> with a NULL value.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">col</td><td>Column index.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the cell was cleared. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -994,6 +1227,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the data for a cell by column name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">colname</td><td>Column name.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Cell value. NULL is returned if there is no cell value and on error. </dd></dl>
 
 </div>
 </div>
@@ -1026,6 +1269,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Get the data for a cell by column index.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">row</td><td>Row index. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">col</td><td>Column index.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Cell value. NULL is returned if there is no cell value and on error. </dd></dl>
 
 </div>
 </div>
@@ -1082,6 +1335,20 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Load CSV formatted data into the table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>CSV data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of data to load. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>CSV delimiter character. Typically comma (","). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">quote</td><td>CSV quote character. Typically double quote ("""). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_CSV_FLAGS flags controlling parse behavior. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">have_header</td><td>Whether the CSV data has a header.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the data was loaded. Otherwise, M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -1120,6 +1387,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Write the table as CSV.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">delim</td><td>CSV delimiter character. Typically comma (","). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">quote</td><td>CSV quote character. Typically double quote ("""). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">write_header</td><td>Whether the column names should be written as the CSV header. All columns should be named if writing a header. However, it is not an error if there are unnamed columns.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CSV data. </dd></dl>
 
 </div>
 </div>
@@ -1128,7 +1406,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 24 2018 14:29:32 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 24 2018 15:35:20 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
