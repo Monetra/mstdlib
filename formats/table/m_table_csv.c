@@ -94,7 +94,7 @@ M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, char del
 	return M_TRUE;
 }
 
-char *M_table_write_csv(M_table_t *table, char delim, char quote, M_bool write_header)
+char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_bool write_header)
 {
 	M_buf_t    *buf;
 	const char *const_temp;

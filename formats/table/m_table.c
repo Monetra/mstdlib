@@ -263,7 +263,7 @@ static void M_table_cell_set_int(M_table_t *table, M_uint64 rowid, M_uint64 coli
 	}
 }
 
-static const char *M_table_cell_get_int(M_table_t *table, M_uint64 rowid, M_uint64 colid)
+static const char *M_table_cell_get_int(const M_table_t *table, M_uint64 rowid, M_uint64 colid)
 {
 	M_hash_u64str_t *row_data;
 
@@ -329,7 +329,7 @@ M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *colnam
 	return M_table_column_insert_at_int(table, idx, colname, NULL);
 }
 
-const char *M_table_column_name(M_table_t *table, size_t idx)
+const char *M_table_column_name(const M_table_t *table, size_t idx)
 {
 	M_uint64 colid;
 
@@ -360,7 +360,7 @@ M_bool M_table_column_set_name(M_table_t *table, size_t idx, const char *colname
 	return M_TRUE;
 }
 
-M_bool M_table_column_idx(M_table_t *table, const char *colname, size_t *idx)
+M_bool M_table_column_idx(const M_table_t *table, const char *colname, size_t *idx)
 {
 	M_uint64 colid;
 
@@ -508,7 +508,7 @@ size_t M_table_column_remove_empty_columns(M_table_t *table)
 	return cnt;
 }
 
-size_t M_table_column_count(M_table_t *table)
+size_t M_table_column_count(const M_table_t *table)
 {
 	if (table == NULL)
 		return 0;
@@ -630,7 +630,7 @@ size_t M_table_row_remove_empty_rows(M_table_t *table)
 	return cnt;
 }
 
-size_t M_table_row_count(M_table_t *table)
+size_t M_table_row_count(const M_table_t *table)
 {
 	if (table == NULL)
 		return 0;
@@ -688,7 +688,7 @@ M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col)
 	return M_table_cell_set_at(table, row, col, NULL);
 }
 
-const char *M_table_cell(M_table_t *table, size_t row, const char *colname)
+const char *M_table_cell(const M_table_t *table, size_t row, const char *colname)
 {
 	M_uint64 colid;
 	M_uint64 rowid;
@@ -703,7 +703,7 @@ const char *M_table_cell(M_table_t *table, size_t row, const char *colname)
 	return M_table_cell_get_int(table, rowid, colid);
 }
 
-const char *M_table_cell_at(M_table_t *table, size_t row, size_t col)
+const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col)
 {
 	M_uint64 colid;
 	M_uint64 rowid;
