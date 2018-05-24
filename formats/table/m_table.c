@@ -719,7 +719,56 @@ const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_table_t *M_table_duplicate(const M_table_t *table)
+M_bool M_table_merge(M_table_t **dest, M_table_t *src)
+{
+	const char *colname;
+	const char *val;
+	size_t      numcols;
+	size_t      numcols_dest;
+	size_t      numrows;
+	size_t      rowidx;
+	size_t      i;
+	size_t      j;
+
+	if (dest == NULL) {
+		*dest = src;
+		return M_TRUE;
+	}
+
+	if (src == NULL)
+		return M_TRUE;
+
+	numcols_dest = M_table_column_count(*dest);
+	numrows      = M_table_row_count(src);
+	numcols      = M_table_column_count(src);
+
+	/* Validate both tables have named columns and all columns are named. */
+	for (i=0; i<numcols_dest; i++) {
+		if (M_str_isempty(M_table_column_name(*dest, i))) {
+			return M_FALSE;
+		}
+	}
+	for (i=0; i<numcols; i++) {
+		if (M_str_isempty(M_table_column_name(src, i))) {
+			return M_FALSE;
+		}
+	}
+
+	/* Go though every row and cell in src and add it to dest. */
+	for (i=0; i<numrows; i++) {
+		for (j=0; j<numcols; j++) {
+			colname = M_table_column_name(src, j);
+			val     = M_table_cell_at(src, i, j);
+			rowidx  = M_table_row_insert(*dest);
+			M_table_cell_set(*dest, rowidx, colname, val, M_TABLE_INSERT_COLADD);
+		}
+	}
+
+	M_table_destroy(src);
+	return M_TRUE;
+}
+
+M_table_t *M_table_duplicate(const M_table_t *table)
 {
 	M_table_t           *rt;
 	M_hash_u64vp_enum_t *he;

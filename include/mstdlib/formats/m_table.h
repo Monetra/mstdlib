@@ -370,13 +370,29 @@ M_API const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Merge two tables together.
+ *
+ * The second (src) table will be destroyed automatically upon completion of this function.
+ * Both tables must have fully named columns. The two tables do not have to have the same
+ * exact columns. They can have different overlapping or non-overlapping column names.
+ *
+ * \param[in,out] dest Pointer by reference to the table receiving the data.
+ *                     if dest is NULL, the src address will simply be copied to dest.
+ * \param[in,out] src  Pointer to the table giving up its data.
+ *
+ * \return M_TRUE if the tables were merged and `src` is destroyed. Otherwise, M_FALSE.
+ *         If M_FALSE, `src` is still valid and no data has been added to dest.
+ */
+M_API M_bool M_table_merge(M_table_t **dest, M_table_t *src) M_FREE(2);
+
+
 /*! Duplicate a table.
  *
  * \param[in] table Table.
  * 
- * \return Table.
+ * \return Duplicated table.
  */
-M_API M_table_t *M_table_duplicate(const M_table_t *table);
+M_API M_table_t *M_table_duplicate(const M_table_t *table) M_MALLOC;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
