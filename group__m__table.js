@@ -37,7 +37,8 @@ var group__m__table =
     [ "M_table_cell_clear_at", "group__m__table.html#ga6fd0d21a7d3fbe030a897010913eafc5", null ],
     [ "M_table_cell", "group__m__table.html#ga0c0bdad8923a12a84fcf87bbf593ce11", null ],
     [ "M_table_cell_at", "group__m__table.html#ga87a262a7783acdfd8ccceab23dd23fca", null ],
-    [ "M_table_duplicate", "group__m__table.html#ga3b661616b7e24afadff617a07eb09096", null ],
+    [ "M_table_merge", "group__m__table.html#ga3fd1dd44959d83f2185307ee35d10e69", null ],
+    [ "M_table_duplicate", "group__m__table.html#gae6d1f909e37ad3a5318abb215fac049c", null ],
     [ "M_table_load_csv", "group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758", null ],
     [ "M_table_write_csv", "group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6", null ]
 ];

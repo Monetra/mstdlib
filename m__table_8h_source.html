@@ -470,59 +470,75 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;</div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
 <div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="comment">/*! Duplicate a table.</span></div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="comment">/*! Merge two tables together.</span></div>
 <div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"> * \param[in] table Table.</span></div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="comment"> * </span></div>
-<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="comment"> * \return Table.</span></div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;M_API <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *<a class="code" href="group__m__table.html#ga3b661616b7e24afadff617a07eb09096">M_table_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table);</div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;</div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="comment">/*! Load CSV formatted data into the table.</span></div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment"> * \param[in] table       Table.</span></div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment"> * \param[in] data        CSV data.</span></div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="comment"> * \param[in] len         Length of data to load.</span></div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment"> * \param[in] delim       CSV delimiter character. Typically comma (&quot;,&quot;).</span></div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment"> * \param[in] quote       CSV quote character. Typically double quote (&quot;&quot;&quot;).</span></div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="comment"> * \param[in] flags       M_CSV_FLAGS flags controlling parse behavior.</span></div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="comment"> * \param[in] have_header Whether the CSV data has a header.</span></div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment"> * \return M_TRUE if the data was loaded. Otherwise, M_FALSE.</span></div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;M_API M_bool <a class="code" href="group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758">M_table_load_csv</a>(<a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keyword">const</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> len, <span class="keywordtype">char</span> delim, <span class="keywordtype">char</span> quote, M_uint32 flags, M_bool have_header);</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"> * The second (src) table will be destroyed automatically upon completion of this function.</span></div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="comment"> * Both tables must have fully named columns. The two tables do not have to have the same</span></div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="comment"> * exact columns. They can have different overlapping or non-overlapping column names.</span></div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment"> * \param[in,out] dest Pointer by reference to the table receiving the data.</span></div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="comment"> *                     if dest is NULL, the src address will simply be copied to dest.</span></div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="comment"> * \param[in,out] src  Pointer to the table giving up its data.</span></div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment"> * \return M_TRUE if the tables were merged and `src` is destroyed. Otherwise, M_FALSE.</span></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="comment"> *         If M_FALSE, `src` is still valid and no data has been added to dest.</span></div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;M_API M_bool <a class="code" href="group__m__table.html#ga3fd1dd44959d83f2185307ee35d10e69">M_table_merge</a>(<a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> **dest, <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *src) M_FREE(2);</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment">/*! Duplicate a table.</span></div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="comment"> * \param[in] table Table.</span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="comment"> * </span></div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment"> * \return Duplicated table.</span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;M_API <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *<a class="code" href="group__m__table.html#gae6d1f909e37ad3a5318abb215fac049c">M_table_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table) M_MALLOC;</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;</div>
 <div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;</div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment">/*! Write the table as CSV.</span></div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"> * \param[in] table        Table.</span></div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"> * \param[in] delim        CSV delimiter character. Typically comma (&quot;,&quot;).</span></div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment"> * \param[in] quote        CSV quote character. Typically double quote (&quot;&quot;&quot;).</span></div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"> * \param[in] write_header Whether the column names should be written as the CSV header.</span></div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"> *                         All columns should be named if writing a header. However, it is not an</span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"> *                         error if there are unnamed columns.</span></div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"> * \return CSV data.</span></div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6">M_table_write_csv</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keywordtype">char</span> delim, <span class="keywordtype">char</span> quote, M_bool write_header);</div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment">/*! Load CSV formatted data into the table.</span></div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"> * \param[in] table       Table.</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment"> * \param[in] data        CSV data.</span></div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"> * \param[in] len         Length of data to load.</span></div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"> * \param[in] delim       CSV delimiter character. Typically comma (&quot;,&quot;).</span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"> * \param[in] quote       CSV quote character. Typically double quote (&quot;&quot;&quot;).</span></div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> * \param[in] flags       M_CSV_FLAGS flags controlling parse behavior.</span></div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"> * \param[in] have_header Whether the CSV data has a header.</span></div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment"> * \return M_TRUE if the data was loaded. Otherwise, M_FALSE.</span></div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;M_API M_bool <a class="code" href="group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758">M_table_load_csv</a>(<a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keyword">const</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> len, <span class="keywordtype">char</span> delim, <span class="keywordtype">char</span> quote, M_uint32 flags, M_bool have_header);</div>
 <div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;</div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;</div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;</div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_TABLE_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;<span class="comment">/*! Write the table as CSV.</span></div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment"> * \param[in] table        Table.</span></div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment"> * \param[in] delim        CSV delimiter character. Typically comma (&quot;,&quot;).</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment"> * \param[in] quote        CSV quote character. Typically double quote (&quot;&quot;&quot;).</span></div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment"> * \param[in] write_header Whether the column names should be written as the CSV header.</span></div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment"> *                         All columns should be named if writing a header. However, it is not an</span></div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment"> *                         error if there are unnamed columns.</span></div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment"> * \return CSV data.</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6">M_table_write_csv</a>(<span class="keyword">const</span> <a class="code" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, <span class="keywordtype">char</span> delim, <span class="keywordtype">char</span> quote, M_bool write_header);</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;</div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_TABLE_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__table_html_gab641fc241e452cdb7e11a32c72444fa8"><div class="ttname"><a href="group__m__table.html#gab641fc241e452cdb7e11a32c72444fa8">M_table_column_sort_data_at</a></div><div class="ttdeci">void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t primary_sort, size_t secondary_idx, M_sort_compar_t secondary_sort, void *thunk)</div></div>
 <div class="ttc" id="group__m__table_html_gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb"><div class="ttname"><a href="group__m__table.html#gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb">M_TABLE_COLNAME_CASECMP</a></div><div class="ttdef"><b>Definition:</b> m_table.h:60</div></div>
 <div class="ttc" id="group__m__table_html_ga0c0bdad8923a12a84fcf87bbf593ce11"><div class="ttname"><a href="group__m__table.html#ga0c0bdad8923a12a84fcf87bbf593ce11">M_table_cell</a></div><div class="ttdeci">const char * M_table_cell(const M_table_t *table, size_t row, const char *colname)</div></div>
 <div class="ttc" id="group__m__table_html_ga6f0c1509cd7a7118b3787c1441a44154"><div class="ttname"><a href="group__m__table.html#ga6f0c1509cd7a7118b3787c1441a44154">M_table_flags_t</a></div><div class="ttdeci">M_table_flags_t</div><div class="ttdef"><b>Definition:</b> m_table.h:58</div></div>
-<div class="ttc" id="group__m__table_html_ga3b661616b7e24afadff617a07eb09096"><div class="ttname"><a href="group__m__table.html#ga3b661616b7e24afadff617a07eb09096">M_table_duplicate</a></div><div class="ttdeci">M_table_t * M_table_duplicate(const M_table_t *table)</div></div>
 <div class="ttc" id="group__m__table_html_gaf3ee2a9b92056a13eda4ce1e85845a94"><div class="ttname"><a href="group__m__table.html#gaf3ee2a9b92056a13eda4ce1e85845a94">M_table_row_insert_at</a></div><div class="ttdeci">M_bool M_table_row_insert_at(M_table_t *table, size_t idx)</div></div>
 <div class="ttc" id="group__m__table_html_gaa45331e49b48978d90c5a490fc1ba709"><div class="ttname"><a href="group__m__table.html#gaa45331e49b48978d90c5a490fc1ba709">M_table_column_count</a></div><div class="ttdeci">size_t M_table_column_count(const M_table_t *table)</div></div>
+<div class="ttc" id="group__m__table_html_ga3fd1dd44959d83f2185307ee35d10e69"><div class="ttname"><a href="group__m__table.html#ga3fd1dd44959d83f2185307ee35d10e69">M_table_merge</a></div><div class="ttdeci">M_bool M_table_merge(M_table_t **dest, M_table_t *src) M_FREE(2)</div></div>
 <div class="ttc" id="group__m__table_html_ga5b7b87c4cf088009313a12ec9a62f849"><div class="ttname"><a href="group__m__table.html#ga5b7b87c4cf088009313a12ec9a62f849">M_table_row_insert_dict</a></div><div class="ttdeci">M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags)</div></div>
 <div class="ttc" id="group__m__table_html_gae852189e01fd2a41b8cb7679246b46cd"><div class="ttname"><a href="group__m__table.html#gae852189e01fd2a41b8cb7679246b46cd">M_table_column_insert_at</a></div><div class="ttdeci">M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *colname)</div></div>
 <div class="ttc" id="group__m__table_html_ggadfce4a554bdbe75e5be2bfcd8eb8fafaa8cb72cbbee256c68c66cd39435a39e6c"><div class="ttname"><a href="group__m__table.html#ggadfce4a554bdbe75e5be2bfcd8eb8fafaa8cb72cbbee256c68c66cd39435a39e6c">M_TABLE_INSERT_COLIGNORE</a></div><div class="ttdef"><b>Definition:</b> m_table.h:53</div></div>
@@ -537,6 +553,7 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div class="ttc" id="group__m__table_html_ga4ca4e1b9e152d915f876d069a5bddd58"><div class="ttname"><a href="group__m__table.html#ga4ca4e1b9e152d915f876d069a5bddd58">M_table_column_set_name</a></div><div class="ttdeci">M_bool M_table_column_set_name(M_table_t *table, size_t idx, const char *colname)</div></div>
 <div class="ttc" id="group__m__table_html_gga6f0c1509cd7a7118b3787c1441a44154a964b379575615be60b275a944d33cda4"><div class="ttname"><a href="group__m__table.html#gga6f0c1509cd7a7118b3787c1441a44154a964b379575615be60b275a944d33cda4">M_TABLE_NONE</a></div><div class="ttdef"><b>Definition:</b> m_table.h:59</div></div>
 <div class="ttc" id="group__m__table_html_gaff54718eceb84f3821ce6a023f3a3758"><div class="ttname"><a href="group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758">M_table_load_csv</a></div><div class="ttdeci">M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, char delim, char quote, M_uint32 flags, M_bool have_header)</div></div>
+<div class="ttc" id="group__m__table_html_gae6d1f909e37ad3a5318abb215fac049c"><div class="ttname"><a href="group__m__table.html#gae6d1f909e37ad3a5318abb215fac049c">M_table_duplicate</a></div><div class="ttdeci">M_table_t * M_table_duplicate(const M_table_t *table) M_MALLOC</div></div>
 <div class="ttc" id="group__m__sort_html_gacddbc7ac40cf63ca40b081bd44375517"><div class="ttname"><a href="group__m__sort.html#gacddbc7ac40cf63ca40b081bd44375517">M_sort_compar_t</a></div><div class="ttdeci">int(* M_sort_compar_t)(const void *, const void *, void *)</div><div class="ttdef"><b>Definition:</b> m_sort.h:78</div></div>
 <div class="ttc" id="group__m__table_html_ga856757aaa37899edf9d9e2b99f4a265b"><div class="ttname"><a href="group__m__table.html#ga856757aaa37899edf9d9e2b99f4a265b">M_table_column_remove</a></div><div class="ttdeci">void M_table_column_remove(M_table_t *table, const char *colname)</div></div>
 <div class="ttc" id="group__m__table_html_ga7ab8c0b883a785a19cdf8eeb38f62f85"><div class="ttname"><a href="group__m__table.html#ga7ab8c0b883a785a19cdf8eeb38f62f85">M_table_cell_set</a></div><div class="ttdeci">M_bool M_table_cell_set(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags)</div></div>
@@ -562,7 +579,7 @@ $(document).ready(function(){initNavTree('m__table_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_83479f3e62efc9ab117abb614c65a425.html">formats</a></li><li class="navelem"><b>m_table.h</b></li>
-    <li class="footer">Generated on Thu May 24 2018 15:57:36 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 24 2018 16:24:59 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
