@@ -110,7 +110,7 @@ M_API M_bool M_table_column_insert_at(M_table_t *table, size_t idx, const char *
  * \return NULL if no name associated. Otherwise, name. Name can be an empty string is
  *         it was set to an empty string.
  */
-M_API const char *M_table_column_name(M_table_t *table, size_t idx);
+M_API const char *M_table_column_name(const M_table_t *table, size_t idx);
 
 
 /*! Associate a name with a column.
@@ -133,7 +133,7 @@ M_API M_bool M_table_column_set_name(M_table_t *table, size_t idx, const char *c
  *
  * \return M_TRUE if the column exists. Otherwise, M_FALSE.
  */
-M_API M_bool M_table_column_idx(M_table_t *table, const char *colname, size_t *idx);
+M_API M_bool M_table_column_idx(const M_table_t *table, const char *colname, size_t *idx);
 
 
 /*! Sort rows based on data in a given column name.
@@ -209,7 +209,7 @@ M_API size_t M_table_column_remove_empty_columns(M_table_t *table);
  *
  * \return Column count.
  */
-M_API size_t M_table_column_count(M_table_t *table);
+M_API size_t M_table_column_count(const M_table_t *table);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -288,7 +288,7 @@ M_API size_t M_table_row_remove_empty_rows(M_table_t *table);
  *
  * \return Number of rows.
  */
-M_API size_t M_table_row_count(M_table_t *table);
+M_API size_t M_table_row_count(const M_table_t *table);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -354,7 +354,7 @@ M_API M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col);
  *
  * \return Cell value. NULL is returned if there is no cell value and on error.
  */
-M_API const char *M_table_cell(M_table_t *table, size_t row, const char *colname);
+M_API const char *M_table_cell(const M_table_t *table, size_t row, const char *colname);
 
 
 /*! Get the data for a cell by column index.
@@ -365,7 +365,7 @@ M_API const char *M_table_cell(M_table_t *table, size_t row, const char *colname
  *
  * \return Cell value. NULL is returned if there is no cell value and on error.
  */
-M_API const char *M_table_cell_at(M_table_t *table, size_t row, size_t col);
+M_API const char *M_table_cell_at(const M_table_t *table, size_t row, size_t col);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -396,7 +396,7 @@ M_API M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, ch
  *
  * \return CSV data.
  */
-M_API char *M_table_write_csv(M_table_t *table, char delim, char quote, M_bool write_header);
+M_API char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_bool write_header);
 
 /*! @} */
 
