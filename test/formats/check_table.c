@@ -93,6 +93,72 @@ START_TEST(check_table_coldata_sort)
 }
 END_TEST
 
+START_TEST(check_table_csv)
+{
+	M_table_t  *table;
+	char       *out;
+	M_bool      ret;
+	const char *csv_data = ""
+		"header1, h 2, nope, gah\r\n"
+		"v1,v2, v3,\r\n"
+		"1,2, 3,4\r\n"
+		"1,,\"\"\"Test\"\"\",4\r\n"
+		"1,\",\",,";
+	const char *csv_data2 = ""
+		"header1, h 2, nope, gah\r\n"
+		"v1,v2, v3,\r\n"
+		"1,2, 3,4\r\n"
+		"1,,\"\"\"Test\"\"\",4\r\n"
+		"1,\",\",,\r\n"
+		"v1,v2, v3,\r\n"
+		"1,2, 3,4\r\n"
+		"1,,\"\"\"Test\"\"\",4\r\n"
+		"1,\",\",,";
+	const char *csv_data_noheader = ""
+		"alpha, beta, epsilon, gama\r\n"
+		"zeta, beta, gama,\r\n";
+	const char *csv_data3 = ""
+		"header1, h 2, nope, gah\r\n"
+		"v1,v2, v3,\r\n"
+		"1,2, 3,4\r\n"
+		"1,,\"\"\"Test\"\"\",4\r\n"
+		"1,\",\",,\r\n"
+		"v1,v2, v3,\r\n"
+		"1,2, 3,4\r\n"
+		"1,,\"\"\"Test\"\"\",4\r\n"
+		"1,\",\",,\r\n"
+		"alpha, beta, epsilon, gama\r\n"
+		"zeta, beta, gama,";
+
+	/* Check csv. */
+	table = M_table_create(M_TABLE_NONE);
+	ret   = M_table_load_csv(table, csv_data, M_str_len(csv_data), ',', '"', M_CSV_FLAG_NONE, M_TRUE);
+	ck_assert_msg(ret, "Failed to load csv");
+
+	out = M_table_write_csv(table, ',', '"', M_TRUE);
+	ck_assert_msg(M_str_eq(out, csv_data), "cvs data does not match, got:\n'%s'\nexpected:\n'%s'", out, csv_data);
+	M_free(out);
+
+	/* Load the csv again into the table so it's dobuled. */
+	ret   = M_table_load_csv(table, csv_data, M_str_len(csv_data), ',', '"', M_CSV_FLAG_NONE, M_TRUE);
+	ck_assert_msg(ret, "Failed to load csv second time");
+
+	out = M_table_write_csv(table, ',', '"', M_TRUE);
+	ck_assert_msg(M_str_eq(out, csv_data2), "cvs2 data does not match, got:\n'%s'\nexpected:\n'%s'", out, csv_data2);
+	M_free(out);
+
+	/* Load more csv data (without headers). */
+	ret   = M_table_load_csv(table, csv_data_noheader, M_str_len(csv_data_noheader), ',', '"', M_CSV_FLAG_NONE, M_FALSE);
+	ck_assert_msg(ret, "Failed to load csv no header");
+
+	out = M_table_write_csv(table, ',', '"', M_TRUE);
+	ck_assert_msg(M_str_eq(out, csv_data3), "cvs3 data does not match, got:\n'%s'\nexpected:\n'%s'", out, csv_data3);
+	M_free(out);
+
+	M_table_destroy(table);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *test_suite(void)
@@ -108,6 +174,10 @@ static Suite *test_suite(void)
 
 	tc = tcase_create("table_coldata_sort");
 	tcase_add_test(tc, check_table_coldata_sort);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("table_csv");
+	tcase_add_test(tc, check_table_csv);
 	suite_add_tcase(suite, tc);
 
 	return suite;
@@ -130,4 +200,3 @@ int main(int argc, char **argv)
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

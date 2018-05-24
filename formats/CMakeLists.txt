@@ -36,6 +36,7 @@ set(sources
 
 	# table:
 	table/m_table.c
+	table/m_table_csv.c
 
 	# time:
 	time/m_mtzfile.c

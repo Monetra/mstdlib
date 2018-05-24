@@ -519,11 +519,16 @@ size_t M_table_column_count(M_table_t *table)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_table_row_insert(M_table_t *table)
+size_t M_table_row_insert(M_table_t *table)
 {
+	size_t len;
+
 	if (table == NULL)
-		return;
-	M_table_row_insert_at(table, M_list_u64_len(table->row_order));
+		return 0;
+
+	len = M_list_u64_len(table->row_order);
+	M_table_row_insert_at(table, len);
+	return len;
 }
 
 M_bool M_table_row_insert_at(M_table_t *table, size_t idx)
