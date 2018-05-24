@@ -86,7 +86,7 @@ M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, char del
 				colidx = j;
 				val    = M_csv_raw_cell(csv, i, j);
 			}
-			M_table_cell_insert_at(table, rowidx, colidx, val);
+			M_table_cell_set_at(table, rowidx, colidx, val);
 		}
 	}
 

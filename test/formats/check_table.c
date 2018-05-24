@@ -68,9 +68,9 @@ START_TEST(check_table_coldata_sort)
 	lena = sizeof(unordered)/sizeof(unordered[0]);
 	for (i=0; i<lena; i++) {
 		M_table_row_insert(table);
-		M_table_cell_insert(table, i, "alpha", unordered[i], M_TABLE_INSERT_NONE);
+		M_table_cell_set(table, i, "alpha", unordered[i], M_TABLE_INSERT_NONE);
 		/* second column will be reversed. */
-		M_table_cell_insert_at(table, i, 1, unordered[lena-i-1]);
+		M_table_cell_set_at(table, i, 1, unordered[lena-i-1]);
 	}
 	len = M_table_row_count(table);
 	ck_assert_msg(len == lena, "Wrong number of rows: got %zu, expected %zu", len, lena);

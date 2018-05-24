@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- *
+ * 
  * Copyright (c) 2018 Main Street Softworks, Inc.
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -189,7 +189,7 @@ static void M_table_column_remove_int(M_table_t *table, M_uint64 colid)
 
 	/* Remove the column for the list of columns. */
 	if (M_list_u64_remove_val(table->col_order, colid, M_LIST_U64_MATCH_VAL) == 0)
-	   return;
+	   return;	
 
 	/* Remove the column name id mapping. */
 	colname = M_hash_u64str_get_direct(table->col_id_name, colid);
@@ -247,7 +247,7 @@ static M_bool M_table_row_insert_at_int(M_table_t *table, size_t idx, M_uint64 *
 	return M_TRUE;
 }
 
-static void M_table_cell_insert_int(M_table_t *table, M_uint64 rowid, M_uint64 colid, const char *val)
+static void M_table_cell_set_int(M_table_t *table, M_uint64 rowid, M_uint64 colid, const char *val)
 {
 	M_hash_u64str_t *row_data;
 
@@ -311,8 +311,6 @@ void M_table_destroy(M_table_t *table)
 	M_hash_stru64_destroy(table->col_name_id);
 	M_list_u64_destroy(table->row_order);
 	M_hash_u64vp_destroy(table->rows, M_TRUE);
-
-	M_rand_destroy(table->rand);
 
 	M_free(table);
 }
@@ -641,7 +639,7 @@ size_t M_table_row_count(M_table_t *table)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_table_cell_insert(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags)
+M_bool M_table_cell_set(M_table_t *table, size_t row, const char *colname, const char *val, M_uint32 flags)
 {
 	M_uint64 colid;
 	M_uint64 rowid;
@@ -661,11 +659,11 @@ M_bool M_table_cell_insert(M_table_t *table, size_t row, const char *colname, co
 		return M_FALSE;
 	}
 
-	M_table_cell_insert_int(table, rowid, colid, val);
+	M_table_cell_set_int(table, rowid, colid, val);
 	return M_TRUE;
 }
 
-M_bool M_table_cell_insert_at(M_table_t *table, size_t row, size_t col, const char *val)
+M_bool M_table_cell_set_at(M_table_t *table, size_t row, size_t col, const char *val)
 {
 	M_uint64 colid;
 	M_uint64 rowid;
@@ -676,18 +674,18 @@ M_bool M_table_cell_insert_at(M_table_t *table, size_t row, size_t col, const ch
 	rowid = M_list_u64_at(table->row_order, row);
 	colid = M_list_u64_at(table->col_order, col);
 
-	M_table_cell_insert_int(table, rowid, colid, val);
+	M_table_cell_set_int(table, rowid, colid, val);
 	return M_TRUE;
 }
 
 M_bool M_table_cell_clear(M_table_t *table, size_t row, const char *colname)
 {
-	return M_table_cell_insert(table, row, colname, NULL, M_TABLE_INSERT_COLIGNORE);
+	return M_table_cell_set(table, row, colname, NULL, M_TABLE_INSERT_COLIGNORE);
 }
 
 M_bool M_table_cell_clear_at(M_table_t *table, size_t row, size_t col)
 {
-	return M_table_cell_insert_at(table, row, col, NULL);
+	return M_table_cell_set_at(table, row, col, NULL);
 }
 
 const char *M_table_cell(M_table_t *table, size_t row, const char *colname)
