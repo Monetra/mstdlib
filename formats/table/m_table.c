@@ -181,8 +181,8 @@ static void M_table_column_sort_data_int(M_table_t *table, M_uint64 colid, M_sor
 static void M_table_column_remove_int(M_table_t *table, M_uint64 colid)
 {
 	M_hash_u64vp_enum_t *he;
-	M_hash_u64str_t     *data;
-	const char          *name;
+	M_hash_u64str_t     *row_data;
+	const char          *colname;
 
 	if (table == NULL)
 		return;
@@ -192,14 +192,14 @@ static void M_table_column_remove_int(M_table_t *table, M_uint64 colid)
 	   return;
 
 	/* Remove the column name id mapping. */
-	name = M_hash_u64str_get_direct(table->col_id_name, colid);
-	M_hash_stru64_remove(table->col_name_id, name);
+	colname = M_hash_u64str_get_direct(table->col_id_name, colid);
+	M_hash_stru64_remove(table->col_name_id, colname);
 	M_hash_u64str_remove(table->col_id_name, colid);
 
 	/* Go though each row and remove the column data. */
 	M_hash_u64vp_enumerate(table->rows, &he);
-	while (M_hash_u64vp_enumerate_next(table->rows, he, NULL, (void *)&data)) {
-		M_hash_u64str_remove(data, colid);
+	while (M_hash_u64vp_enumerate_next(table->rows, he, NULL, (void *)&row_data)) {
+		M_hash_u64str_remove(row_data, colid);
 	}
 	M_hash_u64vp_enumerate_free(he);
 }
@@ -468,6 +468,45 @@ void M_table_column_remove_at(M_table_t *table, size_t idx)
 
 	colid = M_list_u64_at(table->col_order, idx);
 	M_table_column_remove_int(table, colid);
+}
+
+size_t M_table_column_remove_empty_columns(M_table_t *table)
+{
+	M_hash_u64vp_enum_t *he;
+	M_hash_u64str_t     *row_data;
+	const char          *colname;
+	M_uint64             colid;
+	size_t               len;
+	size_t               i;
+	size_t               cnt = 0;
+	M_bool               have;
+
+	if (table == NULL)
+		return 0;
+
+	len = M_list_u64_len(table->col_order);
+	for (i=len; i-->0; ) {
+		colid = M_list_u64_at(table->col_order, i);
+		have  = M_FALSE;
+
+		M_hash_u64vp_enumerate(table->rows, &he);
+		while (M_hash_u64vp_enumerate_next(table->rows, he, NULL, (void **)&row_data)) {
+			if (M_hash_u64str_get(row_data, colid, NULL)) {
+				have = M_TRUE;
+				break;
+			}
+		}
+
+		if (!have) {
+			M_list_u64_remove_at(table->col_order, i);
+			colname = M_hash_u64str_get_direct(table->col_id_name, colid);
+			M_hash_stru64_remove(table->col_name_id, colname);
+			M_hash_u64str_remove(table->col_id_name, colid);
+			cnt++;
+		}
+	}
+
+	return cnt;
 }
 
 size_t M_table_column_count(M_table_t *table)
