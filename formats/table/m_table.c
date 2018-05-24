@@ -496,6 +496,7 @@ size_t M_table_column_remove_empty_columns(M_table_t *table)
 				break;
 			}
 		}
+		M_hash_u64vp_enumerate_free(he);
 
 		if (!have) {
 			M_list_u64_remove_at(table->col_order, i);
