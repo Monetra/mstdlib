@@ -75,7 +75,7 @@ START_TEST(check_table_coldata_sort)
 	len = M_table_row_count(table);
 	ck_assert_msg(len == lena, "Wrong number of rows: got %zu, expected %zu", len, lena);
 
-	M_table_column_sort_data(table, "alpha", NULL, NULL, NULL);
+	M_table_column_sort_data(table, "alpha", NULL, NULL, NULL, NULL);
 
 	lena = sizeof(afterorder)/sizeof(afterorder[0]);
 	for (i=0; i<lena; i++) {
