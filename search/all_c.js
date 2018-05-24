@@ -2713,6 +2713,7 @@ var searchData=
   ['m_5ftable_5fcolumn_5fsort_5fdata_5fat',['M_table_column_sort_data_at',['../group__m__table.html#gab641fc241e452cdb7e11a32c72444fa8',1,'m_table.h']]],
   ['m_5ftable_5fcreate',['M_table_create',['../group__m__table.html#ga75b3b3107dd6e4df16b382db21758d40',1,'m_table.h']]],
   ['m_5ftable_5fdestroy',['M_table_destroy',['../group__m__table.html#ga13b040287491f2193f1453c665b4c12f',1,'m_table.h']]],
+  ['m_5ftable_5fduplicate',['M_table_duplicate',['../group__m__table.html#ga3b661616b7e24afadff617a07eb09096',1,'m_table.h']]],
   ['m_5ftable_5fflags_5ft',['M_table_flags_t',['../group__m__table.html#ga6f0c1509cd7a7118b3787c1441a44154',1,'m_table.h']]],
   ['m_5ftable_5finsert_5fcoladd',['M_TABLE_INSERT_COLADD',['../group__m__table.html#ggadfce4a554bdbe75e5be2bfcd8eb8fafaa72c17b15a40d63f1510719491ed27524',1,'m_table.h']]],
   ['m_5ftable_5finsert_5fcolignore',['M_TABLE_INSERT_COLIGNORE',['../group__m__table.html#ggadfce4a554bdbe75e5be2bfcd8eb8fafaa8cb72cbbee256c68c66cd39435a39e6c',1,'m_table.h']]],

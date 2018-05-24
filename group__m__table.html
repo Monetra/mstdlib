@@ -183,6 +183,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga0c0bdad8923a12a84fcf87bbf593ce11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga87a262a7783acdfd8ccceab23dd23fca"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga87a262a7783acdfd8ccceab23dd23fca">M_table_cell_at</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, size_t row, size_t col)</td></tr>
 <tr class="separator:ga87a262a7783acdfd8ccceab23dd23fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3b661616b7e24afadff617a07eb09096"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga3b661616b7e24afadff617a07eb09096">M_table_duplicate</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table)</td></tr>
+<tr class="separator:ga3b661616b7e24afadff617a07eb09096"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaff54718eceb84f3821ce6a023f3a3758"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758">M_table_load_csv</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, const char *data, size_t len, char delim, char quote, M_uint32 flags, M_bool have_header)</td></tr>
 <tr class="separator:gaff54718eceb84f3821ce6a023f3a3758"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga891825f08b9755e45b9ec0c8f11d6fd6"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6">M_table_write_csv</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, char delim, char quote, M_bool write_header)</td></tr>
@@ -1282,6 +1284,30 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga3b661616b7e24afadff617a07eb09096"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a>* M_table_duplicate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
+          <td class="paramname"><em>table</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Duplicate a table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Table. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gaff54718eceb84f3821ce6a023f3a3758"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1406,7 +1432,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 24 2018 15:48:30 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 24 2018 15:57:37 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

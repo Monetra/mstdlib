@@ -1638,6 +1638,7 @@ var searchData=
   ['m_5ftable_5fcolumn_5fsort_5fdata_5fat',['M_table_column_sort_data_at',['../group__m__table.html#gab641fc241e452cdb7e11a32c72444fa8',1,'m_table.h']]],
   ['m_5ftable_5fcreate',['M_table_create',['../group__m__table.html#ga75b3b3107dd6e4df16b382db21758d40',1,'m_table.h']]],
   ['m_5ftable_5fdestroy',['M_table_destroy',['../group__m__table.html#ga13b040287491f2193f1453c665b4c12f',1,'m_table.h']]],
+  ['m_5ftable_5fduplicate',['M_table_duplicate',['../group__m__table.html#ga3b661616b7e24afadff617a07eb09096',1,'m_table.h']]],
   ['m_5ftable_5fload_5fcsv',['M_table_load_csv',['../group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758',1,'m_table.h']]],
   ['m_5ftable_5frow_5fcount',['M_table_row_count',['../group__m__table.html#gafb865d9d0d928887596ce9f609e8128f',1,'m_table.h']]],
   ['m_5ftable_5frow_5finsert',['M_table_row_insert',['../group__m__table.html#ga75d03c754342015714d4cd9855ea2545',1,'m_table.h']]],
