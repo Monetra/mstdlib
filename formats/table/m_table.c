@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -168,7 +168,7 @@ static void M_table_column_remove_int(M_table_t *table, M_uint64 colid)
 
 	/* Remove the column for the list of columns. */
 	if (M_list_u64_remove_val(table->col_order, colid, M_LIST_U64_MATCH_VAL) == 0)
-	   return;	
+	   return;
 
 	/* Remove the column name id mapping. */
 	name = M_hash_u64str_get_direct(table->col_id_name, colid);
@@ -289,6 +289,8 @@ void M_table_destroy(M_table_t *table)
 	M_hash_stru64_destroy(table->col_name_id);
 	M_list_u64_destroy(table->row_order);
 	M_hash_u64vp_destroy(table->rows, M_TRUE);
+
+	M_rand_destroy(table->rand);
 
 	M_free(table);
 }
