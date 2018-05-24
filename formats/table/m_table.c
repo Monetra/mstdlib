@@ -655,8 +655,9 @@ M_bool M_table_cell_set(M_table_t *table, size_t row, const char *colname, const
 			if (!M_table_column_insert_at_int(table, M_list_u64_len(table->col_order), colname, &colid)) {
 				return M_FALSE;
 			}
+		} else {
+			return M_FALSE;
 		}
-		return M_FALSE;
 	}
 
 	M_table_cell_set_int(table, rowid, colid, val);
@@ -756,10 +757,11 @@ M_bool M_table_merge(M_table_t **dest, M_table_t *src)
 
 	/* Go though every row and cell in src and add it to dest. */
 	for (i=0; i<numrows; i++) {
+		rowidx = M_table_row_insert(*dest);
+
 		for (j=0; j<numcols; j++) {
 			colname = M_table_column_name(src, j);
 			val     = M_table_cell_at(src, i, j);
-			rowidx  = M_table_row_insert(*dest);
 			M_table_cell_set(*dest, rowidx, colname, val, M_TABLE_INSERT_COLADD);
 		}
 	}
