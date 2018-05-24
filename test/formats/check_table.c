@@ -159,6 +159,29 @@ START_TEST(check_table_csv)
 }
 END_TEST
 
+START_TEST(check_table_json)
+{
+	M_table_t  *table;
+	char       *out;
+	M_bool      ret;
+	const char *data = "["
+		"{\"a\":\"a\",\"b\":\"b\",\"other\":\"val\"},"
+		"{\"a\":\"q\",\"b\":\"b\"},"
+		"{\"a\":\"1\",\"b\":\"b\",\"other\":\"abc\"},"
+		"{\"a\":\"7\",\"other\":\"blah\"}"
+		"]";
+
+	/* Check. */
+	table = M_table_create(M_TABLE_NONE);
+	ret   = M_table_load_json(table, data, M_str_len(data));
+	ck_assert_msg(ret, "Failed to load json");
+
+	out = M_table_write_json(table, M_JSON_WRITER_NONE);
+	ck_assert_msg(M_str_eq(out, data), "json data does not match, got:\n'%s'\nexpected:\n'%s'", out, data);
+	M_free(out);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *test_suite(void)
@@ -178,6 +201,10 @@ static Suite *test_suite(void)
 
 	tc = tcase_create("table_csv");
 	tcase_add_test(tc, check_table_csv);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("table_json");
+	tcase_add_test(tc, check_table_json);
 	suite_add_tcase(suite, tc);
 
 	return suite;

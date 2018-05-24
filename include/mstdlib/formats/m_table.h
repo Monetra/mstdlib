@@ -425,6 +425,40 @@ M_API M_bool M_table_load_csv(M_table_t *table, const char *data, size_t len, ch
  */
 M_API char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_bool write_header);
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Load JSON formatted data into the table.
+ *
+ * Should be in the form list of a objects who's keys are headers and value are cell value
+ * for the row at the given list index.
+ *
+ * E.g.:
+ *
+ *     [
+ *       { header1: "value", header2: "value" },
+ *       { header1: "value", header2: "value" }
+ *     ]
+ *
+ * \param[in] table Table.
+ * \param[in] data  JSON string data.
+ * \param[in] len   Length of data to load.
+ *
+ * \return M_TRUE if the data was loaded. Otherwise, M_FALSE.
+ */
+M_API M_bool M_table_load_json(M_table_t *table, const char *data, size_t len);
+
+
+/*! Write the table as JSON.
+ *
+ * All columns must be named!
+ *
+ * \param[in] table Table.
+ * \param[in] flags M_json_writer_flags_t flags controlling writing.
+ *
+ * \return JSON data.
+ */
+M_API char *M_table_write_json(const M_table_t *table, M_uint32 flags);
+
 /*! @} */
 
 __END_DECLS
