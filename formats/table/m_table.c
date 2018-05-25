@@ -60,7 +60,7 @@ static int table_colname_compar(const void *arg1, const void *arg2, void *thunk)
 	if (arg1 != NULL)
 		id1 = *((M_uint64 const *)arg1);
 	if (arg2 != NULL)
-		id2 = *(M_uint64 *)arg2;
+		id2 = *(M_uint64 const *)arg2;
 
 	/* Get the values that are actually going to be compared from the
  	 * ids that have been sent in. */
@@ -88,7 +88,7 @@ static int table_coldata_compar(const void *arg1, const void *arg2, void *thunk)
 	if (arg1 != NULL)
 		id1 = *((M_uint64 const *)arg1);
 	if (arg2 != NULL)
-		id2 = *(M_uint64 *)arg2;
+		id2 = *(M_uint64 const *)arg2;
 
 	/* Get the row data for each rowid. */
 	d1 = M_hash_u64vp_get_direct(table->rows, id1);
