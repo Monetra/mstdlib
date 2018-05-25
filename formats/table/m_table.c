@@ -312,6 +312,8 @@ void M_table_destroy(M_table_t *table)
 	M_list_u64_destroy(table->row_order);
 	M_hash_u64vp_destroy(table->rows, M_TRUE);
 
+	M_rand_destroy(table->rand);
+
 	M_free(table);
 }
 
