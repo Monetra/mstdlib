@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -87,7 +87,7 @@ static void M_fs_path_split(const char *path, char **dir, char **name, M_fs_syst
 			*dir = M_strdup(".");
 		}
 	}
-	
+
 	M_list_str_destroy(parts);
 }
 
@@ -100,7 +100,7 @@ M_fs_system_t M_fs_path_get_system_type(M_fs_system_t sys_type)
 #ifdef _WIN32
 		return M_FS_SYSTEM_WINDOWS;
 #else
-		return M_FS_SYSTEM_UNIX;	
+		return M_FS_SYSTEM_UNIX;
 #endif
 	}
 	return sys_type;
@@ -359,7 +359,7 @@ char *M_fs_path_join_resolved(const char *path, const char *part, const char *re
 	/* If the resolved path is absolute we don't need to modify it. */
 	if (M_fs_path_isabs(resolved_name, sys_type))
 		return M_strdup(resolved_name);
-	
+
 	full_path = M_fs_path_join(path, part, sys_type);
 	M_fs_path_split(full_path, &dir, NULL, sys_type);
 	M_free(full_path);
@@ -461,7 +461,7 @@ M_fs_error_t M_fs_path_get_cwd(char **cwd)
 	temp     = M_malloc(path_max);
 
 #ifdef _WIN32
-	if (!M_win32_size_t_to_dword(path_max, &dpath_max)) 
+	if (!M_win32_size_t_to_dword(path_max, &dpath_max))
 		return M_FS_ERROR_INVALID;
 	if (GetCurrentDirectory(dpath_max, temp) == 0) {
 		M_free(temp);
@@ -593,7 +593,7 @@ char *M_fs_path_tmpdir(M_fs_system_t sys_type)
 	size_t len = M_fs_path_get_path_max(M_FS_SYSTEM_WINDOWS)+1;
 	d = M_malloc_zero(len);
 	/* Return is length without NULL. */
-	if (GetTempPath(len, d) >= len) {
+	if (GetTempPath((DWORD)len, d) >= len) {
 		M_free(d);
 		d = NULL;
 	}
