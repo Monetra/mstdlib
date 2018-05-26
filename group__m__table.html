@@ -126,6 +126,19 @@ Enumerations</h2></td></tr>
 <br/>
  }</td></tr>
 <tr class="separator:ga6f0c1509cd7a7118b3787c1441a44154"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8a4cf023c70e384ba767ea709219da27"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga8a4cf023c70e384ba767ea709219da27">M_table_markdown_flags_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a0885ebd6f555a3f7969ebacb553fd93f">M_TABLE_MARKDOWN_NONE</a> = 0, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__table.html#gga8a4cf023c70e384ba767ea709219da27af89a7639ae279856695279794a1aa397">M_TABLE_MARKDOWN_PRETTYPRINT</a> = 1 &lt;&lt; 0, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a0c212d807eae07aae17be8516a83cf7d">M_TABLE_MARKDOWN_OUTERPIPE</a> = 1 &lt;&lt; 1, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__table.html#gga8a4cf023c70e384ba767ea709219da27ae1e145843a259003fd88f427bb2a898a">M_TABLE_MARKDOWN_LINEEND_UNX</a> = 1 &lt;&lt; 2, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a10e725428b0436756bcdaa26f937664e">M_TABLE_MARKDOWN_LINEEND_WIN</a> = 1 &lt;&lt; 3
+<br/>
+ }</td></tr>
+<tr class="separator:ga8a4cf023c70e384ba767ea709219da27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -195,6 +208,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga2c637cdec0125ca4aa308610795da99d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab779f780d77b59fa2b2eb0c47f9380e0"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0">M_table_write_json</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, M_uint32 flags)</td></tr>
 <tr class="separator:gab779f780d77b59fa2b2eb0c47f9380e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae12806361f68714214018b89e1d91d4f"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#gae12806361f68714214018b89e1d91d4f">M_table_load_markdown</a> (<a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, const char *data, size_t len)</td></tr>
+<tr class="separator:gae12806361f68714214018b89e1d91d4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga68656c0d5d6d3cf2d58b8a9fd63ee9d0"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__table.html#ga68656c0d5d6d3cf2d58b8a9fd63ee9d0">M_table_write_markdown</a> (const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *table, M_uint32 flags)</td></tr>
+<tr class="separator:ga68656c0d5d6d3cf2d58b8a9fd63ee9d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generic table construction and manipulation. </p>
@@ -252,6 +269,36 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb"></a>M_TABLE_COLNAME_CASECMP</em>&#160;</td><td class="fielddoc">
 <p>Compare column names case insensitive. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="ga8a4cf023c70e384ba767ea709219da27"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__table.html#ga8a4cf023c70e384ba767ea709219da27">M_table_markdown_flags_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Flags controlling behavior of Markdown output. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga8a4cf023c70e384ba767ea709219da27a0885ebd6f555a3f7969ebacb553fd93f"></a>M_TABLE_MARKDOWN_NONE</em>&#160;</td><td class="fielddoc">
+<p>No special formatting. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8a4cf023c70e384ba767ea709219da27af89a7639ae279856695279794a1aa397"></a>M_TABLE_MARKDOWN_PRETTYPRINT</em>&#160;</td><td class="fielddoc">
+<p>Pretty print output. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8a4cf023c70e384ba767ea709219da27a0c212d807eae07aae17be8516a83cf7d"></a>M_TABLE_MARKDOWN_OUTERPIPE</em>&#160;</td><td class="fielddoc">
+<p>Write outer pipes around rows, framing characters. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8a4cf023c70e384ba767ea709219da27ae1e145843a259003fd88f427bb2a898a"></a>M_TABLE_MARKDOWN_LINEEND_UNX</em>&#160;</td><td class="fielddoc">
+<p>Use Unix line endings (\n). </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga8a4cf023c70e384ba767ea709219da27a10e725428b0436756bcdaa26f937664e"></a>M_TABLE_MARKDOWN_LINEEND_WIN</em>&#160;</td><td class="fielddoc">
+<p>Use Windows line endings (\r\n). </p>
 </td></tr>
 </table>
 
@@ -1553,12 +1600,90 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gae12806361f68714214018b89e1d91d4f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_table_load_markdown </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Load Markdown formatted data into the table.</p>
+<p>Column justification information will be lost.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>CSV data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of data to load.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the data was loaded. Otherwise, M_FALSE. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga68656c0d5d6d3cf2d58b8a9fd63ee9d0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_table_write_markdown </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__table.html#ga9f19451707534e4eee48d5344016dff3">M_table_t</a> *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Write the table as Markdown.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">table</td><td>Table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>M_table_markdown_flags_t flags controlling write behavior.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CSV data. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri May 25 2018 21:29:35 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Sat May 26 2018 18:30:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

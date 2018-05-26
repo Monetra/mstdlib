@@ -10,6 +10,13 @@ var group__m__table =
       [ "M_TABLE_NONE", "group__m__table.html#gga6f0c1509cd7a7118b3787c1441a44154a964b379575615be60b275a944d33cda4", null ],
       [ "M_TABLE_COLNAME_CASECMP", "group__m__table.html#gga6f0c1509cd7a7118b3787c1441a44154ad0904ec38c5dd2f12172ec03a3d514cb", null ]
     ] ],
+    [ "M_table_markdown_flags_t", "group__m__table.html#ga8a4cf023c70e384ba767ea709219da27", [
+      [ "M_TABLE_MARKDOWN_NONE", "group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a0885ebd6f555a3f7969ebacb553fd93f", null ],
+      [ "M_TABLE_MARKDOWN_PRETTYPRINT", "group__m__table.html#gga8a4cf023c70e384ba767ea709219da27af89a7639ae279856695279794a1aa397", null ],
+      [ "M_TABLE_MARKDOWN_OUTERPIPE", "group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a0c212d807eae07aae17be8516a83cf7d", null ],
+      [ "M_TABLE_MARKDOWN_LINEEND_UNX", "group__m__table.html#gga8a4cf023c70e384ba767ea709219da27ae1e145843a259003fd88f427bb2a898a", null ],
+      [ "M_TABLE_MARKDOWN_LINEEND_WIN", "group__m__table.html#gga8a4cf023c70e384ba767ea709219da27a10e725428b0436756bcdaa26f937664e", null ]
+    ] ],
     [ "M_table_create", "group__m__table.html#ga75b3b3107dd6e4df16b382db21758d40", null ],
     [ "M_table_destroy", "group__m__table.html#ga13b040287491f2193f1453c665b4c12f", null ],
     [ "M_table_column_insert", "group__m__table.html#ga626d8ea700b08fc43e2cc61eab73bcf4", null ],
@@ -42,5 +49,7 @@ var group__m__table =
     [ "M_table_load_csv", "group__m__table.html#gaff54718eceb84f3821ce6a023f3a3758", null ],
     [ "M_table_write_csv", "group__m__table.html#ga891825f08b9755e45b9ec0c8f11d6fd6", null ],
     [ "M_table_load_json", "group__m__table.html#ga2c637cdec0125ca4aa308610795da99d", null ],
-    [ "M_table_write_json", "group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0", null ]
+    [ "M_table_write_json", "group__m__table.html#gab779f780d77b59fa2b2eb0c47f9380e0", null ],
+    [ "M_table_load_markdown", "group__m__table.html#gae12806361f68714214018b89e1d91d4f", null ],
+    [ "M_table_write_markdown", "group__m__table.html#ga68656c0d5d6d3cf2d58b8a9fd63ee9d0", null ]
 ];
