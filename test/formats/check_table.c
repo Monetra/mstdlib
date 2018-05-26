@@ -192,7 +192,7 @@ START_TEST(check_table_markdown)
 		"------------- |:-------------:| -----:\n"
 		"col 3 is     | right-aligned | $1600 \n"
 		"col 2 is      | centered      |   $12\n"
-		"zebra stripes | are neat      |    $1 ";
+		"zebra stripes | are neat      |    $1 \r\n";
 	const char *outdata = ""
 		"| Tables        | Are           | Cool  |\r\n"
 		"| ------------- | ------------- | ----- |\r\n"

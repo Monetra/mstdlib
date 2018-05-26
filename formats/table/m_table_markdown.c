@@ -369,11 +369,13 @@ M_bool M_table_load_markdown(M_table_t *table, const char *data, size_t len)
 {
 	M_parser_t     *parser;
 	M_parser_t    **rows     = NULL;
-	unsigned char   byte;
 	size_t          num_rows = 0;
 	size_t          i;
 
 	parser = M_parser_create_const((unsigned char *)data, len, M_PARSER_FLAG_NONE);
+	M_parser_consume_whitespace(parser, M_PARSER_WHITESPACE_NONE);
+	M_parser_truncate_whitespace(parser, M_PARSER_WHITESPACE_NONE);
+
 	rows   = M_parser_split(parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &num_rows);
 	/* Must have 3 rows because tables cannot be empty. */
 	if (rows == NULL || num_rows < 3) {
@@ -397,10 +399,6 @@ M_bool M_table_load_markdown(M_table_t *table, const char *data, size_t len)
 
 	/* Parser the data. */
 	for (i=2; i<num_rows; i++) {
-		/* If the last line is a blank line we're done. */
-		if (num_rows-1 && (M_parser_len(rows[i]) == 0 || (M_parser_peek_byte(rows[i], &byte) && byte == '\r')))
-			break;
-
 		if (!read_data_line(table, rows[i])) {
 			M_parser_split_free(rows, num_rows);
 			M_parser_destroy(parser);
