@@ -182,6 +182,35 @@ START_TEST(check_table_json)
 }
 END_TEST
 
+START_TEST(check_table_markdown)
+{
+	M_table_t  *table;
+	char       *out;
+	M_bool      ret;
+	const char *indata = ""
+		"Tables | Are | Cool\n"
+		"------------- |:-------------:| -----:\n"
+		"col 3 is     | right-aligned | $1600 \n"
+		"col 2 is      | centered      |   $12\n"
+		"zebra stripes | are neat      |    $1 ";
+	const char *outdata = ""
+		"| Tables        | Are           | Cool  |\r\n"
+		"| ------------- | ------------- | ----- |\r\n"
+		"| col 3 is      | right-aligned | $1600 |\r\n"
+		"| col 2 is      | centered      | $12   |\r\n"
+		"| zebra stripes | are neat      | $1    |";
+
+	/* Check. */
+	table = M_table_create(M_TABLE_NONE);
+	ret   = M_table_load_markdown(table, indata, M_str_len(indata));
+	ck_assert_msg(ret, "Failed to load markdown");
+
+	out = M_table_write_markdown(table, M_TABLE_MARKDOWN_PRETTYPRINT|M_TABLE_MARKDOWN_OUTERPIPE|M_TABLE_MARKDOWN_LINEEND_WIN);
+	ck_assert_msg(M_str_eq(out, outdata), "markdown data does not match, got:\n'%s'\nexpected:\n'%s'", out, outdata);
+	M_free(out);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *test_suite(void)
@@ -205,6 +234,10 @@ static Suite *test_suite(void)
 
 	tc = tcase_create("table_json");
 	tcase_add_test(tc, check_table_json);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("table_markdown");
+	tcase_add_test(tc, check_table_markdown);
 	suite_add_tcase(suite, tc);
 
 	return suite;

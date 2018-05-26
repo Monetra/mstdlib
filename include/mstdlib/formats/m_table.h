@@ -61,6 +61,15 @@ typedef enum {
 } M_table_flags_t;
 
 
+/*! Flags controlling behavior of Markdown output. */
+typedef enum {
+	M_TABLE_MARKDOWN_NONE = 0,             /*!< No special formatting. */
+	M_TABLE_MARKDOWN_PRETTYPRINT = 1 << 0, /*!< Pretty print output. */
+	M_TABLE_MARKDOWN_OUTERPIPE   = 1 << 1, /*!< Write outer pipes around rows, framing characters. */
+	M_TABLE_MARKDOWN_LINEEND_UNX = 1 << 2, /*!< Use Unix line endings (\\n). */
+	M_TABLE_MARKDOWN_LINEEND_WIN = 1 << 3  /*!< Use Windows line endings (\\r\\n). */
+} M_table_markdown_flags_t;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Create a table.
@@ -458,6 +467,31 @@ M_API M_bool M_table_load_json(M_table_t *table, const char *data, size_t len);
  * \return JSON data.
  */
 M_API char *M_table_write_json(const M_table_t *table, M_uint32 flags);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Load Markdown formatted data into the table.
+ *
+ * Column justification information will be lost.
+ *
+ * \param[in] table Table.
+ * \param[in] data  CSV data.
+ * \param[in] len   Length of data to load.
+ *
+ * \return M_TRUE if the data was loaded. Otherwise, M_FALSE.
+ */
+M_API M_bool M_table_load_markdown(M_table_t *table, const char *data, size_t len);
+
+
+/*! Write the table as Markdown.
+ *
+ * \param[in] table Table.
+ * \param[in] flags M_table_markdown_flags_t flags controlling write behavior.
+ *
+ * \return CSV data.
+ */
+M_API char *M_table_write_markdown(const M_table_t *table, M_uint32 flags);
 
 /*! @} */
 
