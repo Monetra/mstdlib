@@ -179,6 +179,7 @@ START_TEST(check_table_json)
 	out = M_table_write_json(table, M_JSON_WRITER_NONE);
 	ck_assert_msg(M_str_eq(out, data), "json data does not match, got:\n'%s'\nexpected:\n'%s'", out, data);
 	M_free(out);
+	M_table_destroy(table);
 }
 END_TEST
 
@@ -208,6 +209,7 @@ START_TEST(check_table_markdown)
 	out = M_table_write_markdown(table, M_TABLE_MARKDOWN_PRETTYPRINT|M_TABLE_MARKDOWN_OUTERPIPE|M_TABLE_MARKDOWN_LINEEND_WIN);
 	ck_assert_msg(M_str_eq(out, outdata), "markdown data does not match, got:\n'%s'\nexpected:\n'%s'", out, outdata);
 	M_free(out);
+	M_table_destroy(table);
 }
 END_TEST
 
