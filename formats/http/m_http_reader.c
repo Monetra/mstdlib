@@ -26,7 +26,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-#include "http/m_http_reader_int.h"
+#include "http/m_http_int.h"
 
 static size_t MAX_START_LEN    = 6*1024;
 static size_t MAX_HEADERS_SIZE = 8*1024;

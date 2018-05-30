@@ -36,12 +36,10 @@ __BEGIN_DECLS
 /*! \addtogroup m_http HTTP
  *  \ingroup m_formats
  *
+ * \warning IN PROGRESS AND API UNSTABLE
+ *
  * @{
  */
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-struct M_http;
-typedef struct M_http M_http_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -125,605 +123,6 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-/*! Create an http object.
- *
- * The http object holds a parsed or compo unitized http request or
- * response.
- *
- * \return Object.
- */
-M_http_t *M_http_create(void);
-
-
-/*! Destroy an http object.
- *
- * \param[in] http HTTP object.
- */
-void M_http_destroy(M_http_t *http);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Reset the http object for resuse.
- *
- * \param[in] http HTTP object.
- */
-void M_http_reset(M_http_t *http);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! The type (request/response) of message.
- *
- * \param[in] http HTTP object.
- *
- * \return Message type.
- */
-M_http_message_type_t M_http_message_type(const M_http_t *http);
-
-
-/*! Set the type (request/response) of message.
- *
- * \param[in] http HTTP object.
- * \param[in] type Message type.
- */
-void M_http_set_message_type(M_http_t *http, M_http_message_type_t type);
-
-
-/*! HTTP version.
- *
- * \param[in] http HTTP object.
- *
- * \return Version.
- */
-M_http_version_t M_http_version(const M_http_t *http);
-
-
-/*! Set the HTTP version.
- *
- * \param[in] http    HTTP object.
- * \param[in] version Version.
- */
-void M_http_set_version(M_http_t *http, M_http_version_t version);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Response status code.
- *
- * \param[in] http HTTP object.
- *
- * \return Status code.
- */
-M_uint32 M_http_status_code(const M_http_t *http);
-
-
-/*! Set the response status code.
- *
- * \param[in] http HTTP object.
- * \param[in] code Status code.
- */
-void M_http_set_status_code(M_http_t *http, M_uint32 code);
-
-
-/*! Response textual status reason.
- *
- * \param[in] http HTTP object.
- *
- * \return String.
- */
-const char *M_http_reason_phrase(const M_http_t *http);
-
-
-/*! Set the response textual status reason.
- *
- * \param[in] http   HTTP object.
- * \param[in] phrase Textual reason phrase.
- */
-void M_http_set_reason_phrase(M_http_t *http, const char *phrase);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/* Request method (get, post...)
- *
- * \param[in] http HTTP object.
- *
- * \return Method.
- */
-M_http_method_t M_http_method(const M_http_t *http);
-
-
-/*! Set the request method.
- *
- * \param[in] http   HTTP object.
- * \param[in] method Method.
- */
-void M_http_set_method(M_http_t *http, M_http_method_t method);
-
-
-/* Request URI.
- *
- * The full URI in the request.
- *
- * \param[in] http HTTP Object.
- *
- * \return String.
- */
-const char *M_http_uri(const M_http_t *http);
-
-/*! Set the request URI.
- *
- * \param[in] http HTTP object.
- * \param[in] uri  The URI.
- *
- * \return M_TRUE if URI was successfully set (parsed). Otherwise, M_FALSE.
- */
-M_bool M_http_set_uri(M_http_t *http, const char *uri);
-
-
-/*! Host part of request URI.
- *
- * Only present when URI is absolute.
- *
- * This can be used to determine if a URI is absolute or relative.
- *
- * \param[in] http HTTP object.
- *
- * \return String.
- */
-const char *M_http_host(const M_http_t *http);
-
-
-/*! Port part of request URI.
- *
- * Only present when URI is absolute and port is present.
- *
- * \param[in]  http HTTP object.
- * \param[out] port The port.
- *
- * \return M_TRUE if port is present. Otherwise, M_FALSE.
- */
-M_bool M_http_port(const M_http_t *http, M_uint16 *port);
-
-
-/*! Path from the request URI
- *
- * \param[in] http HTTP object.
- *
- * \return String.
- */
-const char *M_http_path(const M_http_t *http);
-
-
-/*! Query string from the request URI.
- *
- * \param[in] http HTTP object.
- *
- * \return String.
- *
- * \see M_http_query_args
- */
-const char *M_http_query_string(const M_http_t *http);
-
-
-/*! Query arguments from the request URI.
- *
- * \param[in] http HTTP object.
- *
- * \return Multi value dict.
- *
- * \see M_http_query_string
- */
-const M_hash_dict_t *M_http_query_args(const M_http_t *http);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Currently loaded headers.
- *
- * Does not included the "Set-Cookie" header which can be sent multiple
- * times with different attributes.
- *
- * \param[in] http HTTP object.
- *
- * \return Multi value dict.
- */
-const M_hash_dict_t *M_http_headers(const M_http_t *http);
-
-
-/*! Get all values for a header combined into a string.
- *
- * Get the value of the header as a comma (,) separated list
- * if multiple values were specified.
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- *
- * \return String.
- */
-char *M_http_header(const M_http_t *http, const char *key);
-
-
-/*! Set the http headers.
- *
- * \param[in] http    HTTP object.
- * \param[in] headers Headers. Can be multi value dict. NULL to clear.
- * \param[in] merge   Merge into or replace the existing headers.
- */
-void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
-
-
-/*! Set a single http header.
- *
- * Replaces existing values.
- * Can be a comma (,) separated list.
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- * \param[in] val  Value. NULL to clear header.
- */
-M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
-
-
-/*! Add a value to a header.
- *
- * Preserves existing values.
- * Cannot not be a comma (,) separated list.
- * This adds to any existing values
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- * \param[in] val  Value.
- */
-void M_http_add_header(M_http_t *http, const char *key, const char *val);
-
-
-/*! Remove a header.
- *
- * Removes all values.
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- */
-void M_http_remove_header(M_http_t *http, const char *key);
-
-
-/*! Get the Set-Cookie headers.
- *
- * \param[in] http HTTP object.
- *
- * \return String list
- */
-const M_list_str_t *M_http_get_set_cookie(const M_http_t *http);
-
-
-/*! Remove a value from the Set-Cookie header value list.
- *
- * \param[in] http HTTP object.
- * \param[in] idx  Index to remove.
- */
-void M_http_set_cookie_remove(M_http_t *http, size_t idx);
-
-
-/*! Append a value from the Set-Cookie header value list.
- *
- * \param[in] http HTTP object.
- * \param[in] val  Value to append.
- */
-void M_http_set_cookie_insert(M_http_t *http, const char *val);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Get the trailing headers.
- *
- * \param[in] http HTTP object.
- *
- * \return Multi value dict.
- */
-const M_hash_dict_t *M_http_trailers(const M_http_t *http);
-
-
-/*! Get all values for a trailer combined into a single
- *
- * Get the value of the header as a comma (,) separated list
- * if multiple values were specified.
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- *
- * \return String.
- */
-char *M_http_trailer(const M_http_t *http, const char *key);
-
-
-/*! Set the trailing headers.
- *
- * \param[in] http    HTTP object.
- * \param[in] headers Headers. NULL to clear
- * \param[in] merge   Merge into or replace the existing headers.
- */
-void M_http_set_trailers(M_http_t *http, const M_hash_dict_t *headers, M_bool merge);
-
-
-/*! Set a single http trailer.
- *
- * Replaces existing values.
- * Can be a comma (,) separated list.
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- * \param[in] val  Value. NULL to clear.
- */
-M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
-
-
-/*! Add a value to a trailer.
- *
- * Preserves existing values.
- * Cannot not be a comma (,) separated list.
- * This adds a single value to any existing values
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- * \param[in] val  Value.
- */
-void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Get the body length.
- *
- * This is not the amount of data in the object.
- * This is the total length as defined by the
- * content-length header.
- *
- * \param[in]  http HTTP object.
- * \param[out] len  They body length.
- *
- * \return M_TRUE if the body length is known.
- */
-M_bool M_http_body_length(M_http_t *http, size_t *len);
-
-
-/*! Amount of body data that has been read.
- *
- * This is not the amount of data currently buffered
- * in the object. This the amount of data that has
- * passed through the object.
- *
- * \param[in] http HTTP object.
- *
- * \return Length. 
- *
- * \see M_http_body_length_buffered
- */
-size_t M_http_body_length_seen(M_http_t *http);
-
-
-/*! Amount of body data is currently buffered.
- *
- * \param[in] http HTTP object.
- *
- * \return Length. 
- */
-size_t M_http_body_length_buffered(M_http_t *http);
-
-
-/*! Get the body data.
- *
- * Data is returned raw and not decoded. It is up to the
- * caller to perform any decoded specified in the header.
- *
- * \param[in] http HTTP object.
- * \param[in] len  Length of data.
- *
- * \return Data.
- */
-const unsigned char *M_http_body(const M_http_t *http, size_t *len);
-
-
-/*! Add to existing body data.
- *
- * Increases seen length, and buffered length. If seen is greater than length
- * will also increase length.
- *
- * \param[in] http HTTP object.
- * \param[in] data Data.
- * \param[in] len  Length of data.
- */
-void M_http_body_append(M_http_t *http, const unsigned char *data, size_t len);
-
-
-/*! Drop the specified number of bytes from the beginning of the body data.
- *
- * Useful when doing partial reads of body data.
- * Only changes buffered length.
- *
- * \param[in] http HTTP object.
- * \param[in] len  Length of data.
- */
-void M_http_body_drop(M_http_t *http, size_t len);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-/*! Is this a chunked message.
- *
- * \param[in] http HTTP object.
- *
- * \return Bool
- */
-M_bool M_http_is_chunked(const M_http_t *http);
-
-
-/*! Queue a new chunk.
- *
- * \param[in] http HTTP object.
- *
- * \return Chunk number.
- */
-size_t M_http_chunk_insert(M_http_t *http);
-
-
-/*! Remove a chunk.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- */
-void M_http_chunk_remove(M_http_t *http, size_t num);
-
-
-/*! Number of available data chunks.
- *
- * \param[in] http HTTP object.
- *
- * \return Number of chunks. 
- */
-size_t M_http_chunk_count(const M_http_t *http);
-
-
-/*! The length of the chunked data.
- *
- * \note When the length is 0 this indicates it is the
- *       final chunk in the sequence and all data has
- *       been sent.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Length.
- */
-size_t M_http_chunk_data_length(const M_http_t *http, size_t num);
-
-
-/*! Amount of chunk data that has been read.
- *
- * This is not the amount of data currently buffered
- * in the object. This the amount of data that has
- * passed through the object.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Length. 
- *
- * \see M_http_chunk_data_length_buffered
- */
-size_t M_http_chunk_data_length_seen(const M_http_t *http, size_t num);
-
-
-/*! Amount of chunk data is currently buffered.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Length. 
- */
-size_t M_http_chunk_data_length_buffered(const M_http_t *http, size_t num);
-
-
-/*! Get the chunk data.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] len  Length of data.
- *
- * Data is returned raw and not decoded. It is up to the
- * caller to perform any decoded specified in the header.
- *
- * \return Data.
- */
-const unsigned char *M_http_chunk_data(const M_http_t *http, size_t num, size_t *len);
-
-
-/*! Add to existing chunked data.
- *
- * Increases seen length, and buffered length. If seen is greater than length
- * will also increase length.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] data Data.
- * \param[in] len  Length of data.
- */
-void M_http_chunk_data_append(M_http_t *http, size_t num, const unsigned char *data, size_t len);
-
-
-/*! Drop the specified number of bytes from the beginning of the chunk data.
- *
- * Useful when doing partial reads of chunk data.
- * Only changes buffered length.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] len  Length of data.
- */
-void M_http_chunk_data_drop(M_http_t *http, size_t num, size_t len);
-
-
-/*! Get the chunk's extensions.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return Dict.
- */
-const M_hash_dict_t *M_http_chunk_extensions(const M_http_t *http, size_t num);
-
-
-/*! Get all extensions combined into a single string.
- *
- * Get the value of of all extensions as a semicolon (;) separated list.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- *
- * \return String.
- */
-char *M_http_chunk_extension_string(const M_http_t *http, size_t num);
-
-
-/*! Set the chunk extensions.
- *
- * \param[in] http       HTTP object.
- * \param[in] num        Chunk number.
- * \param[in] extensions Extensions.
- */
-void M_http_set_chunk_extensions(M_http_t *http, size_t num, const M_hash_dict_t *extensions);
-
-
-/*! Set the extensions from a string.
- *
- * Can be a semicolon (;) separated list.
- * If not a list this is the equivalent of calling
- * M_http_set_chunk_extension without a value.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] str  String.
- */ 
-M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char *str);
-
-
-/*! Set a single chunk extension.
- *
- * Replaces existing values.
- * Cannot not be a semicolon (;) separated list.
- *
- * \param[in] http HTTP object.
- * \param[in] num  Chunk number.
- * \param[in] key  Name.
- * \param[in] val  Value. Can be NULL.
- */
-void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, const char *val);
-
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 /*! Convert a version string into a version value.
  *
  * The version can start with "HTTP/" or without.
@@ -732,9 +131,19 @@ void M_http_set_chunk_extension(M_http_t *http, size_t num, const char *key, con
  *
  * \return version.
  */
-M_http_version_t M_http_version_from_str(const char *version);
+M_API M_http_version_t M_http_version_from_str(const char *version);
 
-const char *M_http_version_to_str(M_http_version_t version);
+
+/*! Convert an http version to a string.
+ *
+ * Returns in the format "HTTP/#".
+ *
+ * \param[in] version Version.
+ *
+ * \return String.
+ */
+M_API const char *M_http_version_to_str(M_http_version_t version);
+
 
 /*! Convert a method string into a method value.
  *
@@ -742,11 +151,395 @@ const char *M_http_version_to_str(M_http_version_t version);
  *
  * \return method.
  */
-M_http_method_t M_http_method_from_str(const char *method);
+M_API M_http_method_t M_http_method_from_str(const char *method);
 
-const char *M_http_method_to_str(M_http_method_t method);
 
-const char *M_http_code_to_reason(M_uint32 code);
+/*! Convert an http method to a string.
+ *
+ * \param[in] method Method.
+ *
+ * \return String.
+ */
+M_API const char *M_http_method_to_str(M_http_method_t method);
+
+
+/*! Convert an http code to a string.
+ *
+ * Not all codes can be converted to a string.
+ * Codes taht cannot be converted will return "Generic".
+ *
+ * \param[in] code Code.
+ *
+ * \return String.
+ */
+M_API const char *M_http_code_to_reason(M_uint32 code);
+
+/*! @} */
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! \addtogroup m_http_reader HTTP Stream Reader
+ *  \ingroup m_http
+ *
+ * @{
+ */
+
+struct M_http_reader;
+typedef struct M_http_reader M_http_reader_t;
+
+/*! Function definition for the start line.
+ *
+ * \param[in] type    Type of message.
+ * \param[in] version HTTP version.
+ * \param[in] method  If request, method of request.
+ * \param[in] uri     If request, uri requested.
+ * \param[in] code    If response, numeric response code.
+ * \param[in] reason  If response, response reason.
+ * \param[in] thunk   Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
+
+/*! Function definition for reading headers.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. Values with semicolon (;) separated
+ * parameters are not split.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
+
+/*! Function definition for header parsing completion.
+ *
+ * \param[in] format The format data was sent using.
+ * \param[in] thunk  Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_header_done_func)(M_http_data_format_t format, void *thunk);
+
+/*! Function definition for reading body data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of body parsing.
+ *
+ * This will only be called if the Content-Length header was specified.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_body_done_func)(void *thunk);
+
+/*! Function definition for reading chunk extensions.
+ *
+ * Extensions are not required to have values.
+ *
+ * \param[in] key   Key.
+ * \param[in] val   Value.
+ * \param[in] idx   Chunk number the extension belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_chunk_extensions_func)(const char *key, const char *val, size_t idx, void *thunk);
+
+/*! Function definition for completion of chunk extension parsing.
+ *
+ * Will only be called if there were chunk extensions.
+ *
+ * \param[in] idx   Chunk number that had extensions.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_chunk_extensions_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for reading chunk data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] idx   Chunk number the data belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_chunk_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+
+/*! Function definition for completion of chunk data.
+ *
+ * \param[in] idx   Chunk number that has been completely processed.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_chunk_data_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for completion of parsing all chunks.
+ *
+ * Only called when data is chunked.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_chunk_data_finished_func)(void *thunk);
+
+/*! Function definition for reading multipart preamble.
+ *
+ * Typically the preamble should be ignored if present.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of multipart preamble parsing.
+ *
+ * Only called if a preamble was present.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
+
+/*! Function definition for reading multipart part headers.
+ *
+ * \param[in] key   Key.
+ * \param[in] val   Value.
+ * \param[in] idx   Part number the header belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_header_func)(const char *key, const char *val, size_t idx, void *thunk);
+
+/*! Function definition for completion of multipart part header parsing.
+ *
+ * \param[in] idx   Part number.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_header_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for reading multipart part data.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] idx   Partnumber the data belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+
+/*! Function definition for completion of multipart part data.
+ *
+ * \param[in] idx   Chunk number that has been completely processed.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_data_done_func)(size_t idx, void *thunk);
+
+/*! Function definition for completion of parsing all multipart parts.
+ *
+ * Only called when data is chunked.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_data_finished_func)(void *thunk);
+
+/*! Function definition for reading multipart epilogue.
+ *
+ * Typically the epilogue should be ignored if present.
+ *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_epilouge_func)(const unsigned char *data, size_t len, void *thunk);
+
+/*! Function definition for completion of multipart epilogue parsing.
+ *
+ * Only called if a epilogue was present.
+ *
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_multipart_epilouge_done_func)(void *thunk);
+
+/*! Function definition for reading trailing headers.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. Values with semicolon (;) separated
+ * parameters are not split.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_trailer_func)(const char *key, const char *val, void *thunk);
+
+/*! Function definition for trailing header parsing completion.
+ *
+ * Only called if trailing headers were present.
+ *
+ * \param[in] format The format data was sent using.
+ * \param[in] thunk  Thunk.
+ *
+ * \return Result
+ */
+typedef M_http_error_t (*M_http_reader_trailer_done_func)(void *thunk);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Flags controlling reader behavior. */
+typedef enum {
+	M_HTTP_READER_NONE = 0,  /*!< Default operation. */
+	M_HTTP_READER_SKIP_START /*!< Skip parsing start line. Data starts with headers. */
+} M_http_reader_flags_t;
+
+
+/*! Callbacks for various stages of parsing. */
+struct M_http_reader_callbacks {
+	M_http_reader_start_func                   start_func;
+	M_http_reader_header_func                  header_func;
+	M_http_reader_header_done_func             header_done_func;
+	M_http_reader_body_func                    body_func;
+	M_http_reader_body_done_func               body_done_func;
+	M_http_reader_chunk_extensions_func        chunk_extensions_func;
+	M_http_reader_chunk_extensions_done_func   chunk_extensions_done_func;
+	M_http_reader_chunk_data_func              chunk_data_func;
+	M_http_reader_chunk_data_done_func         chunk_data_done_func;
+	M_http_reader_chunk_data_finished_func     chunk_data_finished_func;
+	M_http_reader_multipart_preamble_func      multipart_preamble_func;
+	M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
+	M_http_reader_multipart_header_func        multipart_header_func;
+	M_http_reader_multipart_header_done_func   multipart_header_done_func;
+	M_http_reader_multipart_data_func          multipart_data_func;
+	M_http_reader_multipart_data_done_func     multipart_data_done_func;
+	M_http_reader_multipart_data_finished_func multipart_data_finished_func;
+	M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
+	M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
+	M_http_reader_trailer_func                 trailer_func;
+	M_http_reader_trailer_done_func            trailer_done_func;
+};
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Create an http reader object.
+ *
+ * \param[in] cbs   Callbacks for processing.
+ * \param[in] flags Flags controlling behavior.
+ * \param[in] thunk Thunk passed to callbacks.
+ *
+ * \return Object.
+ */
+M_API M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uint32 flags, void *thunk);
+
+
+/*! Destroy an http object.
+ *
+ * \param[in] httpr Http reader object.
+ */
+M_API void M_http_reader_destroy(M_http_reader_t *httpr);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Parse http data.
+ *
+ * \param[in]  httpr    Http reader object.
+ * \param[in]  data     Data to parser.
+ * \param[in]  data_len Length of data.
+ * \param[out] len_read How much data was read.
+ *
+ * \return Result.
+ */
+M_API M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *data, size_t data_len, size_t *len_read);
+
+/*! @} */
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! \addtogroup m_http_simple HTTP Simple
+ *  \ingroup m_http
+ *
+ * @{
+ */
+
+struct M_http_simple;
+typedef struct M_http_simple M_http_simple_t;
+
+
+typedef enum {
+	M_HTTP_SIMPLE_READ_NONE = 0,
+	M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (form or charset). */
+	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
+	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
+	M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if tailers sent. Otherwise, they are ignored. */
+} M_http_simple_read_flags_t;
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API void M_http_simple_destroy(M_http_simple_t *http);
+
+M_API M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *simple);
+M_API M_http_version_t M_http_simple_version(const M_http_simple_t *simple);
+M_API M_uint32 M_http_simple_status_code(const M_http_simple_t *simple);
+M_API const char *M_http_simple_reason_phrase(const M_http_simple_t *simple);
+M_API M_http_method_t M_http_simple_method(const M_http_simple_t *simple);
+M_API const char *M_http_simple_uri(const M_http_simple_t *simple);
+M_API M_bool M_http_simple_port(const M_http_simple_t *simple, M_uint16 *port);
+M_API const char *M_http_simple_path(const M_http_simple_t *simple);
+M_API const char *M_http_simple_query_string(const M_http_simple_t *simple);
+M_API const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *simple);
+M_API const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *simple);
+M_API char *M_http_simple_header(const M_http_simple_t *simple, const char *key);
+M_API const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t datea_len, size_t *len);
+M_API unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
+
+//M_API unsigned char *M_http_simple_write_request_multipart(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
+//M_API unsigned char *M_http_simple_write_respone_multipart(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
 
 /*! @} */
 

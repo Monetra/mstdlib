@@ -27,9 +27,7 @@
 #include <mstdlib/mstdlib.h>
 #include "m_defs_int.h"
 
-/* XXX: Here until we add m_http.h to mstdlib_formats.h */
-#include <mstdlib/formats/m_http.h>
-#include <mstdlib/formats/m_http_reader.h>
+#include "http/m_http_reader_int.h"
 
 typedef enum {
 	M_HTTP_READER_STEP_UNKNONW = 0,
