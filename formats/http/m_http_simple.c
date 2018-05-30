@@ -451,6 +451,21 @@ const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple)
 	return M_http_get_set_cookie(simple->http);
 }
 
+const char *M_http_simple_body(const M_http_simple_t *simple, size_t *len)
+{
+	size_t mylen;
+
+	if (len == NULL)
+		len = &mylen;
+	*len = 0;
+
+	if (simple == NULL)
+		return NULL;
+
+	*len = M_buf_len(simple->http->body);
+	return M_buf_peek(simple->http->body);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read)

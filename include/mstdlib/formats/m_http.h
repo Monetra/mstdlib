@@ -528,6 +528,7 @@ M_API const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *simpl
 M_API const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *simple);
 M_API char *M_http_simple_header(const M_http_simple_t *simple, const char *key);
 M_API const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple);
+M_API const char *M_http_simple_body(const M_http_simple_t *simple, size_t *len);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
