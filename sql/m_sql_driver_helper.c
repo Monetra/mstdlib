@@ -298,7 +298,7 @@ M_sql_hostport_t *M_sql_driver_parse_hostport(const char *hostport, M_uint16 def
 			M_parser_consume(entries[i], 1); /* Eat Colon */
 			/* Trim */
 			M_parser_consume_whitespace(entries[i], M_PARSER_WHITESPACE_NONE);
-			if (!M_parser_read_uint(entries[i], M_PARSER_INTEGER_ASCII, M_parser_len(entries[i]), 10, &i64) || i64 >= (1 << 15) || i64 == 0) {
+			if (!M_parser_read_uint(entries[i], M_PARSER_INTEGER_ASCII, M_parser_len(entries[i]), 10, &i64) || i64 >= (1 << 16) || i64 == 0) {
 				M_snprintf(error, error_size, "Invalid port configuration for host %zu", i+1);
 				goto done;
 			}
