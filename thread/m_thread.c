@@ -52,7 +52,7 @@ static struct {
 	/* Native */
 #if defined(_WIN32)
 	{ M_THREAD_MODEL_NATIVE, "native - win32",   M_thread_win_register     },
-#elif defined(HAVE_PTHREAD) || defined(__ANDROID__) || defined(IOS)
+#elif defined(HAVE_PTHREAD) || defined(__ANDROID__) || defined(IOS) || defined(IOSSIM)
 	{ M_THREAD_MODEL_NATIVE, "native - pthread", M_thread_pthread_register },
 #else
 	{ M_THREAD_MODEL_NATIVE, "native - coop",    M_thread_coop_register    },
