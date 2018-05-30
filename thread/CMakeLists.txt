@@ -31,7 +31,10 @@ endif ()
 # Android really doesn't like coop threads. For some reason just having coop threads as thread
 # model in M_thread_models prevents threading from starting at all. So we're not going to build
 # it on Android.
-if (NOT ANDROID AND NOT IOS)
+#
+# iOS coop uses non-public APIs and Apple rejects app using non-public APIs.
+# So we don't build on that one either.
+if (NOT ANDROID AND NOT IOS AND NOT IOSSIM)
 	list(APPEND sources
 		m_thread_coop.c
 	)
