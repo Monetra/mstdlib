@@ -242,18 +242,19 @@ M_API size_t M_table_row_insert(M_table_t *table);
 M_API M_bool M_table_row_insert_at(M_table_t *table, size_t idx);
 
 
-/*! Insert data from a dict into the table.
+/*! Insert data from a dict into the table creating a new row.
  *
  * Dictionary key is the column name and the value is the cell value.
  *
- * \param[in] table Table.
- * \param[in] data  Data to insert.
- * \param[in] flags M_table_insert_flags_t flags controlling insert behavior. Specifically
- *                  handling of situations where the key in data is not a current column.
+ * \param[in]  table Table.
+ * \param[in]  data  Data to insert.
+ * \param[in]  flags M_table_insert_flags_t flags controlling insert behavior. Specifically
+ *                   handling of situations where the key in data is not a current column.
+ * \param[out] idx   Index the row was inserted at. Will always be last idx+1 before insertion.
  *
  * \return M_TRUE if the row was inserted. Otherwise, M_FALSE.
  */
-M_API M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags);
+M_API M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags, size_t *idx);
 
 
 /*! Insert data from a dict into the table at a given idex.
@@ -326,6 +327,21 @@ M_API M_bool M_table_cell_set(M_table_t *table, size_t row, const char *colname,
  * \return M_TRUE if the value was set. Otherwise, M_FALSE.
  */
 M_API M_bool M_table_cell_set_at(M_table_t *table, size_t row, size_t col, const char *val);
+
+
+/*! Insert data from a dict into the table.
+ *
+ * Dictionary key is the column name and the value is the cell value.
+ *
+ * \param[in]  table  Table.
+ * \param[in]  row    Row index.
+ * \param[in]  data   Data to insert.
+ * \param[in]  flags  M_table_insert_flags_t flags controlling insert behavior. Specifically
+ *                    handling of situations where the key in data is not a current column.
+ *
+ * \return M_TRUE if the row was inserted. Otherwise, M_FALSE.
+ */
+M_API M_bool M_table_cell_set_dict(M_table_t *table, size_t row, const M_hash_dict_t *data, M_uint32 flags);
 
 
 /*! Clear the data from a cell by column name.
