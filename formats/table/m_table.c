@@ -536,11 +536,18 @@ M_bool M_table_row_insert_at(M_table_t *table, size_t idx)
 	return M_table_row_insert_at_int(table, idx, NULL);
 }
 
-M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags)
+M_bool M_table_row_insert_dict(M_table_t *table, const M_hash_dict_t *data, M_uint32 flags, size_t *idx)
 {
+	size_t rowidx;
+
+	if (idx == NULL)
+		idx = &rowidx;
+
 	if (table == NULL)
 		return M_FALSE;
-	return M_table_row_insert_dict_at(table, M_list_u64_len(table->row_order), data, flags);
+
+	*idx = M_list_u64_len(table->row_order);
+	return M_table_row_insert_dict_at(table, *idx, data, flags);
 }
 
 M_bool M_table_row_insert_dict_at(M_table_t *table, size_t idx, const M_hash_dict_t *data, M_uint32 flags)
@@ -678,6 +685,35 @@ M_bool M_table_cell_set_at(M_table_t *table, size_t row, size_t col, const char 
 	colid = M_list_u64_at(table->col_order, col);
 
 	M_table_cell_set_int(table, rowid, colid, val);
+	return M_TRUE;
+}
+
+M_bool M_table_cell_set_dict(M_table_t *table, size_t row, const M_hash_dict_t *data, M_uint32 flags)
+{
+	M_hash_dict_enum_t *he;
+	const char         *key;
+	const char         *val;
+
+	/* Validate the row flags. We don't want to start adding anything if
+ 	 * we're supposed to fail on missing column. */
+	if (!(flags & (M_TABLE_INSERT_COLIGNORE|M_TABLE_INSERT_COLADD))) {
+		M_hash_dict_enumerate(data, &he);
+		while (M_hash_dict_enumerate_next(data, he, &key, NULL)) {
+			if (!M_hash_stru64_get(table->col_name_id, key, NULL)) {
+				M_hash_dict_enumerate_free(he);
+				return M_FALSE;
+			}
+		}
+		M_hash_dict_enumerate_free(he);
+	}
+
+	/* We know everythings good so let's start adding. */
+	M_hash_dict_enumerate(data, &he);
+	while (M_hash_dict_enumerate_next(data, he, &key, &val)) {
+		M_table_cell_set(table, row, key, val, flags);
+	}
+	M_hash_dict_enumerate_free(he);
+
 	return M_TRUE;
 }
 
