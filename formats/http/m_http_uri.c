@@ -158,7 +158,6 @@ static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_stri
 	if (parts == NULL || num_parts == 0)
 		goto err;
 
-	qargs = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 	for (i=0; i<num_parts; i++) {
 		char *key;
 		char *val;
@@ -174,6 +173,11 @@ static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_stri
 			M_free(key);
 			M_free(val);
 			goto err;
+		}
+
+		if (qargs == NULL) {
+			qargs = M_hash_dict_create(8, 75,
+				M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
 		}
 		M_hash_dict_insert(qargs, key, val);
 		M_free(key);
@@ -211,21 +215,26 @@ const char *M_http_uri(const M_http_t *http)
 
 M_bool M_http_set_uri(M_http_t *http, const char *uri)
 {
-	M_parser_t    *parser;
-	char          *host;
+	M_parser_t    *parser       = NULL;
+	char          *host         = NULL;
 	M_uint16       port;
-	char          *path;
-	char          *query_string;
-	M_hash_dict_t *query_args;
+	char          *path         = NULL;
+	char          *query_string = NULL;
+	M_hash_dict_t *query_args   = NULL;
 
 	parser = M_parser_create_const((const unsigned char *)uri, M_str_len(uri), M_PARSER_FLAG_NONE);
 	if (parser == NULL)
 		return M_FALSE;
 
 	if (!M_http_uri_parser_host(parser, &host, &port) ||
-			!M_http_uri_parser_path(http, parser, &path) ||
-			!M_http_uri_parser_query_args(parser, &query_string, &query_args))
+		!M_http_uri_parser_path(http, parser, &path) ||
+		!M_http_uri_parser_query_args(parser, &query_string, &query_args))
 	{
+		M_parser_destroy(parser);
+		M_free(host);
+		M_free(path);
+		M_free(query_string);
+		M_hash_dict_destroy(query_args);
 		return M_FALSE;
 	}
 
@@ -240,9 +249,13 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri)
 	M_free(http->path);
 	http->path = path;
 
+	M_free(http->query_string);
+	http->query_string = query_string;
+
 	M_hash_dict_destroy(http->query_args);
 	http->query_args = query_args;
 
+	M_parser_destroy(parser);
 	return M_TRUE;
 }
 
