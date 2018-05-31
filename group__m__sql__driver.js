@@ -25,6 +25,7 @@ var group__m__sql__driver =
       [ "cb_createtable_suffix", "group__m__sql__driver.html#ac13412ee4ff0de0bb5abb6279fc1362f", null ],
       [ "cb_append_updlock", "group__m__sql__driver.html#ab389903ef8e6c4cc1d5cc296c39e7cfb", null ],
       [ "cb_append_bitop", "group__m__sql__driver.html#aa98187ac679337fb0245d1c071c39e6c", null ],
+      [ "cb_rewrite_indexname", "group__m__sql__driver.html#a16625da250c97a9650dcf44791da7d9b", null ],
       [ "handle", "group__m__sql__driver.html#a74b9ca2d4c290ad01fb4c338a1fb6449", null ]
     ] ],
     [ "M_sql_connstr_params_t", "group__m__sql__driver.html#structM__sql__connstr__params", [
@@ -65,6 +66,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_cb_createtable_suffix_t", "group__m__sql__driver.html#ga2a7dd5c6e7b3144ccdf33472cfe37b1b", null ],
     [ "M_sql_driver_cb_append_updlock_t", "group__m__sql__driver.html#gab451c891fa5a96bb9307fd3d493966b3", null ],
     [ "M_sql_driver_cb_append_bitop_t", "group__m__sql__driver.html#ga2c6ff7f3d6e4d408b41a42e8f5820727", null ],
+    [ "M_sql_driver_cb_rewrite_indexname_t", "group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b", null ],
     [ "M_sql_driver_queryformat_flags_t", "group__m__sql__driver.html#gaf46c619c3bb9dfc5b9517537667ea911", [
       [ "M_SQL_DRIVER_QUERYFORMAT_NORMAL", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a9787aaed6362833f727542034a203e7f", null ],
       [ "M_SQL_DRIVER_QUERYFORMAT_TERMINATOR", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a189b5e6bc47aae1482a157ac7862a1c7", null ],

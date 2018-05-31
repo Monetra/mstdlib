@@ -174,6 +174,8 @@ M_sql_driver_connpool&#160;</td><td class="memItemRight" valign="bottom"><a clas
 <tr class="separator:gab451c891fa5a96bb9307fd3d493966b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2c6ff7f3d6e4d408b41a42e8f5820727"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga2c6ff7f3d6e4d408b41a42e8f5820727">M_sql_driver_cb_append_bitop_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, const char *exp1, const char *exp2)</td></tr>
 <tr class="separator:ga2c6ff7f3d6e4d408b41a42e8f5820727"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7d903a3904fa5844801b48e3ddb4279b"><td class="memItemLeft" align="right" valign="top">typedef char *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b">M_sql_driver_cb_rewrite_indexname_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *index_name)</td></tr>
+<tr class="separator:ga7d903a3904fa5844801b48e3ddb4279b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -519,6 +521,13 @@ cb_append_bitop</td>
 <p>Required. Callback used to append a bit operation </p>
 </td></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="a16625da250c97a9650dcf44791da7d9b"></a><a class="el" href="group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b">M_sql_driver_cb_rewrite_indexname_t</a></td>
+<td class="fieldname">
+cb_rewrite_indexname</td>
+<td class="fielddoc">
+<p>Optional. Callback used to rewrite an index name to comply with DB requirements </p>
+</td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="a74b9ca2d4c290ad01fb4c338a1fb6449"></a><a class="el" href="group__m__module.html#ga97783cf7b71a571a2fe29db5661b06aa">M_module_handle_t</a></td>
 <td class="fieldname">
 handle</td>
@@ -653,8 +662,8 @@ port</td>
 <div class="line">    {                                                    \</div>
 <div class="line">        return &amp;M_sql_##name;                            \</div>
 <div class="line">    }</div>
-<div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:321</div></div>
-<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:668</div></div>
+<div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:334</div></div>
+<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:682</div></div>
 </div><!-- fragment --><p>Use in sql driver source file to create entry point </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1161,6 +1170,28 @@ port</td>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE on misuse. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga7d903a3904fa5844801b48e3ddb4279b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef char*(* M_sql_driver_cb_rewrite_indexname_t)(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *index_name)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Rewrite index identifier name to comply with database limitations.</p>
+<p>For instance, Oracle versions prior to 12c R2 has a limitation of 30 characters for identifiers. We need to rewrite the index name if the database version matches.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pool</td><td>Pointer to connection pool object </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">index_name</td><td>Desired index name </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>NULL if no change necessary, otherwise rewritten index name. </dd></dl>
 
 </div>
 </div>
@@ -2743,7 +2774,7 @@ port</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed May 30 2018 14:31:49 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu May 31 2018 15:34:29 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

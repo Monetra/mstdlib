@@ -24,5 +24,6 @@ var group__m__sql__driver_structM__sql__driver__t =
     [ "cb_createtable_suffix", "group__m__sql__driver.html#ac13412ee4ff0de0bb5abb6279fc1362f", null ],
     [ "cb_append_updlock", "group__m__sql__driver.html#ab389903ef8e6c4cc1d5cc296c39e7cfb", null ],
     [ "cb_append_bitop", "group__m__sql__driver.html#aa98187ac679337fb0245d1c071c39e6c", null ],
+    [ "cb_rewrite_indexname", "group__m__sql__driver.html#a16625da250c97a9650dcf44791da7d9b", null ],
     [ "handle", "group__m__sql__driver.html#a74b9ca2d4c290ad01fb4c338a1fb6449", null ]
 ];
