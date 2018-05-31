@@ -891,6 +891,7 @@ static M_sql_driver_t M_sql_postgresql = {
 	NULL,                         /* Callback used to append additional data to the Create Table query string */
 	pgsql_cb_append_updlock,      /* Callback used to append row-level locking data */
 	pgsql_cb_append_bitop,        /* Callback used to append a bit operation */
+	NULL,                         /* Callback used to rewrite an index name to comply with DB requirements */
 
 	NULL,                         /* Handle for loaded driver - must be initialized to NULL */
 };
