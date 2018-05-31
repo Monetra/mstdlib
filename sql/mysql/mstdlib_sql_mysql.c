@@ -1036,7 +1036,7 @@ static M_sql_driver_t M_sql_mysql = {
 	mysql_cb_createtable_suffix,  /* Callback used to append additional data to the Create Table query string */
 	mysql_cb_append_updlock,      /* Callback used to append row-level locking data */
 	mysql_cb_append_bitop,        /* Callback used to append a bit operation */
-
+	NULL,                         /* Callback used to rewrite an index name to comply with DB requirements */
 	NULL,                         /* Handle for loaded driver - must be initialized to NULL */
 };
 

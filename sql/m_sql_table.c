@@ -414,8 +414,9 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 
 	/* Create Indexes */
 	for (i=0; i<M_list_len(table->idx); i++) {
-		const M_sql_index_t *idx = M_list_at(table->idx, i);
+		const M_sql_index_t *idx     = M_list_at(table->idx, i);
 		size_t               j;
+		char                *idxname = NULL;
 
 		M_snprintf(state, sizeof(state), "create index %s", idx->name);
 
@@ -424,7 +425,15 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 		if (idx->flags & M_SQL_INDEX_FLAG_UNIQUE)
 			M_buf_add_str(query, "UNIQUE ");
 		M_buf_add_str(query, "INDEX \"");
-		M_buf_add_str(query, idx->name);
+
+		/* Index name may need to be rewritten based on the database backend */
+		if (driver->cb_rewrite_indexname != NULL)
+			idxname = driver->cb_rewrite_indexname(pool, idx->name);
+		if (idxname == NULL)
+			idxname = M_strdup(idx->name);
+		M_buf_add_str(query, idxname);
+		M_free(idxname);
+
 		M_buf_add_str(query, "\" ON \"");
 		M_buf_add_str(query, table->name);
 		M_buf_add_str(query, "\" (");
