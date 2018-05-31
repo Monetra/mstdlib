@@ -209,6 +209,7 @@ static Suite *M_parser_suite(void)
 
 	tc = tcase_create("check_parser_boundary");
 	tcase_add_test(tc, check_parser_boundary);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
