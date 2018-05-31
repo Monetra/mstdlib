@@ -210,13 +210,17 @@ char *oracle_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name
 	if (M_str_len(index_name) <= 30)
 		return NULL;
 
+	buf   = M_buf_create();
+
 	/* Split on underscores, these are most typically used.  We'll just do the easiest
 	 * thing which is loop truncating each section from the end to 6 characters
 	 * until we have a short enough index name.  If that doesn't work, we'll try
 	 * 5 characters and so on down to 2.  This is super-inefficient but shouldn't
 	 * matter in the least since you don't create indexes very often. */
 	sects = M_str_explode_str('_', index_name, &num_sects);
-	buf   = M_buf_create();
+	if (sects == NULL)
+		goto done;
+
 	for (max_sect_len=6; max_sect_len>=2; max_sect_len--) {
 		size_t i;
 		/* Don't need position 0 as it is always just "i" for index. truncate from end. */
@@ -229,6 +233,8 @@ char *oracle_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name
 	}
 
 done:
+	M_str_explode_free(sects, num_sects);
+
 	/* Failsafe, couldn't determine a valid name, make one up using a 64bit
 	 * integer */
 	if (M_buf_len(buf) > 30 || M_buf_len(buf) == 0) {
