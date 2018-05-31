@@ -280,7 +280,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 
 static M_http_error_t M_http_read_header_process(M_http_reader_t *httpr, const char *key, const char *val)
 {
-	M_http_error_t res;
+	M_http_error_t res = M_HTTP_ERROR_INVALIDUSE;
 
 	/* Do some basic validating. */
 	if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
@@ -1213,5 +1213,6 @@ void M_http_reader_destroy(M_http_reader_t *httpr)
 {
 	if (httpr == NULL)
 		return;
+	M_free(httpr->boundary);
 	M_free(httpr);
 }
