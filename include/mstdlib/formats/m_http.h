@@ -531,6 +531,8 @@ M_API M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned
 
 /*! Destroy the given M_http_simple_t object.
  *
+ * \see M_http_simple_read
+ *
  * \param[in] http object to destroy
  */
 M_API void M_http_simple_destroy(M_http_simple_t *http);
@@ -726,6 +728,9 @@ M_API char *M_http_simple_header(const M_http_simple_t *simple, const char *key)
 /*! Return list of values from all Set-Cookie headers in the parsed message.
  *
  * The returned list of values is stable-sorted alphabetically.
+ *
+ * \see M_http_simple_header
+ * \see M_http_simple_headers
  *
  * \param[in] simple parsed HTTP message
  * \return           sorted list of all cookies in the message (may be empty)
