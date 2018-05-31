@@ -28,7 +28,8 @@
 #include <mstdlib/mstdlib_formats.h>
 #include "http/m_http_int.h"
 
-static M_http_error_t M_http_simple_start_cb(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk)
+static M_http_error_t M_http_simple_start_cb(M_http_message_type_t type, M_http_version_t version,
+	M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk)
 {
 	M_http_simple_t *simple = thunk;
 	M_http_error_t   res    = M_HTTP_ERROR_SUCCESS;
@@ -178,8 +179,8 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 	M_bool               update_clen  = M_FALSE;
 	size_t               len;
 	size_t               i;
-	size_t               encoded_idx;
-	size_t               charset_idx;
+	size_t               encoded_idx  = 0;
+	size_t               charset_idx  = 0;
 
 	if (simple->rflags & M_HTTP_SIMPLE_READ_NODECODE_BODY)
 		return M_HTTP_ERROR_SUCCESS;
@@ -451,7 +452,7 @@ const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple)
 	return M_http_get_set_cookie(simple->http);
 }
 
-const char *M_http_simple_body(const M_http_simple_t *simple, size_t *len)
+const unsigned char *M_http_simple_body(const M_http_simple_t *simple, size_t *len)
 {
 	size_t mylen;
 
@@ -463,12 +464,13 @@ const char *M_http_simple_body(const M_http_simple_t *simple, size_t *len)
 		return NULL;
 
 	*len = M_buf_len(simple->http->body);
-	return M_buf_peek(simple->http->body);
+	return (unsigned char *)M_buf_peek(simple->http->body);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read)
+M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags,
+	size_t *len_read)
 {
 	M_http_reader_t                *reader;
 	M_http_error_t                  res;
@@ -530,11 +532,13 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 	return res;
 }
 
-unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version,
+	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
 	M_buf_t *buf;
 
-	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN || (headers == NULL && (data == NULL || len == 0)))
+	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN ||
+		(headers == NULL && (data == NULL || data_len == 0)))
 		return NULL;
 
 	buf = M_buf_create();
@@ -568,7 +572,8 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	return M_buf_finish(buf, len);
 }
 
-unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
+	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
 	M_buf_t *buf;
 

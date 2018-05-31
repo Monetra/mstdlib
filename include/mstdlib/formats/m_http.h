@@ -28,6 +28,8 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_list_str.h>
+#include <mstdlib/base/m_hash_multi.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -76,7 +78,7 @@ typedef enum {
 	M_HTTP_ERROR_MULTIPART_INVALID,
 	M_HTTP_ERROR_UNSUPPORTED_DATA,
 	M_HTTP_ERROR_TEXTCODEC_FAILURE,
-	M_HTTP_ERROR_USER_FAILURE,
+	M_HTTP_ERROR_USER_FAILURE
 } M_http_error_t;
 
 
@@ -90,10 +92,10 @@ typedef enum {
 
 /*! HTTP version in use. */
 typedef enum {
-	M_HTTP_VERSION_UNKNOWN, /*!< Unknown. */
-	M_HTTP_VERSION_1_0,     /*!< 1.0 */
-	M_HTTP_VERSION_1_1,     /*!< 1.1 */
-	M_HTTP_VERSION_2        /*!< 2 */
+	M_HTTP_VERSION_UNKNOWN = 0, /*!< Unknown. */
+	M_HTTP_VERSION_1_0,         /*!< 1.0 */
+	M_HTTP_VERSION_1_1,         /*!< 1.1 */
+	M_HTTP_VERSION_2            /*!< 2 */
 } M_http_version_t;
 
 
@@ -411,7 +413,6 @@ typedef M_http_error_t (*M_http_reader_trailer_func)(const char *key, const char
  *
  * Only called if trailing headers were present.
  *
- * \param[in] format The format data was sent using.
  * \param[in] thunk  Thunk.
  *
  * \return Result
@@ -513,34 +514,276 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Parse the given HTTP message, store results in a new M_http_simple_t object.
+ *
+ * \see M_http_simple_destroy
+ *
+ * \param[out] simple   pointer to new M_http_simple_t object will be stored here
+ * \param[in]  data     buffer containing HTTP message to read
+ * \param[in]  data_len length of \a data buffer
+ * \param[in]  flags    read options (OR'd combo of M_http_simple_read_flags)
+ * \param[in]  len_read num bytes consumed from \a data (may be NULL, if caller doesn't need this info)
+ * \return              error code (M_HTTP_ERROR_SUCCESS if successful)
+ */
+M_API M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len,
+	M_uint32 flags, size_t *len_read);
+
+
+/*! Destroy the given M_http_simple_t object.
+ *
+ * \param[in] http object to destroy
+ */
 M_API void M_http_simple_destroy(M_http_simple_t *http);
 
+
+/*! Return the type of the parsed message.
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           type of message (REQUEST or RESPONSE, usually)
+ */
 M_API M_http_message_type_t M_http_simple_message_type(const M_http_simple_t *simple);
+
+
+/*! Return the HTTP protocol version of the parsed message.
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           HTTP protocol version (1.1, 2.0, etc)
+ */
 M_API M_http_version_t M_http_simple_version(const M_http_simple_t *simple);
+
+
+/*! Return the HTTP status code of the parsed message.
+ *
+ * The status code is only set for response messages (type == M_HTTP_MESSAGE_TYPE_RESPONSE).
+ * If the parsed message wasn't a response, the returned status code will be 0.
+ *
+ * \see M_http_simple_reason_phrase
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           HTTP status code (200, 404, etc.), or 0 if this isn't a response
+ */
 M_API M_uint32 M_http_simple_status_code(const M_http_simple_t *simple);
+
+
+/*! Return the human-readable status of the parsed message.
+ *
+ * This is the text that goes with the HTTP status code in the message.
+ *
+ * The reason phrase is only set for response messages (type == M_HTTP_MESSAGE_TYPE_RESPONSE).
+ * If the parsed message wasn't a response, the returned string will be \c NULL.
+ *
+ * \see M_http_simple_status_code
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           string describing reason for message's status code, or \c NULL if this isn't a response
+ */
 M_API const char *M_http_simple_reason_phrase(const M_http_simple_t *simple);
+
+
+/*! Return the HTTP method (GET, POST, etc) of the parsed message.
+ *
+ * The method is only set for request messages (type == M_HTTP_MESSAGE_TYPE_REQUEST).
+ * If the parsed message wasn't a request, M_HTTP_METHOD_UNKNOWN will be returned.
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           HTTP verb used by the parsed message, or M_HTTP_METHOD_UNKNOWN if this isn't a request
+ */
 M_API M_http_method_t M_http_simple_method(const M_http_simple_t *simple);
+
+
+/*! Return the full URI (port, path and query) of the parsed message.
+ *
+ * Only request messages have a URI. If the parsed message wasn't a request, the
+ * returned string will be \c NULL.
+ *
+ * \see M_http_simple_port
+ * \see M_http_simple_path
+ * \see M_http_simple_query_string
+ * \see M_http_simple_query_args
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           URI of the parsed message, or \c NULL if this isn't a request
+ */
 M_API const char *M_http_simple_uri(const M_http_simple_t *simple);
+
+
+/*! Return the port number component of the URI from the parsed message.
+ *
+ * Only request messages have a URI. If the parsed message wasn't a request, the
+ * function will return M_FALSE and set \a port to 0.
+ *
+ * The port may not be present - even absolute URI's don't have to include the port.
+ *
+ * \see M_http_simple_uri
+ *
+ * \param[in]  simple parsed HTTP message
+ * \param[out] port   place to store port number. May be \c NULL, if you're just checking to see if a port is present
+ * \return            M_TRUE if a port was set, M_FALSE if there was no port in the message
+ */
 M_API M_bool M_http_simple_port(const M_http_simple_t *simple, M_uint16 *port);
+
+
+/*! Return the path component of the URI from the parsed message.
+ *
+ * Only request messages have a URI. If the parsed message wasn't a request, the
+ * function will return \c NULL.
+ *
+ * The path may be relative or absolute.
+ *
+ * \see M_http_simple_uri
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           path part of URI, or \c NULL if this isn't a request
+ */
 M_API const char *M_http_simple_path(const M_http_simple_t *simple);
+
+
+/*! Return the query component of the URI from the parsed message.
+ *
+ * The returned query string hasn't been processed in any way. Call M_http_simple_query_args()
+ * instead to process the query and return its contents as a set of key-value pairs.
+ *
+ * Only request messages have a URI. If the parsed message wasn't a request, the
+ * function will return \c NULL.
+ *
+ * Not all requests have a query string embedded in the URI. This is normally seen
+ * in GET requests, but it's not always present even there.
+ *
+ * \see M_http_simple_query_args
+ * \see M_http_simple_uri
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           query string from URI, or \c NULL if not present
+ */
 M_API const char *M_http_simple_query_string(const M_http_simple_t *simple);
+
+
+/*! Parse arguments from query component of URI as key-value pairs.
+ *
+ * Processes the query string (if any), then returns a key->value mapping of all
+ * the values present in the string.
+ *
+ * \warning
+ * Any keys in the query string that don't have values (no '='), or whose values
+ * are empty ('key=') will not be present in the returned mapping. To parse empty
+ * keys, you have to process the query string returned by M_http_simple_query_string()
+ * yourself.
+ *
+ * \see M_http_simple_query_string
+ * \see M_http_simple_uri
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           dictionary containing key-value mappings from query string, or \c NULL if there were none
+ */
 M_API const M_hash_dict_t *M_http_simple_query_args(const M_http_simple_t *simple);
+
+
+/*! Get headers from parsed message as key-multivalue pairs.
+ *
+ * Note that some headers may contain a list of multiple values, so the returned
+ * M_hash_dict_t is a multimap (one key may map to a list of values).
+ *
+ * Header names are not case-sensitive, when doing lookups into the returned dictionary.
+ *
+ * \warning
+ * The returned dictionary does not include "Set-Cookie" headers, because they can
+ * be sent multiple times with different attributes, and their values cannot be
+ * merged into a list.
+ *
+ * \see M_http_simple_header
+ * \see M_http_simple_get_set_cookie
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           multimap of header names and values
+ */
 M_API const M_hash_dict_t *M_http_simple_headers(const M_http_simple_t *simple);
+
+
+/*! Get value of the named header from the parsed message.
+ *
+ * The key is not case-sensitive - it will match header names that only differ because
+ * of capitalization.
+ *
+ * Note that some headers may contain a list of multiple values. For these headers,
+ * this function will return a comma-delimited list of values. Some extra whitespace
+ * may be added in addition to the commas.
+ *
+ * \warning
+ * Attempts to retrieve "Set-Cookie" header values with this function will fail, because
+ * those headers may be sent multiple times with different attributes, and their values
+ * cannot be merged into a list.
+ *
+ * \see M_http_simple_headers
+ * \see M_http_simple_get_set_cookie
+ *
+ * \param[in] simple parsed HTTP message
+ * \param[in] key    name of header to retrieve values from
+ * \return           comma-delimited list of values for this header, or \c NULL if no data found
+ */
 M_API char *M_http_simple_header(const M_http_simple_t *simple, const char *key);
+
+
+/*! Return list of values from all Set-Cookie headers in the parsed message.
+ *
+ * The returned list of values is stable-sorted alphabetically.
+ *
+ * \param[in] simple parsed HTTP message
+ * \return           sorted list of all cookies in the message (may be empty)
+ */
 M_API const M_list_str_t *M_http_simple_get_set_cookie(const M_http_simple_t *simple);
-M_API const char *M_http_simple_body(const M_http_simple_t *simple, size_t *len);
+
+
+/*! Return the body of the parsed message (if any).
+ *
+ * \param[in]  simple parsed HTTP message
+ * \param[out] len    place to store length of body (may be \c NULL)
+ * \return            bytes from body of message
+ */
+M_API const unsigned char *M_http_simple_body(const M_http_simple_t *simple, size_t *len);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags, size_t *len_read);
+/*! Create an HTTP request message.
+ *
+ * Caller is responsible for freeing the returned string.
+ *
+ * \param[in]  method   HTTP verb to use (GET, POST, etc)
+ * \param[in]  uri      full URI (may be absolute or relative, may include query string)
+ * \param[in]  version  HTTP protocol version to use (1.1, 2.0, etc)
+ * \param[in]  headers  headers to include in request
+ * \param[in]  data     string to place in body of message (may be empty)
+ * \param[in]  data_len number of chars to use from \c data (may be 0)
+ * \param[out] len      place to store length of returned HTTP request message (may be NULL)
+ * \return              allocated string containing HTTP request message
+ */
+M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version,
+	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t datea_len, size_t *len);
-M_API unsigned char *M_http_simple_write_respone(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
+/*! Create an HTTP response message.
+ *
+ * Caller is responsible for freeing the returned string.
+ *
+ * \param version  HTTP protocol version to use (1.1, 2.0, etc)
+ * \param code     HTTP status code to use (200, 404, etc)
+ * \param reason   HTTP status reason string to use ("OK", "Not Found", etc)
+ * \param headers  headers to include in response
+ * \param data     string to place in body of message (may be empty)
+ * \param data_len number of chars to use from \c data (may be 0)
+ * \param len      place to store length of returned HTTP response message (may be NULL)
+ * \return         new string containing HTTP response message
+ */
+M_API unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
+	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
 
-//M_API unsigned char *M_http_simple_write_request_multipart(M_http_method_t method, const char *uri, M_http_version_t version, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
-//M_API unsigned char *M_http_simple_write_respone_multipart(M_http_version_t version, M_uint32 code, const char *reason, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
+/*
+M_API unsigned char *M_http_simple_write_request_multipart(M_http_method_t method, const char *uri,
+	M_http_version_t version, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
+
+M_API unsigned char *M_http_simple_write_response_multipart(M_http_version_t version, M_uint32 code,
+	const char *reason, const M_hash_dict_t *headers, M_http_multipart_t *parts, size_t *len);
+*/
 
 /*! @} */
 
