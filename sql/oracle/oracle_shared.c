@@ -220,7 +220,7 @@ char *oracle_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name
 	for (max_sect_len=6; max_sect_len>=2; max_sect_len--) {
 		size_t i;
 		/* Don't need position 0 as it is always just "i" for index. truncate from end. */
-		for (i=num_sects-1; i>0; i++) {
+		for (i=num_sects-1; i>0; i--) {
 			M_buf_truncate(buf, 0);
 			oracle_cb_rewrite_indexname_int(buf, sects, num_sects, max_sect_len, i);
 			if (M_buf_len(buf) <= 30)
