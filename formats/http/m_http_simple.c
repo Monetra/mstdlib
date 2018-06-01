@@ -174,6 +174,7 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 	char                *dec;
 	char                 tempa[32];
 	M_textcodec_codec_t  codec        = M_TEXTCODEC_ISO8859_1;
+	M_textcodec_error_t  terr;
 	M_bool               have_charset = M_FALSE;
 	M_bool               have_encoded = M_FALSE;
 	M_bool               update_clen  = M_FALSE;
@@ -226,10 +227,16 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 
 	/* url-form decode the data. */
 	if (have_encoded) {
-		(void)M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, M_TEXTCODEC_PERCENT_FORM);
+		dec  = NULL;
+		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE,
+			M_TEXTCODEC_PERCENT_FORM);
 		M_buf_truncate(simple->http->body, 0);
 		M_buf_add_str(simple->http->body, dec);
 		M_free(dec);
+
+		if (terr != M_TEXTCODEC_ERROR_SUCCESS && terr != M_TEXTCODEC_ERROR_SUCCESS_EHANDLER) {
+			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
+		}
 
 		/* Data is no longer form encoded so remove it from the headers. */
 		M_hash_dict_multi_remove(simple->http->headers, "content-type", encoded_idx);
@@ -238,10 +245,15 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 
 	/* Decode the data to utf-8 if we can. */
 	if (codec != M_TEXTCODEC_UNKNOWN && codec != M_TEXTCODEC_UTF8) {
-		(void)M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, codec);
+		dec  = NULL;
+		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, codec);
 		M_buf_truncate(simple->http->body, 0);
 		M_buf_add_str(simple->http->body, dec);
 		M_free(dec);
+
+		if (terr != M_TEXTCODEC_ERROR_SUCCESS && terr != M_TEXTCODEC_ERROR_SUCCESS_EHANDLER) {
+			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
+		}
 
 		/* Remove and set the charset since it's now utf-8. */
 		if (have_charset) {
@@ -254,7 +266,7 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 		update_clen = M_TRUE;
 	}
 
-	/* We've decoded the data so we need to updat ehte content length. */
+	/* We've decoded the data so we need to update the content length. */
 	if (update_clen) {
 		M_hash_dict_remove(simple->http->headers, "content-length");
 		M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
