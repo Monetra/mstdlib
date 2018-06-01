@@ -405,7 +405,7 @@ void M_table_column_sort_data_at(M_table_t *table, size_t idx, M_sort_compar_t p
 
 	colid           = M_list_u64_at(table->col_order, idx);
 	secondary_colid = M_list_u64_at(table->col_order, secondary_idx);
-	M_table_column_sort_data_int(table, colid, primary_sort, secondary_idx, secondary_sort, thunk);
+	M_table_column_sort_data_int(table, colid, primary_sort, secondary_colid, secondary_sort, thunk);
 }
 
 void M_table_column_order(M_table_t *table, M_sort_compar_t sort, void *thunk)
@@ -769,7 +769,7 @@ M_bool M_table_merge(M_table_t **dest, M_table_t *src)
 	size_t      i;
 	size_t      j;
 
-	if (dest == NULL) {
+	if (*dest == NULL) {
 		*dest = src;
 		return M_TRUE;
 	}
