@@ -769,6 +769,9 @@ M_bool M_table_merge(M_table_t **dest, M_table_t *src)
 	size_t      i;
 	size_t      j;
 
+	if (dest == NULL)
+		return M_FALSE;
+	
 	if (*dest == NULL) {
 		*dest = src;
 		return M_TRUE;
