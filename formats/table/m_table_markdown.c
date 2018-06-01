@@ -123,8 +123,8 @@ static M_bool read_header_sep_line(M_parser_t *parser)
 
  	/* We're not going to validate we the correct number of columns.
 	 * We're only going to check that the format is correct.*/
-	cols = read_cols(parser, &num_cols); {
-	if (cols == NULL || num_cols == 0)
+	cols = read_cols(parser, &num_cols);
+	if (cols == NULL || num_cols == 0) {
 		M_parser_split_free(cols, num_cols);
 		return M_FALSE;
 	}
