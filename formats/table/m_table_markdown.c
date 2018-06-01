@@ -123,9 +123,11 @@ static M_bool read_header_sep_line(M_parser_t *parser)
 
  	/* We're not going to validate we the correct number of columns.
 	 * We're only going to check that the format is correct.*/
-	cols = read_cols(parser, &num_cols);
+	cols = read_cols(parser, &num_cols); {
 	if (cols == NULL || num_cols == 0)
+		M_parser_split_free(cols, num_cols);
 		return M_FALSE;
+	}
 
 	for (i=0; i<num_cols; i++) {
 		/* Eat whitespace starting and ending the cell. */
@@ -173,8 +175,10 @@ static M_bool read_data_line(M_table_t *table, M_parser_t *parser)
 	size_t       i;
 
 	cols = read_cols(parser, &num_cols);
-	if (cols == NULL || num_cols == 0)
+	if (cols == NULL || num_cols == 0) {
+		M_parser_split_free(cols, num_cols);
 		return M_FALSE;
+	}
 
 	/* Validate we don't have too many columns.
  	 * We're going to allow less. */
@@ -379,6 +383,7 @@ M_bool M_table_load_markdown(M_table_t *table, const char *data, size_t len)
 	rows   = M_parser_split(parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &num_rows);
 	/* Must have 3 rows because tables cannot be empty. */
 	if (rows == NULL || num_rows < 3) {
+		M_parser_split_free(rows, num_rows);
 		M_parser_destroy(parser);
 		return M_FALSE;
 	}
