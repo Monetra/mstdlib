@@ -30,6 +30,8 @@
 #include <mstdlib/base/m_types.h>
 #include <mstdlib/base/m_list_str.h>
 #include <mstdlib/base/m_hash_multi.h>
+#include <mstdlib/base/m_parser.h>
+#include <mstdlib/base/m_buf.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -477,10 +479,10 @@ M_API void M_http_reader_destroy(M_http_reader_t *httpr);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Parse http data.
+/*! Parse next http message from given array.
  *
  * \param[in]  httpr    Http reader object.
- * \param[in]  data     Data to parser.
+ * \param[in]  data     Data to parse.
  * \param[in]  data_len Length of data.
  * \param[out] len_read How much data was read.
  *
@@ -514,19 +516,36 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Parse the given HTTP message, store results in a new M_http_simple_t object.
+/*! Read the next HTTP message from the given array, store results in a new M_http_simple_t object.
  *
+ * \see M_http_simple_read_parser
  * \see M_http_simple_destroy
  *
- * \param[out] simple   pointer to new M_http_simple_t object will be stored here
- * \param[in]  data     buffer containing HTTP message to read
- * \param[in]  data_len length of \a data buffer
- * \param[in]  flags    read options (OR'd combo of M_http_simple_read_flags)
+ * \param[out] simple   place to store new M_http_simple_t object
+ * \param[in]  data     array containing HTTP messages to read
+ * \param[in]  data_len length of \a data array
+ * \param[in]  flags    read options (OR'd combo of M_http_simple_read_flags_t)
  * \param[in]  len_read num bytes consumed from \a data (may be NULL, if caller doesn't need this info)
  * \return              error code (M_HTTP_ERROR_SUCCESS if successful)
  */
 M_API M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char *data, size_t data_len,
 	M_uint32 flags, size_t *len_read);
+
+
+/*! Read the next HTTP message from the given parser.
+ *
+ * Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message.
+ * No data will be dropped from the parser, in this case.
+ *
+ * \see M_http_simple_read
+ * \see M_http_simple_destroy
+ *
+ * \param[out] simple place to store new M_http_simple_t object
+ * \param[in]  parser buffer containing HTTP messages to read
+ * \param[in]  flags  read options (OR'd combo of M_http_simple_read_flags_t)
+ * \return            error code (M_HTTP_ERROR_SUCCESS if successful)
+ */
+M_API M_http_error_t M_http_simple_read_parser(M_http_simple_t **simple, M_parser_t *parser, M_uint32 flags);
 
 
 /*! Destroy the given M_http_simple_t object.
@@ -749,9 +768,11 @@ M_API const unsigned char *M_http_simple_body(const M_http_simple_t *simple, siz
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Create an HTTP request message.
+/*! Create an HTTP request message, return as a new string.
  *
  * Caller is responsible for freeing the returned string.
+ *
+ * \see M_http_simple_write_request_buf
  *
  * \param[in]  method   HTTP verb to use (GET, POST, etc)
  * \param[in]  uri      full URI (may be absolute or relative, may include query string)
@@ -766,21 +787,64 @@ M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const c
 	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
 
 
-/*! Create an HTTP response message.
+/*! Create an HTTP request message, add it to the given buffer.
+ *
+ * Same as M_http_simple_write_request(), except that it adds the new message to the given buffer instead
+ * of returning it in a newly-allocated string.
+ *
+ * \see M_http_simple_write_request
+ *
+ * \param[out] buf      buffer to add the message to
+ * \param[in]  method   HTTP verb to use (GET, POST, etc)
+ * \param[in]  uri      full URI (may be absolute or relative, may include query string)
+ * \param[in]  version  HTTP protocol version to use (1.1, 2.0, etc)
+ * \param[in]  headers  headers to include in request
+ * \param[in]  data     string to place in body of message (may be empty)
+ * \param[in]  data_len number of chars to use from \c data for body (may be 0)
+ * \return              M_TRUE if add was successful, M_FALSE if message creation failed
+ */
+M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method, const char *uri,
+	M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len);
+
+
+/*! Create an HTTP response message, return as new string.
  *
  * Caller is responsible for freeing the returned string.
  *
- * \param version  HTTP protocol version to use (1.1, 2.0, etc)
- * \param code     HTTP status code to use (200, 404, etc)
- * \param reason   HTTP status reason string to use ("OK", "Not Found", etc)
- * \param headers  headers to include in response
- * \param data     string to place in body of message (may be empty)
- * \param data_len number of chars to use from \c data (may be 0)
- * \param len      place to store length of returned HTTP response message (may be NULL)
- * \return         new string containing HTTP response message
+ * \see M_http_simple_write_response_buf
+ *
+ * \param[in]  version  HTTP protocol version to use (1.1, 2.0, etc)
+ * \param[in]  code     HTTP status code to use (200, 404, etc)
+ * \param[in]  reason   HTTP status reason string. If NULL, will attempt to pick one automatically.
+ * \param[in]  headers  headers to include in response
+ * \param[in]  data     string to place in body of message (may be empty)
+ * \param[in]  data_len number of chars to use from \c data (may be 0)
+ * \param[out] len      place to store length of returned HTTP response message (may be NULL)
+ * \return              new string containing HTTP response message
  */
 M_API unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
 	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
+
+
+/*! Create an HTTP response message, add it to the given buffer.
+ *
+ * Same as M_http_simple_write_response(), except that it adds the new message to the given buffer instead
+ * of returning it in a newly-allocated string.
+ *
+ * \see M_http_simple_write_response
+ *
+ * \param[out] buf      buffer to add the message to
+ * \param[in]  version  HTTP protocol version to use (1.1, 2.0, etc)
+ * \param[in]  code     HTTP status code to use (200, 404, etc)
+ * \param[in]  reason   HTTP status reason string. If NULL, will attempt to pick one automatically.
+ * \param[in]  headers  headers to include in response
+ * \param[in]  data     string to place in body of message (may be empty)
+ * \param[in]  data_len number of chars to use from \c data (may be 0)
+ * \return              M_TRUE if add was successful, M_FALSE if message creation failed
+ */
+M_API M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_http_version_t version, M_uint32 code,
+	const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len);
+
 
 /*
 M_API unsigned char *M_http_simple_write_request_multipart(M_http_method_t method, const char *uri,
