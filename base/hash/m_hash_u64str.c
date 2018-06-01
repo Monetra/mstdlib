@@ -120,7 +120,10 @@ M_bool M_hash_u64str_get(const M_hash_u64str_t *h, M_uint64 key, const char **va
 const char *M_hash_u64str_get_direct(const M_hash_u64str_t *h, M_uint64 key)
 {
 	const char *val = NULL;
-	M_hash_u64str_get(h, key, &val);
+
+	if (!M_hash_u64str_get(h, key, &val))
+		return NULL;
+
 	return val;
 }
 

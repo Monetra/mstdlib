@@ -95,8 +95,10 @@ static M_bool read_header(M_table_t *table, M_parser_t *parser)
 	size_t       i;
 
 	cols = read_cols(parser, &num_cols);
-	if (cols == NULL || num_cols == 0)
+	if (cols == NULL || num_cols == 0) {
+		M_parser_split_free(cols, num_cols);
 		return M_FALSE;
+	}
 
 	for (i=0; i<num_cols; i++) {
 		/* Clear whitespace from the start and end since it's used for pretty printing
