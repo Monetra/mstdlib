@@ -1093,8 +1093,10 @@ static char *M_dns_punyhostname(const char *hostname)
 
 	/* Each part is encoded separately. */
 	parts = M_str_explode_str('.', hostname, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (parts == NULL || num_parts == 0) {
+		M_str_explode_free(parts, num_parts);
 		return NULL;
+	}
 
 	/* We're going to use a list because it will make it easy
  	 * to join all the parts back together. */
