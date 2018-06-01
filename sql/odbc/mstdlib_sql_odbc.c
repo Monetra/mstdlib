@@ -97,6 +97,7 @@ typedef struct {
 	M_sql_driver_cb_createtable_suffix_odbc_t cb_createtable_suffix; /*!< Optional. Append CREATE TABLE suffix */
 	M_sql_driver_cb_append_updlock_t          cb_append_updlock;     /*!< Optional. Callback used to append row-level locking data */
 	M_sql_driver_cb_append_bitop_t            cb_append_bitop;       /*!< Required. Callback used to append a bit operation */
+	M_sql_driver_cb_rewrite_indexname_t       cb_rewrite_indexname;  /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
 } odbc_server_profile_t;
 
 
@@ -136,7 +137,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		mssql_cb_datatype,            /* cb_datatype           */
 		NULL,                         /* cb_createtable_suffix */
 		mssql_cb_append_updlock,      /* cb_append_updlock     */
-		mssql_cb_append_bitop         /* cb_append_bitop       */
+		mssql_cb_append_bitop,        /* cb_append_bitop       */
+		NULL                          /* cb_rewrite_indexname  */
 	},
 
 	{ 
@@ -149,7 +151,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		db2_cb_datatype,              /* cb_datatype           */
 		NULL,                         /* cb_createtable_suffix */
 		db2_cb_append_updlock,        /* cb_append_updlock     */
-		db2_cb_append_bitop           /* cb_append_bitop       */
+		db2_cb_append_bitop,          /* cb_append_bitop       */
+		NULL                          /* cb_rewrite_indexname  */
 	},
 
 	{ 
@@ -162,7 +165,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		oracle_cb_datatype,           /* cb_datatype           */
 		NULL,                         /* cb_createtable_suffix */
 		oracle_cb_append_updlock,     /* cb_append_updlock     */
-		oracle_cb_append_bitop        /* cb_append_bitop       */
+		oracle_cb_append_bitop,       /* cb_append_bitop       */
+		oracle_cb_rewrite_indexname   /* cb_rewrite_indexname  */
 	},
 
 	{ 
@@ -175,7 +179,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		mysql_cb_datatype,            /* cb_datatype           */
 		mysql_createtable_suffix,     /* cb_createtable_suffix */
 		mysql_cb_append_updlock,      /* cb_append_updlock     */
-		mysql_cb_append_bitop         /* cb_append_bitop       */
+		mysql_cb_append_bitop,        /* cb_append_bitop       */
+		NULL                          /* cb_rewrite_indexname  */
 	},
 
 	{ 
@@ -188,7 +193,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		mysql_cb_datatype,            /* cb_datatype           */
 		mysql_createtable_suffix,     /* cb_createtable_suffix */
 		mysql_cb_append_updlock,      /* cb_append_updlock     */
-		mysql_cb_append_bitop         /* cb_append_bitop       */
+		mysql_cb_append_bitop,        /* cb_append_bitop       */
+		NULL                          /* cb_rewrite_indexname  */
 	},
 
 	{ 
@@ -201,10 +207,11 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		pgsql_cb_datatype,            /* cb_datatype           */
 		NULL,                         /* cb_createtable_suffix */
 		pgsql_cb_append_updlock,      /* cb_append_updlock     */
-		pgsql_cb_append_bitop         /* cb_append_bitop       */
+		pgsql_cb_append_bitop,        /* cb_append_bitop       */
+		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ NULL, M_FALSE, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL }
+	{ NULL, M_FALSE, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
 
@@ -1576,6 +1583,18 @@ static M_bool odbc_cb_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql
 }
 
 
+static char *odbc_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name)
+{
+	M_sql_driver_connpool_t  *dpool      = M_sql_driver_pool_get_dpool(pool);
+	odbc_connpool_data_t     *data       = &dpool->primary;
+
+	if (!data->profile->cb_rewrite_indexname)
+		return NULL;
+
+	return data->profile->cb_rewrite_indexname(pool, index_name);
+}
+
+
 static M_sql_driver_t M_sql_odbc = {
 	M_SQL_DRIVER_VERSION,         /* Driver/Module subsystem version */
 	"odbc",                       /* Short name of module */
@@ -1602,7 +1621,7 @@ static M_sql_driver_t M_sql_odbc = {
 	odbc_cb_createtable_suffix,   /* Callback used to append additional data to the Create Table query string */
 	odbc_cb_append_updlock,       /* Callback used to append row-level locking data */
 	odbc_cb_append_bitop,         /* Callback used to append a bit operation */
-
+	odbc_cb_rewrite_indexname,    /* Callback used to rewrite an index name to comply with DB requirements */
 	NULL,                         /* Handle for loaded driver - must be initialized to NULL */
 };
 

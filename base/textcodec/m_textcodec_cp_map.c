@@ -133,7 +133,7 @@ M_textcodec_error_t M_textcodec_decode_cp_map(M_textcodec_buffer_t *buf, const c
 					break;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
 					M_textcodec_buffer_add_str(buf, M_UTF8_REPLACE);
-					/* Fall though. */
+					/* Fall-thru */
 				case M_TEXTCODEC_EHANDLER_IGNORE:
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 					break;

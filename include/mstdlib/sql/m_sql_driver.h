@@ -317,6 +317,19 @@ typedef void (*M_sql_driver_cb_append_updlock_t)(M_sql_connpool_t *pool, M_buf_t
 typedef M_bool (*M_sql_driver_cb_append_bitop_t)(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_bitop_t op, const char *exp1, const char *exp2);
 
 
+/*! Rewrite index identifier name to comply with database limitations.
+ *
+ *  For instance, Oracle versions prior to 12c R2 has a limitation of 30 characters
+ *  for identifiers.  We need to rewrite the index name if the database version
+ *  matches.
+ *
+ *  \param[in]     pool       Pointer to connection pool object
+ *  \param[in]     index_name Desired index name
+ *  \return NULL if no change necessary, otherwise rewritten index name.
+ */
+typedef char *(*M_sql_driver_cb_rewrite_indexname_t)(M_sql_connpool_t *pool, const char *index_name);
+
+
 /*! Structure to be implemented by SQL drivers with information about the database in use */
 typedef struct  {
 	M_uint16                      driver_sys_version; /*!< Driver/Module subsystem version, use M_SQL_DRIVER_VERSION */
@@ -342,9 +355,10 @@ typedef struct  {
 	M_sql_driver_cb_rollback_t           cb_rollback;           /*!< Required. Callback used to rollback a transaction */
 	M_sql_driver_cb_commit_t             cb_commit;             /*!< Required. Callback used to commit a transaction */
 	M_sql_driver_cb_datatype_t           cb_datatype;           /*!< Required. Callback used to convert to data type for server */
-	M_sql_driver_cb_createtable_suffix_t cb_createtable_suffix; /*!< Optional. Callback used to append additional data to the Create Table query string */ 
+	M_sql_driver_cb_createtable_suffix_t cb_createtable_suffix; /*!< Optional. Callback used to append additional data to the Create Table query string */
 	M_sql_driver_cb_append_updlock_t     cb_append_updlock;     /*!< Optional. Callback used to append row-level locking data */
 	M_sql_driver_cb_append_bitop_t       cb_append_bitop;       /*!< Required. Callback used to append a bit operation */
+	M_sql_driver_cb_rewrite_indexname_t  cb_rewrite_indexname;  /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
 	M_module_handle_t                    handle;                /*!< Handle for loaded driver - must be initialized to NULL in the driver structure */
 } M_sql_driver_t;
 

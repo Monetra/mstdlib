@@ -829,7 +829,7 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 	M_hashtable_enum_t            hashenum;
 	struct M_hashtable_callbacks  callbacks;
 
-	if (src == NULL)
+	if (dest == NULL || src == NULL)
 		return;
 
 	if (*dest == NULL) {
