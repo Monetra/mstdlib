@@ -180,3 +180,68 @@ M_bool oracle_cb_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_quer
 	(void)pool;
 	return M_sql_driver_append_bitop(M_SQL_DRIVER_BITOP_CAP_FUNC, query, op, exp1, exp2);
 }
+
+
+static void oracle_cb_rewrite_indexname_int(M_buf_t *buf, char **sects, size_t num_sects, size_t max_sect_len, size_t apply_start_idx)
+{
+	size_t i;
+	for (i=0; i<num_sects; i++) {
+		size_t len = M_str_len(sects[i]);
+
+		M_buf_add_str_just(buf, sects[i], M_STR_JUSTIFY_TRUNC_RIGHT, ' ', (i>=apply_start_idx)?max_sect_len:len);
+		if (i != num_sects-1)
+			M_buf_add_str(buf, "_");
+	}
+}
+
+
+char *oracle_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name)
+{
+	char   **sects;
+	size_t   num_sects    = 0;
+	size_t   max_sect_len;
+	M_buf_t *buf;
+
+	/* Oracle versions prior to 12c R2 did not support identifier names over 30 characters.
+	 * For now, lets just assume they're running an old DB.  In the future, maybe we'll
+	 * detect the oracle version */
+
+	/* If already within limits, return NULL to indicate this */
+	if (M_str_len(index_name) <= 30)
+		return NULL;
+
+	buf   = M_buf_create();
+
+	/* Split on underscores, these are most typically used.  We'll just do the easiest
+	 * thing which is loop truncating each section from the end to 6 characters
+	 * until we have a short enough index name.  If that doesn't work, we'll try
+	 * 5 characters and so on down to 2.  This is super-inefficient but shouldn't
+	 * matter in the least since you don't create indexes very often. */
+	sects = M_str_explode_str('_', index_name, &num_sects);
+	if (sects == NULL)
+		goto done;
+
+	for (max_sect_len=6; max_sect_len>=2; max_sect_len--) {
+		size_t i;
+		/* Don't need position 0 as it is always just "i" for index. truncate from end. */
+		for (i=num_sects-1; i>0; i--) {
+			M_buf_truncate(buf, 0);
+			oracle_cb_rewrite_indexname_int(buf, sects, num_sects, max_sect_len, i);
+			if (M_buf_len(buf) <= 30)
+				goto done;
+		}
+	}
+
+done:
+	M_str_explode_free(sects, num_sects);
+
+	/* Failsafe, couldn't determine a valid name, make one up using a 64bit
+	 * integer */
+	if (M_buf_len(buf) > 30 || M_buf_len(buf) == 0) {
+		M_buf_truncate(buf, 0);
+		M_buf_add_str(buf, "i_");
+		M_buf_add_uint(buf, (M_uint64)M_sql_gen_timerand_id(pool, 18));
+	}
+
+	return M_buf_finish_str(buf, NULL);
+}

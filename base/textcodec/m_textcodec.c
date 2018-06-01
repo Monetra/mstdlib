@@ -30,9 +30,8 @@
 
 static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
-	M_bool fail;
+	M_bool fail = M_TRUE;
 
-	fail = M_TRUE;
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
 		case M_TEXTCODEC_UTF8:
@@ -91,6 +90,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		return M_FALSE;
 
 	fail = M_TRUE;
+	(void)fail; /* Silence compiler, this is a check to make sure all enum values are checked */
 	switch (ehandler) {
 		case M_TEXTCODEC_EHANDLER_FAIL:
 		case M_TEXTCODEC_EHANDLER_REPLACE:
@@ -384,8 +384,8 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 		return M_TEXTCODEC_ASCII;
 
 	if (M_str_caseeq(s, "cp037") ||
-			M_str_caseeq(s, "ibm037"), M_str_caseeq(s, "ibm-037") ||
-			M_str_caseeq(s, "ibm039"), M_str_caseeq(s, "ibm-039"))
+			M_str_caseeq(s, "ibm037") || M_str_caseeq(s, "ibm-037") ||
+			M_str_caseeq(s, "ibm039") || M_str_caseeq(s, "ibm-039"))
 	{
 		return M_TEXTCODEC_CP037;
 	}
