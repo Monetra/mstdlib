@@ -182,6 +182,10 @@ static M_http_error_t M_http_simple_decode_body(M_http_simple_t *simple)
 	size_t               encoded_idx  = 0;
 	size_t               charset_idx  = 0;
 
+	if (simple == NULL) {
+		return M_HTTP_ERROR_INVALIDUSE;
+	}
+
 	if (simple->rflags & M_HTTP_SIMPLE_READ_NODECODE_BODY)
 		return M_HTTP_ERROR_SUCCESS;
 
@@ -515,12 +519,15 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 	res    = M_http_reader_read(reader, data, data_len, len_read);
 	M_http_reader_destroy(reader);
 
-	if (!(*simple)->rdone)
-		res = M_HTTP_ERROR_MOREDATA;
+	if (!(*simple)->rdone) {
+		res       = M_HTTP_ERROR_MOREDATA;
+		*len_read = 0;
+	}
 
 	if (res != M_HTTP_ERROR_SUCCESS) {
 		M_http_simple_destroy(*simple);
 		*simple = NULL;
+		return res;
 	}
 
 	res = M_http_simple_decode_body(*simple);
@@ -532,16 +539,46 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 	return res;
 }
 
+M_http_error_t M_http_simple_read_parser(M_http_simple_t **simple, M_parser_t *parser, M_uint32 flags)
+{
+	M_http_error_t res;
+	size_t         len_read = 0;
+
+	res = M_http_simple_read(simple, M_parser_peek(parser), M_parser_len(parser), flags, &len_read);
+
+	M_parser_consume(parser, len_read);
+
+	return res;
+}
+
 unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version,
 	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
-	M_buf_t *buf;
+	M_bool   res;
+	M_buf_t *buf = M_buf_create();
+
+	res = M_http_simple_write_request_buf(buf, method, uri, version, headers, data, data_len);
+
+	if (!res) {
+		if (len != NULL) {
+			*len = 0;
+		}
+		M_buf_cancel(buf);
+		return NULL;
+	}
+
+	return M_buf_finish(buf, len);
+}
+
+M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method, const char *uri,
+	M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len)
+{
+	size_t start_len = M_buf_len(buf);
 
 	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN ||
-		(headers == NULL && (data == NULL || data_len == 0)))
-		return NULL;
-
-	buf = M_buf_create();
+		(headers == NULL && (data == NULL || data_len == 0))) {
+		return M_FALSE;
+	}
 
 	/* request-line = method SP request-target SP HTTP-version CRLF */
 	M_buf_add_str(buf, M_http_method_to_str(method));
@@ -554,8 +591,8 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	 * +. We have no way to know so we'll go with %20 since it's more common. */
 	if (M_str_chr(uri, ' ') != NULL || !M_str_isascii(uri)) {
 		if (M_textcodec_encode_buf(buf, uri, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL) != M_TEXTCODEC_ERROR_SUCCESS) {
-			M_buf_cancel(buf);
-			return NULL;
+			M_buf_truncate(buf, start_len);
+			return M_FALSE;
 		}
 	} else {
 		M_buf_add_str(buf, uri);
@@ -566,21 +603,40 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	M_buf_add_str(buf, "\r\n");
 
 	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
-		M_buf_cancel(buf);
-		return NULL;
+		M_buf_truncate(buf, start_len);
+		return M_FALSE;
 	}
-	return M_buf_finish(buf, len);
+
+	return M_TRUE;
 }
 
 unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
 	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
 {
-	M_buf_t *buf;
+	M_bool   res;
+	M_buf_t *buf = M_buf_create();
 
-	if (version == M_HTTP_VERSION_UNKNOWN)
+	res = M_http_simple_write_response_buf(buf, version, code, reason, headers, data, data_len);
+
+	if (!res) {
+		if (len != NULL) {
+			*len = 0;
+		}
+		M_buf_cancel(buf);
 		return NULL;
+	}
 
-	buf = M_buf_create();
+	return M_buf_finish(buf, len);
+}
+
+M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_http_version_t version, M_uint32 code,
+	const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len)
+{
+	size_t start_len = M_buf_len(buf);
+
+	if (version == M_HTTP_VERSION_UNKNOWN) {
+		return M_FALSE;
+	}
 
 	/* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
 	M_buf_add_str(buf, M_http_version_to_str(version));
@@ -589,14 +645,16 @@ unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 c
 	M_buf_add_int(buf, code);
 	M_buf_add_byte(buf, ' ');
 
-	if (M_str_isempty(reason))
+	if (M_str_isempty(reason)) {
 		reason = M_http_code_to_reason(code);
+	}
 	M_buf_add_str(buf, reason);
 	M_buf_add_str(buf, "\r\n");
 
 	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
-		M_buf_cancel(buf);
-		return NULL;
+		M_buf_truncate(buf, start_len);
+		return M_FALSE;
 	}
-	return M_buf_finish(buf, len);
+
+	return M_TRUE;
 }
