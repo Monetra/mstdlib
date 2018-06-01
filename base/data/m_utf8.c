@@ -70,10 +70,7 @@ static size_t M_utf8_cp_width(M_uint32 cp)
 	if (cp >= 0x800 && cp <= 0xFFFF)
 		return 3;
 
-	if (cp >= 0x1000)
-		return 4;
-
-	return 0;
+	return 4;
 }
 
 static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *len)
