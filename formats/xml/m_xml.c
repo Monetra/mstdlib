@@ -392,6 +392,71 @@ void M_xml_node_destroy(M_xml_node_t *node)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+const char *M_xml_error_to_string(M_xml_error_t err)
+{
+	const char *ret = "unknown";
+
+	switch (err) {
+	    case M_XML_ERROR_SUCCESS:
+		    ret = "success";
+		    break;
+
+	    case M_XML_ERROR_GENERIC:
+		    ret = "generic error";
+		    break;
+
+	    case M_XML_ERROR_MISUSE:
+		    ret = "API misuse";
+		    break;
+
+	    case M_XML_ERROR_ATTR_EXISTS:
+		    ret = "the attribute already exists on the node";
+		    break;
+
+	    case M_XML_ERROR_NO_ELEMENTS:
+		    ret = "unexpected end of XML, no elements in data";
+		    break;
+
+	    case M_XML_ERROR_INVALID_START_TAG:
+		    ret = "invalid tag start character";
+		    break;
+
+	    case M_XML_ERROR_INVALID_CHAR_IN_START_TAG:
+		    ret = "invalid character '<' found in tag";
+		    break;
+
+	    case M_XML_ERROR_EMPTY_START_TAG:
+		    ret = "only whitespace after tag start";
+		    break;
+
+	    case M_XML_ERROR_MISSING_DECLARATION_NAME:
+		    ret = "missing name after !";
+		    break;
+
+	    case M_XML_ERROR_INELIGIBLE_FOR_CLOSE:
+		    ret = "cannot close element of this type";
+		    break;
+
+	    case M_XML_ERROR_UNEXPECTED_CLOSE:
+		    ret = "cannot close element with the given tag";
+		    break;
+
+	    case M_XML_ERROR_MISSING_CLOSE_TAG:
+		    ret = "missing closing element statement(s)";
+		    break;
+
+	    case M_XML_ERROR_MISSING_PROCESSING_INSTRUCTION_END:
+		    ret = "missing processing instruction close";
+		    break;
+
+	    case M_XML_ERROR_EXPECTED_END:
+		    ret = "expected end but more data found";
+		    break;
+	}
+
+	return ret;
+}
+
 M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node)
 {
 	if (node == NULL)

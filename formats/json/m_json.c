@@ -245,7 +245,7 @@ const char *M_json_error_to_string(M_json_error_t err)
 		    break;
 
 	    case M_JSON_ERROR_EXPECTED_VALUE:
-		    ret = "expected value after ':'";
+		    ret = "expected value after ','";
 		    break;
 
 	    case M_JSON_ERROR_UNCLOSED_OBJECT:

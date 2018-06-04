@@ -375,6 +375,13 @@ M_API M_fs_error_t M_xml_write_file(const M_xml_node_t *node, const char *path, 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Convert an XML error code to a string.
+ *
+ * \param[in] err error code
+ * \return        short string describing error code
+ */
+M_API const char *M_xml_error_to_string(M_xml_error_t err);
+
 /*! Get the type of node.
  *
  * \param[in] node The node.
