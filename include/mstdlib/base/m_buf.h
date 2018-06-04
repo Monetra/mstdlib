@@ -765,6 +765,12 @@ M_API M_bool M_buf_add_str_replace(M_buf_t *dest_buf, const char *src_str,
 M_API void M_buf_add_str_quoted(M_buf_t *buf, char quote_char, char escape_char, const char *quote_req_chars, M_bool always_quote, const char *src);
 
 
+/*! Trim whitespace from beginning and end of buffer, in-place.
+ *
+ * \param[in,out] buf buffer to trim
+ */
+M_API void M_buf_trim(M_buf_t *buf);
+
 /*! @} */
 
 __END_DECLS
