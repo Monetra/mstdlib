@@ -107,6 +107,9 @@ START_TEST(check_parser_split)
 
 	parts  = M_parser_split_str_pat(parser, "\r\n", 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
 	ck_assert_msg(parts != NULL && num_parts == 4, "Split 1 failed");
+	if (parts == NULL) { /* Silence false-positive static analyzer warning */
+		return;
+	}
 
 	M_parser_read_str(parts[0], M_parser_len(parts[0]), buf, sizeof(buf));
 	ck_assert_msg(M_str_caseeq(buf, "ABC"), "Split 1 [0] got '%s', expected '%s'", buf, "ABC");
@@ -125,6 +128,9 @@ START_TEST(check_parser_split)
 	M_parser_mark_rewind(parser);
 	parts  = M_parser_split_str_pat(parser, "\r\n", 2, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
 	ck_assert_msg(parts != NULL && num_parts == 2, "Split 2 failed");
+	if (parts == NULL) { /* Silence false-positive static analyzer warning */
+		return;
+	}
 
 	M_parser_read_str(parts[0], M_parser_len(parts[0]), buf, sizeof(buf));
 	ck_assert_msg(M_str_caseeq(buf, "ABC"), "Split 2 [0] got '%s', expected '%s'", buf, "ABC");
