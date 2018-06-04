@@ -246,7 +246,7 @@ static M_list_u64_t *write_determine_cell_widths(const M_table_t *table)
 	for (i=0; i<num_rows; i++) {
 		for (j=0; j<num_cols; j++) {
 			const_temp = M_table_cell_at(table, i, j);
-			width      = M_list_u64_at(cell_widths, j);
+			width      = (size_t)M_list_u64_at(cell_widths, j);
 			len        = M_str_len(const_temp);
 			if (len > width) {
 				M_list_u64_replace_at(cell_widths, (M_uint64)len, j);
@@ -327,7 +327,7 @@ static void write_header_sep_line(const M_table_t *table, M_buf_t *buf, const M_
 	num_cols = M_table_column_count(table);
 	for (i=0; i<num_cols; i++) {
 		/* Add the line data. */
-		width = M_list_u64_at(cell_widths, i);
+		width = (size_t)M_list_u64_at(cell_widths, i);
 		if (width == 0)
 			width = 3;
 		M_buf_add_fill(buf, '-', width);
