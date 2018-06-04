@@ -405,3 +405,111 @@ const char *M_http_code_to_reason(M_uint32 code)
 
 	return "Generic";
 }
+
+
+const char *M_http_error_to_string(M_http_error_t err)
+{
+	const char *ret = "unknown";
+	switch (err) {
+		case M_HTTP_ERROR_SUCCESS:
+			ret = "success";
+			break;
+		case M_HTTP_ERROR_INVALIDUSE:
+			ret = "invalid use";
+			break;
+		case M_HTTP_ERROR_STOP:
+			ret = "stop"; /* TODO: change to a more informative error message */
+			break;
+		case M_HTTP_ERROR_SKIP:
+			ret = "skip"; /* TODO: change to a more informative error message */
+			break;
+		case M_HTTP_ERROR_MOREDATA:
+			ret = "message incomplete, wait for more data";
+			break;
+		case M_HTTP_ERROR_LENGTH_REQUIRED: /* 411 */
+			ret = "Content-Length header is required, but not present in message (411)";
+			break;
+		case M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED:
+			ret = "message uses chunked encoding, but reader is set to not allow it";
+			break;
+		case M_HTTP_ERROR_TRAILER_NOTALLOWED:
+			ret = "message has trailers, but reader is set to not allow them";
+			break;
+		case M_HTTP_ERROR_URI: /* 400 */
+			ret = "URI malformed or not found (400)";
+			break;
+		case M_HTTP_ERROR_STARTLINE_LENGTH: /* 414 (6k limit) */
+			ret = "first line of HTTP message exceeds max length - 6 KiB (414)";
+			break;
+		case M_HTTP_ERROR_STARTLINE_MALFORMED: /* 400 */
+			ret = "first line of HTTP message malformed (400)";
+			break;
+		case M_HTTP_ERROR_UNKNOWN_VERSION:
+			ret = "unrecognized protocol version";
+			break;
+		case M_HTTP_ERROR_REQUEST_METHOD: /* 501 */
+			ret = "given request method is unsupported (501)";
+			break;
+		case M_HTTP_ERROR_REQUEST_URI:
+			ret = "error parsing URI (may be malformed)";
+			break;
+		case M_HTTP_ERROR_HEADER_LENGTH: /* 413 (8k limit) */
+			ret = "header exceeds max length - 8KiB (413)";
+			break;
+		case M_HTTP_ERROR_HEADER_FOLD: /* 400/502 */
+			ret = "message uses header folding, this is no longer supported (400/502)";
+			break;
+		case M_HTTP_ERROR_HEADER_NOTALLOWED:
+			ret = "header unsupported"; /* TODO: change to a more informative error message */
+			break;
+		case M_HTTP_ERROR_HEADER_INVALID:
+			ret = "header missing info";
+			break;
+		case M_HTTP_ERROR_HEADER_MALFORMEDVAL: /* 400 */
+			ret = "header value malformed (400)";
+			break;
+		case M_HTTP_ERROR_HEADER_DUPLICATE: /* 400 */
+			ret = "detected duplicate header, for header type that must be unique (400)";
+			break;
+		case M_HTTP_ERROR_CHUNK_LENGTH:
+			ret = "chunk length is malformed, or exceeds maximum - 6KiB";
+			break;
+		case M_HTTP_ERROR_CHUNK_MALFORMED:
+			ret = "chunk length missing or negative";
+			break;
+		case M_HTTP_ERROR_CHUNK_EXTENSION:
+			ret = "chunk extension missing or malformed"; /* TODO: change to a more informative error message */
+			break;
+		case M_HTTP_ERROR_CHUNK_DATA_MALFORMED:
+			ret = "chunk missing line-end characters";
+			break;
+		case M_HTTP_ERROR_MALFORMED:
+			ret = "message malformed";
+			break;
+		case M_HTTP_ERROR_BODYLEN_REQUIRED:
+			ret = "body length required"; /* TODO: remove this error code? Not used, and seems same as M_HTTP_ERROR_LENGTH_REQUIRED */
+			break;
+		case M_HTTP_ERROR_MULTIPART_NOBOUNDARY:
+			ret = "multipart boundary error"; /* TODO: change to a more informative error message */
+			break;
+		case M_HTTP_ERROR_MULTIPART_MISSING:
+			ret = "multipart section missing"; /* TODO: change to a better error message (not even sure this is right) */
+			break;
+		case M_HTTP_ERROR_MULTIPART_MISSING_DATA:
+			ret = "multipart section missing end sequence";
+			break;
+		case M_HTTP_ERROR_MULTIPART_INVALID:
+			ret = "multipart section malformed";
+			break;
+		case M_HTTP_ERROR_UNSUPPORTED_DATA:
+			ret = "message's body format is unrecognized or unsupported";
+			break;
+		case M_HTTP_ERROR_TEXTCODEC_FAILURE:
+			ret = "text decode error";
+			break;
+		case M_HTTP_ERROR_USER_FAILURE:
+			ret = "user failure"; /* TODO: change to a more informative error message */
+			break;
+	}
+	return ret;
+}
