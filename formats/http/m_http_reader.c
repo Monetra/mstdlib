@@ -266,7 +266,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			if (val == NULL) {
 				return M_HTTP_ERROR_MULTIPART_NOBOUNDARY;
 			}
-			/* Move path the '='. */
+			/* Move past the '='. */
 			val++;
 			if (M_str_isempty(val) || M_str_len(val) > 70) {
 				return M_HTTP_ERROR_MULTIPART_NOBOUNDARY;

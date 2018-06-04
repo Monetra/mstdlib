@@ -170,13 +170,21 @@ M_API const char *M_http_method_to_str(M_http_method_t method);
 /*! Convert an http code to a string.
  *
  * Not all codes can be converted to a string.
- * Codes taht cannot be converted will return "Generic".
+ * Codes that cannot be converted will return "Generic".
  *
  * \param[in] code Code.
  *
  * \return String.
  */
 M_API const char *M_http_code_to_reason(M_uint32 code);
+
+
+/*! Convert an http error code to a string.
+ *
+ * \param[in] err error code
+ * \return        short string describing error code
+ */
+M_API const char *M_http_error_to_string(M_http_error_t err);
 
 /*! @} */
 
