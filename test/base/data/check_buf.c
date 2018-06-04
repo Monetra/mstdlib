@@ -224,21 +224,25 @@ START_TEST(check_buf_trim)
 	buf = M_buf_create();
 	M_buf_trim(buf);
 	ck_assert_msg(M_str_isempty(M_buf_peek(buf)));
+	ck_assert_msg(M_buf_len(buf) == 0);
 
 	M_buf_truncate(buf, 0);
 	M_buf_add_str(buf, "  \t\n whatcha");
 	M_buf_trim(buf);
 	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
+	ck_assert_msg(M_buf_len(buf) == 7);
 
 	M_buf_truncate(buf, 0);
 	M_buf_add_str(buf, "whatcha\r\n ");
 	M_buf_trim(buf);
 	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
+	ck_assert_msg(M_buf_len(buf) == 7);
 
 	M_buf_truncate(buf, 0);
 	M_buf_add_str(buf, "\r\n whatcha \t \n");
 	M_buf_trim(buf);
 	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
+	ck_assert_msg(M_buf_len(buf) == 7);
 
 	M_buf_cancel(buf);
 }
