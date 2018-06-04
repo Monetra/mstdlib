@@ -7,6 +7,14 @@
 static const char    *test_hex   = "9F33036020C8";
 static const M_uint8  test_bin[] = {0x9F, 0x33, 0x03, 0x60, 0x20, 0xC8};
 
+#define add_test(SUITENAME, TESTNAME)\
+do {\
+	TCase *tc;\
+	tc = tcase_create(#TESTNAME);\
+	tcase_add_test(tc, TESTNAME);\
+	suite_add_tcase(SUITENAME, tc);\
+} while (0)
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_buf_add_bytes_hex)
@@ -205,46 +213,55 @@ START_TEST(check_buf_uintbcd)
 }
 END_TEST
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static Suite *M_buf_suite(void)
+START_TEST(check_buf_trim)
 {
-	Suite *suite;
-	TCase *tc_buf_add_bytes_hex;
-	TCase *tc_buf_add_str_hex;
-	TCase *tc_buf_uintbin;
-	TCase *tc_buf_strbin;
-	TCase *tc_buf_uintbcd;
+	M_buf_t *buf;
 
-	suite = suite_create("buf");
+	buf = NULL;
+	M_buf_trim(buf);
 
-	tc_buf_add_bytes_hex = tcase_create("check_buf_add_bytes_hex");
-	tcase_add_test(tc_buf_add_bytes_hex, check_buf_add_bytes_hex);
-	suite_add_tcase(suite, tc_buf_add_bytes_hex);
+	buf = M_buf_create();
+	M_buf_trim(buf);
+	ck_assert_msg(M_str_isempty(M_buf_peek(buf)));
 
-	tc_buf_add_str_hex = tcase_create("check_buf_add_str_hex");
-	tcase_add_test(tc_buf_add_str_hex, check_buf_add_str_hex);
-	suite_add_tcase(suite, tc_buf_add_str_hex);
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, "  \t\n whatcha");
+	M_buf_trim(buf);
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
 
-	tc_buf_uintbin = tcase_create("check_buf_uintbin");
-	tcase_add_test(tc_buf_uintbin, check_buf_uintbin);
-	suite_add_tcase(suite, tc_buf_uintbin);
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, "whatcha\r\n ");
+	M_buf_trim(buf);
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
 
-	tc_buf_strbin = tcase_create("check_buf_strbin");
-	tcase_add_test(tc_buf_strbin, check_buf_strbin);
-	suite_add_tcase(suite, tc_buf_strbin);
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, "\r\n whatcha \t \n");
+	M_buf_trim(buf);
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), "whatcha"));
 
-	tc_buf_uintbcd = tcase_create("check_buf_uintbcd");
-	tcase_add_test(tc_buf_uintbcd, check_buf_uintbcd);
-	suite_add_tcase(suite, tc_buf_uintbcd);
-
-	return suite;
+	M_buf_cancel(buf);
 }
+END_TEST
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
 {
-	int nf;
-	SRunner *sr = srunner_create(M_buf_suite());
+	Suite   *suite;
+	SRunner *sr;
+	int      nf;
+
+	suite = suite_create("buf");
+
+	add_test(suite, check_buf_add_bytes_hex);
+	add_test(suite, check_buf_add_str_hex);
+	add_test(suite, check_buf_uintbin);
+	add_test(suite, check_buf_strbin);
+	add_test(suite, check_buf_uintbcd);
+	add_test(suite, check_buf_trim);
+
+	sr = srunner_create(suite);
 	srunner_set_log(sr, "check_buf.log");
 
 	srunner_run_all(sr, CK_NORMAL);
@@ -253,4 +270,3 @@ int main(void)
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

@@ -1038,3 +1038,34 @@ void M_buf_add_str_quoted(M_buf_t *buf, char quote_char, char escape_char, const
 	}
 
 }
+
+void M_buf_trim(M_buf_t *buf)
+{
+	char   *start;
+	char   *curr;
+	size_t  drop_num;
+	size_t  trunc_num;
+
+	if (buf == NULL || buf->data == NULL || buf->data_length == 0) {
+		return;
+	}
+
+	start = ((char *)buf->data) + buf->data_consumed;
+
+	drop_num = 0;
+	curr     = start;
+	while (M_chr_isspace(*curr)) {
+		drop_num++;
+		curr++;
+	}
+
+	trunc_num = buf->data_length;
+	curr      = start + buf->data_length;
+	while (curr > start && M_chr_isspace(*(curr - 1))) {
+		trunc_num--;
+		curr--;
+	}
+
+	M_buf_truncate(buf, trunc_num);
+	M_buf_drop(buf, drop_num);
+}
