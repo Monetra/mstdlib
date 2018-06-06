@@ -112,6 +112,10 @@ M_API void M_hash_dict_destroy(M_hash_dict_t *h) M_FREE(1);
 
 /*! Insert an entry into the hashtable.
  *
+ * If this is a multi-value dictionary (see M_HASH_DICT_MULTI_VALUE) and an entry already
+ * exists under the given key, the new value is added onto the end of the list. Otherwise,
+ * the new value replaces any previous value stored under the given key.
+ *
  * \param[in,out] h     Hashtable being referenced.
  * \param[in]     key   Key to insert.
  *                      A NULL or empty string is explicity disallowed.

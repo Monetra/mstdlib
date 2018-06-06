@@ -374,12 +374,28 @@ char *M_xml_write(const M_xml_node_t *node, M_uint32 flags, size_t *len)
 		return NULL;
 
 	buf = M_buf_create();
-	if (!M_xml_write_node(buf, flags, 0, node, M_xml_node_type(node))) {
+	if (!M_xml_write_buf(buf, node, flags)) {
 		M_buf_cancel(buf);
 		return NULL;
 	}
 
 	return M_buf_finish_str(buf, len);
+}
+
+M_bool M_xml_write_buf(M_buf_t *buf, const M_xml_node_t *node, M_uint32 flags)
+{
+	size_t start_len = M_buf_len(buf);
+
+	if (buf == NULL || node == NULL) {
+		return M_FALSE;
+	}
+
+	if (!M_xml_write_node(buf, flags, 0, node, M_xml_node_type(node))) {
+		M_buf_truncate(buf, start_len);
+		return M_FALSE;
+	}
+
+	return M_TRUE;
 }
 
 M_fs_error_t M_xml_write_file(const M_xml_node_t *node, const char *path, M_uint32 flags)

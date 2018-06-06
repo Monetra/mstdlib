@@ -103,7 +103,7 @@ typedef enum {
 
 /*! HTTP methods. */
 typedef enum {
-	M_HTTP_METHOD_UNKNOWN = 0, /*!< Options. */
+	M_HTTP_METHOD_UNKNOWN = 0, /*!< Unknown method (null value). */
 	M_HTTP_METHOD_OPTIONS,     /*!< Options. */
 	M_HTTP_METHOD_GET,         /*!< Get. */
 	M_HTTP_METHOD_HEAD,        /*!< Head. */
