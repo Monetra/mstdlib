@@ -520,13 +520,16 @@ M_http_error_t M_http_simple_read(M_http_simple_t **simple, const unsigned char 
 		len_read = &mylen_read;
 	*len_read = 0;
 
-	if (simple == NULL)
+	if (simple == NULL) {
 		return M_HTTP_ERROR_INVALIDUSE;
+	}
+
+	if (data == NULL || data_len == 0) {
+		*simple = NULL;
+		return M_HTTP_ERROR_MOREDATA;
+	}
 
 	*simple = M_http_simple_create(flags);
-
-	if (data == NULL || data_len == 0)
-		return M_HTTP_ERROR_SUCCESS;
 
 	reader = M_http_reader_create(&cbs, M_HTTP_READER_NONE, *simple);
 	res    = M_http_reader_read(reader, data, data_len, len_read);
