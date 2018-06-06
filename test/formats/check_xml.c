@@ -7,6 +7,16 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#define add_test(SUITENAME, TESTNAME)\
+do {\
+	TCase *tc;\
+	tc = tcase_create(#TESTNAME);\
+	tcase_add_test(tc, TESTNAME);\
+	suite_add_tcase(SUITENAME, tc);\
+} while (0)
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 #define XML1 "<?xml encoding=\"UTF-8\" version=\"1.0\"?>" \
 "<doc>" \
 "  <e1   /><e2   ></e2><e3   name = \"elem3\" />" \
@@ -176,22 +186,32 @@ START_TEST(check_xml_valid)
 {
 	M_xml_node_t  *x;
 	char          *out;
+	M_buf_t       *buf;
+	M_bool         buf_ok;
 	M_xml_error_t  eh;
 	size_t         eh_line;
 	size_t         eh_pos;
 	size_t         i;
 
+	buf = M_buf_create();
+
 	for (i=0; check_xml_valid_data[i].data!=NULL; i++) {
 		x = M_xml_read(check_xml_valid_data[i].data, M_str_len(check_xml_valid_data[i].data), check_xml_valid_data[i].in_flags, NULL, &eh, &eh_line, &eh_pos);
 		ck_assert_msg(x != NULL, "XML (%zu) could not be parsed: error=%d, line=%zu, pos=%zu\nxml='%s'", i, eh, eh_line, eh_pos, check_xml_valid_data[i].data);
 		if (check_xml_valid_data[i].out != NULL) {
-			out = M_xml_write(x, check_xml_valid_data[i].out_flags, NULL);
+			out    = M_xml_write(x, check_xml_valid_data[i].out_flags, NULL);
+			buf_ok = M_xml_write_buf(buf, x, check_xml_valid_data[i].out_flags);
 			ck_assert_msg(M_str_eq(out, check_xml_valid_data[i].out), "Output not as expected (%zu):\ngot='%s'\nexpected='%s'", i, out, check_xml_valid_data[i].out);
+			ck_assert_msg(buf_ok, "Buf write failed (%zu):\nexpected='%s'", i, check_xml_valid_data[i].out);
+			ck_assert_msg(M_str_eq(M_buf_peek(buf), check_xml_valid_data[i].out), "Output not as expected (%zu):\ngot='%s'\nexpected='%s'", i, M_buf_peek(buf), check_xml_valid_data[i].out);
 			M_free(out);
+			M_buf_truncate(buf, 0);
 		}
 
 		M_xml_node_destroy(x);
 	}
+
+	M_buf_cancel(buf);
 }
 END_TEST
 
@@ -446,39 +466,20 @@ END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-Suite *M_xml_suite(void)
+int main(void)
 {
-	Suite *suite;
-	TCase *tc_xml_valid;
-	TCase *tc_xml_invalid;
-	TCase *tc_xml_xpath;
-	TCase *tc_xml_xpath_text_first;
+	Suite   *suite;
+	SRunner *sr;
+	int      nf;
 
 	suite = suite_create("xml");
 
-	tc_xml_valid = tcase_create("check_xml_valid");
-	tcase_add_test(tc_xml_valid, check_xml_valid);
-	suite_add_tcase(suite, tc_xml_valid);
+	add_test(suite, check_xml_valid);
+	add_test(suite, check_xml_invalid);
+	add_test(suite, check_xml_xpath);
+	add_test(suite, check_xml_xpath_text_first);
 
-	tc_xml_invalid = tcase_create("check_xml_invalid");
-	tcase_add_test(tc_xml_invalid, check_xml_invalid);
-	suite_add_tcase(suite, tc_xml_invalid);
-
-	tc_xml_xpath = tcase_create("check_xml_xpath");
-	tcase_add_test(tc_xml_xpath, check_xml_xpath);
-	suite_add_tcase(suite, tc_xml_xpath);
-
-	tc_xml_xpath_text_first = tcase_create("check_xml_xpath_text_first");
-	tcase_add_test(tc_xml_xpath_text_first, check_xml_xpath_text_first);
-	suite_add_tcase(suite, tc_xml_xpath_text_first);
-
-	return suite;
-}
-
-int main(void)
-{
-	int nf;
-	SRunner *sr = srunner_create(M_xml_suite());
+	sr = srunner_create(suite);
 	srunner_set_log(sr, "check_xml.log");
 
 	srunner_run_all(sr, CK_NORMAL);
