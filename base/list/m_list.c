@@ -866,10 +866,13 @@ static void M_list_merge_int(M_list_t **dest, M_list_t *src, M_list_t *dups, M_b
 	if (src == NULL) {
 		return;
 	}
-	if (*dest == NULL && dups == NULL) {
+
+	if ((*dest == NULL || M_list_len(*dest) == 0) && dups == NULL) {
+		M_list_destroy(*dest, M_TRUE);
 		*dest = src;
 		return;
 	}
+
 	if (*dest == NULL) {
 		callbacks.equality         = src->equality;
 		callbacks.duplicate_insert = src->duplicate_insert;
@@ -907,7 +910,9 @@ void M_list_merge(M_list_t **dest, M_list_t *src, M_bool include_duplicates, M_u
 	if (src == NULL) {
 		return;
 	}
-	if (*dest == NULL) {
+
+	if (*dest == NULL || M_list_len(*dest) == 0) {
+		M_list_destroy(*dest, M_TRUE);
 		*dest = src;
 		return;
 	}
