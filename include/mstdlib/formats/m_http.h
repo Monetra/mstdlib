@@ -780,6 +780,9 @@ M_API const unsigned char *M_http_simple_body(const M_http_simple_t *simple, siz
  *
  * Caller is responsible for freeing the returned string.
  *
+ * If the Content-Length header is not provided in \a headers, it will be added automatically
+ * for you, using \a data_len as the length.
+ *
  * \see M_http_simple_write_request_buf
  *
  * \param[in]  method   HTTP verb to use (GET, POST, etc)
@@ -799,6 +802,9 @@ M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const c
  *
  * Same as M_http_simple_write_request(), except that it adds the new message to the given buffer instead
  * of returning it in a newly-allocated string.
+ *
+ * If the Content-Length header is not provided in \a headers, it will be added automatically
+ * for you, using \a data_len as the length.
  *
  * \see M_http_simple_write_request
  *
