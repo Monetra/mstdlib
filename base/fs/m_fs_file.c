@@ -133,7 +133,6 @@ M_fs_error_t M_fs_file_read_bytes(const char *path, size_t max_read, unsigned ch
 	M_fs_error_t   res;
 	M_fs_file_t   *fd         = NULL;
 	M_buf_t       *buf_int;
-	char           temp[M_FS_BUF_SIZE];
 	size_t         didread    = 0;
 
 	if (path == NULL || buf == NULL)
@@ -150,8 +149,12 @@ M_fs_error_t M_fs_file_read_bytes(const char *path, size_t max_read, unsigned ch
 	buf_int = M_buf_create();
 
 	do {
-		res = M_fs_file_read(fd, (unsigned char *)temp, sizeof(temp), &didread, M_FS_FILE_RW_NORMAL);
-		M_buf_add_bytes(buf_int, temp, didread);
+		size_t         temp_size = 1024;
+		unsigned char *temp      = M_buf_direct_write_start(buf_int, &temp_size);
+		didread = 0;
+		res     = M_fs_file_read(fd, temp, temp_size, &didread, M_FS_FILE_RW_NORMAL);
+		M_buf_direct_write_end(buf_int, didread);
+
 		if (max_read != 0 && M_buf_len(buf_int) > max_read) {
 			res = M_FS_ERROR_FILE_2BIG;
 		}
