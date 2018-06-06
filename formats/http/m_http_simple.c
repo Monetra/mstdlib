@@ -303,21 +303,22 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const M_hash_dict_t *headers
 		if (M_hash_dict_get(headers, "transfer-encoding", NULL)) {
 			goto err;
 		}
+	}
 
-		if (M_hash_dict_get(headers, "content-length", &val)) {
-			/* If content-length is already set we need to ensure it matches data
- 			 * since this is considered a complete message. */
-			if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
-				goto err;
-			}
-
-			if ((size_t)i64v != data_len) {
-				goto err;
-			}
-		} else {
-			M_snprintf(tempa, sizeof(tempa), "%zu", data_len);
-			M_http_set_header(http, "content-length", tempa);
+	/* Ensure that content-length is present (even if body length is zero). */
+	if (M_hash_dict_get(headers, "content-length", &val)) {
+		/* If content-length is already set we need to ensure it matches data
+		 * since this is considered a complete message. */
+		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
+			goto err;
 		}
+
+		if ((size_t)i64v != data_len) {
+			goto err;
+		}
+	} else {
+		M_snprintf(tempa, sizeof(tempa), "%zu", data_len);
+		M_http_set_header(http, "content-length", tempa);
 	}
 
 	/* We're not going to convert duplicates into a list.
