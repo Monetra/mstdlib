@@ -6,10 +6,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-extern Suite *M_hash_dict_suite(void);
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 static M_hash_dict_t *dict = NULL;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -546,6 +542,42 @@ START_TEST(check_ordered_sort)
 }
 END_TEST
 
+
+START_TEST(check_unordered_multisorted)
+{
+	/* Note: at one point, this test exposed a bug that caused M_hash_dict_enumerate_next to loop infinitely,
+	 *       intermittently (depended on random seed generated at hashtable creation). */
+	M_buf_t            *buf = M_buf_create();
+	M_hash_dict_t      *d   = M_hash_dict_create(16, 75, M_HASH_DICT_MULTI_VALUE | M_HASH_DICT_MULTI_SORTASC);
+	M_hash_dict_enum_t *d_enum = NULL;
+	const char         *key;
+	const char         *value;
+	const char         *got;
+	const char         *exp;
+
+	M_hash_dict_insert(d, "field 1", "v1_1");
+	M_hash_dict_insert(d, "field 1", "v1_2");
+	M_hash_dict_insert(d, "f2", "v2");
+	M_hash_dict_insert(d, "f3", "v3");
+	M_hash_dict_insert(d, "f4", "");
+
+	ck_assert_msg(M_hash_dict_enumerate(d, &d_enum) > 0, "enumerate failed");
+	while (M_hash_dict_enumerate_next(d, d_enum, &key, &value)) {
+		if (M_str_eq(key, "field 1")) {
+			M_buf_add_str(buf, value);
+		}
+	}
+	M_hash_dict_enumerate_free(d_enum);
+
+	got = M_buf_peek(buf);
+	exp = "v1_1v1_2";
+	ck_assert_msg(M_str_eq(got, exp), "val check failed: got '%s', expected '%s'", got, exp);
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_reuse_val)
@@ -569,7 +601,7 @@ END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-Suite *M_hash_dict_suite(void)
+static Suite *M_hash_dict_suite(void)
 {
 	Suite *suite = suite_create("hash_dict");
 	TCase *tc_create;
@@ -587,6 +619,7 @@ Suite *M_hash_dict_suite(void)
 	TCase *tc_multi;
 	TCase *tc_ordered_insert;
 	TCase *tc_ordered_sort;
+	TCase *tc_check_unordered_multisorted;
 	TCase *tc_reuse_val;
 	
 
@@ -656,6 +689,10 @@ Suite *M_hash_dict_suite(void)
 	tc_ordered_sort = tcase_create("hash_dict_ordered_sort");
 	tcase_add_test(tc_ordered_sort, check_ordered_sort);
 	suite_add_tcase(suite, tc_ordered_sort);
+
+	tc_check_unordered_multisorted = tcase_create("hash_dict_unordered_multisorted");
+	tcase_add_test(tc_check_unordered_multisorted, check_unordered_multisorted);
+	suite_add_tcase(suite, tc_check_unordered_multisorted);
 
 	tc_reuse_val = tcase_create("hash_dict_reuse_val");
 	tcase_add_test(tc_reuse_val, check_reuse_val);
