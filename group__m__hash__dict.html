@@ -421,6 +421,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Insert an entry into the hashtable.</p>
+<p>If this is a multi-value dictionary (see M_HASH_DICT_MULTI_VALUE) and an entry already exists under the given key, the new value is added onto the end of the list. Otherwise, the new value replaces any previous value stored under the given key.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">h</td><td>Hashtable being referenced. </td></tr>
@@ -1233,7 +1234,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jun 6 2018 15:43:09 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -229,6 +229,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaed21b31f4164e5946b2ab580944b4476"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad1fe5df3df9b4227a41f4659ba51c18d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#gad1fe5df3df9b4227a41f4659ba51c18d">M_json_write_file</a> (const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node, const char *path, M_uint32 flags)</td></tr>
 <tr class="separator:gad1fe5df3df9b4227a41f4659ba51c18d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga926a2b48949cb2dfa6a55a2dfb7e997a"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#ga926a2b48949cb2dfa6a55a2dfb7e997a">M_json_error_to_string</a> (<a class="el" href="group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06">M_json_error_t</a> err)</td></tr>
+<tr class="separator:ga926a2b48949cb2dfa6a55a2dfb7e997a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabe6d53b74c1f29d56be504b2b923d00c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__json.html#ga5defb18ee28b514f10247a1fb2dbf6f7">M_json_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#gabe6d53b74c1f29d56be504b2b923d00c">M_json_node_type</a> (const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node)</td></tr>
 <tr class="separator:gabe6d53b74c1f29d56be504b2b923d00c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa8415560fabfc0c57bf347663f85ef40"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#gaa8415560fabfc0c57bf347663f85ef40">M_json_jsonpath</a> (const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node, const char *search, size_t *num_matches) M_MALLOC</td></tr>
@@ -828,6 +830,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga926a2b48949cb2dfa6a55a2dfb7e997a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_json_error_to_string </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06">M_json_error_t</a>&#160;</td>
+          <td class="paramname"><em>err</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert a JSON error code to a string.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error code </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>short string describing error code </dd></dl>
 
 </div>
 </div>
@@ -2303,7 +2329,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jun 6 2018 15:43:09 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

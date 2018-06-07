@@ -248,6 +248,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga0fa8e09f938d78127453dbbf00c3b97f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa3002fc529e109c43ee255bbe01ff48e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__buf.html#gaa3002fc529e109c43ee255bbe01ff48e">M_buf_add_str_quoted</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, char quote_char, char escape_char, const char *quote_req_chars, M_bool always_quote, const char *src)</td></tr>
 <tr class="separator:gaa3002fc529e109c43ee255bbe01ff48e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae28a106990b0ef130428001f4e86d5a6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__buf.html#gae28a106990b0ef130428001f4e86d5a6">M_buf_trim</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf)</td></tr>
+<tr class="separator:gae28a106990b0ef130428001f4e86d5a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Allows for buffered writing of string and binary data. It is a safe and efficient way to append and manipulate buffered data.</p>
@@ -2751,12 +2753,35 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gae28a106990b0ef130428001f4e86d5a6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_buf_trim </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Trim whitespace from beginning and end of buffer, in-place.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">buf</td><td>buffer to trim </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jun 6 2018 15:43:09 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

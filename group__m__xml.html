@@ -221,8 +221,12 @@ Functions</h2></td></tr>
 <tr class="separator:ga8e75a384d07c3b31ff7f2e6da5b08889"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6abdbf8fbfe972082dc929a693b0992a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga6abdbf8fbfe972082dc929a693b0992a">M_xml_write</a> (const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, M_uint32 flags, size_t *len) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:ga6abdbf8fbfe972082dc929a693b0992a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga57e29eec4495302c7762e32d67f2cd93"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga57e29eec4495302c7762e32d67f2cd93">M_xml_write_buf</a> (<a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, M_uint32 flags)</td></tr>
+<tr class="separator:ga57e29eec4495302c7762e32d67f2cd93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0d5e4aefea0d83fee84469e555cc049a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga0d5e4aefea0d83fee84469e555cc049a">M_xml_write_file</a> (const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, const char *path, M_uint32 flags)</td></tr>
 <tr class="separator:ga0d5e4aefea0d83fee84469e555cc049a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga05c31f85f1192ad5cb1bbacabd4345d7"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga05c31f85f1192ad5cb1bbacabd4345d7">M_xml_error_to_string</a> (<a class="el" href="group__m__xml.html#ga557ee6da409975c5ffa7d184c6db4cf5">M_xml_error_t</a> err)</td></tr>
+<tr class="separator:ga05c31f85f1192ad5cb1bbacabd4345d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga15ba3a7dceaea4219b6256b887bb9d25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__xml.html#ga407459ae47c46f3e72ed42ddda0d7e94">M_xml_node_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga15ba3a7dceaea4219b6256b887bb9d25">M_xml_node_type</a> (const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node)</td></tr>
 <tr class="separator:ga15ba3a7dceaea4219b6256b887bb9d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf8e39f0acb377365fb70e60f27ecb35c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#gaf8e39f0acb377365fb70e60f27ecb35c">M_xml_xpath</a> (<a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, const char *search, M_uint32 flags, size_t *num_matches) M_MALLOC</td></tr>
@@ -1032,6 +1036,49 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga57e29eec4495302c7762e32d67f2cd93"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_xml_write_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint32&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Write XML to a buffer.</p>
+<p>This writes nodes out to a buffer. The resulting string may not be directly usable by M_xml_read - for example, you can write out a string node or other component of an XML document, without writing the whole thing.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">buf</td><td>buffer to write XML to </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">node</td><td>the node to write (children of this node are also included in output) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>OR'd combo of M_xml_write_flags_t values (to control writing) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if successful, M_FALSE otherwise. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga0d5e4aefea0d83fee84469e555cc049a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1072,6 +1119,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga05c31f85f1192ad5cb1bbacabd4345d7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_xml_error_to_string </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__xml.html#ga557ee6da409975c5ffa7d184c6db4cf5">M_xml_error_t</a>&#160;</td>
+          <td class="paramname"><em>err</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert an XML error code to a string.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error code </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>short string describing error code </dd></dl>
 
 </div>
 </div>
@@ -1819,7 +1890,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jun 6 2018 15:43:09 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

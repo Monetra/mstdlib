@@ -1,0 +1,75 @@
+var group__m__http =
+[
+    [ "HTTP Stream Reader", "group__m__http__reader.html", "group__m__http__reader" ],
+    [ "HTTP Simple", "group__m__http__simple.html", "group__m__http__simple" ],
+    [ "M_http_error_t", "group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4", [
+      [ "M_HTTP_ERROR_SUCCESS", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53", null ],
+      [ "M_HTTP_ERROR_INVALIDUSE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd", null ],
+      [ "M_HTTP_ERROR_STOP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8", null ],
+      [ "M_HTTP_ERROR_SKIP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a5b114ae731691b09a98b1ee87c4892d5", null ],
+      [ "M_HTTP_ERROR_MOREDATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de", null ],
+      [ "M_HTTP_ERROR_LENGTH_REQUIRED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4afb0615bfaee10c6ef9d40983e7c9aee2", null ],
+      [ "M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a1e6889471cb59cd218ef063fdbca7516", null ],
+      [ "M_HTTP_ERROR_TRAILER_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a3bdf5635bf24a79d15101b6e435bad43", null ],
+      [ "M_HTTP_ERROR_URI", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a5a1c0d9802678769b1d129db702d9144", null ],
+      [ "M_HTTP_ERROR_STARTLINE_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a1a85f412fb71933e1eb6d2058673f2be", null ],
+      [ "M_HTTP_ERROR_STARTLINE_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a72dfd40b264d474da3ee6e1c99b7818e", null ],
+      [ "M_HTTP_ERROR_UNKNOWN_VERSION", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a9ff3b755bd6d21c4a0262d1fc895a1bb", null ],
+      [ "M_HTTP_ERROR_REQUEST_METHOD", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a0256eae5c7294aaccb7a6dfa759d8b7a", null ],
+      [ "M_HTTP_ERROR_REQUEST_URI", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a61a1d4a13b079ea7877b9110d099dee3", null ],
+      [ "M_HTTP_ERROR_HEADER_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a914de23bd91a16ec5eae180d10fb0308", null ],
+      [ "M_HTTP_ERROR_HEADER_FOLD", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4adfbc81e3a142df33e9072ea495ff4bd4", null ],
+      [ "M_HTTP_ERROR_HEADER_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a3ff9c79b4e9dd026b9f47005171d20d8", null ],
+      [ "M_HTTP_ERROR_HEADER_INVALID", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a629d048344595fcde4fb4c1c5b23c3c2", null ],
+      [ "M_HTTP_ERROR_HEADER_MALFORMEDVAL", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ab7e8528585b58bc12c558c52c366170b", null ],
+      [ "M_HTTP_ERROR_HEADER_DUPLICATE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a85596c5e700bc01e177bab578deeb7a0", null ],
+      [ "M_HTTP_ERROR_CHUNK_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a98d61e3ff467b9270dcf9d116127c6db", null ],
+      [ "M_HTTP_ERROR_CHUNK_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4aa9ade43641b4aba4b1db201f9bb1385d", null ],
+      [ "M_HTTP_ERROR_CHUNK_EXTENSION", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4aa619f74f2095058b90368fa95e3a7e52", null ],
+      [ "M_HTTP_ERROR_CHUNK_DATA_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a6cee04bc068b863fcb2e20585687d3aa", null ],
+      [ "M_HTTP_ERROR_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac8763bb8c82aed2c63b05d7e2ad4b1e1", null ],
+      [ "M_HTTP_ERROR_BODYLEN_REQUIRED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a879140787e3bbe4f2064d3fb5db5da83", null ],
+      [ "M_HTTP_ERROR_MULTIPART_NOBOUNDARY", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a8b1d6bdcaebc60a2863e6358f221e8b8", null ],
+      [ "M_HTTP_ERROR_MULTIPART_MISSING", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a8543cc7e19f703d557e71b2810f651f5", null ],
+      [ "M_HTTP_ERROR_MULTIPART_MISSING_DATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a5a8853ef398fc1ccd9e19bf2384e6063", null ],
+      [ "M_HTTP_ERROR_MULTIPART_INVALID", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a48f2752f1f0898575da0832764d7f133", null ],
+      [ "M_HTTP_ERROR_UNSUPPORTED_DATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a62c86ed1ba289473b5708566f3afe46d", null ],
+      [ "M_HTTP_ERROR_TEXTCODEC_FAILURE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a465f4adc8ed8a5a8b353b85b574dde79", null ],
+      [ "M_HTTP_ERROR_USER_FAILURE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a8043bb2c0d70171e8fed8b87be8d9c85", null ]
+    ] ],
+    [ "M_http_message_type_t", "group__m__http.html#gaa4356ca0b99847db3a46f093db0b8940", [
+      [ "M_HTTP_MESSAGE_TYPE_UNKNOWN", "group__m__http.html#ggaa4356ca0b99847db3a46f093db0b8940a3eb847817e11676a7c0c0458a8ed12ad", null ],
+      [ "M_HTTP_MESSAGE_TYPE_REQUEST", "group__m__http.html#ggaa4356ca0b99847db3a46f093db0b8940adc5f327f945a5bbdf8d15b2f872c84c8", null ],
+      [ "M_HTTP_MESSAGE_TYPE_RESPONSE", "group__m__http.html#ggaa4356ca0b99847db3a46f093db0b8940ae71d42621f2039a93ca39ef5264ccfca", null ]
+    ] ],
+    [ "M_http_version_t", "group__m__http.html#ga3a1bff9ac4b3078e2bfac1226872d7fa", [
+      [ "M_HTTP_VERSION_UNKNOWN", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faade992ecbac664533d433c27c30d339cb", null ],
+      [ "M_HTTP_VERSION_1_0", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faadf7a0fc8d34d0c89a5ed7d5c97e156aa", null ],
+      [ "M_HTTP_VERSION_1_1", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faa173aff8d7315eef65784c11c9998bd39", null ],
+      [ "M_HTTP_VERSION_2", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faaf3a7f916147ec33faec025678a752199", null ]
+    ] ],
+    [ "M_http_method_t", "group__m__http.html#ga9009cf9cd2abe5ab4336584eebc7fcee", [
+      [ "M_HTTP_METHOD_UNKNOWN", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeac750217e67a5f45e52814518d8dd0a8c", null ],
+      [ "M_HTTP_METHOD_OPTIONS", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea3d21b3dacd636ddf333aa5c28be2565d", null ],
+      [ "M_HTTP_METHOD_GET", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceead3ed73c6a24aad12bb5fa2d02dd264e9", null ],
+      [ "M_HTTP_METHOD_HEAD", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaaa5d2d33e53972fe04f62733341764ec", null ],
+      [ "M_HTTP_METHOD_POST", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaf47da09f2cc5cb6ae1bfc8b05f494d75", null ],
+      [ "M_HTTP_METHOD_PUT", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeac8ee7ded45460348f18c1ee7f3ac0303", null ],
+      [ "M_HTTP_METHOD_DELETE", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea4b5927204006aaef05c9cd5d5cdd5b77", null ],
+      [ "M_HTTP_METHOD_TRACE", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaf7537dd0517fce14b4249099b46bc241", null ],
+      [ "M_HTTP_METHOD_CONNECT", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea75ba9ecd337eae90cec1a43a84f8ff6a", null ]
+    ] ],
+    [ "M_http_data_format_t", "group__m__http.html#ga0e256f6b00615e25738e57ffda1a41c6", [
+      [ "M_HTTP_DATA_FORMAT_UNKNOWN", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6a40efaccc8823f4aa40ba795b839a348b", null ],
+      [ "M_HTTP_DATA_FORMAT_NONE", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6a4569fbd879a3028663ab145fea552c94", null ],
+      [ "M_HTTP_DATA_FORMAT_BODY", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6a1e585836e06891f1bf1f55aaa9b5959e", null ],
+      [ "M_HTTP_DATA_FORMAT_CHUNKED", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6a3031d43fcec46360a34833b31bbaa0ef", null ],
+      [ "M_HTTP_DATA_FORMAT_MULTIPART", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6aec770939b0a9823cf957f154004ede1a", null ]
+    ] ],
+    [ "M_http_version_from_str", "group__m__http.html#ga028bc860fcc26674253ad83441d17afb", null ],
+    [ "M_http_version_to_str", "group__m__http.html#ga5bf2134563f7c2088e344b07f612ca48", null ],
+    [ "M_http_method_from_str", "group__m__http.html#ga1ed748ce4734dbc2c98279b7aa7be70f", null ],
+    [ "M_http_method_to_str", "group__m__http.html#gaae6f70f3b3d06d6977e9eff65cc48ad8", null ],
+    [ "M_http_code_to_reason", "group__m__http.html#ga7097f334a63073161405015a1e7aaa35", null ],
+    [ "M_http_error_to_string", "group__m__http.html#gacd2d508f1a01d5c24ad3ae818173b23d", null ]
+];

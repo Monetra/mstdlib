@@ -13,5 +13,8 @@ var searchData=
   ['hashtable_20_2d_20uint64_2fvoid_20pointer',['Hashtable - uint64/Void Pointer',['../group__m__hash__u64vp.html',1,'']]],
   ['hashtable',['Hashtable',['../group__m__hashtable.html',1,'']]],
   ['hashtable_20generic_2fbase_20implementation',['Hashtable generic/base implementation',['../group__m__hashtable__generic.html',1,'']]],
+  ['http',['HTTP',['../group__m__http.html',1,'']]],
+  ['http_20stream_20reader',['HTTP Stream Reader',['../group__m__http__reader.html',1,'']]],
+  ['http_20simple',['HTTP Simple',['../group__m__http__simple.html',1,'']]],
   ['hid_20_28human_20interface_20device_29_20io_20functions',['HID (Human Interface Device) IO functions',['../group__m__io__hid.html',1,'']]]
 ];

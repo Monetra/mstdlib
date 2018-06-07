@@ -1,6 +1,7 @@
 var group__m__formats =
 [
     [ "CSV", "group__m__csv.html", "group__m__csv" ],
+    [ "HTTP", "group__m__http.html", "group__m__http" ],
     [ "INI", "group__m__ini.html", "group__m__ini" ],
     [ "JSON", "group__m__json.html", "group__m__json" ],
     [ "Mstdlib TZ File", "group__m__mtzfile.html", "group__m__mtzfile" ],

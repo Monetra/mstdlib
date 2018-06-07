@@ -7,6 +7,7 @@ var annotated =
     [ "M_hashtable_enum.entry.ordered", "group__m__hashtable__generic.html#structM__hashtable__enum_8entry_8ordered", "group__m__hashtable__generic_structM__hashtable__enum_8entry_8ordered" ],
     [ "M_hashtable_enum.entry.unordered", "group__m__hashtable__generic.html#structM__hashtable__enum_8entry_8unordered", "group__m__hashtable__generic_structM__hashtable__enum_8entry_8unordered" ],
     [ "M_hashtable_enum_t", "group__m__hashtable__generic.html#structM__hashtable__enum", "group__m__hashtable__generic_structM__hashtable__enum" ],
+    [ "M_http_reader_callbacks", "group__m__http__reader.html#structM__http__reader__callbacks", "group__m__http__reader_structM__http__reader__callbacks" ],
     [ "M_list_callbacks", "group__m__list__generic.html#structM__list__callbacks", "group__m__list__generic_structM__list__callbacks" ],
     [ "M_llist_callbacks", "group__m__llist__generic.html#structM__llist__callbacks", "group__m__llist__generic_structM__llist__callbacks" ],
     [ "M_sql_connstr_params_t", "group__m__sql__driver.html#structM__sql__connstr__params", "group__m__sql__driver_structM__sql__connstr__params" ],

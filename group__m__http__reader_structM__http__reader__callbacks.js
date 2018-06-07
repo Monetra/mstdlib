@@ -1,0 +1,24 @@
+var group__m__http__reader_structM__http__reader__callbacks =
+[
+    [ "start_func", "group__m__http__reader.html#a9ef07c38300360a5dda1110039cc2659", null ],
+    [ "header_func", "group__m__http__reader.html#a91f9382d0e726a6037a11e8bfa4b4816", null ],
+    [ "header_done_func", "group__m__http__reader.html#a22b2eca120880a1f560664776f6cab84", null ],
+    [ "body_func", "group__m__http__reader.html#a27c52a3b47849ba0e6b5093c4e10a457", null ],
+    [ "body_done_func", "group__m__http__reader.html#ab6451058b43d520ea4a5bc32beb5a1a5", null ],
+    [ "chunk_extensions_func", "group__m__http__reader.html#a2db9186b96ed83a12d6a3ea661f4caab", null ],
+    [ "chunk_extensions_done_func", "group__m__http__reader.html#a34d672f1bb852f17922c1abb573fc56a", null ],
+    [ "chunk_data_func", "group__m__http__reader.html#af2425ca29fefd1f4eec67e857047f096", null ],
+    [ "chunk_data_done_func", "group__m__http__reader.html#a02e37d3a2f23413d0afbfb3c697a02f3", null ],
+    [ "chunk_data_finished_func", "group__m__http__reader.html#a6c10b5b1cfa5df1664bf43babbc193bf", null ],
+    [ "multipart_preamble_func", "group__m__http__reader.html#a7465d97c46870ac90129906bf1514552", null ],
+    [ "multipart_preamble_done_func", "group__m__http__reader.html#a9fdfa2fca7d178400edfc5c7fab15a8a", null ],
+    [ "multipart_header_func", "group__m__http__reader.html#aaa169bcd0ccffe025c1570ad5f18dc29", null ],
+    [ "multipart_header_done_func", "group__m__http__reader.html#a668c61cd6806e4e804b49c84e9d0042e", null ],
+    [ "multipart_data_func", "group__m__http__reader.html#a086475ff0668f848bf6a9f075e8d3d35", null ],
+    [ "multipart_data_done_func", "group__m__http__reader.html#a8be818fc70b5e93dff33bee53d54a5bc", null ],
+    [ "multipart_data_finished_func", "group__m__http__reader.html#a99926f153be47c5477893d023ca44005", null ],
+    [ "multipart_epilouge_func", "group__m__http__reader.html#ad2093b78943cdf42704e1aee1722ce46", null ],
+    [ "multipart_epilouge_done_func", "group__m__http__reader.html#a69f5cddd44f4200b6771a17a71d84494", null ],
+    [ "trailer_func", "group__m__http__reader.html#a433a325aa4714e2f087e69aedfd41202", null ],
+    [ "trailer_done_func", "group__m__http__reader.html#a35f1acf3782dfdb50832b978b8dcc227", null ]
+];

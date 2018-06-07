@@ -66,5 +66,6 @@ var group__m__buf =
     [ "M_buf_add_decimal_just", "group__m__buf.html#ga4b6e6754df0033a0c730388b0ed32729", null ],
     [ "M_buf_add_bytes_replace", "group__m__buf.html#ga13e8ce6ffbd100d92d7c36c0e8ed71b7", null ],
     [ "M_buf_add_str_replace", "group__m__buf.html#ga0fa8e09f938d78127453dbbf00c3b97f", null ],
-    [ "M_buf_add_str_quoted", "group__m__buf.html#gaa3002fc529e109c43ee255bbe01ff48e", null ]
+    [ "M_buf_add_str_quoted", "group__m__buf.html#gaa3002fc529e109c43ee255bbe01ff48e", null ],
+    [ "M_buf_trim", "group__m__buf.html#gae28a106990b0ef130428001f4e86d5a6", null ]
 ];
