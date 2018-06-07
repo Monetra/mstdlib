@@ -563,6 +563,8 @@ var searchData=
   ['m_5fhton16',['M_hton16',['../group__m__endian.html#gad7a3d09030e3f8f471999a72a92efcee',1,'m_endian.h']]],
   ['m_5fhton32',['M_hton32',['../group__m__endian.html#ga84646e7643adefa197ddffb04700c15a',1,'m_endian.h']]],
   ['m_5fhton64',['M_hton64',['../group__m__endian.html#gaa67a7d2d8cf28107e5f08b8f1796fe32',1,'m_endian.h']]],
+  ['m_5fhttp_5fadd_5fquery_5fstring',['M_http_add_query_string',['../group__m__http.html#ga200fa6cc2c8480dfbd2430d1e0fda0bb',1,'m_http.h']]],
+  ['m_5fhttp_5fadd_5fquery_5fstring_5fbuf',['M_http_add_query_string_buf',['../group__m__http.html#gac6cae631568fbcd20aad96ead8ead368',1,'m_http.h']]],
   ['m_5fhttp_5fcode_5fto_5freason',['M_http_code_to_reason',['../group__m__http.html#ga7097f334a63073161405015a1e7aaa35',1,'m_http.h']]],
   ['m_5fhttp_5ferrcode_5fto_5fstr',['M_http_errcode_to_str',['../group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5ffrom_5fstr',['M_http_method_from_str',['../group__m__http.html#ga1ed748ce4734dbc2c98279b7aa7be70f',1,'m_http.h']]],

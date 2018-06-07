@@ -71,5 +71,7 @@ var group__m__http =
     [ "M_http_method_from_str", "group__m__http.html#ga1ed748ce4734dbc2c98279b7aa7be70f", null ],
     [ "M_http_method_to_str", "group__m__http.html#gaae6f70f3b3d06d6977e9eff65cc48ad8", null ],
     [ "M_http_code_to_reason", "group__m__http.html#ga7097f334a63073161405015a1e7aaa35", null ],
-    [ "M_http_errcode_to_str", "group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f", null ]
+    [ "M_http_errcode_to_str", "group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f", null ],
+    [ "M_http_add_query_string", "group__m__http.html#ga200fa6cc2c8480dfbd2430d1e0fda0bb", null ],
+    [ "M_http_add_query_string_buf", "group__m__http.html#gac6cae631568fbcd20aad96ead8ead368", null ]
 ];
