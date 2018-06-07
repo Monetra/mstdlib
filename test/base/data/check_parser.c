@@ -144,7 +144,6 @@ START_TEST(check_parser_split)
 }
 END_TEST
 
-
 START_TEST(check_parser_boundary)
 {
 	M_parser_t  *parser;
