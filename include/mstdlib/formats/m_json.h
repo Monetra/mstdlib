@@ -256,9 +256,9 @@ M_API M_fs_error_t M_json_write_file(const M_json_node_t *node, const char *path
 /*! Convert a JSON error code to a string.
  *
  * \param[in] err error code
- * \return        short string describing error code
+ * \return        name of error code (not a description, just the enum name, like M_JSON_ERROR_SUCCESS)
  */
-M_API const char *M_json_error_to_string(M_json_error_t err);
+M_API const char *M_json_errcode_to_str(M_json_error_t err);
 
 
 /*! Get the type of node.

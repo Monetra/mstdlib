@@ -182,9 +182,9 @@ M_API const char *M_http_code_to_reason(M_uint32 code);
 /*! Convert an http error code to a string.
  *
  * \param[in] err error code
- * \return        short string describing error code
+ * \return        name of error code (not a description, just the enum name, like M_HTTP_ERROR_SUCCESS)
  */
-M_API const char *M_http_error_to_string(M_http_error_t err);
+M_API const char *M_http_errcode_to_str(M_http_error_t err);
 
 /*! @} */
 

@@ -393,9 +393,9 @@ M_API M_fs_error_t M_xml_write_file(const M_xml_node_t *node, const char *path, 
 /*! Convert an XML error code to a string.
  *
  * \param[in] err error code
- * \return        short string describing error code
+ * \return        name of error code (not a description, just the enum name, like M_XML_ERROR_SUCCESS)
  */
-M_API const char *M_xml_error_to_string(M_xml_error_t err);
+M_API const char *M_xml_errcode_to_str(M_xml_error_t err);
 
 /*! Get the type of node.
  *

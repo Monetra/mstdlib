@@ -195,114 +195,39 @@ void M_json_node_destroy(M_json_node_t *node)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const char *M_json_error_to_string(M_json_error_t err)
+#define ERRCASE(x) case x: ret = #x; break
+
+const char *M_json_errcode_to_str(M_json_error_t err)
 {
-	const char *ret = "unknown";
+	const char *ret = "<unknown>";
 
 	switch (err) {
-	    case M_JSON_ERROR_SUCCESS:
-		    ret = "success";
-		    break;
-
-	    case M_JSON_ERROR_GENERIC:
-		    ret = "generic error";
-		    break;
-
-	    case M_JSON_ERROR_MISUSE:
-		    ret = "API misuse";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_START:
-		    ret = "expected Object or Array to start";
-		    break;
-
-	    case M_JSON_ERROR_EXPECTED_END:
-		    ret = "expected end but more data found";
-		    break;
-
-	    case M_JSON_ERROR_MISSING_COMMENT_CLOSE:
-		    ret = "close comment not found";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_COMMENT_START:
-		    ret = "unexpected /";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_PAIR_START:
-		    ret = "expected string as first half of pair";
-		    break;
-
-	    case M_JSON_ERROR_DUPLICATE_KEY:
-		    ret = "duplicate key";
-		    break;
-
-	    case M_JSON_ERROR_MISSING_PAIR_SEPARATOR:
-		    ret = "expected ':' separator in pair";
-		    break;
-
-	    case M_JSON_ERROR_OBJECT_UNEXPECTED_CHAR:
-		    ret = "unexpected character in object";
-		    break;
-
-	    case M_JSON_ERROR_EXPECTED_VALUE:
-		    ret = "expected value after ','";
-		    break;
-
-	    case M_JSON_ERROR_UNCLOSED_OBJECT:
-		    ret = "expected '}' to close object";
-		    break;
-
-	    case M_JSON_ERROR_ARRAY_UNEXPECTED_CHAR:
-		    ret = "unexpected character in array";
-		    break;
-
-	    case M_JSON_ERROR_UNCLOSED_ARRAY:
-		    ret = "expected ']' to close array";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_NEWLINE:
-		    ret = "unexpected newline";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR:
-		    ret = "unexpected control character";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_UNICODE_ESACPE:
-		    ret = "invalid unicode escape";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_ESCAPE:
-		    ret = "unexpected escape";
-		    break;
-
-	    case M_JSON_ERROR_UNCLOSED_STRING:
-		    ret = "unclosed string";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_BOOL:
-		    ret = "invalid bool value";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_NULL:
-		    ret = "invalid null value";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_NUMBER:
-		    ret = "invalid number value";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_TERMINATION:
-		    ret = "unexpected termination of string data. \0 in data.";
-		    break;
-
-	    case M_JSON_ERROR_INVALID_IDENTIFIER:
-		    ret = "invalid identifier";
-		    break;
-
-	    case M_JSON_ERROR_UNEXPECTED_END:
-		    ret = "unexpected end of data";
-		    break;
+		ERRCASE(M_JSON_ERROR_SUCCESS);
+		ERRCASE(M_JSON_ERROR_GENERIC);
+		ERRCASE(M_JSON_ERROR_MISUSE);
+		ERRCASE(M_JSON_ERROR_INVALID_START);
+		ERRCASE(M_JSON_ERROR_EXPECTED_END);
+		ERRCASE(M_JSON_ERROR_MISSING_COMMENT_CLOSE);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_COMMENT_START);
+		ERRCASE(M_JSON_ERROR_INVALID_PAIR_START);
+		ERRCASE(M_JSON_ERROR_DUPLICATE_KEY);
+		ERRCASE(M_JSON_ERROR_MISSING_PAIR_SEPARATOR);
+		ERRCASE(M_JSON_ERROR_OBJECT_UNEXPECTED_CHAR);
+		ERRCASE(M_JSON_ERROR_EXPECTED_VALUE);
+		ERRCASE(M_JSON_ERROR_UNCLOSED_OBJECT);
+		ERRCASE(M_JSON_ERROR_ARRAY_UNEXPECTED_CHAR);
+		ERRCASE(M_JSON_ERROR_UNCLOSED_ARRAY);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_NEWLINE);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_CONTROL_CHAR);
+		ERRCASE(M_JSON_ERROR_INVALID_UNICODE_ESACPE);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_ESCAPE);
+		ERRCASE(M_JSON_ERROR_UNCLOSED_STRING);
+		ERRCASE(M_JSON_ERROR_INVALID_BOOL);
+		ERRCASE(M_JSON_ERROR_INVALID_NULL);
+		ERRCASE(M_JSON_ERROR_INVALID_NUMBER);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_TERMINATION);
+		ERRCASE(M_JSON_ERROR_INVALID_IDENTIFIER);
+		ERRCASE(M_JSON_ERROR_UNEXPECTED_END);
 	}
 
 	return ret;
