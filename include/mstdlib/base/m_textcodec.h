@@ -124,7 +124,7 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_16,      /*!< ISO-8859-16. Latin 10, South-Eastern Europe. */
 	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
-	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Space as + and ~ encoded. Must be utf-8. */
 	M_TEXTCODEC_PUNYCODE         /*!< IDNA Punycode (RFC 3492). Primarily used for DNS.
 	                                  Error handlers will be ignore and all error conditions are failures. */
 } M_textcodec_codec_t;
