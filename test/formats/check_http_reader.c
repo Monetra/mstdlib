@@ -7,6 +7,15 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#define add_test(SUITENAME, TESTNAME)\
+do {\
+	TCase *tc;\
+	tc = tcase_create(#TESTNAME);\
+	tcase_add_test(tc, TESTNAME);\
+	suite_add_tcase(SUITENAME, tc);\
+} while (0)
+
+
 typedef struct {
 	M_http_message_type_t  type;
 	M_http_version_t       version;
@@ -860,68 +869,69 @@ START_TEST(check_httpr10)
 }
 END_TEST
 
+#define do_query_check(URI, PARAMS, USE_PLUS, EXPECTED)\
+do {\
+	M_buf_t *buf;\
+	char    *query;\
+	buf = M_buf_create();\
+	ck_assert_msg(M_http_add_query_string_buf(buf, URI, PARAMS, USE_PLUS), "Query string failed: expected '%s'", EXPECTED);\
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), EXPECTED), "Query buf does not match: got '%s', expected '%s'", M_buf_peek(buf), EXPECTED);\
+	M_buf_cancel(buf);\
+	query = M_http_add_query_string(URI, PARAMS, USE_PLUS);\
+	ck_assert_msg(M_str_eq(query, EXPECTED), "Query string does not match: got '%s', expected '%s'", query, EXPECTED);\
+	M_free(query);\
+} while (0)
+
+START_TEST(check_query_string)
+{
+	M_hash_dict_t *params = M_hash_dict_create(16, 75, M_HASH_DICT_MULTI_VALUE | M_HASH_DICT_KEYS_ORDERED);
+
+	do_query_check("/cgi-bin/some_app", NULL, M_TRUE, "/cgi-bin/some_app");
+	do_query_check("/cgi-bin/some_app", params, M_TRUE, "/cgi-bin/some_app");
+
+	M_hash_dict_insert(params, "field 1", "value 1_1");
+	M_hash_dict_insert(params, "field 1", "value 1_2");
+	M_hash_dict_insert(params, "f2", "v2");
+	M_hash_dict_insert(params, "f3", "v3");
+	M_hash_dict_insert(params, "f4", "");
+
+	do_query_check(NULL, params, M_FALSE, "?field%201=value%201_1&field%201=value%201_2&f2=v2&f3=v3");
+	do_query_check(NULL, params, M_TRUE, "?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
+
+	do_query_check("/cgi-bin/some_app", params, M_FALSE,
+		"/cgi-bin/some_app?field%201=value%201_1&field%201=value%201_2&f2=v2&f3=v3");
+	do_query_check("/cgi-bin/some_app", params, M_TRUE,
+		"/cgi-bin/some_app?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
+
+	M_hash_dict_destroy(params);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static Suite *gen_suite(void)
+int main(void)
 {
-	Suite *suite;
-	TCase *tc;
-
-	suite = suite_create("http_reader");
-
-	tc = tcase_create("httpr1");
-	tcase_add_test(tc, check_httpr1);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr2");
-	tcase_add_test(tc, check_httpr2);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr3");
-	tcase_add_test(tc, check_httpr3);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr4");
-	tcase_add_test(tc, check_httpr4);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr5");
-	tcase_add_test(tc, check_httpr5);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr6");
-	tcase_add_test(tc, check_httpr6);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr7");
-	tcase_add_test(tc, check_httpr7);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr8");
-	tcase_add_test(tc, check_httpr8);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr8");
-	tcase_add_test(tc, check_httpr9);
-	suite_add_tcase(suite, tc);
-
-	tc = tcase_create("httpr10");
-	tcase_add_test(tc, check_httpr10);
-	suite_add_tcase(suite, tc);
-
-	return suite;
-}
-
-int main(int argc, char **argv)
-{
+	Suite   *suite;
 	SRunner *sr;
 	int      nf;
 
-	(void)argc;
-	(void)argv;
+	suite = suite_create("http_reader");
 
-	sr = srunner_create(gen_suite());
-	srunner_set_log(sr, "http_reader.log");
+	add_test(suite, check_httpr1);
+	add_test(suite, check_httpr2);
+	add_test(suite, check_httpr3);
+	add_test(suite, check_httpr4);
+	add_test(suite, check_httpr5);
+	add_test(suite, check_httpr6);
+	add_test(suite, check_httpr7);
+	add_test(suite, check_httpr8);
+	add_test(suite, check_httpr9);
+	add_test(suite, check_httpr10);
+
+	add_test(suite, check_query_string);
+
+	sr = srunner_create(suite);
+	srunner_set_log(sr, "check_http_reader.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

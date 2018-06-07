@@ -186,6 +186,49 @@ M_API const char *M_http_code_to_reason(M_uint32 code);
  */
 M_API const char *M_http_errcode_to_str(M_http_error_t err);
 
+
+/*! Create query string, append to given URI, return as new string.
+ *
+ * Empty values are not permitted - keys whose values are set to the empty string will be left out of
+ * the query string.
+ *
+ * Web applications use two slightly-different URL encodings for query strings, one that encodes spaces
+ * as '%20' (\link M_TEXTCODEC_PERCENT_URL M_TEXTCODEC_PERCENT_URL\endlink), and one that encodes spaces
+ * as '+' (\link M_TEXTCODEC_PERCENT_URLPLUS M_TEXTCODEC_PERCENT_URLPLUS\endlink).  Web apps are about
+ * evenly split between these two options, so the caller must pick which one to use based on their own
+ * needs, by setting the \a use_plus parameter.
+ *
+ * \see M_http_add_query_string_buf()
+ *
+ * \param[in] uri      uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever)
+ * \param[in] params   key-value pairs to encode in query string
+ * \param[in] use_plus if M_TRUE, sub in '+' for space character. Otherwise, use '%20'.
+ * \return             new string with URI + query string, or \c NULL if there was an encoding error
+ */
+M_API char *M_http_add_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus);
+
+
+/*! Create query string, append URI + query string to buffer.
+ *
+ * Empty values are not permitted - keys whose values are set to the empty string will be left out of
+ * the query string.
+ *
+ * Web applications use two slightly-different URL encodings for query strings, one that encodes spaces
+ * as '%20' (\link M_TEXTCODEC_PERCENT_URL M_TEXTCODEC_PERCENT_URL\endlink), and one that encodes spaces
+ * as '+' (\link M_TEXTCODEC_PERCENT_URLPLUS M_TEXTCODEC_PERCENT_URLPLUS\endlink).  Web apps are about
+ * evenly split between these two options, so the caller must pick which one to use based on their own
+ * needs, by setting the \a use_plus parameter.
+ *
+ * \see M_http_add_query_string()
+ *
+ * \param[out] buf      buffer to add URI + query string to, contents remain unchanged if there was an error
+ * \param[in]  uri      uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever)
+ * \param[in]  params   key-value pairs to encode in query string
+ * \param[in]  use_plus if M_TRUE sub in '+' for space character, otherwise will use '%20'
+ * \return              M_TRUE if successful, or \c M_FALSE if there was an encoding error
+ */
+M_API M_bool M_http_add_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus);
+
 /*! @} */
 
 

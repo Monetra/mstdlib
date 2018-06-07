@@ -449,3 +449,78 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 	}
 	return ret;
 }
+
+
+char *M_http_add_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus)
+{
+	M_buf_t *buf = M_buf_create();
+
+	if (!M_http_add_query_string_buf(buf, uri, params, use_plus)) {
+		M_buf_cancel(buf);
+		return NULL;
+	}
+
+	return M_buf_finish_str(buf, NULL);
+}
+
+
+M_bool M_http_add_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus)
+{
+	size_t               start_len = M_buf_len(buf);
+	M_bool               ret       = M_FALSE;
+	M_hash_dict_enum_t  *it        = NULL;
+	M_textcodec_codec_t  codec     = (use_plus)? M_TEXTCODEC_PERCENT_URLPLUS : M_TEXTCODEC_PERCENT_URL;
+	const char          *key;
+	const char          *value;
+	M_bool               first     = M_TRUE;
+
+	/* A query string will look like this:
+	 *
+	 *   f1=v1&f2=v2&f3=v3
+	 *
+	 * Most web frameworks allow multiple values to be set for the same field. If you a multi-map is passed in
+	 * as 'params' (multiple values per key), the following will be output:
+	 *   f1=v1_1&f1=v1_2&f2=v2_1
+	 *
+	 * The second case is handled for us automatically, due to how a enumeration over a multi-map is implemented.
+	 */
+
+	if (buf == NULL) {
+		return M_FALSE;
+	}
+
+	M_buf_add_str(buf, uri);
+
+	M_hash_dict_enumerate(params, &it);
+	while (M_hash_dict_enumerate_next(params, it, &key, &value)) {
+
+		if (M_str_isempty(key) || M_str_isempty(value)) {
+			continue;
+		}
+
+		M_buf_add_byte(buf, (first)? '?' : '&');
+		first = M_FALSE;
+
+		if (M_textcodec_encode_buf(buf, key, M_TEXTCODEC_EHANDLER_FAIL, codec) != M_TEXTCODEC_ERROR_SUCCESS) {
+			goto done;
+		}
+
+		M_buf_add_byte(buf, '=');
+
+		if (M_textcodec_encode_buf(buf, value, M_TEXTCODEC_EHANDLER_FAIL, codec) != M_TEXTCODEC_ERROR_SUCCESS) {
+			goto done;
+		}
+	}
+
+	ret = M_TRUE;
+
+done:
+	M_hash_dict_enumerate_free(it);
+
+	/* If there was an error, set buffer contents back to what they were before this function was called. */
+	if (!ret) {
+		M_buf_truncate(buf, start_len);
+	}
+
+	return ret;
+}
