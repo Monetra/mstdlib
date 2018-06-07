@@ -22,6 +22,17 @@ set(sources
 	ini/m_ini_settings.c
 	ini/m_ini_writer.c
 
+	# http:
+	http/m_http.c
+	http/m_http_body.c
+	http/m_http_chunk.c
+	http/m_http_headers.c
+	http/m_http_int.h
+	http/m_http_reader.c
+	http/m_http_reader_int.h
+	http/m_http_simple.c
+	http/m_http_uri.c
+
 	# json:
 	json/m_json.c
 	json/m_json_int.h

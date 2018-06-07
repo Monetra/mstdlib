@@ -31,6 +31,7 @@
 #include <mstdlib/base/m_fs.h>
 #include <mstdlib/base/m_hash_dict.h>
 #include <mstdlib/base/m_list_str.h>
+#include <mstdlib/base/m_buf.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -359,6 +360,20 @@ M_API M_xml_node_t *M_xml_read_file(const char *path, M_uint32 flags, size_t max
 M_API char *M_xml_write(const M_xml_node_t *node, M_uint32 flags, size_t *len) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
+/*! Write XML to a buffer.
+ *
+ * This writes nodes out to a buffer. The resulting string may not be directly usable by M_xml_read -
+ * for example, you can write out a string node or other component of an XML document, without writing
+ * the whole thing.
+ *
+ * \param[out] buf   buffer to write XML to
+ * \param[in]  node  the node to write (children of this node are also included in output)
+ * \param[in]  flags OR'd combo of M_xml_write_flags_t values (to control writing)
+ * \return           M_TRUE if successful, M_FALSE otherwise.
+ */
+M_API M_bool M_xml_write_buf(M_buf_t *buf, const M_xml_node_t *node, M_uint32 flags);
+
+
 /*! Write XML to a file.
  *
  * This writes nodes to a string. The string may not be directly usable by M_xml_read_file.
@@ -374,6 +389,13 @@ M_API M_fs_error_t M_xml_write_file(const M_xml_node_t *node, const char *path, 
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Convert an XML error code to a string.
+ *
+ * \param[in] err error code
+ * \return        short string describing error code
+ */
+M_API const char *M_xml_error_to_string(M_xml_error_t err);
 
 /*! Get the type of node.
  *
