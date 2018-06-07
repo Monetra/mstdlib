@@ -71,5 +71,5 @@ var group__m__http =
     [ "M_http_method_from_str", "group__m__http.html#ga1ed748ce4734dbc2c98279b7aa7be70f", null ],
     [ "M_http_method_to_str", "group__m__http.html#gaae6f70f3b3d06d6977e9eff65cc48ad8", null ],
     [ "M_http_code_to_reason", "group__m__http.html#ga7097f334a63073161405015a1e7aaa35", null ],
-    [ "M_http_error_to_string", "group__m__http.html#gacd2d508f1a01d5c24ad3ae818173b23d", null ]
+    [ "M_http_errcode_to_str", "group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f", null ]
 ];

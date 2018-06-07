@@ -61,7 +61,7 @@ var group__m__json =
     [ "M_json_read_file", "group__m__json.html#gada42fe232c65531adff2e411e6560f19", null ],
     [ "M_json_write", "group__m__json.html#gaed21b31f4164e5946b2ab580944b4476", null ],
     [ "M_json_write_file", "group__m__json.html#gad1fe5df3df9b4227a41f4659ba51c18d", null ],
-    [ "M_json_error_to_string", "group__m__json.html#ga926a2b48949cb2dfa6a55a2dfb7e997a", null ],
+    [ "M_json_errcode_to_str", "group__m__json.html#gacc38d9cbd287208ab8d47275219ef1a1", null ],
     [ "M_json_node_type", "group__m__json.html#gabe6d53b74c1f29d56be504b2b923d00c", null ],
     [ "M_json_jsonpath", "group__m__json.html#gaa8415560fabfc0c57bf347663f85ef40", null ],
     [ "M_json_get_parent", "group__m__json.html#ga231c8de740a8c71621d000266b85bf92", null ],

@@ -356,9 +356,9 @@ $(document).ready(function(){initNavTree('m__json_8h_source.html','');});
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment">/*! Convert a JSON error code to a string.</span></div>
 <div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="comment"> * \param[in] err error code</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="comment"> * \return        short string describing error code</span></div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="comment"> * \return        name of error code (not a description, just the enum name, like M_JSON_ERROR_SUCCESS)</span></div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;M_API <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="group__m__json.html#ga926a2b48949cb2dfa6a55a2dfb7e997a">M_json_error_to_string</a>(<a class="code" href="group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06">M_json_error_t</a> err);</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;M_API <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="group__m__json.html#gacc38d9cbd287208ab8d47275219ef1a1">M_json_errcode_to_str</a>(<a class="code" href="group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06">M_json_error_t</a> err);</div>
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;</div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment">/*! Get the type of node.</span></div>
@@ -862,6 +862,7 @@ $(document).ready(function(){initNavTree('m__json_8h_source.html','');});
 <div class="ttc" id="group__m__json_html_gadedfb5de59e2062609c9c177464d0cfb"><div class="ttname"><a href="group__m__json.html#gadedfb5de59e2062609c9c177464d0cfb">M_json_get_value</a></div><div class="ttdeci">M_bool M_json_get_value(const M_json_node_t *node, char *buf, size_t buf_len)</div></div>
 <div class="ttc" id="group__m__json_html_gga5defb18ee28b514f10247a1fb2dbf6f7ae30ce0a289248902fefd9c1ccff6d5c9"><div class="ttname"><a href="group__m__json.html#gga5defb18ee28b514f10247a1fb2dbf6f7ae30ce0a289248902fefd9c1ccff6d5c9">M_JSON_TYPE_UNKNOWN</a></div><div class="ttdef"><b>Definition:</b> m_json.h:94</div></div>
 <div class="ttc" id="group__m__json_html_ggaa8f38cc98ce6c3d373a95c613d721b06aa8120e9d51cf1501d420c43e18acb0e4"><div class="ttname"><a href="group__m__json.html#ggaa8f38cc98ce6c3d373a95c613d721b06aa8120e9d51cf1501d420c43e18acb0e4">M_JSON_ERROR_UNEXPECTED_ESCAPE</a></div><div class="ttdef"><b>Definition:</b> m_json.h:157</div></div>
+<div class="ttc" id="group__m__json_html_gacc38d9cbd287208ab8d47275219ef1a1"><div class="ttname"><a href="group__m__json.html#gacc38d9cbd287208ab8d47275219ef1a1">M_json_errcode_to_str</a></div><div class="ttdeci">const char * M_json_errcode_to_str(M_json_error_t err)</div></div>
 <div class="ttc" id="group__m__json_html_gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f"><div class="ttname"><a href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f">M_JSON_WRITER_DONT_ENCODE_UNICODE</a></div><div class="ttdef"><b>Definition:</b> m_json.h:131</div></div>
 <div class="ttc" id="group__m__json_html_ggaa8f38cc98ce6c3d373a95c613d721b06a138607ee9408891ac445c6c291dfb8b7"><div class="ttname"><a href="group__m__json.html#ggaa8f38cc98ce6c3d373a95c613d721b06a138607ee9408891ac445c6c291dfb8b7">M_JSON_ERROR_UNCLOSED_STRING</a></div><div class="ttdef"><b>Definition:</b> m_json.h:158</div></div>
 <div class="ttc" id="group__m__json_html_ga4f1afe464f5e61d3d6a8b3ea24beab2e"><div class="ttname"><a href="group__m__json.html#ga4f1afe464f5e61d3d6a8b3ea24beab2e">M_json_reader_flags_t</a></div><div class="ttdeci">M_json_reader_flags_t</div><div class="ttdef"><b>Definition:</b> m_json.h:106</div></div>
@@ -958,7 +959,6 @@ $(document).ready(function(){initNavTree('m__json_8h_source.html','');});
 <div class="ttc" id="group__m__json_html_gga4f1afe464f5e61d3d6a8b3ea24beab2ead45e66804dc32cbc9d16258351f3fc2b"><div class="ttname"><a href="group__m__json.html#gga4f1afe464f5e61d3d6a8b3ea24beab2ead45e66804dc32cbc9d16258351f3fc2b">M_JSON_READER_REPLACE_BAD_CHARS</a></div><div class="ttdef"><b>Definition:</b> m_json.h:120</div></div>
 <div class="ttc" id="group__m__json_html_ga31a7d7c88fccaaf0962447acd9363149"><div class="ttname"><a href="group__m__json.html#ga31a7d7c88fccaaf0962447acd9363149">M_json_object_value_bool</a></div><div class="ttdeci">M_bool M_json_object_value_bool(const M_json_node_t *node, const char *key)</div></div>
 <div class="ttc" id="group__m__json_html_ga43859c655364a7fdf42efdd06d31cf67"><div class="ttname"><a href="group__m__json.html#ga43859c655364a7fdf42efdd06d31cf67">M_json_get_int</a></div><div class="ttdeci">M_int64 M_json_get_int(const M_json_node_t *node)</div></div>
-<div class="ttc" id="group__m__json_html_ga926a2b48949cb2dfa6a55a2dfb7e997a"><div class="ttname"><a href="group__m__json.html#ga926a2b48949cb2dfa6a55a2dfb7e997a">M_json_error_to_string</a></div><div class="ttdeci">const char * M_json_error_to_string(M_json_error_t err)</div></div>
 <div class="ttc" id="group__m__json_html_ga7cf60c2e0657cde8f0ad69f3261f965e"><div class="ttname"><a href="group__m__json.html#ga7cf60c2e0657cde8f0ad69f3261f965e">M_json_object_keys</a></div><div class="ttdeci">M_list_str_t * M_json_object_keys(const M_json_node_t *node)</div></div>
 <div class="ttc" id="group__m__json_html_ga8204c0f4bef70540af22ca1f184e2bf7"><div class="ttname"><a href="group__m__json.html#ga8204c0f4bef70540af22ca1f184e2bf7">M_json_array_at_int</a></div><div class="ttdeci">M_int64 M_json_array_at_int(const M_json_node_t *node, size_t idx)</div></div>
 </div><!-- fragment --></div><!-- contents -->
@@ -967,7 +967,7 @@ $(document).ready(function(){initNavTree('m__json_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_83479f3e62efc9ab117abb614c65a425.html">formats</a></li><li class="navelem"><b>m_json.h</b></li>
-    <li class="footer">Generated on Thu Jun 7 2018 14:09:07 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 16:25:40 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

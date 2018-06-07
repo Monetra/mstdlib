@@ -248,8 +248,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaae6f70f3b3d06d6977e9eff65cc48ad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7097f334a63073161405015a1e7aaa35"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http.html#ga7097f334a63073161405015a1e7aaa35">M_http_code_to_reason</a> (M_uint32 code)</td></tr>
 <tr class="separator:ga7097f334a63073161405015a1e7aaa35"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacd2d508f1a01d5c24ad3ae818173b23d"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http.html#gacd2d508f1a01d5c24ad3ae818173b23d">M_http_error_to_string</a> (<a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a> err)</td></tr>
-<tr class="separator:gacd2d508f1a01d5c24ad3ae818173b23d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga47c67c1475c6cdaf99d2df70c4925e6f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f">M_http_errcode_to_str</a> (<a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a> err)</td></tr>
+<tr class="separator:ga47c67c1475c6cdaf99d2df70c4925e6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <dl class="section warning"><dt>Warning</dt><dd>IN PROGRESS AND API UNSTABLE </dd></dl>
@@ -577,12 +577,12 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gacd2d508f1a01d5c24ad3ae818173b23d"></a>
+<a class="anchor" id="ga47c67c1475c6cdaf99d2df70c4925e6f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_http_error_to_string </td>
+          <td class="memname">const char* M_http_errcode_to_str </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>&#160;</td>
           <td class="paramname"><em>err</em></td><td>)</td>
@@ -597,7 +597,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>short string describing error code </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>name of error code (not a description, just the enum name, like M_HTTP_ERROR_SUCCESS) </dd></dl>
 
 </div>
 </div>
@@ -606,7 +606,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 16:25:41 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

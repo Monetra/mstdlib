@@ -59,7 +59,7 @@ var group__m__xml =
     [ "M_xml_write", "group__m__xml.html#ga6abdbf8fbfe972082dc929a693b0992a", null ],
     [ "M_xml_write_buf", "group__m__xml.html#ga57e29eec4495302c7762e32d67f2cd93", null ],
     [ "M_xml_write_file", "group__m__xml.html#ga0d5e4aefea0d83fee84469e555cc049a", null ],
-    [ "M_xml_error_to_string", "group__m__xml.html#ga05c31f85f1192ad5cb1bbacabd4345d7", null ],
+    [ "M_xml_errcode_to_str", "group__m__xml.html#gaddcf80d6bd14c3beedd06803d553c2cc", null ],
     [ "M_xml_node_type", "group__m__xml.html#ga15ba3a7dceaea4219b6256b887bb9d25", null ],
     [ "M_xml_xpath", "group__m__xml.html#gaf8e39f0acb377365fb70e60f27ecb35c", null ],
     [ "M_xml_xpath_text_first", "group__m__xml.html#ga88cf5965b81719415aec3b6c79b1a4e5", null ],

@@ -225,8 +225,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga57e29eec4495302c7762e32d67f2cd93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0d5e4aefea0d83fee84469e555cc049a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga0d5e4aefea0d83fee84469e555cc049a">M_xml_write_file</a> (const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, const char *path, M_uint32 flags)</td></tr>
 <tr class="separator:ga0d5e4aefea0d83fee84469e555cc049a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05c31f85f1192ad5cb1bbacabd4345d7"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga05c31f85f1192ad5cb1bbacabd4345d7">M_xml_error_to_string</a> (<a class="el" href="group__m__xml.html#ga557ee6da409975c5ffa7d184c6db4cf5">M_xml_error_t</a> err)</td></tr>
-<tr class="separator:ga05c31f85f1192ad5cb1bbacabd4345d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaddcf80d6bd14c3beedd06803d553c2cc"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#gaddcf80d6bd14c3beedd06803d553c2cc">M_xml_errcode_to_str</a> (<a class="el" href="group__m__xml.html#ga557ee6da409975c5ffa7d184c6db4cf5">M_xml_error_t</a> err)</td></tr>
+<tr class="separator:gaddcf80d6bd14c3beedd06803d553c2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga15ba3a7dceaea4219b6256b887bb9d25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__xml.html#ga407459ae47c46f3e72ed42ddda0d7e94">M_xml_node_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#ga15ba3a7dceaea4219b6256b887bb9d25">M_xml_node_type</a> (const <a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node)</td></tr>
 <tr class="separator:ga15ba3a7dceaea4219b6256b887bb9d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf8e39f0acb377365fb70e60f27ecb35c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__xml.html#gaf8e39f0acb377365fb70e60f27ecb35c">M_xml_xpath</a> (<a class="el" href="group__m__xml.html#gac6ec4dfbdf5090e4d6b20cdc93b360fb">M_xml_node_t</a> *node, const char *search, M_uint32 flags, size_t *num_matches) M_MALLOC</td></tr>
@@ -1122,12 +1122,12 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga05c31f85f1192ad5cb1bbacabd4345d7"></a>
+<a class="anchor" id="gaddcf80d6bd14c3beedd06803d553c2cc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_xml_error_to_string </td>
+          <td class="memname">const char* M_xml_errcode_to_str </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__xml.html#ga557ee6da409975c5ffa7d184c6db4cf5">M_xml_error_t</a>&#160;</td>
           <td class="paramname"><em>err</em></td><td>)</td>
@@ -1142,7 +1142,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>short string describing error code </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>name of error code (not a description, just the enum name, like M_XML_ERROR_SUCCESS) </dd></dl>
 
 </div>
 </div>
@@ -1890,7 +1890,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jun 7 2018 14:09:08 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 7 2018 16:25:41 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
