@@ -199,7 +199,7 @@ void M_json_node_destroy(M_json_node_t *node)
 
 const char *M_json_errcode_to_str(M_json_error_t err)
 {
-	const char *ret = "<unknown>";
+	const char *ret = "unknown";
 
 	switch (err) {
 		ERRCASE(M_JSON_ERROR_SUCCESS);
