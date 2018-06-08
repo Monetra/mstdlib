@@ -574,6 +574,7 @@ START_TEST(check_unordered_multisorted)
 	ck_assert_msg(M_str_eq(got, exp), "val check failed: got '%s', expected '%s'", got, exp);
 
 	M_buf_cancel(buf);
+	M_hash_dict_destroy(d);
 }
 END_TEST
 
