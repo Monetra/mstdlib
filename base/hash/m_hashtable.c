@@ -722,15 +722,29 @@ static M_bool M_hashtable_enumerate_next_unordered(const M_hashtable_t *h, M_has
 	struct M_hashtable_bucket *ptr;
 	const void                *myvalue; 
 
+	/* Go though each bucket looking for something in them. */
 	for (i=hashenum->entry.unordered.hash; i<h->size; i++) {
 		ptr = &h->buckets[i];
+		/* having a key tell us there is something in the bucket. */
 		if (ptr->key != NULL) {
+			/* We're keeping track of which item in the chain we're currently processing.
+			 * Since this is a linked list we have to start at the beginning and keep going
+			 * until we find the one we want.
+			 *
+			 * We start the idx at one so we will read the bucket first. Then the chainid will
+			 * be incremented and the next go around we'll start going though any chained items
+			 * (if there are any).
+			 */
 			for (idx = 1; idx <= hashenum->entry.unordered.chainid; idx++) {
 				ptr = ptr->next;
-				if (ptr == NULL)
+				/* No next means we've exhausted this chain and we need to move onto the
+				 * next bucket. */
+				if (ptr == NULL) {
 					break;
+				}
 			}
 
+			/* We have an item in the chain. */
 			if (ptr != NULL) {
 				/* Get the value */
 				if (h->flags & M_HASHTABLE_MULTI_VALUE) {
@@ -750,16 +764,24 @@ static M_bool M_hashtable_enumerate_next_unordered(const M_hashtable_t *h, M_has
 					((h->flags & M_HASHTABLE_MULTI_VALUE) &&
 						hashenum->valueidx >= M_list_len(ptr->value.multi_value)))
 				{
-					hashenum->entry.unordered.hash    = i;
+					/* The for loop exiting puts idx at chainid+1. We want to start
+					 * our next run on the next item in the chain. */
 					hashenum->entry.unordered.chainid = idx;
+					/* New item reset the starting value. */
 					hashenum->valueidx                = 0;
 				}
 
+				/* Save which bucket we're currently processing so the next call
+				 * will start on it. */
+				hashenum->entry.unordered.hash = i;
 				return M_TRUE;
 			}
 		}
-		/* We're moving onto a new hash, so the last used chainid would be 0 and the next valueidx will be 0. */
-		hashenum->entry.unordered.chainid  = 0;
+
+		/* We're moving onto a new hash. Reset the chain id since we're going to start going though all items
+		 * in the chain for the next bucket we find that has a value. The valueidx has already been reset when
+		 * we got to the end of those values. */
+		hashenum->entry.unordered.chainid = 0;
 	}
 
 	return M_FALSE;
@@ -838,7 +860,7 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 	}
 
 	/* Create a h for tracking keys that are already present in dest. These keys will need to be
- 	 * destroyed since we can't move them to dest. */
+	 * destroyed since we can't move them to dest. */
 	M_mem_set(&callbacks, 0, sizeof(callbacks));
 	callbacks.key_duplicate_insert   = src->key_duplicate_insert;
 	callbacks.key_duplicate_copy     = src->key_duplicate_copy;
