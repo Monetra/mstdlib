@@ -8,7 +8,8 @@ var group__m__hash__u64vp =
       [ "M_HASH_U64VP_KEYS_SORTASC", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052af901c308e9d97b8bf7d04aa393c0ad63", null ],
       [ "M_HASH_U64VP_KEYS_SORTDESC", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052a9ebd25c5ee4b6793c1be5eef0fc941ba", null ],
       [ "M_HASH_U64VP_MULTI_VALUE", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052ad46504aacc989bef862b23db3215dd7c", null ],
-      [ "M_HASH_U64VP_MULTI_GETLAST", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052a36d073efdad39b6b569306e6d4cdf66a", null ]
+      [ "M_HASH_U64VP_MULTI_GETLAST", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052a36d073efdad39b6b569306e6d4cdf66a", null ],
+      [ "M_HASH_U64VP_STATIC_SEED", "group__m__hash__u64vp.html#gga4e377af4af0b4539bd6bd849c0e16052a31ff8f5293b6c1bf041888dcfd555646", null ]
     ] ],
     [ "M_hash_u64vp_create", "group__m__hash__u64vp.html#gadd145ae426afa9a17d5b945a5c3d67ea", null ],
     [ "M_hash_u64vp_destroy", "group__m__hash__u64vp.html#gaaad4f13704a0d48839f7908f705a29b3", null ],

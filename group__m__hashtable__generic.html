@@ -147,7 +147,9 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aaecbe61ac29093c9d37b846e4cd0fbaf">M_HASHTABLE_MULTI_SORTED</a> = 1 &lt;&lt; 3, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">M_HASHTABLE_MULTI_GETLAST</a> = 1 &lt;&lt; 4
+&#160;&#160;<a class="el" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">M_HASHTABLE_MULTI_GETLAST</a> = 1 &lt;&lt; 4, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9">M_HASHTABLE_STATIC_SEED</a> = 1 &lt;&lt; 5
 <br/>
  }</td></tr>
 <tr class="separator:gad13365674e45cd99be915fbc66b31ce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -478,6 +480,9 @@ value_free</td>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b"></a>M_HASHTABLE_MULTI_GETLAST</em>&#160;</td><td class="fielddoc">
 <p>When using the get function will get the last value from the list when allowing multiple values. The default is to get the first value. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9"></a>M_HASHTABLE_STATIC_SEED</em>&#160;</td><td class="fielddoc">
+<p>Use a static seed for hash function initialization. This greatly reduces the security of the hashtable and removes collision attack protections. This should only be used as a performance optimization when creating millions of hashtables with static data specifically for quick look up. DO <em>NOT</em> use this flag with any hashtable that could store user generated data! Be very careful about duplicating a hashtable that was created with this flag. All duplicates will use the static seed. </p>
 </td></tr>
 </table>
 
@@ -1098,7 +1103,7 @@ value_free</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Jun 8 2018 20:04:50 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jun 11 2018 15:20:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

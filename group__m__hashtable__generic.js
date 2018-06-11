@@ -35,7 +35,8 @@ var group__m__hashtable__generic =
       [ "M_HASHTABLE_KEYS_SORTED", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8a5a71b54a692d1f7a4260538a49c71aec", null ],
       [ "M_HASHTABLE_MULTI_VALUE", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8a837e00e0a455c823bf55a8f4f2d2b32b", null ],
       [ "M_HASHTABLE_MULTI_SORTED", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aaecbe61ac29093c9d37b846e4cd0fbaf", null ],
-      [ "M_HASHTABLE_MULTI_GETLAST", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b", null ]
+      [ "M_HASHTABLE_MULTI_GETLAST", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b", null ],
+      [ "M_HASHTABLE_STATIC_SEED", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9", null ]
     ] ],
     [ "M_hashtable_create", "group__m__hashtable__generic.html#ga2a3fff2032f4d5349ed5e1f91adb30fa", null ],
     [ "M_hashtable_destroy", "group__m__hashtable__generic.html#gaee21e727a948e6e24ff5098d14ae4628", null ],

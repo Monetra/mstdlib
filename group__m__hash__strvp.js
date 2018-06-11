@@ -11,7 +11,8 @@ var group__m__hash__strvp =
       [ "M_HASH_STRVP_KEYS_SORTASC", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3cae536686119549d6d98edf42ceded1fa6", null ],
       [ "M_HASH_STRVP_KEYS_SORTDESC", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3cab38a10ef36b022132aa3b7cf8f00ca23", null ],
       [ "M_HASH_STRVP_MULTI_VALUE", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3cacebef10711696aae259c9e993396417a", null ],
-      [ "M_HASH_STRVP_MULTI_GETLAST", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3ca8503e37682c127a22b498702f64ca5fb", null ]
+      [ "M_HASH_STRVP_MULTI_GETLAST", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3ca8503e37682c127a22b498702f64ca5fb", null ],
+      [ "M_HASH_STRVP_STATIC_SEED", "group__m__hash__strvp.html#ggaea231eadb5a86eaf4661352d01d53a3cae520130e9a8129eeda34d678da1c46f1", null ]
     ] ],
     [ "M_hash_strvp_create", "group__m__hash__strvp.html#ga4d3315ca1d4dc288573b08637bb85b67", null ],
     [ "M_hash_strvp_destroy", "group__m__hash__strvp.html#ga486ad629d6bae87ab92683b65b68ae85", null ],

@@ -129,7 +129,9 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033cad7c96a29ec9f022c9aa0273fcb6962a3">M_HASH_STRIDX_MULTI_VALUE</a> = 1 &lt;&lt; 6, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033ca7df662c900db40dd4928b347cf4f674a">M_HASH_STRIDX_MULTI_GETLAST</a> = 1 &lt;&lt; 7
+&#160;&#160;<a class="el" href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033ca7df662c900db40dd4928b347cf4f674a">M_HASH_STRIDX_MULTI_GETLAST</a> = 1 &lt;&lt; 7, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__hash__stridx.html#gga463fb5a7972297cfd5fb3cf4dce8033ca33dc98a828428767803c59fff23bcb58">M_HASH_STRIDX_STATIC_SEED</a> = 1 &lt;&lt; 8
 <br/>
  }</td></tr>
 <tr class="separator:ga463fb5a7972297cfd5fb3cf4dce8033c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -241,6 +243,9 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga463fb5a7972297cfd5fb3cf4dce8033ca7df662c900db40dd4928b347cf4f674a"></a>M_HASH_STRIDX_MULTI_GETLAST</em>&#160;</td><td class="fielddoc">
 <p>When using get and get_direct function get the last value from the list when allowing multiple values. The default is to get the first value. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga463fb5a7972297cfd5fb3cf4dce8033ca33dc98a828428767803c59fff23bcb58"></a>M_HASH_STRIDX_STATIC_SEED</em>&#160;</td><td class="fielddoc">
+<p>Use a static seed for hash function initialization. This greatly reduces the security of the hashtable and removes collision attack protections. This should only be used as a performance optimization when creating millions of hashtables with static data specifically for quick look up. DO <em>NOT</em> use this flag with any hashtable that could store user generated data! Be very careful about duplicating a hashtable that was created with this flag. All duplicates will use the static seed. </p>
 </td></tr>
 </table>
 
@@ -917,7 +922,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Jun 8 2018 20:04:50 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jun 11 2018 15:20:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

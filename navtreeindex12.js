@@ -1,5 +1,15 @@
 var NAVTREEINDEX12 =
 {
+"group__m__str__dup.html#gga95a61086013b2b3d48c4bf8d524ad7b6ae41aced3582403600d513d90763ec840":[0,0,0,2,0,4],
+"group__m__str__mutate.html":[0,0,0,3],
+"group__m__str__mutate.html#ga0038c9006b358670c49e09f5afe2ea39":[0,0,0,3,15],
+"group__m__str__mutate.html#ga050277b36c7f2ea5ff7aa68a0933c6c0":[0,0,0,3,22],
+"group__m__str__mutate.html#ga05cc3d99a66f14f29e3090122a85226f":[0,0,0,3,10],
+"group__m__str__mutate.html#ga0827de2191bea9a7447abcf2adbad451":[0,0,0,3,14],
+"group__m__str__mutate.html#ga0a5a7073fe2d95705e34ce84fd915176":[0,0,0,3,11],
+"group__m__str__mutate.html#ga0d6580ae4e9da66e1fbcea6a74600d49":[0,0,0,3,2],
+"group__m__str__mutate.html#ga4496dacd2daa558af5c1793c703046ff":[0,0,0,3,0],
+"group__m__str__mutate.html#ga4e9890dbf58a4532c44ca340e3f31699":[0,0,0,3,17],
 "group__m__str__mutate.html#ga765787d0e065d19256d327d90d3058b3":[0,0,0,3,24],
 "group__m__str__mutate.html#ga79107a81a7a2856e08c6e0eea42732bb":[0,0,0,3,1],
 "group__m__str__mutate.html#ga7af3c7d4f53418921aa2001fcbca472f":[0,0,0,3,19],
@@ -239,15 +249,5 @@ var NAVTREEINDEX12 =
 "group__m__threadpool.html#gac2d71bce2c7268c2e7d8b9e66a1df688":[0,5,3,9],
 "group__m__threadpool.html#gada6d97c444562cbe6cc37e78652755ff":[0,5,3,3],
 "group__m__threadpool.html#gaf95269f543784664301110b07a597d09":[0,5,3,10],
-"group__m__time.html":[0,0,19],
-"group__m__time.html#a0abf9c9b88e57c36b06d8cdbe8b22cb8":[0,0,19,4,9],
-"group__m__time.html#a115eb52a62ccb21a62731cb8681a7905":[0,0,19,4,1],
-"group__m__time.html#a17da6189d9853155bf163b5fa0c053b2":[0,0,19,4,0],
-"group__m__time.html#a2c5fde1c1d4d799e17a4560b0a1f0f80":[0,0,19,4,6],
-"group__m__time.html#a2fc3094723cd45cbb3bcdc70b1ff2af8":[0,0,19,4,2],
-"group__m__time.html#a37ef85976dd1d34bfe7eb0f278dcb71f":[0,0,19,4,4],
-"group__m__time.html#a405e1ae77eaff09391390c3a8eb6acfa":[0,0,19,4,5],
-"group__m__time.html#a4fbfbb3d283d2cd7fc02d2fa3abc718e":[0,0,19,4,11],
-"group__m__time.html#a65437118568ef3002f113b0db31b452a":[0,0,19,5,1],
-"group__m__time.html#a7bf7a53206b6af1c1cc3878c092d892f":[0,0,19,4,10]
+"group__m__time.html":[0,0,19]
 };

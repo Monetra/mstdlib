@@ -11,7 +11,8 @@ var group__m__hash__strbin =
       [ "M_HASH_STRBIN_KEYS_SORTASC", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393fa299e52ede1d6b34ed74a91ee00bf96e5", null ],
       [ "M_HASH_STRBIN_KEYS_SORTDESC", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393fa644ee06d9aa5e47e0eff45963027782b", null ],
       [ "M_HASH_STRBIN_MULTI_VALUE", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393fa0402144683b3d541953a9619f2900ec5", null ],
-      [ "M_HASH_STRBIN_MULTI_GETLAST", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393faa108d909f50aec3024a0a246a4323141", null ]
+      [ "M_HASH_STRBIN_MULTI_GETLAST", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393faa108d909f50aec3024a0a246a4323141", null ],
+      [ "M_HASH_STRBIN_STATIC_SEED", "group__m__hash__strbin.html#gga7ffa009a6edb804cdd982db7ba24393fa96ff1821e9784b460b1ad2333c213059", null ]
     ] ],
     [ "M_hash_strbin_create", "group__m__hash__strbin.html#gace0f4c89d06eefec62d26105dfda3a3a", null ],
     [ "M_hash_strbin_destroy", "group__m__hash__strbin.html#ga3970bc7582ae830ccf215afd909f73d5", null ],

@@ -14,7 +14,8 @@ var group__m__hash__dict =
       [ "M_HASH_DICT_MULTI_SORTASC", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca152995bb73d279f306e2382383afd961", null ],
       [ "M_HASH_DICT_MULTI_SORTDESC", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca5ffd6ca3b242fb8bc0cec0bc5b3ac4b3", null ],
       [ "M_HASH_DICT_MULTI_GETLAST", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca469e69ac3b3f0a9bc2a9e33cb9983454", null ],
-      [ "M_HASH_DICT_MULTI_CASECMP", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca907662a427d626f178d07be674040864", null ]
+      [ "M_HASH_DICT_MULTI_CASECMP", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca907662a427d626f178d07be674040864", null ],
+      [ "M_HASH_DICT_STATIC_SEED", "group__m__hash__dict.html#gga3cd61870713be96a9475f3669b629deca0fbfbd9ddd8f7f82ed50adb3a52e1476", null ]
     ] ],
     [ "M_hash_dict_ser_flag_t", "group__m__hash__dict.html#gae8e126fc4b690521e5b102964cb16f12", [
       [ "M_HASH_DICT_SER_FLAG_NONE", "group__m__hash__dict.html#ggae8e126fc4b690521e5b102964cb16f12aec0cca483330a8f1513846b7cb267024", null ],

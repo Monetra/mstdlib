@@ -303,226 +303,233 @@ $(document).ready(function(){initNavTree('m__hashtable_8h_source.html','');});
 <div class="line"><a name="l00203"></a><span class="lineno"><a class="line" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8a837e00e0a455c823bf55a8f4f2d2b32b">  203</a></span>&#160;    <a class="code" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8a837e00e0a455c823bf55a8f4f2d2b32b">M_HASHTABLE_MULTI_VALUE</a>   = 1 &lt;&lt; 2, <span class="comment">/*!&lt; Allow keys to contain multiple values.</span></div>
 <div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;<span class="comment">                                              Sorted in insertion order another sorting is specified. */</span></div>
 <div class="line"><a name="l00205"></a><span class="lineno"><a class="line" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aaecbe61ac29093c9d37b846e4cd0fbaf">  205</a></span>&#160;    <a class="code" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aaecbe61ac29093c9d37b846e4cd0fbaf">M_HASHTABLE_MULTI_SORTED</a>  = 1 &lt;&lt; 3, <span class="comment">/*!&lt; Allow keys to contain multiple values sorted in ascending order */</span></div>
-<div class="line"><a name="l00206"></a><span class="lineno"><a class="line" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">  206</a></span>&#160;    <a class="code" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">M_HASHTABLE_MULTI_GETLAST</a> = 1 &lt;&lt; 4  <span class="comment">/*!&lt; When using the get function will get the last value from the list</span></div>
+<div class="line"><a name="l00206"></a><span class="lineno"><a class="line" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">  206</a></span>&#160;    <a class="code" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aac246c5f930524e2246ed3aae46af09b">M_HASHTABLE_MULTI_GETLAST</a> = 1 &lt;&lt; 4, <span class="comment">/*!&lt; When using the get function will get the last value from the list</span></div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="comment">                                             when allowing multiple values. The default is to get the first value. */</span></div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;} <a class="code" href="group__m__hashtable__generic.html#gad13365674e45cd99be915fbc66b31ce8">M_hashtable_flags_t</a>;</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;<span class="comment">/*! Create a new h.</span></div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;<span class="comment"> * The h will pre-allocate an array of buckets based on the rounded up size specified. Any hash collisions</span></div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;<span class="comment"> * will result in those collisions being chained together via a linked list. The h will auto-expand by a</span></div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;<span class="comment"> * power of 2 when the fill percentage specified is reached. All key entries are compared in a case-insensitive</span></div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="comment"> * fashion, and are duplicated internally. Values are duplicated. Case is preserved for both keys and values.</span></div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="comment"> * \param[in] size         Size of the hash table. If not specified as a power of 2, will</span></div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;<span class="comment"> *                         be rounded up to the nearest power of 2.</span></div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="comment"> * \param[in] fillpct      The maximum fill percentage before the hash table is expanded. If</span></div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="comment"> *                         0 is specified, the h will never expand, otherwise the</span></div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="comment"> *                         value must be between 1 and 99 (recommended: 75).</span></div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;<span class="comment"> * \param[in] key_hash     The function to use for hashing a key.  If not specified will use</span></div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;<span class="comment"> *                         the pointer address as the key and use FNV1a.</span></div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;<span class="comment"> * \param[in] key_equality The function to use to determine if two keys are equal.  If not </span></div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="comment"> *                         specified, will compare pointer addresses.</span></div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;<span class="comment"> * \param[in] flags        M_hash_strvp_flags_t flags for modifying behavior.</span></div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;<span class="comment"> * \param[in] callbacks    Register callbacks for overriding default behavior.</span></div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;<span class="comment"> * \return Allocated h.</span></div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;<span class="comment"> * \see M_hashtable_destroy</span></div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;M_API <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *<a class="code" href="group__m__hashtable__generic.html#ga2a3fff2032f4d5349ed5e1f91adb30fa">M_hashtable_create</a>(<span class="keywordtype">size_t</span> size, M_uint8 fillpct,</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <a class="code" href="group__m__hashtable__generic.html#ga030f0097d642b3dfcb2c01c42b9ac440">M_hashtable_hash_func</a> key_hash, <a class="code" href="group__m__sort.html#gacddbc7ac40cf63ca40b081bd44375517">M_sort_compar_t</a> key_equality,</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;        M_uint32 flags, <span class="keyword">const</span> <span class="keyword">struct</span> <a class="code" href="group__m__hashtable__generic.html#structM__hashtable__callbacks">M_hashtable_callbacks</a> *callbacks) M_MALLOC;</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;<span class="comment">/*! Destroy the h.</span></div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;<span class="comment"> * \param[in] h            Hashtable to destroy</span></div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the values held by the h should be destroyed.</span></div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;<span class="comment"> *                         when all values held by the h are being managed externally.</span></div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hashtable__generic.html#gaee21e727a948e6e24ff5098d14ae4628">M_hashtable_destroy</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_bool destroy_vals) M_FREE(1);</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;<span class="comment">/*! Insert an entry into the h.</span></div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="comment"> * \param[in] h     Hashtable being referenced.</span></div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;<span class="comment"> * \param[in] key   Key to insert.</span></div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;<span class="comment"> * \param[in] value Value to insert into h. Value will not be duplicated.</span></div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;<span class="comment"> *                  The h will take ownership of the value. Maybe NULL.</span></div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment"> * \return M_TRUE on success, or M_FALSE on failure.</span></div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga8a3c6ea1647539743d74f21ea5353046">M_hashtable_insert</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keyword">const</span> <span class="keywordtype">void</span> *value);</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;<span class="comment">/*! Remove an entry from the h.</span></div>
+<div class="line"><a name="l00208"></a><span class="lineno"><a class="line" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9">  208</a></span>&#160;    <a class="code" href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9">M_HASHTABLE_STATIC_SEED</a>   = 1 &lt;&lt; 5  <span class="comment">/*!&lt; Use a static seed for hash function initialization. This greatly reduces</span></div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="comment">                                             the security of the hashtable and removes collision attack protections.</span></div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="comment">                                             This should only be used as a performance optimization when creating</span></div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="comment">                                             millions of hashtables with static data specifically for quick look up.</span></div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;<span class="comment">                                             DO _NOT_ use this flag with any hashtable that could store user</span></div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;<span class="comment">                                             generated data! Be very careful about duplicating a hashtable that</span></div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;<span class="comment">                                             was created with this flag. All duplicates will use the static seed. */</span></div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;} <a class="code" href="group__m__hashtable__generic.html#gad13365674e45cd99be915fbc66b31ce8">M_hashtable_flags_t</a>;</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="comment">/*! Create a new h.</span></div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="comment"> * The h will pre-allocate an array of buckets based on the rounded up size specified. Any hash collisions</span></div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="comment"> * will result in those collisions being chained together via a linked list. The h will auto-expand by a</span></div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;<span class="comment"> * power of 2 when the fill percentage specified is reached. All key entries are compared in a case-insensitive</span></div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;<span class="comment"> * fashion, and are duplicated internally. Values are duplicated. Case is preserved for both keys and values.</span></div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;<span class="comment"> * \param[in] size         Size of the hash table. If not specified as a power of 2, will</span></div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="comment"> *                         be rounded up to the nearest power of 2.</span></div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;<span class="comment"> * \param[in] fillpct      The maximum fill percentage before the hash table is expanded. If</span></div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;<span class="comment"> *                         0 is specified, the h will never expand, otherwise the</span></div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;<span class="comment"> *                         value must be between 1 and 99 (recommended: 75).</span></div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;<span class="comment"> * \param[in] key_hash     The function to use for hashing a key.  If not specified will use</span></div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;<span class="comment"> *                         the pointer address as the key and use FNV1a.</span></div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;<span class="comment"> * \param[in] key_equality The function to use to determine if two keys are equal.  If not </span></div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;<span class="comment"> *                         specified, will compare pointer addresses.</span></div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;<span class="comment"> * \param[in] flags        M_hash_strvp_flags_t flags for modifying behavior.</span></div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;<span class="comment"> * \param[in] callbacks    Register callbacks for overriding default behavior.</span></div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;<span class="comment"> * \return Allocated h.</span></div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;<span class="comment"> * \see M_hashtable_destroy</span></div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;M_API <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *<a class="code" href="group__m__hashtable__generic.html#ga2a3fff2032f4d5349ed5e1f91adb30fa">M_hashtable_create</a>(<span class="keywordtype">size_t</span> size, M_uint8 fillpct,</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        <a class="code" href="group__m__hashtable__generic.html#ga030f0097d642b3dfcb2c01c42b9ac440">M_hashtable_hash_func</a> key_hash, <a class="code" href="group__m__sort.html#gacddbc7ac40cf63ca40b081bd44375517">M_sort_compar_t</a> key_equality,</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;        M_uint32 flags, <span class="keyword">const</span> <span class="keyword">struct</span> <a class="code" href="group__m__hashtable__generic.html#structM__hashtable__callbacks">M_hashtable_callbacks</a> *callbacks) M_MALLOC;</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;<span class="comment">/*! Destroy the h.</span></div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;<span class="comment"> * \param[in] h            Hashtable to destroy</span></div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the values held by the h should be destroyed.</span></div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="comment"> *                         when all values held by the h are being managed externally.</span></div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hashtable__generic.html#gaee21e727a948e6e24ff5098d14ae4628">M_hashtable_destroy</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_bool destroy_vals) M_FREE(1);</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment">/*! Insert an entry into the h.</span></div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="comment"> * \param[in] h     Hashtable being referenced.</span></div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="comment"> * \param[in] key   Key to insert.</span></div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;<span class="comment"> * \param[in] value Value to insert into h. Value will not be duplicated.</span></div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;<span class="comment"> *                  The h will take ownership of the value. Maybe NULL.</span></div>
 <div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment"> * \param[in] h            Hashtable being referenced.</span></div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="comment"> * \param[in] key          Key to remove from the h.</span></div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the value held by the h should be destroyed.</span></div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="comment"> *                         when the value held by the h is being managed externally.</span></div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="comment"> * \return M_TRUE on success, or M_FALSE if key does not exist.</span></div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga4cc0f451df5106d38c3543c9d7e62f23">M_hashtable_remove</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, M_bool destroy_vals);</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="comment">/*! Retrieve the value for a key from the h. </span></div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="comment"> * \return M_TRUE on success, or M_FALSE on failure.</span></div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga8a3c6ea1647539743d74f21ea5353046">M_hashtable_insert</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keyword">const</span> <span class="keywordtype">void</span> *value);</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="comment">/*! Remove an entry from the h.</span></div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;<span class="comment"> * \param[in] h            Hashtable being referenced.</span></div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="comment"> * \param[in] key          Key to remove from the h.</span></div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the value held by the h should be destroyed.</span></div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="comment"> *                         when the value held by the h is being managed externally.</span></div>
 <div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="comment"> * \param[in] h      Hashtable being referenced.</span></div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;<span class="comment"> * \param[in] key    Key for value.</span></div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;<span class="comment"> * \param[out] value Pointer to value stored in the h. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="comment"> * \return M_TRUE if value retrieved, M_FALSE if key does not exist.</span></div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#gaf110f08ad20a61cea0834dd85c99e744">M_hashtable_get</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">void</span> **value);</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="comment">/*! Get the number of values for a given key.</span></div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="comment"> * \param[in]  h   Hashtable being referenced.</span></div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<span class="comment"> * \param[in]  key Key for value to retrieve. </span></div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="comment"> * \param[out] len The number of values.</span></div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="comment"> * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.</span></div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga3b51626c6849e1f2f698683607bc839b">M_hashtable_multi_len</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> *len);</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;</div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="comment">/*! Retrieve the value for a key from the given index when supporting muli-values.</span></div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="comment"> * \return M_TRUE on success, or M_FALSE if key does not exist.</span></div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga4cc0f451df5106d38c3543c9d7e62f23">M_hashtable_remove</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, M_bool destroy_vals);</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;<span class="comment">/*! Retrieve the value for a key from the h. </span></div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="comment"> * \param[in] h      Hashtable being referenced.</span></div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;<span class="comment"> * \param[in] key    Key for value.</span></div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="comment"> * \param[out] value Pointer to value stored in the h. Optional, pass NULL if not needed.</span></div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;<span class="comment"> * \return M_TRUE if value retrieved, M_FALSE if key does not exist.</span></div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#gaf110f08ad20a61cea0834dd85c99e744">M_hashtable_get</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">void</span> **value);</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;<span class="comment">/*! Get the number of values for a given key.</span></div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;<span class="comment"> * \param[in]  h   Hashtable being referenced.</span></div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;<span class="comment"> * \param[in]  key Key for value to retrieve. </span></div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="comment"> * \param[out] len The number of values.</span></div>
 <div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="comment"> * \param[in]  h     Hashtable being referenced.</span></div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment"> * \param[in]  key   Key for value to retrieve.</span></div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="comment"> * \param[in]  idx   The index the value resides at.</span></div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="comment"> * \param[out] value Pointer to value stored. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;<span class="comment"> * \return M_TRUE if value retrieved, M_FALSE if key does not exist</span></div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga2d3c54178f0fb5fb2e7fba0df5103a14">M_hashtable_multi_get</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> idx, <span class="keywordtype">void</span> **value);</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="comment">/*! Remove a value from the h when supporting muli-values.</span></div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="comment"> * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.</span></div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga3b51626c6849e1f2f698683607bc839b">M_hashtable_multi_len</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> *len);</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;<span class="comment">/*! Retrieve the value for a key from the given index when supporting muli-values.</span></div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="comment"> * \param[in]  h     Hashtable being referenced.</span></div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;<span class="comment"> * \param[in]  key   Key for value to retrieve.</span></div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;<span class="comment"> * \param[in]  idx   The index the value resides at.</span></div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="comment"> * \param[out] value Pointer to value stored. Optional, pass NULL if not needed.</span></div>
 <div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="comment"> * If all values have been removed then the key will be removed.</span></div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;<span class="comment"> * \param[in] h            Hashtable being referenced</span></div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;<span class="comment"> * \param[in] key          Key for value to retrieve.</span></div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="comment"> * \param[in] idx          The index the value resides at.</span></div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the value held by the h should be destroyed.</span></div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment"> *                         when the value held by the h is being managed externally.</span></div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="comment"> * \return M_TRUE if value retrieved, M_FALSE if key does not exist</span></div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga2d3c54178f0fb5fb2e7fba0df5103a14">M_hashtable_multi_get</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> idx, <span class="keywordtype">void</span> **value);</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="comment">/*! Remove a value from the h when supporting muli-values.</span></div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment"> * If all values have been removed then the key will be removed.</span></div>
 <div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="comment"> * \return M_TRUE if the value was removed, M_FALSE if key does not exist.</span></div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga4ae8f9c55497ca4335f09444aea1774c">M_hashtable_multi_remove</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> idx, M_bool destroy_vals);</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;<span class="comment">/*! Retrieve the current size (number of buckets/slots, not necessarily used).</span></div>
-<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
-<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;<span class="comment"> * \return Size of the h</span></div>
-<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;M_API M_uint32 <a class="code" href="group__m__hashtable__generic.html#ga6d3c82a12d9f224dd639a069e855b8b7">M_hashtable_size</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
-<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;</div>
-<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="comment">/*! Retrieve the number of collisions for h entries that has occurred since creation.</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="comment"> * \param[in] h            Hashtable being referenced</span></div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="comment"> * \param[in] key          Key for value to retrieve.</span></div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;<span class="comment"> * \param[in] idx          The index the value resides at.</span></div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;<span class="comment"> * \param[in] destroy_vals M_TRUE if the value held by the h should be destroyed.</span></div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="comment"> *                         This will almost always be M_TRUE. This should only be set to M_FALSE</span></div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;<span class="comment"> *                         when the value held by the h is being managed externally.</span></div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;<span class="comment"> * \return M_TRUE if the value was removed, M_FALSE if key does not exist.</span></div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga4ae8f9c55497ca4335f09444aea1774c">M_hashtable_multi_remove</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, <span class="keyword">const</span> <span class="keywordtype">void</span> *key, <span class="keywordtype">size_t</span> idx, M_bool destroy_vals);</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;<span class="comment">/*! Retrieve the current size (number of buckets/slots, not necessarily used).</span></div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
 <div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="comment"> * \return Number of collisions.</span></div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga25b97ca6e0d523397b3c09d9e7434ed7">M_hashtable_num_collisions</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;<span class="comment">/*! Retrieve the number of expansions/rehashes since creation.</span></div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;<span class="comment"> * \return Size of the h</span></div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;M_API M_uint32 <a class="code" href="group__m__hashtable__generic.html#ga6d3c82a12d9f224dd639a069e855b8b7">M_hashtable_size</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;<span class="comment">/*! Retrieve the number of collisions for h entries that has occurred since creation.</span></div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
 <div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
-<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;<span class="comment"> * \return number of expansions/rehashes.</span></div>
-<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga6adb4b9ed40e572254b884f345937d48">M_hashtable_num_expansions</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
-<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;</div>
-<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="comment">/*! Retrieve the number of entries in the h.</span></div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="comment"> * \return Number of collisions.</span></div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga25b97ca6e0d523397b3c09d9e7434ed7">M_hashtable_num_collisions</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;<span class="comment">/*! Retrieve the number of expansions/rehashes since creation.</span></div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
 <div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;<span class="comment"> * This is the number of keys stored.</span></div>
-<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;<span class="comment"> * \return number of entries in the h.</span></div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga38b0a15c35fa97e003c7d3f5a84741a1">M_hashtable_num_keys</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
-<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;</div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="comment">/*! Start an enumeration of the keys within a h.</span></div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;<span class="comment"> * \param[in]  h        Hashtable being referenced.</span></div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<span class="comment"> * \param[out] hashenum Outputs an initialized state variable for starting an enumeration.</span></div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="comment"> * \return Number of items in the h</span></div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#gaf989bde17812db14003d0052e5661301">M_hashtable_enumerate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_hashtable_enum_t *hashenum);</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="comment">/*! Retrieve the next item from a h enumeration.</span></div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;<span class="comment"> * \return number of expansions/rehashes.</span></div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga6adb4b9ed40e572254b884f345937d48">M_hashtable_num_expansions</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;<span class="comment">/*! Retrieve the number of entries in the h.</span></div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;<span class="comment"> * This is the number of keys stored.</span></div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;<span class="comment"> * \param[in] h Hashtable being referenced.</span></div>
+<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;<span class="comment"> * \return number of entries in the h.</span></div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#ga38b0a15c35fa97e003c7d3f5a84741a1">M_hashtable_num_keys</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;</div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;<span class="comment">/*! Start an enumeration of the keys within a h.</span></div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"> * \param[in]  h        Hashtable being referenced.</span></div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;<span class="comment"> * \param[out] hashenum Outputs an initialized state variable for starting an enumeration.</span></div>
 <div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment"> * If multi-value, keys will appear multiple times as each value will be</span></div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment"> * retrieved individually.</span></div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="comment"> * \param[in]     h        Hashtable being referenced.</span></div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment"> * \param[in,out] hashenum State variable for tracking the enumeration process.</span></div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment"> * \param[out]    key      Value of next enumerated key. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="comment"> * \param[out]    value    Value of next enumerated value. Optional, pass NULL if not needed.</span></div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment"> * \return M_TRUE if enumeration succeeded, M_FALSE if no more keys.</span></div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga44f4ff607fd064cc3a69fd2f507358ef">M_hashtable_enumerate_next</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_hashtable_enum_t *hashenum, <span class="keyword">const</span> <span class="keywordtype">void</span> **key, <span class="keyword">const</span> <span class="keywordtype">void</span> **value);</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;</div>
-<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
-<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="comment">/*! Merge two hashtables together.</span></div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment"> * The second (src) h will be destroyed automatically upon completion of this function. Any key/value</span></div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment"> * pointers for the h will be directly copied over to the destination h, they will not be</span></div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="comment"> * duplicated. Any keys which exist in &#39;dest&#39; that also exist in &#39;src&#39; will be overwritten by the &#39;src&#39; value.</span></div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment"> * If dest and src are multi-value, all values from src will be copied into dest and the values from</span></div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment"> * dest will not be removed. If dest is not multi-value and src is, then only the last value in src will</span></div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment"> * be present in dest. If dest is multi-value and src is not, then the value from src will be added to dest.</span></div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"> * A value_equality function in dest is very important to ensure duplicate values are not present in a given</span></div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"> * key with multiple values.</span></div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"> * \param[in,out] dest Pointer by reference to the h receiving the key/value pairs.</span></div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"> *                     if dest is NULL, the src address will simply be copied to dest.</span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"> * \param[in,out] src  Pointer to the h giving up its key/value pairs.</span></div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hashtable__generic.html#gad5db2e2a410acee6f6dc070d884f1fcf">M_hashtable_merge</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> **dest, <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *src);</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;</div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment">/*! Duplicate an existing h.</span></div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;<span class="comment"> * Copying all keys and values. As well as other elements such as callbacks.</span></div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;<span class="comment"> * \param[in] h Hashtable to be copied.</span></div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment"> * \return Duplicated h.</span></div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;M_API <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *<a class="code" href="group__m__hashtable__generic.html#gae2556b10545ee42e6a8dafb5f4635120">M_hashtable_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment">/* @} */</span></div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;</div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment"> * \return Number of items in the h</span></div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;M_API <span class="keywordtype">size_t</span> <a class="code" href="group__m__hashtable__generic.html#gaf989bde17812db14003d0052e5661301">M_hashtable_enumerate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_hashtable_enum_t *hashenum);</div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;</div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment">/*! Retrieve the next item from a h enumeration.</span></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> * If multi-value, keys will appear multiple times as each value will be</span></div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment"> * retrieved individually.</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="comment"> * \param[in]     h        Hashtable being referenced.</span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment"> * \param[in,out] hashenum State variable for tracking the enumeration process.</span></div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment"> * \param[out]    key      Value of next enumerated key. Optional, pass NULL if not needed.</span></div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;<span class="comment"> * \param[out]    value    Value of next enumerated value. Optional, pass NULL if not needed.</span></div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment"> * \return M_TRUE if enumeration succeeded, M_FALSE if no more keys.</span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;M_API M_bool <a class="code" href="group__m__hashtable__generic.html#ga44f4ff607fd064cc3a69fd2f507358ef">M_hashtable_enumerate_next</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h, M_hashtable_enum_t *hashenum, <span class="keyword">const</span> <span class="keywordtype">void</span> **key, <span class="keyword">const</span> <span class="keywordtype">void</span> **value);</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment">/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment">/*! Merge two hashtables together.</span></div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"> * The second (src) h will be destroyed automatically upon completion of this function. Any key/value</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"> * pointers for the h will be directly copied over to the destination h, they will not be</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment"> * duplicated. Any keys which exist in &#39;dest&#39; that also exist in &#39;src&#39; will be overwritten by the &#39;src&#39; value.</span></div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"> * If dest and src are multi-value, all values from src will be copied into dest and the values from</span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"> * dest will not be removed. If dest is not multi-value and src is, then only the last value in src will</span></div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> * be present in dest. If dest is multi-value and src is not, then the value from src will be added to dest.</span></div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"> * A value_equality function in dest is very important to ensure duplicate values are not present in a given</span></div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"> * key with multiple values.</span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment"> * \param[in,out] dest Pointer by reference to the h receiving the key/value pairs.</span></div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment"> *                     if dest is NULL, the src address will simply be copied to dest.</span></div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;<span class="comment"> * \param[in,out] src  Pointer to the h giving up its key/value pairs.</span></div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__hashtable__generic.html#gad5db2e2a410acee6f6dc070d884f1fcf">M_hashtable_merge</a>(<a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> **dest, <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *src);</div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment">/*! Duplicate an existing h.</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment"> * Copying all keys and values. As well as other elements such as callbacks.</span></div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;<span class="comment"> * \param[in] h Hashtable to be copied.</span></div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment"> * \return Duplicated h.</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;M_API <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *<a class="code" href="group__m__hashtable__generic.html#gae2556b10545ee42e6a8dafb5f4635120">M_hashtable_duplicate</a>(<span class="keyword">const</span> <a class="code" href="group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99">M_hashtable_t</a> *h);</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="comment">/* @} */</span></div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="group__m__hashtable__generic_html_gaee21e727a948e6e24ff5098d14ae4628"><div class="ttname"><a href="group__m__hashtable__generic.html#gaee21e727a948e6e24ff5098d14ae4628">M_hashtable_destroy</a></div><div class="ttdeci">void M_hashtable_destroy(M_hashtable_t *h, M_bool destroy_vals) M_FREE(1)</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_ad0f01055ddbf1ca024f71159784c24cd"><div class="ttname"><a href="group__m__hashtable__generic.html#ad0f01055ddbf1ca024f71159784c24cd">M_hashtable_callbacks::value_equality</a></div><div class="ttdeci">M_sort_compar_t value_equality</div><div class="ttdef"><b>Definition:</b> m_hashtable.h:190</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_ad413bbd43e6dc5671f087565acf1addc"><div class="ttname"><a href="group__m__hashtable__generic.html#ad413bbd43e6dc5671f087565acf1addc">M_hashtable_callbacks::key_free</a></div><div class="ttdeci">M_hashtable_free_func key_free</div><div class="ttdef"><b>Definition:</b> m_hashtable.h:184</div></div>
@@ -540,6 +547,7 @@ $(document).ready(function(){initNavTree('m__hashtable_8h_source.html','');});
 <div class="ttc" id="group__m__hashtable__generic_html_structM__hashtable__callbacks"><div class="ttname"><a href="group__m__hashtable__generic.html#structM__hashtable__callbacks">M_hashtable_callbacks</a></div><div class="ttdef"><b>Definition:</b> m_hashtable.h:179</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_structM__hashtable__enum"><div class="ttname"><a href="group__m__hashtable__generic.html#structM__hashtable__enum">M_hashtable_enum</a></div><div class="ttdef"><b>Definition:</b> m_hashtable.h:128</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_ga44f4ff607fd064cc3a69fd2f507358ef"><div class="ttname"><a href="group__m__hashtable__generic.html#ga44f4ff607fd064cc3a69fd2f507358ef">M_hashtable_enumerate_next</a></div><div class="ttdeci">M_bool M_hashtable_enumerate_next(const M_hashtable_t *h, M_hashtable_enum_t *hashenum, const void **key, const void **value)</div></div>
+<div class="ttc" id="group__m__hashtable__generic_html_ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9"><div class="ttname"><a href="group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8aee6067345125f9517387f48428aedef9">M_HASHTABLE_STATIC_SEED</a></div><div class="ttdef"><b>Definition:</b> m_hashtable.h:208</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_ga25b97ca6e0d523397b3c09d9e7434ed7"><div class="ttname"><a href="group__m__hashtable__generic.html#ga25b97ca6e0d523397b3c09d9e7434ed7">M_hashtable_num_collisions</a></div><div class="ttdeci">size_t M_hashtable_num_collisions(const M_hashtable_t *h)</div></div>
 <div class="ttc" id="group__m__sort_html_gacddbc7ac40cf63ca40b081bd44375517"><div class="ttname"><a href="group__m__sort.html#gacddbc7ac40cf63ca40b081bd44375517">M_sort_compar_t</a></div><div class="ttdeci">int(* M_sort_compar_t)(const void *, const void *, void *)</div><div class="ttdef"><b>Definition:</b> m_sort.h:78</div></div>
 <div class="ttc" id="group__m__hashtable__generic_html_ac3023b748b3c5369646d74b2e575e5d6"><div class="ttname"><a href="group__m__hashtable__generic.html#ac3023b748b3c5369646d74b2e575e5d6">M_hashtable_callbacks::value_duplicate_insert</a></div><div class="ttdeci">M_hashtable_duplicate_func value_duplicate_insert</div><div class="ttdef"><b>Definition:</b> m_hashtable.h:186</div></div>
@@ -569,7 +577,7 @@ $(document).ready(function(){initNavTree('m__hashtable_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_a4978744522068604823c107062e0240.html">base</a></li><li class="navelem"><b>m_hashtable.h</b></li>
-    <li class="footer">Generated on Fri Jun 8 2018 20:04:49 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jun 11 2018 15:20:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

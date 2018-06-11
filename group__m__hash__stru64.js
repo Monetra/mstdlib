@@ -11,7 +11,8 @@ var group__m__hash__stru64 =
       [ "M_HASH_STRU64_KEYS_SORTASC", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325bad5ef4519b039c05894ae6a519bac41f2", null ],
       [ "M_HASH_STRU64_KEYS_SORTDESC", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325ba2d01d12fe4b4f2e2457499de5c399777", null ],
       [ "M_HASH_STRU64_MULTI_VALUE", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325bad64accfdd018fef793b024099784fbf1", null ],
-      [ "M_HASH_STRU64_MULTI_GETLAST", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325baf0540ed3c2e4b7b1bb1608171a518350", null ]
+      [ "M_HASH_STRU64_MULTI_GETLAST", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325baf0540ed3c2e4b7b1bb1608171a518350", null ],
+      [ "M_HASH_STRU64_STATIC_SEED", "group__m__hash__stru64.html#gga132cc60bb60c92f92ee8f62a1588325ba39230d87c4fc1900a0be73f9b77c9efc", null ]
     ] ],
     [ "M_hash_stru64_create", "group__m__hash__stru64.html#ga2b1ebc4c078b8fa62dc229a803293079", null ],
     [ "M_hash_stru64_destroy", "group__m__hash__stru64.html#gaf3f4a57db685291771d6ff2832f067db", null ],
