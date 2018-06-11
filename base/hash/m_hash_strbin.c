@@ -83,6 +83,11 @@ M_hash_strbin_t *M_hash_strbin_create(size_t size, M_uint8 fillpct, M_uint32 fla
 		hash_flags |= M_HASHTABLE_MULTI_GETLAST;
 	}
 
+	/* Initialization options. */
+	if (flags & M_HASH_STRBIN_STATIC_SEED) {
+		hash_flags |= M_HASHTABLE_STATIC_SEED;
+	}
+
 	/* We are only dealing in opaque types here, and we don't have any
 	 * metadata of our own to store, so we are only casting one pointer
 	 * type to another.  This is a safe operation */

@@ -137,7 +137,12 @@ M_hashtable_t *M_hashtable_create(size_t size, M_uint8 fillpct,
 	h->flags   = flags;
 
 	/* Set a non-zero seed. */
-	h->key_hash_seed = (M_uint32)M_rand_range(NULL, 1, (M_uint64)(M_UINT32_MAX)+1);
+	if (flags & M_HASHTABLE_STATIC_SEED) {
+		/* FNV1a 32 bit prime. */
+		h->key_hash_seed = 16777619;
+	} else {
+		h->key_hash_seed = (M_uint32)M_rand_range(NULL, 1, (M_uint64)(M_UINT32_MAX)+1);
+	}
 
 	/* Default callbacks */
 	if (key_hash == NULL)

@@ -70,8 +70,15 @@ typedef enum {
 	M_HASH_STRIDX_KEYS_SORTDESC = 1 << 5, /*!< When the keys are ordered sort them using the key_equality function. */
 	M_HASH_STRIDX_MULTI_VALUE   = 1 << 6, /*!< Allow keys to contain multiple values.
 	                                           Sorted in insertion order another sorting is specified. */
-	M_HASH_STRIDX_MULTI_GETLAST = 1 << 7  /*!< When using get and get_direct function get the last value from the list
+	M_HASH_STRIDX_MULTI_GETLAST = 1 << 7, /*!< When using get and get_direct function get the last value from the list
 	                                           when allowing multiple values. The default is to get the first value. */
+	M_HASH_STRIDX_STATIC_SEED   = 1 << 8  /*!< Use a static seed for hash function initialization. This greatly reduces
+	                                           the security of the hashtable and removes collision attack protections.
+	                                           This should only be used as a performance optimization when creating
+	                                           millions of hashtables with static data specifically for quick look up.
+	                                           DO _NOT_ use this flag with any hashtable that could store user
+	                                           generated data! Be very careful about duplicating a hashtable that
+	                                           was created with this flag. All duplicates will use the static seed. */
 } M_hash_stridx_flags_t;
 
 
