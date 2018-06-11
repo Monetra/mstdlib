@@ -149,7 +149,10 @@ M_fs_error_t M_fs_file_open_sys(M_fs_file_t **fd, const char *path, M_uint32 mod
 
 	/* Try to open/create the file. */
 	myfd     = M_malloc_zero(sizeof(*myfd));
-	myfd->fd = CreateFile(norm_path, desired_access, FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, sa_set?&sa:NULL, creation, FILE_ATTRIBUTE_NORMAL, NULL);
+	/* OS buffering is disabled because M_fs handles buffering itself.
+	 * We don't want OS buffering because a log function might need to write to
+	 * a file when capturing a segfault signal. */
+	myfd->fd = CreateFile(norm_path, desired_access, FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, sa_set?&sa:NULL, creation, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_NO_BUFFERING|FILE_FLAG_WRITE_THROUGH, NULL);
 
 	M_fs_perms_destroy(eperms);
 	LocalFree(everyone_sid);
