@@ -203,8 +203,15 @@ typedef enum {
 	M_HASHTABLE_MULTI_VALUE   = 1 << 2, /*!< Allow keys to contain multiple values.
 	                                          Sorted in insertion order another sorting is specified. */
 	M_HASHTABLE_MULTI_SORTED  = 1 << 3, /*!< Allow keys to contain multiple values sorted in ascending order */
-	M_HASHTABLE_MULTI_GETLAST = 1 << 4  /*!< When using the get function will get the last value from the list
+	M_HASHTABLE_MULTI_GETLAST = 1 << 4, /*!< When using the get function will get the last value from the list
 	                                         when allowing multiple values. The default is to get the first value. */
+	M_HASHTABLE_STATIC_SEED   = 1 << 5  /*!< Use a static seed for hash function initialization. This greatly reduces
+	                                         the security of the hashtable and removes collision attack protections.
+	                                         This should only be used as a performance optimization when creating
+	                                         millions of hashtables with static data specifically for quick look up.
+	                                         DO _NOT_ use this flag with any hashtable that could store user
+	                                         generated data! Be very careful about duplicating a hashtable that
+	                                         was created with this flag. All duplicates will use the static seed. */
 } M_hashtable_flags_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
