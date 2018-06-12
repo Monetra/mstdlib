@@ -98,7 +98,6 @@ static void el_many_remove_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, v
 		timer = M_event_timer_oneshot(el, M_rand_range(NULL, 0, 500), M_FALSE, el_many_remove_cb, data);
 		M_list_insert(data->timers, timer);
 	}
-M_printf("cnt=%zu, len=%zu\n", data->count, M_list_len(data->timers));
 	M_thread_mutex_unlock(data->mutex);
 }
 
