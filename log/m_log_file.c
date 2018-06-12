@@ -606,6 +606,7 @@ static void log_emergency_cb(M_log_module_t *mod, const char *msg)
 	msg_len = M_str_len(msg);
 
 	M_fs_file_write(wdata->fstream, (const unsigned char *)msg, msg_len, NULL, M_FS_FILE_RW_FULLBUF);
+	M_fs_file_sync(wdata->fstream, M_FS_FILE_SYNC_OS);
 	wdata->log_file_size += msg_len;
 }
 
