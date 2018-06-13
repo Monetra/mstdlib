@@ -141,7 +141,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		 * driver so we should avoid it */
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
-		20,                           /* max_insert_records    */
+		0,                            /* max_insert_records    */
 		2100,                         /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mssql_resolve_error,          /* cb_resolve_error      */
