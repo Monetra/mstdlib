@@ -69,9 +69,15 @@ typedef struct {
 	} data;
 } odbc_bind_cols_t;
 
+typedef enum {
+	ODBC_CLEAR_NONE   = 0,
+	ODBC_CLEAR_CURSOR = 1 << 0,
+	ODBC_CLEAR_PARAMS = 1 << 1
+} odbc_clear_type_t;
 
 struct M_sql_driver_stmt {
 	SQLHSTMT              stmt;             /*!< ODBC Statement handle */
+	odbc_clear_type_t     needs_clear;      /*!< if ODBC Statement Handle needs to be cleared before reuse */
 	M_sql_driver_conn_t  *dconn;            /*!< Pointer back to parent connection handle */
 
 	odbc_bind_cols_t     *bind_cols;        /*!< Array binding columns/rows         */
@@ -711,8 +717,13 @@ static void odbc_clear_driver_stmt(M_sql_driver_stmt_t *dstmt)
 	dstmt->bind_flat_lens   = NULL;
 	dstmt->bind_cols_status = NULL;
 
-	/* Close the cursor if there is one */
-	SQLCloseCursor(dstmt->stmt);
+	/* Prepare for re-use */
+	if (dstmt->needs_clear & ODBC_CLEAR_CURSOR)
+		SQLFreeStmt(dstmt->stmt, SQL_CLOSE);
+	if (dstmt->needs_clear & ODBC_CLEAR_PARAMS)
+		SQLFreeStmt(dstmt->stmt, SQL_RESET_PARAMS);
+
+	dstmt->needs_clear      = ODBC_CLEAR_NONE;
 }
 
 
@@ -1076,6 +1087,12 @@ static M_sql_error_t odbc_bind_params(M_sql_conn_t *conn, M_sql_driver_stmt_t *d
 	M_sql_driver_conn_t *dconn    = M_sql_driver_conn_get_conn(conn);
 	size_t               num_rows = odbc_num_bind_rows(conn, stmt);
 
+	if (M_sql_driver_stmt_bind_cnt(stmt) == 0 || num_rows == 0)
+		return M_SQL_ERROR_SUCCESS;
+
+	/* We will definitely be binding params here, so need to mark that it needs to be cleared before reuse */
+	dstmt->needs_clear |= ODBC_CLEAR_PARAMS;
+
 	if (num_rows == 1 || dconn->pool_data->profile->is_multival_insert_cd)
 		return odbc_bind_params_flat(dstmt, stmt, num_rows, error, error_size);
 
@@ -1284,6 +1301,9 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 		err = M_SQL_ERROR_SUCCESS;
 		goto done;
 	}
+
+	/* Statement returns results, so it may have a cursor, mark that it may need to be cleared */
+	dstmt->needs_clear |= ODBC_CLEAR_CURSOR;
 
 	err = odbc_fetch_result_metadata(conn, dstmt, stmt, (size_t)num_cols, error, error_size);
 	if (M_sql_error_is_error(err))
