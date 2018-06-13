@@ -135,9 +135,12 @@ static SQLHENV odbc_env_handle         = SQL_NULL_HENV;
 
 static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
+		/* As of SQL 2008, Microsoft can use the comma-delimited format.
+		 * we've seen crashes when using array binding within Microsoft's
+		 * driver so we should avoid it */
 		"Microsoft SQL Server",       /* name                  */
-		M_FALSE,                      /* is_multival_insert_cd */
-		0,                            /* max_insert_records    */
+		M_TRUE,                       /* is_multival_insert_cd */
+		100,                          /* max_insert_records    */
 		0,                            /* unknown_size_ind      */
 		mssql_resolve_error,          /* cb_resolve_error      */
 		mssql_cb_connect_runonce,     /* cb_connect_runonce    */
