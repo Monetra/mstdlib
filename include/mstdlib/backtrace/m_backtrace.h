@@ -41,8 +41,8 @@ __BEGIN_DECLS
  */
 
 
-typedef void (*M_backtrace_filanme_func)(char *buf, size_t buf_len);
-typedef void (*M_backtrace_write_crash_data)(unsigned char *data, size_t len);
+typedef void (*M_backtrace_filanme_func)(char *fname, size_t fname_len);
+typedef void (*M_backtrace_write_crash_data_func)(const unsigned char *data, size_t len);
 typedef void (*M_backtrace_log_emergency_func)(int sig, const char *message);
 typedef void (*M_backtrace_got_nonfatal_func)(int sig);
 typedef void (*M_backtrace_got_crash_func)(int sig);
@@ -64,11 +64,11 @@ typedef enum {
 
 
 struct M_backtrace_callbacks {
-	M_backtrace_filanme_func       get_filename;
-	M_backtrace_write_crash_data   crash_data;
-	M_backtrace_log_emergency_func log_emergency;
-	M_backtrace_got_nonfatal_func  got_nonfatal;
-	M_backtrace_got_crash_func     got_crash;
+	M_backtrace_filanme_func          get_filename;
+	M_backtrace_write_crash_data_func crash_data;
+	M_backtrace_log_emergency_func    log_emergency;
+	M_backtrace_got_nonfatal_func     got_nonfatal;
+	M_backtrace_got_crash_func        got_crash;
 };
 
 
