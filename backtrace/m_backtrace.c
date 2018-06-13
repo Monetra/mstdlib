@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include <m_backtrace_int.h>
+#include "m_backtrace_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
