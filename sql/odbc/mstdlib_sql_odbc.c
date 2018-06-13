@@ -186,8 +186,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"MYSQL",                      /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
-		100,                          /* max_insert_records    */
-		0,                            /* max_bind_params       */
+		0,                            /* max_insert_records    */
+		M_UINT16_MAX,                 /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mysql_resolve_error,          /* cb_resolve_error      */
 		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
@@ -201,8 +201,8 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"MariaDB",                    /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
-		100,                          /* max_insert_records    */
-		0,                            /* max_bind_params       */
+		0,                            /* max_insert_records    */
+		M_UINT16_MAX,                 /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mysql_resolve_error,          /* cb_resolve_error      */
 		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
