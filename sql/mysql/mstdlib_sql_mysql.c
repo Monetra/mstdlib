@@ -371,9 +371,14 @@ static void mysql_cb_disconnect(M_sql_driver_conn_t *conn)
 }
 
 
-static size_t mysql_num_process_rows(size_t max_rows, size_t max_bind_params, size_t num_params_per_row, size_t num_rows)
+static size_t mysql_num_process_rows(size_t num_params_per_row, size_t num_rows)
 {
-	size_t capable_rows;
+	size_t       capable_rows;
+
+	/* === Config Values === */
+	const size_t max_rows        = 0;
+	const size_t max_bind_params = M_UINT16_MAX;
+	/* === */
 
 	if (num_rows == 1)
 		return num_rows;
@@ -391,9 +396,7 @@ static size_t mysql_num_process_rows(size_t max_rows, size_t max_bind_params, si
 		return 1;
 
 	/* Reduce maximum rows to actual number of rows provided, if applicable */
-	max_rows = M_MIN(num_rows, capable_rows);
-
-	return max_rows;
+	return M_MIN(num_rows, capable_rows);
 }
 
 
@@ -401,7 +404,7 @@ static char *mysql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 {
 	(void)conn;
 	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD,
-	                                num_params, mysql_num_process_rows(0, M_UINT16_MAX, num_params, num_rows),
+	                                num_params, mysql_num_process_rows(num_params, num_rows),
 	                                error, error_size);
 }
 
