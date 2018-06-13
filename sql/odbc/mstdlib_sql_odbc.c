@@ -865,21 +865,21 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	}
 
 	/* Specify the number of elements in each parameter array.  */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)num_rows), 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)num_rows), SQL_IS_UINTEGER);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, num_rows)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
 	/* Specify an array in which to return the status of each set of parameters */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, dstmt->bind_cols_status, 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, dstmt->bind_cols_status, SQL_IS_POINTER);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_STATUS_PTR)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
 	/* Specify a variable to indicate how many param sets (rows) were actually processed */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, &dstmt->bind_params_processed, 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, &dstmt->bind_params_processed, SQL_IS_POINTER);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR)", NULL, dstmt, rc, error, error_size);
 		goto done;
