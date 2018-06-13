@@ -91,8 +91,14 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 	}
 
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE) {
-		/* Write the data and flush to force what we have to disk. */
+		/* Write the data. */
 		WriteFile(mfile, buf, len, NULL, NULL);
+
+		/* Write new lines. */
+		len = M_snprintf(buf, sizeof(buf), "\r\n");
+		WriteFile(mfile, buf, len, NULL, NULL);
+
+		/* Flush to force what we have to disk. */
 		FlushFileBuffers(mfile);
 	} else {
 		/* Log to log function. */
