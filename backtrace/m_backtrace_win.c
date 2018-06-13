@@ -263,7 +263,7 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 		len += M_snprintf(msg-len, sizeof(msg)-len, " NTSTATUS code that resulted in the exception: %ld",  (long)ExceptionInfo->ExceptionRecord->ExceptionInformation[2]);
 	}
 	if (M_backtrace_cbs.log_emergency != NULL)
-		M_backtrace_cbs.log_emergency(msg);
+		M_backtrace_cbs.log_emergency(ExceptionInfo->ExceptionRecord->ExceptionCode, msg);
 
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE) {
 		M_backtrace_cbs.get_filename(fname, sizeof(fname));
