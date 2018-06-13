@@ -725,7 +725,14 @@ static M_bool M_hashtable_enumerate_next_unordered(const M_hashtable_t *h, M_has
 	M_uint32                   i;
 	size_t                     idx;
 	struct M_hashtable_bucket *ptr;
-	const void                *myvalue; 
+	const void                *myvalue;
+
+	if (key) {
+		*key = NULL;
+	}
+	if (value) {
+		*value = NULL;
+	}
 
 	/* Go though each bucket looking for something in them. */
 	for (i=hashenum->entry.unordered.hash; i<h->size; i++) {
