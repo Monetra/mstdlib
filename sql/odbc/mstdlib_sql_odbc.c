@@ -782,9 +782,8 @@ static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType,
 }
 
 
-static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, size_t row, size_t col, size_t col_size, odbc_bind_cols_t *bcol)
+static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type, size_t row, size_t col, size_t col_size, odbc_bind_cols_t *bcol)
 {
-	M_sql_data_type_t    type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
 
 	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
@@ -856,6 +855,13 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	dstmt->bind_cols_cnt    = num_cols;
 	dstmt->bind_cols_status = M_malloc_zero(sizeof(*dstmt->bind_cols_status) * num_rows);
 
+	/* Specify use of column-wise binding, should be default */
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN)", NULL, dstmt, rc, error, error_size);
+		goto done;
+	}
+
 	/* Specify the number of elements in each parameter array.  */
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)num_rows), 0);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
@@ -915,7 +921,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 		}
 
 		for (row = 0; row < num_rows; row++) {
-			odbc_bind_set_value_array(stmt, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
+			odbc_bind_set_value_array(stmt, type, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
 		}
 
 		rc = SQLBindParameter(
