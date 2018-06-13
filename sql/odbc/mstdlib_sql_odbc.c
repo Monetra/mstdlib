@@ -96,6 +96,7 @@ typedef struct {
 	const char                               *name;                  /*!< SQL Server Name, used for matching (uses substring matching) */
 	M_bool                                    is_multival_insert_cd; /*!< Uses comma-delimited multi-value insertion */
 	size_t                                    max_insert_records;    /*!< Maximum number of records that can be inserted at once. 0=unlimited */
+	size_t                                    max_bind_params;       /*!< Maximum number of bind params in a query. 0=unlimited */
 	size_t                                    unknown_size_ind;      /*!< Some DBs (PostgreSQL) use a length value to indicate a max or unknown size for results like 255 */
 
 	M_sql_driver_cb_resolve_error_t           cb_resolve_error;      /*!< Required. Dereference server-specific error code */
@@ -141,6 +142,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		20,                           /* max_insert_records    */
+		2100,                         /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mssql_resolve_error,          /* cb_resolve_error      */
 		mssql_cb_connect_runonce,     /* cb_connect_runonce    */
@@ -155,6 +157,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"DB2",                        /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
 		0,                            /* max_insert_records    */
+		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		db2_resolve_error,            /* cb_resolve_error      */
 		NULL,                         /* cb_connect_runonce    */
@@ -169,6 +172,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"ORACLE",                     /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
 		0,                            /* max_insert_records    */
+		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		oracle_resolve_error,         /* cb_resolve_error      */
 		oracle_cb_connect_runonce,    /* cb_connect_runonce    */
@@ -183,6 +187,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"MYSQL",                      /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		100,                          /* max_insert_records    */
+		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mysql_resolve_error,          /* cb_resolve_error      */
 		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
@@ -197,6 +202,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"MariaDB",                    /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		100,                          /* max_insert_records    */
+		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mysql_resolve_error,          /* cb_resolve_error      */
 		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
@@ -211,6 +217,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		"PostgreSQL",                 /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		100,                          /* max_insert_records    */
+		0,                            /* max_bind_params       */
 		255,                          /* unknown_size_ind      */
 		pgsql_resolve_error,          /* cb_resolve_error      */
 		pgsql_cb_connect_runonce,     /* cb_connect_runonce    */
@@ -221,7 +228,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ NULL, M_FALSE, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+	{ NULL, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
 
@@ -687,6 +694,40 @@ static M_sql_error_t odbc_cb_connect_runonce(M_sql_conn_t *conn, M_sql_driver_co
 }
 
 
+static size_t odbc_num_process_rows(M_bool is_multival_insert_cd, size_t max_rows, size_t max_bind_params, size_t num_params_per_row, size_t num_rows)
+{
+	size_t capable_rows;
+
+	/* Array binding */
+	if (!is_multival_insert_cd) {
+		if (max_rows && num_rows > max_rows)
+			return max_rows;
+		return num_rows;
+	}
+
+	/* Comma delimited */
+	if (num_rows == 1)
+		return num_rows;
+
+	if (num_params_per_row == 0)
+		return 1;
+
+	/* Reduce to max rows */
+	if (max_rows != 0 && num_rows > max_rows)
+		num_rows = max_rows;
+
+	/* Get max rows based on total maximum parameters compared to params per row */
+	capable_rows = ((size_t)max_bind_params) / num_params_per_row;
+	if (capable_rows == 0)
+		return 1;
+
+	/* Reduce maximum rows to actual number of rows provided, if applicable */
+	max_rows = M_MIN(num_rows, capable_rows);
+
+	return max_rows;
+}
+
+
 static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)
 {
 	M_sql_driver_conn_t             *dconn = M_sql_driver_conn_get_conn(conn);
@@ -695,8 +736,10 @@ static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t n
 	if (dconn->pool_data->profile->is_multival_insert_cd)
 		flags |= M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD;
 
-	if (dconn->pool_data->profile->max_insert_records)
-		num_rows = M_MIN(num_rows, dconn->pool_data->profile->max_insert_records);
+	num_rows = odbc_num_process_rows(dconn->pool_data->profile->is_multival_insert_cd,
+		dconn->pool_data->profile->max_insert_records,
+		dconn->pool_data->profile->max_bind_params,
+		num_params, num_rows);
 
 	return M_sql_driver_queryformat(query, flags, num_params, num_rows, error, error_size);
 }
