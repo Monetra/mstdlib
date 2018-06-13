@@ -24,6 +24,8 @@
 #ifndef __M_BACKTRACE_INT_H__
 #define __M_BACKTRACE_INT_H__
 
+#include "m_config.h"
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_backtrace.h>
 

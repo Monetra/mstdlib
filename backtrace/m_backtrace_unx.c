@@ -21,6 +21,8 @@
  * THE SOFTWARE.
  */
 
+#include "m_backtrace_int.h"
+
 #ifdef HAVE_EXECINFO_H
 #  include <execinfo.h>
 #  include <sys/types.h>
@@ -29,8 +31,6 @@
 #endif
 #include <signal.h>
 #include <unistd.h>
-
-#include <m_backtrace_int.h>
 
 static void nonfatal_sighandler(int sig)
 {
@@ -55,6 +55,7 @@ static void crash_sighandler(int sig)
 	int    nbufptrs;
 	int    fd     = -1;
 	char   fname[255];
+	int    i;
 
 	/* Grab backtrace. */
 	nptrs    = backtrace(buffer, BTSIZE);
@@ -81,7 +82,7 @@ static void crash_sighandler(int sig)
 	} else {
 		/* Log to log function. */
 		lines = backtrace_symbols(bufptr, nbufptrs);
-		for (i=0; i<nbufptrs) {
+		for (i=0; i<nbufptrs; i++) {
 			M_backtrace_cbs.crash_data((unsigned char *)lines[i], M_str_len(lines[i]));
 		}
 		M_free(lines);

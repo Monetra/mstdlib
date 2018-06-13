@@ -21,12 +21,12 @@
  * THE SOFTWARE.
  */
 
+#include "m_backtrace_int.h"
+
 #include <windows.h>
 #include <imagehlp.h>
 #include <strsafe.h>
 #include <Dbghelp.h>
-
-#include <m_backtrace_int.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
