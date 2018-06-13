@@ -55,6 +55,7 @@ option(MSTDLIB_INSTALL_EXPORTS "Install export file"                            
 option(MSTDLIB_BUILD_TESTS     "Build tests"                                            TRUE)
 option(MSTDLIB_BUILD_DOCS      "Build doxygen docs"                                     TRUE)
 option(MSTDLIB_USE_VALGRIND    "Run tests with valgrind when running 'make check'"      ${valgrind_default})
+option(MSTDLIB_BUILD_BACKTRACE "Build backtrace module"                                 TRUE)
 option(MSTDLIB_BUILD_FORMATS   "Build formats module"                                   TRUE)
 option(MSTDLIB_BUILD_THREAD    "Build thread module"                                    TRUE)
 option(MSTDLIB_BUILD_IO        "Build io module"                                        TRUE)
@@ -263,6 +264,10 @@ if (NOT ANDROID)
 	include(LargeFiles)
 endif ()
 
+if (MSTDLIB_BUILD_BACKTRACE)
+	check_include_files(execinfo.h HAVE_EXECINFO_H)
+endif ()
+
 if (MSTDLIB_BUILD_THREAD)
 	# Need to prefer pthreads on platforms that may have more threading choices (e.g. Solaris)
 	set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -436,6 +441,13 @@ message(STATUS "Building MSTDLIB base... Enabled")
 # Selective component building. If not being built setting the not build flag
 # because something could be disabled due to missing dependencies and we don't
 # want headers being installed unless it's going to be built.
+if (MSTDLIB_BUILD_BACKTRACE)
+	message(STATUS "Building MSTDLIB backtrace ... Enabled")
+	add_subdirectory(backtrace)
+else ()
+	message(STATUS "Building MSTDLIB backtrace ... Disabled")
+endif ()
+
 if (MSTDLIB_BUILD_FORMATS)
 	message(STATUS "Building MSTDLIB formats ... Enabled")
 	add_subdirectory(formats)
