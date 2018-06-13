@@ -105,6 +105,8 @@ static void crash_sighandler(int sig)
 			message = "Unknown fatal error";
 			break;
 	}
+	if (M_backtrace_cbs.log_emergency != NULL)
+		M_backtrace_cbs.log_emergency(sig, message);
 
 	signal(sig, SIG_IGN);
 
