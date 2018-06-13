@@ -138,7 +138,10 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		/* As of SQL 2008, Microsoft can use the comma-delimited format.
 		 * we've seen crashes when using array binding within Microsoft's
-		 * driver so we should avoid it */
+		 * driver so we should avoid it.  Apparently other people see the
+		 * same crash as we see:
+		 * https://www.easysoft.com/support/kb/kb00808.html (Issue #2)
+		 */
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		20,                           /* max_insert_records    */
@@ -905,10 +908,13 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 
 	dstmt->bind_cols        = M_malloc_zero(sizeof(*dstmt->bind_cols) * num_cols);
 	dstmt->bind_cols_cnt    = num_cols;
-	/* Notice that SQLUINTEGER even though bind_cols_status is SQLUSMALLINT?  We saw on valgrind on error
-	 * conditions where they'd write past the array bounds.  We think internally their driver may be using
-	 * an SQLUINTEGER instead of SQLUSMALLINT */
-	dstmt->bind_cols_status = M_malloc_zero(sizeof(SQLUINTEGER) * num_rows);
+	/* NOTE: Microsoft's SQLServer driver appears to have a bug where it can exceed the bounds of
+	 * the array passed for SQL_ATTR_PARAM_STATUS_PTR as it appears to igore SQL_ATTR_PARAMSET_SIZE
+	 * when reusing a query handle.  Just an FYI, there's not much we can do, we've switched
+	 * to using comma-delimited inserts.  An identical bug report here:
+	 * https://www.easysoft.com/support/kb/kb00808.html (Issue #2)
+	 */
+	dstmt->bind_cols_status = M_malloc_zero(sizeof(*dstmt->bind_cols_status) * num_rows);
 
 	/* Specify use of column-wise binding, should be default */
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
