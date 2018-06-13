@@ -858,7 +858,7 @@ START_TEST(check_httpr10)
 	hr  = gen_reader(ht);
 	res = M_http_reader_read(hr, (const unsigned char *)http10_data+len, M_str_len(http10_data)-len, &len_read);
 	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed message %d: %d", 3, res);
-	len += len_read;
+	/*len += len_read;*/
 
 	gval = M_buf_peek(ht->body);
 	eval = "Message 3";
