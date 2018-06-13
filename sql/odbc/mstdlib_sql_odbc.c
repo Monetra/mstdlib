@@ -76,14 +76,15 @@ typedef enum {
 } odbc_clear_type_t;
 
 struct M_sql_driver_stmt {
-	SQLHSTMT              stmt;             /*!< ODBC Statement handle */
-	odbc_clear_type_t     needs_clear;      /*!< if ODBC Statement Handle needs to be cleared before reuse */
-	M_sql_driver_conn_t  *dconn;            /*!< Pointer back to parent connection handle */
+	SQLHSTMT              stmt;                  /*!< ODBC Statement handle */
+	odbc_clear_type_t     needs_clear;           /*!< if ODBC Statement Handle needs to be cleared before reuse */
+	M_sql_driver_conn_t  *dconn;                 /*!< Pointer back to parent connection handle */
 
-	odbc_bind_cols_t     *bind_cols;        /*!< Array binding columns/rows         */
-	size_t                bind_cols_cnt;    /*!< Count of columns                   */
-	SQLUSMALLINT         *bind_cols_status; /*!< Array of status's, one per row     */
-	SQLLEN               *bind_flat_lens;   /*!< Array of lens for flat or comma-delimited style binding */
+	odbc_bind_cols_t     *bind_cols;             /*!< Array binding columns/rows         */
+	size_t                bind_cols_cnt;         /*!< Count of columns                   */
+	SQLUSMALLINT         *bind_cols_status;      /*!< Array of status's, one per row     */
+	SQLULEN               bind_params_processed; /*!< Output of how many param sets (rows) were processed */
+	SQLLEN               *bind_flat_lens;        /*!< Array of lens for flat or comma-delimited style binding */
 };
 
 
@@ -712,10 +713,11 @@ static void odbc_clear_driver_stmt(M_sql_driver_stmt_t *dstmt)
 	M_free(dstmt->bind_cols_status);
 	M_free(dstmt->bind_flat_lens);
 
-	dstmt->bind_cols        = NULL;
-	dstmt->bind_cols_cnt    = 0;
-	dstmt->bind_flat_lens   = NULL;
-	dstmt->bind_cols_status = NULL;
+	dstmt->bind_cols             = NULL;
+	dstmt->bind_cols_cnt         = 0;
+	dstmt->bind_cols_status      = NULL;
+	dstmt->bind_params_processed = 0;
+	dstmt->bind_flat_lens        = NULL;
 
 	/* Prepare for re-use */
 	if (dstmt->needs_clear & ODBC_CLEAR_CURSOR)
@@ -869,7 +871,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	/* Specify the number of elements in each parameter array.  */
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)num_rows), 0);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMSET_SIZE)", NULL, dstmt, rc, error, error_size);
+		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, num_rows)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
@@ -877,6 +879,13 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, dstmt->bind_cols_status, 0);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_STATUS_PTR)", NULL, dstmt, rc, error, error_size);
+		goto done;
+	}
+
+	/* Specify a variable to indicate how many param sets (rows) were actually processed */
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, &dstmt->bind_params_processed, 0);  
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
@@ -1023,6 +1032,13 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, NULL, 0);  
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_STATUS_PTR=NULL)", NULL, dstmt, rc, error, error_size);
+		goto done;
+	}
+
+	/* UNSET value in which to return the number of parameter sets processed */
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, NULL, 0);  
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR=NULL)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
@@ -1267,11 +1283,12 @@ static M_sql_error_t odbc_fetch_result_metadata(M_sql_conn_t *conn, M_sql_driver
 
 static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, size_t *rows_executed, char *error, size_t error_size)
 {
-	M_sql_driver_stmt_t *dstmt    = M_sql_driver_stmt_get_stmt(stmt);
-	M_sql_error_t        err      = M_SQL_ERROR_SUCCESS;
+	M_sql_driver_stmt_t *dstmt         = M_sql_driver_stmt_get_stmt(stmt);
+	M_sql_driver_conn_t *dconn         = M_sql_driver_conn_get_conn(conn);
+	M_sql_error_t        err           = M_SQL_ERROR_SUCCESS;
 	SQLRETURN            rc;
 	SQLRETURN            exec_rc;
-	SQLSMALLINT          num_cols = 0;
+	SQLSMALLINT          num_cols      = 0;
 
 	/* Calc number of rows we'll try to insert at once */
 	*rows_executed = odbc_num_bind_rows(conn, stmt); 
@@ -1280,6 +1297,30 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 	if (exec_rc != SQL_SUCCESS && exec_rc != SQL_SUCCESS_WITH_INFO && exec_rc != SQL_NO_DATA) {
 		err = odbc_format_error("SQLExecute failed", NULL, dstmt, exec_rc, error, error_size);
 		goto done;
+	}
+
+	if (*rows_executed > 1 && !dconn->pool_data->profile->is_multival_insert_cd) {
+		size_t i;
+
+		/* Validate */
+		if (dstmt->bind_params_processed != *rows_executed) {
+			M_snprintf(error, error_size, "SQLExecute expected to process %zu rows, only processed %zu", *rows_executed, (size_t)dstmt->bind_params_processed);
+			err = M_SQL_ERROR_QUERY_FAILURE;
+			goto done;
+		}
+
+		for (i=0; i<*rows_executed; i++) {
+			if (dstmt->bind_cols_status[i] != SQL_PARAM_SUCCESS && dstmt->bind_cols_status[i] != SQL_PARAM_SUCCESS_WITH_INFO) {
+				const char *reason = "UNKNOWN";
+				if (dstmt->bind_cols_status[i] == SQL_PARAM_ERROR)
+					reason = "ERROR";
+				if (dstmt->bind_cols_status[i] == SQL_PARAM_UNUSED)
+					reason = "UNUSED";
+				M_snprintf(error, error_size, "SQLExecute row %zu of %zu failure: %s", i, *rows_executed, reason);
+				err = M_SQL_ERROR_QUERY_FAILURE;
+				goto done;
+			}
+		}
 	}
 
 
