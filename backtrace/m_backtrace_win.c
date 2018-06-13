@@ -24,8 +24,6 @@
 #include "m_backtrace_int.h"
 
 #include <windows.h>
-#include <imagehlp.h>
-#include <strsafe.h>
 #include <Dbghelp.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -39,8 +37,8 @@
 static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 {
 	/* name up to 256 chars This struct is of variable length though so
-     *  it must be declared as a raw byte buffer.
-     */
+	 *  it must be declared as a raw byte buffer.
+	 */
 	static char        symbolBuffer[ sizeof(SYMBOL_INFO) + (256 * sizeof(TCHAR))];
 	PSYMBOL_INFO       symbol = (PSYMBOL_INFO)symbolBuffer;
 	IMAGEHLP_MODULE64  module;
@@ -72,7 +70,7 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 			frameOffset,            /* Address to get symbol for: instruction pointer register */
 			&displacement64,        /* Displacement from the beginning of the symbol: whats this for ? */
 			symbol                  /* Where to save the symbol */
-		);
+			);
 
 	len = M_snprintf(buf, sizeof(buf), "%zu - ", idx);
 
@@ -138,21 +136,21 @@ static void win32_output_stacktrace(HANDLE mfile, CONTEXT *context)
 	frame.AddrStack.Offset = context->IntSp;
 	frame.AddrStack.Mode   = AddrModeFlat;
 #else
-	#error "Unsupported platform"
+#error "Unsupported platform"
 #endif
 
 	while (StackWalk64(
-			MachineType,
-			GetCurrentProcess(),
-			GetCurrentThread(),
-			&frame,
-			context,
-			0,
-			SymFunctionTableAccess64,
-			SymGetModuleBase64,
-			0
-		)
-	) {
+				MachineType,
+				GetCurrentProcess(),
+				GetCurrentThread(),
+				&frame,
+				context,
+				0,
+				SymFunctionTableAccess64,
+				SymGetModuleBase64,
+				0
+				)
+		  ) {
 		win32_output_function(mfile, idx++, frame.AddrPC.Offset);
 		/* Prevent dumping too many due to recursion or bad stack */
 		if (idx > 25)
@@ -253,11 +251,11 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 
 	len = M_snprintf(msg, sizeof(msg), "%s at address 0x%08llx", error, (M_uint64)ExceptionInfo->ExceptionRecord->ExceptionAddress);
 	if ((ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
-	    ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_IN_PAGE_ERROR) &&
-	    sizeof(msg)-len > 0) {
+				ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_IN_PAGE_ERROR) &&
+			sizeof(msg)-len > 0) {
 		len += M_snprintf(msg+len, sizeof(msg)-len, " Invalid operation: %s at address 0x%08llx",
-			win32_opdesc(ExceptionInfo->ExceptionRecord->ExceptionInformation[0]),
-			(M_uint64)ExceptionInfo->ExceptionRecord->ExceptionInformation[1]);
+				win32_opdesc(ExceptionInfo->ExceptionRecord->ExceptionInformation[0]),
+				(M_uint64)ExceptionInfo->ExceptionRecord->ExceptionInformation[1]);
 	}
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_IN_PAGE_ERROR && sizeof(msg)-len > 0) {
 		len += M_snprintf(msg-len, sizeof(msg)-len, " NTSTATUS code that resulted in the exception: %ld",  (long)ExceptionInfo->ExceptionRecord->ExceptionInformation[2]);
@@ -280,11 +278,11 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 	} else {
 		win32_output_function(mfile, 0,
 #ifdef _M_IX86
-			ExceptionInfo->ContextRecord->Eip
+				ExceptionInfo->ContextRecord->Eip
 #else
-			ExceptionInfo->ContextRecord->Rip
+				ExceptionInfo->ContextRecord->Rip
 #endif
-		);
+				);
 	}
 
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE)
@@ -298,7 +296,7 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static LONG WINAPI make_minidump(EXCEPTION_POINTERS *e)
+static LONG WINAPI win32_make_minidump(EXCEPTION_POINTERS *e)
 {
 	char                           fname[MAX_PATH];
 	HANDLE                         mfile;
@@ -319,19 +317,19 @@ static LONG WINAPI make_minidump(EXCEPTION_POINTERS *e)
 
 	if (M_backtrace_flags & M_BACKTRACE_EXTENDED_DUMP) {
 		dtype = (MINIDUMP_TYPE)(MiniDumpWithDataSegs|MiniDumpWithFullMemory|MiniDumpWithHandleData|MiniDumpScanMemory|
-			MiniDumpWithIndirectlyReferencedMemory|MiniDumpWithProcessThreadData|MiniDumpWithPrivateReadWriteMemory);
+				MiniDumpWithIndirectlyReferencedMemory|MiniDumpWithProcessThreadData|MiniDumpWithPrivateReadWriteMemory);
 	} else {
 		dtype = (MINIDUMP_TYPE)(MiniDumpWithIndirectlyReferencedMemory|MiniDumpScanMemory|MiniDumpWithDataSegs);
 	}
 
 	MiniDumpWriteDump(
-		GetCurrentProcess(),
-		GetCurrentProcessId(),
-		mfile,
-		dtype,
-		e ? &exceptionInfo : NULL,
-		NULL,
-		NULL);
+			GetCurrentProcess(),
+			GetCurrentProcessId(),
+			mfile,
+			dtype,
+			e ? &exceptionInfo : NULL,
+			NULL,
+			NULL);
 
 	FlushFileBuffers(mfile);
 	CloseHandle(mfile);
