@@ -25,19 +25,15 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool                       M_backtrace_enabled = M_FALSE;
 M_backtrace_type_t           M_backtrace_type    = M_BACKTRACE_TYPE_BACKTRACE;
 M_uint32                     M_backtrace_flags   = M_BACKTRACE_NONE;
 struct M_backtrace_callbacks M_backtrace_cbs;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_backtrace_enable(M_backtrace_type_t type, const M_list_u64_t *nonfatal, const M_list_u64_t *ignore, struct M_backtrace_callbacks *cbs, M_uint32 flags)
+M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks *cbs, M_uint32 flags)
 {
 	M_bool ret;
-
-	if (M_backtrace_enabled)
-		return M_FALSE;
 
 	if (cbs == NULL)
 		return M_FALSE;
@@ -66,7 +62,7 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, const M_list_u64_t *nonfatal,
 		return M_FALSE;
 	}
 
-	ret = M_backtrace_setup_handling(type, nonfatal, ignore);
+	ret = M_backtrace_setup_handling(type);
 	if (ret) {
 		/* Type. */
 		M_backtrace_type  = type;
@@ -80,9 +76,6 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, const M_list_u64_t *nonfatal,
 		M_backtrace_cbs.log_emergency = cbs->log_emergency;
 		M_backtrace_cbs.got_nonfatal  = cbs->got_nonfatal;
 		M_backtrace_cbs.got_crash     = cbs->got_crash;
-
-		/* We have fully initialized. */
-		M_backtrace_enabled = M_TRUE;
 	} else {
 		M_backtrace_type    = M_BACKTRACE_TYPE_BACKTRACE;
 		M_backtrace_flags   = M_BACKTRACE_NONE;

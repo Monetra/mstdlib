@@ -364,3 +364,18 @@ M_bool M_backtrace_setup_handling(M_backtrace_type_t type, const M_list_u64_t *n
 
 	return M_TRUE;
 }
+
+void M_backtrace_set_ignore_signal(int sig)
+{
+	(void)sig;
+}
+
+void M_backtrace_set_nonfatal_signal(int sig)
+{
+	(void)sig;
+}
+
+void M_backtrace_set_crash_signal(int sig)
+{
+	(void)sig;
+}

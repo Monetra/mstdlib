@@ -58,8 +58,9 @@ typedef enum {
 
 typedef enum {
 	M_BACKTRACE_NONE = 0,
-	M_BACKTRACE_WRITE_FILE    = 1 << 0,
-	M_BACKTRACE_EXTENDED_DUMP = 1 << 1
+	M_BACKTRACE_WRITE_FILE       = 1 << 0,
+	M_BACKTRACE_EXTENDED_DUMP    = 1 << 1,
+	M_BACKTRACE_SETUP_CRASH_ONLY = 1 << 2
 } M_backtrace_flags_t;
 
 
@@ -74,7 +75,16 @@ struct M_backtrace_callbacks {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_bool M_backtrace_enable(M_backtrace_type_t type, const M_list_u64_t *nonfatal, const M_list_u64_t *ignore, struct M_backtrace_callbacks *cbs, M_uint32 flags);
+M_API M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks *cbs, M_uint32 flags);
+
+/* Don't do anything with these. */
+M_API void M_backtrace_set_ignore_signal(int sig);
+
+/* Non fatal call nonfatal_func cb but does not generate a backtrace. */
+M_API void M_backtrace_set_nonfatal_signal(int sig);
+
+/* Generate a backtrace and exit. */
+M_API void M_backtrace_set_crash_signal(int sig);
 
 /*! @} */
 
