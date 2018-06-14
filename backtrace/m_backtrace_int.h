@@ -31,7 +31,6 @@
 
 M_bool M_backtrace_setup_handling(M_backtrace_type_t type);
 
-extern M_bool                       M_backtrace_enabled;
 extern M_backtrace_type_t           M_backtrace_type;
 extern M_uint32                     M_backtrace_flags;
 extern struct M_backtrace_callbacks M_backtrace_cbs;
