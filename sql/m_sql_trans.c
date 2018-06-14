@@ -30,7 +30,7 @@ struct M_sql_trans {
 	M_timeval_t   start_tv;
 	M_timeval_t   last_tv;
 	M_sql_conn_t *conn;
-	char          error[256];
+	char          error[512];
 };
 
 
@@ -51,7 +51,7 @@ M_sql_error_t M_sql_trans_begin(M_sql_trans_t **trans, M_sql_connpool_t *pool, M
 	M_sql_error_t         err;
 	const M_sql_driver_t *driver;
 	M_sql_conn_t         *conn;
-	char                  myerror[256];
+	char                  myerror[512];
 	M_bool                rollback = M_FALSE;
 
 	/* We need a real error buffer */
@@ -150,7 +150,7 @@ M_sql_error_t M_sql_trans_commit(M_sql_trans_t *trans, char *error, size_t error
 {
 	M_sql_error_t         err;
 	const M_sql_driver_t *driver;
-	char                  myerror[256];
+	char                  myerror[512];
 
 	/* Trace needs a real error buffer */
 	if (error == NULL || error_size == 0) {

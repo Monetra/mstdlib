@@ -1640,7 +1640,7 @@ static M_sql_error_t odbc_end_tran(M_sql_conn_t *conn, M_bool is_rollback, char 
 
 static M_sql_error_t odbc_cb_rollback(M_sql_conn_t *conn)
 {
-	char           error[256];
+	char           error[512];
 	M_sql_error_t  err   = odbc_end_tran(conn, M_TRUE, error, sizeof(error));
 
 	if (M_sql_error_is_error(err)) {

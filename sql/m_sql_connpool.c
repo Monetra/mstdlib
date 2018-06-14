@@ -265,7 +265,7 @@ static M_sql_error_t M_sql_driver_load(M_sql_driver_t **driver, const char *name
 	char               module_name[256];
 	char               module_symbol[256];
 	M_sql_driver_t  *(*get_driver)(void) = NULL;
-	char               myerror[256];
+	char               myerror[512];
 
 	M_sql_init();
 
@@ -469,7 +469,7 @@ static M_sql_error_t M_sql_conn_create(M_sql_conn_t **conn, M_sql_connpool_t *po
 {
 	M_sql_error_t          err;
 	M_sql_connpool_data_t *pool_data = is_readonly?&pool->pool_readonly:&pool->pool_primary;
-	char                   myerror[256];
+	char                   myerror[512];
 
 	/* For tracing, we need a real buffer */
 	if (error == NULL || error_size == 0) {

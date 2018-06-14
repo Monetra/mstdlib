@@ -245,7 +245,7 @@ struct M_sql_stmt {
 
 	/* Error handling */
 	M_sql_error_t last_error;      /*!< Last recorded error */
-	char          error_msg[256];  /*!< Last recorded error message */
+	char          error_msg[512];  /*!< Last recorded error message */
 
 	/* State Tracking */
 	M_sql_driver_stmt_t *dstmt;    /*!< DB-driver specific statement handle used for execution */
