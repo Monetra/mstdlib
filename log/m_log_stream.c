@@ -135,7 +135,7 @@ static void log_emergency_cb(M_log_module_t *mod, const char *msg)
 	writer   = mod->module_thunk;
 	iostream = M_async_writer_get_thunk(writer);
 
-	M_fprintf(iostream, "%s", msg);
+	M_fprintf(iostream, "%s%s", msg, M_async_writer_get_line_end(writer));
 }
 
 

@@ -315,6 +315,14 @@ M_API M_bool M_async_writer_write(M_async_writer_t *writer, const char *msg);
 M_API void *M_async_writer_get_thunk(M_async_writer_t *writer);
 
 
+/*! Return the line ending string in use by the writer.
+ *
+ * \param[in] writer object we're operating on
+ * \return           line ending string ("\\r\\n", "\\n", etc)
+ */
+M_API const char *M_async_writer_get_line_end(M_async_writer_t *writer);
+
+
 /*! @} */
 
 __END_DECLS
