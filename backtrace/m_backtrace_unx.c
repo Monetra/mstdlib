@@ -45,7 +45,8 @@ static void ignore_sighandler(int sig)
 
 static void crash_sighandler(int sig)
 {
-	const char *message;
+	const char *message = NULL;
+	char        temp[256];
 #ifdef HAVE_EXECINFO_H
 #  define BTSIZE 100
 	void  *buffer[BTSIZE];
@@ -90,6 +91,9 @@ static void crash_sighandler(int sig)
 #endif
 
 	switch (sig) {
+		case SIGPIPE:
+			message = "Broken pipe";
+			break;
 		case SIGSEGV:
 			message = "SEGFAULT DETECTED, IMMEDIATE SHUTDOWN";
 			break;
@@ -103,7 +107,8 @@ static void crash_sighandler(int sig)
 			message = "Bus Error";
 			break;
 		default:
-			message = "Unknown fatal error";
+			M_snprintf(temp, sizeof(temp), "Unknown fatal error: Signal %d", sig);
+			message = temp;
 			break;
 	}
 	if (M_backtrace_cbs.log_emergency != NULL)
@@ -119,47 +124,63 @@ static void crash_sighandler(int sig)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_backtrace_setup_handling(M_backtrace_type_t type, const M_list_u64_t *nonfatal, const M_list_u64_t *ignore)
+M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 {
-	struct sigaction act;
-	int              sig;
-	size_t           len;
-	size_t           i;
-
 	/* Only backtrace supported. */
 	(void)type;
 
-	/* Setup nonfatal. */
-	act.sa_handler = nonfatal_sighandler;
-	act.sa_flags   = 0;
-	sigemptyset(&act.sa_mask);
+	if (!(M_backtrace_flags & M_BACKTRACE_SETUP_CRASH_ONLY)) {
+		/* Setup default ignore signals. */
+		M_backtrace_set_ignore_signal(SIGCHLD);
+		M_backtrace_set_ignore_signal(SIGUSR1);
+		M_backtrace_set_ignore_signal(SIGUSR2);
 
-	len = M_list_u64_len(nonfatal);
-	for (i=0; i<len; i++) {
-		sig = (int)M_list_u64_at(nonfatal, i);
-		sigaction(sig, &act, NULL);
+		/* Setup default nonfatal signals. */
+		M_backtrace_set_nonfatal_signal(SIGINT);
+		M_backtrace_set_nonfatal_signal(SIGQUIT);
+		M_backtrace_set_nonfatal_signal(SIGTERM);
+		M_backtrace_set_nonfatal_signal(SIGXFSZ);
 	}
 
-	/* Setup ignore. */
+	/* Setup default crash signals. */
+	M_backtrace_set_crash_signal(SIGPIPE);
+	M_backtrace_set_crash_signal(SIGSEGV);
+	M_backtrace_set_crash_signal(SIGBUS);
+	M_backtrace_set_crash_signal(SIGILL);
+	M_backtrace_set_crash_signal(SIGFPE);
+
+	return M_TRUE;
+}
+
+void M_backtrace_set_ignore_signal(int sig)
+{
+	struct sigaction act;
+
 	act.sa_handler = ignore_sighandler;
 	act.sa_flags   = 0;
 	sigemptyset(&act.sa_mask);
 
-	len = M_list_u64_len(ignore);
-	for (i=0; i<len; i++) {
-		sig = (int)M_list_u64_at(ignore, i);
-		sigaction(sig, &act, NULL);
-	}
+	sigaction(sig, &act, NULL);
+}
 
-	/* Setup crash. */
+void M_backtrace_set_nonfatal_signal(int sig)
+{
+	struct sigaction act;
+
+	act.sa_handler = nonfatal_sighandler;
+	act.sa_flags   = 0;
+	sigemptyset(&act.sa_mask);
+
+	sigaction(sig, &act, NULL);
+}
+
+void M_backtrace_set_crash_signal(int sig)
+{
+	struct sigaction act;
+
 	act.sa_handler = crash_sighandler;
 	act.sa_flags   = 0;
 	sigemptyset(&act.sa_mask);
 
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS, &act, NULL);
-	sigaction(SIGILL, &act, NULL);
-	sigaction(SIGFPE, &act, NULL);
-
-	return M_TRUE;
+	sigaction(sig, &act, NULL);
 }

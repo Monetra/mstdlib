@@ -29,7 +29,7 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_backtrace.h>
 
-M_bool M_backtrace_setup_handling(M_backtrace_type_t type, const M_list_u64_t *nonfatal, const M_list_u64_t *ignore);
+M_bool M_backtrace_setup_handling(M_backtrace_type_t type);
 
 extern M_bool                       M_backtrace_enabled;
 extern M_backtrace_type_t           M_backtrace_type;
