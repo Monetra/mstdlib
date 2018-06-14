@@ -86,7 +86,7 @@ static void crash_sighandler(int sig)
 		for (i=0; i<nbufptrs; i++) {
 			M_backtrace_cbs.crash_data((unsigned char *)lines[i], M_str_len(lines[i]));
 		}
-		M_free(lines);
+		free(lines);
 	}
 #endif
 
