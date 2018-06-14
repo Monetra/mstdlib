@@ -71,6 +71,8 @@
 #cmakedefine _LARGE_FILES
 #cmakedefine _LARGE_FILE_SOURCE
 
+#cmakedefine HAVE_EXECINFO_H
+
 #cmakedefine HAVE_ATOMIC_H
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_PTHREAD_H
