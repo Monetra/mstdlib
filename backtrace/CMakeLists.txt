@@ -6,8 +6,6 @@ project(mstdlib_backtrace
 )
 set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
-include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
-
 
 # Build the library.
 set(libtype SHARED)
@@ -70,7 +68,6 @@ else ()
 		target_link_libraries(${PROJECT_NAME} PRIVATE
 			${Backtrace_LIBRARIES}
 		)
-		install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin ${Backtrace_LIBRARIES})
 	endif ()
 endif ()
 
