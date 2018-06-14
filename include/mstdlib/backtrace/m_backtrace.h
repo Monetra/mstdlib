@@ -60,7 +60,7 @@ typedef enum {
 	M_BACKTRACE_NONE = 0,
 	M_BACKTRACE_WRITE_FILE       = 1 << 0,
 	M_BACKTRACE_EXTENDED_DUMP    = 1 << 1,
-	M_BACKTRACE_SETUP_CRASH_ONLY = 1 << 2
+	M_BACKTRACE_CAPTURE_NONCRASH = 1 << 2
 } M_backtrace_flags_t;
 
 
