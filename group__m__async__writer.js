@@ -20,5 +20,6 @@ var group__m__async__writer =
     [ "M_async_writer_set_command_block", "group__m__async__writer.html#ga03ef80dbf2d9fea2d3c534d4492d4d2b", null ],
     [ "M_async_writer_set_max_bytes", "group__m__async__writer.html#gaf5f4ad018ea2337b2379a211f5a413eb", null ],
     [ "M_async_writer_write", "group__m__async__writer.html#gaeecf314b86ab2738f05d0fd4786c3151", null ],
-    [ "M_async_writer_get_thunk", "group__m__async__writer.html#ga0cb06fa9399d47f0af75a405bf74a262", null ]
+    [ "M_async_writer_get_thunk", "group__m__async__writer.html#ga0cb06fa9399d47f0af75a405bf74a262", null ],
+    [ "M_async_writer_get_line_end", "group__m__async__writer.html#ga19463095dad3d3c447ffcc77bde9fdb1", null ]
 ];

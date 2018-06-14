@@ -152,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaeecf314b86ab2738f05d0fd4786c3151"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0cb06fa9399d47f0af75a405bf74a262"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__async__writer.html#ga0cb06fa9399d47f0af75a405bf74a262">M_async_writer_get_thunk</a> (<a class="el" href="group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a">M_async_writer_t</a> *writer)</td></tr>
 <tr class="separator:ga0cb06fa9399d47f0af75a405bf74a262"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga19463095dad3d3c447ffcc77bde9fdb1"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__async__writer.html#ga19463095dad3d3c447ffcc77bde9fdb1">M_async_writer_get_line_end</a> (<a class="el" href="group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a">M_async_writer_t</a> *writer)</td></tr>
+<tr class="separator:ga19463095dad3d3c447ffcc77bde9fdb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Helper class that manages an internal worker thread and message queue for asynchrnous writes.</p>
@@ -697,12 +699,36 @@ Ownership of the returned thunk remains with the M_async_writer_t object, so thi
 
 </div>
 </div>
+<a class="anchor" id="ga19463095dad3d3c447ffcc77bde9fdb1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_async_writer_get_line_end </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a">M_async_writer_t</a> *&#160;</td>
+          <td class="paramname"><em>writer</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Return the line ending string in use by the writer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">writer</td><td>object we're operating on </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>line ending string ("\\r\\n", "\\n", etc) </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jun 14 2018 16:53:58 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 14 2018 18:26:30 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

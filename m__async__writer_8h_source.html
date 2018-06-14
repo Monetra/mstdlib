@@ -415,11 +415,19 @@ $(document).ready(function(){initNavTree('m__async__writer_8h_source.html','');}
 <div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;M_API <span class="keywordtype">void</span> *<a class="code" href="group__m__async__writer.html#ga0cb06fa9399d47f0af75a405bf74a262">M_async_writer_get_thunk</a>(<a class="code" href="group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a">M_async_writer_t</a> *writer);</div>
 <div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;</div>
 <div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* M_ASYNC_WRITER_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="comment">/*! Return the line ending string in use by the writer.</span></div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="comment"> * \param[in] writer object we&#39;re operating on</span></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="comment"> * \return           line ending string (&quot;\\r\\n&quot;, &quot;\\n&quot;, etc)</span></div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;M_API <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="group__m__async__writer.html#ga19463095dad3d3c447ffcc77bde9fdb1">M_async_writer_get_line_end</a>(<a class="code" href="group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a">M_async_writer_t</a> *writer);</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* M_ASYNC_WRITER_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__async__writer_html_gga2050110d5eddd35906ea52dc2917069fa76c4f2e34cead575fd3498549a6b60f0"><div class="ttname"><a href="group__m__async__writer.html#gga2050110d5eddd35906ea52dc2917069fa76c4f2e34cead575fd3498549a6b60f0">M_ASYNC_WRITER_LINE_END_NATIVE</a></div><div class="ttdef"><b>Definition:</b> m_async_writer.h:44</div></div>
 <div class="ttc" id="group__m__async__writer_html_ga2050110d5eddd35906ea52dc2917069f"><div class="ttname"><a href="group__m__async__writer.html#ga2050110d5eddd35906ea52dc2917069f">M_async_writer_line_end_mode_t</a></div><div class="ttdeci">M_async_writer_line_end_mode_t</div><div class="ttdef"><b>Definition:</b> m_async_writer.h:43</div></div>
 <div class="ttc" id="group__m__async__writer_html_ga462b98151cb0092482d600fadb2102e3"><div class="ttname"><a href="group__m__async__writer.html#ga462b98151cb0092482d600fadb2102e3">M_async_writer_set_command</a></div><div class="ttdeci">M_bool M_async_writer_set_command(M_async_writer_t *writer, M_uint64 write_command, M_bool force)</div></div>
@@ -435,6 +443,7 @@ $(document).ready(function(){initNavTree('m__async__writer_8h_source.html','');}
 <div class="ttc" id="group__m__async__writer_html_ga535ac1cc2e7f922226984bea6680113e"><div class="ttname"><a href="group__m__async__writer.html#ga535ac1cc2e7f922226984bea6680113e">M_async_writer_destroy_blocking</a></div><div class="ttdeci">M_bool M_async_writer_destroy_blocking(M_async_writer_t *writer, M_bool flush, M_uint64 timeout_ms)</div></div>
 <div class="ttc" id="group__m__async__writer_html_gaeecf314b86ab2738f05d0fd4786c3151"><div class="ttname"><a href="group__m__async__writer.html#gaeecf314b86ab2738f05d0fd4786c3151">M_async_writer_write</a></div><div class="ttdeci">M_bool M_async_writer_write(M_async_writer_t *writer, const char *msg)</div></div>
 <div class="ttc" id="group__m__async__writer_html_gga2050110d5eddd35906ea52dc2917069fa12a7de1dc54ca7043b3a1b2a0876a437"><div class="ttname"><a href="group__m__async__writer.html#gga2050110d5eddd35906ea52dc2917069fa12a7de1dc54ca7043b3a1b2a0876a437">M_ASYNC_WRITER_LINE_END_UNIX</a></div><div class="ttdef"><b>Definition:</b> m_async_writer.h:45</div></div>
+<div class="ttc" id="group__m__async__writer_html_ga19463095dad3d3c447ffcc77bde9fdb1"><div class="ttname"><a href="group__m__async__writer.html#ga19463095dad3d3c447ffcc77bde9fdb1">M_async_writer_get_line_end</a></div><div class="ttdeci">const char * M_async_writer_get_line_end(M_async_writer_t *writer)</div></div>
 <div class="ttc" id="group__m__async__writer_html_ga0cb06fa9399d47f0af75a405bf74a262"><div class="ttname"><a href="group__m__async__writer.html#ga0cb06fa9399d47f0af75a405bf74a262">M_async_writer_get_thunk</a></div><div class="ttdeci">void * M_async_writer_get_thunk(M_async_writer_t *writer)</div></div>
 <div class="ttc" id="group__m__async__writer_html_gaf5f4ad018ea2337b2379a211f5a413eb"><div class="ttname"><a href="group__m__async__writer.html#gaf5f4ad018ea2337b2379a211f5a413eb">M_async_writer_set_max_bytes</a></div><div class="ttdeci">void M_async_writer_set_max_bytes(M_async_writer_t *writer, size_t max_bytes)</div></div>
 <div class="ttc" id="group__m__async__writer_html_ga02fac912d5bb6cd5cb58f9c6048cf157"><div class="ttname"><a href="group__m__async__writer.html#ga02fac912d5bb6cd5cb58f9c6048cf157">M_async_writer_start</a></div><div class="ttdeci">M_bool M_async_writer_start(M_async_writer_t *writer)</div></div>
@@ -446,7 +455,7 @@ $(document).ready(function(){initNavTree('m__async__writer_8h_source.html','');}
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_031f61c33603d41b850d8b453fe541c6.html">log</a></li><li class="navelem"><b>m_async_writer.h</b></li>
-    <li class="footer">Generated on Thu Jun 14 2018 16:53:57 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jun 14 2018 18:26:29 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
