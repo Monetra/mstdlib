@@ -34,8 +34,11 @@
 
 static void nonfatal_sighandler(int sig)
 {
-	if (M_backtrace_cbs.got_nonfatal != NULL)
+	if (M_backtrace_cbs.got_nonfatal == NULL) {
+		signal(sig, SIG_IGN);
+	} else {
 		M_backtrace_cbs.got_nonfatal(sig);
+	}
 }
 
 static void ignore_sighandler(int sig)
@@ -43,7 +46,7 @@ static void ignore_sighandler(int sig)
 	signal(sig, SIG_IGN);
 }
 
-static void crash_sighandler(int sig)
+static void fatal_sighandler(int sig)
 {
 	const char *message = NULL;
 	char        temp[256];
@@ -84,7 +87,7 @@ static void crash_sighandler(int sig)
 		/* Log to log function. */
 		lines = backtrace_symbols(bufptr, nbufptrs);
 		for (i=0; i<nbufptrs; i++) {
-			M_backtrace_cbs.crash_data((unsigned char *)lines[i], M_str_len(lines[i]));
+			M_backtrace_cbs.trace_data((unsigned char *)lines[i], M_str_len(lines[i]));
 		}
 		free(lines);
 	}
@@ -116,8 +119,8 @@ static void crash_sighandler(int sig)
 
 	signal(sig, SIG_IGN);
 
-	if (M_backtrace_cbs.got_crash != NULL)
-		M_backtrace_cbs.got_crash(sig);
+	if (M_backtrace_cbs.got_fatal != NULL)
+		M_backtrace_cbs.got_fatal(sig);
 
 	exit(1);
 }
@@ -142,12 +145,12 @@ M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 		M_backtrace_set_nonfatal_signal(SIGXFSZ);
 	}
 
-	/* Setup default crash signals. */
-	M_backtrace_set_crash_signal(SIGPIPE);
-	M_backtrace_set_crash_signal(SIGSEGV);
-	M_backtrace_set_crash_signal(SIGBUS);
-	M_backtrace_set_crash_signal(SIGILL);
-	M_backtrace_set_crash_signal(SIGFPE);
+	/* Setup default fatal signals. */
+	M_backtrace_set_fatal_signal(SIGPIPE);
+	M_backtrace_set_fatal_signal(SIGSEGV);
+	M_backtrace_set_fatal_signal(SIGBUS);
+	M_backtrace_set_fatal_signal(SIGILL);
+	M_backtrace_set_fatal_signal(SIGFPE);
 
 	return M_TRUE;
 }
@@ -174,11 +177,11 @@ void M_backtrace_set_nonfatal_signal(int sig)
 	sigaction(sig, &act, NULL);
 }
 
-void M_backtrace_set_crash_signal(int sig)
+void M_backtrace_set_fatal_signal(int sig)
 {
 	struct sigaction act;
 
-	act.sa_handler = crash_sighandler;
+	act.sa_handler = fatal_sighandler;
 	act.sa_flags   = 0;
 	sigemptyset(&act.sa_mask);
 

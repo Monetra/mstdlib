@@ -54,9 +54,9 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks 
 			break;
 	}
 
-	/* Not writing a file requires the crash data callback.
+	/* Not writing a file requires the trace data callback.
  	 * Writing a file or dump (can only write to a file) requires filename callback. */
-	if ((!(flags & M_BACKTRACE_WRITE_FILE) && cbs->crash_data == NULL) ||
+	if ((!(flags & M_BACKTRACE_WRITE_FILE) && cbs->trace_data == NULL) ||
 			((type == M_BACKTRACE_TYPE_DUMP || flags & M_BACKTRACE_WRITE_FILE) && cbs->get_filename == NULL))
 	{
 		return M_FALSE;
@@ -72,10 +72,10 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks 
 
 		/* Callbacks. */
 		M_backtrace_cbs.get_filename  = cbs->get_filename;
-		M_backtrace_cbs.crash_data    = cbs->crash_data;
+		M_backtrace_cbs.trace_data    = cbs->trace_data;
 		M_backtrace_cbs.log_emergency = cbs->log_emergency;
 		M_backtrace_cbs.got_nonfatal  = cbs->got_nonfatal;
-		M_backtrace_cbs.got_crash     = cbs->got_crash;
+		M_backtrace_cbs.got_fatal     = cbs->got_fatal;
 	} else {
 		M_backtrace_type    = M_BACKTRACE_TYPE_BACKTRACE;
 		M_backtrace_flags   = M_BACKTRACE_NONE;

@@ -42,10 +42,10 @@ __BEGIN_DECLS
 
 
 typedef void (*M_backtrace_filanme_func)(char *fname, size_t fname_len);
-typedef void (*M_backtrace_write_crash_data_func)(const unsigned char *data, size_t len);
+typedef void (*M_backtrace_trace_data_func)(const unsigned char *data, size_t len);
 typedef void (*M_backtrace_log_emergency_func)(int sig, const char *message);
 typedef void (*M_backtrace_got_nonfatal_func)(int sig);
-typedef void (*M_backtrace_got_crash_func)(int sig);
+typedef void (*M_backtrace_got_fatal_func)(int sig);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -65,11 +65,11 @@ typedef enum {
 
 
 struct M_backtrace_callbacks {
-	M_backtrace_filanme_func          get_filename;
-	M_backtrace_write_crash_data_func crash_data;
-	M_backtrace_log_emergency_func    log_emergency;
-	M_backtrace_got_nonfatal_func     got_nonfatal;
-	M_backtrace_got_crash_func        got_crash;
+	M_backtrace_filanme_func       get_filename;
+	M_backtrace_trace_data_func    trace_data;
+	M_backtrace_log_emergency_func log_emergency;
+	M_backtrace_got_nonfatal_func  got_nonfatal;
+	M_backtrace_got_fatal_func     got_fatal;
 };
 
 
@@ -80,11 +80,11 @@ M_API M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_call
 /* Don't do anything with these. */
 M_API void M_backtrace_set_ignore_signal(int sig);
 
-/* Non fatal call nonfatal_func cb but does not generate a backtrace. */
+/* Non fatal call nonfatal_func cb but does not generate a backtrace. Up to callback to ignore. If no cb will be ignored. */
 M_API void M_backtrace_set_nonfatal_signal(int sig);
 
 /* Generate a backtrace and exit. */
-M_API void M_backtrace_set_crash_signal(int sig);
+M_API void M_backtrace_set_fatal_signal(int sig);
 
 /*! @} */
 
