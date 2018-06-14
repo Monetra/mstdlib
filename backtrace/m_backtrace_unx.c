@@ -129,7 +129,7 @@ M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 	/* Only backtrace supported. */
 	(void)type;
 
-	if (!(M_backtrace_flags & M_BACKTRACE_SETUP_CRASH_ONLY)) {
+	if (M_backtrace_flags & M_BACKTRACE_CAPTURE_NONCRASH) {
 		/* Setup default ignore signals. */
 		M_backtrace_set_ignore_signal(SIGCHLD);
 		M_backtrace_set_ignore_signal(SIGUSR1);
