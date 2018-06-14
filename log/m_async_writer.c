@@ -38,7 +38,7 @@ struct M_async_writer {
 	size_t              max_bytes;     /* maximum number of text bytes allowed in queue (does not include overhead). */
 	M_uint64            write_command; /* 0 indicates no command, valid commands must be non-zero. */
 	M_bool              force_command; /* execute write callback on next received command, even if message queue is empty */
-	const char         *line_end;
+	const char         *line_end;      /* set once on writer creation, never modified after that */
 
 	M_async_write_cb_t          write_cb;
 	void                       *write_thunk; /* thunk that gets passed to write_cb. */
@@ -692,4 +692,13 @@ void *M_async_writer_get_thunk(M_async_writer_t *writer)
 		return NULL;
 	}
 	return writer->write_thunk;
+}
+
+
+const char *M_async_writer_get_line_end(M_async_writer_t *writer)
+{
+	if (writer == NULL) {
+		return "\n";
+	}
+	return writer->line_end;
 }
