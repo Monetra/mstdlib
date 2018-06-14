@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['backtrace',['Backtrace',['../group__m__backtrace.html',1,'']]],
+  ['backtrace',['Backtrace',['../group__m__backtrace__trace.html',1,'']]],
   ['binary_20data',['Binary data',['../group__m__bin.html',1,'']]],
   ['binary_20conversion',['Binary Conversion',['../group__m__bincodec.html',1,'']]],
   ['bitwise_20buffered_20data_20builder',['Bitwise Buffered Data Builder',['../group__m__bit__buf.html',1,'']]],

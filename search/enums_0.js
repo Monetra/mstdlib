@@ -2,6 +2,8 @@ var searchData=
 [
   ['m_5fandroid_5flog_5fpriority_5ft',['M_android_log_priority_t',['../group__m__log__common.html#ga5beb4e09edf76a7f8fa85898e26892ab',1,'m_log.h']]],
   ['m_5fasync_5fwriter_5fline_5fend_5fmode_5ft',['M_async_writer_line_end_mode_t',['../group__m__async__writer.html#ga2050110d5eddd35906ea52dc2917069f',1,'m_async_writer.h']]],
+  ['m_5fbacktrace_5fflags_5ft',['M_backtrace_flags_t',['../group__m__backtrace__trace.html#ga746e9db320b8cb6642e05583eecd3e0a',1,'m_backtrace.h']]],
+  ['m_5fbacktrace_5ftype_5ft',['M_backtrace_type_t',['../group__m__backtrace__trace.html#ga39f7f77ec463c24ed641319dd582124b',1,'m_backtrace.h']]],
   ['m_5fbincodec_5fcodec_5ft',['M_bincodec_codec_t',['../group__m__bincodec.html#ga5027615e4d1ee64763432dff195490e0',1,'m_bincodec.h']]],
   ['m_5fbit_5fbuf_5fpad_5ft',['M_bit_buf_pad_t',['../group__m__bit__buf.html#ga13c8cbc06199bff5786f20097e2087fa',1,'m_bit_buf.h']]],
   ['m_5fbuf_5ftransform_5ftype',['M_BUF_TRANSFORM_TYPE',['../group__m__buf.html#ga9b046b0c64eceb5bc9c3d690e1602056',1,'m_buf.h']]],

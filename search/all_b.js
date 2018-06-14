@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['log_5femergency',['log_emergency',['../group__m__backtrace__trace.html#aefe0b4de01a1d7f8e80d3c8da8cb763e',1,'M_backtrace_callbacks']]],
   ['loopback_20_28simulation_2ftest_29_20io_20functions',['Loopback (Simulation/Test) IO functions',['../group__m__io__loopback.html',1,'']]],
   ['lists_20_28dynamic_20arrays_29',['Lists (Dynamic Arrays)',['../group__m__list.html',1,'']]],
   ['list_20_2d_20binary',['List - Binary',['../group__m__list__bin.html',1,'']]],

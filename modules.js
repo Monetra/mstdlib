@@ -1,6 +1,7 @@
 var modules =
 [
     [ "Base", "group__mstdlib__base.html", "group__mstdlib__base" ],
+    [ "Backtrace", "group__m__backtrace.html", "group__m__backtrace" ],
     [ "Data Formats", "group__m__formats.html", "group__m__formats" ],
     [ "Event Based I/O Subsystem", "group__m__eventio.html", "group__m__eventio" ],
     [ "Logging Subsystem", "group__m__log.html", "group__m__log" ],

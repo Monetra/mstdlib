@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['m_5fbacktrace_5fcallbacks',['M_backtrace_callbacks',['../group__m__backtrace__trace.html#structM__backtrace__callbacks',1,'']]],
   ['m_5fcache_5fcallbacks',['M_cache_callbacks',['../group__m__cache__generic.html#structM__cache__callbacks',1,'']]],
   ['m_5fdecimal_5ft',['M_decimal_t',['../group__m__decimal.html#structM__decimal__t',1,'']]],
   ['m_5fhashtable_5fcallbacks',['M_hashtable_callbacks',['../group__m__hashtable__generic.html#structM__hashtable__callbacks',1,'']]],
