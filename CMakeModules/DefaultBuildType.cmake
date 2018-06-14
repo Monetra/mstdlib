@@ -25,7 +25,7 @@ set(build_options
 )
 
 set(default_build_type
-	Release
+	RelWithDebInfo
 )
 
 string(REPLACE ";" ", " build_options_str "${build_options}")
