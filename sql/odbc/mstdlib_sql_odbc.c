@@ -728,6 +728,19 @@ static size_t odbc_num_process_rows(M_bool is_multival_insert_cd, size_t max_row
 }
 
 
+static size_t odbc_num_bind_rows(M_sql_conn_t *conn, M_sql_stmt_t *stmt) 
+{
+	M_sql_driver_conn_t *dconn    = M_sql_driver_conn_get_conn(conn);
+	return odbc_num_process_rows(
+		dconn->pool_data->profile->is_multival_insert_cd,
+		dconn->pool_data->profile->max_insert_records,
+		dconn->pool_data->profile->max_bind_params,
+		M_sql_driver_stmt_bind_cnt(stmt),
+		M_sql_driver_stmt_bind_rows(stmt)
+	);
+}
+
+
 static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)
 {
 	M_sql_driver_conn_t             *dconn = M_sql_driver_conn_get_conn(conn);
@@ -1125,7 +1138,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 
 			if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 				char prefix[256];
-				M_snprintf(prefix, sizeof(prefix), "SQLBindParameter(row: %zu, col: %zu) failed", row, i);
+				M_snprintf(prefix, sizeof(prefix), "SQLBindParameter(idx: %zu, row: %zu, col: %zu) failed", idx+1, row, i);
 				err = odbc_format_error(prefix, NULL, dstmt, rc, error, error_size);
 				goto done;
 			}
@@ -1134,18 +1147,6 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 
 done:
 	return err;
-}
-
-
-static size_t odbc_num_bind_rows(M_sql_conn_t *conn, M_sql_stmt_t *stmt) 
-{
-	M_sql_driver_conn_t *dconn    = M_sql_driver_conn_get_conn(conn);
-	size_t               num_rows = M_sql_driver_stmt_bind_rows(stmt);
-
-	if (dconn->pool_data->profile->max_insert_records) 
-		num_rows = M_MIN(dconn->pool_data->profile->max_insert_records, num_rows);
-
-	return num_rows;
 }
 
 
