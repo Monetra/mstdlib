@@ -348,11 +348,8 @@ static LONG WINAPI win32_make_minidump(EXCEPTION_POINTERS *e)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_backtrace_setup_handling(M_backtrace_type_t type, const M_list_u64_t *nonfatal, const M_list_u64_t *ignore)
+M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 {
-	(void)nonfatal;
-	(void)ignore;
-
 	switch (type) {
 		case M_BACKTRACE_TYPE_BACKTRACE:
 			SetUnhandledExceptionFilter(win32_exception_handler);
