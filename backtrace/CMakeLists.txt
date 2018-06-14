@@ -8,80 +8,81 @@ set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
 include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
-set(Backtrace_LIBRARIES "")
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" AND HAVE_EXECINFO_H)
-	find_package(Backtrace REQUIRED)
+
+# Build the library.
+set(libtype SHARED)
+if (MSTDLIB_STATIC)
+	set(libtype STATIC)
 endif ()
 
-
-set(sources
+add_library(${PROJECT_NAME} ${libtype}
 	m_backtrace.c
 )
 
-if (WIN32 OR MINGW)
-	list(APPEND sources
-		m_backtrace_win.c
-	)
-	SET(Backtrace_LIBRARIES imagehlp dbghelp)
-else ()
-	list(APPEND sources
-		m_backtrace_unx.c
-	)
-endif ()
 
-# Build the library.
-if (MSTDLIB_STATIC)
-	add_library(${PROJECT_NAME} STATIC
-		${sources}
-	)
-	target_compile_definitions(${PROJECT_NAME}
-		PUBLIC MSTDLIB_STATIC
-	)
-	if (MSTDLIB_STATIC_PIC)
-		set_target_properties(${PROJECT_NAME} PROPERTIES
-			POSITION_INDEPENDENT_CODE TRUE
-		)
-	endif ()
-else ()
-	add_library(${PROJECT_NAME} SHARED
-		${sources}
-	)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		POSITION_INDEPENDENT_CODE TRUE
-	)
-endif ()
-
-# Add current directory as a private include directory, so we can find internal headers.
+# General settings.
 target_include_directories(${PROJECT_NAME}
 	PUBLIC  "$<INSTALL_INTERFACE:${MSTDLIB_INSTALL_LOCATION_HEADERS}>"
 	        "$<BUILD_INTERFACE:${MSTDLIB_TOPLEVEL_DIR}/include>"
 	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-# Link dependencies from other modules.
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::base
 	PRIVATE Mstdlib::config
-		${Backtrace_LIBRARIES}
 )
 
-# Versioning on the library.
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	VERSION   ${PROJECT_VERSION}
-	SOVERSION ${PROJECT_SOVERSION}
+	VERSION     ${PROJECT_VERSION}
+	SOVERSION   ${PROJECT_SOVERSION}
 	EXPORT_NAME backtrace
 )
 
-# Windows does not normally prefix libraries with "lib", but it seems that CMake on
-# windows when using MINGW does, override that behavior.
-if (WIN32 AND MINGW)
+if (MSTDLIB_STATIC)
+	target_compile_definitions(${PROJECT_NAME}
+		PUBLIC MSTDLIB_STATIC
+	)
+endif ()
+
+if ((NOT MSTDLIB_STATIC) OR MSTDLIB_STATIC_PIC)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		POSITION_INDEPENDENT_CODE TRUE
+	)
+endif ()
+
+
+# Platform-specific settings.
+if (WIN32)
+	target_sources(${PROJECT_NAME} PRIVATE
+		m_backtrace_win.c
+	)
+	target_link_libraries(${PROJECT_NAME} PRIVATE
+		imagehlp
+		dbghelp
+	)
+else ()
+	target_sources(${PROJECT_NAME} PRIVATE
+		m_backtrace_unx.c
+	)
+
+	if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND HAVE_EXECINFO_H)
+		find_package(Backtrace REQUIRED)
+		target_link_libraries(${PROJECT_NAME} PRIVATE
+			${Backtrace_LIBRARIES}
+		)
+		install_deplibs("${MSTDLIB_INSTALL_LOCATION_LIBS}" bin ${Backtrace_LIBRARIES})
+	endif ()
+endif ()
+
+# Visual Studio does not normally prefix libraries with "lib", but it seems MinGW does, override that behavior.
+if (MINGW)
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		PREFIX        ""
 		IMPORT_PREFIX ""
 	)
 endif ()
 
-convert_mingw_implibs_to_vs(mstdlib_tls)
+convert_mingw_implibs_to_vs(${PROJECT_NAME})
 
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)

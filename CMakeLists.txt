@@ -206,6 +206,7 @@ check_include_files(time.h              HAVE_TIME_H)
 check_include_files(ucontext.h          HAVE_UCONTEXT_H)
 check_include_files(unistd.h            HAVE_UNISTD_H)
 check_include_files(valgrind/valgrind.h HAVE_VALGRIND_H)
+check_include_files(execinfo.h          HAVE_EXECINFO_H)
 # Include order matters for these windows files.
 check_include_files("winsock2.h;windows.h"            HAVE_WINSOCK2_H)
 check_include_files("winsock2.h;ws2tcpip.h;windows.h" HAVE_WS2TCPIP_H)
