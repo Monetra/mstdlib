@@ -29,6 +29,8 @@ M_backtrace_type_t           M_backtrace_type    = M_BACKTRACE_TYPE_BACKTRACE;
 M_uint32                     M_backtrace_flags   = M_BACKTRACE_NONE;
 struct M_backtrace_callbacks M_backtrace_cbs;
 
+static M_bool                M_backtrace_enabled = M_FALSE;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks *cbs, M_uint32 flags)
@@ -36,6 +38,9 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks 
 	M_bool ret;
 
 	if (cbs == NULL)
+		return M_FALSE;
+
+	if (M_backtrace_enabled)
 		return M_FALSE;
 
 	/* Ensure we don't have some arbitrary value passed in as the type. */
@@ -76,6 +81,9 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks 
 		M_backtrace_cbs.log_emergency = cbs->log_emergency;
 		M_backtrace_cbs.got_nonfatal  = cbs->got_nonfatal;
 		M_backtrace_cbs.got_fatal     = cbs->got_fatal;
+
+		/* Mark backtracing as enabled. */
+		M_backtrace_enabled = M_TRUE;
 	} else {
 		M_backtrace_type    = M_BACKTRACE_TYPE_BACKTRACE;
 		M_backtrace_flags   = M_BACKTRACE_NONE;
