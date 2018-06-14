@@ -102,7 +102,7 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 		FlushFileBuffers(mfile);
 	} else {
 		/* Log to log function. */
-		M_backtrace_cbs.crash_data((unsigned char *)buf, len);
+		M_backtrace_cbs.trace_data((unsigned char *)buf, len);
 	}
 }
 
@@ -294,8 +294,8 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE)
 		CloseHandle(mfile);
 
-	if (M_backtrace_cbs.got_crash != NULL)
-		M_backtrace_cbs.got_crash(ExceptionInfo->ExceptionRecord->ExceptionCode);
+	if (M_backtrace_cbs.got_fatal != NULL)
+		M_backtrace_cbs.got_fatal(ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -340,8 +340,8 @@ static LONG WINAPI win32_make_minidump(EXCEPTION_POINTERS *e)
 	FlushFileBuffers(mfile);
 	CloseHandle(mfile);
 
-	if (M_backtrace_cbs.got_crash != NULL)
-		M_backtrace_cbs.got_crash(e ? e->ExceptionRecord->ExceptionCode : -1);
+	if (M_backtrace_cbs.got_fatal != NULL)
+		M_backtrace_cbs.got_fatal(e ? e->ExceptionRecord->ExceptionCode : -1);
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -372,7 +372,7 @@ void M_backtrace_set_nonfatal_signal(int sig)
 	(void)sig;
 }
 
-void M_backtrace_set_crash_signal(int sig)
+void M_backtrace_set_fatal_signal(int sig)
 {
 	(void)sig;
 }
