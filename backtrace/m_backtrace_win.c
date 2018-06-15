@@ -75,11 +75,14 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 	len = M_snprintf(buf, sizeof(buf), "%zu - ", idx);
 
 	if (gotModuleInfo && sizeof(buf)-len > 0) {
-		len += M_snprintf(buf+len, sizeof(buf)-len, "%s!", module.ImageName);
+		len += M_snprintf(buf+len, sizeof(buf)-len, "%s", module.ImageName);
 	}
 
 	if (sizeof(buf)-len > 0) {
-		len += M_snprintf(buf+len, sizeof(buf)-len, "[0x%08llx]", (M_uint64)frameOffset);
+		/* We want the offset from the image base because the frameOffset is from the
+ 		 * binary but a PDB file will use a virtual offset relative to BaseOfImage making
+		 * the frameOffset incorrect when debugging. */
+		len += M_snprintf(buf+len, sizeof(buf)-len, " + %llu", (M_uint64)frameOffset-module.BaseOfImage);
 	}
 
 	if (gotSymbolInfo) {
