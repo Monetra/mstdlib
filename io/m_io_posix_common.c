@@ -96,6 +96,7 @@ M_bool M_io_posix_errormsg(int err, char *error, size_t err_len)
 	const char    *const_temp;
 
 	M_mem_set(buf, 0, sizeof(buf));
+	M_mem_set(error, 0, err_len);
 
 	if (err == 0)
 		return M_FALSE;
