@@ -36,8 +36,22 @@ typedef enum {
 #if 0
 static void sm_tracer(M_state_machine_trace_t trace, M_uint64 mndescr, const char *mdescr, M_uint64 sndescr, const char *sdescr, const char *fdescr, M_uint64 id, M_state_machine_status_t status, M_bool run_sub, M_uint64 next_id, void *thunk)
 {
-	const char *t = NULL;
+	//const char *t = NULL;
 
+	(void)trace;
+	(void)mndescr;
+	(void)mdescr;
+	(void)sndescr;
+	(void)sdescr;
+	(void)fdescr;
+	(void)id;
+	(void)status;
+	(void)run_sub;
+	(void)next_id;
+	(void)thunk;
+
+M_printf("==== %s\n", fdescr);
+#if 0
 	switch (trace) {
 		case M_STATE_MACHINE_TRACE_NONE:
 			t = "None:    ";
@@ -48,13 +62,13 @@ static void sm_tracer(M_state_machine_trace_t trace, M_uint64 mndescr, const cha
 		case M_STATE_MACHINE_TRACE_MACHINEEXIT:
 			t = "Exit:    ";
 			break;
-		case M_STATE_MACHINE_TRACE_STATE:
+		case M_STATE_MACHINE_TRACE_STATE_START:
 			t = "State:   ";
 			break;
-		case M_STATE_MACHINE_TRACE_PRE:
+		case M_STATE_MACHINE_TRACE_PRE_START:
 			t = "Pre:     ";
 			break;
-		case M_STATE_MACHINE_TRACE_POST:
+		case M_STATE_MACHINE_TRACE_POST_START:
 			t = "Post:    ";
 			break;
 		case M_STATE_MACHINE_TRACE_CLEANUP:
@@ -63,6 +77,7 @@ static void sm_tracer(M_state_machine_trace_t trace, M_uint64 mndescr, const cha
 	}
 	if (!M_str_isempty(t))
 		M_printf("%s[M] %s -> [S] %s\n", t, mdescr, sdescr);
+#endif
 }
 #endif
 
@@ -432,11 +447,13 @@ START_TEST(check_sm_reset)
 	M_state_machine_insert_state(sm4, STATE_B, 4, "STATE_B", state_b, NULL, NULL);
 	M_state_machine_insert_state(sm4, STATE_D, 4, "STATE_D", state_d, NULL, NULL);
 
+	M_state_machine_cleanup_insert_sub_state_machine(cm, STATE_D, 0, "CM SM4", sm4, NULL, NULL, NULL, NULL);
+
 	sm3 = M_state_machine_create(3, "sm3", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(sm3, STATE_C, 3, "STATE_A", state_c, cm2, NULL);
 	M_state_machine_insert_state(sm3, STATE_A, 3, "STATE_B", state_a, NULL, NULL);
 	M_state_machine_insert_state(sm3, STATE_B, 3, "STATE_B", state_b, NULL, NULL);
-	M_state_machine_insert_state(sm3, STATE_G, 3, "STATE_G", state_b, cm, NULL);
+	M_state_machine_insert_state(sm3, STATE_G, 3, "STATE_G", state_b, cm2, NULL);
 	M_state_machine_insert_state(sm3, STATE_F, 3, "STATE_F", state_f, cm, NULL);
 	M_state_machine_insert_sub_state_machine(sm3, STATE_H, 3, "STATE_C", sm4, NULL, NULL, NULL, NULL);
 	M_state_machine_insert_state(sm3, STATE_D, 3, "STATE_D", state_d, NULL, NULL);
@@ -452,6 +469,10 @@ START_TEST(check_sm_reset)
 	M_state_machine_insert_state(sm, STATE_B, 1, "STATE_B", state_b, cm, NULL);
 	M_state_machine_insert_sub_state_machine(sm, STATE_C, 1, "STATE_C", sm2, NULL, NULL, NULL, NULL);
 	M_state_machine_insert_state(sm, STATE_D, 1, "STATE_D", state_d, NULL, NULL);
+
+#if 0
+	M_state_machine_enable_trace(sm, sm_tracer, NULL);
+#endif
 
 	d = 1;
 	status = M_state_machine_run(sm, (void *)&d);
@@ -480,7 +501,7 @@ START_TEST(check_sm_descr)
 	const M_state_machine_t   *sub;
 	const char                *descr;
 	char                      *descr_m;
-	const char                *fdescr = "[M] SM -> [S] SB (2) -> [CM] CM2 -> [S] CUSD (4) -> [CM] CM3 -> [S] CUSE (5)";
+	const char                *fdescr = "[M] SM -> [S] SA (1) -> [CM] CM2 -> [S] CUSD (4) -> [CM] CM3 -> [S] CUSE (5)";
 	M_uint64                   id;
 	int                        d;
 
@@ -512,27 +533,27 @@ START_TEST(check_sm_descr)
 	ck_assert_msg(status == M_STATE_MACHINE_STATUS_WAIT, "State machine failure, %d", status);
 
 	descr = M_state_machine_descr(sm, M_FALSE);
-	ck_assert_msg(M_str_eq(descr, "SM"), "State machine sm descr ('%s') != 'SM'", descr);
+	ck_assert_msg(M_str_eq(descr, "SM"), "State machine sm descr got: '%s', expected: 'SM'", descr);
 
 	descr = M_state_machine_descr(sm, M_TRUE);
-	ck_assert_msg(M_str_eq(descr, "CM3"), "State machine cm3 descr ('%s') != 'CM3'", descr);
+	ck_assert_msg(M_str_eq(descr, "CM3"), "State machine cm3 descr got: '%s', expected: 'CM3'", descr);
 
 	descr = M_state_machine_active_state_descr(sm, M_FALSE);
-	ck_assert_msg(M_str_eq(descr, "SB"), "State machine sm state b descr ('%s') != 'SB'", descr);
+	ck_assert_msg(M_str_eq(descr, "SB"), "State machine sm state b descr got: '%s', expected: 'SB'", descr);
 
 	descr = M_state_machine_active_state_descr(sm, M_TRUE);
-	ck_assert_msg(M_str_eq(descr, "CUSE"), "State machine cm3 state e descr ('%s') != 'CUSE'", descr);
+	ck_assert_msg(M_str_eq(descr, "CUSE"), "State machine cm3 state e descr got: '%s', expected: 'CUSE'", descr);
 
 	descr_m = M_state_machine_descr_full(sm, M_TRUE);
-	ck_assert_msg(M_str_eq(descr_m, fdescr), "State machine cm3 state e descr ('%s') != '%s'", descr_m, fdescr);
+	ck_assert_msg(M_str_eq(descr_m, fdescr), "State machine cm3 state e descr got: '%s', expected: '%s'", descr_m, fdescr);
 	M_free(descr_m);
 
 	ck_assert_msg(M_state_machine_active_state(sm, &id), "Could not get active state for sm");
-	ck_assert_msg(id == 2, "State machine sm state ('%llu') != '2'", id);
+	ck_assert_msg(id == 2, "State machine sm state got: '%llu', expected: '2'", id);
 
 	sub = M_state_machine_active_sub(sm, M_TRUE);
 	ck_assert_msg(M_state_machine_active_state(sub, &id), "Could not get active state for cm2");
-	ck_assert_msg(id == 5, "State machine cm2 state ('%llu') != '5'", id);
+	ck_assert_msg(id == 5, "State machine cm2 state got: '%llu', expected: '5'", id);
 
 	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
 
@@ -768,6 +789,7 @@ END_TEST
 Suite *M_state_machine_suite(void)
 {
 	Suite *suite;
+
 	TCase *tc_sm_linear;
 	TCase *tc_sm_nonlinear;
 	TCase *tc_sm_linear_no_end;

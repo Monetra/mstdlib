@@ -51,7 +51,9 @@ __BEGIN_DECLS
  *
  * Each state can have an optional cleanup state machine. The cleanup will be called when the error or done status
  * are returned by run. All status that ran (including the one that generated the error) will have their cleanup
- * state machine run.
+ * state machine run. The state must have fully completed before it is eligible for its cleanup to run. A machine
+ * that has only returned M_STATE_MACHINE_STATUS_WAIT is not eligible for its cleanup to run. A state that is a
+ * sub state machine is eligible for cleanup if it is entered (pre does not return M_FALSE).
  *
  * Cleanup is run in reverse order that the states were run in. For example states A - E were run and
  * E returns done. Cleanup for states will run E - A. Due to the state machine supporting non-linear sequences
@@ -717,7 +719,7 @@ M_API M_state_machine_status_t M_state_machine_run(M_state_machine_t *m, void *d
  *
  * \param[in,out] m      The state machine.
  * \param[in]     reason Whether state cleanups should run. Cleanup callbacks told cleanup is due to the
- *                       reason code. Use M_STATE_MACHINE_CLEANUP_NONE to prevent cleanup.
+ *                       reason code. Use M_STATE_MACHINE_CLEANUP_REASON_NONE to prevent cleanup.
  */
 M_API void M_state_machine_reset(M_state_machine_t *m, M_state_machine_cleanup_reason_t reason);
 
