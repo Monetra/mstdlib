@@ -273,7 +273,7 @@ Functions</h2></td></tr>
 <p>Non-linear state machine for running a sequence of states.</p>
 <p>Normally the state machine will run using a linear or linear hybrid method. When adding states to the state machine the order is preserved. By default the next state is the next state added. A state can change/set the next state id. Using the next state is simply a convenience for using the state machine in a linear manner. So a state can set an id to transition to or it can rely on the next state in the ordered state list to be called next. This behavior can be disabled and the state machine will run as a pure non-linear state machine where a transition id is required to be set by a state.</p>
 <p>States are given an integral id. The id must be unique and is used so a state can specify which state to transition to. No id can use the number zero (0); it is reserved for internal use.</p>
-<p>Each state can have an optional cleanup state machine. The cleanup will be called when the error or done status are returned by run. All status that ran (including the one that generated the error) will have their cleanup state machine run.</p>
+<p>Each state can have an optional cleanup state machine. The cleanup will be called when the error or done status are returned by run. All status that ran (including the one that generated the error) will have their cleanup state machine run. The state must have fully completed before it is eligible for its cleanup to run. A machine that has only returned M_STATE_MACHINE_STATUS_WAIT is not eligible for its cleanup to run. A state that is a sub state machine is eligible for cleanup if it is entered (pre does not return M_FALSE).</p>
 <p>Cleanup is run in reverse order that the states were run in. For example states A - E were run and E returns done. Cleanup for states will run E - A. Due to the state machine supporting non-linear sequences it is possible that a cleanup machines will be called multiple times.</p>
 <p>Cleanup can be used in multiple ways. They can be resource clean up (particularly useful when the done_cleanup flag is used) that is run when the machine finishes. Or they can be used as error recovery such as performing an action if an error occurs (default use).</p>
 <p>Cleanup should be specific to the state and should in some way be based on the state they're associated with. A final cleanup on success could be handled as a final state but should be handled outside of the state machine entirely. Such as being handled as part of cleaning up the void pointer of state data.</p>
@@ -1546,7 +1546,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">m</td><td>The state machine. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">reason</td><td>Whether state cleanups should run. Cleanup callbacks told cleanup is due to the reason code. Use M_STATE_MACHINE_CLEANUP_NONE to prevent cleanup. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reason</td><td>Whether state cleanups should run. Cleanup callbacks told cleanup is due to the reason code. Use M_STATE_MACHINE_CLEANUP_REASON_NONE to prevent cleanup. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1828,7 +1828,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Jun 15 2018 22:00:00 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jun 18 2018 20:46:41 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
