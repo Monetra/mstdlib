@@ -308,9 +308,7 @@ static M_state_machine_status_t M_state_machine_run_cleanup(M_state_machine_t *m
 		current->current_cleanup_id = id;
 		((M_state_machine_t *)state->cleanup)->pcleanup_reason = current->cleanup_reason;
 		status = M_state_machine_run_machine(master, (M_state_machine_t *)state->cleanup, data);
-		if (master->trace_cb != NULL) {
-			master->trace_cb(M_STATE_MACHINE_TRACE_CLEANUP, current->ndescr, current->descr, state->ndescr, state->descr, NULL, 0, status, M_FALSE, 0, master->trace_thunk);
-		}
+		M_state_machine_call_trace(M_STATE_MACHINE_TRACE_CLEANUP, master, current, status, M_FALSE, 0);
 		((M_state_machine_t *)state->cleanup)->pcleanup_reason = M_STATE_MACHINE_CLEANUP_REASON_NONE;
 
 		switch (status) {
@@ -932,13 +930,15 @@ const M_state_machine_t *M_state_machine_active_sub(const M_state_machine_t *m, 
 	s = vp;
 
 	if (s->type == M_STATE_MACHINE_STATE_TYPE_SUBM) {
-		if (recurse) {
-			m = M_state_machine_active_sub(s->d.sub.subm, recurse);
-			if (m != NULL) {
-				return m;
+		if (s->d.sub.subm->running) {
+			if (recurse) {
+				m = M_state_machine_active_sub(s->d.sub.subm, recurse);
+				if (m != NULL) {
+					return m;
+				}
 			}
+			return s->d.sub.subm;
 		}
-		return s->d.sub.subm;
 	}
 
 	if (m->current_cleanup_id != 0) {
@@ -1025,6 +1025,7 @@ const char *M_state_machine_active_state_descr(const M_state_machine_t *m, M_boo
 char *M_state_machine_descr_full(const M_state_machine_t *m, M_bool show_id)
 {
 	M_buf_t                 *buf;
+	const M_state_machine_t *mt;
 	M_state_machine_state_t *s;
 	void                    *vp;
 
@@ -1040,10 +1041,21 @@ char *M_state_machine_descr_full(const M_state_machine_t *m, M_bool show_id)
 			break;
 		s = vp;
 
-		M_state_machine_descr_append(buf, s->descr, M_STATE_MACHINE_TYPE_UNKNOWN, show_id?m->current_id:0);
+		mt = M_state_machine_active_sub(m, M_FALSE);
+
+		if (mt != NULL && mt->type == M_STATE_MACHINE_TYPE_CLEANUP && m->current_cleanup_id != 0) {
+			s = (M_state_machine_state_t *)M_hash_u64vp_get_direct(m->states, m->current_cleanup_id);
+			if (s != NULL) {
+				M_state_machine_descr_append(buf, s->descr, M_STATE_MACHINE_TYPE_UNKNOWN, show_id?m->current_cleanup_id:0);
+			} else {
+				M_buf_add_str(buf, "<?>");
+			}
+		} else {
+			M_state_machine_descr_append(buf, s->descr, M_STATE_MACHINE_TYPE_UNKNOWN, show_id?m->current_id:0);
+		}
 		M_buf_add_str(buf, " -> ");
 
-		m = M_state_machine_active_sub(m, M_FALSE);
+		m = mt;
 	} while (m != NULL && m->running);
 
 	M_buf_truncate(buf, M_buf_len(buf)-4);
