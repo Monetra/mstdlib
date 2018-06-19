@@ -545,6 +545,7 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 	const char     *name_str     = NULL;
 	size_t          name_str_len = 0;
 	const char     *line_start   = NULL;
+	M_bool          tag_used;
 
 	M_llist_t      *expired_mods = NULL;
 
@@ -558,6 +559,24 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 	}
 
 	M_thread_mutex_lock(log->lock);
+
+	/* If this tag is disabled for all modules, skip it. This is an optimization, worth it since this
+	 * case happens a lot.
+	 */
+	tag_used = M_FALSE;
+	node     = M_llist_first(log->modules);
+	while (node != NULL) {
+		M_log_module_t *mod = M_llist_node_val(node);
+		if ((mod->accepted_tags & tag) != 0) {
+			tag_used = M_TRUE;
+			break;
+		}
+		node = M_llist_node_next(node);
+	}
+	if (!tag_used) {
+		goto done;
+	}
+
 
 	/* Construct time string for this log message (log must be locked when we do this, format string can change). */
 	time_str = get_current_time_str(log->time_format, &time_str_len);
