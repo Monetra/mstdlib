@@ -379,3 +379,8 @@ void M_backtrace_set_fatal_signal(int sig)
 {
 	(void)sig;
 }
+
+void M_backtrace_signal_use_default_handler(int sig)
+{
+	(void)sig;
+}
