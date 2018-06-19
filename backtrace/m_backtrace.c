@@ -67,21 +67,21 @@ M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks 
 		return M_FALSE;
 	}
 
+	/* Type. */
+	M_backtrace_type  = type;
+
+	/* Flags. */
+	M_backtrace_flags = flags;
+
+	/* Callbacks. */
+	M_backtrace_cbs.get_filename  = cbs->get_filename;
+	M_backtrace_cbs.trace_data    = cbs->trace_data;
+	M_backtrace_cbs.log_emergency = cbs->log_emergency;
+	M_backtrace_cbs.got_nonfatal  = cbs->got_nonfatal;
+	M_backtrace_cbs.got_fatal     = cbs->got_fatal;
+
 	ret = M_backtrace_setup_handling(type);
 	if (ret) {
-		/* Type. */
-		M_backtrace_type  = type;
-
-		/* Flags. */
-		M_backtrace_flags = flags;
-
-		/* Callbacks. */
-		M_backtrace_cbs.get_filename  = cbs->get_filename;
-		M_backtrace_cbs.trace_data    = cbs->trace_data;
-		M_backtrace_cbs.log_emergency = cbs->log_emergency;
-		M_backtrace_cbs.got_nonfatal  = cbs->got_nonfatal;
-		M_backtrace_cbs.got_fatal     = cbs->got_fatal;
-
 		/* Mark backtracing as enabled. */
 		M_backtrace_enabled = M_TRUE;
 	} else {
