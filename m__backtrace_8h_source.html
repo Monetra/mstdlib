@@ -436,12 +436,24 @@ $(document).ready(function(){initNavTree('m__backtrace_8h_source.html','');});
 <div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="comment"> * \param[in] sig Signal.</span></div>
 <div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__backtrace__trace.html#ga2880f7b4bab963304adbb959ee6fbf01">M_backtrace_set_fatal_signal</a>(<span class="keywordtype">int</span> sig);</div>
-<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;</div>
-<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;</div>
-<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_BACKTRACE_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;<span class="comment">/*! Use the default sign handler.</span></div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;<span class="comment"> * Default is what is set by SIG_DFL</span></div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;<span class="comment"> * \note Unix only. </span></div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="comment"> * \param[in] sig Signal.</span></div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__backtrace__trace.html#gac31045211e91a23de3add3a01187d87a">M_backtrace_signal_use_default_handler</a>(<span class="keywordtype">int</span> sig);</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_BACKTRACE_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__backtrace__trace_html_ga746e9db320b8cb6642e05583eecd3e0a"><div class="ttname"><a href="group__m__backtrace__trace.html#ga746e9db320b8cb6642e05583eecd3e0a">M_backtrace_flags_t</a></div><div class="ttdeci">M_backtrace_flags_t</div><div class="ttdef"><b>Definition:</b> m_backtrace.h:277</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_gga746e9db320b8cb6642e05583eecd3e0aaa26a1a11d361776f772301fac7c8f08e"><div class="ttname"><a href="group__m__backtrace__trace.html#gga746e9db320b8cb6642e05583eecd3e0aaa26a1a11d361776f772301fac7c8f08e">M_BACKTRACE_EXTENDED_DUMP</a></div><div class="ttdef"><b>Definition:</b> m_backtrace.h:280</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_ga2908d9f59cdca7bbb6819f0528862bf7"><div class="ttname"><a href="group__m__backtrace__trace.html#ga2908d9f59cdca7bbb6819f0528862bf7">M_backtrace_trace_data_func</a></div><div class="ttdeci">void(* M_backtrace_trace_data_func)(const unsigned char *data, size_t len)</div><div class="ttdef"><b>Definition:</b> m_backtrace.h:229</div></div>
@@ -454,6 +466,7 @@ $(document).ready(function(){initNavTree('m__backtrace_8h_source.html','');});
 <div class="ttc" id="group__m__backtrace__trace_html_gga746e9db320b8cb6642e05583eecd3e0aa1fff1c97cd104e3cbf795ac282b2ea01"><div class="ttname"><a href="group__m__backtrace__trace.html#gga746e9db320b8cb6642e05583eecd3e0aa1fff1c97cd104e3cbf795ac282b2ea01">M_BACKTRACE_NONE</a></div><div class="ttdef"><b>Definition:</b> m_backtrace.h:278</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_ga18620e6884ceb71561b8e65cfad4f339"><div class="ttname"><a href="group__m__backtrace__trace.html#ga18620e6884ceb71561b8e65cfad4f339">M_backtrace_set_ignore_signal</a></div><div class="ttdeci">void M_backtrace_set_ignore_signal(int sig)</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_ga32b0afca2a470803c293c813f7f936a2"><div class="ttname"><a href="group__m__backtrace__trace.html#ga32b0afca2a470803c293c813f7f936a2">M_backtrace_filanme_func</a></div><div class="ttdeci">void(* M_backtrace_filanme_func)(char *fname, size_t fname_len)</div><div class="ttdef"><b>Definition:</b> m_backtrace.h:214</div></div>
+<div class="ttc" id="group__m__backtrace__trace_html_gac31045211e91a23de3add3a01187d87a"><div class="ttname"><a href="group__m__backtrace__trace.html#gac31045211e91a23de3add3a01187d87a">M_backtrace_signal_use_default_handler</a></div><div class="ttdeci">void M_backtrace_signal_use_default_handler(int sig)</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_ga116c332e1374b234bc73881786b033e2"><div class="ttname"><a href="group__m__backtrace__trace.html#ga116c332e1374b234bc73881786b033e2">M_backtrace_enable</a></div><div class="ttdeci">M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_callbacks *cbs, M_uint32 flags)</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_gae12584f11a9f3a45c1fb340708017ee8"><div class="ttname"><a href="group__m__backtrace__trace.html#gae12584f11a9f3a45c1fb340708017ee8">M_backtrace_got_fatal_func</a></div><div class="ttdeci">void(* M_backtrace_got_fatal_func)(int sig)</div><div class="ttdef"><b>Definition:</b> m_backtrace.h:263</div></div>
 <div class="ttc" id="group__m__backtrace__trace_html_gab3f53f74fecccff6b84332880daa37d9"><div class="ttname"><a href="group__m__backtrace__trace.html#gab3f53f74fecccff6b84332880daa37d9">M_backtrace_set_nonfatal_signal</a></div><div class="ttdeci">void M_backtrace_set_nonfatal_signal(int sig)</div></div>
@@ -471,7 +484,7 @@ $(document).ready(function(){initNavTree('m__backtrace_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_efdecb17d4650d7aa573dd095958bcad.html">backtrace</a></li><li class="navelem"><b>m_backtrace.h</b></li>
-    <li class="footer">Generated on Tue Jun 19 2018 21:25:41 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Tue Jun 19 2018 21:31:30 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

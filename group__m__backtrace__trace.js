@@ -25,5 +25,6 @@ var group__m__backtrace__trace =
     [ "M_backtrace_enable", "group__m__backtrace__trace.html#ga116c332e1374b234bc73881786b033e2", null ],
     [ "M_backtrace_set_ignore_signal", "group__m__backtrace__trace.html#ga18620e6884ceb71561b8e65cfad4f339", null ],
     [ "M_backtrace_set_nonfatal_signal", "group__m__backtrace__trace.html#gab3f53f74fecccff6b84332880daa37d9", null ],
-    [ "M_backtrace_set_fatal_signal", "group__m__backtrace__trace.html#ga2880f7b4bab963304adbb959ee6fbf01", null ]
+    [ "M_backtrace_set_fatal_signal", "group__m__backtrace__trace.html#ga2880f7b4bab963304adbb959ee6fbf01", null ],
+    [ "M_backtrace_signal_use_default_handler", "group__m__backtrace__trace.html#gac31045211e91a23de3add3a01187d87a", null ]
 ];

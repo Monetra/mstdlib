@@ -30,6 +30,7 @@ var searchData=
   ['m_5fbacktrace_5fset_5ffatal_5fsignal',['M_backtrace_set_fatal_signal',['../group__m__backtrace__trace.html#ga2880f7b4bab963304adbb959ee6fbf01',1,'m_backtrace.h']]],
   ['m_5fbacktrace_5fset_5fignore_5fsignal',['M_backtrace_set_ignore_signal',['../group__m__backtrace__trace.html#ga18620e6884ceb71561b8e65cfad4f339',1,'m_backtrace.h']]],
   ['m_5fbacktrace_5fset_5fnonfatal_5fsignal',['M_backtrace_set_nonfatal_signal',['../group__m__backtrace__trace.html#gab3f53f74fecccff6b84332880daa37d9',1,'m_backtrace.h']]],
+  ['m_5fbacktrace_5fsignal_5fuse_5fdefault_5fhandler',['M_backtrace_signal_use_default_handler',['../group__m__backtrace__trace.html#gac31045211e91a23de3add3a01187d87a',1,'m_backtrace.h']]],
   ['m_5fbin_5funwrap',['M_bin_unwrap',['../group__m__bin.html#ga784cccf978bee2a555382c0f5f0e56f9',1,'m_bin.h']]],
   ['m_5fbin_5funwrapdup',['M_bin_unwrapdup',['../group__m__bin.html#ga19b8f88598855c15c91b6c2915fd0e17',1,'m_bin.h']]],
   ['m_5fbin_5fwrap',['M_bin_wrap',['../group__m__bin.html#ga44e21b8ced82ce49a00b2d360ec8684c',1,'m_bin.h']]],
