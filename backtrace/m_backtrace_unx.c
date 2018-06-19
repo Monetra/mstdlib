@@ -187,3 +187,14 @@ void M_backtrace_set_fatal_signal(int sig)
 
 	sigaction(sig, &act, NULL);
 }
+
+void M_backtrace_signal_use_default_handler(int sig)
+{
+	struct sigaction act;
+
+	act.sa_handler = SIG_DFL;
+	act.sa_flags   = 0;
+	sigemptyset(&act.sa_mask);
+
+	sigaction(sig, &act, NULL);
+}

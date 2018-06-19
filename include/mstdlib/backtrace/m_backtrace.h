@@ -337,6 +337,18 @@ M_API void M_backtrace_set_nonfatal_signal(int sig);
  */
 M_API void M_backtrace_set_fatal_signal(int sig);
 
+
+/*! Use the default sign handler.
+ *
+ * Default is what is set by SIG_DFL
+ *
+ * \note Unix only. 
+ *
+ * \param[in] sig Signal.
+ */
+M_API void M_backtrace_signal_use_default_handler(int sig);
+
+
 /*! @} */
 
 __END_DECLS
