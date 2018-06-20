@@ -587,10 +587,13 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 	size_t          i;
 	size_t          j;
 
-	if (node == NULL || search == NULL || num_matches == NULL)
+	if (num_matches == NULL) {
 		return NULL;
-
+	}
 	*num_matches = 0;
+
+	if (node == NULL || search == NULL)
+		return NULL;
 
 	segments = M_str_explode_str('/', search, &num_segments);
 	if (segments == NULL || num_segments == 0) {
