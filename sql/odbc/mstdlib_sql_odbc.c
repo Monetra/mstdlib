@@ -1347,6 +1347,8 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 
 	if (*rows_executed > 1 && !dconn->pool_data->profile->is_multival_insert_cd) {
 		size_t i;
+		M_bool has_success = M_FALSE;
+		M_bool has_failure = M_FALSE;
 
 		/* Validate */
 		if (dstmt->bind_params_processed != *rows_executed) {
@@ -1355,18 +1357,40 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 			goto done;
 		}
 
+		M_mem_set(error, 0, error_size);
+
 		for (i=0; i<*rows_executed; i++) {
-			if (dstmt->bind_cols_status[i] != SQL_PARAM_SUCCESS && dstmt->bind_cols_status[i] != SQL_PARAM_SUCCESS_WITH_INFO) {
+			if (dstmt->bind_cols_status[i] == SQL_PARAM_SUCCESS || dstmt->bind_cols_status[i] == SQL_PARAM_SUCCESS_WITH_INFO) {
+				has_success = M_TRUE;
+				continue;
+			}
+
+			has_failure = M_TRUE;
+
+			/* Record first error condition */
+			if (!M_str_isempty(error)) {
 				const char *reason = "UNKNOWN";
 				if (dstmt->bind_cols_status[i] == SQL_PARAM_ERROR)
 					reason = "ERROR";
 				if (dstmt->bind_cols_status[i] == SQL_PARAM_UNUSED)
 					reason = "UNUSED";
 				M_snprintf(error, error_size, "SQLExecute row %zu of %zu failure: %s", i, *rows_executed, reason);
-				err = M_SQL_ERROR_QUERY_FAILURE;
-				goto done;
 			}
 		}
+
+		if (!has_success) {
+			err = M_SQL_ERROR_QUERY_FAILURE;
+			goto done;
+		}
+		if (has_failure) {
+			/* We want to inform the user that they need to split and retry each record individually
+			 * to isolate the error.  Most likely this is a constraint violation but we really have
+			 * no way to know for sure.  */
+			err = M_SQL_ERROR_QUERY_CONSTRAINT;
+			goto done;
+		}
+
+		/* Must be good */
 	}
 
 

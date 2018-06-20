@@ -1191,6 +1191,19 @@ static M_sql_error_t oracle_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 		goto done;
 	}
 
+	if (*rows_executed > 1) {
+		/* It is not clear from the docs if you could get a 'partial' insert that returns success.
+		 * So we are going to sanity check this, and assume an error is a constraint violation which
+		 * the caller knows means they need to split and repeat. */
+		ub4 num_errs = 0;
+		OCIAttrGet(dstmt->stmt, OCI_HTYPE_STMT, &num_errs, 0, OCI_ATTR_NUM_DML_ERRORS, dconn->err_handle);
+		if (num_errs) {
+			M_snprintf(error, error_size, "OCI array operation had one or more row failures");
+			err = M_SQL_ERROR_QUERY_CONSTRAINT;
+			goto done;
+		}
+	}
+
 	if (dstmt->is_query) {
 		/* Get column count, names, types */
 		err = oracle_fetch_result_metadata(dconn, dstmt, stmt, error, error_size);
