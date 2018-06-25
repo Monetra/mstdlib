@@ -46,17 +46,26 @@
 #define M_CAST_OFF_CONST(type, var) ((type)((M_uintptr)var))
 #endif
 
+
+/* ===============================
+ * DB2 Mappings
+ */
 #ifndef SQL_IS_INTEGER
 #  define SQL_IS_INTEGER 0
 #endif
-
-/* DB2 Mappings */
+#ifndef SQL_IS_UINTEGER
+#  define SQL_IS_UINTEGER 0
+#endif
+#ifndef SQL_IS_POINTER
+#  define SQL_IS_POINTER 0
+#endif
 #if !defined(SQL_C_SSHORT) && defined(SQL_C_SHORT)
 #  define SQL_C_SSHORT SQL_C_SHORT
 #endif
 #if !defined(SQL_C_SBIGINT) && defined(SQL_C_BIGINT)
 #  define SQL_C_SBIGINT SQL_C_BIGINT
 #endif
+/* =============================== */
 
 typedef struct {
 	SQLLEN            *lens;
@@ -929,12 +938,14 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 	 */
 	dstmt->bind_cols_status = M_malloc_zero(sizeof(*dstmt->bind_cols_status) * num_rows);
 
+#ifdef SQL_PARAM_BIND_BY_COLUMN
 	/* Specify use of column-wise binding, should be default */
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
+#endif
 
 	/* Specify the number of elements in each parameter array.  */
 	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)num_rows), SQL_IS_UINTEGER);
