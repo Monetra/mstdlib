@@ -27,9 +27,11 @@ static const size_t mem_size = sizeof(mem);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_malloc_NULL)
+{
 	ck_assert_msg(M_malloc(0) == NULL);
 	M_printf("**THIS OUT OF MEMORY ERROR IS EXPECTED**\n");
 	ck_assert_msg(M_malloc((size_t)-1) == NULL);
+}
 END_TEST
 
 START_TEST(check_malloc_M_mem_set)
@@ -65,13 +67,17 @@ START_TEST(check_free_allocated)
 END_TEST
 
 START_TEST(check_free_NULL)
+{
 	M_free(NULL);
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_realloc_NULL)
+{
 	ck_assert_msg(M_realloc(NULL, 0) == NULL);
+}
 END_TEST
 
 START_TEST(check_realloc_alloc_and_free)
@@ -205,20 +211,26 @@ END_TEST
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_mem_chr_NULL)
+{
 	ck_assert_msg(M_mem_chr(NULL, 'a',   0) == NULL);
 	ck_assert_msg(M_mem_chr(NULL, 'a',  32) == NULL);
 	ck_assert_msg(M_mem_chr(NULL, '\0',  0) == NULL);
 	ck_assert_msg(M_mem_chr(NULL, '\0', 32) == NULL);
+}
 END_TEST
 
 START_TEST(check_mem_chr_not_found)
+{
 	ck_assert_msg(M_mem_chr("a",  'a',   0) == NULL);
 	ck_assert_msg(M_mem_chr("a",  'b',   1) == NULL);
 	ck_assert_msg(M_mem_chr("a",  '\0',  1) == NULL);
+}
 END_TEST
 
 START_TEST(check_mem_chr_found)
+{
 	ck_assert_msg(M_mem_chr(mem, mem[_i], mem_size) == mem+_i);
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -263,6 +275,7 @@ static void check_mem_mem(const void *haystack, size_t haystack_len, const void 
 }
 
 START_TEST(check_mem_mem_empty_haystack)
+{
 	/* no haystack, haystack_len is zero, other params okay */
 	check_mem_mem(NULL, 0, mem, mem_size, NULL);
 	/* no haystack, other params okay */
@@ -271,6 +284,7 @@ START_TEST(check_mem_mem_empty_haystack)
 	check_mem_mem(NULL, 3, mem, mem_size, NULL);
 	/* haystack_len is zero, other params okay */
 	check_mem_mem(mem,  0, mem, mem_size, NULL);
+}
 END_TEST
 
 START_TEST(check_mem_mem_empty_needle)
@@ -284,6 +298,7 @@ START_TEST(check_mem_mem_empty_needle)
 END_TEST
 
 START_TEST(check_mem_mem_not_found)
+{
 	cmem1 = (const M_uint8 *)"test";
 	cmem2 = (const M_uint8 *)"this";
 	check_mem_mem(
@@ -291,6 +306,7 @@ START_TEST(check_mem_mem_not_found)
 	   cmem2, M_str_len((const char *)cmem2),
 	   NULL
        );
+}
 END_TEST
 
 START_TEST(check_mem_mem_found)
@@ -309,6 +325,7 @@ END_TEST
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_mem_str_empty_haystack)
+{
 	/* no haystack, haystack_len is zero, other params okay */
 	ck_assert_msg(M_mem_str(NULL, 0, str) == NULL);
 	/* no haystack, other params okay */
@@ -317,17 +334,22 @@ START_TEST(check_mem_str_empty_haystack)
 	ck_assert_msg(M_mem_str(NULL, 3, str) == NULL);
 	/* haystack_len is zero, other params okay */
 	ck_assert_msg(M_mem_str(mem,  0, str) == NULL);
+}
 END_TEST
 
 START_TEST(check_mem_str_empty_needle)
+{
 	/* empty string exists at the beginning of haystack */
 	ck_assert_msg(M_mem_str(mem, mem_size, NULL)  == mem);
 	ck_assert_msg(M_mem_str(mem, mem_size, NULL)  == mem);
+}
 END_TEST
 
 START_TEST(check_mem_str_not_found)
+{
 	ck_assert_msg(M_mem_str("0123456789", 10, "011") == NULL);
 	ck_assert_msg(M_mem_str("0123456789", 10, "321") == NULL);
+}
 END_TEST
 
 START_TEST(check_mem_str_found)
@@ -342,13 +364,16 @@ END_TEST
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_mem_copy_empty_dst)
+{
 	ck_assert_msg(M_mem_copy(NULL, NULL,        0) == NULL);
 	ck_assert_msg(M_mem_copy(NULL, NULL, mem_size) == NULL);
 	ck_assert_msg(M_mem_copy(NULL,  mem,        0) == NULL);
 	ck_assert_msg(M_mem_copy(NULL,  mem, mem_size) == NULL);
+}
 END_TEST
 
 START_TEST(check_mem_copy_empty_src)
+{
 	ck_assert_msg(mem_size > 0);
 
 	mem1 = M_malloc(mem_size);
@@ -360,9 +385,11 @@ START_TEST(check_mem_copy_empty_src)
 
 	M_free(mem1);
 	M_free(mem2);
+}
 END_TEST
 
 START_TEST(check_mem_copy_success)
+{
 	mem1 = M_malloc(mem_size);
 	M_mem_set(mem1, 0, mem_size);
 
@@ -377,6 +404,7 @@ START_TEST(check_mem_copy_success)
 	ck_assert_msg(M_mem_eq(mem1, mem, mem_size));
 
 	M_free(mem1);
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -433,7 +461,7 @@ START_TEST(check_mem_count_nonzero_as_one)
 {
 	size_t pos;
 	size_t size;
-	
+
 	pos = (size_t)_i;
 	cmem1 = COUNT_NONZERO_AS_ONE;
 	size = sizeof(COUNT_NONZERO_AS_ONE)-1;
@@ -479,7 +507,7 @@ static Suite *mem_suite(void)
 	TCase *tc_mem_copy;
 	TCase *tc_mem_count;
 	TCase *tc_mem_checksum;
-   
+
 	suite = suite_create("mem");
 
 	tc_malloc = tcase_create("malloc");

@@ -11,6 +11,7 @@ extern Suite *round_suite(void);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_uint64_round_up_to_nearest_multiple)
+{
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(0,2) == 2);
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(1,2) == 2);
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(2,2) == 2);
@@ -21,6 +22,7 @@ START_TEST(check_uint64_round_up_to_nearest_multiple)
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(7,2) == 8);
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(8,2) == 8);
 	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(9,2) ==10);
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -71,7 +73,7 @@ Suite *round_suite(void)
 	TCase *tc_uint32_round_up_to_power_of_two;
 	TCase *tc_size_t_round_up_to_power_of_two;
 	TCase *tc_uint64_round_up_to_nearest_multiple;
-	   
+
 	suite = suite_create("round");
 
 	tc_uint32_round_up_to_power_of_two = tcase_create("uint32_round_up_to_power_of_two");
