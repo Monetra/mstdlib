@@ -11,75 +11,94 @@ extern Suite *types_suite(void);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_bool)
+{
 	ck_assert_msg(M_false == 0,       "M_false is wrong");
 	ck_assert_msg(M_false == M_FALSE, "M_FALSE is wrong");
 	ck_assert_msg(M_true  != M_false, "M_true is wrong");
 	ck_assert_msg(M_true == M_TRUE,   "M_TRUE is wrong");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_uint8)
+{
 	ck_assert_msg(sizeof(M_uint8) == 1, "unexpected sizeof");
 	ck_assert_msg(M_UINT8_MAX  ==  ( 255 ), "unexpected max");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_int8)
+{
 	ck_assert_msg(sizeof(M_int8) == 1, "unexpected sizeof");
 	ck_assert_msg(M_INT8_MAX   ==  ( 127 ), "unexpected max");
 	ck_assert_msg(M_INT8_MIN   == -( 128 ), "unexpected min");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_uint16)
+{
 	ck_assert_msg(sizeof(M_uint16) == 2, "unexpected sizeof");
 	ck_assert_msg(M_UINT16_MAX ==  ( 65535 ), "unexpected max");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_int16)
+{
 	ck_assert_msg(sizeof(M_int16) == 2, "unexpected sizeof");
 	ck_assert_msg(M_INT16_MAX  ==  ( 32767 ), "unexpected max");
 	ck_assert_msg(M_INT16_MIN  == -( 32768 ), "unexpected min");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_uint32)
+{
 	ck_assert_msg(sizeof(M_uint32) == 4, "unexpected sizeof");
 	ck_assert_msg(M_UINT32_MAX ==  ( 4294967295 ), "unexpected max");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_int32)
+{
 	ck_assert_msg(sizeof(M_int32) == 4, "unexpected sizeof");
 	ck_assert_msg(M_INT32_MAX  ==  ( 2147483647 ), "unexpected max");
 	ck_assert_msg(M_INT32_MIN  == -( 2147483648 ), "unexpected min");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_uint64)
+{
 	ck_assert_msg(sizeof(M_uint64) == 8, "unexpected sizeof");
 	ck_assert_msg(M_UINT64_MAX ==  ( 18446744073709551615ULL ), "unexpected max");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_int64)
+{
 	ck_assert_msg(sizeof(M_int64) == 8, "unexpected sizeof");
 	ck_assert_msg(M_INT64_MAX  == (M_uint64)  9223372036854775807UL, "unexpected max");
 	ck_assert_msg(M_INT64_MIN  == (M_int64 ) -9223372036854775808UL, "unexpected min");
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_intptr)
+{
 	ck_assert_msg(sizeof(M_intptr) == sizeof(void *), "unexpected sizeof");
 	ck_assert_msg(M_INTPTR_MAX == SSIZE_MAX, "unexpected max");
 	ck_assert_msg(M_INTPTR_MIN == SSIZE_MIN, "unexpected min");
@@ -97,9 +116,11 @@ START_TEST(check_intptr)
 		ck_abort_msg("unexpected sizeof");
 		break;
 	}
+}
 END_TEST
 
 START_TEST(check_uintptr)
+{
 	ck_assert_msg(sizeof(M_uintptr) == sizeof(void *), "unexpected sizeof");
 	ck_assert_msg(M_UINTPTR_MAX == ((size_t)-1), "unexpected max");
 
@@ -114,6 +135,7 @@ START_TEST(check_uintptr)
 		ck_abort_msg("unexpected sizeof");
 		break;
 	}
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -132,7 +154,7 @@ Suite *types_suite(void)
 	TCase *tc_uint64;
 	TCase *tc_intptr;
 	TCase *tc_uintptr;
-	
+
 	suite = suite_create("types");
 
 	tc_bool = tcase_create("bool");
