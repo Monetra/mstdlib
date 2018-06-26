@@ -41,15 +41,19 @@ static M_uint64 u64_r;
 /* - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_str_to_uint64_null)
+{
 	u64_r = M_str_to_uint64(NULL);
 	ck_assert_msg(u64_r == 0, "decoding of NULL failed: expected %llu, but was %llu\n", 0, u64_r);
+}
 END_TEST
 
 START_TEST(check_str_to_uint64)
+{
 	uint64_test = &tests[_i];
 
 	u64_r = M_str_to_uint64(uint64_test->string);
 	ck_assert_msg(u64_r == uint64_test->value, "decoding of \"%s\" failed: expected %llu, but was %llu\n", uint64_test->string, uint64_test->value, u64_r);
+}
 END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -58,7 +62,7 @@ Suite *str_uint64_suite(void)
 {
 	Suite *suite;
 	TCase *tc_str_to_uint64;
-	
+
 	suite = suite_create("str_uint64");
 
 	tc_str_to_uint64 = tcase_create("str_to_uint64");
