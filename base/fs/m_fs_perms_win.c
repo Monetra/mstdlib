@@ -73,9 +73,23 @@ static M_fs_error_t M_fs_perms_set_name(M_fs_perms_t *perms, const char *name, M
 	if (!LookupAccountName(NULL, name, isuser?perms->user_sid:perms->group_sid, &sid_len, domain, &domain_len, &sid_use)) {
 		return M_fs_error_from_syserr(GetLastError());
 	}
-	/* Check that the lookup returned the correct type */
-	if ((isuser && sid_use != SidTypeUser) || (!isuser && sid_use != SidTypeGroup)) {
-		return M_FS_ERROR_INVALID;
+	/* Check for invalid SID types.
+	 *
+	 * Windows sometimes returns sid types that are wrong for the given name. We've observed this in practice when
+	 * using the username from GetUserName() in a process that's a system service, for example - in that case,
+	 * Windows was returning SidTypeWellKnownGroup instead of SidTypeUser. Other instances where Windows returned
+	 * SidTypeDomain when passed a username that happens to be the same as the machine name have been reported.
+	 *
+	 * To avoid issues like these, we only return an error on SID types that are unequivocally bad. Anything else
+	 * we let pass.
+	 */
+	switch (sid_use) {
+		case SidTypeDeletedAccount:
+		case SidTypeInvalid:
+		case SidTypeUnknown:
+		case SidTypeComputer:
+		case SidTypeLabel:
+			return M_FS_ERROR_INVALID;
 	}
 
 	/* Set the values */
