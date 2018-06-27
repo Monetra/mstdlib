@@ -211,7 +211,7 @@ M_API void M_bit_buf_add_bytes(M_bit_buf_t *bbuf, const void *bytes, size_t nbit
  * Note that the bit region being read is assumed to be justified against the least-significant end of the
  * integer, though the bits within that region are read from most-significant to least-significant.
  *
- * For example, if bits == 0x8F == (10001011)b, and nbits == 4, the bits "1011" will be added to the buffer.
+ * For example, if bits == 0x8B == (10001011)b, and nbits == 4, the bits "1011" will be added to the buffer.
  *
  * \param[in,out] bbuf  Bit buffer
  * \param[in]     bits  Value to draw bits from
