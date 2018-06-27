@@ -173,6 +173,10 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 						/* Trim whitespace if wasn't quoted */
 						M_str_trim(out[row][col]);
 					}
+					/* If empty string and wasn't quoted, record as NULL to differentiate */
+					if (M_str_isempty(out[row][col])) {
+						out[row][col] = NULL;
+					}
 				}
 			}
 			had_quote = 0;
@@ -197,6 +201,10 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 					if (flags & M_CSV_FLAG_TRIM_WHITESPACE) {
 						/* Trim whitespace if wasn't quoted */
 						M_str_trim(out[row][col]);
+					}
+					/* If empty string and wasn't quoted, record as NULL to differentiate */
+					if (M_str_isempty(out[row][col])) {
+						out[row][col] = NULL;
 					}
 				}
 			}
@@ -226,6 +234,10 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 			if (flags & M_CSV_FLAG_TRIM_WHITESPACE) {
 				/* Trim whitespace if wasn't quoted */
 				M_str_trim(out[row][col]);
+			}
+			/* If empty string and wasn't quoted, record as NULL to differentiate */
+			if (M_str_isempty(out[row][col])) {
+				out[row][col] = NULL;
 			}
 		}
 	}
