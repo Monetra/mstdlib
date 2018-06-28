@@ -625,7 +625,7 @@ M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt)
 	if (stmt == NULL || stmt->result == NULL || stmt->result->num_cols == 0)
 		return NULL;
 
-	/* Looks like we're starting a new row, validate all allocations */
+	/* curr_col == 0 only exists when there is no open row yet, validate all allocations */
 	if (stmt->result->curr_col == 0) {
 		stmt->result->num_rows++;
 		stmt->result->total_rows++;
@@ -649,13 +649,13 @@ M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt)
 	}
 
 	col   = stmt->result->curr_col-1;
-	row   = stmt->result->num_rows-1;
-	cell  = row * stmt->result->num_cols + col;
-	len   = M_buf_len(stmt->result->rows[row]);
 
 	/* Can't add more columns than we're allowed */
 	if (col >= stmt->result->num_cols)
 		return NULL;
+
+	row   = stmt->result->num_rows-1;
+	len   = M_buf_len(stmt->result->rows[row]);
 
 	/* Align offset for safety */
 	if (len % M_SAFE_ALIGNMENT != 0) {
@@ -663,6 +663,7 @@ M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt)
 		M_buf_add_fill(stmt->result->rows[row], 0, pad_align);
 	}
 
+	cell  = row * stmt->result->num_cols + col;
 	stmt->result->cellinfo[cell].offset = M_buf_len(stmt->result->rows[row]);
 
 	return stmt->result->rows[row];
