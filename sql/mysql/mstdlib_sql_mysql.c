@@ -806,6 +806,14 @@ static M_sql_error_t mysql_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char
 
 	(void)conn;
 
+	/* Working assumption that bind[idx].xxx may not be properly set, so lets go through and
+	 * pre-set reasonable values */
+	for (i=0; i<result->num_cols; i++) {
+		result->col_isnull[i] = 0;
+		result->col_length[i] = 0;
+		result->col_error[i]  = 0;
+	}
+
 	/* NOTE: There is no reason to call this in a loop up to stmt->max_fetch_rows as when the
 	 *       SQL subsystem realizes we returned less rows than that value, it will simply keep
 	 *       calling us. */
