@@ -455,6 +455,8 @@ M_bool M_sql_driver_stmt_bind_isnull(M_sql_stmt_t *stmt, size_t row, size_t idx)
 	    idx >= M_sql_driver_stmt_bind_cnt(stmt)) {
 		return M_TRUE;
 	}
+
+	row += stmt->bind_row_offset; /* Multi-row partial execution */
 	return stmt->bind_rows[row].cols[idx].isnull;
 }
 
