@@ -119,7 +119,7 @@ static sqlite3_mutex *sqlite_mutex_alloc(int iType)
 	/* Doesn't exist, create it */
 	if (mutex == NULL) {
 		mutex = M_malloc_zero(sizeof(*mutex));
-		mutex->mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		mutex->mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE /* Docs dont say, err on side of caution */);
 		M_hash_u64vp_insert(sqlite_static_mutexes, (M_uint64)M_ABS(iType), mutex);
 	}
 
@@ -567,6 +567,7 @@ static M_sql_error_t sqlite_rc_to_error(int rc)
 		case SQLITE_ABORT:
 		case SQLITE_BUSY:
 		case SQLITE_FULL:
+		case SQLITE_LOCKED: /* if breaking out of retries, return deadlock so everything rolls back */
 			return M_SQL_ERROR_QUERY_DEADLOCK;
 		case SQLITE_OK:
 		case SQLITE_DONE:
@@ -664,8 +665,9 @@ static M_sql_error_t sqlite_cb_prepare(M_sql_driver_stmt_t **driver_stmt, M_sql_
 //M_printf("Query |%s|\n", query);
 
 	if (*driver_stmt == NULL) {
-		new_stmt     = M_TRUE;
-		*driver_stmt = M_malloc_zero(sizeof(**driver_stmt));
+		size_t retry_cnt = 0;
+		new_stmt         = M_TRUE;
+		*driver_stmt     = M_malloc_zero(sizeof(**driver_stmt));
 
 		do {
 			rc  = sqlite3_prepare_v2(driver_conn->conn, query, (int)M_str_len(query), &(*driver_stmt)->stmt, NULL);
@@ -675,8 +677,14 @@ static M_sql_error_t sqlite_cb_prepare(M_sql_driver_stmt_t **driver_stmt, M_sql_
 			if (M_str_eq_max(query, "COMMIT", 5))
 				(*driver_stmt)->is_commit = M_TRUE;
 
-			if ((rc & 0xFF) == SQLITE_LOCKED)
+			if ((rc & 0xFF) == SQLITE_LOCKED) {
+				M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, "sqlite3_prepare_v2() returned locked, retry.");
+				if (retry_cnt >= 10) {
+					break;
+				}
 				M_thread_sleep(M_sql_rollback_delay_ms(M_sql_driver_conn_get_pool(conn)) * 1000);
+			}
+			retry_cnt++;
 		} while ((rc & 0xFF) == SQLITE_LOCKED);
 
 		if (err != M_SQL_ERROR_SUCCESS) {
@@ -775,6 +783,7 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 	int                  real_rc;
 	int                  rc;
 	M_sql_error_t        err;
+	size_t               retry_cnt   = 0;
 	M_sql_driver_stmt_t *driver_stmt = M_sql_driver_stmt_get_stmt(stmt);
 	M_sql_driver_conn_t *driver_conn = M_sql_driver_conn_get_conn(conn);
 
@@ -804,6 +813,10 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 #endif
 		if (rc == SQLITE_LOCKED) {
 			/* Retry */
+			M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, "sqlite3_step (execute) returned locked, retry.");
+			if (retry_cnt >= 10) {
+				M_snprintf(error, error_size, "Rollback (%d), max retry count: %s", real_rc, sqlite3_errmsg(driver_conn->conn));
+			}
 		} else {
 			M_snprintf(error, error_size, "Query Failed (%d): %s", real_rc, sqlite3_errmsg(driver_conn->conn));
 			break;
@@ -814,6 +827,8 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 
 		/* Sleep a the retry is probably due to some other caller */
 		M_thread_sleep(M_sql_rollback_delay_ms(M_sql_driver_conn_get_pool(conn)) * 1000);
+
+		retry_cnt++;
 	}
 
 	return err;
@@ -829,6 +844,7 @@ static M_sql_error_t sqlite_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, cha
 	M_sql_driver_stmt_t *driver_stmt = M_sql_driver_stmt_get_stmt(stmt);
 	M_sql_driver_conn_t *driver_conn = M_sql_driver_conn_get_conn(conn);
 	M_sql_error_t        err;
+	size_t               retry_cnt   = 0;
 
 	while (1) {
 		size_t i;
@@ -884,6 +900,11 @@ static M_sql_error_t sqlite_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, cha
 
 		if (rc == SQLITE_LOCKED) {
 			/* Retry */
+			M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, "sqlite3_step (fetch) returned locked, retry.");
+			if (retry_cnt >= 10) {
+				M_snprintf(error, error_size, "Rollback (%d), max retry count: %s", real_rc, sqlite3_errmsg(driver_conn->conn));
+				break;
+			}
 		} else if (rc == SQLITE_BUSY) {
 			/* If busy and not COMMIT statement, rollback */
 			M_snprintf(error, error_size, "Rollback (%d): %s", real_rc, sqlite3_errmsg(driver_conn->conn));
@@ -898,6 +919,8 @@ static M_sql_error_t sqlite_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, cha
 
 		/* Sleep a the retry is probably due to some other caller */
 		M_thread_sleep(M_sql_rollback_delay_ms(M_sql_driver_conn_get_pool(conn)) * 1000);
+
+		retry_cnt++;
 	}
 
 	return err;
