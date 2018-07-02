@@ -258,7 +258,7 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 			break;
 	}
 
-	len = M_snprintf(msg, sizeof(msg), "%s at address 0x%08llx", error, (M_uint64)ExceptionInfo->ExceptionRecord->ExceptionAddress);
+	len = M_snprintf(msg, sizeof(msg), "%s at address 0x%08llx", error, (M_uint64)((M_uintptr)ExceptionInfo->ExceptionRecord->ExceptionAddress));
 	if ((ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
 				ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_IN_PAGE_ERROR) &&
 			sizeof(msg)-len > 0) {
@@ -270,7 +270,7 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 		len += M_snprintf(msg-len, sizeof(msg)-len, " NTSTATUS code that resulted in the exception: %ld",  (long)ExceptionInfo->ExceptionRecord->ExceptionInformation[2]);
 	}
 	if (M_backtrace_cbs.log_emergency != NULL)
-		M_backtrace_cbs.log_emergency(ExceptionInfo->ExceptionRecord->ExceptionCode, msg);
+		M_backtrace_cbs.log_emergency((int)ExceptionInfo->ExceptionRecord->ExceptionCode, msg);
 
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE) {
 		M_backtrace_cbs.get_filename(fname, sizeof(fname));
@@ -298,7 +298,7 @@ static LONG WINAPI win32_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 		CloseHandle(mfile);
 
 	if (M_backtrace_cbs.got_fatal != NULL)
-		M_backtrace_cbs.got_fatal(ExceptionInfo->ExceptionRecord->ExceptionCode);
+		M_backtrace_cbs.got_fatal((int)ExceptionInfo->ExceptionRecord->ExceptionCode);
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -344,7 +344,7 @@ static LONG WINAPI win32_make_minidump(EXCEPTION_POINTERS *e)
 	CloseHandle(mfile);
 
 	if (M_backtrace_cbs.got_fatal != NULL)
-		M_backtrace_cbs.got_fatal(e ? e->ExceptionRecord->ExceptionCode : -1);
+		M_backtrace_cbs.got_fatal(e != NULL ? (int)e->ExceptionRecord->ExceptionCode : -1);
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }

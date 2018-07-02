@@ -90,6 +90,12 @@ static M_fs_error_t M_fs_perms_set_name(M_fs_perms_t *perms, const char *name, M
 		case SidTypeComputer:
 		case SidTypeLabel:
 			return M_FS_ERROR_INVALID;
+		case SidTypeUser:
+		case SidTypeGroup:
+		case SidTypeDomain:
+		case SidTypeAlias:
+		case SidTypeWellKnownGroup:
+			break;
 	}
 
 	/* Set the values */
