@@ -35,6 +35,7 @@ M_sql_error_t mssql_resolve_error(const char *sqlstate, M_int32 errorcode)
 		case 6004: /* SHUTDOWN can only be used by members of the sysadmin role. */
 		case 6005: /* SHUTDOWN is in progress. */
 		case 6006: /* Server shut down by request. */
+		case 8179: /* Could not find prepared statement with handle %d -- Force reconnect as we have no other means to handle this */
 			return M_SQL_ERROR_CONN_LOST;
 		case 1204: /* SQL Server has run out of LOCKS. Rerun your statement when there are fewer active users, or ask the system administrator to reconfigure SQL Server with more LOCKS. */
 		case 1205: /* Your transaction (process ID #%d) was deadlocked with another process and has been chosen as the deadlock victim. Rerun your transaction. */
