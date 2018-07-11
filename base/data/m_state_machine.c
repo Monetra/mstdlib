@@ -836,7 +836,7 @@ void M_state_machine_reset(M_state_machine_t *m, M_state_machine_cleanup_reason_
 		return;
 
 	s = vp;
-	if (s->type == M_STATE_MACHINE_STATE_TYPE_SUBM) {
+	if (s != NULL && s->type == M_STATE_MACHINE_STATE_TYPE_SUBM && s->d.sub.subm->running) {
 		M_state_machine_reset(s->d.sub.subm, reason);
 	} else {
 		/* We're at the last state to run. When we run
