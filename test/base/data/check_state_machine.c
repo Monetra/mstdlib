@@ -491,6 +491,51 @@ START_TEST(check_sm_reset)
 }
 END_TEST
 
+START_TEST(check_sm_reset_cleanup)
+{
+	M_state_machine_t         *sm;
+	M_state_machine_cleanup_t *cm;
+	M_state_machine_status_t   status;
+	int                        d;
+
+	cm = M_state_machine_cleanup_create(1, "cm", M_STATE_MACHINE_LINEAR_END);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_E, 1, NULL, state_cleanup_e, NULL, NULL);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_A, 1, NULL, state_cleanup_a, NULL, NULL);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_F, 1, NULL, state_cleanup_f, NULL, NULL);
+
+	sm = M_state_machine_create(1, "sm", M_STATE_MACHINE_NONE);
+	M_state_machine_insert_state(sm, STATE_A, 1, "STATE_A", state_a, cm, NULL);
+	M_state_machine_insert_state(sm, STATE_F, 1, "STATE_F", state_f, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_D, 1, "STATE_D", state_d, NULL, NULL);
+
+#if 0
+	M_state_machine_enable_trace(sm, sm_tracer, NULL);
+#endif
+
+	d = 101;
+	M_state_machine_run(sm, (void *)&d);
+
+	/* Cancel the sm. */
+	M_state_machine_reset(sm, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
+	status = M_state_machine_run(sm, (void *)&d);
+
+	/* Check we're waiting in the csm. */
+	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
+
+	/* Cancel the csm. */
+	M_state_machine_reset(sm, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
+
+	/* Run the sm. */
+	status = M_state_machine_run(sm, (void *)&d);
+
+	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure, %d", status);
+	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
+
+	M_state_machine_destroy(sm);
+	M_state_machine_cleanup_destroy(cm);
+}
+END_TEST
+
 START_TEST(check_sm_descr)
 {
 	M_state_machine_t         *sm;
@@ -829,6 +874,11 @@ Suite *M_state_machine_suite(void)
 	tc_sm_reset = tcase_create("sm_reset");
 	tcase_add_unchecked_fixture(tc_sm_reset, NULL, NULL);
 	tcase_add_test(tc_sm_reset, check_sm_reset);
+	suite_add_tcase(suite, tc_sm_reset);
+
+	tc_sm_reset = tcase_create("sm_reset_cleanup");
+	tcase_add_unchecked_fixture(tc_sm_reset, NULL, NULL);
+	tcase_add_test(tc_sm_reset, check_sm_reset_cleanup);
 	suite_add_tcase(suite, tc_sm_reset);
 
 	tc_sm_descr = tcase_create("sm_descr");
