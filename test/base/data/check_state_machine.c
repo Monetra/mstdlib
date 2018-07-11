@@ -499,9 +499,9 @@ START_TEST(check_sm_reset_cleanup)
 	int                        d;
 
 	cm = M_state_machine_cleanup_create(1, "cm", M_STATE_MACHINE_LINEAR_END);
-	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_E, 1, NULL, state_cleanup_e, NULL, NULL);
-	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_A, 1, NULL, state_cleanup_a, NULL, NULL);
-	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_F, 1, NULL, state_cleanup_f, NULL, NULL);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_E, 1, "STATE_C_E", state_cleanup_e, NULL, NULL);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_A, 1, "STATE_C_A", state_cleanup_a, NULL, NULL);
+	M_state_machine_cleanup_insert_state(cm, STATE_CLEANUP_F, 1, "STATE_C_F", state_cleanup_f, NULL, NULL);
 
 	sm = M_state_machine_create(1, "sm", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(sm, STATE_A, 1, "STATE_A", state_a, cm, NULL);
@@ -524,12 +524,13 @@ START_TEST(check_sm_reset_cleanup)
 
 	/* Cancel the csm. */
 	M_state_machine_reset(sm, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
+	d = 1;
 
 	/* Run the sm. */
 	status = M_state_machine_run(sm, (void *)&d);
 
 	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure, %d", status);
-	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
+	ck_assert_msg(d == 1, "State machine cleanup did not run properly d != 1, d == %d\n", d);
 
 	M_state_machine_destroy(sm);
 	M_state_machine_cleanup_destroy(cm);
