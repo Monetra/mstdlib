@@ -1,6 +1,7 @@
 var group__m__fs__info =
 [
     [ "M_fs_info", "group__m__fs__info.html#gaed77f38d74f777c0f7128d40f2e32358", null ],
+    [ "M_fs_info_file", "group__m__fs__info.html#ga630e40fec9a06fa569165ce3d699be40", null ],
     [ "M_fs_info_destroy", "group__m__fs__info.html#ga00a27764bf651a41e399df32f8e50d18", null ],
     [ "M_fs_info_get_user", "group__m__fs__info.html#ga4766c6263b536ea370ffe86113c8cb45", null ],
     [ "M_fs_info_get_group", "group__m__fs__info.html#gaa43d2de8f97b0d8fd32ed45c9291497f", null ],

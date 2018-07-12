@@ -115,6 +115,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga7395775c109d2dd5fcd4357ef982a0fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga627bf954df42a1f65d88f2edf828c635"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__perms.html#ga627bf954df42a1f65d88f2edf828c635">M_fs_perms_set_perms</a> (const <a class="el" href="group__m__fs__common.html#ga0fb951cb245e1da58cd74a495d2a1516">M_fs_perms_t</a> *perms, const char *path)</td></tr>
 <tr class="separator:ga627bf954df42a1f65d88f2edf828c635"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf95c6d1c11d7d06f8fb6fc3f764e6486"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__perms.html#gaf95c6d1c11d7d06f8fb6fc3f764e6486">M_fs_perms_set_perms_file</a> (const <a class="el" href="group__m__fs__common.html#ga0fb951cb245e1da58cd74a495d2a1516">M_fs_perms_t</a> *perms, <a class="el" href="group__m__fs__common.html#ga3f48055e7fc13f13df9c6bb9cdebd5fb">M_fs_file_t</a> *fd)</td></tr>
+<tr class="separator:gaf95c6d1c11d7d06f8fb6fc3f764e6486"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1bc54ec4b824b9015d66e028c43cd1bc"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__perms.html#ga1bc54ec4b824b9015d66e028c43cd1bc">M_fs_perms_get_user</a> (const <a class="el" href="group__m__fs__common.html#ga0fb951cb245e1da58cd74a495d2a1516">M_fs_perms_t</a> *perms)</td></tr>
 <tr class="separator:ga1bc54ec4b824b9015d66e028c43cd1bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga21771c3b9c6d138c8ff15294f46dc971"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__fs__perms.html#ga21771c3b9c6d138c8ff15294f46dc971">M_fs_perms_get_group</a> (const <a class="el" href="group__m__fs__common.html#ga0fb951cb245e1da58cd74a495d2a1516">M_fs_perms_t</a> *perms)</td></tr>
@@ -274,6 +276,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Can the process access the path with the given perms.</p>
+<dl class="section warning"><dt>Warning</dt><dd>using this function incorrectly can lead to security issues. This is an implementation of the POSIX access() function and the security considerations apply.</dd></dl>
+<p>This function should not be used to make access control decisions due to Time-of-check Time-of-use (TOCTOU) race condition attacks.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path to access. </td></tr>
@@ -314,6 +318,42 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">perms</td><td>The perms. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Result. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf95c6d1c11d7d06f8fb6fc3f764e6486"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__fs__common.html#ga715f9815d0e45a100da4feb7761394cb">M_fs_error_t</a> M_fs_perms_set_perms_file </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__fs__common.html#ga0fb951cb245e1da58cd74a495d2a1516">M_fs_perms_t</a> *&#160;</td>
+          <td class="paramname"><em>perms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__fs__common.html#ga3f48055e7fc13f13df9c6bb9cdebd5fb">M_fs_file_t</a> *&#160;</td>
+          <td class="paramname"><em>fd</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Apply perms to open file.</p>
+<p>This will set/change/modify the perms on a file.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">perms</td><td>The perms. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fd</td><td>The file.</td></tr>
   </table>
   </dd>
 </dl>
@@ -823,7 +863,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 11 2018 18:08:04 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jul 12 2018 18:33:23 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

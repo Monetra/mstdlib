@@ -6,6 +6,7 @@ var group__m__fs__perms =
     [ "M_fs_perms_destroy", "group__m__fs__perms.html#ga415ebc941577e962ab352e1e44b493dc", null ],
     [ "M_fs_perms_can_access", "group__m__fs__perms.html#ga7395775c109d2dd5fcd4357ef982a0fd", null ],
     [ "M_fs_perms_set_perms", "group__m__fs__perms.html#ga627bf954df42a1f65d88f2edf828c635", null ],
+    [ "M_fs_perms_set_perms_file", "group__m__fs__perms.html#gaf95c6d1c11d7d06f8fb6fc3f764e6486", null ],
     [ "M_fs_perms_get_user", "group__m__fs__perms.html#ga1bc54ec4b824b9015d66e028c43cd1bc", null ],
     [ "M_fs_perms_get_group", "group__m__fs__perms.html#ga21771c3b9c6d138c8ff15294f46dc971", null ],
     [ "M_fs_perms_get_mode", "group__m__fs__perms.html#gaceae67f68ea243928284c3d049024594", null ],
