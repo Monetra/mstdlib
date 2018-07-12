@@ -232,6 +232,115 @@ static M_fs_perms_t *M_fs_info_security_info_to_perms(PSECURITY_DESCRIPTOR sd, P
 	return perms;
 }
 
+/* This is nearly identical to M_fs_info_int but because we have an fd not a path and the
+ * file data type is different we need two different functions. */
+M_fs_error_t M_fs_info_file_int(M_fs_info_t **info, M_fs_file_t *fd, M_fs_info_flags_t flags, BY_HANDLE_FILE_INFORMATION *file_data)
+{
+	char                 *user;
+	char                 *group;
+	M_fs_perms_t         *perms;
+	M_fs_error_t          res;
+	DWORD                 ret;
+	ULARGE_INTEGER        large_val;
+	SID                   user_sid[UNLEN+1];
+	SID                   group_sid[UNLEN+1];
+	PSECURITY_DESCRIPTOR  sd;
+
+	if (info == NULL || file_data == NULL) {
+		return M_FS_ERROR_INVALID;
+	}
+
+	/* Fill in our M_fs_info_t. */
+	*info = M_fs_info_create();
+
+	/* Basic info. */
+	M_fs_info_set_type(*info, (file_data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? M_FS_TYPE_DIR : M_FS_TYPE_FILE);
+	M_fs_info_set_hidden(*info, (file_data->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) ? M_TRUE : M_FALSE);
+
+	large_val.LowPart  = file_data->nFileSizeLow;
+	large_val.HighPart = file_data->nFileSizeHigh;
+	M_fs_info_set_size(*info, large_val.QuadPart);
+
+	/* If the system can't pull these times (I'm looking at you ftCreationTime) the
+ 	 * value will be 0 (the Windows Epoc of Jan 1, 1601). It's not possibly for a file
+	 * to be created at that time because Windows didn't exist back then. If this is 0
+	 * we set the time to 0 because we are stating in the docs that if these aren't
+	 * avaliable they'll be set to 0. */
+	if (M_time_filetime_to_int64(&(file_data->ftLastAccessTime)) == 0) {
+		M_fs_info_set_atime(*info, 0);
+	} else {
+		M_fs_info_set_atime(*info, M_time_from_filetime(&(file_data->ftLastAccessTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftLastWriteTime)) == 0) {
+		M_fs_info_set_mtime(*info, 0);
+	} else {
+		M_fs_info_set_mtime(*info, M_time_from_filetime(&(file_data->ftLastWriteTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftCreationTime)) == 0) {
+		M_fs_info_set_ctime(*info, 0);
+	} else {
+		M_fs_info_set_ctime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
+	}
+	if (M_time_filetime_to_int64(&(file_data->ftCreationTime)) == 0) {
+		M_fs_info_set_btime(*info, 0);
+	} else {
+		M_fs_info_set_btime(*info, M_time_from_filetime(&(file_data->ftCreationTime)));
+	}
+
+	if (flags & M_FS_PATH_INFO_FLAGS_BASIC) {
+		return M_FS_ERROR_SUCCESS;
+	}
+
+	/* The following data is every expensive and slow to pull */
+
+	/* Get the security descriptor so we can get info about the file */
+	ret = GetSecurityInfo(fd->fd, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION, NULL, NULL, NULL, NULL, &sd);
+	if (ret != ERROR_SUCCESS) {
+		M_fs_info_destroy(*info);
+		*info = NULL;
+		LocalFree(sd);
+		return M_fs_error_from_syserr(ret);
+	}
+
+	/* User and group. */
+	res = M_fs_info_get_file_user_group(sd, &user, user_sid, sizeof(user_sid), &group, group_sid, sizeof(group_sid));
+	if (res != M_FS_ERROR_SUCCESS) {
+		M_free(user);
+		M_free(group);
+		M_fs_info_destroy(*info);
+		*info = NULL;
+		LocalFree(sd);
+		return res;
+	}
+	M_fs_info_set_user(*info, user);
+	M_fs_info_set_group(*info, group);
+	M_free(user);
+	M_free(group);
+	if (M_fs_info_get_group(*info) == NULL) {
+		M_mem_set(group_sid, 0, sizeof(group_sid));
+	}
+
+	/* Perms. */
+	perms = M_fs_info_security_info_to_perms(sd, user_sid, group_sid);
+	if (perms == NULL) {
+		M_fs_info_destroy(*info);
+		*info = NULL;
+		LocalFree(sd);
+		return M_FS_ERROR_GENERIC;
+	}
+	LocalFree(sd);
+	if ((res = M_fs_perms_set_user_int(perms, M_fs_info_get_user(*info), user_sid)) != M_FS_ERROR_SUCCESS ||
+		(res = M_fs_perms_set_group_int(perms, M_fs_info_get_group(*info), group_sid)) != M_FS_ERROR_SUCCESS)
+	{
+		M_fs_perms_destroy(perms);
+		M_fs_info_destroy(*info);
+		*info = NULL;
+		return res;
+	}
+	M_fs_info_set_perms(*info, perms);
+
+	return M_FS_ERROR_SUCCESS;
+}
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -386,4 +495,23 @@ M_fs_error_t M_fs_info(M_fs_info_t **info, const char *path, M_uint32 flags)
 	M_free(norm_path);
 
 	return res;
+}
+
+M_fs_error_t M_fs_info_file(M_fs_info_t **info, M_fs_file_t *fd, M_uint32 flags)
+{
+	BY_HANDLE_FILE_INFORMATION file_data;
+
+	if (info != NULL)
+		*info = NULL;
+
+	if (fd == NULL)
+		return M_FS_ERROR_INVALID;
+
+	if (info == NULL)
+		return M_FS_ERROR_SUCCESS;
+
+	if (!GetFileInformationByHandle(fd->fd, &file_data))
+		return M_fs_error_from_syserr(GetLastError());
+
+	return M_fs_info_file_int(info, fd, flags, &file_data);
 }

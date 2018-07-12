@@ -960,6 +960,19 @@ M_API M_fs_error_t M_fs_path_norm(char **out, const char *path, M_uint32 flags, 
 M_API M_fs_error_t M_fs_info(M_fs_info_t **info, const char *path, M_uint32 flags);
 
 
+/*! Get information about an open file.
+ *
+ * \param[out] info Allocated info object with the info about the path. If passed as NULL then
+ *                  this only verifies that a path exists. However, the file is already open
+ *                  so it exists!
+ * \param[in] fd    The file.
+ * \param[in] flags M_fs_info_flags_t defining behavior of how and what info to read.
+ *
+ * \return Result.
+ */
+M_API M_fs_error_t M_fs_info_file(M_fs_info_t **info, M_fs_file_t *fd, M_uint32 flags);
+
+
 /*! Destroy an info object.
  *
  * \param[in] info The info object.
