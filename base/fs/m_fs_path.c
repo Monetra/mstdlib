@@ -254,7 +254,7 @@ char *M_fs_path_join_parts(const M_list_str_t *path, M_fs_system_t sys_type)
 	sys_type = M_fs_path_get_system_type(sys_type);
 
 	/* Remove any empty parts (except for the first part which denotes an abs path on Unix
- 	 * or a UNC path on Windows). */
+	 * or a UNC path on Windows). */
 	parts = M_list_str_duplicate(path);
 	for (i=len-1; i>0; i--) {
 		part = M_list_str_at(parts, i);
@@ -536,7 +536,7 @@ M_bool M_fs_path_ishidden(const char *path, M_fs_info_t *info)
 	}
 
 	/* Hidden. Check if the first character of the last part of the path. Either the file or directory name itself
- 	 * starts with a '.'. */
+	 * starts with a '.'. */
 	path_parts = M_fs_path_componentize_path(path, M_FS_SYSTEM_UNIX);
 	len = M_list_str_len(path_parts);
 	if (len > 0) {
@@ -601,7 +601,23 @@ char *M_fs_path_tmpdir(M_fs_system_t sys_type)
 	d = M_fs_path_mac_tmpdir();
 #else
 	const char *const_temp;
-	/* Try Unix env var. */
+	/* Unix doens't have a fancy function to get the standard
+	 * temporary directory an application can use. Instead there
+	 * is a convoluted set of possible paths that could be used.
+	 *
+	 * We're going to go though each one in a priority order and
+	 * verify if we can read and write the directory. If so then
+	 * that's the one that will be used. We are fine using access
+	 * here because it doesn't matter if the path ends up being
+	 * changed out from underneath us later on. When it's used
+	 * at that time it will fail. Right now we just want to get
+	 * a path that can be tried. */
+
+	/* Try Unix env vars.
+	 *
+	 * This is not ideal but a valid way to set the temporary directory
+	 * for a user. Per Single Unix Specification 4 and probably other things.
+	 */
 #  ifdef HAVE_SECURE_GETENV
 	const_temp = secure_getenv("TMPDIR");
 #  else
