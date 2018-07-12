@@ -477,6 +477,13 @@ M_API void M_fs_perms_destroy(M_fs_perms_t *perms) M_FREE(1);
 
 /*! Can the process access the path with the given perms.
  *
+ * \warning using this function incorrectly can lead to security issues. This is an
+ * implementation of the POSIX access() function and the security considerations
+ * apply.
+ *
+ * This function should not be used to make access control decisions due to
+ * Time-of-check Time-of-use (TOCTOU) race condition attacks.
+ *
  * \param[in] path The path to access.
  * \param[in] mode M_fs_file_mode_t permissions to should be checked. Optional, pass
  *                 0 if only checking if the path exists.
