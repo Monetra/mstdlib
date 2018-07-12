@@ -247,6 +247,43 @@ M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path)
 	return M_FS_ERROR_SUCCESS;
 }
 
+M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *fd)
+{
+	M_fs_info_t  *info;
+	M_fs_error_t  res;
+	mode_t        mode = 0;
+
+	if (perms == NULL || fd == NULL) {
+		return M_FS_ERROR_INVALID;
+	}
+
+	res = M_fs_info_file(&info, fd, M_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS);
+	if (res != M_FS_ERROR_SUCCESS) {
+		return res;
+	}
+
+	mode = M_fs_perms_to_mode(M_fs_info_get_perms(info), M_FALSE);
+	mode = M_fs_perms_update_mode_from_perms(mode, perms, (M_fs_info_get_type(info)==M_FS_TYPE_DIR)?M_TRUE:M_FALSE);
+	if (fchmod(fd->fd, mode) == -1) {
+		M_fs_info_destroy(info);
+		return M_fs_error_from_syserr(errno);
+	}
+
+	if (perms->user != NULL || perms->group != NULL) {
+		if (fchown(fd->fd,
+				(perms->user != NULL)?perms->uid:(uid_t)-1,
+				(perms->group != NULL)?perms->gid:(gid_t)-1)
+			== -1)
+		{
+			M_fs_info_destroy(info);
+			return M_fs_error_from_syserr(errno);
+		}
+	}
+
+	M_fs_info_destroy(info);
+	return M_FS_ERROR_SUCCESS;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_fs_error_t M_fs_perms_can_access(const char *path, M_uint32 mode)
