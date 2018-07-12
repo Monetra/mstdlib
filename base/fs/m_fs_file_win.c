@@ -111,7 +111,7 @@ M_fs_error_t M_fs_file_open_sys(M_fs_file_t **fd, const char *path, M_uint32 mod
 	 * When you delete or rename a file then create a new file with the old name
 	 * the creation time and a few other attributes will be retained from the old file.
 	 *
-	 * The rational is for an old file save paradigm:
+	 * The rational is for tunneling is an old file saving paradigm:
 	 * 1. Save the data to a new file.
 	 * 2. Delete the current file.
 	 * 3. Rename the new file to the current file name.
@@ -124,24 +124,25 @@ M_fs_error_t M_fs_file_open_sys(M_fs_file_t **fd, const char *path, M_uint32 mod
 	 * on those older file systems was atomic and should never result in data loss. This
 	 * pattern is unnecessary today because this behavior happens internally to the filesystem.
 	 *
-	 * Tunneling prevents the creation time from changing with every save. Making
-	 * the process seamless and appear like a file is being saved instead of created,
-	 * deleted, renamed.
+	 * Tunneling prevents the creation time from changing with every save when using the
+	 * described pattern. Making the process seamless and appear like a file is being saved
+	 * instead of created, deleted, renamed.
 	 *
 	 * This causes significant issues when doing log rotation because the creation time never
 	 * changes. If you're rotating on a 7 day period, for example, every time you check
 	 * the file would appear older than 7 days even if it was rotated seconds ago.
 	 *
 	 * Since this behavior doesn't exist on other OS's we're going to "disable" tunneling.
-	 * Unfortunately, the only way to do so is a registry setting, which we won't touch.
+	 * Unfortunately, the only way to really do so is a registry setting, which we won't touch.
 	 * CreateFile won't tell us if a file was created or opened. The only way we can
-	 * do this is by checking if the file exists when we have flags telling CreateFile to
-	 * create if the file does exist. If it doesn't exist we'll call SetFileTime to the
-	 * current time to override the tunneling behavior.
+	 * "disable" tunneling is by checking if the file exists when we have flags telling CreateFile to
+	 * create if the file does not exist. If the file didn't exist before open we'll call SetFileTime
+	 * and set the file time to the current time to override the tunneling behavior.
 	 *
 	 * Since there are two steps it's possible the file is created by something else
-	 * between check and create. Since this time is so close setting the file time
-	 * shouldn't impact anything.
+	 * between check and create. This is not a security issue in this use because the
+	 * result of access is does not influence our use of CreateFile. Worst case the file
+	 * time won't be correct if someone tried a TOCTOU attack.
 	 */
 	if (creation & CREATE_ALWAYS && !M_fs_perms_can_access(norm_path, 0)) {
 		set_ft = M_TRUE;
