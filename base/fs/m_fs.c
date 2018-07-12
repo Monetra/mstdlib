@@ -229,8 +229,9 @@ static M_fs_error_t M_fs_copy_file(const char *path_old, const char *path_new, M
 	}
 
 	if (perms == NULL && mode & M_FS_FILE_MODE_PRESERVE_PERMS) {
-		res = M_fs_info(&info, path_old, M_FS_PATH_INFO_FLAGS_NONE);
+		res = M_fs_info_file(&info, fd_old, M_FS_PATH_INFO_FLAGS_NONE);
 		if (res != M_FS_ERROR_SUCCESS) {
+			M_fs_file_close(fd_old);
 			return res;
 		}
 		perms = M_fs_info_get_perms(info);
