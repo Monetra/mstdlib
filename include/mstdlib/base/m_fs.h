@@ -507,6 +507,18 @@ M_API M_fs_error_t M_fs_perms_can_access(const char *path, M_uint32 mode);
 M_API M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path);
 
 
+/*! Apply perms to open file.
+ *
+ * This will set/change/modify the perms on a file.
+ *
+ * \param[in] perms The perms.
+ * \param[in] fd    The file.
+ *
+ * \return Result.
+ */
+M_API M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *fd);
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Get the user associated with the perms.

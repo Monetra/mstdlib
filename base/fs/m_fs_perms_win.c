@@ -387,7 +387,6 @@ M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path)
 	/* Set PROTECTED_DACL_SECURITY_INFORMATION so that perms are not inherited from the container */
 	SECURITY_INFORMATION  sec_info     = DACL_SECURITY_INFORMATION|PROTECTED_DACL_SECURITY_INFORMATION;
 
-
 	if (perms == NULL || path == NULL) {
 		return M_FS_ERROR_INVALID;
 	}
@@ -443,6 +442,70 @@ M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path)
 	LocalFree(everyone_sid);
 	LocalFree(acl);
 	M_free(norm_path);
+
+	return M_FS_ERROR_SUCCESS;
+}
+
+M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *fd)
+{
+	M_fs_info_t          *info;
+	M_fs_error_t          res;
+	DWORD                 ret;
+	M_fs_perms_t         *myperms;
+	M_bool                isdir;
+	PACL                  acl          = NULL;
+	PSID                  user_sid     = NULL;
+	PSID                  group_sid    = NULL;
+	PSID                  everyone_sid = NULL;
+	/* Set PROTECTED_DACL_SECURITY_INFORMATION so that perms are not inherited from the container */
+	SECURITY_INFORMATION  sec_info     = DACL_SECURITY_INFORMATION|PROTECTED_DACL_SECURITY_INFORMATION;
+
+	if (perms == NULL || fd == NULL) {
+		return M_FS_ERROR_INVALID;
+	}
+
+	res = M_fs_info_file(&info, fd, M_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS);
+	if (res != M_FS_ERROR_SUCCESS) {
+		return res;
+	}
+
+	/* Get the original perms and combine it with the perms we want to set */
+	myperms = M_fs_perms_dup(M_fs_info_get_perms(info));
+	isdir   = (M_fs_info_get_type(info) == M_FS_TYPE_DIR)?M_TRUE:M_FALSE;
+	M_fs_info_destroy(info);
+	M_fs_perms_merge(&myperms, M_fs_perms_dup(perms));
+
+	/* Get the everyone SID. This needs to remain valid until after SetNamedSecurityInfo is called */
+	if (!ConvertStringSidToSid("S-1-1-0", &everyone_sid)) {
+		everyone_sid = NULL;
+	}
+
+	/* Convert the perms to a dacl. */
+	res = M_fs_perms_to_dacl(myperms, everyone_sid, &acl, isdir);
+	if (res != M_FS_ERROR_SUCCESS) {
+		LocalFree(everyone_sid);
+		return res;
+	}
+
+	/* Get the user and group we're setting on the file */
+	if (perms->user != NULL) {
+		sec_info |= OWNER_SECURITY_INFORMATION;
+		user_sid  = M_CAST_OFF_CONST(PSID, perms->user_sid);
+	}
+	if (perms->group != NULL) {
+		sec_info |= GROUP_SECURITY_INFORMATION;
+		group_sid = M_CAST_OFF_CONST(PSID, perms->group_sid);
+	}
+
+	/* Apply the perms to the file */
+	ret = SetSecurityInfo(fd->fd, SE_FILE_OBJECT, sec_info, user_sid, group_sid, acl, NULL);
+	if (ret != ERROR_SUCCESS) {
+		LocalFree(acl);
+		LocalFree(everyone_sid);
+		return M_fs_error_from_syserr(ret);
+	}
+	LocalFree(everyone_sid);
+	LocalFree(acl);
 
 	return M_FS_ERROR_SUCCESS;
 }
