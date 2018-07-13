@@ -597,6 +597,13 @@ M_bool M_hashtable_multi_len(const M_hashtable_t *h, const void *key, size_t *le
 {
 	struct M_hashtable_bucket *entry;
 	size_t                     hash_idx;
+	size_t                     mylen;
+
+	if (len == NULL) {
+		len = &mylen;
+	}
+
+	*len = 0;
 
 	if (h == NULL || !(h->flags & M_HASHTABLE_MULTI_VALUE) || key == NULL)
 		return M_FALSE;
@@ -607,12 +614,10 @@ M_bool M_hashtable_multi_len(const M_hashtable_t *h, const void *key, size_t *le
 	if (entry == NULL)
 		return M_FALSE;
 
-	if (len != NULL) {
-		if (h->flags & M_HASHTABLE_MULTI_VALUE) {
-			*len = M_list_len(entry->value.multi_value);
-		} else {
-			*len = 1;
-		}
+	if (h->flags & M_HASHTABLE_MULTI_VALUE) {
+		*len = M_list_len(entry->value.multi_value);
+	} else {
+		*len = 1;
 	}
 
 	return M_TRUE;
