@@ -147,7 +147,10 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		/* As of SQL 2008, Microsoft can use the comma-delimited format.
 		 * we've seen crashes when using array binding within Microsoft's
-		 * driver so we should avoid it */
+		 * driver so we should avoid it.  Apparently other people see the
+		 * same crash as we see:
+		 * https://www.easysoft.com/support/kb/kb00808.html (Issue #2)
+		 */
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		0,                            /* max_insert_records    */
@@ -812,6 +815,10 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 
 static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
+	/* Uninitialized warning suppress (won't ever actually be used). */
+	*ValueType     = 0;
+	*ParameterType = 0;
+
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			*ValueType                = SQL_C_STINYINT;
@@ -863,7 +870,7 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type
 
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
-			bcol->data.i8vals[row]  = M_sql_driver_stmt_bind_get_bool(stmt, row, col);
+			bcol->data.i8vals[row]  = (M_int8)(M_sql_driver_stmt_bind_get_bool(stmt, row, col));
 			break;
 
 		case M_SQL_DATA_TYPE_INT16:
@@ -923,10 +930,13 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 
 	dstmt->bind_cols        = M_malloc_zero(sizeof(*dstmt->bind_cols) * num_cols);
 	dstmt->bind_cols_cnt    = num_cols;
-	/* Notice that SQLUINTEGER even though bind_cols_status is SQLUSMALLINT?  We saw on valgrind on error
-	 * conditions where they'd write past the array bounds.  We think internally their driver may be using
-	 * an SQLUINTEGER instead of SQLUSMALLINT */
-	dstmt->bind_cols_status = M_malloc_zero(sizeof(SQLUINTEGER) * num_rows);
+	/* NOTE: Microsoft's SQLServer driver appears to have a bug where it can exceed the bounds of
+	 * the array passed for SQL_ATTR_PARAM_STATUS_PTR as it appears to igore SQL_ATTR_PARAMSET_SIZE
+	 * when reusing a query handle.  Just an FYI, there's not much we can do, we've switched
+	 * to using comma-delimited inserts.  An identical bug report here:
+	 * https://www.easysoft.com/support/kb/kb00808.html (Issue #2)
+	 */
+	dstmt->bind_cols_status = M_malloc_zero(sizeof(*dstmt->bind_cols_status) * num_rows);
 
 #ifdef SQL_PARAM_BIND_BY_COLUMN
 	/* Specify use of column-wise binding, should be default */
@@ -960,7 +970,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 
 	for (i = 0; i < num_cols; i++) {
 		SQLSMALLINT          ValueType     = 0;
-		SQLSMALLINT          ParameterType;
+		SQLSMALLINT          ParameterType = 0;
 		SQLULEN              ColumnSize    = M_sql_driver_stmt_bind_get_max_col_size(stmt, i);
 		M_sql_data_type_t    type          = M_sql_driver_stmt_bind_get_col_type(stmt, i);
 		SQLPOINTER           ParameterValue;
@@ -1114,7 +1124,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 	for (row = 0; row < num_rows; row++) {
 		for (i = 0; i < num_cols; i++) {
 			SQLSMALLINT          ValueType      = 0;
-			SQLSMALLINT          ParameterType;
+			SQLSMALLINT          ParameterType  = 0;
 			SQLULEN              ColumnSize     = 0;
 			SQLPOINTER           ParameterValue = NULL;
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);

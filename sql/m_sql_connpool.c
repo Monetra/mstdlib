@@ -865,6 +865,9 @@ static size_t M_sql_connpool_get_unused_id(M_sql_connpool_data_t *pool_data)
 
 static void M_sql_connpool_set_used(M_sql_connpool_data_t *pool_data, M_sql_conn_t *conn, M_bool for_trans, M_bool is_new)
 {
+	if (pool_data == NULL || conn == NULL)
+		return;
+
 	/* Add connection to used_conns */
 	M_queue_insert(pool_data->used_conns, conn);
 
