@@ -235,6 +235,9 @@ cleanupdevinfo:
 
 static void hid_win32_cleanup(M_io_handle_t *handle)
 {
+	if (handle->priv == NULL)
+		return;
+
 	M_free(handle->priv->path);
 	M_free(handle->priv->manufacturer);
 	M_free(handle->priv->product);
