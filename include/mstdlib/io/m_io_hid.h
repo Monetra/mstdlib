@@ -177,9 +177,9 @@ M_API M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return new string containing manufacturer, or NULL if no HID layer was present/acquirable
  */
-M_API const char *M_io_hid_get_manufacturer(M_io_t *io);
+M_API char *M_io_hid_get_manufacturer(M_io_t *io);
 
 
 /*! Get the HID path from an io object.
@@ -188,9 +188,9 @@ M_API const char *M_io_hid_get_manufacturer(M_io_t *io);
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return new string containing path, or NULL if no HID layer was present/acquirable
  */
-M_API const char *M_io_hid_get_path(M_io_t *io);
+M_API char *M_io_hid_get_path(M_io_t *io);
 
 
 /*! Get the HID product from an io object.
@@ -199,9 +199,9 @@ M_API const char *M_io_hid_get_path(M_io_t *io);
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return new string containing product, or NULL if no HID layer was present/acquirable
  */
-M_API const char *M_io_hid_get_product(M_io_t *io);
+M_API char *M_io_hid_get_product(M_io_t *io);
 
 
 /*! Get the HID product ID from an io object.
@@ -210,7 +210,7 @@ M_API const char *M_io_hid_get_product(M_io_t *io);
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return product ID, or 0 if no HID layer was present/acquirable
  */
 M_API M_uint16 M_io_hid_get_productid(M_io_t *io);
 
@@ -221,7 +221,7 @@ M_API M_uint16 M_io_hid_get_productid(M_io_t *io);
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return vendor ID, or 0 if no HID layer was present/acquirable
  */
 M_API M_uint16 M_io_hid_get_vendorid(M_io_t *io);
 
@@ -232,9 +232,9 @@ M_API M_uint16 M_io_hid_get_vendorid(M_io_t *io);
  *
  * \param[in] io io object.
  *
- * \return String.
+ * \return new string containing serial number, or NULL if no HID layer was present/acquirable
  */
-M_API const char *M_io_hid_get_serial(M_io_t *io);
+M_API char *M_io_hid_get_serial(M_io_t *io);
 
 
 /*! Get the HID maximum input and output report sizes from an io object.
@@ -245,8 +245,8 @@ M_API const char *M_io_hid_get_serial(M_io_t *io);
  * Queries the highest HID layer in the stack, if there are more than one.
  *
  * \param[in]  io              io object.
- * \param[out] max_input_size  Maximum input report size.
- * \param[out] max_output_size Maximum output report size.
+ * \param[out] max_input_size  Maximum input report size, or 0 if no HID layer was present/acquirable
+ * \param[out] max_output_size Maximum output report size, or 0 if no HID layer was present/acquirable
  */
 M_API void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size);
 

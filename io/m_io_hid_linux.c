@@ -691,10 +691,9 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 }
 
 
-static M_io_handle_t *get_top_hid_handle(M_io_t *io)
+static M_io_layer_t *get_top_hid_layer(M_io_t *io)
 {
 	M_io_layer_t  *layer;
-	M_io_handle_t *handle;
 	size_t         layer_idx;
 	size_t         layer_count;
 
@@ -702,25 +701,24 @@ static M_io_handle_t *get_top_hid_handle(M_io_t *io)
 		return NULL;
 	}
 
-	handle      = NULL;
+	layer       = NULL;
 	layer_count = M_io_layer_count(io);
 	for (layer_idx=layer_count; layer_idx-->0; ) {
 		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
 
 		if (layer != NULL) {
-			handle = M_io_layer_get_handle(layer);
-			M_io_layer_release(layer);
 			break;
 		}
 	}
 
-	return handle;
+	return layer;
 }
 
 
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle;
 	size_t         my_in;
 	size_t         my_out;
 
@@ -731,6 +729,9 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 		max_output_size = &my_out;
 	}
 
+	layer  = get_top_hid_layer(io);
+	handle = M_io_layer_get_handle(layer);
+
 	if (handle == NULL) {
 		*max_input_size  = 0;
 		*max_output_size = 0;
@@ -738,70 +739,96 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 		*max_input_size  = handle->max_input_report_size;
 		*max_output_size = handle->max_output_report_size;
 	}
+
+	M_io_layer_release(layer);
 }
 
 
-const char *M_io_hid_get_path(M_io_t *io)
+char *M_io_hid_get_path(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
 
-	if (handle == NULL) {
-		return NULL;
+	if (handle != NULL) {
+		ret = M_strdup(handle->path);
 	}
-	return handle->path;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 
-const char *M_io_hid_get_manufacturer(M_io_t *io)
+char *M_io_hid_get_manufacturer(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
 
-	if (handle == NULL) {
-		return NULL;
+	if (handle != NULL) {
+		ret = M_strdup(handle->manufacturer);
 	}
-	return handle->manufacturer;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 
-const char *M_io_hid_get_product(M_io_t *io)
+char *M_io_hid_get_product(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
 
-	if (handle == NULL) {
-		return NULL;
+	if (handle != NULL) {
+		ret = M_strdup(handle->product);
 	}
-	return handle->product;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 
-const char *M_io_hid_get_serial(M_io_t *io)
+char *M_io_hid_get_serial(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
 
-	if (handle == NULL) {
-		return NULL;
+	if (handle != NULL) {
+		ret = M_strdup(handle->serial);
 	}
-	return handle->serial;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 
 M_uint16 M_io_hid_get_productid(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
 
-	if (handle == NULL) {
-		return 0;
+	if (handle != NULL) {
+		ret = handle->productid;
 	}
-	return handle->productid;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 
 M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 {
-	M_io_handle_t *handle = get_top_hid_handle(io);
+	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
 
-	if (handle == NULL) {
-		return 0;
+	if (handle != NULL) {
+		ret = handle->vendorid;
 	}
-	return handle->vendorid;
+
+	M_io_layer_release(layer);
+	return ret;
 }
