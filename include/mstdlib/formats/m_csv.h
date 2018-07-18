@@ -28,6 +28,8 @@
 
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
+#include <mstdlib/base/m_buf.h>
+#include <mstdlib/base/m_list_str.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -81,6 +83,27 @@ enum M_CSV_FLAGS {
 	M_CSV_FLAG_TRIM_WHITESPACE = 1 << 0 /*!< If a cell is not quoted, trim leading and trailing whitespace */
 };
 
+/*! Callback that can be used to filter rows from data returned by M_csv_output_rows_buf().
+ *
+ * \param[in] csv   the csv being output.
+ * \param[in] row   the idx of the current row being considered (NOT raw - 0 is the first row after the header).
+ * \param[in] thunk pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return          M_TRUE, if the row should be included in output. M_FALSE otherwise.
+ */
+typedef M_bool (*M_csv_row_filter_cb)(const M_csv_t *csv, size_t row, void *thunk);
+
+
+/*! Callback that can be used to edit data from certain columns as it's written out.
+ *
+ * \param[in] buf    buffer to write new version of cell data to.
+ * \param[in] cell   original cell data (may be empty/NULL, if cell was empty)
+ * \param[in] header header of column this cell came from
+ * \param[in] thunk  pointer to thunk object passed into M_csv_output_rows_buf() by caller.
+ * \return           M_TRUE if we added a modified value to buf. M_FALSE if value was OK as-is.
+ */
+typedef M_bool (*M_csv_cell_writer_cb)(M_buf_t *buf, const char *cell, const char *header, void *thunk);
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Parse a string into a CSV object.
@@ -96,6 +119,23 @@ enum M_CSV_FLAGS {
  * \see M_csv_destroy
  */
 M_API M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC;
+
+
+/*! Parse a string into a CSV object, using given column headers.
+ *
+ * Same as M_csv_parse, but add the given headers as the first row before parsing the data into the table.
+ *
+ * \param[in] data    The data to parse.
+ * \param[in] len     The length of data to parse.
+ * \param[in] delim   CSV delimiter character. Typically comma (',').
+ * \param[in] quote   CSV quote character. Typically double quote ('"').
+ * \param[in] flags   Flags controlling parse behavior.
+ * \param[in] headers List of headers to add as first row of table.
+ *
+ * \return            CSV object
+ */
+M_API M_csv_t *M_csv_parse_add_headers(const char *data, size_t len, char delim, char quote, M_uint32 flags,
+	M_list_str_t *headers);
 
 
 /*! Parse a string into a CSV object.
@@ -253,6 +293,61 @@ M_API const char *M_csv_get_cell(const M_csv_t *csv, size_t row, const char *col
  * \return Column number for the given name on success. Otherwise -1.
  */
 M_API ssize_t M_csv_get_cell_num(const M_csv_t *csv, const char *colname); 
+
+
+/*! Use different delim and quote characters for output than for parsing.
+ *
+ * By default, M_csv_output_headers_buf() and M_csv_output_rows_buf() will use the same
+ * delimiter and quote characters that were used when parsing the data.
+ *
+ * However, if you need to use a different delimiter and/or quote character in your
+ * output, call this function first to change them.
+ *
+ * \param csv   The csv.
+ * \param delim delimiter char to use in subsequent write operations
+ * \param quote quote char to use in subsequent write operations
+ */
+void M_csv_output_set_control_chars(M_csv_t *csv, char delim, char quote);
+
+
+/*! Write the header row, in CSV format.
+ *
+ * When outputting CSV data, this should be called first, with the exact same list of headers
+ * that you'll be using later with M_csv_output_rows_buf().
+ *
+ * If \a headers is NULL, all headers defined in the CSV data will be output, in the same order
+ * they were originally stored in.
+ *
+ * \see M_csv_output_rows_buf()
+ *
+ * \param[out] buf     buffer to place output in.
+ * \param[in]  csv     the CSV data to output.
+ * \param[in]  headers names of columns to include in header row (will be written in this exact order).
+ */
+M_API void M_csv_output_headers_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers);
+
+
+/*! Write the parsed data to the given buffer, in CSV format.
+ *
+ * If \a headers is not NULL, only the columns whose names match will be output, in the same order
+ * that the column headers are listed in \a headers. If there are names in \a headers which aren't
+ * present in the parsed CSV file, an empty value will be added for that column in every row.
+ *
+ * A filter callback may be used to omit certain rows from the output. If no filter callback is
+ * provided, all rows will be output.
+ *
+ * \see M_csv_output_headers_buf()
+ *
+ * \param[out] buf          buffer to place output in
+ * \param[in]  csv          the CSV data to output.
+ * \param[in]  headers      names of columns to include in output (also controls column order).
+ * \param[in]  filter_cb    callback to control which rows are output (may be NULL).
+ * \param[in]  filter_thunk pointer to pass to \a filter_cb (may be NULL).
+ * \param[in]  writer_cb    callback to allow editing cell values (may be NULL).
+ * \param[in]  writer_thunk pointer to pass to \a writer_cb (may be NULL).
+ */
+M_API void M_csv_output_rows_buf(M_buf_t *buf, const M_csv_t *csv, M_list_str_t *headers,
+	M_csv_row_filter_cb filter_cb, void *filter_thunk, M_csv_cell_writer_cb writer_cb, void *writer_thunk);
 
 /*! @} */
 
