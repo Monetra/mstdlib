@@ -183,7 +183,7 @@ const char *M_io_hid_enum_serial(const M_io_hid_enum_t *hidenum, size_t idx)
 M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial /* May be NULL */)
 {
 	M_io_hid_enum_t  *hidenum;
-	char              path[256];
+	const char       *path;
 	M_io_handle_t    *handle;
 	M_io_callbacks_t *callbacks;
 	M_io_error_t      err;
@@ -201,13 +201,13 @@ M_io_error_t M_io_hid_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 		return M_IO_ERROR_NOTFOUND;
 	}
 
-	M_str_cpy(path, sizeof(path), M_io_hid_enum_path(hidenum, 0));
+	path = M_io_hid_enum_path(hidenum, 0);
 	M_io_hid_enum_destroy(hidenum);
 
 	if (M_str_isempty(path))
 		return M_IO_ERROR_NOTFOUND;
 
-	handle    = M_io_hid_open(path, &err);
+	handle = M_io_hid_open(path, &err);
 	if (handle == NULL)
 		return err;
 
