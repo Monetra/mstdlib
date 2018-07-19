@@ -185,6 +185,7 @@ static M_sql_error_t M_sql_driver_init(M_sql_driver_t **driver, M_sql_driver_t *
 	    !(*driver)->cb_serverversion   ||
 	    !(*driver)->cb_disconnect      ||
 	    !(*driver)->cb_queryformat     ||
+	    !(*driver)->cb_queryrowcnt     ||
 	    !(*driver)->cb_prepare         ||
 	    !(*driver)->cb_prepare_destroy ||
 	    !(*driver)->cb_execute         ||
