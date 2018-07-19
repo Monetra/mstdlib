@@ -172,6 +172,8 @@ typedef void (*M_sql_driver_cb_disconnect_t)(M_sql_driver_conn_t *conn);
  *  It is suggested implementors use M_sql_driver_queryformat() if possible instead of
  *  writing this from scratch.
  *
+ *  \param[in] conn        Initialized connection object, use M_sql_driver_conn_get_conn() to get driver-specific
+ *                         private connection handle.
  *  \param[in] query       User-provided query string
  *  \param[in] num_params  Number of bound parameters (per row)
  *  \param[in] num_rows    For insert statements, number of rows of bound parameters
@@ -180,6 +182,16 @@ typedef void (*M_sql_driver_cb_disconnect_t)(M_sql_driver_conn_t *conn);
  *  \return Allocated buffer containing a rewritten query string or NULL on failure
  */
 typedef char *(*M_sql_driver_cb_queryformat_t)(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size);
+
+/*! Return number of rows that will be worked on for the current execution.
+ *
+ *  \param[in] conn        Initialized connection object, use M_sql_driver_conn_get_conn() to get driver-specific
+ *                         private connection handle.
+ *  \param[in] num_params  Number of bound parameters (per row)
+ *  \param[in] num_rows    For insert statements, number of rows of bound parameters
+ *  \return Row count
+ */
+typedef size_t (*M_sql_driver_cb_queryrowcnt_t)(M_sql_conn_t *conn, size_t num_params, size_t num_rows);
 
 /*! Prepare the provided query for execution.
  * 
@@ -347,6 +359,7 @@ typedef struct  {
 	M_sql_driver_cb_connect_runonce_t    cb_connect_runonce;    /*!< Optional. Callback used after connection is established, but before first query to set run-once options. */
 	M_sql_driver_cb_disconnect_t         cb_disconnect;         /*!< Required. Callback used to disconnect from the db */
 	M_sql_driver_cb_queryformat_t        cb_queryformat;        /*!< Required. Callback used for reformatting a query to the sql db requirements */
+	M_sql_driver_cb_queryrowcnt_t        cb_queryrowcnt;        /*!< Required. Callback used for determining how many rows will be processed by the current execution (chunking rows) */
 	M_sql_driver_cb_prepare_t            cb_prepare;            /*!< Required. Callback used for preparing a query for execution */
 	M_sql_driver_cb_prepare_destroy_t    cb_prepare_destroy;    /*!< Required. Callback used to destroy the driver-specific prepared statement handle */
 	M_sql_driver_cb_execute_t            cb_execute;            /*!< Required. Callback used for executing a prepared query */
@@ -503,14 +516,32 @@ M_API size_t M_sql_driver_conn_get_id(M_sql_conn_t *conn);
 M_API const char *M_sql_driver_stmt_get_query(M_sql_stmt_t *stmt);
 M_API M_sql_driver_stmt_t *M_sql_driver_stmt_get_stmt(M_sql_stmt_t *stmt);
 
-/* Rows returned, and rows passed in may not accurately reflect the number
- * of rows of parameters actually bound.  Some SQL servers do not support
- * multiple rows being inserted in a single query, or may have a limit on
- * how many rows can be inserted at once ... so this is the current 'view'
- * that adjusts for rows that have already been processed so the sql driver
- * doesn't have to track it */
+/*! Retrieve remaining unprocessed row count.
+ *
+ *  Rows returned, and rows passed in may not accurately reflect the number
+ *  of rows of parameters actually bound.  Some SQL servers do not support
+ *  multiple rows being inserted in a single query, or may have a limit on
+ *  how many rows can be inserted at once ... so this is the current 'view'
+ *  that adjusts for rows that have already been processed so the sql driver
+ *  doesn't have to track it
+ *
+ *  \param[in] stmt Initialized statement handle
+ *  \return unprocessed rows remaining
+ */
 M_API size_t M_sql_driver_stmt_bind_rows(M_sql_stmt_t *stmt);
+
+/*! Retrieve column count per row, or if a single row or a query that does not
+ *  support multiple rows (e.g. select), the entire number of parameters bound.
+ *
+ *  This is NOT the number of bound params for multi-row binding, this is just
+ *  the number of columns in a single row.
+ *
+ *  \param[in] stmt Initialized statement handle
+ *  \return bind column count
+ */
 M_API size_t M_sql_driver_stmt_bind_cnt(M_sql_stmt_t *stmt);
+
+
 M_API M_sql_data_type_t M_sql_driver_stmt_bind_get_type(M_sql_stmt_t *stmt, size_t row, size_t idx);
 
 /*! Some columns with multiple rows might have a NULL data type bound with the wrong type,

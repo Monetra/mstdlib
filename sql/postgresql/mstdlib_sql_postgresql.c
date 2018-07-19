@@ -334,6 +334,14 @@ static char *pgsql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 }
 
 
+static size_t pgsql_cb_queryrowcnt(M_sql_conn_t *conn, size_t num_params_per_row, size_t num_rows)
+{
+	(void)conn;
+	(void)num_params_per_row;
+	return pgsql_num_process_rows(num_rows);
+}
+
+
 static void pgsql_free_stmt(M_sql_driver_stmt_t *stmt)
 {
 	if (stmt == NULL)
@@ -880,6 +888,7 @@ static M_sql_driver_t M_sql_postgresql = {
 	pgsql_cb_connect_runonce,     /* Callback used after connection is established, but before first query to set run-once options. */
 	pgsql_cb_disconnect,          /* Callback used to disconnect from the db */
 	pgsql_cb_queryformat,         /* Callback used for reformatting a query to the sql db requirements */
+	pgsql_cb_queryrowcnt,        /* Callback used for determining how many rows will be processed by the current execution (chunking rows) */
 	pgsql_cb_prepare,             /* Callback used for preparing a query for execution */
 	pgsql_cb_prepare_destroy,     /* Callback used to destroy the driver-specific prepared statement handle */
 	pgsql_cb_execute,             /* Callback used for executing a prepared query */

@@ -753,6 +753,17 @@ static size_t odbc_num_bind_rows(M_sql_conn_t *conn, M_sql_stmt_t *stmt)
 }
 
 
+static size_t odbc_cb_queryrowcnt(M_sql_conn_t *conn, size_t num_params_per_row, size_t num_rows)
+{
+	M_sql_driver_conn_t             *dconn = M_sql_driver_conn_get_conn(conn);
+
+	return odbc_num_process_rows(dconn->pool_data->profile->is_multival_insert_cd,
+		dconn->pool_data->profile->max_insert_records,
+		dconn->pool_data->profile->max_bind_params,
+		num_params_per_row, num_rows);
+}
+
+
 static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)
 {
 	M_sql_driver_conn_t             *dconn = M_sql_driver_conn_get_conn(conn);
@@ -761,12 +772,7 @@ static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t n
 	if (dconn->pool_data->profile->is_multival_insert_cd)
 		flags |= M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD;
 
-	num_rows = odbc_num_process_rows(dconn->pool_data->profile->is_multival_insert_cd,
-		dconn->pool_data->profile->max_insert_records,
-		dconn->pool_data->profile->max_bind_params,
-		num_params, num_rows);
-
-	return M_sql_driver_queryformat(query, flags, num_params, num_rows, error, error_size);
+	return M_sql_driver_queryformat(query, flags, num_params, odbc_cb_queryrowcnt(conn, num_params, num_rows), error, error_size);
 }
 
 
@@ -1768,6 +1774,7 @@ static M_sql_driver_t M_sql_odbc = {
 	odbc_cb_connect_runonce,      /* Callback used after connection is established, but before first query to set run-once options. */
 	odbc_cb_disconnect,           /* Callback used to disconnect from the db */
 	odbc_cb_queryformat,          /* Callback used for reformatting a query to the sql db requirements */
+	odbc_cb_queryrowcnt,          /* Callback used for determining how many rows will be processed by the current execution (chunking rows) */
 	odbc_cb_prepare,              /* Callback used for preparing a query for execution */
 	odbc_cb_prepare_destroy,      /* Callback used to destroy the driver-specific prepared statement handle */
 	odbc_cb_execute,              /* Callback used for executing a prepared query */
