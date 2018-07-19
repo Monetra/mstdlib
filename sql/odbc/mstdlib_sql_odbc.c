@@ -153,8 +153,17 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		 */
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
-		0,                            /* max_insert_records    */
-		2100,                         /* max_bind_params       */
+		/* Docs used to mention a limit of 1000 rows but that reference has been
+		 * removed, but here is discussion:
+		 * https://social.msdn.microsoft.com/Forums/sqlserver/en-US/bff53b3d-bf50-413f-891e-75af427394e2/limit-to-number-of-insert-statements-or-values-clauses?forum=transactsql
+		 */
+		1000,                         /* max_insert_records    */
+		/* Docs say 2100 limit, but others report 2099 is the real limit and we
+		 * have confirmed via a customer report that an insert of 150 rows with
+		 * 14 params each (exactly 2100) fails.
+		 * https://stackoverflow.com/questions/845931/maximum-number-of-parameters-in-sql-query#comment47628989_845972
+		 */
+		2099,                         /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
 		mssql_resolve_error,          /* cb_resolve_error      */
 		mssql_cb_connect_runonce,     /* cb_connect_runonce    */
