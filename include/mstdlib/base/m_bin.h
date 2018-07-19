@@ -76,7 +76,7 @@ __BEGIN_DECLS
  *
  * \return Allocated memory of len+data of length len+sizeof(len). Where sizeof(size_t) is typically 8.
  */
-M_uint8 *M_bin_wrap(const M_uint8 *value, size_t len);
+M_API M_uint8 *M_bin_wrap(const M_uint8 *value, size_t len);
 
 
 /*! Duplicates binary data that has the length prepended.
@@ -88,7 +88,7 @@ M_uint8 *M_bin_wrap(const M_uint8 *value, size_t len);
  *
  * \return Copy of wrapped data (len+data).
  */
-M_uint8 *M_bin_wrapeddup(const M_uint8 *value);
+M_API M_uint8 *M_bin_wrapeddup(const M_uint8 *value);
 
 
 /*! Duplicates data that has the length prepended.
@@ -104,7 +104,7 @@ M_uint8 *M_bin_wrapeddup(const M_uint8 *value);
  *
  * \see M_bin_wrapeddup
  */
-void *M_bin_wrapeddup_vp(const void *value);
+M_API void *M_bin_wrapeddup_vp(const void *value);
 
 
 /*! Unwrap wrapped binary data.
@@ -114,7 +114,7 @@ void *M_bin_wrapeddup_vp(const void *value);
  *
  * \return Pointer to start of data within value.
  */
-const M_uint8 *M_bin_unwrap(const M_uint8 *value, size_t *len);
+M_API const M_uint8 *M_bin_unwrap(const M_uint8 *value, size_t *len);
 
 
 /*! Unwrap wrapped binary data and return a copy of the data.
@@ -124,7 +124,7 @@ const M_uint8 *M_bin_unwrap(const M_uint8 *value, size_t *len);
  *
  * \return Allocated memory with a copy of data from value. The prepended length will not be duplicated.
  */
-M_uint8 *M_bin_unwrapdup(const M_uint8 *value, size_t *len);
+M_API M_uint8 *M_bin_unwrapdup(const M_uint8 *value, size_t *len);
 
 /*! @} */
 
