@@ -347,6 +347,7 @@ const char *M_sql_driver_stmt_get_query(M_sql_stmt_t *stmt)
 	return stmt->query_prepared;
 }
 
+
 size_t M_sql_driver_stmt_get_requested_row_cnt(M_sql_stmt_t *stmt)
 {
 	if (stmt == NULL)
@@ -354,7 +355,6 @@ size_t M_sql_driver_stmt_get_requested_row_cnt(M_sql_stmt_t *stmt)
 
 	return stmt->max_fetch_rows;
 }
-
 
 
 size_t M_sql_driver_stmt_bind_rows(M_sql_stmt_t *stmt)
@@ -369,6 +369,7 @@ size_t M_sql_driver_stmt_bind_rows(M_sql_stmt_t *stmt)
 
 	return stmt->bind_row_cnt - stmt->bind_row_offset;
 }
+
 
 size_t M_sql_driver_stmt_bind_cnt(M_sql_stmt_t *stmt)
 {
