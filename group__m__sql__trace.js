@@ -44,6 +44,8 @@ var group__m__sql__trace =
     [ "M_sql_trace_get_query_prepared", "group__m__sql__trace.html#gab5ca13d0979a0f80b667240fafcce92d", null ],
     [ "M_sql_trace_get_bind_cols", "group__m__sql__trace.html#gaafb037c2453ab2119a47837a70332ed8", null ],
     [ "M_sql_trace_get_bind_rows", "group__m__sql__trace.html#gae29d8b39bd6a2d695895778dec7decff", null ],
+    [ "M_sql_trace_get_bind_rows_current", "group__m__sql__trace.html#gae2940cffa1bfd6392ff75b6a01cc8e07", null ],
+    [ "M_sql_trace_get_bind_rows_processed", "group__m__sql__trace.html#gad5dd322b454db66c048701f6f006c1a6", null ],
     [ "M_sql_trace_get_has_result_rows", "group__m__sql__trace.html#ga13f589a811984beceec496115a0a8d0b", null ],
     [ "M_sql_trace_get_affected_rows", "group__m__sql__trace.html#gad86d53d74a90a5ecd310220ab6a6a198", null ],
     [ "M_sql_trace_get_result_row_count", "group__m__sql__trace.html#ga01a39bb45957c3282d98284f441c57de", null ]

@@ -13,6 +13,7 @@ var group__m__sql__driver_structM__sql__driver__t =
     [ "cb_connect_runonce", "group__m__sql__driver.html#a86b3e11ac7e5f588387576c1938c9254", null ],
     [ "cb_disconnect", "group__m__sql__driver.html#a74aee50c51ebd9188302130ba38ede64", null ],
     [ "cb_queryformat", "group__m__sql__driver.html#a1f44d3a894c4717ab9882f0917f946ae", null ],
+    [ "cb_queryrowcnt", "group__m__sql__driver.html#a2c0409752acbf0125f61cd01971425a2", null ],
     [ "cb_prepare", "group__m__sql__driver.html#af3530b1075e2e70768f89b385416bc3f", null ],
     [ "cb_prepare_destroy", "group__m__sql__driver.html#a72899d9f9815dd490ac62a43a3c334d1", null ],
     [ "cb_execute", "group__m__sql__driver.html#a2627bb9303f1ad7b8a9941a927c1fb86", null ],

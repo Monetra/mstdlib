@@ -169,6 +169,7 @@ var searchData=
   ['m_5fsql_5fdriver_5fcb_5fprepare_5fdestroy_5ft',['M_sql_driver_cb_prepare_destroy_t',['../group__m__sql__driver.html#ga120e3439f5eff67c813fcbb87c8b99eb',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fcb_5fprepare_5ft',['M_sql_driver_cb_prepare_t',['../group__m__sql__driver.html#ga6c38e2074330b30595b1fc05bdb35dd3',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fcb_5fqueryformat_5ft',['M_sql_driver_cb_queryformat_t',['../group__m__sql__driver.html#ga05327f3322c71315ec99a4649b5bb459',1,'m_sql_driver.h']]],
+  ['m_5fsql_5fdriver_5fcb_5fqueryrowcnt_5ft',['M_sql_driver_cb_queryrowcnt_t',['../group__m__sql__driver.html#ga7100e163e74e519df01254e7841ebe65',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fcb_5frewrite_5findexname_5ft',['M_sql_driver_cb_rewrite_indexname_t',['../group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fcb_5frollback_5ft',['M_sql_driver_cb_rollback_t',['../group__m__sql__driver.html#gab80bb3a6931b4d8e69e7ed0ac3591d17',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fcb_5fserverversion_5ft',['M_sql_driver_cb_serverversion_t',['../group__m__sql__driver.html#ga9411d8408dff3d25e714faa948189bc2',1,'m_sql_driver.h']]],

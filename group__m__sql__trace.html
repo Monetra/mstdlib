@@ -197,6 +197,10 @@ Functions</h2></td></tr>
 <tr class="separator:gaafb037c2453ab2119a47837a70332ed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae29d8b39bd6a2d695895778dec7decff"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__trace.html#gae29d8b39bd6a2d695895778dec7decff">M_sql_trace_get_bind_rows</a> (const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *data)</td></tr>
 <tr class="separator:gae29d8b39bd6a2d695895778dec7decff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae2940cffa1bfd6392ff75b6a01cc8e07"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__trace.html#gae2940cffa1bfd6392ff75b6a01cc8e07">M_sql_trace_get_bind_rows_current</a> (const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *data)</td></tr>
+<tr class="separator:gae2940cffa1bfd6392ff75b6a01cc8e07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad5dd322b454db66c048701f6f006c1a6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__trace.html#gad5dd322b454db66c048701f6f006c1a6">M_sql_trace_get_bind_rows_processed</a> (const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *data)</td></tr>
+<tr class="separator:gad5dd322b454db66c048701f6f006c1a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga13f589a811984beceec496115a0a8d0b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__trace.html#ga13f589a811984beceec496115a0a8d0b">M_sql_trace_get_has_result_rows</a> (const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *data)</td></tr>
 <tr class="separator:ga13f589a811984beceec496115a0a8d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad86d53d74a90a5ecd310220ab6a6a198"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__trace.html#gad86d53d74a90a5ecd310220ab6a6a198">M_sql_trace_get_affected_rows</a> (const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *data)</td></tr>
@@ -774,7 +778,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Retrieve the number of request rows bound to the query</p>
+<p>Retrieve the number of request rows (total) bound to the query</p>
 <p>Only available on:</p>
 <ul>
 <li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90aa47a7434614987f34b36ca59c670562c">M_SQL_TRACE_EXECUTE_START</a></li>
@@ -791,7 +795,75 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Number of rows bound to the query by the caller. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Total number of rows bound to the query by the caller. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gae2940cffa1bfd6392ff75b6a01cc8e07"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_sql_trace_get_bind_rows_current </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve the number of request rows (current subset) bound to the query</p>
+<p>Only available on:</p>
+<ul>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90aa47a7434614987f34b36ca59c670562c">M_SQL_TRACE_EXECUTE_START</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a0bd4bbaf8c1f2145a4f83bb95180ca51">M_SQL_TRACE_EXECUTE_FINISH</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a4e0d32d50c961e758c4b80ab4bd9cc99">M_SQL_TRACE_FETCH_START</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a601762de10c76cdc8b8f5bda7d6ec8a7">M_SQL_TRACE_FETCH_FINISH</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a9ccafc53f16f257d3d64fd7102e5d1f7">M_SQL_TRACE_TRANFAIL</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a386f75f6095e2bd872e52b497f9fe04f">M_SQL_TRACE_STALL_QUERY</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a6a36b97ad5e4c6027d8c2d7bab5c5a2c">M_SQL_TRACE_STALL_TRANS_LONG</a> (possibly)</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Trace Data structure passed to trace callback </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Subset of rows currently being executed. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad5dd322b454db66c048701f6f006c1a6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_sql_trace_get_bind_rows_processed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459">M_sql_trace_data_t</a> *&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve the number of processed rows bound to the query (including current subset)</p>
+<p>Only available on:</p>
+<ul>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90aa47a7434614987f34b36ca59c670562c">M_SQL_TRACE_EXECUTE_START</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a0bd4bbaf8c1f2145a4f83bb95180ca51">M_SQL_TRACE_EXECUTE_FINISH</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a4e0d32d50c961e758c4b80ab4bd9cc99">M_SQL_TRACE_FETCH_START</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a601762de10c76cdc8b8f5bda7d6ec8a7">M_SQL_TRACE_FETCH_FINISH</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a9ccafc53f16f257d3d64fd7102e5d1f7">M_SQL_TRACE_TRANFAIL</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a386f75f6095e2bd872e52b497f9fe04f">M_SQL_TRACE_STALL_QUERY</a></li>
+<li><a class="el" href="group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a6a36b97ad5e4c6027d8c2d7bab5c5a2c">M_SQL_TRACE_STALL_TRANS_LONG</a> (possibly)</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Trace Data structure passed to trace callback </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Subset of rows that have been executed or are being executed. </dd></dl>
 
 </div>
 </div>
@@ -890,7 +962,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 18 2018 19:25:16 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jul 19 2018 15:34:31 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

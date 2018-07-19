@@ -1505,6 +1505,8 @@ var searchData=
   ['m_5fsql_5ftrace_5fget_5faffected_5frows',['M_sql_trace_get_affected_rows',['../group__m__sql__trace.html#gad86d53d74a90a5ecd310220ab6a6a198',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fget_5fbind_5fcols',['M_sql_trace_get_bind_cols',['../group__m__sql__trace.html#gaafb037c2453ab2119a47837a70332ed8',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fget_5fbind_5frows',['M_sql_trace_get_bind_rows',['../group__m__sql__trace.html#gae29d8b39bd6a2d695895778dec7decff',1,'m_sql_trace.h']]],
+  ['m_5fsql_5ftrace_5fget_5fbind_5frows_5fcurrent',['M_sql_trace_get_bind_rows_current',['../group__m__sql__trace.html#gae2940cffa1bfd6392ff75b6a01cc8e07',1,'m_sql_trace.h']]],
+  ['m_5fsql_5ftrace_5fget_5fbind_5frows_5fprocessed',['M_sql_trace_get_bind_rows_processed',['../group__m__sql__trace.html#gad5dd322b454db66c048701f6f006c1a6',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fget_5fconn_5fid',['M_sql_trace_get_conn_id',['../group__m__sql__trace.html#ga4dc548bd6fffb9a78166af5be793fecb',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fget_5fconntype',['M_sql_trace_get_conntype',['../group__m__sql__trace.html#gadd8d821a9067cadbdc696bf86c1c2f14',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fget_5fduration_5fms',['M_sql_trace_get_duration_ms',['../group__m__sql__trace.html#gac4ebaf654cc647e2e5cec95d084b106d',1,'m_sql_trace.h']]],
