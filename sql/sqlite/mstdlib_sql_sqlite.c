@@ -552,6 +552,12 @@ static char *sqlite_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t
 }
 
 
+static size_t sqlite_cb_queryrowcnt(M_sql_conn_t *conn, size_t num_params_per_row, size_t num_rows)
+{
+	return sqlite_num_process_rows(M_sql_driver_conn_get_conn(conn), num_params_per_row, num_rows);
+}
+
+
 static void sqlite_cb_prepare_destroy(M_sql_driver_stmt_t *stmt)
 {
 	if (stmt == NULL)
@@ -1052,6 +1058,7 @@ static M_sql_driver_t M_sql_sqlite = {
 	sqlite_cb_connect_runonce,    /* Callback used after connection is established, but before first query to set run-once options. */
 	sqlite_cb_disconnect,         /* Callback used to disconnect from the db */
 	sqlite_cb_queryformat,        /* Callback used for reformatting a query to the sql db requirements */
+	sqlite_cb_queryrowcnt,        /* Callback used for determining how many rows will be processed by the current execution (chunking rows) */
 	sqlite_cb_prepare,            /* Callback used for preparing a query for execution */
 	sqlite_cb_prepare_destroy,    /* Callback used to destroy the driver-specific prepared statement handle */
 	sqlite_cb_execute,            /* Callback used for executing a prepared query */

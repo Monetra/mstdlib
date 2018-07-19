@@ -306,7 +306,7 @@ M_API const char *M_sql_trace_get_query_prepared(const M_sql_trace_data_t *data)
 M_API size_t M_sql_trace_get_bind_cols(const M_sql_trace_data_t *data);
 
 
-/*! Retrieve the number of request rows bound to the query
+/*! Retrieve the number of request rows (total) bound to the query
  *
  *  Only available on:
  *    - #M_SQL_TRACE_EXECUTE_START
@@ -318,9 +318,43 @@ M_API size_t M_sql_trace_get_bind_cols(const M_sql_trace_data_t *data);
  *    - #M_SQL_TRACE_STALL_TRANS_LONG (possibly)
  *
  *  \param[in] data Trace Data structure passed to trace callback
- *  \return Number of rows bound to the query by the caller.
+ *  \return Total number of rows bound to the query by the caller.
  */
 M_API size_t M_sql_trace_get_bind_rows(const M_sql_trace_data_t *data);
+
+
+/*! Retrieve the number of request rows (current subset) bound to the query
+ *
+ *  Only available on:
+ *    - #M_SQL_TRACE_EXECUTE_START
+ *    - #M_SQL_TRACE_EXECUTE_FINISH
+ *    - #M_SQL_TRACE_FETCH_START
+ *    - #M_SQL_TRACE_FETCH_FINISH
+ *    - #M_SQL_TRACE_TRANFAIL
+ *    - #M_SQL_TRACE_STALL_QUERY
+ *    - #M_SQL_TRACE_STALL_TRANS_LONG (possibly)
+ *
+ *  \param[in] data Trace Data structure passed to trace callback
+ *  \return Subset of rows currently being executed.
+ */
+M_API size_t M_sql_trace_get_bind_rows_current(const M_sql_trace_data_t *data);
+
+
+/*! Retrieve the number of processed rows bound to the query (including current subset)
+ *
+ *  Only available on:
+ *    - #M_SQL_TRACE_EXECUTE_START
+ *    - #M_SQL_TRACE_EXECUTE_FINISH
+ *    - #M_SQL_TRACE_FETCH_START
+ *    - #M_SQL_TRACE_FETCH_FINISH
+ *    - #M_SQL_TRACE_TRANFAIL
+ *    - #M_SQL_TRACE_STALL_QUERY
+ *    - #M_SQL_TRACE_STALL_TRANS_LONG (possibly)
+ *
+ *  \param[in] data Trace Data structure passed to trace callback
+ *  \return Subset of rows that have been executed or are being executed.
+ */
+M_API size_t M_sql_trace_get_bind_rows_processed(const M_sql_trace_data_t *data);
 
 
 /*! Retrieve whether or not the query potentially has result data.

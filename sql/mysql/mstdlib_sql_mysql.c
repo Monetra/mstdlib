@@ -409,6 +409,13 @@ static char *mysql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 }
 
 
+static size_t mysql_cb_queryrowcnt(M_sql_conn_t *conn, size_t num_params_per_row, size_t num_rows)
+{
+	(void)conn;
+	return mysql_num_process_rows(num_params_per_row, num_rows);
+}
+
+
 static void mysql_clear_driver_stmt_resultmeta(M_sql_driver_stmt_t *driver_stmt)
 {
 	size_t i;
@@ -1048,6 +1055,7 @@ static M_sql_driver_t M_sql_mysql = {
 	mysql_cb_connect_runonce,     /* Callback used after connection is established, but before first query to set run-once options. */
 	mysql_cb_disconnect,          /* Callback used to disconnect from the db */
 	mysql_cb_queryformat,         /* Callback used for reformatting a query to the sql db requirements */
+	mysql_cb_queryrowcnt,         /* Callback used for determining how many rows will be processed by the current execution (chunking rows) */
 	mysql_cb_prepare,             /* Callback used for preparing a query for execution */
 	mysql_cb_prepare_destroy,     /* Callback used to destroy the driver-specific prepared statement handle */
 	mysql_cb_execute,             /* Callback used for executing a prepared query */

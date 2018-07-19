@@ -257,6 +257,30 @@ size_t M_sql_trace_get_bind_cols(const M_sql_trace_data_t *data)
 }
 
 
+size_t M_sql_trace_get_bind_rows_current(const M_sql_trace_data_t *data)
+{
+	const M_sql_driver_t *driver;
+
+	if (data == NULL || data->stmt == NULL || data->stmt->bind_row_cnt == 0 || data->conn == NULL)
+		return 0;
+
+	driver = M_sql_conn_get_driver(data->conn);
+	if (driver == NULL)
+		return 0;
+
+	/* Use helpers as we want current offsets */
+	return driver->cb_queryrowcnt(data->conn, M_sql_driver_stmt_bind_cnt(data->stmt), M_sql_driver_stmt_bind_rows(data->stmt));
+}
+
+
+size_t M_sql_trace_get_bind_rows_processed(const M_sql_trace_data_t *data)
+{
+	if (data == NULL || data->stmt == NULL)
+		return 0;
+	return data->stmt->bind_row_offset + M_sql_trace_get_bind_rows_current(data);
+}
+
+
 size_t M_sql_trace_get_bind_rows(const M_sql_trace_data_t *data)
 {
 	if (data == NULL || data->stmt == NULL)
