@@ -251,6 +251,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga31a7d7c88fccaaf0962447acd9363149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7cf60c2e0657cde8f0ad69f3261f965e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#ga7cf60c2e0657cde8f0ad69f3261f965e">M_json_object_keys</a> (const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node)</td></tr>
 <tr class="separator:ga7cf60c2e0657cde8f0ad69f3261f965e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga56cab3494b4b13789f8d0a5ddaf5211f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#ga56cab3494b4b13789f8d0a5ddaf5211f">M_json_object_num_children</a> (const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node)</td></tr>
+<tr class="separator:ga56cab3494b4b13789f8d0a5ddaf5211f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1dd9600ce8d846e4c1a12770766658ff"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#ga1dd9600ce8d846e4c1a12770766658ff">M_json_object_insert</a> (<a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node, const char *key, <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *value)</td></tr>
 <tr class="separator:ga1dd9600ce8d846e4c1a12770766658ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga49b4ff0ae9aa84f7d98e50eaf03e6486"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__json.html#ga49b4ff0ae9aa84f7d98e50eaf03e6486">M_json_object_insert_string</a> (<a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *node, const char *key, const char *value)</td></tr>
@@ -1192,6 +1194,31 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A list of keys. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga56cab3494b4b13789f8d0a5ddaf5211f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_json_object_num_children </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the number of child nodes in this object.</p>
+<p>This corresponds to the number of gets.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">node</td><td>The node.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Count of objects. </dd></dl>
 
 </div>
 </div>
@@ -2329,7 +2356,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jul 19 2018 19:24:24 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Jul 20 2018 20:32:53 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

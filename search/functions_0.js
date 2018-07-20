@@ -875,6 +875,7 @@ var searchData=
   ['m_5fjson_5fobject_5finsert_5fint',['M_json_object_insert_int',['../group__m__json.html#gabc38502ae693cb194d0cf3cfb9b90a7b',1,'m_json.h']]],
   ['m_5fjson_5fobject_5finsert_5fstring',['M_json_object_insert_string',['../group__m__json.html#ga49b4ff0ae9aa84f7d98e50eaf03e6486',1,'m_json.h']]],
   ['m_5fjson_5fobject_5fkeys',['M_json_object_keys',['../group__m__json.html#ga7cf60c2e0657cde8f0ad69f3261f965e',1,'m_json.h']]],
+  ['m_5fjson_5fobject_5fnum_5fchildren',['M_json_object_num_children',['../group__m__json.html#ga56cab3494b4b13789f8d0a5ddaf5211f',1,'m_json.h']]],
   ['m_5fjson_5fobject_5fvalue',['M_json_object_value',['../group__m__json.html#gae32e214080a68abb948791b490067f14',1,'m_json.h']]],
   ['m_5fjson_5fobject_5fvalue_5fbool',['M_json_object_value_bool',['../group__m__json.html#ga31a7d7c88fccaaf0962447acd9363149',1,'m_json.h']]],
   ['m_5fjson_5fobject_5fvalue_5fdecimal',['M_json_object_value_decimal',['../group__m__json.html#gac981a1731a0beaca2526a695010f835d',1,'m_json.h']]],

@@ -72,6 +72,7 @@ var group__m__json =
     [ "M_json_object_value_decimal", "group__m__json.html#gac981a1731a0beaca2526a695010f835d", null ],
     [ "M_json_object_value_bool", "group__m__json.html#ga31a7d7c88fccaaf0962447acd9363149", null ],
     [ "M_json_object_keys", "group__m__json.html#ga7cf60c2e0657cde8f0ad69f3261f965e", null ],
+    [ "M_json_object_num_children", "group__m__json.html#ga56cab3494b4b13789f8d0a5ddaf5211f", null ],
     [ "M_json_object_insert", "group__m__json.html#ga1dd9600ce8d846e4c1a12770766658ff", null ],
     [ "M_json_object_insert_string", "group__m__json.html#ga49b4ff0ae9aa84f7d98e50eaf03e6486", null ],
     [ "M_json_object_insert_int", "group__m__json.html#gabc38502ae693cb194d0cf3cfb9b90a7b", null ],
