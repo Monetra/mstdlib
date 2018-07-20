@@ -386,11 +386,22 @@ M_API M_bool M_json_object_value_bool(const M_json_node_t *node, const char *key
 
 /*! Get a list of all keys for the object.
  *
- * \param[in]  node The node.
+ * \param[in] node The node.
  *
  * \return A list of keys.
  */
 M_API M_list_str_t *M_json_object_keys(const M_json_node_t *node);
+
+
+/*! Get the number of child nodes in this object.
+ *
+ * This corresponds to the number of gets.
+ *
+ * \param[in] node The node.
+ *
+ * \return Count of objects.
+ */
+M_API size_t M_json_object_num_children(const M_json_node_t *node);
 
 
 /*! Insert a node into the object.

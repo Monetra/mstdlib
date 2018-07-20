@@ -305,6 +305,14 @@ M_list_str_t *M_json_object_keys(const M_json_node_t *node)
 	return keys;
 }
 
+size_t M_json_object_num_children(const M_json_node_t *node)
+{
+	if (node == NULL || node->type != M_JSON_TYPE_OBJECT)
+		return 0;
+
+	return M_hash_strvp_num_keys(node->data.json_object);
+}
+
 M_bool M_json_object_insert(M_json_node_t *node, const char *key, M_json_node_t *value)
 {
 	if (node == NULL || node->type != M_JSON_TYPE_OBJECT || value->parent != NULL)
