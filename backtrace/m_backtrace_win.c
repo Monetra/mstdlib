@@ -22,6 +22,7 @@
  */
 
 #include "m_backtrace_int.h"
+#include "base/platform/m_platform.h"
 
 #include <windows.h>
 #include <Dbghelp.h>
@@ -46,6 +47,7 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 	/* The displacement from the beginning of the symbol is stored here: pretty useless */
 	DWORD64            displacement64 = 0;
 	DWORD              displacement = 0;
+	DWORD              dlen         = 0;
 	char               buf[1024];
 	BOOL               gotModuleInfo;
 	BOOL               gotSymbolInfo;
@@ -95,10 +97,12 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 
 	if (M_backtrace_flags & M_BACKTRACE_WRITE_FILE) {
 		/* Write the data. */
-		WriteFile(mfile, buf, len, NULL, NULL);
+		M_win32_size_t_to_dword(len, &dlen);
+		WriteFile(mfile, buf, dlen, NULL, NULL);
 
 		/* Write new lines. */
 		len = M_snprintf(buf, sizeof(buf), "\r\n");
+		M_win32_size_t_to_dword(len, &dlen);
 		WriteFile(mfile, buf, len, NULL, NULL);
 
 		/* Flush to force what we have to disk. */
