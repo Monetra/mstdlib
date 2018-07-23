@@ -234,7 +234,7 @@ static M_fs_perms_t *M_fs_info_security_info_to_perms(PSECURITY_DESCRIPTOR sd, P
 
 /* This is nearly identical to M_fs_info_int but because we have an fd not a path and the
  * file data type is different we need two different functions. */
-M_fs_error_t M_fs_info_file_int(M_fs_info_t **info, M_fs_file_t *fd, M_fs_info_flags_t flags, BY_HANDLE_FILE_INFORMATION *file_data)
+static M_fs_error_t M_fs_info_file_int(M_fs_info_t **info, M_fs_file_t *fd, M_fs_info_flags_t flags, BY_HANDLE_FILE_INFORMATION *file_data)
 {
 	char                 *user;
 	char                 *group;
