@@ -194,6 +194,52 @@ static void M_io_destroy_cb(M_event_t *event, M_event_type_t type, M_io_t *io, v
 }
 
 
+M_bool M_io_reconnect(M_io_t *io)
+{
+	M_event_t         *event         = NULL;
+	M_bool             private_event = M_FALSE;
+	ssize_t            i;
+	size_t             num;
+	M_event_callback_t cb            = NULL;
+	void              *cb_data       = NULL;
+
+	if (io == NULL)
+		return M_FALSE;
+
+	if (io->reg_event) {
+		M_io_lock(io);
+		event = io->reg_event;
+
+		if (event) {
+			private_event = io->private_event;
+			if (!private_event) {
+				cb = M_event_get_io_cb(io, &cb_data);
+			}
+			M_event_remove(io);
+		}
+
+		/* Ok, weird hack for locking purposes */
+		io->reg_event = event;
+		M_io_unlock(io);
+		io->reg_event = NULL;
+	}
+
+	num = M_list_len(io->layer);
+	for (i=(ssize_t)num - 1; i >= 0; i--) {
+		M_io_layer_t *layer = M_io_layer_at(io, (size_t)i);
+		if (layer->cb.cb_reset == NULL)
+			return M_FALSE;
+		if (!layer->cb.cb_reset(layer))
+			return M_FALSE;
+	}
+
+	if (event && !private_event && cb) {
+		M_event_add(event, io, cb, cb_data);
+	}
+	return M_TRUE;
+}
+
+
 void M_io_destroy(M_io_t *comm)
 {
 	ssize_t    i;
@@ -206,7 +252,6 @@ void M_io_destroy(M_io_t *comm)
 
 //M_printf("%s(): [%p] io %p event %p enter\n", __FUNCTION__, (void *)M_thread_self(), comm, comm->reg_event);
 
-
 	if (comm->reg_event) {
 		M_io_lock(comm);
 
@@ -215,8 +260,6 @@ void M_io_destroy(M_io_t *comm)
 		/* If we are executing this from a separate thread than is running the event loop, we need to
 		 * delay the cleanup process and actually have it run within the assigned event loop instead */
 		if (!comm->private_event && event->u.loop.threadid != 0 && event->u.loop.threadid != M_thread_self()) {
-
-#if 1
 			M_event_remove(comm);
 			/* Queue a destroy task to run for this */
 			M_event_queue_task(event, M_io_destroy_cb, comm);
@@ -225,16 +268,6 @@ void M_io_destroy(M_io_t *comm)
 			 * but M_event_remove() removes the ->reg_event pointer, therefore we cannot use
 			 * M_io_unlock(). */
 			M_event_unlock(event);
-#else
-			/* Clear any pending events so they don't get delivered */
-			M_io_softevent_clearall(comm);
-			M_event_queue_pending_clear(event, comm);
-
-			/* Queue a destroy task to run for this */
-			M_event_queue_task(event, M_io_destroy_cb, comm);
-
-			M_io_unlock(comm);
-#endif
 			return;
 		}
 
@@ -255,6 +288,8 @@ void M_io_destroy(M_io_t *comm)
 	num = M_list_len(comm->layer);
 	for (i=(ssize_t)num - 1; i >= 0; i--) {
 		M_io_layer_t *layer = M_io_layer_at(comm, (size_t)i);
+		if (layer->cb.cb_reset != NULL)
+			layer->cb.cb_reset(layer);
 		if (layer->cb.cb_destroy != NULL)
 			layer->cb.cb_destroy(layer);
 		layer->handle = NULL;
@@ -767,6 +802,14 @@ M_bool M_io_callbacks_reg_destroy(M_io_callbacks_t *callbacks, void (*cb_destroy
 	if (callbacks == NULL)
 		return M_FALSE;
 	callbacks->cb_destroy = cb_destroy;
+	return M_TRUE;
+}
+
+M_bool M_io_callbacks_reg_reset(M_io_callbacks_t *callbacks, M_bool (*cb_reset)(M_io_layer_t *layer))
+{
+	if (callbacks == NULL)
+		return M_FALSE;
+	callbacks->cb_reset = cb_reset;
 	return M_TRUE;
 }
 

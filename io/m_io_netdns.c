@@ -501,25 +501,47 @@ static void M_io_netdns_unregister_cb(M_io_layer_t *layer)
 }
 
 
-static void M_io_netdns_destroy_cb(M_io_layer_t *layer)
+static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	size_t         i;
 
 	if (handle == NULL)
-		return;
+		return M_FALSE;
 
 	for (i=0; i<handle->data.netdns.io_try_cnt; i++) {
 		if (handle->data.netdns.io_try[i] != NULL)
 			M_io_destroy(handle->data.netdns.io_try[i]);
 	}
 	M_free(handle->data.netdns.io_try);
-	M_free(handle->host);
 	if (handle->data.netdns.io_dns)
 		M_io_destroy(handle->data.netdns.io_dns);
 	if (handle->data.netdns.io)
 		M_io_destroy(handle->data.netdns.io);
 
+	handle->state                     = M_IO_NET_STATE_INIT;
+	handle->hard_down                 = M_FALSE;
+	handle->data.netdns.io_try_cnt    = 0;
+	handle->data.netdns.io_try_idx    = 0;
+	M_mem_set(&handle->data.netdns.query_start, 0, sizeof(handle->data.netdns.query_start));
+	handle->data.netdns.query_time    = 0;
+	M_mem_set(&handle->data.netdns.connect_start, 0, sizeof(handle->data.netdns.connect_start));
+	handle->data.netdns.connect_time  = 0;
+	*(handle->data.netdns.error)      = '\0';
+	return M_TRUE;
+}
+
+
+static void M_io_netdns_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle == NULL)
+		return;
+
+	/* reset_cb() clears the rest and is called first */
+
+	M_free(handle->host);
 	M_free(handle);
 }
 
@@ -599,6 +621,7 @@ M_io_error_t M_io_net_client_create(M_io_t **io_out, M_dns_t *dns, const char *h
 	M_io_callbacks_reg_processevent(callbacks, M_io_netdns_process_cb);
 	M_io_callbacks_reg_unregister(callbacks, M_io_netdns_unregister_cb);
 	M_io_callbacks_reg_disconnect(callbacks, M_io_netdns_disconnect_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_netdns_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_netdns_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_netdns_state_cb);
 	M_io_callbacks_reg_errormsg(callbacks, M_io_netdns_errormsg_cb);

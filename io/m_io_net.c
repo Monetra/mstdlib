@@ -655,16 +655,34 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 }
 
 
-static void M_io_net_destroy_cb(M_io_layer_t *layer)
+static M_bool M_io_net_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
+
+	if (handle == NULL)
+		return M_FALSE;
+
+	/* Cleanup for re-init */
+	handle->state                    = M_IO_NET_STATE_INIT;
+	handle->hard_down                = M_FALSE;
+	handle->data.net.last_error_sys  = 0;
+	handle->data.net.last_error      = M_IO_ERROR_SUCCESS;
+
+	M_io_net_handle_close(io, handle);
+	return M_TRUE;
+}
+
+
+static void M_io_net_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	if (handle == NULL)
 		return;
 
-	M_io_net_handle_close(io, handle);
-	M_free(handle->host);
+	/* reset_cb() ensures handle is closed */
 
+	M_free(handle->host);
 	M_free(handle);
 }
 
@@ -1156,6 +1174,7 @@ static M_io_callbacks_t *M_io_net_callbacks_create(void)
 	M_io_callbacks_reg_processevent(callbacks, M_io_net_process_cb);
 	M_io_callbacks_reg_unregister(callbacks, M_io_net_unregister_cb);
 	M_io_callbacks_reg_disconnect(callbacks, M_io_net_disconnect_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_net_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_net_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_net_state_cb);
 	M_io_callbacks_reg_errormsg(callbacks, M_io_net_errormsg_cb);

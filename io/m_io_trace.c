@@ -89,6 +89,14 @@ static M_io_error_t M_io_trace_write_cb(M_io_layer_t *layer, const unsigned char
 }
 
 
+static M_bool M_io_trace_reset_cb(M_io_layer_t *layer)
+{
+	(void)layer;
+	/* no-op */
+	return M_TRUE;
+}
+
+
 static void M_io_trace_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -139,6 +147,7 @@ M_io_error_t M_io_add_trace(M_io_t *io, size_t *layer_id, M_io_trace_cb_t callba
 	M_io_callbacks_reg_processevent(callbacks, M_io_trace_process_cb);
 	M_io_callbacks_reg_accept(callbacks, M_io_trace_accept_cb);
 	M_io_callbacks_reg_unregister(callbacks, M_io_trace_unregister_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_trace_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_trace_destroy_cb);
 	layer = M_io_layer_add(io, "TRACE", handle, callbacks);
 	M_io_callbacks_destroy(callbacks);

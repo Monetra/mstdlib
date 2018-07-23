@@ -376,19 +376,31 @@ M_API size_t M_io_layer_count(M_io_t *io);
 M_API const char *M_io_layer_name(M_io_t *io, size_t idx);
 
 
-/* Get a textual error message associated with the io object.
+/*! Get a textual error message associated with the io object.
  *
- * This message is populated by the layer that reported the error. The message
- * could come from an external library such as an TLS library. It is meant
- * to be a human readable description and should not be used programmatically.
+ *  This message is populated by the layer that reported the error. The message
+ *  could come from an external library such as an TLS library. It is meant
+ *  to be a human readable description and should not be used programmatically.
  *
- * \param[in]  io      io object.
- * \param[out] error   Error buffer.
- * \param[in]  err_len Size of error buffer.
+ *  \param[in]  io      io object.
+ *  \param[out] error   Error buffer.
+ *  \param[in]  err_len Size of error buffer.
  *
- * \return Textual description of error.
+ *  \return Textual description of error.
  */
 M_API void M_io_get_error_string(M_io_t *io, char *error, size_t err_len);
+
+
+/*! Request system to tear down existing connection and reconnect using the same
+ *  configuration and layers as are currently in use.  Will preserve existing
+ *  event handle and callbacks.
+ *
+ *  \param[in]  io      io object.
+ *  \return M_TRUE if object can be reconnected, M_FALSE if cannot be.  This
+ *     returning M_TRUE does NOT mean the reconnect itself was successful, must
+ *     still wait for CONNECT or ERROR event.
+ */
+M_API M_bool M_io_reconnect(M_io_t *io);
 
 
 /*! Gracefully issue a disconnect to the communications object, a DISCONNECTED (or ERROR)

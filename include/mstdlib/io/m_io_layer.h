@@ -122,6 +122,12 @@ M_API M_bool M_io_callbacks_reg_unregister(M_io_callbacks_t *callbacks, void (*c
 /*! Register callback to start a graceful disconnect sequence.  Optional. */
 M_API M_bool M_io_callbacks_reg_disconnect(M_io_callbacks_t *callbacks, M_bool (*cb_disconnect)(M_io_layer_t *layer));
 
+/*! Register callback to reset any state (M_io_handle_t *). Optional.
+ *
+ * Will reset the state of the layer for re-connection.
+ */
+M_API M_bool M_io_callbacks_reg_reset(M_io_callbacks_t *callbacks, M_bool (*cb_reset)(M_io_layer_t *layer));
+
 /*! Register callback to destroy any state (M_io_handle_t *). Mandatory.
  *
  * The event loop has already been disassociated from the layer when this
