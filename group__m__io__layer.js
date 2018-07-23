@@ -20,6 +20,7 @@ var group__m__io__layer =
     [ "M_io_callbacks_reg_processevent", "group__m__io__layer.html#ga0c3837dbffed3aac4ab6ffa5d3bd4590", null ],
     [ "M_io_callbacks_reg_unregister", "group__m__io__layer.html#gabd2d14eb725d528ef98bb8b967ae1e40", null ],
     [ "M_io_callbacks_reg_disconnect", "group__m__io__layer.html#ga4d4d62d87648fc5d7a76b9e4db81e762", null ],
+    [ "M_io_callbacks_reg_reset", "group__m__io__layer.html#ga9d663c831069a59ca067bf99f6a4bced", null ],
     [ "M_io_callbacks_reg_destroy", "group__m__io__layer.html#ga89d597baaffaf2102983258b8c73fe52", null ],
     [ "M_io_callbacks_reg_state", "group__m__io__layer.html#ga50e5fa28fe89cf44a9565bc929b3b5af", null ],
     [ "M_io_callbacks_reg_errormsg", "group__m__io__layer.html#ga05ac9b73c65d904407734f6b70da7d43", null ],

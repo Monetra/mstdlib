@@ -475,45 +475,57 @@ $(document).ready(function(){initNavTree('m__io_8h_source.html','');});
 <div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;M_API <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="group__m__io.html#ga461d147f5c261845ce7656eb75c37329">M_io_layer_name</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">size_t</span> idx);</div>
 <div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;</div>
-<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;</div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment">/* Get a textual error message associated with the io object.</span></div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="comment">/*! Get a textual error message associated with the io object.</span></div>
 <div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="comment"> * This message is populated by the layer that reported the error. The message</span></div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment"> * could come from an external library such as an TLS library. It is meant</span></div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment"> * to be a human readable description and should not be used programmatically.</span></div>
+<div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;<span class="comment"> *  This message is populated by the layer that reported the error. The message</span></div>
+<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;<span class="comment"> *  could come from an external library such as an TLS library. It is meant</span></div>
+<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;<span class="comment"> *  to be a human readable description and should not be used programmatically.</span></div>
 <div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> * \param[in]  io      io object.</span></div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment"> * \param[out] error   Error buffer.</span></div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment"> * \param[in]  err_len Size of error buffer.</span></div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="comment"> *  \param[in]  io      io object.</span></div>
+<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;<span class="comment"> *  \param[out] error   Error buffer.</span></div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;<span class="comment"> *  \param[in]  err_len Size of error buffer.</span></div>
 <div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment"> * \return Textual description of error.</span></div>
+<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;<span class="comment"> *  \return Textual description of error.</span></div>
 <div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;<span class="comment"> */</span></div>
 <div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__io.html#ga3e1f56ec1e586649c1b26eb7c72238de">M_io_get_error_string</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">char</span> *error, <span class="keywordtype">size_t</span> err_len);</div>
 <div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;</div>
 <div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment">/*! Gracefully issue a disconnect to the communications object, a DISCONNECTED (or ERROR)</span></div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment"> * event will be triggered when complete.</span></div>
-<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment"> * \param[in] comm io object.</span></div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__io.html#ga02a1aa7eee8d2fb2e7fdc189f33e649e">M_io_disconnect</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *comm);</div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment">/*! Destroy any communications object.</span></div>
-<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;<span class="comment"> * This can be called from a different thread than the thread the event loop the io object</span></div>
-<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"> * is running on. When this happens the destroy is queued and will happen once the event loop</span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment"> * the io object is associated with has finished processing all queued events.</span></div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"> * \param[in] comm io object.</span></div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__io.html#ga1532f13c1f01fc1521b68a0f1d61c864">M_io_destroy</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *comm);</div>
-<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;</div>
-<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;</div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_IO_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;<span class="comment">/*! Request system to tear down existing connection and reconnect using the same</span></div>
+<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;<span class="comment"> *  configuration and layers as are currently in use.  Will preserve existing</span></div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;<span class="comment"> *  event handle and callbacks.</span></div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="comment"> *  \param[in]  io      io object.</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="comment"> *  \return M_TRUE if object can be reconnected, M_FALSE if cannot be.  This</span></div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;<span class="comment"> *     returning M_TRUE does NOT mean the reconnect itself was successful, must</span></div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="comment"> *     still wait for CONNECT or ERROR event.</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;M_API M_bool <a class="code" href="group__m__io.html#ga70fb95d358ecd3ddf932879754ee4201">M_io_reconnect</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io);</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="comment">/*! Gracefully issue a disconnect to the communications object, a DISCONNECTED (or ERROR)</span></div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;<span class="comment"> * event will be triggered when complete.</span></div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;<span class="comment"> * \param[in] comm io object.</span></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__io.html#ga02a1aa7eee8d2fb2e7fdc189f33e649e">M_io_disconnect</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *comm);</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;<span class="comment">/*! Destroy any communications object.</span></div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;<span class="comment"> * This can be called from a different thread than the thread the event loop the io object</span></div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160;<span class="comment"> * is running on. When this happens the destroy is queued and will happen once the event loop</span></div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="comment"> * the io object is associated with has finished processing all queued events.</span></div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;<span class="comment"> * \param[in] comm io object.</span></div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__io.html#ga1532f13c1f01fc1521b68a0f1d61c864">M_io_destroy</a>(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *comm);</div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_IO_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__io_html_gga1ea9e3c1babf09b22f2b98899db790dbaddd9a595c1d376ffac800237d258a3e2"><div class="ttname"><a href="group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dbaddd9a595c1d376ffac800237d258a3e2">M_IO_ERROR_ADDRINUSE</a></div><div class="ttdef"><b>Definition:</b> m_io.h:77</div></div>
 <div class="ttc" id="group__m__io_html_ggae49cd1a696a09a24c22eb65b97616b98abd942952a6717c697bc58b56e9051049"><div class="ttname"><a href="group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98abd942952a6717c697bc58b56e9051049">M_IO_TYPE_STREAM</a></div><div class="ttdef"><b>Definition:</b> m_io.h:48</div></div>
 <div class="ttc" id="group__m__io_html_ga2d3bea9aaa4491c3c8dad94cf24498a2"><div class="ttname"><a href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a></div><div class="ttdeci">enum M_io_error M_io_error_t</div><div class="ttdef"><b>Definition:</b> m_io.h:92</div></div>
@@ -573,6 +585,7 @@ $(document).ready(function(){initNavTree('m__io_8h_source.html','');});
 <div class="ttc" id="group__m__io_html_ga169a51aae28306fe85b41d9063c83d43"><div class="ttname"><a href="group__m__io.html#ga169a51aae28306fe85b41d9063c83d43">M_io_read_into_buf</a></div><div class="ttdeci">M_io_error_t M_io_read_into_buf(M_io_t *comm, M_buf_t *buf)</div></div>
 <div class="ttc" id="group__m__io_html_ga3e1f56ec1e586649c1b26eb7c72238de"><div class="ttname"><a href="group__m__io.html#ga3e1f56ec1e586649c1b26eb7c72238de">M_io_get_error_string</a></div><div class="ttdeci">void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)</div></div>
 <div class="ttc" id="group__m__io_html_gga1ea9e3c1babf09b22f2b98899db790dba9c7f121b7914b1fdc4665b5bfc4ef084"><div class="ttname"><a href="group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba9c7f121b7914b1fdc4665b5bfc4ef084">M_IO_ERROR_CONNREFUSED</a></div><div class="ttdef"><b>Definition:</b> m_io.h:79</div></div>
+<div class="ttc" id="group__m__io_html_ga70fb95d358ecd3ddf932879754ee4201"><div class="ttname"><a href="group__m__io.html#ga70fb95d358ecd3ddf932879754ee4201">M_io_reconnect</a></div><div class="ttdeci">M_bool M_io_reconnect(M_io_t *io)</div></div>
 <div class="ttc" id="group__m__io_html_ggae49cd1a696a09a24c22eb65b97616b98a8b73c3992930aa7557d9ef0adcba1861"><div class="ttname"><a href="group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98a8b73c3992930aa7557d9ef0adcba1861">M_IO_TYPE_LISTENER</a></div><div class="ttdef"><b>Definition:</b> m_io.h:51</div></div>
 <div class="ttc" id="group__m__io_html_gga6c99c2da0a998791d1d08ec7fe5dd3cda70e8122687f8536174cdafd1de69315d"><div class="ttname"><a href="group__m__io.html#gga6c99c2da0a998791d1d08ec7fe5dd3cda70e8122687f8536174cdafd1de69315d">M_IO_STATE_ERROR</a></div><div class="ttdef"><b>Definition:</b> m_io.h:103</div></div>
 <div class="ttc" id="group__m__io_html_ga957eba52f32304ab07e06b516c04922a"><div class="ttname"><a href="group__m__io.html#ga957eba52f32304ab07e06b516c04922a">M_io_write_from_buf</a></div><div class="ttdeci">M_io_error_t M_io_write_from_buf(M_io_t *comm, M_buf_t *buf)</div></div>
@@ -582,7 +595,7 @@ $(document).ready(function(){initNavTree('m__io_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_783acf310e7994032d5f0ed9cac27ea1.html">io</a></li><li class="navelem"><b>m_io.h</b></li>
-    <li class="footer">Generated on Mon Jul 23 2018 13:52:35 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jul 23 2018 20:42:30 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

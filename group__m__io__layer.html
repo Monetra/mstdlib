@@ -151,6 +151,8 @@ Functions</h2></td></tr>
 <tr class="separator:gabd2d14eb725d528ef98bb8b967ae1e40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4d4d62d87648fc5d7a76b9e4db81e762"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga4d4d62d87648fc5d7a76b9e4db81e762">M_io_callbacks_reg_disconnect</a> (<a class="el" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, M_bool(*cb_disconnect)(<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer))</td></tr>
 <tr class="separator:ga4d4d62d87648fc5d7a76b9e4db81e762"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9d663c831069a59ca067bf99f6a4bced"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga9d663c831069a59ca067bf99f6a4bced">M_io_callbacks_reg_reset</a> (<a class="el" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, M_bool(*cb_reset)(<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer))</td></tr>
+<tr class="separator:ga9d663c831069a59ca067bf99f6a4bced"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga89d597baaffaf2102983258b8c73fe52"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga89d597baaffaf2102983258b8c73fe52">M_io_callbacks_reg_destroy</a> (<a class="el" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, void(*cb_destroy)(<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer))</td></tr>
 <tr class="separator:ga89d597baaffaf2102983258b8c73fe52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga50e5fa28fe89cf44a9565bc929b3b5af"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga50e5fa28fe89cf44a9565bc929b3b5af">M_io_callbacks_reg_state</a> (<a class="el" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, <a class="el" href="group__m__io.html#gad891a3fd8aebdaed3431b834c1ecf345">M_io_state_t</a>(*cb_state)(<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer))</td></tr>
@@ -586,6 +588,34 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga9d663c831069a59ca067bf99f6a4bced"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_callbacks_reg_reset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *&#160;</td>
+          <td class="paramname"><em>callbacks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_bool(*)(<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer)&#160;</td>
+          <td class="paramname"><em>cb_reset</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Register callback to reset any state (M_io_handle_t *). Optional.</p>
+<p>Will reset the state of the layer for re-connection. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga89d597baaffaf2102983258b8c73fe52"></a>
 <div class="memitem">
 <div class="memproto">
@@ -986,7 +1016,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Jul 23 2018 13:52:36 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Jul 23 2018 20:42:31 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
