@@ -658,6 +658,39 @@ done:
 }
 
 
+M_event_callback_t M_event_get_io_cb(M_io_t *io, void **cb_data_out)
+{
+	M_event_t         *event = NULL;
+	M_event_io_t      *ioev  = NULL;
+	M_event_callback_t cb    = NULL;
+
+	(*cb_data_out) = NULL;
+
+	if (io == NULL)
+		return NULL;
+
+	M_io_lock(io);
+
+	event = io->reg_event;
+	if (event == NULL)
+		goto done;
+
+	M_event_lock(event);
+
+	if (!M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev) || ioev == NULL)
+		goto done;
+
+	cb             = ioev->callback;
+	(*cb_data_out) = ioev->cb_data;
+
+done:
+	M_event_unlock(event);
+	M_io_unlock(io);
+
+	return cb;
+}
+
+
 void M_event_remove(M_io_t *io)
 {
 	M_event_t *event;

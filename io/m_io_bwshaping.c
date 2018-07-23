@@ -694,15 +694,36 @@ static void M_io_bwshaping_unregister_cb(M_io_layer_t *layer)
 }
 
 
-static void M_io_bwshaping_destroy_cb(M_io_layer_t *layer)
+static M_bool M_io_bwshaping_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	if (handle == NULL)
+		return M_FALSE;
+
+	M_mem_set(&handle->starttv, 0, sizeof(handle->starttv));
 	M_io_bwshaping_bwtrack_destroy(handle->in_bw);
+	handle->in_bw       = NULL;
+	M_mem_set(&handle->in_lasttv, 0, sizeof(handle->in_lasttv));
+	handle->in_waiting  = M_FALSE;
+	handle->in_fullread = M_FALSE;
 	M_io_bwshaping_bwtrack_destroy(handle->out_bw);
-	M_free(handle);
+	handle->out_bw      = NULL;
+	M_mem_set(&handle->out_lasttv, 0, sizeof(handle->out_lasttv));
+	handle->out_bytes   = 0;
+	handle->out_waiting = M_FALSE;
+
+	return M_TRUE;
 }
 
 
+static void M_io_bwshaping_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	if (handle == NULL)
+		return;
+
+	M_free(handle);
+}
 
 
 M_io_error_t M_io_add_bwshaping(M_io_t *io, size_t *layer_idx)
@@ -739,6 +760,7 @@ M_io_error_t M_io_add_bwshaping(M_io_t *io, size_t *layer_idx)
 	M_io_callbacks_reg_write(callbacks, M_io_bwshaping_write_cb);
 	M_io_callbacks_reg_processevent(callbacks, M_io_bwshaping_process_cb);
 	M_io_callbacks_reg_unregister(callbacks, M_io_bwshaping_unregister_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_bwshaping_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_bwshaping_destroy_cb);
 	layer = M_io_layer_add(io, M_IO_BWSHAPING_NAME, handle, callbacks);
 	M_io_callbacks_destroy(callbacks);

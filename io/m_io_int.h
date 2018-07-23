@@ -62,6 +62,9 @@ struct M_io_callbacks {
 	/*! Initiate a graceful disconnect. Return M_TRUE to continue to the next layer (e.g. immediately disconnected), M_FALSE if pending */
 	M_bool         (*cb_disconnect)(M_io_layer_t *layer);
 
+	/*! Reset the layer to an uninitialized state so that cb_init() can be called again. Will also be called prior to cb_destroy(). */
+	M_bool         (*cb_reset)(M_io_layer_t *layer);
+
 	/*! Destroy the layer */
 	void           (*cb_destroy)(M_io_layer_t *layer);
 

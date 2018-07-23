@@ -924,13 +924,13 @@ static M_bool M_io_tls_disconnect_cb(M_io_layer_t *layer)
 }
 
 
-static void M_io_tls_destroy_cb(M_io_layer_t *layer)
+static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 
 	if (handle == NULL)
-		return;
+		return M_FALSE;
 
 	/* Save session */
 	if (handle->state == M_TLS_STATE_CONNECTED || handle->state == M_TLS_STATE_SHUTDOWN || handle->state == M_TLS_STATE_DISCONNECTED) {
@@ -960,7 +960,31 @@ static void M_io_tls_destroy_cb(M_io_layer_t *layer)
 		SSL_free(handle->ssl);
 	}
 
-	handle->ssl = NULL;
+	handle->ssl              = NULL;
+	/* SSL_free() auto-frees the bio BIO_free(handle->bio_glue); */
+	handle->bio_glue         = NULL;
+	M_event_timer_remove(handle->timer);
+	handle->timer            = NULL;
+	handle->state            = M_TLS_STATE_INIT;
+	handle->state_flags      = 0;
+	handle->last_io_err      = M_IO_ERROR_SUCCESS;
+	M_mem_set(&handle->negotiation_start, 0, sizeof(handle->negotiation_start));
+	handle->negotiation_time = 0;
+	*(handle->error)         = '\0';
+
+	return M_TRUE;
+}
+
+
+static void M_io_tls_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle == NULL)
+		return;
+
+	/* reset_cb() will be called to clean up most things */
+
 	if (handle->is_client) {
 		M_tls_clientctx_destroy(handle->clientctx);
 		handle->clientctx = NULL;
@@ -971,11 +995,6 @@ static void M_io_tls_destroy_cb(M_io_layer_t *layer)
 
 	M_free(handle->hostname);
 	handle->hostname = NULL;
-
-	/* SSL_free() auto-frees the bio BIO_free(handle->bio_glue); */
-	handle->bio_glue = NULL;
-	M_event_timer_remove(handle->timer);
-	handle->timer = NULL;
 
 	M_free(handle);
 }
@@ -1075,6 +1094,7 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 	M_io_callbacks_reg_processevent(callbacks, M_io_tls_process_cb);
 	//M_io_callbacks_reg_unregister(callbacks, M_io_tls_unregister_cb);
 	M_io_callbacks_reg_disconnect(callbacks, M_io_tls_disconnect_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_tls_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_tls_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_tls_state_cb);
 	M_io_callbacks_reg_errormsg(callbacks, M_io_tls_errormsg_cb);
@@ -1152,6 +1172,7 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 	M_io_callbacks_reg_processevent(callbacks, M_io_tls_process_cb);
 	//M_io_callbacks_reg_unregister(callbacks, M_io_tls_unregister_cb);
 	M_io_callbacks_reg_disconnect(callbacks, M_io_tls_disconnect_cb);
+	M_io_callbacks_reg_reset(callbacks, M_io_tls_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_tls_destroy_cb);
 	M_io_callbacks_reg_state(callbacks, M_io_tls_state_cb);
 	M_io_callbacks_reg_errormsg(callbacks, M_io_tls_errormsg_cb);

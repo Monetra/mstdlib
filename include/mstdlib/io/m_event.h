@@ -363,6 +363,15 @@ M_API M_bool M_event_add(M_event_t *event, M_io_t *io, M_event_callback_t callba
 M_API M_bool M_event_edit_io_cb(M_io_t *io, M_event_callback_t callback, void *cb_data);
 
 
+/*! Retrieve the callback associated with an io object in the event subsystem.
+ *
+ *  \param[in]  io           IO object to modify the callback for
+ *  \param[out] cb_data_out  Pointer to store callback data registered with callback.
+ *  \return registered callback, or NULL if none.
+ */
+M_API M_event_callback_t M_event_get_io_cb(M_io_t *io, void **cb_data_out);
+
+
 /*! Remove an io object from its associated event handle.
  * 
  *  Removing handles is threadsafe and can be executed either within an event
