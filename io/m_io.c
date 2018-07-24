@@ -382,9 +382,11 @@ M_io_error_t M_io_layer_read(M_io_t *io, size_t layer_id, unsigned char *buf, si
 	}
 
 fail:
-	/* Clear all existing soft events, the connection is destroyed, enqueue a disconnect or error softevent */
 	if (M_io_error_is_critical(err)) {
-		M_io_softevent_clearall(io);
+		/* Clear all existing non-disc/error soft events (leave the others as they may still need to be propagated up).
+		 * The connection is no longer valid, enqueue a disconnect or error softevent as necessary to ensure the error
+		 * is caught */
+		M_io_softevent_clearall(io, M_TRUE);
 		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
 	}
 
@@ -569,9 +571,11 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 		break;
 	}
 
-	/* Clear all existing soft events, the connection is destroyed, enqueue a disconnect or error softevent */
 	if (M_io_error_is_critical(err)) {
-		M_io_softevent_clearall(io);
+		/* Clear all existing non-disc/error soft events (leave the others as they may still need to be propagated up).
+		 * The connection is no longer valid, enqueue a disconnect or error softevent as necessary to ensure the error
+		 * is caught */
+		M_io_softevent_clearall(io, M_TRUE);
 		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
 	}
 	return err;
