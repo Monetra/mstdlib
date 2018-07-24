@@ -233,6 +233,9 @@ M_bool M_io_reconnect(M_io_t *io)
 			return M_FALSE;
 	}
 
+	io->flags = M_IO_FLAG_NONE;
+
+
 	if (event && !private_event && cb) {
 		M_event_add(event, io, cb, cb_data);
 	}
@@ -318,6 +321,8 @@ void M_io_disconnect(M_io_t *comm)
 
 	M_io_lock(comm);
 
+	comm->flags |= M_IO_FLAG_USER_DISCONNECT;
+
 	num = M_list_len(comm->layer);
 	for (i=(ssize_t)num - 1; i >= 0 && cont; i--) {
 		M_io_layer_t *layer  = M_io_layer_at(comm, (size_t)i);
@@ -330,6 +335,23 @@ void M_io_disconnect(M_io_t *comm)
 		M_io_user_softevent_add(comm, M_EVENT_TYPE_DISCONNECTED);
 	}
 	M_io_unlock(comm);
+}
+
+
+M_bool M_io_is_user_initiated_disconnect(M_io_t *io)
+{
+	M_bool is_user_initiated_disconnect = M_FALSE;
+
+	if (io == NULL)
+		return M_FALSE;
+
+	M_io_lock(io);
+
+	if (io->flags & M_IO_FLAG_USER_DISCONNECT)
+		is_user_initiated_disconnect = M_TRUE;
+
+	M_io_unlock(io);
+	return is_user_initiated_disconnect;
 }
 
 

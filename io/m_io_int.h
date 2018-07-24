@@ -95,6 +95,13 @@ struct M_io_layer {
 struct M_io_block_data;
 typedef struct M_io_block_data M_io_block_data_t;
 
+/*! State flags for io object */
+typedef enum {
+	M_IO_FLAG_NONE            = 0,      /*!< no flags */
+	M_IO_FLAG_USER_DISCONNECT = 1 << 0  /*!< User requested disconnect.  Will persist until user receives disconnect or error event. */
+} M_io_flags_t;
+
+
 struct M_io {
 	M_io_type_t         type;            /*!< Type of comm object (stream, listener, event)               */
 	M_io_error_t        last_error;      /*!< Last error returned by a command (accept, read, write, etc) */
@@ -105,6 +112,7 @@ struct M_io {
 
 	M_bool              private_event;   /*!< Registered event handler is a private event handler         */
 	M_io_block_data_t  *sync_data;       /*!< Data handle for tracking M_io_block_*() calls               */
+	M_io_flags_t        flags;           /*!< State-related flags                                         */
 };
 
 void M_io_lock(M_io_t *io);

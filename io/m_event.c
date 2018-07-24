@@ -862,6 +862,11 @@ static void M_event_deliver(M_event_t *event, M_io_t *io, size_t layer_id, M_eve
 
 	/* Re-obtain locks */
 	M_event_lock(event);
+
+	/* After delivering a user disconnect or error, unset the M_IO_FLAG_USER_DISCONNECT flag */
+	if (type == M_EVENT_TYPE_DISCONNECTED || type == M_EVENT_TYPE_ERROR) {
+		io->flags &= ~((M_io_flags_t)M_IO_FLAG_USER_DISCONNECT);
+	}
 }
 
 
