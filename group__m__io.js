@@ -64,5 +64,6 @@ var group__m__io =
     [ "M_io_get_error_string", "group__m__io.html#ga3e1f56ec1e586649c1b26eb7c72238de", null ],
     [ "M_io_reconnect", "group__m__io.html#ga70fb95d358ecd3ddf932879754ee4201", null ],
     [ "M_io_disconnect", "group__m__io.html#ga02a1aa7eee8d2fb2e7fdc189f33e649e", null ],
+    [ "M_io_is_user_initiated_disconnect", "group__m__io.html#ga84dff4be1205eb666da1904940bdbbe2", null ],
     [ "M_io_destroy", "group__m__io.html#ga1532f13c1f01fc1521b68a0f1d61c864", null ]
 ];

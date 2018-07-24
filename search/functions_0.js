@@ -742,6 +742,7 @@ var searchData=
   ['m_5fio_5fhid_5fget_5fserial',['M_io_hid_get_serial',['../group__m__io__hid.html#gacaa941f30166b65620207475777fbea3',1,'m_io_hid.h']]],
   ['m_5fio_5fhid_5fget_5fvendorid',['M_io_hid_get_vendorid',['../group__m__io__hid.html#gac62d6da058de1d5a25d4cc976c25c97e',1,'m_io_hid.h']]],
   ['m_5fio_5finit',['M_io_init',['../group__m__io__layer.html#ga442adec732ebd1ba459531f202733a65',1,'m_io_layer.h']]],
+  ['m_5fio_5fis_5fuser_5finitiated_5fdisconnect',['M_io_is_user_initiated_disconnect',['../group__m__io.html#ga84dff4be1205eb666da1904940bdbbe2',1,'m_io.h']]],
   ['m_5fio_5fjni_5fandroid_5finit',['M_io_jni_android_init',['../group__m__io__jni.html#gac9a07d12485dabfd64a38dd6cc64e5f8',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5farray_5felement',['M_io_jni_array_element',['../group__m__io__jni.html#gafe2949d095274c0d9f0ac977d4eb1751',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5farray_5flength',['M_io_jni_array_length',['../group__m__io__jni.html#ga73f476926c71a478fe26792fc7238597',1,'m_io_jni.h']]],
