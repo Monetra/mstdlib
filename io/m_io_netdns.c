@@ -92,6 +92,8 @@ static M_bool M_io_netdns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
+M_printf("%s(): [%p] event %p io %p type %d\n", __FUNCTION__, (void *)M_thread_self(), M_io_get_event(M_io_layer_get_io(layer)), M_io_layer_get_io(layer), (int)*type);
+
 	/* We'll only really get soft events, so we're going to just use this to ignore soft events
 	 * that children shouldn't get */
 
@@ -282,7 +284,7 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, "NET");
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	(void)event;
-//M_printf("%s(): [%p] event %p io %p type %p realio %p\n", __FUNCTION__, (void *)M_thread_self(), event, io, (int)type, realio);
+M_printf("%s(): [%p] event %p io %p type %d realio %p\n", __FUNCTION__, (void *)M_thread_self(), event, io, (int)type, realio);
 
 	/* If already disconnected or in error state, nothing to do.  Not sure why we'd get this */
 	if (handle->state == M_IO_NET_STATE_DISCONNECTED || handle->state == M_IO_NET_STATE_ERROR)
