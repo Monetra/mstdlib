@@ -6,8 +6,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-extern Suite *str_suite(void);
-
 static size_t       i;
 static char        *test;
 static char        *str1;
@@ -753,10 +751,44 @@ START_TEST(check_str_justify_center)
 }
 END_TEST
 
+START_TEST(check_lower)
+{
+	char str[256] = {0};
+
+	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#");
+	M_str_lower(str);
+
+	ck_assert_msg(M_str_eq(str, "abcd efgh!@#"));
+}
+END_TEST
+
+START_TEST(check_upper)
+{
+	char str[256] = {0};
+
+	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#");
+	M_str_upper(str);
+
+	ck_assert_msg(M_str_eq(str, "ABCD EFGH!@#"));
+}
+END_TEST
+
+START_TEST(check_title)
+{
+	char str[256] = {0};
+
+	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#\tdo\nwhacka");
+	M_str_title(str);
+
+	ck_assert_msg(M_str_eq(str, "Abcd Efgh!@#\tDo\nWhacka"));
+}
+END_TEST
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* XXX: Add checks for explode, explode_int and strdup */
-Suite *str_suite(void)
+static Suite *str_suite(void)
 {
 	Suite *suite = suite_create("str");
 	TCase *tc_safe;
@@ -781,6 +813,7 @@ Suite *str_suite(void)
 	TCase *tc_replace;
 	TCase *tc_bracketed;
 	TCase *tc_unquote;
+	TCase *tc_case_conv;
 
 	tc_safe = tcase_create("str_safe");
 	tcase_add_test(tc_safe, check_safe);
@@ -890,6 +923,12 @@ Suite *str_suite(void)
 	tc_unquote = tcase_create("str_unquote");
 	tcase_add_test(tc_unquote, check_str_unquote);
 	suite_add_tcase(suite, tc_unquote);
+
+	tc_case_conv = tcase_create("str_case_conv");
+	tcase_add_test(tc_case_conv, check_lower);
+	tcase_add_test(tc_case_conv, check_upper);
+	tcase_add_test(tc_case_conv, check_title);
+	suite_add_tcase(suite, tc_case_conv);
 
 	return suite;
 }

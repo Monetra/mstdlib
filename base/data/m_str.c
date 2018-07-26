@@ -234,6 +234,11 @@ char *M_strdup_lower(const char *s)
 	return M_str_lower(M_strdup(s));
 }
 
+char *M_strdup_title(const char *s)
+{
+	return M_str_title(M_strdup(s));
+}
+
 char *M_strdup_trim(const char *s)
 {
 	if (s == NULL)
@@ -269,6 +274,11 @@ char *M_strdup_lower_max(const char *s, size_t max)
 	if (s == NULL)
 		return NULL;
 	return M_str_lower(M_strdup_max(s, max));
+}
+
+char *M_strdup_title_max(const char *s, size_t max)
+{
+	return M_str_title(M_strdup_max(s, max));
 }
 
 char *M_strdup_trim_max(const char *s, size_t max)
@@ -1182,6 +1192,32 @@ char *M_str_upper(char *s)
 char *M_str_upper_max(char *s, size_t max)
 {
 	return M_str_map_max(s, max, M_chr_toupper);
+}
+
+char *M_str_title(char *s)
+{
+	return M_str_title_max(s, SIZE_MAX);
+}
+
+char *M_str_title_max(char *s, size_t max)
+{
+	size_t len;
+	size_t i;
+	M_bool prev_white;
+
+	len = M_str_len_max(s, max);
+
+	prev_white = M_TRUE;
+	for (i=0; i<len; i++) {
+		if (prev_white) {
+			s[i] = M_chr_toupper(s[i]);
+		} else {
+			s[i] = M_chr_tolower(s[i]);
+		}
+		prev_white = M_chr_isspace(s[i]);
+	}
+
+	return s;
 }
 
 char *M_str_trim(char *s)
