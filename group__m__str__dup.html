@@ -140,6 +140,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga5468e305055486fda13e0ae5109e9147"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4cbf67187962c0475f66eb4c59f17285"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga4cbf67187962c0475f66eb4c59f17285">M_strdup_lower</a> (const char *s) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:ga4cbf67187962c0475f66eb4c59f17285"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacfc04adcac6d6b06475ed4ad66906cea"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#gacfc04adcac6d6b06475ed4ad66906cea">M_strdup_title</a> (const char *s) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
+<tr class="separator:gacfc04adcac6d6b06475ed4ad66906cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0b3079edfca5fa4ed727e5568cbc4495"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga0b3079edfca5fa4ed727e5568cbc4495">M_strdup_trim</a> (const char *s) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:ga0b3079edfca5fa4ed727e5568cbc4495"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacd0ff7fc323d6f15d33d15578580c0b8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#gacd0ff7fc323d6f15d33d15578580c0b8">M_strdup_unquote</a> (const char *s, unsigned char quote, unsigned char escape) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
@@ -150,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga7380a1d6bb86ff84089166aca5c6d25a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9d5c186f8373b1ed805a9b356f271a4c"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga9d5c186f8373b1ed805a9b356f271a4c">M_strdup_lower_max</a> (const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:ga9d5c186f8373b1ed805a9b356f271a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga903e0f4fda2ffb6030518290a5892907"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga903e0f4fda2ffb6030518290a5892907">M_strdup_title_max</a> (const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
+<tr class="separator:ga903e0f4fda2ffb6030518290a5892907"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga21c048ca21e1ee76df77d90df6f0224c"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga21c048ca21e1ee76df77d90df6f0224c">M_strdup_trim_max</a> (const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:ga21c048ca21e1ee76df77d90df6f0224c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9ae9540f4cdd0d7bb719c446d4aca03d"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__dup.html#ga9ae9540f4cdd0d7bb719c446d4aca03d">M_strdup_unquote_max</a> (const char *s, unsigned char quote, unsigned char escape, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
@@ -299,6 +303,37 @@ Functions</h2></td></tr>
 <a class="el" href="group__m__str__mutate.html#ga4496dacd2daa558af5c1793c703046ff">M_str_lower</a> </dd>
 <dd>
 <a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gacfc04adcac6d6b06475ed4ad66906cea"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_strdup_title </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create new string with all characters converted to title case.</p>
+<p>Title case is where the first letter of each word is converted to uppercase, and all other letters are converted to lowercase.</p>
+<p>Ex: "This Sentence Is In Title Case"</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__str__dup.html#ga903e0f4fda2ffb6030518290a5892907">M_strdup_title_max</a> </dd>
+<dd>
+<a class="el" href="group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9">M_str_title</a> </dd>
+<dd>
+<a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>null-terminated string to duplicate and convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>newly allocated string on success, <code>NULL</code> on failure. </dd></dl>
 
 </div>
 </div>
@@ -498,6 +533,49 @@ Functions</h2></td></tr>
 <a class="el" href="group__m__str__mutate.html#ga79107a81a7a2856e08c6e0eea42732bb">M_str_lower_max</a> </dd>
 <dd>
 <a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga903e0f4fda2ffb6030518290a5892907"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_strdup_title_max </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create new string with a given number of characters converted to title case.</p>
+<p>Only copies up to <em>max</em> characters from the source string.</p>
+<p>Title case is where the first letter of each word is converted to uppercase, and all other letters are converted to lowercase.</p>
+<p>Ex: "This Sentence Is In Title Case"</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__str__dup.html#gacfc04adcac6d6b06475ed4ad66906cea">M_strdup_title</a> </dd>
+<dd>
+<a class="el" href="group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b">M_str_title_max</a> </dd>
+<dd>
+<a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">s</td><td>null-terminated string to duplicate and convert. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>max number of characters to copy from <em>s</em>, may be less if <em>s</em> contains a null character </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>newly allocated string on success, <code>NULL</code> on failure. </dd></dl>
 
 </div>
 </div>
@@ -748,7 +826,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Jul 24 2018 20:37:02 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jul 26 2018 14:34:17 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

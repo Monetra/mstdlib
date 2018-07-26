@@ -111,6 +111,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga0d6580ae4e9da66e1fbcea6a74600d49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad33c1a3ca1b6045f8810c09b607b3c8f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__mutate.html#gad33c1a3ca1b6045f8810c09b607b3c8f">M_str_upper_max</a> (char *s, size_t max)</td></tr>
 <tr class="separator:gad33c1a3ca1b6045f8810c09b607b3c8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab6f68bc130b9922a09d95c0c8ff4aef9"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9">M_str_title</a> (char *s)</td></tr>
+<tr class="separator:gab6f68bc130b9922a09d95c0c8ff4aef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga30a5b9927f95a3addcb83d1f09b1dc8b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b">M_str_title_max</a> (char *s, size_t max)</td></tr>
+<tr class="separator:ga30a5b9927f95a3addcb83d1f09b1dc8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaea679635f5dd9d4b44a3ea4fb1151699"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__mutate.html#gaea679635f5dd9d4b44a3ea4fb1151699">M_str_trim</a> (char *s)</td></tr>
 <tr class="separator:gaea679635f5dd9d4b44a3ea4fb1151699"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad9937e4615f135b43d3333b266547ccf"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__str__mutate.html#gad9937e4615f135b43d3333b266547ccf">M_str_trim_max</a> (char *s, size_t max)</td></tr>
@@ -272,6 +276,75 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to string on success. Otherwise NULL. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gab6f68bc130b9922a09d95c0c8ff4aef9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_str_title </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert all characters to title case, in-place.</p>
+<p>Title case is where the first letter of each word is converted to uppercase, and all other letters are converted to lowercase.</p>
+<p>Ex: "This Sentence Is In Title Case"</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b">M_str_title_max</a> </dd>
+<dd>
+<a class="el" href="group__m__str__dup.html#gacfc04adcac6d6b06475ed4ad66906cea">M_strdup_title</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">s</td><td>null-terminated string to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><em>s</em> on success, <code>NULL</code> on failure. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga30a5b9927f95a3addcb83d1f09b1dc8b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_str_title_max </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert given number of characters to title case, in-place.</p>
+<p>Title case is where the first letter of each word is converted to uppercase, and all other letters are converted to lowercase.</p>
+<p>Ex: "This Sentence Is In Title Case!"</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9">M_str_title</a> </dd>
+<dd>
+<a class="el" href="group__m__str__dup.html#ga903e0f4fda2ffb6030518290a5892907">M_strdup_title_max</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>string to convert (doesn't have to be null-terminated, but must be at least <em>max</em> long) </td></tr>
+    <tr><td class="paramname">max</td><td>max number of characters to touch in <em>s</em>, may be less if <em>s</em> contains a null character </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><em>s</em> on success, <code>NULL</code> on failure. </dd></dl>
 
 </div>
 </div>
@@ -1255,7 +1328,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Jul 24 2018 20:37:02 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Jul 26 2018 14:34:17 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

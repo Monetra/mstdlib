@@ -4,6 +4,8 @@ var group__m__str__mutate =
     [ "M_str_lower_max", "group__m__str__mutate.html#ga79107a81a7a2856e08c6e0eea42732bb", null ],
     [ "M_str_upper", "group__m__str__mutate.html#ga0d6580ae4e9da66e1fbcea6a74600d49", null ],
     [ "M_str_upper_max", "group__m__str__mutate.html#gad33c1a3ca1b6045f8810c09b607b3c8f", null ],
+    [ "M_str_title", "group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9", null ],
+    [ "M_str_title_max", "group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b", null ],
     [ "M_str_trim", "group__m__str__mutate.html#gaea679635f5dd9d4b44a3ea4fb1151699", null ],
     [ "M_str_trim_max", "group__m__str__mutate.html#gad9937e4615f135b43d3333b266547ccf", null ],
     [ "M_str_remove_bracketed", "group__m__str__mutate.html#gaf492b7313b310e50de10dcc65d55eb43", null ],
