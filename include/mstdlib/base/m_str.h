@@ -730,6 +730,23 @@ M_API char *M_strdup_upper(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
 M_API char *M_strdup_lower(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
+/*! Create new string with all characters converted to title case.
+ *
+ * Title case is where the first letter of each word is converted to uppercase, and all other
+ * letters are converted to lowercase.
+ *
+ * Ex: "This Sentence Is In Title Case"
+ *
+ * \see M_strdup_title_max
+ * \see M_str_title
+ * \see M_free
+ *
+ * \param[in] s null-terminated string to duplicate and convert.
+ * \return      newly allocated string on success, \c NULL on failure.
+ */
+char *M_strdup_title(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
+
+
 /*! Create a duplicate of the NULL-terminated string s and additionally applies M_str_trim to the new string.
  *
  * s must be passed to M_free to release the memory space associated with it.
@@ -814,6 +831,26 @@ M_API char *M_strdup_upper_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN
  * \see M_free
  */
 M_API char *M_strdup_lower_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;
+
+
+/*! Create new string with a given number of characters converted to title case.
+ *
+ * Only copies up to \a max characters from the source string.
+ *
+ * Title case is where the first letter of each word is converted to uppercase, and all other
+ * letters are converted to lowercase.
+ *
+ * Ex: "This Sentence Is In Title Case"
+ *
+ * \see M_strdup_title
+ * \see M_str_title_max
+ * \see M_free
+ *
+ * \param[in] s   null-terminated string to duplicate and convert.
+ * \param[in] max max number of characters to copy from \a s, may be less if \a s contains a null character
+ * \return        newly allocated string on success, \c NULL on failure.
+ */
+char *M_strdup_title_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
 /*! Create a duplicate of the NULL-terminated string s, but copy at most max bytes and additionally applies
@@ -950,6 +987,39 @@ M_API char *M_str_upper(char *s);
  * \return Pointer to string on success. Otherwise NULL.
  * */
 M_API char *M_str_upper_max(char *s, size_t max);
+
+
+/*! Convert all characters to title case, in-place.
+ *
+ * Title case is where the first letter of each word is converted to uppercase, and all other
+ * letters are converted to lowercase.
+ *
+ * Ex: "This Sentence Is In Title Case"
+ *
+ * \see M_str_title_max
+ * \see M_strdup_title
+ *
+ * \param[in,out] s null-terminated string to convert.
+ * \return          \a s on success, \c NULL on failure.
+ */
+char *M_str_title(char *s);
+
+
+/*! Convert given number of characters to title case, in-place.
+ *
+ * Title case is where the first letter of each word is converted to uppercase, and all other
+ * letters are converted to lowercase.
+ *
+ * Ex: "This Sentence Is In Title Case!"
+ *
+ * \see M_str_title
+ * \see M_strdup_title_max
+ *
+ * \param s   string to convert (doesn't have to be null-terminated, but must be at least \a max long)
+ * \param max max number of characters to touch in \a s, may be less if \a s contains a null character
+ * \return    \a s on success, \c NULL on failure.
+ */
+char *M_str_title_max(char *s, size_t max);
 
 
 /*! Remove whitespace from the beginning and end of the string in place.
