@@ -744,7 +744,7 @@ M_API char *M_strdup_lower(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
  * \param[in] s null-terminated string to duplicate and convert.
  * \return      newly allocated string on success, \c NULL on failure.
  */
-char *M_strdup_title(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
+M_API char *M_strdup_title(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
 /*! Create a duplicate of the NULL-terminated string s and additionally applies M_str_trim to the new string.
@@ -850,7 +850,7 @@ M_API char *M_strdup_lower_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN
  * \param[in] max max number of characters to copy from \a s, may be less if \a s contains a null character
  * \return        newly allocated string on success, \c NULL on failure.
  */
-char *M_strdup_title_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;
+M_API char *M_strdup_title_max(const char *s, size_t max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
 /*! Create a duplicate of the NULL-terminated string s, but copy at most max bytes and additionally applies
@@ -1002,7 +1002,7 @@ M_API char *M_str_upper_max(char *s, size_t max);
  * \param[in,out] s null-terminated string to convert.
  * \return          \a s on success, \c NULL on failure.
  */
-char *M_str_title(char *s);
+M_API char *M_str_title(char *s);
 
 
 /*! Convert given number of characters to title case, in-place.
@@ -1019,7 +1019,7 @@ char *M_str_title(char *s);
  * \param max max number of characters to touch in \a s, may be less if \a s contains a null character
  * \return    \a s on success, \c NULL on failure.
  */
-char *M_str_title_max(char *s, size_t max);
+M_API char *M_str_title_max(char *s, size_t max);
 
 
 /*! Remove whitespace from the beginning and end of the string in place.
