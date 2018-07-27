@@ -844,7 +844,7 @@ $(document).ready(function(){initNavTree('m__str_8h_source.html','');});
 <div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment"> * \param[in] s null-terminated string to duplicate and convert.</span></div>
 <div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment"> * \return      newly allocated string on success, \c NULL on failure.</span></div>
 <div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="keywordtype">char</span> *<a class="code" href="group__m__str__dup.html#gacfc04adcac6d6b06475ed4ad66906cea">M_strdup_title</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *s) M_WARN_UNUSED_RESULT M_MALLOC;</div>
+<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__str__dup.html#gacfc04adcac6d6b06475ed4ad66906cea">M_strdup_title</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *s) M_WARN_UNUSED_RESULT M_MALLOC;</div>
 <div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;</div>
 <div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment">/*! Create a duplicate of the NULL-terminated string s and additionally applies M_str_trim to the new string.</span></div>
@@ -950,7 +950,7 @@ $(document).ready(function(){initNavTree('m__str_8h_source.html','');});
 <div class="line"><a name="l00850"></a><span class="lineno">  850</span>&#160;<span class="comment"> * \param[in] max max number of characters to copy from \a s, may be less if \a s contains a null character</span></div>
 <div class="line"><a name="l00851"></a><span class="lineno">  851</span>&#160;<span class="comment"> * \return        newly allocated string on success, \c NULL on failure.</span></div>
 <div class="line"><a name="l00852"></a><span class="lineno">  852</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00853"></a><span class="lineno">  853</span>&#160;<span class="keywordtype">char</span> *<a class="code" href="group__m__str__dup.html#ga903e0f4fda2ffb6030518290a5892907">M_strdup_title_max</a>(const <span class="keywordtype">char</span> *s, <span class="keywordtype">size_t</span> max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;</div>
+<div class="line"><a name="l00853"></a><span class="lineno">  853</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__str__dup.html#ga903e0f4fda2ffb6030518290a5892907">M_strdup_title_max</a>(const <span class="keywordtype">char</span> *s, <span class="keywordtype">size_t</span> max) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC;</div>
 <div class="line"><a name="l00854"></a><span class="lineno">  854</span>&#160;</div>
 <div class="line"><a name="l00855"></a><span class="lineno">  855</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00856"></a><span class="lineno">  856</span>&#160;<span class="comment">/*! Create a duplicate of the NULL-terminated string s, but copy at most max bytes and additionally applies</span></div>
@@ -1102,7 +1102,7 @@ $(document).ready(function(){initNavTree('m__str_8h_source.html','');});
 <div class="line"><a name="l01002"></a><span class="lineno"> 1002</span>&#160;<span class="comment"> * \param[in,out] s null-terminated string to convert.</span></div>
 <div class="line"><a name="l01003"></a><span class="lineno"> 1003</span>&#160;<span class="comment"> * \return          \a s on success, \c NULL on failure.</span></div>
 <div class="line"><a name="l01004"></a><span class="lineno"> 1004</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;<span class="keywordtype">char</span> *<a class="code" href="group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9">M_str_title</a>(<span class="keywordtype">char</span> *s);</div>
+<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__str__mutate.html#gab6f68bc130b9922a09d95c0c8ff4aef9">M_str_title</a>(<span class="keywordtype">char</span> *s);</div>
 <div class="line"><a name="l01006"></a><span class="lineno"> 1006</span>&#160;</div>
 <div class="line"><a name="l01007"></a><span class="lineno"> 1007</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l01008"></a><span class="lineno"> 1008</span>&#160;<span class="comment">/*! Convert given number of characters to title case, in-place.</span></div>
@@ -1119,7 +1119,7 @@ $(document).ready(function(){initNavTree('m__str_8h_source.html','');});
 <div class="line"><a name="l01019"></a><span class="lineno"> 1019</span>&#160;<span class="comment"> * \param max max number of characters to touch in \a s, may be less if \a s contains a null character</span></div>
 <div class="line"><a name="l01020"></a><span class="lineno"> 1020</span>&#160;<span class="comment"> * \return    \a s on success, \c NULL on failure.</span></div>
 <div class="line"><a name="l01021"></a><span class="lineno"> 1021</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l01022"></a><span class="lineno"> 1022</span>&#160;<span class="keywordtype">char</span> *<a class="code" href="group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b">M_str_title_max</a>(<span class="keywordtype">char</span> *s, <span class="keywordtype">size_t</span> max);</div>
+<div class="line"><a name="l01022"></a><span class="lineno"> 1022</span>&#160;M_API <span class="keywordtype">char</span> *<a class="code" href="group__m__str__mutate.html#ga30a5b9927f95a3addcb83d1f09b1dc8b">M_str_title_max</a>(<span class="keywordtype">char</span> *s, <span class="keywordtype">size_t</span> max);</div>
 <div class="line"><a name="l01023"></a><span class="lineno"> 1023</span>&#160;</div>
 <div class="line"><a name="l01024"></a><span class="lineno"> 1024</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l01025"></a><span class="lineno"> 1025</span>&#160;<span class="comment">/*! Remove whitespace from the beginning and end of the string in place.</span></div>
@@ -2087,7 +2087,7 @@ $(document).ready(function(){initNavTree('m__str_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_a4978744522068604823c107062e0240.html">base</a></li><li class="navelem"><b>m_str.h</b></li>
-    <li class="footer">Generated on Thu Jul 26 2018 14:34:17 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Jul 27 2018 18:26:21 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
