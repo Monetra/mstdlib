@@ -520,7 +520,7 @@ M_bool M_io_jni_android_init(jobject connectivity_manager)
 #else
 	int ret;
 
-	if (ares_library_android_initialized())
+	if (ares_library_android_initialized() == ARES_SUCCESS)
 		return M_TRUE;
 
 	if (M_io_jni_jvm == NULL)
