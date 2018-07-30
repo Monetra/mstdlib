@@ -34,19 +34,19 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	return NULL;
 }
 
-const char *M_io_hid_get_manufacturer(M_io_t *io)
+char *M_io_hid_get_manufacturer(M_io_t *io)
 {
 	(void)io;
 	return NULL;
 }
 
-const char *M_io_hid_get_path(M_io_t *io)
+char *M_io_hid_get_path(M_io_t *io)
 {
 	(void)io;
 	return NULL;
 }
 
-const char *M_io_hid_get_product(M_io_t *io)
+char *M_io_hid_get_product(M_io_t *io)
 {
 	(void)io;
 	return NULL;
@@ -64,7 +64,7 @@ M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 	return 0;
 }
 
-const char *M_io_hid_get_serial(M_io_t *io)
+char *M_io_hid_get_serial(M_io_t *io)
 {
 	(void)io;
 	return NULL;
