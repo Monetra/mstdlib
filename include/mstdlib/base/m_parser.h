@@ -420,6 +420,19 @@ M_API size_t M_parser_truncate_charset(M_parser_t *parser, const unsigned char *
 M_API size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_func func);
 
 
+/*! Truncate all bytes matching the given predicate function up to a given maximum.
+ *
+ * Searches backwards from end to start.
+ *
+ * \param[in,out] parser Parser object.
+ * \param[in]     func   Predicate function.
+ * \param[in]     max    Requested length of data to read.
+ *
+ * \return Number of bytes consumed, or 0 if none/error.
+ */
+M_API size_t M_parser_truncate_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max);
+
+
 /*! Truncate all bytes matching the given chr predicate function.
  *
  * Searches backwards from end to start.
@@ -430,6 +443,19 @@ M_API size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_
  * \return Number of bytes consumed, or 0 if none/error.
  */
 M_API size_t M_parser_truncate_chr_predicate(M_parser_t *parser, M_chr_predicate_func func);
+
+
+/*! Truncate all bytes matching the given chr predicate function up to a given maximum.
+ *
+ * Searches backwards from end to start.
+ *
+ * \param[in,out] parser Parser object.
+ * \param[in]     func   Predicate function.
+ * \param[in]     max    Requested length of data to read.
+ *
+ * \return Number of bytes consumed, or 0 if none/error.
+ */
+M_API size_t M_parser_truncate_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max);
 
 
 /*! Truncate all bytes until the specified string is encountered in the data stream.
@@ -535,6 +561,17 @@ M_API size_t M_parser_consume_charset(M_parser_t *parser, const unsigned char *c
 M_API size_t M_parser_consume_predicate(M_parser_t *parser, M_parser_predicate_func func);
 
 
+/*! Consume all bytes matching the given predicate function up to a given maximum.
+ *
+ * \param[in,out] parser Parser object.
+ * \param[in]     func   Predicate function.
+ * \param[in]     max    Requested length of data to read.
+ *
+ * \return Number of bytes consumed, or 0 if none/error.
+ */
+M_API size_t M_parser_consume_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max);
+
+
 /*! Consume all bytes matching the given chr predicate function.
  *
  * \param[in,out] parser Parser object.
@@ -543,6 +580,17 @@ M_API size_t M_parser_consume_predicate(M_parser_t *parser, M_parser_predicate_f
  * \return Number of bytes consumed, or 0 if none/error.
  */
 M_API size_t M_parser_consume_chr_predicate(M_parser_t *parser, M_chr_predicate_func func);
+
+
+/*! Consume all bytes matching the given chr predicate function up to a given maximum.
+ *
+ * \param[in,out] parser Parser object.
+ * \param[in]     func   Predicate function.
+ * \param[in]     max    Requested length of data to read.
+ *
+ * \return Number of bytes consumed, or 0 if none/error.
+ */
+M_API size_t M_parser_consume_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max);
 
 
 /*! Consume all bytes until the specified string is encountered in the data stream.
@@ -1045,6 +1093,22 @@ M_API char *M_parser_read_strdup_charset(M_parser_t *parser, const char *charset
 M_API char *M_parser_read_strdup_predicate(M_parser_t *parser, M_parser_predicate_func func);
 
 
+/*! Read data from the buffer for as long as it matches the given predicate function
+ * up to a given maximum and advance.
+ *
+ * Put the resulting bytes in a newly allocated buffer.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     func    Predicate function.
+ * \param[in]     max     Requested length of data to read.
+ *
+ * \return NULL-terminated result buffer, or NULL on error.
+ *
+ * \see M_parser_read_str_predicate
+ */
+M_API char *M_parser_read_strdup_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max);
+
+
 /*! Read data from the buffer for as long as it matches the given predicate function and advance.
  *
  * Put the resulting bytes in a newly allocated buffer.
@@ -1057,6 +1121,22 @@ M_API char *M_parser_read_strdup_predicate(M_parser_t *parser, M_parser_predicat
  * \see M_parser_read_str_predicate
  */
 M_API char *M_parser_read_strdup_chr_predicate(M_parser_t *parser, M_chr_predicate_func func);
+
+
+/*! Read data from the buffer for as long as it matches the given predicate function
+ * up to a given maximum and advance.
+ *
+ * Put the resulting bytes in a newly allocated buffer.
+ *
+ * \param[in,out] parser  Parser object.
+ * \param[in]     func    predicate function.
+ * \param[in]     max     Requested length of data to read.
+ *
+ * \return NULL-terminated result buffer, or NULL on error.
+ *
+ * \see M_parser_read_str_predicate
+ */
+M_API char *M_parser_read_strdup_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max);
 
 
 /*! Read data from a marked position until the current parser position.
@@ -1192,6 +1272,21 @@ M_API size_t M_parser_read_buf_predicate(M_parser_t *parser, M_buf_t *buf, M_par
 
 
 /*! Read bytes (binary) from the current buffer as long as the bytes match the
+ * provided predicate up to a given maximum, output in the user-provided buffer and advance.
+ *
+ * The data read will not be NULL terminated.
+ *
+ * \param[in,out] parser      Parser object.
+ * \param[out]    buf         Buffer to store result.
+ * \param[in]     func        Predicate function.
+ * \param[in]     max         Requested length of data to read.
+ *
+ * \return Length of data read, or 0 on error.
+ */
+M_API size_t M_parser_read_buf_predicate_max(M_parser_t *parser, M_buf_t *buf, M_parser_predicate_func func, size_t max);
+
+
+/*! Read bytes (binary) from the current buffer as long as the bytes match the
  * provided chr predicate, output in the user-provided buffer and advance.
  *
  * The data read will not be NULL terminated.
@@ -1203,6 +1298,21 @@ M_API size_t M_parser_read_buf_predicate(M_parser_t *parser, M_buf_t *buf, M_par
  * \return Length of data read, or 0 on error.
  */
 M_API size_t M_parser_read_buf_chr_predicate(M_parser_t *parser, M_buf_t *buf, M_chr_predicate_func func);
+
+
+/*! Read bytes (binary) from the current buffer as long as the bytes match the
+ * provided chr predicate up to a given maximum, output in the user-provided buffer and advance.
+ *
+ * The data read will not be NULL terminated.
+ *
+ * \param[in,out] parser      Parser object.
+ * \param[out]    buf         Buffer to store result.
+ * \param[in]     func        Predicate function.
+ * \param[in]     max         Requested length of data to read.
+ *
+ * \return Length of data read, or 0 on error.
+ */
+M_API size_t M_parser_read_buf_chr_predicate_max(M_parser_t *parser, M_buf_t *buf, M_chr_predicate_func func, size_t max);
 
 
 /*! Read data from a marked position until the current parser position.
@@ -1289,6 +1399,20 @@ M_API M_parser_t *M_parser_read_parser_charset(M_parser_t *parser, unsigned cons
 M_API M_parser_t *M_parser_read_parser_predicate(M_parser_t *parser, M_parser_predicate_func func);
 
 
+/*! Create new parser from the buffer for as long as it matches the given predicate function
+ * up to a given maximum and advance. All data is copied into a new memory segment.
+ *
+ * Put the resulting bytes in a newly allocated parser.
+ *
+ * \param[in,out] parser    Parser object.
+ * \param[in]     func      Predicate function.
+ * \param[in]     max       Requested length of data to read.
+ *
+ * \return parser.
+ */
+M_API M_parser_t *M_parser_read_parser_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max);
+
+
 /*! Create new parser from the buffer for as long as it matches the given predicate function and advance.
  *  All data is copied into a new memory segment.
  * 
@@ -1300,6 +1424,20 @@ M_API M_parser_t *M_parser_read_parser_predicate(M_parser_t *parser, M_parser_pr
  * \return parser.
  */
 M_API M_parser_t *M_parser_read_parser_chr_predicate(M_parser_t *parser, M_parser_predicate_func func);
+
+
+/*! Create new parser from the buffer for as long as it matches the given predicate function
+ *  up to a given maximum and advance. All data is copied into a new memory segment.
+ *
+ * Put the resulting bytes in a newly allocated parser.
+ *
+ * \param[in,out] parser    Parser object.
+ * \param[in]     func      Predicate function.
+ * \param[in]     max       Requested length of data to read.
+ *
+ * \return parser.
+ */
+M_API M_parser_t *M_parser_read_parser_chr_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max);
 
 
 /*! Create new parser from a marked position until the current parser position, allocates a parser and advance.
