@@ -756,14 +756,17 @@ size_t M_parser_truncate_charset(M_parser_t *parser, const unsigned char *charse
 }
 
 
-size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_func func)
+size_t M_parser_truncate_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
 {
 	size_t i;
 
-	if (parser == NULL || func == NULL)
+	if (parser == NULL || func == NULL || max == 0)
 		return 0;
 
-	for (i=parser->data_len; i-->0; ) {
+	if (max > parser->data_len)
+		max = parser->data_len;
+
+	for (i=max; i-->0; ) {
 		if (!func(parser->data[i])) {
 			break;
 		}
@@ -775,10 +778,20 @@ size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_func f
 	return i;
 }
 
+size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_func func)
+{
+	return M_parser_truncate_predicate_max(parser, func, SIZE_MAX);
+}
+
 
 size_t M_parser_truncate_chr_predicate(M_parser_t *parser, M_chr_predicate_func func)
 {
 	return M_parser_truncate_predicate(parser, (M_parser_predicate_func)func);
+}
+
+size_t M_parser_truncate_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max)
+{
+	return M_parser_truncate_predicate_max(parser, (M_parser_predicate_func)func, max);
 }
 
 
@@ -925,14 +938,17 @@ size_t M_parser_consume_charset(M_parser_t *parser, const unsigned char *charset
 }
 
 
-size_t M_parser_consume_predicate(M_parser_t *parser, M_parser_predicate_func func)
+size_t M_parser_consume_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
 {
 	size_t len;
 
-	if (parser == NULL || func == NULL)
+	if (parser == NULL || func == NULL || max == 0)
 		return 0;
 
-	for (len=0; len < parser->data_len; len++) {
+	if (max > parser->data_len)
+		max = parser->data_len;
+
+	for (len=0; len<max; len++) {
 		if (!func(parser->data[len])) {
 			break;
 		}
@@ -942,6 +958,15 @@ size_t M_parser_consume_predicate(M_parser_t *parser, M_parser_predicate_func fu
 	return len;
 }
 
+size_t M_parser_consume_predicate(M_parser_t *parser, M_parser_predicate_func func)
+{
+	return M_parser_consume_predicate_max(parser, func, SIZE_MAX);
+}
+
+size_t M_parser_consume_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max)
+{
+	return M_parser_consume_predicate_max(parser, (M_parser_predicate_func)func, max);
+}
 
 size_t M_parser_consume_chr_predicate(M_parser_t *parser, M_chr_predicate_func func)
 {
@@ -1189,7 +1214,7 @@ size_t M_parser_read_bytes_predicate(M_parser_t *parser, M_parser_predicate_func
 	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
 
 	/* Consume the charset */
-	if (M_parser_consume_predicate(parser, func) == 0) {
+	if (M_parser_consume_predicate_max(parser, func, buf_len) == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return 0;
 	}
@@ -1455,19 +1480,19 @@ char *M_parser_read_strdup_charset(M_parser_t *parser, const char *charset)
 }
 
 
-char *M_parser_read_strdup_predicate(M_parser_t *parser, M_parser_predicate_func func)
+char *M_parser_read_strdup_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
 {
 	size_t len;
 	char  *out = NULL;
 
-	if (parser == NULL || func == NULL)
+	if (parser == NULL || func == NULL || max == 0)
 		return NULL;
 
 	/* Mark internal */
 	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
 
 	/* Consume the charset */
-	len = M_parser_consume_predicate(parser, func);
+	len = M_parser_consume_predicate_max(parser, func, max);
 	if (len == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return NULL;
@@ -1485,6 +1510,16 @@ char *M_parser_read_strdup_predicate(M_parser_t *parser, M_parser_predicate_func
 	return out;
 }
 
+char *M_parser_read_strdup_predicate(M_parser_t *parser, M_parser_predicate_func func)
+{
+	return M_parser_read_strdup_predicate_max(parser, func, SIZE_MAX);
+}
+
+
+char *M_parser_read_strdup_chr_predicate_max(M_parser_t *parser, M_chr_predicate_func func, size_t max)
+{
+	return M_parser_read_strdup_predicate_max(parser, (M_parser_predicate_func)func, max);
+}
 
 char *M_parser_read_strdup_chr_predicate(M_parser_t *parser, M_chr_predicate_func func)
 {
@@ -1583,18 +1618,18 @@ M_parser_t *M_parser_read_parser_charset(M_parser_t *parser, unsigned const char
 }
 
 
-M_parser_t *M_parser_read_parser_predicate(M_parser_t *parser, M_parser_predicate_func func)
+M_parser_t *M_parser_read_parser_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
 {
 	size_t len;
 
-	if (parser == NULL || func == NULL)
+	if (parser == NULL || func == NULL || max == 0)
 		return NULL;
 
 	/* Mark internal */
 	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
 
 	/* Consume the charset */
-	len = M_parser_consume_predicate(parser, func);
+	len = M_parser_consume_predicate_max(parser, func, max);
 	if (len == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return NULL;
@@ -1603,10 +1638,20 @@ M_parser_t *M_parser_read_parser_predicate(M_parser_t *parser, M_parser_predicat
 	return M_parser_read_parser_mark_int(parser, M_PARSER_MARKED_INT);
 }
 
+M_parser_t *M_parser_read_parser_predicate(M_parser_t *parser, M_parser_predicate_func func)
+{
+	return M_parser_read_parser_predicate_max(parser, func, SIZE_MAX);
+}
+
 
 M_parser_t *M_parser_read_parser_chr_predicate(M_parser_t *parser, M_parser_predicate_func func)
 {
-	return M_parser_read_parser_predicate(parser, (M_parser_predicate_func) func);
+	return M_parser_read_parser_predicate(parser, (M_parser_predicate_func)func);
+}
+
+M_parser_t *M_parser_read_parser_chr_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
+{
+	return M_parser_read_parser_predicate_max(parser, (M_parser_predicate_func)func, max);
 }
 
 
@@ -1881,16 +1926,16 @@ size_t M_parser_read_buf_not_charset(M_parser_t *parser, M_buf_t *buf, const uns
 	return M_parser_read_buf_charset_int(parser, buf, charset, charset_len, M_FALSE);
 }
 
-size_t M_parser_read_buf_predicate(M_parser_t *parser, M_buf_t *buf, M_parser_predicate_func func)
+size_t M_parser_read_buf_predicate_max(M_parser_t *parser, M_buf_t *buf, M_parser_predicate_func func, size_t max)
 {
-	if (parser == NULL || buf == NULL || func == NULL)
+	if (parser == NULL || buf == NULL || func == NULL || max == 0)
 		return 0;
 
 	/* Mark internal */
 	M_parser_mark_int(parser, M_PARSER_MARKED_INT);
 
 	/* Consume the charset */
-	if (M_parser_consume_predicate(parser, func) == 0) {
+	if (M_parser_consume_predicate_max(parser, func, max) == 0) {
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
 		return 0;
 	}
@@ -1899,9 +1944,19 @@ size_t M_parser_read_buf_predicate(M_parser_t *parser, M_buf_t *buf, M_parser_pr
 	return M_parser_read_buf_mark_int(parser, M_PARSER_MARKED_INT, buf);
 }
 
+size_t M_parser_read_buf_predicate(M_parser_t *parser, M_buf_t *buf, M_parser_predicate_func func)
+{
+	return M_parser_read_buf_predicate_max(parser, buf, func, SIZE_MAX);
+}
+
 size_t M_parser_read_buf_chr_predicate(M_parser_t *parser, M_buf_t *buf, M_chr_predicate_func func)
 {
 	return M_parser_read_buf_predicate(parser, buf, (M_parser_predicate_func)func);
+}
+
+size_t M_parser_read_buf_chr_predicate_max(M_parser_t *parser, M_buf_t *buf, M_chr_predicate_func func, size_t max)
+{
+	return M_parser_read_buf_predicate_max(parser, buf, (M_parser_predicate_func)func, max);
 }
 
 size_t M_parser_read_buf_mark(M_parser_t *parser, M_buf_t *buf)
