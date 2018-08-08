@@ -96,6 +96,7 @@ $(document).ready(function(){initNavTree('group__m__bit__parser.html','');});
 <div class="header">
   <div class="summary">
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Bitwise Data Parser<div class="ingroups"><a class="el" href="group__mstdlib__base.html">Base</a></div></div>  </div>
@@ -106,6 +107,18 @@ $(document).ready(function(){initNavTree('group__m__bit__parser.html','');});
 Typedefs</h2></td></tr>
 <tr class="memitem:gaabdd3988d7d6acf1372de31e0185ffa3"><td class="memItemLeft" align="right" valign="top">typedef struct M_bit_parser&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a></td></tr>
 <tr class="separator:gaabdd3988d7d6acf1372de31e0185ffa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:ga432b8371b3ef91784f80200fc76ad7c6"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6">M_bit_parser_int_format_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6ad4bc8b46f8c0d33268d5654b3f0d8eaa">M_BIT_PARSER_SIGN_MAG</a> = 0, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6a8395b76ee5e922c03162bd1256486158">M_BIT_PARSER_ONES_COMP</a> = 1, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6ad37a0bc4b4acaf0ee8d04c29c50a8c20">M_BIT_PARSER_TWOS_COMP</a> = 2
+<br/>
+ }</td></tr>
+<tr class="separator:ga432b8371b3ef91784f80200fc76ad7c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -141,6 +154,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga234fe497b4957ebdd5bfe6c267bdddb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf8c146aac12b0488312682bfb664dbf0"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0">M_bit_parser_read_uint</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits, M_uint64 *res)</td></tr>
 <tr class="separator:gaf8c146aac12b0488312682bfb664dbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0718d1f8d1f037c94872f32552bbfd16"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16">M_bit_parser_read_int</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits, <a class="el" href="group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6">M_bit_parser_int_format_t</a> fmt, M_int64 *res)</td></tr>
+<tr class="separator:ga0718d1f8d1f037c94872f32552bbfd16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e">M_bit_parser_consume_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t max_bits)</td></tr>
 <tr class="separator:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga58b2386de30a47d1f862b53943bafcce"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce">M_bit_parser_read_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 *bit, size_t *nbits_in_range, size_t max_bits)</td></tr>
@@ -179,6 +194,33 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="ga432b8371b3ef91784f80200fc76ad7c6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6">M_bit_parser_int_format_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Signed integer formats understood by bit parser.</p>
+<p>In-depth description of these formats can be found at <a href="https://en.wikipedia.org/wiki/Signed_number_representations">https://en.wikipedia.org/wiki/Signed_number_representations</a>.</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16">M_bit_parser_read_int</a> </dd></dl>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga432b8371b3ef91784f80200fc76ad7c6ad4bc8b46f8c0d33268d5654b3f0d8eaa"></a>M_BIT_PARSER_SIGN_MAG</em>&#160;</td><td class="fielddoc">
+<p>Signed magniture format (first bit is sign, rest of bits are magnitude) </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga432b8371b3ef91784f80200fc76ad7c6a8395b76ee5e922c03162bd1256486158"></a>M_BIT_PARSER_ONES_COMP</em>&#160;</td><td class="fielddoc">
+<p>One's complement </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga432b8371b3ef91784f80200fc76ad7c6ad37a0bc4b4acaf0ee8d04c29c50a8c20"></a>M_BIT_PARSER_TWOS_COMP</em>&#160;</td><td class="fielddoc">
+<p>Two's complement </p>
+</td></tr>
+</table>
 
 </div>
 </div>
@@ -719,6 +761,56 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga0718d1f8d1f037c94872f32552bbfd16"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_read_int </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6">M_bit_parser_int_format_t</a>&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int64 *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read multiple bits, interpret as a signed integer.</p>
+<p>The bits are converted to a single big-endian unsigned integer, then interpreted as a signed integer in the given format.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to read (must be &gt;= 2 and &lt;= 64) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fmt</td><td>signed integer format of the bits we're reading </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">res</td><td>read bits, converted to a native signed integer </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE on failure </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga504fd87c0b2795aec4ca99d0cdf0f42e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -812,7 +904,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Aug 6 2018 21:31:58 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Aug 8 2018 17:51:16 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

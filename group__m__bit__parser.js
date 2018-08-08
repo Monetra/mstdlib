@@ -1,6 +1,11 @@
 var group__m__bit__parser =
 [
     [ "M_bit_parser_t", "group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3", null ],
+    [ "M_bit_parser_int_format_t", "group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6", [
+      [ "M_BIT_PARSER_SIGN_MAG", "group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6ad4bc8b46f8c0d33268d5654b3f0d8eaa", null ],
+      [ "M_BIT_PARSER_ONES_COMP", "group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6a8395b76ee5e922c03162bd1256486158", null ],
+      [ "M_BIT_PARSER_TWOS_COMP", "group__m__bit__parser.html#gga432b8371b3ef91784f80200fc76ad7c6ad37a0bc4b4acaf0ee8d04c29c50a8c20", null ]
+    ] ],
     [ "M_bit_parser_create", "group__m__bit__parser.html#ga72ea7353665217ca2acc5f159408beb0", null ],
     [ "M_bit_parser_create_const", "group__m__bit__parser.html#gab7f78d16fe7e8d36bd1cca9f31139956", null ],
     [ "M_bit_parser_reset", "group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5", null ],
@@ -17,6 +22,7 @@ var group__m__bit__parser =
     [ "M_bit_parser_read_bit_buf", "group__m__bit__parser.html#ga39c8da55725f5bca9fad614d99fe12eb", null ],
     [ "M_bit_parser_read_strdup", "group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0", null ],
     [ "M_bit_parser_read_uint", "group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0", null ],
+    [ "M_bit_parser_read_int", "group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16", null ],
     [ "M_bit_parser_consume_range", "group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e", null ],
     [ "M_bit_parser_read_range", "group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce", null ]
 ];
