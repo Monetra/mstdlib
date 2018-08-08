@@ -78,7 +78,7 @@ typedef struct M_bit_parser M_bit_parser_t;
  * \see M_bit_parser_read_int
  */
 typedef enum {
-	M_BIT_PARSER_SIGN_MAG  = 0, /*!< Signed magniture format (first bit is sign, rest of bits are magnitude) */
+	M_BIT_PARSER_SIGN_MAG  = 0, /*!< Signed magnitude format (first bit is sign, rest of bits are magnitude) */
 	M_BIT_PARSER_ONES_COMP = 1, /*!< One's complement */
 	M_BIT_PARSER_TWOS_COMP = 2  /*!< Two's complement */
 } M_bit_parser_int_format_t;
