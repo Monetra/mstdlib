@@ -70,6 +70,20 @@ __BEGIN_DECLS
 struct M_bit_parser;
 typedef struct M_bit_parser M_bit_parser_t;
 
+
+/*! Signed integer formats understood by bit parser.
+ *
+ * In-depth description of these formats can be found at <https://en.wikipedia.org/wiki/Signed_number_representations>.
+ * 
+ * \see M_bit_parser_read_int
+ */
+typedef enum {
+	M_BIT_PARSER_SIGN_MAG  = 0, /*!< Signed magniture format (first bit is sign, rest of bits are magnitude) */
+	M_BIT_PARSER_ONES_COMP = 1, /*!< One's complement */
+	M_BIT_PARSER_TWOS_COMP = 2  /*!< Two's complement */
+} M_bit_parser_int_format_t;
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Create a bit parser over the given data (copies input data).
@@ -261,6 +275,20 @@ M_API char *M_bit_parser_read_strdup(M_bit_parser_t *bparser, size_t nbits);
  * \return             M_TRUE on success, M_FALSE on failure
  */
 M_API M_bool M_bit_parser_read_uint(M_bit_parser_t *bparser, size_t nbits, M_uint64 *res);
+
+
+/*! Read multiple bits, interpret as a signed integer.
+ *
+ * The bits are converted to a single big-endian unsigned integer, then interpreted as
+ * a signed integer in the given format.
+ *
+ * \param[in]  bparser bit parser to read bits from
+ * \param[in]  nbits   number of bits to read (must be >= 2 and <= 64)
+ * \param[in]  fmt     signed integer format of the bits we're reading
+ * \param[out] res     read bits, converted to a native signed integer
+ * \return             M_TRUE on success, M_FALSE on failure
+ */
+M_API M_bool M_bit_parser_read_int(M_bit_parser_t *bparser, size_t nbits, M_bit_parser_int_format_t fmt, M_int64 *res);
 
 
 /*! Skip bits until we hit a bit different than the current one.
