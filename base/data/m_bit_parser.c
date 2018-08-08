@@ -316,6 +316,51 @@ M_bool M_bit_parser_read_uint(M_bit_parser_t *bparser, size_t nbits, M_uint64 *r
 }
 
 
+M_bool M_bit_parser_read_int(M_bit_parser_t *bparser, size_t nbits, M_bit_parser_int_format_t fmt, M_int64 *res)
+{
+	M_uint64 mask;
+	M_uint8  sign;
+	M_uint64 val;
+
+	if (res != NULL) {
+		*res = 0;
+	}
+
+	if (bparser == NULL || nbits < 2 || res == NULL) {
+		return M_FALSE;
+	}
+
+	switch (fmt) {
+		case M_BIT_PARSER_SIGN_MAG:  /* Signed magnitude. */
+			if (M_bit_parser_read_bit(bparser, &sign) && M_bit_parser_read_uint(bparser, nbits - 1, &val)) {
+				*res = (sign == 0)? (M_int64)val : -(M_int64)val;
+			}
+			break;
+		case M_BIT_PARSER_ONES_COMP: /* One's complement. */
+			if (M_bit_parser_read_uint(bparser, nbits, &val)) {
+				mask = (M_uint64)1 << (nbits - 1);
+				if ((val & mask) != 0) {
+					val  = (~val) & (mask - 1);
+					*res = -(M_int64)val;
+				} else {
+					*res = (M_int64)val;
+				}
+			}
+			break;
+		case M_BIT_PARSER_TWOS_COMP: /* Two's complement. */
+			if (M_bit_parser_read_uint(bparser, nbits, &val)) {
+				mask = (M_uint64)1 << (nbits - 1);
+				*res = (M_int64)((val ^ mask) - mask);
+			}
+			break;
+		default:
+			return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
+
 M_bool M_bit_parser_consume_range(M_bit_parser_t *bparser, size_t max_bits)
 {
 	M_uint8 bit;

@@ -24,12 +24,15 @@
 	size_t          nbits   = 0;\
 	char           *str     = NULL;\
 	M_uint64        num     = 0;\
+	M_int64         snum    = 0;\
 	(void)bit;\
 	(void)nbits;\
 	(void)str;\
 	(void)num;\
+	(void)snum;\
 	M_bit_buf_add_bitstr(builder, bitstr, M_BIT_BUF_PAD_NONE);\
-	bparser = M_bit_parser_create(M_bit_buf_peek(builder), M_bit_buf_len(builder))
+	bparser = M_bit_parser_create(M_bit_buf_peek(builder), M_bit_buf_len(builder));\
+	M_bit_parser_mark(bparser)
 
 
 #define reset_test(BITSTR)\
@@ -43,6 +46,7 @@
 	bit     = 0;\
 	nbits   = 0;\
 	num     = 0;\
+	snum    = 0;\
 	bparser = M_bit_parser_create(M_bit_buf_peek(builder), M_bit_buf_len(builder))
 
 
@@ -374,6 +378,143 @@ START_TEST(check_bparser_read_uint)
 END_TEST
 
 
+START_TEST(check_bparser_read_int)
+{
+	init_test("01011");
+	check_len(bparser, 5);
+
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 11);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 11);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == 11);
+
+
+	reset_test("11011");
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == -11);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == -4);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == -5);
+
+
+	reset_test("11111");
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == -15);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == -1);
+
+
+	reset_test("00000");
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 5, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == 0);
+
+
+	/* Maximum width. */
+	reset_test("11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111" "11111111");
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == -(M_int64)(M_UINT64_MAX >> 1));
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == -1);
+
+	reset_test("10000000" "00000000" "00000000" "00000000" "00000000" "00000000" "00000000" "00000000");
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == -(M_int64)(M_UINT64_MAX >> 1));
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 64, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == M_INT64_MIN);
+
+
+	/* Minimum width. */
+	reset_test("00");
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == 0);
+
+	reset_test("01");
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 1);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 1);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == 1);
+
+	reset_test("10");
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == -1);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == -2);
+
+	reset_test("11");
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_SIGN_MAG, &snum));
+	ck_assert(snum == -1);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_ONES_COMP, &snum));
+	ck_assert(snum == 0);
+
+	M_bit_parser_mark_rewind(bparser);
+	ck_assert(M_bit_parser_read_int(bparser, 2, M_BIT_PARSER_TWOS_COMP, &snum));
+	ck_assert(snum == -1);
+
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bparser_create_const)
 {
 	M_bit_parser_t *bparser  = NULL;
@@ -413,6 +554,7 @@ int main(void)
 	add_test(suite, check_bparser_read_bit_buf);
 	add_test(suite, check_bparser_read_strdup);
 	add_test(suite, check_bparser_read_uint);
+	add_test(suite, check_bparser_read_int);
 	add_test(suite, check_bparser_read_range);
 	add_test(suite, check_bparser_consume);
 	add_test(suite, check_bparser_consume_range);
