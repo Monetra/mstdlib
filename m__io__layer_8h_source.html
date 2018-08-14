@@ -213,7 +213,7 @@ $(document).ready(function(){initNavTree('m__io__layer_8h_source.html','');});
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="comment">/*! Register callback to write to the connection. Optional if not base layer, required if base layer */</span></div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;M_API M_bool <a class="code" href="group__m__io__layer.html#gade360ffe79e68306fe3c8911a9ed3358">M_io_callbacks_reg_write</a>(<a class="code" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, <a class="code" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a> (*cb_write)(<a class="code" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *buf, <span class="keywordtype">size_t</span> *write_len, <a class="code" href="group__m__io.html#ga9b9493ef60e89fbb37537ec239ab2724">M_io_meta_t</a> *meta));</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="comment">/*! Register callback to process events.  Optional. */</span></div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="comment">/*! Register callback to process events.  Optional. If returns M_TRUE event is consumed and not propagated to the next layer. */</span></div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;M_API M_bool <a class="code" href="group__m__io__layer.html#ga0c3837dbffed3aac4ab6ffa5d3bd4590">M_io_callbacks_reg_processevent</a>(<a class="code" href="group__m__io__layer.html#gaa3531457bf1cd87643022318658f60c3">M_io_callbacks_t</a> *callbacks, M_bool (*cb_process_event)(<a class="code" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer, <a class="code" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> *type));</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;<span class="comment"></span></div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="comment">/*! Register callback that is called when io object is removed from event object. Mandatory */</span></div>
@@ -330,7 +330,7 @@ $(document).ready(function(){initNavTree('m__io__layer_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_783acf310e7994032d5f0ed9cac27ea1.html">io</a></li><li class="navelem"><b>m_io_layer.h</b></li>
-    <li class="footer">Generated on Wed Aug 8 2018 17:56:47 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Tue Aug 14 2018 15:30:51 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
