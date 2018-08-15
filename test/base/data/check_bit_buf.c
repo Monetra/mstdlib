@@ -202,6 +202,7 @@ END_TEST
 
 START_TEST(check_bbuf_add_bytes)
 {
+	M_uint8 extra;
 	M_uint8 data[]    = {0x72, 0xAD, 0xE2, 0x0F, 0xAB};
 	size_t  data_bits = 36;
 	init_test;
@@ -215,6 +216,34 @@ START_TEST(check_bbuf_add_bytes)
 	ck_assert(bytes[2] == data[2]);
 	ck_assert(bytes[3] == data[3]);
 	ck_assert((bytes[4] & 0xF0) == (data[4] & 0xF0));
+
+	/* Existing data ends on byte boundary, add another chunk that doesn't. */
+	reset_test;
+	extra = 0x9D; /* 1001 1101 */
+	M_bit_buf_add_bitstr(bbuf, "0101 1011", M_BIT_BUF_PAD_NONE);
+	M_bit_buf_add_bytes(bbuf, &extra, 3); /* append 100 */
+	check_lens(bbuf, 11, 2);
+	to_bytes;
+	/* Expected result: 0101 1011 100- ----
+	 *                   5    B    8    0  (last mask -> 0xE0)
+	 */
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] == 0x5B);
+	ck_assert((bytes[1] & 0xE0) == 0x80);
+
+	/* Existing data doesn't end on byte boundary, add another chunk that doesn't either. */
+	reset_test;
+	extra = 0x9D; /* 1001 1101 */
+	M_bit_buf_add_bitstr(bbuf, "1001 11", M_BIT_BUF_PAD_NONE);
+	M_bit_buf_add_bytes(bbuf, &extra, 5); /* append 10011 */
+	check_lens(bbuf, 11, 2);
+	to_bytes;
+	/* Expected result: 1001 1110 011- ----
+	 *                   9    E    6    0  (last mask -> 0xE0)
+	 */
+	ck_assert(nbytes == 2);
+	ck_assert(bytes[0] = 0x9E);
+	ck_assert((bytes[1] & 0xE0) == 0x60);
 
 	cleanup_test;
 }
