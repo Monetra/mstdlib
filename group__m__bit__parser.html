@@ -785,13 +785,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Read multiple bits, convert directly to an unsigned integer.</p>
-<p>The bits are converted to a single big-endian unsigned integer.</p>
-<p>For example, if a bit parser contains '11100', you should see the following: </p>
+<p>Read multiple bits, intepret as big-endian unsigned integer.</p>
+<p>The bits are interpreted as a single big-endian unsigned integer, then the integer value is stored in <em>res</em>.</p>
+<p>For example, if a bit parser contains '11100', you would see the following in num: </p>
 <ul>
-<li>M_bit_parser_read_uint(bparser, 3, &amp;num) &ndash;&gt; num == 7 </li>
-<li>M_bit_parser_read_uint(bparser, 4, &amp;num) &ndash;&gt; num == 14 </li>
-<li>M_bit_parser_read_uint(bparser, 5, &amp;num) &ndash;&gt; num == 28</li>
+<li>M_bit_parser_read_uint(bparser, 3, &amp;num) &ndash;&gt; num == 7 (b111) </li>
+<li>M_bit_parser_read_uint(bparser, 4, &amp;num) &ndash;&gt; num == 14 (b1110) </li>
+<li>M_bit_parser_read_uint(bparser, 5, &amp;num) &ndash;&gt; num == 28 (b11100)</li>
 </ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -841,7 +841,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Read multiple bits, interpret as a signed integer.</p>
-<p>The bits are converted to a single big-endian unsigned integer, then interpreted as a signed integer in the given format.</p>
+<p>The bits are interpreted as a single big-endian signed integer, using the specified signed integer format.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
@@ -948,7 +948,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 15 2018 19:51:47 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Aug 15 2018 20:10:44 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
