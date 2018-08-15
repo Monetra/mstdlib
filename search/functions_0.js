@@ -60,6 +60,7 @@ var searchData=
   ['m_5fbit_5fbuf_5freserve',['M_bit_buf_reserve',['../group__m__bit__buf.html#ga72e74bdb7f3332847d5e0ff317a07902',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5ftruncate',['M_bit_buf_truncate',['../group__m__bit__buf.html#ga0888b5a0f90955716e59c9b8ac646145',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5fupdate_5fbit',['M_bit_buf_update_bit',['../group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50',1,'m_bit_buf.h']]],
+  ['m_5fbit_5fparser_5fappend',['M_bit_parser_append',['../group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fconsume',['M_bit_parser_consume',['../group__m__bit__parser.html#ga3699dc35c78dde6014bde7428b62286e',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fconsume_5frange',['M_bit_parser_consume_range',['../group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fcreate',['M_bit_parser_create',['../group__m__bit__parser.html#ga72ea7353665217ca2acc5f159408beb0',1,'m_bit_parser.h']]],

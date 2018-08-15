@@ -8,6 +8,7 @@ var group__m__bit__parser =
     ] ],
     [ "M_bit_parser_create", "group__m__bit__parser.html#ga72ea7353665217ca2acc5f159408beb0", null ],
     [ "M_bit_parser_create_const", "group__m__bit__parser.html#gab7f78d16fe7e8d36bd1cca9f31139956", null ],
+    [ "M_bit_parser_append", "group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f", null ],
     [ "M_bit_parser_reset", "group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5", null ],
     [ "M_bit_parser_destroy", "group__m__bit__parser.html#ga0f16400d4191055d0b8d998763f05ebe", null ],
     [ "M_bit_parser_len", "group__m__bit__parser.html#gafcd12115d7c4a1a882c6e60f6fe4f7a3", null ],

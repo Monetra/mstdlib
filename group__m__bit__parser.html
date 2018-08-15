@@ -126,6 +126,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga72ea7353665217ca2acc5f159408beb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab7f78d16fe7e8d36bd1cca9f31139956"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gab7f78d16fe7e8d36bd1cca9f31139956">M_bit_parser_create_const</a> (const void *bytes, size_t nbits) M_WARN_UNUSED_RESULT M_MALLOC</td></tr>
 <tr class="separator:gab7f78d16fe7e8d36bd1cca9f31139956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga004c2bc096fc5547402c27078a0e1c2f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f">M_bit_parser_append</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, const void *bytes, size_t nbits)</td></tr>
+<tr class="separator:ga004c2bc096fc5547402c27078a0e1c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0340cfeae6479b0706ee59fe9799e9f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5">M_bit_parser_reset</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, const void *bytes, size_t nbits)</td></tr>
 <tr class="separator:ga0340cfeae6479b0706ee59fe9799e9f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0f16400d4191055d0b8d998763f05ebe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0f16400d4191055d0b8d998763f05ebe">M_bit_parser_destroy</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser) M_FREE(1)</td></tr>
@@ -302,6 +304,48 @@ Functions</h2></td></tr>
 <dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5">M_bit_parser_reset</a> </dd>
 <dd>
 <a class="el" href="group__m__bit__parser.html#ga0f16400d4191055d0b8d998763f05ebe">M_bit_parser_destroy</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga004c2bc096fc5547402c27078a0e1c2f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_bit_parser_append </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Append data to a bit parser object.</p>
+<p>If you append data to a parser that was created with <a class="el" href="group__m__bit__parser.html#gab7f78d16fe7e8d36bd1cca9f31139956">M_bit_parser_create_const()</a>, the const data will be copied into internal storage before the append.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser object </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bytes</td><td>bytes to read from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to append from byte array </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -904,7 +948,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Aug 14 2018 15:30:51 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Wed Aug 15 2018 19:51:47 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
