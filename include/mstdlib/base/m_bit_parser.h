@@ -272,14 +272,15 @@ M_API M_bool M_bit_parser_read_bit_buf(M_bit_parser_t *bparser, M_bit_buf_t *bbu
 M_API char *M_bit_parser_read_strdup(M_bit_parser_t *bparser, size_t nbits);
 
 
-/*! Read multiple bits, convert directly to an unsigned integer.
+/*! Read multiple bits, intepret as big-endian unsigned integer.
  *
- * The bits are converted to a single big-endian unsigned integer.
+ * The bits are interpreted as a single big-endian unsigned integer, then the integer
+ * value is stored in \a res.
  *
- * For example, if a bit parser contains '11100', you should see the following:
- * \li M_bit_parser_read_uint(bparser, 3, &num) --> num == 7
- * \li M_bit_parser_read_uint(bparser, 4, &num) --> num == 14
- * \li M_bit_parser_read_uint(bparser, 5, &num) --> num == 28
+ * For example, if a bit parser contains '11100', you would see the following in num:
+ * \li M_bit_parser_read_uint(bparser, 3, &num) --> num == 7 (b111)
+ * \li M_bit_parser_read_uint(bparser, 4, &num) --> num == 14 (b1110)
+ * \li M_bit_parser_read_uint(bparser, 5, &num) --> num == 28 (b11100)
  *
  * \param[in]  bparser bit parser to read bits from
  * \param[in]  nbits   number of bits to read (must be >= 1 and <= 64)
@@ -291,8 +292,8 @@ M_API M_bool M_bit_parser_read_uint(M_bit_parser_t *bparser, size_t nbits, M_uin
 
 /*! Read multiple bits, interpret as a signed integer.
  *
- * The bits are converted to a single big-endian unsigned integer, then interpreted as
- * a signed integer in the given format.
+ * The bits are interpreted as a single big-endian signed integer, using the specified
+ * signed integer format.
  *
  * \param[in]  bparser bit parser to read bits from
  * \param[in]  nbits   number of bits to read (must be >= 2 and <= 64)

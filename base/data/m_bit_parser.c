@@ -64,14 +64,6 @@ static M_bool peek_next_bit(M_bit_parser_t *bparser, M_uint8 *bit)
 M_bit_parser_t *M_bit_parser_create(const void *bytes, size_t nbits)
 {
 	M_bit_parser_t *bparser;
-	size_t          nbytes;
-
-	nbytes = (nbits + 7) / 8;
-	if (nbytes <= 64) {
-		nbytes = 64;
-	} else {
-		nbytes = M_size_t_round_up_to_power_of_two(nbytes);
-	}
 
 	bparser        = M_malloc_zero(sizeof(*bparser));
 
