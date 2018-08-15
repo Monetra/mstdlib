@@ -121,6 +121,18 @@ M_API M_bit_parser_t *M_bit_parser_create(const void *bytes, size_t nbits) M_WAR
 M_API M_bit_parser_t *M_bit_parser_create_const(const void *bytes, size_t nbits) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
+/*! Append data to a bit parser object.
+ *
+ * If you append data to a parser that was created with M_bit_parser_create_const(), the const data will
+ * be copied into internal storage before the append.
+ *
+ * \param[in] bparser bit parser object
+ * \param[in] bytes   bytes to read from
+ * \param[in] nbits   number of bits to append from byte array
+ */
+M_API void M_bit_parser_append(M_bit_parser_t *bparser, const void *bytes, size_t nbits);
+
+
 /*! Reset parser to use new data (copies input data).
  *
  * Parser state (including any mark) is reset to initial values. Any data that was in the parser before this

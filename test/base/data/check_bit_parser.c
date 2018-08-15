@@ -323,6 +323,31 @@ START_TEST(check_bparser_rewind_mark)
 END_TEST
 
 
+START_TEST(check_bparser_append)
+{
+	/* Test 1: existing data ends on byte boundary. */
+	init_test("0101 1011");
+	bit = 0x9D; /* 1001 1101 */
+	check_len(bparser, 8);
+	M_free(str); str = M_bit_parser_read_strdup(bparser, M_bit_parser_len(bparser));
+	check_bitstr_eq(str, "0101 1011");
+	M_bit_parser_append(bparser, &bit, 3); /* append 100 */
+	M_bit_parser_rewind_to_start(bparser);
+	M_free(str); str = M_bit_parser_read_strdup(bparser, M_bit_parser_len(bparser));
+	check_bitstr_eq(str, "0101 1011 100");
+
+	/* Test 2: existing data does not end on byte boundary. */
+	reset_test("1001 11");
+	bit = 0x9D; /* 1001 1101 */
+	M_bit_parser_append(bparser, &bit, 5); /* append 10011 */
+	M_free(str); str = M_bit_parser_read_strdup(bparser, M_bit_parser_len(bparser));
+	check_bitstr_eq(str, "1001 1110 011");
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bparser_reset)
 {
 	init_test("0101 1011 0011 101");
@@ -559,6 +584,7 @@ int main(void)
 	add_test(suite, check_bparser_consume);
 	add_test(suite, check_bparser_consume_range);
 	add_test(suite, check_bparser_rewind_mark);
+	add_test(suite, check_bparser_append);
 	add_test(suite, check_bparser_reset);
 	add_test(suite, check_bparser_create_const);
 
