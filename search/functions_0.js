@@ -1163,6 +1163,7 @@ var searchData=
   ['m_5fmath_5fround',['M_math_round',['../group__m__math.html#ga219ee7279b4d2834b6811afd5dc24d30',1,'m_math.h']]],
   ['m_5fmdprintf',['M_mdprintf',['../group__m__fmt.html#ga039a664b106158dd9c58470090b33d00',1,'m_fmt.h']]],
   ['m_5fmem_5fcalc_5fcrc16_5fccitt',['M_mem_calc_crc16_ccitt',['../group__m__mem.html#ga25cee0a6d112826fe3fe0a8b2eeb9571',1,'m_mem.h']]],
+  ['m_5fmem_5fcalc_5fcrc32',['M_mem_calc_crc32',['../group__m__mem.html#ga94e9012e12967eb93f3b06e4c27ea0fa',1,'m_mem.h']]],
   ['m_5fmem_5fcalc_5fcrc8_5fccitt',['M_mem_calc_crc8_ccitt',['../group__m__mem.html#ga3c4c5a89a3aaac19e65287111895c213',1,'m_mem.h']]],
   ['m_5fmem_5fcalc_5flrc',['M_mem_calc_lrc',['../group__m__mem.html#ga8a11dc1aa0bc31f10a1289043464f966',1,'m_mem.h']]],
   ['m_5fmem_5fchr',['M_mem_chr',['../group__m__mem.html#ga28a693c14e182dbf122ccdd062588062',1,'m_mem.h']]],

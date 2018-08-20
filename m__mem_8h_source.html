@@ -649,22 +649,41 @@ $(document).ready(function(){initNavTree('m__mem_8h_source.html','');});
 <div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;M_API M_uint16 <a class="code" href="group__m__mem.html#ga25cee0a6d112826fe3fe0a8b2eeb9571">M_mem_calc_crc16_ccitt</a>(<span class="keyword">const</span> <span class="keywordtype">void</span> *s, <span class="keywordtype">size_t</span> s_len);</div>
 <div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160;</div>
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;<span class="comment">/*! Swap byes between positions.</span></div>
+<div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;<span class="comment">/*! Calculate a CRC (CRC-32).</span></div>
 <div class="line"><a name="l00553"></a><span class="lineno">  553</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;<span class="comment"> * \param[in,out] s     Buffer with data to swap.</span></div>
-<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;<span class="comment"> * \param[in]     s_len size of s.</span></div>
-<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment"> * \param[in]     idx1  Index to swap.</span></div>
-<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment"> * \param[in]     idx2  Index to swap.</span></div>
-<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;<span class="comment"> * \return M_TRUE on success. Otherwise M_FALSE.</span></div>
-<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;M_API M_bool <a class="code" href="group__m__mem.html#ga7d13486661a48da9e476aac1eaf70ea0">M_mem_swap_bytes</a>(M_uint8 *s, <span class="keywordtype">size_t</span> s_len, <span class="keywordtype">size_t</span> idx1, <span class="keywordtype">size_t</span> idx2);</div>
-<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;<span class="comment">/*! @} */</span></div>
-<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;</div>
-<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;</div>
-<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_MEM_H__ */</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00554"></a><span class="lineno">  554</span>&#160;<span class="comment"> * This is a 32-bit cyclic redundancy check (CRC), using the most common specification</span></div>
+<div class="line"><a name="l00555"></a><span class="lineno">  555</span>&#160;<span class="comment"> * for 32-bit CRC&#39;s (ISO 3309 / ITU-T V.42).  This particular CRC-32 variant is used all</span></div>
+<div class="line"><a name="l00556"></a><span class="lineno">  556</span>&#160;<span class="comment"> * over the place - it&#39;s used in PNG, SATA, MPEG-2, Gzip, Bzip2, Posix cksum, and many others.</span></div>
+<div class="line"><a name="l00557"></a><span class="lineno">  557</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;<span class="comment"> * This spec uses the following polynomial:</span></div>
+<div class="line"><a name="l00559"></a><span class="lineno">  559</span>&#160;<span class="comment"> * &lt;tt&gt;x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x + 1&lt;/tt&gt;</span></div>
+<div class="line"><a name="l00560"></a><span class="lineno">  560</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;<span class="comment"> * It&#39;s calculated using an initial value of 0xFFFFFFFF, and XOR&#39;ing the CRC value by 0xFFFFFFFF after</span></div>
+<div class="line"><a name="l00562"></a><span class="lineno">  562</span>&#160;<span class="comment"> * the computation is done to invert it.</span></div>
+<div class="line"><a name="l00563"></a><span class="lineno">  563</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00564"></a><span class="lineno">  564</span>&#160;<span class="comment"> * \param[in] s     Pointer to data to perform check on.</span></div>
+<div class="line"><a name="l00565"></a><span class="lineno">  565</span>&#160;<span class="comment"> * \param[in] s_len Size of memory area s.</span></div>
+<div class="line"><a name="l00566"></a><span class="lineno">  566</span>&#160;<span class="comment"> * \return          CRC-32 value.</span></div>
+<div class="line"><a name="l00567"></a><span class="lineno">  567</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00568"></a><span class="lineno">  568</span>&#160;M_API M_uint32 <a class="code" href="group__m__mem.html#ga94e9012e12967eb93f3b06e4c27ea0fa">M_mem_calc_crc32</a>(<span class="keyword">const</span> <span class="keywordtype">void</span> *s, <span class="keywordtype">size_t</span> s_len);</div>
+<div class="line"><a name="l00569"></a><span class="lineno">  569</span>&#160;</div>
+<div class="line"><a name="l00570"></a><span class="lineno">  570</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00571"></a><span class="lineno">  571</span>&#160;<span class="comment">/*! Swap byes between positions.</span></div>
+<div class="line"><a name="l00572"></a><span class="lineno">  572</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00573"></a><span class="lineno">  573</span>&#160;<span class="comment"> * \param[in,out] s     Buffer with data to swap.</span></div>
+<div class="line"><a name="l00574"></a><span class="lineno">  574</span>&#160;<span class="comment"> * \param[in]     s_len size of s.</span></div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;<span class="comment"> * \param[in]     idx1  Index to swap.</span></div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;<span class="comment"> * \param[in]     idx2  Index to swap.</span></div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00578"></a><span class="lineno">  578</span>&#160;<span class="comment"> * \return M_TRUE on success. Otherwise M_FALSE.</span></div>
+<div class="line"><a name="l00579"></a><span class="lineno">  579</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00580"></a><span class="lineno">  580</span>&#160;M_API M_bool <a class="code" href="group__m__mem.html#ga7d13486661a48da9e476aac1eaf70ea0">M_mem_swap_bytes</a>(M_uint8 *s, <span class="keywordtype">size_t</span> s_len, <span class="keywordtype">size_t</span> idx1, <span class="keywordtype">size_t</span> idx2);</div>
+<div class="line"><a name="l00581"></a><span class="lineno">  581</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00582"></a><span class="lineno">  582</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00583"></a><span class="lineno">  583</span>&#160;</div>
+<div class="line"><a name="l00584"></a><span class="lineno">  584</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00585"></a><span class="lineno">  585</span>&#160;</div>
+<div class="line"><a name="l00586"></a><span class="lineno">  586</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_MEM_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__mem_html_ga12f125e84df307ef19f5d418b734202c"><div class="ttname"><a href="group__m__mem.html#ga12f125e84df307ef19f5d418b734202c">M_mem_set</a></div><div class="ttdeci">void * M_mem_set(void *s, int c, size_t n)</div></div>
 <div class="ttc" id="group__m__mem_html_ga81b9bd497064d6d9b75239014669d231"><div class="ttname"><a href="group__m__mem.html#ga81b9bd497064d6d9b75239014669d231">M_mem_copy</a></div><div class="ttdeci">void * M_mem_copy(void *dst, const void *src, size_t size)</div></div>
 <div class="ttc" id="group__m__mem_html_gadbd0a455897f5844298509ab2fb6b26c"><div class="ttname"><a href="group__m__mem.html#gadbd0a455897f5844298509ab2fb6b26c">M_mem_mem</a></div><div class="ttdeci">void * M_mem_mem(const void *haystack, size_t haystack_len, const void *needle, size_t needle_len) M_WARN_UNUSED_RESULT</div></div>
@@ -686,6 +705,7 @@ $(document).ready(function(){initNavTree('m__mem_8h_source.html','');});
 <div class="ttc" id="group__m__mem_html_gaee7f5bbb2a4ac15dd901d16f9a9051d5"><div class="ttname"><a href="group__m__mem.html#gaee7f5bbb2a4ac15dd901d16f9a9051d5">M_malloc_error_cb</a></div><div class="ttdeci">M_bool(* M_malloc_error_cb)(void)</div><div class="ttdef"><b>Definition:</b> m_mem.h:206</div></div>
 <div class="ttc" id="group__m__mem_html_ga28a693c14e182dbf122ccdd062588062"><div class="ttname"><a href="group__m__mem.html#ga28a693c14e182dbf122ccdd062588062">M_mem_chr</a></div><div class="ttdeci">void * M_mem_chr(const void *s, M_uint8 b, size_t n) M_WARN_UNUSED_RESULT</div></div>
 <div class="ttc" id="group__m__mem_html_gacf4d3a27d93dd8b10ce405f9ed26f78f"><div class="ttname"><a href="group__m__mem.html#gacf4d3a27d93dd8b10ce405f9ed26f78f">M_memdup</a></div><div class="ttdeci">void * M_memdup(const void *src, size_t size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</div></div>
+<div class="ttc" id="group__m__mem_html_ga94e9012e12967eb93f3b06e4c27ea0fa"><div class="ttname"><a href="group__m__mem.html#ga94e9012e12967eb93f3b06e4c27ea0fa">M_mem_calc_crc32</a></div><div class="ttdeci">M_uint32 M_mem_calc_crc32(const void *s, size_t s_len)</div></div>
 <div class="ttc" id="group__m__mem_html_gacfd0e14508daeb82eb1c9097da6573bc"><div class="ttname"><a href="group__m__mem.html#gacfd0e14508daeb82eb1c9097da6573bc">M_malloc_clear_errorcb</a></div><div class="ttdeci">void M_malloc_clear_errorcb(void)</div></div>
 <div class="ttc" id="group__m__mem_html_ga7d13486661a48da9e476aac1eaf70ea0"><div class="ttname"><a href="group__m__mem.html#ga7d13486661a48da9e476aac1eaf70ea0">M_mem_swap_bytes</a></div><div class="ttdeci">M_bool M_mem_swap_bytes(M_uint8 *s, size_t s_len, size_t idx1, size_t idx2)</div></div>
 <div class="ttc" id="group__m__mem_html_ga128a100f9252845e07cf83d90175b165"><div class="ttname"><a href="group__m__mem.html#ga128a100f9252845e07cf83d90175b165">M_memdup_max</a></div><div class="ttdeci">void * M_memdup_max(const void *src, size_t size, size_t min_alloc_size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC</div></div>
@@ -698,7 +718,7 @@ $(document).ready(function(){initNavTree('m__mem_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_a4978744522068604823c107062e0240.html">base</a></li><li class="navelem"><b>m_mem.h</b></li>
-    <li class="footer">Generated on Wed Aug 15 2018 20:10:43 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Aug 20 2018 20:47:20 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
