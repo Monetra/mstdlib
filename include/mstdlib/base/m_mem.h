@@ -549,6 +549,25 @@ M_API M_uint8 M_mem_calc_crc8_ccitt(const void *s, size_t s_len);
 M_API M_uint16 M_mem_calc_crc16_ccitt(const void *s, size_t s_len);
 
 
+/*! Calculate a CRC (CRC-32).
+ *
+ * This is a 32-bit cyclic redundancy check (CRC), using the most common specification
+ * for 32-bit CRC's (ISO 3309 / ITU-T V.42).  This particular CRC-32 variant is used all
+ * over the place - it's used in PNG, SATA, MPEG-2, Gzip, Bzip2, Posix cksum, and many others.
+ *
+ * This spec uses the following polynomial:
+ * <tt>x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x + 1</tt>
+ *
+ * It's calculated using an initial value of 0xFFFFFFFF, and XOR'ing the CRC value by 0xFFFFFFFF after
+ * the computation is done to invert it.
+ *
+ * \param[in] s     Pointer to data to perform check on.
+ * \param[in] s_len Size of memory area s.
+ * \return          CRC-32 value.
+ */
+M_API M_uint32 M_mem_calc_crc32(const void *s, size_t s_len);
+
+
 /*! Swap byes between positions.
  *
  * \param[in,out] s     Buffer with data to swap.
