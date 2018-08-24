@@ -152,6 +152,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga8844d1b86bdf4f5057585bd3486ade26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga39c8da55725f5bca9fad614d99fe12eb"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga39c8da55725f5bca9fad614d99fe12eb">M_bit_parser_read_bit_buf</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, <a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, size_t nbits)</td></tr>
 <tr class="separator:ga39c8da55725f5bca9fad614d99fe12eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac4fd746689d7c6475433efcc9d84bd3c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gac4fd746689d7c6475433efcc9d84bd3c">M_bit_parser_read_buf</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, size_t nbits)</td></tr>
+<tr class="separator:gac4fd746689d7c6475433efcc9d84bd3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga96614acff0221a4d90d022b7e29eed18"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga96614acff0221a4d90d022b7e29eed18">M_bit_parser_read_bytes</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 *dest, size_t *destlen, size_t nbits)</td></tr>
+<tr class="separator:ga96614acff0221a4d90d022b7e29eed18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga234fe497b4957ebdd5bfe6c267bdddb0"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0">M_bit_parser_read_strdup</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits)</td></tr>
 <tr class="separator:ga234fe497b4957ebdd5bfe6c267bdddb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf8c146aac12b0488312682bfb664dbf0"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0">M_bit_parser_read_uint</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits, M_uint64 *res)</td></tr>
@@ -718,6 +722,101 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gac4fd746689d7c6475433efcc9d84bd3c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_read_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read multiple bits, zero-pad to byte boundary, then add them to the given buffer.</p>
+<p>Padding is only added as-needed to the last byte that gets added to the buffer. Every byte before that is packed with the bits we're reading.</p>
+<p>For example, if we add the bits "1010 1010 1100 01" using this function, two bytes are added to the buffer: "1010 1010 1100 0100" (two padding zeros on end).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">buf</td><td>buffer to store bytes in </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to read </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE if there aren't enough bits left </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga96614acff0221a4d90d022b7e29eed18"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_read_bytes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8 *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>destlen</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read multiple bits, zero-pad to byte boundary, then add them to the given array.</p>
+<p>Padding is only added as-needed to the last byte that gets added to the buffer. Every byte before that is packed with the bits we're reading.</p>
+<p>For example, if we add the bits "1010 1010 1100 01" using this function, two bytes are added to the buffer: "1010 1010 1100 0100" (two padding zeros on end).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dest</td><td>array to store bytes in </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">destlen</td><td>length of <em>dest</em> in bytes. Before return, set to number of bytes written. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to read </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, M_FALSE if there aren't enough bits left </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga234fe497b4957ebdd5bfe6c267bdddb0"></a>
 <div class="memitem">
 <div class="memproto">
@@ -948,7 +1047,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Aug 20 2018 20:47:20 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Fri Aug 24 2018 15:02:19 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

@@ -21,6 +21,8 @@ var group__m__bit__parser =
     [ "M_bit_parser_peek_bit", "group__m__bit__parser.html#ga17cecc06d7f57465e0ff300283c9b787", null ],
     [ "M_bit_parser_read_bit", "group__m__bit__parser.html#ga8844d1b86bdf4f5057585bd3486ade26", null ],
     [ "M_bit_parser_read_bit_buf", "group__m__bit__parser.html#ga39c8da55725f5bca9fad614d99fe12eb", null ],
+    [ "M_bit_parser_read_buf", "group__m__bit__parser.html#gac4fd746689d7c6475433efcc9d84bd3c", null ],
+    [ "M_bit_parser_read_bytes", "group__m__bit__parser.html#ga96614acff0221a4d90d022b7e29eed18", null ],
     [ "M_bit_parser_read_strdup", "group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0", null ],
     [ "M_bit_parser_read_uint", "group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0", null ],
     [ "M_bit_parser_read_int", "group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16", null ],
