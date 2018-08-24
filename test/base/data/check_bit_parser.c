@@ -20,11 +20,13 @@
 	M_bit_parser_t *bparser;\
 	M_bit_buf_t    *builder = M_bit_buf_create();\
 	M_bit_buf_t    *bbuf    = M_bit_buf_create();\
+	M_buf_t        *buf     = M_buf_create();\
 	M_uint8         bit     = 0;\
 	size_t          nbits   = 0;\
 	char           *str     = NULL;\
 	M_uint64        num     = 0;\
 	M_int64         snum    = 0;\
+	(void)buf;\
 	(void)bit;\
 	(void)nbits;\
 	(void)str;\
@@ -42,6 +44,7 @@
 	M_bit_buf_truncate(bbuf, 0);\
 	M_bit_buf_add_bitstr(builder, bitstr, M_BIT_BUF_PAD_NONE);\
 	M_free(str);\
+	M_buf_truncate(buf, 0);\
 	str     = NULL;\
 	bit     = 0;\
 	nbits   = 0;\
@@ -54,6 +57,7 @@
 	M_bit_parser_destroy(bparser);\
 	M_bit_buf_destroy(builder);\
 	M_bit_buf_destroy(bbuf);\
+	M_buf_cancel(buf);\
 	M_free(str);\
 	builder = NULL;\
 	bparser = NULL
@@ -131,6 +135,53 @@ START_TEST(check_bparser_read_peek_bit)
 END_TEST
 
 
+START_TEST(check_bparser_read_bytes)
+{
+	M_uint8 bin[5] = {0};
+	size_t  len;
+
+	init_test("1011 0100 01"); /* Expected results: 0xB4 40 */
+	check_len(bparser, 10);
+
+	len = sizeof(bin);
+	ck_assert(!M_bit_parser_read_bytes(bparser, bin, &len, 11)); /* verify that requests for too many bits are rejected. */
+	ck_assert(len == 0);
+	len = sizeof(bin);
+	ck_assert(M_bit_parser_read_bytes(bparser, bin, &len, 10));
+	ck_assert(len == 2);
+	check_len(bparser, 0);
+	len = sizeof(bin);
+	ck_assert(!M_bit_parser_read_bytes(bparser, bin, &len, 2)); /* verify that requests on an empty parser are rejected. */
+	ck_assert(len == 0);
+	ck_assert(bin[0] == 0xB4);
+	ck_assert(bin[1] == 0x40);
+
+	reset_test("1011 0100 0101 1101"); /* Expected results: 0xB4 5D */
+	check_len(bparser, 16);
+	len = sizeof(bin);
+	ck_assert(M_bit_parser_read_bytes(bparser, bin, &len, 16));
+	ck_assert(len == 2);
+	check_len(bparser, 0);
+	ck_assert(bin[0] == 0xB4);
+	ck_assert(bin[1] == 0x5D);
+
+	reset_test("1 1011 0100 0101 1101 1"); /* Expected results (after consuming first bit): 0xB4 5D 80 */
+	check_len(bparser, 18);
+	M_bit_parser_consume(bparser, 1);
+	check_len(bparser, 17);
+	len = sizeof(bin);
+	ck_assert(M_bit_parser_read_bytes(bparser, bin, &len, 17));
+	ck_assert(len == 3);
+	check_len(bparser, 0);
+	ck_assert(bin[0] == 0xB4);
+	ck_assert(bin[1] == 0x5D);
+	ck_assert(bin[2] == 0x80);
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bparser_read_bit_buf)
 {
 	init_test("1011 0100 011");
@@ -151,6 +202,46 @@ START_TEST(check_bparser_read_bit_buf)
 	ck_assert(M_bit_buf_len(bbuf) == 10);
 	ck_assert(M_bit_buf_peek(bbuf)[0] == 0x68);
 	ck_assert((M_bit_buf_peek(bbuf)[1] & 0xC0) == 0xC0);
+
+	cleanup_test;
+}
+END_TEST
+
+
+START_TEST(check_bparser_read_buf)
+{
+	init_test("1011 0100 01"); /* Expected results: 0xB4 40 */
+	check_len(bparser, 10);
+
+	ck_assert(!M_bit_parser_read_buf(bparser, buf, 11)); /* verify that requests for too many bits are rejected. */
+	ck_assert(M_buf_len(buf) == 0);
+	ck_assert(M_bit_parser_read_buf(bparser, buf, 10));
+	check_len(bparser, 0);
+	ck_assert(!M_bit_parser_read_buf(bparser, buf, 2)); /* verify that requests on an empty parser are rejected. */
+	ck_assert(M_buf_len(buf) == 2);
+	ck_assert((M_uint8)(M_buf_peek(buf)[0]) == 0xB4);
+	ck_assert((M_uint8)(M_buf_peek(buf)[1]) == 0x40);
+
+	reset_test("1011 0100 0101 1101"); /* Expected results: 0xB4 5D */
+	check_len(bparser, 16);
+	M_buf_add_byte(buf, 0xDE); /* Add an extra byte first, to make sure that read_buf() isn't wiping previous contents.*/
+	ck_assert(M_bit_parser_read_buf(bparser, buf, 16));
+	check_len(bparser, 0);
+	ck_assert(M_buf_len(buf) == 3);
+	ck_assert((M_uint8)(M_buf_peek(buf)[0]) == 0xDE); /* extra byte we added before calling M_bit_parser_read_buf(). */
+	ck_assert((M_uint8)(M_buf_peek(buf)[1]) == 0xB4);
+	ck_assert((M_uint8)(M_buf_peek(buf)[2]) == 0x5D);
+
+	reset_test("1 1011 0100 0101 1101 1"); /* Expected results (after consuming first bit): 0xB4 5D 80 */
+	check_len(bparser, 18);
+	M_bit_parser_consume(bparser, 1);
+	check_len(bparser, 17);
+	ck_assert(M_bit_parser_read_buf(bparser, buf, 17));
+	check_len(bparser, 0);
+	ck_assert(M_buf_len(buf) == 3);
+	ck_assert((M_uint8)(M_buf_peek(buf)[0]) == 0xB4);
+	ck_assert((M_uint8)(M_buf_peek(buf)[1]) == 0x5D);
+	ck_assert((M_uint8)(M_buf_peek(buf)[2]) == 0x80);
 
 	cleanup_test;
 }
@@ -576,7 +667,9 @@ int main(void)
 	suite = suite_create("check_bit_parser (M_bit_parser_t)");
 
 	add_test(suite, check_bparser_read_peek_bit);
+	add_test(suite, check_bparser_read_bytes);
 	add_test(suite, check_bparser_read_bit_buf);
+	add_test(suite, check_bparser_read_buf);
 	add_test(suite, check_bparser_read_strdup);
 	add_test(suite, check_bparser_read_uint);
 	add_test(suite, check_bparser_read_int);

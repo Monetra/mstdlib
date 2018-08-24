@@ -257,6 +257,41 @@ M_API M_bool M_bit_parser_read_bit(M_bit_parser_t *bparser, M_uint8 *bit);
 M_API M_bool M_bit_parser_read_bit_buf(M_bit_parser_t *bparser, M_bit_buf_t *bbuf, size_t nbits);
 
 
+/*! Read multiple bits, zero-pad to byte boundary, then add them to the given buffer.
+ *
+ * Padding is only added as-needed to the last byte that gets added to the buffer. Every byte
+ * before that is packed with the bits we're reading.
+ *
+ * For example, if we add the bits "1010 1010 1100 01" using this function, two bytes are added to
+ * the buffer: "1010 1010 1100 0100" (two padding zeros on end).
+ *
+ *
+ * \param[in]     bparser bit parser to read bits from
+ * \param[in,out] buf     buffer to store bytes in
+ * \param[in]     nbits   number of bits to read
+ * \return                M_TRUE on success, M_FALSE if there aren't enough bits left
+ */
+M_API M_bool M_bit_parser_read_buf(M_bit_parser_t *bparser, M_buf_t *buf, size_t nbits);
+
+
+/*! Read multiple bits, zero-pad to byte boundary, then add them to the given array.
+ *
+ * Padding is only added as-needed to the last byte that gets added to the buffer. Every byte
+ * before that is packed with the bits we're reading.
+ *
+ * For example, if we add the bits "1010 1010 1100 01" using this function, two bytes are added to
+ * the buffer: "1010 1010 1100 0100" (two padding zeros on end).
+ *
+ *
+ * \param[in]     bparser bit parser to read bits from
+ * \param[in]     dest    array to store bytes in
+ * \param[in,out] destlen length of \a dest in bytes. Before return, set to number of bytes written.
+ * \param[in]     nbits   number of bits to read
+ * \return                M_TRUE on success, M_FALSE if there aren't enough bits left
+ */
+M_API M_bool M_bit_parser_read_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t *destlen, size_t nbits);
+
+
 /*! Read multiple bits, then return them as a bit string.
  *
  * A bit string is just a list of '0' and '1' characters (e.g., "100101").
