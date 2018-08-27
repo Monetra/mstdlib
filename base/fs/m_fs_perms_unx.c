@@ -105,8 +105,8 @@ static __inline__ mode_t M_fs_perms_to_mode_part(const M_bool *isdir,
 {
 	const M_fs_perms_mode_t *mymode;
 	const M_fs_perms_type_t *mytype;
-	mode_t                mode  = 0;
-	M_bool                isset = M_FALSE;
+	mode_t                   mode  = 0;
+	M_bool                   isset = M_FALSE;
 
 	if (*isdir && *p_dir_set) {
 		isset  = M_TRUE;

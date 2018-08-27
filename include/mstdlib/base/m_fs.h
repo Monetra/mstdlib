@@ -1101,6 +1101,7 @@ M_API const M_fs_perms_t *M_fs_info_get_perms(const M_fs_info_t *info);
 /*! Open a file.
  *
  * The set of flags you pass to \a mode must include M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE.
+ * System umask is honored when creating a file.
  *
  * The other M_fs_file_mode_t flags can be used as well, they just need to be OR'd with M_FS_FILE_MODE_READ and/or
  * M_FS_FILE_MODE_WRITE.
@@ -1110,7 +1111,8 @@ M_API const M_fs_perms_t *M_fs_info_get_perms(const M_fs_info_t *info);
  * \param[in]  buf_size Set a buffer size to enable buffered read and write. Use 0 to disable buffering.
  * \param[in]  mode     M_fs_file_mode_t open mode.
  * \param[in]  perms    Additional perms to apply to the file if it does not exist and is created.
-                        If perms is NULL a default perms of rw-rw-r-- & ~umask is used.
+                        Umake is honored when perms are set. E.g. perms & ~umask is used.
+                        If perms is NULL a default of rw-rw-r-- & ~umask is used.
  *
  * \return Result.
  */
