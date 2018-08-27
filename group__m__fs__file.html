@@ -166,7 +166,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Open a file.</p>
-<p>The set of flags you pass to <em>mode</em> must include M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE.</p>
+<p>The set of flags you pass to <em>mode</em> must include M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE. System umask is honored when creating a file.</p>
 <p>The other M_fs_file_mode_t flags can be used as well, they just need to be OR'd with M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -174,7 +174,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path to open. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">buf_size</td><td>Set a buffer size to enable buffered read and write. Use 0 to disable buffering. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mode</td><td>M_fs_file_mode_t open mode. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">perms</td><td>Additional perms to apply to the file if it does not exist and is created. If perms is NULL a default perms of rw-rw-r&ndash; &amp; ~umask is used.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">perms</td><td>Additional perms to apply to the file if it does not exist and is created. Umake is honored when perms are set. E.g. perms &amp; ~umask is used. If perms is NULL a default of rw-rw-r&ndash; &amp; ~umask is used.</td></tr>
   </table>
   </dd>
 </dl>
@@ -539,7 +539,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Aug 24 2018 15:02:19 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Aug 27 2018 19:04:11 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
