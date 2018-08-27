@@ -75,7 +75,6 @@ static __inline__ mode_t M_fs_perms_update_mode_from_perm_part(mode_t mode, cons
 	switch (*mytype) {
 		case M_FS_PERMS_TYPE_EXACT:
 			mode &= ~(mode_t)(s_read|s_write|s_exec);
-			break;
 		case M_FS_PERMS_TYPE_ADD:
 			if (*mymode & M_FS_PERMS_MODE_READ)
 				mode |= s_read;
@@ -134,22 +133,24 @@ static __inline__ mode_t M_fs_perms_to_mode_part(const M_bool *isdir,
 
 static mode_t M_fs_perms_update_mode_from_perms(mode_t mode, const M_fs_perms_t *perms, M_bool isdir)
 {
-	mode = M_fs_perms_update_mode_from_perm_part(mode, &isdir,
+	mode_t mymode = 0;
+
+	mymode |= M_fs_perms_update_mode_from_perm_part(mode, &isdir,
 		&(perms->user_set), &(perms->dir_user_set),
 		&(perms->user_mode), &(perms->dir_user_mode),
 		&(perms->user_type), &(perms->dir_user_type),
 		S_IRUSR, S_IWUSR, S_IXUSR);
-	mode = M_fs_perms_update_mode_from_perm_part(mode, &isdir,
+	mymode |= M_fs_perms_update_mode_from_perm_part(mode, &isdir,
 		&(perms->group_set), &(perms->dir_group_set),
 		&(perms->group_mode), &(perms->dir_group_mode),
 		&(perms->group_type), &(perms->dir_group_type),
 		S_IRGRP, S_IWGRP, S_IXGRP);
-	mode = M_fs_perms_update_mode_from_perm_part(mode, &isdir,
+	mymode |= M_fs_perms_update_mode_from_perm_part(mode, &isdir,
 		&(perms->other_set), &(perms->dir_other_set),
 		&(perms->other_mode), &(perms->dir_other_mode),
 		&(perms->other_type), &(perms->dir_other_type),
 		S_IROTH, S_IWOTH, S_IXOTH);
-	return mode;
+	return mymode;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
