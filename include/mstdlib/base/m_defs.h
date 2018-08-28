@@ -87,13 +87,8 @@
 
 /* Dynamic shared object and dynamic-link library support */
 #ifdef _WIN32 /* Both MinGW and Visual Studio support declspec. */
-#  ifdef MSTDLIB_STATIC
-#    define  M_DLL_IMPORT
-#    define  M_DLL_EXPORT
-#  else
-#    define  M_DLL_IMPORT                      __declspec(dllimport)
-#    define  M_DLL_EXPORT                      __declspec(dllexport)
-#  endif
+#  define    M_DLL_IMPORT                      __declspec(dllimport)
+#  define    M_DLL_EXPORT                      __declspec(dllexport)
 #elif M_COMPILER_SUPPORTS(visibility, 40000)
 #  define    M_DLL_IMPORT                      __attribute__((visibility ("default")))
 #  define    M_DLL_EXPORT                      __attribute__((visibility ("default")))
@@ -102,7 +97,12 @@
 #  define    M_DLL_EXPORT                      /* empty */
 #endif
 
-#if defined(M_DLL)
+#ifdef M_API
+#  undef M_API
+#endif
+#if   defined(MSTDLIB_STATIC)
+#  define    M_API
+#elif defined(M_DLL)
 #  define    M_API                             M_DLL_EXPORT
 #else
 #  define    M_API                             M_DLL_IMPORT
