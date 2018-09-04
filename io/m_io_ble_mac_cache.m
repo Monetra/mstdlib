@@ -138,6 +138,9 @@ static void M_io_ble_characteristics_destroy(CFTypeRef c)
 	if (c == NULL)
 		return;
 
+	/* Decrement the reference count and set to nil so ARC can
+ 	 * clean up peripheral. Ignore clang warnings about value
+	 * set but not used. */
 	cbc = (__bridge_transfer CBCharacteristic *)c;
 	cbc = nil;
 }
@@ -149,6 +152,9 @@ static void M_io_ble_device_remove_cache(CFTypeRef p)
 	if (p == NULL)
 		return;
 
+	/* Decrement the reference count and set to nil so ARC can
+ 	 * clean up peripheral. Ignore clang warnings about value
+	 * set but not used. */
 	peripheral = (__bridge_transfer CBPeripheral *)p;
 	peripheral = nil;
 }
@@ -190,7 +196,8 @@ static void M_io_ble_device_destroy(M_io_ble_device_t *dev)
 	M_hash_strvp_destroy(dev->services, M_TRUE);
 
 	/* Decrement the reference count and set to nil so ARC can
- 	 * clean up peripheral */
+ 	 * clean up peripheral. Ignore clang warnings about value
+	 * set but not used. */
 	p = (__bridge_transfer CBPeripheral *)dev->peripheral;
 	p = nil;
 
