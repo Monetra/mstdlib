@@ -5,6 +5,7 @@
 #include <mstdlib/mstdlib.h>
 
 static const char    *test_hex   = "9F33036020C8";
+static const char    *test_b64   = "nzMDYCDI";
 static const M_uint8  test_bin[] = {0x9F, 0x33, 0x03, 0x60, 0x20, 0xC8};
 
 #define add_test(SUITENAME, TESTNAME)\
@@ -16,6 +17,106 @@ do {\
 } while (0)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+START_TEST(check_buf_encode_hex)
+{
+	M_buf_t *buf = M_buf_create();
+
+	/* Check M_buf_add_encode(). */
+	M_buf_add_str(buf, "test");
+	ck_assert( M_buf_add_encode(buf, test_bin, sizeof(test_bin), 0, M_BINCODEC_HEX) );
+	ck_assert_msg(M_str_eq_start(M_buf_peek(buf), "test"), "lost prepended data");
+	M_buf_drop(buf, 4);
+	ck_assert_msg(M_buf_len(buf) == M_str_len(test_hex), "size doesn't match");
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), test_hex), "output doesn't match");
+
+	/* Check M_buf_encode(). */
+	M_buf_truncate(buf, 0);
+	M_buf_add_bytes(buf, test_bin, sizeof(test_bin));
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size of input doesn't match");
+	ck_assert_msg(M_mem_eq(M_buf_peek(buf), test_bin, sizeof(test_bin)), "input doesn't match");
+	ck_assert( M_buf_encode(buf, 0, M_BINCODEC_HEX) );
+	ck_assert_msg(M_buf_len(buf) == M_str_len(test_hex), "size doesn't match");
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), test_hex), "output doesn't match");
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
+START_TEST(check_buf_encode_b64)
+{
+	M_buf_t *buf = M_buf_create();
+
+	/* Check M_buf_add_encode(). */
+	ck_assert( M_buf_add_encode(buf, test_bin, sizeof(test_bin), 0, M_BINCODEC_BASE64) );
+	ck_assert_msg(M_buf_len(buf) == M_str_len(test_b64), "size doesn't match");
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), test_b64), "output doesn't match");
+
+	/* Check M_buf_encode(). */
+	M_buf_truncate(buf, 0);
+	M_buf_add_bytes(buf, test_bin, sizeof(test_bin));
+	ck_assert( M_buf_encode(buf, 0, M_BINCODEC_BASE64) );
+	ck_assert_msg(M_buf_len(buf) == M_str_len(test_b64), "size doesn't match");
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), test_b64), "output doesn't match");
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
+START_TEST(check_buf_decode_hex)
+{
+	M_buf_t *buf = M_buf_create();
+
+	/* Check M_buf_add_decode(). */
+	M_buf_add_str(buf, "test");
+	ck_assert( M_buf_add_decode(buf, test_hex, M_str_len(test_hex), M_BINCODEC_HEX) );
+	ck_assert_msg(M_str_eq_start(M_buf_peek(buf), "test"), "lost prepended data");
+	M_buf_drop(buf, 4);
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size doesn't match");
+	ck_assert_msg(M_mem_eq(M_buf_peek(buf), test_bin, sizeof(test_bin)), "output doesn't match");
+	/* Make sure contents aren't modified after an error. */
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, "test");
+	ck_assert( !M_buf_add_decode(buf, test_hex, M_str_len(test_hex) - 1, M_BINCODEC_HEX) );
+	ck_assert_msg(M_buf_len(buf) == 4, "size doesn't match original");
+	ck_assert_msg(M_str_eq(M_buf_peek(buf), "test"), "output doesn't match original");
+
+	/* Check M_buf_decode(). */
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, test_hex);
+	ck_assert( M_buf_decode(buf, M_BINCODEC_HEX) );
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size doesn't match");
+	ck_assert_msg(M_mem_eq(M_buf_peek(buf), test_bin, sizeof(test_bin)), "output doesn't match");
+	/* Make sure contents aren't modified after an error. */
+	M_buf_truncate(buf, 0);
+	M_buf_add_bytes(buf, test_hex, M_str_len(test_hex) - 1);
+	ck_assert( !M_buf_decode(buf, M_BINCODEC_HEX) );
+	ck_assert_msg(M_buf_len(buf) == M_str_len(test_hex) - 1, "size doesn't match original");
+	ck_assert_msg(M_str_eq_max(M_buf_peek(buf), test_hex, M_buf_len(buf)), "output doesn't match original");
+
+	M_buf_cancel(buf);
+}
+END_TEST
+
+START_TEST(check_buf_decode_b64)
+{
+	M_buf_t *buf = M_buf_create();
+
+	/* Check M_buf_add_decode(). */
+	ck_assert( M_buf_add_decode(buf, test_b64, M_str_len(test_b64), M_BINCODEC_BASE64) );
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size doesn't match");
+	ck_assert_msg(M_mem_eq(M_buf_peek(buf), test_bin, sizeof(test_bin)), "output doesn't match");
+
+	/* Check M_buf_decode(). */
+	M_buf_truncate(buf, 0);
+	M_buf_add_str(buf, test_b64);
+	ck_assert( M_buf_decode(buf, M_BINCODEC_BASE64) );
+	ck_assert_msg(M_buf_len(buf) == sizeof(test_bin), "size doesn't match");
+	ck_assert_msg(M_mem_eq(M_buf_peek(buf), test_bin, sizeof(test_bin)), "output doesn't match");
+
+	M_buf_cancel(buf);
+}
+END_TEST
 
 START_TEST(check_buf_add_bytes_hex)
 {
@@ -258,6 +359,10 @@ int main(void)
 
 	suite = suite_create("buf");
 
+	add_test(suite, check_buf_encode_hex);
+	add_test(suite, check_buf_encode_b64);
+	add_test(suite, check_buf_decode_hex);
+	add_test(suite, check_buf_decode_b64);
 	add_test(suite, check_buf_add_bytes_hex);
 	add_test(suite, check_buf_add_str_hex);
 	add_test(suite, check_buf_uintbin);
