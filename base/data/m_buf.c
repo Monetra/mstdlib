@@ -538,6 +538,112 @@ void M_buf_add_int(M_buf_t *buf, M_int64 n)
 	M_buf_add_str(buf, space);
 }
 
+M_bool M_buf_add_encode(M_buf_t *buf, const void *bytes, size_t bytes_len, size_t wrap, M_bincodec_codec_t codec)
+{
+	char   *encoded;
+	size_t  encoded_len;
+
+	if (bytes_len == 0) {
+		return M_TRUE;
+	}
+	if (buf == NULL || bytes == NULL) {
+		return M_FALSE;
+	}
+
+	encoded_len = M_bincodec_encode_size(bytes_len, wrap, codec);
+	encoded     = (char *)M_buf_direct_write_start(buf, &encoded_len);
+	encoded_len = M_bincodec_encode(encoded, encoded_len, bytes, bytes_len, wrap, codec); /* returns 0 on error */
+	M_buf_direct_write_end(buf, encoded_len);
+
+	return (encoded_len > 0)? M_TRUE : M_FALSE;
+}
+
+M_bool M_buf_encode(M_buf_t *buf, size_t wrap, M_bincodec_codec_t codec)
+{
+	char          *encoded;
+	size_t         encoded_len;
+	const M_uint8 *bytes;
+	size_t         bytes_len;
+
+	if (M_buf_len(buf) == 0) {
+		return M_TRUE;
+	}
+
+	bytes_len   = M_buf_len(buf);
+
+	encoded_len = M_bincodec_encode_size(bytes_len, wrap, codec);
+	encoded     = (char *)M_buf_direct_write_start(buf, &encoded_len);
+
+	/* WARNING: you MUST call M_buf_peek() AFTER M_buf_direct_write_start(), because starting a direct write may
+	 *          reallocate the internal buffer if there isn't enough space in the existing buffer.
+	 */
+	bytes       = (const M_uint8 *)M_buf_peek(buf);
+
+	encoded_len = M_bincodec_encode(encoded, encoded_len, bytes, bytes_len, wrap, codec); /* returns 0 on error */
+	M_buf_direct_write_end(buf, encoded_len);
+
+	if (encoded_len == 0) {
+		return M_FALSE;
+	}
+
+	/* Drop raw binary from beginning of buffer, leaving only the encoded data. */
+	M_buf_drop(buf, bytes_len);
+	return M_TRUE;
+}
+
+M_bool M_buf_add_decode(M_buf_t *buf, const char *encoded, size_t encoded_len, M_bincodec_codec_t codec)
+{
+	M_uint8 *bytes;
+	size_t   bytes_len;
+
+	if (encoded_len == 0) {
+		return M_TRUE;
+	}
+	if (buf == NULL || encoded == NULL) {
+		return M_FALSE;
+	}
+
+	bytes_len = M_bincodec_decode_size(encoded_len, codec);
+	bytes     = M_buf_direct_write_start(buf, &bytes_len);
+	bytes_len = M_bincodec_decode(bytes, bytes_len, encoded, encoded_len, codec); /* returns 0 on error */
+	M_buf_direct_write_end(buf, bytes_len);
+
+	return (bytes_len > 0)? M_TRUE : M_FALSE;
+}
+
+M_bool M_buf_decode(M_buf_t *buf, M_bincodec_codec_t codec)
+{
+	M_uint8    *bytes;
+	size_t      bytes_len;
+	const char *encoded;
+	size_t      encoded_len;
+
+	if (M_buf_len(buf) == 0) {
+		return M_TRUE;
+	}
+
+	encoded_len = M_buf_len(buf);
+
+	bytes_len   = M_bincodec_decode_size(encoded_len, codec);
+	bytes       = M_buf_direct_write_start(buf, &bytes_len);
+
+	/* WARNING: you MUST call M_buf_peek() AFTER M_buf_direct_write_start(), because starting a direct write may
+	 *          reallocate the internal buffer if there isn't enough space in the existing buffer.
+	 */
+	encoded     = M_buf_peek(buf);
+
+	bytes_len = M_bincodec_decode(bytes, bytes_len, encoded, encoded_len, codec); /* returns 0 on error */
+	M_buf_direct_write_end(buf, bytes_len);
+
+	if (bytes_len == 0) {
+		return M_FALSE;
+	}
+
+	/* Drop encoded data from beginning of buffer, leaving only the decoded raw binary data. */
+	M_buf_drop(buf, encoded_len);
+	return M_TRUE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void M_buf_add_bytes_just_transform(M_buf_t *buf, M_uint32 transform_type, const void *bytes, size_t bytes_length, M_str_justify_type_t justify_type, unsigned char fill_char, size_t width)

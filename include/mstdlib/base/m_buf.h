@@ -287,6 +287,9 @@ M_API void M_buf_add_bytes(M_buf_t *buf, const void *bytes, size_t bytes_length)
 
 /*! Append zero or more bytes to a buffer (given as hex string).
  *
+ * \warning
+ * This function is deprecated, M_buf_add_decode() or M_buf_decode() should be used instead.
+ *
  * Same as M_buf_add_bytes(), but accepts binary data encoded as a hex string.
  * The data is decoded into raw binary form before it's added to the buffer.
  *
@@ -316,6 +319,9 @@ M_API void M_buf_add_str(M_buf_t *buf, const char *str);
 
 
 /*! Append the given bytes to the buffer as a hex-encoded string.
+ *
+ * \warning
+ * This function is deprecated, M_buf_add_encode() or M_buf_encode() should be used instead.
  *
  * The given binary data is converted to a hex-encoded string before being
  * added to the buffer.
@@ -409,6 +415,88 @@ M_API void M_buf_add_uint(M_buf_t *buf, M_uint64 n);
  * \param[in]     n   Unsigned integer to append.
  */
 M_API void M_buf_add_int(M_buf_t *buf, M_int64 n);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Encode binary data using the given codec, then append the result to this buffer.
+ *
+ * The results are only added to the end of the given buffer on success - if there's an error, the buffer's existing
+ * contents are not modified.
+ *
+ * Passing input data with a length of zero will always succeed (contents of the buffer won't be modified).
+ *
+ * \see M_buf_encode
+ * \see M_buf_add_decode
+ * \see M_bincodec_encode
+ *
+ * \param[in,out] buf       buffer to append encoded data to.
+ * \param[in]     bytes     binary data we want to encode into a string.
+ * \param[in]     bytes_len length (in bytes) of binary data we want to encode.
+ * \param[in]     wrap      max length of a given line. Longer lines will be split with a newline char.
+ *                          Pass 0 if line splitting is not desired.
+ * \param[in]     codec     binary codec to encode the binary data with.
+ * \return                  M_TRUE on success, M_FALSE if there was some error during encoding.
+ */
+M_API M_bool M_buf_add_encode(M_buf_t *buf, const void *bytes, size_t bytes_len, size_t wrap, M_bincodec_codec_t codec);
+
+
+/*! Encode contents of buffer in-place using the given codec.
+ *
+ * If successful, the entire contents of the buffer will be replaced with their encoded version.
+ * If there's an error, the buffer's contents are not modified.
+ *
+ * Calling this function on an empty buffer will always succeed.
+ *
+ * \see M_buf_add_encode
+ * \see M_buf_decode
+ * \see M_bincodec_encode
+ *
+ * \param[in,out] buf   buffer whose contents we want to encode
+ * \param[in]     wrap  max length of a given line. Longer lines will be split with a newline char.
+ *                      Pass 0 if line splitting is not desired.
+ * \param[in]     codec binary codec to use on the contents of the buffer.
+ * \return              M_TRUE on success, M_FALSE if there was some error during encoding.
+ */
+M_API M_bool M_buf_encode(M_buf_t *buf, size_t wrap, M_bincodec_codec_t codec);
+
+
+/*! Decode string to raw binary using the given codec, then append the result to this buffer.
+ *
+ * The results are only added to the end of the given buffer on success - if there's an error, the buffer's existing
+ * contents are not modified.
+ *
+ * Passing an empty input string will always succeed (contents of the buffer won't be modified).
+ *
+ * \see M_buf_decode
+ * \see M_buf_add_encode
+ * \see M_bincodec_decode
+ *
+ * \param[in,out] buf         buffer to append decoded data to.
+ * \param[in]     encoded     string we want to decode into raw binary data.
+ * \param[in]     encoded_len number of chars from string that we want to decode.
+ * \param[in]     codec       binary codec to decode the string with.
+ * \return                    M_TRUE on success, M_FALSE if there was some error during decoding.
+ */
+M_API M_bool M_buf_add_decode(M_buf_t *buf, const char *encoded, size_t encoded_len, M_bincodec_codec_t codec);
+
+
+/*! Decode contents of buffer in-place using the given codec.
+ *
+ * If successful, the entire contents of the buffer will be replaced with their decoded version.
+ * If there's an error, the buffer's contents are not modified.
+ *
+ * Calling this function on an empty buffer will always succeed.
+ *
+ * \see M_buf_add_decode
+ * \see M_buf_encode
+ * \see M_bincodec_decode
+ *
+ * \param[in,out] buf   buffer whose contents we want to decode
+ * \param[in]     codec binary codec to use when decoding the contents of the buffer.
+ * \return              M_TRUE on success, M_FALSE if there was some error during decoding.
+ */
+M_API M_bool M_buf_decode(M_buf_t *buf, M_bincodec_codec_t codec);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
