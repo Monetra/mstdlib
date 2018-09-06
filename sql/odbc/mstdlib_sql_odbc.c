@@ -1560,11 +1560,12 @@ done:
 
 static M_sql_error_t odbc_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char *error, size_t error_size)
 {
-	M_sql_driver_stmt_t *dstmt    = M_sql_driver_stmt_get_stmt(stmt);
-	size_t               num_cols = M_sql_stmt_result_num_cols(stmt);
+	M_sql_driver_conn_t *dconn       = M_sql_driver_conn_get_conn(conn);
+	M_sql_driver_stmt_t *dstmt       = M_sql_driver_stmt_get_stmt(stmt);
+	size_t               num_cols    = M_sql_stmt_result_num_cols(stmt);
+	M_bool               use_numeric = dconn->pool_data->profile->supports_c_sbigint?M_FALSE:M_TRUE;
 	size_t               i;
 	SQLRETURN            rc;
-
 	(void)conn;
 
 	rc = SQLFetch(dstmt->stmt);
@@ -1614,13 +1615,22 @@ static M_sql_error_t odbc_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char 
 				break;
 
 			case M_SQL_DATA_TYPE_INT64:
-				TargetType  = SQL_C_SBIGINT;
-				TargetValue = &i64;
+				/* Oracle doesn't support 64bit integers even in v18.  Request result as a string */
+				if (use_numeric) {
+					data_size    = 20+1; /* Additional size for NULL terminator */
+					data         = M_buf_direct_write_start(buf, &data_size);
+					TargetType   = SQL_C_CHAR;
+					BufferLength = (SQLLEN)data_size;
+					TargetValue  = data;
+				} else {
+					TargetType  = SQL_C_SBIGINT;
+					TargetValue = &i64;
+				}
 				break;
 
 			case M_SQL_DATA_TYPE_BINARY:
 			case M_SQL_DATA_TYPE_TEXT:
-			default: /* Should never be used */
+			default: /* Default should never be used */
 				if (type == M_SQL_DATA_TYPE_BINARY) {
 					TargetType   = SQL_C_BINARY;
 				} else {
@@ -1689,7 +1699,12 @@ static M_sql_error_t odbc_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char 
 				break;
 
 			case M_SQL_DATA_TYPE_INT64:
-				M_buf_add_int(buf, i64);
+				/* Oracle copied as a string, only use integer type on other systems */
+				if (use_numeric) {
+					M_buf_direct_write_end(buf, (size_t)StrLen);
+				} else {
+					M_buf_add_int(buf, i64);
+				}
 				break;
 
 			case M_SQL_DATA_TYPE_BINARY:
