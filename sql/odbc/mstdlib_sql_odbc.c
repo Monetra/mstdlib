@@ -70,11 +70,12 @@
 typedef struct {
 	SQLLEN            *lens;
 	union {
-		M_int8     *i8vals;
-		M_int16    *i16vals;
-		M_int32    *i32vals;
-		M_int64    *i64vals;
-		M_uint8    *pvalues;
+		M_int8             *i8vals;
+		M_int16            *i16vals;
+		M_int32            *i32vals;
+		M_int64            *i64vals;
+		SQL_NUMERIC_STRUCT *i64num;
+		M_uint8            *pvalues;
 	} data;
 } odbc_bind_cols_t;
 
@@ -94,6 +95,8 @@ struct M_sql_driver_stmt {
 	SQLUSMALLINT         *bind_cols_status;      /*!< Array of status's, one per row     */
 	SQLULEN               bind_params_processed; /*!< Output of how many param sets (rows) were processed */
 	SQLLEN               *bind_flat_lens;        /*!< Array of lens for flat or comma-delimited style binding */
+
+	M_llist_t            *temp_vars;             /*!< Temporary variables to be free'd at end of execution */
 };
 
 
@@ -104,6 +107,7 @@ typedef void (*M_sql_driver_cb_createtable_suffix_odbc_t)(M_sql_connpool_t *pool
 typedef struct {
 	const char                               *name;                  /*!< SQL Server Name, used for matching (uses substring matching) */
 	M_bool                                    is_multival_insert_cd; /*!< Uses comma-delimited multi-value insertion */
+	M_bool                                    supports_c_sbigint;    /*!< Whether or not the database supports the SQL_C_SBIGINT datatype or not.  Will use SQL_C_NUMERIC if not. */
 	size_t                                    max_insert_records;    /*!< Maximum number of records that can be inserted at once. 0=unlimited */
 	size_t                                    max_bind_params;       /*!< Maximum number of bind params in a query. 0=unlimited */
 	size_t                                    unknown_size_ind;      /*!< Some DBs (PostgreSQL) use a length value to indicate a max or unknown size for results like 255 */
@@ -153,6 +157,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		 */
 		"Microsoft SQL Server",       /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
+		M_TRUE,                       /* SQL_C_SBIGINT         */
 		/* Docs used to mention a limit of 1000 rows but that reference has been
 		 * removed, but here is discussion:
 		 * https://social.msdn.microsoft.com/Forums/sqlserver/en-US/bff53b3d-bf50-413f-891e-75af427394e2/limit-to-number-of-insert-statements-or-values-clauses?forum=transactsql
@@ -180,6 +185,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"DB2",                        /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
+		M_TRUE,                       /* SQL_C_SBIGINT         */
 		0,                            /* max_insert_records    */
 		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
@@ -195,6 +201,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"ORACLE",                     /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
+		M_FALSE,                      /* SQL_C_SBIGINT         */
 		0,                            /* max_insert_records    */
 		0,                            /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
@@ -210,6 +217,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"MYSQL",                      /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
+		M_TRUE,                       /* SQL_C_SBIGINT         */
 		0,                            /* max_insert_records    */
 		M_UINT16_MAX,                 /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
@@ -225,6 +233,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"MariaDB",                    /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
+		M_TRUE,                       /* SQL_C_SBIGINT         */
 		0,                            /* max_insert_records    */
 		M_UINT16_MAX,                 /* max_bind_params       */
 		0,                            /* unknown_size_ind      */
@@ -240,6 +249,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	{ 
 		"PostgreSQL",                 /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
+		M_TRUE,                       /* SQL_C_SBIGINT         */
 		100,                          /* max_insert_records    */
 		0,                            /* max_bind_params       */
 		255,                          /* unknown_size_ind      */
@@ -252,7 +262,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ NULL, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+	{ NULL, M_FALSE, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
 
@@ -808,6 +818,11 @@ static void odbc_clear_driver_stmt(M_sql_driver_stmt_t *dstmt)
 	dstmt->bind_params_processed = 0;
 	dstmt->bind_flat_lens        = NULL;
 
+	if (dstmt->temp_vars) {
+		M_llist_destroy(dstmt->temp_vars, M_TRUE);
+	}
+	dstmt->temp_vars             = NULL;
+
 	/* Prepare for re-use */
 	if (dstmt->needs_clear & ODBC_CLEAR_CURSOR)
 		SQLFreeStmt(dstmt->stmt, SQL_CLOSE);
@@ -831,7 +846,7 @@ static void odbc_cb_prepare_destroy(M_sql_driver_stmt_t *dstmt)
 }
 
 
-static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
+static M_bool odbc_bind_set_type(M_sql_data_type_t type, M_bool use_numeric, SQLSMALLINT *ValueType, SQLSMALLINT *ParameterType)
 {
 	/* Uninitialized warning suppress (won't ever actually be used). */
 	*ValueType     = 0;
@@ -854,10 +869,14 @@ static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType,
 			break;
 
 		case M_SQL_DATA_TYPE_INT64:
-			/* XXX: Int64 is really only supported as of Oracle 11.2.
-			 *      Should convert to SQL_C_NUMERIC on older versions. */
-			*ValueType                = SQL_C_SBIGINT;
-			*ParameterType            = SQL_BIGINT;
+			/* Oracle doesn't support SQL_C_SBIGINT, so we need to use SQL_C_NUMERIC */
+			if (use_numeric) {
+				*ValueType                = SQL_C_NUMERIC;
+				*ParameterType            = SQL_NUMERIC;
+			} else {
+				*ValueType                = SQL_C_SBIGINT;
+				*ParameterType            = SQL_BIGINT;
+			}
 			break;
 
 		case M_SQL_DATA_TYPE_TEXT:
@@ -877,7 +896,7 @@ static M_bool odbc_bind_set_type(M_sql_data_type_t type, SQLSMALLINT *ValueType,
 }
 
 
-static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type, size_t row, size_t col, size_t col_size, odbc_bind_cols_t *bcol)
+static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type, M_bool use_numeric, size_t row, size_t col, size_t col_size, odbc_bind_cols_t *bcol)
 {
 	const unsigned char *data;
 
@@ -900,7 +919,19 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type
 			break;
 
 		case M_SQL_DATA_TYPE_INT64:
-			bcol->data.i64vals[row] = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+			/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
+			if (use_numeric) {
+				M_int64  val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+				/* Need as unsigned little endian */
+				M_uint64 ulval = M_htol64((M_uint64)M_ABS(val));
+
+				M_mem_copy(bcol->data.i64num[row].val, &ulval, sizeof(ulval));
+
+				if (val >= 0)
+					bcol->data.i64num[row].sign = 1;
+			} else {
+				bcol->data.i64vals[row] = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+			}
 			break;
 
 		case M_SQL_DATA_TYPE_TEXT:
@@ -921,7 +952,7 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type
 }
 
 
-static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, size_t num_rows, char *error, size_t error_size)
+static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, size_t num_rows, M_bool use_numeric, char *error, size_t error_size)
 {
 	M_sql_error_t        err      = M_SQL_ERROR_SUCCESS;
 	size_t               num_cols = M_sql_driver_stmt_bind_cnt(stmt);
@@ -1012,8 +1043,15 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				ParameterValue                   = dstmt->bind_cols[i].data.i32vals;
 				break;
 			case M_SQL_DATA_TYPE_INT64:
-				dstmt->bind_cols[i].data.i64vals = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.i64vals)) * num_rows);
-				ParameterValue                   = dstmt->bind_cols[i].data.i64vals;
+				/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
+				if (use_numeric) {
+					dstmt->bind_cols[i].data.i64num = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.i64num)) * num_rows);
+					ParameterValue                  = dstmt->bind_cols[i].data.i64num;
+					ColumnSize                      = sizeof(*dstmt->bind_cols[i].data.i64num);
+				} else {
+					dstmt->bind_cols[i].data.i64vals = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.i64vals)) * num_rows);
+					ParameterValue                   = dstmt->bind_cols[i].data.i64vals;
+				}
 				break;
 			default:
 				/* Increment ColumnSize by 1 to account for NULL termination */
@@ -1025,13 +1063,14 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				break;
 		}
 
-		if (!odbc_bind_set_type(type, &ValueType, &ParameterType)) {
+		if (!odbc_bind_set_type(type, use_numeric, &ValueType, &ParameterType)) {
 			M_snprintf(error, error_size, "Failed to determine data type col %zu", i);
+			err = M_SQL_ERROR_QUERY_FAILURE;
 			goto done;
 		}
 
 		for (row = 0; row < num_rows; row++) {
-			odbc_bind_set_value_array(stmt, type, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
+			odbc_bind_set_value_array(stmt, type, use_numeric, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
 		}
 
 		rc = SQLBindParameter(
@@ -1060,7 +1099,28 @@ done:
 }
 
 
-static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, size_t row, size_t col, SQLPOINTER *value, SQLLEN *len)
+static void odbc_stmt_add_temp_var(M_sql_stmt_t *stmt, void *var)
+{
+	M_sql_driver_stmt_t *dstmt = M_sql_driver_stmt_get_stmt(stmt);
+
+	if (var == NULL)
+		return;
+
+	if (!dstmt->temp_vars) {
+		struct M_llist_callbacks cb = {
+			NULL, /* equality */
+			NULL, /* duplicate_insert */
+			NULL, /* duplicate_copy */
+			M_free /* value_free */
+		};
+		dstmt->temp_vars = M_llist_create(&cb, M_LLIST_NONE);
+	}
+
+	M_llist_insert(dstmt->temp_vars, var);
+}
+
+
+static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, M_bool use_numeric, size_t row, size_t col, SQLPOINTER *value, SQLLEN *len)
 {
 	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
@@ -1084,7 +1144,24 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, size_t row, size_t col,
 			break;
 
 		case M_SQL_DATA_TYPE_INT64:
-			*value = M_sql_driver_stmt_bind_get_int64_addr(stmt, row, col);
+			/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
+			if (use_numeric) {
+				SQL_NUMERIC_STRUCT *num = M_malloc_zero(sizeof(*num));
+				M_int64  val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+				/* Need as unsigned little endian */
+				M_uint64 ulval = M_htol64((M_uint64)M_ABS(val));
+
+				M_mem_copy(num->val, &ulval, sizeof(ulval));
+
+				if (val >= 0)
+					num->sign = 1;
+
+				*value = num;
+				*len   = sizeof(*num);
+				odbc_stmt_add_temp_var(stmt, num);
+			} else {
+				*value = M_sql_driver_stmt_bind_get_int64_addr(stmt, row, col);
+			}
 			break;
 
 		case M_SQL_DATA_TYPE_TEXT:
@@ -1105,7 +1182,7 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, size_t row, size_t col,
 }
 
 
-static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, size_t num_rows, char *error, size_t error_size)
+static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, size_t num_rows, M_bool use_numeric, char *error, size_t error_size)
 {
 	M_sql_error_t        err      = M_SQL_ERROR_SUCCESS;
 	size_t               num_cols = M_sql_driver_stmt_bind_cnt(stmt);
@@ -1148,11 +1225,12 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 			M_sql_data_type_t    type           = M_sql_driver_stmt_bind_get_type(stmt, row, i);
 			size_t               idx            = (row * num_cols) + i;
 
-			if (!odbc_bind_set_type(type, &ValueType, &ParameterType)) {
+			if (!odbc_bind_set_type(type, use_numeric, &ValueType, &ParameterType)) {
 				M_snprintf(error, error_size, "Failed to determine data type for rows %zu col %zu", row, i);
+				err = M_SQL_ERROR_QUERY_FAILURE;
 				goto done;
 			}
-			odbc_bind_set_value_flat(stmt, row, i, &ParameterValue, &dstmt->bind_flat_lens[idx]);
+			odbc_bind_set_value_flat(stmt, use_numeric, row, i, &ParameterValue, &dstmt->bind_flat_lens[idx]);
 
 			if (ParameterValue != NULL) {
 				ColumnSize = (SQLULEN)dstmt->bind_flat_lens[idx];
@@ -1191,8 +1269,9 @@ done:
 
 static M_sql_error_t odbc_bind_params(M_sql_conn_t *conn, M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, char *error, size_t error_size)
 {
-	M_sql_driver_conn_t *dconn    = M_sql_driver_conn_get_conn(conn);
-	size_t               num_rows = odbc_num_bind_rows(conn, stmt);
+	M_sql_driver_conn_t *dconn       = M_sql_driver_conn_get_conn(conn);
+	size_t               num_rows    = odbc_num_bind_rows(conn, stmt);
+	M_bool               use_numeric = dconn->pool_data->profile->supports_c_sbigint?M_FALSE:M_TRUE;
 
 	if (M_sql_driver_stmt_bind_cnt(stmt) == 0 || num_rows == 0)
 		return M_SQL_ERROR_SUCCESS;
@@ -1201,9 +1280,9 @@ static M_sql_error_t odbc_bind_params(M_sql_conn_t *conn, M_sql_driver_stmt_t *d
 	dstmt->needs_clear |= ODBC_CLEAR_PARAMS;
 
 	if (num_rows == 1 || dconn->pool_data->profile->is_multival_insert_cd)
-		return odbc_bind_params_flat(dstmt, stmt, num_rows, error, error_size);
+		return odbc_bind_params_flat(dstmt, stmt, num_rows, use_numeric, error, error_size);
 
-	return odbc_bind_params_array(dstmt, stmt, num_rows, error, error_size);
+	return odbc_bind_params_array(dstmt, stmt, num_rows, use_numeric, error, error_size);
 }
 
 
