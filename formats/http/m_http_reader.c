@@ -637,7 +637,7 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 	}
 
 	/* Read the length. */
-	if (!M_parser_read_int(msg, M_PARSER_INTEGER_ASCII, len, 16, &i64v) || i64v < 0) {
+	if (!M_parser_read_int(msg, M_PARSER_INTEGER_ASCII, len, 16, &i64v)) {
 		res = M_HTTP_ERROR_CHUNK_LENGTH;
 		goto done;
 	}

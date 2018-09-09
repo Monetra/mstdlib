@@ -532,7 +532,12 @@ M_bool M_hashtable_get(const M_hashtable_t *h, const void *key, void **value)
 		return M_FALSE;
 
 	if (h->flags & M_HASHTABLE_MULTI_VALUE) {
-		idx = (h->flags & M_HASHTABLE_MULTI_GETLAST)?M_list_len(entry->value.multi_value)-1:0;
+		idx = 0;
+		if (h->flags & M_HASHTABLE_MULTI_GETLAST) {
+			idx = M_list_len(entry->value.multi_value);
+			if (idx > 0)
+				idx--;
+		}
 	}
 
 	return M_hashtable_get_int(h, entry, idx, value);
@@ -836,7 +841,8 @@ static M_bool M_hashtable_enumerate_next_ordered(const M_hashtable_t *h, M_hasht
 			hashenum->valueidx = 0;
 		}
 	} else {
-		M_hashtable_get(h, mykey, &myvalue);
+		/* We know this will return a result */
+		(void)M_hashtable_get(h, mykey, &myvalue);
 		hashenum->entry.ordered.keynode = M_llist_node_next(hashenum->entry.ordered.keynode);
 	}
 
