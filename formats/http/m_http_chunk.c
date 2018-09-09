@@ -81,6 +81,7 @@ size_t M_http_chunk_count(const M_http_t *http)
 size_t M_http_chunk_insert(M_http_t *http)
 {
 	M_http_chunk_t *chunk;
+	size_t          idx;
 
 	if (http == NULL)
 		return 0;
@@ -88,7 +89,13 @@ size_t M_http_chunk_insert(M_http_t *http)
 	chunk = M_http_chunk_create();
 	M_list_insert(http->chunks, chunk);
 
-	return M_list_len(http->chunks)-1;
+	idx = M_list_len(http->chunks);
+
+	/* Silence coverity, not possible for it to be == 0 */
+	if (idx > 0)
+		idx--;
+
+	return idx;
 }
 
 void M_http_chunk_remove(M_http_t *http, size_t num)
@@ -270,8 +277,10 @@ M_bool M_http_set_chunk_extensions_string(M_http_t *http, size_t num, const char
 		return M_FALSE;
 
 	parts = M_str_explode_str(';', str, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (parts == NULL || num_parts == 0) {
+		M_str_explode_free(parts, num_parts);
 		return M_FALSE;
+	}
 
 	for (i=0; i<num_parts; i++) {
 		char       **kv     = NULL;

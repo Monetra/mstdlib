@@ -1,0 +1,187 @@
+.TH "m_thread_common_cond" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_thread_common_cond
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_thread_cond \fBM_thread_cond_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_thread_condattr_t\fP { \fBM_THREAD_CONDATTR_NONE\fP = 0 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_thread_cond_t\fP * \fBM_thread_cond_create\fP (M_uint32 attr)"
+.br
+.ti -1c
+.RI "void \fBM_thread_cond_destroy\fP (\fBM_thread_cond_t\fP *cond)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_cond_timedwait\fP (\fBM_thread_cond_t\fP *cond, \fBM_thread_mutex_t\fP *mutex, M_uint64 millisec)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_cond_timedwait_abs\fP (\fBM_thread_cond_t\fP *cond, \fBM_thread_mutex_t\fP *mutex, const \fBM_timeval_t\fP *abstime)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_cond_wait\fP (\fBM_thread_cond_t\fP *cond, \fBM_thread_mutex_t\fP *mutex)"
+.br
+.ti -1c
+.RI "void \fBM_thread_cond_broadcast\fP (\fBM_thread_cond_t\fP *cond)"
+.br
+.ti -1c
+.RI "void \fBM_thread_cond_signal\fP (\fBM_thread_cond_t\fP *cond)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread Conditionals 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_thread_cond \fBM_thread_cond_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_thread_condattr_t\fP"
+Conditional attributes\&. Used for conditional creation\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_THREAD_CONDATTR_NONE \fP\fP
+None\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_thread_cond_t\fP* M_thread_cond_create (M_uint32 attr)"
+Conditional create\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP M_thread_condattr_t attributes which control how the conditional should behave\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Conditional on success otherwise NULL on error\&. 
+.RE
+.PP
+
+.SS "void M_thread_cond_destroy (\fBM_thread_cond_t\fP * cond)"
+Destroy a conditional\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_cond_timedwait (\fBM_thread_cond_t\fP * cond, \fBM_thread_mutex_t\fP * mutex, M_uint64 millisec)"
+Wait on conditional with a timeout of now + millisec\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.br
+\fImutex\fP The mutex to operate on\&. 
+.br
+\fImillisec\fP The amount of time wait from now in milliseconds\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the conditional was activated\&. M_FALSE on timeout or other error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_thread_cond_wait\fP 
+.PP
+\fBM_thread_cond_timedwait_abs\fP 
+.RE
+.PP
+
+.SS "M_bool M_thread_cond_timedwait_abs (\fBM_thread_cond_t\fP * cond, \fBM_thread_mutex_t\fP * mutex, const \fBM_timeval_t\fP * abstime)"
+Wait on conditional until a specified time\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.br
+\fImutex\fP The mutex to operate on\&. 
+.br
+\fIabstime\fP Time to wait until\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the conditional was activated\&. M_FALSE on timeout or other error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_thread_cond_wait\fP 
+.PP
+\fBM_thread_cond_timedwait\fP 
+.RE
+.PP
+
+.SS "M_bool M_thread_cond_wait (\fBM_thread_cond_t\fP * cond, \fBM_thread_mutex_t\fP * mutex)"
+Wait on conditional
+.PP
+Blocks the thread until the conditional is activated\&.
+.PP
+The mutex must be locked before calling this function\&. This will unlock the mutex and block on the conditional\&. When the conditional is activated the mutex will be locked\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.br
+\fImutex\fP The mutex to operate on\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the conditional was activated\&. M_FALSE on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_thread_cond_timedwait\fP 
+.PP
+\fBM_thread_cond_timedwait_abs\fP 
+.RE
+.PP
+
+.SS "void M_thread_cond_broadcast (\fBM_thread_cond_t\fP * cond)"
+Activate all waiting conditionals\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.RE
+.PP
+
+.SS "void M_thread_cond_signal (\fBM_thread_cond_t\fP * cond)"
+Activate a waiting conditional (single)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcond\fP The conditional\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

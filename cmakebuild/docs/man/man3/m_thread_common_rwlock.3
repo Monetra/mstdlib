@@ -1,0 +1,117 @@
+.TH "m_thread_common_rwlock" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_thread_common_rwlock
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_thread_rwlock \fBM_thread_rwlock_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_thread_rwlock_type_t\fP { \fBM_THREAD_RWLOCK_TYPE_READ\fP = 0, \fBM_THREAD_RWLOCK_TYPE_WRITE\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_thread_rwlock_t\fP * \fBM_thread_rwlock_create\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_thread_rwlock_destroy\fP (\fBM_thread_rwlock_t\fP *rwlock)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_rwlock_lock\fP (\fBM_thread_rwlock_t\fP *rwlock, \fBM_thread_rwlock_type_t\fP type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_rwlock_unlock\fP (\fBM_thread_rwlock_t\fP *rwlock)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Read/Write locks 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_thread_rwlock \fBM_thread_rwlock_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_thread_rwlock_type_t\fP"
+Read/Write lock, lock type\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_THREAD_RWLOCK_TYPE_READ \fP\fP
+Lock for read\&. 
+.TP
+\fB\fIM_THREAD_RWLOCK_TYPE_WRITE \fP\fP
+Lock for write\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_thread_rwlock_t\fP* M_thread_rwlock_create (void)"
+Read/Write lock create\&.
+.PP
+Read/Write locks allow multiple readers to be hold the lock at the same time\&. A write lock will be allowed once all readers have released their locks\&.
+.PP
+For new locks waiting writers are preferred\&. Meaning a if a writer is waiting new read locks will not be given until all waiting writers has received and released their locks\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Read/Write lock on success otherwise NULL on error\&. 
+.RE
+.PP
+
+.SS "void M_thread_rwlock_destroy (\fBM_thread_rwlock_t\fP * rwlock)"
+Destroy a read/write lock\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIrwlock\fP The lock\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_rwlock_lock (\fBM_thread_rwlock_t\fP * rwlock, \fBM_thread_rwlock_type_t\fP type)"
+Lock a read/write lock\&.
+.PP
+The thread will block waiting to acquire the lock\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIrwlock\fP The lock\&. 
+.br
+\fItype\fP The type of lock to acquire\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE If the lock was acquired\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_rwlock_unlock (\fBM_thread_rwlock_t\fP * rwlock)"
+Unlock a read/write lock\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIrwlock\fP The lock\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE If on success\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,218 @@
+.TH "m_fs_file" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_file
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_open\fP (\fBM_fs_file_t\fP **fd, const char *path, size_t buf_size, M_uint32 mode, const \fBM_fs_perms_t\fP *perms)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_open_iostream\fP (\fBM_fs_file_t\fP **fd, \fBM_fs_iostream_t\fP stream)"
+.br
+.ti -1c
+.RI "void \fBM_fs_file_close\fP (\fBM_fs_file_t\fP *fd)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_read\fP (\fBM_fs_file_t\fP *fd, unsigned char *buf, size_t buf_len, size_t *read_len, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_write\fP (\fBM_fs_file_t\fP *fd, const unsigned char *buf, size_t count, size_t *wrote_len, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_seek\fP (\fBM_fs_file_t\fP *fd, M_int64 offset, \fBM_fs_file_seek_t\fP from)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_sync\fP (\fBM_fs_file_t\fP *fd, M_uint32 type)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_read_bytes\fP (const char *path, size_t max_read, unsigned char **buf, size_t *bytes_read)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_file_write_bytes\fP (const char *path, const unsigned char *buf, size_t write_len, M_uint32 mode, size_t *bytes_written)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_fs_error_t\fP M_fs_file_open (\fBM_fs_file_t\fP ** fd, const char * path, size_t buf_size, M_uint32 mode, const \fBM_fs_perms_t\fP * perms)"
+Open a file\&.
+.PP
+The set of flags you pass to \fImode\fP must include M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE\&.
+.PP
+The other M_fs_file_mode_t flags can be used as well, they just need to be OR'd with M_FS_FILE_MODE_READ and/or M_FS_FILE_MODE_WRITE\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object created upon success\&. Will be set to \fCNULL\fP if there was an error\&. 
+.br
+\fIpath\fP The path to open\&. 
+.br
+\fIbuf_size\fP Set a buffer size to enable buffered read and write\&. Use 0 to disable buffering\&. 
+.br
+\fImode\fP M_fs_file_mode_t open mode\&. 
+.br
+\fIperms\fP Additional perms to apply to the file if it does not exist and is created\&. If perms is NULL a default perms of rw-rw-r-- & ~umask is used\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_open_iostream (\fBM_fs_file_t\fP ** fd, \fBM_fs_iostream_t\fP stream)"
+Open a standard IO stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object created upon success\&. Will be set to \fCNULL\fP if there was an error\&. 
+.br
+\fIstream\fP The stream to open\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "void M_fs_file_close (\fBM_fs_file_t\fP * fd)"
+Close an open file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_read (\fBM_fs_file_t\fP * fd, unsigned char * buf, size_t buf_len, size_t * read_len, M_uint32 flags)"
+Read from a file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object\&. 
+.br
+\fIbuf\fP A buffer to put the read data into\&. 
+.br
+\fIbuf_len\fP The size of the buffer\&. 
+.br
+\fIread_len\fP How much data was read into buf\&. 
+.br
+\fIflags\fP M_fs_file_read_write_t flags to control the read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_write (\fBM_fs_file_t\fP * fd, const unsigned char * buf, size_t count, size_t * wrote_len, M_uint32 flags)"
+Write data to a file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object\&. 
+.br
+\fIbuf\fP The data to write\&. 
+.br
+\fIcount\fP The length of the data to write\&. 
+.br
+\fIwrote_len\fP The amount of data written to the file\&. 
+.br
+\fIflags\fP M_fs_file_read_write_t flags to control the write\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_seek (\fBM_fs_file_t\fP * fd, M_int64 offset, \fBM_fs_file_seek_t\fP from)"
+Move/Set the read/write offset within an file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object\&. 
+.br
+\fIoffset\fP How much to move the offset relative to from\&. Can be negative to move backwards\&. 
+.br
+\fIfrom\fP Where the offset is relative to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_sync (\fBM_fs_file_t\fP * fd, M_uint32 type)"
+Flush file buffer to disk\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfd\fP The file object\&. 
+.br
+\fItype\fP M_fs_file_sync_t type of sync to perform\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_read_bytes (const char * path, size_t max_read, unsigned char ** buf, size_t * bytes_read)"
+Read a file into a buffer as a str\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to read from\&. 
+.br
+\fImax_read\fP A maximum amount of data to read\&. 0 for no maximum\&. 
+.br
+\fIbuf\fP A buffer that will be allocated and contain the file contents\&. It will be NULL terminated on success\&. 
+.br
+\fIbytes_read\fP The number of bytes read and contained in the buffer excluding the NULL terminator\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_file_write_bytes (const char * path, const unsigned char * buf, size_t write_len, M_uint32 mode, size_t * bytes_written)"
+Write a str to a file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path of the file to write into\&. 
+.br
+\fIbuf\fP Buffer containing the data to write into the file\&. 
+.br
+\fIwrite_len\fP The number of bytes from buf to write\&. Optional, pass 0 to use M_str_len to determine length of a NULL terminated buffer to write\&. 
+.br
+\fImode\fP M_fs_file_mode_t mode\&. Only supports APPEND\&. Used to control appending vs overwriting\&. The default it to overwrite the file\&. 
+.br
+\fIbytes_written\fP The number of bytes from buf written to the file\&. Optional pass be NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

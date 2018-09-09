@@ -1,0 +1,229 @@
+.TH "m_thread_common_create" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_thread_common_create
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef M_uintptr \fBM_threadid_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_thread_attr \fBM_thread_attr_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_threadid_t\fP \fBM_thread_create\fP (const \fBM_thread_attr_t\fP *attr, void *(*func)(void *), void *arg)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_join\fP (\fBM_threadid_t\fP id, void **value_ptr)"
+.br
+.ti -1c
+.RI "\fBM_threadid_t\fP \fBM_thread_self\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_thread_sleep\fP (M_uint64 usec)"
+.br
+.ti -1c
+.RI "void \fBM_thread_yield\fP (M_bool force)"
+.br
+.ti -1c
+.RI "\fBM_thread_attr_t\fP * \fBM_thread_attr_create\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_thread_attr_destroy\fP (\fBM_thread_attr_t\fP *attr)"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_attr_get_create_joinable\fP (const \fBM_thread_attr_t\fP *attr)"
+.br
+.ti -1c
+.RI "size_t \fBM_thread_attr_get_stack_size\fP (const \fBM_thread_attr_t\fP *attr)"
+.br
+.ti -1c
+.RI "int \fBM_thread_attr_get_priority\fP (const \fBM_thread_attr_t\fP *attr)"
+.br
+.ti -1c
+.RI "void \fBM_thread_attr_set_create_joinable\fP (\fBM_thread_attr_t\fP *attr, M_bool val)"
+.br
+.ti -1c
+.RI "void \fBM_thread_attr_set_stack_size\fP (\fBM_thread_attr_t\fP *attr, size_t val)"
+.br
+.ti -1c
+.RI "void \fBM_thread_attr_set_priority\fP (\fBM_thread_attr_t\fP *attr, int val)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread Creation and Management 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef M_uintptr \fBM_threadid_t\fP"
+Thread id used to identify a thread\&.
+.PP
+This can be compared with >, <, == and !=\&. 
+.SS "typedef struct M_thread_attr \fBM_thread_attr_t\fP"
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_threadid_t\fP M_thread_create (const \fBM_thread_attr_t\fP * attr, void *(*)(void *) func, void * arg)"
+Create and run a thread\&.
+.PP
+Threads are created detached by default\&. To create it joinable use a M_thread_attr_t and set it to joinable\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Thread creation attributes\&. 
+.br
+\fIfunc\fP The function to run\&. 
+.br
+\fIarg\fP Argument to pass to func\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Threadid identifying the thread on success\&. Threadid will be 0 on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_join (\fBM_threadid_t\fP id, void ** value_ptr)"
+Wait for a thread to finish\&.
+.PP
+Only threads that were created with the joinable attribute set to M_TRUE can be used with this function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIid\fP The threadid to wait on\&. 
+.br
+\fIvalue_ptr\fP The return value from the thread\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the thread was successfully joined\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBM_threadid_t\fP M_thread_self (void)"
+Get the threadid of the running thread\&.
+.PP
+\fBReturns:\fP
+.RS 4
+The threadid\&. 
+.RE
+.PP
+
+.SS "void M_thread_sleep (M_uint64 usec)"
+Sleep for the specified amount of time\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIusec\fP Number of microseconds to sleep\&. 
+.RE
+.PP
+
+.SS "void M_thread_yield (M_bool force)"
+Inform the scheduler that we want to relinquish the CPU and allow other threads to process\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIforce\fP Force rescheduling of this thread\&. When M_FALSE the thread model will determine if the thread needs to be rescheduled or not\&. A preemtive model will typically ignore this call when M_FALSE and rely on its scheduler\&. A non-preemptive model (COOP) will always yield\&. 
+.RE
+.PP
+
+.SS "\fBM_thread_attr_t\fP* M_thread_attr_create (void)"
+Create a thread attribute object\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Thread attribute object\&. 
+.RE
+.PP
+
+.SS "void M_thread_attr_destroy (\fBM_thread_attr_t\fP * attr)"
+Destroy a thread attribute object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_attr_get_create_joinable (const \fBM_thread_attr_t\fP * attr)"
+Get whether a given thread should be created joinable\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&.
+.RE
+.PP
+return M_TRUE if the thread should be joinable\&. Otherwise M_FALSE\&. 
+.SS "size_t M_thread_attr_get_stack_size (const \fBM_thread_attr_t\fP * attr)"
+Get the stack size a given thread should use when created\&.
+.PP
+This may not be used by all threading models\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&.
+.RE
+.PP
+return The requested stack size\&. 
+.SS "int M_thread_attr_get_priority (const \fBM_thread_attr_t\fP * attr)"
+Get the priority a given thread should be created with\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The requested priority\&. 
+.RE
+.PP
+
+.SS "void M_thread_attr_set_create_joinable (\fBM_thread_attr_t\fP * attr, M_bool val)"
+Set whether a given thread should be created joinable\&.
+.PP
+The default is to create threads detached (not joinable) unless this is called and set to M_TRUE\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_thread_attr_set_stack_size (\fBM_thread_attr_t\fP * attr, size_t val)"
+Set the stack size a given thread should be created with\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_thread_attr_set_priority (\fBM_thread_attr_t\fP * attr, int val)"
+Set the priority a given thread should be created with\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIattr\fP Attribute object\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

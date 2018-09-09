@@ -1,0 +1,554 @@
+.TH "m_hashtable_generic" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_hashtable_generic
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBM_hashtable_enum_t\fP"
+.br
+.ti -1c
+.RI "union \fBM_hashtable_enum\&.entry\fP"
+.br
+.ti -1c
+.RI "struct \fBM_hashtable_enum\&.entry\&.unordered\fP"
+.br
+.ti -1c
+.RI "struct \fBM_hashtable_enum\&.entry\&.ordered\fP"
+.br
+.ti -1c
+.RI "struct \fBM_hashtable_callbacks\fP"
+.br
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_HASHTABLE_MAX_BUCKETS\fP   (1U<<24)"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_hashtable \fBM_hashtable_t\fP"
+.br
+.ti -1c
+.RI "typedef M_uint32(* \fBM_hashtable_hash_func\fP) (const void *, M_uint32)"
+.br
+.ti -1c
+.RI "typedef void *(* \fBM_hashtable_duplicate_func\fP) (const void *)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_hashtable_free_func\fP) (void *)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_hashtable_flags_t\fP { \fBM_HASHTABLE_NONE\fP = 0, \fBM_HASHTABLE_KEYS_ORDERED\fP = 1 << 0, \fBM_HASHTABLE_KEYS_SORTED\fP = 1 << 1, \fBM_HASHTABLE_MULTI_VALUE\fP = 1 << 2, \fBM_HASHTABLE_MULTI_SORTED\fP = 1 << 3, \fBM_HASHTABLE_MULTI_GETLAST\fP = 1 << 4 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_hashtable_t\fP * \fBM_hashtable_create\fP (size_t size, M_uint8 fillpct, \fBM_hashtable_hash_func\fP key_hash, \fBM_sort_compar_t\fP key_equality, M_uint32 flags, const struct \fBM_hashtable_callbacks\fP *callbacks) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_hashtable_destroy\fP (\fBM_hashtable_t\fP *h, M_bool destroy_vals) M_FREE(1)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_insert\fP (\fBM_hashtable_t\fP *h, const void *key, const void *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_remove\fP (\fBM_hashtable_t\fP *h, const void *key, M_bool destroy_vals)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_get\fP (const \fBM_hashtable_t\fP *h, const void *key, void **value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_multi_len\fP (const \fBM_hashtable_t\fP *h, const void *key, size_t *len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_multi_get\fP (const \fBM_hashtable_t\fP *h, const void *key, size_t idx, void **value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_multi_remove\fP (\fBM_hashtable_t\fP *h, const void *key, size_t idx, M_bool destroy_vals)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_hashtable_size\fP (const \fBM_hashtable_t\fP *h)"
+.br
+.ti -1c
+.RI "size_t \fBM_hashtable_num_collisions\fP (const \fBM_hashtable_t\fP *h)"
+.br
+.ti -1c
+.RI "size_t \fBM_hashtable_num_expansions\fP (const \fBM_hashtable_t\fP *h)"
+.br
+.ti -1c
+.RI "size_t \fBM_hashtable_num_keys\fP (const \fBM_hashtable_t\fP *h)"
+.br
+.ti -1c
+.RI "size_t \fBM_hashtable_enumerate\fP (const \fBM_hashtable_t\fP *h, M_hashtable_enum_t *hashenum)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hashtable_enumerate_next\fP (const \fBM_hashtable_t\fP *h, M_hashtable_enum_t *hashenum, const void **key, const void **value)"
+.br
+.ti -1c
+.RI "void \fBM_hashtable_merge\fP (\fBM_hashtable_t\fP **dest, \fBM_hashtable_t\fP *src)"
+.br
+.ti -1c
+.RI "\fBM_hashtable_t\fP * \fBM_hashtable_duplicate\fP (const \fBM_hashtable_t\fP *h)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Hashtable, meant for storing key/value pairs\&.
+.PP
+This should not be used directly\&. It is a base implementation that should be used by a type safe wrapper\&. For example: M_hash_dict\&.
+.PP
+The h can uses a set of callback functions to determine behavior\&. Such as if it should duplicate or free values\&.
+.PP
+An optional hash algorithm can be specified when creating a type safe wrapper\&. It is highly recommended to provide a hash algorithm\&. The default algorithm is an FNV1a variant using the pointer of the key\&.
+.PP
+The currently provided wrappers (str and u64) use an FNV1a variant\&. Multiple hashing algorithms were considered but FNV1a was ultimately chosen because testing with real world data sets it was found to provide the best performance\&.
+.PP
+The following hash functions were evaluated:
+.IP "\(bu" 2
+FNV1
+.IP "\(bu" 2
+FNV1a
+.IP "\(bu" 2
+Lookup2
+.IP "\(bu" 2
+Qt4's hash function
+.IP "\(bu" 2
+djb2
+.PP
+.PP
+Overall performance was tested\&. We looked at time to generate the hash, time for insert, and lookup time\&. The insert and lookup are specific to see how chaining due to increased collisions impacted overall performance\&.
+.PP
+FNV1a had average collision performance and average hash time\&. Some hash functions had fewer collisions but the time it took to generate the hash far exceeded the chaining time\&. Others had very fast generation time but had so many collisions that the chaining time exceeded the benefit of being quick\&.
+.PP
+FNV1a was found to have few enough collisions to keep any chains sort and the combined hash generation and chaining time (when chaining happened) was overall faster than the other hash's times\&.
+.PP
+In order to prevent denial of service attacks by an attacker causing generation of extremely large chains FNV1a was modified\&. A random hash seed that is unique per hashtable object (each hashtable created using _create(\&.\&.\&.)) is used as the offset bias for the algorithm\&.
+.PP
+According to draft-eastlake-fnv-09 at https://tools.ietf.org/html/draft-eastlake-fnv-09#section-2.2 \&. 'In the general case, almost any offset_basis will serve so long as it is non-zero\&.' This information can also be found on Noll's website http://isthe.com/chongo/tech/comp/fnv/index.html in the section, 'Parameters of the FNV-1/FNV-1a hash'\&.
+.PP
+In our variation care has been taken to ensure the bias is never 0\&.
+.PP
+The random seed is created using M_rand\&. While M_rand is not a secure random number generator the random seed for M_rand is created from unlikely to be known data such as stack and heap memory addresses at the time the hashtable is created\&. It is unlikely an attacker would be able to determine the random seed to be able to get the hash seed\&. Nor is it likely for an attacker to be able to determine the hash seed\&. Testing using a random hash seed was found to alleviate chaining attacks\&. 
+.SH "Data Structure Documentation"
+.PP 
+.SH "struct M_hashtable_enum"
+.PP 
+State tracking object for enumerating a Hashtable\&. This is explicitly not hidden so it doesn't require a malloc() 
+.PP
+\fBData Fields:\fP
+.RS 4
+union \fBM_hashtable_enum\fP \fIentry\fP 
+.br
+.PP
+size_t \fIvalueidx\fP When multi-value is in use which index of next value\&. 
+.br
+.PP
+.RE
+.PP
+.SH "union M_hashtable_enum\&.entry"
+.PP 
+\fBData Fields:\fP
+.RS 4
+\fBentry\fP \fIunordered\fP 
+.br
+.PP
+\fBentry\fP \fIordered\fP 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_hashtable_enum\&.entry\&.unordered"
+.PP 
+\fBData Fields:\fP
+.RS 4
+M_uint32 \fIhash\fP Hash of last processed entry 
+.br
+.PP
+size_t \fIchainid\fP 1-based offset within linked list of clashes of last processed entry\&. This value is 1-based specifically so when starting an enumeration, a 0,0 value would indicate this 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_hashtable_enum\&.entry\&.ordered"
+.PP 
+\fBData Fields:\fP
+.RS 4
+\fBM_llist_node_t\fP * \fIkeynode\fP When ordered keys are in use this is the node of the key currently being processed\&. 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_hashtable_callbacks"
+.PP 
+Structure of callbacks that can be registered to override default behavior for h implementation\&.
+.PP
+This allows a great deal of flexibility\&. For instance, you may want the HashTable to take ownership of the 'value' passed to it and clean up when the entry is replaced, removed, or the h is destroyed\&. In this implementation, you could use NULL for 'value_duplicate' so the pointer passed in is used directly, but register an appropriate 'value_free' to auto-cleanup\&.
+.PP
+Note that there are two duplicate callbacks for keys and values\&. There are two times a key or value can be duplicated\&. When it is first inserted into the h and when the h itself is duplicated\&.
+.PP
+In some cases the key or value needs to be duplicated by the h wrapper instead of by the base itself\&. For example storing unbounded binary data as a value\&. To prevent extra allocations and additional wrapping the value is duplicated by the wrapper and the length is prepended\&. This duplicate needs the length in order to work where the other duplicate (copy of h) will get the length from the fist few bytes of the value itself\&. 
+.PP
+\fBData Fields:\fP
+.RS 4
+\fBM_hashtable_duplicate_func\fP \fIkey_duplicate_insert\fP Callback to duplicate a key on insert\&. Default if NULL is pass-thru pointer 
+.br
+.PP
+\fBM_hashtable_duplicate_func\fP \fIkey_duplicate_copy\fP Callback to duplicate a key on copy\&. Default if NULL is pass-thru pointer 
+.br
+.PP
+\fBM_hashtable_free_func\fP \fIkey_free\fP Callback to free a key\&. Default if NULL is no-op 
+.br
+.PP
+\fBM_hashtable_duplicate_func\fP \fIvalue_duplicate_insert\fP Callback to duplicate a value on insert\&. Default if NULL is pass-thru pointer 
+.br
+.PP
+\fBM_hashtable_duplicate_func\fP \fIvalue_duplicate_copy\fP Callback to duplicate a value on copy\&. Default if NULL is pass-thru pointer 
+.br
+.PP
+\fBM_sort_compar_t\fP \fIvalue_equality\fP Callback used to determine if two values are equal\&. Primarily used for sorting muli-values stores\&. Default is all values are equal\&. 
+.br
+.PP
+\fBM_hashtable_free_func\fP \fIvalue_free\fP Callback to free a value\&. Default if NULL is a no-op 
+.br
+.PP
+.RE
+.PP
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_HASHTABLE_MAX_BUCKETS   (1U<<24)"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_hashtable \fBM_hashtable_t\fP"
+
+.SS "typedef M_uint32(* M_hashtable_hash_func) (const void *, M_uint32)"
+Function definition for callback to hash a key 
+.SS "typedef void*(* M_hashtable_duplicate_func) (const void *)"
+Function definition to duplicate a key or value 
+.SS "typedef void(* M_hashtable_free_func) (void *)"
+Function definition to free a key or value 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_hashtable_flags_t\fP"
+Flags for controlling the behavior of the hash 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_HASHTABLE_NONE \fP\fP
+Case sensitive single value (new values replace)\&. 
+.TP
+\fB\fIM_HASHTABLE_KEYS_ORDERED \fP\fP
+Keys should be ordered\&. Default is insertion order unless the sorted option is specified\&. 
+.TP
+\fB\fIM_HASHTABLE_KEYS_SORTED \fP\fP
+When the keys are ordered sort them using the key_equality function\&. 
+.TP
+\fB\fIM_HASHTABLE_MULTI_VALUE \fP\fP
+Allow keys to contain multiple values\&. Sorted in insertion order another sorting is specified\&. 
+.TP
+\fB\fIM_HASHTABLE_MULTI_SORTED \fP\fP
+Allow keys to contain multiple values sorted in ascending order 
+.TP
+\fB\fIM_HASHTABLE_MULTI_GETLAST \fP\fP
+When using the get function will get the last value from the list when allowing multiple values\&. The default is to get the first value\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_hashtable_t\fP* M_hashtable_create (size_t size, M_uint8 fillpct, \fBM_hashtable_hash_func\fP key_hash, \fBM_sort_compar_t\fP key_equality, M_uint32 flags, const struct \fBM_hashtable_callbacks\fP * callbacks)"
+Create a new h\&.
+.PP
+The h will pre-allocate an array of buckets based on the rounded up size specified\&. Any hash collisions will result in those collisions being chained together via a linked list\&. The h will auto-expand by a power of 2 when the fill percentage specified is reached\&. All key entries are compared in a case-insensitive fashion, and are duplicated internally\&. Values are duplicated\&. Case is preserved for both keys and values\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsize\fP Size of the hash table\&. If not specified as a power of 2, will be rounded up to the nearest power of 2\&. 
+.br
+\fIfillpct\fP The maximum fill percentage before the hash table is expanded\&. If 0 is specified, the h will never expand, otherwise the value must be between 1 and 99 (recommended: 75)\&. 
+.br
+\fIkey_hash\fP The function to use for hashing a key\&. If not specified will use the pointer address as the key and use FNV1a\&. 
+.br
+\fIkey_equality\fP The function to use to determine if two keys are equal\&. If not specified, will compare pointer addresses\&. 
+.br
+\fIflags\fP M_hash_strvp_flags_t flags for modifying behavior\&. 
+.br
+\fIcallbacks\fP Register callbacks for overriding default behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated h\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_hashtable_destroy\fP 
+.RE
+.PP
+
+.SS "void M_hashtable_destroy (\fBM_hashtable_t\fP * h, M_bool destroy_vals)"
+Destroy the h\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable to destroy 
+.br
+\fIdestroy_vals\fP M_TRUE if the values held by the h should be destroyed\&. This will almost always be M_TRUE\&. This should only be set to M_FALSE when all values held by the h are being managed externally\&. 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_insert (\fBM_hashtable_t\fP * h, const void * key, const void * value)"
+Insert an entry into the h\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIkey\fP Key to insert\&. 
+.br
+\fIvalue\fP Value to insert into h\&. Value will not be duplicated\&. The h will take ownership of the value\&. Maybe NULL\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_remove (\fBM_hashtable_t\fP * h, const void * key, M_bool destroy_vals)"
+Remove an entry from the h\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIkey\fP Key to remove from the h\&. 
+.br
+\fIdestroy_vals\fP M_TRUE if the value held by the h should be destroyed\&. This will almost always be M_TRUE\&. This should only be set to M_FALSE when the value held by the h is being managed externally\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE if key does not exist\&. 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_get (const \fBM_hashtable_t\fP * h, const void * key, void ** value)"
+Retrieve the value for a key from the h\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIkey\fP Key for value\&. 
+.br
+\fIvalue\fP Pointer to value stored in the h\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if value retrieved, M_FALSE if key does not exist\&. 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_multi_len (const \fBM_hashtable_t\fP * h, const void * key, size_t * len)"
+Get the number of values for a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIkey\fP Key for value to retrieve\&. 
+.br
+\fIlen\fP The number of values\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if length is retrieved, M_FALSE if key does not exist\&. 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_multi_get (const \fBM_hashtable_t\fP * h, const void * key, size_t idx, void ** value)"
+Retrieve the value for a key from the given index when supporting muli-values\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIkey\fP Key for value to retrieve\&. 
+.br
+\fIidx\fP The index the value resides at\&. 
+.br
+\fIvalue\fP Pointer to value stored\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if value retrieved, M_FALSE if key does not exist 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_multi_remove (\fBM_hashtable_t\fP * h, const void * key, size_t idx, M_bool destroy_vals)"
+Remove a value from the h when supporting muli-values\&.
+.PP
+If all values have been removed then the key will be removed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced 
+.br
+\fIkey\fP Key for value to retrieve\&. 
+.br
+\fIidx\fP The index the value resides at\&. 
+.br
+\fIdestroy_vals\fP M_TRUE if the value held by the h should be destroyed\&. This will almost always be M_TRUE\&. This should only be set to M_FALSE when the value held by the h is being managed externally\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was removed, M_FALSE if key does not exist\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_hashtable_size (const \fBM_hashtable_t\fP * h)"
+Retrieve the current size (number of buckets/slots, not necessarily used)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Size of the h 
+.RE
+.PP
+
+.SS "size_t M_hashtable_num_collisions (const \fBM_hashtable_t\fP * h)"
+Retrieve the number of collisions for h entries that has occurred since creation\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of collisions\&. 
+.RE
+.PP
+
+.SS "size_t M_hashtable_num_expansions (const \fBM_hashtable_t\fP * h)"
+Retrieve the number of expansions/rehashes since creation\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of expansions/rehashes\&. 
+.RE
+.PP
+
+.SS "size_t M_hashtable_num_keys (const \fBM_hashtable_t\fP * h)"
+Retrieve the number of entries in the h\&.
+.PP
+This is the number of keys stored\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of entries in the h\&. 
+.RE
+.PP
+
+.SS "size_t M_hashtable_enumerate (const \fBM_hashtable_t\fP * h, M_hashtable_enum_t * hashenum)"
+Start an enumeration of the keys within a h\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIhashenum\fP Outputs an initialized state variable for starting an enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of items in the h 
+.RE
+.PP
+
+.SS "M_bool M_hashtable_enumerate_next (const \fBM_hashtable_t\fP * h, M_hashtable_enum_t * hashenum, const void ** key, const void ** value)"
+Retrieve the next item from a h enumeration\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable being referenced\&. 
+.br
+\fIhashenum\fP State variable for tracking the enumeration process\&. 
+.br
+\fIkey\fP Value of next enumerated key\&. Optional, pass NULL if not needed\&. 
+.br
+\fIvalue\fP Value of next enumerated value\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if enumeration succeeded, M_FALSE if no more keys\&. 
+.RE
+.PP
+
+.SS "void M_hashtable_merge (\fBM_hashtable_t\fP ** dest, \fBM_hashtable_t\fP * src)"
+Merge two hashtables together\&.
+.PP
+The second (src) h will be destroyed automatically upon completion of this function\&. Any key/value pointers for the h will be directly copied over to the destination h, they will not be duplicated\&. Any keys which exist in 'dest' that also exist in 'src' will be overwritten by the 'src' value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Pointer by reference to the h receiving the key/value pairs\&. if dest is NULL, the src address will simply be copied to dest\&. 
+.br
+\fIsrc\fP Pointer to the h giving up its key/value pairs\&. 
+.RE
+.PP
+
+.SS "\fBM_hashtable_t\fP* M_hashtable_duplicate (const \fBM_hashtable_t\fP * h)"
+Duplicate an existing h\&.
+.PP
+Copying all keys and values\&. As well as other elements such as callbacks\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable to be copied\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Duplicated h\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

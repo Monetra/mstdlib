@@ -1,0 +1,562 @@
+.TH "m_settings" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_settings
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_settings \fBM_settings_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_settings_scope_t\fP { \fBM_SETTINGS_SCOPE_USER\fP = 0, \fBM_SETTINGS_SCOPE_SYSTEM\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_settings_type_t\fP { \fBM_SETTINGS_TYPE_NATIVE\fP = 0, \fBM_SETTINGS_TYPE_INI\fP, \fBM_SETTINGS_TYPE_JSON\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_settings_access_t\fP { \fBM_SETTINGS_ACCESS_NONE\fP = 0, \fBM_SETTINGS_ACCESS_EXISTS\fP = 1 << 0, \fBM_SETTINGS_ACCESS_READ\fP = 1 << 1, \fBM_SETTINGS_ACCESS_WRITE\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_settings_reader_flags_t\fP { \fBM_SETTINGS_READER_NONE\fP = 0, \fBM_SETTINGS_READER_CASECMP\fP = 1 << 0 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_settings_t\fP * \fBM_settings_create\fP (const char *organization, const char *application, \fBM_settings_scope_t\fP scope, \fBM_settings_type_t\fP type, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_settings_t\fP * \fBM_settings_create_file\fP (const char *filename, \fBM_settings_type_t\fP type, M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_settings_destroy\fP (\fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "\fBM_settings_access_t\fP \fBM_settings_access\fP (const \fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "const char * \fBM_settings_filename\fP (const \fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "\fBM_settings_scope_t\fP \fBM_settings_scope\fP (const \fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "\fBM_settings_type_t\fP \fBM_settings_type\fP (const \fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "\fBM_hash_dict_t\fP * \fBM_settings_create_dict\fP (const \fBM_settings_t\fP *settings)"
+.br
+.ti -1c
+.RI "M_bool \fBM_settings_read\fP (const \fBM_settings_t\fP *settings, \fBM_hash_dict_t\fP **dict)"
+.br
+.ti -1c
+.RI "M_bool \fBM_settings_write\fP (const \fBM_settings_t\fP *settings, \fBM_hash_dict_t\fP *dict)"
+.br
+.ti -1c
+.RI "M_bool \fBM_settings_clear\fP (const \fBM_settings_t\fP *settings, \fBM_hash_dict_t\fP **dict)"
+.br
+.ti -1c
+.RI "char * \fBM_settings_full_key\fP (const char *group, const char *key)"
+.br
+.ti -1c
+.RI "void \fBM_settings_split_key\fP (const char *s, char **group, char **key)"
+.br
+.ti -1c
+.RI "void \fBM_settings_set_value\fP (\fBM_hash_dict_t\fP *dict, const char *group, const char *key, const char *value)"
+.br
+.ti -1c
+.RI "const char * \fBM_settings_value\fP (\fBM_hash_dict_t\fP *dict, const char *group, const char *key)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_settings_groups\fP (\fBM_hash_dict_t\fP *dict, const char *group)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_settings_group_keys\fP (\fBM_hash_dict_t\fP *dict, const char *group)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Platform independent settings storage and retrieval\&.
+.PP
+Settings a are a series of string based key, value pairs\&. The settings themselves are stored/represented by a M_hash_dict_t\&. The M_settings_t object handles storing and retrieving the M_hash_dict_t data\&.
+.PP
+Multi-Value M_hash_dict_t's are not currently supported\&.
+.PP
+M_settings_t only handles the storage aspect of settings\&. It handles determining the OS specific location and format for settings\&. Though the location and format can be overridden\&.
+.PP
+Settings can be stored in groups by using the '/' character to separate groups, sub groups, and keys\&. E\&.g\&.: group1/group2/key=value
+.PP
+Limitation of using the Registry for Windows users:
+.IP "\(bu" 2
+Key names (includes the full path) cannot exceed 255 characters\&.
+.IP "\(bu" 2
+Values cannot exceed 16,383 characters\&.
+.IP "\(bu" 2
+It's recommended not to use the registry to store values exceeding 2,048 characters\&. Instead a file (such as INI) should be used\&.
+.IP "\(bu" 2
+Only 512 sub groups (full path) are supported\&.
+.IP "\(bu" 2
+Only 32 sub groups can be created at one given time using M_settings\&. Meaning you shouldn't use more than approximately 29 sub groups\&.
+.PP
+.PP
+Example:
+.PP
+.PP
+.nf
+M_settings_t  *s;
+M_hash_dict_t *h;
+
+s = M_settings_create("org", "app", M_SETTINGS_SCOPE_USER, M_SETTINGS_TYPE_NATIVE, M_SETTINGS_READER_NONE);
+if (!M_settings_read(s, &h)) {
+    h = M_settings_create_dict(s);
+}
+
+M_hash_dict_insert(h, "key", "val");
+M_settings_write(s, h);
+
+M_hash_dict_destroy(h);
+M_settings_destroy(s);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_settings \fBM_settings_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_settings_scope_t\fP"
+The visibility of the settings\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SETTINGS_SCOPE_USER \fP\fP
+The settings are local to the current user\&.
+.IP "\(bu" 2
+Windows:
+.IP "  \(bu" 4
+HKEY_CURRENT_USER -- When type is registry\&.
+.IP "  \(bu" 4
+'$HOME\\Application Data\\' -- Any other type\&.
+.PP
+
+.IP "\(bu" 2
+Apple's OS X
+.IP "  \(bu" 4
+$HOME/Library/Preferences/
+.PP
+
+.IP "\(bu" 2
+Other OS (Unix/Linux):
+.IP "  \(bu" 4
+$HOME/\&.config/ 
+.PP
+
+.PP
+
+.TP
+\fB\fIM_SETTINGS_SCOPE_SYSTEM \fP\fP
+The settings are global or system level\&.
+.IP "\(bu" 2
+Windows:
+.IP "  \(bu" 4
+HKEY_LOCAL_MACHINE -- When type is registry\&.
+.IP "  \(bu" 4
+Directory where the running process is located -- Any other type\&.
+.PP
+
+.IP "\(bu" 2
+Apple's OS X
+.IP "  \(bu" 4
+/Library/Preferences/
+.PP
+
+.IP "\(bu" 2
+Other OS (Unix/Linux):
+.IP "  \(bu" 4
+/etc/ 
+.PP
+
+.PP
+
+.SS "enum \fBM_settings_type_t\fP"
+The format the settings should be stored on disk in\&.
+.PP
+NATIVE is the recommended format as m_settings abstracts the underlying format for the given OS\&.
+.PP
+That said it is possible to select a specific format\&. For example always using a portable format such as INI or JSON means that settings can shared between OS's\&. However, sharing settings between OS's is dependant on the data itself being cross platform as well\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SETTINGS_TYPE_NATIVE \fP\fP
+The OS preferred format\&.
+.IP "\(bu" 2
+Windows:
+.IP "  \(bu" 4
+Registry\&.
+.PP
+
+.IP "\(bu" 2
+Apple's OS X
+.IP "  \(bu" 4
+JSON
+.PP
+
+.IP "\(bu" 2
+Other OS (Unix/Linux):
+.IP "  \(bu" 4
+INI 
+.PP
+
+.PP
+
+.TP
+\fB\fIM_SETTINGS_TYPE_INI \fP\fP
+INI file\&. JSON file\&. 
+.TP
+\fB\fIM_SETTINGS_TYPE_JSON \fP\fP
+.SS "enum \fBM_settings_access_t\fP"
+Access permissions for a settings\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SETTINGS_ACCESS_NONE \fP\fP
+Cannot read or write\&. 
+.TP
+\fB\fIM_SETTINGS_ACCESS_EXISTS \fP\fP
+File exists\&. 
+.TP
+\fB\fIM_SETTINGS_ACCESS_READ \fP\fP
+Can read\&. 
+.TP
+\fB\fIM_SETTINGS_ACCESS_WRITE \fP\fP
+Can write\&. 
+.SS "enum \fBM_settings_reader_flags_t\fP"
+Flags to control the behavior of the settings reader\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SETTINGS_READER_NONE \fP\fP
+Normal operation\&. 
+.TP
+\fB\fIM_SETTINGS_READER_CASECMP \fP\fP
+Key compare is case insensitive\&. The dictionary returned by read will be created with case insensitive key compare\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_settings_t\fP* M_settings_create (const char * organization, const char * application, \fBM_settings_scope_t\fP scope, \fBM_settings_type_t\fP type, M_uint32 flags)"
+Create a settings object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIorganization\fP Organization information to store the settings under\&. This is recommended for organizational purposes\&. It is recommended (for widest compatibility) to use a domain name\&. Optional and can be NULL if application is specified\&. If application is not specified this will be used as the name stored on disk\&. 
+.br
+\fIapplication\fP The application name\&. Optional and can be NULL if organization is specified\&. 
+.br
+\fIscope\fP The visibility of the configuration\&. User vs system level\&. 
+.br
+\fItype\fP The underlying data type the settings should be stored using\&. 
+.br
+\fIflags\fP M_settings_reader_flags_t flags controlling the reader behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Settings object on success\&. NULL on error\&. 
+.RE
+.PP
+
+.SS "\fBM_settings_t\fP* M_settings_create_file (const char * filename, \fBM_settings_type_t\fP type, M_uint32 flags)"
+Create a settings object at a specific location\&.
+.PP
+Instead of using the default system paths and constructing the filename from the given information a use the specified filename (including path)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIfilename\fP The filename the settings file should be created using\&. If the type is REGISTRY then this will be under HKEY_CURRENT_USER\&. 
+.br
+\fItype\fP The underlying data type the settings should be stored using\&. 
+.br
+\fIflags\fP M_settings_reader_flags_t flags controlling the reader behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Settings object on success\&. NULL on error\&. 
+.RE
+.PP
+
+.SS "void M_settings_destroy (\fBM_settings_t\fP * settings)"
+Destroy a settings object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings object\&. 
+.RE
+.PP
+
+.SS "\fBM_settings_access_t\fP M_settings_access (const \fBM_settings_t\fP * settings)"
+Check what types of operations can be performed for the settings\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The access permissions\&. 
+.RE
+.PP
+
+.SS "const char* M_settings_filename (const \fBM_settings_t\fP * settings)"
+Get the filename (and path) for the settings\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The associated filename\&. If the type is registry the filename is the location under either HKEY_CURRENT_USER or HKEY_LOCAL_MACHINE\&. The HKEY itself will not be returned\&. The scope needs to be used to determine which HKEY would be used\&. 
+.RE
+.PP
+
+.SS "\fBM_settings_scope_t\fP M_settings_scope (const \fBM_settings_t\fP * settings)"
+Get the scope for the settings\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The scope\&. 
+.RE
+.PP
+
+.SS "\fBM_settings_type_t\fP M_settings_type (const \fBM_settings_t\fP * settings)"
+Get the type for the settings\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The underlying type the settings will be stored on disk using\&. This is the actual underlying type\&. If the settings object was created with NATIVE type this will not return NATIVE but the type that is considered 'native' for the OS\&. 
+.RE
+.PP
+
+.SS "\fBM_hash_dict_t\fP* M_settings_create_dict (const \fBM_settings_t\fP * settings)"
+Create an empty dictionary for storing settings\&.
+.PP
+In cases where there is a parse errot this can be used to create and emptry dictionary to overwrite and store new settings\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+An empty dict for storing settings\&. 
+.RE
+.PP
+
+.SS "M_bool M_settings_read (const \fBM_settings_t\fP * settings, \fBM_hash_dict_t\fP ** dict)"
+Read stored settings\&.
+.PP
+M_settings_access should be used to determing if the parse error was due to a permissions error\&. If access shows the file exists and does not show it can be read from then it is a permission error\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings\&. 
+.br
+\fIdict\fP A dict with the settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on successful read or if the 'file' does not exist\&. M_FALSE on parse error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_settings_access\fP 
+.RE
+.PP
+
+.SS "M_bool M_settings_write (const \fBM_settings_t\fP * settings, \fBM_hash_dict_t\fP * dict)"
+Write settings to disk\&.
+.PP
+This will overwrite any existing settings at the location represented by the settings object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings\&. 
+.br
+\fIdict\fP The dict of key, value pairs that hold the setting data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_settings_clear (const \fBM_settings_t\fP * settings, \fBM_hash_dict_t\fP ** dict)"
+Clear settings in memory and on disk\&.
+.PP
+This will clear all existing settings at the location represented by the settings object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsettings\fP The settings\&. 
+.br
+\fIdict\fP The dict of key, value pairs that hold the setting data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "char* M_settings_full_key (const char * group, const char * key)"
+Combine a group and key into a full key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIgroup\fP The group\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The full key\&. 
+.RE
+.PP
+
+.SS "void M_settings_split_key (const char * s, char ** group, char ** key)"
+Split a full key into group and key parts\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP Full key; 
+.br
+\fIgroup\fP The group part\&. 
+.br
+\fIkey\fP The key part\&. 
+.RE
+.PP
+
+.SS "void M_settings_set_value (\fBM_hash_dict_t\fP * dict, const char * group, const char * key, const char * value)"
+Set a settings value\&.
+.PP
+This is a convince function that handles combining the group and key\&. Otherwise it is no different than adding the value to the dict directly\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdict\fP The dict to store the value in\&. 
+.br
+\fIgroup\fP The group\&. Optional, can be NULL if not storing into a group\&. 
+.br
+\fIkey\fP The key to store under\&. 
+.br
+\fIvalue\fP The value to store\&. 
+.RE
+.PP
+
+.SS "const char* M_settings_value (\fBM_hash_dict_t\fP * dict, const char * group, const char * key)"
+Get a settings value\&.
+.PP
+This is a convince function that handles combining the group and key\&. Otherwise it is no different than accessing the dict directly\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdict\fP The dict to read from\&. 
+.br
+\fIgroup\fP The group\&. Optional, can be NULL if not storing into a group\&. 
+.br
+\fIkey\fP The key to store under\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value or NULL if the key under group does not exist\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_settings_groups (\fBM_hash_dict_t\fP * dict, const char * group)"
+Get a list of sub groups under a given group\&.
+.PP
+This only returns direct sub group\&. E\&.g\&. Full key is 'g1/g2/g3/k1'
+.IP "\(bu" 2
+Searching NULL -> 'g1'
+.IP "\(bu" 2
+Searching 'g1' -> 'g2'
+.IP "\(bu" 2
+Searching 'g1/g2' -> 'g2'
+.IP "\(bu" 2
+Searching "g2 -> Nothing because there is no top level g2 group\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdict\fP The dict to read from\&. 
+.br
+\fIgroup\fP The group to filer using\&. Optional, can be NULL to list all top level groups\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of sub groups\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_settings_group_keys (\fBM_hash_dict_t\fP * dict, const char * group)"
+Get a list of keys under a given group\&.
+.PP
+This only returns keys under the given group\&. E\&.g\&. Full key is 'g1/g2/g3/k1'
+.IP "\(bu" 2
+Searching 'g1/g2/g3' -> 'k1'
+.IP "\(bu" 2
+Searching 'g1' -> Nothing because there are no keys directly under this group\&.
+.IP "\(bu" 2
+Searching 'g1/g2' -> Nothing because there are no keys directly under this group\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdict\fP The dict to read from\&. 
+.br
+\fIgroup\fP The group to filer using\&. Optional, can be NULL to list all top level groups\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of keys\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

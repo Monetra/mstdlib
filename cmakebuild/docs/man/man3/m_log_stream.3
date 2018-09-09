@@ -1,0 +1,47 @@
+.TH "m_log_stream" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_log_stream
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_add_stream\fP (\fBM_log_t\fP *log, \fBM_stream_type_t\fP type, size_t max_queue_bytes, \fBM_log_module_t\fP **out_mod)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Functions to enable logging to streams (stdout, stderr)\&.
+.PP
+Not available when building for Android platform\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_log_error_t\fP M_log_module_add_stream (\fBM_log_t\fP * log, \fBM_stream_type_t\fP type, size_t max_queue_bytes, \fBM_log_module_t\fP ** out_mod)"
+Add a module to output to a standard stream (stdout, stderr)\&.
+.PP
+If the library was compiled on a platform that doesn't allow console output (e\&.g\&., Android), this function will return \fBM_LOG_MODULE_UNSUPPORTED\fP when called, and no module will be added to the logger\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fItype\fP what stream to output to (stdout, stderr) 
+.br
+\fImax_queue_bytes\fP max size of queue used to buffer asynchronous writes to the stream 
+.br
+\fIout_mod\fP handle for created module, or \fCNULL\fP if there was an error 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

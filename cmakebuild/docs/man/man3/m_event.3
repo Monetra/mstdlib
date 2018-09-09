@@ -1,0 +1,910 @@
+.TH "m_event" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_event
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef enum \fBM_event_type\fP \fBM_event_type_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_event_trigger \fBM_event_trigger_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_event_timer \fBM_event_timer_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_event \fBM_event_t\fP"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_event_callback_t\fP) (\fBM_event_t\fP *event, \fBM_event_type_t\fP type, \fBM_io_t\fP *io, void *cb_arg)"
+.br
+.ti -1c
+.RI "typedef enum \fBM_event_timer_modes\fP \fBM_event_timer_mode_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_event_status\fP \fBM_event_status_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_event_err\fP \fBM_event_err_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_event_type\fP { \fBM_EVENT_TYPE_CONNECTED\fP = 0, \fBM_EVENT_TYPE_ACCEPT\fP, \fBM_EVENT_TYPE_READ\fP, \fBM_EVENT_TYPE_DISCONNECTED\fP, \fBM_EVENT_TYPE_ERROR\fP, \fBM_EVENT_TYPE_WRITE\fP, \fBM_EVENT_TYPE_OTHER\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_EVENT_FLAGS\fP { \fBM_EVENT_FLAG_NONE\fP = 0, \fBM_EVENT_FLAG_NOWAKE\fP = 1 << 0, \fBM_EVENT_FLAG_EXITONEMPTY\fP = 1 << 1, \fBM_EVENT_FLAG_EXITONEMPTY_NOTIMERS\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_event_timer_modes\fP { \fBM_EVENT_TIMER_MODE_RELATIVE\fP = 1, \fBM_EVENT_TIMER_MODE_MONOTONIC\fP = 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_event_status\fP { \fBM_EVENT_STATUS_RUNNING\fP = 0, \fBM_EVENT_STATUS_PAUSED\fP = 1, \fBM_EVENT_STATUS_RETURN\fP = 2, \fBM_EVENT_STATUS_DONE\fP = 3 }"
+.br
+.ti -1c
+.RI "enum \fBM_event_err\fP { \fBM_EVENT_ERR_DONE\fP = 1, \fBM_EVENT_ERR_TIMEOUT\fP = 2, \fBM_EVENT_ERR_RETURN\fP = 3, \fBM_EVENT_ERR_MISUSE\fP = 4 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_event_t\fP * \fBM_event_create\fP (M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_event_t\fP * \fBM_event_pool_create\fP (size_t max_threads)"
+.br
+.ti -1c
+.RI "\fBM_event_t\fP * \fBM_event_get_pool\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "void \fBM_event_destroy\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_add\fP (\fBM_event_t\fP *event, \fBM_io_t\fP *io, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_edit_io_cb\fP (\fBM_io_t\fP *io, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "void \fBM_event_remove\fP (\fBM_io_t\fP *io)"
+.br
+.ti -1c
+.RI "\fBM_event_trigger_t\fP * \fBM_event_trigger_add\fP (\fBM_event_t\fP *event, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "void \fBM_event_trigger_remove\fP (\fBM_event_trigger_t\fP *trigger)"
+.br
+.ti -1c
+.RI "void \fBM_event_trigger_signal\fP (\fBM_event_trigger_t\fP *trigger)"
+.br
+.ti -1c
+.RI "\fBM_event_timer_t\fP * \fBM_event_timer_add\fP (\fBM_event_t\fP *event, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_start\fP (\fBM_event_timer_t\fP *timer, M_uint64 interval_ms)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_stop\fP (\fBM_event_timer_t\fP *timer)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_reset\fP (\fBM_event_timer_t\fP *timer, M_uint64 interval_ms)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_set_starttv\fP (\fBM_event_timer_t\fP *timer, \fBM_timeval_t\fP *start_tv)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_set_endtv\fP (\fBM_event_timer_t\fP *timer, \fBM_timeval_t\fP *end_tv)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_set_firecount\fP (\fBM_event_timer_t\fP *timer, size_t cnt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_set_autoremove\fP (\fBM_event_timer_t\fP *timer, M_bool enabled)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_set_mode\fP (\fBM_event_timer_t\fP *timer, \fBM_event_timer_mode_t\fP mode)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_event_timer_get_remaining_ms\fP (\fBM_event_timer_t\fP *timer)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_get_status\fP (\fBM_event_timer_t\fP *timer)"
+.br
+.ti -1c
+.RI "\fBM_event_timer_t\fP * \fBM_event_timer_oneshot\fP (\fBM_event_t\fP *event, M_uint64 interval_ms, M_bool autoremove, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_timer_remove\fP (\fBM_event_timer_t\fP *timer)"
+.br
+.ti -1c
+.RI "M_bool \fBM_event_queue_task\fP (\fBM_event_t\fP *event, \fBM_event_callback_t\fP callback, void *cb_data)"
+.br
+.ti -1c
+.RI "\fBM_event_err_t\fP \fBM_event_loop\fP (\fBM_event_t\fP *event, M_uint64 timeout_ms)"
+.br
+.ti -1c
+.RI "void \fBM_event_done\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "void \fBM_event_return\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "void \fBM_event_done_with_disconnect\fP (\fBM_event_t\fP *event, M_uint64 timeout_ms)"
+.br
+.ti -1c
+.RI "\fBM_event_status_t\fP \fBM_event_get_status\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_event_process_time_ms\fP (\fBM_event_t\fP *event)"
+.br
+.ti -1c
+.RI "size_t \fBM_event_num_objects\fP (\fBM_event_t\fP *event)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Cross platform event based processing\&. A platform specific backend will be used as the underlying event system but all events will be exposed though this interface\&. No platform specific knowledge is needed\&.
+.PP
+Developers used to working with macOS event loop style of programming can use this event system to use that paradigm on other platforms\&. In this scenario most events would be triggered as OTHER\&. Some sort of tracking would be necessary to determine why an event was triggered if the same callback is used for multiple situations\&.
+.PP
+The event system is thread safe allowing io objects and times can be added to and moved between different event loops running on different threads\&. Triggers can be triggered from different threads\&. Destruction of an io object from a different thread will be queued in the event loop it's running on\&.
+.PP
+Note: the CONNECTED event will be triggered when a io object is added to an event loop using \fBM_event_add()\fP\&.
+.PP
+Example application that demonstrates read/write events, timers, and queued tasks\&.
+.PP
+.PP
+.nf
+#include <mstdlib/mstdlib\&.h>
+#include <mstdlib/mstdlib_io\&.h>
+
+typedef struct {
+    M_buf_t    *buf;
+    M_parser_t *parser;
+    M_io_t     *io; // Necessary for the queued task and timer to have the correct io object\&.
+} ldata_t;
+
+static void add_queued_data(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+    ldata_t *ldata = thunk;
+
+    (void)el;
+    (void)etype;
+
+    M_buf_add_str(ldata->buf, "STARTING\n");
+    M_io_write_from_buf(ldata->io, ldata->buf);
+}
+
+static void add_data(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+    ldata_t    *ldata = thunk;
+    static int  i     = 1;
+
+    (void)el;
+    (void)etype;
+
+    M_buf_add_str(ldata->buf, "TEST ");
+    M_buf_add_int(ldata->buf, i++);
+    M_buf_add_byte(ldata->buf, '\n');
+    M_io_write_from_buf(ldata->io, ldata->buf);
+}
+
+static void stop(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+    (void)etype;
+    (void)io;
+    (void)thunk;
+
+    M_event_done_with_disconnect(el, 1000);
+}
+
+static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+    ldata_t *ldata = thunk;
+    char    *out;
+
+    switch (etype) {
+        case M_EVENT_TYPE_CONNECTED:
+            break;
+        case M_EVENT_TYPE_READ:
+            M_io_read_into_parser(io, ldata->parser);
+            out = M_parser_read_strdup(ldata->parser, M_parser_len(ldata->parser));
+            M_printf("%s", out);
+            M_free(out);
+            break;
+        case M_EVENT_TYPE_WRITE:
+            // Write any data pending in the buffer\&.
+            M_io_write_from_buf(io, ldata->buf);
+            break;
+        case M_EVENT_TYPE_DISCONNECTED:
+            break;
+        case M_EVENT_TYPE_ACCEPT:
+        case M_EVENT_TYPE_ERROR:
+        case M_EVENT_TYPE_OTHER:
+            M_event_done(el);
+            break;
+    }
+}
+
+int main(int argc, char *argv)
+{
+    M_event_t       *el;
+    M_io_t          *io;
+    M_event_timer_t *timer;
+    ldata_t          ldata;
+
+    el = M_event_create(M_EVENT_FLAG_NONE);
+
+    M_io_loopback_create(&io);
+    ldata\&.buf    = M_buf_create();
+    ldata\&.parser = M_parser_create(M_PARSER_FLAG_NONE);
+    ldata\&.io     = io;
+
+    M_event_add(el, io, run_cb, &ldata);
+    M_event_queue_task(el, add_queued_data, &ldata);
+
+    timer = M_event_timer_add(el, add_data, &ldata);
+    M_event_timer_start(timer, 500);
+    timer = M_event_timer_add(el, stop, NULL);
+    M_event_timer_start(timer, 5000);
+
+    M_event_loop(el, M_TIMEOUT_INF);
+
+    M_io_destroy(io);
+    M_event_destroy(el);
+    M_buf_cancel(ldata\&.buf);
+    M_parser_destroy(ldata\&.parser);
+    return 0;
+}
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef enum \fBM_event_type\fP \fBM_event_type_t\fP"
+Events that can be generated\&. 
+.SS "typedef struct M_event_trigger \fBM_event_trigger_t\fP"
+Handle for an event trigger 
+.SS "typedef struct M_event_timer \fBM_event_timer_t\fP"
+Handle for an event timer 
+.SS "typedef struct M_event \fBM_event_t\fP"
+
+.SS "typedef void(* M_event_callback_t) (\fBM_event_t\fP *event, \fBM_event_type_t\fP type, \fBM_io_t\fP *io, void *cb_arg)"
+Definition for a function callback that is called every time an event is triggered by the event subsystem\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Internal event object, this is an event-thread specific object which could be the member of a pool\&. This object may be used to add new events to the same event thread, or \fBM_event_get_pool()\fP can be used to retrieve the master pool handle for distributing events across threads\&. 
+.br
+\fItype\fP The type of event that has been triggered, see M_event_type_t\&. Always M_EVENT_TYPE_OTHER for trigger, timer, and queued tasks\&. 
+.br
+\fIio\fP Pointer to the M_io_t object associated with the event, or NULL for trigger, timer, and queued tasks\&. 
+.br
+\fIcb_arg\fP User-specified callback argument registered when the object was added to the event handle\&. 
+.RE
+.PP
+
+.SS "typedef enum \fBM_event_timer_modes\fP \fBM_event_timer_mode_t\fP"
+Timer modes of operation 
+.SS "typedef enum \fBM_event_status\fP \fBM_event_status_t\fP"
+Possible event status codes for an event loop or pool 
+.SS "typedef enum \fBM_event_err\fP \fBM_event_err_t\fP"
+Possible return codes for \fBM_event_loop()\fP 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_event_type\fP"
+Events that can be generated\&.
+.PP
+Events are enumerated in priority of delivery order 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_EVENT_TYPE_CONNECTED \fP\fP
+The connection has been completed 
+.TP
+\fB\fIM_EVENT_TYPE_ACCEPT \fP\fP
+A new incoming connection is ready to be accepted 
+.TP
+\fB\fIM_EVENT_TYPE_READ \fP\fP
+There is available data to be read 
+.TP
+\fB\fIM_EVENT_TYPE_DISCONNECTED \fP\fP
+The connection has been successfully disconnected\&. This is only triggered after a disconnect request, Otherwise most failures are determined by a Read event followed by a read failure\&. The connection object should be closed after this\&. 
+.TP
+\fB\fIM_EVENT_TYPE_ERROR \fP\fP
+An error occurred\&. Most likely during connection establishment by a higher-level protocol\&. The connection object should be closed after this\&. 
+.TP
+\fB\fIM_EVENT_TYPE_WRITE \fP\fP
+There is room available in the write buffer 
+.TP
+\fB\fIM_EVENT_TYPE_OTHER \fP\fP
+Some other event occurred, such as a triggered or timer-based event 
+.SS "enum \fBM_EVENT_FLAGS\fP"
+Possible list of flags that can be used when initializing an event loop 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_EVENT_FLAG_NONE \fP\fP
+No specialized flags 
+.TP
+\fB\fIM_EVENT_FLAG_NOWAKE \fP\fP
+We will never need to wake the event loop from another thread 
+.TP
+\fB\fIM_EVENT_FLAG_EXITONEMPTY \fP\fP
+Exit the event loop when there are no registered events 
+.TP
+\fB\fIM_EVENT_FLAG_EXITONEMPTY_NOTIMERS \fP\fP
+When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers 
+.SS "enum \fBM_event_timer_modes\fP"
+Timer modes of operation 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_EVENT_TIMER_MODE_RELATIVE \fP\fP
+The interval will be added on to the end of the last actual run time 
+.TP
+\fB\fIM_EVENT_TIMER_MODE_MONOTONIC \fP\fP
+The interval will be added on to the last scheduled run time, even if that time has already passed\&. This means you could have events that run closer together than the specified interval if it is trying to 'catch up' due to a long running event handler\&. In general this is more useful for needing an event to run as close to a certain interval as possible without skewing the interval between events by the amount of time it takes to handle event callbacks\&. 
+.SS "enum \fBM_event_status\fP"
+Possible event status codes for an event loop or pool 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_EVENT_STATUS_RUNNING \fP\fP
+The event loop is current running and processing events 
+.TP
+\fB\fIM_EVENT_STATUS_PAUSED \fP\fP
+The event loop is not running due to not being started or a timeout occurring 
+.TP
+\fB\fIM_EVENT_STATUS_RETURN \fP\fP
+The event loop was explicitly told to return using \fBM_event_return()\fP 
+.TP
+\fB\fIM_EVENT_STATUS_DONE \fP\fP
+The event loop either exited due to \fBM_event_done()\fP or there were no objects remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY 
+.SS "enum \fBM_event_err\fP"
+Possible return codes for \fBM_event_loop()\fP 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_EVENT_ERR_DONE \fP\fP
+The event loop either exited due to \fBM_event_done()\fP or \fBM_event_done_with_disconnect()\fP or there were no objects remaining as the event loop was initialized with M_EVENT_FLAG_EXITONEMPTY 
+.TP
+\fB\fIM_EVENT_ERR_TIMEOUT \fP\fP
+The timeout specified in \fBM_event_loop()\fP has expired 
+.TP
+\fB\fIM_EVENT_ERR_RETURN \fP\fP
+\fBM_event_return()\fP was explicitly called 
+.TP
+\fB\fIM_EVENT_ERR_MISUSE \fP\fP
+Misuse, e\&.g\&. NULL event handle 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_event_t\fP* M_event_create (M_uint32 flags)"
+Create a base event loop object\&.
+.PP
+An event loop is typically run in the main process thread and will block until process termination\&. IO and timer objects are enqueued into the event loop and dispatched within the event loop\&. Event loops are more efficient and scalable than using a thread per tracked io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIflags\fP One or more enum M_EVENT_FLAGS
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Initialized event loop object\&. 
+.RE
+.PP
+
+.SS "\fBM_event_t\fP* M_event_pool_create (size_t max_threads)"
+Create a pool of M_event_t objects bound to a master pool handle to distribute load of event handling across multiple threads\&.
+.PP
+One thread per CPU core will be created for handling events, up to the maximum specified during creationg of the pool\&. When an object is added to the event pool handle, an internal search is performed, and the least-loaded thread will receive the new object\&.
+.PP
+Objects bound to the same internal event object will always execute in the same thread which may be desirable for co-joined objects (otherwise additional locking may be required since multiple events could fire from different threads for some shared resource)\&. Typically this co-joined objects will be created based on events that have been fired, so the M_event_t object returned from the M_event_callback_t callback should be used to ensure they stay co-joined\&.
+.PP
+For non co-joined objects, always ensure the event handle used is the pool by calling \fBM_event_get_pool()\fP otherwise load will not be distributed at all\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImax_threads\fP Artificial limitation on the maximum number of threads, the actual number of threads will be the lesser of this value and the number of cpu cores in the system\&. Use 0 for this value to simply use the number of cpu cores\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Initialized event pool, or in the case only a single thread would be used, a normal event object\&. 
+.RE
+.PP
+
+.SS "\fBM_event_t\fP* M_event_get_pool (\fBM_event_t\fP * event)"
+Retrieve the distributed pool handle for balancing the load across an event pool, or self if not part of a pool\&.
+.PP
+This should be called to get the event handle during \fBM_event_add()\fP, \fBM_event_trigger_add()\fP, \fBM_event_timer_add()\fP, \fBM_event_timer_oneshot()\fP, or \fBM_event_queue_task()\fP as by default tasks will otherwise not be distributed if using the event handle returned by the M_event_callback_t\&. In some cases it is desirable to ensure co-joined objects run within the same event thread and therefore desirable to enqueue multiple tasks for an internal event loop handle rather than the distributed pool\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Pointer to event handle either returned by \fBM_event_create()\fP, \fBM_event_pool_create()\fP, or from an M_event_callback_t\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to event pool, or self if not part of a pool (or if a pool object already passed in)\&. 
+.RE
+.PP
+
+.SS "void M_event_destroy (\fBM_event_t\fP * event)"
+Destroy the event loop or pool object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Pointer to event handle either returned by \fBM_event_create()\fP, \fBM_event_pool_create()\fP, or from an M_event_callback_t\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_add (\fBM_event_t\fP * event, \fBM_io_t\fP * io, \fBM_event_callback_t\fP callback, void * cb_data)"
+Add an io object to the event loop handle with a registered callback to deliver events to\&.
+.PP
+Adding handles to an event handle is threadsafe and can be executed either within an event callback or from a separate thread\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Event handle to add the event to\&. If desirable to ensure this io object is distributed across a pool, it is recommended to pass the return value of \fBM_event_get_pool()\fP rather than the event handle returned by an M_event_callback_t callback\&. 
+.br
+\fIio\fP IO object to bind to the event handle\&. 
+.br
+\fIcallback\fP Callback to be called when events occur\&. 
+.br
+\fIcb_data\fP Optional\&. User-defined callback data that will be passed to the user-defined callback\&. Use NULL if no data is necessary\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on failure (e\&.g\&. misuse, or io handle already bound to an event)\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_edit_io_cb (\fBM_io_t\fP * io, \fBM_event_callback_t\fP callback, void * cb_data)"
+Edit the callback associated with an io object in the event subsystem\&.
+.PP
+Editing allows a user to re-purpose an io object while processing events without needing to remove and re-add the object which may cause a loss of events\&.
+.PP
+\fBNote:\fP
+.RS 4
+This will NOT cause a connected event to be triggered like \fBM_event_add()\fP does when you first add an io object to an event loop for already-established connections\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP IO object to modify the callback for 
+.br
+\fIcallback\fP Callback to set\&. NULL will set it to no callback\&. 
+.br
+\fIcb_data\fP Data passed to callback function\&. NULL will remove the cb_data\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error, such as if the IO object is not currently attached to an event loop\&. 
+.RE
+.PP
+
+.SS "void M_event_remove (\fBM_io_t\fP * io)"
+Remove an io object from its associated event handle\&.
+.PP
+Removing handles is threadsafe and can be executed either within an event callback or from a separate thread\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP IO object\&. 
+.RE
+.PP
+
+.SS "\fBM_event_trigger_t\fP* M_event_trigger_add (\fBM_event_t\fP * event, \fBM_event_callback_t\fP callback, void * cb_data)"
+Create a user-callable trigger which will call the pre-registered callback\&. Useful for cross-thread completion or status update notifications\&. Triggering events is threadsafe\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Event handle to add the event to\&. If desirable to ensure this io object is distributed across a pool, it is recommended to pass the return value of \fBM_event_get_pool()\fP rather than the event handle returned by an M_event_callback_t callback\&. 
+.br
+\fIcallback\fP Callback to be called when the trigger is called\&. 
+.br
+\fIcb_data\fP Optional\&. User-defined callback data that will be passed to the user-defined callback\&. Use NULL if no data is necessary\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+handle to trigger to be used to execute callback, or NULL on failure 
+.RE
+.PP
+
+.SS "void M_event_trigger_remove (\fBM_event_trigger_t\fP * trigger)"
+Remove the user-callable trigger, once removed, the trigger is no longer valid and cannot be called\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItrigger\fP Trigger returned from \fBM_event_trigger_add()\fP 
+.RE
+.PP
+
+.SS "void M_event_trigger_signal (\fBM_event_trigger_t\fP * trigger)"
+Signal the registered callback associated with the trigger to be called\&. This is threadsafe and may be called cross thread\&. If multiple signals are delivered before the callback is called, the duplicate signals will be silently discarded\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItrigger\fP Trigger returned from \fBM_event_trigger_add()\fP 
+.RE
+.PP
+
+.SS "\fBM_event_timer_t\fP* M_event_timer_add (\fBM_event_t\fP * event, \fBM_event_callback_t\fP callback, void * cb_data)"
+Add a timer object to the event loop specified that will call the user-supplied callback when the timer expires\&. The timer is created in a stopped state and must be started before it will fire\&.
+.PP
+If the timer is associated with another object (e\&.g\&. co-joined) then the same event handle as the other object should be used\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Event handle to add the timer to\&. If the event handle is a pool object, it will automatically distribute to an event thread\&. 
+.br
+\fIcallback\fP User-specified callback to call when the timer expires 
+.br
+\fIcb_data\fP Optional\&. User-specified data supplied to user-specified callback when executed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Timer handle on success, NULL on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_start (\fBM_event_timer_t\fP * timer, M_uint64 interval_ms)"
+Starts the specified timer with timeout specified\&. When the timeout expires, the callback associated with the timer will be executed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIinterval_ms\fP Time in milliseconds before the timer will expire\&. May only be 0 if the configured 'firecount' is 1\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure (such as timer already running or invalid use)\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_stop (\fBM_event_timer_t\fP * timer)"
+Stops the specified timer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if timer not running 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_reset (\fBM_event_timer_t\fP * timer, M_uint64 interval_ms)"
+Restart the timer\&.
+.PP
+If the timer is already stopped, will simply start it again\&. If the timer has 'autoremove' configured, the removal will be skipped on stop\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIinterval_ms\fP Time in milliseconds before the timer will expire\&. If specified as 0, will use the same interval_ms as the original \fBM_event_timer_start()\fP call (NOTE: this is different behavior than the value of 0 for \fBM_event_timer_start()\fP)
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_set_starttv (\fBM_event_timer_t\fP * timer, \fBM_timeval_t\fP * start_tv)"
+Set absolute time for first event to be fired\&.
+.PP
+This will not take effect until the next call to \fBM_event_timer_start()\fP or \fBM_event_timer_reset()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIstart_tv\fP Absolute time of first event to be fired, or NULL to clear\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_set_endtv (\fBM_event_timer_t\fP * timer, \fBM_timeval_t\fP * end_tv)"
+Set absolute time for when the timer will automatically stop
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIend_tv\fP Absolute time of when to stop the timer, or NULL to clear\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_set_firecount (\fBM_event_timer_t\fP * timer, size_t cnt)"
+Set the maximum number of times the timer should fire\&. Default is unlimited\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIcnt\fP Maximum number of times timer should fire\&. Use 0 for unlimited\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_set_autoremove (\fBM_event_timer_t\fP * timer, M_bool enabled)"
+Set the timer to automatically remove itself and free all used memory when the timer enters the stopped state\&. This will happen when exceeding the fire count, exceeding the configured end_tv or explicitly calling \fBM_event_timer_stop()\fP\&.
+.PP
+NOTE: Be careful not to attempt to use the timer handle once it has been autoremoved as it will result in access to uninitialized memory\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fIenabled\fP M_TRUE to enable autoremove, M_FALSE to disable autoremove\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_set_mode (\fBM_event_timer_t\fP * timer, \fBM_event_timer_mode_t\fP mode)"
+Sets the timer mode of operation\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP 
+.br
+\fImode\fP Defaults to M_EVENT_TIMER_MODE_RELATIVE if not specified\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_event_timer_get_remaining_ms (\fBM_event_timer_t\fP * timer)"
+Retrieve number of milliseconds remaining on timer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of milliseconds remaining on timer, or 0 if stopped\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_get_status (\fBM_event_timer_t\fP * timer)"
+Retrieves if the timer is active(started) or not\&.
+.PP
+NOTE: Do not use with auto-destroy timers as the timer handle may not be valid if you don't already know the status\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if timer is started, M_FALSE if timer is stopped\&. 
+.RE
+.PP
+
+.SS "\fBM_event_timer_t\fP* M_event_timer_oneshot (\fBM_event_t\fP * event, M_uint64 interval_ms, M_bool autoremove, \fBM_event_callback_t\fP callback, void * cb_data)"
+Create a single-event timer\&.
+.PP
+This is a convenience function equivalent to: M_event_timer_add(event, callback, cbdata) + M_event_timer_set_firecount(timer, 1) + M_event_timer_set_autoremove(timer, autoremove) + M_event_timer_start(timer, interval_ms)
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Event handle to add the timer to\&. If the event handle is a pool object, it will automatically distribute to an event thread\&. 
+.br
+\fIinterval_ms\fP Time in milliseconds before the timer will expire\&. 
+.br
+\fIautoremove\fP Whether the timer should automatically remove itself when it fires\&. 
+.br
+\fIcallback\fP User-specified callback to call when the timer expires 
+.br
+\fIcb_data\fP Optional\&. User-specified data supplied to user-specified callback when executed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Timer handle on success, NULL on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_timer_remove (\fBM_event_timer_t\fP * timer)"
+Remove the timer and free all memory used by the timer\&.
+.PP
+If the timer isn't already stopped, this will prevent the timer from firing\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItimer\fP Timer handle returned by \fBM_event_timer_add()\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_event_queue_task (\fBM_event_t\fP * event, \fBM_event_callback_t\fP callback, void * cb_data)"
+Queue a task to run in the same thread as the event loop\&.
+.PP
+This is threadsafe to call, and convenient when wanting to avoid additional locks when operating on an object in the event loop\&.
+.PP
+This is currently implemented as a oneshot timer set for 0ms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Event handle to add task to\&. Does not make sense to hand an event pool object since the purpose is to choose the event loop to use\&. 
+.br
+\fIcallback\fP User-specified callback to call 
+.br
+\fIcb_data\fP Optional\&. User-specified data supplied to user-specified callback when executed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "\fBM_event_err_t\fP M_event_loop (\fBM_event_t\fP * event, M_uint64 timeout_ms)"
+Start the event loop to start processing events\&.
+.PP
+Events will not be delivered unless the event loop is running\&. If the event handle is a pool, will spawn threads for each member of the pool except one which will run and block the thread executing this function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle 
+.br
+\fItimeout_ms\fP Time in milliseconds to wait for events\&. Use M_TIMEOUT_INF to wait until an explicit exit condition has been met, which is the recommended way to run the event loop\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+One of the M_event_err_t conditions\&. 
+.RE
+.PP
+
+.SS "void M_event_done (\fBM_event_t\fP * event)"
+Exit the event loop immediately\&.
+.PP
+This is safe to call from a thread other than the event loop\&. Will set the M_EVENT_ERR_DONE return code for the event loop\&.
+.PP
+This will exit all threads for event pools as well, and if an event child handle is passed instead of the pool handle, it will automatically escalate to the pool handle\&.
+.PP
+This does not clean up the resources for the event loop and it is safe to re-execute the same event loop handle once it has returned\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle 
+.RE
+.PP
+
+.SS "void M_event_return (\fBM_event_t\fP * event)"
+Exit the event loop immediately\&.
+.PP
+This is safe to call from a thread other than the event loop\&. Will set the M_EVENT_ERR_RETURN return code for the event loop, this is the only way this call differs from \fBM_event_done()\fP\&.
+.PP
+This will exit all threads for event pools as well, and if an event child handle is passed instead of the pool handle, it will automatically escalate to the pool handle\&.
+.PP
+This does not clean up the resources for the event loop and it is safe to re-execute the same event loop handle once it has returned\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle 
+.RE
+.PP
+
+.SS "void M_event_done_with_disconnect (\fBM_event_t\fP * event, M_uint64 timeout_ms)"
+Signal all IO objects in the event loop to start their disconnect sequence and exit the event loop when all are closed, or the specified timeout has elapsed\&.
+.PP
+This is safe to call from a thread other than the event loop\&. Will set the M_EVENT_ERR_DONE return code for the event loop\&. The only difference between this and \fBM_event_done()\fP is it attempts to close the IO objects gracefully, some users may want to use this for program termination\&.
+.PP
+This will exit all threads for event pools as well, and if an event child handle is passed instead of the pool handle, it will automatically escalate to the pool handle\&.
+.PP
+This does not clean up the resources for the event loop and it is safe to re-execute the same event loop handle once it has returned\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle 
+.br
+\fItimeout_ms\fP Number of milliseconds to wait on IO handles to close before giving up\&. This should be set to some reasonable number to accommodate for proper disconnect sequences\&. A good starting point may be 5s (5000ms)\&. 
+.RE
+.PP
+
+.SS "\fBM_event_status_t\fP M_event_get_status (\fBM_event_t\fP * event)"
+Get the current running status of the event loop\&.
+.PP
+If an event child handle is passed instead of the pool handle, it will automatically escalate to the pool handle\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of M_event_status_t results\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_event_process_time_ms (\fBM_event_t\fP * event)"
+Retrieve the number of milliseconds spent processing events, roughly equivalent to actual CPU time, not including idle time waiting on events to come in\&.
+.PP
+Will return results for the actual handle passed\&. If the handle is a child of an event pool, it will only return the child's processing time\&. If all processing time is desired, use \fBM_event_get_pool()\fP to get the pool handle before calling this function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+milliseconds spent processing events\&. 
+.RE
+.PP
+
+.SS "size_t M_event_num_objects (\fBM_event_t\fP * event)"
+Retrieve the number of M_io_t objects plus the number of M_event_timer_t objects associated with an event handle
+.PP
+Will return results for the actual handle passed\&. If the handle is a child of an event pool, it will only return the child's processing time\&. If all processing time is desired, use \fBM_event_get_pool()\fP to get the pool handle before calling this function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIevent\fP Initialized event handle
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+count of objects\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

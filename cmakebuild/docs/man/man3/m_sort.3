@@ -1,0 +1,405 @@
+.TH "m_sort" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sort
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef int(* \fBM_sort_compar_t\fP) (const void *, const void *, void *)"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "size_t \fBM_sort_binary_insert_idx\fP (const void *base, size_t nmemb, size_t esize, const void *key, M_bool stable, \fBM_sort_compar_t\fP compar, void *thunk)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sort_binary_search\fP (const void *base, size_t nmemb, size_t esize, const void *key, M_bool stable, \fBM_sort_compar_t\fP compar, void *thunk, size_t *idx)"
+.br
+.ti -1c
+.RI "void \fBM_sort_qsort\fP (void *base, size_t nmemb, size_t esize, \fBM_sort_compar_t\fP compar, void *thunk)"
+.br
+.ti -1c
+.RI "void \fBM_sort_mergesort\fP (void *base, size_t nmemb, size_t esize, \fBM_sort_compar_t\fP compar, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_str\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_str_desc\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_str_casecmp\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_str_casecmp_desc\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_u64\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_u64_desc\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_binwraped\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_vp\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.ti -1c
+.RI "int \fBM_sort_compar_vp_desc\fP (const void *arg1, const void *arg2, void *thunk)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Searching and sorting operations\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef int(* M_sort_compar_t) (const void *, const void *, void *)"
+Comparision function prototype\&.
+.PP
+Used the same as qsort or bsearch!
+.PP
+The internal array holding the data elements is a void pointer which means the compar function has a reference to the index of the array (void **)\&. That means you may need to dereference more time than you think\&. E\&.g: 
+.PP
+.nf
+M_uint64 i1 = *(*((M_uint64 * const *)arg1));
+
+.fi
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&. 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "size_t M_sort_binary_insert_idx (const void * base, size_t nmemb, size_t esize, const void * key, M_bool stable, \fBM_sort_compar_t\fP compar, void * thunk)"
+Find the index the key should be inserted at in a sorted array\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP The array of elements to search\&. 
+.br
+\fInmemb\fP The number of elements in the array\&. 
+.br
+\fIesize\fP The size of each element in the array\&. 
+.br
+\fIkey\fP The element to be inserted\&. 
+.br
+\fIstable\fP Should the insert find and use the last matching element\&. This can cause performance to degrade to worst case O(n/2)\&. 
+.br
+\fIcompar\fP The comparision function\&. 
+.br
+\fIthunk\fP Additional data to pass to the comparison function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The index the item should be inserted at\&. If the the key is <= the first element, will always return 0\&. If the key is >= the last element, will always return nmemb\&. 
+.RE
+.PP
+
+.SS "M_bool M_sort_binary_search (const void * base, size_t nmemb, size_t esize, const void * key, M_bool stable, \fBM_sort_compar_t\fP compar, void * thunk, size_t * idx)"
+Find and element in a sorted array\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP The array of elements to search\&. 
+.br
+\fInmemb\fP The number of elements in the array\&. 
+.br
+\fIesize\fP The size of each element in the array\&. 
+.br
+\fIkey\fP The element to be inserted\&. 
+.br
+\fIstable\fP Should the insert find and use the last matching element\&. This can cause performance to degrade to worst case O(n/2)\&. 
+.br
+\fIcompar\fP The comparision function\&. 
+.br
+\fIthunk\fP Additional data to pass to the comparison function\&. 
+.br
+\fIidx\fP The index of the items location\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+True if the item was found\&. Otherwise false\&. 
+.RE
+.PP
+
+.SS "void M_sort_qsort (void * base, size_t nmemb, size_t esize, \fBM_sort_compar_t\fP compar, void * thunk)"
+Sort elements in array in ascending order according to comparison function\&.
+.PP
+This is an unstable sort\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP The array of elements to sort\&. 
+.br
+\fInmemb\fP The number of elements in the array\&. 
+.br
+\fIesize\fP The size of each element in the array\&. 
+.br
+\fIcompar\fP The comparison function\&. 
+.br
+\fIthunk\fP Additional data to pass to the comparison function\&. 
+.RE
+.PP
+
+.SS "void M_sort_mergesort (void * base, size_t nmemb, size_t esize, \fBM_sort_compar_t\fP compar, void * thunk)"
+Sort elements in array in ascending order according to comparison function\&.
+.PP
+This is a stable sort\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbase\fP The array of elements to sort\&. 
+.br
+\fInmemb\fP The number of elements in the array\&. 
+.br
+\fIesize\fP The size of each element in the array\&. 
+.br
+\fIcompar\fP The comparison function\&. 
+.br
+\fIthunk\fP Additional data to pass to the comparison function\&. 
+.RE
+.PP
+
+.SS "int M_sort_compar_str (const void * arg1, const void * arg2, void * thunk)"
+qsort style string comparison in ascending order\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_str_desc (const void * arg1, const void * arg2, void * thunk)"
+qsort style string comparison in descending order\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_str_casecmp (const void * arg1, const void * arg2, void * thunk)"
+qsort style string comparison in ascending order case insensitive\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_str_casecmp_desc (const void * arg1, const void * arg2, void * thunk)"
+qsort style string comparison in descending order case insensitive\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_u64 (const void * arg1, const void * arg2, void * thunk)"
+qsort style unsigned integer comparison in ascending order\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_u64_desc (const void * arg1, const void * arg2, void * thunk)"
+qsort style unsigned integer comparison in descending order\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_binwraped (const void * arg1, const void * arg2, void * thunk)"
+qsort style wrapped binary data comparison for data that has been wrapped using M_bin_wrap\&.
+.PP
+The binary data will be compared using M_mem_cmpsort\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.PP
+\fBM_mem_cmpsort\fP 
+.PP
+\fBM_bin_wrap\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_vp (const void * arg1, const void * arg2, void * thunk)"
+qsort style unsigned integer comparison in ascending order\&.
+.PP
+The pointer themselves are compared; \fInot\fP the value they point to\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SS "int M_sort_compar_vp_desc (const void * arg1, const void * arg2, void * thunk)"
+qsort style unsigned integer comparison in descending order\&.
+.PP
+The pointer themselves are compared; \fInot\fP the value they point to\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarg1\fP The first arg to compare\&. 
+.br
+\fIarg2\fP The second arg to compare\&. 
+.br
+\fIthunk\fP Additional data to use for comparison\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_sort_compar_t\fP 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

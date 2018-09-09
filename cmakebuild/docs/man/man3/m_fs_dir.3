@@ -1,0 +1,362 @@
+.TH "m_fs_dir" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_dir
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBM_fs_dir_entry_destroy\fP (\fBM_fs_dir_entry_t\fP *entry) M_FREE(1)"
+.br
+.ti -1c
+.RI "\fBM_fs_type_t\fP \fBM_fs_dir_entry_get_type\fP (const \fBM_fs_dir_entry_t\fP *entry)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_dir_entry_get_ishidden\fP (const \fBM_fs_dir_entry_t\fP *entry)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_dir_entry_get_name\fP (const \fBM_fs_dir_entry_t\fP *entry)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_dir_entry_get_resolved_name\fP (const \fBM_fs_dir_entry_t\fP *entry)"
+.br
+.ti -1c
+.RI "const \fBM_fs_info_t\fP * \fBM_fs_dir_entry_get_info\fP (const \fBM_fs_dir_entry_t\fP *entry)"
+.br
+.ti -1c
+.RI "void \fBM_fs_dir_entries_destroy\fP (\fBM_fs_dir_entries_t\fP *d) M_FREE(1)"
+.br
+.ti -1c
+.RI "void \fBM_fs_dir_entries_sort\fP (\fBM_fs_dir_entries_t\fP *d, \fBM_fs_dir_sort_t\fP primary_sort, M_bool primary_asc, \fBM_fs_dir_sort_t\fP secondary_sort, M_bool secondary_asc)"
+.br
+.ti -1c
+.RI "size_t \fBM_fs_dir_entries_len\fP (const \fBM_fs_dir_entries_t\fP *d)"
+.br
+.ti -1c
+.RI "const \fBM_fs_dir_entry_t\fP * \fBM_fs_dir_entries_at\fP (const \fBM_fs_dir_entries_t\fP *d, size_t idx)"
+.br
+.ti -1c
+.RI "\fBM_fs_dir_entry_t\fP * \fBM_fs_dir_entries_take_at\fP (\fBM_fs_dir_entries_t\fP *d, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_dir_entries_remove_at\fP (\fBM_fs_dir_entries_t\fP *d, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_dir_entries_remove_range\fP (\fBM_fs_dir_entries_t\fP *d, size_t start, size_t end)"
+.br
+.ti -1c
+.RI "void \fBM_fs_dir_entries_merge\fP (\fBM_fs_dir_entries_t\fP **dest, \fBM_fs_dir_entries_t\fP *src) M_FREE(2)"
+.br
+.ti -1c
+.RI "void \fBM_fs_dir_walk\fP (const char *path, const char *pat, M_uint32 filter, M_fs_dir_walk_cb_t cb, void *thunk)"
+.br
+.ti -1c
+.RI "\fBM_fs_dir_entries_t\fP * \fBM_fs_dir_walk_entries\fP (const char *path, const char *pat, M_uint32 filter)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_fs_dir_walk_strs\fP (const char *path, const char *pat, M_uint32 filter)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_dir_mkdir\fP (const char *path, M_bool create_parents, \fBM_fs_perms_t\fP *perms)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "void M_fs_dir_entry_destroy (\fBM_fs_dir_entry_t\fP * entry)"
+Destroy a directory entry\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry to destroy\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_type_t\fP M_fs_dir_entry_get_type (const \fBM_fs_dir_entry_t\fP * entry)"
+Get the type of the entry\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The type\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_dir_entry_get_ishidden (const \fBM_fs_dir_entry_t\fP * entry)"
+Get whether this entry is considered hidden by the OS\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Whether this entry is considered hidden\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_dir_entry_get_name (const \fBM_fs_dir_entry_t\fP * entry)"
+Get the filename of the entry\&.
+.PP
+The path/filename is relative to the directory that was walked\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The name\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_dir_entry_get_resolved_name (const \fBM_fs_dir_entry_t\fP * entry)"
+Get the resolved filename\&.
+.PP
+This only applies if the entry is a symlink\&. The resolved name is the path that the symlink points to\&. This is relative to the filename\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The resolved name\&. 
+.RE
+.PP
+
+.SS "const \fBM_fs_info_t\fP* M_fs_dir_entry_get_info (const \fBM_fs_dir_entry_t\fP * entry)"
+Get the file information about the entry\&.
+.PP
+This may be NULL if reading file info was not requested during walk\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIentry\fP The entry\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The file info\&. 
+.RE
+.PP
+
+.SS "void M_fs_dir_entries_destroy (\fBM_fs_dir_entries_t\fP * d)"
+Destroy a list of directory entries\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list to destroy\&. 
+.RE
+.PP
+
+.SS "void M_fs_dir_entries_sort (\fBM_fs_dir_entries_t\fP * d, \fBM_fs_dir_sort_t\fP primary_sort, M_bool primary_asc, \fBM_fs_dir_sort_t\fP secondary_sort, M_bool secondary_asc)"
+Sort a list of directory entries\&.
+.PP
+This does an in place sort and does not keep list sorted for subsequent insertions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&. 
+.br
+\fIprimary_sort\fP Primary sort method\&. 
+.br
+\fIprimary_asc\fP Should the primary sorting be ascending\&. 
+.br
+\fIsecondary_sort\fP The secondary sort method that should be used when entries are considered equal according to the primary_sort method\&. 
+.br
+\fIsecondary_asc\fP Should the secondary sorting be ascending\&. 
+.RE
+.PP
+
+.SS "size_t M_fs_dir_entries_len (const \fBM_fs_dir_entries_t\fP * d)"
+Get the number of entries in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The length of the list\&. 
+.RE
+.PP
+
+.SS "const \fBM_fs_dir_entry_t\fP* M_fs_dir_entries_at (const \fBM_fs_dir_entries_t\fP * d, size_t idx)"
+Get the entry at at the specified index\&.
+.PP
+The entry remains part of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The entry\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_dir_entry_t\fP* M_fs_dir_entries_take_at (\fBM_fs_dir_entries_t\fP * d, size_t idx)"
+Take the entry from the list\&.
+.PP
+The entry will be removed from the list\&. It is up to the caller to free the entry\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The entry\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_fs_dir_entry_destroy\fP 
+.RE
+.PP
+
+.SS "M_bool M_fs_dir_entries_remove_at (\fBM_fs_dir_entries_t\fP * d, size_t idx)"
+Remove and destroy the entry at the given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the entry was destroyed\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_dir_entries_remove_range (\fBM_fs_dir_entries_t\fP * d, size_t start, size_t end)"
+Remove and destroy all entries in a given range\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The entry list\&. 
+.br
+\fIstart\fP The starting index\&. Inclusive\&. 
+.br
+\fIend\fP The ending index\&. Inclusive\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the entry was destroyed\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "void M_fs_dir_entries_merge (\fBM_fs_dir_entries_t\fP ** dest, \fBM_fs_dir_entries_t\fP * src)"
+Merge two directory entry lists together\&.
+.PP
+The second (src) list will be destroyed automatically upon completion of this function\&. Any value pointers for the list will be directly copied over to the destination list, they will not be duplicated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Pointer by reference to the list receiving the values\&. if this is NULL, the pointer will simply be switched out for src\&. 
+.br
+\fIsrc\fP Pointer to the list giving up its values\&. 
+.RE
+.PP
+
+.SS "void M_fs_dir_walk (const char * path, const char * pat, M_uint32 filter, M_fs_dir_walk_cb_t cb, void * thunk)"
+List the contents of a directory by walking the tree\&.
+.PP
+The tree will be walked depth first\&. When searching for both directory and file contents, the directory entry will come after entries for the directories contents\&. Support for modifying while walking is OS and filesystem dependent\&. Thus, behavior while modifying the contents of a directory during a walk is undefined\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to walk\&. 
+.br
+\fIpat\fP Glob style pattern to filter entries in the tree\&. Only entries matching the pattern will be included in the output\&. NULL, '', and '*' will match all entries\&. 
+.br
+\fIfilter\fP M_fs_dir_walk_filter_t flags controlling the behavior of the walk\&. 
+.br
+\fIcb\fP Callback for entries\&. 
+.br
+\fIthunk\fP Additional data passed to the callback\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_dir_entries_t\fP* M_fs_dir_walk_entries (const char * path, const char * pat, M_uint32 filter)"
+List the contents of a directory by walking the tree\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to walk\&. 
+.br
+\fIpat\fP Glob style pattern to filter entries in the tree\&. Only entries matching the pattern will be included in the output\&. NULL, '', and '*' will match all entries\&. 
+.br
+\fIfilter\fP M_fs_dir_walk_filter_t flags controlling the behavior of the walk\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of entries in the dir\&. The entries are relative to the specified path\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_fs_dir_walk_strs (const char * path, const char * pat, M_uint32 filter)"
+List the contents of a directory as a list of string paths by walking the tree\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to walk\&. 
+.br
+\fIpat\fP Glob style pattern to filter entries in the tree\&. Only entries matching the pattern will be included in the output\&. NULL, '', and '*' will match all entries\&. 
+.br
+\fIfilter\fP M_fs_dir_walk_filter_t flags controlling the behavior of the walk\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of string paths that are the contents of the dir\&. The entries are relative to the specified path\&. Directory entries in the output list will end with the OS path separator\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_dir_mkdir (const char * path, M_bool create_parents, \fBM_fs_perms_t\fP * perms)"
+Create a directory\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The directory to create\&. 
+.br
+\fIcreate_parents\fP When M_TRUE create the any parents of the last directory if they do not exist instead of erroring\&. 
+.br
+\fIperms\fP Additional perms to apply to the created directory\&. If perms is NULL a default perms of rw-rw-r-- & ~umask is used\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,482 @@
+.TH "m_io_serial" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_io_serial
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_MASK_BITS\fP   0x000F"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_MASK_PARITY\fP   0x00F0"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_MASK_STOPBITS\fP   0x0F00"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_BITS_8\fP   0x0000 /* CS8 */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_BITS_7\fP   0x0001 /* CS7 */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_PARITY_NONE\fP   0x0000 /* &= ~(PARENB | PARODD | CMSPAR) */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_PARITY_EVEN\fP   0x0010 /* PARENB */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_PARITY_ODD\fP   0x0020 /* PARENB | PARODD */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_PARITY_MARK\fP   0x0030 /* PARENB | CMSPAR | PARODD \-\- CMSPAR may be undefined */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_PARITY_SPACE\fP   0x0040 /* PARENB | CMSPAR \- &= ~PARODD \-\- CMSPAR may be undefined */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_STOPBITS_1\fP   0x0000 /* &= ~(CSTOPB) */"
+.br
+.ti -1c
+.RI "#define \fBM_IO_SERIAL_MODE_STOPBITS_2\fP   0x0100 /* CSTOPB */"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef enum \fBM_io_serial_baud\fP \fBM_io_serial_baud_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_io_serial_flowcontrol\fP \fBM_io_serial_flowcontrol_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_io_serial_mode\fP \fBM_io_serial_mode_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_io_serial_flags\fP \fBM_io_serial_flags_t\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBM_io_serial_enum\fP \fBM_io_serial_enum_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_io_serial_baud\fP { \fBM_IO_SERIAL_BAUD_0\fP = 0, \fBM_IO_SERIAL_BAUD_50\fP = 50, \fBM_IO_SERIAL_BAUD_75\fP = 75, \fBM_IO_SERIAL_BAUD_110\fP = 110, \fBM_IO_SERIAL_BAUD_134\fP = 134, \fBM_IO_SERIAL_BAUD_150\fP = 150, \fBM_IO_SERIAL_BAUD_200\fP = 200, \fBM_IO_SERIAL_BAUD_300\fP = 300, \fBM_IO_SERIAL_BAUD_600\fP = 600, \fBM_IO_SERIAL_BAUD_1200\fP = 1200, \fBM_IO_SERIAL_BAUD_1800\fP = 1800, \fBM_IO_SERIAL_BAUD_2400\fP = 2400, \fBM_IO_SERIAL_BAUD_4800\fP = 4800, \fBM_IO_SERIAL_BAUD_7200\fP = 7200, \fBM_IO_SERIAL_BAUD_9600\fP = 9600, \fBM_IO_SERIAL_BAUD_14400\fP = 14400, \fBM_IO_SERIAL_BAUD_19200\fP = 19200, \fBM_IO_SERIAL_BAUD_28800\fP = 28800, \fBM_IO_SERIAL_BAUD_38400\fP = 38400, \fBM_IO_SERIAL_BAUD_57600\fP = 57600, \fBM_IO_SERIAL_BAUD_115200\fP = 115200, \fBM_IO_SERIAL_BAUD_128000\fP = 128000, \fBM_IO_SERIAL_BAUD_230400\fP = 230400, \fBM_IO_SERIAL_BAUD_256000\fP = 256000, \fBM_IO_SERIAL_BAUD_460800\fP = 460800, \fBM_IO_SERIAL_BAUD_500000\fP = 500000, \fBM_IO_SERIAL_BAUD_576000\fP = 576000, \fBM_IO_SERIAL_BAUD_921600\fP = 921600, \fBM_IO_SERIAL_BAUD_1000000\fP = 1000000, \fBM_IO_SERIAL_BAUD_1152000\fP = 1152000, \fBM_IO_SERIAL_BAUD_1500000\fP = 1500000, \fBM_IO_SERIAL_BAUD_2000000\fP = 2000000, \fBM_IO_SERIAL_BAUD_2500000\fP = 2500000, \fBM_IO_SERIAL_BAUD_3000000\fP = 3000000, \fBM_IO_SERIAL_BAUD_3500000\fP = 3500000, \fBM_IO_SERIAL_BAUD_4000000\fP = 4000000 }"
+.br
+.ti -1c
+.RI "enum \fBM_io_serial_flowcontrol\fP { \fBM_IO_SERIAL_FLOWCONTROL_NONE\fP = 0, \fBM_IO_SERIAL_FLOWCONTROL_HARDWARE\fP = 1, \fBM_IO_SERIAL_FLOWCONTROL_SOFTWARE\fP = 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_io_serial_mode\fP { \fBM_IO_SERIAL_MODE_8N1\fP = M_IO_SERIAL_MODE_BITS_8 | M_IO_SERIAL_MODE_PARITY_NONE | M_IO_SERIAL_MODE_STOPBITS_1, \fBM_IO_SERIAL_MODE_7E1\fP = M_IO_SERIAL_MODE_BITS_7 | M_IO_SERIAL_MODE_PARITY_EVEN | M_IO_SERIAL_MODE_STOPBITS_1, \fBM_IO_SERIAL_MODE_7O1\fP = M_IO_SERIAL_MODE_BITS_7 | M_IO_SERIAL_MODE_PARITY_ODD | M_IO_SERIAL_MODE_STOPBITS_1 }"
+.br
+.ti -1c
+.RI "enum \fBM_io_serial_flags\fP { \fBM_IO_SERIAL_FLAG_NONE\fP = 0, \fBM_IO_SERIAL_FLAG_IGNORE_TERMIOS_FAILURE\fP = 1 << 0, \fBM_IO_SERIAL_FLAG_NO_FLUSH_ON_CLOSE\fP = 1 << 1, \fBM_IO_SERIAL_FLAG_NO_RESTORE_ON_CLOSE\fP = 1 << 2, \fBM_IO_SERIAL_FLAG_ASYNC_TIMEOUT\fP = 1 << 3, \fBM_IO_SERIAL_FLAG_BUSY_POLLING\fP = 1 << 4 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_create\fP (\fBM_io_t\fP **io_out, const char *path, \fBM_io_serial_baud_t\fP baud, \fBM_io_serial_flowcontrol_t\fP flowcontrol, \fBM_io_serial_mode_t\fP mode, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_set_baud\fP (\fBM_io_t\fP *io, \fBM_io_serial_baud_t\fP baud)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_set_flowcontrol\fP (\fBM_io_t\fP *io, \fBM_io_serial_flowcontrol_t\fP flowcontrol)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_set_mode\fP (\fBM_io_t\fP *io, \fBM_io_serial_mode_t\fP mode)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_get_flowcontrol\fP (\fBM_io_t\fP *io, \fBM_io_serial_flowcontrol_t\fP *flowcontrol)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_get_mode\fP (\fBM_io_t\fP *io, \fBM_io_serial_mode_t\fP *mode)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_serial_get_baud\fP (\fBM_io_t\fP *io, \fBM_io_serial_baud_t\fP *baud)"
+.br
+.ti -1c
+.RI "\fBM_io_serial_enum_t\fP * \fBM_io_serial_enum\fP (M_bool include_modems)"
+.br
+.ti -1c
+.RI "void \fBM_io_serial_enum_destroy\fP (\fBM_io_serial_enum_t\fP *serenum)"
+.br
+.ti -1c
+.RI "size_t \fBM_io_serial_enum_count\fP (const \fBM_io_serial_enum_t\fP *serenum)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_serial_enum_path\fP (const \fBM_io_serial_enum_t\fP *serenum, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_serial_enum_name\fP (const \fBM_io_serial_enum_t\fP *serenum, size_t idx)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Serial Port I/O functions 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_IO_SERIAL_MODE_MASK_BITS   0x000F"
+
+.SS "#define M_IO_SERIAL_MODE_MASK_PARITY   0x00F0"
+
+.SS "#define M_IO_SERIAL_MODE_MASK_STOPBITS   0x0F00"
+
+.SS "#define M_IO_SERIAL_MODE_BITS_8   0x0000 /* CS8 */"
+
+.SS "#define M_IO_SERIAL_MODE_BITS_7   0x0001 /* CS7 */"
+
+.SS "#define M_IO_SERIAL_MODE_PARITY_NONE   0x0000 /* &= ~(PARENB | PARODD | CMSPAR) */"
+
+.SS "#define M_IO_SERIAL_MODE_PARITY_EVEN   0x0010 /* PARENB */"
+
+.SS "#define M_IO_SERIAL_MODE_PARITY_ODD   0x0020 /* PARENB | PARODD */"
+
+.SS "#define M_IO_SERIAL_MODE_PARITY_MARK   0x0030 /* PARENB | CMSPAR | PARODD \-\- CMSPAR may be undefined */"
+
+.SS "#define M_IO_SERIAL_MODE_PARITY_SPACE   0x0040 /* PARENB | CMSPAR \- &= ~PARODD \-\- CMSPAR may be undefined */"
+
+.SS "#define M_IO_SERIAL_MODE_STOPBITS_1   0x0000 /* &= ~(CSTOPB) */"
+
+.SS "#define M_IO_SERIAL_MODE_STOPBITS_2   0x0100 /* CSTOPB */"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef enum \fBM_io_serial_baud\fP \fBM_io_serial_baud_t\fP"
+
+.SS "typedef enum \fBM_io_serial_flowcontrol\fP \fBM_io_serial_flowcontrol_t\fP"
+
+.SS "typedef enum \fBM_io_serial_mode\fP \fBM_io_serial_mode_t\fP"
+
+.SS "typedef enum \fBM_io_serial_flags\fP \fBM_io_serial_flags_t\fP"
+
+.SS "typedef struct \fBM_io_serial_enum\fP \fBM_io_serial_enum_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_io_serial_baud\fP"
+Baud rate\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_SERIAL_BAUD_0 \fP\fP
+Used to terminate the connection (drop DTR) 
+.TP
+\fB\fIM_IO_SERIAL_BAUD_50 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_75 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_110 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_134 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_150 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_200 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_300 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_600 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_1200 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_1800 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_2400 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_4800 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_7200 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_9600 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_14400 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_19200 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_28800 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_38400 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_57600 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_115200 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_128000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_230400 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_256000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_460800 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_500000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_576000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_921600 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_1000000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_1152000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_1500000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_2000000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_2500000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_3000000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_3500000 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_BAUD_4000000 \fP\fP
+.SS "enum \fBM_io_serial_flowcontrol\fP"
+Types of flow control\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_SERIAL_FLOWCONTROL_NONE \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_FLOWCONTROL_HARDWARE \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_FLOWCONTROL_SOFTWARE \fP\fP
+.SS "enum \fBM_io_serial_mode\fP"
+Mode\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_SERIAL_MODE_8N1 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_MODE_7E1 \fP\fP
+.TP
+\fB\fIM_IO_SERIAL_MODE_7O1 \fP\fP
+.SS "enum \fBM_io_serial_flags\fP"
+Flags to control behavior\&.
+.PP
+These flags provide work around for broken system\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_SERIAL_FLAG_NONE \fP\fP
+Default, assume strict and proper behavior 
+.TP
+\fB\fIM_IO_SERIAL_FLAG_IGNORE_TERMIOS_FAILURE \fP\fP
+Ignore any termios (baud, mode, flow) setting failures\&. * Some serial port emulators may intentionally fail\&. 
+.TP
+\fB\fIM_IO_SERIAL_FLAG_NO_FLUSH_ON_CLOSE \fP\fP
+Do not flush any pending data on close\&. This may confuse * or lock up some serial port emulators\&. 
+.TP
+\fB\fIM_IO_SERIAL_FLAG_NO_RESTORE_ON_CLOSE \fP\fP
+Do not restore termios (baud, mode, flow) settings on * close\&. It is a best practice but often does not provide * any real benefit\&. 
+.TP
+\fB\fIM_IO_SERIAL_FLAG_ASYNC_TIMEOUT \fP\fP
+Windows Only\&. For Asynchronous reads use a timeout value * rather than infinite as some drivers may not allow * canceling of async reads (such as Citrix serial * forwarding)\&. Not used if BUSY_POLLING is used 
+.TP
+\fB\fIM_IO_SERIAL_FLAG_BUSY_POLLING \fP\fP
+Windows Only\&. Perform busy-polling in a separate thread * rather than using asynchronous reads\&. This may work * around driver issues that do not properly support * Overlapped IO\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_io_error_t\fP M_io_serial_create (\fBM_io_t\fP ** io_out, const char * path, \fBM_io_serial_baud_t\fP baud, \fBM_io_serial_flowcontrol_t\fP flowcontrol, \fBM_io_serial_mode_t\fP mode, M_uint32 flags)"
+Create a serial connection\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio_out\fP io object for communication\&. 
+.br
+\fIpath\fP Path to serial device\&. 
+.br
+\fIbaud\fP Baud rate\&. 
+.br
+\fIflowcontrol\fP Flow control method\&. 
+.br
+\fImode\fP Mode\&. 
+.br
+\fIflags\fP M_io_serial_flags_t mapping\&. M_IO_SERIAL_FLAG_IGNORE_TERMIOS_FAILURE may need to be enabled for some 'virtual' serial ports, but the device will still open and be usable\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_set_baud (\fBM_io_t\fP * io, \fBM_io_serial_baud_t\fP baud)"
+Set the baud rate on a serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fIbaud\fP Baud rate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_set_flowcontrol (\fBM_io_t\fP * io, \fBM_io_serial_flowcontrol_t\fP flowcontrol)"
+Set the flow control on a serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fIflowcontrol\fP Flow control method\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_set_mode (\fBM_io_t\fP * io, \fBM_io_serial_mode_t\fP mode)"
+Set the mode on a serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fImode\fP Mode\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_get_flowcontrol (\fBM_io_t\fP * io, \fBM_io_serial_flowcontrol_t\fP * flowcontrol)"
+Get the flow control of an serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fIflowcontrol\fP Flow control method to return\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_get_mode (\fBM_io_t\fP * io, \fBM_io_serial_mode_t\fP * mode)"
+Get the mode of an serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fImode\fP Mode to return\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_serial_get_baud (\fBM_io_t\fP * io, \fBM_io_serial_baud_t\fP * baud)"
+Get the baud rate of an serial io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object\&. 
+.br
+\fIbaud\fP Baud to return\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_serial_enum_t\fP* M_io_serial_enum (M_bool include_modems)"
+Create a serial enumeration object\&.
+.PP
+Use to determine what serial devices are connected\&. On some OS's this may be a list of device ports and not not necessarily what's connected\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Serial enumeration object\&. 
+.RE
+.PP
+
+.SS "void M_io_serial_enum_destroy (\fBM_io_serial_enum_t\fP * serenum)"
+Destroy a serial enumeration object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIserenum\fP Serial enumeration object\&. 
+.RE
+.PP
+
+.SS "size_t M_io_serial_enum_count (const \fBM_io_serial_enum_t\fP * serenum)"
+Number of serial objects in the enumeration\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIserenum\fP Serial enumeration object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Count of serial devices\&. 
+.RE
+.PP
+
+.SS "const char* M_io_serial_enum_path (const \fBM_io_serial_enum_t\fP * serenum, size_t idx)"
+Path of serial device as reported by the device\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIserenum\fP Serial enumeration object\&. 
+.br
+\fIidx\fP Index in serial enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String\&. 
+.RE
+.PP
+
+.SS "const char* M_io_serial_enum_name (const \fBM_io_serial_enum_t\fP * serenum, size_t idx)"
+Name of serial device\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIserenum\fP Serial enumeration object\&. 
+.br
+\fIidx\fP Index in serial enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

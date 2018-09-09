@@ -1,0 +1,2190 @@
+.TH "m_parser" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_parser
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_parser \fBM_parser_t\fP"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_parser_predicate_func\fP) (unsigned char c)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_PARSER_FLAGS\fP { \fBM_PARSER_FLAG_NONE\fP = 0, \fBM_PARSER_FLAG_TRACKLINES\fP = 1 << 0 }"
+.br
+.ti -1c
+.RI "enum \fBM_PARSER_WHITESPACE_FLAGS\fP { \fBM_PARSER_WHITESPACE_NONE\fP = 0, \fBM_PARSER_WHITESPACE_TO_NEWLINE\fP = 1 << 0, \fBM_PARSER_WHITESPACE_SPACEONLY\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_PARSER_INTEGER_TYPE\fP { \fBM_PARSER_INTEGER_ASCII\fP = 0, \fBM_PARSER_INTEGER_BIGENDIAN\fP = 1, \fBM_PARSER_INTEGER_LITTLEENDIAN\fP = 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_PARSER_SPLIT_FLAGS\fP { \fBM_PARSER_SPLIT_FLAG_NONE\fP = 0, \fBM_PARSER_SPLIT_FLAG_NODELIM_ERROR\fP = 1 << 0 }"
+.br
+.ti -1c
+.RI "enum \fBM_PARSER_FRAME_BYES\fP { \fBM_PARSER_FRAME_NONE\fP = 0, \fBM_PARSER_FRAME_STX\fP = 1 << 0, \fBM_PARSER_FRAME_ETX\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_PARSER_FRAME_ERROR\fP { \fBM_PARSER_FRAME_ERROR_SUCCESS\fP = 0, \fBM_PARSER_FRAME_ERROR_INVALID\fP, \fBM_PARSER_FRAME_ERROR_NO_STX\fP, \fBM_PARSER_FRAME_ERROR_NO_ETX\fP, \fBM_PARSER_FRAME_ERROR_NO_LRC\fP, \fBM_PARSER_FRAME_ERROR_LRC_CALC_FAILED\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_create_const\fP (const unsigned char *buf, size_t len, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_create\fP (M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_parser_destroy\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_append\fP (\fBM_parser_t\fP *parser, const unsigned char *data, size_t len)"
+.br
+.ti -1c
+.RI "unsigned char * \fBM_parser_direct_write_start\fP (\fBM_parser_t\fP *parser, size_t *len)"
+.br
+.ti -1c
+.RI "void \fBM_parser_direct_write_end\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_len\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_current_offset\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_current_line\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_current_column\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_compare\fP (\fBM_parser_t\fP *parser, const unsigned char *data, size_t data_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_compare_str\fP (\fBM_parser_t\fP *parser, const char *str, size_t max_len, M_bool casecmp)"
+.br
+.ti -1c
+.RI "void \fBM_parser_mark\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "void \fBM_parser_mark_clear\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_mark_len\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_mark_rewind\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_reset\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "const unsigned char * \fBM_parser_peek\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "const unsigned char * \fBM_parser_peek_mark\fP (\fBM_parser_t\fP *parser, size_t *len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_peek_byte\fP (\fBM_parser_t\fP *parser, unsigned char *byte)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_peek_bytes\fP (\fBM_parser_t\fP *parser, size_t len, unsigned char *buf)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_truncate\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_whitespace\fP (\fBM_parser_t\fP *parser, M_uint32 flags)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_until\fP (\fBM_parser_t\fP *parser, const unsigned char *pat, size_t len, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_charset\fP (\fBM_parser_t\fP *parser, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_str_until\fP (\fBM_parser_t\fP *parser, const char *pat, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_truncate_str_charset\fP (\fBM_parser_t\fP *parser, const char *charset)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_consume\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_whitespace\fP (\fBM_parser_t\fP *parser, M_uint32 flags)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_until\fP (\fBM_parser_t\fP *parser, const unsigned char *pat, size_t len, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_charset\fP (\fBM_parser_t\fP *parser, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_str_until\fP (\fBM_parser_t\fP *parser, const char *pat, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_str_charset\fP (\fBM_parser_t\fP *parser, const char *charset)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_not_charset\fP (\fBM_parser_t\fP *parser, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_str_not_charset\fP (\fBM_parser_t\fP *parser, const char *charset)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_consume_eol\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_int\fP (\fBM_parser_t\fP *parser, enum \fBM_PARSER_INTEGER_TYPE\fP type, size_t len, unsigned char base, M_int64 *integer)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_uint\fP (\fBM_parser_t\fP *parser, enum \fBM_PARSER_INTEGER_TYPE\fP type, size_t len, unsigned char base, M_uint64 *integer)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_uint_bcd\fP (\fBM_parser_t\fP *parser, size_t len, M_uint64 *integer)"
+.br
+.ti -1c
+.RI "enum \fBM_DECIMAL_RETVAL\fP \fBM_parser_read_decimal\fP (\fBM_parser_t\fP *parser, size_t len, M_bool truncate_fail, \fBM_decimal_t\fP *decimal)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_byte\fP (\fBM_parser_t\fP *parser, unsigned char *byte)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_bytes\fP (\fBM_parser_t\fP *parser, size_t len, unsigned char *buf)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_max\fP (\fBM_parser_t\fP *parser, size_t len, unsigned char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_until\fP (\fBM_parser_t\fP *parser, unsigned char *buf, size_t buf_len, const unsigned char *pat, size_t pat_len, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_charset\fP (\fBM_parser_t\fP *parser, const unsigned char *charset, size_t charset_len, unsigned char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func, unsigned char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_chr_predicate_func\fP func, unsigned char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_bytes_mark\fP (\fBM_parser_t\fP *parser, unsigned char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_str\fP (\fBM_parser_t\fP *parser, size_t len, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_max\fP (\fBM_parser_t\fP *parser, size_t len, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_until\fP (\fBM_parser_t\fP *parser, char *buf, size_t buf_len, const char *pat, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_charset\fP (\fBM_parser_t\fP *parser, const char *charset, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_chr_predicate_func\fP func, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_str_mark\fP (\fBM_parser_t\fP *parser, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_hex\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_until\fP (\fBM_parser_t\fP *parser, const char *pat, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_charset\fP (\fBM_parser_t\fP *parser, const char *charset)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "char * \fBM_parser_read_strdup_mark\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_buf\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, size_t len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_read_buf_hex\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_max\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_until\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, const unsigned char *pat, size_t pat_len, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_charset\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_not_charset\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_predicate\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "size_t \fBM_parser_read_buf_mark\fP (\fBM_parser_t\fP *parser, \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser\fP (\fBM_parser_t\fP *parser, size_t len)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser_until\fP (\fBM_parser_t\fP *parser, const unsigned char *pat, size_t len, M_bool eat_pat)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser_charset\fP (\fBM_parser_t\fP *parser, unsigned const char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser_chr_predicate\fP (\fBM_parser_t\fP *parser, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP * \fBM_parser_read_parser_mark\fP (\fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "\fBM_PARSER_FRAME_ERROR\fP \fBM_parser_read_stxetxlrc_message\fP (\fBM_parser_t\fP *parser, \fBM_parser_t\fP **out, M_uint32 lrc_frame_chars)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_predicate\fP (\fBM_parser_t\fP *parser, size_t len, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_chr_predicate\fP (\fBM_parser_t\fP *parser, size_t len, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_charset\fP (\fBM_parser_t\fP *parser, size_t len, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_str_charset\fP (\fBM_parser_t\fP *parser, size_t len, const char *charset)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_not_predicate\fP (\fBM_parser_t\fP *parser, size_t len, \fBM_parser_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_not_chr_predicate\fP (\fBM_parser_t\fP *parser, size_t len, \fBM_chr_predicate_func\fP func)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_not_charset\fP (\fBM_parser_t\fP *parser, size_t len, const unsigned char *charset, size_t charset_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_parser_is_not_str_charset\fP (\fBM_parser_t\fP *parser, size_t len, const char *charset)"
+.br
+.ti -1c
+.RI "\fBM_parser_t\fP ** \fBM_parser_split\fP (\fBM_parser_t\fP *parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t *num_output)"
+.br
+.ti -1c
+.RI "void \fBM_parser_split_free\fP (\fBM_parser_t\fP **parsers, size_t cnt)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Buffer based data parser\&.
+.PP
+Efficient parser that prevents reading past the end of the data buffer\&. Has helpers for reading specific types from the buffer (auto conversion)\&. Also supports line and column tracking\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_parser \fBM_parser_t\fP"
+
+.SS "typedef M_bool(* M_parser_predicate_func) (unsigned char c)"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_PARSER_FLAGS\fP"
+Flags controlling behavior of the parser\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_FLAG_NONE \fP\fP
+No Flags\&. 
+.TP
+\fB\fIM_PARSER_FLAG_TRACKLINES \fP\fP
+Track lines and columns\&. This should only be enabled if needed as it will cause an additional data scan\&. 
+.SS "enum \fBM_PARSER_WHITESPACE_FLAGS\fP"
+Flags controlling what constitutes whitespace\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_WHITESPACE_NONE \fP\fP
+Consumes all whitespace 
+.TP
+\fB\fIM_PARSER_WHITESPACE_TO_NEWLINE \fP\fP
+Only consume whitespace up to and including the next new line\&. 
+.TP
+\fB\fIM_PARSER_WHITESPACE_SPACEONLY \fP\fP
+Only consume space 0x20 characters\&. 
+.SS "enum \fBM_PARSER_INTEGER_TYPE\fP"
+Integer binary format\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_INTEGER_ASCII \fP\fP
+Integer represented in ASCII form\&. 
+.TP
+\fB\fIM_PARSER_INTEGER_BIGENDIAN \fP\fP
+Integer represented in Big Endian form\&. 
+.TP
+\fB\fIM_PARSER_INTEGER_LITTLEENDIAN \fP\fP
+Integer represented in Little Endian form\&. 
+.SS "enum \fBM_PARSER_SPLIT_FLAGS\fP"
+Splitting flags\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_SPLIT_FLAG_NONE \fP\fP
+No flags, standard behavior 
+.TP
+\fB\fIM_PARSER_SPLIT_FLAG_NODELIM_ERROR \fP\fP
+Return an error if the specified delimiter is not found, otherwise all the data is put in a single parser object 
+.SS "enum \fBM_PARSER_FRAME_BYES\fP"
+Framing characters\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_FRAME_NONE \fP\fP
+No framing characters\&. 
+.TP
+\fB\fIM_PARSER_FRAME_STX \fP\fP
+STX (0x02) 
+.TP
+\fB\fIM_PARSER_FRAME_ETX \fP\fP
+ETX (0x03) 
+.SS "enum \fBM_PARSER_FRAME_ERROR\fP"
+STX, ETX, LRC unwrapping responses\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_SUCCESS \fP\fP
+Success\&. 
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_INVALID \fP\fP
+Invalid input\&. 
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_NO_STX \fP\fP
+Data does not start with STX\&. 
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_NO_ETX \fP\fP
+ETX not found\&. 
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_NO_LRC \fP\fP
+Not enough data for LRC\&. 
+.TP
+\fB\fIM_PARSER_FRAME_ERROR_LRC_CALC_FAILED \fP\fP
+LRC calculation failed\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_parser_t\fP* M_parser_create_const (const unsigned char * buf, size_t len, M_uint32 flags)"
+Initialize a parser object using const data\&.
+.PP
+The object is initialized with constant data which cannot be appended to\&. Memory is not duplicated and therefore the memory for the buffer pointed to must exist for the life of the parser\&. The parser will not clean up the memory for the referenced object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Data to parse, must not be NULL\&. 
+.br
+\fIlen\fP Length of data to be parsed\&. 
+.br
+\fIflags\fP Any of the enum M_PARSER_FLAGS bitwise OR'd together\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Parser object, or NULL on failure\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_destroy\fP 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_create (M_uint32 flags)"
+Initialize an empty parser object\&.
+.PP
+Its initial state is empty and data must be appended to it before any data can be parsed\&.
+.PP
+IMPLEMENTATION NOTE: For efficiency, data which is parsed will be purged from memory when additional internal buffer space is required during an append operation\&. This is to reclaim space and reduce the number of allocations required when parsing stream-based data\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Parser object, or NULL on failure\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_destroy\fP 
+.RE
+.PP
+
+.SS "void M_parser_destroy (\fBM_parser_t\fP * parser)"
+Destroy the parser object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_append (\fBM_parser_t\fP * parser, const unsigned char * data, size_t len)"
+Append data to a parser object\&.
+.PP
+The parser object must have been initialized with \fBM_parser_create()\fP\&. This will append the data to the internal buffer extending the available length of data to parse\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object, but not be a const object\&. 
+.br
+\fIdata\fP Data to append\&. 
+.br
+\fIlen\fP Length of data to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on misuse\&. 
+.RE
+.PP
+
+.SS "unsigned char* M_parser_direct_write_start (\fBM_parser_t\fP * parser, size_t * len)"
+Begin a direct write operation\&. In general, this function should not be used, it is meant as an optimization to prevent double buffering when reading I/O\&. A writable buffer will be returned of at least the length requested, often it will be much larger\&. To end the direct write process, \fBM_parser_direct_write_end()\fP must be called with the length actually written\&. It is not valid to call any other M_parser_*() functions between start and end\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object, but not be a const object 
+.br
+\fIlen\fP Pass in the minimum requested buffer size, outputs the maximum writable buffer size\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Writable buffer or NULL on failure 
+.RE
+.PP
+
+.SS "void M_parser_direct_write_end (\fBM_parser_t\fP * parser, size_t len)"
+End a direct write operation\&. Please see \fBM_parser_direct_write_start()\fP for more information\&. This terminates a direct write sequence regardless of if data was written or not (len = 0 is acceptable)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object, but not a const object 
+.br
+\fIlen\fP Length of data written\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_len (\fBM_parser_t\fP * parser)"
+Retrieve the length of data remaining in the buffer being parsed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of remaining data\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_current_offset (\fBM_parser_t\fP * parser)"
+Retrieve the total number of bytes processed so far\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Total number of processed bytes\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_current_line (\fBM_parser_t\fP * parser)"
+Retrieves the current line number\&.
+.PP
+Line numbers are determined based on how many \\n's have been evaluated in the data stream\&. This can only be called if M_PARSER_FLAG_TRACKLINES was used during initialization of the parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Line number starting at 1\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_current_column (\fBM_parser_t\fP * parser)"
+Retrieves the current column for the current line\&.
+.PP
+The column count resets each time a \\n is passed\&. This can only be called if M_PARSER_FLAG_TRACKLINES was used during initialization of the parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Column number starting at 1\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_compare (\fBM_parser_t\fP * parser, const unsigned char * data, size_t data_len)"
+Compare parser contents to provided buffer
+.PP
+Does not advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIdata\fP Data to compare\&. 
+.br
+\fIdata_len\fP Length of data to compare
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if match, M_FALSE otherwise 
+.RE
+.PP
+
+.SS "M_bool M_parser_compare_str (\fBM_parser_t\fP * parser, const char * str, size_t max_len, M_bool casecmp)"
+Compare parser contents to provided string\&.
+.PP
+Does not advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIstr\fP String data to compare\&. 
+.br
+\fImax_len\fP Maximum length of data to compare, 0 for entire string\&. If 0 is specified, then also the entire parser buffer must be an exact match\&. If there are extra bytes after the match, this will not be considered an exact match\&. 
+.br
+\fIcasecmp\fP Perform case-insensitive comparison?
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if match, M_FALSE otherwise 
+.RE
+.PP
+
+.SS "void M_parser_mark (\fBM_parser_t\fP * parser)"
+Marks the current position for future reference in case additional data might need to be pulled from this marked point forward\&.
+.PP
+If a data position is marked, it will not be eligible to be destroyed/chopped until the marked position is cleared\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.RE
+.PP
+
+.SS "void M_parser_mark_clear (\fBM_parser_t\fP * parser)"
+Clears the current marked position, allowing it to be garbage collected\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_mark_len (\fBM_parser_t\fP * parser)"
+Obtain the length of the marked position to the current position\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_mark_rewind (\fBM_parser_t\fP * parser)"
+Rewind data back to the marked position\&.
+.PP
+This will automaticaly clear the marked position so if the marked position is still needed, the caller must re-mark it\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes rewinded or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_reset (\fBM_parser_t\fP * parser)"
+Reset set the parser back to the beginning of the data\&.
+.PP
+This is only applicable to 'const' parsers, and will fail on dynamic parsers\&. If this scans back past a marked position, the mark will be automatically cleared\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes regurgitated or 0 on error\&. 
+.RE
+.PP
+
+.SS "const unsigned char* M_parser_peek (\fBM_parser_t\fP * parser)"
+Retrieve the internal pointer for the current position in the parse buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to data\&. 
+.RE
+.PP
+
+.SS "const unsigned char* M_parser_peek_mark (\fBM_parser_t\fP * parser, size_t * len)"
+Retrieve the internal pointer for the marked position in the parse buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of marked data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to data\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_peek_byte (\fBM_parser_t\fP * parser, unsigned char * byte)"
+Read a single byte from the current buffer without advancing\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbyte\fP Outputs byte read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_peek_bytes (\fBM_parser_t\fP * parser, size_t len, unsigned char * buf)"
+Read bytes (binary) from the current buffer and output in the user-provided buffer without advancing\&.
+.PP
+The data read will not be NULL terminated and the buffer provided must be at least as large as large as the requested data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of data to read\&. 
+.br
+\fIbuf\fP Buffer to hold output\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes or other error\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_truncate (\fBM_parser_t\fP * parser, size_t len)"
+Truncate the parse buffer at the position specified (relative to the current parse offset)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to truncate to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes exist in the data stream or other error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_whitespace (\fBM_parser_t\fP * parser, M_uint32 flags)"
+Truncate all available whitespace\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIflags\fP A bitmap of enum M_PARSER_WHITESPACE_FLAGS\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_until (\fBM_parser_t\fP * parser, const unsigned char * pat, size_t len, M_bool eat_pat)"
+Truncate all bytes until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIlen\fP Length of pattern data\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if not found\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_charset (\fBM_parser_t\fP * parser, const unsigned char * charset, size_t charset_len)"
+Truncate all bytes matching the given charset\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set\&. 
+.br
+\fIcharset_len\fP Length of given character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func)"
+Truncate all bytes matching the given predicate function\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_chr_predicate (\fBM_parser_t\fP * parser, \fBM_chr_predicate_func\fP func)"
+Truncate all bytes matching the given chr predicate function\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_str_until (\fBM_parser_t\fP * parser, const char * pat, M_bool eat_pat)"
+Truncate all bytes until the specified string is encountered in the data stream\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP String to search for\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if not found\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_truncate_str_charset (\fBM_parser_t\fP * parser, const char * charset)"
+Truncate all bytes matching the given NULL-terminated charset\&.
+.PP
+Searches backwards from end to start\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set, NULL-terminated\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_consume (\fBM_parser_t\fP * parser, size_t len)"
+Consume the given number of bytes\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Number of bytes to consume\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_whitespace (\fBM_parser_t\fP * parser, M_uint32 flags)"
+Consume all available whitespace\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIflags\fP A bitmap of enum M_PARSER_WHITESPACE_FLAGS\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_until (\fBM_parser_t\fP * parser, const unsigned char * pat, size_t len, M_bool eat_pat)"
+Consume all bytes until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIlen\fP Length of pattern data\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if not found\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_charset (\fBM_parser_t\fP * parser, const unsigned char * charset, size_t charset_len)"
+Consume all bytes matching the given charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set\&. 
+.br
+\fIcharset_len\fP Length of given character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func)"
+Consume all bytes matching the given predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_chr_predicate (\fBM_parser_t\fP * parser, \fBM_chr_predicate_func\fP func)"
+Consume all bytes matching the given chr predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_str_until (\fBM_parser_t\fP * parser, const char * pat, M_bool eat_pat)"
+Consume all bytes until the specified string is encountered in the data stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP String to search for\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if not found\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_str_charset (\fBM_parser_t\fP * parser, const char * charset)"
+Consume all bytes matching the given NULL-terminated charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set, NULL-terminated\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_not_charset (\fBM_parser_t\fP * parser, const unsigned char * charset, size_t charset_len)"
+Consume all bytes not matching the given charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set, NULL-terminated\&. 
+.br
+\fIcharset_len\fP Length of given character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_str_not_charset (\fBM_parser_t\fP * parser, const char * charset)"
+Consume all bytes not matching the given NULL-terminated charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Character set, NULL-terminated\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed, or 0 if none/error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_consume_eol (\fBM_parser_t\fP * parser)"
+Consume all bytes until and including the next end of line\&.
+.PP
+Useful for ignoring data until end of single-line comment\&. If there is no new line, will consume all remaining data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes consumed\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_int (\fBM_parser_t\fP * parser, enum \fBM_PARSER_INTEGER_TYPE\fP type, size_t len, unsigned char base, M_int64 * integer)"
+Read a signed integer from the current buffer and advance\&.
+.PP
+For ASCII formatted integers:
+.IP "\(bu" 2
+if len is not specified, it will read up until the first non-numeric character is encountered\&. At least one numeric must be encountered or it is considered an error\&.
+.IP "\(bu" 2
+if len is specified, the integer must be exactly that length (no shorter) or it is considered an error\&.
+.IP "\(bu" 2
+if base is specified as 0, will attempt to auto-detect the base\&.
+.PP
+.PP
+For BigEndian or Little Endian formatted integers:
+.IP "\(bu" 2
+The len is mandatory, and base is ignored\&. Maximum len is 8\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fItype\fP How integer is represented in the data stream\&. 
+.br
+\fIlen\fP Length of integer, or 0 to auto-determine for ASCII\&. 
+.br
+\fIbase\fP Base represented in ASCII, or 0 to auto-determine (or non-ascii)\&. 
+.br
+\fIinteger\fP Integer storage\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on failure, M_TRUE on success\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_uint (\fBM_parser_t\fP * parser, enum \fBM_PARSER_INTEGER_TYPE\fP type, size_t len, unsigned char base, M_uint64 * integer)"
+Read an unsigned integer from the current buffer and advance\&.
+.PP
+See \fBM_parser_read_int()\fP for details on usage as requirements are the same\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fItype\fP How integer is represented in the data stream\&. 
+.br
+\fIlen\fP Length of integer, or 0 to auto-determine for ASCII\&. 
+.br
+\fIbase\fP Base represented in ASCII, or 0 to auto-determine (or non-ascii)\&. 
+.br
+\fIinteger\fP Integer storage\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on failure, M_TRUE on success\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_int\fP 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_uint_bcd (\fBM_parser_t\fP * parser, size_t len, M_uint64 * integer)"
+Read and unsigned Binary Coded Decimal integer from the current buffer and advance
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of integer in bytes\&. 
+.br
+\fIinteger\fP Integer storage\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on failure, M_TRUE on success\&. 
+.RE
+.PP
+
+.SS "enum \fBM_DECIMAL_RETVAL\fP M_parser_read_decimal (\fBM_parser_t\fP * parser, size_t len, M_bool truncate_fail, \fBM_decimal_t\fP * decimal)"
+Read a decimal number from current buffer and advance\&.
+.PP
+The number must be represented in base 10 and in ASCII form\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of decimal, or 0 to auto-determine\&. 
+.br
+\fItruncate_fail\fP M_TRUE to treat a truncation as a failure and not increment the consumer\&. M_FALSE otherwise\&. 
+.br
+\fIdecimal\fP Decimal storage\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+enum M_DECIMAL_RETVAL values\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_byte (\fBM_parser_t\fP * parser, unsigned char * byte)"
+Read a single byte from the current buffer and advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbyte\fP Outputs byte read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_bytes (\fBM_parser_t\fP * parser, size_t len, unsigned char * buf)"
+Read the exact number of bytes (binary) from the current buffer and output in the user-provided buffer and advance\&. If there are fewer than the requested bytes available, an error will be returned\&.
+.PP
+The data read will not be NULL terminated and the buffer provided must be at least as large as large as the requested data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of data to read\&. 
+.br
+\fIbuf\fP Buffer to hold output\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes or other error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_max (\fBM_parser_t\fP * parser, size_t len, unsigned char * buf, size_t buf_len)"
+Read bytes (binary) from the current buffer and output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated and the buffer provided must be at least as large as large as the requested data\&. If the length of data specified is not available, it will return the number of bytes actually read\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Requested length of data to read\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIbuf_len\fP Length of buffer to hold output\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_until (\fBM_parser_t\fP * parser, unsigned char * buf, size_t buf_len, const unsigned char * pat, size_t pat_len, M_bool eat_pat)"
+Read bytes (binary) until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIbuf_len\fP Length of buffer to hold output\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIpat_len\fP Length of pattern data\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_charset (\fBM_parser_t\fP * parser, const unsigned char * charset, size_t charset_len, unsigned char * buf, size_t buf_len)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided character set, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Array of characters that are allowed\&. 
+.br
+\fIcharset_len\fP Length of character set\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func, unsigned char * buf, size_t buf_len)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided predicate, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_chr_predicate (\fBM_parser_t\fP * parser, \fBM_chr_predicate_func\fP func, unsigned char * buf, size_t buf_len)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided chr predicate, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_bytes_mark (\fBM_parser_t\fP * parser, unsigned char * buf, size_t buf_len)"
+Read data from a marked position until the current parser position\&.
+.PP
+The marked position will be automatically cleared\&. Provided buffer must be at least \fBM_parser_mark_len()\fP bytes long\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes written to buffer or 0 on error\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_str (\fBM_parser_t\fP * parser, size_t len, char * buf, size_t buf_len)"
+Read a string from the current buffer of the exact given length, output in the user-provided buffer and advance\&. If there are insufficient bytes a failure will be returned\&.
+.PP
+The length of the requested string must be at least one byte shorter than the buffer size to account for the null termination\&. If you do not already have a buffer, use \fBM_parser_read_strdup()\fP which will return a newly allocated buffer for you\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of string to read (must be at least one byte shorter than buf_len)\&. 
+.br
+\fIbuf\fP Output pointer to store result\&. 
+.br
+\fIbuf_len\fP Length of output buffer (must be at least one byte greater than len)\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE if not enough bytes or other error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_strdup\fP 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_max (\fBM_parser_t\fP * parser, size_t len, char * buf, size_t buf_len)"
+Read a string from the current buffer, output in the user-provided buffer and advance\&.
+.PP
+The length of the requested string must be at least one byte shorter than the buffer size to account for the null termination\&. If you do not already have a buffer, use \fBM_parser_read_strdup()\fP which will return a newly allocated buffer for you\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Requested length of string to read (must be at least one byte shorter than buf_len)\&. 
+.br
+\fIbuf\fP Output pointer to store result\&. 
+.br
+\fIbuf_len\fP Length of output buffer (must be at least one byte greater than len)\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on failure\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_str\fP 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_until (\fBM_parser_t\fP * parser, char * buf, size_t buf_len, const char * pat, M_bool eat_pat)"
+Read data until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIbuf_len\fP Length of buffer to hold output\&. 
+.br
+\fIpat\fP String to search for\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_charset (\fBM_parser_t\fP * parser, const char * charset, char * buf, size_t buf_len)"
+Read data from the buffer for as long as it matches one of the bytes in the given character set and advance\&.
+.PP
+Put the resulting bytes in the provided buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Array of characters that are allowed, NULL terminated\&. 
+.br
+\fIbuf\fP Buffer to store result\&. Will be NULL terminated\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_strdup_charset\fP 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func, char * buf, size_t buf_len)"
+Read data from the buffer for as long as it matches the given predicate function and advance\&.
+.PP
+Put the resulting bytes in the provided buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP predicate function\&. 
+.br
+\fIbuf\fP Buffer to store result\&. Will be NULL terminated\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_strdup_predicate\fP 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_chr_predicate (\fBM_parser_t\fP * parser, \fBM_chr_predicate_func\fP func, char * buf, size_t buf_len)"
+Read data from the buffer for as long as it matches the given chr predicate function and advance\&.
+.PP
+Put the resulting bytes in the provided buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP predicate function\&. 
+.br
+\fIbuf\fP Buffer to store result\&. Will be NULL terminated\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_strdup_predicate\fP 
+.RE
+.PP
+
+.SS "size_t M_parser_read_str_mark (\fBM_parser_t\fP * parser, char * buf, size_t buf_len)"
+Read data from a marked position until the current parser position\&.
+.PP
+The marked position will be automatically cleared\&. Provided buffer must be at least \fBM_parser_mark_len()\fP bytes plus the NULL terminator\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIbuf_len\fP Size of result buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of bytes written to buffer or 0 on error\&. 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup (\fBM_parser_t\fP * parser, size_t len)"
+Read a string for the given length from the current buffer, allocates an output buffer and advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length of string to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Buffer containing the string on success, or NULL on failure\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_str\fP 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_hex (\fBM_parser_t\fP * parser, size_t len)"
+Read bytes (binary) from the parser, return as hex-encoded string and advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object to read binary bytes from\&. 
+.br
+\fIlen\fP Number of binary bytes to read from parser\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+null-terminated hex string on success, NULL if not enough bytes or other error
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_buf_hex\fP 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_until (\fBM_parser_t\fP * parser, const char * pat, M_bool eat_pat)"
+Read data until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+Put the resulting bytes in a newly allocated buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_charset (\fBM_parser_t\fP * parser, const char * charset)"
+Read data from the buffer for as long as it matches one of the bytes in the given character set and advance\&.
+.PP
+Put the resulting bytes in a newly allocated buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Array of characters that are allowed, NULL terminated\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL-terminated result buffer, or NULL on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_str_charset\fP 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func)"
+Read data from the buffer for as long as it matches the given predicate function and advance\&.
+.PP
+Put the resulting bytes in a newly allocated buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL-terminated result buffer, or NULL on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_str_predicate\fP 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_chr_predicate (\fBM_parser_t\fP * parser, \fBM_chr_predicate_func\fP func)"
+Read data from the buffer for as long as it matches the given predicate function and advance\&.
+.PP
+Put the resulting bytes in a newly allocated buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL-terminated result buffer, or NULL on error\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_parser_read_str_predicate\fP 
+.RE
+.PP
+
+.SS "char* M_parser_read_strdup_mark (\fBM_parser_t\fP * parser)"
+Read data from a marked position until the current parser position\&.
+.PP
+The marked position will be automatically cleared\&. An allocated buffer with the requested data will be returned, NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL-terminated result, or NULL on error\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_buf (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, size_t len)"
+Read the exact number of bytes (binary) from the current buffer and output in the user-provided buffer and advance\&.
+.PP
+If there are fewer than the requested bytes available, an error will be returned\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIlen\fP Length of data to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes or other error\&. 
+.RE
+.PP
+
+.SS "M_bool M_parser_read_buf_hex (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, size_t len)"
+Read bytes (binary) from the parser, write as hex-encoded string into the provided buffer, and advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object to read binary bytes from\&. 
+.br
+\fIbuf\fP Buffer to hold hex-ascii output\&. 
+.br
+\fIlen\fP Number of binary bytes to read from parser\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bytes or other error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_max (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, size_t len)"
+Read bytes (binary) from the current buffer and output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&. If the length of data specified is not available, it will return the number of bytes actually read\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIlen\fP Requested length of data to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_until (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, const unsigned char * pat, size_t pat_len, M_bool eat_pat)"
+Read bytes (binary) until the specified sequence of bytes is encountered in the data stream\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to hold output\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIpat_len\fP Length of pattern data\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes read, or 0 on error or no bytes available\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_charset (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, const unsigned char * charset, size_t charset_len)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided character set, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIcharset\fP Array of characters that are allowed\&. 
+.br
+\fIcharset_len\fP Length of character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_not_charset (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, const unsigned char * charset, size_t charset_len)"
+Read bytes (binary) from the current buffer as long as the bytes do not match the provided character set, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIcharset\fP Array of characters that are allowed\&. 
+.br
+\fIcharset_len\fP Length of character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_predicate (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, \fBM_parser_predicate_func\fP func)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided predicate, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_chr_predicate (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf, \fBM_chr_predicate_func\fP func)"
+Read bytes (binary) from the current buffer as long as the bytes match the provided chr predicate, output in the user-provided buffer and advance\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Length of data read, or 0 on error\&. 
+.RE
+.PP
+
+.SS "size_t M_parser_read_buf_mark (\fBM_parser_t\fP * parser, \fBM_buf_t\fP * buf)"
+Read data from a marked position until the current parser position\&.
+.PP
+The marked position will be automatically cleared\&.
+.PP
+The data read will not be NULL terminated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIbuf\fP Buffer to store result\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bytes written to buffer or 0 on error\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser (\fBM_parser_t\fP * parser, size_t len)"
+Create new parser from the current position for the given length from the current buffer, allocates a parser and advance\&. All data is copied into a new memory segment\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser_until (\fBM_parser_t\fP * parser, const unsigned char * pat, size_t len, M_bool eat_pat)"
+Read data from the buffer until the specified sequence of bytes is encountered in the data stream\&. All data is copied into a new memory segment\&.
+.PP
+Put the resulting bytes in a newly allocated parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIpat\fP Sequence of bytes to search for\&. 
+.br
+\fIlen\fP Length of pattern data\&. 
+.br
+\fIeat_pat\fP Should the sequence of bytes be consumed\&. Useful for ignoring data until end of comment\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser_charset (\fBM_parser_t\fP * parser, unsigned const char * charset, size_t charset_len)"
+Read data from the buffer for as long as it matches one of the bytes in the given character set and advance\&. All data is copied into a new memory segment\&.
+.PP
+Put the resulting bytes in a newly allocated parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIcharset\fP Array of characters that are allowed, NULL terminated\&. 
+.br
+\fIcharset_len\fP Number of characters in the set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func)"
+Create new parser from the buffer for as long as it matches the given predicate function and advance\&. All data is copied into a new memory segment\&.
+.PP
+Put the resulting bytes in a newly allocated parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser_chr_predicate (\fBM_parser_t\fP * parser, \fBM_parser_predicate_func\fP func)"
+Create new parser from the buffer for as long as it matches the given predicate function and advance\&. All data is copied into a new memory segment\&.
+.PP
+Put the resulting bytes in a newly allocated parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP* M_parser_read_parser_mark (\fBM_parser_t\fP * parser)"
+Create new parser from a marked position until the current parser position, allocates a parser and advance\&. All data is copied into a new memory segment\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+parser\&. 
+.RE
+.PP
+
+.SS "\fBM_PARSER_FRAME_ERROR\fP M_parser_read_stxetxlrc_message (\fBM_parser_t\fP * parser, \fBM_parser_t\fP ** out, M_uint32 lrc_frame_chars)"
+Read an STX, ETX, LRC wrapped message\&.
+.PP
+The first character in the parser must be an STX\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIout\fP Parser object with result message\&. 
+.br
+\fIlrc_frame_chars\fP Framing characters that should be included in LRC calculation\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+result\&. On success and LRC calculation failure the message will be returned in the output parser\&. Otherwise the output parser's contents are undefined\&.
+.RE
+.PP
+Results M_PARSER_FRAME_ERROR_NO_STX, M_PARSER_FRAME_ERROR_NO_ETX, and M_PARSER_FRAME_ERROR_NO_LRC will not advance the parser\&. 
+.SS "M_bool M_parser_is_predicate (\fBM_parser_t\fP * parser, size_t len, \fBM_parser_predicate_func\fP func)"
+Validate the parser matches the given predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_chr_predicate (\fBM_parser_t\fP * parser, size_t len, \fBM_chr_predicate_func\fP func)"
+Validate the parser matches the given chr predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIfunc\fP Char predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_charset (\fBM_parser_t\fP * parser, size_t len, const unsigned char * charset, size_t charset_len)"
+Validate the parser matches the given character set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIcharset\fP Character set\&. 
+.br
+\fIcharset_len\fP Length of given character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_str_charset (\fBM_parser_t\fP * parser, size_t len, const char * charset)"
+Validate the parser matches the given NULL-terminated charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIcharset\fP Character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_not_predicate (\fBM_parser_t\fP * parser, size_t len, \fBM_parser_predicate_func\fP func)"
+Validate the parser does not match the given predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIfunc\fP Predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if not matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_not_chr_predicate (\fBM_parser_t\fP * parser, size_t len, \fBM_chr_predicate_func\fP func)"
+Validate the parser does not match the given chr predicate function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIfunc\fP Char predicate function\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if not matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_not_charset (\fBM_parser_t\fP * parser, size_t len, const unsigned char * charset, size_t charset_len)"
+Validate the parser does not match the given character set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIcharset\fP Character set\&. 
+.br
+\fIcharset_len\fP Length of given character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if not matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "M_bool M_parser_is_not_str_charset (\fBM_parser_t\fP * parser, size_t len, const char * charset)"
+Validate the parser does not match the given NULL-terminated charset\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser object\&. 
+.br
+\fIlen\fP Length to validate\&. If larger than the parser length the parser length is used\&. 
+.br
+\fIcharset\fP Character set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if not matching\&. Otherwise M_FALSE; 
+.RE
+.PP
+
+.SS "\fBM_parser_t\fP** M_parser_split (\fBM_parser_t\fP * parser, unsigned char delim, size_t maxcnt, M_uint32 flags, size_t * num_output)"
+Split the data in the parser object by the delimiter specified into additional parser objects\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparser\fP Parser 
+.br
+\fIdelim\fP The delimiter to split on 
+.br
+\fImaxcnt\fP Maximum number of objects to create, remaining data will be part of the last object\&. 0 if no maximum\&. 
+.br
+\fIflags\fP M_PARSER_SPLIT_FLAGS flags controlling behavior of parser 
+.br
+\fInum_output\fP The number of parser objects output 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+array of parser objects or NULL on failure 
+.RE
+.PP
+
+.SS "void M_parser_split_free (\fBM_parser_t\fP ** parsers, size_t cnt)"
+Free child parser objects returned from M_parser_split 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIparsers\fP Array of parser objects 
+.br
+\fIcnt\fP Count of objects as returned from M_parser_split 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

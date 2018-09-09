@@ -1,0 +1,33 @@
+.TH "m_sql_driver_odbc" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_driver_odbc
+.SH SYNOPSIS
+.br
+.PP
+.SH "Detailed Description"
+.PP 
+ODBC and DB2 Driver
+.PP
+Driver Name(s):
+.IP "\(bu" 2
+odbc (for Microsoft Windows, iODBC, or UnixODBC)
+.IP "\(bu" 2
+db2 (for direct DB2 connectivity)
+.IP "\(bu" 2
+db2pase (for direct DB2 connectivity on OS/400 PASE)
+.PP
+.PP
+Driver Connection String Options:
+.IP "\(bu" 2
+dsn: Required\&. Data Source Name
+.IP "\(bu" 2
+mysql_engine: Optional\&. Used during table creation when the destination database is MySQL, defaults to INNODB\&. The default data storage engine to use with mysql\&. Typically it is recommended to leave this at the default\&.
+.IP "\(bu" 2
+mysql_charset: Optional\&. Used during table creation when the destination database is MySQL, defaults to UTF8\&. 
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

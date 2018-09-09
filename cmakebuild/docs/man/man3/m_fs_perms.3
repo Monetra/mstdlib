@@ -1,0 +1,385 @@
+.TH "m_fs_perms" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_perms
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_fs_perms_t\fP * \fBM_fs_perms_create\fP (void) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_fs_perms_t\fP * \fBM_fs_perms_dup\fP (const \fBM_fs_perms_t\fP *perms) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_merge\fP (\fBM_fs_perms_t\fP **dest, \fBM_fs_perms_t\fP *src) M_FREE(2)"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_destroy\fP (\fBM_fs_perms_t\fP *perms) M_FREE(1)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_perms_can_access\fP (const char *path, M_uint32 mode)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_perms_set_perms\fP (const \fBM_fs_perms_t\fP *perms, const char *path)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_perms_get_user\fP (const \fBM_fs_perms_t\fP *perms)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_perms_get_group\fP (const \fBM_fs_perms_t\fP *perms)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_fs_perms_get_mode\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "\fBM_fs_perms_type_t\fP \fBM_fs_perms_get_type\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_perms_get_isset\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_fs_perms_get_dir_mode\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "\fBM_fs_perms_type_t\fP \fBM_fs_perms_get_dir_type\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_perms_get_dir_isset\fP (const \fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_perms_set_user\fP (\fBM_fs_perms_t\fP *perms, const char *user)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_perms_set_group\fP (\fBM_fs_perms_t\fP *perms, const char *group)"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_set_mode\fP (\fBM_fs_perms_t\fP *perms, M_uint32 mode, \fBM_fs_perms_who_t\fP who, \fBM_fs_perms_type_t\fP type)"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_set_dir_mode\fP (\fBM_fs_perms_t\fP *perms, M_uint32 mode, \fBM_fs_perms_who_t\fP who, \fBM_fs_perms_type_t\fP type)"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_unset_mode\fP (\fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.ti -1c
+.RI "void \fBM_fs_perms_unset_dir_mode\fP (\fBM_fs_perms_t\fP *perms, \fBM_fs_perms_who_t\fP who)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_fs_perms_t\fP* M_fs_perms_create (void)"
+Create a perms object\&.
+.PP
+\fBReturns:\fP
+.RS 4
+A perms object\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_perms_t\fP* M_fs_perms_dup (const \fBM_fs_perms_t\fP * perms)"
+Duplicate a perms object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms object to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A new perms object with the same information as the original\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_merge (\fBM_fs_perms_t\fP ** dest, \fBM_fs_perms_t\fP * src)"
+Merge two perms objects together\&.
+.PP
+The second (src) perms will be destroyed automatically upon completion of this function\&.
+.PP
+This is intended for dest to hold exact permissions\&. In this case, when src is exact then src will replace the permissions in dest\&. If src is an add or remove it will modify dest accordingly\&.
+.PP
+When the perms in dest are not set then the permissions from src will be used\&.
+.PP
+When dest is a modifier (add or remove) then the permissions from src will replace the permission in dest\&. This happens regardless of the permissions in src being exact or a modifier\&.
+.PP
+When the permissions in src are not set then dest will not be modified\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Pointer by reference to the perms receiving the values\&. if this is NULL, the pointer will simply be switched out for src\&. 
+.br
+\fIsrc\fP Pointer to the perms giving up its values\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_destroy (\fBM_fs_perms_t\fP * perms)"
+Destoroy a perms object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_perms_can_access (const char * path, M_uint32 mode)"
+Can the process access the path with the given perms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to access\&. 
+.br
+\fImode\fP M_fs_file_mode_t permissions to should be checked\&. Optional, pass 0 if only checking if the path exists\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_perms_set_perms (const \fBM_fs_perms_t\fP * perms, const char * path)"
+Apply perms to a path\&.
+.PP
+This will set/change/modify the perms on a path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIpath\fP The path\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_perms_get_user (const \fBM_fs_perms_t\fP * perms)"
+Get the user associated with the perms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The user\&. NULL if no user is set\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_perms_get_group (const \fBM_fs_perms_t\fP * perms)"
+Get the group associated with the perms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The group\&. NULL if not group is set\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_fs_perms_get_mode (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Get the mode associated with the perms for the given permission\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A bit map of M_fs_perms_mode_t values which are the permissions that are set\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_perms_type_t\fP M_fs_perms_get_type (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Get the type (exact/add/remove) associated with the perms for the given permission\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The permission type\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_perms_get_isset (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Check if a given permission is set\&.
+.PP
+If not set the permission will be ignored during merge, set and other operation that use the permissions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the permission are set\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_fs_perms_get_dir_mode (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Get the directory override mode associated with the perms for the given permission\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A bit map of M_fs_perms_mode_t values which are the permissions that are set\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_perms_type_t\fP M_fs_perms_get_dir_type (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Get the directory override type (exact/add/remove) associated with the perms for the given permission\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The permission type\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_perms_get_dir_isset (const \fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Check if a given directory override permission is set\&.
+.PP
+If not set the permission will be ignored during merge, set and other operation that use the permissions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP The permissions this applies to\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the permission are set\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_perms_set_user (\fBM_fs_perms_t\fP * perms, const char * user)"
+Set the user\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIuser\fP The user\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_perms_set_group (\fBM_fs_perms_t\fP * perms, const char * group)"
+Set the group\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIgroup\fP The group\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_set_mode (\fBM_fs_perms_t\fP * perms, M_uint32 mode, \fBM_fs_perms_who_t\fP who, \fBM_fs_perms_type_t\fP type)"
+Set the mode for the perms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fImode\fP M_fs_file_mode_t modes\&. 
+.br
+\fIwho\fP Who this applies to\&. 
+.br
+\fItype\fP The type permissions being set\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_set_dir_mode (\fBM_fs_perms_t\fP * perms, M_uint32 mode, \fBM_fs_perms_who_t\fP who, \fBM_fs_perms_type_t\fP type)"
+Set the directory override mode for the perms\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fImode\fP M_fs_file_mode_t modes\&. 
+.br
+\fIwho\fP Who this applies to\&. 
+.br
+\fItype\fP The type permissions being set\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_unset_mode (\fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Unset permissions\&.
+.PP
+This is different than setting \fIno\fP permissions\&.
+.PP
+This will also unset the equivalent directory override permissions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP Who this applies to\&. 
+.RE
+.PP
+
+.SS "void M_fs_perms_unset_dir_mode (\fBM_fs_perms_t\fP * perms, \fBM_fs_perms_who_t\fP who)"
+Unset directory override permissions\&.
+.PP
+This is different than setting \fIno\fP permissions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIperms\fP The perms\&. 
+.br
+\fIwho\fP Who this applies to\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

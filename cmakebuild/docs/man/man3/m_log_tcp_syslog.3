@@ -1,0 +1,157 @@
+.TH "m_log_tcp_syslog" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_log_tcp_syslog
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_add_tcp_syslog\fP (\fBM_log_t\fP *log, const char *product, \fBM_syslog_facility_t\fP facility, const char *host, M_uint16 port, \fBM_dns_t\fP *dns, size_t max_queue_bytes, \fBM_log_module_t\fP **out_mod)"
+.br
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_tcp_syslog_set_connect_timeout_ms\fP (\fBM_log_t\fP *log, \fBM_log_module_t\fP *module, M_uint64 timeout_ms)"
+.br
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_tcp_syslog_set_keepalives\fP (\fBM_log_t\fP *log, \fBM_log_module_t\fP *module, M_uint64 idle_time_s, M_uint64 retry_time_s, M_uint64 retry_count)"
+.br
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_tcp_syslog_set_tag_priority\fP (\fBM_log_t\fP *log, \fBM_log_module_t\fP *module, M_uint64 tags, \fBM_syslog_priority_t\fP priority)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Functions to enable logging to a remote syslog server over TCP\&.
+.PP
+This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds octet-counting framing as described in RFC 6587 for transmission over TCP\&. This legacy format was chosen to ensure compatibility across a wide range of syslog servers\&.
+.PP
+Messages are written asynchronously, as part of an existing event loop owned by the caller\&.
+.PP
+Note: syslog messages are limited to 1024 chars / line\&. Lines longer than this will be truncated\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_log_error_t\fP M_log_module_add_tcp_syslog (\fBM_log_t\fP * log, const char * product, \fBM_syslog_facility_t\fP facility, const char * host, M_uint16 port, \fBM_dns_t\fP * dns, size_t max_queue_bytes, \fBM_log_module_t\fP ** out_mod)"
+Add a module to output to a remote syslog server over TCP\&.
+.PP
+This module formats messages according to the legacy BSD syslog format from RFC 3164, and adds octet-counting framing as described in RFC 6587 for transmission over TCP\&. This legacy format was chosen to ensure compatibility across a wide range of syslog servers\&.
+.PP
+Note: syslog messages are limited to 1024 chars / line\&. Lines longer than this will be truncated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fIproduct\fP short tag string for syslog, usually the name of the program sending log info 
+.br
+\fIfacility\fP facility type to associate with all log messages, gets passed directly to syslog 
+.br
+\fIhost\fP hostname of destination syslog server 
+.br
+\fIport\fP port of destination syslog server (usually 514) 
+.br
+\fIdns\fP external DNS resolver cache to use (not owned by logger) 
+.br
+\fImax_queue_bytes\fP max size of queue used to buffer asynchronous writes to syslog 
+.br
+\fIout_mod\fP handle for created module, or \fCNULL\fP if there was an error 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SS "\fBM_log_error_t\fP M_log_module_tcp_syslog_set_connect_timeout_ms (\fBM_log_t\fP * log, \fBM_log_module_t\fP * module, M_uint64 timeout_ms)"
+Set TCP connection timeout\&.
+.PP
+Note that, in addition to normal connection parameters, the TCP module will automatically try to reconnect on disconnect or error after a short delay, no matter what you set here\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fImodule\fP handle of module to operate on 
+.br
+\fItimeout_ms\fP connection timeout, in milliseconds 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SS "\fBM_log_error_t\fP M_log_module_tcp_syslog_set_keepalives (\fBM_log_t\fP * log, \fBM_log_module_t\fP * module, M_uint64 idle_time_s, M_uint64 retry_time_s, M_uint64 retry_count)"
+Set TCP keep alive parameters for the connection\&.
+.PP
+If this function isn't called, the following default values are used: 
+.PD 0
+
+.IP "\(bu" 2
+\fCidle_time_s = 4 seconds\fP 
+.IP "\(bu" 2
+\fCretry_time_s = 15 seconds\fP 
+.IP "\(bu" 2
+\fCretry_count = 3\fP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fImodule\fP handle of module to operate on 
+.br
+\fIidle_time_s\fP tcp idle timeout, in seconds 
+.br
+\fIretry_time_s\fP tcp retry time, in seconds 
+.br
+\fIretry_count\fP tcp allowed number of retries 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SS "\fBM_log_error_t\fP M_log_module_tcp_syslog_set_tag_priority (\fBM_log_t\fP * log, \fBM_log_module_t\fP * module, M_uint64 tags, \fBM_syslog_priority_t\fP priority)"
+Associate the given user-defined tag(s) with a syslog priority tag\&.
+.PP
+If you don't associate a tag with a syslog priority, the default priority of \fBM_SYSLOG_INFO\fP will be used for that tag\&.
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_LOG_ALL_TAGS\fP 
+.PP
+\fBM_log_all_tags_lt\fP 
+.PP
+\fBM_log_all_tags_lte\fP 
+.PP
+\fBM_log_all_tags_gt\fP 
+.PP
+\fBM_log_all_tags_gte\fP
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fImodule\fP handle of module to operate on 
+.br
+\fItags\fP user-defined power-of-two tag (or multiple power-of-two tags, OR'd together) 
+.br
+\fIpriority\fP single priority value to associate with the given tags 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,161 @@
+.TH "m_io_mfi" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_io_mfi
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBM_io_mfi_enum\fP \fBM_io_mfi_enum_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_io_mfi_enum_t\fP * \fBM_io_mfi_enum\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_io_mfi_enum_destroy\fP (\fBM_io_mfi_enum_t\fP *mfienum)"
+.br
+.ti -1c
+.RI "size_t \fBM_io_mfi_enum_count\fP (const \fBM_io_mfi_enum_t\fP *mfienum)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_mfi_enum_name\fP (const \fBM_io_mfi_enum_t\fP *mfienum, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_mfi_enum_protocol\fP (const \fBM_io_mfi_enum_t\fP *mfienum, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_mfi_enum_serialnum\fP (const \fBM_io_mfi_enum_t\fP *mfienum, size_t idx)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_mfi_create\fP (\fBM_io_t\fP **io_out, const char *protocol, const char *serialnum)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Made for iPod/iPhone/iPad IO functions
+.PP
+Supported OS:
+.IP "\(bu" 2
+iOS
+.PP
+.PP
+This is the External Accessory EAAccessory protocol\&. Devices that are part of the Made for iPhone/iPod/iPad (MFi) program\&. BLE is not supported by this interface use m_io_mfi for BLE on iOS\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBM_io_mfi_enum\fP \fBM_io_mfi_enum_t\fP"
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_io_mfi_enum_t\fP* M_io_mfi_enum (void)"
+Create a mfi enumeration object\&.
+.PP
+Use to determine what mfi devices are connected\&. On some OS's this may be a list of associated devices not necessarily what's actively connected\&.
+.PP
+A device can expose multiple protocols\&.
+.PP
+\fBReturns:\fP
+.RS 4
+mfi enumeration object\&. 
+.RE
+.PP
+
+.SS "void M_io_mfi_enum_destroy (\fBM_io_mfi_enum_t\fP * mfienum)"
+Destroy a mfi enumeration object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImfienum\fP mfi enumeration object\&. 
+.RE
+.PP
+
+.SS "size_t M_io_mfi_enum_count (const \fBM_io_mfi_enum_t\fP * mfienum)"
+Number of mfi objects in the enumeration\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImfienum\fP mfi enumeration object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Count of mfi devices\&. 
+.RE
+.PP
+
+.SS "const char* M_io_mfi_enum_name (const \fBM_io_mfi_enum_t\fP * mfienum, size_t idx)"
+Name of mfi device as reported by the device\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImfienum\fP mfi enumeration object\&. 
+.br
+\fIidx\fP Index in mfi enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String\&. 
+.RE
+.PP
+
+.SS "const char* M_io_mfi_enum_protocol (const \fBM_io_mfi_enum_t\fP * mfienum, size_t idx)"
+Protocol exposed by of mfi device\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImfienum\fP mfi enumeration object\&. 
+.br
+\fIidx\fP Index in mfi enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String\&. 
+.RE
+.PP
+
+.SS "const char* M_io_mfi_enum_serialnum (const \fBM_io_mfi_enum_t\fP * mfienum, size_t idx)"
+Serial number\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImfienum\fP mfi enumeration object\&. 
+.br
+\fIidx\fP Index in mfi enumeration\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_mfi_create (\fBM_io_t\fP ** io_out, const char * protocol, const char * serialnum)"
+Create a mfi connection\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio_out\fP io object for communication\&. 
+.br
+\fIprotocol\fP Protocol to use\&. Required\&. 
+.br
+\fIserialnum\fP Serial number of device to use\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

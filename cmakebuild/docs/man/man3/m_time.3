@@ -1,0 +1,403 @@
+.TH "m_time" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_time
+.SH SYNOPSIS
+.br
+.PP
+.SS "Modules"
+
+.in +1c
+.ti -1c
+.RI "\fBDate Time\fP"
+.br
+.ti -1c
+.RI "\fBTime Calculations\fP"
+.br
+.ti -1c
+.RI "\fBParsing\fP"
+.br
+.ti -1c
+.RI "\fBTimezone\fP"
+.br
+.in -1c
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBM_time_gmtm_t\fP"
+.br
+.ti -1c
+.RI "struct \fBM_timeval_t\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef M_int64 \fBM_time_t\fP"
+.br
+.ti -1c
+.RI "typedef M_int64 \fBM_suseconds_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_time_tz \fBM_time_tz_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_time_tzs \fBM_time_tzs_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_time_tz_zones_t\fP { \fBM_TIME_TZ_ZONE_ALL\fP = 0, \fBM_TIME_TZ_ZONE_AFRICA\fP = 1 << 1, \fBM_TIME_TZ_ZONE_AMERICA\fP = 1 << 2, \fBM_TIME_TZ_ZONE_ANTARCTICA\fP = 1 << 3, \fBM_TIME_TZ_ZONE_ARCTIC\fP = 1 << 4, \fBM_TIME_TZ_ZONE_ASIA\fP = 1 << 5, \fBM_TIME_TZ_ZONE_ATLANTIC\fP = 1 << 6, \fBM_TIME_TZ_ZONE_AUSTRALIA\fP = 1 << 7, \fBM_TIME_TZ_ZONE_EUROPE\fP = 1 << 8, \fBM_TIME_TZ_ZONE_INDIAN\fP = 1 << 9, \fBM_TIME_TZ_ZONE_PACIFIC\fP = 1 << 10, \fBM_TIME_TZ_ZONE_ETC\fP = 1 << 11 }"
+.br
+.ti -1c
+.RI "enum \fBM_time_tz_load_t\fP { \fBM_TIME_TZ_LOAD_NORMAL\fP = 0, \fBM_TIME_TZ_LOAD_LAZY\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_time_tz_alias_t\fP { \fBM_TIME_TZ_ALIAS_ALL\fP = 0, \fBM_TIME_TZ_ALIAS_OLSON_MAIN\fP = 1 << 1, \fBM_TIME_TZ_ALIAS_OLSON_ALL\fP = 1 << 2, \fBM_TIME_TZ_ALIAS_WINDOWS_MAIN\fP = 1 << 3, \fBM_TIME_TZ_ALIAS_WINDOWS_ALL\fP = 1 << 4 }"
+.br
+.ti -1c
+.RI "enum \fBM_time_result_t\fP { \fBM_TIME_RESULT_SUCCESS\fP = 0, \fBM_TIME_RESULT_INVALID\fP, \fBM_TIME_RESULT_ERROR\fP, \fBM_TIME_RESULT_DUP\fP, \fBM_TIME_RESULT_INI\fP, \fBM_TIME_RESULT_ABBR\fP, \fBM_TIME_RESULT_OFFSET\fP, \fBM_TIME_RESULT_DATE\fP, \fBM_TIME_RESULT_TIME\fP, \fBM_TIME_RESULT_DATETIME\fP, \fBM_TIME_RESULT_YEAR\fP, \fBM_TIME_RESULT_DSTABBR\fP, \fBM_TIME_RESULT_DSTOFFSET\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_time_load_source_t\fP { \fBM_TIME_LOAD_SOURCE_FAIL\fP = 0, \fBM_TIME_LOAD_SOURCE_SYSTEM\fP, \fBM_TIME_LOAD_SOURCE_FALLBACK\fP }"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Time handling functions\&.
+.PP
+.SH "Features "
+.PP
+.PP
+Covers:
+.IP "\(bu" 2
+Local
+.IP "\(bu" 2
+GMT
+.IP "\(bu" 2
+Normalization
+.IP "\(bu" 2
+Conversion
+.IP "\(bu" 2
+Diff
+.IP "\(bu" 2
+Elapsed
+.IP "\(bu" 2
+Time zone
+.IP "\(bu" 2
+string reading
+.IP "\(bu" 2
+string writing
+.PP
+.PP
+.SH "Key data types "
+.PP
+.PP
+M_time_t is provided as a platform agnostic replacement for time_t\&. M_time_t a signed 64 bit data type\&. This allows systems which provide a 32 bit time_t to handle times above the 32 bit boundary\&. However, any functions (such as M_time) that use underlying system time functions will only operate using the bit max/min provided by the system time_t\&.
+.PP
+\fBM_timeval_t\fP (struct M_timeval) is also provided for the same reasons as M_time_t\&. In addition, not all platforms support struct timval in an obvious way\&. Windows in particular can have header conflict issues when dealing with struct timeval\&. Specifically, struct timeval is defined in Winsock2\&.h which much be included before Windows\&.h\&. Either this header would have to include, which can lead to problems is this header is included after Windows\&.h is declared\&. Or an application using mstdlib would have to include Winsock2\&.h, which is nonobvious\&.
+.PP
+.SH "Timezone "
+.PP
+.PP
+Time zone data is stored in a timezone database object\&. Data can be loaded in two ways\&.
+.IP "\(bu" 2
+Loading a timezone database (Olson files, Windows registry)\&.
+.IP "\(bu" 2
+Loading individual timezone data\&.
+.PP
+.PP
+Lazy loading is available when using a timezone database\&. Lazy loading has the data read into the db on demand instead of reading the data immediately\&. Only one timezone data source can be used for lazy loading\&.
+.PP
+When using lazy loading in a multi threaded environment all calls to M_time_tzs_get_tz need to be protected by a mutex or other access broker\&.
+.PP
+The tz (timezone) object should not be used directly\&. Instead it should be passed to M_time_tolocal or M_time_fromlocal\&.
+.PP
+.SH "Examples "
+.PP
+.PP
+.SS "Timezone "
+.PP
+.PP
+.nf
+M_time_tzs_t      *tzs;
+const M_time_tz_t *tz;
+M_time_t           ts = 1375277153;
+M_time_t           cs;
+M_time_localtm_t   ltime;
+
+M_mem_set(&ltime, 0, sizeof(ltime));
+
+tzs = M_time_tzs_load_zoneinfo(NULL, M_TIME_TZ_ZONE_AMERICA, M_TIME_TZ_ALIAS_OLSON_MAIN, M_TIME_TZ_LOAD_LAZY);
+tz  = M_time_tzs_get_tz(tzs, "America/New_York");
+
+M_time_tolocal(ts, &ltime, tz);
+
+M_printf("isdst='%s'\n", ltime\&.isdst?"YES":"NO");
+
+cs = M_time_fromlocal(&ltime, tz);
+if (ts != cs) {
+    M_printf("time conversion failed\n");
+} else {
+    M_printf("time conversion success\n");
+}
+
+M_time_tzs_destroy(tzs);
+.fi
+.PP
+.PP
+.SS "System "
+.PP
+.PP
+.nf
+M_time_localtm_t ltime;
+M_time_t         ts;
+
+M_mem_set(&ltime, 0, sizeof(ltime));
+
+M_time_tolocal(0, &ltime, NULL);
+t = M_time_fromlocal(&ltime, NULL);
+
+if (t != 0) {
+    M_printf("time conversion failed\n");
+} else {
+    M_printf("time conversion success\n");
+} 
+.fi
+.PP
+.PP
+.SS "Time Strings "
+.PP
+.PP
+.nf
+M_time_t          ts;
+char             *out;
+M_time_localtm_t  ltime;
+
+M_mem_set(&ltime, 0, sizeof(ltime));
+
+ts  = M_time_from_str("1998/11/31 10:02:50", NULL, M_FALSE); 
+M_time_tolocal(ts, &ltime, NULL);
+out = M_time_to_str("%Y-%m-%d %H:%M:%S %p", &tm);
+M_printf("out='%s'\n", out);
+M_free(out);
+.fi
+.PP
+ 
+.SH "Data Structure Documentation"
+.PP 
+.SH "struct M_time_tm"
+.PP 
+Broken down time stored as individual components\&. 
+.PP
+\fBData Fields:\fP
+.RS 4
+M_int64 \fImonth\fP Month\&. 1-12 
+.br
+.PP
+M_int64 \fIday\fP Day of month\&. 1-X 
+.br
+.PP
+M_int64 \fIyear\fP Year\&. Full year\&. E\&.g\&. 2013\&. 
+.br
+.PP
+M_int64 \fIyear2\fP 2digit Year\&. E\&.g\&. 13\&. 
+.br
+.PP
+M_int64 \fIhour\fP hour\&. 0=Midnight \&.\&.\&. 23=11PM\&. 
+.br
+.PP
+M_int64 \fImin\fP minute\&. 0-59\&. 
+.br
+.PP
+M_int64 \fIsec\fP second\&. 0-59\&. 
+.br
+.PP
+M_int64 \fIwday\fP day of week\&. 0=Sun \&.\&.\&. 6=Sat 
+.br
+.PP
+M_int64 \fIyday\fP day of year\&. 0-364 (or 365 on leap years) 
+.br
+.PP
+M_int64 \fIisdst\fP -1=DST unknown, 0=not DST, 1=is DST 
+.br
+.PP
+\fBM_time_t\fP \fIgmtoff\fP Seconds west of Greenwich\&. 
+.br
+.PP
+char \fIabbr[32]\fP Abbreviation for use with printing\&. This will only be filled if a M_time_tz_t is passed in with the time\&. If abbr is filled by a M_time_tz_t then the M_time_tz_t must remain valid for the life of the struct\&. 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_timeval_t"
+.PP 
+Number of seconds and microseconds since the Epoch\&. 
+.PP
+\fBData Fields:\fP
+.RS 4
+\fBM_time_t\fP \fItv_sec\fP Seconds\&. 
+.br
+.PP
+\fBM_suseconds_t\fP \fItv_usec\fP Microseconds\&. 
+.br
+.PP
+.RE
+.PP
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef M_int64 \fBM_time_t\fP"
+
+.SS "typedef M_int64 \fBM_suseconds_t\fP"
+
+.SS "typedef struct M_time_tz \fBM_time_tz_t\fP"
+
+.SS "typedef struct M_time_tzs \fBM_time_tzs_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_time_tz_zones_t\fP"
+Olson/TZ/Zoneinfo locations that can be loaded\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_TIME_TZ_ZONE_ALL \fP\fP
+Load all zones\&. This cannot be combined with individual zones\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_AFRICA \fP\fP
+Load data form Africa\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_AMERICA \fP\fP
+Load data form the Americas\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_ANTARCTICA \fP\fP
+Load data form Antarctica\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_ARCTIC \fP\fP
+Load data form the artic\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_ASIA \fP\fP
+Load data form Asia\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_ATLANTIC \fP\fP
+Load data form the Atlantic\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_AUSTRALIA \fP\fP
+Load data form Australia\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_EUROPE \fP\fP
+Load data form Europe\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_INDIAN \fP\fP
+Load data form the Indian ocean region\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_PACIFIC \fP\fP
+Load data form the Pacific\&. 
+.TP
+\fB\fIM_TIME_TZ_ZONE_ETC \fP\fP
+Load data form Etc (fixed offset) zones\&. 
+.SS "enum \fBM_time_tz_load_t\fP"
+Flags to control loading behavior of Olson/TZ/Zoneinfo data\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_TIME_TZ_LOAD_NORMAL \fP\fP
+Load all data\&. 
+.TP
+\fB\fIM_TIME_TZ_LOAD_LAZY \fP\fP
+Lazy load data\&. This is really only useful for memory constrained environments where only a few zones will be in use but the overhead of loading all zones may be too much for the system\&. 
+.SS "enum \fBM_time_tz_alias_t\fP"
+Handle alias loading\&. Not all alias options will be avalaible for all zone data sources\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_TIME_TZ_ALIAS_ALL \fP\fP
+Include all names and aliases\&. 
+.TP
+\fB\fIM_TIME_TZ_ALIAS_OLSON_MAIN \fP\fP
+Include main Olson alias\&. 
+.TP
+\fB\fIM_TIME_TZ_ALIAS_OLSON_ALL \fP\fP
+Include all Olson aliases\&. 
+.TP
+\fB\fIM_TIME_TZ_ALIAS_WINDOWS_MAIN \fP\fP
+Include Windows zone names\&. 
+.TP
+\fB\fIM_TIME_TZ_ALIAS_WINDOWS_ALL \fP\fP
+Include Windows zone names\&. 
+.SS "enum \fBM_time_result_t\fP"
+Result codes specific to time operations\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_TIME_RESULT_SUCCESS \fP\fP
+Success\&. 
+.TP
+\fB\fIM_TIME_RESULT_INVALID \fP\fP
+Invalid argument\&. 
+.TP
+\fB\fIM_TIME_RESULT_ERROR \fP\fP
+General error\&. 
+.TP
+\fB\fIM_TIME_RESULT_DUP \fP\fP
+Duplicate\&. 
+.TP
+\fB\fIM_TIME_RESULT_INI \fP\fP
+ini failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_ABBR \fP\fP
+Std abbreviation failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_OFFSET \fP\fP
+Std offset failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_DATE \fP\fP
+Date failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_TIME \fP\fP
+Time failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_DATETIME \fP\fP
+Date/time failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_YEAR \fP\fP
+Year failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_DSTABBR \fP\fP
+DST abbreviation failed to parse\&. 
+.TP
+\fB\fIM_TIME_RESULT_DSTOFFSET \fP\fP
+DST offset failed to parse\&. 
+.SS "enum \fBM_time_load_source_t\fP"
+Source timezone data was loaded form\&. 
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_time_tzs_load\fP 
+.RE
+.PP
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_TIME_LOAD_SOURCE_FAIL \fP\fP
+Timezone data failed to load\&. This can happen if no timezone data was loaded\&. For example, a specific M_time_tz_zones_t was requested but not available\&. 
+.TP
+\fB\fIM_TIME_LOAD_SOURCE_SYSTEM \fP\fP
+The system timezone data was loaded\&. 
+.TP
+\fB\fIM_TIME_LOAD_SOURCE_FALLBACK \fP\fP
+Main four US timezones were loaded as a fallback because system data could not be loaded\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,89 @@
+.TH "m_thread_common_spinlock" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_thread_common_spinlock
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBM_thread_spinlock_t\fP"
+.br
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_THREAD_SPINLOCK_STATIC_INITIALIZER\fP   { 0, 0, 0 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBM_thread_spinlock_lock\fP (\fBM_thread_spinlock_t\fP *spinlock)"
+.br
+.ti -1c
+.RI "void \fBM_thread_spinlock_unlock\fP (\fBM_thread_spinlock_t\fP *spinlock)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Spinlocks 
+.SH "Data Structure Documentation"
+.PP 
+.SH "struct M_thread_spinlock_t"
+.PP 
+Public struct for spinlocks, so static initializers can be used 
+.PP
+\fBData Fields:\fP
+.RS 4
+volatile M_uint32 \fIcurrent\fP 
+.br
+.PP
+volatile M_uint32 \fIqueue\fP 
+.br
+.PP
+\fBM_threadid_t\fP \fIthreadid\fP 
+.br
+.PP
+.RE
+.PP
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_THREAD_SPINLOCK_STATIC_INITIALIZER   { 0, 0, 0 }"
+Static initializer for spinlocks 
+.SH "Function Documentation"
+.PP 
+.SS "void M_thread_spinlock_lock (\fBM_thread_spinlock_t\fP * spinlock)"
+Lock a spinlock\&.
+.PP
+A spinlock is similar in usage to a mutex, but should NOT be used in place of a mutex\&. When in doubt, use a mutex instead, a spinlock is almost always the wrong thing to use\&. Spinlocks can be used protect areas of memory that are very unlikely to have high contention and should only be held for very short durations, or when the act of initializing a mutex might itself cause a race condition (such as during an initialization procedure as mutexes do not support static initializers)\&.
+.PP
+When lock contention occurs on a spinlock, it will spin, consuming CPU, waiting for the lock to be released\&. Spinlocks are purely implemented in userland using atomics\&. The implementation uses 'tickets' to try to guarantee lock order in a first-come first-served manner, and has rudimentary backoff logic to attempt to reduce resource consumption during periods of high lock contention\&.
+.PP
+A spinlock variable must have been initialized using M_THREAD_SPINLOCK_STATIC_INITIALIZER and passed by reference into this function\&. There is no initialization or destruction function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIspinlock\fP Spinlock initialized via M_THREAD_SPINLOCK_STATIC_INITIALIZER and passed by reference\&. 
+.RE
+.PP
+
+.SS "void M_thread_spinlock_unlock (\fBM_thread_spinlock_t\fP * spinlock)"
+Unlock a spinlock
+.PP
+See \fBM_thread_spinlock_lock()\fP for more information\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIspinlock\fP Spinlock initialized via M_THREAD_SPINLOCK_STATIC_INITIALIZER and passed by reference\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

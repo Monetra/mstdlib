@@ -1,0 +1,84 @@
+.TH "m_thread_common_tls" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_thread_common_tls
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef M_uint64 \fBM_thread_tls_key_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_thread_tls_key_t\fP \fBM_thread_tls_key_create\fP (void(*destructor)(void *))"
+.br
+.ti -1c
+.RI "M_bool \fBM_thread_tls_setspecific\fP (\fBM_thread_tls_key_t\fP key, const void *value)"
+.br
+.ti -1c
+.RI "void * \fBM_thread_tls_getspecific\fP (\fBM_thread_tls_key_t\fP key)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread Local Storage 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef M_uint64 \fBM_thread_tls_key_t\fP"
+Thread local storage key\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_thread_tls_key_t\fP M_thread_tls_key_create (void(*)(void *) destructor)"
+Create a key for storing data in thread local storage\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdestructor\fP The destructor to call to destroy the stored value at the returned key\&. Optional, use NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The key to use in tls\&. 
+.RE
+.PP
+
+.SS "M_bool M_thread_tls_setspecific (\fBM_thread_tls_key_t\fP key, const void * value)"
+Set the key for the current thread to the given value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIkey\fP The key\&. 
+.br
+\fIvalue\fP The value to store\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was stored\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "void* M_thread_tls_getspecific (\fBM_thread_tls_key_t\fP key)"
+Get the value fro a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value or NULL if not value set/invalid key\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

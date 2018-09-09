@@ -1,0 +1,173 @@
+.TH "m_fs_progress" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_progress
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBM_fs_progress_get_path\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "\fBM_fs_type_t\fP \fBM_fs_progress_get_type\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_progress_get_result\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_count_total\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_count\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_size_total\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_size_total_progess\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_size_current\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_progress_get_size_current_progress\fP (const \fBM_fs_progress_t\fP *p)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "const char* M_fs_progress_get_path (const \fBM_fs_progress_t\fP * p)"
+Get the path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_type_t\fP M_fs_progress_get_type (const \fBM_fs_progress_t\fP * p)"
+Get file type\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The type\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_progress_get_result (const \fBM_fs_progress_t\fP * p)"
+Get result of the operation at this stage for the current file being processed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The result\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_count_total (const \fBM_fs_progress_t\fP * p)"
+Get total number of files to process\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The total number of files\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_count (const \fBM_fs_progress_t\fP * p)"
+Get current number being processing\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The current number being processed\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_size_total (const \fBM_fs_progress_t\fP * p)"
+Get the total size of all files\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The total size\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_size_total_progess (const \fBM_fs_progress_t\fP * p)"
+Get total number of bytes that have been processed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of bytes processed\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_size_current (const \fBM_fs_progress_t\fP * p)"
+Get size of the current file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The size of the current file\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_progress_get_size_current_progress (const \fBM_fs_progress_t\fP * p)"
+Get number of bytes of the current file that have been processed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP Progress\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of bytes processed for the current file\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

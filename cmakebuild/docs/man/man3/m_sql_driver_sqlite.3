@@ -1,0 +1,32 @@
+.TH "m_sql_driver_sqlite" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_driver_sqlite
+.SH SYNOPSIS
+.br
+.PP
+.SH "Detailed Description"
+.PP 
+SQLite Driver
+.PP
+Driver Name: sqlite
+.PP
+Driver Connection String Options:
+.IP "\(bu" 2
+path: Required\&. Filesystem path to SQLite database\&.
+.IP "\(bu" 2
+journal_mode: Optional\&. Defaults to 'WAL' if not specified, other options include 'DELETE'\&.
+.IP "\(bu" 2
+analyze: Optional\&. Defaults to 'TRUE' if not specified\&. On first connect, automatically runs an analyze to update index statistics if set to 'TRUE'\&.
+.IP "\(bu" 2
+integrity_check: Optional\&. Defaults to 'FALSE' if not specified\&. On first connect, automatically runs an integrity check to verify the database integrity if set to 'TRUE'\&.
+.IP "\(bu" 2
+shared_cache: Optional\&. Defaults to 'TRUE' if not specified\&. Enables shared cache mode for multiple connections to the same database\&.
+.IP "\(bu" 2
+autocreate: Optional\&. Defaults to 'TRUE' if not specified\&. The default is to auto-create the database if not found, set this to 'FALSE' to error if the database does not exist\&. 
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

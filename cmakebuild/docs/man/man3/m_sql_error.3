@@ -1,0 +1,208 @@
+.TH "m_sql_error" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_error
+.SH SYNOPSIS
+.br
+.PP
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_sql_error_t\fP { \fBM_SQL_ERROR_SUCCESS\fP = 0, \fBM_SQL_ERROR_SUCCESS_ROW\fP = 1, \fBM_SQL_ERROR_CONN_NODRIVER\fP = 100, \fBM_SQL_ERROR_CONN_DRIVERLOAD\fP = 101, \fBM_SQL_ERROR_CONN_DRIVERVER\fP = 102, \fBM_SQL_ERROR_CONN_PARAMS\fP = 103, \fBM_SQL_ERROR_CONN_FAILED\fP = 104, \fBM_SQL_ERROR_CONN_BADAUTH\fP = 105, \fBM_SQL_ERROR_CONN_LOST\fP = 106, \fBM_SQL_ERROR_PREPARE_INVALID\fP = 200, \fBM_SQL_ERROR_PREPARE_STRNOTBOUND\fP = 201, \fBM_SQL_ERROR_PREPARE_NOMULITQUERY\fP = 202, \fBM_SQL_ERROR_QUERY_NOTPREPARED\fP = 300, \fBM_SQL_ERROR_QUERY_WRONGNUMPARAMS\fP = 301, \fBM_SQL_ERROR_QUERY_PREPARE\fP = 302, \fBM_SQL_ERROR_QUERY_DEADLOCK\fP = 400, \fBM_SQL_ERROR_QUERY_CONSTRAINT\fP = 410, \fBM_SQL_ERROR_QUERY_FAILURE\fP = 499, \fBM_SQL_ERROR_INUSE\fP = 500, \fBM_SQL_ERROR_INVALID_USE\fP = 600, \fBM_SQL_ERROR_INVALID_TYPE\fP = 601, \fBM_SQL_ERROR_USER_SUCCESS\fP = 700, \fBM_SQL_ERROR_USER_RETRY\fP = 701, \fBM_SQL_ERROR_USER_FAILURE\fP = 702, \fBM_SQL_ERROR_UNSET\fP = 999 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBM_sql_error_string\fP (\fBM_sql_error_t\fP err)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_error_is_error\fP (\fBM_sql_error_t\fP err)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_error_is_rollback\fP (\fBM_sql_error_t\fP err)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_error_is_fatal\fP (\fBM_sql_error_t\fP err)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_error_is_disconnect\fP (\fBM_sql_error_t\fP err)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+SQL Error handling 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_sql_error_t\fP"
+Possible error conditions 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_ERROR_SUCCESS \fP\fP
+No error, success\&. If returned by \fBM_sql_stmt_fetch()\fP, there are guaranteed to not be any rows in the result set\&. However, for an \fBM_sql_stmt_execute()\fP or \fBM_sql_trans_execute()\fP if \fBM_sql_stmt_set_max_fetch_rows()\fP was not set, there may be rows available\&. 
+.TP
+\fB\fIM_SQL_ERROR_SUCCESS_ROW \fP\fP
+No error, success, rows may be available to be fetched 
+.TP
+\fB\fIM_SQL_ERROR_CONN_NODRIVER \fP\fP
+Driver not found for specified driver name\&. 
+.TP
+\fB\fIM_SQL_ERROR_CONN_DRIVERLOAD \fP\fP
+Failed to dynamically load driver module\&. 
+.TP
+\fB\fIM_SQL_ERROR_CONN_DRIVERVER \fP\fP
+Driver version invalid 
+.TP
+\fB\fIM_SQL_ERROR_CONN_PARAMS \fP\fP
+Connection string parameter validation failed 
+.TP
+\fB\fIM_SQL_ERROR_CONN_FAILED \fP\fP
+Failed to establish connection to server\&. 
+.TP
+\fB\fIM_SQL_ERROR_CONN_BADAUTH \fP\fP
+Failed to authenticate against server\&. 
+.TP
+\fB\fIM_SQL_ERROR_CONN_LOST \fP\fP
+Connection to server has been lost (remote disconnect)\&. 
+.TP
+\fB\fIM_SQL_ERROR_PREPARE_INVALID \fP\fP
+Invalid query format 
+.TP
+\fB\fIM_SQL_ERROR_PREPARE_STRNOTBOUND \fP\fP
+A string was detected in the query that was not bound 
+.TP
+\fB\fIM_SQL_ERROR_PREPARE_NOMULITQUERY \fP\fP
+Multiple requests in a single query are not allowed 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_NOTPREPARED \fP\fP
+Can't execute query as statement hasn't been prepared 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_WRONGNUMPARAMS \fP\fP
+Wrong number of bound parameters provided for query 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_PREPARE \fP\fP
+DB Driver failed to prepare the query for execution 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_DEADLOCK \fP\fP
+Deadlock (must rollback), cannot continue\&. 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_CONSTRAINT \fP\fP
+Constraint failed (e\&.g\&. Unique key or primary key conflict) 
+.TP
+\fB\fIM_SQL_ERROR_QUERY_FAILURE \fP\fP
+Failure (uncategorized) 
+.TP
+\fB\fIM_SQL_ERROR_INUSE \fP\fP
+Resource in use, invalid action 
+.TP
+\fB\fIM_SQL_ERROR_INVALID_USE \fP\fP
+Invalid use 
+.TP
+\fB\fIM_SQL_ERROR_INVALID_TYPE \fP\fP
+Invalid Data Type for conversion 
+.TP
+\fB\fIM_SQL_ERROR_USER_SUCCESS \fP\fP
+Return code a User can generate in \fBM_sql_trans_process()\fP to Indicate the operation is complete and the system can commit any pending data\&. This is equivalent to \fBM_SQL_ERROR_SUCCESS\fP but can be used in its place if a user needs to have the ability to differentiate how \fBM_sql_trans_process()\fP returned success\&. 
+.TP
+\fB\fIM_SQL_ERROR_USER_RETRY \fP\fP
+Return code a User can generate in \fBM_sql_trans_process()\fP to request the system to rollback and retry the entire sequence of events\&. This is equivalent to \fBM_SQL_ERROR_QUERY_DEADLOCK\fP but more accurately indicates the failure was due to user-logic rather than a condition triggered internally to the SQL system 
+.TP
+\fB\fIM_SQL_ERROR_USER_FAILURE \fP\fP
+Return code a User can generate in \fBM_sql_trans_process()\fP to request the system to rollback and return the error to the caller\&. This is equivalent to \fBM_SQL_ERROR_QUERY_FAILURE\fP but more accurately indicates the failure was due to user-logic rather than a condition triggered internally to the SQL system 
+.TP
+\fB\fIM_SQL_ERROR_UNSET \fP\fP
+Error message not set\&. Internal use only\&. 
+.SH "Function Documentation"
+.PP 
+.SS "const char* M_sql_error_string (\fBM_sql_error_t\fP err)"
+Retrieve generic error string associated with error code\&.
+.PP
+Often the error message returned by the calling function or \fBM_sql_stmt_get_error_string()\fP is more useful for human display purposes\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error to evaluate 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+string representation of error message\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_error_is_error (\fBM_sql_error_t\fP err)"
+Returns if error code is a failure or not\&.
+.PP
+Currently this returns true if the error condition is any error other than \fBM_SQL_ERROR_SUCCESS\fP or \fBM_SQL_ERROR_SUCCESS_ROW\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error to evaluate 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if error, M_FALSE if not\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_error_is_rollback (\fBM_sql_error_t\fP err)"
+Returns if the error code represents a rollback condition\&.
+.PP
+There may be multiple types of failures that are rollback conditions such as unexpected disconnects from the database, deadlocks, and consistency failures\&. This function checks for all known conditions where a rollback should be performed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error to evaluate\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if rollback condition, M_FALSE if not\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_error_is_fatal (\fBM_sql_error_t\fP err)"
+Returns if the error code represents a fatal error returned from the server that is unlikely to succeed if simply re-attempted\&. Often this is the result of a poorly formed query that can't be parsed or prepared\&.
+.PP
+Currently this is equivelent to: 
+.PP
+.nf
+(M_sql_error_is_error(err) && !M_sql_error_is_rollback(err) && !M_sql_error_is_disconnect(err))
+
+.fi
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error to evaluate\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if fatal error, M_FALSE if not\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_error_is_disconnect (\fBM_sql_error_t\fP err)"
+Returns if the error code is due to a fatal communications error\&. If this occurs, the connection will be automatically destroyed and next use will try to establish a new connection
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error to evaluate\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if connectivity failure, M_FALSE if not\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

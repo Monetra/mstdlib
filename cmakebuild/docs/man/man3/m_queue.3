@@ -1,0 +1,252 @@
+.TH "m_queue" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_queue
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_queue \fBM_queue_t\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBM_queue_foreach\fP \fBM_queue_foreach_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_queue_t\fP * \fBM_queue_create\fP (\fBM_sort_compar_t\fP sort_cb, void(*free_cb)(void *))"
+.br
+.ti -1c
+.RI "void \fBM_queue_destroy\fP (\fBM_queue_t\fP *queue)"
+.br
+.ti -1c
+.RI "M_bool \fBM_queue_insert\fP (\fBM_queue_t\fP *queue, void *member)"
+.br
+.ti -1c
+.RI "M_bool \fBM_queue_remove\fP (\fBM_queue_t\fP *queue, void *member)"
+.br
+.ti -1c
+.RI "M_bool \fBM_queue_take\fP (\fBM_queue_t\fP *queue, void *member)"
+.br
+.ti -1c
+.RI "void * \fBM_queue_take_first\fP (\fBM_queue_t\fP *queue)"
+.br
+.ti -1c
+.RI "size_t \fBM_queue_len\fP (\fBM_queue_t\fP *queue)"
+.br
+.ti -1c
+.RI "void * \fBM_queue_first\fP (\fBM_queue_t\fP *queue)"
+.br
+.ti -1c
+.RI "void * \fBM_queue_last\fP (\fBM_queue_t\fP *queue)"
+.br
+.ti -1c
+.RI "M_bool \fBM_queue_foreach\fP (\fBM_queue_t\fP *queue, \fBM_queue_foreach_t\fP **q_foreach, void **member)"
+.br
+.ti -1c
+.RI "void \fBM_queue_foreach_free\fP (\fBM_queue_foreach_t\fP *q_foreach)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Queue, meant for storing a list of pointers in either insertion order or sorted as per a user-defined callback\&. The usage is very similar to that of an M_llist_t, and infact an M_llist_t is used as one of the backing data types, but it also uses an M_hashtable_t in order to make lookups and removals of queue members by pointer O(1) rather than O(log n) for sorted lists or O(n) for unsorted lists\&.
+.PP
+Usage Example:
+.PP
+.PP
+.nf
+M_queue_t         *queue;
+void              *member    = NULL;
+M_queue_foreach_t *q_foreach = NULL;
+
+queue = M_queue_create(M_sort_compar_str, M_free);
+M_queue_insert(queue, M_strdup("b\&. hello world"));
+M_queue_insert(queue, M_strdup("c\&. goodbye"));
+M_queue_insert(queue, M_strdup("a! -- I should end up enumerated first"));
+M_printf("queue members: %zu\n", M_queue_len(queue));
+
+while (M_queue_foreach(queue, &q_foreach, &member)) {
+    M_printf("removing member: %s\n", (const char *)member);
+    M_queue_remove(queue, member);
+}
+
+M_printf("queue members: %zu\n", M_queue_len(queue));
+M_queue_destroy(queue);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_queue \fBM_queue_t\fP"
+Data type used as the main queue object 
+.SS "typedef struct \fBM_queue_foreach\fP \fBM_queue_foreach_t\fP"
+Data type used for enumeration of a queue 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_queue_t\fP* M_queue_create (\fBM_sort_compar_t\fP sort_cb, void(*)(void *) free_cb)"
+Create a queue (list of objects) that stores user-provided pointers\&. The pointers stored may be kept in insertion order or sorted, depending on how the queue is initialized\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsort_cb\fP If the pointers should be stored in a sorted order, register this callback with the routine for sorting\&. If insertion order is desired, pass NULL\&. 
+.br
+\fIfree_cb\fP Upon removal of a pointer from the queue, this callback will be called\&. This applies to \fBM_queue_destroy()\fP and \fBM_queue_remove()\fP\&. If no free callback desired, pass NULL\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated M_queue_t * on success that should be free'd with \fBM_queue_destroy()\fP, otherwise NULL\&. 
+.RE
+.PP
+
+.SS "void M_queue_destroy (\fBM_queue_t\fP * queue)"
+Destroy's an initialized M_queue_t * object\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.RE
+.PP
+
+.SS "M_bool M_queue_insert (\fBM_queue_t\fP * queue, void * member)"
+Insert a user-supplied queue object (pointer) into the queue\&. The object specified should not already be in the queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.br
+\fImember\fP User-supplied queue object (pointer) to insert, must not be NULL\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure such as if the user-supplied object already exists in the queue 
+.RE
+.PP
+
+.SS "M_bool M_queue_remove (\fBM_queue_t\fP * queue, void * member)"
+Remove a user-supplied queue object (pointer) from the queue\&. If \fBM_queue_create()\fP registered the free_cb, the free_cb will be called upon removal\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.br
+\fImember\fP User-supplied queue object (pointer) to remove\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure such as object not found\&. 
+.RE
+.PP
+
+.SS "M_bool M_queue_take (\fBM_queue_t\fP * queue, void * member)"
+Take control of a user-supplied queue object (pointer)\&. This will remove the object from the list without freeing the object (assuming free_cb was registered)\&. If no free_cb was registered in \fBM_queue_create()\fP, this has the same behavior as \fBM_queue_remove()\fP\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.br
+\fImember\fP User-supplied queue object (pointer) to take ownership of\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure such as object not found\&. 
+.RE
+.PP
+
+.SS "void* M_queue_take_first (\fBM_queue_t\fP * queue)"
+Take control of the first queue member\&. This will remove the object from the list without freeing the object (assuming free_cb was registered)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+pointer to first queue object, NULL if none 
+.RE
+.PP
+
+.SS "size_t M_queue_len (\fBM_queue_t\fP * queue)"
+Retrieve the number of items in the specified queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+count of items in the queue\&. 
+.RE
+.PP
+
+.SS "void* M_queue_first (\fBM_queue_t\fP * queue)"
+Retrieve the first queue entry in the specified queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+First queue entry, NULL if no entries 
+.RE
+.PP
+
+.SS "void* M_queue_last (\fBM_queue_t\fP * queue)"
+Retrieve the last queue entry in the specified queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Last queue entry, NULL if no entries 
+.RE
+.PP
+
+.SS "M_bool M_queue_foreach (\fBM_queue_t\fP * queue, \fBM_queue_foreach_t\fP ** q_foreach, void ** member)"
+Enumerate across all members in the queue\&. This function is designed to be run in a while() loop until it returns M_FALSE\&. The q_foreach parameter will be automatically deallocated if this returns M_FALSE, otherwise if breaking out of the loop early, M_queue_foreach_free must be called\&.
+.PP
+During an enumeration, it is allowable to remove the \fIcurrent\fP member from the queue\&. It is undefined behavior to remove any other member during an enumeration\&. Addition to the queue is also allowed during an enumeration, however it is not defined if the new value will end up in the enumerated set\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIqueue\fP Initialized queue object returned by \fBM_queue_create()\fP 
+.br
+\fIq_foreach\fP M_queue_foreach_t * passed By Reference, and initialized to NULL before the first call to \fBM_queue_foreach()\fP\&. The value returned is not meant to be interpreted and must be passed back in, unmodified to the next call of \fBM_queue_foreach()\fP\&. If breaking out of the loop prior to \fBM_queue_foreach()\fP returning M_FALSE, this object should be free'd with \fBM_queue_foreach_free()\fP\&. 
+.br
+\fImember\fP Pointer to member to be filled in, passed By Reference\&. This value will be populated with the current member in the enumeration\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if there are more members to enumerate, M_FALSE if no more members and no result was returned\&. 
+.RE
+.PP
+
+.SS "void M_queue_foreach_free (\fBM_queue_foreach_t\fP * q_foreach)"
+Free's the M_queue_foreach_t * filled in by M_queue_foreach\&. This only needs to be called if the enumeration was ended early and not allowed to run to completion\&. NOTE: This may currently be a no-op if q_foreach just references an internal pointer\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIq_foreach\fP M_queue_foreach_t * initialized by M_queue_foreach\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

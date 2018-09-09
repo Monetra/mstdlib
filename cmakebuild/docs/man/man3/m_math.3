@@ -1,0 +1,366 @@
+.TH "m_math" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_math
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_MIN\fP(a,  b)   ((a)<(b)?(a):(b))"
+.br
+.ti -1c
+.RI "#define \fBM_MAX\fP(a,  b)   ((a)>(b)?(a):(b))"
+.br
+.ti -1c
+.RI "#define \fBM_ABS\fP(a)   ((a)<0?((a)*\-1):(a))"
+.br
+.ti -1c
+.RI "#define \fBM_CLAMP\fP(x,  l,  h)   \fBM_MIN\fP(h,\fBM_MAX\fP(l,x))"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "M_uint64 \fBM_uint64_exp\fP (M_uint64 num, int exponent)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_uint64_prec_round\fP (M_uint64 num, int currentDecimals, int wantedDecimals)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_uint64_round_up_to_nearest_multiple\fP (M_uint64 n, M_uint64 mul)"
+.br
+.ti -1c
+.RI "M_bool \fBM_uint32_is_power_of_two\fP (M_uint32 n)"
+.br
+.ti -1c
+.RI "M_bool \fBM_uint64_is_power_of_two\fP (M_uint64 n)"
+.br
+.ti -1c
+.RI "M_bool \fBM_size_t_is_power_of_two\fP (size_t n)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_uint32_round_up_to_power_of_two\fP (M_uint32 n)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_uint64_round_up_to_power_of_two\fP (M_uint64 n)"
+.br
+.ti -1c
+.RI "size_t \fBM_size_t_round_up_to_power_of_two\fP (size_t n)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_uint32_round_down_to_power_of_two\fP (M_uint32 n)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_uint64_round_down_to_power_of_two\fP (M_uint64 n)"
+.br
+.ti -1c
+.RI "size_t \fBM_size_t_round_down_to_power_of_two\fP (size_t n)"
+.br
+.ti -1c
+.RI "M_uint8 \fBM_uint32_log2\fP (M_uint32 n)"
+.br
+.ti -1c
+.RI "M_uint8 \fBM_uint64_log2\fP (M_uint64 n)"
+.br
+.ti -1c
+.RI "M_int64 \fBM_sign_extend\fP (M_uint64 x, size_t num_bits)"
+.br
+.ti -1c
+.RI "int \fBM_uint64_count_digits\fP (M_uint64 num)"
+.br
+.ti -1c
+.RI "double \fBM_math_modf\fP (double x, double *iptr)"
+.br
+.ti -1c
+.RI "double \fBM_math_round\fP (double x)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Mathmatic calculations and conversions\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_MIN(a, b)   ((a)<(b)?(a):(b))"
+
+.SS "#define M_MAX(a, b)   ((a)>(b)?(a):(b))"
+
+.SS "#define M_ABS(a)   ((a)<0?((a)*\-1):(a))"
+
+.SS "#define M_CLAMP(x, l, h)   \fBM_MIN\fP(h,\fBM_MAX\fP(l,x))"
+
+.SH "Function Documentation"
+.PP 
+.SS "M_uint64 M_uint64_exp (M_uint64 num, int exponent)"
+Calculate the exponent of an integer x^y (num^exp)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInum\fP Base number\&. 
+.br
+\fIexponent\fP Exponent\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+num ^ exp 
+.RE
+.PP
+
+.SS "M_uint64 M_uint64_prec_round (M_uint64 num, int currentDecimals, int wantedDecimals)"
+Round an integer with implied decimals\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInum\fP Number to round\&. 
+.br
+\fIcurrentDecimals\fP Current number of implied decimal places\&. 
+.br
+\fIwantedDecimals\fP Desired number of decimal places in output\&. Must be <= currentDecimals\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+num rounded to wantedDecimals (output will have wantedDecimals implied decimals)\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_uint64_round_up_to_nearest_multiple (M_uint64 n, M_uint64 mul)"
+Round an integer value up to a given multiple\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next multiple\&. 
+.br
+\fImul\fP integer multiple to use\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is evenly divisible by mul\&. 
+.RE
+.PP
+
+.SS "M_bool M_uint32_is_power_of_two (M_uint32 n)"
+Determine if 32bit integer is a power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer to check
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if power of 2, M_FALSE otherwise 
+.RE
+.PP
+
+.SS "M_bool M_uint64_is_power_of_two (M_uint64 n)"
+Determine if 64bit integer is a power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer to check
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if power of 2, M_FALSE otherwise 
+.RE
+.PP
+
+.SS "M_bool M_size_t_is_power_of_two (size_t n)"
+Determine if size_t is a power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer to check
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if power of 2, M_FALSE otherwise 
+.RE
+.PP
+
+.SS "M_uint32 M_uint32_round_up_to_power_of_two (M_uint32 n)"
+Round a 32bit integer value up to the next power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_uint64_round_up_to_power_of_two (M_uint64 n)"
+Round a 64bit integer value up to the next power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "size_t M_size_t_round_up_to_power_of_two (size_t n)"
+Round a size_t value up to the next power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_uint32_round_down_to_power_of_two (M_uint32 n)"
+Round a 32bit integer value down to the last power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_uint64_round_down_to_power_of_two (M_uint64 n)"
+Round a 64bit integer value down to the last power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "size_t M_size_t_round_down_to_power_of_two (size_t n)"
+Round a size_t value down to the last power of two\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value from which to determine the next power of two\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the next value greater than or equal to n that is a power of two\&. 
+.RE
+.PP
+
+.SS "M_uint8 M_uint32_log2 (M_uint32 n)"
+Get the log2 of a 32bit integer\&. n is rounded down if not power of 2, can use \fBM_uint32_round_up_to_power_of_two()\fP to round n up first\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value to get the log2 for 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+log2 of n 
+.RE
+.PP
+
+.SS "M_uint8 M_uint64_log2 (M_uint64 n)"
+Get the log2 of a 64bit integer\&. n is rounded down if not power of 2, can use \fBM_uint64_round_up_to_power_of_two()\fP to round n up first\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP integer value to get the log2 for 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+log2 of n 
+.RE
+.PP
+
+.SS "M_int64 M_sign_extend (M_uint64 x, size_t num_bits)"
+Increase the number of bits while keeping the sign\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Value to sign extend 
+.br
+\fInum_bits\fP The number of bits to extend from 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+sign extended value 
+.RE
+.PP
+
+.SS "int M_uint64_count_digits (M_uint64 num)"
+Counts number of digits in an Integer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInum\fP Number to count digits\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of digits in integer\&. 
+.RE
+.PP
+
+.SS "double M_math_modf (double x, double * iptr)"
+Floating point modulus\&.
+.PP
+Splits floating point number into integer and fractional parts\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Number to split\&. 
+.br
+\fIiptr\fP Integer part of number\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Fractional part of number\&. 
+.RE
+.PP
+
+.SS "double M_math_round (double x)"
+Floating point rounding\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIx\fP Number to round\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number rounded\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

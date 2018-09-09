@@ -1,0 +1,319 @@
+.TH "m_sql_stmt" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_stmt
+.SH SYNOPSIS
+.br
+.PP
+.SS "Modules"
+
+.in +1c
+.ti -1c
+.RI "\fBSQL Statement Request Parameter Binding\fP"
+.br
+.ti -1c
+.RI "\fBSQL Statement Results\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_sql_stmt \fBM_sql_stmt_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_sql_stmt_t\fP * \fBM_sql_stmt_create\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_sql_stmt_destroy\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_stmt_prepare\fP (\fBM_sql_stmt_t\fP *stmt, const char *query)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_stmt_prepare_buf\fP (\fBM_sql_stmt_t\fP *stmt, \fBM_buf_t\fP *query)"
+.br
+.ti -1c
+.RI "\fBM_sql_stmt_t\fP * \fBM_sql_stmt_groupinsert_prepare\fP (\fBM_sql_connpool_t\fP *pool, const char *query)"
+.br
+.ti -1c
+.RI "\fBM_sql_stmt_t\fP * \fBM_sql_stmt_groupinsert_prepare_buf\fP (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_stmt_execute\fP (\fBM_sql_connpool_t\fP *pool, \fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_stmt_set_max_fetch_rows\fP (\fBM_sql_stmt_t\fP *stmt, size_t num)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_stmt_set_master_only\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_stmt_has_remaining_rows\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_stmt_fetch\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_stmt_get_error\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_stmt_get_error_string\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+SQL Statement Management 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_sql_stmt \fBM_sql_stmt_t\fP"
+Data type for prepared SQL statements 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_sql_stmt_t\fP* M_sql_stmt_create (void)"
+Create a prepared statement object for executing queries\&.
+.PP
+The statement object holds both request data as well as response data from the server\&.
+.PP
+Use the \fBM_sql_stmt_bind_*() \fP series of functions to bind data to the statement handle matching the number of bound parameters referenced in the query\&. When binding parameters, they must be bound in order of appearance in the query\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Initialized \fBM_sql_stmt_t\fP object 
+.RE
+.PP
+
+.SS "void M_sql_stmt_destroy (\fBM_sql_stmt_t\fP * stmt)"
+Destroy a prepared statement object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized \fBM_sql_stmt_t\fP object 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_stmt_prepare (\fBM_sql_stmt_t\fP * stmt, const char * query)"
+Prepare statement for execution\&.
+.PP
+This process will perform basic preprocessing and transformation on the statement query\&. Parameters for the query may be bound either before or after this call\&. A placeholder of a question mark (?) will be used for each bound parameter in the statement\&.
+.PP
+No inline text is allowed in a prepared statement, callers must ensure they bind any text values\&.
+.PP
+Only a single query per statement execution is allowed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized \fBM_sql_stmt_t\fP object 
+.br
+\fIquery\fP Query to be prepared 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS\fP on sucess, or one of the \fBM_sql_error_t\fP values on failure\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_stmt_prepare_buf (\fBM_sql_stmt_t\fP * stmt, \fBM_buf_t\fP * query)"
+Prepare statement for execution from an \fBM_buf_t\fP object that will be automatically free'd\&.
+.PP
+This process will perform basic preprocessing and transformation on the statement query\&. Parameters for the query may be bound either before or after this call\&. A placeholder of a question mark (?) will be used for each bound parameter in the statement\&.
+.PP
+No inline text is allowed in a prepared statement, callers must ensure they bind any text values\&.
+.PP
+Only a single query per statement execution is allowed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized \fBM_sql_stmt_t\fP object 
+.br
+\fIquery\fP Query to be prepared held in an \fBM_buf_t\fP object\&. The \fBM_buf_t\fP passed to this function will be automatically destroyed so must not be used after a call to this function\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS\fP on sucess, or one of the \fBM_sql_error_t\fP values on failure\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_stmt_t\fP* M_sql_stmt_groupinsert_prepare (\fBM_sql_connpool_t\fP * pool, const char * query)"
+Create a 'grouped' SQL statement for optimizing server round-trips and commits for 'like' INSERT statements\&.
+.PP
+When multiple threads are performing similar actions, such as during transaction processing, it is very likely that those multiple threads might need to perform essentially the same insert action on the same table with the same number of bound parameters\&. Instead of sending these insertions individually, it is more efficient to group them together which could result in a single round trip and transaction instead of dozens or even hundreds\&.
+.PP
+This implementation will generate a hashtable entry in the pool with the query as the key and the statement handle as the value\&. If the entry already exists, it will use the existing statement handle and simply prepare it to take a new row then once \fBM_sql_stmt_execute()\fP is called, it wait on a thread conditional rather than trying to directly execute the statement, which will wake when a result is ready\&. If the entry is not already in the hashtable, it will add it, then on \fBM_sql_stmt_execute()\fP it will temporarily \fBM_thread_yield()\fP in order to allow other threads to obtain a lock and append additional rows, then finally execute and trigger the other threads waiting on the conditional that a result is ready\&.
+.PP
+All threads must still call \fBM_sql_stmt_destroy()\fP as it becomes reference counted when this function is used\&. All normal M_sql_stmt_*() functions, except \fBM_sql_stmt_prepare()\fP and \fBM_sql_stmt_prepare_buf()\fP may be called\&. It should be advised that \fBM_sql_stmt_result_affected_rows()\fP may not return an expected count since it would reflect the overall count of grouped rows\&. Also, if an error such as \fBM_SQL_ERROR_QUERY_CONSTRAINT\fP is returned, the error maybe for another row, so it is advisable to simply re-run the query without using \fBM_sql_stmt_groupinsert_prepare()\fP so you know if the record being inserted is the culprit or not\&.
+.PP
+\fBNote:\fP
+.RS 4
+At a minimum, one of the M_sql_stmt_bind_*() functions should be called, as well as \fBM_sql_stmt_execute()\fP and \fBM_sql_stmt_destroy()\fP\&.
+.RE
+.PP
+\fBWarning:\fP
+.RS 4
+If an error is triggered, such as \fBM_SQL_ERROR_QUERY_CONSTRAINT\fP, the caller must re-try the transaction using normal \fBM_sql_stmt_create()\fP and \fBM_sql_stmt_prepare()\fP rather than \fBM_sql_stmt_groupinsert_prepare()\fP to recover\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Initialized connection pool\&. 
+.br
+\fIquery\fP Query string to execute 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_sql_stmt_t\fP handle to bind parameters and execute\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_stmt_t\fP* M_sql_stmt_groupinsert_prepare_buf (\fBM_sql_connpool_t\fP * pool, \fBM_buf_t\fP * query)"
+Create a 'grouped' SQL statement for optimizing server round-trips and commits for 'like' INSERT statements using an M_buf_t as the query string\&.
+.PP
+See \fBM_sql_stmt_groupinsert_prepare()\fP for additional information\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Initialized connection pool\&. 
+.br
+\fIquery\fP Query string to execute 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_sql_stmt_t\fP handle to bind parameters and execute\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_stmt_execute (\fBM_sql_connpool_t\fP * pool, \fBM_sql_stmt_t\fP * stmt)"
+Execute a single query against the database and auto-commit if appropriate\&.
+.PP
+Must call \fBM_sql_stmt_prepare()\fP or \fBM_sql_stmt_prepare_buf()\fP prior to execution\&. Must also bind any parameters using \fBM_sql_stmt_bind_*() \fP series of functions\&.
+.PP
+If executing as part of a transaction, use \fBM_sql_trans_execute()\fP instead\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Initialized \fBM_sql_connpool_t\fP object 
+.br
+\fIstmt\fP Initialized and prepared \fBM_sql_stmt_t\fP object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS\fP on success, or one of the \fBM_sql_error_t\fP values on failure\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_stmt_set_max_fetch_rows (\fBM_sql_stmt_t\fP * stmt, size_t num)"
+Set the maximum number of rows to fetch/cache in the statement handle\&.
+.PP
+By default, all available rows are cached, if this is called, only up to this number of rows will be cached client-side\&. The \fBM_sql_stmt_fetch()\fP function must be called until there are no remaining rows server-side\&.
+.PP
+It is recommended that users use partial fetching for extremely large result sets (either by number of rows, or for extremely large rows)\&.
+.PP
+\fBWarning:\fP
+.RS 4
+If a user chooses not to call this function, and the dataset is very large (especially if it contains BLOBs), then the user risks running out of memory\&. However, if the user sets this value too low for small row sizes, it could significantly increase the query time on some servers (like Oracle)\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized, but not yet executed \fBM_sql_stmt_t\fP object\&. 
+.br
+\fInum\fP Number of rows to cache at a time\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure (misuse, already executed)\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_stmt_set_master_only (\fBM_sql_stmt_t\fP * stmt)"
+Enforce the selection of the master pool, not the read-only pool for this statement\&.
+.PP
+Queries will, by default, be routed to the read-only pool\&. In some instances, this may not be desirable if it is known that the query must be as fresh as possible and thus route to the read/write pool\&.
+.PP
+Another work around is simply to wrap the read request in a transaction, but if not performing other tasks, that may be overkill and this function simplifies that logic\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized and not yet executed \fBM_sql_stmt_t\fP object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure (misuse, already executed)\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_stmt_has_remaining_rows (\fBM_sql_stmt_t\fP * stmt)"
+Retrieve whether there are still remaining rows on the server yet to be fetched by the client\&.
+.PP
+If there are remaining rows, the client must call \fBM_sql_stmt_fetch()\fP to cache the next result set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized and executed \fBM_sql_stmt_t\fP object\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if there are remaining rows on the server that can be fetched, M_FALSE otherwise\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_stmt_fetch (\fBM_sql_stmt_t\fP * stmt)"
+Fetch additional rows from the server\&.
+.PP
+Any existing cached rows will be cleared\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized and executed M_sql_stmt_t object\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS_ROW\fP on success when there may be additional remaining rows, or \fBM_SQL_ERROR_SUCCESS\fP if there are no remaining rows (if \fBM_SQL_ERROR_SUCCESS\fP is returned, it is guaranteed no additional rows can be fetched using \fBM_sql_stmt_fetch()\fP)\&. However, there may still be additional rows in the buffer that need to be processed, please check with \fBM_sql_stmt_result_num_rows()\fP\&. Otherwise one of the \fBM_sql_error_t\fP error conditions will be returned\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_stmt_get_error (\fBM_sql_stmt_t\fP * stmt)"
+Retrieve the last recorded error\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized \fBM_sql_stmt_t\fP object\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+last recorded \fBM_sql_error_t\fP for statement handle\&. 
+.RE
+.PP
+
+.SS "const char* M_sql_stmt_get_error_string (\fBM_sql_stmt_t\fP * stmt)"
+Retrieve the last recorded error message in string form\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized \fBM_sql_stmt_t\fP object\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+last recorded error string, or NULL if none 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

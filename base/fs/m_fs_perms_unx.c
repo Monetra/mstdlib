@@ -75,6 +75,7 @@ static __inline__ mode_t M_fs_perms_update_mode_from_perm_part(mode_t mode, cons
 	switch (*mytype) {
 		case M_FS_PERMS_TYPE_EXACT:
 			mode &= ~(mode_t)(s_read|s_write|s_exec);
+			/* Fall-thru */
 		case M_FS_PERMS_TYPE_ADD:
 			if (*mymode & M_FS_PERMS_MODE_READ)
 				mode |= s_read;

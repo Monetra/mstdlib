@@ -1,0 +1,227 @@
+.TH "m_fs_info" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_info
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_info\fP (\fBM_fs_info_t\fP **info, const char *path, M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_fs_info_destroy\fP (\fBM_fs_info_t\fP *info) M_FREE(1)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_info_get_user\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "const char * \fBM_fs_info_get_group\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_fs_type_t\fP \fBM_fs_info_get_type\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_info_get_ishidden\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_fs_info_get_size\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_time_t\fP \fBM_fs_info_get_atime\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_time_t\fP \fBM_fs_info_get_mtime\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_time_t\fP \fBM_fs_info_get_ctime\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_time_t\fP \fBM_fs_info_get_btime\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "const \fBM_fs_perms_t\fP * \fBM_fs_info_get_perms\fP (const \fBM_fs_info_t\fP *info)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_fs_error_t\fP M_fs_info (\fBM_fs_info_t\fP ** info, const char * path, M_uint32 flags)"
+Get information about a given path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP Allocated info object with the info about the path\&. If passed as NULL then this only verifies that a path exists\&. However, M_fs_perms_can_access is more useful for checking for file existence\&. 
+.br
+\fIpath\fP The path\&. 
+.br
+\fIflags\fP M_fs_info_flags_t defining behavior of how and what info to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "void M_fs_info_destroy (\fBM_fs_info_t\fP * info)"
+Destroy an info object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_info_get_user (const \fBM_fs_info_t\fP * info)"
+Get the user from a path info\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The user/owner\&. 
+.RE
+.PP
+
+.SS "const char* M_fs_info_get_group (const \fBM_fs_info_t\fP * info)"
+Get the group from a path info\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The group\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_type_t\fP M_fs_info_get_type (const \fBM_fs_info_t\fP * info)"
+Location type\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path type\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_info_get_ishidden (const \fBM_fs_info_t\fP * info)"
+Is this a hidden file?
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if this is a hidden file\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_fs_info_get_size (const \fBM_fs_info_t\fP * info)"
+The size of the path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The size\&. 
+.RE
+.PP
+
+.SS "\fBM_time_t\fP M_fs_info_get_atime (const \fBM_fs_info_t\fP * info)"
+The last access time\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The time\&. 
+.RE
+.PP
+
+.SS "\fBM_time_t\fP M_fs_info_get_mtime (const \fBM_fs_info_t\fP * info)"
+The last modify time\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The time\&. 
+.RE
+.PP
+
+.SS "\fBM_time_t\fP M_fs_info_get_ctime (const \fBM_fs_info_t\fP * info)"
+The last status change time\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The time\&. 
+.RE
+.PP
+
+.SS "\fBM_time_t\fP M_fs_info_get_btime (const \fBM_fs_info_t\fP * info)"
+The file birth/creation time\&.
+.PP
+This time is not updated after append operations\&. In Linux terms, it's the time the inode was created\&.
+.PP
+Note that birth/creation times aren't available on all platforms - if you're on one of those platforms, this method will always return 0\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP object created by \fBM_fs_info()\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Time when file was created, or 0 if time couldn't be retrieved 
+.RE
+.PP
+
+.SS "const \fBM_fs_perms_t\fP* M_fs_info_get_perms (const \fBM_fs_info_t\fP * info)"
+Get the permissions associated with the path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The info object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A perms object belonging to the info object\&. The perms object will be destroyed when the info object is destroyed\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,145 @@
+.TH "m_bin" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_bin
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "M_uint8 * \fBM_bin_wrap\fP (const M_uint8 *value, size_t len)"
+.br
+.ti -1c
+.RI "M_uint8 * \fBM_bin_wrapeddup\fP (const M_uint8 *value)"
+.br
+.ti -1c
+.RI "void * \fBM_bin_wrapeddup_vp\fP (const void *value)"
+.br
+.ti -1c
+.RI "const M_uint8 * \fBM_bin_unwrap\fP (const M_uint8 *value, size_t *len)"
+.br
+.ti -1c
+.RI "M_uint8 * \fBM_bin_unwrapdup\fP (const M_uint8 *value, size_t *len)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Allows for wrapping binary data into a data type that includes both length and data\&. This is to allow binary data to be passed around as a single pointer instead of having to manage the data separate from the length\&.
+.PP
+Binary data of form data, len will be wrapped into len+data\&. The length prefix is always fixed as 8\&. 8 was chosen instead of sizeof(size_t) because 32bit Solaris Sparc sizeof(size_t) is 4 but alignment is 8\&. 8 is also sizeof(size_t) on 64bit platforms\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+M_uint8  data[3] = { 1, 2, 3 }
+M_uint8 *wd;
+M_uint8 *wd_dup;
+size_t   len;
+
+wd     = M_bin_wrap(data, 3);
+wd_dup = M_bin_wrapeddup(wd);
+
+M_free(wd);
+wd = M_bin_unwrapdup(wd_dup, &len);
+
+M_free(wd);
+M_free(wd_dup);
+
+M_printf(len='%zu'\n", len);
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "M_uint8* M_bin_wrap (const M_uint8 * value, size_t len)"
+Duplicate a binary value with the length prepended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP The binary data\&. 
+.br
+\fIlen\fP The length of value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated memory of len+data of length len+sizeof(len)\&. Where sizeof(size_t) is typically 8\&. 
+.RE
+.PP
+
+.SS "M_uint8* M_bin_wrapeddup (const M_uint8 * value)"
+Duplicates binary data that has the length prepended\&.
+.PP
+The data would have to have been created using M_bin_wrap\&. The prepended length is used to determine how much memory to duplicate\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP Wrapped binary data to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Copy of wrapped data (len+data)\&. 
+.RE
+.PP
+
+.SS "void* M_bin_wrapeddup_vp (const void * value)"
+Duplicates data that has the length prepended\&.
+.PP
+The data would have to have been created using M_bin_wrap\&. The prepended length is used to determine how much memory to duplicate\&. This function should be considered unsafe and is only provided as a convience to avoid casting if the data is not an M_uint8\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP Wrapped binary data to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Copy of wrapped data (len+data)\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bin_wrapeddup\fP 
+.RE
+.PP
+
+.SS "const M_uint8* M_bin_unwrap (const M_uint8 * value, size_t * len)"
+Unwrap wrapped binary data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP Wrapped binary data\&. 
+.br
+\fIlen\fP The length of the binary data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to start of data within value\&. 
+.RE
+.PP
+
+.SS "M_uint8* M_bin_unwrapdup (const M_uint8 * value, size_t * len)"
+Unwrap wrapped binary data and return a copy of the data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvalue\fP Wrapped binary data\&. 
+.br
+\fIlen\fP The length of the binary data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated memory with a copy of data from value\&. The prepended length will not be duplicated\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

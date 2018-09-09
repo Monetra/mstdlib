@@ -1,0 +1,707 @@
+.TH "m_mem" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_mem
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_mem_str\fP(haystack,  haystack_len,  needle)   \fBM_mem_mem\fP(haystack,haystack_len,needle,\fBM_str_len\fP(needle) )"
+.br
+.ti -1c
+.RI "#define \fBM_mem_strpos\fP(haystack,  haystack_len,  needle,  idx)   \fBM_mem_mempos\fP(haystack,haystack_len,needle,\fBM_str_len\fP(needle) ,idx)"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef M_bool(* \fBM_malloc_error_cb\fP) (void)"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "M_bool \fBM_malloc_register_errorcb\fP (\fBM_malloc_error_cb\fP cb)"
+.br
+.ti -1c
+.RI "M_bool \fBM_malloc_deregister_errorcb\fP (\fBM_malloc_error_cb\fP cb)"
+.br
+.ti -1c
+.RI "void \fBM_malloc_clear_errorcb\fP (void)"
+.br
+.ti -1c
+.RI "void * \fBM_malloc\fP (size_t size) M_ALLOC_SIZE(1) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void * \fBM_malloc_zero\fP (size_t size) M_ALLOC_SIZE(1) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_free\fP (void *ptr) M_FREE(1)"
+.br
+.ti -1c
+.RI "void * \fBM_realloc\fP (void *ptr, size_t size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_realloc_zero\fP (void *ptr, size_t size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_memdup\fP (const void *src, size_t size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void * \fBM_memdup_max\fP (const void *src, size_t size, size_t min_alloc_size) M_ALLOC_SIZE(2) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void * \fBM_mem_set\fP (void *s, int c, size_t n)"
+.br
+.ti -1c
+.RI "void * \fBM_mem_move\fP (void *dst, const void *src, size_t size)"
+.br
+.ti -1c
+.RI "void * \fBM_mem_copy\fP (void *dst, const void *src, size_t size)"
+.br
+.ti -1c
+.RI "M_bool \fBM_mem_eq\fP (const void *m1, const void *m2, size_t size)"
+.br
+.ti -1c
+.RI "int \fBM_mem_cmpsort\fP (const void *m1, size_t size1, const void *m2, size_t size2) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_mem_chr\fP (const void *s, M_uint8 b, size_t n) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_mem_contains\fP (const void *haystack, size_t haystack_len, const void *needle, size_t needle_len) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_mem_mem\fP (const void *haystack, size_t haystack_len, const void *needle, size_t needle_len) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_mem_rmem\fP (const void *haystack, size_t haystack_len, const void *needle, size_t needle_len) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "void * \fBM_mem_str\fP (const void *haystack, size_t haystack_len, const char *needle) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_mem_mempos\fP (const void *haystack, size_t haystack_len, const void *needle, size_t needle_len, size_t *idx) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "size_t \fBM_mem_count\fP (const void *s, size_t s_len, M_uint8 b) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "unsigned char \fBM_mem_calc_lrc\fP (const void *s, size_t s_len)"
+.br
+.ti -1c
+.RI "M_uint8 \fBM_mem_calc_crc8_ccitt\fP (const void *s, size_t s_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_mem_swap_bytes\fP (M_uint8 *s, size_t s_len, size_t idx1, size_t idx2)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Memory manipulation\&.
+.PP
+.SH "Hardening "
+.PP
+.PP
+To aid in hardening M_malloc wraps the system malloc and stores the length of allocated memory\&. M_free uses this length and zeros the memory before calling the system free\&. The length is prepended to the memory segment and the pointer to the memory after the size is returned\&. The size is then read by M_free so the full allocated memory segment can be zeroed\&.
+.PP
+Zeroing memory is performed to combat memory scan attacks\&. It's not possible to know what data in memory is sensitive so all data is considered sensitive\&. Zeroing limits the amount of time data such as credit card numbers or encryption keys are available\&. This way data is available only as long as needed\&.
+.PP
+M_malloc and M_free are not replacements for the system provided malloc and free functions\&. They work on top of the system functions\&. This is so a hardened system malloc will not have it's functionality disrupted\&. Further, a replacement malloc implementation (such as jemalloc) can still be used\&.
+.PP
+Some system mallocs already zero memory but many do not\&. Mstdlib's M_malloc brings this to systems that do not implement this security feature\&. This is a case where security trumps performance\&.
+.PP
+Memory allocated using M_malloc must never be passed directly to the system free due to the length offset prefix, the caller would not be passing the base of the block and therefore cause undefined behavior (probably a segfault)\&.
+.PP
+Memory allocated by malloc (not M_malloc) should never be passed to M_free\&. This will result in undefined behavior (probably a segfault) as well\&.
+.PP
+All mstdlib functions that allocate memory use mstdlib's M_malloc\&. Thus any memory that needs to be freed using free that is returned by an mstdlib function must be passed to M_free\&.
+.PP
+.SH "Hardening that doesn't work "
+.PP
+.PP
+There are a few 'hardening' features that are available on Linux and other Unix platforms that were evaluated\&. These were determined to not be usable\&.
+.PP
+.SS "mlock "
+.PP
+mlock prevents a memory segment from being written to on disk swap space\&.
+.PP
+The issue with mlock is limits set by the OS\&. RLIMIT_MEMLOCK (ulimit -l) limits the amount of memory that can be locked\&. munlock must be used (before or after, testing showed it didn't matter) to reduce the locked memory amount\&. munmap should implicitly unlock the memory as well but in testing a simple free did not cause the memory to be unlocked\&.
+.PP
+munlock is not enough to avoid hitting the limit\&. In simple / small applications or test cases, it would function fine\&. However, a larger application which uses more memory will fail\&. Once the lock limit is reached an out of memory error will be returned\&.
+.PP
+On Ubuntu 14\&.04\&.2 the default RLIMIT_MEMLOCK is 64K\&. On some versions of Debian is was found to be 32K\&. This limit will quickly be reached by a non-trivial application\&.
+.PP
+Configuring the system to have a larger limit or making the limit unlimited may not alleviate this issue\&. For example, FreeBSD allows mlock use to be restricted to the user-user only\&.
+.PP
+Further, Requiring system configuration to use a general purpose library is unacceptable\&. Especially when the configuration is non-obvious\&. Also if mlock is limited to super-user only then mstdlib would be unusable as user level application\&.
+.PP
+.SS "madvise with MADV_DONTDUMP "
+.PP
+This is used to prevent marked memory from being in a core dump\&.
+.PP
+On Linux madvise requires the memory to be page-aligned\&. If the memory is not page-aligned madvise will return a failure with errno EINVAL\&. Page-alignment can easily cause the application to run out of address space\&.
+.PP
+For example you could use an allocation like: 
+.PP
+.nf
+void *ptr;
+posix_memalign(&ptr, sysconf(_SC_PAGESIZE), size);
+
+.fi
+.PP
+.PP
+Getting the page size on the command line (which is the size of _SC_PAGESIZE): 
+.PP
+.nf
+$ getconf PAGESIZE
+4096
+
+.fi
+.PP
+.PP
+In this (and many) cases we have a 4096 byte boundary\&. Meaning the address of the allocated data must be the address of a page boundary\&. There is 4K between each boundary\&. A large amount of data can be allocated there but if a small amount of data is allocated then there is a large amount of unusable space due to the next allocation needing to also be on a 4K boundary\&.
+.PP
+Take the following allocations:
+.PP
+.IP "1." 4
+8 bytes page-aligned\&.
+.IP "2." 4
+4 bytes page-aligned\&.
+.PP
+.PP
+Assuming One and Two are allocated next to each other\&. One allocates 8 bytes\&. Two will be aligned to the 4K boundary after One\&. A total of 8K of memory is reserved due to this\&. Only 12 bytes are actually needed but 8K is reserved\&. Since memory is now aligned in 4K blocks the total available memory space is greatly reduced\&. Not the amount of memory but the amount of allocations\&.
+.PP
+On a 32bit system only ~2GB of memory is available to a process\&. With 4K page-alignment allocations the amount usable memory is greatly reduced\&. This might be okay on a 64 bit system but will still be wasteful\&.
+.PP
+Also since Linux, since 3\&.18, has made madvise optional which severely limits its use\&.
+.PP
+.SS "Conclusion "
+.PP
+Neither mlock nor madvise can be used on every malloc\&. It may be okay to use this selectively but in a general purpose library there is no way to truly know what is sensitive\&. For example M_list_str and M_hash_dict duplicate the strings they are given\&. There is no way for them to know that a particular string needs to be securely allocated\&.
+.PP
+.SH "Additional External Security "
+.PP
+.PP
+One option to add additional security is to create an encrypting wrapper around a list or hashtable:
+.IP "\(bu" 2
+Use a different key for each hashtable\&.
+.IP "\(bu" 2
+Limit the life of a hashtable in order to rotate the key often\&.
+.IP "\(bu" 2
+Insert, wrapper will take the key and value\&. Encrypt them and store them in the hashtable\&.
+.IP "\(bu" 2
+Get, wrapper will take the key, encrypt it\&. Use that to look up the value\&. Decrypt the value\&. Return the value\&.
+.PP
+.PP
+This option further limits the amount of time sensitive data is stored in the clear in memory because the value in the hashtable is encrypted\&. The plain text data is only exposed as long as it is being actively used\&. This will further protect against memory scrapers\&.
+.PP
+It also, reduces the concern of swap and core dumps because the data is stored encrypted\&. Granted the key as well as the encrypted value could be stored on disk\&. However, it will still be difficult to determine what data is the key, and what set of data the key belongs to\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_mem_str(haystack, haystack_len, needle)   \fBM_mem_mem\fP(haystack,haystack_len,needle,\fBM_str_len\fP(needle) )"
+
+.SS "#define M_mem_strpos(haystack, haystack_len, needle, idx)   \fBM_mem_mempos\fP(haystack,haystack_len,needle,\fBM_str_len\fP(needle) ,idx)"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef M_bool(* M_malloc_error_cb) (void)"
+Error callback for handling malloc failure\&.
+.PP
+Can return M_TRUE to retry malloc\&. 
+.SH "Function Documentation"
+.PP 
+.SS "M_bool M_malloc_register_errorcb (\fBM_malloc_error_cb\fP cb)"
+Register a callback to be called when \fBM_malloc()\fP/M_realloc() returns a failure\&.
+.PP
+Up to 12 callbacks can be registered\&. They will be called from newest to oldest\&. If a callback returns M_TRUE callback processing will stop and malloc will be retried\&. If malloc fails again the callbacks processing will resume\&. Each callback will be run until either one returns success or all have returned failure\&.
+.PP
+Typically this will be used for external error reporting, or (more) graceful shutdown scenarios\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcb\fP Callback to be called\&. This should not ever try to allocate memory as it will most likely fail\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. The only failure reason currently is if the maximum number of registered callbacks has been reached\&. 
+.RE
+.PP
+
+.SS "M_bool M_malloc_deregister_errorcb (\fBM_malloc_error_cb\fP cb)"
+Deregister an allocation error callback
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcb\fP The callback to remove\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the callback was removed otherwise M_FALSE\&. M_FALSE means the callback is not currently registered\&. 
+.RE
+.PP
+
+.SS "void M_malloc_clear_errorcb (void)"
+Clears all user registered callbacks\&. The default abort callback is not cleared\&. 
+.SS "void* M_malloc (size_t size)"
+Allocate size bytes and returns pointer to allocated memory\&.
+.PP
+Retains information about the size of the allocation and must be released using \fBM_free()\fP\&.
+.PP
+On failure registered error callbacks will be called and malloc will be repleted if any error callback return M_TRUE indicating malloc should be retried\&. If no callbacks return retry the application will abort\&. The callbacks will be run in reverse order they were registered\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsize\fP Number of bytes of memory to allocate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is unavailable\&. Memory must be released using \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void* M_malloc_zero (size_t size)"
+Allocate size bytes and returns pointer to allocated memory and fills the memory with 0's\&.
+.PP
+Retains information about the size of the allocation and must be released using \fBM_free()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsize\fP Number of bytes of memory to allocate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is unavailable\&. Memory must be released using \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void M_free (void * ptr)"
+Release allocated memory\&.
+.PP
+Like libc free, but works with memory allocated by M_malloc class of functions to free allocated memory\&. Before being released, each byte of ptr is first set to zero\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIptr\fP A pointer to a memory location to release returned by M_malloc like functions\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_malloc\fP 
+.PP
+\fBM_malloc_zero\fP 
+.PP
+\fBM_realloc\fP 
+.PP
+\fBM_memdup\fP 
+.PP
+\fBM_memdup_max\fP 
+.RE
+.PP
+
+.SS "void* M_realloc (void * ptr, size_t size)"
+Resize an allocated memory block\&.
+.PP
+Like libc realloc, but works with memory allocated by M_malloc like functions\&. If ptr is unable to be resized, before being released, each byte of ptr is first set to zero\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIptr\fP A pointer to a memory location to release/resize returned by M_malloc\&. 
+.br
+\fIsize\fP Number of bytes of memory to allocate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is zero in size or unavailable\&. Memory must be released using \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void* M_realloc_zero (void * ptr, size_t size)"
+Resize an allocated memory block and fill any extended allocated memory with 0's\&.
+.PP
+Like libc realloc, but works with memory allocated by M_malloc like functions\&. If ptr is unable to be resized, before being released, each byte of ptr is first set to zero\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIptr\fP A pointer to a memory location to release/resize returned by M_malloc\&. 
+.br
+\fIsize\fP Number of bytes of memory to allocate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is zero in size or unavailable\&. Memory must be released using \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void* M_memdup (const void * src, size_t size)"
+Allocate and copy size bytes from src to the newly allocated space\&.
+.PP
+src should be at least size memory area\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsrc\fP Memory area to copy\&. 
+.br
+\fIsize\fP Number of bytes of memory to allocate and copy from src\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is unavailable\&. Memory must be released with \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void* M_memdup_max (const void * src, size_t size, size_t min_alloc_size)"
+Allocate at minimum min_alloc_size bytes, but copy no more than size bytes from ptr to the newly allocated space\&.
+.PP
+If size is larger than min_alloc_size, then size bytes will be allocated\&. src should be at least size memory area or NULL is returned\&.
+.PP
+This function behaves like M_malloc(size) when called M_memdup_max(NULL,0,size)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsrc\fP Memory area to copy\&. 
+.br
+\fIsize\fP Number of bytes of memory to allocate and copy from src\&. 
+.br
+\fImin_alloc_size\fP The minimum size of the returned allocation\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the newly allocated memory or NULL if the requested memory is unavailable or if src is NULL but has positive * size\&. Memory must be released with \fBM_free()\fP\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "void* M_mem_set (void * s, int c, size_t n)"
+Set memory\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP The memory to set\&. 
+.br
+\fIc\fP The value to set\&. 
+.br
+\fIn\fP The length of the memory segement\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A pointer to s\&. 
+.RE
+.PP
+
+.SS "void* M_mem_move (void * dst, const void * src, size_t size)"
+Copy memory area\&.
+.PP
+This function behaves like memcpy, but handles NULL gracefully\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdst\fP Memory location to copy to\&. 
+.br
+\fIsrc\fP Memory location to copy from\&. 
+.br
+\fIsize\fP Number of bytes to copy\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A pointer to dst\&. 
+.RE
+.PP
+
+.SS "void* M_mem_copy (void * dst, const void * src, size_t size)"
+Copy memory area\&.
+.PP
+This function behaves like memcpy, but handles NULL gracefully\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdst\fP Memory location to copy to\&. 
+.br
+\fIsrc\fP Memory location to copy from\&. 
+.br
+\fIsize\fP Number of bytes to copy\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A pointer to dst\&. 
+.RE
+.PP
+
+.SS "M_bool M_mem_eq (const void * m1, const void * m2, size_t size)"
+Compare memory segments\&.
+.PP
+This is done in a constant-time manner to prevent against timing related attacks\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm1\fP Memory address\&. 
+.br
+\fIm2\fP Memory address\&. 
+.br
+\fIsize\fP Length of memory to check\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if equal, M_FALSE if not\&. 
+.RE
+.PP
+
+.SS "int M_mem_cmpsort (const void * m1, size_t size1, const void * m2, size_t size2)"
+A wrapper around memcmp that is NULL safe\&.
+.PP
+NOTE: this is not a constant-time comparison and thus should ONLY be used for sorting such as within qsort()!
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm1\fP Memory address\&. 
+.br
+\fIsize1\fP Size of m1\&. 
+.br
+\fIm2\fP Memory address\&. 
+.br
+\fIsize2\fP Size of m2\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+an integer less than, equal to, or greater than zero if m1 is less than, equal, or greater than m2 respectively 
+.RE
+.PP
+
+.SS "void* M_mem_chr (const void * s, M_uint8 b, size_t n)"
+Find first occurrence of b in s\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP The memory area to search\&. 
+.br
+\fIb\fP The byte to search the memory area for\&. 
+.br
+\fIn\fP The size of the memory area to search\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the first occurence of b in s or NULL if not found or s is NULL or is 0\&. 
+.RE
+.PP
+
+.SS "M_bool M_mem_contains (const void * haystack, size_t haystack_len, const void * needle, size_t needle_len)"
+Determine if needle exists in haystack\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhaystack\fP Memory to search in\&. 
+.br
+\fIhaystack_len\fP The size in bytes of haystack\&. 
+.br
+\fIneedle\fP Memory to search for\&. 
+.br
+\fIneedle_len\fP The size in bytes of needle\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if needle exists in haystack or needle_len is 0, M_FALSE otherwise\&. 
+.RE
+.PP
+
+.SS "void* M_mem_mem (const void * haystack, size_t haystack_len, const void * needle, size_t needle_len)"
+Find first occurring bytes needle of length needle_len in haystack\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhaystack\fP Memory to search in\&. 
+.br
+\fIhaystack_len\fP The size in bytes of haystack\&. 
+.br
+\fIneedle\fP Memory to search for\&. 
+.br
+\fIneedle_len\fP The size in bytes of needle\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to first occurrence of needle in haystack or NULL if not found or haystack is NULL or haystack_len is 0\&. 
+.RE
+.PP
+
+.SS "void* M_mem_rmem (const void * haystack, size_t haystack_len, const void * needle, size_t needle_len)"
+Find last occurring bytes needle of length needle_len in haystack\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhaystack\fP Memory to search in\&. 
+.br
+\fIhaystack_len\fP The size in bytes of haystack\&. 
+.br
+\fIneedle\fP Memory to search for\&. 
+.br
+\fIneedle_len\fP The size in bytes of needle\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to last occurrence of needle in haystack or NULL if not found or haystack is NULL or haystack_len is 0\&. 
+.RE
+.PP
+
+.SS "void* M_mem_str (const void * haystack, size_t haystack_len, const char * needle)"
+Find first occurring string needle in haystack\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhaystack\fP Memory to search in\&. 
+.br
+\fIhaystack_len\fP The size in bytes of haystack\&. 
+.br
+\fIneedle\fP Memory to search for\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to first occurrence of needle in haystack or NULL if not found or haystack is NULL\&. 
+.RE
+.PP
+
+.SS "M_bool M_mem_mempos (const void * haystack, size_t haystack_len, const void * needle, size_t needle_len, size_t * idx)"
+Find index of first occurring bytes needle of length needle_len in haystack\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhaystack\fP Memory to search in\&. 
+.br
+\fIhaystack_len\fP The size in bytes of haystack\&. 
+.br
+\fIneedle\fP Memory to search for\&. 
+.br
+\fIneedle_len\fP The size in bytes of needle\&. 
+.br
+\fIidx\fP The index of first occurrence of needle in haystack\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if found, M_FALSE otherwise\&. 
+.RE
+.PP
+
+.SS "size_t M_mem_count (const void * s, size_t s_len, M_uint8 b)"
+Count the number of occurrences of byte b in memory area s of length s_len
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP Pointer to the memory area to search\&. 
+.br
+\fIs_len\fP The size of the memory area s\&. 
+.br
+\fIb\fP The byte value to count occurrences of\&. 
+.RE
+.PP
+
+.SS "unsigned char M_mem_calc_lrc (const void * s, size_t s_len)"
+Calculate an LRC\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP Pointer to the memory area to search\&. 
+.br
+\fIs_len\fP The size of the memory area s\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+LRC 
+.RE
+.PP
+
+.SS "M_uint8 M_mem_calc_crc8_ccitt (const void * s, size_t s_len)"
+Calculate a CRC (CRC-8/CCITT)\&.
+.PP
+This is an 8-bit cyclic redundancy check (CRC), using the CCITT standard polynomial: \fCx^8 + x^2 + x + 1\fP\&. It's calculated using an initial value of zero\&.
+.PP
+Implementation is based on public-domain code that can be found here: https://www.3dbrew.org/wiki/CRC-8-CCITT
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP Pointer to data to perform check on\&. 
+.br
+\fIs_len\fP Size of memory area s\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+CRC value\&. 
+.RE
+.PP
+
+.SS "M_bool M_mem_swap_bytes (M_uint8 * s, size_t s_len, size_t idx1, size_t idx2)"
+Swap byes between positions\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP Buffer with data to swap\&. 
+.br
+\fIs_len\fP size of s\&. 
+.br
+\fIidx1\fP Index to swap\&. 
+.br
+\fIidx2\fP Index to swap\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

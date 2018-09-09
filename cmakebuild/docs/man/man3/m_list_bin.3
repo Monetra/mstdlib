@@ -1,0 +1,691 @@
+.TH "m_list_bin" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_list_bin
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_list_bin \fBM_list_bin_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_list_bin_flags_t\fP { \fBM_LIST_BIN_NONE\fP = 1 << 0, \fBM_LIST_BIN_STACK\fP = 1 << 1, \fBM_LIST_BIN_SET\fP = 1 << 2, \fBM_LIST_BIN_NEVERSHRINK\fP = 1 << 3 }"
+.br
+.ti -1c
+.RI "enum \fBM_list_bin_match_type_t\fP { \fBM_LIST_BIN_MATCH_VAL\fP = 0, \fBM_LIST_BIN_MATCH_ALL\fP = 1 << 0 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_list_bin_t\fP * \fBM_list_bin_create\fP (M_uint32 flags) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_list_bin_destroy\fP (\fBM_list_bin_t\fP *d) M_FREE(1)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_insert\fP (\fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_list_bin_insert_idx\fP (const \fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_insert_at\fP (\fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_list_bin_len\fP (const \fBM_list_bin_t\fP *d)"
+.br
+.ti -1c
+.RI "size_t \fBM_list_bin_count\fP (const \fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_index_of\fP (const \fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len, size_t *idx)"
+.br
+.ti -1c
+.RI "const M_uint8 * \fBM_list_bin_first\fP (const \fBM_list_bin_t\fP *d, size_t *len)"
+.br
+.ti -1c
+.RI "const M_uint8 * \fBM_list_bin_last\fP (const \fBM_list_bin_t\fP *d, size_t *len)"
+.br
+.ti -1c
+.RI "const M_uint8 * \fBM_list_bin_at\fP (const \fBM_list_bin_t\fP *d, size_t idx, size_t *len)"
+.br
+.ti -1c
+.RI "M_uint8 * \fBM_list_bin_take_first\fP (\fBM_list_bin_t\fP *d, size_t *len)"
+.br
+.ti -1c
+.RI "M_uint8 * \fBM_list_bin_take_last\fP (\fBM_list_bin_t\fP *d, size_t *len)"
+.br
+.ti -1c
+.RI "M_uint8 * \fBM_list_bin_take_at\fP (\fBM_list_bin_t\fP *d, size_t idx, size_t *len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_remove_first\fP (\fBM_list_bin_t\fP *d)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_remove_last\fP (\fBM_list_bin_t\fP *d)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_remove_at\fP (\fBM_list_bin_t\fP *d, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_list_bin_remove_val\fP (\fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len, M_uint32 type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_remove_range\fP (\fBM_list_bin_t\fP *d, size_t start, size_t end)"
+.br
+.ti -1c
+.RI "void \fBM_list_bin_remove_duplicates\fP (\fBM_list_bin_t\fP *d)"
+.br
+.ti -1c
+.RI "size_t \fBM_list_bin_replace_val\fP (\fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len, const M_uint8 *new_val, size_t new_len, M_uint32 type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_replace_at\fP (\fBM_list_bin_t\fP *d, const M_uint8 *val, size_t len, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_list_bin_swap\fP (\fBM_list_bin_t\fP *d, size_t idx1, size_t idx2)"
+.br
+.ti -1c
+.RI "\fBM_list_bin_t\fP * \fBM_list_bin_duplicate\fP (const \fBM_list_bin_t\fP *d) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_list_bin_merge\fP (\fBM_list_bin_t\fP **dest, \fBM_list_bin_t\fP *src, M_bool include_duplicates) M_FREE(2)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Dynamic list (array) for storing binary values\&.
+.PP
+References to the data will always be read-only\&. All items will be duplicated by the list\&.
+.PP
+The list can be used in multiple ways:
+.IP "\(bu" 2
+Unsorted\&.
+.IP "\(bu" 2
+Sorted\&.
+.IP "\(bu" 2
+Queue (FIFO) (really just unsorted)\&.
+.IP "\(bu" 2
+Stack (LIFO) (which cannot be sorted)\&.
+.IP "\(bu" 2
+Set\&.
+.PP
+.PP
+A list is indexable\&. Find is also supported\&.
+.PP
+Indexes in the list are 0 at head to len-1 at end (head \&.\&.\&. end)\&. Functions like M_list_first will return head and M_list_last will return end\&.
+.PP
+The index start changes in STACK mode\&. In STACK mode indexing is opposite\&. Head is len-1 and end is 0 (head \&.\&.\&. end)\&. Entries are still added to end\&. Functions like M_list_first will return end and M_list_last will return head\&. This is to accommodate STACKS where entries are inserted and removed from the same end\&.
+.PP
+The list is designed for efficient head removal\&. A value removed from head will not cause a memmove\&. Instead a start offset will be noted\&. If there is space before head (due to removals) then additions at head will be efficient as the empty space will be used and a memmove will be avoided\&. memmoves will occur when the size (not necessary number of elements) of the list changes (expand and shrink) and for removals in the middle of the list\&.
+.PP
+Sorted notes:
+.IP "\(bu" 2
+Sorting on insert and find (\fBM_list_bin_index_of()\fP) is done using binary insert/search\&.
+.IP "\(bu" 2
+When \fBM_list_insert_end()\fP is called after \fBM_list_insert_begin()\fP qsort will be used to sort the list\&. 
+.PP
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_list_bin \fBM_list_bin_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_list_bin_flags_t\fP"
+Flags for controlling the behavior of the list\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_LIST_BIN_NONE \fP\fP
+Not sorting, asc compare\&. 
+.TP
+\fB\fIM_LIST_BIN_STACK \fP\fP
+Last in First out mode\&. 
+.TP
+\fB\fIM_LIST_BIN_SET \fP\fP
+Don't allow duplicates in the list\&. Insert is increased by an additional O(n) operation (on top of the insert itself) in order to determine if a value is a duplicate for unsorted\&. Insert is increased by an additional O(log(n)) operation (on top of the insert itself) in order to determine if a value is a duplicate for sorted\&. 
+.TP
+\fB\fIM_LIST_BIN_NEVERSHRINK \fP\fP
+Never allow the list to shrink\&. 
+.SS "enum \fBM_list_bin_match_type_t\fP"
+Type of matching that should be used when searching/modifying a value in the list\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_LIST_BIN_MATCH_VAL \fP\fP
+Match based on the value (equality function)\&. 
+.TP
+\fB\fIM_LIST_BIN_MATCH_ALL \fP\fP
+Include all instances\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_list_bin_t\fP* M_list_bin_create (M_uint32 flags)"
+Create a new dynamic list\&.
+.PP
+A dynamic list is a dynamically expanding array\&. Meaning the array will expand to accommodate new elements\&. The list can be, optionally, kept in sorted order\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIflags\fP M_list_bin_flags_t flags for controlling behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated dynamic list for storing binary data\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_destroy\fP 
+.RE
+.PP
+
+.SS "void M_list_bin_destroy (\fBM_list_bin_t\fP * d)"
+Destory the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list to destory\&. 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_insert (\fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len)"
+Insert a value into the list\&.
+.PP
+If sorted the value will be inserted in sorted order\&. Otherwise it will be appended to the end of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to insert\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "size_t M_list_bin_insert_idx (const \fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len)"
+Get the index a value would be insert into the list at\&.
+.PP
+This does not actually insert the value into the list it only gets the position the value would be insert into the list if/when insert is called\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to get the insertion index for\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The insertion index\&. 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_insert_at (\fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len, size_t idx)"
+Insert a value into the list at a specific position\&.
+.PP
+This is only supported for non-sorted lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to insert\&. 
+.br
+\fIlen\fP The length of val\&. 
+.br
+\fIidx\fP The position to insert at\&. An index larger than the number of elements in the list will result in the item being inserted at the end\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "size_t M_list_bin_len (const \fBM_list_bin_t\fP * d)"
+The length of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the length of the list\&. 
+.RE
+.PP
+
+.SS "size_t M_list_bin_count (const \fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len)"
+Count the number of times a value occurs in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to search for\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of times val appears in the list\&. 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_index_of (const \fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len, size_t * idx)"
+Get the location of a value within the list\&.
+.PP
+This will return a location in the list which may not be the first occurrence in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to search for\&. 
+.br
+\fIlen\fP The length of val\&. 
+.br
+\fIidx\fP The index of the value within the list\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was found within the list\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "const M_uint8* M_list_bin_first (const \fBM_list_bin_t\fP * d, size_t * len)"
+Get the first element\&.
+.PP
+The element will remain a member of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if there are no elements\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_at\fP 
+.PP
+\fBM_list_bin_last\fP 
+.RE
+.PP
+
+.SS "const M_uint8* M_list_bin_last (const \fBM_list_bin_t\fP * d, size_t * len)"
+Get the last element\&.
+.PP
+The element will remain a member of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if there are no elements\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_at\fP 
+.PP
+\fBM_list_first\fP 
+.RE
+.PP
+
+.SS "const M_uint8* M_list_bin_at (const \fBM_list_bin_t\fP * d, size_t idx, size_t * len)"
+Get the element at a given index\&.
+.PP
+The element will remain a member of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIidx\fP The location to retrieve the element from\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if index is out range\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_first\fP 
+.PP
+\fBM_list_bin_last\fP 
+.RE
+.PP
+
+.SS "M_uint8* M_list_bin_take_first (\fBM_list_bin_t\fP * d, size_t * len)"
+Take the first element\&.
+.PP
+The element will be removed from the list and returned\&. The caller is responsible for freeing the element\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if there are no elements\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_take_at\fP 
+.PP
+\fBM_list_bin_last\fP 
+.RE
+.PP
+
+.SS "M_uint8* M_list_bin_take_last (\fBM_list_bin_t\fP * d, size_t * len)"
+Take the last element\&.
+.PP
+The element will be removed from the list and returned\&. The caller is responsible for freeing the element\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if there are no elements\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_take_at\fP 
+.PP
+\fBM_list_bin_take_first\fP 
+.RE
+.PP
+
+.SS "M_uint8* M_list_bin_take_at (\fBM_list_bin_t\fP * d, size_t idx, size_t * len)"
+Take the element at a given index\&.
+.PP
+The element will be removed from the list and returned\&. The caller is responsible for freeing the element\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIidx\fP The location to retrieve the element from\&. 
+.br
+\fIlen\fP The length of val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element or NULL if index is out range\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_take_first\fP 
+.PP
+\fBM_list_bin_take_last\fP 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_remove_first (\fBM_list_bin_t\fP * d)"
+Remove the first element\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the element was removed\&. Otherwise M_FALSE\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_remove_at\fP 
+.PP
+\fBM_list_bin_remove_last\fP 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_remove_last (\fBM_list_bin_t\fP * d)"
+Remove the last element\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the element was removed\&. Otherwise M_FALSE\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_remove_at\fP 
+.PP
+\fBM_list_bin_remove_first\fP 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_remove_at (\fBM_list_bin_t\fP * d, size_t idx)"
+Remove an element at a given index from the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIidx\fP The index to remove\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the element was removed\&. Otherwise M_FALSE\&.
+.RE
+.PP
+\\ see M_list_bin_remove_first \\ see M_list_bin_remove_last \\ see M_list_bin_remove_val \\ see M_list_bin_remove_range 
+.SS "size_t M_list_bin_remove_val (\fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len, M_uint32 type)"
+Remove element(s) from the list\&.
+.PP
+Searches the list for the occurrence of val and removes it from the list\&. The value will be free'd using the value_free callback\&.
+.PP
+Requires the equality callback to be set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The val to remove\&. 
+.br
+\fIlen\fP The length of val\&. 
+.br
+\fItype\fP M_list_bin_match_type_t type of how the val should be matched\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of elements removed\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_remove_at\fP 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_remove_range (\fBM_list_bin_t\fP * d, size_t start, size_t end)"
+Remove a range of elements form the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIstart\fP The start index\&. Inclusive\&. 
+.br
+\fIend\fP The end index\&. Inclusive\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the range was removed\&. Otherwise M_FALSE\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_list_bin_remove_at\fP 
+.RE
+.PP
+
+.SS "void M_list_bin_remove_duplicates (\fBM_list_bin_t\fP * d)"
+Remove duplicate elements from the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.RE
+.PP
+
+.SS "size_t M_list_bin_replace_val (\fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len, const M_uint8 * new_val, size_t new_len, M_uint32 type)"
+Replace all matching values in the list with a different value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The val to be replaced\&. 
+.br
+\fIlen\fP The length of val\&. 
+.br
+\fInew_val\fP The value to be replaced with\&. 
+.br
+\fInew_len\fP The length of new_val\&. 
+.br
+\fItype\fP M_list_bin_match_type_t type of how the val should be matched\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of elements replaced\&. 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_replace_at (\fBM_list_bin_t\fP * d, const M_uint8 * val, size_t len, size_t idx)"
+Replace a value in the list with a different value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The val to that will appear in the list at the given idx\&. 
+.br
+\fIlen\fP The length of val\&. 
+.br
+\fIidx\fP The index to replace\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was replaced\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_list_bin_swap (\fBM_list_bin_t\fP * d, size_t idx1, size_t idx2)"
+Exchange the elements at the given locations\&.
+.PP
+This only applies to unsorted lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIidx1\fP The first index\&. 
+.br
+\fIidx2\fP The second index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the elements were swapped\&. 
+.RE
+.PP
+
+.SS "\fBM_list_bin_t\fP* M_list_bin_duplicate (const \fBM_list_bin_t\fP * d)"
+Duplicate an existing list\&.
+.PP
+Will copy all elements of the list as well as any flags, etc\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP list to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+New list\&. 
+.RE
+.PP
+
+.SS "void M_list_bin_merge (\fBM_list_bin_t\fP ** dest, \fBM_list_bin_t\fP * src, M_bool include_duplicates)"
+Merge two lists together\&.
+.PP
+The second (src) list will be destroyed automatically upon completion of this function\&. Any value pointers for the list will be directly copied over to the destination list, they will not be duplicated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Pointer by reference to the list receiving the values\&. if this is NULL, the pointer will simply be switched out for src\&. 
+.br
+\fIsrc\fP Pointer to the list giving up its values\&. 
+.br
+\fIinclude_duplicates\fP When M_TRUE any values in 'dest' that also exist in 'src' will be included in 'dest'\&. When M_FALSE any duplicate values will not be added to 'dest'\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

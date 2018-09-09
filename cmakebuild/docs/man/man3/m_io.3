@@ -1,0 +1,675 @@
+.TH "m_io" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_io
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_IO_LAYER_FIND_FIRST_ID\fP   SIZE_MAX"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef enum \fBM_io_type\fP \fBM_io_type_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_io \fBM_io_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_io_meta \fBM_io_meta_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_io_error\fP \fBM_io_error_t\fP"
+.br
+.ti -1c
+.RI "typedef enum \fBM_io_state\fP \fBM_io_state_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_io_type\fP { \fBM_IO_TYPE_STREAM\fP = 1, \fBM_IO_TYPE_WRITER\fP = 2, \fBM_IO_TYPE_READER\fP = 3, \fBM_IO_TYPE_LISTENER\fP = 4, \fBM_IO_TYPE_EVENT\fP = 5 }"
+.br
+.ti -1c
+.RI "enum \fBM_io_error\fP { \fBM_IO_ERROR_SUCCESS\fP = 0, \fBM_IO_ERROR_WOULDBLOCK\fP = 1, \fBM_IO_ERROR_DISCONNECT\fP = 2, \fBM_IO_ERROR_ERROR\fP = 3, \fBM_IO_ERROR_NOTCONNECTED\fP = 4, \fBM_IO_ERROR_NOTPERM\fP = 5, \fBM_IO_ERROR_CONNRESET\fP = 6, \fBM_IO_ERROR_CONNABORTED\fP = 7, \fBM_IO_ERROR_ADDRINUSE\fP = 8, \fBM_IO_ERROR_PROTONOTSUPPORTED\fP = 9, \fBM_IO_ERROR_CONNREFUSED\fP = 10, \fBM_IO_ERROR_NETUNREACHABLE\fP = 11, \fBM_IO_ERROR_TIMEDOUT\fP = 12, \fBM_IO_ERROR_NOSYSRESOURCES\fP = 13, \fBM_IO_ERROR_INVALID\fP = 14, \fBM_IO_ERROR_NOTIMPL\fP = 15, \fBM_IO_ERROR_NOTFOUND\fP = 16, \fBM_IO_ERROR_INTERRUPTED\fP = 99 }"
+.br
+.ti -1c
+.RI "enum \fBM_io_state\fP { \fBM_IO_STATE_INIT\fP = 0, \fBM_IO_STATE_LISTENING\fP = 1, \fBM_IO_STATE_CONNECTING\fP = 2, \fBM_IO_STATE_CONNECTED\fP = 3, \fBM_IO_STATE_DISCONNECTING\fP = 4, \fBM_IO_STATE_DISCONNECTED\fP = 5, \fBM_IO_STATE_ERROR\fP = 6 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBM_io_error_string\fP (\fBM_io_error_t\fP error)"
+.br
+.ti -1c
+.RI "\fBM_io_meta_t\fP * \fBM_io_meta_create\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_io_meta_destroy\fP (\fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read\fP (\fBM_io_t\fP *comm, unsigned char *buf, size_t buf_len, size_t *len_read)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_into_buf\fP (\fBM_io_t\fP *comm, \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_into_parser\fP (\fBM_io_t\fP *comm, \fBM_parser_t\fP *parser)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_meta\fP (\fBM_io_t\fP *comm, unsigned char *buf, size_t buf_len, size_t *len_read, \fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_into_buf_meta\fP (\fBM_io_t\fP *comm, \fBM_buf_t\fP *buf, \fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_into_parser_meta\fP (\fBM_io_t\fP *comm, \fBM_parser_t\fP *parser, \fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_read_clear\fP (\fBM_io_t\fP *io)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_write\fP (\fBM_io_t\fP *comm, const unsigned char *buf, size_t buf_len, size_t *len_written)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_write_from_buf\fP (\fBM_io_t\fP *comm, \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_write_meta\fP (\fBM_io_t\fP *comm, const unsigned char *buf, size_t buf_len, size_t *len_written, \fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_write_from_buf_meta\fP (\fBM_io_t\fP *comm, \fBM_buf_t\fP *buf, \fBM_io_meta_t\fP *meta)"
+.br
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_accept\fP (\fBM_io_t\fP **io_out, \fBM_io_t\fP *server_io)"
+.br
+.ti -1c
+.RI "\fBM_io_state_t\fP \fBM_io_get_state\fP (\fBM_io_t\fP *io)"
+.br
+.ti -1c
+.RI "\fBM_io_state_t\fP \fBM_io_get_layer_state\fP (\fBM_io_t\fP *io, size_t id)"
+.br
+.ti -1c
+.RI "size_t \fBM_io_layer_count\fP (\fBM_io_t\fP *io)"
+.br
+.ti -1c
+.RI "const char * \fBM_io_layer_name\fP (\fBM_io_t\fP *io, size_t idx)"
+.br
+.ti -1c
+.RI "void \fBM_io_get_error_string\fP (\fBM_io_t\fP *io, char *error, size_t err_len)"
+.br
+.ti -1c
+.RI "void \fBM_io_disconnect\fP (\fBM_io_t\fP *comm)"
+.br
+.ti -1c
+.RI "void \fBM_io_destroy\fP (\fBM_io_t\fP *comm)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Common IO functions 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_IO_LAYER_FIND_FIRST_ID   SIZE_MAX"
+Passed to \fBM_io_layer_acquire()\fP to search for matching layer by name 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef enum \fBM_io_type\fP \fBM_io_type_t\fP"
+
+.SS "typedef struct M_io \fBM_io_t\fP"
+
+.SS "typedef struct M_io_meta \fBM_io_meta_t\fP"
+
+.SS "typedef enum \fBM_io_error\fP \fBM_io_error_t\fP"
+
+.SS "typedef enum \fBM_io_state\fP \fBM_io_state_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_io_type\fP"
+io type 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_TYPE_STREAM \fP\fP
+Object is a stream handle, can read and write 
+.TP
+\fB\fIM_IO_TYPE_WRITER \fP\fP
+Object is write only, such as a one-way pipe 
+.TP
+\fB\fIM_IO_TYPE_READER \fP\fP
+Object is read only, such as a one-way pipe 
+.TP
+\fB\fIM_IO_TYPE_LISTENER \fP\fP
+Object is a listener for acceptance of new connections 
+.TP
+\fB\fIM_IO_TYPE_EVENT \fP\fP
+Object just handles events, cannot connect, read or write 
+.SS "enum \fBM_io_error\fP"
+io error\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_ERROR_SUCCESS \fP\fP
+Success\&. No Error 
+.TP
+\fB\fIM_IO_ERROR_WOULDBLOCK \fP\fP
+Operation would block 
+.TP
+\fB\fIM_IO_ERROR_DISCONNECT \fP\fP
+Connection disconnected during operation 
+.TP
+\fB\fIM_IO_ERROR_ERROR \fP\fP
+Generic Undefined error occurred 
+.TP
+\fB\fIM_IO_ERROR_NOTCONNECTED \fP\fP
+Connection is not established, invalid operation 
+.TP
+\fB\fIM_IO_ERROR_NOTPERM \fP\fP
+Not a permitted action for this io object 
+.TP
+\fB\fIM_IO_ERROR_CONNRESET \fP\fP
+Connection was reset by peer 
+.TP
+\fB\fIM_IO_ERROR_CONNABORTED \fP\fP
+Connection aborted 
+.TP
+\fB\fIM_IO_ERROR_ADDRINUSE \fP\fP
+Address or Port already in use 
+.TP
+\fB\fIM_IO_ERROR_PROTONOTSUPPORTED \fP\fP
+Protocol not supported by OS 
+.TP
+\fB\fIM_IO_ERROR_CONNREFUSED \fP\fP
+Connection refused 
+.TP
+\fB\fIM_IO_ERROR_NETUNREACHABLE \fP\fP
+Network requested is unreachable 
+.TP
+\fB\fIM_IO_ERROR_TIMEDOUT \fP\fP
+Operation timed out at the OS level 
+.TP
+\fB\fIM_IO_ERROR_NOSYSRESOURCES \fP\fP
+System reported not enough resources 
+.TP
+\fB\fIM_IO_ERROR_INVALID \fP\fP
+Invalid use or order of operation 
+.TP
+\fB\fIM_IO_ERROR_NOTIMPL \fP\fP
+OS Does not implement the command or parameters 
+.TP
+\fB\fIM_IO_ERROR_NOTFOUND \fP\fP
+File/Path not found 
+.TP
+\fB\fIM_IO_ERROR_INTERRUPTED \fP\fP
+Should never be returned to a user 
+.SS "enum \fBM_io_state\fP"
+io state\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_IO_STATE_INIT \fP\fP
+Initializing, not yet prompted to start connecting 
+.TP
+\fB\fIM_IO_STATE_LISTENING \fP\fP
+Listening for a client connection 
+.TP
+\fB\fIM_IO_STATE_CONNECTING \fP\fP
+Attempting to establish a connection 
+.TP
+\fB\fIM_IO_STATE_CONNECTED \fP\fP
+Connected 
+.TP
+\fB\fIM_IO_STATE_DISCONNECTING \fP\fP
+In-progress graceful disconnect 
+.TP
+\fB\fIM_IO_STATE_DISCONNECTED \fP\fP
+Connection Closed/Disconnected 
+.TP
+\fB\fIM_IO_STATE_ERROR \fP\fP
+Connection in error state (not connected) 
+.SH "Function Documentation"
+.PP 
+.SS "const char* M_io_error_string (\fBM_io_error_t\fP error)"
+Convert an error code to a string\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerror\fP Error code\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String description\&. 
+.RE
+.PP
+
+.SS "\fBM_io_meta_t\fP* M_io_meta_create (void)"
+Create an io meta data object\&.
+.PP
+\fBReturns:\fP
+.RS 4
+io meta data object\&. 
+.RE
+.PP
+
+.SS "void M_io_meta_destroy (\fBM_io_meta_t\fP * meta)"
+Destory an io meta data object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImeta\fP meta data object\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read (\fBM_io_t\fP * comm, unsigned char * buf, size_t buf_len, size_t * len_read)"
+Read from an io object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to store data read from io object\&. 
+.br
+\fIbuf_len\fP Lenght of provided buffer\&. 
+.br
+\fIlen_read\fP Number of bytes fread from the io object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read_meta\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_into_buf (\fBM_io_t\fP * comm, \fBM_buf_t\fP * buf)"
+Read from an io object into an M_buf_t\&.
+.PP
+This will read all available data into the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to store data read from io object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read_into_buf_meta\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_into_parser (\fBM_io_t\fP * comm, \fBM_parser_t\fP * parser)"
+Read from an io object into an M_parser_t\&.
+.PP
+This will read all available data into the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIparser\fP Parser to store data read from io object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read_into_parser_meta\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_meta (\fBM_io_t\fP * comm, unsigned char * buf, size_t buf_len, size_t * len_read, \fBM_io_meta_t\fP * meta)"
+Read from an io object with a meta data object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to store data read from io object\&. 
+.br
+\fIbuf_len\fP Lenght of provided buffer\&. 
+.br
+\fIlen_read\fP Number of bytes fread from the io object\&. 
+.br
+\fImeta\fP Meta data object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_into_buf_meta (\fBM_io_t\fP * comm, \fBM_buf_t\fP * buf, \fBM_io_meta_t\fP * meta)"
+Read from an io object into an M_buf_t with a meta data object\&.
+.PP
+This will read all available data into the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to store data read from io object\&. 
+.br
+\fImeta\fP Meta data object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read_into_buf\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_into_parser_meta (\fBM_io_t\fP * comm, \fBM_parser_t\fP * parser, \fBM_io_meta_t\fP * meta)"
+Read from an io object into an M_parser_t with a meta data object\&.
+.PP
+This will read all available data into the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIparser\fP Parser to store data read from io object\&. 
+.br
+\fImeta\fP Meta data object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_read_into_parser\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_read_clear (\fBM_io_t\fP * io)"
+Clear/Flush the read buffer to consume all data and dispose of it\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_IO_ERROR_SUCCESS if data was flushed and the connection is still active\&. M_IO_ERROR_WOULDBLOCK if no data to flush, otherwise one of the additional errors if the connection failed\&. 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_write (\fBM_io_t\fP * comm, const unsigned char * buf, size_t buf_len, size_t * len_written)"
+Write data to an io object\&.
+.PP
+This function will attempt to write as much data as possible\&. If not all data is written the application should wait until the next write event and then try writing more data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to write from\&. 
+.br
+\fIbuf_len\fP Number of bytes in buffer to write\&. 
+.br
+\fIlen_written\fP Number of bytes from the buffer written\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_write_meta\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_write_from_buf (\fBM_io_t\fP * comm, \fBM_buf_t\fP * buf)"
+Write data to an io object from an M_buf_t\&.
+.PP
+This function will attempt to write as much data as possible\&. If not all data is written the application should wait until the next write event and then try writing more data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to write from\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_write_from_buf_meta\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_write_meta (\fBM_io_t\fP * comm, const unsigned char * buf, size_t buf_len, size_t * len_written, \fBM_io_meta_t\fP * meta)"
+Write data to an io object with a meta data object\&.
+.PP
+This function will attempt to write as much data as possible\&. If not all data is written the application should wait until the next write event and then try writing more data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to write from\&. 
+.br
+\fIbuf_len\fP Number of bytes in buffer to write\&. 
+.br
+\fIlen_written\fP Number of bytes from the buffer written\&. 
+.br
+\fImeta\fP Meta data object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_write\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_write_from_buf_meta (\fBM_io_t\fP * comm, \fBM_buf_t\fP * buf, \fBM_io_meta_t\fP * meta)"
+Write data to an io object from an M_buf_t with a meta data object\&.
+.PP
+This function will attempt to write as much data as possible\&. If not all data is written the application should wait until the next write event and then try writing more data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.br
+\fIbuf\fP Buffer to write from\&. 
+.br
+\fImeta\fP Meta data object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_io_write_from_buf\fP 
+.RE
+.PP
+
+.SS "\fBM_io_error_t\fP M_io_accept (\fBM_io_t\fP ** io_out, \fBM_io_t\fP * server_io)"
+Accept an io connection\&.
+.PP
+Typically used with network io when a connection is setup as a listening socket\&. The io object will remain valid and a new io object for the connection will be created\&.
+.PP
+A return of M_IO_ERROR_WOULDBLOCK should not be treated as an error\&. It means either there is more data that needs to be received and the event will trigger again\&. Or there is no more outstanding connections waiting to be accepted\&.
+.PP
+Example: 
+.PP
+.nf
+void ipserver_listen_callback(M_event_t *el, M_event_type_t type, M_io_t *io, void *thunk)
+{
+    M_io_t       *io_out   = NULL;
+    M_io_error_t  ioerr;
+
+    (void)thunk;
+
+    if (type != M_EVENT_TYPE_ACCEPT)
+        return;
+
+    ioerr = M_io_accept(&io_out, io);
+    if (ioerr != M_IO_ERROR_SUCCESS || io_out == NULL) {
+        if (ioerr != M_IO_ERROR_WOULDBLOCK) {
+            // Connection error
+        }
+        return;
+    }
+
+    M_event_add(el, io_out, ipserver_connection_callback, NULL);
+}
+
+.fi
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio_out\fP io object created from the accept\&. 
+.br
+\fIserver_io\fP io object which was listening\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_io_state_t\fP M_io_get_state (\fBM_io_t\fP * io)"
+Current state of an io object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object;
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+State\&. 
+.RE
+.PP
+
+.SS "\fBM_io_state_t\fP M_io_get_layer_state (\fBM_io_t\fP * io, size_t id)"
+Current state of a layer within an io object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object 
+.br
+\fIid\fP id of a layer to query (0 for base layer)
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+State\&. 
+.RE
+.PP
+
+.SS "size_t M_io_layer_count (\fBM_io_t\fP * io)"
+Retrieve the number of layers from an io object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+count of layers in object 
+.RE
+.PP
+
+.SS "const char* M_io_layer_name (\fBM_io_t\fP * io, size_t idx)"
+Retrieve the name of the layer at the specified index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio\fP io object 
+.br
+\fIidx\fP index of layer (0 - \fBM_io_layer_count()\fP) 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+internal name of layer in string form 
+.RE
+.PP
+
+.SS "void M_io_get_error_string (\fBM_io_t\fP * io, char * error, size_t err_len)"
+
+.SS "void M_io_disconnect (\fBM_io_t\fP * comm)"
+Gracefully issue a disconnect to the communications object, a DISCONNECTED (or ERROR) event will be triggered when complete\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.RE
+.PP
+
+.SS "void M_io_destroy (\fBM_io_t\fP * comm)"
+Destroy any communications object\&.
+.PP
+This can be called from a different thread than the thread the event loop the io object is running on\&. When this happens the destroy is queued and will happen once the event loop the io object is associated with has finished processing all queued events\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcomm\fP io object\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

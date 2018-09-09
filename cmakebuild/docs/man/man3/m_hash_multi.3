@@ -1,0 +1,708 @@
+.TH "m_hash_multi" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_hash_multi
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_hash_multi \fBM_hash_multi_t\fP"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_hash_multi_free_func\fP) (void *)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_hash_multi_flags_t\fP { \fBM_HASH_MULTI_NONE\fP = 0, \fBM_HASH_MULTI_STR_CASECMP\fP = 1 << 0 }"
+.br
+.ti -1c
+.RI "enum \fBM_hash_multi_val_type_t\fP { \fBM_HASH_MULTI_VAL_TYPE_UNKNOWN\fP = 0, \fBM_HASH_MULTI_VAL_TYPE_BOOL\fP, \fBM_HASH_MULTI_VAL_TYPE_INT\fP, \fBM_HASH_MULTI_VAL_TYPE_STR\fP, \fBM_HASH_MULTI_VAL_TYPE_BIN\fP, \fBM_HASH_MULTI_VAL_TYPE_VP\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_hash_multi_t\fP * \fBM_hash_multi_create\fP (M_uint32 flags) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_hash_multi_destroy\fP (\fBM_hash_multi_t\fP *h) M_FREE(1)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_bool\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_bool val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_int\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_int64 val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_uint\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_uint64 val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_str\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, const char *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_bin\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, const unsigned char *val, size_t len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_insert_vp\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, void *val, \fBM_hash_multi_free_func\fP val_free)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_bool\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_bool *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_int\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_int64 *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_uint\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_uint64 *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_str\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, const char **val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_bin\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, const unsigned char **val, size_t *len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_get_vp\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, void **val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_u64_remove\fP (\fBM_hash_multi_t\fP *h, M_uint64 key, M_bool destroy_vp)"
+.br
+.ti -1c
+.RI "\fBM_hash_multi_val_type_t\fP \fBM_hash_multi_u64_type\fP (const \fBM_hash_multi_t\fP *h, M_uint64 key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_bool\fP (\fBM_hash_multi_t\fP *h, const char *key, M_bool val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_int\fP (\fBM_hash_multi_t\fP *h, const char *key, M_int64 val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_uint\fP (\fBM_hash_multi_t\fP *h, const char *key, M_uint64 val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_str\fP (\fBM_hash_multi_t\fP *h, const char *key, const char *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_bin\fP (\fBM_hash_multi_t\fP *h, const char *key, const unsigned char *val, size_t len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_insert_vp\fP (\fBM_hash_multi_t\fP *h, const char *key, void *val, \fBM_hash_multi_free_func\fP val_free)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_bool\fP (\fBM_hash_multi_t\fP *h, const char *key, M_bool *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_int\fP (\fBM_hash_multi_t\fP *h, const char *key, M_int64 *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_uint\fP (\fBM_hash_multi_t\fP *h, const char *key, M_uint64 *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_str\fP (\fBM_hash_multi_t\fP *h, const char *key, const char **val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_bin\fP (\fBM_hash_multi_t\fP *h, const char *key, const unsigned char **val, size_t *len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_get_vp\fP (\fBM_hash_multi_t\fP *h, const char *key, void **val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_hash_multi_str_remove\fP (\fBM_hash_multi_t\fP *h, const char *key, M_bool destroy_vp)"
+.br
+.ti -1c
+.RI "\fBM_hash_multi_val_type_t\fP \fBM_hash_multi_str_type\fP (const \fBM_hash_multi_t\fP *h, const char *key)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Hashtable, meant for storing a variety of key and value types\&.
+.PP
+All data except void pointers will be duplicated\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_hash_multi \fBM_hash_multi_t\fP"
+
+.SS "typedef void(* M_hash_multi_free_func) (void *)"
+Callback for freeing void pointer data\&. 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_hash_multi_flags_t\fP"
+Flags for controlling the behavior of the hash_multi\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_HASH_MULTI_NONE \fP\fP
+String key compare is case sensitive\&. 
+.TP
+\fB\fIM_HASH_MULTI_STR_CASECMP \fP\fP
+String key compare is case insensitive\&. 
+.SS "enum \fBM_hash_multi_val_type_t\fP"
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_UNKNOWN \fP\fP
+Unknown\&. 
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_BOOL \fP\fP
+Boolean\&. 
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_INT \fP\fP
+Integer\&. 
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_STR \fP\fP
+String\&. 
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_BIN \fP\fP
+Binary\&. 
+.TP
+\fB\fIM_HASH_MULTI_VAL_TYPE_VP \fP\fP
+Void pointer\&. Could be any data\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_hash_multi_t\fP* M_hash_multi_create (M_uint32 flags)"
+Create a new multi hashtable\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIflags\fP M_hash_multi_flags_t flags for modifying behavior\&.
+.RE
+.PP
+return multi table\&. 
+.SS "void M_hash_multi_destroy (\fBM_hash_multi_t\fP * h)"
+Destroy the hashtable\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable to destroy\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_bool (\fBM_hash_multi_t\fP * h, M_uint64 key, M_bool val)"
+Insert bool with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP Boolean value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_int (\fBM_hash_multi_t\fP * h, M_uint64 key, M_int64 val)"
+Insert signed integer with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP Signed integer val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_uint (\fBM_hash_multi_t\fP * h, M_uint64 key, M_uint64 val)"
+Insert unsigned integer with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP Unsigned integer val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_str (\fBM_hash_multi_t\fP * h, M_uint64 key, const char * val)"
+Insert string with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP NULL terminated string\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_bin (\fBM_hash_multi_t\fP * h, M_uint64 key, const unsigned char * val, size_t len)"
+Insert binary data with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP Binary data\&. 
+.br
+\fIlen\fP Length of binary data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_insert_vp (\fBM_hash_multi_t\fP * h, M_uint64 key, void * val, \fBM_hash_multi_free_func\fP val_free)"
+Insert a void pointer with an integer key\&.
+.PP
+This will not duplicate the value\&. It only stores the memory address of the data\&. The if a value exists at the given key it will be destroyed if it was inserted with a value free function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The memory location of the data\&. 
+.br
+\fIval_free\fP Callback for freeing the data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_bool (\fBM_hash_multi_t\fP * h, M_uint64 key, M_bool * val)"
+Get a bool value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_int (\fBM_hash_multi_t\fP * h, M_uint64 key, M_int64 * val)"
+Get a signed integer value with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_uint (\fBM_hash_multi_t\fP * h, M_uint64 key, M_uint64 * val)"
+Get an unsigned integer value with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_str (\fBM_hash_multi_t\fP * h, M_uint64 key, const char ** val)"
+Get a string value with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_bin (\fBM_hash_multi_t\fP * h, M_uint64 key, const unsigned char ** val, size_t * len)"
+Get binary data with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&. 
+.br
+\fIlen\fP The value length\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_get_vp (\fBM_hash_multi_t\fP * h, M_uint64 key, void ** val)"
+Get a void pointer value with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_u64_remove (\fBM_hash_multi_t\fP * h, M_uint64 key, M_bool destroy_vp)"
+Remove a value with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIdestroy_vp\fP If the value is a void pointer M_TRUE if the associated (if set) value free callback should be called\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBM_hash_multi_val_type_t\fP M_hash_multi_u64_type (const \fBM_hash_multi_t\fP * h, M_uint64 key)"
+Get the type of data stored in with an integer key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The type\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_bool (\fBM_hash_multi_t\fP * h, const char * key, M_bool val)"
+Insert bool with an string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP Boolean value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_int (\fBM_hash_multi_t\fP * h, const char * key, M_int64 val)"
+Insert signed integer with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP Signed integer val
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_uint (\fBM_hash_multi_t\fP * h, const char * key, M_uint64 val)"
+Insert unsigned integer with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP Unsigned integer val\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_str (\fBM_hash_multi_t\fP * h, const char * key, const char * val)"
+Insert string with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP NULL terminated string\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_bin (\fBM_hash_multi_t\fP * h, const char * key, const unsigned char * val, size_t len)"
+Insert binary data with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP Binary data\&. 
+.br
+\fIlen\fP Length of binary data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_insert_vp (\fBM_hash_multi_t\fP * h, const char * key, void * val, \fBM_hash_multi_free_func\fP val_free)"
+Insert a void pointer with a string key\&.
+.PP
+This will not duplicate the value\&. It only stores the memory address of the data\&. The if a value exists at the given key it will be destroyed if it was inserted with a value free function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP The memory location of the data\&. 
+.br
+\fIval_free\fP Callback for freeing the data\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_bool (\fBM_hash_multi_t\fP * h, const char * key, M_bool * val)"
+Get a bool value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_int (\fBM_hash_multi_t\fP * h, const char * key, M_int64 * val)"
+Get a signed integer value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP Integer key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_uint (\fBM_hash_multi_t\fP * h, const char * key, M_uint64 * val)"
+Get an unsigned integer value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_str (\fBM_hash_multi_t\fP * h, const char * key, const char ** val)"
+Get a string value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_bin (\fBM_hash_multi_t\fP * h, const char * key, const unsigned char ** val, size_t * len)"
+Get binary data with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP The value to get\&. 
+.br
+\fIlen\fP The value length\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_get_vp (\fBM_hash_multi_t\fP * h, const char * key, void ** val)"
+Get a void pointer value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIval\fP The value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_hash_multi_str_remove (\fBM_hash_multi_t\fP * h, const char * key, M_bool destroy_vp)"
+Remove a value with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&. 
+.br
+\fIdestroy_vp\fP If the value is a void pointer M_TRUE if the associated (if set) value free callback should be called\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if insert was successful\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBM_hash_multi_val_type_t\fP M_hash_multi_str_type (const \fBM_hash_multi_t\fP * h, const char * key)"
+Get the type of data stored in with a string key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIh\fP Hashtable\&. 
+.br
+\fIkey\fP String key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The type\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

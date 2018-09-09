@@ -1,0 +1,1265 @@
+.TH "m_sql_driver" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_driver
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBM_sql_driver_t\fP"
+.br
+.ti -1c
+.RI "struct \fBM_sql_connstr_params_t\fP"
+.br
+.ti -1c
+.RI "struct \fBM_sql_hostport_t\fP"
+.br
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_SQL_DRIVER_VERSION\fP   0x0100"
+.br
+.ti -1c
+.RI "#define \fBM_SQL_API\fP   M_DLL_EXPORT"
+.br
+.ti -1c
+.RI "#define \fBM_SQL_DRIVER\fP(name)"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_sql_conn \fBM_sql_conn_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_sql_driver_connpool \fBM_sql_driver_connpool_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_sql_driver_conn \fBM_sql_driver_conn_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_sql_driver_stmt \fBM_sql_driver_stmt_t\fP"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_sql_driver_cb_init_t\fP) (char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_destroy_t\fP) (void)"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_sql_driver_cb_createpool_t\fP) (\fBM_sql_driver_connpool_t\fP **dpool, \fBM_sql_connpool_t\fP *pool, M_bool is_readonly, const \fBM_hash_dict_t\fP *conndict, size_t *num_hosts, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_destroypool_t\fP) (\fBM_sql_driver_connpool_t\fP *dpool)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_connect_t\fP) (\fBM_sql_driver_conn_t\fP **conn, \fBM_sql_connpool_t\fP *pool, M_bool is_readonly_pool, size_t host_idx, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef const char *(* \fBM_sql_driver_cb_serverversion_t\fP) (\fBM_sql_driver_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_connect_runonce_t\fP) (\fBM_sql_conn_t\fP *conn, \fBM_sql_driver_connpool_t\fP *dpool, M_bool is_first_in_pool, M_bool is_readonly, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_disconnect_t\fP) (\fBM_sql_driver_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "typedef char *(* \fBM_sql_driver_cb_queryformat_t\fP) (\fBM_sql_conn_t\fP *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_prepare_t\fP) (\fBM_sql_driver_stmt_t\fP **driver_stmt, \fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_prepare_destroy_t\fP) (\fBM_sql_driver_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_execute_t\fP) (\fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, size_t *rows_executed, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_fetch_t\fP) (\fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_begin_t\fP) (\fBM_sql_conn_t\fP *conn, \fBM_sql_isolation_t\fP isolation, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_rollback_t\fP) (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_error_t\fP(* \fBM_sql_driver_cb_commit_t\fP) (\fBM_sql_conn_t\fP *conn, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_sql_driver_cb_datatype_t\fP) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *buf, \fBM_sql_data_type_t\fP type, size_t max_len)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_createtable_suffix_t\fP) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_sql_driver_cb_append_updlock_t\fP) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query, \fBM_sql_query_updlock_type_t\fP type)"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_sql_driver_cb_append_bitop_t\fP) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query, \fBM_sql_query_bitop_t\fP op, const char *exp1, const char *exp2)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_sql_driver_queryformat_flags_t\fP { \fBM_SQL_DRIVER_QUERYFORMAT_NORMAL\fP = 0, \fBM_SQL_DRIVER_QUERYFORMAT_TERMINATOR\fP = 1 << 0, \fBM_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR\fP = 1 << 1, \fBM_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON\fP = 1 << 2, \fBM_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD\fP = 1 << 3 }"
+.br
+.ti -1c
+.RI "enum \fBM_sql_connstr_type_t\fP { \fBM_SQL_CONNSTR_TYPE_BOOL\fP = 1, \fBM_SQL_CONNSTR_TYPE_NUM\fP = 2, \fBM_SQL_CONNSTR_TYPE_ALPHA\fP = 3, \fBM_SQL_CONNSTR_TYPE_ALPHANUM\fP = 4, \fBM_SQL_CONNSTR_TYPE_ANY\fP = 5 }"
+.br
+.ti -1c
+.RI "enum \fBM_sql_conn_state_t\fP { \fBM_SQL_CONN_STATE_OK\fP = 1, \fBM_SQL_CONN_STATE_ROLLBACK\fP = 2, \fBM_SQL_CONN_STATE_FAILED\fP = 3 }"
+.br
+.ti -1c
+.RI "enum \fBM_sql_driver_updlock_caps_t\fP { \fBM_SQL_DRIVER_UPDLOCK_CAP_NONE\fP = 0, \fBM_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE\fP = 1, \fBM_SQL_DRIVER_UPDLOCK_CAP_MSSQL\fP = 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_sql_driver_bitop_caps_t\fP { \fBM_SQL_DRIVER_BITOP_CAP_OP\fP = 1, \fBM_SQL_DRIVER_BITOP_CAP_FUNC\fP = 2, \fBM_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT\fP = 3 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "char * \fBM_sql_driver_queryformat\fP (const char *query, M_uint32 flags, size_t num_params, size_t num_rows, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "\fBM_sql_conn_state_t\fP \fBM_sql_conn_get_state\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_conn_execute\fP (\fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_stmt_t\fP * \fBM_sql_conn_execute_simple\fP (\fBM_sql_conn_t\fP *conn, const char *query, M_bool skip_sanity_checks)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_validate_connstr\fP (const \fBM_hash_dict_t\fP *conndict, const M_sql_connstr_params_t *params, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "\fBM_sql_hostport_t\fP * \fBM_sql_driver_parse_hostport\fP (const char *hostport, M_uint16 default_port, size_t *out_len, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "\fBM_sql_driver_conn_t\fP * \fBM_sql_driver_conn_get_conn\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "\fBM_sql_connpool_t\fP * \fBM_sql_driver_conn_get_pool\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_pool_get_username\fP (\fBM_sql_connpool_t\fP *pool)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_pool_get_password\fP (\fBM_sql_connpool_t\fP *pool)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_conn_get_username\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_conn_get_password\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "\fBM_sql_driver_connpool_t\fP * \fBM_sql_driver_pool_get_dpool\fP (\fBM_sql_connpool_t\fP *pool)"
+.br
+.ti -1c
+.RI "\fBM_sql_driver_connpool_t\fP * \fBM_sql_driver_conn_get_dpool\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_conn_is_readonly\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_conn_in_trans\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_conn_get_id\fP (\fBM_sql_conn_t\fP *conn)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_stmt_get_query\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_driver_stmt_t\fP * \fBM_sql_driver_stmt_get_stmt\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_bind_rows\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_bind_cnt\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "\fBM_sql_data_type_t\fP \fBM_sql_driver_stmt_bind_get_type\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "\fBM_sql_data_type_t\fP \fBM_sql_driver_stmt_bind_get_col_type\fP (\fBM_sql_stmt_t\fP *stmt, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_bind_get_max_col_size\fP (\fBM_sql_stmt_t\fP *stmt, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_get_requested_row_cnt\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "M_bool * \fBM_sql_driver_stmt_bind_get_bool_addr\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int16 * \fBM_sql_driver_stmt_bind_get_int16_addr\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int32 * \fBM_sql_driver_stmt_bind_get_int32_addr\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int64 * \fBM_sql_driver_stmt_bind_get_int64_addr\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_bind_get_bool\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int16 \fBM_sql_driver_stmt_bind_get_int16\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int32 \fBM_sql_driver_stmt_bind_get_int32\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_int64 \fBM_sql_driver_stmt_bind_get_int64\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_stmt_bind_get_text\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_bind_get_text_len\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "const M_uint8 * \fBM_sql_driver_stmt_bind_get_binary\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_sql_driver_stmt_bind_get_binary_len\fP (\fBM_sql_stmt_t\fP *stmt, size_t row, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_result_set_affected_rows\fP (\fBM_sql_stmt_t\fP *stmt, size_t cnt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_result_set_num_cols\fP (\fBM_sql_stmt_t\fP *stmt, size_t cnt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_result_set_col_name\fP (\fBM_sql_stmt_t\fP *stmt, size_t col, const char *name)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_result_set_col_type\fP (\fBM_sql_stmt_t\fP *stmt, size_t col, \fBM_sql_data_type_t\fP type, size_t max_size)"
+.br
+.ti -1c
+.RI "\fBM_buf_t\fP * \fBM_sql_driver_stmt_result_col_start\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_stmt_result_row_finish\fP (\fBM_sql_stmt_t\fP *stmt)"
+.br
+.ti -1c
+.RI "void \fBM_sql_driver_append_updlock\fP (\fBM_sql_driver_updlock_caps_t\fP caps, \fBM_buf_t\fP *query, \fBM_sql_query_updlock_type_t\fP type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_driver_append_bitop\fP (\fBM_sql_driver_bitop_caps_t\fP caps, \fBM_buf_t\fP *query, \fBM_sql_query_bitop_t\fP op, const char *exp1, const char *exp2)"
+.br
+.ti -1c
+.RI "\fBM_sql_isolation_t\fP \fBM_sql_driver_str2isolation\fP (const char *str)"
+.br
+.ti -1c
+.RI "const char * \fBM_sql_driver_isolation2str\fP (\fBM_sql_isolation_t\fP type)"
+.br
+.ti -1c
+.RI "void \fBM_sql_driver_trace_message\fP (M_bool is_debug, \fBM_sql_connpool_t\fP *pool, \fBM_sql_conn_t\fP *conn, \fBM_sql_error_t\fP err, const char *msg)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+SQL Module/Driver definitions and helpers\&.
+.PP
+These functions are used only by the internal implementation and custom loaded drivers\&. Typically an integrator would never use these unless they are developing their own custom SQL driver\&. If so, they would 
+.PP
+.nf
+#include <mstdlib/sql/m_sql_driver\&.h>
+
+.fi
+.PP
+ To gain access to these functions\&. 
+.SH "Data Structure Documentation"
+.PP 
+.SH "struct M_sql_driver_t"
+.PP 
+Structure to be implemented by SQL drivers with information about the database in use 
+.PP
+\fBData Fields:\fP
+.RS 4
+M_uint16 \fIdriver_sys_version\fP Driver/Module subsystem version, use M_SQL_DRIVER_VERSION 
+.br
+.PP
+const char * \fIname\fP Short name of module 
+.br
+.PP
+const char * \fIdisplay_name\fP Display name of module 
+.br
+.PP
+const char * \fIversion\fP Internal module version 
+.br
+.PP
+\fBM_sql_driver_cb_init_t\fP \fIcb_init\fP Required\&. Callback used for module initialization\&. 
+.br
+.PP
+\fBM_sql_driver_cb_destroy_t\fP \fIcb_destroy\fP Required\&. Callback used for module destruction/unloading\&. 
+.br
+.PP
+\fBM_sql_driver_cb_createpool_t\fP \fIcb_createpool\fP Required\&. Callback used for pool creation 
+.br
+.PP
+\fBM_sql_driver_cb_destroypool_t\fP \fIcb_destroypool\fP Required\&. Callback used for pool destruction 
+.br
+.PP
+\fBM_sql_driver_cb_connect_t\fP \fIcb_connect\fP Required\&. Callback used for connecting to the db 
+.br
+.PP
+\fBM_sql_driver_cb_serverversion_t\fP \fIcb_serverversion\fP Required\&. Callback used to get the server name/version string 
+.br
+.PP
+\fBM_sql_driver_cb_connect_runonce_t\fP \fIcb_connect_runonce\fP Optional\&. Callback used after connection is established, but before first query to set run-once options\&. 
+.br
+.PP
+\fBM_sql_driver_cb_disconnect_t\fP \fIcb_disconnect\fP Required\&. Callback used to disconnect from the db 
+.br
+.PP
+\fBM_sql_driver_cb_queryformat_t\fP \fIcb_queryformat\fP Required\&. Callback used for reformatting a query to the sql db requirements 
+.br
+.PP
+\fBM_sql_driver_cb_prepare_t\fP \fIcb_prepare\fP Required\&. Callback used for preparing a query for execution 
+.br
+.PP
+\fBM_sql_driver_cb_prepare_destroy_t\fP \fIcb_prepare_destroy\fP Required\&. Callback used to destroy the driver-specific prepared statement handle 
+.br
+.PP
+\fBM_sql_driver_cb_execute_t\fP \fIcb_execute\fP Required\&. Callback used for executing a prepared query 
+.br
+.PP
+\fBM_sql_driver_cb_fetch_t\fP \fIcb_fetch\fP Required\&. Callback used to fetch result data/rows from server 
+.br
+.PP
+\fBM_sql_driver_cb_begin_t\fP \fIcb_begin\fP Required\&. Callback used to begin a transaction 
+.br
+.PP
+\fBM_sql_driver_cb_rollback_t\fP \fIcb_rollback\fP Required\&. Callback used to rollback a transaction 
+.br
+.PP
+\fBM_sql_driver_cb_commit_t\fP \fIcb_commit\fP Required\&. Callback used to commit a transaction 
+.br
+.PP
+\fBM_sql_driver_cb_datatype_t\fP \fIcb_datatype\fP Required\&. Callback used to convert to data type for server 
+.br
+.PP
+\fBM_sql_driver_cb_createtable_suffix_t\fP \fIcb_createtable_suffix\fP Optional\&. Callback used to append additional data to the Create Table query string 
+.br
+.PP
+\fBM_sql_driver_cb_append_updlock_t\fP \fIcb_append_updlock\fP Optional\&. Callback used to append row-level locking data 
+.br
+.PP
+\fBM_sql_driver_cb_append_bitop_t\fP \fIcb_append_bitop\fP Required\&. Callback used to append a bit operation 
+.br
+.PP
+\fBM_module_handle_t\fP \fIhandle\fP Handle for loaded driver - must be initialized to NULL in the driver structure 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_sql_connstr_params"
+.PP 
+Structure defining possible connection string parameters to be passed to \fBM_sql_driver_validate_connstr()\fP to notify callers of possible typos
+.PP
+Typedef for struct \fBM_sql_connstr_params\fP 
+.PP
+\fBData Fields:\fP
+.RS 4
+const char * \fIname\fP Parameter name (case-insensitive) 
+.br
+.PP
+\fBM_sql_connstr_type_t\fP \fItype\fP Data type of parameter 
+.br
+.PP
+M_bool \fIrequired\fP Whether or not the parameter is required 
+.br
+.PP
+size_t \fImin_len\fP Minimum length of parameter when present 
+.br
+.PP
+size_t \fImax_len\fP Maximum length of parameter when present 
+.br
+.PP
+.RE
+.PP
+.SH "struct M_sql_hostport_t"
+.PP 
+Host/port used with \fBM_sql_driver_parse_hostport()\fP 
+.PP
+\fBData Fields:\fP
+.RS 4
+char \fIhost[256]\fP 
+.br
+.PP
+M_uint16 \fIport\fP 
+.br
+.PP
+.RE
+.PP
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_SQL_DRIVER_VERSION   0x0100"
+Current subsystem versioning for module compatibility tracking 
+.SS "#define M_SQL_API   M_DLL_EXPORT"
+
+.SS "#define M_SQL_DRIVER(name)"
+\fBValue:\fP
+.PP
+.nf
+M_SQL_API M_sql_driver_t *M_sql_get_driver_##name(void); \
+    M_sql_driver_t *M_sql_get_driver_##name(void)        \
+    {                                                    \
+        return &M_sql_##name;                            \
+    }
+.fi
+Use in sql driver source file to create entry point 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIname\fP is the name of the module, a \fBM_sql_driver_t\fP structure must be defined named M_sql_[name] 
+.RE
+.PP
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_sql_conn \fBM_sql_conn_t\fP"
+Private connection object 
+.SS "typedef struct M_sql_driver_connpool \fBM_sql_driver_connpool_t\fP"
+Driver-defined private storage for connection pool (typedef) 
+.SS "typedef struct M_sql_driver_conn \fBM_sql_driver_conn_t\fP"
+Driver-defined private storage for connection object (typedef) 
+.SS "typedef struct M_sql_driver_stmt \fBM_sql_driver_stmt_t\fP"
+Driver-defined private storage for a statement handle (typedef) 
+.SS "typedef M_bool(* M_sql_driver_cb_init_t) (char *error, size_t error_size)"
+Callback called when the module is loaded\&. If there is any global environment that needs to be set up, it should be called here\&. This is guaranteed to only be called once\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerror\fP User-supplied buffer to hold an error message 
+.br
+\fIerror_size\fP Size of user-supplied error buffer\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_destroy_t) (void)"
+Callback called when the module is unloaded\&. If there is any global environment that needs to be destroyed, it should be called here\&. This is guaranteed to only be called once and only after a successful M_sql_driver_cb_init_t\&. 
+.SS "typedef M_bool(* M_sql_driver_cb_createpool_t) (\fBM_sql_driver_connpool_t\fP **dpool, \fBM_sql_connpool_t\fP *pool, M_bool is_readonly, const \fBM_hash_dict_t\fP *conndict, size_t *num_hosts, char *error, size_t error_size)"
+Callback called when a pool is created or updated with a read-only pool\&. A dictionary of configuration is passed for the connection pool type (primary vs readonly)\&.
+.PP
+Any parameters needed should be saved into the private handle returned\&. The dictionaries passed in should be strictly validated using, at a minimum, \fBM_sql_driver_validate_connstr()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdpool\fP Driver-specific pool handle\&. Should be initailized if passed in as NULL\&. Currently the only time that occurs is when is_readonly is M_FALSE\&. Only a single driver-specific pool is created for all pool types (primary, readonly), so if an initialized object is passed in, the additional configuration data needs to be appended to the current object\&. 
+.br
+\fIpool\fP Partially initialized pool, mostly used for getting other metadata for verification (e\&.g\&. username/password) 
+.br
+\fIis_readonly\fP M_TRUE if the pool being initialized is readonly, M_FALSE if primary\&. 
+.br
+\fIconndict\fP Configuration dictionary of parameters 
+.br
+\fInum_hosts\fP The number of hosts contained within the configuration for load balancing or failover purposes\&. 
+.br
+\fIerror\fP User-supplied buffer to output an error message\&. 
+.br
+\fIerror_size\fP Size of user-supplied error buffer\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_destroypool_t) (\fBM_sql_driver_connpool_t\fP *dpool)"
+Callback called when the pool is destroyed to free the driver-specific pool object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdpool\fP Pool object to be destroyed 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_connect_t) (\fBM_sql_driver_conn_t\fP **conn, \fBM_sql_connpool_t\fP *pool, M_bool is_readonly_pool, size_t host_idx, char *error, size_t error_size)"
+Callback called to initialize a new connection to the database\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized private connection object is returned on success\&. 
+.br
+\fIpool\fP Pool handle, use \fBM_sql_driver_pool_get_dpool()\fP to get driver-specific pool handle\&. 
+.br
+\fIis_readonly_pool\fP M_TRUE if the connection references a read-only pool, or M_FALSE if the primary pool\&. 
+.br
+\fIhost_idx\fP Host index to use (if multiple hosts configured and returned by \fBM_sql_driver_cb_createpool_t\fP), 0 based\&. 
+.br
+\fIerror\fP User-supplied buffer to output an error message\&. 
+.br
+\fIerror_size\fP Size of user-supplied error buffer\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_SQL_ERROR_SUCCESS on success, or one of the M_sql_error_t errors 
+.RE
+.PP
+
+.SS "typedef const char*(* M_sql_driver_cb_serverversion_t) (\fBM_sql_driver_conn_t\fP *conn)"
+Callback called to get the server version string/information 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Private connection object\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+String indicating server name and version in an implementation-defined manner 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_connect_runonce_t) (\fBM_sql_conn_t\fP *conn, \fBM_sql_driver_connpool_t\fP *dpool, M_bool is_first_in_pool, M_bool is_readonly, char *error, size_t error_size)"
+Callback called after each connection is successfully established\&. The is_first_in_pool can be used to key off of to ensure if the action only needs to be performed once for the lifetime of the pool after connectivity is established, it can be done there\&.
+.PP
+Examples of use for this callback include setting SQLite journal mode, performing an SQLite analyze or integrity check\&. For other databases, this may be where custom store procedures are created, or default transaction isolation levels are set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIdpool\fP Driver-specific pool handle returned from \fBM_sql_driver_cb_createpool_t\fP 
+.br
+\fIis_first_in_pool\fP M_TRUE if first connection in a pool to be established, M_FALSE if secondary connection\&. 
+.br
+\fIis_readonly\fP M_TRUE if this is referencing the readonly pool, M_FALSE if the normal pool 
+.br
+\fIerror\fP User-supplied buffer to output an error message\&. 
+.br
+\fIerror_size\fP Size of user-supplied error buffer\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_SQL_ERROR_SUCCESS on success, or one of the M_sql_error_t errors 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_disconnect_t) (\fBM_sql_driver_conn_t\fP *conn)"
+Callback called to disconnect and destroy all metadata associated with a connection\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Private driver-specific connection handle to be disconnected and destroyed 
+.RE
+.PP
+
+.SS "typedef char*(* M_sql_driver_cb_queryformat_t) (\fBM_sql_conn_t\fP *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)"
+Rewrite the user-provided query string to one more easily consumed by the database backend\&.
+.PP
+It is suggested implementors use \fBM_sql_driver_queryformat()\fP if possible instead of writing this from scratch\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIquery\fP User-provided query string 
+.br
+\fInum_params\fP Number of bound parameters (per row) 
+.br
+\fInum_rows\fP For insert statements, number of rows of bound parameters 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated buffer containing a rewritten query string or NULL on failure 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_prepare_t) (\fBM_sql_driver_stmt_t\fP **driver_stmt, \fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, char *error, size_t error_size)"
+Prepare the provided query for execution\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdriver_stmt\fP Driver-specific statement handle\&. If executing based on a cached prepared statement handle, may pass in existing handle\&. Handle used will always be returned (may or may not be identical to passed in handle) 
+.br
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIstmt\fP Statement handle containing all the details necessary for preparation 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_SQL_ERROR_SUCCESS on success, or one of the M_sql_error_t errors on failure 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_prepare_destroy_t) (\fBM_sql_driver_stmt_t\fP *stmt)"
+Destroy the driver-specific prepared statement handle\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Driver-specific statement handle to be destroyed\&. 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_execute_t) (\fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, size_t *rows_executed, char *error, size_t error_size)"
+Execute the query\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIstmt\fP Driver-specific statement handle to be executed as returned by M_sql_driver_cb_prepare_t 
+.br
+\fIrows_executed\fP For drivers that support multiple rows being inserted in a single query, this is how many bind parameter rows were actually inserted by the query\&. This value may be up to \fBM_sql_driver_stmt_bind_rows()\fP in size\&. Execute will be called in a loop if not all rows were executed in a single query until complete (with each iteration decrementing the visible \fBM_sql_driver_stmt_bind_rows()\fP)\&. 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t conditions 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_fetch_t) (\fBM_sql_conn_t\fP *conn, \fBM_sql_stmt_t\fP *stmt, char *error, size_t error_size)"
+Fetch rows from server
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIstmt\fP System statement object, use \fBM_sql_driver_stmt_get_stmt()\fP to fetch driver-specific statement handle\&. 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t conditions 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_begin_t) (\fBM_sql_conn_t\fP *conn, \fBM_sql_isolation_t\fP isolation, char *error, size_t error_size)"
+Begin a transaction on the server with the specified isolation level\&.
+.PP
+If the isolation level is not supported by the server, the closet match should be chosen\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIisolation\fP Requested isolation level 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t conditions 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_rollback_t) (\fBM_sql_conn_t\fP *conn)"
+Rollback a transaction\&.
+.PP
+The connection object should retain enough metadata to know if there is a current open transaction or not, so that if the transaction was already implicitly closed by a failed previous request, this should be a no-op\&.
+.PP
+If the rollback fails when it is expected to succeed, the driver should probably return a code to indicate a critical connectivity failure has occurred to kill the connection\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t conditions 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_error_t\fP(* M_sql_driver_cb_commit_t) (\fBM_sql_conn_t\fP *conn, char *error, size_t error_size)"
+Commit a transaction\&.
+.PP
+If a commit fails, the transaction must be automatically rolled back by the driver\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized connection object, use \fBM_sql_driver_conn_get_conn()\fP to get driver-specific private connection handle\&. 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t conditions 
+.RE
+.PP
+
+.SS "typedef M_bool(* M_sql_driver_cb_datatype_t) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *buf, \fBM_sql_data_type_t\fP type, size_t max_len)"
+Output the SQL-driver specific data type to the supplied buffer based on the input type and maximum length\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Pointer to connection pool object 
+.br
+\fIbuf\fP Buffer to write sql-server-specific data type into\&. 
+.br
+\fItype\fP mstdlib sql data type 
+.br
+\fImax_len\fP Maximum length of data type\&. Meaningful for Text and Binary types only, or use 0 for maximum supported server size\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on error such as misuse 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_createtable_suffix_t) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query)"
+Append an SQL-driver specific suffix to the end of the provided CREATE TABLE query\&.
+.PP
+Some servers like MySQL append things like ' ENGINE=InnoDB CHARSET=utf8'
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP SQL Server pool, use \fBM_sql_driver_pool_get_dpool()\fP to get driver-specific pool metadata\&. Create Table is always executed against the primary subpool\&. 
+.br
+\fIquery\fP Query string to append suffix 
+.RE
+.PP
+
+.SS "typedef void(* M_sql_driver_cb_append_updlock_t) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query, \fBM_sql_query_updlock_type_t\fP type)"
+Output the SQL-driver-specific update lock as needed\&.
+.PP
+See \fBM_sql_query_append_updlock()\fP for more information\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Pointer to connection pool object 
+.br
+\fIquery\fP Buffer to write sql-server-specific lock information into\&. 
+.br
+\fItype\fP mstdlib sql updlock type 
+.RE
+.PP
+
+.SS "typedef M_bool(* M_sql_driver_cb_append_bitop_t) (\fBM_sql_connpool_t\fP *pool, \fBM_buf_t\fP *query, \fBM_sql_query_bitop_t\fP op, const char *exp1, const char *exp2)"
+Output the SQL-driver-specific bit operation formatted as needed\&.
+.PP
+See \fBM_sql_query_append_bitop()\fP for more information\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Pointer to connection pool object 
+.br
+\fIquery\fP Buffer to write sql-server-specific bitop into 
+.br
+\fItype\fP mstdlib sql updlock type 
+.br
+\fIop\fP Bitwise operation to perform\&. 
+.br
+\fIexp1\fP Left-hand side of SQL expression\&. 
+.br
+\fIexp2\fP Right-hande size of SQL expression\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on misuse\&. 
+.RE
+.PP
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_sql_driver_queryformat_flags_t\fP"
+Flags for the helper query string format rewrite function \fBM_sql_driver_queryformat()\fP 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_DRIVER_QUERYFORMAT_NORMAL \fP\fP
+Normal, strips any query terminator otherwise unmodified 
+.TP
+\fB\fIM_SQL_DRIVER_QUERYFORMAT_TERMINATOR \fP\fP
+Query terminator (;) is required 
+.TP
+\fB\fIM_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR \fP\fP
+Instead of using ? for each bound parameter, parameters take the form of $1, $2, \&.\&.\&. $N (used by PostgreSQL) 
+.TP
+\fB\fIM_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON \fP\fP
+Instead of using ? for each bound parameter, parameters take the form of :1, :2, \&.\&.\&. :N (used by Oracle) 
+.TP
+\fB\fIM_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD \fP\fP
+Multiple-value/row insertions are not sent to the server using rows of bound parameters, but instead by comma-delimiting the values in the insert statement\&. This will rewrite an INSERT statement from 'INSERT INTO foo VALUES (?, ?, ?)' into something like 'INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), \&.\&.\&., (?, ?, ?)' 
+.SS "enum \fBM_sql_connstr_type_t\fP"
+Connection string argument value allowed 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_CONNSTR_TYPE_BOOL \fP\fP
+.TP
+\fB\fIM_SQL_CONNSTR_TYPE_NUM \fP\fP
+.TP
+\fB\fIM_SQL_CONNSTR_TYPE_ALPHA \fP\fP
+.TP
+\fB\fIM_SQL_CONNSTR_TYPE_ALPHANUM \fP\fP
+.TP
+\fB\fIM_SQL_CONNSTR_TYPE_ANY \fP\fP
+.SS "enum \fBM_sql_conn_state_t\fP"
+Connection state tracking 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_CONN_STATE_OK \fP\fP
+Connection state is good 
+.TP
+\fB\fIM_SQL_CONN_STATE_ROLLBACK \fP\fP
+A rollback condition has been hit, must be returned to the pool to be cleared 
+.TP
+\fB\fIM_SQL_CONN_STATE_FAILED \fP\fP
+The connection has failed, must be destroyed (return to the pool will do this) 
+.SS "enum \fBM_sql_driver_updlock_caps_t\fP"
+Capabilities driver can use for \fBM_sql_driver_append_updlock()\fP helper 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_DRIVER_UPDLOCK_CAP_NONE \fP\fP
+No row-level locks supported 
+.TP
+\fB\fIM_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE \fP\fP
+FOR UPDATE style locks 
+.TP
+\fB\fIM_SQL_DRIVER_UPDLOCK_CAP_MSSQL \fP\fP
+Microsoft SQL Server style locks 
+.SS "enum \fBM_sql_driver_bitop_caps_t\fP"
+Bit Operations capabilities/type used by SQL server 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_DRIVER_BITOP_CAP_OP \fP\fP
+SQL server supports direct operators 
+.TP
+\fB\fIM_SQL_DRIVER_BITOP_CAP_FUNC \fP\fP
+SQL server supports BITOR and BITAND functions 
+.TP
+\fB\fIM_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT \fP\fP
+SQL server supports direct operators, but needs exp2 input cast as BIGINT 
+.SH "Function Documentation"
+.PP 
+.SS "char* M_sql_driver_queryformat (const char * query, M_uint32 flags, size_t num_params, size_t num_rows, char * error, size_t error_size)"
+Rewrite the user-provided query string to one more easily consumed by the database backend based on a series of flags\&.
+.PP
+This is a helper function to reduce code duplication in database implementations and is exclusively called by the drivers\&. If the implementation here is insufficient for the requirements of the SQL server, then it is up to the driver to implement their own routine
+.PP
+\fBParameters:\fP
+.RS 4
+\fIquery\fP User-provided query string 
+.br
+\fIflags\fP Bitmap of M_sql_driver_queryformat_flags_t Flags controlling behavior of processor 
+.br
+\fInum_params\fP Number of bound parameters (per row) 
+.br
+\fInum_rows\fP For insert statements, number of rows of bound parameters 
+.br
+\fIerror\fP User-supplied error message buffer 
+.br
+\fIerror_size\fP Size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated buffer containing a rewritten query string or NULL on failure 
+.RE
+.PP
+
+.SS "\fBM_sql_conn_state_t\fP M_sql_conn_get_state (\fBM_sql_conn_t\fP * conn)"
+Get the current connection state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Connection acquired with M_sql_connpool_acquireconn() 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+connection state 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_conn_execute (\fBM_sql_conn_t\fP * conn, \fBM_sql_stmt_t\fP * stmt)"
+Base helper used to execute a statement on a connection handle\&.
+.PP
+This helper is called by \fBM_sql_stmt_execute()\fP and \fBM_sql_trans_execute()\fP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Connection acquired with M_sql_connpool_acquireconn() 
+.br
+\fIstmt\fP Prepared statement object to be executed 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t codes 
+.RE
+.PP
+
+.SS "\fBM_sql_stmt_t\fP* M_sql_conn_execute_simple (\fBM_sql_conn_t\fP * conn, const char * query, M_bool skip_sanity_checks)"
+Base helper used to execute a simple query (no bound parameters) on a connection handle\&.
+.PP
+This internally generates a statement handle and destroys it upon completion\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Connection acquired with M_sql_connpool_acquireconn() 
+.br
+\fIquery\fP Direct query to be executed\&. 
+.br
+\fIskip_sanity_checks\fP Skip sanity checks that may otherwise fail\&. Usually used for injecting a stored procedure at db init\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+one of the M_sql_error_t codes 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_validate_connstr (const \fBM_hash_dict_t\fP * conndict, const M_sql_connstr_params_t * params, char * error, size_t error_size)"
+Helper for SQL drivers to validate the connection strings provided\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconndict\fP Dictionary of key/value pairs passed to driver 
+.br
+\fIparams\fP NULL-terminated structure of parameters to validate\&. 
+.br
+\fIerror\fP User-supplied error buffer to output error message\&. 
+.br
+\fIerror_size\fP Size of user-supplied error buffer\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_hostport_t\fP* M_sql_driver_parse_hostport (const char * hostport, M_uint16 default_port, size_t * out_len, char * error, size_t error_size)"
+
+.SS "\fBM_sql_driver_conn_t\fP* M_sql_driver_conn_get_conn (\fBM_sql_conn_t\fP * conn)"
+Retrieve a handle to the driver-specific connection object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Connection acquired with M_sql_connpool_acquireconn()
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+handle to driver-specific connection object 
+.RE
+.PP
+
+.SS "\fBM_sql_connpool_t\fP* M_sql_driver_conn_get_pool (\fBM_sql_conn_t\fP * conn)"
+
+.SS "const char* M_sql_driver_pool_get_username (\fBM_sql_connpool_t\fP * pool)"
+
+.SS "const char* M_sql_driver_pool_get_password (\fBM_sql_connpool_t\fP * pool)"
+
+.SS "const char* M_sql_driver_conn_get_username (\fBM_sql_conn_t\fP * conn)"
+
+.SS "const char* M_sql_driver_conn_get_password (\fBM_sql_conn_t\fP * conn)"
+
+.SS "\fBM_sql_driver_connpool_t\fP* M_sql_driver_pool_get_dpool (\fBM_sql_connpool_t\fP * pool)"
+
+.SS "\fBM_sql_driver_connpool_t\fP* M_sql_driver_conn_get_dpool (\fBM_sql_conn_t\fP * conn)"
+
+.SS "M_bool M_sql_driver_conn_is_readonly (\fBM_sql_conn_t\fP * conn)"
+
+.SS "M_bool M_sql_driver_conn_in_trans (\fBM_sql_conn_t\fP * conn)"
+Return whether or not the connection is used within an SQL transaction, or simply a single standalone query\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconn\fP Initialized \fBM_sql_conn_t\fP 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if used within a transaction, M_FALSE for single standalone query 
+.RE
+.PP
+
+.SS "size_t M_sql_driver_conn_get_id (\fBM_sql_conn_t\fP * conn)"
+
+.SS "const char* M_sql_driver_stmt_get_query (\fBM_sql_stmt_t\fP * stmt)"
+
+.SS "\fBM_sql_driver_stmt_t\fP* M_sql_driver_stmt_get_stmt (\fBM_sql_stmt_t\fP * stmt)"
+
+.SS "size_t M_sql_driver_stmt_bind_rows (\fBM_sql_stmt_t\fP * stmt)"
+
+.SS "size_t M_sql_driver_stmt_bind_cnt (\fBM_sql_stmt_t\fP * stmt)"
+
+.SS "\fBM_sql_data_type_t\fP M_sql_driver_stmt_bind_get_type (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "\fBM_sql_data_type_t\fP M_sql_driver_stmt_bind_get_col_type (\fBM_sql_stmt_t\fP * stmt, size_t idx)"
+Some columns with multiple rows might have a NULL data type, this searches for the 'real' datatype, first non-null 
+.SS "size_t M_sql_driver_stmt_bind_get_max_col_size (\fBM_sql_stmt_t\fP * stmt, size_t idx)"
+Get the maximum size of a column if there are multiple rows bound 
+.SS "size_t M_sql_driver_stmt_get_requested_row_cnt (\fBM_sql_stmt_t\fP * stmt)"
+Get the requested row count as requested by the user by \fBM_sql_stmt_set_max_fetch_rows()\fP\&.
+.PP
+This value can be used to set a Prefetch Row setting for receiving rows from the server as an optimization\&. If a value of 0 is returned, this means the customer did not request partial fetching (user wants all rows), so the server might want to choose an internal default size\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Initialized statement handle 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+rows requested per fetch, or 0 if user wants all rows 
+.RE
+.PP
+
+.SS "M_bool* M_sql_driver_stmt_bind_get_bool_addr (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int16* M_sql_driver_stmt_bind_get_int16_addr (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int32* M_sql_driver_stmt_bind_get_int32_addr (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int64* M_sql_driver_stmt_bind_get_int64_addr (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_bool M_sql_driver_stmt_bind_get_bool (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int16 M_sql_driver_stmt_bind_get_int16 (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int32 M_sql_driver_stmt_bind_get_int32 (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_int64 M_sql_driver_stmt_bind_get_int64 (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "const char* M_sql_driver_stmt_bind_get_text (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "size_t M_sql_driver_stmt_bind_get_text_len (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "const M_uint8* M_sql_driver_stmt_bind_get_binary (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "size_t M_sql_driver_stmt_bind_get_binary_len (\fBM_sql_stmt_t\fP * stmt, size_t row, size_t idx)"
+
+.SS "M_bool M_sql_driver_stmt_result_set_affected_rows (\fBM_sql_stmt_t\fP * stmt, size_t cnt)"
+Set the number of affected rows from things like UPDATE or DELETE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.br
+\fIcnt\fP Count to set 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on succes, M_FALSE on failure such as misuse 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_stmt_result_set_num_cols (\fBM_sql_stmt_t\fP * stmt, size_t cnt)"
+Set the column count for the row headers
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.br
+\fIcnt\fP Count to set 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on succes, M_FALSE on failure such as misuse or column count has already been set 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_stmt_result_set_col_name (\fBM_sql_stmt_t\fP * stmt, size_t col, const char * name)"
+Sets the column header name for the specified column
+.PP
+Must only be called after \fBM_sql_driver_stmt_result_set_num_cols()\fP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.br
+\fIcol\fP Column to modify 
+.br
+\fIname\fP Name to set 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on failure such as misuse 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_stmt_result_set_col_type (\fBM_sql_stmt_t\fP * stmt, size_t col, \fBM_sql_data_type_t\fP type, size_t max_size)"
+Sets the column header name for the specified column
+.PP
+Must only be called after \fBM_sql_driver_stmt_result_set_num_cols()\fP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.br
+\fIcol\fP Column to modify 
+.br
+\fItype\fP Column type to set 
+.br
+\fImax_size\fP Maximum size of column (for text or binary data), if available\&. 0 otherwise\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on failure such as misuse 
+.RE
+.PP
+
+.SS "\fBM_buf_t\fP* M_sql_driver_stmt_result_col_start (\fBM_sql_stmt_t\fP * stmt)"
+Start a new data column, returning writable buffer to hold column data\&.
+.PP
+The data written to the buffer is the Text or Binary version of the data\&.
+.PP
+\fBNote:\fP
+.RS 4
+ALL data except NULL columns must write at least a NULL terminator, even binary data requires a NULL terminator even though it won't be indicated in the final length\&. Any fields added without at least a NULL terminator will be considered NULL fields\&.
+.RE
+.PP
+The text version is also used for Integer and Boolean values\&. If the column is NULL, do not write any data, not even a NULL terminator\&.
+.PP
+Must only be called after \fBM_sql_driver_stmt_result_set_num_cols()\fP, and highly recommended to have previously called \fBM_sql_driver_stmt_result_set_col_name()\fP and \fBM_sql_driver_stmt_result_set_col_type()\fP\&.
+.PP
+Binary data can only be written if \fBM_sql_driver_stmt_result_set_col_type()\fP is set to \fBM_SQL_DATA_TYPE_BINARY\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated \fBM_buf_t\fP to write data\&. Or NULL on failure such as no more eligible columns for row\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_stmt_result_row_finish (\fBM_sql_stmt_t\fP * stmt)"
+Finish a row worth of data\&.
+.PP
+This is required to be called after all the columns for a row are written using \fBM_sql_driver_stmt_result_col_start()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on error, such as not all columns written\&. 
+.RE
+.PP
+
+.SS "void M_sql_driver_append_updlock (\fBM_sql_driver_updlock_caps_t\fP caps, \fBM_buf_t\fP * query, \fBM_sql_query_updlock_type_t\fP type)"
+Helper for drivers to implement M_sql_driver_cb_append_updlock_t
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcaps\fP Capabilities of SQL server 
+.br
+\fIquery\fP Buffer to write sql-server-specific lock information into\&. 
+.br
+\fItype\fP mstdlib sql updlock type 
+.RE
+.PP
+
+.SS "M_bool M_sql_driver_append_bitop (\fBM_sql_driver_bitop_caps_t\fP caps, \fBM_buf_t\fP * query, \fBM_sql_query_bitop_t\fP op, const char * exp1, const char * exp2)"
+Helper for drivers to implement M_sql_driver_cb_append_bitop_t
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcaps\fP Capabilities of SQL server 
+.br
+\fIquery\fP Buffer to write sql-server-specific bitop into 
+.br
+\fIop\fP Bitwise operation to perform\&. 
+.br
+\fIexp1\fP Left-hand side of SQL expression\&. 
+.br
+\fIexp2\fP Right-hande size of SQL expression\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on misuse 
+.RE
+.PP
+
+.SS "\fBM_sql_isolation_t\fP M_sql_driver_str2isolation (const char * str)"
+
+.SS "const char* M_sql_driver_isolation2str (\fBM_sql_isolation_t\fP type)"
+
+.SS "void M_sql_driver_trace_message (M_bool is_debug, \fBM_sql_connpool_t\fP * pool, \fBM_sql_conn_t\fP * conn, \fBM_sql_error_t\fP err, const char * msg)"
+Generate a driver-trace message\&.
+.PP
+Must pass either the pool or the connection handle so the trace system can look up the registered callback
+.PP
+\fBParameters:\fP
+.RS 4
+\fIis_debug\fP If M_TRUE, \fBM_SQL_TRACE_DRIVER_DEBUG\fP is used, if M_FALSE, \fBM_SQL_TRACE_DRIVER_ERROR\fP is used\&. 
+.br
+\fIpool\fP Conditional\&. If conn is not provided, must be populated\&. The initialized pool handle\&. 
+.br
+\fIconn\fP Conditional\&. If pool is not provided, must be populated\&. The initialized connection handle\&. 
+.br
+\fIerr\fP Error code, possibly \fBM_SQL_ERROR_SUCCESS\fP if not an error but a debug message\&. 
+.br
+\fImsg\fP Message to send to the trace callback 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

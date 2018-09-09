@@ -1,0 +1,519 @@
+.TH "m_fs_common" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_common
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_FS_PATH_NORM_RESDIR\fP   \fBM_FS_PATH_NORM_HOME\fP|\fBM_FS_PATH_NORM_FOLLOWSYMLINKS\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNE\fP"
+.br
+.ti -1c
+.RI "#define \fBM_FS_PATH_NORM_RESALL\fP   \fBM_FS_PATH_NORM_HOME\fP|\fBM_FS_PATH_NORM_FOLLOWSYMLINKS\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNE\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNELAST\fP"
+.br
+.ti -1c
+.RI "#define \fBM_FS_DIR_WALK_FILTER_ALL\fP   \fBM_FS_DIR_WALK_FILTER_FILE\fP|\fBM_FS_DIR_WALK_FILTER_DIR\fP|\fBM_FS_DIR_WALK_FILTER_SYMLINK\fP|\fBM_FS_DIR_WALK_FILTER_HIDDEN\fP"
+.br
+.ti -1c
+.RI "#define \fBM_FS_BUF_SIZE\fP   1024"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_fs_perms \fBM_fs_perms_t\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBM_fs_info\fP \fBM_fs_info_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_fs_file \fBM_fs_file_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_fs_dir_entry \fBM_fs_dir_entry_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_fs_dir_entries \fBM_fs_dir_entries_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_fs_progress \fBM_fs_progress_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_fs_error_t\fP { \fBM_FS_ERROR_SUCCESS\fP = 0, \fBM_FS_ERROR_GENERIC\fP, \fBM_FS_ERROR_INVALID\fP, \fBM_FS_ERROR_PERMISSION\fP, \fBM_FS_ERROR_NOT_SUPPORTED\fP, \fBM_FS_ERROR_IO\fP, \fBM_FS_ERROR_SEEK\fP, \fBM_FS_ERROR_READONLY\fP, \fBM_FS_ERROR_QUOTA\fP, \fBM_FS_ERROR_DNE\fP, \fBM_FS_ERROR_NAMETOOLONG\fP, \fBM_FS_ERROR_FILE_EXISTS\fP, \fBM_FS_ERROR_FILE_2BIG\fP, \fBM_FS_ERROR_FILE_2MANY\fP, \fBM_FS_ERROR_ISDIR\fP, \fBM_FS_ERROR_NOTDIR\fP, \fBM_FS_ERROR_DIR_NOTEMPTY\fP, \fBM_FS_ERROR_LINK_LOOP\fP, \fBM_FS_ERROR_LINK_2MANY\fP, \fBM_FS_ERROR_NOT_SAMEDEV\fP, \fBM_FS_ERROR_CANCELED\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_iostream_t\fP { \fBM_FS_IOSTREAM_IN\fP = 0, \fBM_FS_IOSTREAM_OUT\fP, \fBM_FS_IOSTREAM_ERR\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_perms_mode_t\fP { \fBM_FS_PERMS_MODE_NONE\fP = 0, \fBM_FS_PERMS_MODE_READ\fP = 1 << 0, \fBM_FS_PERMS_MODE_WRITE\fP = 1 << 1, \fBM_FS_PERMS_MODE_EXEC\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_perms_type_t\fP { \fBM_FS_PERMS_TYPE_EXACT\fP = 0, \fBM_FS_PERMS_TYPE_ADD\fP, \fBM_FS_PERMS_TYPE_REMOVE\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_perms_who_t\fP { \fBM_FS_PERMS_WHO_USER\fP = 0, \fBM_FS_PERMS_WHO_GROUP\fP, \fBM_FS_PERMS_WHO_OTHER\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_path_norm_t\fP { \fBM_FS_PATH_NORM_NONE\fP = 0, \fBM_FS_PATH_NORM_ABSOLUTE\fP = 1 << 0, \fBM_FS_PATH_NORM_FOLLOWSYMLINKS\fP = 1 << 1, \fBM_FS_PATH_NORM_SYMLINKS_FAILDNE\fP = 1 << 2, \fBM_FS_PATH_NORM_SYMLINKS_FAILDNELAST\fP = 1 << 3, \fBM_FS_PATH_NORM_HOME\fP = 1 << 4, \fBM_FS_PATH_NORM_NOPARENT\fP = 1 << 5 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_info_flags_t\fP { \fBM_FS_PATH_INFO_FLAGS_NONE\fP = 0, \fBM_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS\fP = 1 << 0, \fBM_FS_PATH_INFO_FLAGS_BASIC\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_file_mode_t\fP { \fBM_FS_FILE_MODE_NONE\fP = 0, \fBM_FS_FILE_MODE_READ\fP = 1 << 0, \fBM_FS_FILE_MODE_WRITE\fP = 1 << 1, \fBM_FS_FILE_MODE_NOCREATE\fP = 1 << 2, \fBM_FS_FILE_MODE_APPEND\fP = 1 << 3, \fBM_FS_FILE_MODE_OVERWRITE\fP = 1 << 4, \fBM_FS_FILE_MODE_PRESERVE_PERMS\fP = 1 << 5, \fBM_FS_FILE_MODE_NOCLOSEEXEC\fP = 1 << 6 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_file_read_write_t\fP { \fBM_FS_FILE_RW_NORMAL\fP = 0, \fBM_FS_FILE_RW_FULLBUF\fP = 1 << 0 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_file_seek_t\fP { \fBM_FS_FILE_SEEK_BEGIN\fP = 0, \fBM_FS_FILE_SEEK_END\fP, \fBM_FS_FILE_SEEK_CUR\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_file_sync_t\fP { \fBM_FS_FILE_SYNC_NONE\fP = 0, \fBM_FS_FILE_SYNC_BUFFER\fP = 1 << 0, \fBM_FS_FILE_SYNC_OS\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_dir_walk_filter_t\fP { \fBM_FS_DIR_WALK_FILTER_NONE\fP = 0, \fBM_FS_DIR_WALK_FILTER_FILE\fP = 1 << 0, \fBM_FS_DIR_WALK_FILTER_DIR\fP = 1 << 1, \fBM_FS_DIR_WALK_FILTER_PIPE\fP = 1 << 2, \fBM_FS_DIR_WALK_FILTER_SYMLINK\fP = 1 << 3, \fBM_FS_DIR_WALK_FILTER_HIDDEN\fP = 1 << 4, \fBM_FS_DIR_WALK_FILTER_RECURSE\fP = 1 << 5, \fBM_FS_DIR_WALK_FILTER_FOLLOWSYMLINK\fP = 1 << 6, \fBM_FS_DIR_WALK_FILTER_JAIL_FAIL\fP = 1 << 7, \fBM_FS_DIR_WALK_FILTER_JAIL_SKIP\fP = 1 << 8, \fBM_FS_DIR_WALK_FILTER_AS_SET\fP = 1 << 9, \fBM_FS_DIR_WALK_FILTER_READ_INFO_BASIC\fP = 1 << 10, \fBM_FS_DIR_WALK_FILTER_READ_INFO_FULL\fP = 1 << 11, \fBM_FS_DIR_WALK_FILTER_CASECMP\fP = 1 << 12 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_dir_sort_t\fP { \fBM_FS_DIR_SORT_NAME_CASECMP\fP = 0, \fBM_FS_DIR_SORT_NAME_CMP\fP, \fBM_FS_DIR_SORT_ISDIR\fP, \fBM_FS_DIR_SORT_ISHIDDEN\fP, \fBM_FS_DIR_SORT_NONE\fP, \fBM_FS_DIR_SORT_SIZE\fP, \fBM_FS_DIR_SORT_ATIME\fP, \fBM_FS_DIR_SORT_MTIME\fP, \fBM_FS_DIR_SORT_CTIME\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_progress_flags_t\fP { \fBM_FS_PROGRESS_NOEXTRA\fP = 0, \fBM_FS_PROGRESS_COUNT\fP = 1 << 0, \fBM_FS_PROGRESS_SIZE_TOTAL\fP = 1 << 1, \fBM_FS_PROGRESS_SIZE_CUR\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_system_t\fP { \fBM_FS_SYSTEM_AUTO\fP = 0, \fBM_FS_SYSTEM_WINDOWS\fP, \fBM_FS_SYSTEM_UNIX\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_fs_type_t\fP { \fBM_FS_TYPE_UNKNOWN\fP = 0, \fBM_FS_TYPE_FILE\fP, \fBM_FS_TYPE_DIR\fP, \fBM_FS_TYPE_PIPE\fP, \fBM_FS_TYPE_SYMLINK\fP }"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_FS_PATH_NORM_RESDIR   \fBM_FS_PATH_NORM_HOME\fP|\fBM_FS_PATH_NORM_FOLLOWSYMLINKS\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNE\fP"
+
+.SS "#define M_FS_PATH_NORM_RESALL   \fBM_FS_PATH_NORM_HOME\fP|\fBM_FS_PATH_NORM_FOLLOWSYMLINKS\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNE\fP|\fBM_FS_PATH_NORM_SYMLINKS_FAILDNELAST\fP"
+
+.SS "#define M_FS_DIR_WALK_FILTER_ALL   \fBM_FS_DIR_WALK_FILTER_FILE\fP|\fBM_FS_DIR_WALK_FILTER_DIR\fP|\fBM_FS_DIR_WALK_FILTER_SYMLINK\fP|\fBM_FS_DIR_WALK_FILTER_HIDDEN\fP"
+
+.SS "#define M_FS_BUF_SIZE   1024"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_fs_perms \fBM_fs_perms_t\fP"
+
+.SS "typedef struct \fBM_fs_info\fP \fBM_fs_info_t\fP"
+
+.SS "typedef struct M_fs_file \fBM_fs_file_t\fP"
+
+.SS "typedef struct M_fs_dir_entry \fBM_fs_dir_entry_t\fP"
+
+.SS "typedef struct M_fs_dir_entries \fBM_fs_dir_entries_t\fP"
+
+.SS "typedef struct M_fs_progress \fBM_fs_progress_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_fs_error_t\fP"
+Error codes\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_ERROR_SUCCESS \fP\fP
+Operation completed successfully 
+.TP
+\fB\fIM_FS_ERROR_GENERIC \fP\fP
+Generic, uncategorized error 
+.TP
+\fB\fIM_FS_ERROR_INVALID \fP\fP
+Invalid argument 
+.TP
+\fB\fIM_FS_ERROR_PERMISSION \fP\fP
+Operation not permitted 
+.TP
+\fB\fIM_FS_ERROR_NOT_SUPPORTED \fP\fP
+Operation not supported 
+.TP
+\fB\fIM_FS_ERROR_IO \fP\fP
+Input/output error 
+.TP
+\fB\fIM_FS_ERROR_SEEK \fP\fP
+Invalid seek 
+.TP
+\fB\fIM_FS_ERROR_READONLY \fP\fP
+Read-only file system 
+.TP
+\fB\fIM_FS_ERROR_QUOTA \fP\fP
+Disk quota exceeded 
+.TP
+\fB\fIM_FS_ERROR_DNE \fP\fP
+No such file or directory 
+.TP
+\fB\fIM_FS_ERROR_NAMETOOLONG \fP\fP
+Filename too long 
+.TP
+\fB\fIM_FS_ERROR_FILE_EXISTS \fP\fP
+File exists 
+.TP
+\fB\fIM_FS_ERROR_FILE_2BIG \fP\fP
+File too large 
+.TP
+\fB\fIM_FS_ERROR_FILE_2MANY \fP\fP
+Too many open files 
+.TP
+\fB\fIM_FS_ERROR_ISDIR \fP\fP
+Is a directory 
+.TP
+\fB\fIM_FS_ERROR_NOTDIR \fP\fP
+Not a directory 
+.TP
+\fB\fIM_FS_ERROR_DIR_NOTEMPTY \fP\fP
+Directory not empty 
+.TP
+\fB\fIM_FS_ERROR_LINK_LOOP \fP\fP
+Too many levels of symbolic links 
+.TP
+\fB\fIM_FS_ERROR_LINK_2MANY \fP\fP
+Too many links 
+.TP
+\fB\fIM_FS_ERROR_NOT_SAMEDEV \fP\fP
+Cannot move across mount points\&. 
+.TP
+\fB\fIM_FS_ERROR_CANCELED \fP\fP
+The operation was canceled (typically by user interaction)\&. 
+.SS "enum \fBM_fs_iostream_t\fP"
+Standard streams for input and output\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_IOSTREAM_IN \fP\fP
+.TP
+\fB\fIM_FS_IOSTREAM_OUT \fP\fP
+.TP
+\fB\fIM_FS_IOSTREAM_ERR \fP\fP
+.SS "enum \fBM_fs_perms_mode_t\fP"
+File permissions\&. Based on POSIX file permissions\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PERMS_MODE_NONE \fP\fP
+No perms\&. 
+.TP
+\fB\fIM_FS_PERMS_MODE_READ \fP\fP
+Read\&. 
+.TP
+\fB\fIM_FS_PERMS_MODE_WRITE \fP\fP
+Write\&. 
+.TP
+\fB\fIM_FS_PERMS_MODE_EXEC \fP\fP
+Execute\&. 
+.SS "enum \fBM_fs_perms_type_t\fP"
+How should the perms be modified\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PERMS_TYPE_EXACT \fP\fP
+Perms are exactly what is set\&. 
+.TP
+\fB\fIM_FS_PERMS_TYPE_ADD \fP\fP
+Perms will be added to existing perms\&. 
+.TP
+\fB\fIM_FS_PERMS_TYPE_REMOVE \fP\fP
+Perms will be removed from existing perms\&. 
+.SS "enum \fBM_fs_perms_who_t\fP"
+Who do the given perms apply to\&. Based on POSIX file permissions\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PERMS_WHO_USER \fP\fP
+User/owner\&. 
+.TP
+\fB\fIM_FS_PERMS_WHO_GROUP \fP\fP
+Group\&. 
+.TP
+\fB\fIM_FS_PERMS_WHO_OTHER \fP\fP
+Other\&. 
+.SS "enum \fBM_fs_path_norm_t\fP"
+How should the path be normalized\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PATH_NORM_NONE \fP\fP
+.TP
+\fB\fIM_FS_PATH_NORM_ABSOLUTE \fP\fP
+Use the current working directory to determine absolute path if provided path is relative\&. 
+.TP
+\fB\fIM_FS_PATH_NORM_FOLLOWSYMLINKS \fP\fP
+Follow sym links\&. This will succeed if even if the path pointed by by the symlink does not exist\&. 
+.TP
+\fB\fIM_FS_PATH_NORM_SYMLINKS_FAILDNE \fP\fP
+Follow sym links\&. Fail if the location pointed to by the link does not exist excluding the last location in the path\&. 
+.TP
+\fB\fIM_FS_PATH_NORM_SYMLINKS_FAILDNELAST \fP\fP
+Follow sym links\&. Fail if only the last location pointed to by the link does not exist\&. 
+.TP
+\fB\fIM_FS_PATH_NORM_HOME \fP\fP
+Normalize ~/ to $HOME\&. 
+.TP
+\fB\fIM_FS_PATH_NORM_NOPARENT \fP\fP
+Do NOT Normalize \&.\&./ paths\&. 
+.SS "enum \fBM_fs_info_flags_t\fP"
+How should a path's info be read\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PATH_INFO_FLAGS_NONE \fP\fP
+Normal operation\&. Get all info for the given location\&. 
+.TP
+\fB\fIM_FS_PATH_INFO_FLAGS_FOLLOW_SYMLINKS \fP\fP
+If the location is symlink get the info for the location pointed to by the link and not the link itself\&. 
+.TP
+\fB\fIM_FS_PATH_INFO_FLAGS_BASIC \fP\fP
+Get basic info only\&. Excludes:
+.IP "\(bu" 2
+User and group\&.
+.IP "\(bu" 2
+Permissions\&. 
+.PP
+
+.SS "enum \fBM_fs_file_mode_t\fP"
+File interaction\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_FILE_MODE_NONE \fP\fP
+No mode specified\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_READ \fP\fP
+Read\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_WRITE \fP\fP
+Write\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_NOCREATE \fP\fP
+Do not create the file if it does not exist\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_APPEND \fP\fP
+Only write at the end of the file\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_OVERWRITE \fP\fP
+Overwrite the file (truncate) if it exists\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_PRESERVE_PERMS \fP\fP
+Move/Copy use the perms from the original file\&. This only preserves permissions that can be expressed by an M_fs_perms_t object\&. ACLs for example will not be persevered\&. 
+.TP
+\fB\fIM_FS_FILE_MODE_NOCLOSEEXEC \fP\fP
+Allow sharing of file descriptors with fork executed processes\&. 
+.SS "enum \fBM_fs_file_read_write_t\fP"
+Read / Write behavior 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_FILE_RW_NORMAL \fP\fP
+Normal operation 
+.TP
+\fB\fIM_FS_FILE_RW_FULLBUF \fP\fP
+Read until the given buffer is full or until there is no more data to read\&. Write all data in the buffer\&. Normal operation is to return after the system reads/writes what it can\&. This will cause the read/write to retry until the given all data is read/written\&. 
+.SS "enum \fBM_fs_file_seek_t\fP"
+Seeking within a file\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_FILE_SEEK_BEGIN \fP\fP
+Seek relative to the beginning of the file\&. 
+.TP
+\fB\fIM_FS_FILE_SEEK_END \fP\fP
+Seek relative to the end of the file \&. 
+.TP
+\fB\fIM_FS_FILE_SEEK_CUR \fP\fP
+Seek relative to the current location 
+.SS "enum \fBM_fs_file_sync_t\fP"
+How should data be synced to disk\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_FILE_SYNC_NONE \fP\fP
+No sync\&. 
+.TP
+\fB\fIM_FS_FILE_SYNC_BUFFER \fP\fP
+Internal write buffer should be synced (fflush) 
+.TP
+\fB\fIM_FS_FILE_SYNC_OS \fP\fP
+OS buffer should be synced (fsync) 
+.SS "enum \fBM_fs_dir_walk_filter_t\fP"
+Controls the behavior of walk\&. Specifies how the walk should be performed and what should be stored in the result of the walk\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_NONE \fP\fP
+No filters\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_FILE \fP\fP
+Include files in the list of entries\&. Anything that is not another type is considered a file\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_DIR \fP\fP
+Include directories in the list of entries\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_PIPE \fP\fP
+Include pipes in the list of entries\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_SYMLINK \fP\fP
+Include symlinks in the list of entries\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_HIDDEN \fP\fP
+Include hidden locations in the list of entries\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_RECURSE \fP\fP
+Recurse into directories and include their contents\&. File system loops (infinite redirects due to symlinks) will be ignored\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_FOLLOWSYMLINK \fP\fP
+Should symlinks be followed\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_JAIL_FAIL \fP\fP
+Fail walk if redirection outside of base path\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_JAIL_SKIP \fP\fP
+Skip entry if redirection outside of base path\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_AS_SET \fP\fP
+Only include a given entry once\&. Symlinks could cause a file or directory to show up multiple times in a walk this will exclude the additional entries\&. Also, only one symlink to a given entry will be included\&. For example, if there are two symlinks to the same file one symlink will be ingored\&. 
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_READ_INFO_BASIC \fP\fP
+Read/store basic info about the entry\&. Specifically:
+.IP "\(bu" 2
+Is dir\&.
+.IP "\(bu" 2
+Is hidden\&.
+.IP "\(bu" 2
+File size\&.
+.IP "\(bu" 2
+Access time\&.
+.IP "\(bu" 2
+Last modification time\&.
+.IP "\(bu" 2
+Creation time\&. 
+.PP
+
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_READ_INFO_FULL \fP\fP
+Read/Store all info about the entry\&. Specifically:
+.IP "\(bu" 2
+All basic info\&.
+.IP "\(bu" 2
+User and Group\&.
+.IP "\(bu" 2
+Permissions\&. 
+.PP
+
+.TP
+\fB\fIM_FS_DIR_WALK_FILTER_CASECMP \fP\fP
+The pattern matching should be compared to the path in a case insensitive manner\&. 
+.SS "enum \fBM_fs_dir_sort_t\fP"
+Sorting methods\&. Some of these methods require the file info\&. If the file info was not retrieved (walk did not have a M_FS_DIR_WALK_FILTER_READ_INFO_* filter set) all files are considered equal\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_DIR_SORT_NAME_CASECMP \fP\fP
+Sort by name case insensitive\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_NAME_CMP \fP\fP
+Sort by name case sensitive\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_ISDIR \fP\fP
+Sort by is directory\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_ISHIDDEN \fP\fP
+Sort by hidden status\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_NONE \fP\fP
+Don't sort\&. This is an option because sorting can have primary and secondary\&. This allows only a primary sort to be applied\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_SIZE \fP\fP
+Sort by file size\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_ATIME \fP\fP
+Sort by last access time\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_MTIME \fP\fP
+Sort by last modification time\&. 
+.TP
+\fB\fIM_FS_DIR_SORT_CTIME \fP\fP
+Sort by create time\&. 
+.SS "enum \fBM_fs_progress_flags_t\fP"
+Determines what progress information should be reported to the progress callback\&. Size reporting will increase the amount of time required for processing due to needing to get and calculate totals\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_PROGRESS_NOEXTRA \fP\fP
+Don't provide optional reporting\&. Will be overridden by other flags\&. 
+.TP
+\fB\fIM_FS_PROGRESS_COUNT \fP\fP
+Report on number of operations total and completed\&. 
+.TP
+\fB\fIM_FS_PROGRESS_SIZE_TOTAL \fP\fP
+Report the total size for all file operations and the total completed\&. 
+.TP
+\fB\fIM_FS_PROGRESS_SIZE_CUR \fP\fP
+Report the total size for the current file being processed and the total size of the file completed\&. 
+.SS "enum \fBM_fs_system_t\fP"
+Controls how path should be constructed\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_SYSTEM_AUTO \fP\fP
+Automatically set based on current system\&. 
+.TP
+\fB\fIM_FS_SYSTEM_WINDOWS \fP\fP
+Forcibly use windows logic\&. 
+.TP
+\fB\fIM_FS_SYSTEM_UNIX \fP\fP
+Forcibly use Unix logic\&. 
+.SS "enum \fBM_fs_type_t\fP"
+Types of file objects\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_FS_TYPE_UNKNOWN \fP\fP
+The location is an unknown type\&. Typically this means it was not read\&. 
+.TP
+\fB\fIM_FS_TYPE_FILE \fP\fP
+The location is a regular file\&. 
+.TP
+\fB\fIM_FS_TYPE_DIR \fP\fP
+The location is a directory\&. 
+.TP
+\fB\fIM_FS_TYPE_PIPE \fP\fP
+The location is a fifo (pipe)\&. 
+.TP
+\fB\fIM_FS_TYPE_SYMLINK \fP\fP
+The location is a symbolic link\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

@@ -1,0 +1,89 @@
+.TH "m_log_android" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_log_android
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_add_android\fP (\fBM_log_t\fP *log, const char *product, size_t max_queue_bytes, \fBM_log_module_t\fP **out_mod)"
+.br
+.ti -1c
+.RI "\fBM_log_error_t\fP \fBM_log_module_android_set_tag_priority\fP (\fBM_log_t\fP *log, \fBM_log_module_t\fP *module, M_uint64 tags, \fBM_android_log_priority_t\fP priority)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Functions to enable logging to Android logging subsystem (__android_log_write)\&.
+.PP
+Only available when building for the Android platform\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_log_error_t\fP M_log_module_add_android (\fBM_log_t\fP * log, const char * product, size_t max_queue_bytes, \fBM_log_module_t\fP ** out_mod)"
+Add a module to output to Android logging subsystem (if we're building for Android)\&.
+.PP
+Note: Android logging messages may be truncated by the subsystem to an implementation-specific line length limit (usually 1023 chars)\&.
+.PP
+Android logging allows passing a \fCNULL\fP or empty string for the product name - in this case, the 'global' product name is used, not the name of the program like in syslog\&.
+.PP
+If the library wasn't compiled for Android, this function will return \fBM_LOG_MODULE_UNSUPPORTED\fP when called, and no module will be added to the logger\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fIproduct\fP short tag string: name of program, or \fCNULL\fP to use 'global' tag 
+.br
+\fImax_queue_bytes\fP max size of queue used to buffer asynchronous writes to android log 
+.br
+\fIout_mod\fP handle for created module, or \fCNULL\fP if there was an error 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SS "\fBM_log_error_t\fP M_log_module_android_set_tag_priority (\fBM_log_t\fP * log, \fBM_log_module_t\fP * module, M_uint64 tags, \fBM_android_log_priority_t\fP priority)"
+Associate the given user-defined tag(s) with an Android log priority\&.
+.PP
+If you don't associate a tag with an Android log priority, the default priority of \fBM_ANDROID_LOG_INFO\fP will be used for that tag\&.
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_LOG_ALL_TAGS\fP 
+.PP
+\fBM_log_all_tags_lt\fP 
+.PP
+\fBM_log_all_tags_lte\fP 
+.PP
+\fBM_log_all_tags_gt\fP 
+.PP
+\fBM_log_all_tags_gte\fP
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIlog\fP logger object 
+.br
+\fImodule\fP handle of module to operate on 
+.br
+\fItags\fP user-defined power-of-two tag (or multiple power-of-two tags, OR'd together) 
+.br
+\fIpriority\fP single priority value to associate with the given tags 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+error code 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

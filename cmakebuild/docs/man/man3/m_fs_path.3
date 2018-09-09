@@ -1,0 +1,376 @@
+.TH "m_fs_path" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs_path
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "size_t \fBM_fs_path_get_path_max\fP (\fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_path_isabs\fP (const char *p, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_path_isunc\fP (const char *p)"
+.br
+.ti -1c
+.RI "M_bool \fBM_fs_path_ishidden\fP (const char *path, \fBM_fs_info_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_fs_path_componentize_path\fP (const char *path, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_join\fP (const char *p1, const char *p2, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_join_parts\fP (const \fBM_list_str_t\fP *path, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_join_vparts\fP (\fBM_fs_system_t\fP sys_type, size_t num,\&.\&.\&.)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_join_resolved\fP (const char *path, const char *part, const char *resolved_name, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_dirname\fP (const char *path, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_basename\fP (const char *path, \fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "char * \fBM_fs_path_user_confdir\fP (\fBM_fs_system_t\fP sys_type)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_path_get_cwd\fP (char **cwd)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_path_set_cwd\fP (const char *path)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_path_readlink\fP (char **out, const char *path)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_fs_path_norm\fP (char **out, const char *path, M_uint32 flags, \fBM_fs_system_t\fP sys_type)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "size_t M_fs_path_get_path_max (\fBM_fs_system_t\fP sys_type)"
+Determine the max path length for the system\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsys_type\fP The system type used to determine the maximum path length\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The maximum path length\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_path_isabs (const char * p, \fBM_fs_system_t\fP sys_type)"
+Check if a path is an absolute path\&.
+.PP
+A path is absolute if it's Unix and starts with /\&. Or Windows and starts with \\\\ (UNC) or a drive letter\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP The path\&. 
+.br
+\fIsys_type\fP The system type\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if an absolute path\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_path_isunc (const char * p)"
+Check if a path is a unc path\&.
+.PP
+A path is unc if it's Windows and starts with '\\\\\\\\'\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp\fP The path\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if an UNC path\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_fs_path_ishidden (const char * path, \fBM_fs_info_t\fP * info)"
+Check if the path is considered hidden by the OS\&.
+.PP
+Either the path or info parameters can be NULL\&. Both cannot be NULL\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path\&. 
+.br
+\fIinfo\fP The info\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Whether the path is considered hidden\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_fs_path_componentize_path (const char * path, \fBM_fs_system_t\fP sys_type)"
+Take a path and split it into components\&.
+.PP
+This will remove empty parts\&. An absolute path (Unix) starting with / will have the / replaced with an empty to start the list\&. The same is true for UNC paths\&. An empty at the start of the path list should be treated as an absolute path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path\&. 
+.br
+\fIsys_type\fP The system type\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of path parts\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_join (const char * p1, const char * p2, \fBM_fs_system_t\fP sys_type)"
+Join two parts into one path\&.
+.PP
+If either part is empty the separator won't be added\&. Unlike M_fs_path_join_parts this does not have special handling (using an empty string) for absolute paths\&. This is a convince function to write the appropriate system separator between two paths\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIp1\fP First part\&. 
+.br
+\fIp2\fP Second part\&. 
+.br
+\fIsys_type\fP The system type\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path as a single string\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_join_parts (const \fBM_list_str_t\fP * path, \fBM_fs_system_t\fP sys_type)"
+Take a list of path components and join them into a string separated by the system path separator\&.
+.PP
+Empty parts (except the first on Unix and UNC) will be ignored\&. An empty part at the start is used on Unix and UNC to denote an absolute path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path\&. 
+.br
+\fIsys_type\fP The system type\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path as a single string\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_join_vparts (\fBM_fs_system_t\fP sys_type, size_t num,  \&.\&.\&.)"
+Take a list of path components and join them into a string separated by the system path separator\&.
+.PP
+Empty parts (except the first on Unix and UNC) will be ignored\&. An empty part at the start is used on Unix and UNC to denote an absolute path\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsys_type\fP The system type\&. 
+.br
+\fInum\fP The number of parts\&. 
+.br
+\fI\&.\&.\&.\fP char * parts to be joined\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path as a single string\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_join_resolved (const char * path, const char * part, const char * resolved_name, \fBM_fs_system_t\fP sys_type)"
+Join a base path, the name and the resolved name into the full resolved path\&.
+.PP
+This is a helper for dealing with M_fs_dir_walk in order to determine the resolved path when the entry returned by the callback is a symlink\&.
+.PP
+We have three parts: path, entry_name, resolved_name\&. The entry_name needs to have the last part removed because it is a symlink\&. Then we need to put path and resolved_name on either size to get the real name\&.
+.PP
+For example: path = /usr/share/zoneinfo/America part = Indiana/Indianapolis resolved_name = \&.\&./\&.\&./posix/America/Indiana/Indianapolis
+.PP
+We need: /usr/share/zoneinfo/America/Indiana/\&.\&./\&.\&./posix/America/Indiana/Indianapolis
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The base path\&. 
+.br
+\fIpart\fP The path component under the base\&. 
+.br
+\fIresolved_name\fP The resolved path for a symlink that needs to be combined with the base and part\&. 
+.br
+\fIsys_type\fP The system type\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The resolved path\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_dirname (const char * path, \fBM_fs_system_t\fP sys_type)"
+Strip last component from a filename\&.
+.PP
+Remove last full non-slash component\&. Output will not include trailing slashes\&. E\&.g: /usr/bin/ -> /usr
+.PP
+A path without a dir component will output a '\&.' (current dir\&.)\&. E\&.g: bin -> \&. (meaning the current directory)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path\&. 
+.br
+\fIsys_type\fP The system path logic and separator to use\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path component from a filename\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_basename (const char * path, \fBM_fs_system_t\fP sys_type)"
+Strip all but the last component from a filename\&.
+.PP
+Remove all but the last full non-slash component\&. Output will not include trailing slashes\&.
+.PP
+E\&.g: /usr/bin/ -> bin
+.PP
+E\&.g: bin -> bin
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path\&. 
+.br
+\fIsys_type\fP The system path logic and separator to use\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path last component from a filename\&. 
+.RE
+.PP
+
+.SS "char* M_fs_path_user_confdir (\fBM_fs_system_t\fP sys_type)"
+The user's configuration directory\&.
+.PP
+This is a user level \fInot\fP system level directory\&. This is the OS standard directory for application configuration files\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsys_type\fP The system path logic and separator to use\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The path to the config dir, otherwise NULL on error\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_path_get_cwd (char ** cwd)"
+Get the current working directory for the calling process\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcwd\fP An allocated string with the cwd\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_path_set_cwd (const char * path)"
+Set the current working directory for the calling process\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to set as the cwd\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_path_readlink (char ** out, const char * path)"
+Resolve a symlink\&.
+.PP
+Reads the value pointed to by a symlink\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIout\fP An allocated string with the normalized path\&. 
+.br
+\fIpath\fP The path to resolve\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_fs_path_norm (char ** out, const char * path, M_uint32 flags, \fBM_fs_system_t\fP sys_type)"
+Normalize a path\&.
+.PP
+This typically does not need to be called because all functions that take a path (file) will call this internally using the appropriate parameters\&. This is provided as a convince for displaying paths to a user\&.
+.PP
+Supported features on all OS's;
+.IP "\(bu" 2
+Home dir (~) expansion\&.
+.IP "\(bu" 2
+Environment variable expansion (both $var and %var%)\&.
+.PP
+.PP
+Supported feature Unix only:
+.IP "\(bu" 2
+Symlink resolution\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIout\fP An allocated string with the normalized path\&. 
+.br
+\fIpath\fP The path to normalize\&. 
+.br
+\fIflags\fP M_fs_path_norm_t flags to control the normalization behavior\&. 
+.br
+\fIsys_type\fP The system path format to the path is in\&. This denotes the path type and how it should be normalized\&. For example, a Windows path with 'C:\\\&.\&.\&.' passed with the UNIX type will do strange things because it is not a Unix formatted path\&. The purpose of this argument is to specify the path type if known\&. Allows a Windows path on a Unix system to be parsed properly even though it's not the standard path type for the system\&. Note that if the path is not the same as the system standard type the M_FS_PATH_NORM_ABSOLUTE my give unexpected results for non-absolute paths\&. For example this relative path specified as a Windows path run on a Unix system: '\&.\\\\abc\&.\\\\\\\\\\\\\&.\&.\\\\xyz\\\\\\\\\&.\\\\123\\\\\&.\\\\xyr\\\\\&.' may result in something like May give a result like: 'home\\jschember\\svn\\mstdlib-trunk\\build\\xyz\\123\\xyr' Notice there is no '\\' or drive letter because they are not technically valid\&. However, the path was properly converted to an absolute path\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

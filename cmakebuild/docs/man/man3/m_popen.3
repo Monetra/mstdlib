@@ -1,0 +1,347 @@
+.TH "m_popen" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_popen
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_popen_handle \fBM_popen_handle_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_popen_fd_t\fP { \fBM_POPEN_FD_READ\fP = 0, \fBM_POPEN_FD_WRITE\fP, \fBM_POPEN_FD_ERR\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_popen_err_t\fP { \fBM_POPEN_ERR_NONE\fP = 0, \fBM_POPEN_ERR_INVALIDUSE\fP, \fBM_POPEN_ERR_CMDNOTFOUND\fP, \fBM_POPEN_ERR_PERM\fP, \fBM_POPEN_ERR_NOEXEC\fP, \fBM_POPEN_ERR_KILLSIGNAL\fP, \fBM_POPEN_ERR_PIPE\fP, \fBM_POPEN_ERR_WAIT\fP, \fBM_POPEN_ERR_SPAWN\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_popen_status_t\fP { \fBM_POPEN_STATUS_RUNNING\fP = 0, \fBM_POPEN_STATUS_ERROR\fP, \fBM_POPEN_STATUS_DONE\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_popen_handle_t\fP * \fBM_popen\fP (const char *cmd, \fBM_popen_err_t\fP *errorid)"
+.br
+.ti -1c
+.RI "ssize_t \fBM_popen_read\fP (\fBM_popen_handle_t\fP *mp, \fBM_popen_fd_t\fP fd, char *out, size_t out_len, M_uint64 timeout_ms)"
+.br
+.ti -1c
+.RI "ssize_t \fBM_popen_write\fP (\fBM_popen_handle_t\fP *mp, \fBM_popen_fd_t\fP fd, const char *in, size_t in_len)"
+.br
+.ti -1c
+.RI "int \fBM_popen_closefd\fP (\fBM_popen_handle_t\fP *mp, \fBM_popen_fd_t\fP fd)"
+.br
+.ti -1c
+.RI "\fBM_popen_status_t\fP \fBM_popen_check\fP (\fBM_popen_handle_t\fP *mp)"
+.br
+.ti -1c
+.RI "int \fBM_popen_close_ex\fP (\fBM_popen_handle_t\fP *mp, char **stdout_buf, size_t *stdout_buf_len, char **stderr_buf, size_t *stderr_buf_len, \fBM_popen_err_t\fP *errorid, M_uint64 timeout)"
+.br
+.ti -1c
+.RI "int \fBM_popen_close\fP (\fBM_popen_handle_t\fP *mp, \fBM_popen_err_t\fP *errorid)"
+.br
+.ti -1c
+.RI "const char * \fBM_popen_strerror\fP (\fBM_popen_err_t\fP err)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Open and interact with a process\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+const char       *data = "<x><t>data</t></x>"
+M_popen_err_t     mperr;
+M_popen_handle_t  mp;
+M_popen_status_t  status;
+int               retval;
+char             *stdout_buf     = NULL;
+size_t            stdout_buf_len = 0;
+char             *stderr_buf     = NULL;
+size_t            stderr_buf_len = 0;
+
+mp = M_popen("curl <url>", &mperr);
+if (mp == NULL) {
+    printf("m_popen failed: %s\n", M_popen_strerror(mperr));
+    return M_FALSE;
+}
+
+M_printf("Process spawned\&.\&.\&.\&.\n");
+
+retval = M_popen_write(mp, M_POPEN_FD_WRITE, data, M_str_len(data));
+if (retval <= 0) {
+    M_printf("M_popen_write failed, retval = %d\n", retval);
+    M_popen_close(mp, &mperr);
+    return M_FALSE;
+}
+
+/ * Close file descriptor to let process know we're done * /
+if (!M_popen_closefd(mp, M_POPEN_FD_WRITE)) {
+    M_printf("M_popen_closefd() failed\n");
+    M_popen_close(mp, &mperr);
+    return M_FALSE;
+}
+
+M_printf("Wrote process stream\&.\&.\&.\&.\n");
+
+while ((status=M_popen_check(mp)) == M_POPEN_STATUS_RUNNING) {
+    M_thread_sleep(50000);
+}
+
+if (status == M_POPEN_STATUS_ERROR) {
+    retval = M_popen_close(mp, &mperr);
+    printf("Error during M_popen_check(): %d: %s\n", retval, M_popen_strerror(mperr));
+    return M_FALSE;
+}
+
+M_printf("Process done\&.\&.\&.\n");
+
+retval = M_popen_close_ex(mp, &stdout_buf, &stdout_buf_len, &stderr_buf, &stderr_buf_len, &mperr, 0);
+if (retval < 0) {
+    M_printf("error: %s\n", M_popen_strerror(mperr));
+    return M_FALSE;
+}
+
+M_printf("stdout: %d:\n%s\n", (int)stdout_buf_len, stdout_buf);
+M_printf("stderr: %d:\n%s\n", (int)stderr_buf_len, stderr_buf);
+M_free(stdout_buf);
+M_free(stderr_buf);
+M_printf("return code: %d\n", retval);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_popen_handle \fBM_popen_handle_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_popen_fd_t\fP"
+Types of file descriptors that can be retrieved and used 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_POPEN_FD_READ \fP\fP
+.TP
+\fB\fIM_POPEN_FD_WRITE \fP\fP
+.TP
+\fB\fIM_POPEN_FD_ERR \fP\fP
+.SS "enum \fBM_popen_err_t\fP"
+Possible error reason codes 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_POPEN_ERR_NONE \fP\fP
+.TP
+\fB\fIM_POPEN_ERR_INVALIDUSE \fP\fP
+invalid API usage 
+.TP
+\fB\fIM_POPEN_ERR_CMDNOTFOUND \fP\fP
+command not found 
+.TP
+\fB\fIM_POPEN_ERR_PERM \fP\fP
+permission denied 
+.TP
+\fB\fIM_POPEN_ERR_NOEXEC \fP\fP
+file not executable 
+.TP
+\fB\fIM_POPEN_ERR_KILLSIGNAL \fP\fP
+killed by signal 
+.TP
+\fB\fIM_POPEN_ERR_PIPE \fP\fP
+pipe creation failed 
+.TP
+\fB\fIM_POPEN_ERR_WAIT \fP\fP
+attempting to check process status failed 
+.TP
+\fB\fIM_POPEN_ERR_SPAWN \fP\fP
+fork failed 
+.SS "enum \fBM_popen_status_t\fP"
+Status codes for command being executed 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_POPEN_STATUS_RUNNING \fP\fP
+.TP
+\fB\fIM_POPEN_STATUS_ERROR \fP\fP
+.TP
+\fB\fIM_POPEN_STATUS_DONE \fP\fP
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_popen_handle_t\fP* M_popen (const char * cmd, \fBM_popen_err_t\fP * errorid)"
+Start the specified command and open stdin (write), stdout (read), and stderr (read) file descriptors for communication\&.
+.PP
+Must call \fBM_popen_close()\fP to clean up the returned handle\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcmd\fP Command to execute\&. 
+.br
+\fIerrorid\fP Pointer to store error id if an error occurs\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+NULL on failure, M_popen_handle_t on success\&. 
+.RE
+.PP
+
+.SS "ssize_t M_popen_read (\fBM_popen_handle_t\fP * mp, \fBM_popen_fd_t\fP fd, char * out, size_t out_len, M_uint64 timeout_ms)"
+Read from a file descriptor
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP Open M_popen_t object\&. 
+.br
+\fIfd\fP Which FD to read from\&. 
+.br
+\fIout\fP Buffer to hold read data\&. 
+.br
+\fIout_len\fP Length of out buffer\&. 
+.br
+\fItimeout_ms\fP Time in ms to wait for data\&. M_TIMEOUT_INF will cause this to block\&. Note: Windows only has 15 ms resolution\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1 on error, -2 if fd was closed, 0 if a timeout occurred and no bytes were read, otherwise number of bytes read\&. 
+.RE
+.PP
+
+.SS "ssize_t M_popen_write (\fBM_popen_handle_t\fP * mp, \fBM_popen_fd_t\fP fd, const char * in, size_t in_len)"
+Write to a file descriptor
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP Open M_popen_t object\&. 
+.br
+\fIfd\fP Which FD to write to\&. 
+.br
+\fIin\fP Buffer to holding data to be written\&. 
+.br
+\fIin_len\fP Length of data to be written\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1 on error, otherwise number of bytes written\&. 
+.RE
+.PP
+
+.SS "int M_popen_closefd (\fBM_popen_handle_t\fP * mp, \fBM_popen_fd_t\fP fd)"
+Close the provided file descriptor\&.
+.PP
+This is used mainly to close the stdin stream to signal the command being executed that there is no more data left to be read\&. Any file open file descriptors are automatically closed by \fBM_popen_close()\fP\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP Open M_popen_t object\&. 
+.br
+\fIfd\fP Which FD to close\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+1 on success, 0 on error\&. 
+.RE
+.PP
+
+.SS "\fBM_popen_status_t\fP M_popen_check (\fBM_popen_handle_t\fP * mp)"
+Checks the current state of the command being executed and returns a code identifying the state\&.
+.PP
+Even if the state returns DONE or ERROR, \fBM_popen_close()\fP must be called\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP Open M_popen_t object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_popen_status_t code\&. 
+.RE
+.PP
+
+.SS "int M_popen_close_ex (\fBM_popen_handle_t\fP * mp, char ** stdout_buf, size_t * stdout_buf_len, char ** stderr_buf, size_t * stderr_buf_len, \fBM_popen_err_t\fP * errorid, M_uint64 timeout)"
+Close the M_popen_t object\&.
+.PP
+This will perform a blocking wait for the process to exit before returning control to the caller\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP M_popen_t object 
+.br
+\fIstdout_buf\fP Optional parameter\&. Will return allocated buffer containing the contents of the process's stdout\&. If specified, must also specify stdout_buf_len\&. 
+.br
+\fIstdout_buf_len\fP Optional parameter\&. Will return the length of stdout_buf\&. 
+.br
+\fIstderr_buf\fP Optional parameter\&. Will return allocated buffer containing the contents of the process's stderr\&. If specified, must also specify stderr_buf_len\&. 
+.br
+\fIstderr_buf_len\fP Optional parameter\&. Will return the length of stderr_buf\&. 
+.br
+\fIerrorid\fP if an error has occurred, will populate with a reason code\&. 
+.br
+\fItimeout\fP Time in ms to wait for the processes to exit\&. If the process has not finished after the timeout expires it will be killed\&. M_TIMEOUT_INF will cause this to block until the process exits\&. Note: the time out only has 15 ms resolution\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1 on error, -2 on timeout, otherwise the exit code from the process\&. 
+.RE
+.PP
+
+.SS "int M_popen_close (\fBM_popen_handle_t\fP * mp, \fBM_popen_err_t\fP * errorid)"
+Close the M_popen_t object\&.
+.PP
+This is a simplified wrapper around \fBM_popen_close_ex()\fP\&. This command blocks forever until the child process is done\&. If you need to force-kill the process after a given timeout, use \fBM_popen_close_ex()\fP instead of this function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImp\fP M_popen_t object 
+.br
+\fIerrorid\fP if an error has occurred, will populate with a reason code\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_popen_close_ex\fP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+-1 on error, otherwise the exit code from the process\&. 
+.RE
+.PP
+
+.SS "const char* M_popen_strerror (\fBM_popen_err_t\fP err)"
+Output human-readable error string\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIerr\fP Error as returned by \fBM_popen()\fP or \fBM_popen_close()\fP\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+string error message\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

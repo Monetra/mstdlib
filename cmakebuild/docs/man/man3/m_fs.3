@@ -1,0 +1,121 @@
+.TH "m_fs" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_fs
+.SH SYNOPSIS
+.br
+.PP
+.SS "Modules"
+
+.in +1c
+.ti -1c
+.RI "\fBCommon\fP"
+.br
+.ti -1c
+.RI "\fBPermissions\fP"
+.br
+.ti -1c
+.RI "\fBPath\fP"
+.br
+.ti -1c
+.RI "\fBInfo\fP"
+.br
+.ti -1c
+.RI "\fBFile\fP"
+.br
+.ti -1c
+.RI "\fBDirectory\fP"
+.br
+.ti -1c
+.RI "\fBProgress\fP"
+.br
+.ti -1c
+.RI "\fBFile System Operations\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+File sytem routines\&.
+.PP
+Example (check if a file exists):
+.PP
+.PP
+.nf
+if (M_fs_perms_can_access("/file\&.txt", 0) == M_FS_ERROR_SUCCESS) {
+    M_printf("path exists\n");
+} else {
+    M_printf("path does not exist\n");
+} 
+.fi
+.PP
+.PP
+Example (information about a file or directory):
+.PP
+.PP
+.nf
+M_fs_info_t *info = NULL;
+
+if (M_fs_info(&info, "/file\&.txt", M_FS_PATH_INFO_FLAGS_BASIC) == M_FS_ERROR_SUCCESS) {
+    M_printf("user='%s'\n", M_fs_info_get_user(info));
+} else {
+    M_printf("Failed to get file information\n");
+} 
+M_fs_info_destroy(info);
+.fi
+.PP
+.PP
+Example (normalize path):
+.PP
+.PP
+.nf
+const char *p1  = "\&./abc def/\&.\&./xyz/\&./1 2 3/\&./xyr/\&.";
+const char *n1  = "xyz/1 2 3/xyr";
+const char *p2  = "C:\\\\var\\log\\\&.\\mysql\\\\\\5\&.1\\\&.\&.\\\&.\&.\\mysql\&.log";
+const char *n2  = "C:\\var\\log\\mysql\&.log";
+char       *out = NULL;
+
+if (M_fs_path_norm(&out, p1, M_FS_PATH_NORM_NONE, M_FS_SYSTEM_UNIX) == M_FS_ERROR_SUCCESS) {
+    if (M_str_eq(out, n1)) {
+        M_printf("p1 normalized correctly\n")
+    } else {
+        M_printf("p1 did not normalize correctly\n");
+    }
+} else {
+    M_printf("failed to normalize p1\n");
+}
+M_free(out);
+
+if (M_fs_path_norm(&out, p2, M_FS_PATH_NORM_ABSOLUTE, M_FS_SYSTEM_WINDOWS) == M_FS_ERROR_SUCCESS) {
+    if (M_str_eq(out, n2)) {
+        M_printf("p2 normalized correctly\n")
+    } else {
+        M_printf("p2 did not normalize correctly\n");
+    }
+} else {
+    M_printf("failed to normalize p2\n");
+} 
+M_free(out);
+.fi
+.PP
+.PP
+Example (listing files in a directory):
+.PP
+.PP
+.nf
+M_list_str_t *l  = NULL;
+size_t        len;
+size_t        i;
+
+l = M_fs_dir_walk_strs("~", "*\&.txt", M_FS_DIR_WALK_FILTER_FILE|M_FS_DIR_WALK_FILTER_READ_INFO_BASIC);
+len = M_list_str_len(l);
+for (i=0; i<len; i++) {
+    M_printf("%s\n", M_list_str_at(l, i));
+}
+M_list_str_destory(l);
+.fi
+.PP
+ 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

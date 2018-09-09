@@ -1,0 +1,1012 @@
+.TH "m_state_machine" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_state_machine
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_state_machine \fBM_state_machine_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_state_machine_cleanup \fBM_state_machine_cleanup_t\fP"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_state_machine_trace_cb\fP) (\fBM_state_machine_trace_t\fP trace, M_uint64 mndescr, const char *mdescr, M_uint64 sndescr, const char *sdescr, const char *fdescr, M_uint64 id, \fBM_state_machine_status_t\fP status, M_bool run_sub, M_uint64 next_id, void *thunk)"
+.br
+.ti -1c
+.RI "typedef \fBM_state_machine_status_t\fP(* \fBM_state_machine_state_cb\fP) (void *data, M_uint64 *next)"
+.br
+.ti -1c
+.RI "typedef \fBM_state_machine_status_t\fP(* \fBM_state_machine_cleanup_cb\fP) (void *data, \fBM_state_machine_cleanup_reason_t\fP reason, M_uint64 *next)"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_state_machine_pre_cb\fP) (void *data, \fBM_state_machine_status_t\fP *status, M_uint64 *next)"
+.br
+.ti -1c
+.RI "typedef \fBM_state_machine_status_t\fP(* \fBM_state_machine_post_cb\fP) (void *data, \fBM_state_machine_status_t\fP sub_status, M_uint64 *next)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_state_machine_status_t\fP { \fBM_STATE_MACHINE_STATUS_NONE\fP = 0, \fBM_STATE_MACHINE_STATUS_NEXT\fP, \fBM_STATE_MACHINE_STATUS_PREV\fP, \fBM_STATE_MACHINE_STATUS_CONTINUE\fP, \fBM_STATE_MACHINE_STATUS_ERROR_STATE\fP, \fBM_STATE_MACHINE_STATUS_WAIT\fP, \fBM_STATE_MACHINE_STATUS_DONE\fP, \fBM_STATE_MACHINE_STATUS_STOP_CLEANUP\fP, \fBM_STATE_MACHINE_STATUS_ERROR_INVALID\fP, \fBM_STATE_MACHINE_STATUS_ERROR_BAD_ID\fP, \fBM_STATE_MACHINE_STATUS_ERROR_NO_NEXT\fP, \fBM_STATE_MACHINE_STATUS_ERROR_BAD_NEXT\fP, \fBM_STATE_MACHINE_STATUS_ERROR_SELF_NEXT\fP, \fBM_STATE_MACHINE_STATUS_ERROR_NO_PREV\fP, \fBM_STATE_MACHINE_STATUS_ERROR_INF_CONT\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_state_machine_flags_t\fP { \fBM_STATE_MACHINE_NONE\fP = 0, \fBM_STATE_MACHINE_SINGLE_PREV\fP = 1 << 1, \fBM_STATE_MACHINE_CONTINUE_LOOP\fP = 1 << 2, \fBM_STATE_MACHINE_SELF_CALL\fP = 1 << 3, \fBM_STATE_MACHINE_DONE_CLEANUP\fP = 1 << 4, \fBM_STATE_MACHINE_ONE_CLEANUP\fP = 1 << 5, \fBM_STATE_MACHINE_EXPLICIT_NEXT\fP = 1 << 6, \fBM_STATE_MACHINE_LINEAR_END\fP = 1 << 7 }"
+.br
+.ti -1c
+.RI "enum \fBM_state_machine_cleanup_reason_t\fP { \fBM_STATE_MACHINE_CLEANUP_REASON_NONE\fP = 0, \fBM_STATE_MACHINE_CLEANUP_REASON_DONE\fP, \fBM_STATE_MACHINE_CLEANUP_REASON_ERROR\fP, \fBM_STATE_MACHINE_CLEANUP_REASON_RESET\fP, \fBM_STATE_MACHINE_CLEANUP_REASON_CANCEL\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_state_machine_trace_t\fP { \fBM_STATE_MACHINE_TRACE_NONE\fP = 0, \fBM_STATE_MACHINE_TRACE_MACHINEENTER\fP, \fBM_STATE_MACHINE_TRACE_MACHINEEXIT\fP, \fBM_STATE_MACHINE_TRACE_STATE_START\fP, \fBM_STATE_MACHINE_TRACE_STATE_FINISH\fP, \fBM_STATE_MACHINE_TRACE_PRE_START\fP, \fBM_STATE_MACHINE_TRACE_PRE_FINISH\fP, \fBM_STATE_MACHINE_TRACE_POST_START\fP, \fBM_STATE_MACHINE_TRACE_POST_FINISH\fP, \fBM_STATE_MACHINE_TRACE_CLEANUP\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_state_machine_t\fP * \fBM_state_machine_create\fP (M_uint64 ndescr, const char *descr, M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_state_machine_destroy\fP (\fBM_state_machine_t\fP *m)"
+.br
+.ti -1c
+.RI "\fBM_state_machine_cleanup_t\fP * \fBM_state_machine_cleanup_create\fP (M_uint64 ndescr, const char *descr, M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_state_machine_cleanup_destroy\fP (\fBM_state_machine_cleanup_t\fP *m)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_insert_state\fP (\fBM_state_machine_t\fP *m, M_uint64 id, M_uint64 ndescr, const char *descr, \fBM_state_machine_state_cb\fP func, \fBM_state_machine_cleanup_t\fP *cleanup, \fBM_list_u64_t\fP *next_ids)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_insert_sub_state_machine\fP (\fBM_state_machine_t\fP *m, M_uint64 id, M_uint64 ndescr, const char *descr, const \fBM_state_machine_t\fP *subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP *cleanup, \fBM_list_u64_t\fP *next_ids)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_remove_state\fP (\fBM_state_machine_t\fP *m, M_uint64 id)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_has_state\fP (const \fBM_state_machine_t\fP *m, M_uint64 id)"
+.br
+.ti -1c
+.RI "const \fBM_list_u64_t\fP * \fBM_state_machine_list_states\fP (const \fBM_state_machine_t\fP *m)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_cleanup_insert_state\fP (\fBM_state_machine_cleanup_t\fP *m, M_uint64 id, M_uint64 ndescr, const char *descr, \fBM_state_machine_cleanup_cb\fP func, \fBM_state_machine_cleanup_t\fP *cleanup, \fBM_list_u64_t\fP *next_ids)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_cleanup_insert_cleanup_sub_state_machine\fP (\fBM_state_machine_cleanup_t\fP *m, M_uint64 id, M_uint64 ndescr, const char *descr, const \fBM_state_machine_cleanup_t\fP *subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP *cleanup, \fBM_list_u64_t\fP *next_ids)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_cleanup_insert_sub_state_machine\fP (\fBM_state_machine_cleanup_t\fP *m, M_uint64 id, M_uint64 ndescr, const char *descr, const \fBM_state_machine_t\fP *subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP *cleanup, \fBM_list_u64_t\fP *next_ids)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_cleanup_remove_state\fP (\fBM_state_machine_cleanup_t\fP *m, M_uint64 id)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_cleanup_has_state\fP (const \fBM_state_machine_cleanup_t\fP *m, M_uint64 id)"
+.br
+.ti -1c
+.RI "const \fBM_list_u64_t\fP * \fBM_state_machine_cleanup_list_states\fP (const \fBM_state_machine_cleanup_t\fP *m)"
+.br
+.ti -1c
+.RI "void \fBM_state_machine_enable_trace\fP (\fBM_state_machine_t\fP *m, \fBM_state_machine_trace_cb\fP cb, void *thunk)"
+.br
+.ti -1c
+.RI "void \fBM_state_machine_cleanup_enable_trace\fP (\fBM_state_machine_cleanup_t\fP *m, \fBM_state_machine_trace_cb\fP cb, void *thunk)"
+.br
+.ti -1c
+.RI "\fBM_state_machine_status_t\fP \fBM_state_machine_run\fP (\fBM_state_machine_t\fP *m, void *data)"
+.br
+.ti -1c
+.RI "void \fBM_state_machine_reset\fP (\fBM_state_machine_t\fP *m, \fBM_state_machine_cleanup_reason_t\fP reason)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_state_machine_ndescr\fP (const \fBM_state_machine_t\fP *m, M_bool recurse)"
+.br
+.ti -1c
+.RI "const char * \fBM_state_machine_descr\fP (const \fBM_state_machine_t\fP *m, M_bool recurse)"
+.br
+.ti -1c
+.RI "const \fBM_state_machine_t\fP * \fBM_state_machine_active_sub\fP (const \fBM_state_machine_t\fP *m, M_bool recurse)"
+.br
+.ti -1c
+.RI "M_bool \fBM_state_machine_active_state\fP (const \fBM_state_machine_t\fP *m, M_uint64 *id)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_state_machine_active_state_ndescr\fP (const \fBM_state_machine_t\fP *m, M_bool recurse)"
+.br
+.ti -1c
+.RI "const char * \fBM_state_machine_active_state_descr\fP (const \fBM_state_machine_t\fP *m, M_bool recurse)"
+.br
+.ti -1c
+.RI "char * \fBM_state_machine_descr_full\fP (const \fBM_state_machine_t\fP *m, M_bool show_id)"
+.br
+.ti -1c
+.RI "\fBM_state_machine_t\fP * \fBM_state_machine_duplicate\fP (const \fBM_state_machine_t\fP *m) M_MALLOC"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Non-linear state machine for running a sequence of states\&.
+.PP
+Normally the state machine will run using a linear or linear hybrid method\&. When adding states to the state machine the order is preserved\&. By default the next state is the next state added\&. A state can change/set the next state id\&. Using the next state is simply a convenience for using the state machine in a linear manner\&. So a state can set an id to transition to or it can rely on the next state in the ordered state list to be called next\&. This behavior can be disabled and the state machine will run as a pure non-linear state machine where a transition id is required to be set by a state\&.
+.PP
+States are given an integral id\&. The id must be unique and is used so a state can specify which state to transition to\&. No id can use the number zero (0); it is reserved for internal use\&.
+.PP
+Each state can have an optional cleanup state machine\&. The cleanup will be called when the error or done status are returned by run\&. All status that ran (including the one that generated the error) will have their cleanup state machine run\&.
+.PP
+Cleanup is run in reverse order that the states were run in\&. For example states A - E were run and E returns done\&. Cleanup for states will run E - A\&. Due to the state machine supporting non-linear sequences it is possible that a cleanup machines will be called multiple times\&.
+.PP
+Cleanup can be used in multiple ways\&. They can be resource clean up (particularly useful when the done_cleanup flag is used) that is run when the machine finishes\&. Or they can be used as error recovery such as performing an action if an error occurs (default use)\&.
+.PP
+Cleanup should be specific to the state and should in some way be based on the state they're associated with\&. A final cleanup on success could be handled as a final state but should be handled outside of the state machine entirely\&. Such as being handled as part of cleaning up the void pointer of state data\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+typedef enum {
+    STATE_A = 1,
+    STATE_B,
+    STATE_C
+} states_t;
+
+static M_state_machine_status_t state_a(void *data, M_uint64 *next)
+{
+    (void)data;
+    *next = STATE_C;
+    return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t state_b(void *data, M_uint64 *next)
+{
+    (void)data;
+    (void)next;
+    return M_STATE_MACHINE_STATUS_DONE;
+}
+
+static M_state_machine_status_t state_c(void *data, M_uint64 *next)
+{
+    (void)data;
+    *next = STATE_B;
+    return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+int main(int argc, char **argv)
+{
+    M_state_machine_t        *sm;
+    M_state_machine_status_t  status;
+
+    sm = M_state_machine_create(0, NULL, M_STATE_MACHINE_NONE);
+
+    M_state_machine_insert_state(sm, STATE_A, 0, NULL, state_a, NULL, NULL);
+    M_state_machine_insert_state(sm, STATE_B, 0, NULL, state_b, NULL, NULL);
+    M_state_machine_insert_state(sm, STATE_C, 0, NULL, state_c, NULL, NULL);
+
+    do {
+        status = M_state_machine_run(sm, NULL);
+    } while (status == M_STATE_MACHINE_STATUS_WAIT);
+
+    if (status != M_STATE_MACHINE_STATUS_DONE) {
+        M_printf("state machine failure\n");
+    } else {
+        M_printf("state machine success\n");
+    }
+
+    M_state_machine_destroy(sm);
+    return 0;
+} 
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_state_machine \fBM_state_machine_t\fP"
+
+.SS "typedef struct M_state_machine_cleanup \fBM_state_machine_cleanup_t\fP"
+
+.SS "typedef void(* M_state_machine_trace_cb) (\fBM_state_machine_trace_t\fP trace, M_uint64 mndescr, const char *mdescr, M_uint64 sndescr, const char *sdescr, const char *fdescr, M_uint64 id, \fBM_state_machine_status_t\fP status, M_bool run_sub, M_uint64 next_id, void *thunk)"
+Trace callback\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItrace\fP Type of action traced\&. 
+.br
+\fImndescr\fP Numeric state machine description code\&. 
+.br
+\fImdescr\fP State machine description\&. 
+.br
+\fIsndescr\fP Numeric state description code\&. 
+.br
+\fIsdescr\fP State description\&. 
+.br
+\fIfdescr\fP Full description of the entire machine flow\&. 
+.br
+\fIid\fP Id of state\&. 
+.br
+\fIstatus\fP Return status\&. 
+.br
+\fIrun_sub\fP Will the sub state machine be run\&. 
+.br
+\fInext_id\fP The next id the machine will move to\&. 
+.br
+\fIthunk\fP Thunk passed in when enabling the trace\&. 
+.RE
+.PP
+
+.SS "typedef \fBM_state_machine_status_t\fP(* M_state_machine_state_cb) (void *data, M_uint64 *next)"
+State callback\&.
+.PP
+This is what the state machine calls when entering a given state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP An opaque data type storing data that should be passed to the cb\&. 
+.br
+\fInext\fP The next id the state machine should transition to\&. When operating in linear or a hybrid manner this will be set to the next linear state\&. Changing this will change what state is next\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The status\&. 
+.RE
+.PP
+
+.SS "typedef \fBM_state_machine_status_t\fP(* M_state_machine_cleanup_cb) (void *data, \fBM_state_machine_cleanup_reason_t\fP reason, M_uint64 *next)"
+Cleanup state callback\&.
+.PP
+This is what a cleanup state machine calls when entering a given cleanup state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP An opaque data type storing data that should be passed to the cb\&. 
+.br
+\fIreason\fP The reason cleanup is being run\&. 
+.br
+\fInext\fP The next id the state machine should transition to\&. When operating in linear or a hybrid manner this will be set to the next linear state\&. Changing this will change what state is next\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The status\&. 
+.RE
+.PP
+
+.SS "typedef M_bool(* M_state_machine_pre_cb) (void *data, \fBM_state_machine_status_t\fP *status, M_uint64 *next)"
+Sub state machine pre (initialization) callback\&.
+.PP
+This will be called before starting a sub state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP An opaque data type storing data that should be passed to the cb\&. 
+.br
+\fIstatus\fP Used when not running the sub state machine\&. This is the status of the state\&. Defaults to M_STATE_MACHINE_STATUS_NEXT if not specified\&. 
+.br
+\fInext\fP Used when not running the sub state machine\&. If set the next id the state machine should transition to\&. When operating in linear or a hybrid manner this will be set to the next linear state\&. Changing this will change what state is next\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the sub state machine should run\&. M_FALSE if the sub state machine should not run\&. 
+.RE
+.PP
+
+.SS "typedef \fBM_state_machine_status_t\fP(* M_state_machine_post_cb) (void *data, \fBM_state_machine_status_t\fP sub_status, M_uint64 *next)"
+Sub state machine post (de-initialization) callback\&.
+.PP
+The sub_status argument is the status returned by the sub state machine\&. Possible status:
+.PP
+.IP "\(bu" 2
+M_STATE_MACHINE_STATUS_DONE
+.IP "\(bu" 2
+M_STATE_MACHINE_STATUS_ERROR_*
+.PP
+.PP
+The sub_status will next be M_STATE_MACHINE_STATUS_NEXT or similar\&. Thus, the sub_status should not be blindly returned from the post function as it will stop processing the parent state machine\&. If processing needs to continue the sub_status should be checked and M_STATE_MACHINE_STATUS_NEXT or similar should be returned\&. M_STATE_MACHINE_STATUS_DONE is the only successful sub_status that can be set, so patterns that check against M_STATE_MACHINE_STATUS_DONE should be used\&. For example:
+.PP
+.PP
+.nf
+if (sub_status == M_STATE_MACHINE_STATUS_DONE) {
+    // Success and continue\&.
+    return M_STATE_MACHINE_STATUS_NEXT;
+}
+\&.\&.\&.
+.fi
+.PP
+.PP
+.PP
+.nf
+if (sub_status != M_STATE_MACHINE_STATUS_DONE) {
+    // Error of some kind\&. Propagate it up\&.
+    return sub_status;
+}
+\&.\&.\&.
+.fi
+.PP
+.PP
+.PP
+.nf
+if (stop_condition) {
+   // Some kind of external stop condition was encountered\&.
+   // Return the sub_status because it will stop processing
+   // and we should maintain status from the sub state machine\&.
+   return sub_status; // Status is error or done\&.
+}
+\&.\&.\&.
+.fi
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP An opaque data type storing data that should be passed to the cb\&. 
+.br
+\fIsub_status\fP The status of the last state in the sub state machine\&. 
+.br
+\fInext\fP The next id the state machine should transition to\&. When operating in linear or a hybrid manner this will be set to the next linear state\&. Changing this will change what state is next\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The status\&. 
+.RE
+.PP
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_state_machine_status_t\fP"
+Status of the state machine while running though states\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_NONE \fP\fP
+Invalid status\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_NEXT \fP\fP
+Success continue to the next state\&. The state was run and should be recored as well as cleanup added to the cleanup list\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_PREV \fP\fP
+A recoverable error occurred\&. Go to the last successful (non-continue) state\&.
+.PP
+This should be treated as a special case and is primarily a convenience when using the state machine in a linear manner\&. It should not be used in stead of specifying an id and calling next if it is possible to do so\&.
+.PP
+This does not back out states\&. State cleanups will not be called when skipping back over states\&. Also, the list of cleanups will not be modified to remove cleanups for states that have been called\&. Further, This can result in a state having it's cleanup registered multiple times as a result of multiple successful calls\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_CONTINUE \fP\fP
+Success continue to the next state\&. The state was skipped and should be treated as such\&. The cleanup for this state will not be added to the cleanup list\&.
+.PP
+This should not be treated as next without cleanup\&. It is for signifying that the state was skipped\&. If you need next without cleanup the state should be registered without a cleanup state machine\&. Even if that means having two ids for the same state function one with and one without a cleanup registered\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_STATE \fP\fP
+An unrecoverable error occurred within a state\&. Exit and clean up\&. The state is responsible for error reporting though the void data pointer passed to the state function\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_WAIT \fP\fP
+The state is processing in a non-blocking fashion\&. More calls to run are required to continue the operation\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_DONE \fP\fP
+The sequence completed successfully\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_STOP_CLEANUP \fP\fP
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_INVALID \fP\fP
+The state machine was called with an invalid parameter\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_BAD_ID \fP\fP
+Invalid transition specified\&. Id not found\&. Most likely the state specified an id to transition to that doesn't exist\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_NO_NEXT \fP\fP
+Invalid transition specified\&. An next id was not specified\&. This can happen when running in a linear manner and the last state in the sequence does not return done\&. There are no states after the last state so we cannot continue with the sequence\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_BAD_NEXT \fP\fP
+Invalid transition specified\&. The specified next id is not valid (not listed in the states list of next ids) for the state\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_SELF_NEXT \fP\fP
+Invalid transition specified\&. The specified next id is the current id\&. Use the continue_loop flag to disable this check\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_NO_PREV \fP\fP
+Invalid transition specified\&. There are no previous states to transition to\&. 
+.TP
+\fB\fIM_STATE_MACHINE_STATUS_ERROR_INF_CONT \fP\fP
+A possible infinite continuation loop has been encountered\&. 
+.SS "enum \fBM_state_machine_flags_t\fP"
+Options to control the behavior of the state machine\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_STATE_MACHINE_NONE \fP\fP
+Normal operation\&. 
+.TP
+\fB\fIM_STATE_MACHINE_SINGLE_PREV \fP\fP
+Do not allow multiple states to return STATUS_PREV in a row\&. Only one PREV return is allowed between NEXT calls\&. 
+.TP
+\fB\fIM_STATE_MACHINE_CONTINUE_LOOP \fP\fP
+Normally continuations are tracked for the continuation cycle and any continuation that is repeated is treated as an internal error in order to detect and prevent accidental infinite loops\&.
+.PP
+This option disables this check and allows continuations to call continuations that have been called previously\&. 
+.TP
+\fB\fIM_STATE_MACHINE_SELF_CALL \fP\fP
+Normally states cannot all themselves\&. This flag also allows states to call themselves\&. 
+.TP
+\fB\fIM_STATE_MACHINE_DONE_CLEANUP \fP\fP
+State cleanups should be called on done\&. 
+.TP
+\fB\fIM_STATE_MACHINE_ONE_CLEANUP \fP\fP
+State cleanup should be called once no matter how many times the state was called\&. 
+.TP
+\fB\fIM_STATE_MACHINE_EXPLICIT_NEXT \fP\fP
+Normally the state machine defaults to using the next state in the order states were added if a state isn't explicits specified by the current state\&. This requires that a state specify the next (transition) state\&.
+.PP
+This will force the state machine to function purely as a non-linear state machine\&. The linear / linear hybrid functionality will be disabled\&. This option cannot be used in conjunction with linear_end\&. The linear_end flag will be ignored if this flag is set\&. 
+.TP
+\fB\fIM_STATE_MACHINE_LINEAR_END \fP\fP
+Normally a state machine is done when the done status is returned by a state\&. This allows the state machine to be considered done if a state does not specify a transition, it returns next or continue and the current state is the last state in the ordered state list\&. 
+.SS "enum \fBM_state_machine_cleanup_reason_t\fP"
+Status of the state machine which caused the cleanup routines to trigger\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_STATE_MACHINE_CLEANUP_REASON_NONE \fP\fP
+Cleanup should not be run\&. When calling reset this will not run cleanup\&. 
+.TP
+\fB\fIM_STATE_MACHINE_CLEANUP_REASON_DONE \fP\fP
+State machine finished successfully\&. 
+.TP
+\fB\fIM_STATE_MACHINE_CLEANUP_REASON_ERROR \fP\fP
+State machine stopped due to error\&. 
+.TP
+\fB\fIM_STATE_MACHINE_CLEANUP_REASON_RESET \fP\fP
+State machine should be reset so it can run again\&. This is a reason why cleanup is being run\&. 
+.TP
+\fB\fIM_STATE_MACHINE_CLEANUP_REASON_CANCEL \fP\fP
+State machine was canceled\&. This will reset the machine so it can run again but should be considered that it will not be run again\&. Use reset for restarting instead\&. 
+.SS "enum \fBM_state_machine_trace_t\fP"
+Tracing information\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_NONE \fP\fP
+Invalid\&. 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_MACHINEENTER \fP\fP
+About to enter a given state machine (could be sub) Will provide the following information: mndescr mdescr fdescr 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_MACHINEEXIT \fP\fP
+Machine exited\&. Will provide the following information: mndescr mdescr fdescr status 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_STATE_START \fP\fP
+State is about to run\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_STATE_FINISH \fP\fP
+State finished running\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id next_id status 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_PRE_START \fP\fP
+Pre function will run before entering a sub machine\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_PRE_FINISH \fP\fP
+Pre functoin finished running\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id run_sub status 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_POST_START \fP\fP
+Sub machine finished but before post function runs\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_POST_FINISH \fP\fP
+Sub machine finished running but after post function ran\&. Will provide the following information: mndescr mdescr sndescr sdescr fdescr id status 
+.TP
+\fB\fIM_STATE_MACHINE_TRACE_CLEANUP \fP\fP
+Cleanup function ran\&. Will provide the following information: mndescr mdescr sndescr sdescr 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_state_machine_t\fP* M_state_machine_create (M_uint64 ndescr, const char * descr, M_uint32 flags)"
+Create a new state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIndescr\fP A numeric description of the state machine\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the state machine\&. Can be NULL\&. 
+.br
+\fIflags\fP M_state_machine_flags_t flags to control the behavior of the state machine\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The state machine\&. 
+.RE
+.PP
+
+.SS "void M_state_machine_destroy (\fBM_state_machine_t\fP * m)"
+Destroy a state machine\&.
+.PP
+This does not call the cleanup state machines associated with each state\&. State cleanups are only called when the state machine finishes running\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.RE
+.PP
+
+.SS "\fBM_state_machine_cleanup_t\fP* M_state_machine_cleanup_create (M_uint64 ndescr, const char * descr, M_uint32 flags)"
+Create a new cleanup state machine\&.
+.PP
+A cleanup state machine is very similar to a regular state machine and is only called when associated with a regular state machine state's cleanup parameter\&. This cannot be run directly but supports all options a regular state machine supports for execution\&.
+.PP
+When run error returns from a cleanup state machine will not be propagated back to the caller\&. To handle errors it is possible to have a cleanup state machine's state to have an associated cleanup state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIndescr\fP A numeric description of the cleanup state machine\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the cleanup state machine\&. Can be NULL\&. 
+.br
+\fIflags\fP M_state_machine_flags_t flags to control the behavior of the cleanup state machine\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The cleanup state machine\&. 
+.RE
+.PP
+
+.SS "void M_state_machine_cleanup_destroy (\fBM_state_machine_cleanup_t\fP * m)"
+Destroy a cleanup state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_insert_state (\fBM_state_machine_t\fP * m, M_uint64 id, M_uint64 ndescr, const char * descr, \fBM_state_machine_state_cb\fP func, \fBM_state_machine_cleanup_t\fP * cleanup, \fBM_list_u64_t\fP * next_ids)"
+Add a state to the state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id associated with this state\&. Must be unique\&. 
+.br
+\fIndescr\fP A numeric description of the state\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the state\&. Can be NULL\&. 
+.br
+\fIfunc\fP The state function to call\&. Cannot be NULL\&. 
+.br
+\fIcleanup\fP The cleanup state machine to call\&. Can be NULL if no cleanup is necessary for this state\&. 
+.br
+\fInext_ids\fP A list of valid transitions for this state\&. Can be NULL to denote all states are valid transitions\&. If not NULL the state machine takes ownership of next_ids\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state was added\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_insert_sub_state_machine (\fBM_state_machine_t\fP * m, M_uint64 id, M_uint64 ndescr, const char * descr, const \fBM_state_machine_t\fP * subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP * cleanup, \fBM_list_u64_t\fP * next_ids)"
+Add a state machine as a state to the state machine\&.
+.PP
+The state machine will duplicate the sub state machine and keep a copy\&.
+.PP
+The sub state machine will run though all states in the sub state machine\&. The state machine will return M_STATE_MACHINE_STATUS_WAIT from the sub state machine and resume the sub state machine when started again\&.
+.PP
+The sub state machine's final status will be passed to the post function if one is given\&. If a post function is not set, a status of M_STATE_MACHINE_STATUS_DONE will be returned as M_STATE_MACHINE_STATUS_NEXT\&. This is to prevent a M_STATE_MACHINE_STATUS_DONE from the sub state machine from accidentally stopping the calling state machine\&. If M_STATE_MACHINE_STATUS_DONE is needed as the result of the sub state machine's run then a post function is necessary\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id associated with this state\&. Must be unique\&. 
+.br
+\fIndescr\fP A numeric description of the state\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the state\&. Can be NULL\&. 
+.br
+\fIsubm\fP The state machine that should be called from this one\&. Cannot be NULL\&. 
+.br
+\fIpre\fP A function to call before the sub state machine is started\&. Can be NULL\&. 
+.br
+\fIpost\fP A function to call after the sub state machine is finished\&. Can be NULL\&. 
+.br
+\fIcleanup\fP The cleanup state machine to call\&. Can be NULL if no cleanup is necessary for this state\&. 
+.br
+\fInext_ids\fP A list of valid transitions for this state\&. Can be NULL to denote all states are valid transitions\&. If not NULL the state machine takes ownership of next_ids\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the sub state machine was added\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_remove_state (\fBM_state_machine_t\fP * m, M_uint64 id)"
+Remove a state from the state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id of the state\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state was found and removed\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_has_state (const \fBM_state_machine_t\fP * m, M_uint64 id)"
+Does the state machine contain the given state id\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id of the state\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state machine has the state id\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "const \fBM_list_u64_t\fP* M_state_machine_list_states (const \fBM_state_machine_t\fP * m)"
+List all state ids the state machine holds\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a List of state ids or NULL if the state machine as no states\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_cleanup_insert_state (\fBM_state_machine_cleanup_t\fP * m, M_uint64 id, M_uint64 ndescr, const char * descr, \fBM_state_machine_cleanup_cb\fP func, \fBM_state_machine_cleanup_t\fP * cleanup, \fBM_list_u64_t\fP * next_ids)"
+Add a cleanup state to a cleanup state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.br
+\fIid\fP The id associated with this state\&. Must be unique\&. 
+.br
+\fIndescr\fP A numeric description of the state\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the state\&. Can be NULL\&. 
+.br
+\fIfunc\fP The state cleanup function to call\&. Cannot be NULL\&. 
+.br
+\fIcleanup\fP The cleanup state machine to call\&. Can be NULL if no cleanup is necessary for this state\&. 
+.br
+\fInext_ids\fP A list of valid transitions for this state\&. Can be NULL to denote all states are valid transitions\&. If not NULL the state machine takes ownership of next_ids\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state was added\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_cleanup_insert_cleanup_sub_state_machine (\fBM_state_machine_cleanup_t\fP * m, M_uint64 id, M_uint64 ndescr, const char * descr, const \fBM_state_machine_cleanup_t\fP * subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP * cleanup, \fBM_list_u64_t\fP * next_ids)"
+Add a cleanup state machine as a state to the cleanup state machine\&.
+.PP
+The state machine will duplicate the sub state machine and keep a copy\&.
+.PP
+The sub state machine will run though all states in the sub state machine\&. The state machine will return M_STATE_MACHINE_STATUS_WAIT from the sub state machine and resume the sub state machine when started again\&.
+.PP
+The sub state machine's final status will be passed to the post function if one is given\&. If a post function is not set, a status of M_STATE_MACHINE_STATUS_DONE will be returned as M_STATE_MACHINE_STATUS_NEXT\&. This is to prevent a M_STATE_MACHINE_STATUS_DONE from the sub state machine from accidentally stopping the calling state machine\&. If M_STATE_MACHINE_STATUS_DONE is needed as the result of the sub state machine's run then a post function is necessary\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.br
+\fIid\fP The id associated with this state\&. Must be unique\&. 
+.br
+\fIndescr\fP A numeric description of the state\&. Can be 0\&. 
+.br
+\fIdescr\fP A textual description of the state\&. Can be NULL\&. 
+.br
+\fIsubm\fP The cleanup state machine that should be called from this one\&. Cannot be NULL\&. 
+.br
+\fIpre\fP A function to call before the sub state machine is started\&. Can be NULL\&. 
+.br
+\fIpost\fP A function to call after the sub state machine is finished\&. Can be NULL\&. 
+.br
+\fIcleanup\fP The cleanup state machine to call\&. Can be NULL if no cleanup is necessary for this state\&. 
+.br
+\fInext_ids\fP A list of valid transitions for this state\&. Can be NULL to denote all states are valid transitions\&. If not NULL the state machine takes ownership of next_ids\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the sub state machine was added\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_cleanup_insert_sub_state_machine (\fBM_state_machine_cleanup_t\fP * m, M_uint64 id, M_uint64 ndescr, const char * descr, const \fBM_state_machine_t\fP * subm, \fBM_state_machine_pre_cb\fP pre, \fBM_state_machine_post_cb\fP post, \fBM_state_machine_cleanup_t\fP * cleanup, \fBM_list_u64_t\fP * next_ids)"
+Add a state machine as a state to the cleanup state machine\&.
+.PP
+The state machine will duplicate the sub state machine and keep a copy\&.
+.PP
+The sub state machine will run though all states in the sub state machine\&. The state machine will return M_STATE_MACHINE_STATUS_WAIT from the sub state machine and resume the sub state machine when started again\&.
+.PP
+The sub state machine's final status will be passed to the post function if one is given\&. If a post function is not set, a status of M_STATE_MACHINE_STATUS_DONE will be returned as M_STATE_MACHINE_STATUS_NEXT\&. This is to prevent a M_STATE_MACHINE_STATUS_DONE from the sub state machine from accidentally stopping the calling state machine\&. If M_STATE_MACHINE_STATUS_DONE is needed as the result of the sub state machine's run then a post function is necessary\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.br
+\fIid\fP The id associated with this state\&. Must be unique\&. 
+.br
+\fIndescr\fP A numeric description of the state\&. Can be NULL\&. 
+.br
+\fIdescr\fP A textual description of the state\&. Can be NULL\&. 
+.br
+\fIsubm\fP The state machine that should be called from this one\&. Cannot be NULL\&. 
+.br
+\fIpre\fP A function to call before the sub state machine is started\&. Can be NULL\&. 
+.br
+\fIpost\fP A function to call after the sub state machine is finished\&. Can be NULL\&. 
+.br
+\fIcleanup\fP The cleanup state machine to call\&. Can be NULL if no cleanup is necessary for this state\&. 
+.br
+\fInext_ids\fP A list of valid transitions for this state\&. Can be NULL to denote all states are valid transitions\&. If not NULL the state machine takes ownership of next_ids\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the sub state machine was added\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_cleanup_remove_state (\fBM_state_machine_cleanup_t\fP * m, M_uint64 id)"
+Remove a state from the cleanup state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id of the state\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state was found and removed\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_cleanup_has_state (const \fBM_state_machine_cleanup_t\fP * m, M_uint64 id)"
+Does the cleanup state machine contain the given state id\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.br
+\fIid\fP The id of the state\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state machine has the state id\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "const \fBM_list_u64_t\fP* M_state_machine_cleanup_list_states (const \fBM_state_machine_cleanup_t\fP * m)"
+List all state ids the cleanup state machine holds\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a List of state ids or NULL if the state machine as no states\&. 
+.RE
+.PP
+
+.SS "void M_state_machine_enable_trace (\fBM_state_machine_t\fP * m, \fBM_state_machine_trace_cb\fP cb, void * thunk)"
+Enabling tracing of state machine flow\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIcb\fP Trace callback\&. 
+.br
+\fIthunk\fP Thunk to be passed to callback\&. 
+.RE
+.PP
+
+.SS "void M_state_machine_cleanup_enable_trace (\fBM_state_machine_cleanup_t\fP * m, \fBM_state_machine_trace_cb\fP cb, void * thunk)"
+Enabling tracing of cleanup state machine flow\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The cleanup state machine\&. 
+.br
+\fIcb\fP Trace callback\&. 
+.br
+\fIthunk\fP Thunk to be passed to callback\&. 
+.RE
+.PP
+
+.SS "\fBM_state_machine_status_t\fP M_state_machine_run (\fBM_state_machine_t\fP * m, void * data)"
+Run the state machine\&.
+.PP
+This may need to be called multiple times\&. A state can run non-blocking (poll based) where the state can return a wait state\&. The wait state means it finished processing but has more to do\&.
+.PP
+On error the cleanup state machine for the state will be called\&. When returning from a sub state machine which had clean up run the post function which can override and ignore an error can stop the cleanup process\&. Thus cleanup can be stopped and the state machine can recover from the error that started the process\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine to run\&. 
+.br
+\fIdata\fP State specific data that can be used and or manipulated by each state\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. The done and wait returns are the only successful results (wait requiring additional calls)\&. All other results are error conditions\&. 
+.RE
+.PP
+
+.SS "void M_state_machine_reset (\fBM_state_machine_t\fP * m, \fBM_state_machine_cleanup_reason_t\fP reason)"
+Rest a running state machine\&.
+.PP
+A condition outside of the state machine could determine it needs to restart while it was in a running state\&. Not specifically running but in the middle of a run; having returned from a wait state for example\&. This will reset the state machine's internal process state so that it can be started from the beginning again\&.
+.PP
+This will not run cleanup immediately if requested but instead sets the state machine to start cleanup on next run\&. The sub state machine post function will not allow overriding the cleanup result and prevents the state machine from stopping cleanup\&. M_state_machine_run \fIMUST\fP be called\&. Also, remember that cleanup state machines can call wait so it may be necessary to run multiple times\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIreason\fP Whether state cleanups should run\&. Cleanup callbacks told cleanup is due to the reason code\&. Use M_STATE_MACHINE_CLEANUP_NONE to prevent cleanup\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_state_machine_ndescr (const \fBM_state_machine_t\fP * m, M_bool recurse)"
+Get the numeric description of the state machine
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIrecurse\fP Recurs into each running sub state machine and return the description for the one running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The ndescr specified creating the state machine\&. 
+.RE
+.PP
+
+.SS "const char* M_state_machine_descr (const \fBM_state_machine_t\fP * m, M_bool recurse)"
+Get the description of the state machine
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIrecurse\fP Recurse into each running sub state machine and return the description for the one running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The descr text specified creating the state machine\&. 
+.RE
+.PP
+
+.SS "const \fBM_state_machine_t\fP* M_state_machine_active_sub (const \fBM_state_machine_t\fP * m, M_bool recurse)"
+Get the active sub state machine that is currently running\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIrecurse\fP Recurse into each running sub state machine and return the last one that is running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Sub state machine if one is currently running\&. Otherwise, NULL\&. 
+.RE
+.PP
+
+.SS "M_bool M_state_machine_active_state (const \fBM_state_machine_t\fP * m, M_uint64 * id)"
+Get state of the state machine\&.
+.PP
+This only returns information about the given state machine\&. It does not look into sub state machines if one is running\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIid\fP The id of the state currently being run\&. Optional pass NULL if only checking whether the state machine is running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the state machine has been started and the id is a valid state id\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_state_machine_active_state_ndescr (const \fBM_state_machine_t\fP * m, M_bool recurse)"
+Get the numeric description for the currently running state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIrecurse\fP Recurse into each running sub state machine and return the description for the one running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The ndescr specified when adding the state to the state machine\&. 
+.RE
+.PP
+
+.SS "const char* M_state_machine_active_state_descr (const \fBM_state_machine_t\fP * m, M_bool recurse)"
+Get the description text for the currently running state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIrecurse\fP Recurse into each running sub state machine and return the description for the one running\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The descr text specified when adding the state to the state machine\&. 
+.RE
+.PP
+
+.SS "char* M_state_machine_descr_full (const \fBM_state_machine_t\fP * m, M_bool show_id)"
+Get a textual representation of state machine and it's current state\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP The state machine\&. 
+.br
+\fIshow_id\fP M_TRUE if the numeric representation of state ids should be included\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A compound description of every machine and state\&. 
+.RE
+.PP
+
+.SS "\fBM_state_machine_t\fP* M_state_machine_duplicate (const \fBM_state_machine_t\fP * m)"
+Duplicate an existing state machine\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIm\fP State machine to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+New state machine\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

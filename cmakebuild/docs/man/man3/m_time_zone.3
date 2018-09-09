@@ -1,0 +1,230 @@
+.TH "m_time_zone" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_time_zone
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_time_tzs_t\fP * \fBM_time_tzs_create\fP (void)"
+.br
+.ti -1c
+.RI "void \fBM_time_tzs_destroy\fP (\fBM_time_tzs_t\fP *tzs)"
+.br
+.ti -1c
+.RI "\fBM_time_load_source_t\fP \fBM_time_tzs_load\fP (\fBM_time_tzs_t\fP **tzs, M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_time_tzs_t\fP * \fBM_time_tzs_load_zoneinfo\fP (const char *path, M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_time_tzs_t\fP * \fBM_time_tzs_load_win_zones\fP (M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_time_result_t\fP \fBM_time_tzs_add_win_zone\fP (\fBM_time_tzs_t\fP *tzs, const char *name)"
+.br
+.ti -1c
+.RI "\fBM_time_result_t\fP \fBM_time_tzs_add_posix_str\fP (\fBM_time_tzs_t\fP *tzs, const char *str)"
+.br
+.ti -1c
+.RI "\fBM_time_result_t\fP \fBM_time_tzs_add_tzfile\fP (\fBM_time_tzs_t\fP *tzs, const char *path, const char *name)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_time_tzs_get_loaded_zones\fP (const \fBM_time_tzs_t\fP *tzs)"
+.br
+.ti -1c
+.RI "const \fBM_time_tz_t\fP * \fBM_time_tzs_get_tz\fP (\fBM_time_tzs_t\fP *tzs, const char *name)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_time_tzs_t\fP* M_time_tzs_create (void)"
+Create an empty timezone db\&.
+.PP
+\fBReturns:\fP
+.RS 4
+Time zone db\&. 
+.RE
+.PP
+
+.SS "void M_time_tzs_destroy (\fBM_time_tzs_t\fP * tzs)"
+Destroy a time zone db\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP Time zone db\&. 
+.RE
+.PP
+
+.SS "\fBM_time_load_source_t\fP M_time_tzs_load (\fBM_time_tzs_t\fP ** tzs, M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+Load default timezones from system available source\&.
+.PP
+This will attempt to load system timezone data\&. If that fails, it will fall back to loading the four main US timezones with DST times and without historic data\&.
+.PP
+.IP "\(bu" 2
+ET: Eastern
+.IP "\(bu" 2
+CT: Central
+.IP "\(bu" 2
+MT: Mountain
+.IP "\(bu" 2
+PT: Pacific
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP Time zone db\&. 
+.br
+\fIzones\fP M_time_tz_zones_t zones\&. What zones from the db should be loaded\&. 
+.br
+\fIalias_f\fP M_time_tz_alias_t to handle alias loading\&. 
+.br
+\fIflags\fP M_time_tz_load_t flags\&. How should the data be loaded\&. Specifically should lazy loading be used\&. When lazying loading data is read from disk (and cached) on demand\&. If lazy loading is not used all day is read from disk immediately\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Source timezone data was loaded from\&. 
+.RE
+.PP
+
+.SS "\fBM_time_tzs_t\fP* M_time_tzs_load_zoneinfo (const char * path, M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+Load a tzs with data from a precomputed Olson/TZ/Zoneinfo db\&.
+.PP
+To prevent possible issues the zoneinfo path cannot be a symlink\&. If it is a symlink the symlink needs to be resolved before passing into this function\&. Further, symlinks within the zoneinfo base dir cannot point to locations outside of the base dir\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The path to the data to load\&. On Unix systems this is typically '/usr/share/zoneinfo' or '/usr/lib/zoneinfo'\&. If NULL those two default locations will be checked for zoneinfo\&. 
+.br
+\fIzones\fP M_time_tz_zones_t zones\&. What zones from the db should be loaded\&. 
+.br
+\fIalias_f\fP M_time_tz_alias_t to handle alias loading\&. 
+.br
+\fIflags\fP M_time_tz_load_t flags\&. How should the data be loaded\&. Specifically should lazy loading be used\&. When lazying loading data is read from disk (and cached) on demand\&. If lazy loading is not used all day is read from disk immediately\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Time zone db\&. 
+.RE
+.PP
+
+.SS "\fBM_time_tzs_t\fP* M_time_tzs_load_win_zones (M_uint32 zones, M_uint32 alias_f, M_uint32 flags)"
+Load a tzs with data from the Windows time zone database\&.
+.PP
+Windows only\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIzones\fP M_time_tz_zones_t zones\&. What zones from the db should be loaded\&. 
+.br
+\fIalias_f\fP M_time_tz_alias_t to handle alias loading\&. 
+.br
+\fIflags\fP M_time_tz_load_t flags\&. How should the data be loaded\&. Specifically should lazy loading be used\&. When lazying loading data is read from disk (and cached) on demand\&. If lazy loading is not used all day is read from disk immediately\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Time zone db\&. 
+.RE
+.PP
+
+.SS "\fBM_time_result_t\fP M_time_tzs_add_win_zone (\fBM_time_tzs_t\fP * tzs, const char * name)"
+Add data from the Windows time zone database\&.
+.PP
+Windows only\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIname\fP The info to load\&. Only the Windows name is supported\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success on success\&. Otherwise error condition\&. 
+.RE
+.PP
+
+.SS "\fBM_time_result_t\fP M_time_tzs_add_posix_str (\fBM_time_tzs_t\fP * tzs, const char * str)"
+Add the timezone data from a Posix TZ string\&.
+.PP
+Only the M day of week format is supported for specifying transition day\&. Example: EST5EDT,M3\&.2\&.0/02:00:00,M11\&.1\&.0/02:00:00
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIstr\fP The string to parse\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success on success\&. Otherwise error condition\&. 
+.RE
+.PP
+
+.SS "\fBM_time_result_t\fP M_time_tzs_add_tzfile (\fBM_time_tzs_t\fP * tzs, const char * path, const char * name)"
+Add data from a specific TZif file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIpath\fP The file to load\&. 
+.br
+\fIname\fP The name to associate with the file\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success on success\&. Otherwise error condition\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_time_tzs_get_loaded_zones (const \fBM_time_tzs_t\fP * tzs)"
+Get a list of loaded timezones\&.
+.PP
+The names are stored case preserving but a lookup is case insensitive\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of names in the db\&. 
+.RE
+.PP
+
+.SS "const \fBM_time_tz_t\fP* M_time_tzs_get_tz (\fBM_time_tzs_t\fP * tzs, const char * name)"
+Get a specific tz from the db\&.
+.PP
+The time zone will be loaded if lazy loading is in use\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIname\fP The name of the tz\&. The names are looked up case insensitive\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The tz on success\&. Otherwise NULL if a tz for the given name was not found\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

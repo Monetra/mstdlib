@@ -1,0 +1,98 @@
+.TH "m_module" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_module
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_MODULE_INVALID_HANDLE\fP   NULL"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef void * \fBM_module_handle_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_module_handle_t\fP \fBM_module_load\fP (const char *module_name, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "void * \fBM_module_symbol\fP (\fBM_module_handle_t\fP handle, const char *symbol_name)"
+.br
+.ti -1c
+.RI "void \fBM_module_unload\fP (\fBM_module_handle_t\fP handle)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Dynamic Module Loading Subsystem 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_MODULE_INVALID_HANDLE   NULL"
+Value for an invalid module handle 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef void* \fBM_module_handle_t\fP"
+Type for returned handle for \fBM_module_load()\fP 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_module_handle_t\fP M_module_load (const char * module_name, char * error, size_t error_size)"
+Load a module
+.PP
+The module should be a dynamic loadable module for the operating system\&. The subsystem will attempt to search for the module in multiple paths and multiple file name extensions\&.
+.PP
+There is no need to supply a suffix like \&.so, \&.dll, or \&.dylib\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImodule_name\fP module name to load, no suffix necessary\&. 
+.br
+\fIerror\fP user-supplied error message buffer 
+.br
+\fIerror_size\fP size of user-supplied error message buffer 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_MODULE_INVALID_HANDLE on failure, otherwise a valid handle\&. 
+.RE
+.PP
+
+.SS "void* M_module_symbol (\fBM_module_handle_t\fP handle, const char * symbol_name)"
+Retrieve a pointer to a symbol in the module
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhandle\fP Loaded module handle from \fBM_module_load()\fP, or M_MODULE_INVALID_HANDLE to attempt to load a symbol from the current process\&. 
+.br
+\fIsymbol_name\fP Name of symbol to retrieve\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to symbol on success, NULL on failure\&. 
+.RE
+.PP
+
+.SS "void M_module_unload (\fBM_module_handle_t\fP handle)"
+Unload a module loaded by \fBM_module_load()\fP\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIhandle\fP Loaded module handle from \fBM_module_load()\fP 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

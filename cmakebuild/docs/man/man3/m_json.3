@@ -1,0 +1,1242 @@
+.TH "m_json" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_json
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_json_node \fBM_json_node_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_json_type_t\fP { \fBM_JSON_TYPE_UNKNOWN\fP = 0, \fBM_JSON_TYPE_OBJECT\fP, \fBM_JSON_TYPE_ARRAY\fP, \fBM_JSON_TYPE_STRING\fP, \fBM_JSON_TYPE_INTEGER\fP, \fBM_JSON_TYPE_DECIMAL\fP, \fBM_JSON_TYPE_BOOL\fP, \fBM_JSON_TYPE_NULL\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_json_reader_flags_t\fP { \fBM_JSON_READER_NONE\fP = 0, \fBM_JSON_READER_ALLOW_DECIMAL_TRUNCATION\fP = 1 << 0, \fBM_JSON_READER_DISALLOW_COMMENTS\fP = 1 << 1, \fBM_JSON_READER_OBJECT_UNIQUE_KEYS\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_json_writer_flags_t\fP { \fBM_JSON_WRITER_NONE\fP = 0, \fBM_JSON_WRITER_PRETTYPRINT_SPACE\fP = 1 << 0, \fBM_JSON_WRITER_PRETTYPRINT_TAB\fP = 1 << 1, \fBM_JSON_WRITER_PRETTYPRINT_WINLINEEND\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_json_error_t\fP { \fBM_JSON_ERROR_SUCCESS\fP = 0, \fBM_JSON_ERROR_GENERIC\fP, \fBM_JSON_ERROR_MISUSE\fP, \fBM_JSON_ERROR_INVALID_START\fP, \fBM_JSON_ERROR_EXPECTED_END\fP, \fBM_JSON_ERROR_MISSING_COMMENT_CLOSE\fP, \fBM_JSON_ERROR_UNEXPECTED_COMMENT_START\fP, \fBM_JSON_ERROR_INVALID_PAIR_START\fP, \fBM_JSON_ERROR_DUPLICATE_KEY\fP, \fBM_JSON_ERROR_MISSING_PAIR_SEPARATOR\fP, \fBM_JSON_ERROR_OBJECT_UNEXPECTED_CHAR\fP, \fBM_JSON_ERROR_EXPECTED_VALUE\fP, \fBM_JSON_ERROR_UNCLOSED_OBJECT\fP, \fBM_JSON_ERROR_ARRAY_UNEXPECTED_CHAR\fP, \fBM_JSON_ERROR_UNCLOSED_ARRAY\fP, \fBM_JSON_ERROR_UNEXPECTED_NEWLINE\fP, \fBM_JSON_ERROR_UNEXPECTED_CONTROL_CHAR\fP, \fBM_JSON_ERROR_INVALID_UNICODE_ESACPE\fP, \fBM_JSON_ERROR_UNEXPECTED_ESCAPE\fP, \fBM_JSON_ERROR_UNCLOSED_STRING\fP, \fBM_JSON_ERROR_INVALID_BOOL\fP, \fBM_JSON_ERROR_INVALID_NULL\fP, \fBM_JSON_ERROR_INVALID_NUMBER\fP, \fBM_JSON_ERROR_UNEXPECTED_TERMINATION\fP, \fBM_JSON_ERROR_INVALID_IDENTIFIER\fP, \fBM_JSON_ERROR_UNEXPECTED_END\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_node_create\fP (\fBM_json_type_t\fP type) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_json_node_destroy\fP (\fBM_json_node_t\fP *node) M_FREE(1)"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_read\fP (const char *data, size_t data_len, M_uint32 flags, size_t *processed_len, \fBM_json_error_t\fP *error, size_t *error_line, size_t *error_pos) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_read_file\fP (const char *path, M_uint32 flags, size_t max_read, \fBM_json_error_t\fP *error, size_t *error_line, size_t *error_pos) M_MALLOC"
+.br
+.ti -1c
+.RI "char * \fBM_json_write\fP (const \fBM_json_node_t\fP *node, M_uint32 flags, size_t *len) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_json_write_file\fP (const \fBM_json_node_t\fP *node, const char *path, M_uint32 flags)"
+.br
+.ti -1c
+.RI "\fBM_json_type_t\fP \fBM_json_node_type\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP ** \fBM_json_jsonpath\fP (const \fBM_json_node_t\fP *node, const char *search, size_t *num_matches) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_get_parent\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "void \fBM_json_take_from_parent\fP (\fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_object_value\fP (const \fBM_json_node_t\fP *node, const char *key)"
+.br
+.ti -1c
+.RI "const char * \fBM_json_object_value_string\fP (const \fBM_json_node_t\fP *node, const char *key)"
+.br
+.ti -1c
+.RI "M_int64 \fBM_json_object_value_int\fP (const \fBM_json_node_t\fP *node, const char *key)"
+.br
+.ti -1c
+.RI "const \fBM_decimal_t\fP * \fBM_json_object_value_decimal\fP (const \fBM_json_node_t\fP *node, const char *key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_value_bool\fP (const \fBM_json_node_t\fP *node, const char *key)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_json_object_keys\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_insert\fP (\fBM_json_node_t\fP *node, const char *key, \fBM_json_node_t\fP *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_insert_string\fP (\fBM_json_node_t\fP *node, const char *key, const char *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_insert_int\fP (\fBM_json_node_t\fP *node, const char *key, M_int64 value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_insert_decimal\fP (\fBM_json_node_t\fP *node, const char *key, const \fBM_decimal_t\fP *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_object_insert_bool\fP (\fBM_json_node_t\fP *node, const char *key, M_bool value)"
+.br
+.ti -1c
+.RI "size_t \fBM_json_array_len\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "\fBM_json_node_t\fP * \fBM_json_array_at\fP (const \fBM_json_node_t\fP *node, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_json_array_at_string\fP (const \fBM_json_node_t\fP *node, size_t idx)"
+.br
+.ti -1c
+.RI "M_int64 \fBM_json_array_at_int\fP (const \fBM_json_node_t\fP *node, size_t idx)"
+.br
+.ti -1c
+.RI "const \fBM_decimal_t\fP * \fBM_json_array_at_decimal\fP (const \fBM_json_node_t\fP *node, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_at_bool\fP (const \fBM_json_node_t\fP *node, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert\fP (\fBM_json_node_t\fP *node, \fBM_json_node_t\fP *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_string\fP (\fBM_json_node_t\fP *node, const char *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_int\fP (\fBM_json_node_t\fP *node, M_int64 value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_decimal\fP (\fBM_json_node_t\fP *node, const \fBM_decimal_t\fP *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_bool\fP (\fBM_json_node_t\fP *node, M_bool value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_at\fP (\fBM_json_node_t\fP *node, \fBM_json_node_t\fP *value, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_at_string\fP (\fBM_json_node_t\fP *node, const char *value, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_at_int\fP (\fBM_json_node_t\fP *node, M_int64 value, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_at_decimal\fP (\fBM_json_node_t\fP *node, const \fBM_decimal_t\fP *value, size_t idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_array_insert_at_bool\fP (\fBM_json_node_t\fP *node, M_bool value, size_t idx)"
+.br
+.ti -1c
+.RI "const char * \fBM_json_get_string\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_set_string\fP (\fBM_json_node_t\fP *node, const char *value)"
+.br
+.ti -1c
+.RI "M_int64 \fBM_json_get_int\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_set_int\fP (\fBM_json_node_t\fP *node, M_int64 value)"
+.br
+.ti -1c
+.RI "const \fBM_decimal_t\fP * \fBM_json_get_decimal\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_set_decimal\fP (\fBM_json_node_t\fP *node, const \fBM_decimal_t\fP *value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_get_bool\fP (const \fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_set_bool\fP (\fBM_json_node_t\fP *node, M_bool value)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_set_null\fP (\fBM_json_node_t\fP *node)"
+.br
+.ti -1c
+.RI "M_bool \fBM_json_get_value\fP (const \fBM_json_node_t\fP *node, char *buf, size_t buf_len)"
+.br
+.ti -1c
+.RI "char * \fBM_json_get_value_dup\fP (const \fBM_json_node_t\fP *node)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Mostly EMCA-404 compliant JSON manipulation\&.
+.PP
+Not supported:
+.IP "\(bu" 2
+Unicode escape conversion\&.
+.PP
+.PP
+Additional Features:
+.IP "\(bu" 2
+Comments (C/C++)
+.PP
+.PP
+Also supports most of Stefan Gössner's JSONPath for searching\&. Not support are features considered redundant or potential security risks (script expressions)\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+M_json_node_t  *j;
+M_json_node_t **n;
+size_t          num_matches;
+size_t          i;
+const char     *s = "{ \"a\" :\n[1, \"abc\",2 ]\n}";
+char           *out;
+
+j = M_json_read(s, M_str_len(s), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
+if (j == NULL) {
+    M_printf("Could not parse json\n");
+    return M_FALSE;
+}
+
+M_json_object_insert_string(j, "b", "string");
+
+n = M_json_jsonpath(j, "$\&.a[1::3]", &num_matches);
+for (i=0; i<num_matches; i++) {
+    if (M_json_node_type(n[i]) == M_JSON_TYPE_STRING) {
+        M_printf("%s\n", M_json_get_string(n);
+    }
+}
+M_free(n);
+
+out = M_json_write(j, M_JSON_WRITER_PRETTYPRINT_SPACE, NULL);
+M_printf(out=\n%s\n", out);
+M_free(out);
+
+M_json_node_destroy(j);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_json_node \fBM_json_node_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_json_type_t\fP"
+Types of JSON nodes\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_JSON_TYPE_UNKNOWN \fP\fP
+An invalid node type\&. 
+.TP
+\fB\fIM_JSON_TYPE_OBJECT \fP\fP
+Object (hashtable)\&. 
+.TP
+\fB\fIM_JSON_TYPE_ARRAY \fP\fP
+Array (list)\&. 
+.TP
+\fB\fIM_JSON_TYPE_STRING \fP\fP
+String\&. 
+.TP
+\fB\fIM_JSON_TYPE_INTEGER \fP\fP
+Number\&. 
+.TP
+\fB\fIM_JSON_TYPE_DECIMAL \fP\fP
+Floating point number\&. 
+.TP
+\fB\fIM_JSON_TYPE_BOOL \fP\fP
+Boolean\&. 
+.TP
+\fB\fIM_JSON_TYPE_NULL \fP\fP
+JSON null type\&. 
+.SS "enum \fBM_json_reader_flags_t\fP"
+Flags to control the behavior of the JSON reader\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_JSON_READER_NONE \fP\fP
+Normal operation\&. Treat decimal truncation as error and ignore comments\&. 
+.TP
+\fB\fIM_JSON_READER_ALLOW_DECIMAL_TRUNCATION \fP\fP
+Allow decimal truncation\&. A decimal read and truncated will not be treated as an error\&. 
+.TP
+\fB\fIM_JSON_READER_DISALLOW_COMMENTS \fP\fP
+Treat comments as an error\&. 
+.TP
+\fB\fIM_JSON_READER_OBJECT_UNIQUE_KEYS \fP\fP
+Return a parse error when an object has repeating keys\&. By default the later key in the object will be the one used and earlier keys ignored\&. This requires all keys in the object to be unique\&. 
+.SS "enum \fBM_json_writer_flags_t\fP"
+Flags to control the behavior of the JSON writer\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_JSON_WRITER_NONE \fP\fP
+No indent\&. All data on a single line\&. 
+.TP
+\fB\fIM_JSON_WRITER_PRETTYPRINT_SPACE \fP\fP
+2 space indent\&. 
+.TP
+\fB\fIM_JSON_WRITER_PRETTYPRINT_TAB \fP\fP
+Tab indent\&. 
+.TP
+\fB\fIM_JSON_WRITER_PRETTYPRINT_WINLINEEND \fP\fP
+Windows line ending '\\r\\n' instead of Unix line ending '\\n'\&. Requires space or tab pretty printing\&. 
+.SS "enum \fBM_json_error_t\fP"
+Error codes\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_JSON_ERROR_SUCCESS \fP\fP
+success 
+.TP
+\fB\fIM_JSON_ERROR_GENERIC \fP\fP
+generic error 
+.TP
+\fB\fIM_JSON_ERROR_MISUSE \fP\fP
+API missuse 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_START \fP\fP
+expected Object or Array to start 
+.TP
+\fB\fIM_JSON_ERROR_EXPECTED_END \fP\fP
+expected end but more data found 
+.TP
+\fB\fIM_JSON_ERROR_MISSING_COMMENT_CLOSE \fP\fP
+close comment not found 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_COMMENT_START \fP\fP
+unexpected / 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_PAIR_START \fP\fP
+expected string as first half of pair 
+.TP
+\fB\fIM_JSON_ERROR_DUPLICATE_KEY \fP\fP
+duplicate key 
+.TP
+\fB\fIM_JSON_ERROR_MISSING_PAIR_SEPARATOR \fP\fP
+expected ':' separator in pair 
+.TP
+\fB\fIM_JSON_ERROR_OBJECT_UNEXPECTED_CHAR \fP\fP
+unexpected character in object 
+.TP
+\fB\fIM_JSON_ERROR_EXPECTED_VALUE \fP\fP
+expected value after ',' 
+.TP
+\fB\fIM_JSON_ERROR_UNCLOSED_OBJECT \fP\fP
+expected '}' to close object 
+.TP
+\fB\fIM_JSON_ERROR_ARRAY_UNEXPECTED_CHAR \fP\fP
+unexpected character in array 
+.TP
+\fB\fIM_JSON_ERROR_UNCLOSED_ARRAY \fP\fP
+expected ']' to close array 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_NEWLINE \fP\fP
+unexpected newline 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_CONTROL_CHAR \fP\fP
+unexpected control character 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_UNICODE_ESACPE \fP\fP
+invalid unicode escape 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_ESCAPE \fP\fP
+unexpected escape 
+.TP
+\fB\fIM_JSON_ERROR_UNCLOSED_STRING \fP\fP
+unclosed string 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_BOOL \fP\fP
+invalid bool value 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_NULL \fP\fP
+invalid null value 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_NUMBER \fP\fP
+invalid number value 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_TERMINATION \fP\fP
+unexpected termination of string data\&. \\0 in data\&. 
+.TP
+\fB\fIM_JSON_ERROR_INVALID_IDENTIFIER \fP\fP
+invalid identifier 
+.TP
+\fB\fIM_JSON_ERROR_UNEXPECTED_END \fP\fP
+unexpected end of data 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_json_node_t\fP* M_json_node_create (\fBM_json_type_t\fP type)"
+Create a JSON node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItype\fP The type of the node to create\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A JSON node on success\&. NULL on failure (an invalid type was requested)\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_json_node_destroy\fP 
+.RE
+.PP
+
+.SS "void M_json_node_destroy (\fBM_json_node_t\fP * node)"
+Destory a JSON node\&.
+.PP
+Destroying a node will destroy every node under it and remove it from it's parent node if it is a child\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node to destroy\&. 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP* M_json_read (const char * data, size_t data_len, M_uint32 flags, size_t * processed_len, \fBM_json_error_t\fP * error, size_t * error_line, size_t * error_pos)"
+Parse a string into a JSON object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The data to parse\&. 
+.br
+\fIdata_len\fP The length of the data to parse\&. 
+.br
+\fIflags\fP M_json_reader_flags_t flags to control the behavior of the reader\&. 
+.br
+\fIprocessed_len\fP Length of data processed\&. Useful if you could have multiple JSON documents in a stream\&. Optional pass NULL if not needed\&. 
+.br
+\fIerror\fP On error this will be populated with an error reason\&. Optional, pass NULL if not needed\&. 
+.br
+\fIerror_line\fP The line the error occurred\&. Optional, pass NULL if not needed\&. 
+.br
+\fIerror_pos\fP The column the error occurred if error_line is not NULL, otherwise the position in the stream the error occurred\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The root JSON node of the parsed data, or NULL on error\&. 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP* M_json_read_file (const char * path, M_uint32 flags, size_t max_read, \fBM_json_error_t\fP * error, size_t * error_line, size_t * error_pos)"
+Parse a file into a JSON object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The file to read\&. 
+.br
+\fIflags\fP M_json_reader_flags_t flags to control the behavior of the reader\&. 
+.br
+\fImax_read\fP The maximum amount of data to read from the file\&. If the data in the file is larger than max_read an error will most likely result\&. Optional pass 0 to read all data\&. 
+.br
+\fIerror\fP On error this will be populated with an error reason\&. Optional, pass NULL if not needed\&. 
+.br
+\fIerror_line\fP The line the error occurred\&. Optional, pass NULL if not needed\&. 
+.br
+\fIerror_pos\fP The column the error occurred if error_line is not NULL, otherwise the position in the stream the error occurred\&. Optional, pass NULL if not needed\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The root JSON node of the parsed data, or NULL on error\&. 
+.RE
+.PP
+
+.SS "char* M_json_write (const \fBM_json_node_t\fP * node, M_uint32 flags, size_t * len)"
+Write JSON to a string\&.
+.PP
+This writes nodes to a string\&. The string may not be directly usable by M_json_read\&. E\&.g\&. If you are only writing a string node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node to write\&. This will write the node and any nodes under it\&. 
+.br
+\fIflags\fP M_json_writer_flags_t flags to control writing\&. 
+.br
+\fIlen\fP The length of the string that was returned\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A string with data or NULL on error\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_json_write_file (const \fBM_json_node_t\fP * node, const char * path, M_uint32 flags)"
+Write JSON to a file\&.
+.PP
+This writes nodes to a string\&. The string may not be directly usable by M_json_read_file (for example) if you are only writing a string node (for example)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node to write\&. This will write the node and any nodes under it\&. 
+.br
+\fIpath\fP The filename and path to write the data to\&. 
+.br
+\fIflags\fP M_json_writer_flags_t flags to control writing\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_json_type_t\fP M_json_node_type (const \fBM_json_node_t\fP * node)"
+Get the type of node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The type\&. 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP** M_json_jsonpath (const \fBM_json_node_t\fP * node, const char * search, size_t * num_matches)"
+Using JSONPath expressions, scan for matches\&.
+.PP
+Note: that full JSONPath support does not yet exist\&.
+.PP
+Search expressions must start with $\&. They can use \&. to refer to the first element or \&.\&. to search for the first matching element\&.
+.PP
+Supports:
+.IP "\(bu" 2
+Patterns containing '\&.', '*', '\&.\&.'\&.
+.IP "\(bu" 2
+Array offsets using [*]/[]/[,]/[start:end:step]\&.
+.IP "  \(bu" 4
+Positive offsets [0], [0,2]\&.
+.IP "  \(bu" 4
+Negative offsets [-1] (last item)\&. [-2] (second to last item)\&.
+.IP "  \(bu" 4
+Positive and negative steps\&. [0:4:2]\&. [4:0:-1]\&.
+.IP "    \(bu" 6
+When counting up start is inclusive and end is exclusive\&. [0:3] is equivalent to [0,1,2]\&.
+.IP "    \(bu" 6
+When counting down start is exclusive and end is inclusive\&. [3:0:-1] is equivalent to [2,1,0]\&.
+.PP
+
+.PP
+
+.PP
+.PP
+Does not Support:
+.IP "\(bu" 2
+Braket notation ['x']\&.
+.IP "\(bu" 2
+Filter/script expressions\&. [?(exp)]/[(exp)]\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIsearch\fP search expression 
+.br
+\fInum_matches\fP Number of matches found
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+array of M_json_node_t pointers on success (must free array, but not internal pointers), NULL on failure
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP* M_json_get_parent (const \fBM_json_node_t\fP * node)"
+Get the parent node of a given node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The parent node or NULL if there is no parent\&. 
+.RE
+.PP
+
+.SS "void M_json_take_from_parent (\fBM_json_node_t\fP * node)"
+Take the node from the parent but does not destroy it\&.
+.PP
+This allows a node to be moved between different parents\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP* M_json_object_value (const \fBM_json_node_t\fP * node, const char * key)"
+Get the value of an object node for a given key\&.
+.PP
+The object still owns the returned node\&. You can use M_json_take_from_parent to remove the ownership\&. At which point you will need to either insert it into another object/array or destroy it\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The node under key\&. Otherwise NULL if the key does not exist\&. 
+.RE
+.PP
+
+.SS "const char* M_json_object_value_string (const \fBM_json_node_t\fP * node, const char * key)"
+Get the string value of an object node for a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The string value under the key\&. NULL if not a string or key does not exist\&. 
+.RE
+.PP
+
+.SS "M_int64 M_json_object_value_int (const \fBM_json_node_t\fP * node, const char * key)"
+Get the integer value of an object node for a given key\&.
+.PP
+If the node is not an M_JSON_TYPE_INTEGER auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 0 on error\&. The only way to know if there was an error or the return is the value is to check the type\&. 
+.RE
+.PP
+
+.SS "const \fBM_decimal_t\fP* M_json_object_value_decimal (const \fBM_json_node_t\fP * node, const char * key)"
+Get the decimal value of an object node for a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The string value under the key\&. NULL if not a decimal or key does not exist\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_value_bool (const \fBM_json_node_t\fP * node, const char * key)"
+Get the bool value of an object node for a given key\&.
+.PP
+If the node is not a M_JSON_TYPE_BOOL auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. M_FALSE on error\&. The only way to know if there was an error or the return is the value is to check the type\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_json_object_keys (const \fBM_json_node_t\fP * node)"
+Get a list of all keys for the object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of keys\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_insert (\fBM_json_node_t\fP * node, const char * key, \fBM_json_node_t\fP * value)"
+Insert a node into the object\&.
+.PP
+The object node will take ownership of the value node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&. If the key already exists the existing node will be destroyed and replaced with the new value node\&. 
+.br
+\fIvalue\fP The node to add to the object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_insert_string (\fBM_json_node_t\fP * node, const char * key, const char * value)"
+Insert a string into the object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&. If the key already exists the existing node will be destroyed and replaced with the new value node\&. 
+.br
+\fIvalue\fP The string to add to the object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_insert_int (\fBM_json_node_t\fP * node, const char * key, M_int64 value)"
+Insert an integer into the object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&. If the key already exists the existing node will be destroyed and replaced with the new value node\&. 
+.br
+\fIvalue\fP The integer to add to the object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_insert_decimal (\fBM_json_node_t\fP * node, const char * key, const \fBM_decimal_t\fP * value)"
+Insert an decimal into the object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&. If the key already exists the existing node will be destroyed and replaced with the new value node\&. 
+.br
+\fIvalue\fP The decimal to add to the object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_object_insert_bool (\fBM_json_node_t\fP * node, const char * key, M_bool value)"
+Insert an bool into the object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIkey\fP The key\&. If the key already exists the existing node will be destroyed and replaced with the new value node\&. 
+.br
+\fIvalue\fP The bool to add to the object\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "size_t M_json_array_len (const \fBM_json_node_t\fP * node)"
+Get the number of items in an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of items in the array\&. 
+.RE
+.PP
+
+.SS "\fBM_json_node_t\fP* M_json_array_at (const \fBM_json_node_t\fP * node, size_t idx)"
+Get the item in the array at a given index\&.
+.PP
+The array still owns the returned node\&. You can use M_json_take_from_parent to remove the ownership\&. At which point you will need to either insert it into another object/array or destroy it\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The node at the given index or NULL if the index is invalid\&. 
+.RE
+.PP
+
+.SS "const char* M_json_array_at_string (const \fBM_json_node_t\fP * node, size_t idx)"
+Get the string value of given index in an array\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The string value at the location\&. NULL if not a string or key does not exist\&. 
+.RE
+.PP
+
+.SS "M_int64 M_json_array_at_int (const \fBM_json_node_t\fP * node, size_t idx)"
+Get the integer value of given index in an array\&.
+.PP
+If the node is not an M_JSON_TYPE_INTEGER auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 0 on error\&. The only way to know if there was an error or the return is the value is to check the type\&. 
+.RE
+.PP
+
+.SS "const \fBM_decimal_t\fP* M_json_array_at_decimal (const \fBM_json_node_t\fP * node, size_t idx)"
+Get the decimal value of given index in an array\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The string value under the key\&. NULL if not a decimal or index does not exist\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_at_bool (const \fBM_json_node_t\fP * node, size_t idx)"
+Get the string value of given index in an array\&.
+.PP
+If the node is not a M_JSON_TYPE_BOOL auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIidx\fP The index\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. M_FALSE on error\&. The only way to know if there was an error or the return is the value is to check the type\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert (\fBM_json_node_t\fP * node, \fBM_json_node_t\fP * value)"
+Append a node into an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value node to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was appended otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_string (\fBM_json_node_t\fP * node, const char * value)"
+Append a string into an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was appended otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_int (\fBM_json_node_t\fP * node, M_int64 value)"
+Append a integer into an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was appended otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_decimal (\fBM_json_node_t\fP * node, const \fBM_decimal_t\fP * value)"
+Append a decimal into an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was appended otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_bool (\fBM_json_node_t\fP * node, M_bool value)"
+Append a bool into an array node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was appended otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_at (\fBM_json_node_t\fP * node, \fBM_json_node_t\fP * value, size_t idx)"
+Insert a node into an array node at a given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value node to append\&. 
+.br
+\fIidx\fP The index to insert at\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was inserted otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_at_string (\fBM_json_node_t\fP * node, const char * value, size_t idx)"
+Insert a string into an array node at a given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&. 
+.br
+\fIidx\fP The index to insert at\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was inserted otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_at_int (\fBM_json_node_t\fP * node, M_int64 value, size_t idx)"
+Insert a integer into an array node at a given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&. 
+.br
+\fIidx\fP The index to insert at\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was inserted otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_at_decimal (\fBM_json_node_t\fP * node, const \fBM_decimal_t\fP * value, size_t idx)"
+Insert a decimal into an array node at a given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&. 
+.br
+\fIidx\fP The index to insert at\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was inserted otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_array_insert_at_bool (\fBM_json_node_t\fP * node, M_bool value, size_t idx)"
+Insert a bool into an array node at a given index\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to append\&. 
+.br
+\fIidx\fP The index to insert at\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value was inserted otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "const char* M_json_get_string (const \fBM_json_node_t\fP * node)"
+Get the value from a string node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_set_string (\fBM_json_node_t\fP * node, const char * value)"
+Make the node a string node and set the value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value to set\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the node updated\&. 
+.RE
+.PP
+
+.SS "M_int64 M_json_get_int (const \fBM_json_node_t\fP * node)"
+Get the value from an integer node\&.
+.PP
+If the node is not an M_JSON_TYPE_INTEGER auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 0 on error\&. The only way to know if there was an error or the return is the value is to check the type\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_set_int (\fBM_json_node_t\fP * node, M_int64 value)"
+Make the node a integer node and set the value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the node updated\&. 
+.RE
+.PP
+
+.SS "const \fBM_decimal_t\fP* M_json_get_decimal (const \fBM_json_node_t\fP * node)"
+Get the value from a decimal node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_set_decimal (\fBM_json_node_t\fP * node, const \fBM_decimal_t\fP * value)"
+Make the node a decimal node and set the value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the node updated\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_get_bool (const \fBM_json_node_t\fP * node)"
+Get the value from a bool node\&.
+.PP
+If the node is not a M_JSON_TYPE_BOOL auto conversion will be attempted\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. M_FALSE on error\&. The only way to know if there was an error or the return is the value is to check the type\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_json_node_type\fP 
+.RE
+.PP
+
+.SS "M_bool M_json_set_bool (\fBM_json_node_t\fP * node, M_bool value)"
+Make the node a bool node and set the value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIvalue\fP The value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the node updated\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_set_null (\fBM_json_node_t\fP * node)"
+Make the node a null node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the node updated\&. 
+.RE
+.PP
+
+.SS "M_bool M_json_get_value (const \fBM_json_node_t\fP * node, char * buf, size_t buf_len)"
+Get the node value as a string\&.
+.PP
+This will only work on value type nodes (string, integer, decimal, book, null)\&. Other node types (object, array) will fail\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&. 
+.br
+\fIbuf\fP An allocated buffer to write the value as a string to\&. The result will be null terminated on success\&. 
+.br
+\fIbuf_len\fP The length of the buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "char* M_json_get_value_dup (const \fBM_json_node_t\fP * node)"
+Get the node value as a string\&.
+.PP
+This will only work on value type nodes (string, integer, decimal, book, null)\&. Other node types (object, array) will fail\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fInode\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value or NULL on error\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

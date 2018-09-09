@@ -1,0 +1,718 @@
+.TH "m_llist_generic" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_llist_generic
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBM_llist_callbacks\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_llist \fBM_llist_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_llist_node \fBM_llist_node_t\fP"
+.br
+.ti -1c
+.RI "typedef void *(* \fBM_llist_duplicate_func\fP) (const void *)"
+.br
+.ti -1c
+.RI "typedef void(* \fBM_llist_free_func\fP) (void *)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_llist_flags_t\fP { \fBM_LLIST_NONE\fP = 0, \fBM_LLIST_SORTED\fP = 1 << 0, \fBM_LLIST_CIRCULAR\fP = 1 << 1 }"
+.br
+.ti -1c
+.RI "enum \fBM_llist_match_type_t\fP { \fBM_LLIST_MATCH_VAL\fP = 0, \fBM_LLIST_MATCH_PTR\fP = 1 << 0, \fBM_LLIST_MATCH_ALL\fP = 1 << 1 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_llist_t\fP * \fBM_llist_create\fP (const struct \fBM_llist_callbacks\fP *callbacks, M_uint32 flags) M_MALLOC"
+.br
+.ti -1c
+.RI "M_bool \fBM_llist_change_sorting\fP (\fBM_llist_t\fP *d, \fBM_sort_compar_t\fP equality_cb, void *equality_thunk)"
+.br
+.ti -1c
+.RI "void \fBM_llist_destroy\fP (\fBM_llist_t\fP *d, M_bool destroy_vals) M_FREE(1)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_insert\fP (\fBM_llist_t\fP *d, const void *val)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_insert_first\fP (\fBM_llist_t\fP *d, const void *val)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_insert_before\fP (\fBM_llist_node_t\fP *n, const void *val)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_insert_after\fP (\fBM_llist_node_t\fP *n, const void *val)"
+.br
+.ti -1c
+.RI "void \fBM_llist_set_first\fP (\fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "void \fBM_llist_set_last\fP (\fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "M_bool \fBM_llist_move_before\fP (\fBM_llist_node_t\fP *move, \fBM_llist_node_t\fP *before)"
+.br
+.ti -1c
+.RI "M_bool \fBM_llist_move_after\fP (\fBM_llist_node_t\fP *move, \fBM_llist_node_t\fP *after)"
+.br
+.ti -1c
+.RI "size_t \fBM_llist_len\fP (const \fBM_llist_t\fP *d)"
+.br
+.ti -1c
+.RI "size_t \fBM_llist_count\fP (const \fBM_llist_t\fP *d, const void *val, M_uint32 type)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_first\fP (const \fBM_llist_t\fP *d)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_last\fP (const \fBM_llist_t\fP *d)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_find\fP (const \fBM_llist_t\fP *d, const void *val, M_uint32 type)"
+.br
+.ti -1c
+.RI "void * \fBM_llist_take_node\fP (\fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "M_bool \fBM_llist_remove_node\fP (\fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "size_t \fBM_llist_remove_val\fP (\fBM_llist_t\fP *d, const void *val, M_uint32 type)"
+.br
+.ti -1c
+.RI "void \fBM_llist_remove_duplicates\fP (\fBM_llist_t\fP *d, M_uint32 type)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_node_next\fP (const \fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "\fBM_llist_node_t\fP * \fBM_llist_node_prev\fP (const \fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "void * \fBM_llist_node_val\fP (const \fBM_llist_node_t\fP *n)"
+.br
+.ti -1c
+.RI "\fBM_llist_t\fP * \fBM_llist_duplicate\fP (const \fBM_llist_t\fP *d) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_llist_merge\fP (\fBM_llist_t\fP **dest, \fBM_llist_t\fP *src, M_bool include_duplicates, M_uint32 type) M_FREE(2)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Linked list for storing values\&.
+.PP
+This should not be used directly\&. It is a base implementation that should be used by a type safe wrapper\&. For example: M_llist_str\&.
+.PP
+The list can uses a set of callback functions to determine behavior\&. Such as if it should duplicate or free values\&.
+.PP
+The list can be used in multiple ways:
+.IP "\(bu" 2
+Unsorted\&.
+.IP "\(bu" 2
+Sorted\&.
+.IP "\(bu" 2
+Queue (FIFO) (really just unsorted)\&.
+.IP "\(bu" 2
+Priority Queue (really just sorted)\&.
+.PP
+.PP
+A linked list is not indexable\&. Iteration and find are supported\&.
+.PP
+Sorted notes:
+.IP "\(bu" 2
+Sorting is implemented as a skip list\&. This should provide near O(long(n)) performance\&. Performance nearing a sorted M_list_t\&.
+.IP "\(bu" 2
+Sorting is stable\&. If an element with a matching value is already in the list then it will be inserted after\&. Find will always find the first matching element in the list\&.
+.IP "\(bu" 2
+The Skip List implementation does not use a fixed maximum level size (a fixed maximum number of elements)\&. The level cap will be increased when the number of elements increases past the optimum number of elements for a given level count\&.
+.IP "\(bu" 2
+Level growth is bounded to one more than the current number of levels unless that would exceed the cap for the current number of elements\&.
+.IP "\(bu" 2
+When removing elements any empty levels will be removed\&. 
+.PP
+
+.SH "Data Structure Documentation"
+.PP 
+.SH "struct M_llist_callbacks"
+.PP 
+Structure of callbacks that can be registered to override default behavior for llist implementation\&. 
+.PP
+\fBData Fields:\fP
+.RS 4
+\fBM_sort_compar_t\fP \fIequality\fP Callback to check if two items in the list are equal\&. If NULL unsorted list 
+.br
+.PP
+\fBM_llist_duplicate_func\fP \fIduplicate_insert\fP Callback to duplicate a value on insert\&. If NULL is pass-thru pointer 
+.br
+.PP
+\fBM_llist_duplicate_func\fP \fIduplicate_copy\fP Callback to duplicate a value on copy\&. If NULL is pass-thru pointer 
+.br
+.PP
+\fBM_llist_free_func\fP \fIvalue_free\fP Callback to free a value\&. If NULL is pass-thru pointer 
+.br
+.PP
+.RE
+.PP
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_llist \fBM_llist_t\fP"
+
+.SS "typedef struct M_llist_node \fBM_llist_node_t\fP"
+
+.SS "typedef void*(* M_llist_duplicate_func) (const void *)"
+Function definition to duplicate a value\&. 
+.SS "typedef void(* M_llist_free_func) (void *)"
+Function definition to free a value\&. 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_llist_flags_t\fP"
+Flags for controlling the behavior of the list\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_LLIST_NONE \fP\fP
+LList mode (unsorted)\&. 
+.TP
+\fB\fIM_LLIST_SORTED \fP\fP
+Whether the data in the list should be kept in sorted order\&. callbacks cannot be NULL and the equality function must be set if this is M_TRUE\&. 
+.TP
+\fB\fIM_LLIST_CIRCULAR \fP\fP
+Whether the nodes are linked in a circular manner\&. Last node points to first\&. This cannot be used while sorted\&. 
+.SS "enum \fBM_llist_match_type_t\fP"
+Type of matching that should be used when searching/modifying a value in the list\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_LLIST_MATCH_VAL \fP\fP
+Match based on the value (equality function)\&. 
+.TP
+\fB\fIM_LLIST_MATCH_PTR \fP\fP
+Math the pointer itself\&. 
+.TP
+\fB\fIM_LLIST_MATCH_ALL \fP\fP
+Include all instances\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_llist_t\fP* M_llist_create (const struct \fBM_llist_callbacks\fP * callbacks, M_uint32 flags)"
+Create a new list\&.
+.PP
+A list is a linked list\&. The list can be, optionally, kept in sorted order\&. The sorted order is determined by the equality callback function if sorting is enabled\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcallbacks\fP Register callbacks for overriding default behavior\&. May pass NULL if not overriding default behavior\&. 
+.br
+\fIflags\fP M_llist_flags_t flags controlling behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocated linked list\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_destroy\fP 
+.RE
+.PP
+
+.SS "M_bool M_llist_change_sorting (\fBM_llist_t\fP * d, \fBM_sort_compar_t\fP equality_cb, void * equality_thunk)"
+Use the provided callback and thunk for sorting\&.
+.PP
+\fBWarning:\fP
+.RS 4
+This function will only succeed if the original linked list was created with sort enabled (M_LLIST_SORTED), and no items have been added to the list yet\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP the llist to update 
+.br
+\fIequality_cb\fP callback that should be used for sorting 
+.br
+\fIequality_thunk\fP thunk to pass to callback, may be \fCNULL\fP\&. Ownership of thunk remains with caller\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if error 
+.RE
+.PP
+
+.SS "void M_llist_destroy (\fBM_llist_t\fP * d, M_bool destroy_vals)"
+Destroy the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The llist to destory\&. 
+.br
+\fIdestroy_vals\fP Whether the values held in the list should be destroyed\&. If the list is not duplicating the values it holds then destroying values may not be desirable\&. 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_insert (\fBM_llist_t\fP * d, const void * val)"
+Insert a value into the list\&.
+.PP
+If sorted the value will be inserted in sorted order\&. Otherwise it will be appended to the end of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to insert\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to M_llist_node_t container object of new node on success, otherwise NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_insert_first\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_insert_first (\fBM_llist_t\fP * d, const void * val)"
+Insert a value into the list as the first node\&.
+.PP
+Only applies to unsorted lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to insert\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to M_llist_node_t container object of new node on success, otherwise NULL
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_insert\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_insert_before (\fBM_llist_node_t\fP * n, const void * val)"
+Insert a value into the list before a given node\&.
+.PP
+Only applies to unsorted lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node to insert before\&. Cannot be NULL\&. 
+.br
+\fIval\fP The value to insert\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to M_llist_node_t container object of new node on success, otherwise NULL
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_insert_after\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_insert_after (\fBM_llist_node_t\fP * n, const void * val)"
+Insert a value into the list after a given node\&.
+.PP
+Only applies to unsorted lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node to insert after\&. Cannot be NULL\&. 
+.br
+\fIval\fP The value to insert\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to M_llist_node_t container object of new node on success, otherwise NULL
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_insert_before\fP 
+.RE
+.PP
+
+.SS "void M_llist_set_first (\fBM_llist_node_t\fP * n)"
+Set the node as the first node\&.
+.PP
+Only applies to unsorted or circular lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node that should be considered first\&. 
+.RE
+.PP
+
+.SS "void M_llist_set_last (\fBM_llist_node_t\fP * n)"
+Set the node as the last node\&.
+.PP
+Only applies to unsorted or circular lists\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node that should be considered last\&. 
+.RE
+.PP
+
+.SS "M_bool M_llist_move_before (\fBM_llist_node_t\fP * move, \fBM_llist_node_t\fP * before)"
+Move a node before another node in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImove\fP The node to move\&. 
+.br
+\fIbefore\fP The node that move should be placed before\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on sucess, otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_llist_move_after (\fBM_llist_node_t\fP * move, \fBM_llist_node_t\fP * after)"
+Move a node after another node in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fImove\fP The node to move\&. 
+.br
+\fIafter\fP The node that move should be placed after\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on sucess, otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "size_t M_llist_len (const \fBM_llist_t\fP * d)"
+The length of the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the length of the list\&. 
+.RE
+.PP
+
+.SS "size_t M_llist_count (const \fBM_llist_t\fP * d, const void * val, M_uint32 type)"
+Count the number of times a value occurs in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to search for\&. 
+.br
+\fItype\fP M_llist_match_type_t type of how the val should be matched\&. valid values are:
+.IP "\(bu" 2
+M_LLIST_MATCH_VAL
+.IP "\(bu" 2
+M_LLIST_MATCH_PTR
+.PP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of times val appears in the list\&. 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_first (const \fBM_llist_t\fP * d)"
+Get the first node in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Node or NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_last\fP 
+.PP
+\fBM_llist_find\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_last (const \fBM_llist_t\fP * d)"
+Get the last node in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Node or NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_first\fP 
+.PP
+\fBM_llist_find\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_find (const \fBM_llist_t\fP * d, const void * val, M_uint32 type)"
+Find a node for the given value in the list\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to search for\&. 
+.br
+\fItype\fP M_llist_match_type_t type of how the val should be matched\&. valid values are:
+.IP "\(bu" 2
+M_LLIST_MATCH_VAL
+.IP "\(bu" 2
+M_LLIST_MATCH_PTR
+.PP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Node or NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_first\fP 
+.PP
+\fBM_llist_last\fP 
+.RE
+.PP
+
+.SS "void* M_llist_take_node (\fBM_llist_node_t\fP * n)"
+Take the node from the list and return its value\&.
+.PP
+The element will be removed from the list and its value returned\&. The caller is responsible for freeing the value\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The node's value\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_node_val\fP 
+.RE
+.PP
+
+.SS "M_bool M_llist_remove_node (\fBM_llist_node_t\fP * n)"
+Remove a node from the list\&.
+.PP
+The value will be free'd using the value_free callback\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_remove_val\fP 
+.RE
+.PP
+
+.SS "size_t M_llist_remove_val (\fBM_llist_t\fP * d, const void * val, M_uint32 type)"
+Remove node(s) from the list matching a given value\&.
+.PP
+The value will be free'd using the value_free callback\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fIval\fP The value to search for\&. 
+.br
+\fItype\fP M_llist_match_type_t type of how the val should be matched\&. valid values are:
+.IP "\(bu" 2
+M_LLIST_MATCH_VAL
+.IP "\(bu" 2
+M_LLIST_MATCH_PTR
+.IP "\(bu" 2
+M_LLIST_MATCH_ALL
+.PP
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_remove_node\fP 
+.RE
+.PP
+
+.SS "void M_llist_remove_duplicates (\fBM_llist_t\fP * d, M_uint32 type)"
+Remove duplicate values from the list\&.
+.PP
+Requires the equality callback to be set\&. The values will be free'd using the value_free callback\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP The list\&. 
+.br
+\fItype\fP M_llist_match_type_t type of how the val should be matched\&. valid values are:
+.IP "\(bu" 2
+M_LLIST_MATCH_VAL
+.IP "\(bu" 2
+M_LLIST_MATCH_PTR 
+.PP
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_node_next (const \fBM_llist_node_t\fP * n)"
+Get the next node, the one after a given node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Node or NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_node_prev\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_node_t\fP* M_llist_node_prev (const \fBM_llist_node_t\fP * n)"
+Get the previous node, the one before a given node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Node or NULL\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_node_next\fP 
+.RE
+.PP
+
+.SS "void* M_llist_node_val (const \fBM_llist_node_t\fP * n)"
+Get the value for a node\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIn\fP The node\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The node's value\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_llist_take_node\fP 
+.RE
+.PP
+
+.SS "\fBM_llist_t\fP* M_llist_duplicate (const \fBM_llist_t\fP * d)"
+Duplicate an existing list\&. Will copy all elements of the list as well as any callbacks, etc\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fId\fP list to duplicate\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+New list\&. 
+.RE
+.PP
+
+.SS "void M_llist_merge (\fBM_llist_t\fP ** dest, \fBM_llist_t\fP * src, M_bool include_duplicates, M_uint32 type)"
+Merge two lists together\&.
+.PP
+The second (src) list will be destroyed automatically upon completion of this function\&. Any value pointers for the list will be directly copied over to the destination list, they will not be duplicated\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Pointer by reference to the list receiving the values\&. if this is NULL, the pointer will simply be switched out for src\&. 
+.br
+\fIsrc\fP Pointer to the list giving up its values\&. 
+.br
+\fIinclude_duplicates\fP When M_TRUE any values in 'dest' that also exist in 'src' will be included in 'dest'\&. When M_FALSE any duplicate values will not be added to 'dest'\&. 
+.br
+\fItype\fP M_llist_match_type_t type of how the val should be matched\&. valid values are:
+.IP "\(bu" 2
+M_LLIST_MATCH_VAL
+.IP "\(bu" 2
+M_LLIST_MATCH_PTR 
+.PP
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

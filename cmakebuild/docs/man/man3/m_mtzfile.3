@@ -1,0 +1,103 @@
+.TH "m_mtzfile" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_mtzfile
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_time_result_t\fP \fBM_mtzfile_tzs_add_file\fP (\fBM_time_tzs_t\fP *tzs, const char *path, size_t *err_line, char **err_sect, char **err_data)"
+.br
+.ti -1c
+.RI "\fBM_time_result_t\fP \fBM_mtzfile_tzs_add_str\fP (\fBM_time_tzs_t\fP *tzs, const char *data, size_t *err_line, char **err_sect, char **err_data)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The Mstdlib TZ format is a simple way to describe timezone information\&. It is intended for use on systems that do not provide timezone information\&. Such as embedded systems\&. A time\&.zone file is provided in the formats/time directory in the source package which provides timezone descriptions for US, Canada, and Mexico\&.
+.PP
+The format is an ini file which can be parsed with \fBm_ini\fP\&. However, functions are provided here which will parse and load the format into a M_time_tzs_t object\&.
+.PP
+Format description:
+.PP
+Section define zones\&. Aliases are alternate names that identify the zone\&. The section must have an offset and abbreviation\&. The offset is assumed negative unless the value start explicitly with '+'\&. DST offsets and abbreviations are used when a DST rule is in effect\&. A DST rule is a Posix DST rule with the first part replaced with a year (the year the rule applies) followed by a ';'\&. For DST rules only the M day format is supported\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+[EST5]
+offset=5
+abbr=EST
+
+[EST5EDT]
+alias=America/New_York
+alias=America/Detroit
+alias=America/Indiana/Indianapolis
+offset=5
+offset_dst=4
+abbr=EST
+abbr_dst=EDT
+dst=2007;M3\&.2\&.0/02:00:00,M11\&.1\&.0/02:00:00
+dst=1987;M4\&.1\&.0/02:00:00,M10\&.-1\&.0/02:00:00
+.fi
+.PP
+ 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_time_result_t\fP M_mtzfile_tzs_add_file (\fBM_time_tzs_t\fP * tzs, const char * path, size_t * err_line, char ** err_sect, char ** err_data)"
+Add Mstdlib TZ from a file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIpath\fP The file and path to load\&. 
+.br
+\fIerr_line\fP The line number if failure is due to ini parse failure\&. 
+.br
+\fIerr_sect\fP The section that failed to parse if a parse failure not due to an ini parse failure\&. 
+.br
+\fIerr_data\fP The data that caused the failure\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success on success\&. Otherwise error condition\&. 
+.RE
+.PP
+
+.SS "\fBM_time_result_t\fP M_mtzfile_tzs_add_str (\fBM_time_tzs_t\fP * tzs, const char * data, size_t * err_line, char ** err_sect, char ** err_data)"
+Add Mstdlib TZ from a string\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fItzs\fP The tz db\&. 
+.br
+\fIdata\fP The data to load\&. 
+.br
+\fIerr_line\fP The line number if failure is due to ini parse failure\&. 
+.br
+\fIerr_sect\fP The section that failed to parse if a parse failure not due to an ini parse failure\&. 
+.br
+\fIerr_data\fP The data that caused the failure\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Success on success\&. Otherwise error condition\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_mtzfile_tzs_add_file\fP for details of the format\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

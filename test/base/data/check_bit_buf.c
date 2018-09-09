@@ -242,7 +242,7 @@ START_TEST(check_bbuf_add_bytes)
 	 *                   9    E    6    0  (last mask -> 0xE0)
 	 */
 	ck_assert(nbytes == 2);
-	ck_assert(bytes[0] = 0x9E);
+	ck_assert(bytes[0] == 0x9E);
 	ck_assert((bytes[1] & 0xE0) == 0x60);
 
 	cleanup_test;

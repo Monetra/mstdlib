@@ -1,0 +1,37 @@
+.TH "m_io_loopback" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_io_loopback
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_io_error_t\fP \fBM_io_loopback_create\fP (\fBM_io_t\fP **io_out)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The loopback object will read and write to itself\&. This is intended for simple testing where read/write events are needed but the data isn't important\&. Since it reads/writes to itself anything written will cause a read event with that data\&. 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_io_error_t\fP M_io_loopback_create (\fBM_io_t\fP ** io_out)"
+Create a loopback object
+.PP
+\fBParameters:\fP
+.RS 4
+\fIio_out\fP io object for communication\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

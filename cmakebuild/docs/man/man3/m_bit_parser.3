@@ -1,0 +1,439 @@
+.TH "m_bit_parser" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_bit_parser
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_bit_parser \fBM_bit_parser_t\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_bit_parser_t\fP * \fBM_bit_parser_create\fP (const void *bytes, size_t nbits) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_bit_parser_t\fP * \fBM_bit_parser_create_const\fP (const void *bytes, size_t nbits) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_bit_parser_reset\fP (\fBM_bit_parser_t\fP *bparser, const void *bytes, size_t nbits)"
+.br
+.ti -1c
+.RI "void \fBM_bit_parser_destroy\fP (\fBM_bit_parser_t\fP *bparser) M_FREE(1)"
+.br
+.ti -1c
+.RI "size_t \fBM_bit_parser_len\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "size_t \fBM_bit_parser_current_offset\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "void \fBM_bit_parser_rewind_to_start\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "void \fBM_bit_parser_mark\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "size_t \fBM_bit_parser_mark_len\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "size_t \fBM_bit_parser_mark_rewind\fP (\fBM_bit_parser_t\fP *bparser)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_consume\fP (\fBM_bit_parser_t\fP *bparser, size_t nbits)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_peek_bit\fP (\fBM_bit_parser_t\fP *bparser, M_uint8 *bit)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_read_bit\fP (\fBM_bit_parser_t\fP *bparser, M_uint8 *bit)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_read_bit_buf\fP (\fBM_bit_parser_t\fP *bparser, \fBM_bit_buf_t\fP *bbuf, size_t nbits)"
+.br
+.ti -1c
+.RI "char * \fBM_bit_parser_read_strdup\fP (\fBM_bit_parser_t\fP *bparser, size_t nbits)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_consume_range\fP (\fBM_bit_parser_t\fP *bparser, size_t max_bits)"
+.br
+.ti -1c
+.RI "M_bool \fBM_bit_parser_read_range\fP (\fBM_bit_parser_t\fP *bparser, M_uint8 *bit, size_t *nbits_in_range, size_t max_bits)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Buffer based data parser that reads data per-bit, instead of per-byte\&.
+.PP
+Example (creating a parser, reading some bits):
+.PP
+.PP
+.nf
+M_bit_parser_t *bparser;
+const M_uint8   bytes[] = {0x70, 0x3F};
+size_t          nbits   = 12;
+
+M_uint8         bit;
+char           *str;
+size_t          nbits_in_range;
+
+bparser = M_bit_parser_create_const(bytes, nbits);
+
+M_bit_parser_read_bit(bparser, &bit); // bit == 0
+
+str == M_bit_parser_read_strdup(bparser, 5); // str == "11100"
+M_free(str);
+
+M_bit_parser_read_range(bparser, &bit, &nbits_in_range, M_bit_parser_len(bparser));
+// bit == 0
+// nbits_in_range == 6
+
+M_bit_parser_destroy(bparser);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_bit_parser \fBM_bit_parser_t\fP"
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_bit_parser_t\fP* M_bit_parser_create (const void * bytes, size_t nbits)"
+Create a bit parser over the given data (copies input data)\&.
+.PP
+The parser will copy the data internally, so after this function is called, the caller's copy of the data may be copied or freed without affecting the parser\&.
+.PP
+If your data isn't going to change, you can use \fBM_bit_parser_create_const()\fP instead to avoid duplicating the data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbytes\fP data to parse bitwise 
+.br
+\fInbits\fP number of bits in data 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a new parser object over the given data
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_reset\fP 
+.PP
+\fBM_bit_parser_destroy\fP 
+.RE
+.PP
+
+.SS "\fBM_bit_parser_t\fP* M_bit_parser_create_const (const void * bytes, size_t nbits)"
+Create a bit parser over the given data (assumes given data won't change)\&.
+.PP
+Assumes the given data pointer won't be modified until after you're done with the parser\&.
+.PP
+\fBWarning:\fP
+.RS 4
+Violating this assumption can lead to undefined behavior (including program crashes)\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbytes\fP data to parse bitwise 
+.br
+\fInbits\fP number of bits in data 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+a new parser object over the given data
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_reset\fP 
+.PP
+\fBM_bit_parser_destroy\fP 
+.RE
+.PP
+
+.SS "void M_bit_parser_reset (\fBM_bit_parser_t\fP * bparser, const void * bytes, size_t nbits)"
+Reset parser to use new data (copies input data)\&.
+.PP
+Parser state (including any mark) is reset to initial values\&. Any data that was in the parser before this call is dropped\&.
+.PP
+The new data is copied into the parser, so the caller's copy of the data may be modified or freed after this call without affecting the parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.br
+\fIbytes\fP bytes to read from 
+.br
+\fInbits\fP number of bits to read out of input bytes 
+.RE
+.PP
+
+.SS "void M_bit_parser_destroy (\fBM_bit_parser_t\fP * bparser)"
+Destroy the bit parser object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.RE
+.PP
+
+.SS "size_t M_bit_parser_len (\fBM_bit_parser_t\fP * bparser)"
+Returns the number of bits left to read in the parser\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bits left that haven't been read yet 
+.RE
+.PP
+
+.SS "size_t M_bit_parser_current_offset (\fBM_bit_parser_t\fP * bparser)"
+Retrieve the current position of the parser (number of bits read)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+current parser position, relative to start of data (in bits) 
+.RE
+.PP
+
+.SS "void M_bit_parser_rewind_to_start (\fBM_bit_parser_t\fP * bparser)"
+Rewind parser (and any mark) back to start of data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_mark\fP 
+.PP
+\fBM_bit_parser_mark_rewind\fP 
+.RE
+.PP
+
+.SS "void M_bit_parser_mark (\fBM_bit_parser_t\fP * bparser)"
+Mark the current position in the stream, so we can return to it later\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_mark_len\fP 
+.PP
+\fBM_bit_parser_mark_rewind\fP 
+.RE
+.PP
+
+.SS "size_t M_bit_parser_mark_len (\fBM_bit_parser_t\fP * bparser)"
+Return the number of bits from a mark to the current parser position\&.
+.PP
+If no mark has been set, returns the number of bits from the start of the data\&.
+.PP
+For example, if I set a mark, read 3 bits, and then call this function, it'll return 3\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bits read/consumed from the point where we last marked the bitstream
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_mark\fP 
+.RE
+.PP
+
+.SS "size_t M_bit_parser_mark_rewind (\fBM_bit_parser_t\fP * bparser)"
+Rewind parser back to the marked position\&.
+.PP
+This will not clear the mark - you can read and then return to a marked position multiple times\&.
+.PP
+If no mark has been set, this will rewind all the way back to the beginning of the stream\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of bits we rewound the stream
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_bit_parser_rewind_to_start\fP 
+.PP
+\fBM_bit_parser_mark\fP 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_consume (\fBM_bit_parser_t\fP * bparser, size_t nbits)"
+Skip past the given number of bits\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.br
+\fInbits\fP number of bits to consume 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if not enough bits left 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_peek_bit (\fBM_bit_parser_t\fP * bparser, M_uint8 * bit)"
+Read a single bit at the parser's current position without advancing\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.br
+\fIbit\fP 0 or 1 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if there are no bits left to read 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_read_bit (\fBM_bit_parser_t\fP * bparser, M_uint8 * bit)"
+Read a single bit at the parser's current position and advance\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser object 
+.br
+\fIbit\fP 0 or 1 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if there are no bits left to read 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_read_bit_buf (\fBM_bit_parser_t\fP * bparser, \fBM_bit_buf_t\fP * bbuf, size_t nbits)"
+Read multiple bits and add them to the end of the given bit buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser to read bits from 
+.br
+\fIbbuf\fP bit buffer to store bits in 
+.br
+\fInbits\fP number of bits to read 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE if there aren't enough bits left 
+.RE
+.PP
+
+.SS "char* M_bit_parser_read_strdup (\fBM_bit_parser_t\fP * bparser, size_t nbits)"
+Read multiple bits, then return them as a bit string\&.
+.PP
+A bit string is just a list of '0' and '1' characters (e\&.g\&., '100101')\&.
+.PP
+\fBWarning:\fP
+.RS 4
+The caller assumes ownership of returned string, and must free it with \fBM_free()\fP\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser to read bits from 
+.br
+\fInbits\fP number of bits to read 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+bitstring on success, NULL if there aren't enough bits left 
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_consume_range (\fBM_bit_parser_t\fP * bparser, size_t max_bits)"
+Skip bits until we hit a bit different than the current one\&.
+.PP
+For example, if the parser contains '11100001', calling this function will move the parser's position to the first \fI0\fP\&.
+.PP
+Note that this function will always consume at least one bit, if any bits are left to skip\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser to read bits from 
+.br
+\fImax_bits\fP maximum number of bits to skip (if set to zero, no bits will be skipped) 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if at least one bit was skipped, M_FALSE if no bits are left or \fImax_bits\fP was zero 
+.RE
+.PP
+
+.SS "M_bool M_bit_parser_read_range (\fBM_bit_parser_t\fP * bparser, M_uint8 * bit, size_t * nbits_in_range, size_t max_bits)"
+Read bits until we hit a bit different than the current one\&.
+.PP
+For example, if the parser contain '11100001', calling this function will move the parser's position to the first \fI0\fP, and return \fI1\fP in \fIbit\fP and \fI3\fP in \fInbits_in_range\fP 
+.PP
+Note that this function will always read at least one bit, if any bits are left to read\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbparser\fP bit parser to read bits from 
+.br
+\fIbit\fP bit value in range we just read (0 or 1) 
+.br
+\fInbits_in_range\fP number of bits in range we just read 
+.br
+\fImax_bits\fP maximum number of bits to read (if set to zero, no bits will be read) 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if at least one bit was read, M_FALSE if no bits are left or \fImax_bits\fP was zero 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

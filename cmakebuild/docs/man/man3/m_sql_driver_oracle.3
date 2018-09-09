@@ -1,0 +1,69 @@
+.TH "m_sql_driver_oracle" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_driver_oracle
+.SH SYNOPSIS
+.br
+.PP
+.SH "Detailed Description"
+.PP 
+Oracle Driver
+.PP
+Driver Name: oracle
+.PP
+Driver Connection String Options:
+.IP "\(bu" 2
+dsn: Conditional\&. Data Source Name as specified in tnsnames\&.ora, or a fully qualified connection string\&. If not specified, both host and service_name must both be specified and a connection string will be dynamically generated\&. Use of this parameter negates the ability to use mstdlib's load balancing and failover logic, but facilitates the use of Oracle's equivalent functionality\&. An example of a fully qualified connection string would be: 
+.PP
+.nf
+(DESCRIPTION =
+  (ADDRESS = (PROTOCOL = TCP)(Host = 10\&.100\&.10\&.168)(Port = 1521))
+  (CONNECT_DATA = (SERVICE_NAME = orcl))
+)
+
+.fi
+.PP
+
+.IP "\(bu" 2
+host: Conditional\&. If dsn is not specified, this parameter must be specified along with the service_name parameter\&. This is the hostname or IP address of the server\&. If not using the default port of 1521, may append a ':port#' to the end of the host\&. For specifying multiple hosts in a pool, hosts should be comma delimited\&. Cannot be used with dsn\&. 
+.PP
+.nf
+host=10\&.40\&.30\&.2,10\&.50\&.30\&.2:11521  
+
+.fi
+.PP
+
+.IP "\(bu" 2
+service_name: Conditional\&. If dsn is not specified, this parameter must be specified along with the host parameter\&. Cannot be used with dsn\&. 
+.PP
+.nf
+service_name=orcl 
+
+.fi
+.PP
+
+.PP
+.PP
+Example with dsn: 
+.PP
+.nf
+dsn='(DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(Host = 10\&.100\&.10\&.168)(Port = 1521))
+      (CONNECT_DATA = (SERVICE_NAME = orcl))
+    )'
+
+.fi
+.PP
+.PP
+Example without dsn: 
+.PP
+.nf
+host=10\&.100\&.10\&.168;service_name=orcl
+
+.fi
+.PP
+ 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

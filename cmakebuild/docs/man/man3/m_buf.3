@@ -1,0 +1,1197 @@
+.TH "m_buf" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_buf
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBM_buf_add_uint_money\fP(buf,  amount,  max_width)   \fBM_buf_add_int_money\fP(buf, \fBM_ABS\fP(amount), max_width)"
+.br
+.ti -1c
+.RI "#define \fBM_buf_add_uint_money_dot\fP(buf,  amount,  max_width)   \fBM_buf_add_int_money_dot\fP(buf, \fBM_ABS\fP(amount), max_width)"
+.br
+.ti -1c
+.RI "#define \fBM_buf_add_uint_money_just\fP(buf,  amount,  max_width)   \fBM_buf_add_int_money_just\fP(buf, \fBM_ABS\fP(amount), max_width)"
+.br
+.ti -1c
+.RI "#define \fBM_buf_add_uint_money_dot_just\fP(buf,  amount,  max_width)   \fBM_buf_add_int_money_dot_just\fP(buf, \fBM_ABS\fP(amount), max_width)"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_buf \fBM_buf_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_BUF_TRANSFORM_TYPE\fP { \fBM_BUF_TRANSFORM_NONE\fP = 0, \fBM_BUF_TRANSFORM_UPPER\fP = 1 << 0, \fBM_BUF_TRANSFORM_LOWER\fP = 1 << 1, \fBM_BUF_TRANSFORM_LTRIM\fP = 1 << 2, \fBM_BUF_TRANSFORM_RTRIM\fP = 1 << 3, \fBM_BUF_TRANSFORM_TRIM\fP = M_BUF_TRANSFORM_LTRIM|M_BUF_TRANSFORM_RTRIM }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_buf_t\fP * \fBM_buf_create\fP (void) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_buf_cancel\fP (\fBM_buf_t\fP *buf) M_FREE(1)"
+.br
+.ti -1c
+.RI "unsigned char * \fBM_buf_finish\fP (\fBM_buf_t\fP *buf, size_t *out_length) M_FREE(1) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "char * \fBM_buf_finish_str\fP (\fBM_buf_t\fP *buf, size_t *out_length) M_FREE(1) M_WARN_UNUSED_RESULT M_MALLOC"
+.br
+.ti -1c
+.RI "size_t \fBM_buf_len\fP (const \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "size_t \fBM_buf_alloc_size\fP (const \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "const char * \fBM_buf_peek\fP (const \fBM_buf_t\fP *buf)"
+.br
+.ti -1c
+.RI "void \fBM_buf_truncate\fP (\fBM_buf_t\fP *buf, size_t length)"
+.br
+.ti -1c
+.RI "void \fBM_buf_drop\fP (\fBM_buf_t\fP *buf, size_t num)"
+.br
+.ti -1c
+.RI "unsigned char * \fBM_buf_direct_write_start\fP (\fBM_buf_t\fP *buf, size_t *len)"
+.br
+.ti -1c
+.RI "void \fBM_buf_direct_write_end\fP (\fBM_buf_t\fP *buf, size_t len)"
+.br
+.ti -1c
+.RI "void \fBM_buf_merge\fP (\fBM_buf_t\fP *dest, \fBM_buf_t\fP *source) M_FREE(2)"
+.br
+.ti -1c
+.RI "void \fBM_buf_bjoin_buf\fP (\fBM_buf_t\fP *dest, unsigned char sep, \fBM_buf_t\fP **bufs, size_t cnt)"
+.br
+.ti -1c
+.RI "void \fBM_buf_bjoin_str\fP (\fBM_buf_t\fP *dest, unsigned char sep, const char **strs, size_t cnt)"
+.br
+.ti -1c
+.RI "void \fBM_buf_sjoin_buf\fP (\fBM_buf_t\fP *dest, const char *sep, \fBM_buf_t\fP **bufs, size_t cnt)"
+.br
+.ti -1c
+.RI "void \fBM_buf_sjoin_str\fP (\fBM_buf_t\fP *dest, const char *sep, const char **strs, size_t cnt)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_byte\fP (\fBM_buf_t\fP *buf, unsigned char byte)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_bytes\fP (\fBM_buf_t\fP *buf, const void *bytes, size_t bytes_length)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_bytes_hex\fP (\fBM_buf_t\fP *buf, const char *hex_bytes)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_char\fP (\fBM_buf_t\fP *buf, char c)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str\fP (\fBM_buf_t\fP *buf, const char *str)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_hex\fP (\fBM_buf_t\fP *buf, const void *bytes, size_t len)"
+.br
+.ti -1c
+.RI "size_t \fBM_buf_add_str_lines\fP (\fBM_buf_t\fP *buf, const char *str, size_t max_lines, size_t max_chars, M_bool truncate, const char *newline)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_transform\fP (\fBM_buf_t\fP *buf, M_uint32 transform_type, const char *str)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_upper\fP (\fBM_buf_t\fP *buf, const char *str)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_lower\fP (\fBM_buf_t\fP *buf, const char *str)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_fill\fP (\fBM_buf_t\fP *buf, unsigned char fill_char, size_t width)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_uint\fP (\fBM_buf_t\fP *buf, M_uint64 n)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_int\fP (\fBM_buf_t\fP *buf, M_int64 n)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_bytes_just\fP (\fBM_buf_t\fP *buf, const void *bytes, size_t bytes_length, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_just_transform\fP (\fBM_buf_t\fP *buf, M_uint32 transform_type, const char *str, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_just\fP (\fBM_buf_t\fP *buf, const char *str, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uint_just\fP (\fBM_buf_t\fP *buf, M_uint64 n, size_t width)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_int_just\fP (\fBM_buf_t\fP *buf, M_int64 n, size_t width)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uintbin\fP (\fBM_buf_t\fP *buf, M_uint64 n, size_t width, \fBM_endian_t\fP endianness)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uintstrbin\fP (\fBM_buf_t\fP *buf, const char *s, unsigned char base, size_t width, \fBM_endian_t\fP endianness)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uintbcd\fP (\fBM_buf_t\fP *buf, M_uint64 n, size_t width)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uintstrbcd\fP (\fBM_buf_t\fP *buf, const char *s, unsigned char base, size_t width)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_uinthex\fP (\fBM_buf_t\fP *buf, M_uint64 n, M_bool is_upper, size_t width)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_bytehex\fP (\fBM_buf_t\fP *buf, unsigned char byte, M_bool is_upper)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_ptr\fP (\fBM_buf_t\fP *buf, void *ptr)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_money\fP (\fBM_buf_t\fP *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_money_dot\fP (\fBM_buf_t\fP *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_money_just\fP (\fBM_buf_t\fP *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_money_dot_just\fP (\fBM_buf_t\fP *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_int_money\fP (\fBM_buf_t\fP *buf, M_int64 amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_int_money_dot\fP (\fBM_buf_t\fP *buf, M_int64 amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_int_money_just\fP (\fBM_buf_t\fP *buf, M_int64 amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_int_money_dot_just\fP (\fBM_buf_t\fP *buf, M_int64 amount, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_decimal\fP (\fBM_buf_t\fP *buf, const \fBM_decimal_t\fP *decimal, M_bool implied_decimal, M_int8 num_decimals, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_decimal_just\fP (\fBM_buf_t\fP *buf, const \fBM_decimal_t\fP *decimal, M_bool implied_decimal, M_int8 num_decimals, size_t max_width) M_WARN_UNUSED_RESULT"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_bytes_replace\fP (\fBM_buf_t\fP *dest_buf, const M_uint8 *src, size_t src_len, const M_uint8 *search_bytes, size_t search_len, const M_uint8 *replace_bytes, size_t replace_len)"
+.br
+.ti -1c
+.RI "M_bool \fBM_buf_add_str_replace\fP (\fBM_buf_t\fP *dest_buf, const char *src_str, const char *search_str, const char *replace_str)"
+.br
+.ti -1c
+.RI "void \fBM_buf_add_str_quoted\fP (\fBM_buf_t\fP *buf, char quote_char, char escape_char, const char *quote_req_chars, M_bool always_quote, const char *src)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Allows for buffered writing of string and binary data\&. It is a safe and efficient way to append and manipulate buffered data\&.
+.PP
+Handles resizing of the buffer, location tracking, and has various helpers to modify the data being written into the buffer\&.
+.PP
+When done adding data the contents of the buffer can be output as a continuous array\&. Such as unsigned char * or char *\&.
+.PP
+Example (creating a buffer, adding data, finishing the buffer):
+.PP
+.PP
+.nf
+M_buf_t *buf;
+char    *out;
+
+buf = M_buf_create();
+M_buf_add_byte(buf, '^');
+M_buf_add_str(buf, "ABC");
+M_buf_add_int(buf, 123);
+out = M_buf_finish_str(buf, NULL);
+
+M_printf("out='%s'\n", out);
+M_free(out);
+.fi
+.PP
+.PP
+Example output:
+.PP
+.PP
+.nf
+out='^ABC123'
+.fi
+.PP
+ 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define M_buf_add_uint_money(buf, amount, max_width)   \fBM_buf_add_int_money\fP(buf, \fBM_ABS\fP(amount), max_width)"
+
+.SS "#define M_buf_add_uint_money_dot(buf, amount, max_width)   \fBM_buf_add_int_money_dot\fP(buf, \fBM_ABS\fP(amount), max_width)"
+
+.SS "#define M_buf_add_uint_money_just(buf, amount, max_width)   \fBM_buf_add_int_money_just\fP(buf, \fBM_ABS\fP(amount), max_width)"
+
+.SS "#define M_buf_add_uint_money_dot_just(buf, amount, max_width)   \fBM_buf_add_int_money_dot_just\fP(buf, \fBM_ABS\fP(amount), max_width)"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_buf \fBM_buf_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_BUF_TRANSFORM_TYPE\fP"
+Enumeration for transformation types, bitmapped type to allow multiple transformations to be run 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_BUF_TRANSFORM_NONE \fP\fP
+Perform no transformation 
+.TP
+\fB\fIM_BUF_TRANSFORM_UPPER \fP\fP
+Transform into upper-case (cannot be used with M_BUF_TRANSFORM_LOWER) 
+.TP
+\fB\fIM_BUF_TRANSFORM_LOWER \fP\fP
+Transform into lower-case (cannot be used with M_BUF_TRANSFORM_UPPER) 
+.TP
+\fB\fIM_BUF_TRANSFORM_LTRIM \fP\fP
+Trim whitespace from left of the data 
+.TP
+\fB\fIM_BUF_TRANSFORM_RTRIM \fP\fP
+Trim whitespace from right of the data 
+.TP
+\fB\fIM_BUF_TRANSFORM_TRIM \fP\fP
+Trim whitespace from left and right of data 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_buf_t\fP* M_buf_create (void)"
+Create a new buffer\&.
+.PP
+\fBReturns:\fP
+.RS 4
+allocated buffer\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_buf_cancel\fP 
+.PP
+\fBM_buf_finish\fP 
+.PP
+\fBM_buf_finish_str\fP 
+.RE
+.PP
+
+.SS "void M_buf_cancel (\fBM_buf_t\fP * buf)"
+Free a buffer, discarding its data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.RE
+.PP
+
+.SS "unsigned char* M_buf_finish (\fBM_buf_t\fP * buf, size_t * out_length)"
+Free a buffer, saving its data\&.
+.PP
+The caller is responsible for freeing the data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer 
+.br
+\fIout_length\fP Data length
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The buffered data\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "char* M_buf_finish_str (\fBM_buf_t\fP * buf, size_t * out_length)"
+Free a buffer, saving its data as a C-string\&.
+.PP
+The caller is responsible for freeing the data\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIout_length\fP Data length\&. Optional, pass NULL if length not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The buffered data\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_free\fP 
+.RE
+.PP
+
+.SS "size_t M_buf_len (const \fBM_buf_t\fP * buf)"
+Return the length of the data held by a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Data length\&. 
+.RE
+.PP
+
+.SS "size_t M_buf_alloc_size (const \fBM_buf_t\fP * buf)"
+Return overall data allocation size for the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Allocation size\&. 
+.RE
+.PP
+
+.SS "const char* M_buf_peek (const \fBM_buf_t\fP * buf)"
+Take a sneak peek at the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Current beginning of the data in the buffer\&. 
+.RE
+.PP
+
+.SS "void M_buf_truncate (\fBM_buf_t\fP * buf, size_t length)"
+Truncate the length of the data to the specified size\&.
+.PP
+Removes data from the end of the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIlength\fP Length to truncate buffer to\&. 
+.RE
+.PP
+
+.SS "void M_buf_drop (\fBM_buf_t\fP * buf, size_t num)"
+Drop the specified number of bytes from the beginning of the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fInum\fP Number of bytes to drop\&. 
+.RE
+.PP
+
+.SS "unsigned char* M_buf_direct_write_start (\fBM_buf_t\fP * buf, size_t * len)"
+Begin a direct write operation\&. In general, this function should not be used, it is meant as an optimization to prevent double buffering when reading I/O\&. A writable buffer will be returned of at least the length requested, often it will be much larger\&. To end the direct write process, \fBM_buf_direct_write_end()\fP must be called with the length actually written\&. It is not valid to call any other M_buf_*() functions between start and end\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer 
+.br
+\fIlen\fP Pass in the minimum requested buffer size, outputs the maximum writable buffer size\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Writable buffer or NULL on failure 
+.RE
+.PP
+
+.SS "void M_buf_direct_write_end (\fBM_buf_t\fP * buf, size_t len)"
+End a direct write operation\&. Please see \fBM_buf_direct_write_start()\fP for more information\&. This terminates a direct write sequence regardless of if data was written or not (len = 0 is acceptable)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer 
+.br
+\fIlen\fP Length of data written\&. 
+.RE
+.PP
+
+.SS "void M_buf_merge (\fBM_buf_t\fP * dest, \fBM_buf_t\fP * source)"
+Merge two buffers\&.
+.PP
+The data in the source buffer is appended to the destination buffer\&. The source buffer is freed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Buffer\&. 
+.br
+\fIsource\fP Buffer\&. 
+.RE
+.PP
+
+.SS "void M_buf_bjoin_buf (\fBM_buf_t\fP * dest, unsigned char sep, \fBM_buf_t\fP ** bufs, size_t cnt)"
+Join an array of buffers\&.
+.PP
+The data in the buffer array is appended to the destination buffer with sep placed between the data in each buffer\&. The buffers in the buffer array is freed\&. The array itself is not freed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Buffer\&. 
+.br
+\fIsep\fP String to insert between element in the buffer array\&. 
+.br
+\fIbufs\fP Array of buffers\&. 
+.br
+\fIcnt\fP Number of elements in the buffer array\&. 
+.RE
+.PP
+
+.SS "void M_buf_bjoin_str (\fBM_buf_t\fP * dest, unsigned char sep, const char ** strs, size_t cnt)"
+Join an array of strings\&.
+.PP
+The data in the string array is appended to the destination buffer with sep placed between the data in each buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Buffer\&. 
+.br
+\fIsep\fP String to insert between element in the string array\&. 
+.br
+\fIstrs\fP Array of strings\&. 
+.br
+\fIcnt\fP Number of elements in the buffer array\&. 
+.RE
+.PP
+
+.SS "void M_buf_sjoin_buf (\fBM_buf_t\fP * dest, const char * sep, \fBM_buf_t\fP ** bufs, size_t cnt)"
+Join an array of buffers\&.
+.PP
+The data in the buffer array is appended to the destination buffer with sep placed between the data in each buffer\&. The buffers in the buffer array is freed\&. The array itself is not freed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Buffer\&. 
+.br
+\fIsep\fP String to insert between element in the buffer array\&. 
+.br
+\fIbufs\fP Array of buffers\&. 
+.br
+\fIcnt\fP Number of elements in the buffer array\&. 
+.RE
+.PP
+
+.SS "void M_buf_sjoin_str (\fBM_buf_t\fP * dest, const char * sep, const char ** strs, size_t cnt)"
+Join an array of strings\&.
+.PP
+The data in the string array is appended to the destination buffer with sep placed between the data in each buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest\fP Buffer\&. 
+.br
+\fIsep\fP String to insert between element in the string array\&. 
+.br
+\fIstrs\fP Array of strings\&. 
+.br
+\fIcnt\fP Number of elements in the buffer array\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_byte (\fBM_buf_t\fP * buf, unsigned char byte)"
+Append one byte to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIbyte\fP Byte to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_bytes (\fBM_buf_t\fP * buf, const void * bytes, size_t bytes_length)"
+Append zero or more bytes to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIbytes\fP Bytes to append\&. 
+.br
+\fIbytes_length\fP Number of bytes to append\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_bytes_hex (\fBM_buf_t\fP * buf, const char * hex_bytes)"
+Append zero or more bytes to a buffer (given as hex string)\&.
+.PP
+Same as \fBM_buf_add_bytes()\fP, but accepts binary data encoded as a hex string\&. The data is decoded into raw binary form before it's added to the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIhex_bytes\fP Hex string that encodes the bytes to append\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if successful, M_FALSE if error during hex decode 
+.RE
+.PP
+
+.SS "void M_buf_add_char (\fBM_buf_t\fP * buf, char c)"
+Append one char to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIc\fP Char to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str (\fBM_buf_t\fP * buf, const char * str)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIstr\fP String to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_hex (\fBM_buf_t\fP * buf, const void * bytes, size_t len)"
+Append the given bytes to the buffer as a hex-encoded string\&.
+.PP
+The given binary data is converted to a hex-encoded string before being added to the buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIbytes\fP Bytes to append as hex\&. 
+.br
+\fIlen\fP Number of bytes to use as input\&. 
+.RE
+.PP
+
+.SS "size_t M_buf_add_str_lines (\fBM_buf_t\fP * buf, const char * str, size_t max_lines, size_t max_chars, M_bool truncate, const char * newline)"
+Split string into lines while keeping words intact, then append to buffer\&.
+.PP
+Words in this context are defined as contiguous blocks of non-whitespace characters\&. For each line, leading and trailing whitespace will be trimmed, but internal whitespace will be left alone\&.
+.PP
+The given newline sequence is added at the end of each line\&.
+.PP
+An example use case is breaking up strings for display on small LCD screens\&.
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_str_explode_lines\fP
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer to add output to\&. 
+.br
+\fIstr\fP Source string\&. 
+.br
+\fImax_lines\fP Maximum number of lines to output\&. 
+.br
+\fImax_chars\fP Maximum characters per line\&. 
+.br
+\fItruncate\fP If true, truncation is allowed\&. If false, NULL will be returned if the string won't fit\&. 
+.br
+\fInewline\fP Newline sequence to add to end of each line\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+number of lines added to buffer (zero if the input string was empty or there's an error)\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_transform (\fBM_buf_t\fP * buf, M_uint32 transform_type, const char * str)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer, transform the data as specified\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fItransform_type\fP Type of transformation to perform, bitmap field of enum M_BUF_TRANSFORM_TYPE 
+.br
+\fIstr\fP String to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_upper (\fBM_buf_t\fP * buf, const char * str)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer, ensuring all characters of the string are in uppercase\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIstr\fP String to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_lower (\fBM_buf_t\fP * buf, const char * str)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer, ensuring all characters of the string are in lowercase\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIstr\fP String to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_fill (\fBM_buf_t\fP * buf, unsigned char fill_char, size_t width)"
+Append a fill character to a buffer zero or more times\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer 
+.br
+\fIfill_char\fP Character/byte to append\&. 
+.br
+\fIwidth\fP Number of times to add character/byte\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_uint (\fBM_buf_t\fP * buf, M_uint64 n)"
+Append the character decimal representation ('%llu') of an unsigned integer to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_int (\fBM_buf_t\fP * buf, M_int64 n)"
+Append the character decimal representation ('%lld') of a signed integer to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_bytes_just (\fBM_buf_t\fP * buf, const void * bytes, size_t bytes_length, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+Append zero or more bytes to a buffer, with justification\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIbytes\fP Bytes to append\&. 
+.br
+\fIbytes_length\fP Number of bytes to append\&. 
+.br
+\fIjustify_type\fP Type of justification (left, right, etc\&.)\&. 
+.br
+\fIfill_char\fP Character to use for padding\&. 
+.br
+\fIwidth\fP Width of field, including padding\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_just_transform (\fBM_buf_t\fP * buf, M_uint32 transform_type, const char * str, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer, with justification and transformation\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fItransform_type\fP bitmap of transformations (enum M_BUF_TRANSFORM_TYPE) to perform\&. 
+.br
+\fIstr\fP String to append\&. 
+.br
+\fIjustify_type\fP Type of justification (left, right, etc\&.)\&. 
+.br
+\fIfill_char\fP Character to use for padding\&. 
+.br
+\fIwidth\fP Width of field, including padding\&. 
+.RE
+.PP
+
+.SS "void M_buf_add_str_just (\fBM_buf_t\fP * buf, const char * str, \fBM_str_justify_type_t\fP justify_type, unsigned char fill_char, size_t width)"
+Append a C string (zero or more bytes terminated with a NUL) to a buffer, with justification\&.
+.PP
+The NUL is not appended\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIstr\fP String to append\&. 
+.br
+\fIjustify_type\fP Type of justification (left, right, etc\&.)\&. 
+.br
+\fIfill_char\fP Character to use for padding\&. 
+.br
+\fIwidth\fP Width of field, including padding\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_uint_just (\fBM_buf_t\fP * buf, M_uint64 n, size_t width)"
+Append the character decimal representation ('%llu') of an unsigned integer to a buffer, with right justification, zero padded\&.
+.PP
+Bytes on the left will be truncated from the integer if there is insufficient width\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.br
+\fIwidth\fP Width of field, including padding\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE if input was truncated, otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_int_just (\fBM_buf_t\fP * buf, M_int64 n, size_t width)"
+Append the character decimal representation ('%lld') of a signed integer to a buffer, with right justification, zero padded\&.
+.PP
+Bytes on the left will be truncated from the integer if there is insufficient width\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.br
+\fIwidth\fP Width of field, including padding\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE if input was truncated, otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_uintbin (\fBM_buf_t\fP * buf, M_uint64 n, size_t width, \fBM_endian_t\fP endianness)"
+Append an integer converted to binary form based on endianness\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.br
+\fIwidth\fP Exact field length, must be [1:8] 
+.br
+\fIendianness\fP Endianness the integer should be written using\&.
+.RE
+.PP
+return M_TRUE if integer could be written\&. Otherwise M_FALSE\&. 
+.SS "M_bool M_buf_add_uintstrbin (\fBM_buf_t\fP * buf, const char * s, unsigned char base, size_t width, \fBM_endian_t\fP endianness)"
+Append an integer in string form to binary data based on endianness\&.
+.PP
+The string representing a big endian number\&. Hex especially must be ordered as big endian\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIs\fP Numeric string form\&. 
+.br
+\fIbase\fP Valid range 2 - 36\&. 0 to autodetect based on input (0x = hex, 0 = octal, anything else is decimal)\&. 
+.br
+\fIwidth\fP Width of the field [1:8]\&. 
+.br
+\fIendianness\fP Endianness the integer should be written using\&.
+.RE
+.PP
+return M_TRUE if integer could be written for number of bytes requested\&. Otherwise M_FALSE\&. 
+.SS "M_bool M_buf_add_uintbcd (\fBM_buf_t\fP * buf, M_uint64 n, size_t width)"
+Append an integer converted to Binary Coded Decimal\&.
+.PP
+Packed BCD with 4 bit numbers representing a single number\&. Two numbers packed into one byte\&.
+.PP
+dec just bcd hex  1 2 0000 0001 0x01 2 3 0000 0000 0000 0000 0000 0010 0x000002 100 3 0000 0000 0000 0001 0000 0000 0x000100 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.br
+\fIwidth\fP Width of field, including padding\&. This is the total number of bytes that should be written\&. A width of 3 means 3 bytes not 3 BCD segments\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE if input would be truncated (length greater than width), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_uintstrbcd (\fBM_buf_t\fP * buf, const char * s, unsigned char base, size_t width)"
+Append an integer in string form to Binary Coded Decimal\&.
+.PP
+Packed BCD with 4 bit numbers representing a single number\&. Two numbers packed into one byte\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIs\fP Numeric string form\&. 
+.br
+\fIbase\fP Valid range 2 - 36\&. 0 to autodetect based on input (0x = hex, 0 = octal, anything else is decimal)\&. 
+.br
+\fIwidth\fP Width of the field [1:8]\&.
+.RE
+.PP
+return M_TRUE if integer could be written for number of bytes requested\&. Otherwise M_FALSE\&. 
+.SS "M_bool M_buf_add_uinthex (\fBM_buf_t\fP * buf, M_uint64 n, M_bool is_upper, size_t width)"
+Append an integer converted to Hex-ASCII\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIn\fP Unsigned integer to append\&. 
+.br
+\fIis_upper\fP Should data be added uppercase\&. 
+.br
+\fIwidth\fP Width of field, including padding\&.
+.RE
+.PP
+return M_TRUE if integer could be written for number of bytes requested\&. Otherwise M_FALSE\&. 
+.SS "void M_buf_add_bytehex (\fBM_buf_t\fP * buf, unsigned char byte, M_bool is_upper)"
+Append a byte converted to Hex-ASCII\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIbyte\fP Byte to append\&. 
+.br
+\fIis_upper\fP Should data be added uppercase\&.
+.RE
+.PP
+return M_TRUE if byte could be written\&. Otherwise M_FALSE\&. 
+.SS "void M_buf_add_ptr (\fBM_buf_t\fP * buf, void * ptr)"
+Append a pointer
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIptr\fP Pointer (address) to append\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_money (\fBM_buf_t\fP * buf, const char * amount, size_t max_width)"
+Append a monetary amount to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), M_TRUE otherwise\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_money_dot (\fBM_buf_t\fP * buf, const char * amount, size_t max_width)"
+Append a monetary amount to a buffer, adding a decimal point\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), Otherewise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_money_just (\fBM_buf_t\fP * buf, const char * amount, size_t max_width)"
+Append a monetary amount to a buffer, with right justification, zero padded\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_money_dot_just (\fBM_buf_t\fP * buf, const char * amount, size_t max_width)"
+Append a monetary amount to a buffer, adding a decimal point, with right justification, zero padded\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_int_money (\fBM_buf_t\fP * buf, M_int64 amount, size_t max_width)"
+Append a monetary amount to a buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_int_money_dot (\fBM_buf_t\fP * buf, M_int64 amount, size_t max_width)"
+Append a monetary amount to a buffer, adding a decimal point\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_int_money_just (\fBM_buf_t\fP * buf, M_int64 amount, size_t max_width)"
+Append a monetary amount to a buffer, with right justification, zero padded\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_int_money_dot_just (\fBM_buf_t\fP * buf, M_int64 amount, size_t max_width)"
+Append a monetary amount to a buffer, adding a decimal point, with right justification, zero padded\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIamount\fP Monetary amount to append\&. 
+.br
+\fImax_width\fP Maximum width of field\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (probably truncation), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_decimal (\fBM_buf_t\fP * buf, const \fBM_decimal_t\fP * decimal, M_bool implied_decimal, M_int8 num_decimals, size_t max_width)"
+Appends a decimal number to a buffer\&.
+.PP
+The number of decimal places may be specified and whether or not the number should have an 'implied' decimal but not actually output the decimal character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIdecimal\fP Decimal number to represent\&. 
+.br
+\fIimplied_decimal\fP The decimal place is implied (e\&.g\&. not actually present in the output)\&. 
+.br
+\fInum_decimals\fP Number of digits after the decimal that should be printed\&. Pass as -1 if it should output whatever is currently in the decimal\&. Required to be something other than -1 if using implied decimal\&. 
+.br
+\fImax_width\fP Maximum width of the output, if this is exceeded it is an error condition\&. A value of 0 means there is no maximum\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (e\&.g\&. truncation or misuse), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_decimal_just (\fBM_buf_t\fP * buf, const \fBM_decimal_t\fP * decimal, M_bool implied_decimal, M_int8 num_decimals, size_t max_width)"
+Appends a decimal number to a buffer justifying it on the left with zeros\&.
+.PP
+The number of decimal places may be specified and whether or not the number should have an 'implied' decimal but not actually output the decimal character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer\&. 
+.br
+\fIdecimal\fP Decimal number to represent\&. 
+.br
+\fIimplied_decimal\fP The decimal place is implied (e\&.g\&. not actually present in the output)\&. 
+.br
+\fInum_decimals\fP Number of digits after the decimal that should be printed\&. Pass as -1 if it should output whatever is currently in the decimal\&. Required to be something other than -1 if using implied decimal\&. 
+.br
+\fImax_width\fP Justification width of the output\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_FALSE on error (e\&.g\&. truncation or misuse), otherwise M_TRUE\&. 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_bytes_replace (\fBM_buf_t\fP * dest_buf, const M_uint8 * src, size_t src_len, const M_uint8 * search_bytes, size_t search_len, const M_uint8 * replace_bytes, size_t replace_len)"
+Add given bytes to destination buffer, replace all instances of a byte sequence during the add\&.
+.PP
+The source pointer must not point to the destination buffer's memory (no aliasing allowed)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest_buf\fP buffer to write data to 
+.br
+\fIsrc\fP bytes to add 
+.br
+\fIsrc_len\fP number of bytes to add 
+.br
+\fIsearch_bytes\fP sequence of bytes to look for 
+.br
+\fIsearch_len\fP length of search sequence 
+.br
+\fIreplace_bytes\fP sequence of bytes to replace \fIsearch_bytes\fP with 
+.br
+\fIreplace_len\fP length of replace sequence 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on error 
+.RE
+.PP
+
+.SS "M_bool M_buf_add_str_replace (\fBM_buf_t\fP * dest_buf, const char * src_str, const char * search_str, const char * replace_str)"
+Add given string to destination buffer, replace all instances of a string during the add\&.
+.PP
+The source pointer must not point to the destination buffer's memory (no aliasing allowed)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdest_buf\fP buffer to write data to 
+.br
+\fIsrc_str\fP string to add 
+.br
+\fIsearch_str\fP string we're looking for 
+.br
+\fIreplace_str\fP string we're going to replace \fIsearch_str\fP with 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on error 
+.RE
+.PP
+
+.SS "void M_buf_add_str_quoted (\fBM_buf_t\fP * buf, char quote_char, char escape_char, const char * quote_req_chars, M_bool always_quote, const char * src)"
+Add the given string to the buffer, quoting if necessary\&.
+.PP
+This is useful for outputting delimited data like CSV\&.
+.PP
+If the input string is NULL, it will not output anything even if always_quoted is specified\&. However, an empty string will always be output as quoted as that is what differentiates between an empty string an NULL\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIbuf\fP Buffer to write quoted string to\&. 
+.br
+\fIquote_char\fP Quote character to use (often a double quote: ") 
+.br
+\fIescape_char\fP Escape character to use if either an embedded quote is found or another escape character\&. For CSV this is often the same value as the quote character as per RFC4180\&. 
+.br
+\fIquote_req_chars\fP NULL-terminated list of characters that would force quoting the string\&. Often ',\\\\r\\\\n' are used\&. 
+.br
+\fIalways_quote\fP If set to M_TRUE, will always quote the output, M_FALSE it will decide based on quote_req_chars\&. 
+.br
+\fIsrc\fP Data to be quoted/escaped and appended to the buffer 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

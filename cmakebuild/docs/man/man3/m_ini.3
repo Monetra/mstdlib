@@ -1,0 +1,1059 @@
+.TH "m_ini" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_ini
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_ini \fBM_ini_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_ini_settings \fBM_ini_settings_t\fP"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_ini_merge_resolver_t\fP) (const char *key, const char *val_cur, const char *val_new)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_ini_dupkvs_t\fP { \fBM_INI_DUPKVS_COMMENT_PREV\fP = 0, \fBM_INI_DUPKVS_REMOVE_PREV\fP, \fBM_INI_DUPKVS_COMMENT\fP, \fBM_INI_DUPKVS_REMOVE\fP, \fBM_INI_DUPKVS_COLLECT\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_ini_padding_t\fP { \fBM_INI_PADDING_NONE\fP = 0, \fBM_INI_PADDING_BEFORE_KV_DELIM\fP = 1 << 0, \fBM_INI_PADDING_AFTER_KV_DELIM\fP = 1 << 1, \fBM_INI_PADDING_AFTER_KV_VAL\fP = 1 << 2, \fBM_INI_PADDING_AFTER_COMMENT_CHAR\fP = 1 << 3 }"
+.br
+.ti -1c
+.RI "enum \fBM_ini_multivals_t\fP { \fBM_INI_MULTIVALS_USE_LAST\fP = 0, \fBM_INI_MULTIVALS_USE_FIRST\fP, \fBM_INI_MULTIVALS_KEEP_EXISTING\fP, \fBM_INI_MULTIVALS_MAINTAIN_ORDER\fP }"
+.br
+.ti -1c
+.RI "enum \fBM_ini_merge_conflict_t\fP { \fBM_INI_MERGE_CALLBACK_FUNC\fP = 0, \fBM_INI_MERGE_NEW_REMOVED_KEEP\fP = 1 << 0, \fBM_INI_MERGE_NEW_CHANGED_USE_CUR\fP = 1 << 1, \fBM_INI_MERGE_MULTI_NEW_REMOVED_KEEP\fP = 1 << 3 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "char * \fBM_ini_full_key\fP (const char *section, const char *key) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_ini_split_key\fP (const char *s, char **section, char **key)"
+.br
+.ti -1c
+.RI "\fBM_ini_settings_t\fP * \fBM_ini_settings_create\fP (void) M_MALLOC"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_destroy\fP (\fBM_ini_settings_t\fP *info) M_FREE(1)"
+.br
+.ti -1c
+.RI "unsigned char \fBM_ini_settings_get_element_delim_char\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "unsigned char \fBM_ini_settings_get_quote_char\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "unsigned char \fBM_ini_settings_get_escape_char\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "unsigned char \fBM_ini_settings_get_comment_char\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "unsigned char \fBM_ini_settings_get_kv_delim_char\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_ini_settings_get_padding\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_ini_dupkvs_t\fP \fBM_ini_settings_reader_get_dupkvs_handling\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_ini_multivals_t\fP \fBM_ini_settings_writer_get_multivals_handling\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "const char * \fBM_ini_settings_writer_get_line_ending\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "M_uint32 \fBM_ini_settings_merger_get_conflict_flags\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_ini_merge_resolver_t\fP \fBM_ini_settings_merger_get_resolver\fP (const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_element_delim_char\fP (\fBM_ini_settings_t\fP *info, unsigned char val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_quote_char\fP (\fBM_ini_settings_t\fP *info, unsigned char val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_escape_char\fP (\fBM_ini_settings_t\fP *info, unsigned char val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_comment_char\fP (\fBM_ini_settings_t\fP *info, unsigned char val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_kv_delim_char\fP (\fBM_ini_settings_t\fP *info, unsigned char val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_set_padding\fP (\fBM_ini_settings_t\fP *info, M_uint32 val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_reader_set_dupkvs_handling\fP (\fBM_ini_settings_t\fP *info, \fBM_ini_dupkvs_t\fP val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_writer_set_multivals_handling\fP (\fBM_ini_settings_t\fP *info, \fBM_ini_multivals_t\fP val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_writer_set_line_ending\fP (\fBM_ini_settings_t\fP *info, const char *val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_merger_set_conflict_flags\fP (\fBM_ini_settings_t\fP *info, M_uint32 val)"
+.br
+.ti -1c
+.RI "void \fBM_ini_settings_merger_set_resolver\fP (\fBM_ini_settings_t\fP *info, \fBM_ini_merge_resolver_t\fP val)"
+.br
+.ti -1c
+.RI "\fBM_ini_t\fP * \fBM_ini_create\fP (M_bool ignore_whitespace) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_ini_t\fP * \fBM_ini_duplicate\fP (const \fBM_ini_t\fP *ini)"
+.br
+.ti -1c
+.RI "void \fBM_ini_destroy\fP (\fBM_ini_t\fP *ini) M_FREE(1)"
+.br
+.ti -1c
+.RI "\fBM_ini_t\fP * \fBM_ini_read\fP (const char *s, const \fBM_ini_settings_t\fP *info, M_bool ignore_whitespace, size_t *err_line) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_ini_t\fP * \fBM_ini_read_file\fP (const char *path, const \fBM_ini_settings_t\fP *info, M_bool ignore_whitespace, size_t *err_line, size_t max_read) M_MALLOC"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_has_key\fP (const \fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_ini_kv_keys\fP (const \fBM_ini_t\fP *ini) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_ini_kv_sections\fP (const \fBM_ini_t\fP *ini) M_MALLOC"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_rename\fP (\fBM_ini_t\fP *ini, const char *key, const char *new_key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_add_key\fP (\fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_set\fP (\fBM_ini_t\fP *ini, const char *key, const char *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_insert\fP (\fBM_ini_t\fP *ini, const char *key, const char *val)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_remove\fP (\fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_remove_vals\fP (\fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_remove_val_at\fP (\fBM_ini_t\fP *ini, const char *key, size_t idx)"
+.br
+.ti -1c
+.RI "size_t \fBM_ini_kv_len\fP (const \fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "M_bool \fBM_ini_kv_get\fP (const \fBM_ini_t\fP *ini, const char *key, size_t idx, const char **val)"
+.br
+.ti -1c
+.RI "const char * \fBM_ini_kv_get_direct\fP (const \fBM_ini_t\fP *ini, const char *key, size_t idx)"
+.br
+.ti -1c
+.RI "\fBM_list_str_t\fP * \fBM_ini_kv_get_vals\fP (const \fBM_ini_t\fP *ini, const char *key)"
+.br
+.ti -1c
+.RI "char * \fBM_ini_write\fP (\fBM_ini_t\fP *ini, const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_fs_error_t\fP \fBM_ini_write_file\fP (\fBM_ini_t\fP *ini, const char *path, const \fBM_ini_settings_t\fP *info)"
+.br
+.ti -1c
+.RI "\fBM_ini_t\fP * \fBM_ini_merge\fP (const \fBM_ini_t\fP *cur_ini, const \fBM_ini_t\fP *new_ini, const \fBM_ini_t\fP *orig_ini, const \fBM_ini_settings_t\fP *info)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Configurable handling for various formats\&. Such as # vs ; comment identifiers\&.
+.PP
+For easier access functions that do not take a section use the key form 'section/key'\&. If multiple '/' characters are in the combined key the section is only up until the first '/'\&. Meaning: 'section/key/key_part'
+.PP
+Can handle multiple or single values under a single key\&.
+.PP
+Supports:
+.IP "\(bu" 2
+Read
+.IP "\(bu" 2
+Write
+.IP "\(bu" 2
+Modify
+.IP "\(bu" 2
+Merge
+.PP
+.PP
+Example:
+.PP
+.PP
+.nf
+M_ini_t          *ini   = NULL;
+M_ini_settings_t *info  = NULL;
+char             *out;
+size_t            errln = 0;
+
+info = M_ini_settings_create();
+M_ini_settings_set_quote_char(info, '"');
+M_ini_settings_set_escape_char(info, '"');
+M_ini_settings_set_padding(info, M_INI_PADDING_AFTER_COMMENT_CHAR);
+M_ini_settings_reader_set_dupkvs_handling(info, M_INI_DUPKVS_REMOVE);
+M_ini_settings_writer_set_multivals_handling(info, M_INI_MULTIVALS_USE_LAST);
+
+ini = M_ini_read_file("file\&.ini", info, M_TRUE, &errln, 0);
+if (ini == NULL) {
+    M_printf("ini could not be parsed\&. Error line: %zu\n", errln);
+    return M_FALSE;
+}
+
+M_ini_kv_set(ini, "s1/key1", "yes");
+
+out = M_ini_write(ini, info);
+M_printf("new ini=\n%s\n", out);
+M_free(out);
+
+M_ini_destroy(ini);
+M_ini_settings_destroy(info);
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_ini \fBM_ini_t\fP"
+
+.SS "typedef struct M_ini_settings \fBM_ini_settings_t\fP"
+
+.SS "typedef M_bool(* M_ini_merge_resolver_t) (const char *key, const char *val_cur, const char *val_new)"
+Conflict handler function prototype\&.
+.PP
+Ini merging can have conflicts resolved using a callback function\&. The use of the resolution callback is dependent on the appropriate merge flag being set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIkey\fP The key\&. If key is NULL then the values are they key\&. In this case if the value is NULL then the key doesn't exist for that location\&. 
+.br
+\fIval_cur\fP The value in the current ini\&. 
+.br
+\fIval_new\fP The new value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the current value should be used\&. Otherwise, M_FALSE if the new value should be used\&. 
+.RE
+.PP
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_ini_dupkvs_t\fP"
+Duplicate key, value pair handling where a key is encountered multiple times\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_INI_DUPKVS_COMMENT_PREV \fP\fP
+Turn previous kv into comments\&. Last wins\&. 
+.TP
+\fB\fIM_INI_DUPKVS_REMOVE_PREV \fP\fP
+Remove previous kv from the tree\&. Last wins\&. 
+.TP
+\fB\fIM_INI_DUPKVS_COMMENT \fP\fP
+Turn the current kv into a comment\&. First wins\&. 
+.TP
+\fB\fIM_INI_DUPKVS_REMOVE \fP\fP
+Remove the current kv from the tree\&. First wins\&. 
+.TP
+\fB\fIM_INI_DUPKVS_COLLECT \fP\fP
+Multiple kv are allowed and their values should be collected\&. All win\&. 
+.SS "enum \fBM_ini_padding_t\fP"
+Control padding when between parts of elements\&. Primarily used for writing but also used for reading when a comment duplicate key flag is used\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_INI_PADDING_NONE \fP\fP
+No padding\&. 
+.TP
+\fB\fIM_INI_PADDING_BEFORE_KV_DELIM \fP\fP
+Put a space before the kv delimiter\&. 
+.TP
+\fB\fIM_INI_PADDING_AFTER_KV_DELIM \fP\fP
+Put a space after the kv delimiter\&. 
+.TP
+\fB\fIM_INI_PADDING_AFTER_KV_VAL \fP\fP
+Put a space after the kv val if followed by a comment\&. 
+.TP
+\fB\fIM_INI_PADDING_AFTER_COMMENT_CHAR \fP\fP
+Put a space after the comment character\&. 
+.SS "enum \fBM_ini_multivals_t\fP"
+Control how muli value keys are written\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_INI_MULTIVALS_USE_LAST \fP\fP
+Multi-value keys are not supported\&. Use the last value\&. 
+.TP
+\fB\fIM_INI_MULTIVALS_USE_FIRST \fP\fP
+Multi-value keys are not supported\&. Use the first value\&. 
+.TP
+\fB\fIM_INI_MULTIVALS_KEEP_EXISTING \fP\fP
+Multi-value keys are supported\&. Keep existing values in the same location and place new values after\&. 
+.TP
+\fB\fIM_INI_MULTIVALS_MAINTAIN_ORDER \fP\fP
+Multi-value keys are supported\&. Remove all existing keys and write them all together maintaining the current value order\&. 
+.SS "enum \fBM_ini_merge_conflict_t\fP"
+Control how conflicts are handled during merge\&.
+.PP
+These values all override the default behavior\&. Default behavior:
+.IP "\(bu" 2
+When a key is in new but not in cur and orig remove the key\&.
+.IP "\(bu" 2
+When the value (single) of cur is the same as orig but different than new use the new value\&.
+.IP "\(bu" 2
+When a key with multiple values has a value that is in cur and orig but not in new remove the value\&. 
+.PP
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_INI_MERGE_CALLBACK_FUNC \fP\fP
+Use a conflict resolution callback function to determine how to handle conflicts\&. A callback function must be set otherwise the default handling will be used\&. 
+.TP
+\fB\fIM_INI_MERGE_NEW_REMOVED_KEEP \fP\fP
+When a key is not in new but in cur and orig keep the key\&. The default is to remove the key\&. 
+.TP
+\fB\fIM_INI_MERGE_NEW_CHANGED_USE_CUR \fP\fP
+When the value of cur is the same as orig but different than new use the value from cur\&. Meaning the default value is set but has changed\&. The default is to use the new value\&. 
+.TP
+\fB\fIM_INI_MERGE_MULTI_NEW_REMOVED_KEEP \fP\fP
+When a key with multiple values has a value that is in cur and orig but not in new keep the value\&. The default is to remove the value\&. 
+.SH "Function Documentation"
+.PP 
+.SS "char* M_ini_full_key (const char * section, const char * key)"
+Create a full key from individual parts\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIsection\fP The section the key belongs to\&. Can be NULL if referencing a key not in a section\&. 
+.br
+\fIkey\fP The key within the section\&. Can be NULL if referencing a section only\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A string with the full key\&. 
+.RE
+.PP
+
+.SS "void M_ini_split_key (const char * s, char ** section, char ** key)"
+Split a full key into it's individual parts\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP The full key\&. 
+.br
+\fIsection\fP The section part\&. Optional, pass NULL if not needed\&. May be returned as NULL\&. 
+.br
+\fIkey\fP The key part\&. Optional, pass NULL if not needed\&. May be returned as NULL\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_settings_t\fP* M_ini_settings_create (void)"
+Create an ini settings object\&.
+.PP
+\fBReturns:\fP
+.RS 4
+an ini settings object\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_destroy (\fBM_ini_settings_t\fP * info)"
+Destroy an ini settings object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings object to destroy\&. 
+.RE
+.PP
+
+.SS "unsigned char M_ini_settings_get_element_delim_char (const \fBM_ini_settings_t\fP * info)"
+Get the element delimiter character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The element delimiter character\&. Default is '\\n'\&. 
+.RE
+.PP
+
+.SS "unsigned char M_ini_settings_get_quote_char (const \fBM_ini_settings_t\fP * info)"
+Get the quote character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The quote character\&. 0 if not set\&. 
+.RE
+.PP
+
+.SS "unsigned char M_ini_settings_get_escape_char (const \fBM_ini_settings_t\fP * info)"
+Get the quoting escape character\&.
+.PP
+This can be the same character as the quote character which suggests CSV style quoting\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The escape character\&. 0 if not set\&. 
+.RE
+.PP
+
+.SS "unsigned char M_ini_settings_get_comment_char (const \fBM_ini_settings_t\fP * info)"
+Get the comment character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The comment character\&. Default is '#'\&. 
+.RE
+.PP
+
+.SS "unsigned char M_ini_settings_get_kv_delim_char (const \fBM_ini_settings_t\fP * info)"
+Get the key, value delimiter character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The key, value delimiter character\&. Default is '='\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_ini_settings_get_padding (const \fBM_ini_settings_t\fP * info)"
+Get the padding flags\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The padding flags\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_dupkvs_t\fP M_ini_settings_reader_get_dupkvs_handling (const \fBM_ini_settings_t\fP * info)"
+Get the duplicate key handling value used during reading\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The duplicate key handling value\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_multivals_t\fP M_ini_settings_writer_get_multivals_handling (const \fBM_ini_settings_t\fP * info)"
+Get the multiple value handling value used during writing\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The multiple value handing value\&. 
+.RE
+.PP
+
+.SS "const char* M_ini_settings_writer_get_line_ending (const \fBM_ini_settings_t\fP * info)"
+Get the line ending used when writing the ini\&.
+.PP
+This is to allow multiple character line endings (Windows '\\r\\n')\&. This is an override of the element delim character that will be used if set\&. The line ending string will not be used when determining if quoting is necessary\&. The element delim is still used for this purpose even when the line ending is set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The line ending characters\&. 
+.RE
+.PP
+
+.SS "M_uint32 M_ini_settings_merger_get_conflict_flags (const \fBM_ini_settings_t\fP * info)"
+Get the conflict resolution flags used for merging\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The conflict resolution flags\&. If 0 then either the default handing is going to be used or a custom resolution callback has been registered\&. Check if the call back is not NULL to know if the default handling will be used\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_merge_resolver_t\fP M_ini_settings_merger_get_resolver (const \fBM_ini_settings_t\fP * info)"
+Get the conflict resolution function used for merging when the conflict flags are set to use a custom resolution callback\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+the resolution function\&. NULL if not set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_element_delim_char (\fBM_ini_settings_t\fP * info, unsigned char val)"
+Set the element delimiter character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_quote_char (\fBM_ini_settings_t\fP * info, unsigned char val)"
+Set the quote character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_escape_char (\fBM_ini_settings_t\fP * info, unsigned char val)"
+Set the escape character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_comment_char (\fBM_ini_settings_t\fP * info, unsigned char val)"
+Set the comment character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_kv_delim_char (\fBM_ini_settings_t\fP * info, unsigned char val)"
+Set the key value delimiter character\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_set_padding (\fBM_ini_settings_t\fP * info, M_uint32 val)"
+Set the padding flags\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_reader_set_dupkvs_handling (\fBM_ini_settings_t\fP * info, \fBM_ini_dupkvs_t\fP val)"
+Set the duplicate key flags used for reading\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_writer_set_multivals_handling (\fBM_ini_settings_t\fP * info, \fBM_ini_multivals_t\fP val)"
+Set the multiple value handling flags used for writing\&.\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_writer_set_line_ending (\fBM_ini_settings_t\fP * info, const char * val)"
+Set the line ending used when writing the ini\&.
+.PP
+This is to allow multiple character line endings (Windows '\\r\\n')\&. This is an override of the element delim character that will be used if set\&. The line ending string will not be used when determining if quoting is necessary\&. The element delim is still used for this purpose even when the line ending is set\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_merger_set_conflict_flags (\fBM_ini_settings_t\fP * info, M_uint32 val)"
+Set the conflict resolution flags used for merging\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "void M_ini_settings_merger_set_resolver (\fBM_ini_settings_t\fP * info, \fBM_ini_merge_resolver_t\fP val)"
+Set the conflict resolution function\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIinfo\fP The settings\&. 
+.br
+\fIval\fP The value to set\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_t\fP* M_ini_create (M_bool ignore_whitespace)"
+Create a new ini object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIignore_whitespace\fP Should whitespace be ignored when comparing section and key names\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A new ini object\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_t\fP* M_ini_duplicate (const \fBM_ini_t\fP * ini)"
+Duplicate an ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini to duplicate 
+.RE
+.PP
+
+.SS "void M_ini_destroy (\fBM_ini_t\fP * ini)"
+Destroy the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini to destroy\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_t\fP* M_ini_read (const char * s, const \fBM_ini_settings_t\fP * info, M_bool ignore_whitespace, size_t * err_line)"
+Parse a string into an ini object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIs\fP The string to parse\&. 
+.br
+\fIinfo\fP The ini settings that control how the ini is structured and should be read\&. 
+.br
+\fIignore_whitespace\fP Should whitespace be ignored for section and key comparison\&. 
+.br
+\fIerr_line\fP If an error occurs the line the error is present on\&. Optional, pass NULL if not needed\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+An ini object\&. NULL if data could not be parsed\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_t\fP* M_ini_read_file (const char * path, const \fBM_ini_settings_t\fP * info, M_bool ignore_whitespace, size_t * err_line, size_t max_read)"
+Read a file based on file name into an ini object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpath\fP The full file path to read\&. 
+.br
+\fIinfo\fP The ini settings that control how the ini is structured and should be read\&. 
+.br
+\fIignore_whitespace\fP Should whitespace be ignored for section and key comparison\&. 
+.br
+\fIerr_line\fP If an error occurs the line the error is present on\&. Optional, pass NULL if not needed\&. 
+.br
+\fImax_read\fP The maximum number of bytes to read\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+An ini object\&. NULL if the file could not be parsed\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_has_key (const \fBM_ini_t\fP * ini, const char * key)"
+Does the ini contain a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key to check\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the ini contains the key otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_ini_kv_keys (const \fBM_ini_t\fP * ini)"
+Get a list of all keys contained in the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of keys contained in the ini\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_ini_kv_sections (const \fBM_ini_t\fP * ini)"
+Get a list of sections contained in the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A list of sections contained in the ini\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_rename (\fBM_ini_t\fP * ini, const char * key, const char * new_key)"
+Rename a section or key in the ini\&.
+.PP
+Renaming a section can move all keys under it\&. Renaming a key will move it to the new location if the section portion is different\&.
+.PP
+Renaming will fail if the new name already exists\&. This applies to sections and keys\&.
+.PP
+This can also be used to rename the 'pretty name' for a section or key when ignore white space is in use\&. Or when the case needs to be changed\&. E\&.g\&. 'section_1' -> 'Section 1'\&. These are equivalent when ignore whitespace is enabled and renaming will simply change the pretty name\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The section or key to rename\&. 
+.br
+\fInew_key\fP The new name\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_add_key (\fBM_ini_t\fP * ini, const char * key)"
+Add a key (without value) to the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key to add\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if added otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_set (\fBM_ini_t\fP * ini, const char * key, const char * val)"
+Set the value for the key to this value only\&.
+.PP
+This will clear/replace any other values (even multiple) for the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&. 
+.br
+\fIval\fP The vaule\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_insert (\fBM_ini_t\fP * ini, const char * key, const char * val)"
+Insert the value into the values for key\&.
+.PP
+This does not remove/replace the existing values for the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&. 
+.br
+\fIval\fP The vaule\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_remove (\fBM_ini_t\fP * ini, const char * key)"
+Remove the key from the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_remove_vals (\fBM_ini_t\fP * ini, const char * key)"
+Remove all values for a key but leave the key as part of the ini\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_remove_val_at (\fBM_ini_t\fP * ini, const char * key, size_t idx)"
+Remove a specific value from the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&. 
+.br
+\fIidx\fP The index of the value to remove\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "size_t M_ini_kv_len (const \fBM_ini_t\fP * ini, const char * key)"
+Get the number of values for a given key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of values for a given key\&. 
+.RE
+.PP
+
+.SS "M_bool M_ini_kv_get (const \fBM_ini_t\fP * ini, const char * key, size_t idx, const char ** val)"
+Get the value at the given index for the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&. 
+.br
+\fIidx\fP The index of the value to get\&. 
+.br
+\fIval\fP The value\&. Can be NULL to check for value existence\&. Use M_ini_kv_has_key to determine key existence because a key can be part of of the ini and not have a value\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE if the value can be retrieved\&. Otherwise M_FALSE\&. 
+.RE
+.PP
+
+.SS "const char* M_ini_kv_get_direct (const \fBM_ini_t\fP * ini, const char * key, size_t idx)"
+Get the value at the given index for the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&. 
+.br
+\fIidx\fP The index of the value to get\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The value\&. 
+.RE
+.PP
+
+.SS "\fBM_list_str_t\fP* M_ini_kv_get_vals (const \fBM_ini_t\fP * ini, const char * key)"
+Get all values for the key\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIkey\fP The key\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A string list of values or NULL\&. 
+.RE
+.PP
+
+.SS "char* M_ini_write (\fBM_ini_t\fP * ini, const \fBM_ini_settings_t\fP * info)"
+Write the ini to a string\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIinfo\fP Settings controlling how the ini should be written\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The ini as a string\&. 
+.RE
+.PP
+
+.SS "\fBM_fs_error_t\fP M_ini_write_file (\fBM_ini_t\fP * ini, const char * path, const \fBM_ini_settings_t\fP * info)"
+Write the ini directly to a file\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIini\fP The ini\&. 
+.br
+\fIpath\fP The file path to write the ini to\&. This will overwrite the data in the file at path if path is an existing file\&. 
+.br
+\fIinfo\fP Settings controlling how the ini should be written\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Result\&. 
+.RE
+.PP
+
+.SS "\fBM_ini_t\fP* M_ini_merge (const \fBM_ini_t\fP * cur_ini, const \fBM_ini_t\fP * new_ini, const \fBM_ini_t\fP * orig_ini, const \fBM_ini_settings_t\fP * info)"
+Merge a new ini into an existing ini\&.
+.PP
+The merge processes is similar to a three way diff\&. The current values are compared to the values in new and the original\&. The merge process is:
+.PP
+.IP "1." 4
+Update keys\&. a\&. Only in new = in merged\&. b\&. Only in cur = in merged\&. c\&. In cur and new but not in orig = in merged\&. d\&. In orig and cur but not in new = flag handling (default: not in merged)\&. e\&. In orig and new but not in cur = flag handling (default: not in merged)\&. f\&. in cur, new and orig = in merged\&.
+.IP "2." 4
+Update vals\&. a\&. Cur and orig the same but new different = flag handling (default: use new)\&. b\&. Cur and new the same but orig different = use cur/new\&. c\&. New and orig the same but cur different = use cur d\&. All there are the same = use cur/new/orig\&.
+.IP "3." 4
+Update multi-vals\&. a\&. In cur and new = use cur/new\&. b\&. Only in cur = use cur\&. c\&. In cur and orig but not in new = flag (default remove)\&. d\&. In new but not in cur or orig = use new\&.
+.PP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcur_ini\fP The current ini\&. Contains user changes that differ from the original ini\&. 
+.br
+\fInew_ini\fP The new ini\&. 
+.br
+\fIorig_ini\fP The original ini that cur_ini is based on\&. 
+.br
+\fIinfo\fP Settings controlling how the ini should be merged\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

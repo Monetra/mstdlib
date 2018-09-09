@@ -1,0 +1,105 @@
+.TH "m_sql_helpers" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_helpers
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "M_int64 \fBM_sql_gen_timerand_id\fP (\fBM_sql_connpool_t\fP *pool, size_t max_len)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_sql_rollback_delay_ms\fP (\fBM_sql_connpool_t\fP *pool)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+SQL Helpers for various situations 
+.SH "Function Documentation"
+.PP 
+.SS "M_int64 M_sql_gen_timerand_id (\fBM_sql_connpool_t\fP * pool, size_t max_len)"
+Generate a time-based + random unique id suitable for primary key use rather than using an auto-increment column\&.
+.PP
+It is not recommended to use auto-increment columns for portability reasons, therefore a suitable unique id needs to be chosen that has a low probability of conflict\&. There is no guarantee this key is unique, so integrators should handle conflicts by regenerating the key and re-attempting the operation (even though this may be an extremely low probability)\&.
+.PP
+The generated key is a combination of the current timestamp in UTC and a random suffix\&. The reason for a timestamp prefix is some databases cannot handle purely random numbers as they cause index splits that cause exponential slowdown as the number of rows increase\&. This can be observed with MySQL in particular\&.
+.PP
+Where possible, a 64bit (signed) column should be used for the unique id, which has a maximum length of 18 digits where all digits can contain any value\&. A 32bit signed integer has a maximum of 9 digits where all digits can contain any value\&. 32bit integers are strongly discouraged as the possibility for conflict is much higher and would limit the total number of possible rows considerably (max 99,000 rows per day, but conflicts will be highly probable over a couple of thousand rows per day)\&.
+.PP
+The current formats based on length are listed below:
+.IP "\(bu" 2
+17-18+ digits : YYYJJJSSSSS{6-7R}
+.IP "\(bu" 2
+16 digits : YYJJJSSSSS{6R}
+.IP "\(bu" 2
+14-15 digits : YJJJSSSSS{5-6R}
+.IP "\(bu" 2
+13 digits : YJJJSSSS{6R}
+.IP "\(bu" 2
+11-12 digits : YJJJSS{6-7R}
+.IP "\(bu" 2
+9-10 digits : YJJJ{5-6R}
+.IP "\(bu" 2
+<9 : {1-8R}
+.PP
+.PP
+Where:
+.IP "\(bu" 2
+Y = last digit of year
+.IP "\(bu" 2
+YY = last 2 digits of year
+.IP "\(bu" 2
+YYY = last 3 digits of year
+.IP "\(bu" 2
+JJJ = Julian day of year (0-365)
+.IP "\(bu" 2
+SSSSS = Second of day (0-86399)
+.IP "\(bu" 2
+SSSS = Second of day divided by 10 (0-8639) (more fine grained than alternative of HHMM 0-2359)
+.IP "\(bu" 2
+SS = Second of day divided by 1000 (0-86) (more fine grained than alternative of HH 0-23)
+.IP "\(bu" 2
+{#R},{#-#R} = number of random digits
+.PP
+.PP
+\fBNote:\fP
+.RS 4
+A time prefix is used solely for the purpose of reducing database load by making the values as incremental as possible, while still having a random portion to avoid conflicts\&. These are not meant to be human-interpretable numbers, and formats may change in the future\&. These should essentially appear completely random to a human\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Initialized pool object 
+.br
+\fImax_len\fP Length of unique id to generate in digits\&. Valid range is 9-18\&. May return fewer digits only when the time prefix begins with zero\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+64bit signed integer representation of usable unique id, or 0 on misuse\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_sql_rollback_delay_ms (\fBM_sql_connpool_t\fP * pool)"
+Random delay to use for a rollback to assist in preventing continual deadlocks and rollbacks\&.
+.PP
+A random delay is returned in milliseconds that can be used when a rollback condition is necessary to help break deadlock loops\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpool\fP Initialized pool object 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+delay to use in milliseconds\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

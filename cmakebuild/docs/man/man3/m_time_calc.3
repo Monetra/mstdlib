@@ -1,0 +1,68 @@
+.TH "m_time_calc" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_time_calc
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "M_int64 \fBM_time_timeval_diff\fP (const \fBM_timeval_t\fP *start_time, const \fBM_timeval_t\fP *end_time)"
+.br
+.ti -1c
+.RI "void \fBM_time_elapsed_start\fP (\fBM_timeval_t\fP *start_tv)"
+.br
+.ti -1c
+.RI "M_uint64 \fBM_time_elapsed\fP (const \fBM_timeval_t\fP *start_tv)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.SH "Function Documentation"
+.PP 
+.SS "M_int64 M_time_timeval_diff (const \fBM_timeval_t\fP * start_time, const \fBM_timeval_t\fP * end_time)"
+Calculate the number of milliseconds between two timevals\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstart_time\fP The start time\&. 
+.br
+\fIend_time\fP The end time\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of milliseconds between the two times\&. 
+.RE
+.PP
+
+.SS "void M_time_elapsed_start (\fBM_timeval_t\fP * start_tv)"
+Start time to use for elapsed time operations\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstart_tv\fP The current time to use as the start time\&. 
+.RE
+.PP
+
+.SS "M_uint64 M_time_elapsed (const \fBM_timeval_t\fP * start_tv)"
+The mount of time that has elapsed since start in milliseconds\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstart_tv\fP The time to calculate from\&. This should be the value from M_time_elapsed_start\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of milliseconds that have elapsed since start until now\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

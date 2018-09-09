@@ -1,0 +1,33 @@
+.TH "m_sql_driver_postgresql" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_driver_postgresql
+.SH SYNOPSIS
+.br
+.PP
+.SH "Detailed Description"
+.PP 
+PostgreSQL Driver
+.PP
+Driver Name: postgresql
+.PP
+Driver Connection String Options:
+.IP "\(bu" 2
+db: Required\&. Database Name\&.
+.IP "\(bu" 2
+host: Required\&. This is the hostname or IP address of the server\&. If not using the default port of 5432, may append a ':port#' to the end of the host\&. For specifying multiple hosts in a pool, hosts should be comma delimited\&. Cannot be used with socketpath\&. 
+.PP
+.nf
+host=10\&.40\&.30\&.2,10\&.50\&.30\&.2:15432  
+
+.fi
+.PP
+
+.IP "\(bu" 2
+application_name: Optional\&. Application name to register with the server for debugging purposes\&. 
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

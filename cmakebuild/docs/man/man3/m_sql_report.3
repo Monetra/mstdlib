@@ -1,0 +1,376 @@
+.TH "m_sql_report" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_sql_report
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_sql_report \fBM_sql_report_t\fP"
+.br
+.ti -1c
+.RI "typedef struct M_sql_report_state \fBM_sql_report_state_t\fP"
+.br
+.ti -1c
+.RI "typedef M_bool(* \fBM_sql_report_fetch_cb_t\fP) (\fBM_sql_stmt_t\fP *stmt, void *arg)"
+.br
+.ti -1c
+.RI "typedef \fBM_sql_report_cberror_t\fP(* \fBM_sql_report_cell_cb_t\fP) (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_sql_report_flags_t\fP { \fBM_SQL_REPORT_FLAG_NONE\fP = 0, \fBM_SQL_REPORT_FLAG_ALWAYS_ENCAP\fP = 1 << 0, \fBM_SQL_REPORT_FLAG_OMIT_HEADERS\fP = 1 << 1, \fBM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED\fP = 1 << 2 }"
+.br
+.ti -1c
+.RI "enum \fBM_sql_report_cberror_t\fP { \fBM_SQL_REPORT_ERROR\fP = 0, \fBM_SQL_REPORT_SUCCESS\fP = 1, \fBM_SQL_REPORT_SKIP_ROW\fP = 2 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_sql_report_t\fP * \fBM_sql_report_create\fP (M_uint32 flags)"
+.br
+.ti -1c
+.RI "void \fBM_sql_report_destroy\fP (\fBM_sql_report_t\fP *report)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_report_set_delims\fP (\fBM_sql_report_t\fP *report, const unsigned char *field_delim, size_t field_delim_size, const unsigned char *row_delim, size_t row_delim_size, const unsigned char *field_encaps, size_t field_encaps_size, const unsigned char *field_escape, size_t field_escape_size)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_report_set_fetch_cb\fP (\fBM_sql_report_t\fP *report, \fBM_sql_report_fetch_cb_t\fP fetch_cb)"
+.br
+.ti -1c
+.RI "\fBM_sql_report_cberror_t\fP \fBM_sql_report_cell_cb_passthru\fP (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+.br
+.ti -1c
+.RI "\fBM_sql_report_cberror_t\fP \fBM_sql_report_cell_cb_int2dec\fP (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+.br
+.ti -1c
+.RI "\fBM_sql_report_cberror_t\fP \fBM_sql_report_cell_cb_int5dec\fP (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+.br
+.ti -1c
+.RI "\fBM_sql_report_cberror_t\fP \fBM_sql_report_cell_cb_boolyesno\fP (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_report_add_column\fP (\fBM_sql_report_t\fP *report, const char *name, \fBM_sql_report_cell_cb_t\fP cb, const char *sql_col_name, ssize_t sql_col_idx)"
+.br
+.ti -1c
+.RI "M_bool \fBM_sql_report_hide_column\fP (\fBM_sql_report_t\fP *report, const char *sql_col_name, ssize_t sql_col_idx)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_report_process\fP (const \fBM_sql_report_t\fP *report, \fBM_sql_stmt_t\fP *stmt, void *arg, char **out, size_t *out_len, char *error, size_t error_size)"
+.br
+.ti -1c
+.RI "\fBM_sql_error_t\fP \fBM_sql_report_process_partial\fP (const \fBM_sql_report_t\fP *report, \fBM_sql_stmt_t\fP *stmt, size_t max_rows, void *arg, \fBM_buf_t\fP *buf, \fBM_sql_report_state_t\fP **state, char *error, size_t error_size)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+SQL Report Generation 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_sql_report \fBM_sql_report_t\fP"
+Object holding the definition for report processing 
+.SS "typedef struct M_sql_report_state \fBM_sql_report_state_t\fP"
+Object holding state data for \fBM_sql_report_process_partial()\fP 
+.SS "typedef M_bool(* M_sql_report_fetch_cb_t) (\fBM_sql_stmt_t\fP *stmt, void *arg)"
+Prototype for fetch callback registered with \fBM_sql_report_set_fetch_cb()\fP
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Statement handle object after fetch 
+.br
+\fIarg\fP Argument passed to \fBM_sql_report_process()\fP or \fBM_sql_report_process_partial()\fP\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success or M_FALSE on failure which will cause report processing to stop 
+.RE
+.PP
+
+.SS "typedef \fBM_sql_report_cberror_t\fP(* M_sql_report_cell_cb_t) (\fBM_sql_stmt_t\fP *stmt, void *arg, size_t row, ssize_t col, \fBM_buf_t\fP *buf, M_bool *is_null)"
+Function callback prototype to use for cell formatting\&.
+.PP
+This function signature is used to process every column in a report, the output buffer is passed in by reference of a certain length\&. If the buffer is insufficient for the needs of the formatting function, the caller should allocate a new pointer instead and set it to the new buffer location\&. The report generation function will automatically free the callback's buffer\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstmt\fP Pointer to statement object being processed\&. 
+.br
+\fIarg\fP Custom user-supplied argument for registered callbacks\&. 
+.br
+\fIrow\fP Row of result set currently being processed\&. 
+.br
+\fIcol\fP Index of result set column being processed, or -1 if no specific column is referenced\&. 
+.br
+\fIbuf\fP Pre-allocated \fBM_buf_t\fP buffer is provided to write column output\&. The provided buffer is empty, it is not pre-filled with column data as 'col' may be -1 or otherwise not a 1:1 mapping between input and output columns\&. It is up to the person implementing the callback to use the normal \fBM_sql_stmt_result_*() \fP functions to get the desired data\&. 
+.br
+\fIis_null\fP Output parameter that if set to M_TRUE, will ignore any contents in buf\&. It will also prevent quoting of the output cell so the output differentiates a blank cell (quoted) vs a NULL cell (unquoted)\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+.PP
+\fBM_SQL_REPORT_SUCCESS\fP on success or \fBM_SQL_REPORT_ERROR\fP on failure which will cause report processing to stop or to just skip the row, return \fBM_SQL_REPORT_SKIP_ROW\fP\&. 
+.RE
+.PP
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_sql_report_flags_t\fP"
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_REPORT_FLAG_NONE \fP\fP
+No special flags 
+.TP
+\fB\fIM_SQL_REPORT_FLAG_ALWAYS_ENCAP \fP\fP
+Always encapsulate the fields, even if there are no conflicting characters\&. However, NULL fields will still never be encapsulated so NULL vs empty strings can be determined by the output\&. 
+.TP
+\fB\fIM_SQL_REPORT_FLAG_OMIT_HEADERS \fP\fP
+Do not output the first row as headers 
+.TP
+\fB\fIM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED \fP\fP
+By default, all columns in the output report must be specified\&. This flag will use the column name returned from the SQL server as the header and pass the data thru with no manipulation\&. Other columns may be overwritten or added, or even suppressed\&. When set, columns will be output in the order returned from the SQL server, additional added columns will be appended to the end\&. 
+.SS "enum \fBM_sql_report_cberror_t\fP"
+Error conditions returned by \fBM_sql_report_fetch_cb_t\fP 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_SQL_REPORT_ERROR \fP\fP
+Error, abort report generation 
+.TP
+\fB\fIM_SQL_REPORT_SUCCESS \fP\fP
+Success 
+.TP
+\fB\fIM_SQL_REPORT_SKIP_ROW \fP\fP
+Do not output this row, but continue 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_sql_report_t\fP* M_sql_report_create (M_uint32 flags)"
+Create a report object for processing SQL query results into a delimited data form\&.
+.PP
+Report processing is often used to turn SQL query results into delimited data like CSV\&.
+.PP
+Each column to be output must be defined, or set \fBM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED\fP to pass through the data elements in their native form\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIflags\fP Bitmap of \fBM_sql_report_flags_t\fP values to control behavior\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Initialized report object 
+.RE
+.PP
+
+.SS "void M_sql_report_destroy (\fBM_sql_report_t\fP * report)"
+Destroy the report object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Report object to be destroyed\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_report_set_delims (\fBM_sql_report_t\fP * report, const unsigned char * field_delim, size_t field_delim_size, const unsigned char * row_delim, size_t row_delim_size, const unsigned char * field_encaps, size_t field_encaps_size, const unsigned char * field_escape, size_t field_escape_size)"
+Set desired delimiters, encapsulation, and escaping sequences to be used for the output data\&.
+.PP
+If this function is not called, the defaults are used\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object\&. 
+.br
+\fIfield_delim\fP Delimiter to use between fields, default is a comma (,)\&. NULL to not change\&. 
+.br
+\fIfield_delim_size\fP Number of characters used in field delimiter\&. Max size 8\&. 
+.br
+\fIrow_delim\fP Delimiter to use between rows, default is a new line (\\r\\n - CRLF)\&. NULL to not change\&. 
+.br
+\fIrow_delim_size\fP Number of characters used in row delimiter\&. Max size 8\&. 
+.br
+\fIfield_encaps\fP Encapsulation character to use for field data that may contain the field_delim or row_delim, default is a double quote (")\&. NULL to not change\&. 
+.br
+\fIfield_encaps_size\fP Number of characters used in field encapsulation\&. Max size 8\&. 
+.br
+\fIfield_escape\fP Escape character to use if the field contains the encapsulation char, default is the same as the encapsulation, a double quote ("), as this is what is defined by RFC4180 (CSV) 
+.br
+\fIfield_escape_size\fP Number of characters used in field escaping\&. Max size 8\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on usage error\&. 
+.RE
+.PP
+
+.SS "M_bool M_sql_report_set_fetch_cb (\fBM_sql_report_t\fP * report, \fBM_sql_report_fetch_cb_t\fP fetch_cb)"
+Register a callback to be automatically called any time \fBM_sql_stmt_fetch()\fP is called successfully from within \fBM_sql_report_process()\fP or \fBM_sql_report_process_partial()\fP\&.
+.PP
+This may be used if some bulk operation needs to process the data just fetched prior to processing the individual rows that were fetched\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object 
+.br
+\fIfetch_cb\fP Callback to run every time \fBM_sql_stmt_fetch()\fP is successfully called\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, or M_FALSE on error 
+.RE
+.PP
+
+.SS "\fBM_sql_report_cberror_t\fP M_sql_report_cell_cb_passthru (\fBM_sql_stmt_t\fP * stmt, void * arg, size_t row, ssize_t col, \fBM_buf_t\fP * buf, M_bool * is_null)"
+Callback template for column passthru\&.
+.PP
+Any data on file will be passed-thru as-is, except for Binary data which will be automatically base64 encoded as the report output mandates string data only\&. If the cell is NULL, it will be output as blank\&. 
+.SS "\fBM_sql_report_cberror_t\fP M_sql_report_cell_cb_int2dec (\fBM_sql_stmt_t\fP * stmt, void * arg, size_t row, ssize_t col, \fBM_buf_t\fP * buf, M_bool * is_null)"
+Callback template for outputting an integer column stored with a 2-digit implied decimal point as an actual decimal with 2 decimal places\&. E\&.g\&.:
+.IP "\(bu" 2
+1 -> 0\&.01
+.IP "\(bu" 2
+100 -> 1\&.00 If the cell is NULL, a blank column will be output instead of 0\&.00 
+.PP
+
+.SS "\fBM_sql_report_cberror_t\fP M_sql_report_cell_cb_int5dec (\fBM_sql_stmt_t\fP * stmt, void * arg, size_t row, ssize_t col, \fBM_buf_t\fP * buf, M_bool * is_null)"
+Callback template for outputting an integer column stored with a 5-digit implied decimal point as an actual decimal with 5 decimal places\&. E\&.g\&.:
+.IP "\(bu" 2
+1 -> 0\&.00001
+.IP "\(bu" 2
+100000 -> 1\&.00000 If the cell is NULL, a blank column will be output instead of 0\&.00000 
+.PP
+
+.SS "\fBM_sql_report_cberror_t\fP M_sql_report_cell_cb_boolyesno (\fBM_sql_stmt_t\fP * stmt, void * arg, size_t row, ssize_t col, \fBM_buf_t\fP * buf, M_bool * is_null)"
+Callback template for outputting a boolean value column with yes or no\&.
+.PP
+If the cell is NULL, a blank column will be output instead of yes or no\&. 
+.SS "M_bool M_sql_report_add_column (\fBM_sql_report_t\fP * report, const char * name, \fBM_sql_report_cell_cb_t\fP cb, const char * sql_col_name, ssize_t sql_col_idx)"
+Register column to be output in report\&.
+.PP
+If \fBM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED\fP was used to initialize the report object, then if the sql_col_name or sql_col_idx matches a column (rather than being NULL and -1, respectively), then instead of adding a column, it overwrites its behavior \&.\&.\&. either output column name, or the default callback can be changed from the default of passthrough\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object\&. 
+.br
+\fIname\fP Name of column (used for headers in report) 
+.br
+\fIcb\fP Callback to use for formatting the column\&. 
+.br
+\fIsql_col_name\fP Optional, use NULL if not provieded\&. Retuned SQL column name returned with the data from the SQL server\&. This will be dereferenced and passed to the callback\&. 
+.br
+\fIsql_col_idx\fP Optional, use -1 if not provided\&. Returned SQL column index returned with the data from the SQL server\&. This will be passed to the callback\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on failure (misuse) 
+.RE
+.PP
+
+.SS "M_bool M_sql_report_hide_column (\fBM_sql_report_t\fP * report, const char * sql_col_name, ssize_t sql_col_idx)"
+Hide a column from a report if \fBM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED\fP was set\&.
+.PP
+When \fBM_SQL_REPORT_FLAG_PASSTHRU_UNLISTED\fP all columns in a report will be listed\&. This can be used to hide specific columns\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object\&. 
+.br
+\fIsql_col_name\fP Conditional\&. Name of column to hide, or NULL\&. Must be set if sql_col_idx is -1\&. 
+.br
+\fIsql_col_idx\fP Conditional\&. Index of column to hide, or -1\&. Must be set if sql_col_name is NULL\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+M_TRUE on success, M_FALSE on misuse\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_report_process (const \fBM_sql_report_t\fP * report, \fBM_sql_stmt_t\fP * stmt, void * arg, char ** out, size_t * out_len, char * error, size_t error_size)"
+Process the results from the SQL statement based on the report template configured\&.
+.PP
+This function will call the registered report output generation functions to output each desired column of the report\&. If row fetching is used due to \fBM_sql_stmt_set_max_fetch_rows()\fP, this will automatically call \fBM_sql_stmt_fetch()\fP until all rows are returned\&.
+.PP
+No state is tracked in the report handle, it may be reused, and used concurrently if the implementor decides to cache the handle\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object\&. 
+.br
+\fIstmt\fP Executed statement handle\&. 
+.br
+\fIarg\fP Custom user-supplied argument to be passed through to registered callbacks for column formatting\&. 
+.br
+\fIout\fP Formatted report data is returned in this variable and must be free'd by the caller\&. 
+.br
+\fIout_len\fP Optional\&. Returned length of output data\&. Should be equivalent to M_str_len(out), but on huge reports may be more efficient to already know the size\&. 
+.br
+\fIerror\fP Buffer to hold error message\&. 
+.br
+\fIerror_size\fP Size of error buffer passed in\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS\fP on success, or one of the \fBM_sql_error_t\fP error conditions\&. If an internal error is generated, the text from the error can be found in the statement handle's error buffer via \fBM_sql_stmt_get_error_string()\fP\&. 
+.RE
+.PP
+
+.SS "\fBM_sql_error_t\fP M_sql_report_process_partial (const \fBM_sql_report_t\fP * report, \fBM_sql_stmt_t\fP * stmt, size_t max_rows, void * arg, \fBM_buf_t\fP * buf, \fBM_sql_report_state_t\fP ** state, char * error, size_t error_size)"
+Process a chunk of report data rather than the whole report\&.
+.PP
+This function is useful if it is necessary to send a report in pieces either to a file or via a network connection, especially if the report may become extremely large and exceed the memory capabilities of the machine\&.
+.PP
+This function will be called in a loop until the return value is NOT \fBM_SQL_ERROR_SUCCESS_ROW\fP, it will fill in the user-supplied \fBM_buf_t\fP with the data\&. It is up to the user to clear the data from this buffer if the same buffer handle is passed in, or create a new handle, otherwise data will be appended\&.
+.PP
+\fBWarning:\fP
+.RS 4
+The caller MUST call this repeatedly until a return value other than \fBM_SQL_ERROR_SUCCESS_ROW\fP is returned or otherwise risk memory leaks, or possibly holding a lock on an SQL connection\&.
+.RE
+.PP
+\fBParameters:\fP
+.RS 4
+\fIreport\fP Initialized report object\&. 
+.br
+\fIstmt\fP Executed statement handle\&. 
+.br
+\fImax_rows\fP Maximum number of rows to output per pass\&. Or 0 to output all\&. Typically it makes more sense to just call \fBM_sql_report_process()\fP if you want to use 0 for this value\&. 
+.br
+\fIarg\fP Custom user-supplied argument to be passed through to registered callbacks for column formatting\&. 
+.br
+\fIbuf\fP User-supplied buffer to append report data to\&. 
+.br
+\fIstate\fP Pointer to an \fBM_sql_report_state_t\fP * object, initialized to NULL on first pass\&. When there are more rows available, pass the same returned pointer back in\&. When the report generation is complete (last pass), this pointer will be automatically cleaned up\&. 
+.br
+\fIerror\fP Buffer to hold error message\&. 
+.br
+\fIerror_size\fP Size of error buffer passed in\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+\fBM_SQL_ERROR_SUCCESS\fP on successful completion of the report, or \fBM_SQL_ERROR_SUCCESS_ROW\fP if this function must be called again to get the remaining report data\&. On failure, one of the \fBM_sql_error_t\fP errors may be returned 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.

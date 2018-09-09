@@ -1,0 +1,375 @@
+.TH "m_csv" 3 "Tue Feb 20 2018" "Mstdlib-1.0.0" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+m_csv
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct M_csv \fBM_csv_t\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBM_CSV_FLAGS\fP { \fBM_CSV_FLAG_NONE\fP = 0, \fBM_CSV_FLAG_TRIM_WHITESPACE\fP = 1 << 0 }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBM_csv_t\fP * \fBM_csv_parse\fP (const char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC"
+.br
+.ti -1c
+.RI "\fBM_csv_t\fP * \fBM_csv_parse_inplace\fP (char *data, size_t len, char delim, char quote, M_uint32 flags) M_MALLOC_ALIASED"
+.br
+.ti -1c
+.RI "void \fBM_csv_destroy\fP (\fBM_csv_t\fP *csv) M_FREE(1)"
+.br
+.ti -1c
+.RI "size_t \fBM_csv_raw_num_rows\fP (const \fBM_csv_t\fP *csv)"
+.br
+.ti -1c
+.RI "size_t \fBM_csv_raw_num_cols\fP (const \fBM_csv_t\fP *csv)"
+.br
+.ti -1c
+.RI "const char * \fBM_csv_raw_cell\fP (const \fBM_csv_t\fP *csv, size_t row, size_t col)"
+.br
+.ti -1c
+.RI "size_t \fBM_csv_get_numrows\fP (const \fBM_csv_t\fP *csv)"
+.br
+.ti -1c
+.RI "size_t \fBM_csv_get_numcols\fP (const \fBM_csv_t\fP *csv)"
+.br
+.ti -1c
+.RI "const char * \fBM_csv_get_cellbynum\fP (const \fBM_csv_t\fP *csv, size_t row, size_t col)"
+.br
+.ti -1c
+.RI "const char * \fBM_csv_get_header\fP (const \fBM_csv_t\fP *csv, size_t col)"
+.br
+.ti -1c
+.RI "const char * \fBM_csv_get_cell\fP (const \fBM_csv_t\fP *csv, size_t row, const char *colname)"
+.br
+.ti -1c
+.RI "ssize_t \fBM_csv_get_cell_num\fP (const \fBM_csv_t\fP *csv, const char *colname)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+CSV Parser\&.
+.PP
+RFC 4180 compliant CSV parser\&.
+.PP
+The first row in the CSV is assumed to be the header\&. If there is no header the \fIraw\fP functions should be used to reterive data\&. If there is a header the non-raw functions should be used\&. These functions take into account the header when indexing rows automatically\&. The first row after the header is index 0\&.
+.PP
+Example:
+.PP
+.PP
+.nf
+const char *data = "header1,header1\ncell1,cell2"
+M_csv_t    *csv;
+const char *const_temp;
+
+csv        = M_csv_parse(data, M_str_len(data), ',', '"', M_CSV_FLAG_NONE);
+const_temp = M_csv_get_header(csv, 0);
+M_printf("header='%s'\n", const_temp);
+
+const_temp = M_csv_get_cellbynum(csv, 0, 1);
+M_printf("cell='%s'\n", const_temp);
+
+M_csv_destroy(csv);
+.fi
+.PP
+.PP
+Example output:
+.PP
+.PP
+.nf
+header='header1'
+cell='cell2'
+.fi
+.PP
+ 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct M_csv \fBM_csv_t\fP"
+
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBM_CSV_FLAGS\fP"
+Flags controlling parse behavior 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIM_CSV_FLAG_NONE \fP\fP
+No Flags 
+.TP
+\fB\fIM_CSV_FLAG_TRIM_WHITESPACE \fP\fP
+If a cell is not quoted, trim leading and trailing whitespace 
+.SH "Function Documentation"
+.PP 
+.SS "\fBM_csv_t\fP* M_csv_parse (const char * data, size_t len, char delim, char quote, M_uint32 flags)"
+Parse a string into a CSV object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The data to parse\&. 
+.br
+\fIlen\fP The length of the data to parse\&. 
+.br
+\fIdelim\fP CSV delimiter character\&. Typically comma (',')\&. 
+.br
+\fIquote\fP CSV quote character\&. Typically double quote (''")\&. 
+.br
+\fIflags\fP Flags controlling parse behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+CSV object\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_destroy\fP 
+.RE
+.PP
+
+.SS "\fBM_csv_t\fP* M_csv_parse_inplace (char * data, size_t len, char delim, char quote, M_uint32 flags)"
+Parse a string into a CSV object\&.
+.PP
+This will take ownership of the data passed in\&. The data must be valid for the life of the returned CSV object and will be destroyed by the CSV object when the CSV object is destroyed\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The string to parse\&. 
+.br
+\fIlen\fP The length of the data to parse\&. 
+.br
+\fIdelim\fP CSV delimiter character\&. Typically comma (',')\&. 
+.br
+\fIquote\fP CSV quote character\&. Typically double quote (''")\&. 
+.br
+\fIflags\fP Flags controlling parse behavior\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+CSV object\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_destroy\fP 
+.RE
+.PP
+
+.SS "void M_csv_destroy (\fBM_csv_t\fP * csv)"
+Destory a CSV object\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.RE
+.PP
+
+.SS "size_t M_csv_raw_num_rows (const \fBM_csv_t\fP * csv)"
+Get the raw number of csv rows\&.
+.PP
+This should be used when the CSV data does not contain a header\&. This count will include the header as a row in the count\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of rows including the header as a row\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_get_numrows\fP 
+.RE
+.PP
+
+.SS "size_t M_csv_raw_num_cols (const \fBM_csv_t\fP * csv)"
+Get the raw number of csv columns\&.
+.PP
+This should be used when the CSV data does not contain a header\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of columns\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_get_numcols\fP 
+.RE
+.PP
+
+.SS "const char* M_csv_raw_cell (const \fBM_csv_t\fP * csv, size_t row, size_t col)"
+Get the cell at the given position\&.
+.PP
+This should be used when the CSV data does not contain a header\&. This assumes that the first row is data (not the header)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.br
+\fIrow\fP The row\&. Indexed from 0 where 0 is the header (if there is a header)\&. 
+.br
+\fIcol\fP The column\&. Indexed from 0\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The csv data at the position or NULL if the position if invalid\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_get_cellbynum\fP 
+.RE
+.PP
+
+.SS "size_t M_csv_get_numrows (const \fBM_csv_t\fP * csv)"
+Get the number of csv rows\&.
+.PP
+This should be used when the CSV data contains a header\&. This count will not include the header as a row in the count\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of rows excluding the header as a row\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_raw_num_rows\fP 
+.RE
+.PP
+
+.SS "size_t M_csv_get_numcols (const \fBM_csv_t\fP * csv)"
+Get the raw number of csv columns\&.
+.PP
+This should be used when the CSV data contains a header\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The number of columns\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_raw_num_cols\fP 
+.RE
+.PP
+
+.SS "const char* M_csv_get_cellbynum (const \fBM_csv_t\fP * csv, size_t row, size_t col)"
+Get the cell at the given position\&.
+.PP
+This should be used when the CSV data contains a header\&. This assumes that the first row is a header (not data)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.br
+\fIrow\fP The row\&. Indexed from 0 where 0 is the first row after the header\&. 
+.br
+\fIcol\fP The column\&. Indexed from 0\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The csv data at the position or NULL if the position if invalid\&.
+.RE
+.PP
+\fBSee also:\fP
+.RS 4
+\fBM_csv_raw_cell\fP 
+.RE
+.PP
+
+.SS "const char* M_csv_get_header (const \fBM_csv_t\fP * csv, size_t col)"
+Get the header for a given column
+.PP
+This should be used when the CSV data contains a header\&. This assumes that the first row is a header (not data)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.br
+\fIcol\fP The column\&. Indexed from 0\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The header for the given column\&. 
+.RE
+.PP
+
+.SS "const char* M_csv_get_cell (const \fBM_csv_t\fP * csv, size_t row, const char * colname)"
+Get the cell at the for the given header\&.
+.PP
+This should be used when the CSV data contains a header\&. This assumes that the first row is a header (not data)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.br
+\fIrow\fP The row\&. Indexed from 0 where 0 is the first row after the header\&. 
+.br
+\fIcolname\fP The column name to get the data from\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The csv data at the position or NULL if the position if invalid\&. 
+.RE
+.PP
+
+.SS "ssize_t M_csv_get_cell_num (const \fBM_csv_t\fP * csv, const char * colname)"
+Get the column number for a given column (header) name\&.
+.PP
+This should be used when the CSV data contains a header\&. This assumes that the first row is a header (not data)\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIcsv\fP The csv\&. 
+.br
+\fIcolname\fP The column name to get the data from\&.
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Column number for the given name on success\&. Otherwise -1\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Mstdlib-1\&.0\&.0 from the source code\&.
