@@ -341,8 +341,9 @@ M_API M_hash_dict_t *M_hash_dict_duplicate(const M_hash_dict_t *h) M_MALLOC;
 
 /*! Possible flags for M_hash_dict_serialize() */
 typedef enum {
-	M_HASH_DICT_SER_FLAG_NONE         = 0,      /*!< Default flags */
-	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE = 1 << 0  /*!< Always quote the value even if not necesary */
+	M_HASH_DICT_SER_FLAG_NONE          = 0,      /*!< Default flags */
+	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE  = 1 << 0, /*!< Always quote the value even if not necesary. Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
+	M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS = 1 << 1  /*!< Quote any string that contains non Alpha-numeric or single space (0x20).  Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
 } M_hash_dict_ser_flag_t;
 
 

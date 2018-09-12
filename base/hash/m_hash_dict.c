@@ -288,8 +288,12 @@ static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, 
 		return quote_type;
 
 	for (i=0; i<val_len; i++) {
-		if (val[i] == delim || val[i] == kv_delim)
-			quote_type = M_HASHDICT_QUOTE_TYPE_ON;
+		if (quote_type == M_HASHDICT_QUOTE_TYPE_OFF) {
+			if ((flags & M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS && !M_chr_isalnumsp(val[i])) ||
+			    (val[i] == delim || val[i] == kv_delim)) {
+				quote_type = M_HASHDICT_QUOTE_TYPE_ON;
+			}
+		}
 
 		if (val[i] == quote || val[i] == escape)
 			return M_HASHDICT_QUOTE_TYPE_ESCAPE;
