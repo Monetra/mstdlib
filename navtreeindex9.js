@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"group__m__mtzfile.html":[0,2,4],
 "group__m__mtzfile.html#ga36a55b738b37d99fbacc7edaf000646d":[0,2,4,0],
 "group__m__mtzfile.html#ga97f22ca91a71a53dce9f4afff907f714":[0,2,4,1],
 "group__m__parser.html":[0,0,14],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "group__m__sql__conn.html#ga01eba45c727027abc7f0e4bfbb9eae98":[0,5,3,10],
 "group__m__sql__conn.html#ga2272f071ed4f702373040e54869a440f":[0,5,3,2],
 "group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352":[0,5,3,1],
-"group__m__sql__conn.html#ga3c7b71410aee58ae987d51b9d90adb0d":[0,5,3,4],
-"group__m__sql__conn.html#ga41644e971fa760195ee96bc2e216e15e":[0,5,3,3]
+"group__m__sql__conn.html#ga3c7b71410aee58ae987d51b9d90adb0d":[0,5,3,4]
 };
