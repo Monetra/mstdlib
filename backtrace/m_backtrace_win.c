@@ -103,7 +103,7 @@ static void win32_output_function(HANDLE mfile, size_t idx, DWORD64 frameOffset)
 		/* Write new lines. */
 		len = M_snprintf(buf, sizeof(buf), "\r\n");
 		M_win32_size_t_to_dword(len, &dlen);
-		WriteFile(mfile, buf, len, NULL, NULL);
+		WriteFile(mfile, buf, dlen, NULL, NULL);
 
 		/* Flush to force what we have to disk. */
 		FlushFileBuffers(mfile);
@@ -172,7 +172,7 @@ static void win32_output_stacktrace(HANDLE mfile, CONTEXT *context)
 	SymCleanup(GetCurrentProcess());
 }
 
-static const char *win32_opdesc(const ULONG opcode)
+static const char *win32_opdesc(const ULONG_PTR opcode)
 {
 	switch( opcode ) {
 		case 0:
