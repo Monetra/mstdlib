@@ -74,7 +74,9 @@ typedef struct {
 		M_int16            *i16vals;
 		M_int32            *i32vals;
 		M_int64            *i64vals;
+#ifdef SQL_C_NUMERIC
 		SQL_NUMERIC_STRUCT *i64num;
+#endif
 		M_uint8            *pvalues;
 	} data;
 } odbc_bind_cols_t;
@@ -871,8 +873,12 @@ static M_bool odbc_bind_set_type(M_sql_data_type_t type, M_bool use_numeric, SQL
 		case M_SQL_DATA_TYPE_INT64:
 			/* Oracle doesn't support SQL_C_SBIGINT, so we need to use SQL_C_NUMERIC */
 			if (use_numeric) {
+#ifdef SQL_C_NUMERIC
 				*ValueType                = SQL_C_NUMERIC;
 				*ParameterType            = SQL_NUMERIC;
+#else
+				return M_FALSE;
+#endif
 			} else {
 				*ValueType                = SQL_C_SBIGINT;
 				*ParameterType            = SQL_BIGINT;
@@ -921,6 +927,7 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type
 		case M_SQL_DATA_TYPE_INT64:
 			/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
 			if (use_numeric) {
+#ifdef SQL_C_NUMERIC
 				M_int64  val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
 				/* Need as unsigned little endian */
 				M_uint64 ulval = M_htol64((M_uint64)M_ABS(val));
@@ -929,6 +936,7 @@ static void odbc_bind_set_value_array(M_sql_stmt_t *stmt, M_sql_data_type_t type
 
 				if (val >= 0)
 					bcol->data.i64num[row].sign = 1;
+#endif
 			} else {
 				bcol->data.i64vals[row] = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
 			}
@@ -1045,9 +1053,15 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 			case M_SQL_DATA_TYPE_INT64:
 				/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
 				if (use_numeric) {
+#ifdef SQL_C_NUMERIC
 					dstmt->bind_cols[i].data.i64num = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.i64num)) * num_rows);
 					ParameterValue                  = dstmt->bind_cols[i].data.i64num;
 					ColumnSize                      = sizeof(*dstmt->bind_cols[i].data.i64num);
+#else
+					M_snprintf(error, error_size, "SQL_C_NUMERIC not supported by driver");
+					err = M_SQL_ERROR_QUERY_FAILURE;
+					goto done;
+#endif
 				} else {
 					dstmt->bind_cols[i].data.i64vals = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].data.i64vals)) * num_rows);
 					ParameterValue                   = dstmt->bind_cols[i].data.i64vals;
@@ -1146,10 +1160,11 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, M_bool use_numeric, siz
 		case M_SQL_DATA_TYPE_INT64:
 			/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
 			if (use_numeric) {
-				SQL_NUMERIC_STRUCT *num = M_malloc_zero(sizeof(*num));
-				M_int64  val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+#ifdef SQL_C_NUMERIC
+				SQL_NUMERIC_STRUCT *num   = M_malloc_zero(sizeof(*num));
+				M_int64             val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
 				/* Need as unsigned little endian */
-				M_uint64 ulval = M_htol64((M_uint64)M_ABS(val));
+				M_uint64            ulval = M_htol64((M_uint64)M_ABS(val));
 
 				M_mem_copy(num->val, &ulval, sizeof(ulval));
 
@@ -1159,6 +1174,7 @@ static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, M_bool use_numeric, siz
 				*value = num;
 				*len   = sizeof(*num);
 				odbc_stmt_add_temp_var(stmt, num);
+#endif
 			} else {
 				*value = M_sql_driver_stmt_bind_get_int64_addr(stmt, row, col);
 			}
