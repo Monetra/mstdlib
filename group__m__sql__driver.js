@@ -66,7 +66,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_cb_commit_t", "group__m__sql__driver.html#ga08eea25865d916c2fe5b1596e39f92f6", null ],
     [ "M_sql_driver_cb_datatype_t", "group__m__sql__driver.html#gac0e5c09be57426bf0f2568850b18cddc", null ],
     [ "M_sql_driver_cb_createtable_suffix_t", "group__m__sql__driver.html#ga2a7dd5c6e7b3144ccdf33472cfe37b1b", null ],
-    [ "M_sql_driver_cb_append_updlock_t", "group__m__sql__driver.html#gab451c891fa5a96bb9307fd3d493966b3", null ],
+    [ "M_sql_driver_cb_append_updlock_t", "group__m__sql__driver.html#gae9f1c0f38e5a0220f160d1d6684da849", null ],
     [ "M_sql_driver_cb_append_bitop_t", "group__m__sql__driver.html#ga2c6ff7f3d6e4d408b41a42e8f5820727", null ],
     [ "M_sql_driver_cb_rewrite_indexname_t", "group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b", null ],
     [ "M_sql_driver_queryformat_flags_t", "group__m__sql__driver.html#gaf46c619c3bb9dfc5b9517537667ea911", [
@@ -91,7 +91,8 @@ var group__m__sql__driver =
     [ "M_sql_driver_updlock_caps_t", "group__m__sql__driver.html#ga9f7cbede943c3693059e9fec4ecb97a0", [
       [ "M_SQL_DRIVER_UPDLOCK_CAP_NONE", "group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0aa2eb1428687821f6322e66a616e691ff", null ],
       [ "M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE", "group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a7d4952822407133ec8b943bc5d85a70c", null ],
-      [ "M_SQL_DRIVER_UPDLOCK_CAP_MSSQL", "group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a0716f68881e88d474df9b59d828d82cc", null ]
+      [ "M_SQL_DRIVER_UPDLOCK_CAP_MSSQL", "group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a0716f68881e88d474df9b59d828d82cc", null ],
+      [ "M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF", "group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a4ac58a62c56b19f09c6caf3cbdaa9ad9", null ]
     ] ],
     [ "M_sql_driver_bitop_caps_t", "group__m__sql__driver.html#ga02c224c26f838de6ae8a15f008b3e2d5", [
       [ "M_SQL_DRIVER_BITOP_CAP_OP", "group__m__sql__driver.html#gga02c224c26f838de6ae8a15f008b3e2d5ae53f62f800c61a6594ab0627fd9502f4", null ],
@@ -142,7 +143,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_stmt_result_set_col_type", "group__m__sql__driver.html#ga2f89164b655936520cdf2108800ec299", null ],
     [ "M_sql_driver_stmt_result_col_start", "group__m__sql__driver.html#ga3f32a2dd16aed4219aaf2a3114b1f256", null ],
     [ "M_sql_driver_stmt_result_row_finish", "group__m__sql__driver.html#gae04f1d8a4b8260c74cbf7ba6b1879a85", null ],
-    [ "M_sql_driver_append_updlock", "group__m__sql__driver.html#gafd136e6f1a35228ef962371d833319ec", null ],
+    [ "M_sql_driver_append_updlock", "group__m__sql__driver.html#ga9fc146568ec1022491f5b6240374634f", null ],
     [ "M_sql_driver_append_bitop", "group__m__sql__driver.html#ga086940408f0f4faca942ab43d7a15da5", null ],
     [ "M_sql_driver_str2isolation", "group__m__sql__driver.html#ga859fdd63ddca8041082b685a78b1e43b", null ],
     [ "M_sql_driver_isolation2str", "group__m__sql__driver.html#gad8b408ffdec54a26d84090d2d3323b2b", null ],

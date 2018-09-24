@@ -766,101 +766,103 @@ $(document).ready(function(){initNavTree('m__sql_8h_source.html','');});
 <div class="line"><a name="l00666"></a><span class="lineno">  666</span>&#160;<span class="comment"> *           need these guarantees, please ensure you are using the #M_SQL_ISOLATION_SERIALIZABLE</span></div>
 <div class="line"><a name="l00667"></a><span class="lineno">  667</span>&#160;<span class="comment"> *           isolation method as well.</span></div>
 <div class="line"><a name="l00668"></a><span class="lineno">  668</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;<span class="comment"> *  \param[in]     pool  Initialized #M_sql_connpool_t object</span></div>
-<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;<span class="comment"> *  \param[in,out] query A pointer to an already populated M_buf_t with a partial (or complete</span></div>
-<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;<span class="comment"> *                       for #M_SQL_QUERY_UPDLOCK_QUERYEND) request.</span></div>
-<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;<span class="comment"> *  \param[in]     type  Type of sql-specific lock to append to the query.</span></div>
-<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="code" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type);</div>
-<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;</div>
-<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;<span class="comment">/*! Type of bitwise operation to perform. */</span></div>
-<div class="line"><a name="l00678"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">  678</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
-<div class="line"><a name="l00679"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">  679</a></span>&#160;    <a class="code" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">M_SQL_BITOP_AND</a> = 1, <span class="comment">/*!&lt; Perform a bitwise AND (&amp;) operation */</span></div>
-<div class="line"><a name="l00680"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">  680</a></span>&#160;    <a class="code" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">M_SQL_BITOP_OR</a>  = 2  <span class="comment">/*!&lt; Perform a bitwise OR (|) operation */</span></div>
-<div class="line"><a name="l00681"></a><span class="lineno">  681</span>&#160;} <a class="code" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a>;</div>
-<div class="line"><a name="l00682"></a><span class="lineno">  682</span>&#160;</div>
-<div class="line"><a name="l00683"></a><span class="lineno">  683</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;<span class="comment">/*! Perform a bitwise operation on the database using an SQL-server-specific format.</span></div>
-<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;<span class="comment"> *  A classic bitwise operation checking to see if a bit is set may look like the below:</span></div>
-<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;<span class="comment"> *  \code (exp1 &amp; exp2) != 0 \endcode</span></div>
+<div class="line"><a name="l00669"></a><span class="lineno">  669</span>&#160;<span class="comment"> *  \param[in]     pool       Initialized #M_sql_connpool_t object</span></div>
+<div class="line"><a name="l00670"></a><span class="lineno">  670</span>&#160;<span class="comment"> *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial (or complete</span></div>
+<div class="line"><a name="l00671"></a><span class="lineno">  671</span>&#160;<span class="comment"> *                            for #M_SQL_QUERY_UPDLOCK_QUERYEND) request.</span></div>
+<div class="line"><a name="l00672"></a><span class="lineno">  672</span>&#160;<span class="comment"> *  \param[in]     type       Type of sql-specific lock to append to the query.</span></div>
+<div class="line"><a name="l00673"></a><span class="lineno">  673</span>&#160;<span class="comment"> *  \param[in]     table_name Optional. For databases that support &quot;FOR UPDATE OF&quot; this will specify the explicit</span></div>
+<div class="line"><a name="l00674"></a><span class="lineno">  674</span>&#160;<span class="comment"> *                            table name to use.  If NULL, then will not emit the &quot;OF&quot; clause.  This may be necessary</span></div>
+<div class="line"><a name="l00675"></a><span class="lineno">  675</span>&#160;<span class="comment"> *                            for left outer joins on PostgreSQL.</span></div>
+<div class="line"><a name="l00676"></a><span class="lineno">  676</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00677"></a><span class="lineno">  677</span>&#160;M_API <span class="keywordtype">void</span> <a class="code" href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="code" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type, <span class="keyword">const</span> <span class="keywordtype">char</span> *table_name);</div>
+<div class="line"><a name="l00678"></a><span class="lineno">  678</span>&#160;</div>
+<div class="line"><a name="l00679"></a><span class="lineno">  679</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00680"></a><span class="lineno">  680</span>&#160;<span class="comment">/*! Type of bitwise operation to perform. */</span></div>
+<div class="line"><a name="l00681"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">  681</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
+<div class="line"><a name="l00682"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">  682</a></span>&#160;    <a class="code" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">M_SQL_BITOP_AND</a> = 1, <span class="comment">/*!&lt; Perform a bitwise AND (&amp;) operation */</span></div>
+<div class="line"><a name="l00683"></a><span class="lineno"><a class="line" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">  683</a></span>&#160;    <a class="code" href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">M_SQL_BITOP_OR</a>  = 2  <span class="comment">/*!&lt; Perform a bitwise OR (|) operation */</span></div>
+<div class="line"><a name="l00684"></a><span class="lineno">  684</span>&#160;} <a class="code" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a>;</div>
+<div class="line"><a name="l00685"></a><span class="lineno">  685</span>&#160;</div>
+<div class="line"><a name="l00686"></a><span class="lineno">  686</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00687"></a><span class="lineno">  687</span>&#160;<span class="comment">/*! Perform a bitwise operation on the database using an SQL-server-specific format.</span></div>
 <div class="line"><a name="l00688"></a><span class="lineno">  688</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;<span class="comment"> *  Or a bitwise operation, setting a bit or set of bits may look like:</span></div>
-<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;<span class="comment"> *  \code exp1 = exp1 | exp2 \endcode</span></div>
+<div class="line"><a name="l00689"></a><span class="lineno">  689</span>&#160;<span class="comment"> *  A classic bitwise operation checking to see if a bit is set may look like the below:</span></div>
+<div class="line"><a name="l00690"></a><span class="lineno">  690</span>&#160;<span class="comment"> *  \code (exp1 &amp; exp2) != 0 \endcode</span></div>
 <div class="line"><a name="l00691"></a><span class="lineno">  691</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;<span class="comment"> *  Some database servers take the expressions listed above exactly, however, others</span></div>
-<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;<span class="comment"> *  may require functions like BITAND() and BITOR() to accomplish the same thing.</span></div>
+<div class="line"><a name="l00692"></a><span class="lineno">  692</span>&#160;<span class="comment"> *  Or a bitwise operation, setting a bit or set of bits may look like:</span></div>
+<div class="line"><a name="l00693"></a><span class="lineno">  693</span>&#160;<span class="comment"> *  \code exp1 = exp1 | exp2 \endcode</span></div>
 <div class="line"><a name="l00694"></a><span class="lineno">  694</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;<span class="comment"> *  Taking an example of selecting all rows where &quot;bar&quot; has bit 4 (0x8) set:</span></div>
-<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;<span class="comment"> *    \code SELECT * FROM &quot;foo&quot; WHERE (&quot;bar&quot; &amp; 8) &lt;&gt; 0 \endcode</span></div>
-<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;<span class="comment"> *  Might look like this:</span></div>
-<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment"> *    \code{.c}</span></div>
-<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment"> *      M_buf_t      *buf  = M_buf_create();</span></div>
-<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment"> *      M_sql_stmt_t *stmt = M_sql_stmt_create();</span></div>
-<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment"> *      M_sql_error_t err;</span></div>
-<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;SELECT * FROM \&quot;foo\&quot; WHERE (&quot;);</span></div>
-<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;<span class="comment"> *      M_sql_query_append_bitop(pool, buf, M_SQL_BITOP_AND, &quot;\&quot;bar\&quot;&quot;, &quot;?&quot;);</span></div>
-<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;<span class="comment"> *      M_sql_stmt_bind_int32(stmt, 8);</span></div>
-<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;) &lt;&gt; 0&quot;);</span></div>
-<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment"> *      M_sql_stmt_prepare_buf(stmt, buf);</span></div>
-<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;<span class="comment"> *      err = M_sql_stmt_execute(pool, stmt);</span></div>
-<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;<span class="comment"> *      //...</span></div>
-<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment"> *      M_sql_stmt_destroy(stmt);</span></div>
-<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment"> *    \endcode</span></div>
-<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment"> *  Of course, more complex things are possible as well, such as unsetting bits and</span></div>
-<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment"> *  setting others in a single request by embedding operations within eachother.  Take</span></div>
-<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment"> *  the below example that keeps bits 2 (0x2) and 3 (0x4) while clearing the rest and</span></div>
-<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;<span class="comment"> *  also sets bit 4 (0x8):</span></div>
-<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;<span class="comment"> *    \code UPDATE &quot;foo&quot; SET &quot;bar&quot; = ( &quot;bar&quot; &amp; 6 ) | 8; \endcode</span></div>
-<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment"> *  Might look like this:</span></div>
-<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment"> *    \code{.c}</span></div>
-<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;<span class="comment"> *      M_buf_t      *buf  = M_buf_create();</span></div>
-<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;<span class="comment"> *      M_sql_stmt_t *stmt = M_sql_stmt_create();</span></div>
-<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment"> *      M_sql_error_t err;</span></div>
-<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;UPDATE \&quot;foo\&quot; SET \&quot;bar\&quot; = &quot;);</span></div>
-<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment"> *        // Do inner-first ( &quot;bar&quot; &amp; 6 )</span></div>
-<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment"> *        M_buf_t *inner = M_buf_create();</span></div>
-<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment"> *        M_buf_add_str(inner, &quot;( &quot;);</span></div>
-<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment"> *        M_sql_query_append_bitop(pool, inner, M_SQL_BITOP_AND, &quot;\&quot;bar\&quot;&quot;, &quot;?&quot;);</span></div>
-<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment"> *        M_sql_stmt_bind_int32(stmt, 6);</span></div>
-<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;<span class="comment"> *        M_buf_add_str(inner, &quot; )&quot;);</span></div>
-<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment"> *      // Do outer, embedding inner</span></div>
-<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment"> *      M_sql_query_append_bitop(pool, buf, M_SQL_BITOP_OR, M_buf_peek(inner), &quot;?&quot;);</span></div>
-<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;<span class="comment"> *      M_sql_stmt_bind_int32(stmt, 8);</span></div>
-<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;<span class="comment"> *      M_buf_cancel(inner);  // We peeked, throw it away</span></div>
-<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment"> *      M_sql_stmt_prepare_buf(stmt, buf);</span></div>
-<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment"> *      err = M_sql_stmt_execute(pool, stmt);</span></div>
-<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment"> *      //...</span></div>
-<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment"> *      M_sql_stmt_destroy(stmt);</span></div>
-<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment"> *    \endcode</span></div>
-<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment"> *  \warning Most databases do not allow bitwise operations to be used for &#39;truth&#39; values</span></div>
-<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment"> *           (e.g as a boolean).  Instead, an integrator should compare the result to 0</span></div>
-<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment"> *           to turn it into a boolean operation if needed.</span></div>
-<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment"> *  \param[in]     pool       Initialized #M_sql_connpool_t object</span></div>
-<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment"> *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial request.</span></div>
-<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment"> *  \param[in]     op         Bitwise operation to perform.</span></div>
-<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment"> *  \param[in]     exp1       Left-hand side of SQL expression.</span></div>
-<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment"> *  \param[in]     exp2       Right-hande size of SQL expression.</span></div>
-<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment"> *  \return M_TRUE on success, M_FALSE on misuse</span></div>
-<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment"> */</span> </div>
-<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;M_API M_bool <a class="code" href="group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39">M_sql_query_append_bitop</a>(<a class="code" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="code" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, <span class="keyword">const</span> <span class="keywordtype">char</span> *exp1, <span class="keyword">const</span> <span class="keywordtype">char</span> *exp2);</div>
-<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;</div>
-<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00695"></a><span class="lineno">  695</span>&#160;<span class="comment"> *  Some database servers take the expressions listed above exactly, however, others</span></div>
+<div class="line"><a name="l00696"></a><span class="lineno">  696</span>&#160;<span class="comment"> *  may require functions like BITAND() and BITOR() to accomplish the same thing.</span></div>
+<div class="line"><a name="l00697"></a><span class="lineno">  697</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00698"></a><span class="lineno">  698</span>&#160;<span class="comment"> *  Taking an example of selecting all rows where &quot;bar&quot; has bit 4 (0x8) set:</span></div>
+<div class="line"><a name="l00699"></a><span class="lineno">  699</span>&#160;<span class="comment"> *    \code SELECT * FROM &quot;foo&quot; WHERE (&quot;bar&quot; &amp; 8) &lt;&gt; 0 \endcode</span></div>
+<div class="line"><a name="l00700"></a><span class="lineno">  700</span>&#160;<span class="comment"> *  Might look like this:</span></div>
+<div class="line"><a name="l00701"></a><span class="lineno">  701</span>&#160;<span class="comment"> *    \code{.c}</span></div>
+<div class="line"><a name="l00702"></a><span class="lineno">  702</span>&#160;<span class="comment"> *      M_buf_t      *buf  = M_buf_create();</span></div>
+<div class="line"><a name="l00703"></a><span class="lineno">  703</span>&#160;<span class="comment"> *      M_sql_stmt_t *stmt = M_sql_stmt_create();</span></div>
+<div class="line"><a name="l00704"></a><span class="lineno">  704</span>&#160;<span class="comment"> *      M_sql_error_t err;</span></div>
+<div class="line"><a name="l00705"></a><span class="lineno">  705</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00706"></a><span class="lineno">  706</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;SELECT * FROM \&quot;foo\&quot; WHERE (&quot;);</span></div>
+<div class="line"><a name="l00707"></a><span class="lineno">  707</span>&#160;<span class="comment"> *      M_sql_query_append_bitop(pool, buf, M_SQL_BITOP_AND, &quot;\&quot;bar\&quot;&quot;, &quot;?&quot;);</span></div>
+<div class="line"><a name="l00708"></a><span class="lineno">  708</span>&#160;<span class="comment"> *      M_sql_stmt_bind_int32(stmt, 8);</span></div>
+<div class="line"><a name="l00709"></a><span class="lineno">  709</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;) &lt;&gt; 0&quot;);</span></div>
+<div class="line"><a name="l00710"></a><span class="lineno">  710</span>&#160;<span class="comment"> *      M_sql_stmt_prepare_buf(stmt, buf);</span></div>
+<div class="line"><a name="l00711"></a><span class="lineno">  711</span>&#160;<span class="comment"> *      err = M_sql_stmt_execute(pool, stmt);</span></div>
+<div class="line"><a name="l00712"></a><span class="lineno">  712</span>&#160;<span class="comment"> *      //...</span></div>
+<div class="line"><a name="l00713"></a><span class="lineno">  713</span>&#160;<span class="comment"> *      M_sql_stmt_destroy(stmt);</span></div>
+<div class="line"><a name="l00714"></a><span class="lineno">  714</span>&#160;<span class="comment"> *    \endcode</span></div>
+<div class="line"><a name="l00715"></a><span class="lineno">  715</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00716"></a><span class="lineno">  716</span>&#160;<span class="comment"> *  Of course, more complex things are possible as well, such as unsetting bits and</span></div>
+<div class="line"><a name="l00717"></a><span class="lineno">  717</span>&#160;<span class="comment"> *  setting others in a single request by embedding operations within eachother.  Take</span></div>
+<div class="line"><a name="l00718"></a><span class="lineno">  718</span>&#160;<span class="comment"> *  the below example that keeps bits 2 (0x2) and 3 (0x4) while clearing the rest and</span></div>
+<div class="line"><a name="l00719"></a><span class="lineno">  719</span>&#160;<span class="comment"> *  also sets bit 4 (0x8):</span></div>
+<div class="line"><a name="l00720"></a><span class="lineno">  720</span>&#160;<span class="comment"> *    \code UPDATE &quot;foo&quot; SET &quot;bar&quot; = ( &quot;bar&quot; &amp; 6 ) | 8; \endcode</span></div>
+<div class="line"><a name="l00721"></a><span class="lineno">  721</span>&#160;<span class="comment"> *  Might look like this:</span></div>
+<div class="line"><a name="l00722"></a><span class="lineno">  722</span>&#160;<span class="comment"> *    \code{.c}</span></div>
+<div class="line"><a name="l00723"></a><span class="lineno">  723</span>&#160;<span class="comment"> *      M_buf_t      *buf  = M_buf_create();</span></div>
+<div class="line"><a name="l00724"></a><span class="lineno">  724</span>&#160;<span class="comment"> *      M_sql_stmt_t *stmt = M_sql_stmt_create();</span></div>
+<div class="line"><a name="l00725"></a><span class="lineno">  725</span>&#160;<span class="comment"> *      M_sql_error_t err;</span></div>
+<div class="line"><a name="l00726"></a><span class="lineno">  726</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00727"></a><span class="lineno">  727</span>&#160;<span class="comment"> *      M_buf_add_str(buf, &quot;UPDATE \&quot;foo\&quot; SET \&quot;bar\&quot; = &quot;);</span></div>
+<div class="line"><a name="l00728"></a><span class="lineno">  728</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00729"></a><span class="lineno">  729</span>&#160;<span class="comment"> *        // Do inner-first ( &quot;bar&quot; &amp; 6 )</span></div>
+<div class="line"><a name="l00730"></a><span class="lineno">  730</span>&#160;<span class="comment"> *        M_buf_t *inner = M_buf_create();</span></div>
+<div class="line"><a name="l00731"></a><span class="lineno">  731</span>&#160;<span class="comment"> *        M_buf_add_str(inner, &quot;( &quot;);</span></div>
+<div class="line"><a name="l00732"></a><span class="lineno">  732</span>&#160;<span class="comment"> *        M_sql_query_append_bitop(pool, inner, M_SQL_BITOP_AND, &quot;\&quot;bar\&quot;&quot;, &quot;?&quot;);</span></div>
+<div class="line"><a name="l00733"></a><span class="lineno">  733</span>&#160;<span class="comment"> *        M_sql_stmt_bind_int32(stmt, 6);</span></div>
+<div class="line"><a name="l00734"></a><span class="lineno">  734</span>&#160;<span class="comment"> *        M_buf_add_str(inner, &quot; )&quot;);</span></div>
+<div class="line"><a name="l00735"></a><span class="lineno">  735</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00736"></a><span class="lineno">  736</span>&#160;<span class="comment"> *      // Do outer, embedding inner</span></div>
+<div class="line"><a name="l00737"></a><span class="lineno">  737</span>&#160;<span class="comment"> *      M_sql_query_append_bitop(pool, buf, M_SQL_BITOP_OR, M_buf_peek(inner), &quot;?&quot;);</span></div>
+<div class="line"><a name="l00738"></a><span class="lineno">  738</span>&#160;<span class="comment"> *      M_sql_stmt_bind_int32(stmt, 8);</span></div>
+<div class="line"><a name="l00739"></a><span class="lineno">  739</span>&#160;<span class="comment"> *      M_buf_cancel(inner);  // We peeked, throw it away</span></div>
+<div class="line"><a name="l00740"></a><span class="lineno">  740</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00741"></a><span class="lineno">  741</span>&#160;<span class="comment"> *      M_sql_stmt_prepare_buf(stmt, buf);</span></div>
+<div class="line"><a name="l00742"></a><span class="lineno">  742</span>&#160;<span class="comment"> *      err = M_sql_stmt_execute(pool, stmt);</span></div>
+<div class="line"><a name="l00743"></a><span class="lineno">  743</span>&#160;<span class="comment"> *      //...</span></div>
+<div class="line"><a name="l00744"></a><span class="lineno">  744</span>&#160;<span class="comment"> *      M_sql_stmt_destroy(stmt);</span></div>
+<div class="line"><a name="l00745"></a><span class="lineno">  745</span>&#160;<span class="comment"> *    \endcode</span></div>
+<div class="line"><a name="l00746"></a><span class="lineno">  746</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00747"></a><span class="lineno">  747</span>&#160;<span class="comment"> *  \warning Most databases do not allow bitwise operations to be used for &#39;truth&#39; values</span></div>
+<div class="line"><a name="l00748"></a><span class="lineno">  748</span>&#160;<span class="comment"> *           (e.g as a boolean).  Instead, an integrator should compare the result to 0</span></div>
+<div class="line"><a name="l00749"></a><span class="lineno">  749</span>&#160;<span class="comment"> *           to turn it into a boolean operation if needed.</span></div>
+<div class="line"><a name="l00750"></a><span class="lineno">  750</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00751"></a><span class="lineno">  751</span>&#160;<span class="comment"> *  \param[in]     pool       Initialized #M_sql_connpool_t object</span></div>
+<div class="line"><a name="l00752"></a><span class="lineno">  752</span>&#160;<span class="comment"> *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial request.</span></div>
+<div class="line"><a name="l00753"></a><span class="lineno">  753</span>&#160;<span class="comment"> *  \param[in]     op         Bitwise operation to perform.</span></div>
+<div class="line"><a name="l00754"></a><span class="lineno">  754</span>&#160;<span class="comment"> *  \param[in]     exp1       Left-hand side of SQL expression.</span></div>
+<div class="line"><a name="l00755"></a><span class="lineno">  755</span>&#160;<span class="comment"> *  \param[in]     exp2       Right-hande size of SQL expression.</span></div>
+<div class="line"><a name="l00756"></a><span class="lineno">  756</span>&#160;<span class="comment"> *  \return M_TRUE on success, M_FALSE on misuse</span></div>
+<div class="line"><a name="l00757"></a><span class="lineno">  757</span>&#160;<span class="comment"> */</span> </div>
+<div class="line"><a name="l00758"></a><span class="lineno">  758</span>&#160;M_API M_bool <a class="code" href="group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39">M_sql_query_append_bitop</a>(<a class="code" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="code" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, <span class="keyword">const</span> <span class="keywordtype">char</span> *exp1, <span class="keyword">const</span> <span class="keywordtype">char</span> *exp2);</div>
 <div class="line"><a name="l00759"></a><span class="lineno">  759</span>&#160;</div>
-<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;__END_DECLS</div>
-<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;</div>
-<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_SQL_H__ */</span><span class="preprocessor"></span></div>
-<div class="ttc" id="group__m__sql__query_html_ga3ee5a5d66a727e45d2918137266b4d74"><div class="ttname"><a href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock</a></div><div class="ttdeci">void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type)</div></div>
+<div class="line"><a name="l00760"></a><span class="lineno">  760</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00761"></a><span class="lineno">  761</span>&#160;<span class="comment">/*! @} */</span></div>
+<div class="line"><a name="l00762"></a><span class="lineno">  762</span>&#160;</div>
+<div class="line"><a name="l00763"></a><span class="lineno">  763</span>&#160;__END_DECLS</div>
+<div class="line"><a name="l00764"></a><span class="lineno">  764</span>&#160;</div>
+<div class="line"><a name="l00765"></a><span class="lineno">  765</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* __M_SQL_H__ */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__m__sql__conn_html_gga2272f071ed4f702373040e54869a440fad0511a265695d86e94749fc97511cc37"><div class="ttname"><a href="group__m__sql__conn.html#gga2272f071ed4f702373040e54869a440fad0511a265695d86e94749fc97511cc37">M_SQL_CONNPOOL_FLAG_NO_AUTORETRY_QUERY</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:322</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea52e3d4d20fb69ef8d477a38393bb09de"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea52e3d4d20fb69ef8d477a38393bb09de">M_SQL_ERROR_CONN_DRIVERLOAD</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:195</div></div>
 <div class="ttc" id="group__m__sql__conn_html_ga41644e971fa760195ee96bc2e216e15e"><div class="ttname"><a href="group__m__sql__conn.html#ga41644e971fa760195ee96bc2e216e15e">M_sql_connpool_create</a></div><div class="ttdeci">M_sql_error_t M_sql_connpool_create(M_sql_connpool_t **pool, const char *driver, const char *conn_str, const char *username, const char *password, size_t max_conns, M_uint32 flags, char *error, size_t error_size)</div></div>
@@ -894,7 +896,7 @@ $(document).ready(function(){initNavTree('m__sql_8h_source.html','');});
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ead5559073f138f100c553608f029c52d9"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ead5559073f138f100c553608f029c52d9">M_SQL_ERROR_PREPARE_INVALID</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:203</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea8a6bf1670ca6cd248432b823364882fb"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea8a6bf1670ca6cd248432b823364882fb">M_SQL_ERROR_QUERY_WRONGNUMPARAMS</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:209</div></div>
 <div class="ttc" id="group__m__sql__conn_html_gga2272f071ed4f702373040e54869a440fa4643441ae6685be5d2244c2c4260c824"><div class="ttname"><a href="group__m__sql__conn.html#gga2272f071ed4f702373040e54869a440fa4643441ae6685be5d2244c2c4260c824">M_SQL_CONNPOOL_FLAG_NONE</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:319</div></div>
-<div class="ttc" id="group__m__sql__query_html_gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf"><div class="ttname"><a href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">M_SQL_BITOP_AND</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:679</div></div>
+<div class="ttc" id="group__m__sql__query_html_gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf"><div class="ttname"><a href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf">M_SQL_BITOP_AND</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:682</div></div>
 <div class="ttc" id="group__m__time_html_ga4a70f026dae39fde5310040a740351d2"><div class="ttname"><a href="group__m__time.html#ga4a70f026dae39fde5310040a740351d2">M_time_t</a></div><div class="ttdeci">M_int64 M_time_t</div><div class="ttdef"><b>Definition:</b> m_time.h:161</div></div>
 <div class="ttc" id="group__m__sql__error_html_gaae10ff11eb7d5583afcffa6ec87c753e"><div class="ttname"><a href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a></div><div class="ttdeci">M_sql_error_t</div><div class="ttdef"><b>Definition:</b> m_sql.h:185</div></div>
 <div class="ttc" id="group__m__sql__conn_html_ga41d833f20685195f16c511a94adc6e58"><div class="ttname"><a href="group__m__sql__conn.html#ga41d833f20685195f16c511a94adc6e58">M_sql_connpool_set_timeouts</a></div><div class="ttdeci">void M_sql_connpool_set_timeouts(M_sql_connpool_t *pool, M_time_t reconnect_time_s, M_time_t max_idle_time_s, M_time_t fallback_s)</div></div>
@@ -908,12 +910,13 @@ $(document).ready(function(){initNavTree('m__sql_8h_source.html','');});
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753eaa4cfb196beb6ef8ad8423e6a8012723f"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753eaa4cfb196beb6ef8ad8423e6a8012723f">M_SQL_ERROR_QUERY_NOTPREPARED</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:208</div></div>
 <div class="ttc" id="group__m__sql__conn_html_ga36847634817b89efb01054d49e3c6352"><div class="ttname"><a href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a></div><div class="ttdeci">struct M_sql_connpool M_sql_connpool_t</div><div class="ttdef"><b>Definition:</b> m_sql.h:315</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea3f40d0160afa7e87a421d869c5e422fd"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3f40d0160afa7e87a421d869c5e422fd">M_SQL_ERROR_PREPARE_NOMULITQUERY</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:205</div></div>
-<div class="ttc" id="group__m__sql__query_html_gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2"><div class="ttname"><a href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">M_SQL_BITOP_OR</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:680</div></div>
+<div class="ttc" id="group__m__sql__query_html_gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2"><div class="ttname"><a href="group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2">M_SQL_BITOP_OR</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:683</div></div>
 <div class="ttc" id="group__m__sql__conn_html_ga7ac0e5ea0d934685180ff2f94c226a69"><div class="ttname"><a href="group__m__sql__conn.html#ga7ac0e5ea0d934685180ff2f94c226a69">M_sql_connpool_driver_version</a></div><div class="ttdeci">const char * M_sql_connpool_driver_version(M_sql_connpool_t *pool)</div></div>
-<div class="ttc" id="group__m__sql__query_html_ga37d5f0e16066904bba1519f2117f4944"><div class="ttname"><a href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a></div><div class="ttdeci">M_sql_query_bitop_t</div><div class="ttdef"><b>Definition:</b> m_sql.h:678</div></div>
+<div class="ttc" id="group__m__sql__query_html_ga37d5f0e16066904bba1519f2117f4944"><div class="ttname"><a href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a></div><div class="ttdeci">M_sql_query_bitop_t</div><div class="ttdef"><b>Definition:</b> m_sql.h:681</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753eaa0334e4ee644084dabc356ee1c79299b"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753eaa0334e4ee644084dabc356ee1c79299b">M_SQL_ERROR_QUERY_FAILURE</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:215</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea623e81ccfdf15e28336c45d75bc095e2"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea623e81ccfdf15e28336c45d75bc095e2">M_SQL_ERROR_QUERY_DEADLOCK</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:213</div></div>
 <div class="ttc" id="group__m__sql__conn_html_gga2272f071ed4f702373040e54869a440fafe7b8c6f8b49c8405c07492de0bcea52"><div class="ttname"><a href="group__m__sql__conn.html#gga2272f071ed4f702373040e54869a440fafe7b8c6f8b49c8405c07492de0bcea52">M_SQL_CONNPOOL_FLAG_LOAD_BALANCE</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:328</div></div>
+<div class="ttc" id="group__m__sql__query_html_gae3a709e6c13fd44cbcb1f8a767a4ffca"><div class="ttname"><a href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock</a></div><div class="ttdeci">void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name)</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea2f00789054a687e0a086887688ee29ed"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea2f00789054a687e0a086887688ee29ed">M_SQL_ERROR_CONN_DRIVERVER</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:196</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8">M_SQL_ERROR_USER_RETRY</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:232</div></div>
 <div class="ttc" id="group__m__sql__error_html_ggaae10ff11eb7d5583afcffa6ec87c753ea9f1a8181cfd40ca2b919f40e0e28bec6"><div class="ttname"><a href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea9f1a8181cfd40ca2b919f40e0e28bec6">M_SQL_ERROR_INVALID_USE</a></div><div class="ttdef"><b>Definition:</b> m_sql.h:222</div></div>
@@ -925,7 +928,7 @@ $(document).ready(function(){initNavTree('m__sql_8h_source.html','');});
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_339610ecc71d7ce7314bd6b35c841e3a.html">include</a></li><li class="navelem"><a class="el" href="dir_5493b62903dfb46fc177a51087c10595.html">mstdlib</a></li><li class="navelem"><a class="el" href="dir_92e1763d806361614a8d863a690e1501.html">sql</a></li><li class="navelem"><b>m_sql.h</b></li>
-    <li class="footer">Generated on Mon Sep 17 2018 18:42:20 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Sep 24 2018 21:01:04 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

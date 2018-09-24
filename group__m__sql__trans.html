@@ -460,9 +460,9 @@ Functions</h2></td></tr>
 <div class="line">  stmt  = <a class="code" href="group__m__sql__stmt.html#ga744a85528377cd1f7ce17480a2863917">M_sql_stmt_create</a>();</div>
 <div class="line">  query = <a class="code" href="group__m__buf.html#ga2031dcfdfa76f5feb5a59c8e7ac155d0">M_buf_create</a>();</div>
 <div class="line">  <a class="code" href="group__m__buf.html#gad226a7199f864ff6a630dc7f16508c30">M_buf_add_str</a>(query, <span class="stringliteral">&quot;SELECT \&quot;val\&quot; FROM \&quot;counters\&quot;&quot;</span>);</div>
-<div class="line">  <a class="code" href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__trans.html#gaf9903fe845c0f6c26628cec6aa6bbf7b">M_sql_trans_get_pool</a>(trans), query, <a class="code" href="group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0ad5d2d238b6f95c5998316db53fedb970">M_SQL_QUERY_UPDLOCK_TABLE</a>);</div>
+<div class="line">  <a class="code" href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__trans.html#gaf9903fe845c0f6c26628cec6aa6bbf7b">M_sql_trans_get_pool</a>(trans), query, <a class="code" href="group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0ad5d2d238b6f95c5998316db53fedb970">M_SQL_QUERY_UPDLOCK_TABLE</a>);</div>
 <div class="line">  <a class="code" href="group__m__buf.html#gad226a7199f864ff6a630dc7f16508c30">M_buf_add_str</a>(query, <span class="stringliteral">&quot; WHERE \&quot;id\&quot; = ?&quot;</span>);</div>
-<div class="line">  <a class="code" href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__trans.html#gaf9903fe845c0f6c26628cec6aa6bbf7b">M_sql_trans_get_pool</a>(trans), query, <a class="code" href="group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0aff7c6763b3ed0ab24f605e8fddf4091a">M_SQL_QUERY_UPDLOCK_QUERYEND</a>);</div>
+<div class="line">  <a class="code" href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock</a>(<a class="code" href="group__m__sql__trans.html#gaf9903fe845c0f6c26628cec6aa6bbf7b">M_sql_trans_get_pool</a>(trans), query, <a class="code" href="group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0aff7c6763b3ed0ab24f605e8fddf4091a">M_SQL_QUERY_UPDLOCK_QUERYEND</a>);</div>
 <div class="line">  <a class="code" href="group__m__sql__stmt.html#ga70c41894d66a3309f0304d1eee7f0688">M_sql_stmt_prepare_buf</a>(stmt, query);</div>
 <div class="line">  <a class="code" href="group__m__sql__stmt__bind.html#ga98a115b01097da82df3e73445e92fed7">M_sql_stmt_bind_int64</a>(stmt, data-&gt;id);</div>
 <div class="line">  err  = <a class="code" href="group__m__sql__trans.html#ga63477b2bd1f89f36d72d18a0e63591dc">M_sql_trans_execute</a>(trans, stmt);</div>
@@ -540,7 +540,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Retrieve the <a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> object from a transaction handle typically used within <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> for using the SQL helpers like <a class="el" href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock()</a> and <a class="el" href="group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39">M_sql_query_append_bitop()</a>.</p>
+<p>Retrieve the <a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> object from a transaction handle typically used within <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> for using the SQL helpers like <a class="el" href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock()</a> and <a class="el" href="group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39">M_sql_query_append_bitop()</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">trans</td><td>Transaction object </td></tr>
@@ -556,7 +556,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Sep 17 2018 18:42:21 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Sep 24 2018 21:01:05 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

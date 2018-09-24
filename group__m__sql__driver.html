@@ -172,8 +172,8 @@ M_sql_driver_connpool&#160;</td><td class="memItemRight" valign="bottom"><a clas
 <tr class="separator:gac0e5c09be57426bf0f2568850b18cddc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2a7dd5c6e7b3144ccdf33472cfe37b1b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga2a7dd5c6e7b3144ccdf33472cfe37b1b">M_sql_driver_cb_createtable_suffix_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query)</td></tr>
 <tr class="separator:ga2a7dd5c6e7b3144ccdf33472cfe37b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab451c891fa5a96bb9307fd3d493966b3"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#gab451c891fa5a96bb9307fd3d493966b3">M_sql_driver_cb_append_updlock_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type)</td></tr>
-<tr class="separator:gab451c891fa5a96bb9307fd3d493966b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae9f1c0f38e5a0220f160d1d6684da849"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#gae9f1c0f38e5a0220f160d1d6684da849">M_sql_driver_cb_append_updlock_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type, const char *table_name)</td></tr>
+<tr class="separator:gae9f1c0f38e5a0220f160d1d6684da849"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2c6ff7f3d6e4d408b41a42e8f5820727"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga2c6ff7f3d6e4d408b41a42e8f5820727">M_sql_driver_cb_append_bitop_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, const char *exp1, const char *exp2)</td></tr>
 <tr class="separator:ga2c6ff7f3d6e4d408b41a42e8f5820727"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7d903a3904fa5844801b48e3ddb4279b"><td class="memItemLeft" align="right" valign="top">typedef char *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga7d903a3904fa5844801b48e3ddb4279b">M_sql_driver_cb_rewrite_indexname_t</a> )(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *index_name)</td></tr>
@@ -221,7 +221,9 @@ Enumerations</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a7d4952822407133ec8b943bc5d85a70c">M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE</a> = 1, 
 <br/>
-&#160;&#160;<a class="el" href="group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a0716f68881e88d474df9b59d828d82cc">M_SQL_DRIVER_UPDLOCK_CAP_MSSQL</a> = 2
+&#160;&#160;<a class="el" href="group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a0716f68881e88d474df9b59d828d82cc">M_SQL_DRIVER_UPDLOCK_CAP_MSSQL</a> = 2, 
+<br/>
+&#160;&#160;<a class="el" href="group__m__sql__driver.html#gga9f7cbede943c3693059e9fec4ecb97a0a4ac58a62c56b19f09c6caf3cbdaa9ad9">M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF</a> = 3
 <br/>
  }</td></tr>
 <tr class="separator:ga9f7cbede943c3693059e9fec4ecb97a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -325,8 +327,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga3f32a2dd16aed4219aaf2a3114b1f256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae04f1d8a4b8260c74cbf7ba6b1879a85"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#gae04f1d8a4b8260c74cbf7ba6b1879a85">M_sql_driver_stmt_result_row_finish</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt)</td></tr>
 <tr class="separator:gae04f1d8a4b8260c74cbf7ba6b1879a85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafd136e6f1a35228ef962371d833319ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#gafd136e6f1a35228ef962371d833319ec">M_sql_driver_append_updlock</a> (<a class="el" href="group__m__sql__driver.html#ga9f7cbede943c3693059e9fec4ecb97a0">M_sql_driver_updlock_caps_t</a> caps, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type)</td></tr>
-<tr class="separator:gafd136e6f1a35228ef962371d833319ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9fc146568ec1022491f5b6240374634f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga9fc146568ec1022491f5b6240374634f">M_sql_driver_append_updlock</a> (<a class="el" href="group__m__sql__driver.html#ga9f7cbede943c3693059e9fec4ecb97a0">M_sql_driver_updlock_caps_t</a> caps, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type, const char *table_name)</td></tr>
+<tr class="separator:ga9fc146568ec1022491f5b6240374634f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga086940408f0f4faca942ab43d7a15da5"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga086940408f0f4faca942ab43d7a15da5">M_sql_driver_append_bitop</a> (<a class="el" href="group__m__sql__driver.html#ga02c224c26f838de6ae8a15f008b3e2d5">M_sql_driver_bitop_caps_t</a> caps, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, const char *exp1, const char *exp2)</td></tr>
 <tr class="separator:ga086940408f0f4faca942ab43d7a15da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga859fdd63ddca8041082b685a78b1e43b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__trans.html#ga38ac042e25fb1159dee3474fb024485d">M_sql_isolation_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga859fdd63ddca8041082b685a78b1e43b">M_sql_driver_str2isolation</a> (const char *str)</td></tr>
@@ -516,7 +518,7 @@ cb_createtable_suffix</td>
 <p>Optional. Callback used to append additional data to the Create Table query string </p>
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="ab389903ef8e6c4cc1d5cc296c39e7cfb"></a><a class="el" href="group__m__sql__driver.html#gab451c891fa5a96bb9307fd3d493966b3">M_sql_driver_cb_append_updlock_t</a></td>
+<a class="anchor" id="ab389903ef8e6c4cc1d5cc296c39e7cfb"></a><a class="el" href="group__m__sql__driver.html#gae9f1c0f38e5a0220f160d1d6684da849">M_sql_driver_cb_append_updlock_t</a></td>
 <td class="fieldname">
 cb_append_updlock</td>
 <td class="fielddoc">
@@ -671,8 +673,8 @@ port</td>
 <div class="line">    {                                                    \</div>
 <div class="line">        return &amp;M_sql_##name;                            \</div>
 <div class="line">    }</div>
-<div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:346</div></div>
-<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:713</div></div>
+<div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:347</div></div>
+<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:716</div></div>
 </div><!-- fragment --><p>Use in sql driver source file to create entry point </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1157,22 +1159,23 @@ port</td>
 
 </div>
 </div>
-<a class="anchor" id="gab451c891fa5a96bb9307fd3d493966b3"></a>
+<a class="anchor" id="gae9f1c0f38e5a0220f160d1d6684da849"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* M_sql_driver_cb_append_updlock_t)(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type)</td>
+          <td class="memname">typedef void(* M_sql_driver_cb_append_updlock_t)(<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a> type, const char *table_name)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Output the SQL-driver-specific update lock as needed.</p>
-<p>See <a class="el" href="group__m__sql__query.html#ga3ee5a5d66a727e45d2918137266b4d74">M_sql_query_append_updlock()</a> for more information.</p>
+<p>See <a class="el" href="group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca">M_sql_query_append_updlock()</a> for more information.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pool</td><td>Pointer to connection pool object </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">query</td><td>Buffer to write sql-server-specific lock information into. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">type</td><td>mstdlib sql updlock type </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">table_name</td><td>Table name for "FOR UPDATE OF" style locks </td></tr>
   </table>
   </dd>
 </dl>
@@ -1316,7 +1319,7 @@ port</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Capabilities driver can use for <a class="el" href="group__m__sql__driver.html#gafd136e6f1a35228ef962371d833319ec">M_sql_driver_append_updlock()</a> helper </p>
+<p>Capabilities driver can use for <a class="el" href="group__m__sql__driver.html#ga9fc146568ec1022491f5b6240374634f">M_sql_driver_append_updlock()</a> helper </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga9f7cbede943c3693059e9fec4ecb97a0aa2eb1428687821f6322e66a616e691ff"></a>M_SQL_DRIVER_UPDLOCK_CAP_NONE</em>&#160;</td><td class="fielddoc">
 <p>No row-level locks supported </p>
@@ -1326,6 +1329,9 @@ port</td>
 </td></tr>
 <tr><td class="fieldname"><em><a class="anchor" id="gga9f7cbede943c3693059e9fec4ecb97a0a0716f68881e88d474df9b59d828d82cc"></a>M_SQL_DRIVER_UPDLOCK_CAP_MSSQL</em>&#160;</td><td class="fielddoc">
 <p>Microsoft SQL Server style locks </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga9f7cbede943c3693059e9fec4ecb97a0a4ac58a62c56b19f09c6caf3cbdaa9ad9"></a>M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF</em>&#160;</td><td class="fielddoc">
+<p>FOR UPDATE, and FOR UPDATE OF (PostgreSQL) style locks </p>
 </td></tr>
 </table>
 
@@ -2634,7 +2640,7 @@ port</td>
 
 </div>
 </div>
-<a class="anchor" id="gafd136e6f1a35228ef962371d833319ec"></a>
+<a class="anchor" id="ga9fc146568ec1022491f5b6240374634f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -2654,7 +2660,13 @@ port</td>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0">M_sql_query_updlock_type_t</a>&#160;</td>
-          <td class="paramname"><em>type</em>&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table_name</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2669,6 +2681,7 @@ port</td>
     <tr><td class="paramdir">[in]</td><td class="paramname">caps</td><td>Capabilities of SQL server </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">query</td><td>Buffer to write sql-server-specific lock information into. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">type</td><td>mstdlib sql updlock type </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">table_name</td><td>Table name for M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF </td></tr>
   </table>
   </dd>
 </dl>
@@ -2824,7 +2837,7 @@ port</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Sep 17 2018 18:42:21 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Mon Sep 24 2018 21:01:05 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
