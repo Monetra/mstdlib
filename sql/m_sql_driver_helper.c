@@ -643,9 +643,8 @@ void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *quer
 			if (type == M_SQL_QUERY_UPDLOCK_QUERYEND) {
 				M_buf_add_str(query, " FOR UPDATE");
 				if (!M_str_isempty(table_name)) {
-					M_buf_add_str(query, " OF \"");
+					M_buf_add_str(query, " OF ");
 					M_buf_add_str(query, table_name);
-					M_buf_add_str(query, "\"");
 				}
 			}
 			return;
