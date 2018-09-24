@@ -29,7 +29,7 @@
 M_sql_error_t oracle_resolve_error(const char *sqlstate, M_int32 errorcode);
 M_sql_error_t oracle_cb_connect_runonce(M_sql_conn_t *conn, M_sql_driver_connpool_t *dpool, M_bool is_first_in_pool, M_bool is_readonly, char *error, size_t error_size);
 M_bool oracle_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len);
-void oracle_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type);
+void oracle_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 M_bool oracle_cb_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_bitop_t op, const char *exp1, const char *exp2);
 char *oracle_cb_rewrite_indexname(M_sql_connpool_t *pool, const char *index_name);
 

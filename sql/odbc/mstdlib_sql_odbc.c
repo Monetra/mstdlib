@@ -1850,13 +1850,13 @@ static void odbc_cb_createtable_suffix(M_sql_connpool_t *pool, M_buf_t *query)
 }
 
 
-static void odbc_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type)
+static void odbc_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name)
 {
 	M_sql_driver_connpool_t  *dpool      = M_sql_driver_pool_get_dpool(pool);
 	odbc_connpool_data_t     *data       = &dpool->primary;
 
 	if (data->profile->cb_append_updlock)
-		data->profile->cb_append_updlock(pool, query, type);
+		data->profile->cb_append_updlock(pool, query, type, table_name);
 }
 
 

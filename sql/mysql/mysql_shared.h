@@ -29,7 +29,7 @@
 M_sql_error_t mysql_resolve_error(const char *sqlstate, M_int32 errorcode);
 M_sql_error_t mysql_cb_connect_runonce(M_sql_conn_t *conn, M_sql_driver_connpool_t *dpool, M_bool is_first_in_pool, M_bool is_readonly, char *error, size_t error_size);
 M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len);
-void mysql_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type);
+void mysql_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 M_bool mysql_cb_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_bitop_t op, const char *exp1, const char *exp2);
 void mysql_createtable_suffix(M_sql_connpool_t *pool, M_hash_dict_t *settings, M_buf_t *query);
 
