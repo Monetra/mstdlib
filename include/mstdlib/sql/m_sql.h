@@ -666,12 +666,15 @@ typedef enum {
  *           need these guarantees, please ensure you are using the #M_SQL_ISOLATION_SERIALIZABLE
  *           isolation method as well.
  *
- *  \param[in]     pool  Initialized #M_sql_connpool_t object
- *  \param[in,out] query A pointer to an already populated M_buf_t with a partial (or complete
- *                       for #M_SQL_QUERY_UPDLOCK_QUERYEND) request.
- *  \param[in]     type  Type of sql-specific lock to append to the query.
+ *  \param[in]     pool       Initialized #M_sql_connpool_t object
+ *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial (or complete
+ *                            for #M_SQL_QUERY_UPDLOCK_QUERYEND) request.
+ *  \param[in]     type       Type of sql-specific lock to append to the query.
+ *  \param[in]     table_name Optional. For databases that support "FOR UPDATE OF" this will specify the explicit
+ *                            table name to use.  If NULL, then will not emit the "OF" clause.  This may be necessary
+ *                            for left outer joins on PostgreSQL.
  */
-M_API void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type);
+M_API void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 
 
 /*! Type of bitwise operation to perform. */

@@ -310,8 +310,9 @@ typedef void (*M_sql_driver_cb_createtable_suffix_t)(M_sql_connpool_t *pool, M_b
  *  \param[in]     pool       Pointer to connection pool object
  *  \param[in,out] query      Buffer to write sql-server-specific lock information into.
  *  \param[in]     type       mstdlib sql updlock type
+ *  \param[in]     table_name Table name for "FOR UPDATE OF" style locks
  */
-typedef void (*M_sql_driver_cb_append_updlock_t)(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type);
+typedef void (*M_sql_driver_cb_append_updlock_t)(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 
 
 /*! Output the SQL-driver-specific bit operation formatted as needed. 
@@ -655,9 +656,10 @@ M_API M_bool M_sql_driver_stmt_result_row_finish(M_sql_stmt_t *stmt);
 
 /*! Capabilities driver can use for M_sql_driver_append_updlock() helper */
 typedef enum {
-	M_SQL_DRIVER_UPDLOCK_CAP_NONE      = 0, /*!< No row-level locks supported */
-	M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE = 1, /*!< FOR UPDATE style locks */
-	M_SQL_DRIVER_UPDLOCK_CAP_MSSQL     = 2  /*!< Microsoft SQL Server style locks */
+	M_SQL_DRIVER_UPDLOCK_CAP_NONE        = 0, /*!< No row-level locks supported */
+	M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE   = 1, /*!< FOR UPDATE style locks */
+	M_SQL_DRIVER_UPDLOCK_CAP_MSSQL       = 2, /*!< Microsoft SQL Server style locks */
+	M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF = 3 /*!< FOR UPDATE, and FOR UPDATE OF (PostgreSQL) style locks */
 } M_sql_driver_updlock_caps_t;
 
 
@@ -666,15 +668,16 @@ typedef enum {
  *  \param[in]     caps       Capabilities of SQL server
  *  \param[in,out] query      Buffer to write sql-server-specific lock information into.
  *  \param[in]     type       mstdlib sql updlock type
+ *  \param[in]     table_name Table name for M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF
  */
-M_API void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *query, M_sql_query_updlock_type_t type);
+M_API void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 
 
 /*! Bit Operations capabilities/type used by SQL server */
 typedef enum {
 	M_SQL_DRIVER_BITOP_CAP_OP               = 1, /*!< SQL server supports direct operators */
 	M_SQL_DRIVER_BITOP_CAP_FUNC             = 2, /*!< SQL server supports BITOR and BITAND functions */
-	M_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT   = 3, /*!< SQL server supports direct operators, but needs exp2 input cast as BIGINT */
+	M_SQL_DRIVER_BITOP_CAP_OP_CAST_BIGINT   = 3  /*!< SQL server supports direct operators, but needs exp2 input cast as BIGINT */
 } M_sql_driver_bitop_caps_t;
 
 
