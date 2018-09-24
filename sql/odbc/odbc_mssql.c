@@ -117,10 +117,10 @@ M_bool mssql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t
 }
 
 
-void mssql_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type)
+void mssql_cb_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name)
 {
 	(void)pool;
-	M_sql_driver_append_updlock(M_SQL_DRIVER_UPDLOCK_CAP_MSSQL, query, type);
+	M_sql_driver_append_updlock(M_SQL_DRIVER_UPDLOCK_CAP_MSSQL, query, type, table_name);
 }
 
 

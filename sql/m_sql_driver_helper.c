@@ -626,7 +626,7 @@ size_t M_sql_driver_stmt_bind_get_binary_len(M_sql_stmt_t *stmt, size_t row, siz
 
 
 
-void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *query, M_sql_query_updlock_type_t type)
+void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name)
 {
 	switch (caps) {
 		case M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATE:
@@ -637,6 +637,16 @@ void M_sql_driver_append_updlock(M_sql_driver_updlock_caps_t caps, M_buf_t *quer
 		case M_SQL_DRIVER_UPDLOCK_CAP_MSSQL:
 			if (type == M_SQL_QUERY_UPDLOCK_TABLE) {
 				M_buf_add_str(query, " WITH (ROWLOCK, XLOCK, HOLDLOCK)");
+			}
+			return;
+		case M_SQL_DRIVER_UPDLOCK_CAP_FORUPDATEOF:
+			if (type == M_SQL_QUERY_UPDLOCK_QUERYEND) {
+				M_buf_add_str(query, " FOR UPDATE");
+				if (!M_str_isempty(table_name)) {
+					M_buf_add_str(query, " OF \"");
+					M_buf_add_str(query, table_name);
+					M_buf_add_str(query, "\"");
+				}
 			}
 			return;
 		default: /* NONE */

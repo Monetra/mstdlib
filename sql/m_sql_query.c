@@ -28,7 +28,7 @@
 #include "m_sql_int.h"
 
 
-void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type)
+void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name)
 {
 	const M_sql_driver_t *driver = M_sql_connpool_get_driver(pool);
 
@@ -38,7 +38,7 @@ void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_qu
 	if (driver->cb_append_updlock == NULL)
 		return;
 
-	driver->cb_append_updlock(pool, query, type);
+	driver->cb_append_updlock(pool, query, type, table_name);
 }
 
 
