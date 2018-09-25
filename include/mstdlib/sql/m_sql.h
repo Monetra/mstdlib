@@ -635,6 +635,9 @@ typedef enum {
  *    \code SELECT * FROM "foo" WITH (ROWLOCK, XLOCK, HOLDLOCK) WHERE "bar" = ? \endcode
  *  For the equivalent on MySQL, it would look like this:
  *    \code SELECT * FROM "foo" WHERE "bar" = ? FOR UPDATE \endcode
+ *  For PostgreSQL it may either be like MySQL, or on instances where an outer left join is used
+ *  a table name must also be specified, e.g.
+ *    \code SELECT * FROM "foo" WHERE "bar" = ? FOR UPDATE OF \"foo\" \endcode
  *
  *  Clearly as the above example indicates, it would be undesirable to need to rewrite
  *  the query manually by detecting the database in use, using helpers makes this
@@ -646,10 +649,10 @@ typedef enum {
  *    M_sql_error_t err;
  *
  *    M_buf_add_str(query, "SELECT * FROM \"foo\"");
- *    M_sql_query_append_updlock(pool, query, M_SQL_QUERY_UPDLOCK_TABLE);
+ *    M_sql_query_append_updlock(pool, query, M_SQL_QUERY_UPDLOCK_TABLE, NULL);
  *    M_buf_add_str(query, " WHERE \"bar\" = ?");
  *    M_sql_stmt_bind_int32(stmt, 1);
- *    M_sql_query_append_updlock(pool, query, M_SQL_QUERY_UPDLOCK_QUERYEND);
+ *    M_sql_query_append_updlock(pool, query, M_SQL_QUERY_UPDLOCK_QUERYEND, NULL);
  *    M_sql_stmt_prepare_buf(stmt, query);
  *    err = M_sql_stmt_execute(pool, stmt);
  *    //...
@@ -672,7 +675,9 @@ typedef enum {
  *  \param[in]     type       Type of sql-specific lock to append to the query.
  *  \param[in]     table_name Optional. For databases that support "FOR UPDATE OF" this will specify the explicit
  *                            table name to use.  If NULL, then will not emit the "OF" clause.  This may be necessary
- *                            for left outer joins on PostgreSQL.
+ *                            for left outer joins on PostgreSQL.  Multiple tables may be referenced in a comma-delimited
+ *                            manner, if table aliases are used the alias must be referenced not the actual table name.
+ *                            Table names are NOT automatically quoted.
  */
 M_API void M_sql_query_append_updlock(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 
