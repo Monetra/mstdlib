@@ -218,7 +218,7 @@ Functions</h2></td></tr>
 </div><!-- fragment --><p> For the equivalent on MySQL, it would look like this: </p>
 <div class="fragment"><div class="line">SELECT * FROM <span class="stringliteral">&quot;foo&quot;</span> WHERE <span class="stringliteral">&quot;bar&quot;</span> = ? FOR UPDATE </div>
 </div><!-- fragment --><p> For PostgreSQL it may either be like MySQL, or on instances where an outer left join is used a table name must also be specified, e.g. </p>
-<div class="fragment"><div class="line">SELECT * FROM <span class="stringliteral">&quot;foo&quot;</span> WHERE <span class="stringliteral">&quot;bar&quot;</span> = ? FOR UPDATE OF \<span class="stringliteral">&quot;foo\&quot; </span></div>
+<div class="fragment"><div class="line">SELECT * FROM <span class="stringliteral">&quot;foo&quot;</span> WHERE <span class="stringliteral">&quot;bar&quot;</span> = ? FOR UPDATE OF <span class="stringliteral">&quot;foo&quot;</span> </div>
 </div><!-- fragment --><p>Clearly as the above example indicates, it would be undesirable to need to rewrite the query manually by detecting the database in use, using helpers makes this easier so you do not need to have SQL-server-specific logic in your own code. Converting that query above using the helpers could be done as the below: </p>
 <div class="fragment"><div class="line"><a class="code" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt  = <a class="code" href="group__m__sql__stmt.html#ga744a85528377cd1f7ce17480a2863917">M_sql_stmt_create</a>();</div>
 <div class="line"><a class="code" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a>      *query = <a class="code" href="group__m__buf.html#ga2031dcfdfa76f5feb5a59c8e7ac155d0">M_buf_create</a>();</div>
@@ -354,7 +354,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Sep 25 2018 13:17:34 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Tue Sep 25 2018 13:53:31 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
