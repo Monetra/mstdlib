@@ -637,7 +637,7 @@ typedef enum {
  *    \code SELECT * FROM "foo" WHERE "bar" = ? FOR UPDATE \endcode
  *  For PostgreSQL it may either be like MySQL, or on instances where an outer left join is used
  *  a table name must also be specified, e.g.
- *    \code SELECT * FROM "foo" WHERE "bar" = ? FOR UPDATE OF \"foo\" \endcode
+ *    \code SELECT * FROM "foo" WHERE "bar" = ? FOR UPDATE OF "foo" \endcode
  *
  *  Clearly as the above example indicates, it would be undesirable to need to rewrite
  *  the query manually by detecting the database in use, using helpers makes this
