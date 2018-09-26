@@ -109,6 +109,9 @@ static void fatal_sighandler(int sig)
 		case SIGBUS:
 			message = "Bus Error";
 			break;
+		case SIGABRT:
+			message = "Abort";
+			break;
 		default:
 			M_snprintf(temp, sizeof(temp), "Unknown fatal error: Signal %d", sig);
 			message = temp;
@@ -151,6 +154,7 @@ M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 	M_backtrace_set_fatal_signal(SIGBUS);
 	M_backtrace_set_fatal_signal(SIGILL);
 	M_backtrace_set_fatal_signal(SIGFPE);
+	M_backtrace_set_fatal_signal(SIGABRT);
 
 	return M_TRUE;
 }
