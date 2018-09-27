@@ -144,7 +144,9 @@ M_bool M_backtrace_setup_handling(M_backtrace_type_t type)
 		M_backtrace_set_nonfatal_signal(SIGINT);
 		M_backtrace_set_nonfatal_signal(SIGQUIT);
 		M_backtrace_set_nonfatal_signal(SIGTERM);
+#ifdef SIGXFSZ
 		M_backtrace_set_nonfatal_signal(SIGXFSZ);
+#endif
 	}
 
 	/* Setup default fatal signals. */
