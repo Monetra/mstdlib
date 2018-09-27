@@ -246,8 +246,7 @@ typedef void (*M_backtrace_log_emergency_func)(int sig, const char *message);
  *
  * Non-fatal events do not generate a backtrace and are informational
  * so the receiver can take additional action. For example, capturing
- * the CTRL+C event to write to a log before exiting. If the event
- * should be ignored the callback must call `signal(sig, SIG_IGN);`
+ * the CTRL+C event to write to a log before exiting.
  *
  * \param[in] sig Signal or exception that generated this event.
  */
@@ -310,6 +309,17 @@ M_API M_bool M_backtrace_enable(M_backtrace_type_t type, struct M_backtrace_call
 
 
 /*! Ignore the signal.
+ *
+ * This does _not_ set SIG_IGN. Instead it sets a no-op function as
+ * the handler. If SIG_IGN is required it must be set using `signal(sig, SIG_IGN)`
+ * directly.
+ *
+ * A no-op is used because of how SIG_IGN interacts with child
+ * processes. Per POSIX.1-2001, wait/waitpid will return ECHILD
+ * if SIGCHLD is set to SIG_IGN. If that's the case then children
+ * may not become zombies and wait/waitpid will block until all
+ * children have exited and fail with ECHILD. If using WNOHANG you'll
+ * get ECHILD immediately instead of being informed the child has exited.
  *
  * \note Unix only. 
  *

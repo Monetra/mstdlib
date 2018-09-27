@@ -39,6 +39,12 @@ __BEGIN_DECLS
  *
  * Open and interact with a process.
  *
+ * \note On Unix SIGCHLD _cannot_ be set to SIG_IGN.
+ *       ECHILD could be generated and M_popen_check
+ *       may return M_POPEN_ERR_WAIT when the process
+ *       exits. See M_backtrace_set_ignore_signal for
+ *       explantion.
+ *
  * Example:
  *
  * \code{.c}
