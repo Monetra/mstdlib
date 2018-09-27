@@ -171,6 +171,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Open and interact with a process.</p>
+<dl class="section note"><dt>Note</dt><dd>On Unix SIGCHLD <em>cannot</em> be set to SIG_IGN. ECHILD could be generated and M_popen_check may return M_POPEN_ERR_WAIT when the process exits. See M_backtrace_set_ignore_signal for explantion.</dd></dl>
 <p>Example:</p>
 <div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keywordtype">char</span>       *data = <span class="stringliteral">&quot;&lt;x&gt;&lt;t&gt;data&lt;/t&gt;&lt;/x&gt;&quot;</span></div>
 <div class="line"><a class="code" href="group__m__popen.html#ga74da94cfd9b5a63b4d9a3c221da49c8c">M_popen_err_t</a>     mperr;</div>
@@ -666,7 +667,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Sep 27 2018 14:03:00 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Sep 27 2018 14:30:27 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

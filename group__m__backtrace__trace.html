@@ -394,7 +394,7 @@ got_fatal</td>
 </div><div class="memdoc">
 <p>Callback to handle non-fatal events.</p>
 <dl class="section note"><dt>Note</dt><dd>UNIX only.</dd></dl>
-<p>Non-fatal events do not generate a backtrace and are informational so the receiver can take additional action. For example, capturing the CTRL+C event to write to a log before exiting. If the event should be ignored the callback must call <code>signal(sig, SIG_IGN);</code></p>
+<p>Non-fatal events do not generate a backtrace and are informational so the receiver can take additional action. For example, capturing the CTRL+C event to write to a log before exiting.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">sig</td><td>Signal or exception that generated this event. </td></tr>
@@ -530,6 +530,8 @@ got_fatal</td>
       </table>
 </div><div class="memdoc">
 <p>Ignore the signal.</p>
+<p>This does <em>not</em> set SIG_IGN. Instead it sets a no-op function as the handler. If SIG_IGN is required it must be set using <code>signal(sig, SIG_IGN)</code> directly.</p>
+<p>A no-op is used because of how SIG_IGN interacts with child processes. Per POSIX.1-2001, wait/waitpid will return ECHILD if SIGCHLD is set to SIG_IGN. If that's the case then children may not become zombies and wait/waitpid will block until all children have exited and fail with ECHILD. If using WNOHANG you'll get ECHILD immediately instead of being informed the child has exited.</p>
 <dl class="section note"><dt>Note</dt><dd>Unix only.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -619,7 +621,7 @@ got_fatal</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Sep 27 2018 14:02:59 for Mstdlib-1.2.0 by
+    <li class="footer">Generated on Thu Sep 27 2018 14:30:26 for Mstdlib-1.2.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
