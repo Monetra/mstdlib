@@ -34,16 +34,15 @@
 
 static void nonfatal_sighandler(int sig)
 {
-	if (M_backtrace_cbs.got_nonfatal == NULL) {
-		signal(sig, SIG_IGN);
-	} else {
+	if (M_backtrace_cbs.got_nonfatal != NULL) {
 		M_backtrace_cbs.got_nonfatal(sig);
 	}
 }
 
 static void ignore_sighandler(int sig)
 {
-	signal(sig, SIG_IGN);
+	(void)sig;
+	/* no op. */
 }
 
 static void fatal_sighandler(int sig)
