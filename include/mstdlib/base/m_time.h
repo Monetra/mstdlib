@@ -435,7 +435,7 @@ M_API M_uint64 M_time_elapsed(const M_timeval_t *start_tv) M_WARN_NONNULL(1);
  *
  * Offsets:
  *
- * - Support 'now', '+/-N magnitude', where magnitude is:
+ * - Support 'now', 'epoch', '+/-N magnitude', where magnitude is:
  *   - year, month, day, hour, min, sec
  *   - where long names and plural are supported
  *

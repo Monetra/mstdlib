@@ -26,7 +26,7 @@
 #include <mstdlib/mstdlib.h>
 
 /*! Returns 1 on success, 0 on failure, -1 on critical failure 
- * Support 'now', '+/-N magnitude', where magnitude is:
+ * Support 'now', 'epoch', '+/-N magnitude', where magnitude is:
  *	year, month, day, hour, min, sec
  *	where long names and plural are supported
  * Ex: +6 Months  or -7 hours
