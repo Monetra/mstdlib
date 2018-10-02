@@ -235,11 +235,15 @@ M_int64 M_atofi_prec(const char *s, int impliedDecimals)
 
 M_str_int_retval_t M_str_to_uint64_ex(const char *s, size_t len, unsigned char base, M_uint64 *val, const char **endptr)
 {
+	M_uint64           myval = 0;
 	M_bool             is_neg;
 	M_str_int_retval_t rv;
 
-	if (s == NULL || len == 0 || val == NULL)
+	if (s == NULL || len == 0)
 		return M_STR_INT_INVALID;
+
+	if (val == NULL)
+		val = &myval;
 
 	M_str_intconv_prep(&s, &len, &base, &is_neg);
 
@@ -264,12 +268,16 @@ M_str_int_retval_t M_str_to_uint64_ex(const char *s, size_t len, unsigned char b
 
 M_str_int_retval_t M_str_to_int64_ex(const char *s, size_t len, unsigned char base, M_int64 *val, const char **endptr)
 {
+	M_int64            myval = 0;
 	M_bool             is_neg;
 	M_str_int_retval_t rv;
 	M_uint64           uval;
 
-	if (s == NULL || len == 0 || val == NULL)
+	if (s == NULL || len == 0)
 		return M_STR_INT_INVALID;
+
+	if (val == NULL)
+		val = &myval;
 
 	M_str_intconv_prep(&s, &len, &base, &is_neg);
 
@@ -298,8 +306,15 @@ M_str_int_retval_t M_str_to_int64_ex(const char *s, size_t len, unsigned char ba
 
 M_str_int_retval_t M_str_to_uint32_ex(const char *s, size_t len, unsigned char base, M_uint32 *val, const char **endptr)
 {
+	M_uint32           myval  = 0;
 	M_uint64           u64val = 0;
 	M_str_int_retval_t rv;
+
+	if (s == NULL || len == 0)
+		return M_STR_INT_INVALID;
+
+	if (val == NULL)
+		val = &myval;
 
 	/* Use 64bit conversion. Yes, this is inefficient, but otherwise we'd be duplicating
 	 * a bit of code */
@@ -316,8 +331,15 @@ M_str_int_retval_t M_str_to_uint32_ex(const char *s, size_t len, unsigned char b
 
 M_str_int_retval_t M_str_to_int32_ex(const char *s, size_t len, unsigned char base, M_int32 *val, const char **endptr)
 {
+	M_int32            myval  = 0;
 	M_int64            i64val = 0;
 	M_str_int_retval_t rv;
+
+	if (s == NULL || len == 0)
+		return M_STR_INT_INVALID;
+
+	if (val == NULL)
+		val = &myval;
 
 	/* Use 64bit conversion.  Yes, this is inefficient, but otherwise we'd be duplicating
 	 * a bit of code */
