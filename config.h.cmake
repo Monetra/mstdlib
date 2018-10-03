@@ -53,9 +53,6 @@
 
 #cmakedefine HAVE_ST_BIRTHTIME
 
-#cmakedefine HAVE_READDIR_3
-#cmakedefine HAVE_READDIR_2
-
 #cmakedefine HAVE_DIRENT_TYPE
 #cmakedefine STRUCT_TM_HAS_GMTOFF
 #cmakedefine STRUCT_TM_HAS_ZONE
