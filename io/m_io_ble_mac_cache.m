@@ -179,7 +179,7 @@ static M_io_ble_device_t *M_io_ble_device_create(CBPeripheral *peripheral)
 
 		for (CBCharacteristic *c in s.characteristics) {
 			characteristic_uuid = [[c.UUID UUIDString] UTF8String];
-			M_hash_strvp_insert(characteristics, characteristic_uuid, (__bridge_retained CFTypeRef)c);
+			M_hash_strvp_insert(characteristics, characteristic_uuid, M_CAST_OFF_CONST(void *, (__bridge_retained CFTypeRef)c));
 		}
 	}
 
@@ -438,7 +438,7 @@ void M_io_ble_device_cache_peripherial(CBPeripheral *peripheral)
 		return;
 
 	p = (__bridge_retained CFTypeRef)peripheral;
-	M_hash_strvp_insert(ble_peripherals, uuid, p);
+	M_hash_strvp_insert(ble_peripherals, uuid, M_CAST_OFF_CONST(void *, p));
 
 	M_thread_mutex_unlock(lock);
 }
