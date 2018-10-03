@@ -88,7 +88,9 @@ static void fatal_sighandler(int sig)
 		for (i=0; i<nbufptrs; i++) {
 			M_backtrace_cbs.trace_data((unsigned char *)lines[i], M_str_len(lines[i]));
 		}
+		M_BEGIN_IGNORE_DEPRECATIONS
 		free(lines);
+		M_END_IGNORE_DEPRECATIONS
 	}
 #endif
 
