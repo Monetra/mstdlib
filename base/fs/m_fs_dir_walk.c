@@ -411,31 +411,15 @@ static M_bool M_fs_dir_walk_int_sys(const char *base_path, const char *full_path
 	struct dirent *dir_entry = NULL;
 	M_fs_type_t    type;
 	M_bool         ret = M_FALSE;
-#if (defined(HAVE_READDIR_3) || defined(HAVE_READDIR_2)) && !defined(_SCO_ELF)
-	struct dirent *result;
-#endif
 
 	/* Read the contents of the dir. */
 	dir = opendir(full_path);
-	if (dir == NULL) {
+	if (dir == NULL)
 		return M_FALSE;
-	}
 
-#if (defined(HAVE_READDIR_3) || defined(HAVE_READDIR_2)) && !defined(_SCO_ELF)
-	/* Linux man 3 readdir says the d_name entry of struct dirent can be of unspecified size. It gives the following
- 	 * technique for determining the size of that element and how to allocate a large enough memory segment to
-	 * accommodate the struct. BSD's man readdir gives a different technique but this one should work across all
-	 * OSs and should be safe to use. */ 
-	dir_entry = M_malloc_zero(offsetof(struct dirent, d_name) + M_fs_path_get_path_max(M_FS_SYSTEM_AUTO) + 1);
-#endif
-
-#if defined(HAVE_READDIR_3) && !defined(_SCO_ELF)
-	while ((readdir_r(dir, dir_entry, &result)) == 0 && result != NULL) {
-#elif defined(HAVE_READDIR_2) && !defined(_SCO_ELF)
-	while (readdir_r(dir, dir_entry) != NULL) {
-#else
+	/* We don't use readdir_r because it's deprecated on pretty much every modern platform.
+ 	 * readdir is reentrant these days and should be used instead. */
 	while ((dir_entry = readdir(dir)) != NULL) {
-#endif
 		/* Try to determine the file type. This is a short cut (which prevents a needless (l)stat calls) if we don't
  		 * need to get the file info and the OS/filesystem supports giving us this information we'll use it. */
 #ifdef HAVE_DIRENT_TYPE
@@ -459,13 +443,7 @@ static M_bool M_fs_dir_walk_int_sys(const char *base_path, const char *full_path
 		}
 	}
 
-#if (defined(HAVE_READDIR_3) || defined(HAVE_READDIR_2)) && !defined(_SCO_ELF)
-	/* dir_entry should not be freed if it is called from readdir */
-	M_free(dir_entry);
-#endif
-
 	closedir(dir);
-
 	return ret;
 }
 #endif
