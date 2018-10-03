@@ -217,6 +217,34 @@
 #  define    m_end_ignore_redeclarations
 #endif
 
+
+#define M_WARNING_STR(s) #s
+#define M_WARNING_JOINSTR(x,y) M_WARNING_STR(x ## y)
+#ifdef _MSC_VER
+#  define M_WARNING_PRAGMA(x) __pragma (warning(#x))
+#elif defined(__clang__)
+#  define M_WARNING_PRAGMA(x) _Pragma (M_WARNING_STR(clang diagnostic x))
+#elif defined(__GNUC__)
+#  define M_WARNING_PRAGMA(x) _Pragma (M_WARNING_STR(GCC diagnostic x))
+#else
+#  define M_WARNING_PRAGMA(x)
+#endif
+#define M_WARNING_CANCEL() M_WARNING_PRAGMA(pop)
+#if defined(__clang__)
+#  define M_WARNING_DISABLE(gcc_unused,clang_option,msvc_unused)    M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(ignored M_WARNING_JOINSTR(-W,clang_option))
+#  define M_WARNING_ENABLE(gcc_unused,clang_option,msvc_unused)     M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(M_WARNING_JOINSTR(-W,clang_option))
+#elif defined(_MSC_VER)
+#  define M_WARNING_DISABLE(gcc_unused,clang_unused,msvc_errorcode) M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(M_WARNING_JOINSTR(disable:,msvc_errorcode))
+#  define M_WARNING_ENABLE(gcc_unused,clang_unused,msvc_errorcode)  M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(msvc_errorcode)
+#elif defined(__GNUC__)
+#  define M_WARNING_DISABLE(gcc_option,clang_unused,msvc_unused)    M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(ignored M_WARNING_JOINSTR(-W,gcc_option))
+#  define M_WARNING_ENABLE(gcc_option,clang_unused,msvc_unused)     M_WARNING_PRAGMA(push) M_WARNING_PRAGMA(warning M_WARNING_JOINSTR(-W,gcc_option))
+#else
+#  define M_WARNING_DISABLE(gcc_option,clang_unused,msvc_unsued)
+#  define M_WARNING_ENABLE(gcc_option,clang_unused,msvc_unsued)
+#endif
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #endif /* __M_DEFS_H__ */
