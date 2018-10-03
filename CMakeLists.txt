@@ -259,7 +259,6 @@ include(CheckHasGetGRGID)
 include(CheckHasGetGRNAM)
 include(CheckHasBirthTime)
 include(CheckHasVaCopy)
-include(ReadDir)
 
 if (NOT ANDROID)
 	include(LargeFiles)

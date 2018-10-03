@@ -161,7 +161,6 @@ dnl functions
 AC_CHECK_FUNCS([strcasecmp strncasecmp])
 AC_CHECK_FUNCS([localtime_r])
 AC_CHECK_FUNCS([getpwuid_r getpwnam_r getgrgid_r getgrnam_r])
-AC_CHECK_FUNCS([readdir_r])
 AC_CHECK_FUNCS([secure_getenv])
 AC_CHECK_FUNCS([inet_pton inet_ntop sigtimedwait sigwait])
 
