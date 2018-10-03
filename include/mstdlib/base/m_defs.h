@@ -245,6 +245,11 @@
 #endif
 
 
+/*! Used to safely cast off a 'const', used only when it is known
+ *  to be okay to do so */
+#define M_CAST_OFF_CONST(type, var) ((type)((M_uintptr)var))
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #endif /* __M_DEFS_H__ */

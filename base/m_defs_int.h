@@ -36,10 +36,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Used to safely cast off a 'const', used only when it is known
- *  to be okay to do so */
-#define M_CAST_OFF_CONST(type, var) ((type)((M_uintptr)var))
-
 /* There is not a portable way to determine alignment at compile or run time.
  * It can be cacluated using alignof(max_align_t)); with C11 (we support back
  * to C89).
