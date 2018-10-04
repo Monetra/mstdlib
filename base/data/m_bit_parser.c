@@ -351,7 +351,9 @@ M_bool M_bit_parser_read_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t *d
 		return M_TRUE;
 	}
 	if (bparser == NULL || dest == NULL || destlen == NULL || *destlen == 0) {
-		*destlen = 0;
+		if (destlen != NULL) {
+			*destlen = 0;
+		}
 		return M_FALSE;
 	}
 
