@@ -864,11 +864,8 @@ char **M_str_explode_lines(size_t max_lines, size_t max_chars, const char *src_s
 	size_t   src_len  = M_str_len(src_str);
 	size_t   line_num;
 
-	if (max_lines == 0 || max_chars == 0 || num == NULL) {
+	if (max_lines == 0 || max_chars == 0 || src_str == NULL || num == NULL)
 		return NULL;
-	}
-
-	src_str = M_str_safe(src_str);
 
 	/* Worst case: solid block of max_lines*max_chars non-whitespace text. In this case, we'd need to add a '\0' at
 	 *             the end of each line, and there aren't any spaces to consume. So, we need to allocate enough space
