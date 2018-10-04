@@ -344,14 +344,10 @@ M_bool M_bit_parser_read_buf(M_bit_parser_t *bparser, M_buf_t *buf, size_t nbits
 
 M_bool M_bit_parser_read_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t *destlen, size_t nbits)
 {
-	size_t mydestlen;
-
-	if (destlen == NULL) {
-		destlen = &mydestlen;
-	}
-
 	if (nbits == 0) {
-		*destlen = 0;
+		if (destlen != NULL) {
+			*destlen = 0;
+		}
 		return M_TRUE;
 	}
 	if (bparser == NULL || dest == NULL || destlen == NULL || *destlen == 0) {
