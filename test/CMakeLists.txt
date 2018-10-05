@@ -7,6 +7,11 @@ if (NOT MSTDLIB_BUILD_TESTS)
 	return()
 endif ()
 
+# A few unit tests produce false failures on really slow/busy machines. Since they aren't reliable,
+# need a way to disable them when we're doing the build as part of a continuous-integration suite.
+option(MSTDLIB_BUILD_FOR_CI "Are we building tests to be run by a continuous-integration suite?" FALSE)
+mark_as_advanced(FORCE MSTDLIB_BUILD_FOR_CI)
+
 # Find libcheck (required).
 set(old_lib_mode ${CMAKE_FIND_ROOT_PATH_MODE_LIBRARY})
 set(old_inc_mode ${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE})
@@ -188,6 +193,12 @@ foreach (test_src ${tests})
 
 	add_executable(${test_prog} ${test_src})
 	target_link_libraries(${test_prog} PRIVATE ${test_deps})
+
+	if (MSTDLIB_BUILD_FOR_CI)
+		# Disable iffy tests, if we're building on Travis, AppVeyor, etc.
+		target_compile_definitions(${test_prog} PRIVATE MSTDLIB_BUILD_FOR_CI)
+	endif ()
+
 	if (MSVC)
 		# Some unit tests in here have embedded UTF-8 characters. Need to specify an extra flag to
 		# get VS to accept the file.

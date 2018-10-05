@@ -59,6 +59,7 @@ build_script:
   - cmake -GNinja
     -DCMAKE_BUILD_TYPE=%configuration%
     -DCMAKE_INSTALL_PREFIX=C:\projects\build-mstdlib\test_install
+    -DMSTDLIB_BUILD_FOR_CI=TRUE
     %CMAKE_EXTRA_OPTIONS% %APPVEYOR_BUILD_FOLDER%
   - ninja install
  
