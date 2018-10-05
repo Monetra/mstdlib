@@ -123,6 +123,7 @@ static void el_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 	M_event_done(data->el1);
 }
 
+#ifndef MSTDLIB_BUILD_FOR_CI
 static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	cb_data_t *data = thunk;
@@ -147,6 +148,7 @@ static void el_remove_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void 
 	M_thread_sleep(2000000);
 	M_event_done(data->el1);
 }
+#endif
 
 static void el_stop_cb2(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
