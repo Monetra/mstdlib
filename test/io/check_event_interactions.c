@@ -235,6 +235,11 @@ START_TEST(check_event_stacking_start)
 }
 END_TEST
 
+/* Tests two things.
+ *
+ * 1. Crash from el2 removing the timer running on el1.
+ * 2. Did the remove succeed and the timer only runs once.
+ */
 START_TEST(check_event_remove)
 {
 	M_thread_attr_t *tattr;
