@@ -501,10 +501,12 @@ static Suite *event_interactions_suite(void)
 	tcase_set_timeout(tc, 60);
 	suite_add_tcase(suite, tc);
 
+#ifndef MSTDLIB_BUILD_FOR_CI
 	tc = tcase_create("event_remove");
 	tcase_add_test(tc, check_event_remove);
 	tcase_set_timeout(tc, 60);
 	suite_add_tcase(suite, tc);
+#endif
 
 	tc = tcase_create("event_stop");
 	tcase_add_test(tc, check_event_stop);
