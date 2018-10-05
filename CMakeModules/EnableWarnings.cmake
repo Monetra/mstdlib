@@ -36,15 +36,31 @@ include(CheckCXXCompilerFlag)
 
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 
-# internal helper: _int_enable_warnings_set_flags(langs_var [warnings flags])
-function(_int_enable_warnings_set_flags langs_var)
+# internal helper: _int_enable_warnings_set_flags_ex(langs_var configs_var [warnings flags])
+function(_int_enable_warnings_set_flags_ex langs_var configs_var)
+	if (NOT ARGN)
+		return()
+	endif ()
+
+	if (NOT ${configs_var})
+		set(${configs_var} "NONE")
+	endif ()
+	string(TOUPPER "${${configs_var}}" ${configs_var})
+
 	foreach(_flag ${ARGN})
 		string(MAKE_C_IDENTIFIER "HAVE_${_flag}" varname)
 
 		if ("C" IN_LIST ${langs_var})
 			check_c_compiler_flag(${_flag} ${varname})
 			if (${varname})
-				string(APPEND CMAKE_C_FLAGS " ${_flag}")
+				foreach (config IN LISTS ${configs_var})
+					if (config STREQUAL "NONE")
+						set(config)
+					else ()
+						set(config "_${config}")
+					endif ()
+					string(APPEND CMAKE_C_FLAGS${config} " ${_flag}")
+				endforeach ()
 			endif ()
 		endif ()
 
@@ -52,16 +68,42 @@ function(_int_enable_warnings_set_flags langs_var)
 			string(APPEND varname "_CXX")
 			check_cxx_compiler_flag(${_flag} ${varname})
 			if (${varname})
-				string(APPEND CMAKE_CXX_FLAGS " ${_flag}")
+				foreach (config IN LISTS ${configs_var})
+					if (config STREQUAL "NONE")
+						set(config)
+					else ()
+						set(config "_${config}")
+					endif ()
+					string(APPEND CMAKE_CXX_FLAGS${config} " ${_flag}")
+				endforeach ()
 			endif ()
 		endif ()
 	endforeach()
 
 	foreach(lang C CXX)
-		string(STRIP "${CMAKE_${lang}_FLAGS}" CMAKE_${lang}_FLAGS)
-		set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}" PARENT_SCOPE)
+		foreach (config IN LISTS ${configs_var})
+			string(TOUPPER "${config}" config)
+			if (config STREQUAL "NONE")
+				set(config)
+			else ()
+				set(config "_${config}")
+			endif ()
+			string(STRIP "${CMAKE_${lang}_FLAGS${config}}" CMAKE_${lang}_FLAGS${config})
+			set(CMAKE_${lang}_FLAGS${config} "${CMAKE_${lang}_FLAGS${config}}" PARENT_SCOPE)
+		endforeach ()
 	endforeach()
 endfunction()
+
+# internal helper: _int_enable_warnings_set_flags(langs_var [warnings flags])
+macro(_int_enable_warnings_set_flags langs_var)
+	set(configs "NONE")
+	_int_enable_warnings_set_flags_ex(${langs_var} configs ${ARGN})
+endmacro()
+
+set(_flags_C)
+set(_flags_CXX)
+set(_debug_flags_C)
+set(_debug_flags_CXX)
 
 if (MSVC)
 	# Visual Studio uses a completely different nomenclature for warnings than gcc/mingw/clang, so none of the
@@ -87,8 +129,9 @@ if (MSVC)
 			/wd4267 # Disable warnings about converting size_t to a smaller type. https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4267
 		)
 	endif ()
+	list(APPEND _flags_C   ${_flags})
+	list(APPEND _flags_CXX ${_flags})
 
-	set(_cxx_flags "${_flags}")
 elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
 	# Intel's compiler warning flags are more like Visual Studio than GCC, though the numbers aren't the same.
 	set(_flags
@@ -100,11 +143,13 @@ elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
 		-wd11076  # Diagnostic related to inlining.
 	)
 
-	set(_cxx_flags "${_flags}")
+	list(APPEND _flags_C   ${_flags})
+	list(APPEND _flags_CXX ${_flags})
+
 else ()
 	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio or Intel):
 	# C Flags:
-	set(_flags
+	list(APPEND _flags_C
 		-Wall
 		-Wextra
 
@@ -149,7 +194,7 @@ else ()
 	)
 
 	# C++ flags:
-	set(_cxx_flags
+	list(APPEND _flags_CXX
 		-Wall
 		-Wextra
 
@@ -169,42 +214,60 @@ else ()
 	# Note: when cross-compiling to Windows from Cygwin, the Qt Mingw packages have a bunch of
 	#       noisy type-conversion warnings in headers. So, only enable those warnings if we're
 	#       not building that configuration.
-
 	if (NOT (WIN32 AND (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")))
-		list(APPEND _cxx_flags
+		list(APPEND _flags_CXX
 			-Wconversion
 			-Wfloat-equal
 			-Wsign-conversion
 		)
 	endif ()
-endif ()
 
-# Check and set C compiler flags.
-set(lang "C")
-if (lang IN_LIST languages)
-	_int_enable_warnings_set_flags(lang ${_flags})
-endif ()
+	# Add flags to force colored output even when output is redirected via pipe.
+	if (CMAKE_GENERATOR MATCHES "Ninja")
+		set(color_default TRUE)
+	else ()
+		set(color_default FALSE)
+	endif ()
+	option(FORCE_COLOR "Force compiler to always colorize, even when output is redirected." ${color_default})
+	mark_as_advanced(FORCE FORCE_COLOR)
+	if (FORCE_COLOR)
+		set(_flags
+			-fdiagnostics-color=always # GCC
+			-fcolor-diagnostics        # Clang
+		)
+		list(APPEND _flags_C   ${_flags})
+		list(APPEND _flags_CXX ${_flags})
+	endif ()
 
-# Check and set C++ compiler flags (if C++ language is enabled).
-set(lang "CXX")
-if (lang IN_LIST languages)
-	_int_enable_warnings_set_flags(lang ${_cxx_flags})
-endif ()
-
-# Add flags to force output colors.
-if (CMAKE_GENERATOR MATCHES "Ninja")
-	set(color_default TRUE)
-else ()
-	set(color_default FALSE)
-endif ()
-option(FORCE_COLOR "Force compiler to always colorize, even when output is redirected." ${color_default})
-mark_as_advanced(FORCE FORCE_COLOR)
-if (FORCE_COLOR)
-	_int_enable_warnings_set_flags(languages
-		-fdiagnostics-color=always # GCC
-		-fcolor-diagnostics        # Clang
+	# Add -fno-omit-frame-pointer (and optionally -fno-inline) to make debugging and stack dumps nicer.
+	set(_flags
+		-fno-omit-frame-pointer
 	)
+	option(M_NO_INLINE "Disable function inlining for RelWithDebInfo and Debug configurations?" FALSE)
+	if (M_NO_INLINE)
+		list(APPEND _flags
+			-fno-inline
+		)
+	endif ()
+	list(APPEND _debug_flags_C   ${_flags})
+	list(APPEND _debug_flags_CXX ${_flags})
 endif ()
+
+# Check and set compiler flags.
+set(_debug_configs
+	RelWithDebInfo
+	Debug
+)
+foreach(_lang ${languages})
+	_int_enable_warnings_set_flags(_lang ${_flags_${_lang}})
+	_int_enable_warnings_set_flags_ex(_lang _debug_configs ${_debug_flags_${_lang}})
+
+	# Try to optimize pure Debug builds (not possible on Visual Studio).
+	if (NOT MSVC)
+		set(_config Debug)
+		_int_enable_warnings_set_flags_ex(_lang _config -Og)
+	endif ()
+endforeach()
 
 
 
