@@ -237,12 +237,12 @@ Build Options
 
 Option                           | Description                        | Default
 ---------------------------------|------------------------------------|--------
-MSTDLIB_STATIC                   | Build static libs.                 | OFF
-MSTDLIB_STATIC_PIC               | Build static libs as PIC.          | OFF
+MSTDLIB_STATIC                   | Build static libs (PIC enabled).   | OFF
 MSTDLIB_INSTALL_LOCATION_LIBS    | Alternative install location to use instead of CMAKE_INSTALL_PREFIX. Useful for chain building and installing into a packing sub directory. | N/A
 MSTDLIB_INSTALL_LOCATION_HEADERS | Alternative install location to use instead of CMAKE_INSTALL_PREFIX. Useful for chain building and installing into a packing sub directory. | N/A
 MSTDLIB_INSTALL_HEADERS          | Install headers.                   | ON
 MSTDLIB_INSTALL_LIBS             | Install libraries.                 | ON
+MSTDLIB_INSTALL_EXPORTS          | Install CMake export files.        | ON
 MSTDLIB_BUILD_TESTS              | Build tests.                       | ON
 M_ASAN                           | Build with Address Sanitizer (compiler support required) | OFF
 MSTDLIB_USE_VALGRIND             | Run tests with valgrind when running "make check". | ON

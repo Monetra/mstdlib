@@ -37,15 +37,12 @@ if (EXISTS "${MSTDLIB_TOPLEVEL_DIR}/thirdparty/sqlite-amalgamation/sqlite3.c"
 
 			PUBLIC  SQLITE_OMIT_DEPRECATED=1
 		)
-		set_target_properties(internal_sqlite PROPERTIES
-			POSITION_INDEPENDENT_CODE TRUE
-		)
 
 		# Explicitly suppress all warnings for internal_sqlite only.
 		remove_all_warnings_from_targets(internal_sqlite) #see EnableWarnings.cmake
 
 		# Note: need an interface library shim to properly link against the object lib.
-		# TODO: get remove this once CMake gets full support for object libs.
+		# TODO: remove this once CMake gets full support for object libs.
 		add_library(internal_sqlite_iface INTERFACE)
 		target_sources(internal_sqlite_iface
 			INTERFACE $<TARGET_OBJECTS:internal_sqlite>
@@ -93,11 +90,6 @@ if (MSTDLIB_SQL_STATIC)
 		PUBLIC  MSTDLIB_SQL_STATIC_SQLITE
 		PRIVATE MSTDLIB_SQL_STATIC_MODULE
 	)
-	if ((NOT MSTDLIB_STATIC) OR MSTDLIB_STATIC_PIC)
-		set_target_properties(${PROJECT_NAME} PROPERTIES
-			POSITION_INDEPENDENT_CODE TRUE
-		)
-	endif ()
 	# Add library name to parent directory's list of statically compiled plugins.
 	list(APPEND SQL_STATIC_PLUGINS ${PROJECT_NAME})
 	set(SQL_STATIC_PLUGINS ${SQL_STATIC_PLUGINS} PARENT_SCOPE)

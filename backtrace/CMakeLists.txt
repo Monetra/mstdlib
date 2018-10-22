@@ -42,12 +42,6 @@ if (MSTDLIB_STATIC)
 	)
 endif ()
 
-if ((NOT MSTDLIB_STATIC) OR MSTDLIB_STATIC_PIC)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		POSITION_INDEPENDENT_CODE TRUE
-	)
-endif ()
-
 
 # Platform-specific settings.
 if (WIN32)

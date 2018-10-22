@@ -36,17 +36,9 @@ if (MSTDLIB_STATIC)
 	target_compile_definitions(${PROJECT_NAME}
 		PUBLIC MSTDLIB_STATIC
 	)
-	if (${MSTDLIB_STATIC_PIC})
-		set_target_properties(${PROJECT_NAME} PROPERTIES
-			POSITION_INDEPENDENT_CODE TRUE
-		)
-	endif ()
 else ()
 	add_library(${PROJECT_NAME} SHARED
 		${srcs}
-	)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		POSITION_INDEPENDENT_CODE TRUE
 	)
 endif ()
 
