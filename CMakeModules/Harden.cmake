@@ -46,6 +46,10 @@ set(_link_flags_shared)   # Flags to apply when linking shared libraries.
 set(_link_flags_implicit) # Extra system link flags added at end of line for all targets.
 
 
+# On all platforms, build everything as position independent code (if possible), to allow ASLR.
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
+
 if (MSVC)
 	# Visual Studio
 	set(_compile_flags
@@ -60,6 +64,19 @@ else ()
 	# Anything that's not Visual Studio (GCC, Clang, AppleClang, MinGW, etc.)
 
 	#list(APPEND _compile_flags "-fvisibility=hidden")
+
+	# Versions of CMake before 3.14 have a bug where it doesn't add "-pie" to executable link lines when
+	# you enable position independent code (only adds "-fPIE", which isn't enough).
+	#
+	# See: https://gitlab.kitware.com/cmake/cmake/issues/14983
+	# TODO: remove this once minimum supported CMake version is >= 3.14.
+	if (CMAKE_VERSION VERSION_LESS 3.14)
+		if (UNIX AND NOT (APPLE OR ANDOID))
+			list(APPEND _link_flags_exe -pie)
+		endif ()
+	else ()
+		cmake_policy(SET CMP0083 NEW) # add -pie flag when position independent code is set.
+	endif ()
 
 	# Enable stack protector (similiar to Visual Studio's /GS flag). Adds extra guards against stack buffer overflow.
 	# The "strong" stack protector is the current best option (see https://lwn.net/Articles/584225/). If we're on
