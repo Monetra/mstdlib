@@ -71,7 +71,7 @@ else ()
 	# See: https://gitlab.kitware.com/cmake/cmake/issues/14983
 	# TODO: remove this once minimum supported CMake version is >= 3.14.
 	if (CMAKE_VERSION VERSION_LESS 3.14)
-		if (UNIX AND NOT (APPLE OR ANDOID))
+		if (UNIX AND NOT (APPLE OR ANDROID))
 			list(APPEND _link_flags_exe -pie)
 		endif ()
 	else ()
