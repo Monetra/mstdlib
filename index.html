@@ -217,9 +217,7 @@ $ make
 <tr>
 <th>Option </th><th>Description </th><th>Default  </th></tr>
 <tr>
-<td>MSTDLIB_STATIC </td><td>Build static libs. </td><td>OFF </td></tr>
-<tr>
-<td>MSTDLIB_STATIC_PIC </td><td>Build static libs as PIC. </td><td>OFF </td></tr>
+<td>MSTDLIB_STATIC </td><td>Build static libs (PIC enabled). </td><td>OFF </td></tr>
 <tr>
 <td>MSTDLIB_INSTALL_LOCATION_LIBS </td><td>Alternative install location to use instead of CMAKE_INSTALL_PREFIX. Useful for chain building and installing into a packing sub directory. </td><td>N/A </td></tr>
 <tr>
@@ -228,6 +226,8 @@ $ make
 <td>MSTDLIB_INSTALL_HEADERS </td><td>Install headers. </td><td>ON </td></tr>
 <tr>
 <td>MSTDLIB_INSTALL_LIBS </td><td>Install libraries. </td><td>ON </td></tr>
+<tr>
+<td>MSTDLIB_INSTALL_EXPORTS </td><td>Install CMake export files. </td><td>ON </td></tr>
 <tr>
 <td>MSTDLIB_BUILD_TESTS </td><td>Build tests. </td><td>ON </td></tr>
 <tr>
@@ -262,7 +262,7 @@ $ make
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 5 2018 20:29:42 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Mon Oct 22 2018 19:05:12 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
