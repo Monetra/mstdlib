@@ -78,9 +78,6 @@ convert_mingw_implibs_to_vs(mstdlib_sql)
 
 # Plugins
 option(MSTDLIB_SQL_STATIC "Link SQL plugins statically, instead of dynamically at runtime" ${MSTDLIB_STATIC})
-if (NOT MSTDLIB_SQL_STATIC AND MSTDLIB_STATIC AND NOT MSTDLIB_STATIC_PIC)
-	message(FATAL_ERROR "Can't make SQL plugins with static mstdlib with PIC disabled: set -DMSTDLIB_STATIC_PIC=TRUE")
-endif ()
 
 #   note: this option is primarily used by monetra, it needs the third-party deps for packaging.
 set(SQL_STATIC_PLUGINS) #each statically-built plugin will add its library target name to this variable.
