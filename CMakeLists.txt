@@ -496,9 +496,9 @@ endif ()
 # Tests need to check for the test frame work so it will handle enabled/disable itself.
 add_subdirectory(test)
 
-# Trick to make headers and scripts show up in IDEs. Adds a phony target that references the files.
-file(GLOB_RECURSE headers_and_scripts *.h *.lua *.yml)
-add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${headers_and_scripts})
+# Trick to make scripts show up in IDEs. Adds a phony target that references the files.
+file(GLOB_RECURSE scripts *.lua *.yml)
+add_custom_target(_mstdlib_root_extra_files ALL SOURCES ${scripts})
 
 
 if (MSTDLIB_INSTALL_EXPORTS)
