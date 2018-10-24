@@ -678,11 +678,12 @@ M_io_serial_enum_t *M_io_serial_enum(M_bool include_modems)
 	return serenum;
 }
 
-#elif defined (__ANDROID__) || defined(IOS)
+#elif defined(IOS)
 
 M_io_serial_enum_t *M_io_serial_enum(M_bool include_modems)
 {
 	(void)include_modems;
+	/* Not supported */
 	return M_io_serial_enum_init();
 }
 
