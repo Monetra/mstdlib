@@ -103,6 +103,20 @@ static size_t peek_next_bytes(M_bit_parser_t *bparser, M_uint8 *dest, size_t des
 }
 
 
+static void ensure_append(M_bit_parser_t *bparser, size_t nbits_to_append)
+{
+	/* If this used to be a const parser, create a new internal buffer and copy the old
+	 * const data into it. Make sure the new internal buffer has enough room to hold
+	 * the number of bits that will be appended, in addition to the old data.
+	 */
+	if (bparser->bbuf == NULL && nbits_to_append > 0) {
+		bparser->bbuf = M_bit_buf_create();
+		M_bit_buf_reserve(bparser->bbuf, bparser->nbits + nbits_to_append);
+		M_bit_buf_add_bytes(bparser->bbuf, bparser->bytes, bparser->nbits);
+	}
+}
+
+
 M_bit_parser_t *M_bit_parser_create(const void *bytes, size_t nbits)
 {
 	M_bit_parser_t *bparser;
@@ -138,18 +152,37 @@ void M_bit_parser_append(M_bit_parser_t *bparser, const void *bytes, size_t nbit
 		return;
 	}
 
-	if (bparser->bbuf == NULL) {
-		/* If this used to be a const parser, create a new internal buffer and copy the old
-		 * const data into it.
-		 */
-		bparser->bbuf = M_bit_buf_create();
-		M_bit_buf_reserve(bparser->bbuf, bparser->nbits + nbits);
-		M_bit_buf_add_bytes(bparser->bbuf, bparser->bytes, bparser->nbits);
-	}
+	ensure_append(bparser, nbits);
 
 	M_bit_buf_add_bytes(bparser->bbuf, bytes, nbits);
 	bparser->nbits = M_bit_buf_len(bparser->bbuf);
 	bparser->bytes = M_bit_buf_peek(bparser->bbuf);
+}
+
+
+void M_bit_parser_append_uint(M_bit_parser_t *bparser, M_uint64 bits, size_t nbits)
+{
+	if (bparser == NULL || nbits == 0) {
+		return;
+	}
+
+	ensure_append(bparser, nbits);
+
+	M_bit_buf_add(bparser->bbuf, bits, nbits, M_BIT_BUF_PAD_NONE);
+}
+
+
+M_bool M_bit_parser_append_bitstr(M_bit_parser_t *bparser, const char *bitstr)
+{
+	size_t nbits = M_str_len(bitstr);
+
+	if (bparser == NULL || nbits == 0) {
+		return M_TRUE;
+	}
+
+	ensure_append(bparser, nbits);
+
+	return M_bit_buf_add_bitstr(bparser->bbuf, bitstr, M_BIT_BUF_PAD_NONE);
 }
 
 
