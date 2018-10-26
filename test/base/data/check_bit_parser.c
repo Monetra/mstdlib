@@ -681,6 +681,41 @@ START_TEST(check_bparser_create_const)
 END_TEST
 
 
+START_TEST(check_bparser_count)
+{
+	init_test("1 1001 0011 0111");
+	check_len(bparser, 13);
+
+	ck_assert(M_bit_parser_count(bparser, 0) == 5);
+	ck_assert(M_bit_parser_count(bparser, 1) == 8);
+
+	ck_assert(M_bit_parser_consume(bparser, 3));
+	ck_assert(M_bit_parser_count(bparser, 0) == 4);
+	ck_assert(M_bit_parser_count(bparser, 1) == 6);
+
+	ck_assert(M_bit_parser_consume(bparser, M_bit_parser_len(bparser)));
+	ck_assert(M_bit_parser_count(bparser, 0) == 0);
+	ck_assert(M_bit_parser_count(bparser, 1) == 0);
+
+	M_bit_parser_rewind_to_start(bparser);
+	ck_assert(M_bit_parser_consume(bparser, 12)); /* parser now contains "1" */
+	ck_assert(M_bit_parser_count(bparser, 0) == 0);
+	ck_assert(M_bit_parser_count(bparser, 1) == 1);
+
+	M_bit_parser_reset(bparser, NULL, 0);
+	ck_assert(M_bit_parser_count(bparser, 0) == 0);
+	ck_assert(M_bit_parser_count(bparser, 1) == 0);
+
+	M_bit_parser_append_uint(bparser, 0, 1); /* parser now contains "0" */
+	check_len(bparser, 1);
+	ck_assert(M_bit_parser_count(bparser, 0) == 1);
+	ck_assert(M_bit_parser_count(bparser, 1) == 0);
+
+	cleanup_test;
+}
+END_TEST
+
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* Code to run the individual tests as a test suite. */
@@ -708,6 +743,7 @@ int main(void)
 	add_test(suite, check_bparser_append);
 	add_test(suite, check_bparser_reset);
 	add_test(suite, check_bparser_create_const);
+	add_test(suite, check_bparser_count);
 
 	sr = srunner_create(suite);
 	srunner_set_log(sr, "check_bit_parser.log");

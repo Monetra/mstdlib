@@ -198,6 +198,18 @@ M_API size_t M_bit_parser_len(M_bit_parser_t *bparser);
 M_API size_t M_bit_parser_current_offset(M_bit_parser_t *bparser);
 
 
+/*! Count the number of bits left in the parser that have the given value.
+ *
+ * If the remaining bits in the parser are "10011110", calling this function
+ * with bit=0 will return 3, and calling it with bit=1 will return 5.
+ *
+ * \param[in] bparser bit parser object
+ * \param[in] bit     bit value to count
+ * \return            number of bits left in parser with the given value
+ */
+M_API size_t M_bit_parser_count(M_bit_parser_t *bparser, M_uint8 bit);
+
+
 /*! Rewind parser (and any mark) back to start of data.
  *
  * \param[in] bparser bit parser object

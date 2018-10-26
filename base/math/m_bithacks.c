@@ -168,3 +168,16 @@ M_int64 M_sign_extend(M_uint64 x, size_t num_bits)
 	const M_uint64 mask = ((M_uint64)1) << (num_bits - 1);
 	return (M_int64)((x ^ mask) - mask);
 }
+
+
+M_uint8 M_uint8_popcount(M_uint8 x)
+{
+	/* Implementation obtained from: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetTable */
+#define B2(n) n,     n+1,     n+1,     n+2
+#define B4(n) B2(n), B2(n+1), B2(n+1), B2(n+2)
+#define B6(n) B4(n), B4(n+1), B4(n+1), B4(n+2)
+	static const M_uint8 lookup[256] = {
+		B6(0), B6(1), B6(1), B6(2)
+	};
+	return lookup[x];
+}

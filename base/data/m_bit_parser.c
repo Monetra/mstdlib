@@ -169,11 +169,14 @@ void M_bit_parser_append_uint(M_bit_parser_t *bparser, M_uint64 bits, size_t nbi
 	ensure_append(bparser, nbits);
 
 	M_bit_buf_add(bparser->bbuf, bits, nbits, M_BIT_BUF_PAD_NONE);
+	bparser->nbits = M_bit_buf_len(bparser->bbuf);
+	bparser->bytes = M_bit_buf_peek(bparser->bbuf);
 }
 
 
 M_bool M_bit_parser_append_bitstr(M_bit_parser_t *bparser, const char *bitstr)
 {
+	M_bool res;
 	size_t nbits = M_str_len(bitstr);
 
 	if (bparser == NULL || nbits == 0) {
@@ -182,7 +185,12 @@ M_bool M_bit_parser_append_bitstr(M_bit_parser_t *bparser, const char *bitstr)
 
 	ensure_append(bparser, nbits);
 
-	return M_bit_buf_add_bitstr(bparser->bbuf, bitstr, M_BIT_BUF_PAD_NONE);
+	res = M_bit_buf_add_bitstr(bparser->bbuf, bitstr, M_BIT_BUF_PAD_NONE);
+
+	bparser->nbits = M_bit_buf_len(bparser->bbuf);
+	bparser->bytes = M_bit_buf_peek(bparser->bbuf);
+
+	return res;
 }
 
 
@@ -241,6 +249,43 @@ size_t M_bit_parser_current_offset(M_bit_parser_t *bparser)
 	}
 
 	return bparser->offset;
+}
+
+
+size_t M_bit_parser_count(M_bit_parser_t *bparser, M_uint8 bit)
+{
+	size_t count         = 0;
+	size_t byte_idx;
+	size_t nbytes;
+	size_t consumed_bits;
+
+	if (bparser == NULL || bparser->offset >= bparser->nbits) {
+		return 0;
+	}
+
+	/* Always counts number of 1 bits remaining - if user requested counting the 0 bits,
+	 * this can be easily calculated from the number of 1 bits.
+	 */
+
+	byte_idx      = bparser->offset / 8;
+	consumed_bits = bparser->offset % 8; /* number of consumed bits at beginning of current byte. */
+
+	/* If some bits are consumed in first byte, count set bits in this partial byte, then move to next byte. */
+	if (consumed_bits > 0) {
+		count += M_uint8_popcount((M_uint8)((bparser->bytes[byte_idx] << consumed_bits) & 0xFF));
+		byte_idx++;
+	}
+
+	/* Count set bits in remaining bytes by processing a whole byte at a time. */
+	nbytes = (bparser->nbits + 7) / 8;
+	for (; byte_idx < nbytes; byte_idx++) {
+		count += M_uint8_popcount(bparser->bytes[byte_idx]);
+	}
+
+	/* If user requested number of unset bits, subtract count from total number of bits, and return that.
+	 * If user requested number of set bits, return count directly.
+	 */
+	return (bit == 0)? (bparser->nbits - (bparser->offset + count)) : count;
 }
 
 

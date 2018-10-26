@@ -187,13 +187,21 @@ M_API M_uint8 M_uint64_log2(M_uint64 n);
 M_API M_int64 M_sign_extend(M_uint64 x, size_t num_bits);
 
 
-/*! Counts number of digits in an Integer.
+/*! Count number of decimal digits in an integer.
  *
  * \param[in] num Number to count digits.
  *
  * \return number of digits in integer.
  */
 M_API int M_uint64_count_digits(M_uint64 num);
+
+
+/*! Count number of set bits in a single byte.
+ *
+ * \param[in] x value to count bits in
+ * \return      number of set (1) bits in \a x
+ */
+M_uint8 M_uint8_popcount(M_uint8 x);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
