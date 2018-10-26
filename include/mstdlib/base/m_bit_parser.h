@@ -133,6 +133,33 @@ M_API M_bit_parser_t *M_bit_parser_create_const(const void *bytes, size_t nbits)
 M_API void M_bit_parser_append(M_bit_parser_t *bparser, const void *bytes, size_t nbits);
 
 
+/*! Append bits from a given integer to a bit parser object.
+ *
+ * Note that the bit region being read is assumed to be justified against the least-significant end of the
+ * integer, though the bits within that region are read from most-significant to least-significant.
+ *
+ * For example, if bits == 0x8B == (10001011)b, and nbits == 4, the bits "1011" will be added to the buffer.
+ *
+ * \param[in] bparser bit parser object
+ * \param[in] bits    value to draw bits from
+ * \param[in] nbits   number of bits to use (counted from least-significant end, right-to-left)
+ */
+M_API void M_bit_parser_append_uint(M_bit_parser_t *bparser, M_uint64 bits, size_t nbits);
+
+
+/*! Append bits from a given binary-ascii string to the buffer.
+ *
+ * A binary-ascii string is a list of 1 and 0 characters (e.g., "100010").
+ *
+ * Any whitespace in the string will be silently ignored. So, " 1000 1 0" will add the same data as "100010".
+ *
+ * \param[in] bparser bit parser object
+ * \param[in] bitstr  string to draw bits from
+ * \return            M_FALSE on error (given bitstr had characters other than '0', '1' or whitespace)
+ */
+M_API M_bool M_bit_parser_append_bitstr(M_bit_parser_t *bparser, const char *bitstr);
+
+
 /*! Reset parser to use new data (copies input data).
  *
  * Parser state (including any mark) is reset to initial values. Any data that was in the parser before this
