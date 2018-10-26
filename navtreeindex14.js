@@ -1,5 +1,7 @@
 var NAVTREEINDEX14 =
 {
+"group__m__tls__funcs.html#gaf70a77bd8de43cfbe7ee6067a75ef2f3":[0,7,0,39],
+"group__m__tls__funcs.html#gaf7ec0efcdf8f87e87943a6e876c55ba1":[0,7,0,47],
 "group__m__tls__funcs.html#gga7af29260b998209add89c7b03f918e4aa4e3e3297f242a54fd7b97e54a420b1bc":[0,7,0,3,0],
 "group__m__tls__funcs.html#gga7af29260b998209add89c7b03f918e4aa82b1dd488360f075a1d729a4f3e7fe04":[0,7,0,3,2],
 "group__m__tls__funcs.html#gga7af29260b998209add89c7b03f918e4aad7919095c511079867dc864637c610f8":[0,7,0,3,3],

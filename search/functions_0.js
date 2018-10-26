@@ -62,6 +62,8 @@ var searchData=
   ['m_5fbit_5fbuf_5ftruncate',['M_bit_buf_truncate',['../group__m__bit__buf.html#ga0888b5a0f90955716e59c9b8ac646145',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5fupdate_5fbit',['M_bit_buf_update_bit',['../group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50',1,'m_bit_buf.h']]],
   ['m_5fbit_5fparser_5fappend',['M_bit_parser_append',['../group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f',1,'m_bit_parser.h']]],
+  ['m_5fbit_5fparser_5fappend_5fbitstr',['M_bit_parser_append_bitstr',['../group__m__bit__parser.html#ga6a8954dc1d896f2cf60875afe3f13289',1,'m_bit_parser.h']]],
+  ['m_5fbit_5fparser_5fappend_5fuint',['M_bit_parser_append_uint',['../group__m__bit__parser.html#gae9edef2616463adcea423f98fb362c57',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fconsume',['M_bit_parser_consume',['../group__m__bit__parser.html#ga3699dc35c78dde6014bde7428b62286e',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fconsume_5frange',['M_bit_parser_consume_range',['../group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e',1,'m_bit_parser.h']]],
   ['m_5fbit_5fparser_5fconsume_5fto_5fnext',['M_bit_parser_consume_to_next',['../group__m__bit__parser.html#ga9eb1901a6ca4ffdddb1b38fafb993abc',1,'m_bit_parser.h']]],

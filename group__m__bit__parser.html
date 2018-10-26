@@ -128,6 +128,10 @@ Functions</h2></td></tr>
 <tr class="separator:gab7f78d16fe7e8d36bd1cca9f31139956"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga004c2bc096fc5547402c27078a0e1c2f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f">M_bit_parser_append</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, const void *bytes, size_t nbits)</td></tr>
 <tr class="separator:ga004c2bc096fc5547402c27078a0e1c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae9edef2616463adcea423f98fb362c57"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gae9edef2616463adcea423f98fb362c57">M_bit_parser_append_uint</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint64 bits, size_t nbits)</td></tr>
+<tr class="separator:gae9edef2616463adcea423f98fb362c57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6a8954dc1d896f2cf60875afe3f13289"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga6a8954dc1d896f2cf60875afe3f13289">M_bit_parser_append_bitstr</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, const char *bitstr)</td></tr>
+<tr class="separator:ga6a8954dc1d896f2cf60875afe3f13289"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0340cfeae6479b0706ee59fe9799e9f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0340cfeae6479b0706ee59fe9799e9f5">M_bit_parser_reset</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, const void *bytes, size_t nbits)</td></tr>
 <tr class="separator:ga0340cfeae6479b0706ee59fe9799e9f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0f16400d4191055d0b8d998763f05ebe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0f16400d4191055d0b8d998763f05ebe">M_bit_parser_destroy</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser) M_FREE(1)</td></tr>
@@ -352,6 +356,86 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="gae9edef2616463adcea423f98fb362c57"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_bit_parser_append_uint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint64&#160;</td>
+          <td class="paramname"><em>bits</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nbits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Append bits from a given integer to a bit parser object.</p>
+<p>Note that the bit region being read is assumed to be justified against the least-significant end of the integer, though the bits within that region are read from most-significant to least-significant.</p>
+<p>For example, if bits == 0x8B == (10001011)b, and nbits == 4, the bits "1011" will be added to the buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser object </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bits</td><td>value to draw bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nbits</td><td>number of bits to use (counted from least-significant end, right-to-left) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga6a8954dc1d896f2cf60875afe3f13289"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_append_bitstr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>bitstr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Append bits from a given binary-ascii string to the buffer.</p>
+<p>A binary-ascii string is a list of 1 and 0 characters (e.g., "100010").</p>
+<p>Any whitespace in the string will be silently ignored. So, " 1000 1 0" will add the same data as "100010".</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser object </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bitstr</td><td>string to draw bits from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE on error (given bitstr had characters other than '0', '1' or whitespace) </dd></dl>
 
 </div>
 </div>
@@ -1108,7 +1192,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 26 2018 15:19:03 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Fri Oct 26 2018 17:45:09 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>
