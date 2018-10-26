@@ -54,9 +54,9 @@ __BEGIN_DECLS
  *     size_t       out_nbytes;
  *
  *     bbuf = M_bit_buf_create();
- *     M_bbuf_add_bit(bbuf, 1);
- *     M_bbuf_add(bbuf, 0xA2C4, 14);   // adds least-significant 14 bits of 0xA2C4
- *     M_bbuf_add_str(bbuf, "100010000"); // adds 9 bits from binary-ASCII
+ *     M_bit_buf_add_bit(bbuf, 1);
+ *     M_bit_buf_add(bbuf, 0xA2C4, 14);   // adds least-significant 14 bits of 0xA2C4
+ *     M_bit_buf_add_bitstr(bbuf, "100010000"); // adds 9 bits from binary-ASCII
  *
  *     out = M_bit_buf_finish(bbuf, &out_nbytes);
  *
@@ -187,7 +187,38 @@ M_API void M_bit_buf_fill(M_bit_buf_t *bbuf, M_uint8 bit, size_t len_bits);
 M_API void M_bit_buf_add_bit(M_bit_buf_t *bbuf, M_uint8 bit);
 
 
+/*! Add given bit at given location in buffer, filling in gaps as necessary.
+ *
+ * If the requested bit_idx has already been set in the buffer, this function
+ * will simply update it to the requested value.
+ *
+ * If the requested bit_idx hasn't already been set, the size of the buffer will
+ * be increased up to the requested bit_idx, and then that bit will be set. Any
+ * new bits that had to be added before the requested bit_idx will be set to
+ * the value of 'fill_bit'.
+ *
+ * If you only want to update bits that have already been set, use M_bit_buf_update_bit().
+ *
+ * Usage example:
+ * \code{.c}
+ *     M_bit_buf_t *bbuf = M_bit_buf_create();
+ *     M_bit_buf_add_bitstr(bbuf, "101"); // bit buf contains "101"
+ *     M_bit_buf_set_bit(bbuf, 1, 5, 0);  // bit buf now contains "101001" (idx 3 and 4 get 'fill_bit', 5 gets 'bit')
+ * \endcode
+ *
+ * \see M_bit_buf_update_bit
+ *
+ */
+M_API void M_bit_buf_set_bit(M_bit_buf_t *bbuf, M_uint8 bit, size_t bit_idx, M_uint8 fill_bit);
+
+
 /*! Change one of the bits already in the buffer.
+ *
+ * This function is guaranteed to never change the length of the bit stream - it will only update bits
+ * that are already present. If you want to add a bit past the end of the stream, and automatically
+ * fill any bits between the old end of the stream and the new bit, use M_bit_buf_set_bit().
+ *
+ * \see M_bit_buf_set_bit
  *
  * \param[in] bbuf    Bit buffer
  * \param[in] bit_idx index of bit to change, must be less than M_bit_buf_len()

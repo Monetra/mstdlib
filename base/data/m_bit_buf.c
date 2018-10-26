@@ -201,6 +201,22 @@ void M_bit_buf_add_bit(M_bit_buf_t *bbuf, M_uint8 bit)
 }
 
 
+void M_bit_buf_set_bit(M_bit_buf_t *bbuf, M_uint8 bit, size_t bit_idx, M_uint8 fill_bit)
+{
+	size_t old_len = M_bit_buf_len(bbuf);
+	if (bbuf == NULL) {
+		return;
+	}
+
+	if (bit_idx < old_len) {
+		M_bit_buf_update_bit(bbuf, bit_idx, bit);
+	} else {
+		M_bit_buf_fill(bbuf, fill_bit, bit_idx - old_len);
+		M_bit_buf_add_bit(bbuf, bit);
+	}
+}
+
+
 M_bool M_bit_buf_update_bit(M_bit_buf_t *bbuf, size_t bit_idx, M_uint8 bit)
 {
 	size_t      byte_idx;
