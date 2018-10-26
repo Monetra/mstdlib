@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"group__m__llist__generic.html#gga8b11ecd4dd0a830179135654698905d3a9d6f3e402c7c3c9191b50c22bc9d835e":[0,0,1,3,0,5,0],
 "group__m__llist__generic.html#gga8b11ecd4dd0a830179135654698905d3ac4b53738c5a04c761f2f1085fa1b8c12":[0,0,1,3,0,5,2],
 "group__m__llist__generic.html#gga8b11ecd4dd0a830179135654698905d3af5479857f27e89f404658c2a6dbced11":[0,0,1,3,0,5,1],
 "group__m__llist__generic.html#ggab29d92d047982d9d051c6f698a5cef80aa2b2b712710c63530a20200082af0bd2":[0,0,1,3,0,6,1],
@@ -197,10 +198,10 @@ var NAVTREEINDEX8 =
 "group__m__math.html":[0,0,12],
 "group__m__math.html#ga04ee85d9e6bec40f316e7590897b1b2c":[0,0,12,5],
 "group__m__math.html#ga10bf99454569963304ba39092da8014a":[0,0,12,16],
-"group__m__math.html#ga219ee7279b4d2834b6811afd5dc24d30":[0,0,12,21],
+"group__m__math.html#ga219ee7279b4d2834b6811afd5dc24d30":[0,0,12,22],
 "group__m__math.html#ga2d7b3c34c9f314d2a8bd2742780e0dd4":[0,0,12,12],
 "group__m__math.html#ga3a6b24e7206f81840188890b99fda364":[0,0,12,18],
-"group__m__math.html#ga3f3a113f30b046eb4106471ad1f23af5":[0,0,12,20],
+"group__m__math.html#ga3f3a113f30b046eb4106471ad1f23af5":[0,0,12,21],
 "group__m__math.html#ga5006a59bc9a4ecdfb219ec3e6c853e2b":[0,0,12,6],
 "group__m__math.html#ga504da293c1e5bf1f4175a351f16c311c":[0,0,12,13],
 "group__m__math.html#ga6237309498df9996986cce08c6550824":[0,0,12,0],
@@ -212,6 +213,7 @@ var NAVTREEINDEX8 =
 "group__m__math.html#ga891d0b0a14a6ca204c9df02abe27f77e":[0,0,12,4],
 "group__m__math.html#ga8c22fe028460686a3c7fb688f6b4d3e5":[0,0,12,9],
 "group__m__math.html#ga8d52537ee0d10d9f682e268e153abf07":[0,0,12,19],
+"group__m__math.html#ga8dc88152fa95dd6be8cc7ba4fb0715fb":[0,0,12,20],
 "group__m__math.html#gab1487e621f9a5d3cdf462fa174d5f6b9":[0,0,12,1],
 "group__m__math.html#gac369b20b9ba76c827c4720573b3c7c3d":[0,0,12,2],
 "group__m__math.html#gac67ab2a60bbda0a15e3c25c8fed4cb7e":[0,0,12,11],
@@ -247,7 +249,5 @@ var NAVTREEINDEX8 =
 "group__m__mem.html#gad3f4ea473f3ca4bbc27f584cb13e08f1":[0,0,13,14],
 "group__m__mem.html#gadbd0a455897f5844298509ab2fb6b26c":[0,0,13,20],
 "group__m__mem.html#gaee7f5bbb2a4ac15dd901d16f9a9051d5":[0,0,13,2],
-"group__m__mem.html#gaf4b3922bed6ae588687f68cfca54a81d":[0,0,13,3],
-"group__m__module.html":[0,5,0],
-"group__m__module.html#ga2ff476c462e665a0fd88e8baf5025521":[0,5,0,3]
+"group__m__mem.html#gaf4b3922bed6ae588687f68cfca54a81d":[0,0,13,3]
 };

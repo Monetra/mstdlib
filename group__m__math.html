@@ -147,6 +147,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga3a6b24e7206f81840188890b99fda364"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8d52537ee0d10d9f682e268e153abf07"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__math.html#ga8d52537ee0d10d9f682e268e153abf07">M_uint64_count_digits</a> (M_uint64 num)</td></tr>
 <tr class="separator:ga8d52537ee0d10d9f682e268e153abf07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8dc88152fa95dd6be8cc7ba4fb0715fb"><td class="memItemLeft" align="right" valign="top">M_uint8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__math.html#ga8dc88152fa95dd6be8cc7ba4fb0715fb">M_uint8_popcount</a> (M_uint8 x)</td></tr>
+<tr class="separator:ga8dc88152fa95dd6be8cc7ba4fb0715fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3f3a113f30b046eb4106471ad1f23af5"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__math.html#ga3f3a113f30b046eb4106471ad1f23af5">M_math_modf</a> (double x, double *iptr)</td></tr>
 <tr class="separator:ga3f3a113f30b046eb4106471ad1f23af5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga219ee7279b4d2834b6811afd5dc24d30"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__math.html#ga219ee7279b4d2834b6811afd5dc24d30">M_math_round</a> (double x)</td></tr>
@@ -680,7 +682,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Counts number of digits in an Integer.</p>
+<p>Count number of decimal digits in an integer.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">num</td><td>Number to count digits.</td></tr>
@@ -688,6 +690,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>number of digits in integer. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8dc88152fa95dd6be8cc7ba4fb0715fb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_uint8 M_uint8_popcount </td>
+          <td>(</td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Count number of set bits in a single byte.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>value to count bits in </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>number of set (1) bits in <em>x</em> </dd></dl>
 
 </div>
 </div>
@@ -756,7 +782,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 26 2018 17:45:10 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Fri Oct 26 2018 19:26:34 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

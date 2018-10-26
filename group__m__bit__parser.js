@@ -15,6 +15,7 @@ var group__m__bit__parser =
     [ "M_bit_parser_destroy", "group__m__bit__parser.html#ga0f16400d4191055d0b8d998763f05ebe", null ],
     [ "M_bit_parser_len", "group__m__bit__parser.html#gafcd12115d7c4a1a882c6e60f6fe4f7a3", null ],
     [ "M_bit_parser_current_offset", "group__m__bit__parser.html#gae1b4e1cbea905faaf381528c0b0a0a70", null ],
+    [ "M_bit_parser_count", "group__m__bit__parser.html#ga80aac2b55b8ab3864ae8782c42ba98b3", null ],
     [ "M_bit_parser_rewind_to_start", "group__m__bit__parser.html#ga986c60e63b4df895bc8eaac30584853e", null ],
     [ "M_bit_parser_mark", "group__m__bit__parser.html#gac774e53139f921fbf7fc075b8de168eb", null ],
     [ "M_bit_parser_mark_len", "group__m__bit__parser.html#ga8321cada88138464f7af0e2d94fd0aa2", null ],

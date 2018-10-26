@@ -140,6 +140,8 @@ Functions</h2></td></tr>
 <tr class="separator:gafcd12115d7c4a1a882c6e60f6fe4f7a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae1b4e1cbea905faaf381528c0b0a0a70"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gae1b4e1cbea905faaf381528c0b0a0a70">M_bit_parser_current_offset</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser)</td></tr>
 <tr class="separator:gae1b4e1cbea905faaf381528c0b0a0a70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga80aac2b55b8ab3864ae8782c42ba98b3"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga80aac2b55b8ab3864ae8782c42ba98b3">M_bit_parser_count</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 bit)</td></tr>
+<tr class="separator:ga80aac2b55b8ab3864ae8782c42ba98b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga986c60e63b4df895bc8eaac30584853e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga986c60e63b4df895bc8eaac30584853e">M_bit_parser_rewind_to_start</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser)</td></tr>
 <tr class="separator:ga986c60e63b4df895bc8eaac30584853e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac774e53139f921fbf7fc075b8de168eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#gac774e53139f921fbf7fc075b8de168eb">M_bit_parser_mark</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser)</td></tr>
@@ -550,6 +552,42 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>current parser position, relative to start of data (in bits) </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga80aac2b55b8ab3864ae8782c42ba98b3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_bit_parser_count </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>bit</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Count the number of bits left in the parser that have the given value.</p>
+<p>If the remaining bits in the parser are "10011110", calling this function with bit=0 will return 3, and calling it with bit=1 will return 5.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser object </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bit</td><td>bit value to count </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>number of bits left in parser with the given value </dd></dl>
 
 </div>
 </div>
@@ -1192,7 +1230,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 26 2018 17:45:09 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Fri Oct 26 2018 19:26:34 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

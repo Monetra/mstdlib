@@ -20,6 +20,7 @@ var group__m__math =
     [ "M_uint64_log2", "group__m__math.html#ga6f838af3d8d8c4fbb94b4c6382c4f8ee", null ],
     [ "M_sign_extend", "group__m__math.html#ga3a6b24e7206f81840188890b99fda364", null ],
     [ "M_uint64_count_digits", "group__m__math.html#ga8d52537ee0d10d9f682e268e153abf07", null ],
+    [ "M_uint8_popcount", "group__m__math.html#ga8dc88152fa95dd6be8cc7ba4fb0715fb", null ],
     [ "M_math_modf", "group__m__math.html#ga3f3a113f30b046eb4106471ad1f23af5", null ],
     [ "M_math_round", "group__m__math.html#ga219ee7279b4d2834b6811afd5dc24d30", null ]
 ];
