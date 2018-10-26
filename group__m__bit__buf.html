@@ -142,6 +142,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga6053e2932cb614c5adc6649587a505a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad490e244ebedcdfe88f41eb74d853369"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#gad490e244ebedcdfe88f41eb74d853369">M_bit_buf_add_bit</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, M_uint8 bit)</td></tr>
 <tr class="separator:gad490e244ebedcdfe88f41eb74d853369"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga08a82e4fd19a4878837a3ffe641880a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3">M_bit_buf_set_bit</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, M_uint8 bit, size_t bit_idx, M_uint8 fill_bit)</td></tr>
+<tr class="separator:ga08a82e4fd19a4878837a3ffe641880a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga47895be86ee3f3747515f5432d78fb50"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50">M_bit_buf_update_bit</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, size_t bit_idx, M_uint8 bit)</td></tr>
 <tr class="separator:ga47895be86ee3f3747515f5432d78fb50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga81c50d3c8357be3f55bcdb79c1288b37"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__buf.html#ga81c50d3c8357be3f55bcdb79c1288b37">M_bit_buf_add_bytes</a> (<a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf, const void *bytes, size_t nbits)</td></tr>
@@ -163,9 +165,9 @@ Functions</h2></td></tr>
 <div class="line"><span class="keywordtype">size_t</span>       out_nbytes;</div>
 <div class="line"></div>
 <div class="line">bbuf = <a class="code" href="group__m__bit__buf.html#ga79941acde2d979546c7d7b70279f2745">M_bit_buf_create</a>();</div>
-<div class="line">M_bbuf_add_bit(bbuf, 1);</div>
-<div class="line">M_bbuf_add(bbuf, 0xA2C4, 14);   <span class="comment">// adds least-significant 14 bits of 0xA2C4</span></div>
-<div class="line">M_bbuf_add_str(bbuf, <span class="stringliteral">&quot;100010000&quot;</span>); <span class="comment">// adds 9 bits from binary-ASCII</span></div>
+<div class="line"><a class="code" href="group__m__bit__buf.html#gad490e244ebedcdfe88f41eb74d853369">M_bit_buf_add_bit</a>(bbuf, 1);</div>
+<div class="line"><a class="code" href="group__m__bit__buf.html#ga584cbab4ab98afcc8fd43db950a922ad">M_bit_buf_add</a>(bbuf, 0xA2C4, 14);   <span class="comment">// adds least-significant 14 bits of 0xA2C4</span></div>
+<div class="line"><a class="code" href="group__m__bit__buf.html#ga46291c92bba8b65624d0b6859098a7f6">M_bit_buf_add_bitstr</a>(bbuf, <span class="stringliteral">&quot;100010000&quot;</span>); <span class="comment">// adds 9 bits from binary-ASCII</span></div>
 <div class="line"></div>
 <div class="line">out = <a class="code" href="group__m__bit__buf.html#gaabe9d1a625bb1c5079ace86cc822a349">M_bit_buf_finish</a>(bbuf, &amp;out_nbytes);</div>
 <div class="line"></div>
@@ -505,6 +507,53 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga08a82e4fd19a4878837a3ffe641880a3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_bit_buf_set_bit </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>bbuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>bit</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bit_idx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>fill_bit</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Add given bit at given location in buffer, filling in gaps as necessary.</p>
+<p>If the requested bit_idx has already been set in the buffer, this function will simply update it to the requested value.</p>
+<p>If the requested bit_idx hasn't already been set, the size of the buffer will be increased up to the requested bit_idx, and then that bit will be set. Any new bits that had to be added before the requested bit_idx will be set to the value of 'fill_bit'.</p>
+<p>If you only want to update bits that have already been set, use <a class="el" href="group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50">M_bit_buf_update_bit()</a>.</p>
+<p>Usage example: </p>
+<div class="fragment"><div class="line"><a class="code" href="group__m__bit__buf.html#ga3e5bc7e87a3b747e9a0ec16793913a6e">M_bit_buf_t</a> *bbuf = <a class="code" href="group__m__bit__buf.html#ga79941acde2d979546c7d7b70279f2745">M_bit_buf_create</a>();</div>
+<div class="line"><a class="code" href="group__m__bit__buf.html#ga46291c92bba8b65624d0b6859098a7f6">M_bit_buf_add_bitstr</a>(bbuf, <span class="stringliteral">&quot;101&quot;</span>); <span class="comment">// bit buf contains &quot;101&quot;</span></div>
+<div class="line"><a class="code" href="group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3">M_bit_buf_set_bit</a>(bbuf, 1, 5, 0);  <span class="comment">// bit buf now contains &quot;101001&quot; (idx 3 and 4 get &#39;fill_bit&#39;, 5 gets &#39;bit&#39;)</span></div>
+</div><!-- fragment --><dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50">M_bit_buf_update_bit</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga47895be86ee3f3747515f5432d78fb50"></a>
 <div class="memitem">
 <div class="memproto">
@@ -535,6 +584,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Change one of the bits already in the buffer.</p>
+<p>This function is guaranteed to never change the length of the bit stream - it will only update bits that are already present. If you want to add a bit past the end of the stream, and automatically fill any bits between the old end of the stream and the new bit, use <a class="el" href="group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3">M_bit_buf_set_bit()</a>.</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3">M_bit_buf_set_bit</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">bbuf</td><td>Bit buffer </td></tr>
@@ -723,7 +774,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Oct 24 2018 14:14:41 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Fri Oct 26 2018 14:15:49 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

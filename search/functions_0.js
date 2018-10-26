@@ -58,6 +58,7 @@ var searchData=
   ['m_5fbit_5fbuf_5flen_5fbytes',['M_bit_buf_len_bytes',['../group__m__bit__buf.html#ga2b4423e9f286f12fcf933e0c02d3355a',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5fpeek',['M_bit_buf_peek',['../group__m__bit__buf.html#ga34ef8fbf2d52417356bbd459b1894e94',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5freserve',['M_bit_buf_reserve',['../group__m__bit__buf.html#ga72e74bdb7f3332847d5e0ff317a07902',1,'m_bit_buf.h']]],
+  ['m_5fbit_5fbuf_5fset_5fbit',['M_bit_buf_set_bit',['../group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5ftruncate',['M_bit_buf_truncate',['../group__m__bit__buf.html#ga0888b5a0f90955716e59c9b8ac646145',1,'m_bit_buf.h']]],
   ['m_5fbit_5fbuf_5fupdate_5fbit',['M_bit_buf_update_bit',['../group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50',1,'m_bit_buf.h']]],
   ['m_5fbit_5fparser_5fappend',['M_bit_parser_append',['../group__m__bit__parser.html#ga004c2bc096fc5547402c27078a0e1c2f',1,'m_bit_parser.h']]],

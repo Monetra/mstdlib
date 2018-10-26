@@ -16,6 +16,7 @@ var group__m__bit__buf =
     [ "M_bit_buf_truncate", "group__m__bit__buf.html#ga0888b5a0f90955716e59c9b8ac646145", null ],
     [ "M_bit_buf_fill", "group__m__bit__buf.html#ga6053e2932cb614c5adc6649587a505a1", null ],
     [ "M_bit_buf_add_bit", "group__m__bit__buf.html#gad490e244ebedcdfe88f41eb74d853369", null ],
+    [ "M_bit_buf_set_bit", "group__m__bit__buf.html#ga08a82e4fd19a4878837a3ffe641880a3", null ],
     [ "M_bit_buf_update_bit", "group__m__bit__buf.html#ga47895be86ee3f3747515f5432d78fb50", null ],
     [ "M_bit_buf_add_bytes", "group__m__bit__buf.html#ga81c50d3c8357be3f55bcdb79c1288b37", null ],
     [ "M_bit_buf_add", "group__m__bit__buf.html#ga584cbab4ab98afcc8fd43db950a922ad", null ],
