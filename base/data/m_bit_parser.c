@@ -472,15 +472,6 @@ M_bool M_bit_parser_read_int(M_bit_parser_t *bparser, size_t nbits, M_bit_parser
 }
 
 
-M_bool M_bit_parser_consume_range(M_bit_parser_t *bparser, size_t max_bits)
-{
-	M_uint8 bit;
-	size_t  nbits;
-
-	return M_bit_parser_read_range(bparser, &bit, &nbits, max_bits);
-}
-
-
 M_bool M_bit_parser_read_range(M_bit_parser_t *bparser, M_uint8 *bit, size_t *nbits_in_range, size_t max_bits)
 {
 	M_uint8 next_bit;
@@ -507,5 +498,49 @@ M_bool M_bit_parser_read_range(M_bit_parser_t *bparser, M_uint8 *bit, size_t *nb
 		bparser->offset++;
 	} while ((*nbits_in_range) < max_bits && M_bit_parser_peek_bit(bparser, &next_bit) && next_bit == *bit);
 
+	return M_TRUE;
+}
+
+
+M_bool M_bit_parser_consume_range(M_bit_parser_t *bparser, size_t max_bits)
+{
+	M_uint8 bit;
+	size_t  nbits;
+
+	return M_bit_parser_read_range(bparser, &bit, &nbits, max_bits);
+}
+
+
+M_bool M_bit_parser_consume_to_next(M_bit_parser_t *bparser, M_uint8 bit, size_t max_bits)
+{
+	size_t  len;
+	M_uint8 curr;
+	size_t  nconsumed;
+
+	len = M_bit_parser_len(bparser);
+	if (len > max_bits) {
+		len = max_bits;
+	}
+
+	if (len == 0) {
+		return M_FALSE;
+	}
+
+	/* If the very next bit matches, consume it and return success. */
+	if (peek_next_bit(bparser) == bit) {
+		bparser->offset++;
+		return M_TRUE;
+	}
+
+	/* Read bits until we hit one that does match. */
+	M_bit_parser_read_range(bparser, &curr, &nconsumed, len);
+
+	/* If we ran out of bits to read before we hit a matching bit, return false. */
+	if (nconsumed >= len) {
+		return M_FALSE;
+	}
+
+	/* If we found a matching bit, consume it and return success. */
+	bparser->offset++;
 	return M_TRUE;
 }

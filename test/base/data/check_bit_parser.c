@@ -371,6 +371,33 @@ START_TEST(check_bparser_consume_range)
 END_TEST
 
 
+START_TEST(check_bparser_consume_to_next)
+{
+	init_test("1000011000");
+	check_len(bparser, 10);
+
+	ck_assert(!M_bit_parser_consume_to_next(bparser, 1, 0));
+
+	ck_assert(M_bit_parser_consume_to_next(bparser, 1, M_bit_parser_len(bparser))); /* consume "1" */
+	check_len(bparser, 9);
+
+	ck_assert(!M_bit_parser_consume_to_next(bparser, 1, 3)); /* consume "000" */
+	check_len(bparser, 6);
+
+	ck_assert(M_bit_parser_consume_to_next(bparser, 1, M_bit_parser_len(bparser))); /* consume "01" */
+	check_len(bparser, 4);
+
+	ck_assert(M_bit_parser_consume_to_next(bparser, 1, 1)); /* consume "1" */
+	check_len(bparser, 3);
+
+	ck_assert(!M_bit_parser_consume_to_next(bparser, 1, M_bit_parser_len(bparser) + 10)); /* consume "000" */
+	check_len(bparser, 0);
+
+	cleanup_test;
+}
+END_TEST
+
+
 START_TEST(check_bparser_rewind_mark)
 {
 	init_test("1011 0010 0001 0101");
@@ -676,6 +703,7 @@ int main(void)
 	add_test(suite, check_bparser_read_range);
 	add_test(suite, check_bparser_consume);
 	add_test(suite, check_bparser_consume_range);
+	add_test(suite, check_bparser_consume_to_next);
 	add_test(suite, check_bparser_rewind_mark);
 	add_test(suite, check_bparser_append);
 	add_test(suite, check_bparser_reset);
