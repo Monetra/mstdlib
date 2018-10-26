@@ -162,10 +162,12 @@ Functions</h2></td></tr>
 <tr class="separator:gaf8c146aac12b0488312682bfb664dbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0718d1f8d1f037c94872f32552bbfd16"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16">M_bit_parser_read_int</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t nbits, <a class="el" href="group__m__bit__parser.html#ga432b8371b3ef91784f80200fc76ad7c6">M_bit_parser_int_format_t</a> fmt, M_int64 *res)</td></tr>
 <tr class="separator:ga0718d1f8d1f037c94872f32552bbfd16"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e">M_bit_parser_consume_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t max_bits)</td></tr>
-<tr class="separator:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga58b2386de30a47d1f862b53943bafcce"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce">M_bit_parser_read_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 *bit, size_t *nbits_in_range, size_t max_bits)</td></tr>
 <tr class="separator:ga58b2386de30a47d1f862b53943bafcce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e">M_bit_parser_consume_range</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, size_t max_bits)</td></tr>
+<tr class="separator:ga504fd87c0b2795aec4ca99d0cdf0f42e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9eb1901a6ca4ffdddb1b38fafb993abc"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__bit__parser.html#ga9eb1901a6ca4ffdddb1b38fafb993abc">M_bit_parser_consume_to_next</a> (<a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser, M_uint8 bit, size_t max_bits)</td></tr>
+<tr class="separator:ga9eb1901a6ca4ffdddb1b38fafb993abc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Buffer based data parser that reads data per-bit, instead of per-byte.</p>
@@ -954,43 +956,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga504fd87c0b2795aec4ca99d0cdf0f42e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">M_bool M_bit_parser_consume_range </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
-          <td class="paramname"><em>bparser</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>max_bits</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Skip bits until we hit a bit different than the current one.</p>
-<p>For example, if the parser contains "11100001", calling this function will move the parser's position to the first <em>0</em>.</p>
-<p>Note that this function will always consume at least one bit, if any bits are left to skip.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">max_bits</td><td>maximum number of bits to skip (if set to zero, no bits will be skipped) </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>M_TRUE if at least one bit was skipped, M_FALSE if no bits are left or <em>max_bits</em> was zero </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="ga58b2386de30a47d1f862b53943bafcce"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1042,12 +1007,108 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga504fd87c0b2795aec4ca99d0cdf0f42e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_consume_range </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_bits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Skip bits until we hit a bit different than the current one.</p>
+<p>For example, if the parser contains "11100001", calling this function will move the parser's position to the first <em>0</em>.</p>
+<p>Note that this function will always consume at least one bit, if any bits are left to skip.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_bits</td><td>maximum number of bits to skip (if set to zero, no bits will be skipped) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if at least one bit was skipped, M_FALSE if no bits are left or <em>max_bits</em> was zero </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga9eb1901a6ca4ffdddb1b38fafb993abc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_bit_parser_consume_to_next </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *&#160;</td>
+          <td class="paramname"><em>bparser</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>bit</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_bits</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Consume bits up to and including the next bit with the given value.</p>
+<p>Usage example: </p>
+<div class="fragment"><div class="line"><a class="code" href="group__m__bit__parser.html#gaabdd3988d7d6acf1372de31e0185ffa3">M_bit_parser_t</a> *bparser;</div>
+<div class="line"><span class="keyword">const</span> M_uint8   bytes[] = {0x86, 0x00};</div>
+<div class="line"></div>
+<div class="line">bparser = <a class="code" href="group__m__bit__parser.html#gab7f78d16fe7e8d36bd1cca9f31139956">M_bit_parser_create_const</a>(bytes, 10);</div>
+<div class="line"><span class="comment">// bparser contains: &quot;1000011000&quot;</span></div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Now, let&#39;s say we want to print the index of every set bit.</span></div>
+<div class="line"><span class="keywordflow">while</span> (<a class="code" href="group__m__bit__parser.html#ga9eb1901a6ca4ffdddb1b38fafb993abc">M_bit_parser_consume_to_next</a>(bparser, 1, <a class="code" href="group__m__bit__parser.html#gafcd12115d7c4a1a882c6e60f6fe4f7a3">M_bit_parser_len</a>(bparser)) {</div>
+<div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;set bit: %zu\n&quot;</span>, <a class="code" href="group__m__bit__parser.html#gae1b4e1cbea905faaf381528c0b0a0a70">M_bit_parser_current_offset</a>(bparser) - 1);</div>
+<div class="line">}</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// Loop will print:</span></div>
+<div class="line"><span class="comment">//   set bit: 0</span></div>
+<div class="line"><span class="comment">//   set bit: 5</span></div>
+<div class="line"><span class="comment">//   set bit: 6</span></div>
+<div class="line"><span class="comment">// After loop, bparser will be empty.</span></div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">bparser</td><td>bit parser to read bits from </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bit</td><td>bit value that we're looking for </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_bits</td><td>maximum number of bits to consume (if set to zero, no bits will be consumed) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if we found and consumed a matching bit, M_FALSE otherwise. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 26 2018 14:15:49 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Fri Oct 26 2018 15:19:03 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.6 </li>
   </ul>

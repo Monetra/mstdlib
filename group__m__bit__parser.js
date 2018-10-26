@@ -26,6 +26,7 @@ var group__m__bit__parser =
     [ "M_bit_parser_read_strdup", "group__m__bit__parser.html#ga234fe497b4957ebdd5bfe6c267bdddb0", null ],
     [ "M_bit_parser_read_uint", "group__m__bit__parser.html#gaf8c146aac12b0488312682bfb664dbf0", null ],
     [ "M_bit_parser_read_int", "group__m__bit__parser.html#ga0718d1f8d1f037c94872f32552bbfd16", null ],
+    [ "M_bit_parser_read_range", "group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce", null ],
     [ "M_bit_parser_consume_range", "group__m__bit__parser.html#ga504fd87c0b2795aec4ca99d0cdf0f42e", null ],
-    [ "M_bit_parser_read_range", "group__m__bit__parser.html#ga58b2386de30a47d1f862b53943bafcce", null ]
+    [ "M_bit_parser_consume_to_next", "group__m__bit__parser.html#ga9eb1901a6ca4ffdddb1b38fafb993abc", null ]
 ];
