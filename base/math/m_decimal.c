@@ -252,7 +252,7 @@ void M_decimal_duplicate(M_decimal_t *dest, const M_decimal_t *src)
  *  possible number of decimal places for each, then convert both to have the
  *  same number of decimal places ... may require truncation of decimal places
  *  if both can't be represented in the max */
-static enum M_DECIMAL_RETVAL M_decimal_prepmath(M_decimal_t *tdec1, M_decimal_t *tdec2, const M_decimal_t *dec1, const M_decimal_t *dec2)
+static enum M_DECIMAL_RETVAL M_decimal_prepmath(M_decimal_t *tdec1, M_decimal_t *tdec2, const M_decimal_t *dec1, const M_decimal_t *dec2, M_bool reduce_dec)
 {
 	M_uint8 wanted_dec;
 	M_uint8 num_dec;
@@ -263,8 +263,10 @@ static enum M_DECIMAL_RETVAL M_decimal_prepmath(M_decimal_t *tdec1, M_decimal_t 
 	M_decimal_duplicate(tdec1, dec1);
 	M_decimal_duplicate(tdec2, dec2);
 
-	M_decimal_reduce(tdec1);
-	M_decimal_reduce(tdec2);
+	if (reduce_dec) {
+		M_decimal_reduce(tdec1);
+		M_decimal_reduce(tdec2);
+	}
 
 	wanted_dec = M_MAX(tdec1->num_dec, tdec2->num_dec);
 	num_dec    = wanted_dec;
@@ -300,7 +302,7 @@ enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decimal_t *d
 	M_int64               num;
 	size_t                i;
 
-	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2)) == M_DECIMAL_INVALID)
+	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2, M_TRUE)) == M_DECIMAL_INVALID)
 		return M_DECIMAL_INVALID;
 
 	M_decimal_create(dest);
@@ -348,7 +350,7 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 	M_int64               remexp   = 0; /*!< Remainder * 10^wanteddec */
 	M_uint8               wanted_dec;   /*!< Number of desired decimal places in output */
 
-	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2)) == M_DECIMAL_INVALID)
+	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2, M_FALSE)) == M_DECIMAL_INVALID)
 		return M_DECIMAL_INVALID;
 
 	M_decimal_create(dest);
@@ -435,7 +437,7 @@ enum M_DECIMAL_RETVAL M_decimal_subtract(M_decimal_t *dest, const M_decimal_t *d
 	M_decimal_t           tdec2;
 	enum M_DECIMAL_RETVAL preprv;
 
-	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2)) == M_DECIMAL_INVALID)
+	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2, M_TRUE)) == M_DECIMAL_INVALID)
 		return M_DECIMAL_INVALID;
 
 	M_decimal_create(dest);
@@ -462,7 +464,7 @@ enum M_DECIMAL_RETVAL M_decimal_add(M_decimal_t *dest, const M_decimal_t *dec1, 
 	M_decimal_t           tdec2;
 	enum M_DECIMAL_RETVAL preprv;
 
-	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2)) == M_DECIMAL_INVALID)
+	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2, M_TRUE)) == M_DECIMAL_INVALID)
 		return M_DECIMAL_INVALID;
 
 	M_decimal_create(dest);
