@@ -473,6 +473,9 @@ void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len)
 	size_t   hex_len;
 	M_uint8 *hex;
 
+	if (buf == NULL || bytes == NULL || len == 0)
+		return;
+
 	hex_len = M_bincodec_encode_size(len, 0, M_BINCODEC_HEX);
 	hex     = M_buf_direct_write_start(buf, &hex_len);
 	hex_len = M_bincodec_encode((char *)hex, hex_len, bytes, len, 0, M_BINCODEC_HEX);
@@ -485,15 +488,24 @@ size_t M_buf_add_str_lines(M_buf_t *buf, const char *str, size_t max_lines, size
 {
 	size_t   i;
 	size_t   num_lines;
-	char   **strs = M_str_explode_lines(max_lines, max_chars, str, truncate, &num_lines);
-	
+	char   **strs;
+
+	if (buf == NULL || M_str_isempty(str))
+		return 0;
+
+	if  (M_str_isempty(newline)) {
+		M_buf_add_str(buf, str);
+		return 1;
+	}
+
+	strs = M_str_explode_lines(max_lines, max_chars, str, truncate, &num_lines);
+
 	for (i=0; i<num_lines; i++) {
 		M_buf_add_str(buf, strs[i]);
 		M_buf_add_str(buf, newline);
 	}
-	
+
 	M_str_explode_free(strs, num_lines);
-	
 	return num_lines;
 }
 
@@ -526,6 +538,9 @@ void M_buf_add_uint(M_buf_t *buf, M_uint64 n)
 {
 	char space[32];
 
+	if (buf == NULL)
+		return;
+
 	M_snprintf(space, sizeof(space), "%" M_PRIu64, n);
 	M_buf_add_str(buf, space);
 }
@@ -533,6 +548,9 @@ void M_buf_add_uint(M_buf_t *buf, M_uint64 n)
 void M_buf_add_int(M_buf_t *buf, M_int64 n)
 {
 	char space[32];
+
+	if (buf == NULL)
+		return;
 
 	M_snprintf(space, sizeof(space), "%lld", n);
 	M_buf_add_str(buf, space);
@@ -565,7 +583,7 @@ M_bool M_buf_encode(M_buf_t *buf, size_t wrap, M_bincodec_codec_t codec)
 	const M_uint8 *bytes;
 	size_t         bytes_len;
 
-	if (M_buf_len(buf) == 0) {
+	if (buf == NULL || M_buf_len(buf) == 0) {
 		return M_TRUE;
 	}
 
@@ -618,7 +636,7 @@ M_bool M_buf_decode(M_buf_t *buf, M_bincodec_codec_t codec)
 	const char *encoded;
 	size_t      encoded_len;
 
-	if (M_buf_len(buf) == 0) {
+	if (buf == NULL || M_buf_len(buf) == 0) {
 		return M_TRUE;
 	}
 
@@ -723,7 +741,7 @@ M_bool M_buf_add_uint_just(M_buf_t *buf, M_uint64 n, size_t width)
 {
 	char space[32];
 
-	if (num_udigits(n, 10) > width)
+	if (buf == NULL || width == 0)
 		return M_FALSE;
 
 	M_snprintf(space, sizeof(space), "%llu", n);
@@ -744,6 +762,10 @@ void M_buf_add_char(M_buf_t *buf, char c)
 void M_buf_add_ptr(M_buf_t *buf, void *ptr)
 {
 	char temp[64];
+
+	if (buf == NULL)
+		return;
+
 	M_snprintf(temp, sizeof(temp), "%p", ptr);
 	M_buf_add_str(buf, temp);
 }
@@ -769,7 +791,7 @@ M_bool M_buf_add_int_just(M_buf_t *buf, M_int64 n, size_t width)
 {
 	char space[32];
 
-	if (num_digits(n, 10) > width)
+	if (buf == NULL || width == 0)
 		return M_FALSE;
 
 	/* Prepend negative */
@@ -788,6 +810,9 @@ M_bool M_buf_add_uintbin(M_buf_t *buf, M_uint64 n, size_t width, M_endian_t endi
 {
 	size_t i;
 	size_t shift;
+
+	if (buf == NULL)
+		return M_FALSE;
 
 	/* Range is 1-8. */
 	if (width > 8 || width < 1) 
@@ -813,6 +838,9 @@ M_bool M_buf_add_uintstrbin(M_buf_t *buf, const char *s, unsigned char base, siz
 {
 	M_uint64 n;
 
+	if (buf == NULL || M_str_isempty(s))
+		return M_FALSE;
+
 	if (M_str_to_uint64_ex(s, M_str_len(s), base, &n, NULL) != M_STR_INT_SUCCESS)
 		return M_FALSE;
 
@@ -827,6 +855,9 @@ M_bool M_buf_add_uintbcd(M_buf_t *buf, M_uint64 n, size_t width)
 	size_t        len;
 	size_t        digits;
 	size_t        i;
+
+	if (buf == NULL)
+		return M_FALSE;
 
 	digits = num_udigits(n, 10); 
 	len    = (digits/2) + (digits%2);
@@ -860,6 +891,9 @@ M_bool M_buf_add_uinthex(M_buf_t *buf, M_uint64 n, M_bool is_upper, size_t width
 	size_t digits;
 	char   temp[17]; /* Max value is 64bits : 0xFFFFFFFFFFFFFFFF */
 
+	if (buf == NULL)
+		return M_FALSE;
+
 	if (is_upper) {
 		digits = M_snprintf(temp, sizeof(temp), "%llX", n);
 	} else {
@@ -885,6 +919,9 @@ void M_buf_add_bytehex(M_buf_t *buf, unsigned char byte, M_bool is_upper)
 M_bool M_buf_add_uintstrbcd(M_buf_t *buf, const char *s, unsigned char base, size_t width)
 {
 	M_uint64 n;
+
+	if (buf == NULL || M_str_isempty(s))
+		return M_FALSE;
 
 	if (M_str_to_uint64_ex(s, M_str_len(s), base, &n, NULL) != M_STR_INT_SUCCESS)
 		return M_FALSE;
@@ -918,6 +955,9 @@ M_bool M_buf_add_money_dot_just(M_buf_t *buf, const char *amount, size_t max_wid
 
 M_bool  M_buf_add_int_money(M_buf_t *buf, M_int64 amount, size_t max_width)
 {
+	if (buf == NULL)
+		return M_FALSE;
+
 	if (num_digits(amount, 10) > max_width)
 		return M_FALSE;
 
@@ -930,6 +970,9 @@ M_bool M_buf_add_int_money_dot(M_buf_t *buf, M_int64 amount, size_t max_width)
 	char   space[32];
 	size_t r;
 	M_uint64 amnt = (M_uint64)M_ABS(amount);
+
+	if (buf == NULL)
+		return M_FALSE;
 
 	r = M_snprintf(space, sizeof(space), "%s%llu.%02llu", amount<0?"-":"", amnt / 100, amnt % 100);
 	if (r > max_width)
@@ -948,6 +991,9 @@ M_bool M_buf_add_int_money_dot_just(M_buf_t *buf, M_int64 amount, size_t max_wid
 {
 	char   space[32];
 	size_t r;
+
+	if (buf == NULL)
+		return M_FALSE;
 
 	/* Prepend negative */
 	if (max_width >= 1 && amount < 0) {
@@ -973,7 +1019,7 @@ M_bool M_buf_add_decimal(M_buf_t *buf, const M_decimal_t *decimal, M_bool implie
 	enum M_DECIMAL_RETVAL rv;
 	size_t                len;
 
-	if (decimal == NULL)
+	if (buf == NULL || decimal == NULL)
 		return M_FALSE;
 
 	M_decimal_duplicate(&dupdec, decimal);
@@ -1012,7 +1058,7 @@ M_bool M_buf_add_decimal_just(M_buf_t *buf, const M_decimal_t *decimal, M_bool i
 	enum M_DECIMAL_RETVAL rv;
 	size_t                len;
 
-	if (decimal == NULL || max_width == 0)
+	if (buf == NULL || decimal == NULL || max_width == 0)
 		return M_FALSE;
 
 	M_decimal_duplicate(&dupdec, decimal);
@@ -1025,7 +1071,7 @@ M_bool M_buf_add_decimal_just(M_buf_t *buf, const M_decimal_t *decimal, M_bool i
 	if (implied_decimal) {
 		return M_buf_add_int_just(buf, dupdec.num, max_width);
 	}
-	
+
 	if (M_decimal_to_str(&dupdec, outbuf, sizeof(outbuf)) != M_DECIMAL_SUCCESS)
 		return M_FALSE;
 
