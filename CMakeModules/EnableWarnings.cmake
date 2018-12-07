@@ -262,10 +262,12 @@ foreach(_lang ${languages})
 	_int_enable_warnings_set_flags(_lang ${_flags_${_lang}})
 	_int_enable_warnings_set_flags_ex(_lang _debug_configs ${_debug_flags_${_lang}})
 
-	# Try to optimize pure Debug builds (not possible on Visual Studio).
+	# Ensure pure Debug builds are NOT optimized (not possible on Visual Studio).
+	# Any optimization of a Debug build will prevent debuggers like lldb from
+	# fully displaying backtraces and stepping.
 	if (NOT MSVC)
 		set(_config Debug)
-		_int_enable_warnings_set_flags_ex(_lang _config -Og)
+		_int_enable_warnings_set_flags_ex(_lang _config -O0)
 	endif ()
 endforeach()
 
