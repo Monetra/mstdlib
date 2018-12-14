@@ -63,8 +63,15 @@ BOOL           _wopened  = NO;
 		if (bread <= 0) {
 			_handle->state = M_IO_STATE_ERROR;
 			M_snprintf(_handle->error, sizeof(_handle->error), "Read error: %s", [[[[_session inputStream] streamError] localizedDescription] UTF8String]);
+
+			/* Close out the EA beaus there was an error and it's
+			 * no longer in a useable state. */
 			[self close];
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+
+			M_io_layer_release(layer);
+			layer = NULL;
+			break;
 		} else {
 			is_empty = (M_buf_len(_handle->readbuf) == 0)?M_TRUE:M_FALSE;
 			M_buf_add_bytes(_handle->readbuf, temp, (size_t)bread);
@@ -72,11 +79,11 @@ BOOL           _wopened  = NO;
 			if (is_empty && _handle->state == M_IO_STATE_CONNECTED)
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 		}
+
 		/* Unlock IO layer */
 		M_io_layer_release(layer);
 		layer = NULL;
 	} while([_session inputStream].hasBytesAvailable && bread > 0);
-
 }
 
 - (void)_write
@@ -300,7 +307,6 @@ cleanup:
 		dispatch_sync(dispatch_get_main_queue(), stream_closer);
 		M_io_layer_acquire(_handle->io, 0, NULL);
 	}
-
 }
 
 
