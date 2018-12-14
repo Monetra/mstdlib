@@ -71,7 +71,7 @@ BOOL           _wopened  = NO;
 
 			M_io_layer_release(layer);
 			layer = NULL;
-			break;
+			return;
 		} else {
 			is_empty = (M_buf_len(_handle->readbuf) == 0)?M_TRUE:M_FALSE;
 			M_buf_add_bytes(_handle->readbuf, temp, (size_t)bread);
