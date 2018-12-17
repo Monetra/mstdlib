@@ -7,6 +7,7 @@ build32/
 build64/
 build-*/
 build_*/
+cmakebuild/
 
 # Anything under thirdparty is an external dependency that's not part of this repo, ignore it.
 thirdparty/*
