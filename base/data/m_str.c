@@ -811,6 +811,9 @@ char **M_str_explode(unsigned char delim, const char *s, size_t s_len, size_t *n
 	unsigned char  *dupstr   = NULL;
 
 	*num = 0;
+	if (len_array != NULL)
+		*len_array = NULL;
+
 	if (s == NULL || *s == '\0')
 		return NULL;
 
