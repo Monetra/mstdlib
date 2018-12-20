@@ -810,8 +810,14 @@ char **M_str_explode(unsigned char delim, const char *s, size_t s_len, size_t *n
 	unsigned char **out      = NULL;
 	unsigned char  *dupstr   = NULL;
 
-	*num = 0;
-	if (s == NULL || *s == '\0')
+	/* num is required but we want everything initialized
+ 	 * that can be before we fail sanity checks. */
+	if (num != NULL)
+		*num = 0;
+	if (len_array != NULL)
+		*len_array = NULL;
+
+	if (s == NULL || *s == '\0' || num == NULL)
 		return NULL;
 
 	/* Duplicate memory and make sure there is a NULL terminator in case we're
@@ -828,7 +834,7 @@ char **M_str_explode(unsigned char delim, const char *s, size_t s_len, size_t *n
 	}
 
 	*num = num_strs;
-	out = M_malloc(num_strs * sizeof(*out));
+	out  = M_malloc(num_strs * sizeof(*out));
 	if (len_array != NULL)
 		*len_array = M_malloc(num_strs * sizeof(**len_array));
 
