@@ -1032,10 +1032,6 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 		M_sql_data_type_t    type          = M_sql_driver_stmt_bind_get_col_type(stmt, i);
 		SQLPOINTER           ParameterValue;
 
-		/* SQL2000 doesn't like 0 on NULL params */
-		if (ColumnSize == 0)
-			ColumnSize = 1;
-
 		dstmt->bind_cols[i].lens   = M_malloc_zero(sizeof(*(dstmt->bind_cols[i].lens))   * num_rows);
 		switch (type) {
 			case M_SQL_DATA_TYPE_BOOL:
@@ -1085,6 +1081,14 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 
 		for (row = 0; row < num_rows; row++) {
 			odbc_bind_set_value_array(stmt, type, use_numeric, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
+		}
+
+		/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
+		 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
+		 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
+		 * the length already provided.  Perhaps this deserves to always be 0 on text and binary data? */
+		if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
+			ColumnSize = 0;
 		}
 
 		rc = SQLBindParameter(
@@ -1250,11 +1254,17 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 
 			if (ParameterValue != NULL) {
 				ColumnSize = (SQLULEN)dstmt->bind_flat_lens[idx];
+
+				/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
+				 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
+				 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
+				 * the length already provided.  Perhaps this deserves to always be 0 on text and binary data? */
+				if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
+					ColumnSize = 0;
+				}
 			}
 
-			/* SQL2000 can't handle a 0 column size on NULL values */
-			if (ColumnSize == 0)
-				ColumnSize = 1;
+
 
 			rc = SQLBindParameter(
 				dstmt->stmt,                       /* SQLHSTMT StatementHandle */
