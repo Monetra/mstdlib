@@ -2,7 +2,7 @@ var group__m__mem =
 [
     [ "M_mem_str", "group__m__mem.html#ga24101a8e6170e3a987550f169d1472f8", null ],
     [ "M_mem_strpos", "group__m__mem.html#ga99fafb67dd5410f9b3a6deca0e8586e6", null ],
-    [ "M_malloc_error_cb", "group__m__mem.html#gaee7f5bbb2a4ac15dd901d16f9a9051d5", null ],
+    [ "M_malloc_error_cb", "group__m__mem.html#gaf095e6a5335edab1accd3a9dd15e7295", null ],
     [ "M_malloc_register_errorcb", "group__m__mem.html#gaf4b3922bed6ae588687f68cfca54a81d", null ],
     [ "M_malloc_deregister_errorcb", "group__m__mem.html#ga0592a2af948ccf908e9c7deeb8c140e1", null ],
     [ "M_malloc_clear_errorcb", "group__m__mem.html#gacfd0e14508daeb82eb1c9097da6573bc", null ],

@@ -1,8 +1,8 @@
 var group__m__async__writer =
 [
-    [ "M_async_write_cb_t", "group__m__async__writer.html#gaf2e6e10a85300528222ec960d6e64a3a", null ],
-    [ "M_async_thunk_stop_cb_t", "group__m__async__writer.html#ga83dc06558f52eff880dd56d057cb3e57", null ],
-    [ "M_async_thunk_destroy_cb_t", "group__m__async__writer.html#ga5d0c979ddaec408ac5bf18aa9a089419", null ],
+    [ "M_async_write_cb_t", "group__m__async__writer.html#gacb49976b477c39e605d92d96b0a8fcf9", null ],
+    [ "M_async_thunk_stop_cb_t", "group__m__async__writer.html#ga400a0970970a551f14e81fa2ce7f9bbb", null ],
+    [ "M_async_thunk_destroy_cb_t", "group__m__async__writer.html#ga4eea041fa1291a39b21aa72a8c8d3861", null ],
     [ "M_async_writer_t", "group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a", null ],
     [ "M_async_writer_line_end_mode_t", "group__m__async__writer.html#ga2050110d5eddd35906ea52dc2917069f", [
       [ "M_ASYNC_WRITER_LINE_END_NATIVE", "group__m__async__writer.html#gga2050110d5eddd35906ea52dc2917069fa76c4f2e34cead575fd3498549a6b60f0", null ],

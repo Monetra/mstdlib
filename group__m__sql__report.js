@@ -2,8 +2,8 @@ var group__m__sql__report =
 [
     [ "M_sql_report_t", "group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9", null ],
     [ "M_sql_report_state_t", "group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458", null ],
-    [ "M_sql_report_fetch_cb_t", "group__m__sql__report.html#gab74e5436a0a11c697ee370d0d9eb3acd", null ],
-    [ "M_sql_report_cell_cb_t", "group__m__sql__report.html#gac48a7521b42e38b341819e62a37971b2", null ],
+    [ "M_sql_report_fetch_cb_t", "group__m__sql__report.html#gad119e6f3df43fd4f5f6a077136096a1d", null ],
+    [ "M_sql_report_cell_cb_t", "group__m__sql__report.html#ga8395a1aa809332e58ab29edae99c9fed", null ],
     [ "M_sql_report_flags_t", "group__m__sql__report.html#ga1c7af596258c77ade7036067ab197663", [
       [ "M_SQL_REPORT_FLAG_NONE", "group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663aa1b29e4cc27fcf3aa0d4640f333b1248", null ],
       [ "M_SQL_REPORT_FLAG_ALWAYS_ENCAP", "group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663ae653082648a8e7a52158dd2f26008a97", null ],

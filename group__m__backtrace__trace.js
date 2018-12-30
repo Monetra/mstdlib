@@ -7,11 +7,11 @@ var group__m__backtrace__trace =
       [ "got_nonfatal", "group__m__backtrace__trace.html#a170230658d7cbe74c55269bf711695dc", null ],
       [ "got_fatal", "group__m__backtrace__trace.html#a685f96ee85226fe5afe637f4d2fc4a37", null ]
     ] ],
-    [ "M_backtrace_filanme_func", "group__m__backtrace__trace.html#ga32b0afca2a470803c293c813f7f936a2", null ],
-    [ "M_backtrace_trace_data_func", "group__m__backtrace__trace.html#ga2908d9f59cdca7bbb6819f0528862bf7", null ],
-    [ "M_backtrace_log_emergency_func", "group__m__backtrace__trace.html#ga8fb4c673ce599de8448c968e6f3e050a", null ],
-    [ "M_backtrace_got_nonfatal_func", "group__m__backtrace__trace.html#ga9f43b7d6da4170a3417f5e6f0fe1aede", null ],
-    [ "M_backtrace_got_fatal_func", "group__m__backtrace__trace.html#gae12584f11a9f3a45c1fb340708017ee8", null ],
+    [ "M_backtrace_filanme_func", "group__m__backtrace__trace.html#gaebd0f0b9b57a1e50e86576904a9c0be1", null ],
+    [ "M_backtrace_trace_data_func", "group__m__backtrace__trace.html#ga773d0187e55979ced51165388c4292cf", null ],
+    [ "M_backtrace_log_emergency_func", "group__m__backtrace__trace.html#ga601e7312f8e13eaea9ae478254c947fa", null ],
+    [ "M_backtrace_got_nonfatal_func", "group__m__backtrace__trace.html#gae50760e61b8691f993e45d63f4eff5a8", null ],
+    [ "M_backtrace_got_fatal_func", "group__m__backtrace__trace.html#gaa9fc2eb42bf9c786544c095bbf690c7d", null ],
     [ "M_backtrace_type_t", "group__m__backtrace__trace.html#ga39f7f77ec463c24ed641319dd582124b", [
       [ "M_BACKTRACE_TYPE_BACKTRACE", "group__m__backtrace__trace.html#gga39f7f77ec463c24ed641319dd582124ba8e5f7eb975d4aaf54a5354e547789fc1", null ],
       [ "M_BACKTRACE_TYPE_DUMP", "group__m__backtrace__trace.html#gga39f7f77ec463c24ed641319dd582124ba8c86a099a7bb5dad4badb5bcbc079c23", null ]

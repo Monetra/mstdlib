@@ -1,7 +1,7 @@
 var group__m__hash__multi =
 [
     [ "M_hash_multi_t", "group__m__hash__multi.html#ga034c6836d26c3dbbdcd328b3d645178b", null ],
-    [ "M_hash_multi_free_func", "group__m__hash__multi.html#ga39524ba3952816db181b5f0a9f5a0dee", null ],
+    [ "M_hash_multi_free_func", "group__m__hash__multi.html#ga54351abd4a81cb19c25bb74c1674624e", null ],
     [ "M_hash_multi_flags_t", "group__m__hash__multi.html#ga9c88bc47f04204be09fdc7497596304a", [
       [ "M_HASH_MULTI_NONE", "group__m__hash__multi.html#gga9c88bc47f04204be09fdc7497596304aa9fee2771cd88238a0e4f4bafe5abe266", null ],
       [ "M_HASH_MULTI_STR_CASECMP", "group__m__hash__multi.html#gga9c88bc47f04204be09fdc7497596304aa19faf35716d0b102c5761f06549cc528", null ]

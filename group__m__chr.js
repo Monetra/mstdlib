@@ -1,7 +1,7 @@
 var group__m__chr =
 [
-    [ "M_chr_predicate_func", "group__m__chr.html#gab6884fffffeeb21218abc21f206dc284", null ],
-    [ "M_chr_map_func", "group__m__chr.html#ga42aed38cb7105122e8f8c948d8b87ce5", null ],
+    [ "M_chr_predicate_func", "group__m__chr.html#ga24152bf5695c3990606a71947526af7e", null ],
+    [ "M_chr_map_func", "group__m__chr.html#gaa8c72fb33c6b30177f68ff9a9a59cf42", null ],
     [ "M_chr_isalnum", "group__m__chr.html#gabf875894c01de4081d64efb600e64e1d", null ],
     [ "M_chr_isalnumsp", "group__m__chr.html#ga4685ca4a960c96e25262d7b0fbb3471a", null ],
     [ "M_chr_isalpha", "group__m__chr.html#gafd52c6fbc9b0a91ca051ee040e823ad7", null ],

@@ -7,8 +7,8 @@ var group__m__list__generic =
       [ "value_free", "group__m__list__generic.html#adf9c3669bc85074ace45e395c3306ace", null ]
     ] ],
     [ "M_list_t", "group__m__list__generic.html#ga87265d0ffa4d023ae023f37acf18b56f", null ],
-    [ "M_list_duplicate_func", "group__m__list__generic.html#ga6924eadbde04b561d3edbb8d2708ddf4", null ],
-    [ "M_list_free_func", "group__m__list__generic.html#gac7708941eab6332f37bf5fb8ee738039", null ],
+    [ "M_list_duplicate_func", "group__m__list__generic.html#ga6387f73ab9271df12ea41a1e73866a6b", null ],
+    [ "M_list_free_func", "group__m__list__generic.html#ga1542d1ad8e0c08b8b620f7030b32bacd", null ],
     [ "M_list_flags_t", "group__m__list__generic.html#gaba21faae49bc12de2355a6cd4af700ec", [
       [ "M_LIST_NONE", "group__m__list__generic.html#ggaba21faae49bc12de2355a6cd4af700ecaea63c1154d02a22975234af096f36f13", null ],
       [ "M_LIST_SORTED", "group__m__list__generic.html#ggaba21faae49bc12de2355a6cd4af700ecaa28ac1e0cf4d30682f198cec85e9943b", null ],

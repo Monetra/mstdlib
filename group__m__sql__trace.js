@@ -1,7 +1,7 @@
 var group__m__sql__trace =
 [
     [ "M_sql_trace_data_t", "group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459", null ],
-    [ "M_sql_trace_cb_t", "group__m__sql__trace.html#gaf3ddab58b91e175de3966d7311d2e903", null ],
+    [ "M_sql_trace_cb_t", "group__m__sql__trace.html#ga7ec1b992ac24ab273a435c42a1f7f921", null ],
     [ "M_sql_trace_t", "group__m__sql__trace.html#ga9c352e44fd1d4ef21c33de877021eb90", [
       [ "M_SQL_TRACE_CONNECTING", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90ac0378a57fe969691dd83f17e28a176fd", null ],
       [ "M_SQL_TRACE_CONNECTED", "group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a7292c6b55bef0543a9c62ca685470ccd", null ],

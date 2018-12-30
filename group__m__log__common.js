@@ -2,10 +2,10 @@ var group__m__log__common =
 [
     [ "M_log_t", "group__m__log__common.html#gad41859c2eab8886cfdebb82ac5ba1f8d", null ],
     [ "M_log_module_t", "group__m__log__common.html#gaa367697cdf319431c22adec6f4e08c53", null ],
-    [ "M_log_prefix_cb", "group__m__log__common.html#ga714daac5479c9c7042042ee9428898b3", null ],
-    [ "M_log_filter_cb", "group__m__log__common.html#gaae1dfb79b2c3a54ad0fb44ceb03d0899", null ],
-    [ "M_log_expire_cb", "group__m__log__common.html#ga791782404fe5184d0b9a6a4b367d9615", null ],
-    [ "M_log_destroy_cb", "group__m__log__common.html#ga590dbf48419075298346f6100c281bc9", null ],
+    [ "M_log_prefix_cb", "group__m__log__common.html#ga3da8fa0d2100b5c0fb79592ee9e4bade", null ],
+    [ "M_log_filter_cb", "group__m__log__common.html#gaf5652b7db21677a684c1bf80d6a9912b", null ],
+    [ "M_log_expire_cb", "group__m__log__common.html#gacfe40a05708b4c96cc13e85169b20743", null ],
+    [ "M_log_destroy_cb", "group__m__log__common.html#ga4acce39a990e68dfa1fcc7d0c6852601", null ],
     [ "M_log_error_t", "group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672", [
       [ "M_LOG_SUCCESS", "group__m__log__common.html#ggab5f4f197e827f0ecab0b79f0f2478672ac9ea11b5dde45747bcd05224db585048", null ],
       [ "M_LOG_INVALID_PARAMS", "group__m__log__common.html#ggab5f4f197e827f0ecab0b79f0f2478672a4a0d0c84fd2ab621933f04901579c969", null ],

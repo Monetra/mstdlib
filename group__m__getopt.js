@@ -1,11 +1,11 @@
 var group__m__getopt =
 [
     [ "M_getopt_t", "group__m__getopt.html#ga39f22c90cd423d2d702b79d8f3af1d82", null ],
-    [ "M_getopt_nonopt_cb", "group__m__getopt.html#ga81e2d76814ac69bd6585d2595fadee1b", null ],
-    [ "M_getopt_integer_cb", "group__m__getopt.html#ga7b76c6c5aae4455f7b165018287d539a", null ],
-    [ "M_getopt_decimal_cb", "group__m__getopt.html#gac5a8b7ab10dfaa2522b9d3b1208d3fab", null ],
-    [ "M_getopt_string_cb", "group__m__getopt.html#gad3f5a242da2d49fcc1de9fe2e955ecbc", null ],
-    [ "M_getopt_boolean_cb", "group__m__getopt.html#ga60378dacf17181e449e2dbbc7b7f2c11", null ],
+    [ "M_getopt_nonopt_cb", "group__m__getopt.html#gaabf5e56982d993780b3bd2d10a45d237", null ],
+    [ "M_getopt_integer_cb", "group__m__getopt.html#gad2f99426d7e76e534f17d1c7f2ec51dc", null ],
+    [ "M_getopt_decimal_cb", "group__m__getopt.html#ga8cf0c1b509509da129bcf37304bb12dc", null ],
+    [ "M_getopt_string_cb", "group__m__getopt.html#ga8493520e43f073a65e9773936a826597", null ],
+    [ "M_getopt_boolean_cb", "group__m__getopt.html#gaf5e2ec051df8f19adc48e7b2911156cf", null ],
     [ "M_getopt_error_t", "group__m__getopt.html#ga435b1ae5e5a87c3a4259621b4c4af785", [
       [ "M_GETOPT_ERROR_SUCCESS", "group__m__getopt.html#gga435b1ae5e5a87c3a4259621b4c4af785ae41685a50b16b7df0f3e11c18ef0c3b7", null ],
       [ "M_GETOPT_ERROR_INVALIDOPT", "group__m__getopt.html#gga435b1ae5e5a87c3a4259621b4c4af785a7d7d24c3115813b87a637db21a84ddcb", null ],

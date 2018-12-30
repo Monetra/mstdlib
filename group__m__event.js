@@ -4,7 +4,7 @@ var group__m__event =
     [ "M_event_trigger_t", "group__m__event.html#ga5af8e493dd11c5603689843f9b6ed2bc", null ],
     [ "M_event_timer_t", "group__m__event.html#gaf7cc7058deaf2fd06e4a4733d16c9b52", null ],
     [ "M_event_t", "group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350", null ],
-    [ "M_event_callback_t", "group__m__event.html#ga83ff5644cc466ea36241757dee26d629", null ],
+    [ "M_event_callback_t", "group__m__event.html#ga454e48a58bf322de6666c6d9e65c3b51", null ],
     [ "M_event_timer_mode_t", "group__m__event.html#ga09d789310a18f48034c1eb6c42193fbd", null ],
     [ "M_event_status_t", "group__m__event.html#gaf5323b0595d8268420f03023a3bbc55a", null ],
     [ "M_event_err_t", "group__m__event.html#ga06d43d0bb0301ed7809ffddbfe6ca8b2", null ],

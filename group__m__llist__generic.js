@@ -8,8 +8,8 @@ var group__m__llist__generic =
     ] ],
     [ "M_llist_t", "group__m__llist__generic.html#ga19ca8d0486282b8d06d7b644e282075a", null ],
     [ "M_llist_node_t", "group__m__llist__generic.html#ga9c73f7cf0b24ee76a4fff3770558523d", null ],
-    [ "M_llist_duplicate_func", "group__m__llist__generic.html#gad41f86381e0e9b68288a598a8f522313", null ],
-    [ "M_llist_free_func", "group__m__llist__generic.html#ga75c0b1ba17e57f6c0226e76a2e473565", null ],
+    [ "M_llist_duplicate_func", "group__m__llist__generic.html#ga71fb28d38b82e166953c640bd3887e7b", null ],
+    [ "M_llist_free_func", "group__m__llist__generic.html#ga26c0c016a4ed4523140a3d20fa441da7", null ],
     [ "M_llist_flags_t", "group__m__llist__generic.html#ga8b11ecd4dd0a830179135654698905d3", [
       [ "M_LLIST_NONE", "group__m__llist__generic.html#gga8b11ecd4dd0a830179135654698905d3a9d6f3e402c7c3c9191b50c22bc9d835e", null ],
       [ "M_LLIST_SORTED", "group__m__llist__generic.html#gga8b11ecd4dd0a830179135654698905d3af5479857f27e89f404658c2a6dbced11", null ],

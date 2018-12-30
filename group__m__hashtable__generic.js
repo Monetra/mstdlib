@@ -26,9 +26,9 @@ var group__m__hashtable__generic =
     ] ],
     [ "M_HASHTABLE_MAX_BUCKETS", "group__m__hashtable__generic.html#ga8880e7102d93baf643395d2234914682", null ],
     [ "M_hashtable_t", "group__m__hashtable__generic.html#ga282cebedc4ffc574f68baa87fa956e99", null ],
-    [ "M_hashtable_hash_func", "group__m__hashtable__generic.html#ga030f0097d642b3dfcb2c01c42b9ac440", null ],
-    [ "M_hashtable_duplicate_func", "group__m__hashtable__generic.html#gac13f5eca46d9d69af7ba23104c77ffa4", null ],
-    [ "M_hashtable_free_func", "group__m__hashtable__generic.html#ga31a05013c7fb96b976b521375615b133", null ],
+    [ "M_hashtable_hash_func", "group__m__hashtable__generic.html#ga6538fc32437c2ed90fe8d72e45930c4e", null ],
+    [ "M_hashtable_duplicate_func", "group__m__hashtable__generic.html#ga1f184444b40a0b597298d94ce3a1cd88", null ],
+    [ "M_hashtable_free_func", "group__m__hashtable__generic.html#ga31e66cdbed93208b7874be0955c8eba8", null ],
     [ "M_hashtable_flags_t", "group__m__hashtable__generic.html#gad13365674e45cd99be915fbc66b31ce8", [
       [ "M_HASHTABLE_NONE", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8a9e50f4e9e987676773501bc328670de4", null ],
       [ "M_HASHTABLE_KEYS_ORDERED", "group__m__hashtable__generic.html#ggad13365674e45cd99be915fbc66b31ce8ad2001c81452a606a343fdd4bb0056db0", null ],

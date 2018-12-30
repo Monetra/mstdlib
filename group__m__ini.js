@@ -2,7 +2,7 @@ var group__m__ini =
 [
     [ "M_ini_t", "group__m__ini.html#gad5f7076cefa9d398231fe34d29ab227a", null ],
     [ "M_ini_settings_t", "group__m__ini.html#gaa95acb7c8ec2b85fb8ed7bc65058ab01", null ],
-    [ "M_ini_merge_resolver_t", "group__m__ini.html#ga4fd6e7f1b6403141187ff2158aaecc7d", null ],
+    [ "M_ini_merge_resolver_t", "group__m__ini.html#gaaf8ecf09e4944c1198388b66872d6115", null ],
     [ "M_ini_dupkvs_t", "group__m__ini.html#gaba7b134a1d375a874080b7b20e0ba727", [
       [ "M_INI_DUPKVS_COMMENT_PREV", "group__m__ini.html#ggaba7b134a1d375a874080b7b20e0ba727aad811f5b5af31c99e7c11ce3b0f367f8", null ],
       [ "M_INI_DUPKVS_REMOVE_PREV", "group__m__ini.html#ggaba7b134a1d375a874080b7b20e0ba727a748358aaa4f6aa6b582c85306fb5f46a", null ],

@@ -7,8 +7,8 @@ var group__m__cache__generic =
       [ "value_free", "group__m__cache__generic.html#a451138471e3ffce8b37b7f9b01b7f4b6", null ]
     ] ],
     [ "M_cache_t", "group__m__cache__generic.html#ga9be7c68d203b3bf523b7ef6db74a3d9d", null ],
-    [ "M_cache_duplicate_func", "group__m__cache__generic.html#ga5fba8a4a7bc10c1d6dd4208c86f72fa5", null ],
-    [ "M_cache_free_func", "group__m__cache__generic.html#gad6c610a3ba10a4b493723a950fef844c", null ],
+    [ "M_cache_duplicate_func", "group__m__cache__generic.html#gad1f44c762f73394bfff2d32d44a53150", null ],
+    [ "M_cache_free_func", "group__m__cache__generic.html#ga19dabaf50202c2d8a8db95c1d6beac9b", null ],
     [ "M_cache_flags_t", "group__m__cache__generic.html#ga6ad7cc26b7060ea18724e4eb34959efe", [
       [ "M_CACHE_NONE", "group__m__cache__generic.html#gga6ad7cc26b7060ea18724e4eb34959efea163a69d20eb488313f135b1d2035eef7", null ]
     ] ],

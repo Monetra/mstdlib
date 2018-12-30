@@ -2,11 +2,11 @@ var group__m__state__machine =
 [
     [ "M_state_machine_t", "group__m__state__machine.html#gad576e0cce8ea03b5bfcffabfacfe6c14", null ],
     [ "M_state_machine_cleanup_t", "group__m__state__machine.html#gae15e0f0b71c657e70aab62f619c10bc1", null ],
-    [ "M_state_machine_trace_cb", "group__m__state__machine.html#gaf08062197b0e4dceb47cc58b33fa4583", null ],
-    [ "M_state_machine_state_cb", "group__m__state__machine.html#ga86b9fb6628051a43525aafb60e5dc4be", null ],
-    [ "M_state_machine_cleanup_cb", "group__m__state__machine.html#ga50aef6156d821a2c93c2fa79866f7fca", null ],
-    [ "M_state_machine_pre_cb", "group__m__state__machine.html#ga67863234fe67fd88d17356dd4219a0a6", null ],
-    [ "M_state_machine_post_cb", "group__m__state__machine.html#gac70ef15a9b43d416d25a4d8897482aa1", null ],
+    [ "M_state_machine_trace_cb", "group__m__state__machine.html#gaed19ff69d4d8d638185fa5c1a81201a1", null ],
+    [ "M_state_machine_state_cb", "group__m__state__machine.html#ga4d92a9e014da0a2374e2a7a97f23d03a", null ],
+    [ "M_state_machine_cleanup_cb", "group__m__state__machine.html#gab581c5a07d70888ac7651fcc8f464f8a", null ],
+    [ "M_state_machine_pre_cb", "group__m__state__machine.html#ga5a7a8a6fa579f98d8f86064e3065d692", null ],
+    [ "M_state_machine_post_cb", "group__m__state__machine.html#gaa4534c36abf95243553d30d2869f417e", null ],
     [ "M_state_machine_status_t", "group__m__state__machine.html#gac270a27ce03a23e30d86788b2103268b", [
       [ "M_STATE_MACHINE_STATUS_NONE", "group__m__state__machine.html#ggac270a27ce03a23e30d86788b2103268ba57269afb43b1a27ce27f87d634209773", null ],
       [ "M_STATE_MACHINE_STATUS_NEXT", "group__m__state__machine.html#ggac270a27ce03a23e30d86788b2103268ba99a33d04268a2612969eaf95a66aaa55", null ],
