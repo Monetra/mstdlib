@@ -123,6 +123,9 @@ install:
       brew update --quite
       brew install openssl doxygen mariadb-connector-c libiodbc libpq check c-ares sqlite llvm
       brew link --force --overwrite llvm
+      export PATH="/usr/local/opt/llvm/bin:$PATH"
+      export CC="clang"
+      export CXX="clang++"
     fi
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
