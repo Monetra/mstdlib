@@ -123,6 +123,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_stmt_bind_get_type", "group__m__sql__driver.html#ga342da36f6ae2e51f83d53ab167c02535", null ],
     [ "M_sql_driver_stmt_bind_get_col_type", "group__m__sql__driver.html#ga7f972202fe7461008ebf68506ffa9930", null ],
     [ "M_sql_driver_stmt_bind_get_max_col_size", "group__m__sql__driver.html#ga98c686e8350ee9a874ef5982d8686bc7", null ],
+    [ "M_sql_driver_stmt_bind_get_curr_col_size", "group__m__sql__driver.html#ga229503652fafe6e8476164af16159335", null ],
     [ "M_sql_driver_stmt_get_requested_row_cnt", "group__m__sql__driver.html#ga121ea3dd8b534d0e006b5fefe1f2f4ba", null ],
     [ "M_sql_driver_stmt_bind_get_bool_addr", "group__m__sql__driver.html#gab0dc80ec7f9becffb5998a5e8bcc1eef", null ],
     [ "M_sql_driver_stmt_bind_get_int16_addr", "group__m__sql__driver.html#gaa7320de45b559e57cd5973f4d01b287f", null ],

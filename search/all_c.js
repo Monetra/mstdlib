@@ -2417,6 +2417,7 @@ var searchData=
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fbool',['M_sql_driver_stmt_bind_get_bool',['../group__m__sql__driver.html#ga3206fd07778b89f2567211941620b4cb',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fbool_5faddr',['M_sql_driver_stmt_bind_get_bool_addr',['../group__m__sql__driver.html#gab0dc80ec7f9becffb5998a5e8bcc1eef',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fcol_5ftype',['M_sql_driver_stmt_bind_get_col_type',['../group__m__sql__driver.html#ga7f972202fe7461008ebf68506ffa9930',1,'m_sql_driver.h']]],
+  ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fcurr_5fcol_5fsize',['M_sql_driver_stmt_bind_get_curr_col_size',['../group__m__sql__driver.html#ga229503652fafe6e8476164af16159335',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fint16',['M_sql_driver_stmt_bind_get_int16',['../group__m__sql__driver.html#gac46dece6e78ae132d5bf5abc86027bb8',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fint16_5faddr',['M_sql_driver_stmt_bind_get_int16_addr',['../group__m__sql__driver.html#gaa7320de45b559e57cd5973f4d01b287f',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fstmt_5fbind_5fget_5fint32',['M_sql_driver_stmt_bind_get_int32',['../group__m__sql__driver.html#ga46d34ebddee4be596e0cc1eb27ed578a',1,'m_sql_driver.h']]],

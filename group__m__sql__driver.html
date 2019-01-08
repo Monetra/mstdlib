@@ -288,6 +288,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga7f972202fe7461008ebf68506ffa9930"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga98c686e8350ee9a874ef5982d8686bc7"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga98c686e8350ee9a874ef5982d8686bc7">M_sql_driver_stmt_bind_get_max_col_size</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t idx)</td></tr>
 <tr class="separator:ga98c686e8350ee9a874ef5982d8686bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga229503652fafe6e8476164af16159335"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga229503652fafe6e8476164af16159335">M_sql_driver_stmt_bind_get_curr_col_size</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t row, size_t col)</td></tr>
+<tr class="separator:ga229503652fafe6e8476164af16159335"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga121ea3dd8b534d0e006b5fefe1f2f4ba"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#ga121ea3dd8b534d0e006b5fefe1f2f4ba">M_sql_driver_stmt_get_requested_row_cnt</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt)</td></tr>
 <tr class="separator:ga121ea3dd8b534d0e006b5fefe1f2f4ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab0dc80ec7f9becffb5998a5e8bcc1eef"><td class="memItemLeft" align="right" valign="top">M_bool *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__driver.html#gab0dc80ec7f9becffb5998a5e8bcc1eef">M_sql_driver_stmt_bind_get_bool_addr</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t row, size_t idx)</td></tr>
@@ -668,7 +670,7 @@ port</td>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code" href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a> <a class="code" href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a> *M_sql_get_driver_##name(<span class="keywordtype">void</span>); \</div><div class="line">    M_sql_driver_t *M_sql_get_driver_##name(<span class="keywordtype">void</span>)        \</div><div class="line">    {                                                    \</div><div class="line">        return &amp;M_sql_##name;                            \</div><div class="line">    }</div><div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:347</div></div>
-<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:716</div></div>
+<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:720</div></div>
 </div><!-- fragment --><p>Use in sql driver source file to create entry point </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>is the name of the module, a <a class="el" href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a> structure must be defined named M_sql_[name] </td></tr>
@@ -1968,7 +1970,40 @@ port</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the maximum size of a column if there are multiple rows bound </p>
+<p>Get the maximum size of a column if there are multiple rows bound, taking into account things like integer sizes </p>
+
+</div>
+</div>
+<a class="anchor" id="ga229503652fafe6e8476164af16159335"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_sql_driver_stmt_bind_get_curr_col_size </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *&#160;</td>
+          <td class="paramname"><em>stmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>col</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the current size of the row/column in bytes, taking into account things like integer sizes </p>
 
 </div>
 </div>
@@ -2827,7 +2862,7 @@ port</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jan 3 2019 13:48:46 for Mstdlib-1.4.0 by
+    <li class="footer">Generated on Tue Jan 8 2019 18:22:19 for Mstdlib-1.4.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
