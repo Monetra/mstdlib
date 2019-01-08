@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -150,7 +150,7 @@ struct M_sql_driver_conn {
 static SQLHENV odbc_env_handle         = SQL_NULL_HENV;
 
 static const odbc_server_profile_t odbc_server_profiles[] = {
-	{ 
+	{
 		/* As of SQL 2008, Microsoft can use the comma-delimited format.
 		 * we've seen crashes when using array binding within Microsoft's
 		 * driver so we should avoid it.  Apparently other people see the
@@ -184,7 +184,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ 
+	{
 		"DB2",                        /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
 		M_TRUE,                       /* SQL_C_SBIGINT         */
@@ -200,7 +200,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ 
+	{
 		"ORACLE",                     /* name                  */
 		M_FALSE,                      /* is_multival_insert_cd */
 		M_FALSE,                      /* SQL_C_SBIGINT         */
@@ -216,7 +216,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		oracle_cb_rewrite_indexname   /* cb_rewrite_indexname  */
 	},
 
-	{ 
+	{
 		"MYSQL",                      /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		M_TRUE,                       /* SQL_C_SBIGINT         */
@@ -232,7 +232,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ 
+	{
 		"MariaDB",                    /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		M_TRUE,                       /* SQL_C_SBIGINT         */
@@ -248,7 +248,7 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		NULL                          /* cb_rewrite_indexname  */
 	},
 
-	{ 
+	{
 		"PostgreSQL",                 /* name                  */
 		M_TRUE,                       /* is_multival_insert_cd */
 		M_TRUE,                       /* SQL_C_SBIGINT         */
@@ -764,7 +764,7 @@ static size_t odbc_num_process_rows(M_bool is_multival_insert_cd, size_t max_row
 }
 
 
-static size_t odbc_num_bind_rows(M_sql_conn_t *conn, M_sql_stmt_t *stmt) 
+static size_t odbc_num_bind_rows(M_sql_conn_t *conn, M_sql_stmt_t *stmt)
 {
 	M_sql_driver_conn_t *dconn    = M_sql_driver_conn_get_conn(conn);
 	return odbc_num_process_rows(
@@ -1064,7 +1064,7 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 				}
 				break;
 			default:
-				/* Increment ColumnSize by 1 to account for NULL termination */
+				/* Increment ColumnSize (not length!) by 1 to account for NULL termination */
 				if (type != M_SQL_DATA_TYPE_BINARY)
 					ColumnSize++;
 
@@ -1083,11 +1083,16 @@ static M_sql_error_t odbc_bind_params_array(M_sql_driver_stmt_t *dstmt, M_sql_st
 			odbc_bind_set_value_array(stmt, type, use_numeric, row, i, (size_t)ColumnSize, &dstmt->bind_cols[i]);
 		}
 
-		/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
-		 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
-		 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
-		 * the length already provided.  Perhaps this deserves to always be 0 on text and binary data? */
-		if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
+		if (ColumnSize == 0) {
+			/* Some Microsoft SQL Server ODBC drivers do not like a ColumnSize of 0 on NULL columns.  So make it 1, which works */
+			ColumnSize = 1;
+		} else if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
+			/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
+			 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
+			 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
+			 * the length already provided.
+			 * NOTE: see how this contradicts with the above test though, so weird, I'd hate to see Microsoft's driver code,
+			 *       I really don't know how they could have so many issues. */
 			ColumnSize = 0;
 		}
 
@@ -1138,66 +1143,91 @@ static void odbc_stmt_add_temp_var(M_sql_stmt_t *stmt, void *var)
 }
 
 
-static void odbc_bind_set_value_flat(M_sql_stmt_t *stmt, M_bool use_numeric, size_t row, size_t col, SQLPOINTER *value, SQLLEN *len)
+static void odbc_bind_set_value_flat(M_sql_driver_stmt_t *dstmt, M_sql_stmt_t *stmt, M_bool use_numeric, size_t row, size_t col, SQLPOINTER *value, SQLULEN *ColumnSize, SQLLEN *len)
 {
 	M_sql_data_type_t type = M_sql_driver_stmt_bind_get_type(stmt, row, col);
 	const unsigned char *data;
 
-	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
-		*len   = SQL_NULL_DATA;
-		return;
+	*len        = 0;
+	*value      = NULL;
+	*ColumnSize = M_sql_driver_stmt_bind_get_curr_col_size(stmt, row, col);
+
+	/* Fix up numeric column size */
+	if (type == M_SQL_DATA_TYPE_INT64 && use_numeric) {
+#ifdef SQL_C_NUMERIC
+		*ColumnSize = sizeof(SQL_NUMERIC_STRUCT);
+#endif
 	}
 
-	switch (type) {
-		case M_SQL_DATA_TYPE_BOOL:
-			*value = M_sql_driver_stmt_bind_get_bool_addr(stmt, row, col);
-			break;
+	if (M_sql_driver_stmt_bind_isnull(stmt, row, col)) {
+		*len = SQL_NULL_DATA;
+	} else {
+		switch (type) {
+			case M_SQL_DATA_TYPE_BOOL:
+				*value = M_sql_driver_stmt_bind_get_bool_addr(stmt, row, col);
+				break;
 
-		case M_SQL_DATA_TYPE_INT16:
-			*value = M_sql_driver_stmt_bind_get_int16_addr(stmt, row, col);
-			break;
+			case M_SQL_DATA_TYPE_INT16:
+				*value = M_sql_driver_stmt_bind_get_int16_addr(stmt, row, col);
+				break;
 
-		case M_SQL_DATA_TYPE_INT32:
-			*value = M_sql_driver_stmt_bind_get_int32_addr(stmt, row, col);
-			break;
+			case M_SQL_DATA_TYPE_INT32:
+				*value = M_sql_driver_stmt_bind_get_int32_addr(stmt, row, col);
+				break;
 
-		case M_SQL_DATA_TYPE_INT64:
-			/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
-			if (use_numeric) {
+			case M_SQL_DATA_TYPE_INT64:
+				/* Damn Oracle even as of v18 doesn't support 64bit integers natively in their ODBC driver */
+				if (use_numeric) {
 #ifdef SQL_C_NUMERIC
-				SQL_NUMERIC_STRUCT *num   = M_malloc_zero(sizeof(*num));
-				M_int64             val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
-				/* Need as unsigned little endian */
-				M_uint64            ulval = M_htol64((M_uint64)M_ABS(val));
+					SQL_NUMERIC_STRUCT *num   = M_malloc_zero(sizeof(*num));
+					M_int64             val   = M_sql_driver_stmt_bind_get_int64(stmt, row, col);
+					/* Need as unsigned little endian */
+					M_uint64            ulval = M_htol64((M_uint64)M_ABS(val));
 
-				M_mem_copy(num->val, &ulval, sizeof(ulval));
+					M_mem_copy(num->val, &ulval, sizeof(ulval));
 
-				if (val >= 0)
-					num->sign = 1;
+					if (val >= 0)
+						num->sign = 1;
 
-				*value = num;
-				*len   = sizeof(*num);
-				odbc_stmt_add_temp_var(stmt, num);
+					*value = num;
+					odbc_stmt_add_temp_var(stmt, num);
 #endif
-			} else {
-				*value = M_sql_driver_stmt_bind_get_int64_addr(stmt, row, col);
-			}
-			break;
+				} else {
+					*value = M_sql_driver_stmt_bind_get_int64_addr(stmt, row, col);
+				}
+				break;
 
-		case M_SQL_DATA_TYPE_TEXT:
-			data   = (const unsigned char *)M_sql_driver_stmt_bind_get_text(stmt, row, col);
-			*value = M_CAST_OFF_CONST(SQLPOINTER, data);
-			*len   = (SQLLEN)M_sql_driver_stmt_bind_get_text_len(stmt, row, col);
-			break;
+			case M_SQL_DATA_TYPE_TEXT:
+				data   = (const unsigned char *)M_sql_driver_stmt_bind_get_text(stmt, row, col);
+				*value = M_CAST_OFF_CONST(SQLPOINTER, data);
+				*len   = (SQLLEN)M_sql_driver_stmt_bind_get_text_len(stmt, row, col);
 
-		case M_SQL_DATA_TYPE_BINARY:
-			data   = M_sql_driver_stmt_bind_get_binary(stmt, row, col);
-			*value = M_CAST_OFF_CONST(SQLPOINTER, data);
-			*len   = (SQLLEN)M_sql_driver_stmt_bind_get_binary_len(stmt, row, col);
-			break;
+				/* Increment ColumnSize (not length!) by 1 to account for NULL termination */
+				(*ColumnSize)++;
+				break;
 
-		case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
-			break;
+			case M_SQL_DATA_TYPE_BINARY:
+				data   = M_sql_driver_stmt_bind_get_binary(stmt, row, col);
+				*value = M_CAST_OFF_CONST(SQLPOINTER, data);
+				*len   = (SQLLEN)M_sql_driver_stmt_bind_get_binary_len(stmt, row, col);
+				break;
+
+			case M_SQL_DATA_TYPE_UNKNOWN: /* Silence warning, should never get this */
+				break;
+		}
+	}
+
+	if (*ColumnSize == 0) {
+		/* Some Microsoft SQL Server ODBC drivers do not like a ColumnSize of 0 on NULL/blank columns.  So make it 1, which works */
+		*ColumnSize = 1;
+	} else if (*ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
+		/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
+		 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
+		 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
+		 * the length already provided.
+		 * NOTE: see how this contradicts with the above test though, so weird, I'd hate to see Microsoft's driver code,
+		 *       I really don't know how they could have so many issues. */
+		*ColumnSize = 0;
 	}
 }
 
@@ -1216,21 +1246,21 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 	dstmt->bind_flat_lens = M_malloc_zero(sizeof(*dstmt->bind_flat_lens) * num_cols * num_rows);
 
 	/* Specify the number of elements in each parameter array.  */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)1), 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER)((SQLULEN)1), 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMSET_SIZE)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
 	/* UNSET array in which to return the status of each set of parameters */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, NULL, 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAM_STATUS_PTR, NULL, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAM_STATUS_PTR=NULL)", NULL, dstmt, rc, error, error_size);
 		goto done;
 	}
 
 	/* UNSET value in which to return the number of parameter sets processed */
-	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, NULL, 0);  
+	rc = SQLSetStmtAttr(dstmt->stmt, SQL_ATTR_PARAMS_PROCESSED_PTR, NULL, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		err = odbc_format_error("SQLSetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR=NULL)", NULL, dstmt, rc, error, error_size);
 		goto done;
@@ -1250,21 +1280,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 				err = M_SQL_ERROR_QUERY_FAILURE;
 				goto done;
 			}
-			odbc_bind_set_value_flat(stmt, use_numeric, row, i, &ParameterValue, &dstmt->bind_flat_lens[idx]);
-
-			if (ParameterValue != NULL) {
-				ColumnSize = (SQLULEN)dstmt->bind_flat_lens[idx];
-
-				/* Microsoft SQL Server doesn't appear to like to bind columns with a large ColumnSize.  It will return
-				 * HY104: [Microsoft][ODBC SQL Server Driver]Invalid precision value
-				 * Its not actually clear how ColumnSize is actually used in the first place or how it differs from
-				 * the length already provided.  Perhaps this deserves to always be 0 on text and binary data? */
-				if (ColumnSize > 4000 && M_str_caseeq(dstmt->dconn->pool_data->profile->name, "Microsoft SQL Server")) {
-					ColumnSize = 0;
-				}
-			}
-
-
+			odbc_bind_set_value_flat(dstmt, stmt, use_numeric, row, i, &ParameterValue, &ColumnSize, &dstmt->bind_flat_lens[idx]);
 
 			rc = SQLBindParameter(
 				dstmt->stmt,                       /* SQLHSTMT StatementHandle */
@@ -1281,7 +1297,7 @@ static M_sql_error_t odbc_bind_params_flat(M_sql_driver_stmt_t *dstmt, M_sql_stm
 
 			if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 				char prefix[256];
-				M_snprintf(prefix, sizeof(prefix), "SQLBindParameter(idx: %zu, row: %zu, col: %zu) failed", idx+1, row, i);
+				M_snprintf(prefix, sizeof(prefix), "SQLBindParameter(idx: %zu, row: %zu, col: %zu) (MType: %u, ColumnSize: %zu, Len: %zd) failed", idx+1, row, i, (unsigned int)type, (size_t)ColumnSize, (ssize_t)dstmt->bind_flat_lens[idx]);
 				err = odbc_format_error(prefix, NULL, dstmt, rc, error, error_size);
 				goto done;
 			}
@@ -1461,7 +1477,7 @@ static M_sql_error_t odbc_fetch_result_metadata(M_sql_conn_t *conn, M_sql_driver
 		M_sql_driver_stmt_result_set_col_name(stmt, i, (const char *)ColumnName);
 		M_sql_driver_stmt_result_set_col_type(stmt, i, mtype, max_len);
 
-		/* XXX:  Its possible we should use SQL_DATA_AT_EXEC with SQLBindCol() for 
+		/* XXX:  Its possible we should use SQL_DATA_AT_EXEC with SQLBindCol() for
 		 *       large columns and fetch them with SQLGetData, but for reasonably sized
 		 *       ones (<=2k?) , use the bound fields */
 	}
@@ -1481,7 +1497,7 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 	SQLSMALLINT          num_cols      = 0;
 
 	/* Calc number of rows we'll try to insert at once */
-	*rows_executed = odbc_num_bind_rows(conn, stmt); 
+	*rows_executed = odbc_num_bind_rows(conn, stmt);
 
 	exec_rc = SQLExecute(dstmt->stmt);
 	if (exec_rc != SQL_SUCCESS && exec_rc != SQL_SUCCESS_WITH_INFO && exec_rc != SQL_NO_DATA) {
