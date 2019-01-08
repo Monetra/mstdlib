@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Main Street Softworks, Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -83,7 +83,7 @@ typedef struct M_sql_driver_stmt M_sql_driver_stmt_t;
 
 /*! Callback called when the module is loaded.  If there is any global environment that needs
  *  to be set up, it should be called here.  This is guaranteed to only be called once.
- *  
+ *
  *  \param[out] error      User-supplied buffer to hold an error message
  *  \param[in]  error_size Size of user-supplied error buffer.
  *  \return M_TRUE on success, M_FALSE on failure
@@ -143,7 +143,7 @@ typedef const char *(*M_sql_driver_cb_serverversion_t)(M_sql_driver_conn_t *conn
 
 /*! Callback called after each connection is successfully established.  The is_first_in_pool can be
  *  used to key off of to ensure if the action only needs to be performed once for the lifetime of
- *  the pool after connectivity is established, it can be done there.  
+ *  the pool after connectivity is established, it can be done there.
  *
  *  Examples of use for this callback include setting SQLite journal mode, performing an SQLite
  *  analyze or integrity check.  For other databases, this may be where custom store procedures
@@ -194,7 +194,7 @@ typedef char *(*M_sql_driver_cb_queryformat_t)(M_sql_conn_t *conn, const char *q
 typedef size_t (*M_sql_driver_cb_queryrowcnt_t)(M_sql_conn_t *conn, size_t num_params, size_t num_rows);
 
 /*! Prepare the provided query for execution.
- * 
+ *
  * \param[in,out] driver_stmt Driver-specific statement handle.  If executing based on a cached
  *                            prepared statement handle, may pass in existing handle.  Handle used
  *                            will always be returned (may or may not be identical to passed in handle)
@@ -208,7 +208,7 @@ typedef size_t (*M_sql_driver_cb_queryrowcnt_t)(M_sql_conn_t *conn, size_t num_p
 typedef M_sql_error_t (*M_sql_driver_cb_prepare_t)(M_sql_driver_stmt_t **driver_stmt, M_sql_conn_t *conn, M_sql_stmt_t *stmt, char *error, size_t error_size);
 
 /*! Destroy the driver-specific prepared statement handle.
- * 
+ *
  * \param[in]     stmt    Driver-specific statement handle to be destroyed.
  */
 typedef void (*M_sql_driver_cb_prepare_destroy_t)(M_sql_driver_stmt_t *stmt);
@@ -230,7 +230,7 @@ typedef void (*M_sql_driver_cb_prepare_destroy_t)(M_sql_driver_stmt_t *stmt);
 typedef M_sql_error_t (*M_sql_driver_cb_execute_t)(M_sql_conn_t *conn, M_sql_stmt_t *stmt, size_t *rows_executed, char *error, size_t error_size);
 
 /*! Fetch rows from server
- * 
+ *
  * \param[in] conn        Initialized connection object, use M_sql_driver_conn_get_conn() to get driver-specific
  *                        private connection handle.
  * \param[in] stmt        System statement object, use M_sql_driver_stmt_get_stmt() to fetch driver-specific statement handle.
@@ -253,7 +253,7 @@ typedef M_sql_error_t (*M_sql_driver_cb_fetch_t)(M_sql_conn_t *conn, M_sql_stmt_
  */
 typedef M_sql_error_t (*M_sql_driver_cb_begin_t)(M_sql_conn_t *conn, M_sql_isolation_t isolation, char *error, size_t error_size);
 
-/*! Rollback a transaction. 
+/*! Rollback a transaction.
  *
  *  The connection object should retain enough metadata to know if there is a current open transaction
  *  or not, so that if the transaction was already implicitly closed by a failed previous request,
@@ -303,7 +303,7 @@ typedef M_bool (*M_sql_driver_cb_datatype_t)(M_sql_connpool_t *pool, M_buf_t *bu
 typedef void (*M_sql_driver_cb_createtable_suffix_t)(M_sql_connpool_t *pool, M_buf_t *query);
 
 
-/*! Output the SQL-driver-specific update lock as needed. 
+/*! Output the SQL-driver-specific update lock as needed.
  *
  * See M_sql_query_append_updlock() for more information.
  *
@@ -315,7 +315,7 @@ typedef void (*M_sql_driver_cb_createtable_suffix_t)(M_sql_connpool_t *pool, M_b
 typedef void (*M_sql_driver_cb_append_updlock_t)(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_updlock_type_t type, const char *table_name);
 
 
-/*! Output the SQL-driver-specific bit operation formatted as needed. 
+/*! Output the SQL-driver-specific bit operation formatted as needed.
  *
  * See M_sql_query_append_bitop() for more information.
  *
@@ -381,9 +381,9 @@ typedef struct  {
 typedef enum {
 	M_SQL_DRIVER_QUERYFORMAT_NORMAL              = 0,       /*!< Normal, strips any query terminator otherwise unmodified */
 	M_SQL_DRIVER_QUERYFORMAT_TERMINATOR          = 1 << 0,  /*!< Query terminator (;) is required */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR    = 1 << 1,  /*!< Instead of using ? for each bound parameter, parameters 
+	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR    = 1 << 1,  /*!< Instead of using ? for each bound parameter, parameters
 	                                                             take the form of $1, $2, ... $N  (used by PostgreSQL) */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON     = 1 << 2,  /*!< Instead of using ? for each bound parameter, parameters 
+	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON     = 1 << 2,  /*!< Instead of using ? for each bound parameter, parameters
 	                                                             take the form of :1, :2, ... :N  (used by Oracle) */
 	M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD = 1 << 3,  /*!< Multiple-value/row insertions are not sent to the server using
 	                                                             rows of bound parameters, but instead by comma-delimiting the
@@ -456,10 +456,10 @@ typedef enum {
 M_API M_sql_conn_state_t M_sql_conn_get_state(M_sql_conn_t *conn);
 
 
-/*! Base helper used to execute a statement on a connection handle. 
- * 
+/*! Base helper used to execute a statement on a connection handle.
+ *
  *  This helper is called by M_sql_stmt_execute() and M_sql_trans_execute()
- * 
+ *
  *  \param[in] conn  Connection acquired with M_sql_connpool_acquireconn()
  *  \param[in] stmt  Prepared statement object to be executed
  *  \return one of the M_sql_error_t codes
@@ -478,7 +478,7 @@ M_API M_sql_error_t M_sql_conn_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt);
 M_API M_sql_stmt_t *M_sql_conn_execute_simple(M_sql_conn_t *conn, const char *query, M_bool skip_sanity_checks);
 
 /*! Helper for SQL drivers to validate the connection strings provided.
- * 
+ *
  * \param[in]  conndict   Dictionary of key/value pairs passed to driver
  * \param[in]  params     NULL-terminated structure of parameters to validate.
  * \param[out] error      User-supplied error buffer to output error message.
@@ -490,7 +490,7 @@ M_API M_bool M_sql_driver_validate_connstr(const M_hash_dict_t *conndict, const 
 M_API M_sql_hostport_t *M_sql_driver_parse_hostport(const char *hostport, M_uint16 default_port, size_t *out_len, char *error, size_t error_size);
 
 /*! Retrieve a handle to the driver-specific connection object.
- * 
+ *
  *  \param[in] conn Connection acquired with M_sql_connpool_acquireconn()
  *
  * \return handle to driver-specific connection object
@@ -549,8 +549,12 @@ M_API M_sql_data_type_t M_sql_driver_stmt_bind_get_type(M_sql_stmt_t *stmt, size
  *  this searches for the "real" datatype, first non-null */
 M_API M_sql_data_type_t M_sql_driver_stmt_bind_get_col_type(M_sql_stmt_t *stmt, size_t idx);
 
-/*! Get the maximum size of a column if there are multiple rows bound */
+/*! Get the maximum size of a column if there are multiple rows bound, taking into account things like integer sizes */
 M_API size_t M_sql_driver_stmt_bind_get_max_col_size(M_sql_stmt_t *stmt, size_t idx);
+
+/*! Get the current size of the row/column in bytes, taking into account things like integer sizes */
+M_API size_t M_sql_driver_stmt_bind_get_curr_col_size(M_sql_stmt_t *stmt, size_t row, size_t col);
+
 
 /*! Get the requested row count as requested by the user by M_sql_stmt_set_max_fetch_rows().
  *
@@ -579,7 +583,7 @@ M_API const M_uint8 *M_sql_driver_stmt_bind_get_binary(M_sql_stmt_t *stmt, size_
 M_API size_t M_sql_driver_stmt_bind_get_binary_len(M_sql_stmt_t *stmt, size_t row, size_t idx);
 
 /*! Set the number of affected rows from things like UPDATE or DELETE
- * 
+ *
  * \param[in] stmt Statement handle
  * \param[in] cnt  Count to set
  * \return M_TRUE on succes, M_FALSE on failure such as misuse
@@ -588,14 +592,14 @@ M_API M_bool M_sql_driver_stmt_result_set_affected_rows(M_sql_stmt_t *stmt, size
 
 
 /*! Set the column count for the row headers
- * 
+ *
  * \param[in] stmt Statement handle
  * \param[in] cnt  Count to set
  * \return M_TRUE on succes, M_FALSE on failure such as misuse or column count has already been set
  */
 M_API M_bool M_sql_driver_stmt_result_set_num_cols(M_sql_stmt_t *stmt, size_t cnt);
 
-/*! Sets the column header name for the specified column 
+/*! Sets the column header name for the specified column
  *
  *  Must only be called after M_sql_driver_stmt_result_set_num_cols()
  *
@@ -606,7 +610,7 @@ M_API M_bool M_sql_driver_stmt_result_set_num_cols(M_sql_stmt_t *stmt, size_t cn
  */
 M_API M_bool M_sql_driver_stmt_result_set_col_name(M_sql_stmt_t *stmt, size_t col, const char *name);
 
-/*! Sets the column header name for the specified column 
+/*! Sets the column header name for the specified column
  *
  *  Must only be called after M_sql_driver_stmt_result_set_num_cols()
  *
@@ -633,7 +637,7 @@ M_API M_bool M_sql_driver_stmt_result_set_col_type(M_sql_stmt_t *stmt, size_t co
  *
  *  Must only be called after M_sql_driver_stmt_result_set_num_cols(), and highly
  *  recommended to have previously called M_sql_driver_stmt_result_set_col_name()
- *  and M_sql_driver_stmt_result_set_col_type(). 
+ *  and M_sql_driver_stmt_result_set_col_type().
  *
  *  Binary data can only be written if M_sql_driver_stmt_result_set_col_type() is
  *  set to #M_SQL_DATA_TYPE_BINARY.
@@ -646,7 +650,7 @@ M_API M_buf_t *M_sql_driver_stmt_result_col_start(M_sql_stmt_t *stmt);
 
 /*! Finish a row worth of data.
  *
- *  This is required to be called after all the columns for a row are written using 
+ *  This is required to be called after all the columns for a row are written using
  *  M_sql_driver_stmt_result_col_start().
  *
  * \param[in] stmt Statement handle
@@ -717,7 +721,7 @@ M_API void M_sql_driver_trace_message(M_bool is_debug, M_sql_connpool_t *pool, M
 #endif
 
 
-/*! Use in sql driver source file to create entry point 
+/*! Use in sql driver source file to create entry point
  *  \param[in] name is the name of the module, a M_sql_driver_t structure
  *             must be defined named  M_sql_[name]  */
 #define M_SQL_DRIVER(name) \
