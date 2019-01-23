@@ -3,21 +3,22 @@ About
 
 mstdlib stands for "M Standard Library".
 
-It was created by Main Street Softworks, Inc. for use in their Monetra payment
-engine. It is designed to be a safe cross platform API for functionality that
-was commonly used in Monetra and other projects. This library was found to be so
-useful internally that in 2017 it was decided to release it to the public as
-open source. Please see the LICENSE file.
+It was created by Monetra Technologies LLC (fka Main Street Softworks, Inc) for
+use in their Monetra payment engine. It is designed to be a safe cross platform
+API for functionality that was commonly used in Monetra and other projects. This
+library was found to be so useful internally that in 2017 it was decided to
+release it to the public as open source. Please see the LICENSE file.
 
 To avoid trademark issues the "m" in mstdlib just stands for the letter M. It
-does not stand for Main Street Softworks, Inc. nor Monetra.
+does not stand for Monetra nor Main Street Softworks.  Though some day we may
+become more clever with the meaning of M. (maybe "Mighty")?
 
 
 Rationale/Use
 =============
 
 Mstdlib is designed to provide features not normally found in libc but also
-to be used in place of libc. Underneath mstdlib uses the system's libc when it 
+to be used in place of libc. Underneath mstdlib uses the system's libc when it
 makes sense. It is not itself a libc implementation. Though it does provide a
 number of additional features. Using mstdlib as if it was libc provides benefits
 such as NULL safety and memory zeroing. That's not to say you can't use libc
@@ -58,7 +59,7 @@ Goals
 =====
 
 Provide an easy to use C library that is first and foremost secure. It should
-provide common functionality to make development easier and faster. It should 
+provide common functionality to make development easier and faster. It should
 work across multiple platforms. There shouldn't be any surprises.
 
 1. Secure
@@ -101,7 +102,7 @@ work across multiple platforms. There shouldn't be any surprises.
 
 - Don't try to create a library with everything including the kitchen sink.
   This isn't mean to be an all encompassing library like Java or Python's
-  standard libraries. At least this was the original idea but...
+  standard libraries. (At least this was the original idea but...)
 - Features included must be commonly used and useful.
 - Use separate modules that are layered in order to reduce the overall size
   of the library if only some features are needed.
@@ -119,15 +120,15 @@ and there is no  timeline on how long they will be supported.
 
 The following features are supported by each build system:
 
-Feature                                | CMake | Autotools | NMake Makefiles 
+Feature                                | CMake | Autotools | NMake Makefiles
 :--------------------------------------|:-----:|:---------:|:--------------:
 Shared build                           | Y     | Y         | Y
-Static build                           | Y     | Y         | N 
-Disabling building non-base components | Y     | Y         | N 
-Installation (header and library)      | Y     | Y         | N 
-Disabling header installation          | Y     | N         | N 
-Disabling library installation         | Y     | N         | N 
-Tests                                  | Y     | Y         | N 
+Static build                           | Y     | Y         | N
+Disabling building non-base components | Y     | Y         | N
+Installation (header and library)      | Y     | Y         | N
+Disabling header installation          | Y     | N         | N
+Disabling library installation         | Y     | N         | N
+Tests                                  | Y     | Y         | N
 
 CMake
 -----
@@ -144,7 +145,7 @@ Dependencies
 ### Required
 
 #### C-Ares
-The I/O module uses c-ares for DNS resolution as part of its network support. 
+The I/O module uses c-ares for DNS resolution as part of its network support.
 It is recommended to simply extract the latest c-ares source into the mstdlib
 source tree under:
 
