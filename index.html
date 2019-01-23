@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('index.html','');});
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>mstdlib stands for "M Standard Library".</p>
-<p>It was created by Main Street Softworks, Inc. for use in their Monetra payment engine. It is designed to be a safe cross platform API for functionality that was commonly used in Monetra and other projects. This library was found to be so useful internally that in 2017 it was decided to release it to the public as open source. Please see the LICENSE file.</p>
-<p>To avoid trademark issues the "m" in mstdlib just stands for the letter M. It does not stand for Main Street Softworks, Inc. nor Monetra.</p>
+<p>It was created by Monetra Technologies LLC (fka Main Street Softworks, Inc) for use in their Monetra payment engine. It is designed to be a safe cross platform API for functionality that was commonly used in Monetra and other projects. This library was found to be so useful internally that in 2017 it was decided to release it to the public as open source. Please see the LICENSE file.</p>
+<p>To avoid trademark issues the "m" in mstdlib just stands for the letter M. It does not stand for Monetra nor Main Street Softworks. Though some day we may become more clever with the meaning of M. (maybe "Mighty")?</p>
 <h1>Rationale/Use </h1>
 <p>Mstdlib is designed to provide features not normally found in libc but also to be used in place of libc. Underneath mstdlib uses the system's libc when it makes sense. It is not itself a libc implementation. Though it does provide a number of additional features. Using mstdlib as if it was libc provides benefits such as NULL safety and memory zeroing. That's not to say you can't use libc functions directly, but we encourage avoiding it if at all possible.</p>
 <p>Mstdlib marks a number of libc functions as deprecated in favor of mstdlibs versions. Due to features such as NULL safety and secure implementations mstdlib's functions should be preferred. Using a libc function that has been implemented in mstdlib will cause a warning to be generated during compilation. This is to aid in finding libc function (mis)use.</p>
@@ -146,7 +146,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 </ul>
 <h2>3. Small </h2>
 <ul>
-<li>Don't try to create a library with everything including the kitchen sink. This isn't mean to be an all encompassing library like Java or Python's standard libraries. At least this was the original idea but...</li>
+<li>Don't try to create a library with everything including the kitchen sink. This isn't mean to be an all encompassing library like Java or Python's standard libraries. (At least this was the original idea but...)</li>
 <li>Features included must be commonly used and useful.</li>
 <li>Use separate modules that are layered in order to reduce the overall size of the library if only some features are needed.</li>
 </ul>
@@ -260,7 +260,7 @@ $ make
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jan 10 2019 14:43:11 for Mstdlib-1.5.0 by
+    <li class="footer">Generated on Wed Jan 23 2019 15:28:51 for Mstdlib-1.5.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
