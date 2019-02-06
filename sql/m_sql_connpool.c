@@ -1355,7 +1355,7 @@ M_int64 M_sql_gen_timerand_id(M_sql_connpool_t *pool, size_t max_len)
 	 * - 17-18+ digits : YYYJJJSSSSS{6-7R}
 	 * - 16 digits     : YYJJJSSSSS{6R}
 	 * - 14-15 digits  : YJJJSSSSS{5-6R}
-	 * - 13 digits     : YJJJSSSS{6R}
+	 * - 13 digits     : YJJJSSSS{5R}
 	 * - 11-12 digits  : YJJJSS{6-7R}
 	 * - 9-10 digits   : YJJJ{5-6R}
 	 * - 1-8 digits    : {1-8R}
@@ -1442,6 +1442,7 @@ M_int64 M_sql_gen_timerand_id(M_sql_connpool_t *pool, size_t max_len)
 
 		/* 5R */
 		case 14:
+		case 13:
 		case 9:
 			val *= 100000;
 			val += (M_int64)M_rand_max(pool->rand, 99999+1); /* Max of M_rand_max() is really max-1, so +1 here */
@@ -1451,7 +1452,6 @@ M_int64 M_sql_gen_timerand_id(M_sql_connpool_t *pool, size_t max_len)
 		case 17:
 		case 16:
 		case 15:
-		case 13:
 		case 11:
 		case 10:
 			val *= 1000000;
