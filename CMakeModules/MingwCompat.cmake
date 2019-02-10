@@ -160,7 +160,7 @@ if (MINGW)
 		if (MSVC_LINK AND NOT MSVC_LIB)
 			message("Call link.exe /lib instead of lib.exe")
 			set(MSVC_LIB_ARGS "/lib" CACHE INTERNAL "" FORCE)
-			set(MSVC_LIB "${MSVC_LINK}")
+			set(MSVC_LIB "${MSVC_LINK}" CACHE PATH "" FORCE)
 		endif()
 
 		if (MSVC_LIB)
