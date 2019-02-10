@@ -72,6 +72,35 @@ if (MINGW)
 		endif ()
 	endif ()
 
+	# Try looking for the Windows DDK instead
+	if (NOT vcroot)
+		set(searchpath "C:/WinDDK/*.*.*")
+		if (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
+			convert_windows_path(searchpath)
+		endif ()
+
+		message("VCRoot not found, searching for DDK instead in ${searchpath}...")
+
+		file(GLOB dirs "${searchpath}")
+		if (dirs)
+			set(paths)
+			list(REVERSE dirs) # put higher version numbers first in list
+			foreach(dir ${dirs})
+
+				list(APPEND paths
+					"${dir}/bin"
+				)
+			endforeach()
+			message("DDK Search Path ${paths}")
+			find_program(DDK_SETENV NAMES setenv.bat PATHS ${paths})
+		endif ()
+
+		if (DDK_SETENV)
+			message("DDK setenv found at ${DDK_SETENV}")
+			get_filename_component(vcroot "${DDK_SETENV}" DIRECTORY)
+		endif()
+	endif ()
+
 	# If we found vcroot, try to find binary directory containing lib.exe.
 	if (vcroot)
 		if (CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -99,12 +128,41 @@ if (MINGW)
 					"${dir}/bin/Hostx64/${arch}"
 				)
 			endforeach()
+		else ()
+			# Windows DDK
+			if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+				list(APPEND paths
+					"${vcroot}/x86"
+					"${vcroot}/x86/x86"
+				)
+			else ()
+				list(APPEND paths
+					"${vcroot}/amd64"
+					"${vcroot}/x64"
+					"${vcroot}/x86/amd64"
+					"${vcroot}/x86/x64"
+				)
+			endif()
 		endif ()
 
 		find_program(MSVC_LIB NAMES lib
 			PATHS ${paths}
 		)
+		find_program(MSVC_LINK NAMES link
+			PATHS ${paths}
+			NO_DEFAULT_PATH
+		)
+
 		set(MSVC_TOOL_DIR)
+		set(MSVC_LIB_ARGS)
+
+		# Newer versions of VC may not include lib.exe, instead you call link.exe /lib
+		if (MSVC_LINK AND NOT MSVC_LIB)
+			message("Call link.exe /lib instead of lib.exe")
+			set(MSVC_LIB_ARGS "/lib")
+			set(MSVC_LIB "${MSVC_LINK}")
+		endif()
+
 		if (MSVC_LIB)
 			get_filename_component(MSVC_TOOL_DIR "${MSVC_LIB}" DIRECTORY)
 		endif ()
@@ -130,8 +188,10 @@ if (MINGW)
 				"@echo off\r\n"
 				"SET PATH=${win_tool_dir};${win_ide};%PATH%\r\n"
 				"echo PATH = %PATH%\r\n"
-				"echo ARGS = %*\r\n"
-				"\"${win_lib}\" %*"
+				"echo CURRDIR = %cd%\r\n"
+				"echo ARGS = ${MSVC_LIB_ARGS} %*\r\n"
+				"echo LIBEXE = ${win_lib}\r\n"
+				"\"${win_lib}\" ${MSVC_LIB_ARGS} %*"
 			)
 
 			convert_cygwin_path(_int_mingw_compat_run_lib_exe)
