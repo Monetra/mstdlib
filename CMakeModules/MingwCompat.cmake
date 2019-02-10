@@ -159,7 +159,7 @@ if (MINGW)
 		# Newer versions of VC may not include lib.exe, instead you call link.exe /lib
 		if (MSVC_LINK AND NOT MSVC_LIB)
 			message("Call link.exe /lib instead of lib.exe")
-			set(MSVC_LIB_ARGS "/lib")
+			set(MSVC_LIB_ARGS "/lib" CACHE INTERNAL "" FORCE)
 			set(MSVC_LIB "${MSVC_LINK}")
 		endif()
 
