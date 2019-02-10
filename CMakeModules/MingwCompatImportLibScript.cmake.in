@@ -53,7 +53,7 @@ if (MSVC_LIB_BATCH)
 	set(cmd cmd /C "${MSVC_LIB_BATCH} /def:${def_name} /out:${implib_name} /machine:${arch}")
 else ()
 	set(ENV{PATH} "${MSVC_TOOL_DIR};$ENV{PATH}")
-	set(cmd "${MSVC_LIB}" /def:${def_name} /out:${implib_name} /machine:${arch})
+	set(cmd "${MSVC_LIB}" ${MSVC_LIB_ARGS} /def:${def_name} /out:${implib_name} /machine:${arch})
 endif ()
 
 execute_process(COMMAND ${cmd}
