@@ -79,8 +79,6 @@ if (MINGW)
 			convert_windows_path(searchpath)
 		endif ()
 
-		message("VCRoot not found, searching for DDK instead in ${searchpath}...")
-
 		file(GLOB dirs "${searchpath}")
 		if (dirs)
 			set(paths)
@@ -91,12 +89,10 @@ if (MINGW)
 					"${dir}/bin"
 				)
 			endforeach()
-			message("DDK Search Path ${paths}")
 			find_program(DDK_SETENV NAMES setenv.bat PATHS ${paths})
 		endif ()
 
 		if (DDK_SETENV)
-			message("DDK setenv found at ${DDK_SETENV}")
 			get_filename_component(vcroot "${DDK_SETENV}" DIRECTORY)
 		endif()
 	endif ()
@@ -158,7 +154,6 @@ if (MINGW)
 
 		# Newer versions of VC may not include lib.exe, instead you call link.exe /lib
 		if (MSVC_LINK AND NOT MSVC_LIB)
-			message("Call link.exe /lib instead of lib.exe")
 			set(MSVC_LIB_ARGS "/lib" CACHE INTERNAL "" FORCE)
 			set(MSVC_LIB "${MSVC_LINK}" CACHE PATH "" FORCE)
 		endif()
