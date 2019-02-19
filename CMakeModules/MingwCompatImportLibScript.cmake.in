@@ -12,6 +12,7 @@ set(CMAKE_SIZEOF_VOID_P "@CMAKE_SIZEOF_VOID_P@")
 
 set(MSVC_TOOL_DIR       "@MSVC_TOOL_DIR@")
 set(MSVC_LIB            "@MSVC_LIB@")
+set(MSVC_LIB_ARGS       "@MSVC_LIB_ARGS@")
 set(MSVC_LIB_BATCH      "@MSVC_LIB_BATCH@")
 
 
