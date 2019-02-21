@@ -579,14 +579,11 @@ M_bool M_io_jni_android_init(jobject app_context)
 	if (ares_library_android_initialized() != ARES_SUCCESS) {
 		ares_library_init_jvm(M_io_jni_jvm);
 
-		if (!M_io_jni_call_field(&sname, NULL, 0, NULL, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL) {
+		if (!M_io_jni_call_field(&sname, NULL, 0, NULL, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
 			return M_FALSE;
-		}
-		if (!M_io_jni_call_jobject(&service, NULL, 0, NULL, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL) {
-			M_io_jni_deletelocalref(NULL, sname);
+
+		if (!M_io_jni_call_jobject(&service, NULL, 0, NULL, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL)
 			return M_FALSE;
-		}
-		M_io_jni_deletelocalref(NULL, sname);
 
 		ret = ares_library_init_android(service);
 		if (ret != ARES_SUCCESS) {
