@@ -766,7 +766,7 @@ M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, jobject c
 
 M_bool M_io_jni_call_field(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)
 {
-	return M_io_jni_call_v(rv, M_IO_JNI_VOID, error, error_len, env, classobj, field, 0);
+	return M_io_jni_call_v(rv, M_IO_JNI_FIELD, error, error_len, env, classobj, field, 0);
 }
 
 
