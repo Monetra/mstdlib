@@ -64,16 +64,18 @@ M_API M_bool M_io_jni_init(JavaVM *Jvm);
  * M_io_jni_init must be called before this function.
  * This should only be called when building for Android.
  *
+ * This function must be called in order to use USB-HID devices.
+ *
  * This function must be called before DNS resolution will work on Android 8
  * (Oreo) or newer when built targeting SDK 26. Also, the ACCESS_NETWORK_STATE
  * permission must be present in the Android application.
  *
- * \param[in] connectivity_manager Android connectivity manager. Can be accessed in Java from a Context like so:
- *                                 (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+ * \param[in] connectivity_manager Android application context. Can be accessed in Java from like so:
+ *                                 getApplicationContext().
  *
  * \return M_TRUE on success, M_FALSE on failure.
  */
-M_API M_bool M_io_jni_android_init(jobject connectivity_manager);
+M_API M_bool M_io_jni_android_init(jobject app_context);
 
 
 /*! Retrieve JNI Environment Handle for current thread.
@@ -84,6 +86,16 @@ M_API M_bool M_io_jni_android_init(jobject connectivity_manager);
  *  \return JNI Environment Handle or NULL on error
  */
 M_API JNIEnv *M_io_jni_getenv(void);
+
+
+/*! Retrieve Android Applilcation Contect.
+ *
+ * M_io_jni_android_init must be called to set the context.
+ *
+ * \return Application Context
+ */
+M_API jobject M_io_jni_get_android_app_context(void);
+
 
 /*! Output debug text relevant to JNI execution. 
  *
@@ -288,6 +300,25 @@ M_API M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, job
  *          the call may have resulted in an error that didn't raise an exception.
  */
 M_API M_bool M_io_jni_call_jobject(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...);
+
+
+/*! Get the value form a member variable.
+ *  \param[out]     rv         Returned value, passed by reference.  Returned object should be
+ *                             released using M_io_jni_deletelocalref() when no longer needed.
+ *  \param[out]     error      Optional. Buffer to hold error message.
+ *  \param[in]      error_len  Error buffer size.
+ *  \param[in]      env        Optional. Java JNI Environment. If not passed will request it from
+ *                             the JVM.  Passing it is an optimization.
+ *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
+ *                             this parameter will be ignored, so should be passed as NULL.
+ *  \param[in]      field      The field to be called.  The field should be in the form of
+ *                             "path/to/class.field", and must have been one of the fields in the 
+ *                             global initialization.
+ *  \return M_TRUE if the method was called successfully, M_FALSE if there was a usage error
+ *          or exception.  A value of M_TRUE doesn't mean the returned object was populated,
+ *          the call may have resulted in an error that didn't raise an exception.
+ */
+M_API M_bool M_io_jni_call_field(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
 
 
 /*! Call an object method that returns a jbyte.
