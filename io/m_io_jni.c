@@ -40,8 +40,8 @@ jobject M_io_android_app_context = NULL;
 #endif
 
 
-#define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET ('A' - 'a')
-#define M_IO_JNI_TYPE_FIELD_VAL_OFFSET (M_IO_JNI_TYPE_ARRAY_VAL_OFFSET*2)
+#define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET (129)
+#define M_IO_JNI_TYPE_FIELD_VAL_OFFSET (M_IO_JNI_TYPE_ARRAY_VAL_OFFSET + 30)
 enum M_IO_JNI_TYPE {
 	M_IO_JNI_UNKNOWN = 0,
 	M_IO_JNI_VOID    = 'V',
@@ -184,6 +184,7 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 		ptr++;
 	} else {
 		/* No () then this is a field. */
+		ptr     = signature;
 		isfield = M_TRUE;
 	}
 
@@ -206,26 +207,6 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 			return M_IO_JNI_UNKNOWN;
 	}
 
-	/* For arrays we need to determine the array type. */
-	if (type == M_IO_JNI_ARRAY) {
-		ptr++;
-		switch (*ptr) {
-			case M_IO_JNI_OBJECT:
-			case M_IO_JNI_BOOL:
-			case M_IO_JNI_BYTE:
-			case M_IO_JNI_CHAR:
-			case M_IO_JNI_SHORT:
-			case M_IO_JNI_INT:
-			case M_IO_JNI_LONG:
-			case M_IO_JNI_FLOAT:
-			case M_IO_JNI_DOUBLE:
-				type = *ptr + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET;
-				break;
-			default:
-				return M_IO_JNI_UNKNOWN;
-		}
-	}
-
 	if (isfield) {
 		switch (type) {
 			case M_IO_JNI_OBJECT:
@@ -242,6 +223,26 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 			default:
 				/* Void and Array are not allowed for fields.
  				 * We might allow Array in the future. */
+				return M_IO_JNI_UNKNOWN;
+		}
+	}
+
+	/* For arrays we need to determine the array type. */
+	if (type == M_IO_JNI_ARRAY) {
+		ptr++;
+		switch (*ptr) {
+			case M_IO_JNI_OBJECT:
+			case M_IO_JNI_BOOL:
+			case M_IO_JNI_BYTE:
+			case M_IO_JNI_CHAR:
+			case M_IO_JNI_SHORT:
+			case M_IO_JNI_INT:
+			case M_IO_JNI_LONG:
+			case M_IO_JNI_FLOAT:
+			case M_IO_JNI_DOUBLE:
+				type = *ptr + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET;
+				break;
+			default:
 				return M_IO_JNI_UNKNOWN;
 		}
 	}
