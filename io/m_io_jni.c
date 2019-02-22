@@ -41,9 +41,9 @@ jobject M_io_android_app_context = NULL;
 
 
 #define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET ('A' - 'a')
+#define M_IO_JNI_TYPE_FIELD_VAL_OFFSET (M_IO_JNI_TYPE_ARRAY_VAL_OFFSET*2)
 enum M_IO_JNI_TYPE {
 	M_IO_JNI_UNKNOWN = 0,
-	M_IO_JNI_FIELD   = 1,
 	M_IO_JNI_VOID    = 'V',
 	M_IO_JNI_OBJECT  = 'L',
 	M_IO_JNI_BOOL    = 'Z',
@@ -64,7 +64,17 @@ enum M_IO_JNI_TYPE {
 	M_IO_JNI_ARRAY_INT    = M_IO_JNI_INT    + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
 	M_IO_JNI_ARRAY_LONG   = M_IO_JNI_LONG   + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
 	M_IO_JNI_ARRAY_FLOAT  = M_IO_JNI_FLOAT  + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
-	M_IO_JNI_ARRAY_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET
+	M_IO_JNI_ARRAY_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
+
+	M_IO_JNI_FIELD_OBJECT = M_IO_JNI_OBJECT + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_BOOL   = M_IO_JNI_BOOL   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_BYTE   = M_IO_JNI_BYTE   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_CHAR   = M_IO_JNI_CHAR   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_SHORT  = M_IO_JNI_SHORT  + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_INT    = M_IO_JNI_INT    + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_LONG   = M_IO_JNI_LONG   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_FLOAT  = M_IO_JNI_FLOAT  + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_FIELD_VAL_OFFSET
 };
 
 
@@ -127,6 +137,15 @@ static const struct {
 	{ "android/content/Context",                 "getSystemService",                   NULL,              "(Ljava/lang/String;)Ljava/lang/Object;",                                        M_FALSE },
 	{ "android/content/Context",                 "USB_SERVICE",                        NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
 	{ "android/content/Context",                 "CONNECTIVITY_SERVICE",               NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",       "USB_CLASS_HID",                      NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbManager",         "getDeviceList",                      NULL,              "()Ljava/util/HashMap;",                                                         M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getDeviceClass",                     NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getDeviceName",                      NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getManufacturerName",                NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getProductId",                       NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getProductName",                     NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getSerialNumber",                    NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getVendorId",                        NULL,              "()I",                                                                           M_FALSE },
 #endif
 	{ NULL,                                      NULL,                                 NULL,              NULL,                                                                            M_FALSE }
 };
@@ -154,15 +173,21 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 {
 	const char        *ptr;
 	enum M_IO_JNI_TYPE type;
+	M_bool             isfield = M_FALSE;
 
 	if (M_str_isempty(signature))
 		return M_IO_JNI_UNKNOWN;
 
 	ptr = M_str_chr(signature, ')');
-	if (ptr == NULL)
-		return M_IO_JNI_FIELD;
+	if (ptr != NULL) {
+		/* Move past the function enclosure. */
+		ptr++;
+	} else {
+		/* No () then this is a field. */
+		isfield = M_TRUE;
+	}
 
-	ptr++;
+	/* Determine the type. */
 	switch (*ptr) {
 		case M_IO_JNI_VOID:
 		case M_IO_JNI_OBJECT:
@@ -181,6 +206,7 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 			return M_IO_JNI_UNKNOWN;
 	}
 
+	/* For arrays we need to determine the array type. */
 	if (type == M_IO_JNI_ARRAY) {
 		ptr++;
 		switch (*ptr) {
@@ -199,6 +225,27 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 				return M_IO_JNI_UNKNOWN;
 		}
 	}
+
+	if (isfield) {
+		switch (type) {
+			case M_IO_JNI_OBJECT:
+			case M_IO_JNI_BOOL:
+			case M_IO_JNI_BYTE:
+			case M_IO_JNI_CHAR:
+			case M_IO_JNI_SHORT:
+			case M_IO_JNI_INT:
+			case M_IO_JNI_LONG:
+			case M_IO_JNI_FLOAT:
+			case M_IO_JNI_DOUBLE:
+				type += M_IO_JNI_TYPE_FIELD_VAL_OFFSET;
+				break;
+			default:
+				/* Void and Array are not allowed for fields.
+ 				 * We might allow Array in the future. */
+				return M_IO_JNI_UNKNOWN;
+		}
+	}
+
 	return type;
 }
 
@@ -436,44 +483,57 @@ static M_bool M_io_jni_register_funcs(void)
 			continue;
 		}
 
-		if (return_type == M_IO_JNI_FIELD) {
-			if (M_io_jni_lookups[i].is_static) {
-				fid = (*env)->GetStaticFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			} else {
-				fid = (*env)->GetFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			}
-			if (M_io_jni_handle_exception(env, error, sizeof(error))) {
-				M_io_jni_debug("GetFieldID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
-				fid = NULL;
-			}
+		switch (return_type) {
+			case M_IO_JNI_FIELD_OBJECT:
+			case M_IO_JNI_FIELD_BOOL:
+			case M_IO_JNI_FIELD_BYTE:
+			case M_IO_JNI_FIELD_CHAR:
+			case M_IO_JNI_FIELD_SHORT:
+			case M_IO_JNI_FIELD_INT:
+			case M_IO_JNI_FIELD_LONG:
+			case M_IO_JNI_FIELD_FLOAT:
+			case M_IO_JNI_FIELD_DOUBLE:
+				if (M_io_jni_lookups[i].is_static) {
+					fid = (*env)->GetStaticFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				} else {
+					fid = (*env)->GetFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				}
+				if (M_io_jni_handle_exception(env, error, sizeof(error))) {
+					M_io_jni_debug("GetFieldID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
+					fid = NULL;
+				}
 
-			if (fid == NULL) {
-				M_io_jni_debug("Failed to find %sfield %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-				is_error = M_TRUE;
-				continue;
-			}
-		} else {
-			if (!M_io_jni_sig_arg_count(M_io_jni_lookups[i].signature, &argc)) {
-				M_io_jni_debug("Failed to parse argc signature for method %s::%s with signature %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-				is_error = M_TRUE;
-				continue;
-			}
+				if (fid == NULL) {
+					M_io_jni_debug("Failed to find %sfield %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
+				break;
 
-			if (M_io_jni_lookups[i].is_static) {
-				mid = (*env)->GetStaticMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			} else {
-				mid = (*env)->GetMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			}
-			if (M_io_jni_handle_exception(env, error, sizeof(error))) {
-				M_io_jni_debug("GetMethodID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
-				mid = NULL;
-			}
+			/* Methods. */
+			default:
+				if (!M_io_jni_sig_arg_count(M_io_jni_lookups[i].signature, &argc)) {
+					M_io_jni_debug("Failed to parse argc signature for method %s::%s with signature %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
 
-			if (mid == NULL) {
-				M_io_jni_debug("Failed to find %smethod %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-				is_error = M_TRUE;
-				continue;
-			}
+				if (M_io_jni_lookups[i].is_static) {
+					mid = (*env)->GetStaticMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				} else {
+					mid = (*env)->GetMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				}
+				if (M_io_jni_handle_exception(env, error, sizeof(error))) {
+					M_io_jni_debug("GetMethodID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
+					mid = NULL;
+				}
+
+				if (mid == NULL) {
+					M_io_jni_debug("Failed to find %smethod %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
+				break;
 		}
 
 		method              = M_malloc_zero(sizeof(*method));
@@ -566,7 +626,7 @@ M_bool M_io_jni_android_init(jobject app_context)
 	return M_FALSE;
 #else
 	jobject service;
-	jobject sname;
+	jstring sname;
 	int     ret;
 
 	if (M_io_jni_jvm == NULL)
@@ -579,7 +639,7 @@ M_bool M_io_jni_android_init(jobject app_context)
 	if (ares_library_android_initialized() != ARES_SUCCESS) {
 		ares_library_init_jvm(M_io_jni_jvm);
 
-		if (!M_io_jni_call_field(&sname, NULL, 0, NULL, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
+		if (!M_io_jni_call_jobjectField(&sname, NULL, 0, NULL, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
 			return M_FALSE;
 
 		if (!M_io_jni_call_jobject(&service, NULL, 0, NULL, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL)
@@ -596,7 +656,7 @@ M_bool M_io_jni_android_init(jobject app_context)
 }
 
 
-static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, va_list ap)
+static M_bool M_io_jni_call_ap(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, va_list ap)
 {
 	M_io_jni_method_t *m;
 	char               temp[256];
@@ -653,8 +713,32 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 
 	if (m->is_static) {
 		switch (m->return_type) {
-			case M_IO_JNI_FIELD:
+			case M_IO_JNI_FIELD_OBJECT:
 				*((jobject *)rv) = (*env)->GetStaticObjectField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BOOL:
+				*((jboolean *)rv) = (*env)->GetStaticBooleanField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BYTE:
+				*((jbyte *)rv) = (*env)->GetStaticByteField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_CHAR:
+				*((jchar *)rv) = (*env)->GetStaticCharField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_SHORT:
+				*((jshort *)rv) = (*env)->GetStaticShortField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_INT:
+				*((jint *)rv) = (*env)->GetStaticIntField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_LONG:
+				*((jlong *)rv) = (*env)->GetStaticLongField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_FLOAT:
+				*((jfloat *)rv) = (*env)->GetStaticFloatField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_DOUBLE:
+				*((jdouble *)rv) = (*env)->GetStaticDoubleField(env, m->cls, m->fieldid);
 				break;
 			case M_IO_JNI_VOID:
 				(*env)->CallStaticVoidMethodV(env, m->cls, m->methodid, ap);
@@ -690,8 +774,32 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 		}
 	} else {
 		switch (m->return_type) {
-			case M_IO_JNI_FIELD:
+			case M_IO_JNI_FIELD_OBJECT:
 				*((jobject *)rv) = (*env)->GetObjectField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BOOL:
+				*((jboolean *)rv) = (*env)->GetBooleanField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BYTE:
+				*((jbyte *)rv) = (*env)->GetByteField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_CHAR:
+				*((jchar *)rv) = (*env)->GetCharField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_SHORT:
+				*((jshort *)rv) = (*env)->GetShortField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_INT:
+				*((jint *)rv) = (*env)->GetIntField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_LONG:
+				*((jlong *)rv) = (*env)->GetLongField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_FLOAT:
+				*((jfloat *)rv) = (*env)->GetFloatField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_DOUBLE:
+				*((jdouble *)rv) = (*env)->GetDoubleField(env, classobj, m->fieldid);
 				break;
 			case M_IO_JNI_VOID:
 				(*env)->CallVoidMethodV(env, classobj, m->methodid, ap);
@@ -737,13 +845,13 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 }
 
 
-static M_bool M_io_jni_call_v(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...)
+static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...)
 {
 	M_bool   ret;
 	va_list  ap;
 
 	va_start(ap, argc);
-	ret = M_io_jni_call(rv, rv_type, error, error_len, env, classobj, method, argc, ap);
+	ret = M_io_jni_call_ap(rv, rv_type, error, error_len, env, classobj, method, argc, ap);
 	va_end(ap);
 
 	return ret;
@@ -755,17 +863,11 @@ M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, jobject c
 	va_list  ap;
 
 	va_start(ap, argc);
-	ret = M_io_jni_call(NULL, M_IO_JNI_VOID, error, error_len, env, classobj, method, argc, ap);
+	ret = M_io_jni_call_ap(NULL, M_IO_JNI_VOID, error, error_len, env, classobj, method, argc, ap);
 	va_end(ap);
 
 	return ret;
 }
-
-M_bool M_io_jni_call_field(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)
-{
-	return M_io_jni_call_v(rv, M_IO_JNI_FIELD, error, error_len, env, classobj, field, 0);
-}
-
 
 #define M_IO_JNI_CALL_TYPE_FUNC(type, id) \
 	M_bool M_io_jni_call_##type(type *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...) \
@@ -779,7 +881,7 @@ M_bool M_io_jni_call_field(jobject *rv, char *error, size_t error_len, JNIEnv *e
 		*rv = (type)0; \
 		\
 		va_start(ap, argc); \
-		ret = M_io_jni_call((void *)rv, id, error, error_len, env, classobj, method, argc, ap); \
+		ret = M_io_jni_call_ap((void *)rv, id, error, error_len, env, classobj, method, argc, ap); \
 		va_end(ap); \
 		\
 		return ret; \
@@ -802,6 +904,29 @@ M_IO_JNI_CALL_TYPE_FUNC(jlongArray, M_IO_JNI_ARRAY_LONG)
 M_IO_JNI_CALL_TYPE_FUNC(jfloatArray, M_IO_JNI_ARRAY_FLOAT)
 M_IO_JNI_CALL_TYPE_FUNC(jdoubleArray, M_IO_JNI_ARRAY_DOUBLE)
 
+#define M_IO_JNI_CALL_TYPE_FIELD(type, id) \
+	M_bool M_io_jni_call_##type##Field(type *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method) \
+	{ \
+		M_bool ret; \
+		\
+		if (rv == NULL) \
+			return M_FALSE; \
+		\
+		*rv = (type)0; \
+		\
+		ret = M_io_jni_call((void *)rv, id, error, error_len, env, classobj, method, 0); \
+		\
+		return ret; \
+	}
+
+M_IO_JNI_CALL_TYPE_FIELD(jobject, M_IO_JNI_FIELD_OBJECT)
+M_IO_JNI_CALL_TYPE_FIELD(jbyte, M_IO_JNI_FIELD_BYTE)
+M_IO_JNI_CALL_TYPE_FIELD(jboolean, M_IO_JNI_FIELD_BOOL)
+M_IO_JNI_CALL_TYPE_FIELD(jchar, M_IO_JNI_FIELD_CHAR)
+M_IO_JNI_CALL_TYPE_FIELD(jint, M_IO_JNI_FIELD_INT)
+M_IO_JNI_CALL_TYPE_FIELD(jlong, M_IO_JNI_FIELD_LONG)
+M_IO_JNI_CALL_TYPE_FIELD(jfloat, M_IO_JNI_FIELD_FLOAT)
+M_IO_JNI_CALL_TYPE_FIELD(jdouble, M_IO_JNI_FIELD_DOUBLE)
 
 M_bool M_io_jni_new_object(jobject *rv, char *error, size_t error_len, JNIEnv *env, const char *method, size_t argc, ...)
 {

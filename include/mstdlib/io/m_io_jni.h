@@ -302,25 +302,6 @@ M_API M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, job
 M_API M_bool M_io_jni_call_jobject(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...);
 
 
-/*! Get the value form a member variable.
- *  \param[out]     rv         Returned value, passed by reference.  Returned object should be
- *                             released using M_io_jni_deletelocalref() when no longer needed.
- *  \param[out]     error      Optional. Buffer to hold error message.
- *  \param[in]      error_len  Error buffer size.
- *  \param[in]      env        Optional. Java JNI Environment. If not passed will request it from
- *                             the JVM.  Passing it is an optimization.
- *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
- *                             this parameter will be ignored, so should be passed as NULL.
- *  \param[in]      field      The field to be called.  The field should be in the form of
- *                             "path/to/class.field", and must have been one of the fields in the 
- *                             global initialization.
- *  \return M_TRUE if the method was called successfully, M_FALSE if there was a usage error
- *          or exception.  A value of M_TRUE doesn't mean the returned object was populated,
- *          the call may have resulted in an error that didn't raise an exception.
- */
-M_API M_bool M_io_jni_call_field(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
-
-
 /*! Call an object method that returns a jbyte.
  *
  *  See M_io_jni_call_jobject() for usage information.
@@ -424,6 +405,74 @@ M_API M_bool M_io_jni_call_jfloatArray(jfloatArray *rv, char *error, size_t erro
  *  See M_io_jni_call_jobject() for usage information.
  */
 M_API M_bool M_io_jni_call_jdoubleArray(jdoubleArray *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...);
+
+
+/*! Call an object field that returns a jobject.
+ *  \param[out]     rv         Returned value, passed by reference.  Returned object should be
+ *                             released using M_io_jni_deletelocalref() when no longer needed.
+ *  \param[out]     error      Optional. Buffer to hold error message.
+ *  \param[in]      error_len  Error buffer size.
+ *  \param[in]      env        Optional. Java JNI Environment. If not passed will request it from
+ *                             the JVM.  Passing it is an optimization.
+ *  \param[in]      classobj   Class object to call method on.  If the method being called is static,
+ *                             this parameter will be ignored, so should be passed as NULL.
+ *  \param[in]      field      The field to be called.  The field should be in the form of
+ *                             "path/to/class.field", and must have been one of the fields in the 
+ *                             global initialization.
+ *  \return M_TRUE if the method was called successfully, M_FALSE if there was a usage error
+ *          or exception.  A value of M_TRUE doesn't mean the returned object was populated,
+ *          the call may have resulted in an error that didn't raise an exception.
+ */
+M_API M_bool M_io_jni_call_jobjectField(jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jbyte.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jbyteField(jbyte *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jboolean.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jbooleanField(jboolean *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jchar.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jcharField(jchar *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jint.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jintField(jint *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jlong.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jlongField(jlong *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jfloat.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jfloatField(jfloat *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
+
+
+/*! Call an object field that returns a jdouble.
+ *
+ *  See M_io_jni_call_jobjectField() for usage information.
+ */
+M_API M_bool M_io_jni_call_jdoubleField(jdouble *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field);
 
 /*! @} */
 
