@@ -82,6 +82,10 @@ else ()
 			m_io_hid_mac.c
 			m_io_mac_runlooper.c
 		)
+	elseif (ANDROID)
+		list(APPEND sources
+			m_io_hid_android.c
+		)
 	else ()
 		list(APPEND sources
 			m_io_hid_notimpl.c
