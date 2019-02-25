@@ -582,6 +582,12 @@ static void M_io_jni_detach(void)
 static void M_io_jni_deinit(void *arg)
 {
 	(void)arg;
+
+#ifdef __ANDROID__
+	M_io_jni_delete_globalref(NULL, M_io_android_app_context);
+	M_io_android_app_context = NULL;
+#endif
+
 	M_hash_strvp_destroy(M_io_jni_ref.classes, M_TRUE);
 	M_hash_strvp_destroy(M_io_jni_ref.methods, M_TRUE);
 	M_hash_u64str_destroy(M_io_jni_threads);
@@ -590,10 +596,6 @@ static void M_io_jni_deinit(void *arg)
 	M_io_jni_lock    = NULL;
 	M_mem_set(&M_io_jni_ref, 0, sizeof(M_io_jni_ref));
 	M_io_jni_jvm     = NULL;
-
-#ifdef __ANDROID__
-	M_io_android_app_context = NULL;
-#endif
 }
 
 
@@ -634,7 +636,7 @@ M_bool M_io_jni_android_init(jobject app_context)
 		return M_FALSE;
 
 	/* Store Application Context. */
-	M_io_android_app_context = app_context;
+	M_io_android_app_context = M_io_jni_create_globalref(NULL, app_context);
 
 	/* Init C-Ares. (Needs connectivity manager). */
 	if (ares_library_android_initialized() != ARES_SUCCESS) {
