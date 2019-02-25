@@ -233,3 +233,27 @@ M_io_error_t M_io_hid_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 produc
 	M_uint16 prodarr[] = { productid };
 	return M_io_hid_create_one(io_out, vendorid, prodarr, (productid > 0)?1:0, serial);
 }
+
+
+M_io_layer_t *M_io_hid_get_top_hid_layer(M_io_t *io)
+{
+	M_io_layer_t  *layer;
+	size_t         layer_idx;
+	size_t         layer_count;
+
+	if (io == NULL) {
+		return NULL;
+	}
+
+	layer       = NULL;
+	layer_count = M_io_layer_count(io);
+	for (layer_idx=layer_count; layer_idx-->0; ) {
+		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
+
+		if (layer != NULL) {
+			break;
+		}
+	}
+
+	return layer;
+}

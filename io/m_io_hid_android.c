@@ -28,6 +28,18 @@
 #include "m_io_hid_int.h"
 
 struct M_io_handle {
+	jobject connection;
+	jobject endpoint_in;
+	jobject endpoint_out;
+
+	char           *path;
+	char           *manufacturer;
+	char           *product;
+	char           *serial;
+	M_uint16        productid;
+	M_uint16        vendorid;
+	size_t          max_input_report_size;
+	size_t          max_output_report_size;
 };
 
 
@@ -218,47 +230,114 @@ done:
 
 char *M_io_hid_get_manufacturer(M_io_t *io)
 {
-	(void)io;
-	return NULL;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL) {
+		ret = M_strdup(handle->manufacturer);
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 char *M_io_hid_get_path(M_io_t *io)
 {
-	(void)io;
-	return NULL;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL) {
+		ret = M_strdup(handle->path);
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 char *M_io_hid_get_product(M_io_t *io)
 {
-	(void)io;
-	return NULL;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL) {
+		ret = M_strdup(handle->product);
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 M_uint16 M_io_hid_get_productid(M_io_t *io)
 {
-	(void)io;
-	return 0;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
+
+	if (handle != NULL) {
+		ret = handle->productid;
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 {
-	(void)io;
-	return 0;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
+
+	if (handle != NULL) {
+		ret = handle->vendorid;
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 char *M_io_hid_get_serial(M_io_t *io)
 {
-	(void)io;
-	return NULL;
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL) {
+		ret = M_strdup(handle->serial);
+	}
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
-	(void)io;
-	if (max_input_size != NULL)
-		*max_input_size = 0;
-	if (max_output_size != NULL)
+	M_io_layer_t  *layer;
+	M_io_handle_t *handle;
+	size_t         my_in;
+	size_t         my_out;
+
+	if (max_input_size == NULL) {
+		max_input_size  = &my_in;
+	}
+	if (max_output_size == NULL) {
+		max_output_size = &my_out;
+	}
+
+	layer  = M_io_hid_get_top_hid_layer(io);
+	handle = M_io_layer_get_handle(layer);
+
+	if (handle == NULL) {
+		*max_input_size  = 0;
 		*max_output_size = 0;
+	} else {
+		*max_input_size  = handle->max_input_report_size;
+		*max_output_size = handle->max_output_report_size;
+	}
+
+	M_io_layer_release(layer);
 }
 
 M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)

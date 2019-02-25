@@ -65,6 +65,7 @@ void M_io_hid_unregister_cb(M_io_layer_t *layer);
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer);
 M_bool M_io_hid_init_cb(M_io_layer_t *layer);
 
+M_io_layer_t *M_io_hid_get_top_hid_layer(M_io_t *io);
 
 #endif
 
