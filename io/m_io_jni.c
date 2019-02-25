@@ -138,6 +138,7 @@ static const struct {
 	{ "android/content/Context",                 "USB_SERVICE",                        NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
 	{ "android/content/Context",                 "CONNECTIVITY_SERVICE",               NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
 	{ "android/hardware/usb/UsbConstants",       "USB_CLASS_HID",                      NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",       "USB_CLASS_PER_INTERFACE",            NULL,              "I",                                                                             M_TRUE  },
 	{ "android/hardware/usb/UsbManager",         "getDeviceList",                      NULL,              "()Ljava/util/HashMap;",                                                         M_FALSE },
 	{ "android/hardware/usb/UsbDevice",          "getDeviceClass",                     NULL,              "()I",                                                                           M_FALSE },
 	{ "android/hardware/usb/UsbDevice",          "getDeviceName",                      NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
@@ -146,6 +147,9 @@ static const struct {
 	{ "android/hardware/usb/UsbDevice",          "getProductName",                     NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
 	{ "android/hardware/usb/UsbDevice",          "getSerialNumber",                    NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
 	{ "android/hardware/usb/UsbDevice",          "getVendorId",                        NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getInterfaceCount",                  NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",          "getInterface",                       NULL,              "(I)Landroid/hardware/usb/UsbInterface;",                                         M_FALSE },
+	{ "android/hardware/usb/UsbInterface",       "getInterfaceClass",                  NULL,              "()I",                                                                           M_FALSE },
 #endif
 	{ NULL,                                      NULL,                                 NULL,              NULL,                                                                            M_FALSE }
 };

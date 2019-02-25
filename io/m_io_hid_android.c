@@ -43,11 +43,11 @@ static jobject get_usb_manager(JNIEnv *env)
 		goto done;
 
 	/* Get the Usb Service name. */
-	if (!M_io_jni_call_jobjectField(&sname, NULL, 0, env, NULL, "android/content/Context.USB_SERVICE") || sname == NULL)
+	if (!M_io_jni_call_jobjectField(&sname, NULL, 0, env, NULL, "android/content/Context.USB_SERVICE"))
 		goto done;
 
 	/* Get the UsbManager from the system services. */
-	if (!M_io_jni_call_jobject(&manager, NULL, 0, env, app_context, "android/content/Context.getSystemService", 1, sname) || manager == NULL)
+	if (!M_io_jni_call_jobject(&manager, NULL, 0, env, app_context, "android/content/Context.getSystemService", 1, sname))
 		goto done;
 
 done:
@@ -56,15 +56,16 @@ done:
 
 M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
-	M_io_hid_enum_t *hidenum     = M_io_hid_enum_init();
-	JNIEnv          *env         = NULL;
-	jobject          manager     = NULL;
-	jobject          dev_list    = NULL;
-	jobject          set_o       = NULL;
-	jobjectArray     str_array_o = NULL;
-	jint              hid_class  = -1;
-	size_t            size;
-	size_t            i;
+	M_io_hid_enum_t *hidenum       = M_io_hid_enum_init();
+	JNIEnv          *env           = NULL;
+	jobject          manager       = NULL;
+	jobject          dev_list      = NULL;
+	jobject          set_o         = NULL;
+	jobjectArray     str_array_o   = NULL;
+	jint             hid_class     = -1;
+	jint             per_inf_class = -1;
+	size_t           size;
+	size_t           i;
 
 	env = M_io_jni_getenv();
 	if (env == NULL)
@@ -79,8 +80,12 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	if (!M_io_jni_call_jintField(&hid_class, NULL, 0, env, NULL, "android/hardware/usb/UsbConstants.USB_CLASS_HID") || hid_class == -1)
 		goto done;
 
+	/* Get the Usb per interface class value. */
+	if (!M_io_jni_call_jintField(&per_inf_class, NULL, 0, env, NULL, "android/hardware/usb/UsbConstants.USB_CLASS_PER_INTERFACE") || per_inf_class == -1)
+		goto done;
+
 	/* Get the usb device list. */
-	if (!M_io_jni_call_jobject(&dev_list, NULL, 0, env, manager, "android/hardware/usb/UsbManager.getDeviceList", 0) || dev_list == NULL)
+	if (!M_io_jni_call_jobject(&dev_list, NULL, 0, env, manager, "android/hardware/usb/UsbManager.getDeviceList", 0))
 		goto done;
 
 	/* Turn the keys into a set of keys. */
@@ -121,18 +126,52 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		if (!M_io_jni_call_jint(&dev_class, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceClass", 0) || dev_class == -1)
 			goto loop_cleanup;
 
-#if 0
-		if (dev_class != hid_class)
+		/* Check this could be a hid device. */
+		if (dev_class != hid_class && dev_class != per_inf_class)
 			goto loop_cleanup;
-#endif
+
+		/* If the device class is determined per interface we need to
+ 		 * inspect each interface. I there is a hid type interface then
+		 * it's a hid device and we can use it. */
+		if (dev_class == per_inf_class) {
+ 			jint   cnt      = 0;
+			jint   j;
+			M_bool have_hid = M_FALSE;
+
+			if (!M_io_jni_call_jint(&cnt, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getInterfaceCount", 0) || cnt <= 0)
+				goto loop_cleanup;
+
+			for (j=0; j<cnt; j++) {
+				jobject dev_inf = NULL;
+
+				if (!M_io_jni_call_jobject(&dev_inf, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getInterface", 1, j)) {
+					continue;
+				}
+
+				if (!M_io_jni_call_jint(&dev_class, NULL, 0, env, dev_inf, "android/hardware/usb/UsbInterface.getInterfaceClass", 0)) {
+					M_io_jni_deletelocalref(env, &dev_inf);
+					continue;
+				}
+
+				M_io_jni_deletelocalref(env, &dev_inf);
+				if (dev_class == hid_class) {
+					have_hid = M_TRUE;
+					break;
+				}
+			}
+
+			if (!have_hid) {
+				goto loop_cleanup;
+			}
+		}
 
 		/* Pull out the device name. */
-		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceName", 0) || sval == NULL)
+		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceName", 0))
 			goto loop_cleanup;
 		dev_name = M_io_jni_jstring_to_pchar(env, sval);
 
 		/* Pull out the manufacturer name. */
-		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getManufacturerName", 0) || sval == NULL)
+		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getManufacturerName", 0))
 			goto loop_cleanup;
 		manuf = M_io_jni_jstring_to_pchar(env, sval);
 
@@ -141,12 +180,12 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 			goto loop_cleanup;
 
 		/* Pull out the product name. */
-		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getProductName", 0) || sval == NULL)
+		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getProductName", 0))
 			goto loop_cleanup;
 		product = M_io_jni_jstring_to_pchar(env, sval);
 
 		/* Pull out the serial number. */
-		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getSerialNumber", 0) || sval == NULL)
+		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getSerialNumber", 0))
 			goto loop_cleanup;
 		serialnum = M_io_jni_jstring_to_pchar(env, sval);
 
