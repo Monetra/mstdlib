@@ -76,7 +76,7 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		goto done;
 
 	/* Get the Usb HID class value. */
-	if (!M_io_jni_call_jintField(&hid_class, NULL, 0, env, NULL, "android/content/Context.USB_SERVICE") || hid_class == -1)
+	if (!M_io_jni_call_jintField(&hid_class, NULL, 0, env, NULL, "android/hardware/usb/UsbConstants.USB_CLASS_HID") || hid_class == -1)
 		goto done;
 
 	/* Get the usb device list. */
@@ -121,8 +121,10 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		if (!M_io_jni_call_jint(&dev_class, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceClass", 0) || dev_class == -1)
 			goto loop_cleanup;
 
+#if 0
 		if (dev_class != hid_class)
 			goto loop_cleanup;
+#endif
 
 		/* Pull out the device name. */
 		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceName", 0) || sval == NULL)
