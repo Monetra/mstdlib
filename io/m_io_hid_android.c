@@ -870,7 +870,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	opened = M_TRUE;
 
 	/* Claim the interface. */
-	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.claimInterface", 1, interface) || !rb) {
+	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.claimInterface", 2, interface, M_FALSE) || !rb) {
 		*ioerr = M_IO_ERROR_CONNREFUSED;
 		goto err;
 	}
