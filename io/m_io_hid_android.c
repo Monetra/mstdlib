@@ -835,11 +835,11 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		jobject endpoint = NULL;
 		jint    direction;
 
-		if (!M_io_jni_call_jobject(&endpoint, NULL, 0, env, device, "android/hardware/usb/UsbInterface.getEndpoint", 1, i)) {
+		if (!M_io_jni_call_jobject(&endpoint, NULL, 0, env, interface, "android/hardware/usb/UsbInterface.getEndpoint", 1, i)) {
 			continue;
 		}
 
-		if (!M_io_jni_call_jint(&direction, NULL, 0, env, interface, "android/hardware/usb/UsbEndpoint.getDirection", 0) || direction <= 0) {
+		if (!M_io_jni_call_jint(&direction, NULL, 0, env, endpoint, "android/hardware/usb/UsbEndpoint.getDirection", 0) || direction <= 0) {
 			continue;
 		}
 
