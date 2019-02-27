@@ -657,24 +657,29 @@ M_bool M_io_jni_android_init(jobject app_context)
 #ifndef __ANDROID__
 	return M_FALSE;
 #else
-	jobject service;
-	jstring sname;
-	int     ret;
+	JNIEnv  *env;
+	jobject  service;
+	jstring  sname;
+	int      ret;
 
 	if (M_io_jni_jvm == NULL)
 		return M_FALSE;
 
+	env = M_io_jni_getenv();
+	if (env == NULL)
+		return M_FALSE;
+
 	/* Store Application Context. */
-	M_io_android_app_context = M_io_jni_create_globalref(NULL, app_context);
+	M_io_android_app_context = M_io_jni_create_globalref(env, app_context);
 
 	/* Init C-Ares. (Needs connectivity manager). */
 	if (ares_library_android_initialized() != ARES_SUCCESS) {
 		ares_library_init_jvm(M_io_jni_jvm);
 
-		if (!M_io_jni_call_jobjectField(&sname, NULL, 0, NULL, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
+		if (!M_io_jni_call_jobjectField(&sname, NULL, 0, env, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
 			return M_FALSE;
 
-		if (!M_io_jni_call_jobject(&service, NULL, 0, NULL, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL)
+		if (!M_io_jni_call_jobject(&service, NULL, 0, env, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL)
 			return M_FALSE;
 
 		ret = ares_library_init_android(service);
