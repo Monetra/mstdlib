@@ -839,13 +839,13 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 			continue;
 		}
 
-		if (!M_io_jni_call_jint(&direction, NULL, 0, env, endpoint, "android/hardware/usb/UsbEndpoint.getDirection", 0) || direction <= 0) {
+		if (!M_io_jni_call_jint(&direction, NULL, 0, env, endpoint, "android/hardware/usb/UsbEndpoint.getDirection", 0) || direction < 0) {
 			continue;
 		}
 
 		if (ep_in == NULL && direction == dir_in) {
 			ep_in = endpoint;
-		} else if (ep_out == NULL && dir_in == dir_out) {
+		} else if (ep_out == NULL && direction == dir_out) {
 			ep_out = endpoint;
 		} else {
 			M_io_jni_deletelocalref(env, &endpoint);
