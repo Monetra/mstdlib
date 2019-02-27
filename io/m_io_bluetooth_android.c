@@ -361,7 +361,6 @@ M_io_error_t M_io_bluetooth_write_cb(M_io_layer_t *layer, const unsigned char *b
 	if (handle->state != M_IO_STATE_CONNECTED || handle->socket == NULL)
 		return M_IO_ERROR_INVALID;
 
-
 	env = M_io_jni_getenv();
 	if (env == NULL) {
 		return M_IO_ERROR_NOSYSRESOURCES;
@@ -636,4 +635,3 @@ M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 
 	return M_TRUE;
 }
-
