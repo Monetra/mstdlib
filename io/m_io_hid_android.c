@@ -88,19 +88,18 @@ static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 	M_bool ret = M_FALSE;
 
 	/* Zero the buffer. */
-	M_io_jni_deletelocalref(env, data);
 	data = (*env)->NewByteArray(env, (jsize)handle->max_input_report_size);
 	body = (*env)->GetByteArrayElements(env, data, 0);
 	M_mem_set(body, 0, handle->max_input_report_size);
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.put", 3, data, 0, 0))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	/* Clear the buffer's internal markers. This doesn't 0 the memory which is why we did that manually. */
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.clear", 0))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	/* Queue that we want to read. */
@@ -134,7 +133,7 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 	/* Clear the out buffer. */
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.clear", 0))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	/* Fill the write buffer with the data we want written. */
@@ -154,7 +153,7 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 	ret = M_TRUE;
 
 done:
-	M_io_jni_deletelocalref(env, data);
+	M_io_jni_deletelocalref(env, &data);
 	return ret;
 }
 
@@ -554,7 +553,7 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	/* Flip the buffer and find out how much data was read. */
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.flip", 0))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.remaining", 0))
@@ -568,7 +567,7 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	data = (*env)->NewByteArray(env, (jsize)len);
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.get", 1, data))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	/* Direct write the data into our read buffer. */
@@ -586,8 +585,8 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	ret = M_io_hid_queue_read(env, handle);
 
 done:
-	M_io_jni_deletelocalref(env, rv);
-	M_io_jni_deletelocalref(env, data);
+	M_io_jni_deletelocalref(env, &rv);
+	M_io_jni_deletelocalref(env, &data);
 
 	return ret;
 }
@@ -602,7 +601,7 @@ static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handl
 	/* Flip the buffer and find out how much data was written. */
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.flip", 0))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 
 	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.remaining", 0))
@@ -689,8 +688,8 @@ static void *M_io_hid_process_loop(void *arg)
 		M_thread_mutex_unlock(handle->data_lock);
 
 		/* Clean up. */
-		M_io_jni_deletelocalref(env, endpoint);
-		M_io_jni_deletelocalref(env, response);
+		M_io_jni_deletelocalref(env, &endpoint);
+		M_io_jni_deletelocalref(env, &response);
 
 		if (!ret)
 			goto err;
@@ -793,7 +792,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		goto err;
 	}
-	M_io_jni_deletelocalref(env, sval);
+	M_io_jni_deletelocalref(env, &sval);
 	sval = NULL;
 
 	/* Find the HID interface. */
@@ -953,10 +952,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->process_tid = M_thread_create(tattr, M_io_hid_process_loop, handle);
 	M_thread_attr_destroy(tattr);
 
-	M_io_jni_deletelocalref(env, ep_in);
-	M_io_jni_deletelocalref(env, ep_out);
-	M_io_jni_deletelocalref(env, device);
-	M_io_jni_deletelocalref(env, dev_list);
+	M_io_jni_deletelocalref(env, &ep_in);
+	M_io_jni_deletelocalref(env, &ep_out);
+	M_io_jni_deletelocalref(env, &device);
+	M_io_jni_deletelocalref(env, &dev_list);
 	return handle;
 
 err:
@@ -964,17 +963,17 @@ err:
 	if (opened)
 		M_io_jni_call_jvoid(NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
-	M_io_jni_deletelocalref(env, sval);
-	M_io_jni_deletelocalref(env, connection);
-	M_io_jni_deletelocalref(env, device);
-	M_io_jni_deletelocalref(env, dev_list);
-	M_io_jni_deletelocalref(env, interface);
-	M_io_jni_deletelocalref(env, ep_in);
-	M_io_jni_deletelocalref(env, ep_out);
-	M_io_jni_deletelocalref(env, in_req);
-	M_io_jni_deletelocalref(env, out_req);
-	M_io_jni_deletelocalref(env, in_buffer);
-	M_io_jni_deletelocalref(env, out_buffer);
+	M_io_jni_deletelocalref(env, &sval);
+	M_io_jni_deletelocalref(env, &connection);
+	M_io_jni_deletelocalref(env, &device);
+	M_io_jni_deletelocalref(env, &dev_list);
+	M_io_jni_deletelocalref(env, &interface);
+	M_io_jni_deletelocalref(env, &ep_in);
+	M_io_jni_deletelocalref(env, &ep_out);
+	M_io_jni_deletelocalref(env, &in_req);
+	M_io_jni_deletelocalref(env, &out_req);
+	M_io_jni_deletelocalref(env, &in_buffer);
+	M_io_jni_deletelocalref(env, &out_buffer);
 
 	M_free(path);
 	M_free(manufacturer);
