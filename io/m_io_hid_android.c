@@ -144,7 +144,7 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.put", 3, data, 0, len))
 		goto done;
-	M_io_jni_deletelocalref(env, rv);
+	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 	
 	if (!M_io_jni_call_jvoid(handle->error, sizeof(handle->error), env, handle->out_req, "android/hardware/usb/UsbRequest.queue", 1, handle->out_buffer))
@@ -869,7 +869,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	opened = M_TRUE;
 
 	/* Claim the interface. */
-	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.claimInterface", 2, interface, M_FALSE) || !rb) {
+	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.claimInterface", 2, interface, M_TRUE) || !rb) {
 		*ioerr = M_IO_ERROR_CONNREFUSED;
 		goto err;
 	}
