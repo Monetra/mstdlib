@@ -787,7 +787,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 	/* Pull out the device we want to operate on. */
-	sval = M_io_jni_pchar_to_jstring(env, path);
+	sval = M_io_jni_pchar_to_jstring(env, devpath);
 	if (!M_io_jni_call_jobject(&device, NULL, 0, env, dev_list, "java/util/HashMap.get", 1, sval) || device == NULL) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		goto err;
