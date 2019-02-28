@@ -79,6 +79,65 @@ done:
 	return manager;
 }
 
+static M_bool was_timeout(JNIEnv *env, char *error, size_t errlen)
+{
+	jthrowable e           = NULL;
+	jclass     eclass      = NULL;
+	jclass     timeout_cls = NULL;
+	jmethodID  getMessage  = NULL;
+	jstring    message     = NULL;
+	char      *temp        = NULL;
+	M_bool     ret         = M_FALSE;
+
+	M_snprintf(error, errlen, "Error");
+
+	e = (*env)->ExceptionOccurred(env);
+	if (!e)
+		return M_FALSE;
+	(*env)->ExceptionClear(env);
+
+	timeout_cls = (*env)->FindClass(env, "java/util/concurrent/TimeoutException");
+	if ((*env)->ExceptionOccurred(env)) {
+		(*env)->ExceptionClear(env);
+		goto done;
+	}
+
+	if ((*env)->IsInstanceOf(env, e, timeout_cls)) {
+		ret = M_TRUE;
+		goto done;
+	}
+
+	eclass = (*env)->GetObjectClass(env, e);
+	getMessage = (*env)->GetMethodID(env, eclass, "getMessage", "()Ljava/lang/String;");
+	if (getMessage == NULL)
+		goto done;
+
+	message = (jstring)(*env)->CallObjectMethod(env, e, getMessage);
+	if ((*env)->ExceptionOccurred(env)) {
+		(*env)->ExceptionClear(env);
+		goto done;
+	}
+	if (message == NULL)
+		goto done;
+
+	/* Convert into C String */
+	temp = M_io_jni_jstring_to_pchar(env, message);
+	if (temp == NULL)
+		goto done;
+
+	if (!M_str_isempty(temp))
+		M_str_cpy(error, errlen, temp);
+
+done:
+	M_io_jni_deletelocalref(env, &e);
+	M_io_jni_deletelocalref(env, &eclass);
+	M_io_jni_deletelocalref(env, &timeout_cls);
+	M_io_jni_deletelocalref(env, &message);
+	M_free(temp);
+
+	return ret;
+}
+
 /* Should be in a data_lock. */
 static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 {
@@ -176,14 +235,14 @@ static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
 	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
 
-	/* Stop the processing thread. */
-	M_thread_join(handle->process_tid, NULL);
-
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
 
 	/* Close connection */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+
+	/* Wait for the processing thread to exit. */
+	M_thread_join(handle->process_tid, NULL);
 
 	/* Clear everything. */
 	M_io_jni_delete_globalref(env, &handle->connection);
@@ -629,13 +688,29 @@ static void *M_io_hid_process_loop(void *arg)
 	M_io_handle_t *handle     = arg;
 	M_io_layer_t  *layer;
 	M_bool         disconnect = M_FALSE;
-	jobject        env;
+	JNIEnv        *env;
+	jclass         cls           = NULL;
+	jmethodID      requestWaitId = NULL;
 	jint           dir_in      = -1;
 	jint           dir_out     = -1;
 
 	env = M_io_jni_getenv();
 	if (env == NULL) {
 		M_snprintf(handle->error, sizeof(handle->error), "Failed to get ENV");
+		goto err;
+	}
+
+	cls = (*env)->FindClass(env, "android/hardware/usb/UsbDeviceConnection");
+	if ((*env)->ExceptionOccurred(env)) {
+		(*env)->ExceptionClear(env);
+		M_snprintf(handle->error, sizeof(handle->error), "Failed to find requestWait class");
+		goto err;
+	}
+
+	requestWaitId = (*env)->GetMethodID(env, cls, "requestWait", "(J)Landroid/hardware/usb/UsbRequest;");
+	if ((*env)->ExceptionOccurred(env)) {
+		(*env)->ExceptionClear(env);
+		M_snprintf(handle->error, sizeof(handle->error), "Failed to find requestWait id");
 		goto err;
 	}
 
@@ -653,16 +728,23 @@ static void *M_io_hid_process_loop(void *arg)
 		jobject response  = NULL;
 		jobject endpoint  = NULL;
 		jint    direction = -1;
+		char    error[256];
 		M_bool  ret       = M_FALSE;
 
 		/* Blocking call. */
-		if (!M_io_jni_call_jobject(&response, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.requestWait", 0) || response == NULL) {
-			if (!handle->run) {
-				/* We're closing so we won't get a response back. */
-				break;
+		response = (*env)->CallObjectMethod(env, handle->connection, requestWaitId, 100);
+		if (response == NULL) {
+			if (was_timeout(env, error, sizeof(error))) {
+				continue;
 			}
+			if (handle->run) {
+				/* Error. */
+				M_snprintf(handle->error, sizeof(handle->error), "%s", error);
+				goto err;
+			}
+			/* We're closing so we won't get a response back. */
 			disconnect = M_TRUE;
-			goto err;
+			break;
 		}
 
 		/* Determine if this is a read or write response. */
@@ -713,7 +795,6 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 {
 	JNIEnv          *env                     = NULL;
 	M_io_handle_t   *handle                  = NULL;
-	M_thread_attr_t *tattr;
 	jobject          manager                 = NULL;
 	jobject          dev_list                = NULL;
 	jobject          device                  = NULL;
@@ -829,8 +910,8 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 	for (i=0; i<cnt; i++) {
-		jobject endpoint = NULL;
-		jint    direction;
+		jobject endpoint  = NULL;
+		jint    direction = -1;
 
 		if (!M_io_jni_call_jobject(&endpoint, NULL, 0, env, interface, "android/hardware/usb/UsbInterface.getEndpoint", 1, i)) {
 			continue;
@@ -942,12 +1023,6 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->out_req    = M_io_jni_create_globalref(env, out_req);
 	handle->in_buffer  = M_io_jni_create_globalref(env, in_buffer);
 	handle->out_buffer = M_io_jni_create_globalref(env, out_buffer);
-
-	/* Start the processing thread. */
-	tattr = M_thread_attr_create();
-	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	handle->process_tid = M_thread_create(tattr, M_io_hid_process_loop, handle);
-	M_thread_attr_destroy(tattr);
 
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
@@ -1112,13 +1187,20 @@ void M_io_hid_unregister_cb(M_io_layer_t *layer)
 
 M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 {
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
+	M_io_t          *io     = M_io_layer_get_io(layer);
+	M_thread_attr_t *tattr;
 
 	if (handle->connection == NULL)
 		return M_FALSE;
 
 	handle->io = io;
+
+	/* Start the processing thread. */
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	handle->process_tid = M_thread_create(tattr, M_io_hid_process_loop, handle);
+	M_thread_attr_destroy(tattr);
 
 	/* Trigger connected soft event when registered with event handle */
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
