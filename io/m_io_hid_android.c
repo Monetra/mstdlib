@@ -154,13 +154,11 @@ static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.put", 3, data, 0, 0))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	/* Clear the buffer's internal markers. This doesn't 0 the memory which is why we did that manually. */
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.clear", 0))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	/* Queue that we want to read. */
 	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->in_req, "android/hardware/usb/UsbRequest.queue", 1, handle->in_buffer) || !brv)
@@ -169,13 +167,13 @@ static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 	ret = M_TRUE;
 
 done:
+	M_io_jni_deletelocalref(env, &data);
 	return ret;
 }
 
 /* Should be in a data_lock. */
 static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 {
-	jbyte     *body;
 	jbyteArray data = NULL;
 	jobject    rv   = NULL;
 	size_t     len;
@@ -195,18 +193,15 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.clear", 0))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	/* Fill the write buffer with the data we want written. */
 	len  = M_MIN(len, handle->max_output_report_size);
 	data = (*env)->NewByteArray(env, (jsize)len);
-	body = (*env)->GetByteArrayElements(env, data, 0);
-	M_mem_move(body, M_buf_peek(handle->writebuf), len);
+	(*env)->SetByteArrayRegion(env, data, 0, (jsize)len, (const jbyte *)M_buf_peek(handle->writebuf));
 
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.put", 3, data, 0, len))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 	
 	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->out_req, "android/hardware/usb/UsbRequest.queue", 1, handle->out_buffer) || !brv)
 		goto done;
@@ -253,13 +248,6 @@ static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
 	M_io_jni_delete_globalref(env, &handle->out_req);
 	M_io_jni_delete_globalref(env, &handle->in_buffer);
 	M_io_jni_delete_globalref(env, &handle->out_buffer);
-
-	handle->connection = NULL;
-	handle->interface  = NULL;
-	handle->in_req     = NULL;
-	handle->out_req    = NULL;
-	handle->in_buffer  = NULL;
-	handle->out_buffer = NULL;
 }
 
 static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
@@ -616,7 +604,6 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.flip", 0))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.remaining", 0))
 		goto done;
@@ -630,7 +617,6 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.get", 1, data))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	/* Direct write the data into our read buffer. */
 	slen = (size_t)len;
@@ -663,7 +649,6 @@ static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handl
 	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.flip", 0))
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
-	rv = NULL;
 
 	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.remaining", 0))
 		goto done;
