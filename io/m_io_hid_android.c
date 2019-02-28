@@ -41,6 +41,7 @@ struct M_io_handle {
 	M_buf_t          *writebuf;    /*!< Write are transferred via a buffer. */
 	M_thread_mutex_t *data_lock;   /*!< Lock when manipulating data buffers. */
 	M_bool            run;         /*!< Should the process thread continue running. */
+	M_bool            opened;      /*!< Is the device open. */
 	M_threadid_t      process_tid; /*!< Thread id for the process thread. */
 	char              error[256];  /*!< Error buffer for description of last system error. */
 
@@ -213,6 +214,27 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 done:
 	M_io_jni_deletelocalref(env, &data);
 	return ret;
+}
+
+static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
+{
+	jboolean rv;
+
+	if (handle == NULL || handle->connection == NULL || !handle->opened)
+		return;
+
+	if (env == NULL)
+		env = M_io_jni_getenv();
+
+	/* Tell the processing thread it should stop running. */
+	handle->run    = M_FALSE;
+	handle->opened = M_FALSE;
+
+	/* Close any pending requests we have. */
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.cancel", 0);
+	M_io_jni_call_jvoid(NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.close", 0);
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
+	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
 }
 
 static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
@@ -986,6 +1008,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->writebuf               = M_buf_create();
 	handle->data_lock              = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->run                    = M_TRUE;
+	handle->opened                 = M_TRUE;
 	handle->path                   = path;
 	handle->manufacturer           = manufacturer;
 	handle->product                = product;
@@ -1066,6 +1089,7 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	jboolean       rv;
 
 	env = M_io_jni_getenv();
+	M_io_hid_close_device(env, handle);
 
 	/* Wait for the processing thread to exit.
  	 * requestWait is timeout based so we can do this here.
@@ -1126,7 +1150,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 		return M_IO_ERROR_WOULDBLOCK;
 	}
 
-	if (handle->connection == NULL) {
+	if (handle->connection == NULL || !handle->opened) {
 		M_thread_mutex_unlock(handle->data_lock);
 		return M_IO_ERROR_NOTCONNECTED;
 	}
@@ -1168,7 +1192,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	if (handle->connection == NULL)
+	if (handle->connection == NULL || !handle->opened)
 		return M_IO_ERROR_NOTCONNECTED;
 
 	M_thread_mutex_lock(handle->data_lock);
@@ -1196,23 +1220,8 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	JNIEnv        *env;
-	jboolean       rv;
 
-	if (handle->connection == NULL)
-		return M_TRUE;
-
-	env = M_io_jni_getenv();
-
-	/* Tell the processing thread it should stop running. */
-	handle->run = M_FALSE;
-
-	/* Close any pending requests we have. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.close", 0);
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
-
+	M_io_hid_close_device(NULL, handle);
 	return M_TRUE;
 }
 
@@ -1227,7 +1236,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_t          *io     = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
 
-	if (handle->connection == NULL)
+	if (handle->connection == NULL || !handle->opened)
 		return M_FALSE;
 
 	handle->io = io;
