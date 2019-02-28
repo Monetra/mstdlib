@@ -232,14 +232,17 @@ static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
 	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
 
+	/* Wait for the processing thread to exit.
+ 	 * requestWait is timeout based so we can do this here.
+	 * If we change to the other requestWait function that blocks
+	 * we need to close the connection first so that function will exit. */
+	M_thread_join(handle->process_tid, NULL);
+
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
 
 	/* Close connection */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
-
-	/* Wait for the processing thread to exit. */
-	M_thread_join(handle->process_tid, NULL);
 
 	/* Clear everything. */
 	M_io_jni_delete_globalref(env, &handle->connection);
@@ -789,7 +792,6 @@ static void *M_io_hid_process_loop(void *arg)
 
 err:
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	M_io_hid_close_device(env, handle);
 	if (disconnect) {
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	} else {
@@ -1092,8 +1094,6 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	M_io_hid_close_device(NULL, handle);
-
 	M_thread_mutex_destroy(handle->data_lock);
 	M_buf_cancel(handle->readbuf);
 	M_buf_cancel(handle->writebuf);
@@ -1190,7 +1190,8 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_hid_close_device(NULL, handle);
 	return M_TRUE;
 }
 
