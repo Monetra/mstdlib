@@ -215,46 +215,6 @@ done:
 	return ret;
 }
 
-static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
-{
-	jboolean rv;
-
-	if (handle == NULL || handle->connection == NULL)
-		return;
-
-	if (env == NULL)
-		env = M_io_jni_getenv();
-
-	/* Tell the processing thread it should stop running. */
-	handle->run = M_FALSE;
-
-	/* Close any pending requests we have. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.close", 0);
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
-
-	/* Wait for the processing thread to exit.
- 	 * requestWait is timeout based so we can do this here.
-	 * If we change to the other requestWait function that blocks
-	 * we need to close the connection first so that function will exit. */
-	M_thread_join(handle->process_tid, NULL);
-
-	/* Release Interface. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
-
-	/* Close connection */
-	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
-
-	/* Clear everything. */
-	M_io_jni_delete_globalref(env, &handle->connection);
-	M_io_jni_delete_globalref(env, &handle->interface);
-	M_io_jni_delete_globalref(env, &handle->in_req);
-	M_io_jni_delete_globalref(env, &handle->out_req);
-	M_io_jni_delete_globalref(env, &handle->in_buffer);
-	M_io_jni_delete_globalref(env, &handle->out_buffer);
-}
-
 static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		char **path, char **manuf, char **product, char **serial,
 		M_uint16 *vendorid, M_uint16 *productid)
@@ -1102,6 +1062,30 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	JNIEnv        *env;
+	jboolean       rv;
+
+	env = M_io_jni_getenv();
+
+	/* Wait for the processing thread to exit.
+ 	 * requestWait is timeout based so we can do this here.
+	 * If we change to the other requestWait function that blocks
+	 * we need to close the connection first so that function will exit. */
+	M_thread_join(handle->process_tid, NULL);
+
+	/* Release Interface. */
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
+
+	/* Close connection */
+	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+
+	/* Clear everything. */
+	M_io_jni_delete_globalref(env, &handle->connection);
+	M_io_jni_delete_globalref(env, &handle->interface);
+	M_io_jni_delete_globalref(env, &handle->in_req);
+	M_io_jni_delete_globalref(env, &handle->out_req);
+	M_io_jni_delete_globalref(env, &handle->in_buffer);
+	M_io_jni_delete_globalref(env, &handle->out_buffer);
 
 	M_thread_mutex_destroy(handle->data_lock);
 	M_buf_cancel(handle->readbuf);
@@ -1212,7 +1196,23 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_hid_close_device(NULL, handle);
+	JNIEnv        *env;
+	jboolean       rv;
+
+	if (handle->connection == NULL)
+		return M_TRUE;
+
+	env = M_io_jni_getenv();
+
+	/* Tell the processing thread it should stop running. */
+	handle->run = M_FALSE;
+
+	/* Close any pending requests we have. */
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.cancel", 0);
+	M_io_jni_call_jvoid(NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.close", 0);
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
+	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
+
 	return M_TRUE;
 }
 
