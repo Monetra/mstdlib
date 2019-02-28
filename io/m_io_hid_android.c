@@ -731,7 +731,19 @@ static void *M_io_hid_process_loop(void *arg)
 		char    error[256];
 		M_bool  ret       = M_FALSE;
 
-		/* Blocking call. */
+		/* Blocking call.
+ 		 *
+		 * We have to use the timeout version of requestWait because the fully blocking one
+		 * has a bug in some Android versions where it will never return unless a request
+		 * has been delivered. It ignores both cancel and close of the request and close
+		 * of the connection. It was fixed in Android O but that doesn't help if you're
+		 * on an older version.
+		 *
+		 * We use the timeout one so we can check every so often if we need to stop running.
+		 * We can't use the M_io_jni_call_* functions because it will clear the exception
+		 * and return a M_bool on error. We need to inspect the exception because that's
+		 * how we know if it's a timeout (and should retry) or a real error.
+		 */
 		response = (*env)->CallObjectMethod(env, handle->connection, requestWaitId, 100);
 		if (response == NULL) {
 			if (was_timeout(env, error, sizeof(error))) {
