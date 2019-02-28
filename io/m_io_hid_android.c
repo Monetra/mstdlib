@@ -50,6 +50,8 @@ struct M_io_handle {
 	char             *serial;
 	M_uint16          productid;
 	M_uint16          vendorid;
+
+	M_bool            uses_reportid;
 	size_t            max_input_report_size;
 	size_t            max_output_report_size;
 };
@@ -621,6 +623,10 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 		goto done;
 	M_io_jni_deletelocalref(env, &rv);
 
+	/* If we don't use report descriptors, we must prefix the read buffer with a zero */
+	if (!handle->uses_reportid)
+		M_buf_add_byte(handle->readbuf, '0');
+
 	/* Direct write the data into our read buffer. */
 	slen = (size_t)len;
 	dbuf = M_buf_direct_write_start(handle->readbuf, &slen);
@@ -819,21 +825,24 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	jobject          out_req                 = NULL;
 	jobject          in_buffer               = NULL;
 	jobject          out_buffer              = NULL;
+	jbyteArray       descrs                  = NULL;
 	jstring          sval                    = NULL;
 	jint             hid_class               = -1;
 	jint             dev_class               = -1;
 	jint             dir_in                  = -1;
 	jint             dir_out                 = -1;
-	jint             report_size             = -1;
+	jbyte           *body;
 	char            *path                    = NULL;
 	char            *manufacturer            = NULL;
 	char            *product                 = NULL;
 	char            *serial                  = NULL;
 	M_uint16         productid               = 0;
 	M_uint16         vendorid                = 0;
+	size_t           len;
 	size_t           max_input_report_size   = 32;
 	size_t           max_output_report_size  = 32;
 	M_bool           opened                  = M_FALSE;
+	M_bool           uses_reportid;
 	jboolean rb;
 	jint   cnt      = 0;
 	jint   i;
@@ -986,18 +995,15 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	/* Get report sizes. */
-	if (!M_io_jni_call_jint(&report_size, NULL, 0, env, ep_in, "android/hardware/usb/UsbEndpoint.getMaxPacketSize", 0) || report_size <= 0) {
+	/* Determine if report ids are used and get the report sizes. */
+	if (!M_io_jni_call_jbyteArray(&descrs, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.getRawDescriptors", 0) || descrs == NULL) {
 		*ioerr = M_IO_ERROR_ERROR;
 		goto err;
 	}
-	max_input_report_size = (size_t)report_size;
-
-	if (!M_io_jni_call_jint(&report_size, NULL, 0, env, ep_out, "android/hardware/usb/UsbEndpoint.getMaxPacketSize", 0) || report_size <= 0) {
-		*ioerr = M_IO_ERROR_ERROR;
-		goto err;
-	}
-	max_output_report_size = (size_t)report_size;
+	len           = M_io_jni_array_length(env, descrs);
+	body          = (*env)->GetByteArrayElements(env, descrs, 0);
+	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, len);
+	hid_get_max_report_sizes((const unsigned char *)body, len, &max_input_report_size, &max_input_report_size);
 
 	/* Create the read and write backing byte buffers. */
 	if (!M_io_jni_call_jobject(&in_buffer, NULL, 0, env, NULL, "java/nio/ByteBuffer.allocate", 1, (jint)max_input_report_size) || in_buffer == NULL) {
@@ -1026,6 +1032,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->serial                 = serial;
 	handle->productid              = productid;
 	handle->vendorid               = vendorid;
+	handle->uses_reportid          = uses_reportid;
 	handle->max_input_report_size  = max_input_report_size;
 	handle->max_output_report_size = max_output_report_size;
 
@@ -1037,6 +1044,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->in_buffer  = M_io_jni_create_globalref(env, in_buffer);
 	handle->out_buffer = M_io_jni_create_globalref(env, out_buffer);
 
+	M_io_jni_deletelocalref(env, &descrs);
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
 	M_io_jni_deletelocalref(env, &device);
@@ -1055,6 +1063,7 @@ err:
 	M_io_jni_deletelocalref(env, &interface);
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
+	M_io_jni_deletelocalref(env, &descrs);
 	M_io_jni_deletelocalref(env, &in_req);
 	M_io_jni_deletelocalref(env, &out_req);
 	M_io_jni_deletelocalref(env, &in_buffer);
@@ -1117,6 +1126,7 @@ M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         len;
 
 	(void)meta;
 
@@ -1142,7 +1152,18 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 		return M_IO_ERROR_SUCCESS;
 	}
 
-	M_buf_add_bytes(handle->writebuf, buf, *write_len);
+	/* Don't send the report id in the data if we're not using report ids. */
+	len = *write_len;
+	if (!handle->uses_reportid) {
+		buf++;
+		len--;
+	}
+	if (len == 0) {
+		M_thread_mutex_unlock(handle->data_lock);
+		return M_IO_ERROR_SUCCESS;
+	}
+
+	M_buf_add_bytes(handle->writebuf, buf, len);
 	if (!M_io_hid_queue_write(NULL, handle)) {
 		M_thread_mutex_unlock(handle->data_lock);
 		return M_IO_ERROR_ERROR;
