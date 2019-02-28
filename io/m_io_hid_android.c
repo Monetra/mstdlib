@@ -144,7 +144,8 @@ static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 	jbyteArray     data = NULL;
 	jbyte         *body;
 	jobject        rv   = NULL;
-	M_bool ret = M_FALSE;
+	jboolean       brv  = M_FALSE;
+	M_bool         ret  = M_FALSE;
 
 	/* Zero the buffer. */
 	data = (*env)->NewByteArray(env, (jsize)handle->max_input_report_size);
@@ -162,7 +163,7 @@ static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
 	rv = NULL;
 
 	/* Queue that we want to read. */
-	if (!M_io_jni_call_jvoid(handle->error, sizeof(handle->error), env, handle->in_req, "android/hardware/usb/UsbRequest.queue", 1, handle->in_buffer))
+	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->in_req, "android/hardware/usb/UsbRequest.queue", 1, handle->in_buffer) || !brv)
 		goto done;
 
 	ret = M_TRUE;
@@ -178,6 +179,7 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 	jbyteArray data = NULL;
 	jobject    rv   = NULL;
 	size_t     len;
+	jboolean   brv  = M_FALSE;
 	M_bool     ret  = M_FALSE;
 
 	if (env == NULL)
@@ -206,7 +208,7 @@ static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
 	M_io_jni_deletelocalref(env, &rv);
 	rv = NULL;
 	
-	if (!M_io_jni_call_jvoid(handle->error, sizeof(handle->error), env, handle->out_req, "android/hardware/usb/UsbRequest.queue", 1, handle->out_buffer))
+	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->out_req, "android/hardware/usb/UsbRequest.queue", 1, handle->out_buffer) || !brv)
 		goto done;
 
 	ret = M_TRUE;
@@ -599,7 +601,8 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* Do NOT lock a layer here. We could already be in a layer lock. */
+/* Do NOT lock a layer here. We could already be in a layer lock.
+ * Should be in a data_lock */
 static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *did_read)
 {
 	unsigned char *dbuf;
@@ -648,7 +651,8 @@ done:
 	return ret;
 }
 
-/* Do NOT lock a layer here. We could already be in a layer lock. */
+/* Do NOT lock a layer here. We could already be in a layer lock.
+ * Should be in a data_lock */
 static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *can_write)
 {
 	jobject       rv  = NULL;
@@ -1154,7 +1158,10 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	}
 
 	M_buf_add_bytes(handle->writebuf, buf, *write_len);
-	M_io_hid_queue_write(NULL, handle);
+	if (!M_io_hid_queue_write(NULL, handle)) {
+		M_thread_mutex_unlock(handle->data_lock);
+		return M_IO_ERROR_ERROR;
+	}
 
 	M_thread_mutex_unlock(handle->data_lock);
 	return M_IO_ERROR_SUCCESS;
