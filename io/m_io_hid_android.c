@@ -669,7 +669,7 @@ static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handl
 		goto done;
 
 	/* Drop all data that was written. */
-	M_buf_drop(handle->writebuf, M_buf_len(handle->writebuf)-(size_t)len);
+	M_buf_drop(handle->writebuf, (size_t)len);
 
 	if (M_buf_len(handle->writebuf) != 0) {
 		/* We still have data that hasn't been written. We want to try writing it again. */
