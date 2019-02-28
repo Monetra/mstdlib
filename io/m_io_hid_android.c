@@ -599,9 +599,9 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle)
+/* Do NOT lock a layer here. We could already be in a layer lock. */
+static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *did_read)
 {
-	M_io_layer_t  *layer;
 	unsigned char *dbuf;
 	jbyteArray     data = NULL;
 	jobject        rv   = NULL;
@@ -636,9 +636,7 @@ static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle
 	M_buf_direct_write_end(handle->readbuf, (size_t)len);
 
 	/* Pass along we have read data. */
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
-	M_io_layer_release(layer);
+	*did_read = M_TRUE;
 
 	/* Queue up another read. */
 	ret = M_io_hid_queue_read(env, handle);
@@ -650,9 +648,9 @@ done:
 	return ret;
 }
 
-static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handle)
+/* Do NOT lock a layer here. We could already be in a layer lock. */
+static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *can_write)
 {
-	M_io_layer_t *layer;
 	jobject       rv  = NULL;
 	jint          len;
 	M_bool        ret = M_TRUE;
@@ -674,9 +672,7 @@ static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handl
 		ret = M_io_hid_queue_write(env, handle);
 	} else {
 		/* Pass along we can write data again. */
-		layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
-		M_io_layer_release(layer);
+		*can_write = M_TRUE;
 	}
 
 done:
@@ -730,6 +726,8 @@ static void *M_io_hid_process_loop(void *arg)
 		jint    direction = -1;
 		char    error[256];
 		M_bool  ret       = M_FALSE;
+		M_bool  did_read  = M_FALSE;
+		M_bool  can_write = M_FALSE;
 
 		/* Blocking call.
  		 *
@@ -769,9 +767,9 @@ static void *M_io_hid_process_loop(void *arg)
 		/* Process the response. */
 		M_thread_mutex_lock(handle->data_lock);
 		if (direction == dir_in) {
-			ret = M_io_hid_process_loop_read_resp(env, handle);
+			ret = M_io_hid_process_loop_read_resp(env, handle, &did_read);
 		} else if (direction == dir_out) {
-			ret = M_io_hid_process_loop_write_resp(env, handle);
+			ret = M_io_hid_process_loop_write_resp(env, handle, &can_write);
 		} else {
 			M_snprintf(handle->error, sizeof(handle->error), "%s", "Unknown endpoint direction");
 			ret = M_FALSE;
@@ -784,6 +782,18 @@ static void *M_io_hid_process_loop(void *arg)
 
 		if (!ret)
 			goto err;
+
+		if (did_read) {
+			layer = M_io_layer_acquire(handle->io, 0, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+			M_io_layer_release(layer);
+		}
+
+		if (can_write) {
+			layer = M_io_layer_acquire(handle->io, 0, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+			M_io_layer_release(layer);
+		}
 	}
 
 	return NULL;
