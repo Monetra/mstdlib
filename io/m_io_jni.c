@@ -613,7 +613,7 @@ static void M_io_jni_deinit(void *arg)
 	(void)arg;
 
 #ifdef __ANDROID__
-	M_io_jni_delete_globalref(NULL, M_io_android_app_context);
+	M_io_jni_delete_globalref(NULL, &M_io_android_app_context);
 	M_io_android_app_context = NULL;
 #endif
 

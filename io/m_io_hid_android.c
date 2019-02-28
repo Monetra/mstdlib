@@ -186,12 +186,12 @@ static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
 	/* Clear everything. */
-	M_io_jni_delete_globalref(env, handle->connection);
-	M_io_jni_delete_globalref(env, handle->interface);
-	M_io_jni_delete_globalref(env, handle->in_req);
-	M_io_jni_delete_globalref(env, handle->out_req);
-	M_io_jni_delete_globalref(env, handle->in_buffer);
-	M_io_jni_delete_globalref(env, handle->out_buffer);
+	M_io_jni_delete_globalref(env, &handle->connection);
+	M_io_jni_delete_globalref(env, &handle->interface);
+	M_io_jni_delete_globalref(env, &handle->in_req);
+	M_io_jni_delete_globalref(env, &handle->out_req);
+	M_io_jni_delete_globalref(env, &handle->in_buffer);
+	M_io_jni_delete_globalref(env, &handle->out_buffer);
 
 	handle->connection = NULL;
 	handle->interface  = NULL;
@@ -609,9 +609,6 @@ static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handl
 
 	/* Drop all data that was written. */
 	M_buf_drop(handle->writebuf, M_buf_len(handle->writebuf)-(size_t)len);
-
-	M_io_jni_delete_globalref(env, handle->out_buffer);
-	handle->out_buffer = NULL;
 
 	if (M_buf_len(handle->writebuf) != 0) {
 		/* We still have data that hasn't been written. We want to try writing it again. */
