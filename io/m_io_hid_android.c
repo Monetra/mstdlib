@@ -820,14 +820,14 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	char            *serial                  = NULL;
 	M_uint16         productid               = 0;
 	M_uint16         vendorid                = 0;
-	size_t           len;
-	size_t           max_input_report_size   = 32;
-	size_t           max_output_report_size  = 32;
+	size_t           max_input_report_size   = 0;
+	size_t           max_output_report_size  = 0;
 	M_bool           opened                  = M_FALSE;
-	M_bool           uses_reportid;
-	jboolean rb;
-	jint   cnt      = 0;
-	jint   i;
+	M_bool           uses_reportid           = M_FALSE;
+	jboolean         rb;
+	jint             size                    = 0;
+	jint             cnt                     = 0;
+	jint             i;
 
 	*ioerr = M_IO_ERROR_SUCCESS;
 
@@ -977,15 +977,19 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	/* Determine if report ids are used and get the report sizes. */
-	if (!M_io_jni_call_jbyteArray(&descrs, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.getRawDescriptors", 0) || descrs == NULL) {
+	/* Determine if report ids are used and get the report sizes.
+	 * While there is an API function UsbEndpoint.getMaxPacketSize the HID descriptors will
+	 * have this info so that's two less JNI calls. Also, UsbDeviceConnection.getRawDescriptors returns
+	 * USB descriptors not HID descriptors. Finally, there is no API function to get if reports ids
+	 * are in use are not. So we need to get the HID descriptors regardless. */
+	descrs = (*env)->NewByteArray(env, 4096); /* 4096 is maximum descriptor size. */
+	if (!M_io_jni_call_jint(&size, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.controlTransfer", 7, 0x81, 0x06, 0x2200, 0x00, descrs, 4096, 2000)) {
 		*ioerr = M_IO_ERROR_ERROR;
 		goto err;
 	}
-	len           = M_io_jni_array_length(env, descrs);
 	body          = (*env)->GetByteArrayElements(env, descrs, 0);
-	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, len);
-	hid_get_max_report_sizes((const unsigned char *)body, len, &max_input_report_size, &max_input_report_size);
+	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, (size_t)size);
+	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
 
 	/* Create the read and write backing byte buffers. */
 	if (!M_io_jni_call_jobject(&in_buffer, NULL, 0, env, NULL, "java/nio/ByteBuffer.allocate", 1, (jint)max_input_report_size) || in_buffer == NULL) {
