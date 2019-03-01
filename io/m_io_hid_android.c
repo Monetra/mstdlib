@@ -991,6 +991,12 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, (size_t)size);
 	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
 
+	/* Note: We need to include report ID byte in reported size. So, increment both by one. */
+	if (handle->max_input_report_size > 0)
+		handle->max_input_report_size++;
+	if (handle->max_output_report_size > 0)
+		handle->max_output_report_size++;
+
 	/* Create the read and write backing byte buffers. */
 	if (!M_io_jni_call_jobject(&in_buffer, NULL, 0, env, NULL, "java/nio/ByteBuffer.allocate", 1, (jint)max_input_report_size) || in_buffer == NULL) {
 		*ioerr = M_IO_ERROR_ERROR;
