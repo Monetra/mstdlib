@@ -1017,27 +1017,43 @@ void M_io_hid_unregister_cb(M_io_layer_t *layer)
 
 M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 {
-	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
-	M_io_t          *io     = M_io_layer_get_io(layer);
+	M_io_handle_t   *handle           = M_io_layer_get_handle(layer);
+	M_io_t          *io               = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
+	M_bool           read_was_running = M_FALSE;
 
 	if (handle->connection == NULL || !handle->run)
 		return M_FALSE;
 
 	handle->io = io;
 
-	/* Start the processing threads. */
-	tattr = M_thread_attr_create();
-	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
-	M_thread_attr_destroy(tattr);
+	/* Start the processing threads if they're not already running. */
+	if (handle->read_tid == 0) {
+		tattr = M_thread_attr_create();
+		M_thread_attr_set_create_joinable(tattr, M_TRUE);
+		handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
+		M_thread_attr_destroy(tattr);
+		read_was_running = M_TRUE;
+	}
 
-	tattr = M_thread_attr_create();
-	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
-	M_thread_attr_destroy(tattr);
+	if (handle->write_tid == 0) {
+		tattr = M_thread_attr_create();
+		M_thread_attr_set_create_joinable(tattr, M_TRUE);
+		handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
+		M_thread_attr_destroy(tattr);
+	}
 
 	/* Trigger connected soft event when registered with event handle */
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+
+	/* If we already had a read running send a read event if there is
+ 	 * data just in case it was lost when moving the io between event loops. */
+	if (read_was_running) {
+		M_thread_mutex_lock(handle->read_lock);
+		if (M_buf_len(handle->readbuf) > 0) {
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		}
+		M_thread_mutex_unlock(handle->read_lock);
+	}
 	return M_TRUE;
 }
