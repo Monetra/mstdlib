@@ -114,12 +114,6 @@ static const struct {
 	{ "java/util/HashMap",                        "put",                                NULL,              "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",                      M_FALSE },
 	{ "java/util/Set",                            "toArray",                            NULL,              "()[Ljava/lang/Object;",                                                         M_FALSE },
 	{ "java/util/UUID",                           "fromString",                         NULL,              "(Ljava/lang/String;)Ljava/util/UUID;",                                          M_TRUE  },
-	{ "java/nio/ByteBuffer",                      "allocate",                           NULL,              "(I)Ljava/nio/ByteBuffer;",                                                      M_TRUE  },
-	{ "java/nio/ByteBuffer",                      "flip",                               NULL,              "()Ljava/nio/Buffer;",                                                       M_FALSE },
-	{ "java/nio/ByteBuffer",                      "clear",                              NULL,              "()Ljava/nio/Buffer;",                                                       M_FALSE },
-	{ "java/nio/ByteBuffer",                      "remaining",                          NULL,              "()I",                                                                           M_FALSE },
-	{ "java/nio/ByteBuffer",                      "get",                                NULL,              "([B)Ljava/nio/ByteBuffer;",                                                     M_FALSE },
-	{ "java/nio/ByteBuffer",                      "put",                                NULL,              "([BII)Ljava/nio/ByteBuffer;",                                                     M_FALSE },
 #ifdef __ANDROID__
 	{ "android/os/ParcelUuid",                    "toString",                           NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
 	{ "android/os/ParcelUuid",                    "getUuid",                            NULL,              "()Ljava/util/UUID;",                                                            M_FALSE },
@@ -167,13 +161,8 @@ static const struct {
 	{ "android/hardware/usb/UsbDeviceConnection", "claimInterface",                     NULL,              "(Landroid/hardware/usb/UsbInterface;Z)Z",                                       M_FALSE },
 	{ "android/hardware/usb/UsbDeviceConnection", "releaseInterface",                   NULL,              "(Landroid/hardware/usb/UsbInterface;)Z",                                        M_FALSE },
 	{ "android/hardware/usb/UsbDeviceConnection", "close",                              NULL,              "()V",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "bulkTransfer",                       NULL,              "(Landroid/hardware/usb/UsbEndpoint;[BII)I",                                     M_FALSE },
 	{ "android/hardware/usb/UsbDeviceConnection", "controlTransfer",                    NULL,              "(IIII[BII)I",                                                                   M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "<init>",                             NULL,              "()V",                                                                           M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "initialize",                         NULL,              "(Landroid/hardware/usb/UsbDeviceConnection;Landroid/hardware/usb/UsbEndpoint;)Z", M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "getEndpoint",                        NULL,              "()Landroid/hardware/usb/UsbEndpoint;",                                          M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "queue",                              NULL,              "(Ljava/nio/ByteBuffer;)Z",                                                      M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "cancel",                             NULL,              "()Z",                                                                           M_FALSE },
-	{ "android/hardware/usb/UsbRequest",          "close",                              NULL,              "()V",                                                                           M_FALSE },
 #endif
 	{ NULL,                                       NULL,                                 NULL,              NULL,                                                                            M_FALSE }
 };

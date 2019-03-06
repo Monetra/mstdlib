@@ -32,17 +32,17 @@
 struct M_io_handle {
 	jobject           connection;  /*!< UsbDeviceConnection */
 	jobject           interface;   /*!< UsbInterface */
-	jobject           in_req;      /*!< UsbRequest */
-	jobject           out_req;     /*!< UsbRequest */
-	jobject           in_buffer;   /*!< ByteBuffer backing for reads. */
-	jobject           out_buffer;  /*!< ByteBuffer backing for writes. */
+	jobject           ep_in;       /*!< UsbEndpoint In (read) */
+	jobject           ep_out;      /*!< UsbEndpoint Out (write) */
 	M_io_t           *io;
 	M_buf_t          *readbuf;     /*!< Reads are transferred via a buffer. */
 	M_buf_t          *writebuf;    /*!< Write are transferred via a buffer. */
-	M_thread_mutex_t *data_lock;   /*!< Lock when manipulating data buffers. */
+	M_thread_mutex_t *read_lock;   /*!< Lock when manipulating read buffer. */
+	M_thread_mutex_t *write_lock;  /*!< Lock when manipulating write buffer. */
+	M_thread_cond_t  *write_cond;  /*!< Conditional to wake write thread when there is data to write. */
 	M_bool            run;         /*!< Should the process thread continue running. */
-	M_bool            opened;      /*!< Is the device open. */
-	M_threadid_t      process_tid; /*!< Thread id for the process thread. */
+	M_threadid_t      read_tid;    /*!< Thread id for the read thread. */
+	M_threadid_t      write_tid;   /*!< Thread id for the write thread. */
 	char              error[256];  /*!< Error buffer for description of last system error. */
 
 	char             *path;
@@ -82,161 +82,6 @@ done:
 	return manager;
 }
 
-static M_bool was_timeout(JNIEnv *env, char *error, size_t errlen)
-{
-	jthrowable e           = NULL;
-	jclass     eclass      = NULL;
-	jclass     timeout_cls = NULL;
-	jmethodID  getMessage  = NULL;
-	jstring    message     = NULL;
-	char      *temp        = NULL;
-	M_bool     ret         = M_FALSE;
-
-	M_snprintf(error, errlen, "Error");
-
-	e = (*env)->ExceptionOccurred(env);
-	if (!e)
-		return M_FALSE;
-	(*env)->ExceptionClear(env);
-
-	timeout_cls = (*env)->FindClass(env, "java/util/concurrent/TimeoutException");
-	if ((*env)->ExceptionOccurred(env)) {
-		(*env)->ExceptionClear(env);
-		goto done;
-	}
-
-	if ((*env)->IsInstanceOf(env, e, timeout_cls)) {
-		ret = M_TRUE;
-		goto done;
-	}
-
-	eclass = (*env)->GetObjectClass(env, e);
-	getMessage = (*env)->GetMethodID(env, eclass, "getMessage", "()Ljava/lang/String;");
-	if (getMessage == NULL)
-		goto done;
-
-	message = (jstring)(*env)->CallObjectMethod(env, e, getMessage);
-	if ((*env)->ExceptionOccurred(env)) {
-		(*env)->ExceptionClear(env);
-		goto done;
-	}
-	if (message == NULL)
-		goto done;
-
-	/* Convert into C String */
-	temp = M_io_jni_jstring_to_pchar(env, message);
-	if (temp == NULL)
-		goto done;
-
-	if (!M_str_isempty(temp))
-		M_str_cpy(error, errlen, temp);
-
-done:
-	M_io_jni_deletelocalref(env, &e);
-	M_io_jni_deletelocalref(env, &eclass);
-	M_io_jni_deletelocalref(env, &timeout_cls);
-	M_io_jni_deletelocalref(env, &message);
-	M_free(temp);
-
-	return ret;
-}
-
-/* Should be in a data_lock. */
-static M_bool M_io_hid_queue_read(JNIEnv *env, M_io_handle_t *handle)
-{
-	jbyteArray     data = NULL;
-	jbyte         *body;
-	jobject        rv   = NULL;
-	jboolean       brv  = M_FALSE;
-	M_bool         ret  = M_FALSE;
-
-	/* Zero the buffer. */
-	data = (*env)->NewByteArray(env, (jsize)handle->max_input_report_size);
-	body = (*env)->GetByteArrayElements(env, data, 0);
-	M_mem_set(body, 0, handle->max_input_report_size);
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.put", 3, data, 0, 0))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
-
-	/* Clear the buffer's internal markers. This doesn't 0 the memory which is why we did that manually. */
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.clear", 0))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
-
-	/* Queue that we want to read. */
-	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->in_req, "android/hardware/usb/UsbRequest.queue", 1, handle->in_buffer) || !brv)
-		goto done;
-
-	ret = M_TRUE;
-
-done:
-	M_io_jni_deletelocalref(env, &data);
-	return ret;
-}
-
-/* Should be in a data_lock. */
-static M_bool M_io_hid_queue_write(JNIEnv *env, M_io_handle_t *handle)
-{
-	jbyteArray data = NULL;
-	jobject    rv   = NULL;
-	size_t     len;
-	jboolean   brv  = M_FALSE;
-	M_bool     ret  = M_FALSE;
-
-	if (env == NULL)
-		env = M_io_jni_getenv();
-	if (env == NULL)
-		goto done;
-
-	len = M_buf_len(handle->writebuf);
-	if (len == 0)
-		return M_TRUE;
-
-	/* Clear the out buffer. */
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.clear", 0))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
-
-	/* Fill the write buffer with the data we want written. */
-	len  = M_MIN(len, handle->max_output_report_size);
-	data = (*env)->NewByteArray(env, (jsize)len);
-	(*env)->SetByteArrayRegion(env, data, 0, (jsize)len, (const jbyte *)M_buf_peek(handle->writebuf));
-
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.put", 3, data, 0, len))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
-	
-	if (!M_io_jni_call_jboolean(&brv, handle->error, sizeof(handle->error), env, handle->out_req, "android/hardware/usb/UsbRequest.queue", 1, handle->out_buffer) || !brv)
-		goto done;
-
-	ret = M_TRUE;
-
-done:
-	M_io_jni_deletelocalref(env, &data);
-	return ret;
-}
-
-static void M_io_hid_close_device(JNIEnv *env, M_io_handle_t *handle)
-{
-	jboolean rv;
-
-	if (handle == NULL || handle->connection == NULL || !handle->opened)
-		return;
-
-	if (env == NULL)
-		env = M_io_jni_getenv();
-
-	/* Tell the processing thread it should stop running. */
-	handle->run    = M_FALSE;
-	handle->opened = M_FALSE;
-
-	/* Close any pending requests we have. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->in_req, "android/hardware/usb/UsbRequest.close", 0);
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.cancel", 0);
-	M_io_jni_call_jvoid(NULL, 0, env, handle->out_req, "android/hardware/usb/UsbRequest.close", 0);
-}
-
 static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		char **path, char **manuf, char **product, char **serial,
 		M_uint16 *vendorid, M_uint16 *productid)
@@ -257,6 +102,8 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		*serial = NULL;
 
 	if (path != NULL) {
+		/* Device name is really the path. The list of Usb Devices the manager
+ 		 * will give us is referenced by this value. */
 		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getDeviceName", 0)) {
 			goto err;
 		}
@@ -285,7 +132,6 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 	}
 
 	if (vendorid != NULL) {
-		/* Pull out the vendor id. */
 		if (!M_io_jni_call_jint(&id, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getVendorId", 0) || id == -1) {
 			goto err;
 		}
@@ -391,7 +237,7 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		if (!M_io_jni_call_jobject(&dev, NULL, 0, env, dev_list, "java/util/HashMap.get", 1, key_o))
 			goto loop_cleanup;
 
-		/* Check if this is a hid device. */
+		/* Get the device class. */
 		if (!M_io_jni_call_jint(&dev_class, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getDeviceClass", 0) || dev_class == -1)
 			goto loop_cleanup;
 
@@ -404,8 +250,8 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		 * it's a hid device and we can use it. */
 		if (dev_class == per_inf_class) {
  			jint   cnt      = 0;
-			jint   j;
 			M_bool have_hid = M_FALSE;
+			jint   j;
 
 			if (!M_io_jni_call_jint(&cnt, NULL, 0, env, dev, "android/hardware/usb/UsbDevice.getInterfaceCount", 0) || cnt <= 0)
 				goto loop_cleanup;
@@ -442,6 +288,7 @@ M_io_hid_enum_t *M_io_hid_enum(M_uint16 vendorid, const M_uint16 *productids, si
 				path, manuf, product, serialnum, vid, pid,
 				/* Search/Match criteria */
 				vendorid, productids, num_productids, serial);
+
 loop_cleanup:
 		M_io_jni_deletelocalref(env, &dev);
 		M_io_jni_deletelocalref(env, &key_o);
@@ -468,9 +315,8 @@ char *M_io_hid_get_manufacturer(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = M_strdup(handle->manufacturer);
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -482,9 +328,8 @@ char *M_io_hid_get_path(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = M_strdup(handle->path);
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -496,9 +341,8 @@ char *M_io_hid_get_product(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = M_strdup(handle->product);
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -510,9 +354,8 @@ M_uint16 M_io_hid_get_productid(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = handle->productid;
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -524,9 +367,8 @@ M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = handle->vendorid;
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -538,9 +380,8 @@ char *M_io_hid_get_serial(M_io_t *io)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
-	if (handle != NULL) {
+	if (handle != NULL)
 		ret = M_strdup(handle->serial);
-	}
 
 	M_io_layer_release(layer);
 	return ret;
@@ -553,12 +394,11 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 	size_t         my_in;
 	size_t         my_out;
 
-	if (max_input_size == NULL) {
+	if (max_input_size == NULL)
 		max_input_size  = &my_in;
-	}
-	if (max_output_size == NULL) {
+
+	if (max_output_size == NULL)
 		max_output_size = &my_out;
-	}
 
 	layer  = M_io_hid_get_top_hid_layer(io);
 	handle = M_io_layer_get_handle(layer);
@@ -576,217 +416,202 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* Do NOT lock a layer here. We could already be in a layer lock.
- * Should be in a data_lock */
-static M_bool M_io_hid_process_loop_read_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *did_read)
+static void M_io_hid_close_device(M_io_handle_t *handle, JNIEnv *env)
 {
-	unsigned char *dbuf;
-	jbyteArray     data = NULL;
-	jobject        rv   = NULL;
-	jint           len;
-	size_t         slen;
-	M_bool         ret  = M_FALSE;
+	jboolean rv;
 
-	/* Flip the buffer and find out how much data was read. */
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.flip", 0))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
+	if (handle == NULL || handle->connection == NULL)
+		return;
 
-	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.remaining", 0))
-		goto done;
+	if (env == NULL)
+		env = M_io_jni_getenv();
+	if (env == NULL)
+		return;
 
-	if (len <= 0) {
-		ret = M_TRUE;
-		goto done;
-	}
+	/* Tell our threads they can stop running and
+ 	 * if they encounter an error don't worry about it
+	 * because we're closing. */
+	handle->run = M_FALSE;
 
-	data = (*env)->NewByteArray(env, (jsize)len);
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->in_buffer, "java/nio/ByteBuffer.get", 1, data))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
+	/* Release Interface. */
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
 
-	/* If we don't use report descriptors, we must prefix the read buffer with a zero */
-	if (!handle->uses_reportid)
-		M_buf_add_byte(handle->readbuf, '0');
+	/* Close connection */
+	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
-	/* Direct write the data into our read buffer. */
-	slen = (size_t)len;
-	dbuf = M_buf_direct_write_start(handle->readbuf, &slen);
-	(*env)->GetByteArrayRegion(env, data, 0, (jsize)len, (jbyte *)dbuf);
-	M_buf_direct_write_end(handle->readbuf, (size_t)len);
-
-	/* Pass along we have read data. */
-	*did_read = M_TRUE;
-
-	/* Queue up another read. */
-	ret = M_io_hid_queue_read(env, handle);
-
-done:
-	M_io_jni_deletelocalref(env, &rv);
-	M_io_jni_deletelocalref(env, &data);
-
-	return ret;
+	/* Destroy the connection. Sets the var to NULL.
+ 	 * If there is a read blocking it will return there was an error
+	 * but since we have already set run = false the read loop will
+	 * ignore the error and stop running. */
+	M_io_jni_delete_globalref(env, &handle->connection);
 }
 
-/* Do NOT lock a layer here. We could already be in a layer lock.
- * Should be in a data_lock */
-static M_bool M_io_hid_process_loop_write_resp(JNIEnv *env, M_io_handle_t *handle, M_bool *can_write)
+static void M_io_hid_handle_rw_error(M_io_handle_t *handle, JNIEnv *env)
 {
-	jobject       rv  = NULL;
-	jint          len;
-	M_bool        ret = M_TRUE;
+	M_io_layer_t *layer;
 
-	/* Flip the buffer and find out how much data was written. */
-	if (!M_io_jni_call_jobject(&rv, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.flip", 0))
-		goto done;
-	M_io_jni_deletelocalref(env, &rv);
-
-	if (!M_io_jni_call_jint(&len, handle->error, sizeof(handle->error), env, handle->out_buffer, "java/nio/ByteBuffer.remaining", 0))
-		goto done;
-
-	/* Drop all data that was written. */
-	M_buf_drop(handle->writebuf, (size_t)len);
-
-	if (M_buf_len(handle->writebuf) != 0) {
-		/* We still have data that hasn't been written. We want to try writing it again. */
-		ret = M_io_hid_queue_write(env, handle);
-	} else {
-		/* Pass along we can write data again. */
-		*can_write = M_TRUE;
+	/* Tread a failure as a disconnect. The return of bulkTransfer is always
+	 * -1 so we don't know what the error was from. We're also going to close
+	 * the device since it's in an unusable state so it's being disconnected
+	 * regardless if that's the reason for the read error. */
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	if (handle->run) {
+		/* We have read and write threads going, if we're in the middle of a write
+		 * both read and write bulkTransfer operations will error. One will
+		 * get the layer lock first and set run = false. This prevents double
+		 * events from being sent out. */
+		M_io_hid_close_device(handle, env);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	}
-
-done:
-	return ret;
+	M_io_layer_release(layer);
 }
 
-static void *M_io_hid_process_loop(void *arg)
+static void *M_io_hid_read_loop(void *arg)
 {
-	M_io_handle_t *handle     = arg;
+	M_io_handle_t *handle = arg;
 	M_io_layer_t  *layer;
-	M_bool         disconnect = M_FALSE;
 	JNIEnv        *env;
-	jclass         cls           = NULL;
-	jmethodID      requestWaitId = NULL;
-	jint           dir_in      = -1;
-	jint           dir_out     = -1;
+	jbyteArray     data;
+	jbyte         *body;
+	jint           rv;
+	size_t         max_len;
 
 	env = M_io_jni_getenv();
 	if (env == NULL) {
-		M_snprintf(handle->error, sizeof(handle->error), "Failed to get ENV");
-		goto err;
+		M_snprintf(handle->error, sizeof(handle->error), "Failed to start read thread");
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_release(layer);
+		return NULL;
 	}
 
-	cls = (*env)->FindClass(env, "android/hardware/usb/UsbDeviceConnection");
-	if ((*env)->ExceptionOccurred(env)) {
-		(*env)->ExceptionClear(env);
-		M_snprintf(handle->error, sizeof(handle->error), "Failed to find requestWait class");
-		goto err;
-	}
+	/* Determine the max len of a read based on if report ids are
+ 	 * used or not. If they're not being used we need to decrease
+	 * since the first byte won't be the additional report id. */
+	max_len = handle->max_input_report_size;
+	if (!handle->uses_reportid)
+		max_len--;
 
-	requestWaitId = (*env)->GetMethodID(env, cls, "requestWait", "(J)Landroid/hardware/usb/UsbRequest;");
-	if ((*env)->ExceptionOccurred(env)) {
-		(*env)->ExceptionClear(env);
-		M_snprintf(handle->error, sizeof(handle->error), "Failed to find requestWait id");
-		goto err;
-	}
-
-	/* Get the in and out direction constants so we can determine the direction when we have an event. */
-	if (!M_io_jni_call_jintField(&dir_in, handle->error, sizeof(handle->error), env, NULL, "android/hardware/usb/UsbConstants.USB_DIR_IN") || dir_in == -1)
-		goto err;
-
-	if (!M_io_jni_call_jintField(&dir_out, handle->error, sizeof(handle->error), env, NULL, "android/hardware/usb/UsbConstants.USB_DIR_OUT") || dir_out == -1)
-		goto err;
-
-	/* Queue a read operation and start waiting for data. */
-	M_io_hid_queue_read(env, handle);
+	data = (*env)->NewByteArray(env, (jsize)max_len);
 
 	while (handle->run) {
-		jobject response  = NULL;
-		jobject endpoint  = NULL;
-		jint    direction = -1;
-		char    error[256];
-		M_bool  ret       = M_FALSE;
-		M_bool  did_read  = M_FALSE;
-		M_bool  can_write = M_FALSE;
-
-		/* Blocking call.
- 		 *
-		 * We have to use the timeout version of requestWait because the fully blocking one
-		 * has a bug in some Android versions where it will never return unless a request
-		 * has been delivered. It ignores both cancel and close of the request and close
-		 * of the connection. It was fixed in Android O but that doesn't help if you're
-		 * on an older version.
-		 *
-		 * We use the timeout one so we can check every so often if we need to stop running.
-		 * We can't use the M_io_jni_call_* functions because it will clear the exception
-		 * and return a M_bool on error. We need to inspect the exception because that's
-		 * how we know if it's a timeout (and should retry) or a real error.
-		 */
-		response = (*env)->CallObjectMethod(env, handle->connection, requestWaitId, 100);
-		if (response == NULL) {
-			if (was_timeout(env, error, sizeof(error))) {
-				continue;
-			}
-			if (handle->run) {
-				/* Error. */
-				M_snprintf(handle->error, sizeof(handle->error), "%s", error);
-				goto err;
-			}
-			/* We're closing so we won't get a response back. */
-			disconnect = M_TRUE;
+		/* Wait for data to be read. We have a 0 timeout and will
+ 		 * exit on error, or if the connection is closed by us. */
+		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_in, data, (jint)max_len, 0) || rv < 0) {
+			M_io_hid_handle_rw_error(handle, env);
 			break;
 		}
 
-		/* Determine if this is a read or write response. */
-		if (!M_io_jni_call_jobject(&endpoint, handle->error, sizeof(handle->error), env, response, "android/hardware/usb/UsbRequest.getEndpoint", 0) || endpoint == NULL)
-			goto err;
-		
-		if (!M_io_jni_call_jint(&direction, handle->error, sizeof(handle->error), env, endpoint, "android/hardware/usb/UsbEndpoint.getDirection", 0))
-			goto err;
-
-		/* Process the response. */
-		M_thread_mutex_lock(handle->data_lock);
-		if (direction == dir_in) {
-			ret = M_io_hid_process_loop_read_resp(env, handle, &did_read);
-		} else if (direction == dir_out) {
-			ret = M_io_hid_process_loop_write_resp(env, handle, &can_write);
-		} else {
-			M_snprintf(handle->error, sizeof(handle->error), "%s", "Unknown endpoint direction");
-			ret = M_FALSE;
-		}
-		M_thread_mutex_unlock(handle->data_lock);
-
-		/* Clean up. */
-		M_io_jni_deletelocalref(env, &endpoint);
-		M_io_jni_deletelocalref(env, &response);
-
-		if (!ret)
-			goto err;
-
-		if (did_read) {
-			layer = M_io_layer_acquire(handle->io, 0, NULL);
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
-			M_io_layer_release(layer);
+		/* No data read so nothing to process right now. */
+		if (rv == 0) {
+			continue;
 		}
 
-		if (can_write) {
+		/* Fill the read buffer with the data that was read. */
+		M_thread_mutex_lock(handle->read_lock);
+
+		body = (*env)->GetByteArrayElements(env, data, 0);
+		M_buf_add_bytes(handle->readbuf, body, (size_t)rv);
+
+		M_thread_mutex_unlock(handle->read_lock);
+
+		/* Let the caller know there is data to read. */
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_release(layer);
+	}
+
+	M_io_jni_deletelocalref(env, &data);
+	return NULL;
+}
+
+static void *M_io_hid_write_loop(void *arg)
+{
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
+	size_t         len;
+	size_t         max_len;
+	JNIEnv        *env;
+	jbyteArray     data;
+	jint           rv;
+	M_bool         more_data = M_FALSE;
+
+	env = M_io_jni_getenv();
+	if (env == NULL) {
+		M_snprintf(handle->error, sizeof(handle->error), "Failed to start write thread");
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_release(layer);
+		return NULL;
+	}
+
+	/* Determine the max len of a write based on if report ids are
+ 	 * used or not. If they're not being used we need to decrease
+	 * since the first byte won't be the additional report id. */
+	max_len = handle->max_output_report_size;
+	if (!handle->uses_reportid)
+		max_len--;
+
+	data = (*env)->NewByteArray(env, (jsize)max_len);
+
+	while (handle->run) {
+		M_thread_mutex_lock(handle->write_lock);
+
+		/* Wait for data. */
+		if (M_buf_len(handle->writebuf) == 0) {
+			M_thread_cond_wait(handle->write_cond, handle->write_lock);
+		}
+
+		if (!handle->run) {
+			M_thread_mutex_unlock(handle->write_lock);
+			break;
+		}
+
+		/* If there isn't anything to write we have nothing to
+		 * do right now. */
+		if (M_buf_len(handle->writebuf) == 0) {
+			M_thread_mutex_unlock(handle->write_lock);
+			continue;
+		}
+
+		/* Move the buffered write data to the JNI array we'll send. */
+		len = M_MIN(M_buf_len(handle->writebuf), max_len);
+		(*env)->SetByteArrayRegion(env, data, 0, (jsize)len, (const jbyte *)M_buf_peek(handle->writebuf));
+
+		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_out, data, (jint)len, 0) || rv <= 0) {
+			M_thread_mutex_unlock(handle->write_lock);
+			M_io_hid_handle_rw_error(handle, env);
+			break;
+		}
+
+		M_buf_drop(handle->writebuf, (size_t)rv);
+
+		/* Use this flag to know if we have more data, and if
+ 		 * we should send a write event to inform that writing
+		 * can happen again. Since this is the only way data can
+		 * be removed from the buffer we know this logic can't
+		 * change outside of the lock.
+		 *
+		 * We need to use a flag because we can't be in a lock
+		 * at the same time we're in a layer lock. The write_cb
+		 * will be in a layer lock and also uses the write_lock.
+		 * We don't want to get into a double lock order thread
+		 * dead lock. */
+		if (M_buf_len(handle->writebuf) > 0) {
+			more_data = M_TRUE;
+		}
+		M_thread_mutex_unlock(handle->write_lock);
+
+		/* We can write again. */
+		if (!more_data) {
 			layer = M_io_layer_acquire(handle->io, 0, NULL);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 			M_io_layer_release(layer);
 		}
+		more_data = M_FALSE;
 	}
 
-	return NULL;
-
-err:
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	if (disconnect) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
-	} else {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
-	}
-	M_io_layer_release(layer);
-
+	M_io_jni_deletelocalref(env, &data);
 	return NULL;
 }
 
@@ -803,10 +628,6 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	jobject          ep_out                  = NULL;
 	jobject          connection              = NULL;
 	jobject          interface               = NULL;
-	jobject          in_req                  = NULL;
-	jobject          out_req                 = NULL;
-	jobject          in_buffer               = NULL;
-	jobject          out_buffer              = NULL;
 	jbyteArray       descrs                  = NULL;
 	jstring          sval                    = NULL;
 	jint             hid_class               = -1;
@@ -822,8 +643,8 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	M_uint16         vendorid                = 0;
 	size_t           max_input_report_size   = 0;
 	size_t           max_output_report_size  = 0;
-	M_bool           opened                  = M_FALSE;
 	M_bool           uses_reportid           = M_FALSE;
+	M_bool           opened                  = M_FALSE;
 	jboolean         rb;
 	jint             size                    = 0;
 	jint             cnt                     = 0;
@@ -855,7 +676,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	/* Get the Usb endpoint directions. */
+	/* Get the Usb endpoint direction constants. */
 	if (!M_io_jni_call_jintField(&dir_in, handle->error, sizeof(handle->error), env, NULL, "android/hardware/usb/UsbConstants.USB_DIR_IN") || dir_in == -1)
 		goto err;
 
@@ -863,10 +684,8 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 
 	/* Get the usb device list. */
-	if (!M_io_jni_call_jobject(&dev_list, NULL, 0, env, manager, "android/hardware/usb/UsbManager.getDeviceList", 0) || dev_list == NULL) {
-		*ioerr = M_IO_ERROR_ERROR;
+	if (!M_io_jni_call_jobject(&dev_list, NULL, 0, env, manager, "android/hardware/usb/UsbManager.getDeviceList", 0) || dev_list == NULL)
 		goto err;
-	}
 
 	/* Pull out the device we want to operate on. */
 	sval = M_io_jni_pchar_to_jstring(env, devpath);
@@ -875,13 +694,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 	M_io_jni_deletelocalref(env, &sval);
-	sval = NULL;
 
 	/* Find the HID interface. */
-	if (!M_io_jni_call_jint(&cnt, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getInterfaceCount", 0) || cnt <= 0) {
-		*ioerr = M_IO_ERROR_ERROR;
+	if (!M_io_jni_call_jint(&cnt, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getInterfaceCount", 0) || cnt <= 0)
 		goto err;
-	}
 
 	for (i=0; i<cnt; i++) {
 		jobject dev_inf = NULL;
@@ -908,10 +724,8 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 	/* Find the in and out endpoints. */
-	if (!M_io_jni_call_jint(&cnt, NULL, 0, env, interface, "android/hardware/usb/UsbInterface.getEndpointCount", 0) || cnt <= 0) {
-		*ioerr = M_IO_ERROR_ERROR;
+	if (!M_io_jni_call_jint(&cnt, NULL, 0, env, interface, "android/hardware/usb/UsbInterface.getEndpointCount", 0) || cnt <= 0)
 		goto err;
-	}
 
 	for (i=0; i<cnt; i++) {
 		jobject endpoint  = NULL;
@@ -938,6 +752,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		}
 	}
 
+	/* We require in and out endpoints to be supported. */
 	if (ep_in == NULL || ep_out == NULL) {
 		*ioerr = M_IO_ERROR_PROTONOTSUPPORTED;
 		goto err;
@@ -956,32 +771,13 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
-	/* Create and initialize the read UsbRequests. */
-	if (!M_io_jni_new_object(&in_req, NULL, 0, env, "android/hardware/usb/UsbRequest.<init>", 0) || in_req == NULL) {
-		*ioerr = M_IO_ERROR_ERROR;
-		goto err;
-	}
-
-	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, in_req, "android/hardware/usb/UsbRequest.initialize", 2, connection, ep_in) || !rb) {
-		*ioerr = M_IO_ERROR_CONNREFUSED;
-		goto err;
-	}
-
-	if (!M_io_jni_new_object(&out_req, NULL, 0, env, "android/hardware/usb/UsbRequest.<init>", 0) || out_req == NULL) {
-		*ioerr = M_IO_ERROR_ERROR;
-		goto err;
-	}
-
-	if (!M_io_jni_call_jboolean(&rb, NULL, 0, env, out_req, "android/hardware/usb/UsbRequest.initialize", 2, connection, ep_out) || !rb) {
-		*ioerr = M_IO_ERROR_CONNREFUSED;
-		goto err;
-	}
-
-	/* Determine if report ids are used and get the report sizes.
-	 * While there is an API function UsbEndpoint.getMaxPacketSize the HID descriptors will
-	 * have this info so that's two less JNI calls. Also, UsbDeviceConnection.getRawDescriptors returns
-	 * USB descriptors not HID descriptors. Finally, there is no API function to get if reports ids
-	 * are in use are not. So we need to get the HID descriptors regardless. */
+	/* Determine if report ids are used and get the report sizes. While there
+ 	 * is an API function UsbEndpoint.getMaxPacketSize the HID descriptors will
+	 * have this info so that's fewer JNI calls. Also, we're not using
+	 * UsbDeviceConnection.getRawDescriptors because it returns USB descriptors
+	 * not HID descriptors. Finally, there is no API function to get if reports
+	 * ids are in use are not. So we need to get the HID descriptors
+	 * regardless. */
 	descrs = (*env)->NewByteArray(env, 4096); /* 4096 is maximum descriptor size. */
 	if (!M_io_jni_call_jint(&size, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.controlTransfer", 7, 0x81, 0x06, 0x2200, 0x00, descrs, 4096, 2000)) {
 		*ioerr = M_IO_ERROR_ERROR;
@@ -992,21 +788,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
 
 	/* Note: We need to include report ID byte in reported size. So, increment both by one. */
-	if (handle->max_input_report_size > 0)
-		handle->max_input_report_size++;
-	if (handle->max_output_report_size > 0)
-		handle->max_output_report_size++;
-
-	/* Create the read and write backing byte buffers. */
-	if (!M_io_jni_call_jobject(&in_buffer, NULL, 0, env, NULL, "java/nio/ByteBuffer.allocate", 1, (jint)max_input_report_size) || in_buffer == NULL) {
-		*ioerr = M_IO_ERROR_ERROR;
-		goto err;
-	}
-
-	if (!M_io_jni_call_jobject(&out_buffer, NULL, 0, env, NULL, "java/nio/ByteBuffer.allocate", 1, (jint)max_output_report_size) || out_buffer == NULL) {
-		*ioerr = M_IO_ERROR_ERROR;
-		goto err;
-	}
+	if (max_input_report_size > 0)
+		max_input_report_size++;
+	if (max_output_report_size > 0)
+		max_output_report_size++;
 
 	/* Get the device metadata. */
 	if (!M_io_hid_dev_info(env, device, &path, &manufacturer, &product, &serial, &vendorid, &productid))
@@ -1016,9 +801,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle                         = M_malloc_zero(sizeof(*handle));
 	handle->readbuf                = M_buf_create();
 	handle->writebuf               = M_buf_create();
-	handle->data_lock              = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->read_lock              = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->write_lock             = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->write_cond             = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
 	handle->run                    = M_TRUE;
-	handle->opened                 = M_TRUE;
 	handle->path                   = path;
 	handle->manufacturer           = manufacturer;
 	handle->product                = product;
@@ -1032,35 +818,32 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	/* Store the Java objects. */
 	handle->connection = M_io_jni_create_globalref(env, connection);
 	handle->interface  = M_io_jni_create_globalref(env, interface);
-	handle->in_req     = M_io_jni_create_globalref(env, in_req);
-	handle->out_req    = M_io_jni_create_globalref(env, out_req);
-	handle->in_buffer  = M_io_jni_create_globalref(env, in_buffer);
-	handle->out_buffer = M_io_jni_create_globalref(env, out_buffer);
+	handle->ep_in      = M_io_jni_create_globalref(env, ep_in);
+	handle->ep_out     = M_io_jni_create_globalref(env, ep_out);
 
 	M_io_jni_deletelocalref(env, &descrs);
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
 	M_io_jni_deletelocalref(env, &device);
 	M_io_jni_deletelocalref(env, &dev_list);
+
 	return handle;
 
 err:
 	/* Try to close the device if it was opened. */
-	if (opened)
+	if (opened) {
+		M_io_jni_call_jboolean(&rb, NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, interface);
 		M_io_jni_call_jvoid(NULL, 0, env, connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+	}
 
 	M_io_jni_deletelocalref(env, &sval);
+	M_io_jni_deletelocalref(env, &interface);
 	M_io_jni_deletelocalref(env, &connection);
 	M_io_jni_deletelocalref(env, &device);
 	M_io_jni_deletelocalref(env, &dev_list);
-	M_io_jni_deletelocalref(env, &interface);
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
 	M_io_jni_deletelocalref(env, &descrs);
-	M_io_jni_deletelocalref(env, &in_req);
-	M_io_jni_deletelocalref(env, &out_req);
-	M_io_jni_deletelocalref(env, &in_buffer);
-	M_io_jni_deletelocalref(env, &out_buffer);
 
 	M_free(path);
 	M_free(manufacturer);
@@ -1096,32 +879,26 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	JNIEnv        *env;
-	jboolean       rv;
 
 	env = M_io_jni_getenv();
-	M_io_hid_close_device(env, handle);
+	M_io_hid_close_device(handle, env);
 
-	/* Wait for the processing thread to exit.
- 	 * requestWait is timeout based so we can do this here.
-	 * If we change to the other requestWait function that blocks
-	 * we need to close the connection first so that function will exit. */
-	M_thread_join(handle->process_tid, NULL);
+	/* Wait for the processing threads to exit. */
+	M_thread_mutex_lock(handle->write_lock);
+	M_thread_cond_broadcast(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
+	M_thread_join(handle->write_tid, NULL);
 
-	/* Release Interface. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
-
-	/* Close connection */
-	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+	M_thread_join(handle->read_tid, NULL);
 
 	/* Clear everything. */
-	M_io_jni_delete_globalref(env, &handle->connection);
 	M_io_jni_delete_globalref(env, &handle->interface);
-	M_io_jni_delete_globalref(env, &handle->in_req);
-	M_io_jni_delete_globalref(env, &handle->out_req);
-	M_io_jni_delete_globalref(env, &handle->in_buffer);
-	M_io_jni_delete_globalref(env, &handle->out_buffer);
+	M_io_jni_delete_globalref(env, &handle->ep_in);
+	M_io_jni_delete_globalref(env, &handle->ep_out);
 
-	M_thread_mutex_destroy(handle->data_lock);
+	M_thread_mutex_destroy(handle->read_lock);
+	M_thread_mutex_destroy(handle->write_lock);
+	M_thread_cond_destroy(handle->write_cond);
 	M_buf_cancel(handle->readbuf);
 	M_buf_cancel(handle->writebuf);
 
@@ -1148,26 +925,17 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	(void)meta;
 
-	M_thread_mutex_lock(handle->data_lock);
-
-	/* Note: We have to finish with the previous write before we can start the next one.
-	 * if in_write is false the write thread will be blocked from reading from or modifying the writebuf because
-	 * we're holding the lock. The write thread will only do something with writebuf when in_write is true or
-	 * it holds the lock.
-	 */
-	if (M_buf_len(handle->writebuf) > 0) {
-		M_thread_mutex_unlock(handle->data_lock);
-		return M_IO_ERROR_WOULDBLOCK;
-	}
-
-	if (handle->connection == NULL || !handle->opened) {
-		M_thread_mutex_unlock(handle->data_lock);
+	if (handle->connection == NULL || !handle->run)
 		return M_IO_ERROR_NOTCONNECTED;
-	}
 
-	if (buf == NULL || *write_len == 0) {
-		M_thread_mutex_unlock(handle->data_lock);
+	if (buf == NULL || *write_len == 0)
 		return M_IO_ERROR_SUCCESS;
+
+	M_thread_mutex_lock(handle->write_lock);
+
+	if (M_buf_len(handle->writebuf) > 0) {
+		M_thread_mutex_unlock(handle->write_lock);
+		return M_IO_ERROR_WOULDBLOCK;
 	}
 
 	/* Don't send the report id in the data if we're not using report ids. */
@@ -1177,17 +945,14 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 		len--;
 	}
 	if (len == 0) {
-		M_thread_mutex_unlock(handle->data_lock);
+		M_thread_mutex_unlock(handle->write_lock);
 		return M_IO_ERROR_SUCCESS;
 	}
 
 	M_buf_add_bytes(handle->writebuf, buf, len);
-	if (!M_io_hid_queue_write(NULL, handle)) {
-		M_thread_mutex_unlock(handle->data_lock);
-		return M_IO_ERROR_ERROR;
-	}
 
-	M_thread_mutex_unlock(handle->data_lock);
+	M_thread_cond_signal(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -1202,19 +967,29 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	if (handle->connection == NULL || !handle->opened)
+	if (handle->connection == NULL || !handle->run)
 		return M_IO_ERROR_NOTCONNECTED;
 
-	M_thread_mutex_lock(handle->data_lock);
+	M_thread_mutex_lock(handle->read_lock);
 
 	if (M_buf_len(handle->readbuf) == 0) {
-		M_thread_mutex_unlock(handle->data_lock);
+		M_thread_mutex_unlock(handle->read_lock);
 		return M_IO_ERROR_WOULDBLOCK;
 	}
 
 	len = M_buf_len(handle->readbuf);
 	/* Don't try to read more than we can. */
 	len = M_MIN(len, *read_len);
+
+	if (!handle->uses_reportid) {
+		/* If we don't use report ids, we must prefix the read buffer with a zero. */
+		buf[0] = 0;
+		offset = 1;
+		/* If we're maxed on the buffer we need to make room for the offset amount. */
+		if (*read_len == len) {
+			len -= offset;
+		}
+	}
 
 	/* Copy from the read buffer into the output buffer. */
 	M_mem_copy(buf+offset, M_buf_peek(handle->readbuf), len);
@@ -1223,7 +998,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	/* Our read total is how much we read from the readbuf plus how much we pre-filled. */
 	*read_len = len+offset;
 
-	M_thread_mutex_unlock(handle->data_lock);
+	M_thread_mutex_unlock(handle->read_lock);
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -1231,7 +1006,7 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	M_io_hid_close_device(NULL, handle);
+	M_io_hid_close_device(handle, NULL);
 	return M_TRUE;
 }
 
@@ -1246,15 +1021,20 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_t          *io     = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
 
-	if (handle->connection == NULL || !handle->opened)
+	if (handle->connection == NULL || !handle->run)
 		return M_FALSE;
 
 	handle->io = io;
 
-	/* Start the processing thread. */
+	/* Start the processing threads. */
 	tattr = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	handle->process_tid = M_thread_create(tattr, M_io_hid_process_loop, handle);
+	handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
+	M_thread_attr_destroy(tattr);
+
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
 	M_thread_attr_destroy(tattr);
 
 	/* Trigger connected soft event when registered with event handle */
