@@ -428,6 +428,11 @@ static void M_io_hid_close_device(M_io_handle_t *handle, JNIEnv *env)
 	if (env == NULL)
 		return;
 
+	/* Delay 1/10th of a second before disconnecting to
+	 * let anything that's been buffered to be sent out
+	 * by the OS. */
+	M_thread_sleep(100000);
+
 	/* Tell our threads they can stop running and
  	 * if they encounter an error don't worry about it
 	 * because we're closing. */
