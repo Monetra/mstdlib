@@ -88,7 +88,7 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		char **path, char **manuf, char **product, char **serial,
 		M_uint16 *vendorid, M_uint16 *productid)
 {
-	jstring sval;
+	jstring sval = NULL;
 	jint    id;
 
 	if (device == NULL)
