@@ -34,7 +34,9 @@ __BEGIN_DECLS
 /*! \addtogroup m_io_hid HID (Human Interface Device) IO functions
  *  \ingroup m_eventio_base
  * 
- * HID (Human Interface Device) IO functions. Typically used with USB devices.
+ * ## HID (Human Interface Device) IO functions.
+ *
+ * Typically used with USB devices.
  *
  * Report IDs need to be the first byte of any data sent to a device and
  * will be the first byte of any data received from a device. All buffer
@@ -43,10 +45,86 @@ __BEGIN_DECLS
  * If a device does not use report IDs 0 should be sent as the first byte
  * of any data and will be the first byte of any read data.
  *
- * Supported OS:
+ * ## Supported OS
+ *
  * - Windows
  * - Linux
  * - macOS
+ * - Android
+ *
+ * ## Android Requirements
+ *
+ * Android does not have blanket USB permissions. Access needs to be granted
+ * by the user on a per device basis. Permission granting is _not_ supported
+ * by mstdlib and must be handled by the app itself. Once permissions are
+ * granted mstdlib can access the device. Device enumeration does not need
+ * permission, it is only required to open a device.
+ *
+ * The manifest must include the uses-feature for USB host.
+ *
+ *     <uses-feature android:name="android.hardware.usb.host" />
+ *
+*
+ * There are two methods for obtaining permissions.
+ * The Android [USB Host documentation](https://developer.android.com/guide/topics/connectivity/usb/host)
+ * provides a detailed overview of the permission process.
+ *
+ * UsbManager.hasPermission() should be used to determine if the app can
+ * access the device or if it needs permission from the user to do so.
+ * If the manifest method is used the request method may still be necessary
+ * to implement. However, the manifest method allows the user to associate
+ * the device with the app so permission only needs to be granted once.
+ *
+ * ### Manifest
+ *
+ * The device vendor and product ids can be registered by the App though the
+ * manifest file. When the device is connected the user will be prompted if
+ * they want to open the device with the application. There is an option to
+ * always open with the given application the user can select. If they do not
+ * select a default application they will be prompted every time the device
+ * is connected. Once allowed the application can use the device.
+ *
+ * The manifest will specify an intent filter for a given activity for
+ * USB device attached. A meta-data specifying supported devices is associated
+ * with the intent which Android uses to determine if the application supports
+ * the given device.
+ *
+ *     <activity ...>
+ *       <intent-filter>
+ *         <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+ *       </intent-filter>
+ *       <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+ *         android:resource="@xml/device_filter" />
+ *     </activity>
+ *
+ * The device_filter xml file specifying one or more devices using vendor an product
+ * ids. The ids must be a decimal number and cannot be hex.
+ *
+ *     <?xml version="1.0" encoding="utf-8"?>
+ *     <resources>
+ *       <usb-device vendor-id="1234" product-id="5678" />
+ *     </resources>
+ *
+ * The disadvantage of this method is it work off of the device being attached.
+ * If the application is running and the device is already connected the user
+ * will not be prompted.
+ *
+ * ### Request Dialog
+ *
+ * This method uses the UsbManager.requestPermission() function to display a permission
+ * request to the user to allow USB access. The application will use an intent to
+ * make the request. A broadcast receiver will need to be registered with the intent
+ * in order for the app to receive the users response to the query. If approved by
+ * the user the application can use the device.
+ *
+ * This does not grant access to USB in general. The device in question is part of the
+ * permission request. The user is only given permission for that specific device.
+ *
+ * For this method the app should use mstdlib (or direct API calls) to enumerate the
+ * currently connected devices. Then use the path (mstdlib) to pull the device out
+ * of UsbManager.getDeviceList(). This device can then be used for the permission request.
+ *
+ * This method works if the device is already attached.
  *
  * @{
  */
