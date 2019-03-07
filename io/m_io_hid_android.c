@@ -41,6 +41,7 @@ struct M_io_handle {
 	M_thread_mutex_t *write_lock;  /*!< Lock when manipulating write buffer. */
 	M_thread_cond_t  *write_cond;  /*!< Conditional to wake write thread when there is data to write. */
 	M_bool            run;         /*!< Should the process thread continue running. */
+	M_bool            started;     /*!< Has the handle run through the init process and had processing threads started. */
 	M_threadid_t      read_tid;    /*!< Thread id for the read thread. */
 	M_threadid_t      write_tid;   /*!< Thread id for the write thread. */
 	char              error[256];  /*!< Error buffer for description of last system error. */
@@ -1022,26 +1023,22 @@ void M_io_hid_unregister_cb(M_io_layer_t *layer)
 
 M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 {
-	M_io_handle_t   *handle           = M_io_layer_get_handle(layer);
-	M_io_t          *io               = M_io_layer_get_io(layer);
+	M_io_handle_t   *handle = M_io_layer_get_handle(layer);
+	M_io_t          *io     = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
-	M_bool           read_was_running = M_FALSE;
 
 	if (handle->connection == NULL || !handle->run)
 		return M_FALSE;
 
 	handle->io = io;
 
-	/* Start the processing threads if they're not already running. */
-	if (handle->read_tid == 0) {
+	if (!handle->started) {
+		/* Start the processing threads. */
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
 		M_thread_attr_destroy(tattr);
-		read_was_running = M_TRUE;
-	}
 
-	if (handle->write_tid == 0) {
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
@@ -1051,14 +1048,17 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	/* Trigger connected soft event when registered with event handle */
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
 
-	/* If we already had a read running send a read event if there is
- 	 * data just in case it was lost when moving the io between event loops. */
-	if (read_was_running) {
+	/* If the connection was already started check if we have any
+ 	 * read data. It might have come in while moving between event loops
+	 * and the event might have been lost. */
+	if (handle->started) {
 		M_thread_mutex_lock(handle->read_lock);
 		if (M_buf_len(handle->readbuf) > 0) {
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 		}
 		M_thread_mutex_unlock(handle->read_lock);
 	}
+
+	handle->started = M_TRUE;
 	return M_TRUE;
 }
