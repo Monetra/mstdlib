@@ -63,7 +63,7 @@ struct M_io_handle {
 static jobject get_usb_manager(JNIEnv *env)
 {
 	jobject app_context = NULL;
-	jobject sname       = NULL;
+	jstring sname       = NULL;
 	jobject manager     = NULL;
 
 	/* Get the application context. */
@@ -80,6 +80,7 @@ static jobject get_usb_manager(JNIEnv *env)
 		goto done;
 
 done:
+	M_io_jni_deletelocalref(env, &sname);
 	return manager;
 }
 
@@ -110,6 +111,7 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		}
 		*path = M_io_jni_jstring_to_pchar(env, sval);
 	}
+	M_io_jni_deletelocalref(env, &sval);
 
 	if (manuf != NULL) {
 		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getManufacturerName", 0)) {
@@ -117,6 +119,7 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		}
 		*manuf = M_io_jni_jstring_to_pchar(env, sval);
 	}
+	M_io_jni_deletelocalref(env, &sval);
 
 	if (product != NULL) {
 		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getProductName", 0)) {
@@ -124,6 +127,7 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		}
 		*product = M_io_jni_jstring_to_pchar(env, sval);
 	}
+	M_io_jni_deletelocalref(env, &sval);
 
 	if (serial != NULL) {
 		if (!M_io_jni_call_jobject(&sval, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getSerialNumber", 0)) {
@@ -131,6 +135,7 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 		}
 		*serial = M_io_jni_jstring_to_pchar(env, sval);
 	}
+	M_io_jni_deletelocalref(env, &sval);
 
 	if (vendorid != NULL) {
 		if (!M_io_jni_call_jint(&id, NULL, 0, env, device, "android/hardware/usb/UsbDevice.getVendorId", 0) || id == -1) {
@@ -149,6 +154,8 @@ static M_bool M_io_hid_dev_info(JNIEnv *env, jobject device,
 	return M_TRUE;
 
 err:
+	M_io_jni_deletelocalref(env, &sval);
+
 	if (path != NULL) {
 		M_free(*path);
 		*path = NULL;
@@ -844,6 +851,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	M_io_jni_deletelocalref(env, &ep_out);
 	M_io_jni_deletelocalref(env, &device);
 	M_io_jni_deletelocalref(env, &dev_list);
+	M_io_jni_deletelocalref(env, &manager);
 
 	return handle;
 
@@ -862,6 +870,7 @@ err:
 	M_io_jni_deletelocalref(env, &ep_in);
 	M_io_jni_deletelocalref(env, &ep_out);
 	M_io_jni_deletelocalref(env, &descrs);
+	M_io_jni_deletelocalref(env, &manager);
 
 	M_free(path);
 	M_free(manufacturer);
