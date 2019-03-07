@@ -537,11 +537,20 @@ static void *M_io_hid_read_loop(void *arg)
 
 		M_thread_mutex_unlock(handle->read_lock);
 
+		/* Zero the read data since the data object is long lived and
+ 		 * it could contain sensitive data. */
+		M_mem_set(body, 0, max_len);
+
 		/* Let the caller know there is data to read. */
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
 		M_io_layer_release(layer);
 	}
+
+	/* Final zeroing of data in case we existed the loop early
+ 	 * and before it was zeroed. */
+	body = (*env)->GetByteArrayElements(env, data, 0);
+	M_mem_set(body, 0, max_len);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
@@ -555,6 +564,7 @@ static void *M_io_hid_write_loop(void *arg)
 	size_t         max_len;
 	JNIEnv        *env;
 	jbyteArray     data;
+	jbyte         *body;
 	jint           rv;
 	M_bool         more_data = M_FALSE;
 
@@ -608,6 +618,11 @@ static void *M_io_hid_write_loop(void *arg)
 			break;
 		}
 
+		/* Zero the read data since the data object is long lived and
+ 		 * it could contain sensitive data. */
+		body = (*env)->GetByteArrayElements(env, data, 0);
+		M_mem_set(body, 0, max_len);
+
 		/* Drop the data that was sent from the write buffer. */
 		M_buf_drop(handle->writebuf, (size_t)rv);
 
@@ -635,6 +650,11 @@ static void *M_io_hid_write_loop(void *arg)
 		}
 		more_data = M_FALSE;
 	}
+
+	/* Final zeroing of data in case we existed the loop early
+ 	 * and before it was zeroed. */
+	body = (*env)->GetByteArrayElements(env, data, 0);
+	M_mem_set(body, 0, max_len);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
