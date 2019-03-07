@@ -435,18 +435,25 @@ static void M_io_hid_close_device(M_io_handle_t *handle, JNIEnv *env)
 	M_thread_sleep(100000);
 
 	/* Tell our threads they can stop running and
- 	 * if they encounter an error don't worry about it
+	 * if they encounter an error don't worry about it
 	 * because we're closing. */
 	handle->run = M_FALSE;
+
+	/* Tell the writer to wake up if waiting for data
+	 * so its thread can exit. */
+	M_thread_mutex_lock(handle->write_lock);
+	M_thread_cond_broadcast(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
 
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
 
-	/* Close connection */
+	/* Close connection. If read is blocking waiting for data this will cause the read to
+	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
 	/* Destroy the connection. Sets the var to NULL.
- 	 * If there is a read blocking it will return there was an error
+	 * If there is a read blocking it will return there was an error
 	 * but since we have already set run = false the read loop will
 	 * ignore the error and stop running. */
 	M_io_jni_delete_globalref(env, &handle->connection);
@@ -457,8 +464,9 @@ static void M_io_hid_handle_rw_error(M_io_handle_t *handle, JNIEnv *env)
 	M_io_layer_t *layer;
 
 	/* Tread a failure as a disconnect. The return of bulkTransfer is always
-	 * -1 so we don't know what the error was from. We're also going to close
-	 * the device since it's in an unusable state so it's being disconnected
+	 * -1 so we don't know what the error was from. It could have been an
+	 * unexpected disconnect or something else. We're always going to close
+	 * the device since it's in an unusable state, so it's being disconnected
 	 * regardless if that's the reason for the read error. */
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	if (handle->run) {
@@ -492,12 +500,13 @@ static void *M_io_hid_read_loop(void *arg)
 	}
 
 	/* Determine the max len of a read based on if report ids are
- 	 * used or not. If they're not being used we need to decrease
+	 * used or not. If they're not being used we need to decrease
 	 * since the first byte won't be the additional report id. */
 	max_len = handle->max_input_report_size;
 	if (!handle->uses_reportid)
 		max_len--;
 
+	/* Create an array to store the read data. */
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
 	while (handle->run) {
@@ -552,12 +561,14 @@ static void *M_io_hid_write_loop(void *arg)
 	}
 
 	/* Determine the max len of a write based on if report ids are
- 	 * used or not. If they're not being used we need to decrease
+	 * used or not. If they're not being used we need to decrease
 	 * since the first byte won't be the additional report id. */
 	max_len = handle->max_output_report_size;
 	if (!handle->uses_reportid)
 		max_len--;
 
+	/* Create a buffer to put our write data into because we need it
+	 * in a Java compatible buffer. */
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
 	while (handle->run) {
@@ -590,6 +601,7 @@ static void *M_io_hid_write_loop(void *arg)
 			break;
 		}
 
+		/* Drop the data that was sent from the write buffer. */
 		M_buf_drop(handle->writebuf, (size_t)rv);
 
 		/* Use this flag to know if we have more data, and if
@@ -778,7 +790,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 	/* Determine if report ids are used and get the report sizes. While there
- 	 * is an API function UsbEndpoint.getMaxPacketSize the HID descriptors will
+	 * is an API function UsbEndpoint.getMaxPacketSize the HID descriptors will
 	 * have this info so that's fewer JNI calls. Also, we're not using
 	 * UsbDeviceConnection.getRawDescriptors because it returns USB descriptors
 	 * not HID descriptors. Finally, there is no API function to get if reports
@@ -890,11 +902,7 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	M_io_hid_close_device(handle, env);
 
 	/* Wait for the processing threads to exit. */
-	M_thread_mutex_lock(handle->write_lock);
-	M_thread_cond_broadcast(handle->write_cond);
-	M_thread_mutex_unlock(handle->write_lock);
 	M_thread_join(handle->write_tid, NULL);
-
 	M_thread_join(handle->read_tid, NULL);
 
 	/* Clear everything. */
@@ -1049,7 +1057,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
 
 	/* If the connection was already started check if we have any
- 	 * read data. It might have come in while moving between event loops
+	 * read data. It might have come in while moving between event loops
 	 * and the event might have been lost. */
 	if (handle->started) {
 		M_thread_mutex_lock(handle->read_lock);
