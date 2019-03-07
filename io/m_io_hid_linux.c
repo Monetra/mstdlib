@@ -386,135 +386,6 @@ M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 }
 
 
-/* Read a HID field value (little-endian). */
-static M_uint64 read_hid_field_le(const M_uint8 *data, size_t data_len)
-{
-	M_uint64 ret;
-	size_t   i;
-
-	if (data == NULL || data_len == 0) {
-		return 0;
-	}
-
-	if (data_len == 1) {
-		return *data;
-	}
-
-	ret = 0;
-	for (i=0; i<data_len; i++) {
-		size_t val = data[i];
-		val <<= (8*i);
-		ret |= val;
-	}
-
-	return ret;
-}
-
-
-static M_bool read_hid_key(const M_uint8 *data, size_t data_len, size_t *key_len, size_t *payload_len)
-{
-	if (data == NULL || data_len == 0 || key_len == NULL || payload_len == NULL) {
-		return M_FALSE;
-	}
-
-	*key_len     = 0;
-	*payload_len = 0;
-
-	/* Long Item. Next byte contains length of data for this key. */
-	if ((data[0] & 0xF0) == 0xF0) {
-		*key_len = 3;
-
-		/* Malformed */
-		if (data_len < 2) {
-			return M_FALSE;
-		}
-		*payload_len = data[1];
-	} else {
-		*key_len = 1;
-
-		/* Short Item. The bottom two bits of the key contain the
-		 * size code for the data section for this key. */
-		if ((data[0] & 0x3) < 3) {
-			*payload_len = data[0] & 0x3;
-		} else {
-			*payload_len = 4;
-		}
-	}
-
-	/* Make sure this key hasn't been truncated. */
-	if (*key_len + *payload_len > data_len) {
-		return M_FALSE;
-	}
-
-	return M_TRUE;
-}
-
-
-/* Return maximum report sizes: (1) max over all input reports, and (2) max over all output reports. */
-static M_bool hid_get_max_report_sizes(const M_uint8 *desc, size_t desc_len, size_t *max_input, size_t *max_output)
-{
-	size_t  i                   = 0;
-	M_uint8 rid                 = 0;
-	size_t  report_size         = 0;
-	size_t  report_count        = 0;
-	size_t  global_report_count = 0;
-	size_t  global_report_size  = 0;
-
-	if (max_input == NULL || max_output == NULL || desc == NULL) {
-		return M_FALSE;
-	}
-	*max_input  = 0;
-	*max_output = 0;
-
-	while (i < desc_len) {
-		size_t data_len;
-		size_t key_len;
-		size_t key_no_size;
-
-		if (!read_hid_key(desc + i, desc_len - i, &key_len, &data_len)) {
-			return M_FALSE;
-		}
-
-		/* Mask off the size fields in the key. */
-		key_no_size = desc[i] & 0xFC;
-
-		/*M_printf("desc[%d] = 0x%02X\n", (int)i, (unsigned)desc[i]); */
-
-		if (desc[i] == 0x85) {
-			/* Report ID (always has size 1) */
-			rid          = desc[i + key_len];
-			report_size  = global_report_size;
-			report_count = global_report_count;
-		} else if (key_no_size == 0x74) {
-			/* Report Size */
-			report_size = (size_t)read_hid_field_le(desc + i + key_len, data_len);
-			if (rid == 0) {
-				global_report_size = report_size;
-			}
-		} else if (key_no_size == 0x94) {
-			/* Report Count */
-			report_count = (size_t)read_hid_field_le(desc + i + key_len, data_len);
-			if (rid == 0) {
-				global_report_count = report_count;
-			}
-		} else if (key_no_size == 0x80 || key_no_size == 0x90) {
-			/* (Input) or (Output) Usage Marker - should be at end of report. */
-			size_t  report_bytes;
-			size_t *dest = (key_no_size == 0x80)? max_input : max_output;
-			report_bytes = ((report_size * report_count) + 7) / 8;
-			if (*dest < report_bytes) {
-				*dest = report_bytes;
-			}
-		}
-
-		/* Move past this key and its data. */
-		i += data_len + key_len;
-	}
-
-	return M_TRUE;
-}
-
-
 #if 0 /* TODO: for future use, when we figure out how to do it on all platforms. */
 /* Return the size (in bytes) of a particular report, or 0 if there's an error (unknown report_id, etc.).
  * Passing 0 will return the global report size, if any.
@@ -568,33 +439,6 @@ static size_t hid_get_report_size(const M_uint8 *desc, size_t desc_len, M_uint8 
 	return ((global_report_size * global_report_count) + 7) / 8;
 }
 #endif
-
-
-static M_bool hid_uses_report_descriptors(const unsigned char *desc, size_t len)
-{
-	size_t i = 0;
-
-	while (i < len) {
-		size_t data_len;
-		size_t key_size;
-
-		/* Check for the Report ID key */
-		if (desc[i] == 0x85) {
-			/* There's a report id, therefore it uses reports */
-			return M_TRUE;
-		}
-
-		if (!read_hid_key(desc + i, len - i, &key_size, &data_len)) {
-			return 0;
-		}
-
-		/* Move past this key and its data */
-		i += data_len + key_size;
-	}
-
-	/* Didn't find a Report ID key, must not use report descriptor numbers */
-	return M_FALSE;
-}
 
 
 M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
@@ -691,30 +535,6 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 }
 
 
-static M_io_layer_t *get_top_hid_layer(M_io_t *io)
-{
-	M_io_layer_t  *layer;
-	size_t         layer_idx;
-	size_t         layer_count;
-
-	if (io == NULL) {
-		return NULL;
-	}
-
-	layer       = NULL;
-	layer_count = M_io_layer_count(io);
-	for (layer_idx=layer_count; layer_idx-->0; ) {
-		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
-
-		if (layer != NULL) {
-			break;
-		}
-	}
-
-	return layer;
-}
-
-
 void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *max_output_size)
 {
 	M_io_layer_t  *layer;
@@ -729,7 +549,7 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 		max_output_size = &my_out;
 	}
 
-	layer  = get_top_hid_layer(io);
+	layer  = M_io_hid_get_top_hid_layer(io);
 	handle = M_io_layer_get_handle(layer);
 
 	if (handle == NULL) {
@@ -746,7 +566,7 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 
 char *M_io_hid_get_path(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -761,7 +581,7 @@ char *M_io_hid_get_path(M_io_t *io)
 
 char *M_io_hid_get_manufacturer(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -776,7 +596,7 @@ char *M_io_hid_get_manufacturer(M_io_t *io)
 
 char *M_io_hid_get_product(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -791,7 +611,7 @@ char *M_io_hid_get_product(M_io_t *io)
 
 char *M_io_hid_get_serial(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -806,7 +626,7 @@ char *M_io_hid_get_serial(M_io_t *io)
 
 M_uint16 M_io_hid_get_productid(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 
@@ -821,7 +641,7 @@ M_uint16 M_io_hid_get_productid(M_io_t *io)
 
 M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 

@@ -63,29 +63,6 @@ struct M_io_handle {
 	size_t            max_output_report_size;
 };
 
-static M_io_layer_t *get_top_hid_layer(M_io_t *io)
-{
-	M_io_layer_t  *layer;
-	size_t         layer_idx;
-	size_t         layer_count;
-
-	if (io == NULL) {
-		return NULL;
-	}
-
-	layer       = NULL;
-	layer_count = M_io_layer_count(io);
-	for (layer_idx=layer_count; layer_idx-->0; ) {
-		layer = M_io_layer_acquire(io, layer_idx, M_IO_USB_HID_NAME);
-
-		if (layer != NULL) {
-			break;
-		}
-	}
-
-	return layer;
-}
-
 static void M_io_hid_disassociate_runloop(M_io_handle_t *handle)
 {
 	if (handle->device == NULL)
@@ -527,7 +504,7 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 		max_output_size = &my_out;
 	}
 
-	layer  = get_top_hid_layer(io);
+	layer  = M_io_hid_get_top_hid_layer(io);
 	handle = M_io_layer_get_handle(layer);
 
 	if (handle == NULL) {
@@ -543,7 +520,7 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 
 char *M_io_hid_get_manufacturer(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -557,7 +534,7 @@ char *M_io_hid_get_manufacturer(M_io_t *io)
 
 char *M_io_hid_get_path(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -571,7 +548,7 @@ char *M_io_hid_get_path(M_io_t *io)
 
 char *M_io_hid_get_product(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
@@ -585,7 +562,7 @@ char *M_io_hid_get_product(M_io_t *io)
 
 M_uint16 M_io_hid_get_productid(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 
@@ -599,7 +576,7 @@ M_uint16 M_io_hid_get_productid(M_io_t *io)
 
 M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_uint16       ret    = 0;
 
@@ -613,7 +590,7 @@ M_uint16 M_io_hid_get_vendorid(M_io_t *io)
 
 char *M_io_hid_get_serial(M_io_t *io)
 {
-	M_io_layer_t  *layer  = get_top_hid_layer(io);
+	M_io_layer_t  *layer  = M_io_hid_get_top_hid_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	char          *ret    = NULL;
 
