@@ -35,8 +35,13 @@
 
 JavaVM  *M_io_jni_jvm = NULL;
 
+#ifdef __ANDROID__
+jobject M_io_android_app_context = NULL;
+#endif
 
-#define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET ('A' - 'a')
+
+#define M_IO_JNI_TYPE_ARRAY_VAL_OFFSET (129)
+#define M_IO_JNI_TYPE_FIELD_VAL_OFFSET (M_IO_JNI_TYPE_ARRAY_VAL_OFFSET + 30)
 enum M_IO_JNI_TYPE {
 	M_IO_JNI_UNKNOWN = 0,
 	M_IO_JNI_VOID    = 'V',
@@ -59,12 +64,23 @@ enum M_IO_JNI_TYPE {
 	M_IO_JNI_ARRAY_INT    = M_IO_JNI_INT    + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
 	M_IO_JNI_ARRAY_LONG   = M_IO_JNI_LONG   + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
 	M_IO_JNI_ARRAY_FLOAT  = M_IO_JNI_FLOAT  + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
-	M_IO_JNI_ARRAY_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET
+	M_IO_JNI_ARRAY_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_ARRAY_VAL_OFFSET,
+
+	M_IO_JNI_FIELD_OBJECT = M_IO_JNI_OBJECT + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_BOOL   = M_IO_JNI_BOOL   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_BYTE   = M_IO_JNI_BYTE   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_CHAR   = M_IO_JNI_CHAR   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_SHORT  = M_IO_JNI_SHORT  + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_INT    = M_IO_JNI_INT    + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_LONG   = M_IO_JNI_LONG   + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_FLOAT  = M_IO_JNI_FLOAT  + M_IO_JNI_TYPE_FIELD_VAL_OFFSET,
+	M_IO_JNI_FIELD_DOUBLE = M_IO_JNI_DOUBLE + M_IO_JNI_TYPE_FIELD_VAL_OFFSET
 };
 
 
 typedef struct {
 	jmethodID          methodid;
+	jfieldID           fieldid;
 	jclass             cls;
 	enum M_IO_JNI_TYPE return_type;
 	M_bool             is_static;
@@ -88,38 +104,67 @@ static const struct {
 	const char *signature;
 	M_bool      is_static;
 } M_io_jni_lookups[] = {
-	{ "java/io/InputStream",                     "read",                               NULL,              "([BII)I",                                                                       M_FALSE },
-	{ "java/io/InputStream",                     "available",                          NULL,              "()I",                                                                           M_FALSE },
-	{ "java/io/OutputStream",                    "write",                              NULL,              "([BII)V",                                                                       M_FALSE },
-	{ "java/io/OutputStream",                    "flush",                              NULL,              "()V",                                                                           M_FALSE },
-	{ "java/util/HashMap",                       "get",                                NULL,              "(Ljava/lang/Object;)Ljava/lang/Object;",                                        M_FALSE },
-	{ "java/util/HashMap",                       "keySet",                             NULL,              "()Ljava/util/Set;",                                                             M_FALSE },
-	{ "java/util/HashMap",                       "<init>",                             NULL,              "()V",                                                                           M_FALSE },
-	{ "java/util/HashMap",                       "put",                                NULL,              "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",                      M_FALSE },
-	{ "java/util/Set",                           "toArray",                            NULL,              "()[Ljava/lang/Object;",                                                         M_FALSE },
-	{ "java/util/UUID",                          "fromString",                         NULL,              "(Ljava/lang/String;)Ljava/util/UUID;",                                          M_TRUE  },
+	{ "java/io/InputStream",                      "read",                               NULL,              "([BII)I",                                                                       M_FALSE },
+	{ "java/io/InputStream",                      "available",                          NULL,              "()I",                                                                           M_FALSE },
+	{ "java/io/OutputStream",                     "write",                              NULL,              "([BII)V",                                                                       M_FALSE },
+	{ "java/io/OutputStream",                     "flush",                              NULL,              "()V",                                                                           M_FALSE },
+	{ "java/util/HashMap",                        "get",                                NULL,              "(Ljava/lang/Object;)Ljava/lang/Object;",                                        M_FALSE },
+	{ "java/util/HashMap",                        "keySet",                             NULL,              "()Ljava/util/Set;",                                                             M_FALSE },
+	{ "java/util/HashMap",                        "<init>",                             NULL,              "()V",                                                                           M_FALSE },
+	{ "java/util/HashMap",                        "put",                                NULL,              "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",                      M_FALSE },
+	{ "java/util/Set",                            "toArray",                            NULL,              "()[Ljava/lang/Object;",                                                         M_FALSE },
+	{ "java/util/UUID",                           "fromString",                         NULL,              "(Ljava/lang/String;)Ljava/util/UUID;",                                          M_TRUE  },
 #ifdef __ANDROID__
-	{ "android/os/ParcelUuid",                   "toString",                           NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
-	{ "android/os/ParcelUuid",                   "getUuid",                            NULL,              "()Ljava/util/UUID;",                                                            M_FALSE },
-	{ "android/bluetooth/BluetoothAdapter",      "getDefaultAdapter",                  NULL,              "()Landroid/bluetooth/BluetoothAdapter;",                                        M_TRUE  },
-	{ "android/bluetooth/BluetoothAdapter",      "isEnabled",                          NULL,              "()Z",                                                                           M_FALSE },
-	{ "android/bluetooth/BluetoothAdapter",      "getBondedDevices",                   NULL,              "()Ljava/util/Set;",                                                             M_FALSE },
-	{ "android/bluetooth/BluetoothAdapter",      "checkBluetoothAddress",              NULL,              "(Ljava/lang/String;)Z",                                                         M_TRUE  },
-	{ "android/bluetooth/BluetoothAdapter",      "cancelDiscovery",                    NULL,              "()Z",                                                                           M_FALSE },
-	{ "android/bluetooth/BluetoothAdapter",      "getRemoteDevice",                    NULL,              "(Ljava/lang/String;)Landroid/bluetooth/BluetoothDevice;",                       M_FALSE },
-	{ "android/bluetooth/BluetoothAdapter",      "listenUsingRfcommWithServiceRecord", NULL,              "(Ljava/lang/String;Ljava/util/UUID;)Landroid/bluetooth/BluetoothServerSocket;", M_FALSE },
-	{ "android/bluetooth/BluetoothDevice",       "getName",                            NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
-	{ "android/bluetooth/BluetoothDevice",       "getAddress",                         NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
-	{ "android/bluetooth/BluetoothDevice",       "getUuids",                           NULL,              "()[Landroid/os/ParcelUuid;",                                                    M_FALSE },
-	{ "android/bluetooth/BluetoothDevice",       "createRfcommSocketToServiceRecord",  NULL,              "(Ljava/util/UUID;)Landroid/bluetooth/BluetoothSocket;",                         M_FALSE },
-	{ "android/bluetooth/BluetoothServerSocket", "accept",                             NULL,              "()Landroid/bluetooth/BluetoothSocket;",                                         M_FALSE },
-	{ "android/bluetooth/BluetoothServerSocket", "accept",                             "accept(timeout)", "(I)Landroid/bluetooth/BluetoothSocket;",                                        M_FALSE },
-	{ "android/bluetooth/BluetoothSocket",       "connect",                            NULL,              "()V",                                                                           M_FALSE },
-	{ "android/bluetooth/BluetoothSocket",       "close",                              NULL,              "()V",                                                                           M_FALSE },
-	{ "android/bluetooth/BluetoothSocket",       "getInputStream",                     NULL,              "()Ljava/io/InputStream;",                                                       M_FALSE },
-	{ "android/bluetooth/BluetoothSocket",       "getOutputStream",                    NULL,              "()Ljava/io/OutputStream;",                                                      M_FALSE },
+	{ "android/os/ParcelUuid",                    "toString",                           NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/os/ParcelUuid",                    "getUuid",                            NULL,              "()Ljava/util/UUID;",                                                            M_FALSE },
+	{ "android/bluetooth/BluetoothAdapter",       "getDefaultAdapter",                  NULL,              "()Landroid/bluetooth/BluetoothAdapter;",                                        M_TRUE  },
+	{ "android/bluetooth/BluetoothAdapter",       "isEnabled",                          NULL,              "()Z",                                                                           M_FALSE },
+	{ "android/bluetooth/BluetoothAdapter",       "getBondedDevices",                   NULL,              "()Ljava/util/Set;",                                                             M_FALSE },
+	{ "android/bluetooth/BluetoothAdapter",       "checkBluetoothAddress",              NULL,              "(Ljava/lang/String;)Z",                                                         M_TRUE  },
+	{ "android/bluetooth/BluetoothAdapter",       "cancelDiscovery",                    NULL,              "()Z",                                                                           M_FALSE },
+	{ "android/bluetooth/BluetoothAdapter",       "getRemoteDevice",                    NULL,              "(Ljava/lang/String;)Landroid/bluetooth/BluetoothDevice;",                       M_FALSE },
+	{ "android/bluetooth/BluetoothAdapter",       "listenUsingRfcommWithServiceRecord", NULL,              "(Ljava/lang/String;Ljava/util/UUID;)Landroid/bluetooth/BluetoothServerSocket;", M_FALSE },
+	{ "android/bluetooth/BluetoothDevice",        "getName",                            NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/bluetooth/BluetoothDevice",        "getAddress",                         NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/bluetooth/BluetoothDevice",        "getUuids",                           NULL,              "()[Landroid/os/ParcelUuid;",                                                    M_FALSE },
+	{ "android/bluetooth/BluetoothDevice",        "createRfcommSocketToServiceRecord",  NULL,              "(Ljava/util/UUID;)Landroid/bluetooth/BluetoothSocket;",                         M_FALSE },
+	{ "android/bluetooth/BluetoothServerSocket",  "accept",                             NULL,              "()Landroid/bluetooth/BluetoothSocket;",                                         M_FALSE },
+	{ "android/bluetooth/BluetoothServerSocket",  "accept",                             "accept(timeout)", "(I)Landroid/bluetooth/BluetoothSocket;",                                        M_FALSE },
+	{ "android/bluetooth/BluetoothSocket",        "connect",                            NULL,              "()V",                                                                           M_FALSE },
+	{ "android/bluetooth/BluetoothSocket",        "close",                              NULL,              "()V",                                                                           M_FALSE },
+	{ "android/bluetooth/BluetoothSocket",        "getInputStream",                     NULL,              "()Ljava/io/InputStream;",                                                       M_FALSE },
+	{ "android/bluetooth/BluetoothSocket",        "getOutputStream",                    NULL,              "()Ljava/io/OutputStream;",                                                      M_FALSE },
+	{ "android/content/Context",                  "getSystemService",                   NULL,              "(Ljava/lang/String;)Ljava/lang/Object;",                                        M_FALSE },
+	{ "android/content/Context",                  "USB_SERVICE",                        NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
+	{ "android/content/Context",                  "CONNECTIVITY_SERVICE",               NULL,              "Ljava/lang/String;",                                                            M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",        "USB_CLASS_HID",                      NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",        "USB_CLASS_PER_INTERFACE",            NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",        "USB_DIR_IN",                         NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",        "USB_DIR_OUT",                        NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbConstants",        "USB_ENDPOINT_XFER_INT",              NULL,              "I",                                                                             M_TRUE  },
+	{ "android/hardware/usb/UsbManager",          "getDeviceList",                      NULL,              "()Ljava/util/HashMap;",                                                         M_FALSE },
+	{ "android/hardware/usb/UsbManager",          "openDevice",                         NULL,              "(Landroid/hardware/usb/UsbDevice;)Landroid/hardware/usb/UsbDeviceConnection;",  M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getDeviceClass",                     NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getDeviceName",                      NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getManufacturerName",                NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getProductId",                       NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getProductName",                     NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getSerialNumber",                    NULL,              "()Ljava/lang/String;",                                                          M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getVendorId",                        NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getInterfaceCount",                  NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDevice",           "getInterface",                       NULL,              "(I)Landroid/hardware/usb/UsbInterface;",                                        M_FALSE },
+	{ "android/hardware/usb/UsbInterface",        "getInterfaceClass",                  NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbInterface",        "getEndpointCount",                   NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbInterface",        "getEndpoint",                        NULL,              "(I)Landroid/hardware/usb/UsbEndpoint;",                                         M_FALSE },
+	{ "android/hardware/usb/UsbEndpoint",         "getDirection",                       NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbEndpoint",         "getType",                            NULL,              "()I",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "claimInterface",                     NULL,              "(Landroid/hardware/usb/UsbInterface;Z)Z",                                       M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "releaseInterface",                   NULL,              "(Landroid/hardware/usb/UsbInterface;)Z",                                        M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "close",                              NULL,              "()V",                                                                           M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "bulkTransfer",                       NULL,              "(Landroid/hardware/usb/UsbEndpoint;[BII)I",                                     M_FALSE },
+	{ "android/hardware/usb/UsbDeviceConnection", "controlTransfer",                    NULL,              "(IIII[BII)I",                                                                   M_FALSE },
 #endif
-	{ NULL,                                      NULL,                                 NULL,              NULL,                                                                            M_FALSE }
+	{ NULL,                                       NULL,                                 NULL,              NULL,                                                                            M_FALSE }
 };
 
 
@@ -145,12 +190,22 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 {
 	const char        *ptr;
 	enum M_IO_JNI_TYPE type;
+	M_bool             isfield = M_FALSE;
 
-	ptr = M_str_chr(signature, ')');
-	if (ptr == NULL)
+	if (M_str_isempty(signature))
 		return M_IO_JNI_UNKNOWN;
 
-	ptr++;
+	ptr = M_str_chr(signature, ')');
+	if (ptr != NULL) {
+		/* Move past the function enclosure. */
+		ptr++;
+	} else {
+		/* No () then this is a field. */
+		ptr     = signature;
+		isfield = M_TRUE;
+	}
+
+	/* Determine the type. */
 	switch (*ptr) {
 		case M_IO_JNI_VOID:
 		case M_IO_JNI_OBJECT:
@@ -169,6 +224,27 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 			return M_IO_JNI_UNKNOWN;
 	}
 
+	if (isfield) {
+		switch (type) {
+			case M_IO_JNI_OBJECT:
+			case M_IO_JNI_BOOL:
+			case M_IO_JNI_BYTE:
+			case M_IO_JNI_CHAR:
+			case M_IO_JNI_SHORT:
+			case M_IO_JNI_INT:
+			case M_IO_JNI_LONG:
+			case M_IO_JNI_FLOAT:
+			case M_IO_JNI_DOUBLE:
+				type += M_IO_JNI_TYPE_FIELD_VAL_OFFSET;
+				break;
+			default:
+				/* Void and Array are not allowed for fields.
+ 				 * We might allow Array in the future. */
+				return M_IO_JNI_UNKNOWN;
+		}
+	}
+
+	/* For arrays we need to determine the array type. */
 	if (type == M_IO_JNI_ARRAY) {
 		ptr++;
 		switch (*ptr) {
@@ -187,14 +263,20 @@ static enum M_IO_JNI_TYPE M_io_jni_sig_return_type(const char *signature)
 				return M_IO_JNI_UNKNOWN;
 		}
 	}
+
 	return type;
 }
 
 
 static M_bool M_io_jni_sig_arg_count(const char *signature, size_t *cnt)
 {
-	if (cnt == NULL || M_str_isempty(signature) || *signature != '(')
+	if (cnt == NULL || M_str_isempty(signature))
 		return M_FALSE;
+
+	if (*signature != '(') {
+		(*cnt) = 0;
+		return M_TRUE;
+	}
 
 	/* Skip past opening '(' */
 	signature++;
@@ -261,6 +343,12 @@ JNIEnv *M_io_jni_getenv(void)
 	}
 	/* JNI_OK */
 	return env;
+}
+
+
+jobject M_io_jni_get_android_app_context(void)
+{
+	return M_io_android_app_context;
 }
 
 
@@ -389,9 +477,10 @@ static M_bool M_io_jni_register_funcs(void)
 
 	for (i=0; M_io_jni_lookups[i].class != NULL; i++) {
 		jclass             cls;
-		jmethodID          mid;
+		jmethodID          mid         = NULL;
+		jfieldID           fid         = NULL;
 		enum M_IO_JNI_TYPE return_type;
-		size_t             argc;
+		size_t             argc        = 0;
 		M_io_jni_method_t *method;
 		char               temp[256];
 		char               error[256];
@@ -404,7 +493,7 @@ static M_bool M_io_jni_register_funcs(void)
 			continue;
 		}
 
-		/* Locate Method */
+		/* Locate Method/Field */
 		return_type = M_io_jni_sig_return_type(M_io_jni_lookups[i].signature);
 		if (return_type == M_IO_JNI_UNKNOWN) {
 			M_io_jni_debug("Failed to parse return type signature for method %s::%s with signature %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
@@ -412,30 +501,62 @@ static M_bool M_io_jni_register_funcs(void)
 			continue;
 		}
 
-		if (!M_io_jni_sig_arg_count(M_io_jni_lookups[i].signature, &argc)) {
-			M_io_jni_debug("Failed to parse argc signature for method %s::%s with signature %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			is_error = M_TRUE;
-			continue;
-		}
+		switch (return_type) {
+			case M_IO_JNI_FIELD_OBJECT:
+			case M_IO_JNI_FIELD_BOOL:
+			case M_IO_JNI_FIELD_BYTE:
+			case M_IO_JNI_FIELD_CHAR:
+			case M_IO_JNI_FIELD_SHORT:
+			case M_IO_JNI_FIELD_INT:
+			case M_IO_JNI_FIELD_LONG:
+			case M_IO_JNI_FIELD_FLOAT:
+			case M_IO_JNI_FIELD_DOUBLE:
+				if (M_io_jni_lookups[i].is_static) {
+					fid = (*env)->GetStaticFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				} else {
+					fid = (*env)->GetFieldID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				}
+				if (M_io_jni_handle_exception(env, error, sizeof(error))) {
+					M_io_jni_debug("GetFieldID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
+					fid = NULL;
+				}
 
-		if (M_io_jni_lookups[i].is_static) {
-			mid = (*env)->GetStaticMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-		} else {
-			mid = (*env)->GetMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-		}
-		if (M_io_jni_handle_exception(env, error, sizeof(error))) {
-			M_io_jni_debug("GetMethodID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
-			mid = NULL;
-		}
+				if (fid == NULL) {
+					M_io_jni_debug("Failed to find %sfield %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
+				break;
 
-		if (mid == NULL) {
-			M_io_jni_debug("Failed to find %smethod %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
-			is_error = M_TRUE;
-			continue;
+			/* Methods. */
+			default:
+				if (!M_io_jni_sig_arg_count(M_io_jni_lookups[i].signature, &argc)) {
+					M_io_jni_debug("Failed to parse argc signature for method %s::%s with signature %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
+
+				if (M_io_jni_lookups[i].is_static) {
+					mid = (*env)->GetStaticMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				} else {
+					mid = (*env)->GetMethodID(env, cls, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+				}
+				if (M_io_jni_handle_exception(env, error, sizeof(error))) {
+					M_io_jni_debug("GetMethodID for %s::%s with signature %s threw exception: %s", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature, error);
+					mid = NULL;
+				}
+
+				if (mid == NULL) {
+					M_io_jni_debug("Failed to find %smethod %s::%s with signature %s", M_io_jni_lookups[i].is_static?"static ":"", M_io_jni_lookups[i].class, M_io_jni_lookups[i].method, M_io_jni_lookups[i].signature);
+					is_error = M_TRUE;
+					continue;
+				}
+				break;
 		}
 
 		method              = M_malloc_zero(sizeof(*method));
 		method->methodid    = mid;
+		method->fieldid     = fid;
 		method->cls         = cls;
 		method->is_static   = M_io_jni_lookups[i].is_static;
 		method->return_type = return_type;
@@ -478,6 +599,12 @@ static void M_io_jni_detach(void)
 static void M_io_jni_deinit(void *arg)
 {
 	(void)arg;
+
+#ifdef __ANDROID__
+	M_io_jni_delete_globalref(NULL, &M_io_android_app_context);
+	M_io_android_app_context = NULL;
+#endif
+
 	M_hash_strvp_destroy(M_io_jni_ref.classes, M_TRUE);
 	M_hash_strvp_destroy(M_io_jni_ref.methods, M_TRUE);
 	M_hash_u64str_destroy(M_io_jni_threads);
@@ -513,29 +640,48 @@ M_bool M_io_jni_init(JavaVM *jvm)
 }
 
 
-M_bool M_io_jni_android_init(jobject connectivity_manager)
+M_bool M_io_jni_android_init(jobject app_context)
 {
 #ifndef __ANDROID__
 	return M_FALSE;
 #else
-	int ret;
-
-	if (ares_library_android_initialized() == ARES_SUCCESS)
-		return M_TRUE;
+	JNIEnv  *env;
+	jobject  service;
+	jstring  sname;
+	int      ret;
 
 	if (M_io_jni_jvm == NULL)
 		return M_FALSE;
 
-	ares_library_init_jvm(M_io_jni_jvm);
-	ret = ares_library_init_android(connectivity_manager);
-	if (ret != ARES_SUCCESS)
+	env = M_io_jni_getenv();
+	if (env == NULL)
 		return M_FALSE;
+
+	/* Store Application Context. */
+	M_io_android_app_context = M_io_jni_create_globalref(env, app_context);
+
+	/* Init C-Ares. (Needs connectivity manager). */
+	if (ares_library_android_initialized() != ARES_SUCCESS) {
+		ares_library_init_jvm(M_io_jni_jvm);
+
+		if (!M_io_jni_call_jobjectField(&sname, NULL, 0, env, NULL, "android/content/Context.CONNECTIVITY_SERVICE") || sname == NULL)
+			return M_FALSE;
+
+		if (!M_io_jni_call_jobject(&service, NULL, 0, env, app_context, "android/content/Context.getSystemService", 1, sname) || service == NULL)
+			return M_FALSE;
+
+		ret = ares_library_init_android(service);
+		if (ret != ARES_SUCCESS) {
+			return M_FALSE;
+		}
+	}
+
 	return M_TRUE;
 #endif
 }
 
 
-static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, va_list ap)
+static M_bool M_io_jni_call_ap(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, va_list ap)
 {
 	M_io_jni_method_t *m;
 	char               temp[256];
@@ -592,6 +738,33 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 
 	if (m->is_static) {
 		switch (m->return_type) {
+			case M_IO_JNI_FIELD_OBJECT:
+				*((jobject *)rv) = (*env)->GetStaticObjectField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BOOL:
+				*((jboolean *)rv) = (*env)->GetStaticBooleanField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BYTE:
+				*((jbyte *)rv) = (*env)->GetStaticByteField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_CHAR:
+				*((jchar *)rv) = (*env)->GetStaticCharField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_SHORT:
+				*((jshort *)rv) = (*env)->GetStaticShortField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_INT:
+				*((jint *)rv) = (*env)->GetStaticIntField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_LONG:
+				*((jlong *)rv) = (*env)->GetStaticLongField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_FLOAT:
+				*((jfloat *)rv) = (*env)->GetStaticFloatField(env, m->cls, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_DOUBLE:
+				*((jdouble *)rv) = (*env)->GetStaticDoubleField(env, m->cls, m->fieldid);
+				break;
 			case M_IO_JNI_VOID:
 				(*env)->CallStaticVoidMethodV(env, m->cls, m->methodid, ap);
 				break;
@@ -626,6 +799,33 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 		}
 	} else {
 		switch (m->return_type) {
+			case M_IO_JNI_FIELD_OBJECT:
+				*((jobject *)rv) = (*env)->GetObjectField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BOOL:
+				*((jboolean *)rv) = (*env)->GetBooleanField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_BYTE:
+				*((jbyte *)rv) = (*env)->GetByteField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_CHAR:
+				*((jchar *)rv) = (*env)->GetCharField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_SHORT:
+				*((jshort *)rv) = (*env)->GetShortField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_INT:
+				*((jint *)rv) = (*env)->GetIntField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_LONG:
+				*((jlong *)rv) = (*env)->GetLongField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_FLOAT:
+				*((jfloat *)rv) = (*env)->GetFloatField(env, classobj, m->fieldid);
+				break;
+			case M_IO_JNI_FIELD_DOUBLE:
+				*((jdouble *)rv) = (*env)->GetDoubleField(env, classobj, m->fieldid);
+				break;
 			case M_IO_JNI_VOID:
 				(*env)->CallVoidMethodV(env, classobj, m->methodid, ap);
 				break;
@@ -670,18 +870,29 @@ static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, s
 }
 
 
+static M_bool M_io_jni_call(void *rv, enum M_IO_JNI_TYPE rv_type, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...)
+{
+	M_bool   ret;
+	va_list  ap;
+
+	va_start(ap, argc);
+	ret = M_io_jni_call_ap(rv, rv_type, error, error_len, env, classobj, method, argc, ap);
+	va_end(ap);
+
+	return ret;
+}
+
 M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...)
 {
 	M_bool   ret;
 	va_list  ap;
 
 	va_start(ap, argc);
-	ret = M_io_jni_call(NULL, M_IO_JNI_VOID, error, error_len, env, classobj, method, argc, ap);
+	ret = M_io_jni_call_ap(NULL, M_IO_JNI_VOID, error, error_len, env, classobj, method, argc, ap);
 	va_end(ap);
 
 	return ret;
 }
-
 
 #define M_IO_JNI_CALL_TYPE_FUNC(type, id) \
 	M_bool M_io_jni_call_##type(type *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc, ...) \
@@ -695,7 +906,7 @@ M_bool M_io_jni_call_jvoid(char *error, size_t error_len, JNIEnv *env, jobject c
 		*rv = (type)0; \
 		\
 		va_start(ap, argc); \
-		ret = M_io_jni_call((void *)rv, id, error, error_len, env, classobj, method, argc, ap); \
+		ret = M_io_jni_call_ap((void *)rv, id, error, error_len, env, classobj, method, argc, ap); \
 		va_end(ap); \
 		\
 		return ret; \
@@ -718,6 +929,29 @@ M_IO_JNI_CALL_TYPE_FUNC(jlongArray, M_IO_JNI_ARRAY_LONG)
 M_IO_JNI_CALL_TYPE_FUNC(jfloatArray, M_IO_JNI_ARRAY_FLOAT)
 M_IO_JNI_CALL_TYPE_FUNC(jdoubleArray, M_IO_JNI_ARRAY_DOUBLE)
 
+#define M_IO_JNI_CALL_TYPE_FIELD(type, id) \
+	M_bool M_io_jni_call_##type##Field(type *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method) \
+	{ \
+		M_bool ret; \
+		\
+		if (rv == NULL) \
+			return M_FALSE; \
+		\
+		*rv = (type)0; \
+		\
+		ret = M_io_jni_call((void *)rv, id, error, error_len, env, classobj, method, 0); \
+		\
+		return ret; \
+	}
+
+M_IO_JNI_CALL_TYPE_FIELD(jobject, M_IO_JNI_FIELD_OBJECT)
+M_IO_JNI_CALL_TYPE_FIELD(jbyte, M_IO_JNI_FIELD_BYTE)
+M_IO_JNI_CALL_TYPE_FIELD(jboolean, M_IO_JNI_FIELD_BOOL)
+M_IO_JNI_CALL_TYPE_FIELD(jchar, M_IO_JNI_FIELD_CHAR)
+M_IO_JNI_CALL_TYPE_FIELD(jint, M_IO_JNI_FIELD_INT)
+M_IO_JNI_CALL_TYPE_FIELD(jlong, M_IO_JNI_FIELD_LONG)
+M_IO_JNI_CALL_TYPE_FIELD(jfloat, M_IO_JNI_FIELD_FLOAT)
+M_IO_JNI_CALL_TYPE_FIELD(jdouble, M_IO_JNI_FIELD_DOUBLE)
 
 M_bool M_io_jni_new_object(jobject *rv, char *error, size_t error_len, JNIEnv *env, const char *method, size_t argc, ...)
 {
