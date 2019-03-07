@@ -107,10 +107,12 @@ $(document).ready(function(){initNavTree('group__m__io__jni.html','');});
 Functions</h2></td></tr>
 <tr class="memitem:ga14f87264c43ed0bb657bd224b5fea176"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga14f87264c43ed0bb657bd224b5fea176">M_io_jni_init</a> (JavaVM *Jvm)</td></tr>
 <tr class="separator:ga14f87264c43ed0bb657bd224b5fea176"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac9a07d12485dabfd64a38dd6cc64e5f8"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gac9a07d12485dabfd64a38dd6cc64e5f8">M_io_jni_android_init</a> (jobject connectivity_manager)</td></tr>
-<tr class="separator:gac9a07d12485dabfd64a38dd6cc64e5f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaae5dae9faf6cbf078bc20f76fceec5b1"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gaae5dae9faf6cbf078bc20f76fceec5b1">M_io_jni_android_init</a> (jobject app_context)</td></tr>
+<tr class="separator:gaae5dae9faf6cbf078bc20f76fceec5b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacc8796d93ef5f2a79c1f09c06738f02d"><td class="memItemLeft" align="right" valign="top">JNIEnv *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gacc8796d93ef5f2a79c1f09c06738f02d">M_io_jni_getenv</a> (void)</td></tr>
 <tr class="separator:gacc8796d93ef5f2a79c1f09c06738f02d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf09fe055d2703fdeff18c02187daca02"><td class="memItemLeft" align="right" valign="top">jobject&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gaf09fe055d2703fdeff18c02187daca02">M_io_jni_get_android_app_context</a> (void)</td></tr>
+<tr class="separator:gaf09fe055d2703fdeff18c02187daca02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga25e6ef10c73b9afaee79f9da10d6e2c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga25e6ef10c73b9afaee79f9da10d6e2c8">M_io_jni_debug</a> (const char *fmt,...)</td></tr>
 <tr class="separator:ga25e6ef10c73b9afaee79f9da10d6e2c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae1af884362893a89d88bef50e9202759"><td class="memItemLeft" align="right" valign="top">jclass&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gae1af884362893a89d88bef50e9202759">M_io_jni_find_class</a> (JNIEnv *env, const char *path)</td></tr>
@@ -173,6 +175,22 @@ Functions</h2></td></tr>
 <tr class="separator:ga8506fe4a9abdea0df8bc26d19ce16a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga209f654cce0c3c17d43063d15e32910e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga209f654cce0c3c17d43063d15e32910e">M_io_jni_call_jdoubleArray</a> (jdoubleArray *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc,...)</td></tr>
 <tr class="separator:ga209f654cce0c3c17d43063d15e32910e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1864c6cd3c9bf8b1586be16def3b062b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField</a> (jobject *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga1864c6cd3c9bf8b1586be16def3b062b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga543ba34bd716947cfd356b941e5cf7d7"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga543ba34bd716947cfd356b941e5cf7d7">M_io_jni_call_jbyteField</a> (jbyte *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga543ba34bd716947cfd356b941e5cf7d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga251efe6e0a0b84369ba3665867c92626"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga251efe6e0a0b84369ba3665867c92626">M_io_jni_call_jbooleanField</a> (jboolean *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga251efe6e0a0b84369ba3665867c92626"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga68570258f9950ca93f43c677c52eeccd"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga68570258f9950ca93f43c677c52eeccd">M_io_jni_call_jcharField</a> (jchar *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga68570258f9950ca93f43c677c52eeccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacc79bf1cb6d22c5ad12d4ecbd1ad33de"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gacc79bf1cb6d22c5ad12d4ecbd1ad33de">M_io_jni_call_jintField</a> (jint *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:gacc79bf1cb6d22c5ad12d4ecbd1ad33de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7445c3c8b8c3af1271d9ad356fdbf72e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga7445c3c8b8c3af1271d9ad356fdbf72e">M_io_jni_call_jlongField</a> (jlong *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga7445c3c8b8c3af1271d9ad356fdbf72e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga435a4ed4ced7361a280cd9fb8bd9b042"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga435a4ed4ced7361a280cd9fb8bd9b042">M_io_jni_call_jfloatField</a> (jfloat *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga435a4ed4ced7361a280cd9fb8bd9b042"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga01f5ddd82573c69bf443357cc861cfec"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga01f5ddd82573c69bf443357cc861cfec">M_io_jni_call_jdoubleField</a> (jdouble *rv, char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *field)</td></tr>
+<tr class="separator:ga01f5ddd82573c69bf443357cc861cfec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Included using the semi-public header of &lt;<a class="el" href="m__io__jni_8h_source.html">mstdlib/io/m_io_jni.h</a>&gt; This is not included by default because it is considered a stable API.</p>
@@ -204,7 +222,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gac9a07d12485dabfd64a38dd6cc64e5f8"></a>
+<a class="anchor" id="gaae5dae9faf6cbf078bc20f76fceec5b1"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -212,17 +230,18 @@ Functions</h2></td></tr>
           <td class="memname">M_bool M_io_jni_android_init </td>
           <td>(</td>
           <td class="paramtype">jobject&#160;</td>
-          <td class="paramname"><em>connectivity_manager</em></td><td>)</td>
+          <td class="paramname"><em>app_context</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Initialization function to initialize the io system for use on Android.</p>
 <p>M_io_jni_init must be called before this function. This should only be called when building for Android.</p>
+<p>This function must be called in order to use USB-HID devices.</p>
 <p>This function must be called before DNS resolution will work on Android 8 (Oreo) or newer when built targeting SDK 26. Also, the ACCESS_NETWORK_STATE permission must be present in the Android application.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">connectivity_manager</td><td>Android connectivity manager. Can be accessed in Java from a Context like so: (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">connectivity_manager</td><td>Android application context. Can be accessed in Java from like so: getApplicationContext().</td></tr>
   </table>
   </dd>
 </dl>
@@ -246,6 +265,25 @@ Functions</h2></td></tr>
 <p>Retrieve JNI Environment Handle for current thread.</p>
 <p>If thread is not currently assigned a handle, a new one will be created, otherwise the existing handle will be returned.</p>
 <dl class="section return"><dt>Returns</dt><dd>JNI Environment Handle or NULL on error </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf09fe055d2703fdeff18c02187daca02"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">jobject M_io_jni_get_android_app_context </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve Android Applilcation Contect.</p>
+<p>M_io_jni_android_init must be called to set the context.</p>
+<dl class="section return"><dt>Returns</dt><dd>Application Context </dd></dl>
 
 </div>
 </div>
@@ -1892,12 +1930,438 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga1864c6cd3c9bf8b1586be16def3b062b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jobjectField </td>
+          <td>(</td>
+          <td class="paramtype">jobject *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jobject. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">rv</td><td>Returned value, passed by reference. Returned object should be released using <a class="el" href="group__m__io__jni.html#ga049592328e1de0bdfd75a116af93c608">M_io_jni_deletelocalref()</a> when no longer needed. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">error</td><td>Optional. Buffer to hold error message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error_len</td><td>Error buffer size. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. Java JNI Environment. If not passed will request it from the JVM. Passing it is an optimization. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">classobj</td><td>Class object to call method on. If the method being called is static, this parameter will be ignored, so should be passed as NULL. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">field</td><td>The field to be called. The field should be in the form of "path/to/class.field", and must have been one of the fields in the global initialization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the method was called successfully, M_FALSE if there was a usage error or exception. A value of M_TRUE doesn't mean the returned object was populated, the call may have resulted in an error that didn't raise an exception. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga543ba34bd716947cfd356b941e5cf7d7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jbyteField </td>
+          <td>(</td>
+          <td class="paramtype">jbyte *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jbyte.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga251efe6e0a0b84369ba3665867c92626"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jbooleanField </td>
+          <td>(</td>
+          <td class="paramtype">jboolean *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jboolean.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga68570258f9950ca93f43c677c52eeccd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jcharField </td>
+          <td>(</td>
+          <td class="paramtype">jchar *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jchar.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="gacc79bf1cb6d22c5ad12d4ecbd1ad33de"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jintField </td>
+          <td>(</td>
+          <td class="paramtype">jint *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jint.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga7445c3c8b8c3af1271d9ad356fdbf72e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jlongField </td>
+          <td>(</td>
+          <td class="paramtype">jlong *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jlong.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga435a4ed4ced7361a280cd9fb8bd9b042"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jfloatField </td>
+          <td>(</td>
+          <td class="paramtype">jfloat *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jfloat.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga01f5ddd82573c69bf443357cc861cfec"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_jni_call_jdoubleField </td>
+          <td>(</td>
+          <td class="paramtype">jdouble *&#160;</td>
+          <td class="paramname"><em>rv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jobject&#160;</td>
+          <td class="paramname"><em>classobj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Call an object field that returns a jdouble.</p>
+<p>See <a class="el" href="group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b">M_io_jni_call_jobjectField()</a> for usage information. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Feb 19 2019 15:35:02 for Mstdlib-1.5.0 by
+    <li class="footer">Generated on Thu Mar 7 2019 15:28:18 for Mstdlib-1.5.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

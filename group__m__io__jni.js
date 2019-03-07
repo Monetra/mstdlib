@@ -1,8 +1,9 @@
 var group__m__io__jni =
 [
     [ "M_io_jni_init", "group__m__io__jni.html#ga14f87264c43ed0bb657bd224b5fea176", null ],
-    [ "M_io_jni_android_init", "group__m__io__jni.html#gac9a07d12485dabfd64a38dd6cc64e5f8", null ],
+    [ "M_io_jni_android_init", "group__m__io__jni.html#gaae5dae9faf6cbf078bc20f76fceec5b1", null ],
     [ "M_io_jni_getenv", "group__m__io__jni.html#gacc8796d93ef5f2a79c1f09c06738f02d", null ],
+    [ "M_io_jni_get_android_app_context", "group__m__io__jni.html#gaf09fe055d2703fdeff18c02187daca02", null ],
     [ "M_io_jni_debug", "group__m__io__jni.html#ga25e6ef10c73b9afaee79f9da10d6e2c8", null ],
     [ "M_io_jni_find_class", "group__m__io__jni.html#gae1af884362893a89d88bef50e9202759", null ],
     [ "M_io_jni_jhashmap_to_mhashdict", "group__m__io__jni.html#gae3f2b5d23fd2885fb9bec51d967d2513", null ],
@@ -33,5 +34,13 @@ var group__m__io__jni =
     [ "M_io_jni_call_jintArray", "group__m__io__jni.html#ga2b82b08ef43e2d315935df7e43a6f22f", null ],
     [ "M_io_jni_call_jlongArray", "group__m__io__jni.html#ga81795761f21cd2e117a969ba66fc7cdb", null ],
     [ "M_io_jni_call_jfloatArray", "group__m__io__jni.html#ga8506fe4a9abdea0df8bc26d19ce16a98", null ],
-    [ "M_io_jni_call_jdoubleArray", "group__m__io__jni.html#ga209f654cce0c3c17d43063d15e32910e", null ]
+    [ "M_io_jni_call_jdoubleArray", "group__m__io__jni.html#ga209f654cce0c3c17d43063d15e32910e", null ],
+    [ "M_io_jni_call_jobjectField", "group__m__io__jni.html#ga1864c6cd3c9bf8b1586be16def3b062b", null ],
+    [ "M_io_jni_call_jbyteField", "group__m__io__jni.html#ga543ba34bd716947cfd356b941e5cf7d7", null ],
+    [ "M_io_jni_call_jbooleanField", "group__m__io__jni.html#ga251efe6e0a0b84369ba3665867c92626", null ],
+    [ "M_io_jni_call_jcharField", "group__m__io__jni.html#ga68570258f9950ca93f43c677c52eeccd", null ],
+    [ "M_io_jni_call_jintField", "group__m__io__jni.html#gacc79bf1cb6d22c5ad12d4ecbd1ad33de", null ],
+    [ "M_io_jni_call_jlongField", "group__m__io__jni.html#ga7445c3c8b8c3af1271d9ad356fdbf72e", null ],
+    [ "M_io_jni_call_jfloatField", "group__m__io__jni.html#ga435a4ed4ced7361a280cd9fb8bd9b042", null ],
+    [ "M_io_jni_call_jdoubleField", "group__m__io__jni.html#ga01f5ddd82573c69bf443357cc861cfec", null ]
 ];
