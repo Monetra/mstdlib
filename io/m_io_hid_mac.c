@@ -42,6 +42,7 @@ struct M_io_handle {
 	size_t            report_len; /*!< Size of the report buffer. */
 	M_bool            uses_reportid;
 	M_bool            run;
+	M_bool            started;    /*!< Has the handle run through the init process and had processing threads started. */
 	M_threadid_t      write_tid;
 	M_thread_mutex_t *write_lock;
 	M_thread_cond_t  *write_cond;
@@ -743,16 +744,26 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 
+	if (handle->device == NULL)
+		return M_FALSE;
+
+	handle->io = io;
+
+	if (handle->started) {
+		/* Trigger connected soft event when registered with event handle */
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+		/* Trigger read event if there is data present. */
+		if (M_buf_len(handle->readbuf) != 0) {
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		}
+		return M_TRUE;
+	}
+
 	/* Start the global macOS runloop if hasn't already been
  	 * started. The HID system uses a macOS runloop for event
 	 * processing and calls our callbacks which trigger events
 	 * in our event system. */
 	M_io_mac_runloop_start();
-
-	if (handle->device == NULL)
-		return M_FALSE;
-
-	handle->io = io;
 
 	/* Register event callbacks and associate the device with the macOS runloop. */
 	IOHIDDeviceRegisterRemovalCallback(handle->device, M_io_hid_disconnect_iocb, handle);
@@ -761,5 +772,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 
 	/* Trigger connected soft event when registered with event handle */
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+
+	handle->started = M_TRUE;
 	return M_TRUE;
 }
