@@ -10,7 +10,7 @@ library was found to be so useful internally that in 2017 it was decided to
 release it to the public as open source. Please see the LICENSE file.
 
 To avoid trademark issues the "m" in mstdlib just stands for the letter M. It
-does not stand for Monetra nor Main Street Softworks.  Though some day we may
+does not stand for Monetra nor any other name starting with M. Though some day we may
 become more clever with the meaning of M. (maybe "Mighty")?
 
 

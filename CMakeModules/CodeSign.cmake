@@ -58,10 +58,10 @@
 #
 # On MacOS, the name passed to M_SIGN_CERT_NAME should match all or part of the "Common Name" field in the certificate.
 # Examples of certificate names:
-#    "iPhone Distribution: Main Street Softworks, Inc."
+#    "iPhone Distribution: Monetra Technologies, LLC."
 #    "Mac Developer: John Smith" (Used for testing and development on personal machine)
-#    "3rd Party Mac Developer Application: Main Street Softworks, Inc." (ONLY USE FOR APP STORE)
-#    "Developer ID Application: Main Street Softworks, Inc." (USE FOR DIRECT DISTRIBUTION OUTSIDE THE APP STORE)
+#    "3rd Party Mac Developer Application: Monetra Technologies, LLC." (ONLY USE FOR APP STORE)
+#    "Developer ID Application: Monetra Technologies, LLC." (USE FOR DIRECT DISTRIBUTION OUTSIDE THE APP STORE)
 #
 # If there is only one certificate loaded on your machine for each type of platform / deployment scenario, you
 # can get away with specifying only the generic part (up to the colon). For example, if only one Mac distribution
