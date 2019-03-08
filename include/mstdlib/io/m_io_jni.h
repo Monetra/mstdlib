@@ -70,7 +70,7 @@ M_API M_bool M_io_jni_init(JavaVM *Jvm);
  * (Oreo) or newer when built targeting SDK 26. Also, the ACCESS_NETWORK_STATE
  * permission must be present in the Android application.
  *
- * \param[in] connectivity_manager Android application context. Can be accessed in Java from like so:
+ * \param[in] app_context Android application context. Can be accessed in Java from like so:
  *                                 getApplicationContext().
  *
  * \return M_TRUE on success, M_FALSE on failure.
