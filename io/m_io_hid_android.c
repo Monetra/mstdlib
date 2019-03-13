@@ -482,7 +482,7 @@ static void M_io_hid_close_device(M_io_handle_t *handle)
 	M_event_timer_oneshot(M_io_get_event(handle->io), 100, M_TRUE, M_io_hid_close_device_runner, handle);
 }
 
-static void M_io_hid_handle_rw_error(M_io_handle_t *handle, JNIEnv *env)
+static void M_io_hid_handle_rw_error(M_io_handle_t *handle)
 {
 	M_io_layer_t *layer;
 
@@ -535,7 +535,7 @@ static void *M_io_hid_read_loop(void *arg)
 		/* Wait for data to be read. We have a 0 timeout and will
  		 * exit on error, or if the connection is closed by us. */
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_in, data, (jint)max_len, 0) || rv < 0) {
-			M_io_hid_handle_rw_error(handle, env);
+			M_io_hid_handle_rw_error(handle);
 			break;
 		}
 
@@ -631,7 +631,7 @@ static void *M_io_hid_write_loop(void *arg)
 
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_out, data, (jint)len, 0) || rv <= 0) {
 			M_thread_mutex_unlock(handle->write_lock);
-			M_io_hid_handle_rw_error(handle, env);
+			M_io_hid_handle_rw_error(handle);
 			break;
 		}
 
@@ -850,7 +850,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	body          = (*env)->GetByteArrayElements(env, descrs, 0);
 	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, (size_t)size);
 	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
-	(*env)->ReleaseByteArrayElements(env, body, data, 0);
+	(*env)->ReleaseByteArrayElements(env, body, descrs, 0);
 
 	/* Note: We need to include report ID byte in reported size. So, increment both by one. */
 	if (max_input_report_size > 0)
@@ -1072,7 +1072,7 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 	if (handle == NULL || handle->connection == NULL)
 		return M_TRUE;
 
-	M_io_hid_close_device(handle, NULL);
+	M_io_hid_close_device(handle);
 	return M_FALSE;
 }
 
