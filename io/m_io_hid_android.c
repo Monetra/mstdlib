@@ -428,6 +428,8 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 {
 	M_io_handle_t *handle = arg;
 	JNIEnv        *env;
+	M_io_layer_t  *layer;
+	jboolean       rv;
 
 	(void)event;
 	(void)type;
@@ -457,7 +459,10 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	/* Close connection. If read is blocking waiting for data this will cause the read to
 	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_release(layer);
 
 	/* Destroy the connection. Sets the var to NULL.
 	 * If there is a read blocking it will return there was an error
@@ -468,8 +473,6 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 
 static void M_io_hid_close_device(M_io_handle_t *handle)
 {
-	jboolean rv;
-
 	if (handle == NULL || handle->connection == NULL)
 		return;
 
@@ -552,7 +555,7 @@ static void *M_io_hid_read_loop(void *arg)
 		/* Zero the read data since the data object is long lived and
  		 * it could contain sensitive data. */
 		M_mem_set(body, 0, max_len);
-		(*env)->ReleaseByteArrayElements(env, data, 0);
+		(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 		/* Let the caller know there is data to read. */
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
@@ -564,7 +567,7 @@ static void *M_io_hid_read_loop(void *arg)
  	 * and before it was zeroed. */
 	body = (*env)->GetByteArrayElements(env, data, 0);
 	M_mem_set(body, 0, max_len);
-	(*env)->ReleaseByteArrayElements(env, data, 0);
+	(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
@@ -636,7 +639,7 @@ static void *M_io_hid_write_loop(void *arg)
  		 * it could contain sensitive data. */
 		body = (*env)->GetByteArrayElements(env, data, 0);
 		M_mem_set(body, 0, max_len);
-		(*env)->ReleaseByteArrayElements(env, data, 0);
+		(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 		/* Drop the data that was sent from the write buffer. */
 		M_buf_drop(handle->writebuf, (size_t)rv);
@@ -670,7 +673,7 @@ static void *M_io_hid_write_loop(void *arg)
  	 * and before it was zeroed. */
 	body = (*env)->GetByteArrayElements(env, data, 0);
 	M_mem_set(body, 0, max_len);
-	(*env)->ReleaseByteArrayElements(env, data, 0);
+	(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
@@ -847,7 +850,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	body          = (*env)->GetByteArrayElements(env, descrs, 0);
 	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, (size_t)size);
 	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
-	(*env)->ReleaseByteArrayElements(env, data, 0);
+	(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 	/* Note: We need to include report ID byte in reported size. So, increment both by one. */
 	if (max_input_report_size > 0)
