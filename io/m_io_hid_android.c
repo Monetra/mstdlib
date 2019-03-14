@@ -1151,9 +1151,12 @@ static void M_io_hid_disconnect_runner_step1(M_event_t *event, M_event_type_t ty
 	M_event_timer_remove(handle->disconnect_timer);
 	handle->disconnect_timer = NULL;
 
-	/* Make sure write thread has exited */
-	M_thread_join(handle->write_tid, NULL);
-	handle->write_tid = NULL;
+	/* Most likely the writer has exited, but we don't actually need to wait on it.  We'll just go onto
+	 * the next step in case the writer is locked in a write.
+	 *
+	 * M_thread_join(handle->write_tid, NULL);
+	 * handle->write_tid = NULL;
+	 */
 
 	/* Close connection. If read is blocking waiting for data this will cause the read to
 	 * return so the thread will stop. */
