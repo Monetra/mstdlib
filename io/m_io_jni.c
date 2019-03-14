@@ -1182,6 +1182,33 @@ unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t 
 }
 
 
+void M_io_jni_jbyteArray_zeroize(JNIEnv *env, jbyteArray arr)
+{
+	size_t         len;
+	unsigned char *raw;
+
+	if (arr == NULL)
+		return;
+
+	if (env == NULL) {
+		env = M_io_jni_getenv();
+		if (env == NULL)
+			return;
+	}
+
+	len = M_io_jni_array_length(env, arr);
+	if (len == 0)
+		return;
+
+	raw = (*env)->GetByteArrayElements(env, arr, 0);
+	if (raw == NULL)
+		return;
+
+	M_mem_set(raw, 0, len);
+
+	(*env)->ReleaseByteArrayElements(env, arr, raw, 0);
+}
+
 
 jbyteArray M_io_jni_puchar_to_jbyteArray(JNIEnv *env, const unsigned char *data, size_t data_size)
 {

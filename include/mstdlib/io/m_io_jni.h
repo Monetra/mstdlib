@@ -193,7 +193,6 @@ M_API void M_io_jni_delete_globalref(JNIEnv *env, jobject *ref);
  */
 M_API size_t M_io_jni_array_length(JNIEnv *env, jobject arr);
 
-
 /*! Retrieve an element from an Array.
  *  \param[in]      env  Optional. Java JNI Environment. If not passed will request it from
  *                       the JVM.  Passing it is an optimization.
@@ -243,6 +242,12 @@ M_API unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, s
  */
 M_API jbyteArray M_io_jni_puchar_to_jbyteArray(JNIEnv *env, const unsigned char *data, size_t data_size);
 
+/*! Zeroize a Byte Array.  Typically used for memory security reasons.
+ *  \param[in]      env       Optional. Java JNI Environment. If not passed will request it from
+ *                            the JVM.  Passing it is an optimization.
+ *  \param[in]      arr       Byte Array to zeroize
+ */
+M_API void M_io_jni_jbyteArray_zeroize(JNIEnv *env, jbyteArray arr);
 
 /*! Create a new object using the specified method.
  *  \param[out]     rv         Returned object, passed by reference.  Returned object should be
