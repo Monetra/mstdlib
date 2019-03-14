@@ -1188,6 +1188,7 @@ unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t 
 size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_buf_t *out)
 {
 	unsigned char *raw;
+	jbyteArray     data = NULL;
 	size_t         len;
 
 	if (in == NULL || out == NULL)
@@ -1199,19 +1200,19 @@ size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_
 			return 0;
 	}
 
-	len = M_io_jni_array_length(env, arr);
+	len = M_io_jni_array_length(env, in);
 	if (len == 0)
 		return 0;
 
 	if (max_len != 0)
 		len = M_MIN(max_len, len);
 
-	raw = (*env)->GetByteArrayElements(env, data, 0);
+	raw = (unsigned char *)(*env)->GetByteArrayElements(env, data, 0);
 	if (raw == NULL)
 		return 0;
 
 	M_buf_add_bytes(out, raw, len);
-	(*env)->ReleaseByteArrayElements(env, in, raw, 0);
+	(*env)->ReleaseByteArrayElements(env, in, (jbyte *)raw, 0);
 
 	return len;
 }
@@ -1235,13 +1236,13 @@ void M_io_jni_jbyteArray_zeroize(JNIEnv *env, jbyteArray arr)
 	if (len == 0)
 		return;
 
-	raw = (*env)->GetByteArrayElements(env, arr, 0);
+	raw = (unsigned char *)(*env)->GetByteArrayElements(env, arr, 0);
 	if (raw == NULL)
 		return;
 
 	M_mem_set(raw, 0, len);
 
-	(*env)->ReleaseByteArrayElements(env, arr, raw, 0);
+	(*env)->ReleaseByteArrayElements(env, arr, (jbyte *)raw, 0);
 }
 
 
