@@ -227,10 +227,11 @@ M_API jstring M_io_jni_pchar_to_jstring(JNIEnv *env, const char *str);
  *  \param[in]      env      Optional. Java JNI Environment. If not passed will request it from
  *                           the JVM.  Passing it is an optimization.
  *  \param[in]      in       Byte array to convert to unsigned character data.
+ *  \param[in]      max_len  Maximum length to use, or 0 for full Byte Array.
  *  \param[out]     size_out Size of returned buffer.
  *  \return unsigned character buffer, must be freed with M_free(). NULL on error.
  */
-M_API unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t *size_out);
+M_API unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t max_len, size_t *size_out);
 
 /*! Convert an unsigned character buffer into a jbyteArray
  *  \param[in]      env       Optional. Java JNI Environment. If not passed will request it from
@@ -248,6 +249,17 @@ M_API jbyteArray M_io_jni_puchar_to_jbyteArray(JNIEnv *env, const unsigned char 
  *  \param[in]      arr       Byte Array to zeroize
  */
 M_API void M_io_jni_jbyteArray_zeroize(JNIEnv *env, jbyteArray arr);
+
+/*! Copy the contents of a Byte Array to an M_buf_t up to the given size.
+ *
+ *  \param[in]      env       Optional. Java JNI Environment. If not passed will request it from
+ *                            the JVM.  Passing it is an optimization.
+ *  \param[in]      in        Byte Array to copy
+ *  \param[in]      max_len   Maximum length of byte array to copy, or 0 for full array.
+ *  \param[out]     out       Initialized M_buf_t to copy data into
+ *  \return Number of bytes copied or 0 on error
+ */
+M_API size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_buf_t *out);
 
 /*! Create a new object using the specified method.
  *  \param[out]     rv         Returned object, passed by reference.  Returned object should be

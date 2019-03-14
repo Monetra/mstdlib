@@ -1150,7 +1150,7 @@ jstring M_io_jni_pchar_to_jstring(JNIEnv *env, const char *str)
 }
 
 
-unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t *size_out)
+unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t max_len, size_t *size_out)
 {
 	size_t         len;
 	unsigned char *ret;
@@ -1170,6 +1170,9 @@ unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t 
 	if (len == 0)
 		return NULL;
 
+	if (max_len != 0)
+		len = M_MIN(max_len, len);
+
 	ret = M_malloc(len);
 	(*env)->GetByteArrayRegion(env, in, 0, (jsize)len, (jbyte *)ret);
 	if (M_io_jni_handle_exception(env, NULL, 0)) {
@@ -1179,6 +1182,38 @@ unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t 
 
 	*size_out = len;
 	return ret;
+}
+
+
+size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_buf_t *out)
+{
+	unsigned char *raw;
+	size_t         len;
+
+	if (in == NULL || out == NULL)
+		return 0;
+
+	if (env == NULL) {
+		env = M_io_jni_getenv();
+		if (env == NULL)
+			return 0;
+	}
+
+	len = M_io_jni_array_length(env, arr);
+	if (len == 0)
+		return 0;
+
+	if (max_len != 0)
+		len = M_MIN(max_len, len);
+
+	raw = (*env)->GetByteArrayElements(env, data, 0);
+	if (raw == NULL)
+		return 0;
+
+	M_buf_add_bytes(out, raw, len);
+	(*env)->ReleaseByteArrayElements(env, in, raw, 0);
+
+	return len;
 }
 
 
