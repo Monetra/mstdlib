@@ -793,6 +793,7 @@ var searchData=
   ['m_5fio_5fjni_5fgetenv',['M_io_jni_getenv',['../group__m__io__jni.html#gacc8796d93ef5f2a79c1f09c06738f02d',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5finit',['M_io_jni_init',['../group__m__io__jni.html#ga14f87264c43ed0bb657bd224b5fea176',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5fjbytearray_5fto_5fpuchar',['M_io_jni_jbyteArray_to_puchar',['../group__m__io__jni.html#ga897b5b297485555a9a0db505c083b5f4',1,'m_io_jni.h']]],
+  ['m_5fio_5fjni_5fjbytearray_5fzeroize',['M_io_jni_jbyteArray_zeroize',['../group__m__io__jni.html#gadf995ffa547f68164be5f7f2bc648dca',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5fjhashmap_5fto_5fmhashdict',['M_io_jni_jhashmap_to_mhashdict',['../group__m__io__jni.html#gae3f2b5d23fd2885fb9bec51d967d2513',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5fjstring_5fto_5fpchar',['M_io_jni_jstring_to_pchar',['../group__m__io__jni.html#ga45085868045becacde7aa0ad8ef1d03d',1,'m_io_jni.h']]],
   ['m_5fio_5fjni_5fmhashdict_5fto_5fjhashmap',['M_io_jni_mhashdict_to_jhashmap',['../group__m__io__jni.html#gafb011a8b8b38473f71a29c7eee748877',1,'m_io_jni.h']]],

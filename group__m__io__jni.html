@@ -139,6 +139,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga897b5b297485555a9a0db505c083b5f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga02eda59f4170b86597b2adf59f8105f0"><td class="memItemLeft" align="right" valign="top">jbyteArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga02eda59f4170b86597b2adf59f8105f0">M_io_jni_puchar_to_jbyteArray</a> (JNIEnv *env, const unsigned char *data, size_t data_size)</td></tr>
 <tr class="separator:ga02eda59f4170b86597b2adf59f8105f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadf995ffa547f68164be5f7f2bc648dca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gadf995ffa547f68164be5f7f2bc648dca">M_io_jni_jbyteArray_zeroize</a> (JNIEnv *env, jbyteArray arr)</td></tr>
+<tr class="separator:gadf995ffa547f68164be5f7f2bc648dca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga91c1f5b45465e2b3b685f03b627b9e3b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga91c1f5b45465e2b3b685f03b627b9e3b">M_io_jni_new_object</a> (jobject *rv, char *error, size_t error_len, JNIEnv *env, const char *method, size_t argc,...)</td></tr>
 <tr class="separator:ga91c1f5b45465e2b3b685f03b627b9e3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0ee02ddeeafe88da7b079347df351a68"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga0ee02ddeeafe88da7b079347df351a68">M_io_jni_call_jvoid</a> (char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc,...)</td></tr>
@@ -753,6 +755,39 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>jbyteArray object or NULL on error. The returned object should be released using <a class="el" href="group__m__io__jni.html#ga049592328e1de0bdfd75a116af93c608">M_io_jni_deletelocalref()</a> when no longer needed. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gadf995ffa547f68164be5f7f2bc648dca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_io_jni_jbyteArray_zeroize </td>
+          <td>(</td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jbyteArray&#160;</td>
+          <td class="paramname"><em>arr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Zeroize a Byte Array. Typically used for memory security reasons. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. Java JNI Environment. If not passed will request it from the JVM. Passing it is an optimization. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">arr</td><td>Byte Array to zeroize </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -2361,7 +2396,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 14 2019 13:16:29 for Mstdlib-1.5.0 by
+    <li class="footer">Generated on Thu Mar 14 2019 14:11:01 for Mstdlib-1.5.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

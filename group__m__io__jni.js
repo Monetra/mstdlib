@@ -17,6 +17,7 @@ var group__m__io__jni =
     [ "M_io_jni_pchar_to_jstring", "group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b", null ],
     [ "M_io_jni_jbyteArray_to_puchar", "group__m__io__jni.html#ga897b5b297485555a9a0db505c083b5f4", null ],
     [ "M_io_jni_puchar_to_jbyteArray", "group__m__io__jni.html#ga02eda59f4170b86597b2adf59f8105f0", null ],
+    [ "M_io_jni_jbyteArray_zeroize", "group__m__io__jni.html#gadf995ffa547f68164be5f7f2bc648dca", null ],
     [ "M_io_jni_new_object", "group__m__io__jni.html#ga91c1f5b45465e2b3b685f03b627b9e3b", null ],
     [ "M_io_jni_call_jvoid", "group__m__io__jni.html#ga0ee02ddeeafe88da7b079347df351a68", null ],
     [ "M_io_jni_call_jobject", "group__m__io__jni.html#gaa9315304e565bc2a4f6794ce158a264b", null ],
