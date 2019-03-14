@@ -457,12 +457,6 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	 * because we're closing. */
 	handle->run = M_FALSE;
 
-	/* Tell the writer to wake up if waiting for data
-	 * so its thread can exit. */
-	M_thread_mutex_lock(handle->write_lock);
-	M_thread_cond_broadcast(handle->write_cond);
-	M_thread_mutex_unlock(handle->write_lock);
-
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
 
@@ -480,6 +474,14 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	M_io_jni_delete_globalref(env, &handle->connection);
 
 	M_io_layer_release(layer);
+
+	/* Tell the writer to wake up if waiting for data
+	 * so its thread can exit. We can't call this while in
+	 * a layer lock. */
+	M_thread_mutex_lock(handle->write_lock);
+	M_thread_cond_broadcast(handle->write_cond);
+	M_thread_mutex_unlock(handle->write_lock);
+
 }
 
 static void M_io_hid_close_device(M_io_handle_t *handle)
