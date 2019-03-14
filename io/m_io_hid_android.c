@@ -562,13 +562,13 @@ static void *M_io_hid_read_loop(void *arg)
 
 		body = (*env)->GetByteArrayElements(env, data, 0);
 		M_buf_add_bytes(handle->readbuf, body, (size_t)rv);
-
-		M_thread_mutex_unlock(handle->read_lock);
+		(*env)->ReleaseByteArrayElements(env, body, data, 0);
 
 		/* Zero the read data since the data object is long lived and
- 		 * it could contain sensitive data. */
-		M_mem_set(body, 0, max_len);
-		(*env)->ReleaseByteArrayElements(env, body, data, 0);
+		 * it could contain sensitive data. */
+		M_io_jni_jbyteArray_zeroize(env, data);
+
+		M_thread_mutex_unlock(handle->read_lock);
 
 		/* Let the caller know there is data to read. */
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
@@ -577,10 +577,8 @@ static void *M_io_hid_read_loop(void *arg)
 	}
 
 	/* Final zeroing of data in case we existed the loop early
- 	 * and before it was zeroed. */
-	body = (*env)->GetByteArrayElements(env, data, 0);
-	M_mem_set(body, 0, max_len);
-	(*env)->ReleaseByteArrayElements(env, body, data, 0);
+	 * and before it was zeroed. */
+	M_io_jni_jbyteArray_zeroize(env, data);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
@@ -594,7 +592,6 @@ static void *M_io_hid_write_loop(void *arg)
 	size_t         max_len;
 	JNIEnv        *env;
 	jbyteArray     data;
-	jbyte         *body;
 	jint           rv;
 	M_bool         more_data = M_FALSE;
 
@@ -649,10 +646,8 @@ static void *M_io_hid_write_loop(void *arg)
 		}
 
 		/* Zero the read data since the data object is long lived and
- 		 * it could contain sensitive data. */
-		body = (*env)->GetByteArrayElements(env, data, 0);
-		M_mem_set(body, 0, max_len);
-		(*env)->ReleaseByteArrayElements(env, body, data, 0);
+		 * it could contain sensitive data. */
+		M_io_jni_jbyteArray_zeroize(env, data);
 
 		/* Drop the data that was sent from the write buffer. */
 		M_buf_drop(handle->writebuf, (size_t)rv);
@@ -683,10 +678,8 @@ static void *M_io_hid_write_loop(void *arg)
 	}
 
 	/* Final zeroing of data in case we existed the loop early
- 	 * and before it was zeroed. */
-	body = (*env)->GetByteArrayElements(env, data, 0);
-	M_mem_set(body, 0, max_len);
-	(*env)->ReleaseByteArrayElements(env, body, data, 0);
+	 * and before it was zeroed. */
+	M_io_jni_jbyteArray_zeroize(env, data);
 
 	M_io_jni_deletelocalref(env, &data);
 	return NULL;
@@ -931,7 +924,7 @@ err:
 	M_free(serial);
 
 	if (*ioerr == M_IO_ERROR_SUCCESS)
-	   *ioerr = M_IO_ERROR_ERROR;	
+	   *ioerr = M_IO_ERROR_ERROR;
 
 	return NULL;
 }
