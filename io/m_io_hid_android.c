@@ -560,9 +560,8 @@ static void *M_io_hid_read_loop(void *arg)
 		/* Fill the read buffer with the data that was read. */
 		M_thread_mutex_lock(handle->read_lock);
 
-		body = (*env)->GetByteArrayElements(env, data, 0);
-		M_buf_add_bytes(handle->readbuf, body, (size_t)rv);
-		(*env)->ReleaseByteArrayElements(env, body, data, 0);
+		/* Copy data read into readbuf */
+		M_io_jni_jbyteArray_to_buf(env, data, rv /* length */, handle->readbuf);
 
 		/* Zero the read data since the data object is long lived and
 		 * it could contain sensitive data. */
@@ -704,7 +703,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	jint             dev_class               = -1;
 	jint             dir_in                  = -1;
 	jint             dir_out                 = -1;
-	jbyte           *body;
+	unsigned char   *body;
 	char            *path                    = NULL;
 	char            *manufacturer            = NULL;
 	char            *product                 = NULL;
@@ -853,10 +852,11 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 		*ioerr = M_IO_ERROR_ERROR;
 		goto err;
 	}
-	body          = (*env)->GetByteArrayElements(env, descrs, 0);
+
+	body = M_io_jni_jbyteArray_to_puchar(env, descrs, size, &size);
 	uses_reportid = hid_uses_report_descriptors((const unsigned char *)body, (size_t)size);
 	hid_get_max_report_sizes((const unsigned char *)body, (size_t)size, &max_input_report_size, &max_output_report_size);
-	(*env)->ReleaseByteArrayElements(env, body, descrs, 0);
+	M_free(body);
 
 	/* Note: We need to include report ID byte in reported size. So, increment both by one. */
 	if (max_input_report_size > 0)
