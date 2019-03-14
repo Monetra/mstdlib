@@ -950,14 +950,22 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 }
 
 
-static void M_io_hid_destroy(M_io_handle_t *handle)
+void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
-	JNIEnv *env = M_io_jni_getenv();;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (handle == NULL || env == NULL)
+	if (handle == NULL)
 		return;
 
-	/* NOTE: in this function, io has been detached so we can't lock the layer */
+	if (handle->disconnect_timer) {
+		M_event_timer_remove(handle->disconnect_timer);
+	}
+
+	handle->disconnect_timer = NULL;
+
+	/* Though we might like to delay cleanup, we can't as we may not have an
+	 * event loop at all once this function is called.  Integrators really
+	 * need to rely on disconnect instead! */
 
 	handle->in_destroy = M_TRUE;
 
@@ -987,25 +995,6 @@ static void M_io_hid_destroy(M_io_handle_t *handle)
 	M_free(handle->serial);
 
 	M_free(handle);
-}
-
-
-void M_io_hid_destroy_cb(M_io_layer_t *layer)
-{
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-
-	if (handle == NULL)
-		return;
-
-	if (handle->disconnect_timer) {
-		M_event_timer_remove(handle->disconnect_timer);
-	}
-
-	handle->disconnect_timer = NULL;
-	/* Though we might like to delay cleanup, we can't as we may not have an
-	 * event loop at all once this function is called.  Integrators really
-	 * need to rely on disconnect instead! */
-	M_io_hid_destroy(handle);
 }
 
 
