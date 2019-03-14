@@ -631,10 +631,14 @@ static void *M_io_hid_write_loop(void *arg)
 		len = M_MIN(M_buf_len(handle->writebuf), max_len);
 		(*env)->SetByteArrayRegion(env, data, 0, (jsize)len, (const jbyte *)M_buf_peek(handle->writebuf));
 
+		/* Do not hold lock while calling into a blocking function */
+		M_thread_mutex_unlock(handle->write_lock);
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_out, data, (jint)len, 0) || rv <= 0) {
+			M_thread_mutex_lock(handle->write_lock);
 			is_error = M_TRUE;
 			break;
 		}
+		M_thread_mutex_lock(handle->write_lock);
 
 		/* Zero the read data since the data object is long lived and
 		 * it could contain sensitive data. */
@@ -660,9 +664,12 @@ static void *M_io_hid_write_loop(void *arg)
 
 		/* We can write again. */
 		if (!more_data && handle->status & M_IO_HID_STATUS_SYSUP) {
+			/* Unlock and relock to honor lock ordering */
+			M_thread_mutex_unlock(handle->write_lock);
 			layer = M_io_layer_acquire(handle->io, 0, NULL);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 			M_io_layer_release(layer);
+			M_thread_mutex_lock(handle->write_lock);
 		}
 		more_data = M_FALSE;
 	}
