@@ -135,12 +135,14 @@ Functions</h2></td></tr>
 <tr class="separator:ga45085868045becacde7aa0ad8ef1d03d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5230cfe15967d5e606bf58f79f6e8d6b"><td class="memItemLeft" align="right" valign="top">jstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b">M_io_jni_pchar_to_jstring</a> (JNIEnv *env, const char *str)</td></tr>
 <tr class="separator:ga5230cfe15967d5e606bf58f79f6e8d6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga897b5b297485555a9a0db505c083b5f4"><td class="memItemLeft" align="right" valign="top">unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga897b5b297485555a9a0db505c083b5f4">M_io_jni_jbyteArray_to_puchar</a> (JNIEnv *env, jbyteArray in, size_t *size_out)</td></tr>
-<tr class="separator:ga897b5b297485555a9a0db505c083b5f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga33a8e75420544383e88fafa5b94546f0"><td class="memItemLeft" align="right" valign="top">unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga33a8e75420544383e88fafa5b94546f0">M_io_jni_jbyteArray_to_puchar</a> (JNIEnv *env, jbyteArray in, size_t max_len, size_t *size_out)</td></tr>
+<tr class="separator:ga33a8e75420544383e88fafa5b94546f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga02eda59f4170b86597b2adf59f8105f0"><td class="memItemLeft" align="right" valign="top">jbyteArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga02eda59f4170b86597b2adf59f8105f0">M_io_jni_puchar_to_jbyteArray</a> (JNIEnv *env, const unsigned char *data, size_t data_size)</td></tr>
 <tr class="separator:ga02eda59f4170b86597b2adf59f8105f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadf995ffa547f68164be5f7f2bc648dca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gadf995ffa547f68164be5f7f2bc648dca">M_io_jni_jbyteArray_zeroize</a> (JNIEnv *env, jbyteArray arr)</td></tr>
 <tr class="separator:gadf995ffa547f68164be5f7f2bc648dca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab64ee7c3ab585787943c1e62056a605d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#gab64ee7c3ab585787943c1e62056a605d">M_io_jni_jbyteArray_to_buf</a> (JNIEnv *env, jbyteArray in, size_t max_len, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *out)</td></tr>
+<tr class="separator:gab64ee7c3ab585787943c1e62056a605d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga91c1f5b45465e2b3b685f03b627b9e3b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga91c1f5b45465e2b3b685f03b627b9e3b">M_io_jni_new_object</a> (jobject *rv, char *error, size_t error_len, JNIEnv *env, const char *method, size_t argc,...)</td></tr>
 <tr class="separator:ga91c1f5b45465e2b3b685f03b627b9e3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0ee02ddeeafe88da7b079347df351a68"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__jni.html#ga0ee02ddeeafe88da7b079347df351a68">M_io_jni_call_jvoid</a> (char *error, size_t error_len, JNIEnv *env, jobject classobj, const char *method, size_t argc,...)</td></tr>
@@ -676,7 +678,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga897b5b297485555a9a0db505c083b5f4"></a>
+<a class="anchor" id="ga33a8e75420544383e88fafa5b94546f0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -695,6 +697,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">size_t *&#160;</td>
           <td class="paramname"><em>size_out</em>&#160;</td>
         </tr>
@@ -709,6 +717,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. Java JNI Environment. If not passed will request it from the JVM. Passing it is an optimization. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>Byte array to convert to unsigned character data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_len</td><td>Maximum length to use, or 0 for full Byte Array. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">size_out</td><td>Size of returned buffer. </td></tr>
   </table>
   </dd>
@@ -788,6 +797,55 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="gab64ee7c3ab585787943c1e62056a605d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t M_io_jni_jbyteArray_to_buf </td>
+          <td>(</td>
+          <td class="paramtype">JNIEnv *&#160;</td>
+          <td class="paramname"><em>env</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">jbyteArray&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Copy the contents of a Byte Array to an M_buf_t up to the given size.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. Java JNI Environment. If not passed will request it from the JVM. Passing it is an optimization. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>Byte Array to copy </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_len</td><td>Maximum length of byte array to copy, or 0 for full array. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Initialized M_buf_t to copy data into </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes copied or 0 on error </dd></dl>
 
 </div>
 </div>
@@ -2396,7 +2454,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 14 2019 14:11:01 for Mstdlib-1.5.0 by
+    <li class="footer">Generated on Thu Mar 14 2019 14:41:01 for Mstdlib-1.5.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
