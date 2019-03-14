@@ -604,7 +604,7 @@ static void *M_io_hid_write_loop(void *arg)
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
 	M_thread_mutex_lock(handle->write_lock);
-	while (handle->status & M_IO_HID_STATUS_SYSUP || M_buf_len(handle->writebuf)) {
+	while ((handle->status & M_IO_HID_STATUS_SYSUP || M_buf_len(handle->writebuf)) && handle->status & M_IO_HID_STATUS_CONNECTED) {
 
 		/* Wait for data. */
 		if (M_buf_len(handle->writebuf) == 0) {
