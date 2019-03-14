@@ -605,8 +605,8 @@ static void *M_io_hid_write_loop(void *arg)
 	 * in a Java compatible buffer. */
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
-	while (handle->status & M_IO_HID_STATUS_SYSUP) {
-		M_thread_mutex_lock(handle->write_lock);
+	M_thread_mutex_lock(handle->write_lock);
+	while (handle->status & M_IO_HID_STATUS_SYSUP || M_buf_len(handle->writebuf)) {
 
 		/* Wait for data. */
 		if (M_buf_len(handle->writebuf) == 0) {
@@ -624,7 +624,6 @@ static void *M_io_hid_write_loop(void *arg)
 		/* If there isn't anything to write we have nothing to
 		 * do right now. */
 		if (M_buf_len(handle->writebuf) == 0) {
-			M_thread_mutex_unlock(handle->write_lock);
 			continue;
 		}
 
@@ -633,7 +632,6 @@ static void *M_io_hid_write_loop(void *arg)
 		(*env)->SetByteArrayRegion(env, data, 0, (jsize)len, (const jbyte *)M_buf_peek(handle->writebuf));
 
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_out, data, (jint)len, 0) || rv <= 0) {
-			M_thread_mutex_unlock(handle->write_lock);
 			is_error = M_TRUE;
 			break;
 		}
@@ -659,7 +657,6 @@ static void *M_io_hid_write_loop(void *arg)
 		if (M_buf_len(handle->writebuf) > 0) {
 			more_data = M_TRUE;
 		}
-		M_thread_mutex_unlock(handle->write_lock);
 
 		/* We can write again. */
 		if (!more_data && handle->status & M_IO_HID_STATUS_SYSUP) {
@@ -669,6 +666,8 @@ static void *M_io_hid_write_loop(void *arg)
 		}
 		more_data = M_FALSE;
 	}
+	M_thread_mutex_unlock(handle->write_lock);
+
 
 	/* Final zeroing of data in case we existed the loop early
 	 * and before it was zeroed. */
