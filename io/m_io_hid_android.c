@@ -28,6 +28,12 @@
 #include "m_io_hid_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+enum {
+	M_IO_HID_STATUS_SYSUP    = 1 << 0,  /*!< System is online        */
+	M_IO_HID_STATUS_WRITERUP = 1 << 1,  /*!< Writer thread is online */
+	M_IO_HID_STATUS_READERUP = 1 << 2   /*!< Reader thread is online */
+} M_io_hid_status_t;
+
 
 struct M_io_handle {
 	jobject           connection;  /*!< UsbDeviceConnection */
@@ -40,8 +46,8 @@ struct M_io_handle {
 	M_thread_mutex_t *read_lock;   /*!< Lock when manipulating read buffer. */
 	M_thread_mutex_t *write_lock;  /*!< Lock when manipulating write buffer. */
 	M_thread_cond_t  *write_cond;  /*!< Conditional to wake write thread when there is data to write. */
-	M_bool            run;         /*!< Should the process thread continue running. */
-	M_bool            started;     /*!< Has the handle run through the init process and had processing threads started. */
+
+	M_io_hid_status_t status;      /*!< Bitmap of current status */
 	M_bool            in_destroy;  /*!< Are we currently destroying the device. Prevents Disocnnected signal from being sent. */
 	M_threadid_t      read_tid;    /*!< Thread id for the read thread. */
 	M_threadid_t      write_tid;   /*!< Thread id for the write thread. */
@@ -58,7 +64,7 @@ struct M_io_handle {
 	size_t            max_input_report_size;
 	size_t            max_output_report_size;
 
-	M_event_timer_t  *disconnect_task;
+	M_event_timer_t  *disconnect_timer;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -425,37 +431,14 @@ void M_io_hid_get_max_report_sizes(M_io_t *io, size_t *max_input_size, size_t *m
 	M_io_layer_release(layer);
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+/* Expects io to be locked! */
+static void M_io_hid_close_connection(M_io_handle_t *handle)
 {
-	M_io_handle_t *handle = arg;
-	JNIEnv        *env;
-	M_io_layer_t  *layer;
-	jboolean       rv;
+	JNIEnv  *env    = M_io_jni_getenv();
+	jboolean rv;
 
-	(void)event;
-	(void)type;
-	(void)dummy_io;
-
-	if (arg == NULL)
+	if (env == NULL || handle == NULL || handle->connection == NULL)
 		return;
-
-	env = M_io_jni_getenv();
-	if (env == NULL)
-		return;
-
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-
-	if (handle->connection == NULL) {
-		M_io_layer_release(layer);
-		return;
-	}
-
-	/* Tell our threads they can stop running and
-	 * if they encounter an error don't worry about it
-	 * because we're closing. */
-	handle->run = M_FALSE;
 
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
@@ -464,56 +447,56 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
-	if (!handle->in_destroy)
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
-
 	/* Destroy the connection. Sets the var to NULL.
 	 * If there is a read blocking it will return there was an error
 	 * but since we have already set run = false the read loop will
 	 * ignore the error and stop running. */
+	M_io_jni_delete_globalref(env, &handle->interface);
 	M_io_jni_delete_globalref(env, &handle->connection);
-
-	M_io_layer_release(layer);
-
-	/* Tell the writer to wake up if waiting for data
-	 * so its thread can exit. We can't call this while in
-	 * a layer lock. */
-	M_thread_mutex_lock(handle->write_lock);
-	M_thread_cond_broadcast(handle->write_cond);
-	M_thread_mutex_unlock(handle->write_lock);
-
 }
 
-static void M_io_hid_close_device(M_io_handle_t *handle)
+/* Expects the io layer to be locked already! */
+static void M_io_hid_signal_shutdown(M_io_handle_t *handle)
 {
-	if (handle == NULL || handle->connection == NULL)
+	if (!(handle->status & M_IO_HID_STATUS_SYSUP))
 		return;
 
-	/* Delay 1/10th of a second before disconnecting to
-	 * let anything that's been buffered to be sent out
-	 * by the OS. */
-	handle->disconnect_task = M_event_timer_oneshot(M_io_get_event(handle->io), 100, M_TRUE, M_io_hid_close_device_runner, handle);
+	/* Tell our threads they can stop running. */
+	handle->status &= ~(M_IO_HID_STATUS_SYSUP);
+
+	if (handle->status & M_IO_HID_STATUS_WRITERUP) {
+		/* And wake up the writer thread. */
+		M_thread_mutex_lock(handle->write_lock);
+		M_thread_cond_signal(handle->write_cond);
+		M_thread_mutex_unlock(handle->write_lock);
+	}
 }
 
-static void M_io_hid_handle_rw_error(M_io_handle_t *handle)
+/* Layer is expected to be locked on entry */
+static void M_io_hid_handle_rw_error(M_io_handle_t *handle, M_io_layer_t *layer)
 {
-	M_io_layer_t *layer;
-
-	/* Tread a failure as a disconnect. The return of bulkTransfer is always
+	/* Treat a failure as a disconnect. The return of bulkTransfer is always
 	 * -1 so we don't know what the error was from. It could have been an
 	 * unexpected disconnect or something else. We're always going to close
 	 * the device since it's in an unusable state, so it's being disconnected
 	 * regardless if that's the reason for the read error. */
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
-	if (handle->run) {
-		/* We have read and write threads going, if we're in the middle of a write
-		 * both read and write bulkTransfer operations will error. One will
-		 * get the layer lock first and set run = false. This prevents double
-		 * events from being sent out. */
-		M_io_hid_close_device(handle);
+
+	/* We have read and write threads going, if we're in the middle of a write
+	 * both read and write bulkTransfer operations will error. */
+	M_io_hid_signal_shutdown(handle);
+	M_io_hid_close_connection(handle);
+
+	if (!(handle->status & (M_IO_HID_STATUS_READERUP|M_IO_HID_STATUS_WRITERUP))) {
+		/* Kill any pending disconnect timer and issue a disconnected signal */
+		if (handle->disconnect_timer)
+			M_event_timer_remove(handle->disconnect_timer);
+		handle->disconnect_timer = NULL;
+
+		if (!handle->in_destroy)
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 	}
-	M_io_layer_release(layer);
 }
+
 
 static void *M_io_hid_read_loop(void *arg)
 {
@@ -523,6 +506,7 @@ static void *M_io_hid_read_loop(void *arg)
 	jbyteArray     data;
 	jint           rv;
 	size_t         max_len;
+	M_bool         is_error = M_FALSE;
 
 	env = M_io_jni_getenv();
 	if (env == NULL) {
@@ -543,11 +527,11 @@ static void *M_io_hid_read_loop(void *arg)
 	/* Create an array to store the read data. */
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
-	while (handle->run) {
+	while (handle->status & M_IO_HID_STATUS_SYSUP) {
 		/* Wait for data to be read. We have a 0 timeout and will
  		 * exit on error, or if the connection is closed by us. */
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_in, data, (jint)max_len, 0) || rv < 0) {
-			M_io_hid_handle_rw_error(handle);
+			is_error = M_TRUE;
 			break;
 		}
 
@@ -579,8 +563,15 @@ static void *M_io_hid_read_loop(void *arg)
 	M_io_jni_jbyteArray_zeroize(env, data);
 
 	M_io_jni_deletelocalref(env, &data);
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	handle->status &= ~(M_IO_HID_STATUS_READERUP);
+	M_io_hid_handle_rw_error(handle);
+	M_io_layer_release(layer);
+
 	return NULL;
 }
+
 
 static void *M_io_hid_write_loop(void *arg)
 {
@@ -592,6 +583,7 @@ static void *M_io_hid_write_loop(void *arg)
 	jbyteArray     data;
 	jint           rv;
 	M_bool         more_data = M_FALSE;
+	M_bool         is_error  = M_FALSE;
 
 	env = M_io_jni_getenv();
 	if (env == NULL) {
@@ -613,7 +605,7 @@ static void *M_io_hid_write_loop(void *arg)
 	 * in a Java compatible buffer. */
 	data = (*env)->NewByteArray(env, (jsize)max_len);
 
-	while (handle->run) {
+	while (handle->status & M_IO_HID_STATUS_SYSUP) {
 		M_thread_mutex_lock(handle->write_lock);
 
 		/* Wait for data. */
@@ -621,10 +613,13 @@ static void *M_io_hid_write_loop(void *arg)
 			M_thread_cond_wait(handle->write_cond, handle->write_lock);
 		}
 
-		if (!handle->run) {
-			M_thread_mutex_unlock(handle->write_lock);
-			break;
-		}
+		/* We might have received both a signal to write and a signal to disconnect
+		 * nearly simultaneously.  Lets go ahead and allow the write
+		 * if (!handle->run) {
+		 * 	M_thread_mutex_unlock(handle->write_lock);
+		 * 	break;
+		 * }
+		 */
 
 		/* If there isn't anything to write we have nothing to
 		 * do right now. */
@@ -639,7 +634,7 @@ static void *M_io_hid_write_loop(void *arg)
 
 		if (!M_io_jni_call_jint(&rv, handle->error, sizeof(handle->error), env, handle->connection, "android/hardware/usb/UsbDeviceConnection.bulkTransfer", 4, handle->ep_out, data, (jint)len, 0) || rv <= 0) {
 			M_thread_mutex_unlock(handle->write_lock);
-			M_io_hid_handle_rw_error(handle);
+			is_error = M_TRUE;
 			break;
 		}
 
@@ -667,7 +662,7 @@ static void *M_io_hid_write_loop(void *arg)
 		M_thread_mutex_unlock(handle->write_lock);
 
 		/* We can write again. */
-		if (!more_data) {
+		if (!more_data && handle->status & M_IO_HID_STATUS_SYSUP) {
 			layer = M_io_layer_acquire(handle->io, 0, NULL);
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
 			M_io_layer_release(layer);
@@ -680,6 +675,12 @@ static void *M_io_hid_write_loop(void *arg)
 	M_io_jni_jbyteArray_zeroize(env, data);
 
 	M_io_jni_deletelocalref(env, &data);
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	handle->status &= ~(M_IO_HID_STATUS_WRITERUP);
+	M_io_hid_handle_rw_error(handle);
+	M_io_layer_release(layer);
+
 	return NULL;
 }
 
@@ -875,7 +876,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->read_lock              = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->write_lock             = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->write_cond             = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-	handle->run                    = M_TRUE;
+	handle->status                 = M_IO_HID_STATUS_SYSUP;
 	handle->path                   = path;
 	handle->manufacturer           = manufacturer;
 	handle->product                = product;
@@ -924,7 +925,7 @@ err:
 	M_free(serial);
 
 	if (*ioerr == M_IO_ERROR_SUCCESS)
-	   *ioerr = M_IO_ERROR_ERROR;
+		*ioerr = M_IO_ERROR_ERROR;
 
 	return NULL;
 }
@@ -948,34 +949,31 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 	return M_IO_STATE_CONNECTED;
 }
 
-static void M_io_hid_destroy_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+
+static void M_io_hid_destroy(M_io_handle_t *handle)
 {
 	M_io_handle_t *handle = arg;
 	M_io_layer_t  *layer;
-	JNIEnv        *env;
+	JNIEnv        *env    = M_io_jni_getenv();;
 
-	if (arg == NULL)
+	if (handle == NULL || env == NULL)
 		return;
 
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	/* NOTE: in this function, io has been detached so we can't lock the layer */
+
 	handle->in_destroy = M_TRUE;
-	M_io_layer_release(layer);
 
-	M_thread_sleep(100000);
-	M_io_hid_close_device_runner(event, type, dummy_io, arg);
-
-	env = M_io_jni_getenv();
-	if (env == NULL)
-		return;
-
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	M_io_hid_signal_shutdown(handle);
+	M_io_hid_close_connection(handle);
 
 	/* Wait for the processing threads to exit. */
-	M_thread_join(handle->write_tid, NULL);
-	M_thread_join(handle->read_tid, NULL);
+	if (handle->write_tid)
+		M_thread_join(handle->write_tid, NULL);
+
+	if (handle->read_tid)
+		M_thread_join(handle->read_tid, NULL);
 
 	/* Clear everything. */
-	M_io_jni_delete_globalref(env, &handle->interface);
 	M_io_jni_delete_globalref(env, &handle->ep_in);
 	M_io_jni_delete_globalref(env, &handle->ep_out);
 
@@ -991,9 +989,8 @@ static void M_io_hid_destroy_runner(M_event_t *event, M_event_type_t type, M_io_
 	M_free(handle->serial);
 
 	M_free(handle);
-
-	M_io_layer_release(layer);
 }
+
 
 void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
@@ -1002,10 +999,17 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	if (handle == NULL)
 		return;
 
-	M_event_timer_remove(handle->disconnect_task);
-	handle->disconnect_task = NULL;
-	M_event_timer_oneshot(M_io_get_event(handle->io), 0, M_TRUE, M_io_hid_destroy_runner, handle);
+	if (handle->disconnect_timer) {
+		M_event_timer_remove(handle->disconnect_timer);
+	}
+
+	handle->disconnect_timer = NULL;
+	/* Though we might like to delay cleanup, we can't as we may not have an
+	 * event loop at all once this function is called.  Integrators really
+	 * need to rely on disconnect instead! */
+	M_io_hid_destroy(handle);
 }
+
 
 M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
@@ -1022,7 +1026,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	(void)meta;
 
-	if (handle->connection == NULL || !handle->run)
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
 		return M_IO_ERROR_NOTCONNECTED;
 
 	if (buf == NULL || *write_len == 0)
@@ -1064,7 +1068,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	if (handle->connection == NULL || !handle->run)
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
 		return M_IO_ERROR_NOTCONNECTED;
 
 	M_thread_mutex_lock(handle->read_lock);
@@ -1099,6 +1103,67 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	return M_IO_ERROR_SUCCESS;
 }
 
+/* Expects io to be locked! */
+static void M_io_hid_close_connection(M_io_handle_t *handle)
+{
+	JNIEnv  *env    = M_io_jni_getenv();
+	jboolean rv;
+
+	if (env == NULL || handle == NULL || handle->connection == NULL)
+		return;
+
+	/* Release Interface. */
+	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
+
+	/* Close connection. If read is blocking waiting for data this will cause the read to
+	 * return so the thread will stop. */
+	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
+
+	/* Destroy the connection. Sets the var to NULL.
+	 * If there is a read blocking it will return there was an error
+	 * but since we have already set run = false the read loop will
+	 * ignore the error and stop running. */
+	M_io_jni_delete_globalref(env, &handle->interface);
+	M_io_jni_delete_globalref(env, &handle->connection);
+}
+
+
+/* Now its time to issue a disconnect event for final cleanup if one hasn't already been sent. */
+static void M_io_hid_disconnect_runner_step2(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer  = M_io_layer_acquire(handle->io, 0, NULL);
+
+	M_event_timer_remove(handle->disconnect_timer);
+
+	/* Send disconnect event */
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_release(layer);
+}
+
+
+/* We have now waited for any writes to finish and exit.  Time to get the read thread to quit. */
+static void M_io_hid_disconnect_runner_step1(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
+{
+	M_io_handle_t *handle    = arg;
+	M_io_layer_t  *layer     = M_io_layer_acquire(handle->io, 0, NULL);
+
+	M_event_timer_remove(handle->disconnect_timer);
+	handle->disconnect_timer = NULL;
+
+	/* Make sure write thread has exited */
+	M_thread_join(handle->write_tid, NULL);
+	handle->write_tid = NULL;
+
+	/* Close connection. If read is blocking waiting for data this will cause the read to
+	 * return so the thread will stop. */
+	M_io_hid_close_connection(handle);
+
+	handle->disconnect_timer = M_event_timer_oneshot(M_io_get_event(handle->io), 50, M_FALSE, M_io_hid_disconnect_runner_step2, handle);
+	M_io_layer_release(layer);
+}
+
+
 M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -1106,14 +1171,27 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 	if (handle == NULL || handle->connection == NULL)
 		return M_TRUE;
 
-	M_io_hid_close_device(handle);
+	/* Disconnect already started */
+	if (!(handle->status & M_IO_HID_STATUS_SYSUP))
+		return M_FALSE;
+
+	/* Tell our threads they can stop running. And wake up the writer thread. */
+	M_io_hid_signal_shutdown(handle);
+
+	/* Enqueue a task to wait 50ms for writes to flush out, then it will start the 
+	 * process of killing the read loop and wait another 50ms for that to exit
+	 * before issuing a disconnect */
+	handle->disconnect_timer = M_event_timer_oneshot(M_io_get_event(handle->io), 50, M_FALSE, M_io_hid_disconnect_runner_step1, handle);
+
 	return M_FALSE;
 }
+
 
 void M_io_hid_unregister_cb(M_io_layer_t *layer)
 {
 	(void)layer;
 }
+
 
 M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 {
@@ -1121,18 +1199,21 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_t          *io     = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
 
-	if (handle->connection == NULL || !handle->run)
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
 		return M_FALSE;
 
 	handle->io = io;
 
-	if (!handle->started) {
-		/* Start the processing threads. */
+	if (!(handle->status & M_IO_HID_STATUS_READERUP)) {
+		handle->status |= M_IO_HID_STATUS_READERUP;
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
 		M_thread_attr_destroy(tattr);
+	}
 
+	if (!(handle->status & M_IO_HID_STATUS_WRITERUP)) {
+		handle->status |= M_IO_HID_STATUS_WRITERUP;
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
@@ -1145,7 +1226,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	/* If the connection was already started check if we have any
 	 * read data. It might have come in while moving between event loops
 	 * and the event might have been lost. */
-	if (handle->started) {
+	if (handle->status & M_IO_HID_STATUS_READERUP) {
 		M_thread_mutex_lock(handle->read_lock);
 		if (M_buf_len(handle->readbuf) > 0) {
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
@@ -1153,6 +1234,6 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 		M_thread_mutex_unlock(handle->read_lock);
 	}
 
-	handle->started = M_TRUE;
+	handle->status |= M_IO_HID_STATUS_WRITERUP|M_IO_HID_STATUS_READERUP;
 	return M_TRUE;
 }
