@@ -953,6 +953,7 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 void M_io_hid_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	JNIEnv        *env    = M_io_jni_getenv();
 
 	if (handle == NULL)
 		return;
