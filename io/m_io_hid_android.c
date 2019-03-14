@@ -42,6 +42,7 @@ struct M_io_handle {
 	M_thread_cond_t  *write_cond;  /*!< Conditional to wake write thread when there is data to write. */
 	M_bool            run;         /*!< Should the process thread continue running. */
 	M_bool            started;     /*!< Has the handle run through the init process and had processing threads started. */
+	M_bool            in_destroy;  /*!< Are we currently destroying the device. Prevents Disocnnected signal from being sent. */
 	M_threadid_t      read_tid;    /*!< Thread id for the read thread. */
 	M_threadid_t      write_tid;   /*!< Thread id for the write thread. */
 	char              error[256];  /*!< Error buffer for description of last system error. */
@@ -451,7 +452,6 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 		return;
 	}
 
-
 	/* Tell our threads they can stop running and
 	 * if they encounter an error don't worry about it
 	 * because we're closing. */
@@ -470,7 +470,8 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	if (!handle->in_destroy)
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
 
 	/* Destroy the connection. Sets the var to NULL.
 	 * If there is a read blocking it will return there was an error
@@ -961,8 +962,11 @@ static void M_io_hid_destroy_runner(M_event_t *event, M_event_type_t type, M_io_
 	if (arg == NULL)
 		return;
 
-	M_thread_sleep(100000);
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+	handle->in_destroy = M_TRUE;
+	M_io_layer_release(layer);
 
+	M_thread_sleep(100000);
 	M_io_hid_close_device_runner(event, type, dummy_io, arg);
 
 	env = M_io_jni_getenv();
