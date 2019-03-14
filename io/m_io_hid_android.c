@@ -29,9 +29,10 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 typedef enum {
-	M_IO_HID_STATUS_SYSUP    = 1 << 0,  /*!< System is online        */
-	M_IO_HID_STATUS_WRITERUP = 1 << 1,  /*!< Writer thread is online */
-	M_IO_HID_STATUS_READERUP = 1 << 2   /*!< Reader thread is online */
+	M_IO_HID_STATUS_SYSUP     = 1 << 0,  /*!< System is online        */
+	M_IO_HID_STATUS_WRITERUP  = 1 << 1,  /*!< Writer thread is online */
+	M_IO_HID_STATUS_READERUP  = 1 << 2,  /*!< Reader thread is online */
+	M_IO_HID_STATUS_CONNECTED = 1 << 3   /*!< Connection is established */
 } M_io_hid_status_t;
 
 
@@ -437,8 +438,10 @@ static void M_io_hid_close_connection(M_io_handle_t *handle)
 	JNIEnv  *env    = M_io_jni_getenv();
 	jboolean rv;
 
-	if (env == NULL || handle == NULL || handle->connection == NULL)
+	if (env == NULL || handle == NULL || !(handle->status & M_IO_HID_STATUS_CONNECTED))
 		return;
+
+	handle->status &= ~(M_IO_HID_STATUS_CONNECTED);
 
 	/* Release Interface. */
 	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
@@ -446,14 +449,8 @@ static void M_io_hid_close_connection(M_io_handle_t *handle)
 	/* Close connection. If read is blocking waiting for data this will cause the read to
 	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
-
-	/* Destroy the connection. Sets the var to NULL.
-	 * If there is a read blocking it will return there was an error
-	 * but since we have already set run = false the read loop will
-	 * ignore the error and stop running. */
-	M_io_jni_delete_globalref(env, &handle->interface);
-	M_io_jni_delete_globalref(env, &handle->connection);
 }
+
 
 /* Expects the io layer to be locked already! */
 static void M_io_hid_signal_shutdown(M_io_handle_t *handle)
@@ -471,6 +468,7 @@ static void M_io_hid_signal_shutdown(M_io_handle_t *handle)
 		M_thread_mutex_unlock(handle->write_lock);
 	}
 }
+
 
 /* Layer is expected to be locked on entry */
 static void M_io_hid_handle_rw_error(M_io_handle_t *handle, M_io_layer_t *layer)
@@ -882,7 +880,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	handle->read_lock              = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->write_lock             = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	handle->write_cond             = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-	handle->status                 = M_IO_HID_STATUS_SYSUP;
+	handle->status                 = M_IO_HID_STATUS_SYSUP|M_IO_HID_STATUS_CONNECTED;
 	handle->path                   = path;
 	handle->manufacturer           = manufacturer;
 	handle->product                = product;
@@ -950,7 +948,7 @@ M_bool M_io_hid_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	if (handle->connection == NULL)
+	if (!(handle->status & M_IO_HID_STATUS_CONNECTED) || !(handle->status & M_IO_HID_STATUS_SYSUP))
 		return M_IO_STATE_ERROR;
 	return M_IO_STATE_CONNECTED;
 }
@@ -989,6 +987,8 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	/* Clear everything. */
 	M_io_jni_delete_globalref(env, &handle->ep_in);
 	M_io_jni_delete_globalref(env, &handle->ep_out);
+	M_io_jni_delete_globalref(env, &handle->interface);
+	M_io_jni_delete_globalref(env, &handle->connection);
 
 	M_thread_mutex_destroy(handle->read_lock);
 	M_thread_mutex_destroy(handle->write_lock);
@@ -1020,7 +1020,7 @@ M_io_error_t M_io_hid_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 	(void)meta;
 
-	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP) || !(handle->status & M_IO_HID_STATUS_CONNECTED))
 		return M_IO_ERROR_NOTCONNECTED;
 
 	if (buf == NULL || *write_len == 0)
@@ -1062,7 +1062,7 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	if (buf == NULL || *read_len == 0)
 		return M_IO_ERROR_INVALID;
 
-	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP) || !(handle->status & M_IO_HID_STATUS_CONNECTED))
 		return M_IO_ERROR_NOTCONNECTED;
 
 	M_thread_mutex_lock(handle->read_lock);
@@ -1180,7 +1180,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	M_io_t          *io     = M_io_layer_get_io(layer);
 	M_thread_attr_t *tattr;
 
-	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_SYSUP))
+	if (handle->connection == NULL || !(handle->status & M_IO_HID_STATUS_CONNECTED) || !(handle->status & M_IO_HID_STATUS_SYSUP))
 		return M_FALSE;
 
 	handle->io = io;
