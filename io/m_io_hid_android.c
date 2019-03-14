@@ -1179,7 +1179,6 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	handle->io = io;
 
 	if (!(handle->status & M_IO_HID_STATUS_READERUP)) {
-		handle->status |= M_IO_HID_STATUS_READERUP;
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->read_tid = M_thread_create(tattr, M_io_hid_read_loop, handle);
@@ -1187,7 +1186,6 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	}
 
 	if (!(handle->status & M_IO_HID_STATUS_WRITERUP)) {
-		handle->status |= M_IO_HID_STATUS_WRITERUP;
 		tattr = M_thread_attr_create();
 		M_thread_attr_set_create_joinable(tattr, M_TRUE);
 		handle->write_tid = M_thread_create(tattr, M_io_hid_write_loop, handle);
