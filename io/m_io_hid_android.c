@@ -56,6 +56,8 @@ struct M_io_handle {
 	M_bool            uses_reportid;
 	size_t            max_input_report_size;
 	size_t            max_output_report_size;
+
+	M_event_timer_t  *disconnect_task;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -442,6 +444,14 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	if (env == NULL)
 		return;
 
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
+
+	if (handle->connection == NULL) {
+		M_io_layer_release(layer);
+		return;
+	}
+
+
 	/* Tell our threads they can stop running and
 	 * if they encounter an error don't worry about it
 	 * because we're closing. */
@@ -460,15 +470,15 @@ static void M_io_hid_close_device_runner(M_event_t *event, M_event_type_t type, 
 	 * return so the thread will stop. */
 	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
 
-	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
-	M_io_layer_release(layer);
 
 	/* Destroy the connection. Sets the var to NULL.
 	 * If there is a read blocking it will return there was an error
 	 * but since we have already set run = false the read loop will
 	 * ignore the error and stop running. */
 	M_io_jni_delete_globalref(env, &handle->connection);
+
+	M_io_layer_release(layer);
 }
 
 static void M_io_hid_close_device(M_io_handle_t *handle)
@@ -479,7 +489,7 @@ static void M_io_hid_close_device(M_io_handle_t *handle)
 	/* Delay 1/10th of a second before disconnecting to
 	 * let anything that's been buffered to be sent out
 	 * by the OS. */
-	M_event_timer_oneshot(M_io_get_event(handle->io), 100, M_TRUE, M_io_hid_close_device_runner, handle);
+	handle->disconnect_task = M_event_timer_oneshot(M_io_get_event(handle->io), 100, M_TRUE, M_io_hid_close_device_runner, handle);
 }
 
 static void M_io_hid_handle_rw_error(M_io_handle_t *handle)
@@ -942,13 +952,24 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 	return M_IO_STATE_CONNECTED;
 }
 
-void M_io_hid_destroy_cb(M_io_layer_t *layer)
+static void M_io_hid_destroy_runner(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
 {
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_handle_t *handle = arg;
+	M_io_layer_t  *layer;
 	JNIEnv        *env;
 
+	if (arg == NULL)
+		return;
+
+	M_thread_sleep(100000);
+
+	M_io_hid_close_device_runner(event, type, dummy_io, arg);
+
 	env = M_io_jni_getenv();
-	M_io_hid_close_device(handle);
+	if (env == NULL)
+		return;
+
+	layer = M_io_layer_acquire(handle->io, 0, NULL);
 
 	/* Wait for the processing threads to exit. */
 	M_thread_join(handle->write_tid, NULL);
@@ -971,6 +992,20 @@ void M_io_hid_destroy_cb(M_io_layer_t *layer)
 	M_free(handle->serial);
 
 	M_free(handle);
+
+	M_io_layer_release(layer);
+}
+
+void M_io_hid_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle == NULL)
+		return;
+
+	M_event_timer_remove(handle->disconnect_task);
+	handle->disconnect_task = NULL;
+	M_event_timer_oneshot(M_io_get_event(handle->io), 0, M_TRUE, M_io_hid_destroy_runner, handle);
 }
 
 M_bool M_io_hid_process_cb(M_io_layer_t *layer, M_event_type_t *type)
