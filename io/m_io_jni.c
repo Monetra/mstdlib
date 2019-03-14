@@ -1188,7 +1188,6 @@ unsigned char *M_io_jni_jbyteArray_to_puchar(JNIEnv *env, jbyteArray in, size_t 
 size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_buf_t *out)
 {
 	unsigned char *raw;
-	jbyteArray     data = NULL;
 	size_t         len;
 
 	if (in == NULL || out == NULL)
@@ -1207,7 +1206,7 @@ size_t M_io_jni_jbyteArray_to_buf(JNIEnv *env, jbyteArray in, size_t max_len, M_
 	if (max_len != 0)
 		len = M_MIN(max_len, len);
 
-	raw = (unsigned char *)(*env)->GetByteArrayElements(env, data, 0);
+	raw = (unsigned char *)(*env)->GetByteArrayElements(env, in, 0);
 	if (raw == NULL)
 		return 0;
 
