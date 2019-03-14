@@ -28,7 +28,7 @@
 #include "m_io_hid_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-enum {
+typedef enum {
 	M_IO_HID_STATUS_SYSUP    = 1 << 0,  /*!< System is online        */
 	M_IO_HID_STATUS_WRITERUP = 1 << 1,  /*!< Writer thread is online */
 	M_IO_HID_STATUS_READERUP = 1 << 2   /*!< Reader thread is online */
@@ -566,7 +566,7 @@ static void *M_io_hid_read_loop(void *arg)
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	handle->status &= ~(M_IO_HID_STATUS_READERUP);
-	M_io_hid_handle_rw_error(handle);
+	M_io_hid_handle_rw_error(handle, layer);
 	M_io_layer_release(layer);
 
 	return NULL;
@@ -678,7 +678,7 @@ static void *M_io_hid_write_loop(void *arg)
 
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	handle->status &= ~(M_IO_HID_STATUS_WRITERUP);
-	M_io_hid_handle_rw_error(handle);
+	M_io_hid_handle_rw_error(handle, layer);
 	M_io_layer_release(layer);
 
 	return NULL;
@@ -952,9 +952,7 @@ M_io_state_t M_io_hid_state_cb(M_io_layer_t *layer)
 
 static void M_io_hid_destroy(M_io_handle_t *handle)
 {
-	M_io_handle_t *handle = arg;
-	M_io_layer_t  *layer;
-	JNIEnv        *env    = M_io_jni_getenv();;
+	JNIEnv *env = M_io_jni_getenv();;
 
 	if (handle == NULL || env == NULL)
 		return;
@@ -1103,36 +1101,16 @@ M_io_error_t M_io_hid_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	return M_IO_ERROR_SUCCESS;
 }
 
-/* Expects io to be locked! */
-static void M_io_hid_close_connection(M_io_handle_t *handle)
-{
-	JNIEnv  *env    = M_io_jni_getenv();
-	jboolean rv;
-
-	if (env == NULL || handle == NULL || handle->connection == NULL)
-		return;
-
-	/* Release Interface. */
-	M_io_jni_call_jboolean(&rv, NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.releaseInterface", 1, handle->interface);
-
-	/* Close connection. If read is blocking waiting for data this will cause the read to
-	 * return so the thread will stop. */
-	M_io_jni_call_jvoid(NULL, 0, env, handle->connection, "android/hardware/usb/UsbDeviceConnection.close", 0);
-
-	/* Destroy the connection. Sets the var to NULL.
-	 * If there is a read blocking it will return there was an error
-	 * but since we have already set run = false the read loop will
-	 * ignore the error and stop running. */
-	M_io_jni_delete_globalref(env, &handle->interface);
-	M_io_jni_delete_globalref(env, &handle->connection);
-}
-
 
 /* Now its time to issue a disconnect event for final cleanup if one hasn't already been sent. */
 static void M_io_hid_disconnect_runner_step2(M_event_t *event, M_event_type_t type, M_io_t *dummy_io, void *arg)
 {
 	M_io_handle_t *handle = arg;
 	M_io_layer_t  *layer  = M_io_layer_acquire(handle->io, 0, NULL);
+
+	(void)event;
+	(void)type;
+	(void)dummy_io;
 
 	M_event_timer_remove(handle->disconnect_timer);
 
@@ -1147,6 +1125,10 @@ static void M_io_hid_disconnect_runner_step1(M_event_t *event, M_event_type_t ty
 {
 	M_io_handle_t *handle    = arg;
 	M_io_layer_t  *layer     = M_io_layer_acquire(handle->io, 0, NULL);
+
+	(void)event;
+	(void)type;
+	(void)dummy_io;
 
 	M_event_timer_remove(handle->disconnect_timer);
 	handle->disconnect_timer = NULL;
