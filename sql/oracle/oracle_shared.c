@@ -50,9 +50,9 @@ M_sql_error_t oracle_resolve_error(const char *sqlstate, M_int32 errorcode)
 		case 1453: /* SET TRANSACTION must be first statement of transaction - 
 		            * we've seen this one in Precise Parklink randomly after a
 		            * couple of days of processing for unknown reasons.  SET
-		            * TRANSACTION is never explicitly called, but rather happens
-		            * implicitly when setting the connection attribute for the
-		            * isolation level. */
+		            * TRANSACTION is never explicitly called in ODBC, but rather
+		            * happens implicitly when setting the connection attribute
+		            * for the isolation level. */
 			return M_SQL_ERROR_CONN_LOST;
 
 
