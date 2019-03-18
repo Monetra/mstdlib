@@ -22,6 +22,12 @@
  */
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/sql/m_sql_driver.h>
+
+/* Work around OCI bug */
+#if defined(_WIN32) && defined(__GNUC__)
+#  define _int64 long long
+#endif
+
 #include <oci.h>
 #include "oracle_shared.h"
 
