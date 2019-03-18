@@ -35,15 +35,23 @@ set(_old_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
 
 # Set path guesses.
 set(_paths)
-if (CMAKE_HOST_WIN32)
+if (WIN32)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(archdir    "$ENV{ProgramFiles}")
 		set(notarchdir "$ENV{ProgramFiles\(x86\)}")
-		set(archrootdir "/Oracle64")
+		if (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN")
+			set(archrootdir "/cygdrive/c/Oracle64")
+		else ()
+			set(archrootdir "/Oracle64")
+		endif ()
 	else ()
 		set(archdir    "$ENV{ProgramFiles\(x86\)}")
 		set(notarchdir "$ENV{ProgramFiles}")
-		set(archrootdir "/Oracle")
+		if (CMAKE_HOST_SYSTEM_NAME MATCHES "CYGWIN") 
+			set(archrootdir "/cygdrive/c/Oracle")
+		else ()
+			set(archrootdir "/Oracle")
+		endif ()
 	endif ()
 	append_glob_dirs(_paths "${archdir}/Oracle/oci*/")
 	append_glob_dirs(_paths "${notarchdir}/Oracle/oci*/")
@@ -82,7 +90,11 @@ find_path(Oracle_INCLUDE_DIR
 	              $ENV{ORACLE_HOME}
 	PATHS         ${_paths}
 	PATH_SUFFIXES include client64 sdk/include
+	CMAKE_FIND_ROOT_PATH_BOTH
+	NO_DEFAULT_PATH
 )
+
+
 add_to_cachelog(Oracle_INCLUDE_DIR)
 
 if (Oracle_INCLUDE_DIR)
@@ -115,12 +127,11 @@ if (Oracle_INCLUDE_DIR)
 	endif ()
 	
 	# Find shared library.
-	foreach (defpath "NO_DEFAULT_PATH" "")
+	foreach (defpath "NO_DEFAULT_PATH" "CMAKE_FIND_ROOT_PATH_BOTH" "")
 		find_library(Oracle_LIBRARY
 			NAMES         oci clntsh liboci libclntsh
 			NAMES_PER_DIR
-			HINTS         ${Oracle_DIR}
-			PATHS         ${_paths}
+			PATHS         ${Oracle_DIR}
 			PATH_SUFFIXES lib sdk/lib sdk/lib/msvc
 			${defpath}
 		)
@@ -136,11 +147,11 @@ if (Oracle_INCLUDE_DIR)
 	# Find the DLL (if any).
 	if (WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .dll)
-		foreach (defpath "NO_DEFAULT_PATH" "")
+		foreach (defpath "NO_DEFAULT_PATH" "CMAKE_FIND_ROOT_PATH_BOTH" "")
 			find_library(Oracle_DLL_LIBRARY
 				NAMES         oci
 				NAMES_PER_DIR
-				HINTS         ${Oracle_DIR}
+				PATHS         ${Oracle_DIR}
 				PATH_SUFFIXES bin lib ""
 				${defpath}
 			)
