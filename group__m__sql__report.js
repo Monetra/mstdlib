@@ -22,6 +22,7 @@ var group__m__sql__report =
     [ "M_sql_report_cell_cb_passthru", "group__m__sql__report.html#ga2abd2ec854cb01713c511297b0ab27a2", null ],
     [ "M_sql_report_cell_cb_int2dec", "group__m__sql__report.html#ga7a77946c7950808a93752776fac3e548", null ],
     [ "M_sql_report_cell_cb_int5dec", "group__m__sql__report.html#ga40514784ecfbc998383f4459d7f0c564", null ],
+    [ "M_sql_report_cell_cb_int5min2dec", "group__m__sql__report.html#ga5e2daff72a6e57f83f3d64657a64c621", null ],
     [ "M_sql_report_cell_cb_boolyesno", "group__m__sql__report.html#gad946d57824ad80ee01a367bd5c85fc0b", null ],
     [ "M_sql_report_add_column", "group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9", null ],
     [ "M_sql_report_hide_column", "group__m__sql__report.html#gafa488e7db2277ecac6dca66c9878f3b4", null ],

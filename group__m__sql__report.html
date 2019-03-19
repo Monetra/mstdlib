@@ -155,6 +155,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga7a77946c7950808a93752776fac3e548"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga40514784ecfbc998383f4459d7f0c564"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__report.html#gafbce3c1366f175c2a43b977798307186">M_sql_report_cberror_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga40514784ecfbc998383f4459d7f0c564">M_sql_report_cell_cb_int5dec</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, void *arg, const char *name, size_t row, ssize_t col, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, M_bool *is_null)</td></tr>
 <tr class="separator:ga40514784ecfbc998383f4459d7f0c564"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e2daff72a6e57f83f3d64657a64c621"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__report.html#gafbce3c1366f175c2a43b977798307186">M_sql_report_cberror_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga5e2daff72a6e57f83f3d64657a64c621">M_sql_report_cell_cb_int5min2dec</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, void *arg, const char *name, size_t row, ssize_t col, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, M_bool *is_null)</td></tr>
+<tr class="separator:ga5e2daff72a6e57f83f3d64657a64c621"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad946d57824ad80ee01a367bd5c85fc0b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__report.html#gafbce3c1366f175c2a43b977798307186">M_sql_report_cberror_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#gad946d57824ad80ee01a367bd5c85fc0b">M_sql_report_cell_cb_boolyesno</a> (<a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, void *arg, const char *name, size_t row, ssize_t col, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, M_bool *is_null)</td></tr>
 <tr class="separator:gad946d57824ad80ee01a367bd5c85fc0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaccee8d2f61a20b6a34b5f6b5f043f6a9"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9">M_sql_report_add_column</a> (<a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, const char *name, <a class="el" href="group__m__sql__report.html#ga8395a1aa809332e58ab29edae99c9fed">M_sql_report_cell_cb_t</a> cb, const char *sql_col_name, ssize_t sql_col_idx)</td></tr>
@@ -645,6 +647,67 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga5e2daff72a6e57f83f3d64657a64c621"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__report.html#gafbce3c1366f175c2a43b977798307186">M_sql_report_cberror_t</a> M_sql_report_cell_cb_int5min2dec </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *&#160;</td>
+          <td class="paramname"><em>stmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>arg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>row</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ssize_t&#160;</td>
+          <td class="paramname"><em>col</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_bool *&#160;</td>
+          <td class="paramname"><em>is_null</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Callback template for outputting an integer column stored with a 5-digit implied decimal point as an actual decimal with between 2 and 5 decimal places. E.g.:</p><ul>
+<li>1 -&gt; 0.00001</li>
+<li>123000 -&gt; 1.23</li>
+<li>111111 -&gt; 1.11111 If the cell is NULL, a blank column will be output instead of 0.00000 </li>
+</ul>
+
+</div>
+</div>
 <a class="anchor" id="gad946d57824ad80ee01a367bd5c85fc0b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -960,7 +1023,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Mar 18 2019 15:39:45 for Mstdlib-1.5.0 by
+    <li class="footer">Generated on Tue Mar 19 2019 18:47:31 for Mstdlib-1.5.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

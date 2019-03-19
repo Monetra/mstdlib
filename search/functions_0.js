@@ -1462,6 +1462,7 @@ var searchData=
   ['m_5fsql_5freport_5fcell_5fcb_5fboolyesno',['M_sql_report_cell_cb_boolyesno',['../group__m__sql__report.html#gad946d57824ad80ee01a367bd5c85fc0b',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fcell_5fcb_5fint2dec',['M_sql_report_cell_cb_int2dec',['../group__m__sql__report.html#ga7a77946c7950808a93752776fac3e548',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fcell_5fcb_5fint5dec',['M_sql_report_cell_cb_int5dec',['../group__m__sql__report.html#ga40514784ecfbc998383f4459d7f0c564',1,'m_sql_report.h']]],
+  ['m_5fsql_5freport_5fcell_5fcb_5fint5min2dec',['M_sql_report_cell_cb_int5min2dec',['../group__m__sql__report.html#ga5e2daff72a6e57f83f3d64657a64c621',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fcell_5fcb_5fpassthru',['M_sql_report_cell_cb_passthru',['../group__m__sql__report.html#ga2abd2ec854cb01713c511297b0ab27a2',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fcreate',['M_sql_report_create',['../group__m__sql__report.html#ga6af547bf3235cf413d5b346bd5bee2d3',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fdestroy',['M_sql_report_destroy',['../group__m__sql__report.html#ga6e212972766fa09b4248760f27b61cfd',1,'m_sql_report.h']]],
