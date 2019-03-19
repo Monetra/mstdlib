@@ -225,6 +225,45 @@ M_sql_report_cberror_t M_sql_report_cell_cb_int5dec(M_sql_stmt_t *stmt, void *ar
 	return M_SQL_REPORT_SUCCESS;
 }
 
+M_sql_report_cberror_t M_sql_report_cell_cb_int5min2dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
+{
+	M_int64     i64;
+	M_decimal_t dec;
+	M_uint8     num_dec = 5;
+
+	(void)arg;
+	(void)name;
+
+	*is_null = M_TRUE;
+
+	if (col < 0)
+		return M_SQL_REPORT_ERROR;
+
+	M_sql_stmt_result_isnull(stmt, row, (size_t)col, is_null);
+	if (*is_null)
+		return M_SQL_REPORT_SUCCESS;
+
+	M_sql_stmt_result_int64(stmt, row, (size_t)col, &i64);
+
+	/* Convert to Decimal with 5 implied decimal places */
+	M_decimal_from_int(&dec, i64, num_dec);
+
+	/* Reduce as much as possible */
+	M_decimal_reduce(&dec);
+
+	/* Make sure we have at least 2 decimal places */
+	num_dec = M_decimal_num_decimals(&dec);
+	if (num_dec < 2) {
+		M_decimal_transform(&dec, 2);
+		num_dec = 2;
+	}
+
+	/* Output in string form with real decimal and 2-5 guaranteed decimal places */
+	if (!M_buf_add_decimal(buf, &dec, M_FALSE /* We want the decimal point */, (M_int8)num_dec, 0 /* no max width */))
+		return M_SQL_REPORT_ERROR;
+	return M_SQL_REPORT_SUCCESS;
+}
+
 
 M_sql_report_cberror_t M_sql_report_cell_cb_int2dec(M_sql_stmt_t *stmt, void *arg, const char *name, size_t row, ssize_t col, M_buf_t *buf, M_bool *is_null)
 {
