@@ -64,7 +64,7 @@ static M_str_int_retval_t M_str_to_uint64_int(const char *s, size_t len, unsigne
 	M_bool        overflow  = M_FALSE;
 	unsigned char digit;
 
-	if (base < 2 || base > 35) {
+	if (base < 2 || base > 36) {
 		if (endptr)
 			*endptr = s;
 		if (val)
