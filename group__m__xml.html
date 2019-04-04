@@ -1177,6 +1177,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Using XPath expressions, scan for matches.</p>
 <p>Note that full XPath support does not yet exist. Also only element nodes are currently returned unless text() is used to return text nodes.</p>
+<p>This will return an array of nodes within the tree. The nodes in the return are not copies, they are references. Changing a node in the xpath return will modify the node in the tree.</p>
 <p>Supports: </p><table class="doxtable">
 <tr>
 <th>Syntax </th><th>Meaning  </th></tr>
@@ -1859,7 +1860,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Mar 25 2019 13:21:52 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu Apr 4 2019 12:45:48 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
