@@ -413,6 +413,9 @@ M_API M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node);
  * Note that full XPath support does not yet exist. Also only element nodes are currently returned unless text() is
  * used to return text nodes.
  *
+ * This will return an array of nodes within the tree. The nodes in the return are not copies, they are
+ * references. Changing a node in the xpath return will modify the node in the tree.
+ *
  * Supports:
  * Syntax             | Meaning
  * -------------------|---------
