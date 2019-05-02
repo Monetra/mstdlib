@@ -308,7 +308,7 @@ M_API M_bool M_buf_add_bytes_hex(M_buf_t *buf, const char *hex_bytes);
 M_API void M_buf_add_char(M_buf_t *buf, char c);
 
 
-/*! Append a C string (zero or more bytes terminated with a NUL) to a buffer.
+/*! Append a C string (zero or more bytes terminated with a NULL) to a buffer.
  *
  * The NUL is not appended.
  *
@@ -316,6 +316,17 @@ M_API void M_buf_add_char(M_buf_t *buf, char c);
  * \param[in]     str String to append.
  */
 M_API void M_buf_add_str(M_buf_t *buf, const char *str);
+
+
+/*! Append a C string up to the NUL terminator or max bytes (which ever is smaller) to a buffer.
+ *
+ * The NUL is not appended.
+ *
+ * \param[in,out] buf Buffer.
+ * \param[in]     str String to append.
+ * \param[in]     max Maximum number of bytes to add.
+ */
+M_API void M_buf_add_str_max(M_buf_t *buf, const char *str, size_t max);
 
 
 /*! Append the given bytes to the buffer as a hex-encoded string.

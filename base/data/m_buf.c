@@ -467,6 +467,16 @@ void M_buf_add_str(M_buf_t *buf, const char *str)
 	M_buf_add_str_transform(buf, M_BUF_TRANSFORM_NONE, str);
 }
 
+void M_buf_add_str_max(M_buf_t *buf, const char *str, size_t max)
+{
+	size_t len;
+
+	if (buf == NULL || M_str_isempty(str) || max == 0)
+		return;
+
+	len = M_MIN(M_str_len(str), max);
+	M_buf_add_bytes(buf, str, len);
+}
 
 void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len)
 {
