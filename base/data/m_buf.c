@@ -449,16 +449,13 @@ M_bool M_buf_add_bytes_hex(M_buf_t *buf, const char *hex_bytes)
 
 void M_buf_add_str_transform(M_buf_t *buf, M_uint32 transform_type, const char *str)
 {
-	size_t str_length;
+	M_buf_add_str_max_transform(buf, transform_type, str, M_str_len(str));
+}
 
-	if (buf == NULL)
-		return;
 
-	str_length = M_str_len(str);
-	if (str_length == 0)
-		return;
-
-	M_buf_add_bytes_transform(buf, transform_type, str, str_length);
+void M_buf_add_str_max_transform(M_buf_t *buf, M_uint32 transform_type, const char *str, size_t max)
+{
+	M_buf_add_bytes_transform(buf, transform_type, str, M_MIN(M_str_len(str), max));
 }
 
 

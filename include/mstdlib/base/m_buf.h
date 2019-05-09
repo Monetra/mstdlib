@@ -379,6 +379,19 @@ M_API size_t M_buf_add_str_lines(M_buf_t *buf, const char *str, size_t max_lines
 M_API void M_buf_add_str_transform(M_buf_t *buf, M_uint32 transform_type, const char *str);
 
 
+/*! Append a C string (zero or more bytes terminated with a NUL) to a buffer up to
+ *  max size, transform the data as specified.
+ *
+ * The NUL is not appended.
+ *
+ * \param[in,out] buf            Buffer.
+ * \param[in]     transform_type Type of transformation to perform, bitmap field of enum M_BUF_TRANSFORM_TYPE
+ * \param[in]     str            String to append.
+ * \param[in]     max            Max length to append.
+ */
+M_API void M_buf_add_str_max_transform(M_buf_t *buf, M_uint32 transform_type, const char *str, size_t max);
+
+
 /*! Append a C string (zero or more bytes terminated with a NUL) to a buffer, ensuring all characters of the string
  * are in uppercase.
  *
