@@ -2454,8 +2454,17 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Append a monetary amount to a buffer.</p>
 <p>Input is a dollar amount with a 2 digit decimal value using '.' to separate dollar and cents. A '.' is used for the decimal portion. The input is <em>not</em> implied decimal. Only the first two decimal digits are evaluated. Everything after is truncated. The amount will be added as implied decimal. Negative symbol will be added if value is negative.</p>
-<p>Ex. in -&gt; "12.00" out -&gt; 1200 in -&gt; "12.1001" out -&gt; 1210 in -&gt; "-12.0" out -&gt; -1200 in -&gt; "-12." out -&gt; -1200 in -&gt; "12" out -&gt; 1200</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>E.g. </p><pre class="fragment">in  -&gt; "12.00"
+out -&gt; 1200
+in  -&gt; "12.1001"
+out -&gt; 1210
+in  -&gt; "-12.0"
+out -&gt; -1200
+in  -&gt; "-12."
+out -&gt; -1200
+in  -&gt; "12"
+out -&gt; 1200
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">buf</td><td>Buffer. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">amount</td><td>Monetary amount to append. Not implied decimal. </td></tr>
@@ -2499,8 +2508,17 @@ Functions</h2></td></tr>
 <p>Append a monetary amount to a buffer, adding a decimal point.</p>
 <p>Input is a dollar amount with a 2 digit decimal value using '.' to separate dollar and cents. A '.' is used for the decimal portion. The input is <em>not</em> implied decimal. Only the first two decimal digits are evaluated. Everything after is truncated. The amount will be added with a decimal. Negative symbol will be added if value is negative.</p>
 <p>This function is used to ensure a properly formatted monetary value.</p>
-<p>Ex. in -&gt; "12.00" out -&gt; 12.00 in -&gt; "12.1001" out -&gt; 12.10 in -&gt; "-12.0" out -&gt; -12.00 in -&gt; "-12." out -&gt; -12.00 in -&gt; "12" out -&gt; 12.00</p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>E.g. </p><pre class="fragment">in  -&gt; "12.00"
+out -&gt; 12.00
+in  -&gt; "12.1001"
+out -&gt; 12.10
+in  -&gt; "-12.0"
+out -&gt; -12.00
+in  -&gt; "-12."
+out -&gt; -12.00
+in  -&gt; "12"
+out -&gt; 12.00
+</pre><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">buf</td><td>Buffer. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">amount</td><td>Monetary amount to append. </td></tr>
@@ -3093,7 +3111,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 30 2019 13:10:20 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu May 30 2019 13:19:12 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
