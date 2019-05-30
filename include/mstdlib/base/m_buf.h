@@ -695,7 +695,9 @@ M_API void M_buf_add_ptr(M_buf_t *buf, void *ptr);
  * Only the first two decimal digits are evaluated. Everything after is truncated.
  * The amount will be added as implied decimal. Negative symbol will be added if value is negative.
  *
- * Ex. in  -> "12.00"
+ * E.g. 
+ *
+ *     in  -> "12.00"
  *     out -> 1200
  *     in  -> "12.1001"
  *     out -> 1210
@@ -724,7 +726,9 @@ M_API M_bool M_buf_add_money(M_buf_t *buf, const char *amount, size_t max_width)
  *
  * This function is used to ensure a properly formatted monetary value.
  *
- * Ex. in  -> "12.00"
+ * E.g. 
+ *
+ *     in  -> "12.00"
  *     out -> 12.00
  *     in  -> "12.1001"
  *     out -> 12.10
