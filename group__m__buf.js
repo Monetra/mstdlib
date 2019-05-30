@@ -38,6 +38,7 @@ var group__m__buf =
     [ "M_buf_add_str_hex", "group__m__buf.html#ga9b0e5500c0e7bb5d7e318137a7d2d3bb", null ],
     [ "M_buf_add_str_lines", "group__m__buf.html#gabaacc3a8f933fb71a266ad579f243257", null ],
     [ "M_buf_add_str_transform", "group__m__buf.html#ga8cb3d84dedd4690c2746ed18c9a6c596", null ],
+    [ "M_buf_add_str_max_transform", "group__m__buf.html#gaf8d520f90f6a63257f0ec80b173c9928", null ],
     [ "M_buf_add_str_upper", "group__m__buf.html#ga9ed8f84653a148758d58a5bb5b4d46bf", null ],
     [ "M_buf_add_str_lower", "group__m__buf.html#gab9dbacb361762be782bdc894ddf4a5c4", null ],
     [ "M_buf_add_fill", "group__m__buf.html#ga6841fdbc6dee127c585d13e9eb98193e", null ],
