@@ -690,9 +690,25 @@ M_API void M_buf_add_ptr(M_buf_t *buf, void *ptr);
 
 /*! Append a monetary amount to a buffer.
  *
+ * Input is a dollar amount with a 2 digit decimal value using '.' to separate dollar
+ * and cents. A '.' is used for the decimal portion. The input is _not_ implied decimal.
+ * Only the first two decimal digits are evaluated. Everything after is truncated.
+ * The amount will be added as implied decimal. Negative symbol will be added if value is negative.
+ *
+ * Ex. in  -> "12.00"
+ *     out -> 1200
+ *     in  -> "12.1001"
+ *     out -> 1210
+ *     in  -> "-12.0"
+ *     out -> -1200
+ *     in  -> "-12."
+ *     out -> -1200
+ *     in  -> "12"
+ *     out -> 1200
+ *
  * \param[in,out] buf       Buffer.
- * \param[in]     amount    Monetary amount to append.
- * \param[in]     max_width Maximum width of field.
+ * \param[in]     amount    Monetary amount to append. Not implied decimal.
+ * \param[in]     max_width Maximum width of field. Number of digits output.
  *
  * \return M_FALSE on error (probably truncation), M_TRUE otherwise.
  */
@@ -700,6 +716,24 @@ M_API M_bool M_buf_add_money(M_buf_t *buf, const char *amount, size_t max_width)
 
 
 /*! Append a monetary amount to a buffer, adding a decimal point.
+ *
+ * Input is a dollar amount with a 2 digit decimal value using '.' to separate dollar
+ * and cents. A '.' is used for the decimal portion. The input is _not_ implied decimal.
+ * Only the first two decimal digits are evaluated. Everything after is truncated.
+ * The amount will be added with a decimal. Negative symbol will be added if value is negative.
+ *
+ * This function is used to ensure a properly formatted monetary value.
+ *
+ * Ex. in  -> "12.00"
+ *     out -> 12.00
+ *     in  -> "12.1001"
+ *     out -> 12.10
+ *     in  -> "-12.0"
+ *     out -> -12.00
+ *     in  -> "-12."
+ *     out -> -12.00
+ *     in  -> "12"
+ *     out -> 12.00
  *
  * \param[in,out] buf       Buffer.
  * \param[in]     amount    Monetary amount to append.
@@ -717,6 +751,8 @@ M_API M_bool M_buf_add_money_dot(M_buf_t *buf, const char *amount, size_t max_wi
  * \param[in]     max_width Maximum width of field.
  *
  * \return M_FALSE on error (probably truncation), otherwise M_TRUE.
+ *
+ * \see M_buf_add_money
  */
 M_API M_bool M_buf_add_money_just(M_buf_t *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT;
 
@@ -729,6 +765,8 @@ M_API M_bool M_buf_add_money_just(M_buf_t *buf, const char *amount, size_t max_w
  * \param[in]     max_width Maximum width of field.
  *
  * \return M_FALSE on error (probably truncation), otherwise M_TRUE.
+ *
+ * \see M_buf_add_money_dot
  */
 M_API M_bool M_buf_add_money_dot_just(M_buf_t *buf, const char *amount, size_t max_width) M_WARN_UNUSED_RESULT;
 
