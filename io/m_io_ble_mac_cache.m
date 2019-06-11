@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  * 
- * Copyright (c) 2018 Monetra Technologies, LLC.
+ * Copyright (c) 2018-2019 Monetra Technologies, LLC.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,15 +39,81 @@
  *
  * The manager object is only going to be run on on the main queue and this
  * need to ensure that happens. This is to prevent any cross thread access and
- * event delivery. Always disptach these async if it's sync and the main run
+ * event delivery. Always dispatch these async if it's sync and the main run
  * loop is not running we'll get a segfault due to bad access.
  *
+ *
  * All access to the ble_devices, and ble_waiting caches need to be locked.
+ *
  *
  * Devices need to be seen from a scan before they can be used. We cannot
  * cache the CBPeripheral/CBService/CBCharacteristic objects in a cache
  * because once cancelPeripheralConnection is called they are invalidated.
  * This prevents us from reusing already seen devices.
+ *
+ * The OS caches devices internally based on the device (UUID) identifier.
+ * We'll query the OS using retrievePeripheralsWithIdentifiers to try and
+ * skip scanning.
+ *
+ * The OS also can be queried for currently connected devices by the service
+ * id. We'll use retrieveConnectedPeripheralsWithServices to try and connect
+ * to a matching device if it's present. Multiple connection to a BLE device
+ * is permitted and works. However, some devices aren't able to handle
+ * this and could be a bit wonky. For example, if the device was designed
+ * for serial communication (it really shouldn't have been).
+ *
+ * Using retrieve[Connected]PeripheralsWith* will speed up the connection process
+ * because scanning isn't necessary.
+ *
+ *
+ * Apple provides guidance on reconnecting to devices at
+ * https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/BestPracticesForInteractingWithARemotePeripheralDevice/BestPracticesForInteractingWithARemotePeripheralDevice.html#//apple_ref/doc/uid/TP40013257-CH6-SW9
+ * It is described as:
+ *
+ * Find Known Peripherals (retrievePeripheralsWithIdentifiers)
+ * -> Found
+ *    -> Try connect
+ *       -> Connected
+ *          -> Done
+ *       -> Fail connect
+ *          -> Goto scan flow
+ * -> Not found
+ *    -> Goto Service flow
+ *
+ * Service Flow (retrieveConnectedPeripheralsWithServices)
+ * -> Found
+ *    -> Connect
+ *       -> Done
+ * -> Not found
+ *    -> Goto scan flow
+ *
+ * Scan Flow (See M_io_ble_mac_manager.m for steps)
+ * -> Scan, discover, connect
+ *
+ * We do not follow the "Find Known Peripherals" flow exactly as described.
+ * because we do not have a M_io_ble_create type function that takes both
+ * a device and service id. When the device is not found in this flow
+ * we skip the Service Flow (we don't have a service id) and go directly to
+ * the Scan Flow.
+ *
+ * Also, if connect fails in the "Find Known Peripherals" flow we do not
+ * auto retry by scanning. Instead we let the caller retry. A connection
+ * error will call the didFailToConnectPeripheral callback when there is
+ * a transient error and it's safe to try again. Per the docs,
+ * "connection attempts do not time out" so it's not guaranteed this callback
+ * will be triggered. If it's not the caller will most likely try again anyway
+ * so we don't double the work.
+ *
+ * Our modified flow looks like this:
+ *
+ * Find Known Peripherals (retrievePeripheralsWithIdentifiers)
+ * -> Found
+ *    -> Try connect
+ *       -> Connected
+ *          -> Done
+ * -> Not found
+ *    -> Goto Scan flow
+ *
  *
  * The ble_waiting cache holds device handles we want to associate to a device.
  * The ble_waiting_service cache holds device handles we want to associate with
@@ -321,6 +387,58 @@ static void update_seen(const char *uuid)
 	edev->last_seen = M_time();
 }
 
+/* MUST BE IN A LOCK TO CALL THIS FUNCTION! */
+static void M_io_ble_device_cache_peripherial_int(CBPeripheral *peripheral)
+{
+	CFTypeRef   p;
+	const char *uuid;
+
+	uuid = [[[peripheral identifier] UUIDString] UTF8String];
+	if (M_hash_strvp_get(ble_peripherals, uuid, NULL))
+		return;
+
+	/* Transfer the reference of the peripheral into our cache so
+ 	 * it isn't delete by ARC. */
+	p = (__bridge_retained CFTypeRef)peripheral;
+	M_hash_strvp_insert(ble_peripherals, uuid, M_CAST_OFF_CONST(void *, p));
+}
+
+static M_bool get_peripheral_by_int(NSArray<CBPeripheral *> *peripherals)
+{
+	CBPeripheral *peripheral  = nil;
+
+	if (peripherals == nil || [peripherals count] <= 0)
+		return M_FALSE;
+
+	/* Setup and try to connect to the first peripheral in the list. */
+	peripheral = peripherals[0];
+	if (peripheral.delegate != manager)
+		peripheral.delegate = manager;
+
+	M_io_ble_device_cache_peripherial_int(peripheral);
+	[cbc_manager connectPeripheral:peripheral options:nil];
+
+	return M_TRUE;
+}
+
+static M_bool get_peripheral_by_identifier(const char *identifier)
+{
+	NSUUID                  *uuid        = [[NSUUID alloc] initWithUUIDString:[NSString stringWithUTF8String:identifier]];
+	NSArray<NSUUID *>       *uarr        = @[uuid];
+	NSArray<CBPeripheral *> *peripherals = [cbc_manager retrievePeripheralsWithIdentifiers:uarr];
+
+	return get_peripheral_by_int(peripherals);
+}
+
+static M_bool get_peripheral_by_service(const char *service_uuid)
+{
+	CBUUID                  *uuid        = [CBUUID UUIDWithString:[NSString stringWithUTF8String:service_uuid]];
+	NSArray<CBUUID *>       *cbarr       = @[uuid];
+	NSArray<CBPeripheral *> *peripherals = [cbc_manager retrieveConnectedPeripheralsWithServices:cbarr];
+
+	return get_peripheral_by_int(peripherals);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void M_io_ble_cbc_event_reset(void)
@@ -332,7 +450,7 @@ void M_io_ble_cbc_event_reset(void)
 	M_thread_mutex_lock(lock);
 
 	/* We need to issue a disconnect for each device individually because destroying
- 	 * the device in the cache won't generate one. We can't have destroy genereate
+ 	 * the device in the cache won't generate one. We can't have destroy generate
 	 * because we could be removing from the cache for a disconnect or an error event. */
 	M_hash_strvp_enumerate(ble_devices, &he);
 	while (M_hash_strvp_enumerate_next(ble_devices, he, NULL, (void **)&dev)) {
@@ -428,18 +546,8 @@ void M_io_ble_device_reap_seen(void)
 
 void M_io_ble_device_cache_peripherial(CBPeripheral *peripheral)
 {
-	CFTypeRef   p;
-	const char *uuid;
-
 	M_thread_mutex_lock(lock);
-
-	uuid = [[[peripheral identifier] UUIDString] UTF8String];
-	if (M_hash_strvp_get(ble_peripherals, uuid, NULL))
-		return;
-
-	p = (__bridge_retained CFTypeRef)peripheral;
-	M_hash_strvp_insert(ble_peripherals, uuid, M_CAST_OFF_CONST(void *, p));
-
+	M_io_ble_device_cache_peripherial_int(peripheral);
 	M_thread_mutex_unlock(lock);
 }
 
@@ -984,9 +1092,11 @@ M_bool M_io_ble_init_int(void)
 void M_io_ble_connect(M_io_handle_t *handle)
 {
 	M_io_layer_t *layer;
+	M_bool        do_scan = M_TRUE;
 
 	M_thread_mutex_lock(lock);
 
+	/* Check if this device is already open and in use. */
 	if (M_hash_strvp_get(ble_devices, handle->uuid, NULL)) {
 		M_snprintf(handle->error, sizeof(handle->error), "Device in use");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
@@ -997,13 +1107,36 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		return;
 	}
 
-	/* Cache that we want to get a device. */
+	/* Cache that we want to get a device. 
+ 	 * We'll check if a matching device is
+	 * present by asking the OS if it has one
+	 * cached. If so we'll use that instead of
+	 * scanning. */
 	if (!M_str_isempty(handle->uuid)) {
 		M_hash_strvp_insert(ble_waiting, handle->uuid, handle);
+		if (get_peripheral_by_identifier(handle->uuid)) {
+			do_scan = M_FALSE;
+		}
 	} else {
 		M_hash_strvp_insert(ble_waiting_service, handle->service_uuid, handle);
+		if (get_peripheral_by_service(handle->service_uuid)) {
+			do_scan = M_FALSE;
+		}
 	}
-	start_blind_scan();
+
+	/* We only need to do a scan if we couldn't get
+ 	 * a peripheral directly. Not getting a peripheral
+	 * means the OS doesn't have it cached. It could be
+	 * because the device hasn't connected before or
+	 * got invalidated by going out of range or something.
+	 *
+	 * We use a blind scan and don't specify a service id
+	 * because we might be matching on device uuid. Also,
+	 * if another device open request comes in we don't want
+	 * to block that scan while we complete this one. Blind
+	 * scanning allows us to paralyze opening devices. */
+	if (do_scan)
+		start_blind_scan();
 
 	M_thread_mutex_unlock(lock);
 }
