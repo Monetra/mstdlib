@@ -264,7 +264,7 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	M_llist_node_t   *node;
 	M_io_ble_rdata_t *rdata;
 
-	/* Validae we have a meta object. If not we don't know what to do. */
+	/* Validate we have a meta object. If not we don't know what to do. */
 	if (meta == NULL)
 		return M_IO_ERROR_INVALID;
 
@@ -292,20 +292,18 @@ M_io_error_t M_io_ble_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	M_hash_multi_u64_insert_int(mdata, M_IO_BLE_META_KEY_READ_TYPE, rdata->type);
 	switch (rdata->type) {
 		case M_IO_BLE_RTYPE_READ:
-			if (buf == NULL || read_len == NULL) {
-				return M_IO_ERROR_INVALID;
-			}
-
 			/* Set the service and characteristic uuids for where the data came from. */
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_SERVICE_UUID, rdata->d.read.service_uuid);
 			M_hash_multi_u64_insert_str(mdata, M_IO_BLE_META_KEY_CHARACTERISTIC_UUID, rdata->d.read.characteristic_uuid);
 
 			/* Read as much data as we can. */
-			if (*read_len > M_buf_len(rdata->d.read.data))
-				*read_len = M_buf_len(rdata->d.read.data);
+			if (buf != NULL && read_len != NULL) {
+				if (*read_len > M_buf_len(rdata->d.read.data))
+					*read_len = M_buf_len(rdata->d.read.data);
 
-			M_mem_copy(buf, M_buf_peek(rdata->d.read.data), *read_len);
-			M_buf_drop(rdata->d.read.data, *read_len);
+				M_mem_copy(buf, M_buf_peek(rdata->d.read.data), *read_len);
+				M_buf_drop(rdata->d.read.data, *read_len);
+			}
 
 			/* If we've read everything we will drop this record. */
 			if (M_buf_len(rdata->d.read.data) == 0) {

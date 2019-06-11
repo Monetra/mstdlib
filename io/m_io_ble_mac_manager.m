@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  * 
- * Copyright (c) 2018 Monetra Technologies, LLC.
+ * Copyright (c) 2018-2019 Monetra Technologies, LLC.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
  * When a peripheral first connects we know very little about it. Before any reads
  * or write can happen we need to get a list of services and each service's
  * characteristics. This is an async process which follows this pattern.
+ * Note: 1-3 could be skipped, see below.
  *
  * 1. Start a scan
  * 2. didDiscoverPeripheral is triggered with a peripheral object.
@@ -35,6 +36,15 @@
  * 7. For each service reported request its characteristics.
  * 8. didDiscoverCharacteristicsForService is triggered.
  * 9. Associate peripheral with M_io_ble_device_t.
+ *
+ * If the peripheral was founding using retrievePeripheralsWithIdentifiers
+ * or retrieveConnectedPeripheralsWithServices the sequence starts at
+ * step 4 here. Step 3 would have already been called elsewhere.
+ *
+ * The scan in step 1 never passes a service. The scan could be happening
+ * for multiple reasons and device connection requests at once. For example,
+ * opening two different devices. Scanning for everything allows us to find
+ * multiple devices and update the enumeration cache all at the same time.
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -365,8 +375,10 @@ NSUInteger        blind_cnt  = 0;
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
-	const char *uuid;
-	char        msg[256];
+	const char   *uuid;
+	const char   *name;
+	M_list_str_t *service_uuids;
+	char          msg[256];
 
 	if (peripheral == nil)
 		return;
@@ -385,8 +397,25 @@ NSUInteger        blind_cnt  = 0;
 		return;
 	}
 
-	for (CBService *service in peripheral.services)
+	service_uuids = M_list_str_create(M_LIST_STR_SORTASC);
+	for (CBService *service in peripheral.services) {
+		M_list_str_insert(service_uuids, [[service.UUID UUIDString] UTF8String]);
+
+		/* Request Characteristics for this peripheral. */
 		[peripheral discoverCharacteristics:nil forService:service];
+	}
+
+	/* Update the seen device name and services for two reasons.
+	 * 
+	 * 1. didDiscoverPeripheral might not have been called to fill this
+	 *    because a scan wasn't run. Peripheral connection from
+	 *    retrievePeripheralsWithIdentifiers and retrieveConnectedPeripheralsWithServices
+	 *    will not run a scan.
+	 * 2. advertisementData from didDiscoverPeripheral might have been incomplete.
+	 */
+	name = [peripheral.name UTF8String];
+	M_io_ble_saw_device(uuid, name, service_uuids);
+	M_list_str_destroy(service_uuids);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didModifyServices:(NSArray<CBService *> *)invalidatedServices

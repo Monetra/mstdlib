@@ -103,7 +103,7 @@ __BEGIN_DECLS
  * Characteristics with the notify or indicate property can be subscribed to which will
  * have them issue read events similar to a stream protocol. Reads will still require a meta
  * object to specify which service and characteristic the data is from. Manual read requests
- * may still be necessary. Notify and Indicate events are left to the device to imitate.
+ * may still be necessary. Notify and Indicate events are left to the device to initiate.
  * The device may have internal rules which limit how often events are triggered. For example
  * a heart rate monitor could notify every 2 seconds even though it's reading every 100 ms. A
  * time service might send an event every second or it might send an event every minute.
