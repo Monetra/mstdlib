@@ -205,7 +205,7 @@ Functions</h2></td></tr>
 <li>Write without response</li>
 </ul>
 <p>BLE by default is not a stream-based protocol like serial, HID, or Bluetooth classic. Characteristics with the read property can be requested to read data. This is an async request. M_io_ble facilitates this by using M_io_write_meta with a property indicator that specifies data is not being written but a request for read is being sent.</p>
-<p>Characteristics with the notify or indicate property can be subscribed to which will have them issue read events similar to a stream protocol. Reads will still require a meta object to specify which service and characteristic the data is from. Manual read requests may still be necessary. Notify and Indicate events are left to the device to imitate. The device may have internal rules which limit how often events are triggered. For example a heart rate monitor could notify every 2 seconds even though it's reading every 100 ms. A time service might send an event every second or it might send an event every minute.</p>
+<p>Characteristics with the notify or indicate property can be subscribed to which will have them issue read events similar to a stream protocol. Reads will still require a meta object to specify which service and characteristic the data is from. Manual read requests may still be necessary. Notify and Indicate events are left to the device to initiate. The device may have internal rules which limit how often events are triggered. For example a heart rate monitor could notify every 2 seconds even though it's reading every 100 ms. A time service might send an event every second or it might send an event every minute.</p>
 <p>Characteristics won't receive read events by default. They need to be subscribed to first. Subscripts will not service a disconnect or destroy of an io object. Also, not all characteristics support this property even if it supports read. Conversely some support notify/indicate but not read.</p>
 <p>Write will write data to the device and the OS will issue an event whether the write succeeded or failed. Mstdlib uses this to determine if there was a write error and will block subsequent writes (returns WOULDBLOCK) until an outstanding write has completed.</p>
 <p>Write without response is a blind write. No result is requested from the OS. The state of the write is not known after it is sent.</p>
@@ -1094,7 +1094,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 30 2019 13:19:13 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Jun 11 2019 19:47:44 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
