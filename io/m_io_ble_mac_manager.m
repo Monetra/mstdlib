@@ -102,10 +102,12 @@ static void del_scan_trigger(void *p)
 
 @implementation M_io_ble_mac_manager
 
-CBCentralManager *_manager   = nil;
-M_list_t         *triggers   = NULL; /* List of ScanTrigger objects */
-BOOL              powered_on = NO;
-NSUInteger        blind_cnt  = 0;
+CBCentralManager      *_manager     = nil;
+M_list_t              *triggers     = NULL; /* List of ScanTrigger objects */
+NSUInteger             blind_cnt    = 0;
+BOOL                   _state_up    = NO;
+BOOL                   _initialized = NO;
+M_io_ble_mac_powered_t _powered     = M_IO_BLE_MAC_POWERED_UNKNOWN;
 
 + (id)m_io_ble_mac_manager
 {
@@ -152,7 +154,7 @@ NSUInteger        blind_cnt  = 0;
 	if (trigger == NULL)
 		return;
 
-	if (!_manager.isScanning && powered_on)
+	if (!_manager.isScanning && _state_up)
 		[_manager scanForPeripheralsWithServices:nil options:nil];
 
 	timeout_ms = M_io_ble_validate_timeout(timeout_ms);
@@ -165,7 +167,7 @@ NSUInteger        blind_cnt  = 0;
 
 - (void)startScanBlind
 {
-	if (_manager.isScanning || !powered_on)
+	if (_manager.isScanning || !_state_up)
 		return;
 	blind_cnt++;
 
@@ -211,7 +213,7 @@ NSUInteger        blind_cnt  = 0;
 	const char        *uuid;
 	CBPeripheralState  state;
 
-	if (!powered_on || _manager == nil || peripheral == nil)	
+	if (!_state_up || _manager == nil || peripheral == nil)	
 		return;
 
 	uuid  = [[[peripheral identifier] UUIDString] UTF8String];
@@ -282,26 +284,36 @@ NSUInteger        blind_cnt  = 0;
 {
 	switch (central.state) {
 		case CBManagerStatePoweredOn:
-			powered_on = YES;
+			_powered  = M_IO_BLE_MAC_POWERED_ON;
+			_state_up = YES;
 			/* Start a scan if something is waiting to find devices. A scan or M_io_ble_create
-			 * request could have come in before the manager had initalized. Or one could have
-			 * been running when a reset or other event happend and now we can resume scanning. */
+			 * request could have come in before the manager had initialized. Or one could have
+			 * been running when a reset or other event happened and now we can resume scanning. */
 			if (!_manager.isScanning && (M_list_len(triggers) != 0 || blind_cnt != 0)) {
 				[_manager scanForPeripheralsWithServices:nil options:nil];
 			}
 			break;
-		case CBManagerStateResetting:
 		case CBManagerStatePoweredOff:
+			/* This will clear all cached devices. Any of these events
+			 * will invalidate the devices. */
+			_state_up = NO;
+			_powered  = M_IO_BLE_MAC_POWERED_OFF;
+			M_io_ble_cbc_event_reset();
+			break;
+		case CBManagerStateResetting:
 		case CBManagerStateUnauthorized:
 		case CBManagerStateUnknown:
 		case CBManagerStateUnsupported:
 		default:
 			/* This will clear all cached devices. Any of these events
 			 * will invalidate the devices. */
+			_state_up = NO;
+			_powered  = M_IO_BLE_MAC_POWERED_UNKNOWN;
 			M_io_ble_cbc_event_reset();
-			powered_on = NO;
 			break;
 	}
+
+	_initialized = YES;
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary<NSString *,id> *)advertisementData RSSI:(NSNumber *)RSSI

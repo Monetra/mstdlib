@@ -71,6 +71,12 @@ static void M_io_ble_connect_runner(M_event_t *event, M_event_type_t type, M_io_
 	if (arg == NULL)
 		return;
 
+	handle->initalized_timer = NULL;
+	if (!M_io_ble_initalized()) {
+		handle->initalized_timer = M_event_timer_oneshot(event, 50, M_TRUE, M_io_ble_connect_runner, handle);
+		return;
+	}
+
 	M_io_ble_connect(handle);
 }
 
@@ -338,7 +344,9 @@ static void M_io_ble_timer_cb(M_event_t *event, M_event_type_t type, M_io_t *dum
 	/* Lock! */
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 
-	handle->timer = NULL;
+	M_event_timer_remove(handle->initalized_timer);
+	handle->initalized_timer = NULL;
+	handle->timer            = NULL;
 
 	if (handle->state == M_IO_STATE_CONNECTING) {
 		handle->state = M_IO_STATE_ERROR;
