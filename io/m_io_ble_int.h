@@ -74,6 +74,7 @@ struct M_io_handle {
 	char              service_uuid[256]; /*!< UUID of service used for connecting using service. */
 	M_llist_t        *read_queue;        /*!< List of M_io_ble_rdata_t objects with data that has been read. */
 	M_event_timer_t  *timer;             /*!< Timer to handle connection timeouts */
+	M_event_timer_t  *initalized_timer;  /*!< Timer to retry connecting when waiting for initialization*/
 	M_uint64          timeout_ms;        /*!< Timeout for connecting. */
 	char              error[256];        /*!< Error message. */
 	M_io_state_t      state;
@@ -88,6 +89,7 @@ void M_io_ble_enum_add(M_io_ble_enum_t *btenum, const M_io_ble_enum_device_t *ed
 M_uint64 M_io_ble_validate_timeout(M_uint64 timeout_ms);
 void M_io_ble_enum_free_device(M_io_ble_enum_device_t *dev);
 
+M_bool M_io_ble_initalized(void);
 M_bool M_io_ble_init_int(void);
 void M_io_ble_connect(M_io_handle_t *handle);
 void M_io_ble_close(M_io_handle_t *handle);

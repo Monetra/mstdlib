@@ -1081,6 +1081,16 @@ M_io_ble_enum_t *M_io_ble_enum(void)
 	return btenum;
 }
 
+M_bool M_io_ble_initalized(void)
+{
+	if (cbc_manager == nil || manager == nil)
+		return M_FALSE;
+
+	if (manager.initialized)
+		return M_TRUE;
+	return M_FALSE;
+}
+
 M_bool M_io_ble_init_int(void)
 {
 	M_io_ble_manager_init();
@@ -1099,6 +1109,28 @@ void M_io_ble_connect(M_io_handle_t *handle)
 	/* Check if this device is already open and in use. */
 	if (M_hash_strvp_get(ble_devices, handle->uuid, NULL)) {
 		M_snprintf(handle->error, sizeof(handle->error), "Device in use");
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		handle->state = M_IO_STATE_ERROR;
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_release(layer);
+		M_thread_mutex_unlock(lock);
+		return;
+	}
+
+	/* There is a small race condition between this check and using
+ 	 * the cbc_manager via the get_peripheral_* function where
+	 * bluetooth could be disabled between these two. This is
+	 * due to this running on a different than than the manager
+	 * object which receives the status events. If bluetooth
+	 * does turn off between this check and the get_peripheral_*
+	 * call, an API misuse warning can be generated but as far
+	 * as we've seen there are no adverse effects. */
+	if (!manager.state_up) {
+		if (manager.powered == M_IO_BLE_MAC_POWERED_OFF) {
+			M_snprintf(handle->error, sizeof(handle->error), "Bluetooth is turned off");
+		} else {
+			M_snprintf(handle->error, sizeof(handle->error), "Bluetooth error");
+		}
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		handle->state = M_IO_STATE_ERROR;
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
