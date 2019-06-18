@@ -369,7 +369,7 @@ static void stop_blind_scan(void)
 {
 	/* Don't stop the scan if there are handles waiting
 	 * for a device to be found. */
-	if (M_hash_strvp_num_keys(ble_waiting) != 0 && M_hash_strvp_num_keys(ble_waiting_service) == 0)
+	if (M_hash_strvp_num_keys(ble_waiting) != 0 && M_hash_strvp_num_keys(ble_waiting_service) != 0)
 		return;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
