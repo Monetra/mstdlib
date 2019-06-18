@@ -167,17 +167,27 @@ M_io_ble_mac_powered_t _powered     = M_IO_BLE_MAC_POWERED_UNKNOWN;
 
 - (void)startScanBlind
 {
-	if (_manager.isScanning || !_state_up)
+	if (!_state_up) {
+		blind_cnt = 0;
 		return;
+	}
+
 	blind_cnt++;
 
-	[_manager scanForPeripheralsWithServices:nil options:nil];
+	if (!_manager.isScanning)
+		[_manager scanForPeripheralsWithServices:nil options:nil];
 }
 
 - (void)stopScanBlind
 {
+	M_io_ble_device_reap_seen();
+
+	if (!_manager.isScanning || !_state_up)
+		blind_cnt = 0;
+
 	if (blind_cnt == 0)
 		return;
+
 	blind_cnt--;
 
 	/* Scan requests might still be outstanding. Don't
@@ -190,22 +200,20 @@ M_io_ble_mac_powered_t _powered     = M_IO_BLE_MAC_POWERED_UNKNOWN;
 
 	if (_manager.isScanning)
 		[_manager stopScan];
-	M_io_ble_device_reap_seen();
 }
 
 - (void)scanTimeout:(NSTimer *)timer
 {
-	ScanTrigger *st = timer.userInfo;
-	size_t       idx;
+	ScanTrigger *st  = timer.userInfo;
+	size_t       idx = 0;
 
-	if (st == nil || !M_list_index_of(triggers, (__bridge CFTypeRef)st, M_LIST_MATCH_PTR, &idx))
-		return;
+	M_io_ble_device_reap_seen();
 
-	M_list_remove_at(triggers, idx);
-	if (M_list_len(triggers) == 0 && blind_cnt == 0) {
+	if (st != nil && M_list_index_of(triggers, (__bridge CFTypeRef)st, M_LIST_MATCH_PTR, &idx))
+		M_list_remove_at(triggers, idx);
+
+	if (_manager.isScanning && M_list_len(triggers) == 0 && blind_cnt == 0)
 		[_manager stopScan];
-		M_io_ble_device_reap_seen();
-	}
 }
 
 - (void)disconnectFromDevice:(CBPeripheral *)peripheral
