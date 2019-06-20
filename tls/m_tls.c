@@ -156,8 +156,12 @@ M_thread_once_t M_tls_init_once = M_THREAD_ONCE_STATIC_INITIALIZER;
 
 static void M_tls_destroy(void *arg)
 {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
 	size_t i;
+#endif
+
 	(void)arg;
+
 	if (!M_thread_once_reset(&M_tls_init_once) || M_tls_initialized == M_TLS_INIT_EXTERNAL || M_tls_initialized == 0) {
 		M_tls_initialized = 0;
 		return;
@@ -213,7 +217,9 @@ static unsigned long M_tls_crypto_threadid_cb(void)
 static void M_tls_init_routine(M_uint64 flags)
 {
 	M_tls_init_t type = (M_tls_init_t)flags;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
 	size_t       i;
+#endif
 
 	M_tls_initialized = type;
 
@@ -924,6 +930,37 @@ static M_bool M_io_tls_disconnect_cb(M_io_layer_t *layer)
 }
 
 
+static void M_io_tls_save_session(M_io_handle_t *handle, unsigned int port)
+{
+	char        *hostport = NULL;
+	SSL_SESSION *session;
+
+	if (!handle->is_client || !handle->clientctx->sessions_enabled)
+		return;
+
+	if (M_str_isempty(handle->hostname))
+		return;
+
+	session = SSL_get1_session(handle->ssl);
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+	/* If it's not resumable we won't store it and
+ 	 * we want to remove any stored sessions from the
+	 * cache for this host and port because it shouldn't
+	 * be resumable either. */
+	if (session != NULL && !SSL_SESSION_is_resumable(session))
+		session = NULL;
+#endif
+
+	M_asprintf(&hostport, "%s:%u", handle->hostname, port);
+
+	M_thread_mutex_lock(handle->clientctx->lock);
+	M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
+	M_thread_mutex_unlock(handle->clientctx->lock);
+
+	M_free(hostport);
+}
+
+
 static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -939,22 +976,7 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 	}
 
 	/* If client connection, we have additional work to do to save the session */
-	if (handle->is_client && handle->clientctx->sessions_enabled) {
-		if (!M_str_isempty(handle->hostname)) {
-			char        *hostport = NULL;
-			SSL_SESSION *session;
-
-			M_asprintf(&hostport, "%s:%u", handle->hostname, (unsigned int)M_io_net_get_port(io));
-	
-			session = SSL_get1_session(handle->ssl);
-			if (session != NULL) {
-				M_thread_mutex_lock(handle->clientctx->lock);
-				M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
-				M_thread_mutex_unlock(handle->clientctx->lock);
-			}
-			M_free(hostport);
-		}
-	}
+	M_io_tls_save_session(handle, (unsigned int)M_io_net_get_port(io));
 
 	if (handle->ssl != NULL) {
 		SSL_free(handle->ssl);
