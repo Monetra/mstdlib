@@ -954,7 +954,11 @@ static void M_io_tls_save_session(M_io_handle_t *handle, unsigned int port)
 	M_asprintf(&hostport, "%s:%u", handle->hostname, port);
 
 	M_thread_mutex_lock(handle->clientctx->lock);
-	M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
+	if (session == NULL) {
+		M_hash_strvp_remove(handle->clientctx->sessions, hostport, M_TRUE);
+	} else {
+		M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
+	}
 	M_thread_mutex_unlock(handle->clientctx->lock);
 
 	M_free(hostport);
