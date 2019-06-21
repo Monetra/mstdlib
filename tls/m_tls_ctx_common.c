@@ -39,11 +39,14 @@
 #include "base/m_defs_int.h"
 #include "m_tls_ctx_common.h"
 
+/* We'll tack these on at the end of the client and server ciphers. Our cipher setting funcion
+ * will parse out the TLSv1.3 only ones and non-TLSv1.3 from the string and set everything correctly. */
+#define TLS_v1_3_CIPHERS "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256"
 /* NOTE: Client still includes RC4 for now due to many servers only supporting RC4 due to
  *       lazy sysadmins that had heard of BEAST many years ago, otherwise enablement of
  *       RC4 should be the only difference. */
-#define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS"
-#define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS"
+#define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
+#define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 
 
 SSL_CTX *M_tls_ctx_init(M_bool is_server)
@@ -54,7 +57,6 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 		return NULL;
 	}
 	
-
 	/* Set some default options */
 	M_tls_ctx_set_protocols(ctx, M_TLS_PROTOCOL_DEFAULT);
 	M_tls_ctx_set_ciphers(ctx, is_server?TLS_SERVER_CIPHERS:TLS_CLIENT_CIPHERS);
@@ -195,33 +197,113 @@ void M_tls_ctx_destroy(SSL_CTX *ctx)
 }
 
 
-M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols /* M_tls_protocols_t bitmap */)
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+static int M_tls_protocols_to_openssl(int protocols, M_bool min)
 {
-	/* Always disable SSLv2 and SSLv3 */
-	unsigned long options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+	if (min) {
+		if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+			return TLS1_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+			return TLS1_1_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+			return TLS1_2_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
+			return TLS1_3_VERSION;
+		} else {
+			return TLS1_VERSION;
+		}
+	} else {
+		if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
+			return TLS1_3_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+			return TLS1_2_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+			return TLS1_1_VERSION;
+		} else if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+			return TLS1_VERSION;
+		} else {
+			return TLS1_3_VERSION;
+		}
+	}
 
-	/* Set defaults */
-	if (protocols == M_TLS_PROTOCOL_DEFAULT)
-		protocols = M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2;
+	/* OpenSSL default. Shouldn't get here. */
+	return 0;
+}
+#else
+/* Openssl inverse, protocol to disable. */
+static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protocols)
+{
+	unsigned long     disabled = 0;
+	M_tls_protocols_t min      = M_TLS_PROTOCOL_TLSv1_0;
+	M_tls_protocols_t max      = M_TLS_PROTOCOL_TLSv1_2;
 
-	/* Openssl takes the inverse, so disable protocols that aren't set */
-	if (!(protocols & M_TLS_PROTOCOL_TLSv1_0)) {
-		options |= SSL_OP_NO_TLSv1;
+	if (protocols == M_TLS_PROTOCOL_INVALID)
+		protocols = M_TLS_PROTOCOL_DEFAULT;
+
+	/* INVALID! Only 1.3 enabled and not supported by this openssl version. */
+	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
+		return M_FALSE;
+
+	/* Find the min protocol. */
+	if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+		min = M_TLS_PROTOCOL_TLSv1_0;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+		min = M_TLS_PROTOCOL_TLSv1_1;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+		min = M_TLS_PROTOCOL_TLSv1_2;
 	}
-	if (!(protocols & M_TLS_PROTOCOL_TLSv1_1)) {
-		options |= SSL_OP_NO_TLSv1_1;
+
+	/* Find the max protocol. */
+	if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+		max = M_TLS_PROTOCOL_TLSv1_2;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+		max = M_TLS_PROTOCOL_TLSv1_1;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+		max = M_TLS_PROTOCOL_TLSv1_0;
 	}
-	if (!(protocols & M_TLS_PROTOCOL_TLSv1_2)) {
-		options |= SSL_OP_NO_TLSv1_2;
-	}
+
+	/* Disable anything before min and after max. */
+	if (!(protocols & M_TLS_PROTOCOL_TLSv1_0))
+		disabled |= SSL_OP_NO_TLSv1;
+	if (!(protocols & M_TLS_PROTOCOL_TLSv1_1))
+		disabled |= SSL_OP_NO_TLSv1_1;
+	if (!(protocols & M_TLS_PROTOCOL_TLSv1_1))
+		disabled |= SSL_OP_NO_TLSv1_2;
+
+	*no_protocols = disabled;
+	return M_TRUE;
+}
+#endif
+
+
+M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
+{
+	unsigned long options  = 0;
+	unsigned long disabled = 0;
 
 	if (ctx == NULL)
 		return M_FALSE;
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
-	SSL_CTX_set_options(ctx, (long)options);
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+	(void)options;
+	(void)disabled;
+
+	SSL_CTX_set_min_proto_version(ctx, M_tls_protocols_to_openssl(protocols, M_TRUE));
+	SSL_CTX_set_max_proto_version(ctx, M_tls_protocols_to_openssl(protocols, M_FALSE));
 #else
+	/* Always disable SSLv2 and SSLv3 */
+	options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+
+	/* Openssl takes the inverse, so this disables protocols that aren't set. */
+	if (!M_tls_protocols_to_openssl(protocols, &disabled))
+		return M_FALSE;
+	options |= disabled;
+
+#  if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
+	SSL_CTX_set_options(ctx, (long)options);
+#  else
 	SSL_CTX_set_options(ctx, options);
+#  endif
 #endif
 
 	return M_TRUE;
@@ -230,13 +312,73 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols /* M_tls_protocols_t 
 
 M_bool M_tls_ctx_set_ciphers(SSL_CTX *ctx, const char *ciphers)
 {
+	M_list_str_t  *v1_0_1_2     = NULL;
+	M_list_str_t  *v1_3         = NULL;
+	char          *out_v1_0_1_2 = NULL;
+	char          *out_v1_3     = NULL;
+	char         **parts        = NULL;
+	size_t         num_parts    = 0;
+	M_bool         ret          = M_TRUE;
+	size_t         i;
+
 	if (ctx == NULL || M_str_isempty(ciphers))
 		return M_FALSE;
 
-	if (SSL_CTX_set_cipher_list(ctx, ciphers) == 0)
-		return M_FALSE;
+	v1_0_1_2 = M_list_str_create(M_LIST_STR_NONE);
+	v1_3     = M_list_str_create(M_LIST_STR_NONE);
 
-	return M_TRUE;
+	parts = M_str_explode_str(':', ciphers, &num_parts);
+	if (parts == NULL || num_parts == 0) {
+		ret = M_FALSE;
+		goto done;
+	}
+
+	for (i=0; i<num_parts; i++) {
+		if (M_str_caseeq_start(parts[i], "TLS_")) {
+			M_list_str_insert(v1_3, parts[i]);
+		} else {
+			M_list_str_insert(v1_0_1_2, parts[i]);
+		}
+	}
+
+	out_v1_0_1_2 = M_list_str_join(v1_0_1_2, ':');
+	out_v1_3     = M_list_str_join(v1_3, ':');
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+	if (M_str_isempty(out_v1_0_1_2) && M_str_isempty(out_v1_3)) {
+		ret = M_FALSE;
+		goto done;
+	}
+#else
+	if (M_str_isempty(out_v1_0_1_2)) {
+		ret = M_FALSE;
+		goto done;
+	}
+#endif
+
+	if (!M_str_isempty(out_v1_0_1_2)) {
+		if (SSL_CTX_set_cipher_list(ctx, out_v1_0_1_2) == 0) {
+			ret = M_FALSE;
+			goto done;
+		}
+	}
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+	if (!M_str_isempty(out_v1_3)) {
+		if (SSL_CTX_set_ciphersuites(ctx, out_v1_3) == 0) {
+			ret = M_FALSE;
+			goto done;
+		}
+	}
+#endif
+
+done:
+	M_str_explode_free(parts, num_parts);
+	M_free(out_v1_0_1_2);
+	M_free(out_v1_3);
+	M_list_str_destroy(v1_0_1_2);
+	M_list_str_destroy(v1_3);
+	return ret;
 }
 
 
