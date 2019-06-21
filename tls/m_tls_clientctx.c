@@ -108,7 +108,7 @@ void M_tls_clientctx_destroy(M_tls_clientctx_t *ctx)
 }
 
 
-M_bool M_tls_clientctx_set_protocols(M_tls_clientctx_t *ctx, int protocols /* M_tls_protocols_t bitmap */)
+M_bool M_tls_clientctx_set_protocols(M_tls_clientctx_t *ctx, int protocols)
 {
 	M_bool retval;
 

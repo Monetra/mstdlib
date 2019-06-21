@@ -1216,7 +1216,7 @@ M_tls_protocols_t M_tls_get_protocol(M_io_t *io, size_t id)
 {
 
 	M_io_layer_t      *layer  = M_io_layer_acquire(io, id, "TLS");
-	M_tls_protocols_t  ret    = M_TLS_PROTOCOL_DEFAULT;
+	M_tls_protocols_t  ret    = M_TLS_PROTOCOL_INVALID;
 	M_io_handle_t     *handle = M_io_layer_get_handle(layer);
 	const struct {
 		const char        *name;
@@ -1225,6 +1225,7 @@ M_tls_protocols_t M_tls_get_protocol(M_io_t *io, size_t id)
 		{ "TLSv1",   M_TLS_PROTOCOL_TLSv1_0 },
 		{ "TLSv1.1", M_TLS_PROTOCOL_TLSv1_1 },
 		{ "TLSv1.2", M_TLS_PROTOCOL_TLSv1_2 },
+		{ "TLSv1.3", M_TLS_PROTOCOL_TLSv1_3 },
 		{ NULL, 0 }
 	};
 
