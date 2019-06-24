@@ -935,10 +935,7 @@ static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int por
 	char        *hostport = NULL;
 	SSL_SESSION *session;
 
-	if (!handle->is_client || !handle->clientctx->sessions_enabled)
-		return;
-
-	if (M_str_isempty(handle->hostname))
+	if (!handle->is_client || M_str_isempty(handle->hostname) || !handle->clientctx->sessions_enabled)
 		return;
 
 	session = SSL_get1_session(handle->ssl);
