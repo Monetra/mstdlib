@@ -1329,11 +1329,11 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 	};
 
 	if (M_str_isempty(protocols_str))
-		return M_TLS_PROTOCOL_DEFAULT;
+		return M_TLS_PROTOCOL_INVALID;
 
 	parts = M_str_explode_str(' ', protocols_str, &num_parts);
 	if (parts == NULL || num_parts == 0)
-		return M_TLS_PROTOCOL_DEFAULT;
+		return M_TLS_PROTOCOL_INVALID;
 
 	for (i=0; i<num_parts; i++) {
 		if (M_str_isempty(parts[i])) {
@@ -1348,12 +1348,8 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 	}
 	M_str_explode_free(parts, num_parts);
 
-	if (protocols == M_TLS_PROTOCOL_INVALID)
-		protocols = M_TLS_PROTOCOL_DEFAULT;
-
 #if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(LIBRESSL_VERSION_NUMBER)
-	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
-		protocols = M_TLS_PROTOCOL_TLSv1_2;
+	protocols &= ~M_TLS_PROTOCOL_TLSv1_3;
 #endif
 
 	return protocols;
