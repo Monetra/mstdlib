@@ -1294,6 +1294,8 @@ const char *M_tls_protocols_to_str(M_tls_protocols_t protocol)
 			return "TLSv1.1";
 		case M_TLS_PROTOCOL_TLSv1_2:
 			return "TLSv1.2";
+		case M_TLS_PROTOCOL_TLSv1_3:
+			return "TLSv1.3";
 		default:
 			break;
 	}
