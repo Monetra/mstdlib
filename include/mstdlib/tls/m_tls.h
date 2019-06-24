@@ -775,6 +775,9 @@ M_API const char *M_tls_protocols_to_str(M_tls_protocols_t protocol);
  * version gaps will result in the gaps being enabled. E.g. specifying
  * "tlsv1.0 tlsv1.2" will enable tlsv1.0, _tlsv1.1_, and tlsv1.2.
  *
+ * If tlsv1.3 is the only version enabled but it is not supported by
+ * the backend tls library, this will fallback to tlsv1.2.
+ *
  * Unknown entries will be ignored. If no valid protocols are parsed the
  * default protocol is is returned.
  *
