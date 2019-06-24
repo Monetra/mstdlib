@@ -267,7 +267,7 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 		disabled |= SSL_OP_NO_TLSv1;
 	if (!(protocols & M_TLS_PROTOCOL_TLSv1_1))
 		disabled |= SSL_OP_NO_TLSv1_1;
-	if (!(protocols & M_TLS_PROTOCOL_TLSv1_1))
+	if (!(protocols & M_TLS_PROTOCOL_TLSv1_2))
 		disabled |= SSL_OP_NO_TLSv1_2;
 
 	*no_protocols = disabled;
