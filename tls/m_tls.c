@@ -1301,6 +1301,58 @@ const char *M_tls_protocols_to_str(M_tls_protocols_t protocol)
 }
 
 
+
+M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
+{
+	M_tls_protocols_t   protocols = M_TLS_PROTOCOL_INVALID;
+	char              **parts;
+	size_t              num_parts = 0;
+	size_t              i;
+	size_t              j;
+	static struct {
+		const char        *name;
+		M_tls_protocols_t  protocols;
+	} protcol_flags[] = {
+		{ "tlsv1",    M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1+",   M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.0",  M_TLS_PROTOCOL_TLSv1_0 },
+		{ "tlsv1.0+", M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.1",  M_TLS_PROTOCOL_TLSv1_1 },
+		{ "tlsv1.1+", M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.2",  M_TLS_PROTOCOL_TLSv1_2 },
+		{ "tlsv1.2+", M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.3",  M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.3+", M_TLS_PROTOCOL_TLSv1_3 },
+		{ NULL, 0 }
+	};
+
+	if (M_str_isempty(protocols_str))
+		return M_TLS_PROTOCOL_DEFAULT;
+
+	parts = M_str_explode_str(' ', protocols_str, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		return M_TLS_PROTOCOL_DEFAULT;
+
+	for (i=0; i<num_parts; i++) {
+		if (M_str_isempty(parts[i])) {
+			continue;
+		}
+
+		for (j=0; protcol_flags[j].name!=NULL; j++) {
+			if (M_str_caseeq(parts[i], protcol_flags[j].name)) {
+				protocols |= protcol_flags[j].protocols;
+			}
+		}
+	}
+	M_str_explode_free(parts, num_parts);
+
+	if (protocols == M_TLS_PROTOCOL_INVALID)
+		protocols = M_TLS_PROTOCOL_DEFAULT;
+
+	return protocols;
+}
+
+
 const char *M_tls_server_get_hostname(M_io_t *io, size_t id)
 {
 	M_io_layer_t  *layer  = M_io_layer_acquire(io, id, "TLS");
