@@ -769,21 +769,18 @@ M_API const char *M_tls_protocols_to_str(M_tls_protocols_t protocol);
  * Entry tlsv1 implies all tls 1.y protocols.
  *
  * If the protocol is appended with a plus (+) sign, then it means that protocol
- * version or higher, for instance, "tlsv1.1+" implies "tlsv1.1 tlsv1.2"
+ * version or higher, for instance, "tlsv1.1+" implies "tlsv1.1 tlsv1.2 tlsv1.3"
  *
- * Protocols are treated as min and max internally. Enabling protocols with
+ * Protocols are treated as min and max. Enabling protocols with
  * version gaps will result in the gaps being enabled. E.g. specifying
  * "tlsv1.0 tlsv1.2" will enable tlsv1.0, _tlsv1.1_, and tlsv1.2.
  *
- * If tlsv1.3 is the only version enabled but it is not supported by
- * the backend tls library, this will fallback to tlsv1.2.
- *
- * Unknown entries will be ignored. If no valid protocols are parsed the
- * default protocol is is returned.
+ * Unknown entries will be ignored. Protocols that are not supported
+ * by the backend will be removed from the list of returned protocols.
  *
  * \param[in] protocols_str String of protocols
  *
- * \return Protocol bitmap.
+ * \return Protocol bitmap. M_TLS_PROTOCOL_INVALID on error.
  */
 M_API M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str);
 
