@@ -1349,7 +1349,7 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 	M_str_explode_free(parts, num_parts);
 
 #if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(LIBRESSL_VERSION_NUMBER)
-	protocols &= ~M_TLS_PROTOCOL_TLSv1_3;
+	protocols &= ~(M_tls_protocols_t)(M_TLS_PROTOCOL_TLSv1_3);
 #endif
 
 	return protocols;
