@@ -944,8 +944,10 @@ static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int por
  	 * we want to remove any stored sessions from the
 	 * cache for this host and port because it shouldn't
 	 * be resumable either. */
-	if (session != NULL && !SSL_SESSION_is_resumable(session))
+	if (session != NULL && !SSL_SESSION_is_resumable(session)) {
+		SSL_SESSION_free(session);
 		session = NULL;
+	}
 #endif
 
 	M_asprintf(&hostport, "%s:%u", handle->hostname, port);
