@@ -1349,6 +1349,11 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 	if (protocols == M_TLS_PROTOCOL_INVALID)
 		protocols = M_TLS_PROTOCOL_DEFAULT;
 
+#if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(LIBRESSL_VERSION_NUMBER)
+	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
+		protocols = M_TLS_PROTOCOL_TLSv1_2;
+#endif
+
 	return protocols;
 }
 
