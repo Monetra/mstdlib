@@ -930,7 +930,7 @@ static M_bool M_io_tls_disconnect_cb(M_io_layer_t *layer)
 }
 
 
-static void M_io_tls_save_session(M_io_handle_t *handle, unsigned int port)
+static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int port)
 {
 	char        *hostport = NULL;
 	SSL_SESSION *session;
@@ -980,7 +980,7 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 	}
 
 	/* If client connection, we have additional work to do to save the session */
-	M_io_tls_save_session(handle, (unsigned int)M_io_net_get_port(io));
+	M_io_tls_save_client_session(handle, (unsigned int)M_io_net_get_port(io));
 
 	if (handle->ssl != NULL) {
 		SSL_free(handle->ssl);
