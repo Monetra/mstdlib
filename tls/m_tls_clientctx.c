@@ -63,6 +63,7 @@ M_tls_clientctx_t *M_tls_clientctx_create(void)
 
 	ctx->ref_cnt                = 1;
 	ctx->negotiation_timeout_ms = 10000;
+	ctx->sessions_enabled       = M_TRUE;
 
 	/* XXX: Default certificate trust list loading? Import from Windows? Search on Unix? */
 	return ctx;
