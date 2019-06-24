@@ -63,11 +63,6 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 
 	/* Client-only settings */
 	if (!is_server) {
-	/* Sometimes ticket support can confuse old servers, disable */
-#ifndef OPENSSL_NO_TLSEXT
-		SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
-#endif
-
 		/* Enable TLS_FALLBACK_SCSV as a POODLE mitigation */
 		SSL_CTX_set_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
 	}
