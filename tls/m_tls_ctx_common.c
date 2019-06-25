@@ -193,36 +193,39 @@ void M_tls_ctx_destroy(SSL_CTX *ctx)
 
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
-static int M_tls_protocols_to_openssl(int protocols, M_bool min)
+static M_bool M_tls_protocols_to_openssl(int protocols, M_tls_protocols_t *proto_min, M_tls_protocols_t *proto_max)
 {
-	if (min) {
-		if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
-			return TLS1_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
-			return TLS1_1_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
-			return TLS1_2_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
-			return TLS1_3_VERSION;
-		} else {
-			return TLS1_VERSION;
-		}
+	/* Find the min protocol. */
+	if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+		*proto_min = TLS1_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+		*proto_min = TLS1_1_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+		*proto_min = TLS1_2_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
+		*proto_min = TLS1_3_VERSION;
 	} else {
-		if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
-			return TLS1_3_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
-			return TLS1_2_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
-			return TLS1_1_VERSION;
-		} else if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
-			return TLS1_VERSION;
-		} else {
-			return TLS1_3_VERSION;
-		}
+		return M_FALSE;
 	}
 
-	/* OpenSSL default. Shouldn't get here. */
-	return 0;
+	/* Find the max protocol. */
+	if (protocols & M_TLS_PROTOCOL_TLSv1_3) {
+		*proto_max = TLS1_3_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
+		*proto_max = TLS1_2_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_1) {
+		*proto_max = TLS1_1_VERSION;
+	} else if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
+		*proto_max = TLS1_VERSION;
+	} else {
+		return M_FALSE;
+	}
+
+	/* Ensure the range is valid. */
+	if (*proto_min > *proto_max)
+		return M_FALSE;
+
+	return M_TRUE;
 }
 #else
 /* Openssl inverse, protocol to disable. */
@@ -231,6 +234,9 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 	unsigned long     disabled = 0;
 	M_tls_protocols_t min      = M_TLS_PROTOCOL_TLSv1_0;
 	M_tls_protocols_t max      = M_TLS_PROTOCOL_TLSv1_2;
+
+	/* Always disable SSLv2 and SSLv3 */
+	options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
 
 	/* INVALID! Only 1.3 enabled and not supported by this openssl version. */
 	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
@@ -243,6 +249,8 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 		min = M_TLS_PROTOCOL_TLSv1_1;
 	} else if (protocols & M_TLS_PROTOCOL_TLSv1_2) {
 		min = M_TLS_PROTOCOL_TLSv1_2;
+	} else {
+		return M_FALSE;
 	}
 
 	/* Find the max protocol. */
@@ -252,6 +260,18 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 		max = M_TLS_PROTOCOL_TLSv1_1;
 	} else if (protocols & M_TLS_PROTOCOL_TLSv1_0) {
 		max = M_TLS_PROTOCOL_TLSv1_0;
+	} else {
+		return M_FALSE;
+	}
+
+	/* Ensure the range is valid. */
+	if (min > max)
+		return M_FALSE;
+
+	/* Fill in the gaps. */
+	protocols = min;
+	while (protocols < max) { /* Max will be included in result. */
+		protocols |= protocols << 1;
 	}
 
 	/* Disable anything before min and after max. */
@@ -262,7 +282,10 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 	if (!(protocols & M_TLS_PROTOCOL_TLSv1_2))
 		disabled |= SSL_OP_NO_TLSv1_2;
 
-	*no_protocols = disabled;
+	/* Always disable SSLv2 and SSLv3 */
+	*no_protocols  = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+	*no_protocols |= disabled;
+
 	return M_TRUE;
 }
 #endif
@@ -270,8 +293,10 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 
 M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 {
-	unsigned long options  = 0;
-	unsigned long disabled = 0;
+	unsigned long     options   = 0;
+	unsigned long     disabled  = 0;
+	M_tls_protocols_t proto_min = 0;
+	M_tls_protocols_t proto_max = 0;
 
 	if (ctx == NULL)
 		return M_FALSE;
@@ -287,11 +312,14 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 	(void)options;
 	(void)disabled;
 
-	SSL_CTX_set_min_proto_version(ctx, M_tls_protocols_to_openssl(protocols, M_TRUE));
-	SSL_CTX_set_max_proto_version(ctx, M_tls_protocols_to_openssl(protocols, M_FALSE));
+	if (!M_tls_protocols_to_openssl(protocols, &proto_min, &proto_max))
+		return M_FALSE;
+
+	SSL_CTX_set_min_proto_version(ctx, proto_min);
+	SSL_CTX_set_max_proto_version(ctx, proto_max);
 #else
-	/* Always disable SSLv2 and SSLv3 */
-	options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+	(void)proto_min;
+	(void)proto_max;
 
 	/* Openssl takes the inverse, so this disables protocols that aren't set. */
 	if (!M_tls_protocols_to_openssl(protocols, &disabled))
