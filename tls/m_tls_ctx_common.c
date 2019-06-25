@@ -235,9 +235,6 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 	M_tls_protocols_t min      = M_TLS_PROTOCOL_TLSv1_0;
 	M_tls_protocols_t max      = M_TLS_PROTOCOL_TLSv1_2;
 
-	/* Always disable SSLv2 and SSLv3 */
-	options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
-
 	/* INVALID! Only 1.3 enabled and not supported by this openssl version. */
 	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
 		return M_FALSE;
