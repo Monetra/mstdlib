@@ -940,27 +940,29 @@ static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int por
 
 	session = SSL_get1_session(handle->ssl);
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
-	/* If it's not resumable we won't store it and
- 	 * we want to remove any stored sessions from the
-	 * cache for this host and port because it shouldn't
-	 * be resumable either. */
-	if (session != NULL && !SSL_SESSION_is_resumable(session)) {
+	/* The TLSv1.3 spec recommends sessions are only used once.
+	 *
+	 * If it's not resumable we won't store it because it's not useable.
+	 */
+	if (session != NULL &&
+			(!SSL_SESSION_is_resumable(session) ||
+				(SSL_session_reused(handle->ssl) && M_str_caseeq(SSL_get_version(handle->ssl), "TLSv1.3"))))
+	{
 		SSL_SESSION_free(session);
 		session = NULL;
 	}
 #endif
 
-	M_asprintf(&hostport, "%s:%u", handle->hostname, port);
 
-	M_thread_mutex_lock(handle->clientctx->lock);
-	if (session == NULL) {
-		M_hash_strvp_remove(handle->clientctx->sessions, hostport, M_TRUE);
-	} else {
+	if (session != NULL) {
+		M_asprintf(&hostport, "%s:%u", handle->hostname, port);
+
+		M_thread_mutex_lock(handle->clientctx->lock);
 		M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
-	}
-	M_thread_mutex_unlock(handle->clientctx->lock);
+		M_thread_mutex_unlock(handle->clientctx->lock);
 
-	M_free(hostport);
+		M_free(hostport);
+	}
 }
 
 
@@ -983,8 +985,8 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 	 * OpenSSL supports a callback based system for receiving sessions that can
 	 * be stored but we're not using it. The callback method is necessary for
 	 * TLSv1.3 when attempting to store the session during negotiation. v1.3
-	 * can generate the session after the handshake has completed so unlike
-	 * < v1.3 where there was a specific place during handshake it could be pulled
+	 * will generate the session after the handshake has completed so unlike
+	 * <= v1.2 where there was a specific place during handshake it could be pulled
 	 * that's no longer possible.
 	 *
 	 * The above does not apply to us because we only store session at shutdown.
