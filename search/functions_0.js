@@ -1862,6 +1862,7 @@ var searchData=
   ['m_5ftls_5fget_5fprotocol',['M_tls_get_protocol',['../group__m__tls__funcs.html#gabf66bf9ba4027fa3b4f665595eda8a28',1,'m_tls.h']]],
   ['m_5ftls_5fget_5fsessionreused',['M_tls_get_sessionreused',['../group__m__tls__funcs.html#ga2e3b3bf20eb77dcefefca3f267a773ad',1,'m_tls.h']]],
   ['m_5ftls_5finit',['M_tls_init',['../group__m__tls__funcs.html#gaf3b18c2cf97a6d56012be774c4984450',1,'m_tls.h']]],
+  ['m_5ftls_5fprotocols_5ffrom_5fstr',['M_tls_protocols_from_str',['../group__m__tls__funcs.html#gabb6946e758b39da9daaca7c57744cc04',1,'m_tls.h']]],
   ['m_5ftls_5fprotocols_5fto_5fstr',['M_tls_protocols_to_str',['../group__m__tls__funcs.html#ga27e00d3675d2883fd9de38e6e2d8d003',1,'m_tls.h']]],
   ['m_5ftls_5frsa_5fgenerate_5fkey',['M_tls_rsa_generate_key',['../group__m__tls__certs.html#gabcfdee9650533a6e86c4896293e1ede2',1,'m_tls_certs.h']]],
   ['m_5ftls_5fserver_5fget_5fhostname',['M_tls_server_get_hostname',['../group__m__tls__funcs.html#ga1ccf192805939cf853abf8428cfe75b3',1,'m_tls.h']]],

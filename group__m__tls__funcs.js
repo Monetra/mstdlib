@@ -3,10 +3,12 @@ var group__m__tls__funcs =
     [ "M_tls_clientctx_t", "group__m__tls__funcs.html#ga926973c7a274988ccc7c65ca90cb8d6d", null ],
     [ "M_tls_serverctx_t", "group__m__tls__funcs.html#gab91dbb011eaefd05db29e22140571b13", null ],
     [ "M_tls_protocols_t", "group__m__tls__funcs.html#gac069c82e8b870995ea2c7d7e01e2e476", [
-      [ "M_TLS_PROTOCOL_DEFAULT", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097", null ],
+      [ "M_TLS_PROTOCOL_INVALID", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a665f4bdfcd31e8d52c180849daa72b61", null ],
       [ "M_TLS_PROTOCOL_TLSv1_0", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa291d0207a994cb44a4864c8ce20722a", null ],
       [ "M_TLS_PROTOCOL_TLSv1_1", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a45489b0e7c48d293bd9fa899319d3aed", null ],
-      [ "M_TLS_PROTOCOL_TLSv1_2", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a21e66e572df193f5ca420bf613b21a40", null ]
+      [ "M_TLS_PROTOCOL_TLSv1_2", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a21e66e572df193f5ca420bf613b21a40", null ],
+      [ "M_TLS_PROTOCOL_TLSv1_3", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a8cf307f41d9026dc80a3c924e00403b6", null ],
+      [ "M_TLS_PROTOCOL_DEFAULT", "group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097", null ]
     ] ],
     [ "M_tls_verify_level_t", "group__m__tls__funcs.html#ga7af29260b998209add89c7b03f918e4a", [
       [ "M_TLS_VERIFY_NONE", "group__m__tls__funcs.html#gga7af29260b998209add89c7b03f918e4aa4e3e3297f242a54fd7b97e54a420b1bc", null ],
@@ -70,5 +72,6 @@ var group__m__tls__funcs =
     [ "M_tls_get_application", "group__m__tls__funcs.html#ga269becbb75ab369b1c5557647928f7e9", null ],
     [ "M_tls_get_peer_cert", "group__m__tls__funcs.html#ga35a23d7dfd1c2ebcc27011b8a88fb007", null ],
     [ "M_tls_get_negotiation_time_ms", "group__m__tls__funcs.html#ga317aacbbf40cae2c20b7d0fe1a100ecd", null ],
-    [ "M_tls_protocols_to_str", "group__m__tls__funcs.html#ga27e00d3675d2883fd9de38e6e2d8d003", null ]
+    [ "M_tls_protocols_to_str", "group__m__tls__funcs.html#ga27e00d3675d2883fd9de38e6e2d8d003", null ],
+    [ "M_tls_protocols_from_str", "group__m__tls__funcs.html#gabb6946e758b39da9daaca7c57744cc04", null ]
 ];

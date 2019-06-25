@@ -115,13 +115,17 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:gac069c82e8b870995ea2c7d7e01e2e476"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__tls__funcs.html#gac069c82e8b870995ea2c7d7e01e2e476">M_tls_protocols_t</a> { <br />
-&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097">M_TLS_PROTOCOL_DEFAULT</a> = 0, 
+&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a665f4bdfcd31e8d52c180849daa72b61">M_TLS_PROTOCOL_INVALID</a> = -1, 
 <br />
 &#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa291d0207a994cb44a4864c8ce20722a">M_TLS_PROTOCOL_TLSv1_0</a> = 1 &lt;&lt; 0, 
 <br />
 &#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a45489b0e7c48d293bd9fa899319d3aed">M_TLS_PROTOCOL_TLSv1_1</a> = 1 &lt;&lt; 1, 
 <br />
-&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a21e66e572df193f5ca420bf613b21a40">M_TLS_PROTOCOL_TLSv1_2</a> = 1 &lt;&lt; 2
+&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a21e66e572df193f5ca420bf613b21a40">M_TLS_PROTOCOL_TLSv1_2</a> = 1 &lt;&lt; 2, 
+<br />
+&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476a8cf307f41d9026dc80a3c924e00403b6">M_TLS_PROTOCOL_TLSv1_3</a> = 1 &lt;&lt; 3, 
+<br />
+&#160;&#160;<a class="el" href="group__m__tls__funcs.html#ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097">M_TLS_PROTOCOL_DEFAULT</a> = (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3)
 <br />
  }</td></tr>
 <tr class="separator:gac069c82e8b870995ea2c7d7e01e2e476"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -252,6 +256,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga317aacbbf40cae2c20b7d0fe1a100ecd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga27e00d3675d2883fd9de38e6e2d8d003"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__tls__funcs.html#ga27e00d3675d2883fd9de38e6e2d8d003">M_tls_protocols_to_str</a> (<a class="el" href="group__m__tls__funcs.html#gac069c82e8b870995ea2c7d7e01e2e476">M_tls_protocols_t</a> protocol)</td></tr>
 <tr class="separator:ga27e00d3675d2883fd9de38e6e2d8d003"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb6946e758b39da9daaca7c57744cc04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__tls__funcs.html#gac069c82e8b870995ea2c7d7e01e2e476">M_tls_protocols_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__tls__funcs.html#gabb6946e758b39da9daaca7c57744cc04">M_tls_protocols_from_str</a> (const char *protocols_str)</td></tr>
+<tr class="separator:gabb6946e758b39da9daaca7c57744cc04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>TLS functions </p>
@@ -292,14 +298,19 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Supported TLS protocols. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097"></a>M_TLS_PROTOCOL_DEFAULT&#160;</td><td class="fielddoc">
-<p>Default is TLSv1.0+ </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476a665f4bdfcd31e8d52c180849daa72b61"></a>M_TLS_PROTOCOL_INVALID&#160;</td><td class="fielddoc">
+<p>Invalid protocol. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476aa291d0207a994cb44a4864c8ce20722a"></a>M_TLS_PROTOCOL_TLSv1_0&#160;</td><td class="fielddoc">
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476a45489b0e7c48d293bd9fa899319d3aed"></a>M_TLS_PROTOCOL_TLSv1_1&#160;</td><td class="fielddoc">
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476a21e66e572df193f5ca420bf613b21a40"></a>M_TLS_PROTOCOL_TLSv1_2&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476a8cf307f41d9026dc80a3c924e00403b6"></a>M_TLS_PROTOCOL_TLSv1_3&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggac069c82e8b870995ea2c7d7e01e2e476aa18ca171b060f5b0b1d7e43b0a0dd097"></a>M_TLS_PROTOCOL_DEFAULT&#160;</td><td class="fielddoc">
+<p>While not a define passing 0 to a function that takes a protocol will be treated as default. </p>
 </td></tr>
 </table>
 
@@ -473,7 +484,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>Client context. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">protocols</td><td>M_tls_protocols_t bitmap of TLS protocols that should be supported.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">protocols</td><td>M_tls_protocols_t bitmap of TLS protocols that should be supported. Protocols are treated as min and max. For example if TLSv1.0 and TLSv1.2 are enabled, then TLSv1.1 will be enabled even if not explicitly set.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1372,7 +1383,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>Server context. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">protocols</td><td>M_tls_protocols_t bitmap of TLS protocols that should be supported.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">protocols</td><td>M_tls_protocols_t bitmap of TLS protocols that should be supported. Protocols are treated as min and max. For example if TLSv1.0 and TLSv1.2 are enabled, then TLSv1.1 will be enabled even if not explicitly set.</td></tr>
   </table>
   </dd>
 </dl>
@@ -2209,8 +2220,43 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Convert a protocol to string.</p>
-<p>If multiple protocols are present only one will be returned. It is undefined which will be used. Used primarily for logging to print what protocol a connection is using.</p>
+<p>Only single protocol should be specified. If multiple are provided it is undefined which will be returned. Used primarily for logging to print what protocol a connection is using.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">protocol</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>String. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gabb6946e758b39da9daaca7c57744cc04"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__tls__funcs.html#gac069c82e8b870995ea2c7d7e01e2e476">M_tls_protocols_t</a> M_tls_protocols_from_str </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>protocols_str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert a string to protocols bitmap</p>
+<p>The value for this field is a space separated list of protocols. Valid protocols are: tlsv1, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3.</p>
+<p>Entry tlsv1 implies all tls 1.y protocols.</p>
+<p>If the protocol is appended with a plus (+) sign, then it means that protocol version or higher, for instance, "tlsv1.1+" implies "tlsv1.1 tlsv1.2 tlsv1.3"</p>
+<p>Protocols are treated as min and max. Enabling protocols with version gaps will result in the gaps being enabled. E.g. specifying "tlsv1.0 tlsv1.2" will enable tlsv1.0, <em>tlsv1.1</em>, and tlsv1.2.</p>
+<p>Unknown entries will be ignored. Protocols that are not supported by the backend will be removed from the list of returned protocols.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">protocols_str</td><td>String of protocols</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Protocol bitmap. M_TLS_PROTOCOL_INVALID on error. </dd></dl>
 
 </div>
 </div>
@@ -2219,7 +2265,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Jun 18 2019 17:45:45 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Jun 25 2019 13:46:43 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
