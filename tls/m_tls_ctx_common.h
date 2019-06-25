@@ -33,7 +33,7 @@ SSL_CTX *M_tls_ctx_duplicate_serverctx(SSL_CTX *orig_ctx, DH *dhparams, STACK_OF
 
 /*! Returns false if ctx can't be used */
 void M_tls_ctx_destroy(SSL_CTX *ctx);
-M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols /* M_tls_protocols_t bitmap */);
+M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols);
 M_bool M_tls_ctx_set_ciphers(SSL_CTX *ctx, const char *ciphers);
 M_bool M_tls_ctx_set_cert(SSL_CTX *ctx, const unsigned char *key, size_t key_len, const unsigned char *crt, size_t crt_len, const unsigned char *intermediate, size_t intermediate_len, X509 **x509_out);
 M_bool M_tls_ctx_load_os_trust(SSL_CTX *ctx);

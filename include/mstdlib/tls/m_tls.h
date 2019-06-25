@@ -50,10 +50,12 @@ typedef struct M_tls_serverctx M_tls_serverctx_t;
 
 /*! Supported TLS protocols. */
 typedef enum {
-	M_TLS_PROTOCOL_DEFAULT = 0,      /*!< Default is TLSv1.0+ */
-	M_TLS_PROTOCOL_TLSv1_0 = 1 << 0,
-	M_TLS_PROTOCOL_TLSv1_1 = 1 << 1, 
-	M_TLS_PROTOCOL_TLSv1_2 = 1 << 2
+	M_TLS_PROTOCOL_INVALID     = -1, /*!< Invalid protocol. */
+	M_TLS_PROTOCOL_TLSv1_0     = 1 << 0,
+	M_TLS_PROTOCOL_TLSv1_1     = 1 << 1,
+	M_TLS_PROTOCOL_TLSv1_2     = 1 << 2,
+	M_TLS_PROTOCOL_TLSv1_3     = 1 << 3,
+	M_TLS_PROTOCOL_DEFAULT     = (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3) /*!< While not a define passing 0 to a function that takes a protocol will be treated as default. */
 } M_tls_protocols_t;
 
 
@@ -131,6 +133,9 @@ M_API void M_tls_clientctx_destroy(M_tls_clientctx_t *ctx);
  *
  * \param[in] ctx       Client context.
  * \param[in] protocols M_tls_protocols_t bitmap of TLS protocols that should be supported.
+ *                      Protocols are treated as min and max. For example if TLSv1.0 and
+ *                      TLSv1.2 are enabled, then TLSv1.1 will be enabled even if not
+ *                      explicitly set.
  *
  * \return M_TRUE on success, otherwise M_FALSE on error.
  */
@@ -462,6 +467,9 @@ M_API char *M_tls_serverctx_get_cert(M_tls_serverctx_t *ctx);
  *
  * \param[in] ctx       Server context.
  * \param[in] protocols M_tls_protocols_t bitmap of TLS protocols that should be supported.
+ *                      Protocols are treated as min and max. For example if TLSv1.0 and
+ *                      TLSv1.2 are enabled, then TLSv1.1 will be enabled even if not
+ *                      explicitly set.
  *
  * \return M_TRUE on success, otherwise M_FALSE on error.
  */
@@ -741,13 +749,39 @@ M_API M_uint64 M_tls_get_negotiation_time_ms(M_io_t *io, size_t id);
 
 /*! Convert a protocol to string.
  *
- * If multiple protocols are present only one will be returned. It is
- * undefined which will be used. Used primarily for logging to print what
- * protocol a connection is using.
+ * Only single protocol should be specified. If multiple are provided
+ * it is undefined which will be returned. Used primarily for logging to
+ * print what protocol a connection is using.
+ *
+ * \param[in] protocol
  *
  * \return String.
  */
 M_API const char *M_tls_protocols_to_str(M_tls_protocols_t protocol);
+
+
+/*! Convert a string to protocols bitmap
+ *
+ * The value for this field is a space separated list of protocols. Valid
+ * protocols are: tlsv1, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3.
+ *
+ * Entry tlsv1 implies all tls 1.y protocols.
+ *
+ * If the protocol is appended with a plus (+) sign, then it means that protocol
+ * version or higher, for instance, "tlsv1.1+" implies "tlsv1.1 tlsv1.2 tlsv1.3"
+ *
+ * Protocols are treated as min and max. Enabling protocols with
+ * version gaps will result in the gaps being enabled. E.g. specifying
+ * "tlsv1.0 tlsv1.2" will enable tlsv1.0, _tlsv1.1_, and tlsv1.2.
+ *
+ * Unknown entries will be ignored. Protocols that are not supported
+ * by the backend will be removed from the list of returned protocols.
+ *
+ * \param[in] protocols_str String of protocols
+ *
+ * \return Protocol bitmap. M_TLS_PROTOCOL_INVALID on error.
+ */
+M_API M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str);
 
 /*! @} */
 
