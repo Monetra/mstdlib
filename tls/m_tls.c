@@ -156,8 +156,12 @@ M_thread_once_t M_tls_init_once = M_THREAD_ONCE_STATIC_INITIALIZER;
 
 static void M_tls_destroy(void *arg)
 {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
 	size_t i;
+#endif
+
 	(void)arg;
+
 	if (!M_thread_once_reset(&M_tls_init_once) || M_tls_initialized == M_TLS_INIT_EXTERNAL || M_tls_initialized == 0) {
 		M_tls_initialized = 0;
 		return;
@@ -213,7 +217,9 @@ static unsigned long M_tls_crypto_threadid_cb(void)
 static void M_tls_init_routine(M_uint64 flags)
 {
 	M_tls_init_t type = (M_tls_init_t)flags;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
 	size_t       i;
+#endif
 
 	M_tls_initialized = type;
 
@@ -924,6 +930,42 @@ static M_bool M_io_tls_disconnect_cb(M_io_layer_t *layer)
 }
 
 
+static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int port)
+{
+	char        *hostport = NULL;
+	SSL_SESSION *session;
+
+	if (!handle->is_client || M_str_isempty(handle->hostname) || !handle->clientctx->sessions_enabled)
+		return;
+
+	session = SSL_get1_session(handle->ssl);
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+	/* The TLSv1.3 spec recommends sessions are only reused once.
+	 *
+	 * If it's not resumable we won't store it because it's not useable.
+	 */
+	if (session != NULL &&
+			(!SSL_SESSION_is_resumable(session) ||
+				(SSL_session_reused(handle->ssl) && M_str_caseeq(SSL_get_version(handle->ssl), "TLSv1.3"))))
+	{
+		SSL_SESSION_free(session);
+		session = NULL;
+	}
+#endif
+
+
+	if (session != NULL) {
+		M_asprintf(&hostport, "%s:%u", handle->hostname, port);
+
+		M_thread_mutex_lock(handle->clientctx->lock);
+		M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
+		M_thread_mutex_unlock(handle->clientctx->lock);
+
+		M_free(hostport);
+	}
+}
+
+
 static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -938,23 +980,20 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 		SSL_set_shutdown(handle->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
 	}
 
-	/* If client connection, we have additional work to do to save the session */
-	if (handle->is_client && handle->clientctx->sessions_enabled) {
-		if (!M_str_isempty(handle->hostname)) {
-			char        *hostport = NULL;
-			SSL_SESSION *session;
-
-			M_asprintf(&hostport, "%s:%u", handle->hostname, (unsigned int)M_io_net_get_port(io));
-	
-			session = SSL_get1_session(handle->ssl);
-			if (session != NULL) {
-				M_thread_mutex_lock(handle->clientctx->lock);
-				M_hash_strvp_insert(handle->clientctx->sessions, hostport, session);
-				M_thread_mutex_unlock(handle->clientctx->lock);
-			}
-			M_free(hostport);
-		}
-	}
+	/* If client connection, we have additional work to do to save the session.
+	 *
+	 * OpenSSL supports a callback based system for receiving sessions that can
+	 * be stored but we're not using it. The callback method is necessary for
+	 * TLSv1.3 when attempting to store the session during negotiation. v1.3
+	 * will generate the session after the handshake has completed so unlike
+	 * <= v1.2 where there was a specific place during handshake it could be pulled
+	 * that's no longer possible.
+	 *
+	 * The above does not apply to us because we only store session at shutdown.
+	 * Saving sessions will work with v1.3 due to this. Making this code fully
+	 * support v1.3 sessions.
+	 */
+	M_io_tls_save_client_session(handle, (unsigned int)M_io_net_get_port(io));
 
 	if (handle->ssl != NULL) {
 		SSL_free(handle->ssl);
@@ -1075,7 +1114,7 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 		session = M_hash_strvp_multi_get_direct(ctx->sessions, hostport, 0);
 		if (session) {
 			SSL_set_session(handle->ssl, session);
-			/* This will also reduce the reference count on thet session */
+			/* This will also reduce the reference count on that session */
 			M_hash_strvp_multi_remove(ctx->sessions, hostport, 0, M_TRUE);
 		}
 		M_thread_mutex_unlock(ctx->lock);
@@ -1190,7 +1229,7 @@ M_tls_protocols_t M_tls_get_protocol(M_io_t *io, size_t id)
 {
 
 	M_io_layer_t      *layer  = M_io_layer_acquire(io, id, "TLS");
-	M_tls_protocols_t  ret    = M_TLS_PROTOCOL_DEFAULT;
+	M_tls_protocols_t  ret    = M_TLS_PROTOCOL_INVALID;
 	M_io_handle_t     *handle = M_io_layer_get_handle(layer);
 	const struct {
 		const char        *name;
@@ -1199,6 +1238,7 @@ M_tls_protocols_t M_tls_get_protocol(M_io_t *io, size_t id)
 		{ "TLSv1",   M_TLS_PROTOCOL_TLSv1_0 },
 		{ "TLSv1.1", M_TLS_PROTOCOL_TLSv1_1 },
 		{ "TLSv1.2", M_TLS_PROTOCOL_TLSv1_2 },
+		{ "TLSv1.3", M_TLS_PROTOCOL_TLSv1_3 },
 		{ NULL, 0 }
 	};
 
@@ -1267,10 +1307,68 @@ const char *M_tls_protocols_to_str(M_tls_protocols_t protocol)
 			return "TLSv1.1";
 		case M_TLS_PROTOCOL_TLSv1_2:
 			return "TLSv1.2";
+		case M_TLS_PROTOCOL_TLSv1_3:
+			return "TLSv1.3";
 		default:
 			break;
 	}
 	return "Unknown";
+}
+
+
+
+M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
+{
+	M_tls_protocols_t   protocols = 0;
+	char              **parts;
+	size_t              num_parts = 0;
+	size_t              i;
+	size_t              j;
+	static struct {
+		const char        *name;
+		M_tls_protocols_t  protocols;
+	} protcol_flags[] = {
+		{ "tlsv1",    M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1+",   M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.0",  M_TLS_PROTOCOL_TLSv1_0 },
+		{ "tlsv1.0+", M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.1",  M_TLS_PROTOCOL_TLSv1_1 },
+		{ "tlsv1.1+", M_TLS_PROTOCOL_TLSv1_1|M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.2",  M_TLS_PROTOCOL_TLSv1_2 },
+		{ "tlsv1.2+", M_TLS_PROTOCOL_TLSv1_2|M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.3",  M_TLS_PROTOCOL_TLSv1_3 },
+		{ "tlsv1.3+", M_TLS_PROTOCOL_TLSv1_3 },
+		{ NULL, 0 }
+	};
+
+	if (M_str_isempty(protocols_str))
+		return M_TLS_PROTOCOL_INVALID;
+
+	parts = M_str_explode_str(' ', protocols_str, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		return M_TLS_PROTOCOL_INVALID;
+
+	for (i=0; i<num_parts; i++) {
+		if (M_str_isempty(parts[i])) {
+			continue;
+		}
+
+		for (j=0; protcol_flags[j].name!=NULL; j++) {
+			if (M_str_caseeq(parts[i], protcol_flags[j].name)) {
+				protocols |= protcol_flags[j].protocols;
+			}
+		}
+	}
+	M_str_explode_free(parts, num_parts);
+
+#if OPENSSL_VERSION_NUMBER < 0x1010100fL || defined(LIBRESSL_VERSION_NUMBER)
+	protocols &= ~(M_tls_protocols_t)(M_TLS_PROTOCOL_TLSv1_3);
+#endif
+
+	/* 0 means nothing was set. */
+	if (protocols == 0)
+		protocols = M_TLS_PROTOCOL_INVALID;
+	return protocols;
 }
 
 

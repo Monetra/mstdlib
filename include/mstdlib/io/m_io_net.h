@@ -88,7 +88,7 @@ __BEGIN_DECLS
  *                         M_io_net_get_port(io),
  *                         M_tls_protocols_to_str(M_tls_get_protocol(io, M_IO_LAYER_FIND_FIRST_ID)),
  *                         M_tls_get_cipher(io, M_IO_LAYER_FIND_FIRST_ID),
- *                         M_tls_get_sessionreused(io, M_IO_LAYER_FIND_FIRST_ID)?"":" not ");
+ *                         M_tls_get_sessionreused(io, M_IO_LAYER_FIND_FIRST_ID)?" ":" not ");
  *     
  *                 M_io_write_from_buf(io, connected_buf);
  *                 break;
@@ -112,7 +112,7 @@ __BEGIN_DECLS
  *         }
  *     }
  *     
- *     int main(int argc, char *argv)
+ *     int main(int argc, char **argv)
  *     {
  *         M_event_t *el;
  *         M_dns_t   *dns;
