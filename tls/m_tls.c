@@ -940,7 +940,7 @@ static void M_io_tls_save_client_session(M_io_handle_t *handle, unsigned int por
 
 	session = SSL_get1_session(handle->ssl);
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
-	/* The TLSv1.3 spec recommends sessions are only used once.
+	/* The TLSv1.3 spec recommends sessions are only reused once.
 	 *
 	 * If it's not resumable we won't store it because it's not useable.
 	 */
