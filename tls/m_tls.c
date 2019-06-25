@@ -978,7 +978,19 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 		SSL_set_shutdown(handle->ssl, SSL_SENT_SHUTDOWN|SSL_RECEIVED_SHUTDOWN);
 	}
 
-	/* If client connection, we have additional work to do to save the session */
+	/* If client connection, we have additional work to do to save the session.
+	 *
+	 * OpenSSL supports a callback based system for receiving sessions that can
+	 * be stored but we're not using it. The callback method is necessary for
+	 * TLSv1.3 when attempting to store the session during negotiation. v1.3
+	 * can generate the session after the handshake has completed so unlike
+	 * < v1.3 where there was a specific place during handshake it could be pulled
+	 * that's no longer possible.
+	 *
+	 * The above does not apply to us because we only store session at shutdown.
+	 * Saving sessions will work with v1.3 due to this. Making this code fully
+	 * support v1.3 sessions.
+	 */
 	M_io_tls_save_client_session(handle, (unsigned int)M_io_net_get_port(io));
 
 	if (handle->ssl != NULL) {
@@ -1100,7 +1112,7 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 		session = M_hash_strvp_multi_get_direct(ctx->sessions, hostport, 0);
 		if (session) {
 			SSL_set_session(handle->ssl, session);
-			/* This will also reduce the reference count on thet session */
+			/* This will also reduce the reference count on that session */
 			M_hash_strvp_multi_remove(ctx->sessions, hostport, 0, M_TRUE);
 		}
 		M_thread_mutex_unlock(ctx->lock);
