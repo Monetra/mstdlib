@@ -232,9 +232,6 @@ static M_bool M_tls_protocols_to_openssl(int protocols, unsigned long *no_protoc
 	M_tls_protocols_t min      = M_TLS_PROTOCOL_TLSv1_0;
 	M_tls_protocols_t max      = M_TLS_PROTOCOL_TLSv1_2;
 
-	if (protocols == M_TLS_PROTOCOL_INVALID)
-		protocols = M_TLS_PROTOCOL_DEFAULT;
-
 	/* INVALID! Only 1.3 enabled and not supported by this openssl version. */
 	if (protocols == M_TLS_PROTOCOL_TLSv1_3)
 		return M_FALSE;
@@ -278,6 +275,13 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 
 	if (ctx == NULL)
 		return M_FALSE;
+
+	if (protocols == M_TLS_PROTOCOL_INVALID)
+		return M_FALSE;
+
+	/* Protocol 0 is an aliase for default. */
+	if (protocols == 0)
+		protocols = M_TLS_PROTOCOL_DEFAULT;
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
 	(void)options;

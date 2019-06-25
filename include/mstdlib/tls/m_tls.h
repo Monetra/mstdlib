@@ -50,15 +50,13 @@ typedef struct M_tls_serverctx M_tls_serverctx_t;
 
 /*! Supported TLS protocols. */
 typedef enum {
-	M_TLS_PROTOCOL_INVALID     = 0, /*!< Default is TLSv1.0 */
+	M_TLS_PROTOCOL_INVALID     = -1, /*!< Invalid protocol. */
 	M_TLS_PROTOCOL_TLSv1_0     = 1 << 0,
 	M_TLS_PROTOCOL_TLSv1_1     = 1 << 1,
 	M_TLS_PROTOCOL_TLSv1_2     = 1 << 2,
 	M_TLS_PROTOCOL_TLSv1_3     = 1 << 3,
+	M_TLS_PROTOCOL_DEFAULT     = (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3) /*!< While not a define passing 0 to a function that takes a protocol will be treated as default. */
 } M_tls_protocols_t;
-
-/*!< Default is TLSv1.0 min and TLSv1.3 max */
-#define M_TLS_PROTOCOL_DEFAULT (M_TLS_PROTOCOL_TLSv1_0 | M_TLS_PROTOCOL_TLSv1_1 | M_TLS_PROTOCOL_TLSv1_2 | M_TLS_PROTOCOL_TLSv1_3)
 
 
 /*! Certificate verification level.
@@ -751,7 +749,8 @@ M_API M_uint64 M_tls_get_negotiation_time_ms(M_io_t *io, size_t id);
 
 /*! Convert a protocol to string.
  *
- * It is undefined which will be used. Used primarily for logging to
+ * Only single protocol should be specified. If multiple are provided
+ * it is undefined which will be returned. Used primarily for logging to
  * print what protocol a connection is using.
  *
  * \param[in] protocol

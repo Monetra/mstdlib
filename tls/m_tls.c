@@ -1319,7 +1319,7 @@ const char *M_tls_protocols_to_str(M_tls_protocols_t protocol)
 
 M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 {
-	M_tls_protocols_t   protocols = M_TLS_PROTOCOL_INVALID;
+	M_tls_protocols_t   protocols = 0;
 	char              **parts;
 	size_t              num_parts = 0;
 	size_t              i;
@@ -1365,6 +1365,9 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 	protocols &= ~(M_tls_protocols_t)(M_TLS_PROTOCOL_TLSv1_3);
 #endif
 
+	/* 0 means nothing was set. */
+	if (protocols == 0)
+		protocols = M_TLS_PROTOCOL_INVALID;
 	return protocols;
 }
 
