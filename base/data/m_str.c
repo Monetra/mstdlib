@@ -106,10 +106,10 @@ static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t m
 	 * For example, dummy vars that are set but never used.
 	 */
 	char                 result = 0;
-	volatile size_t      i      = 0;
+	size_t               i      = 0;
 	volatile size_t      j      = 0;
 	volatile size_t      k      = 0;
-	volatile M_bool      ret;
+	M_bool               ret;
 	volatile const char *sc     = NULL;
 
 	/* Set the input to an empty string if it's NULL.
