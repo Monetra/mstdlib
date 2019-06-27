@@ -1352,10 +1352,11 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Comparison for string equality.</p>
 <p>This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. Limited to first max bytes. NULL and "" are considered equal strings.</p>
+<p>s1 will be evaluated to max regardless of the length of s2. s1 should be the input (user) string and s2 the known (internal) string. This order causes any timing information from this function to be the timing of reading s1. The length of s2 cannot be determined using this order. If s1 is the known (internal) string it is possible, though highly unlikely, to determine the length. While the evaluation will be constant time it will always be the time to scan the known string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. Should be (user) input. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Should be known (internal) string. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>maximum length to check, or 0 for no maximum.</td></tr>
   </table>
   </dd>
@@ -1389,10 +1390,11 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Comparison for string equality.</p>
 <p>This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. NULL and "" are considered equal strings.</p>
+<p>s1 will be evaluated to end regardless of the length of s2. s1 should be the input (user) string and s2 the known (internal) string. This order causes any timing information from this function to be the timing of reading s1. The length of s2 cannot be determined using this order. If s1 is the known (internal) string it is possible though highly unlikely, to determine the length. While the evaluation will be constant time it will always be the time to scan the known string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. Should be (user) input. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Should be known (internal) string.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1431,6 +1433,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Comparison for string equality in a case-insensitive manner.</p>
 <p>This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. Limited to first max bytes. NULL and "" are considered equal strings.</p>
+<p>s1 will be evaluated to max regardless of the length of s2. s1 should be the input (user) string and s2 the known (internal) string. This order causes any timing information from this function to be the timing of reading s1. The length of s2 cannot be determined though highly unlikely, to determine the length. While the evaluation will be constant time it will always be the time to scan the known string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
@@ -1468,10 +1471,11 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Comparison for string equality in a case-insensitive manner.</p>
 <p>This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. NULL and "" are considered equal strings.</p>
+<p>s1 will be evaluated to end regardless of the length of s2. s1 should be the input (user) string and s2 the known (internal) string. This order causes any timing information from this function to be the timing of reading s1. The length of s2 cannot be determined though highly unlikely, to determine the length. While the evaluation will be constant time it will always be the time to scan the known string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. Should be (user) input. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Should be known (internal) string.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1503,10 +1507,12 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Determine if a string ends with a given string.</p>
+<p>The input is slighly different than <a class="el" href="group__m__str__check.html#ga5470a5985b0adb95aff5fc53780be8c7">M_str_eq()</a>. The input reads: Check that s1 ends with s2.</p>
+<p>s1 length is never (</p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__str__check.html#ga5470a5985b0adb95aff5fc53780be8c7">M_str_eq</a>) known because evaluation will always be the length of s2.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. Input string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Ending string that's being compared to s1.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1538,10 +1544,12 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Determine if a string ends with a given string in a case-insensitive manner.</p>
+<p>The input is slighly different than <a class="el" href="group__m__str__check.html#ga3bdfe11734a9c5aa83c9725bda9c18e7">M_str_caseeq()</a>. The input reads: Check that s1 ends with s2.</p>
+<p>s1 length is never (</p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__str__check.html#ga3bdfe11734a9c5aa83c9725bda9c18e7">M_str_caseeq</a>) known because evaluation will always be the length of s2.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. Input string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Ending string that's being compared to s1.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1573,10 +1581,12 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Determine if a string starts with a given string.</p>
+<p>The input is slighly different than <a class="el" href="group__m__str__check.html#ga5470a5985b0adb95aff5fc53780be8c7">M_str_eq()</a>. The input reads: Check that s1 starts with s2.</p>
+<p>s1 length is never (</p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__str__check.html#ga5470a5985b0adb95aff5fc53780be8c7">M_str_eq</a>) known because evaluation will always be the length of s2.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. Input string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Staring string that's being compared to s1.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1608,10 +1618,12 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Determine if a string starts with a given string in a case-insensitive manner.</p>
+<p>The input is slighly different than <a class="el" href="group__m__str__check.html#ga3bdfe11734a9c5aa83c9725bda9c18e7">M_str_caseeq()</a>. The input reads: Check that s1 starts with s2.</p>
+<p>s1 length is never (</p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__str__check.html#ga3bdfe11734a9c5aa83c9725bda9c18e7">M_str_caseeq</a>) known because evaluation will always be the length of s2.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s1</td><td>NULL-terminated string, or non-terminated string that's at least as long as s2. Input string. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">s2</td><td>NULL-terminated string. Staring string that's being compared to s1.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1697,7 +1709,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jun 26 2019 12:14:24 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu Jun 27 2019 17:40:06 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
