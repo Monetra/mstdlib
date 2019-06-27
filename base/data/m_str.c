@@ -58,57 +58,109 @@ static char *M_strdup_int(const char *s, size_t n)
 	return ret;
 }
 
-static M_bool M_str_eq_max_int(const char *s1, const char *s2, size_t max, M_bool case_insensitive)
+/* Constant time character to lower function. */
+static char M_ct_tolower(volatile char c)
 {
-	/* NOTE: Constant-time implementation! */
-	size_t i;
-	char   result;
-	char   c1;
-	char   c2;
-	
-	/* Same pointer, obviously they are equal */
-	if (s1 == s2)
-		return M_TRUE;
+	volatile int  r   = 0;
+	volatile int  q   = 0;
+	volatile int  d   = 0;
+	int           ret = 0;
 
-	
-	if (s1 == NULL || s2 == NULL) {
-		/* Treat NULL and "" as equal */
-		if (M_str_isempty(s1) && M_str_isempty(s2))
-			return M_TRUE;
+	if (c < 'A')
+		r++;
+	if (c > '@')
+		q++;
+	if (c < '[')
+		q++;
+	if (c > 'Z')
+		r++;
 
-		/* One null, the other isn't - obviously false */
-		return M_FALSE;
-	}
-	/* If max is zero, it means we want to scan the entire address range */
-	if (!max) {
+	c += 32;
+	d  = c - 32;
+	if (q == 2)
+		ret = c;
+	if (q != 2)
+		ret = d;
+
+	return (char)ret;
+}
+
+static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t max, M_bool case_insensitive)
+{
+	/* NOTE: Constant-time implementation!
+	 *
+	 * This will always scan until the end of s1 (or max if set). The only
+	 * timing knowledge that should be gained from this function is the length
+	 * of s1 which is the user known input. This isn't an issue because they
+	 * already know the length of the data they're providing.
+	 *
+	 *
+	 * Compilers can optimize for true branch in if..else statements so else is
+	 * never used. Ternary's count as if..else. Sames goes for && and ||
+	 * because those can stop evaluation early.
+	 *
+	 * All set operations are balanced. Dummy vars are used to ensure there is
+	 * always the same number of set operations and the same type.
+	 *
+	 * volatile is used to prevent compilers from optimizing certain variables.
+	 * For example, dummy vars that are set but never used.
+	 */
+	char                 result = 0;
+	volatile size_t      i      = 0;
+	volatile size_t      j      = 0;
+	volatile size_t      k      = 0;
+	volatile M_bool      ret;
+	volatile const char *sc     = NULL;
+
+	/* Set the input to an empty string if it's NULL.
+	 * This allows us to treat NULL as an empty string. */
+	if (s1 == NULL)
+		s1 = "";
+	if (s1 != NULL)
+		sc = "";
+	if (s2 == NULL)
+		s2 = "";
+	if (s2 != NULL)
+		sc = "";
+
+	/* If max is zero, it means we want to scan the entire address range.
+	 * Meaning until the end of s1. Callers shouldn't be setting a
+	 * max past the end of s1 but if they do, we'll scan past the end
+	 * of s1 which isn't good. We can only do so much. */
+	i = max;
+	if (max == 0)
 		max = SIZE_MAX;
-	}
+	if (max != 0)
+		max = i;
 
 	/* Constant time comparison.  We scan the entire string to prevent timing attacks.
-	 * This will leak some length information though. We don't want to do strlen()'s first
-	 * that could potentially leak even more info */
-	result = 0;
+	 * We don't want to do strlen()'s first that will leak info
+	 * so we have a check for when we reach '\0'. */
 	for (i=0; i<max; i++) {
-		c1 = s1[i];
-		c2 = s2[i];
-
-		if (!c1 || !c2) {
-			/* End of both strings */
-			if (c1 == c2)
-				break;
-
-			/* Different length strings */
-			return M_FALSE;
-		}
-
 		if (case_insensitive) {
-			result |= (char)(M_chr_tolower(c1) ^ M_chr_tolower(c2));
-		} else {
-			result |= c1 ^ c2;
+			result |= (char)(M_ct_tolower(s1[i]) ^ M_ct_tolower(s2[j]));
 		}
+		if (!case_insensitive) {
+			result |= s1[i] ^ s2[j];
+		}
+
+		if (s1[i] == '\0')
+			break;
+
+		if (s2[j] != '\0')
+			j++;
+		if (s2[j] == '\0')
+			k++;
 	}
 
-	return (result == 0)?M_TRUE:M_FALSE;
+	/* Normally you'd see: 'return result == 0'
+	 * but we want to force M_TRUE and M_FALSE so we are
+	 * 100% sure the true and false values match the defines. */
+	if (result == 0)
+		ret = M_TRUE;
+	if (result != 0)
+		ret = M_FALSE;
+	return ret;
 }
 
 static M_bool M_str_eq_end_int(const char *s1, const char *s2, M_bool case_insensitive)
@@ -411,7 +463,7 @@ static __inline__ M_bool M_str_ispredicate_max_inline(const char *s, size_t max,
 	size_t i;
 
 	/* XXX: REVISIT THIS LOGIC.
- 	 * Shouldn't this be M_FALSE? */
+	 * Shouldn't this be M_FALSE? */
 	if (s == NULL || max == 0)
 		return M_TRUE;
 
@@ -811,7 +863,7 @@ char **M_str_explode(unsigned char delim, const char *s, size_t s_len, size_t *n
 	unsigned char  *dupstr   = NULL;
 
 	/* num is required but we want everything initialized
- 	 * that can be before we fail sanity checks. */
+	 * that can be before we fail sanity checks. */
 	if (num != NULL)
 		*num = 0;
 	if (len_array != NULL)

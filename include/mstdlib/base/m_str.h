@@ -520,8 +520,16 @@ M_API int M_str_casecmpsort_max(const char *s1, const char *s2, size_t max) M_WA
  * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. 
  * Limited to first max bytes.  NULL and "" are considered equal strings.
  *
- * \param[in] s1  NULL-terminated string.
- * \param[in] s2  NULL-terminated string.
+ * s1 will be evaluated to max regardless of the length of s2.
+ * s1 should be the input (user) string and s2 the known (internal)
+ * string. This order causes any timing information from this function
+ * to be the timing of reading s1. The length of s2 cannot be determined
+ * using this order. If s1 is the known (internal) string it is possible,
+ * though highly unlikely, to determine the length. While the evaluation
+ * will be constant time it will always be the time to scan the known string.
+ *
+ * \param[in] s1  NULL-terminated string. Should be (user) input.
+ * \param[in] s2  NULL-terminated string. Should be known (internal) string.
  * \param[in] max maximum length to check, or 0 for no maximum.
  *
  * \return M_TRUE if equal, M_FALSE if not equal.
@@ -534,8 +542,16 @@ M_API M_bool M_str_eq_max(const char *s1, const char *s2, size_t max);
  * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks.
  * NULL and "" are considered equal strings.
  *
- * \param[in] s1 NULL-terminated string.
- * \param[in] s2 NULL-terminated string.
+ * s1 will be evaluated to end regardless of the length of s2.
+ * s1 should be the input (user) string and s2 the known (internal)
+ * string. This order causes any timing information from this function
+ * to be the timing of reading s1. The length of s2 cannot be determined
+ * using this order. If s1 is the known (internal) string it is possible
+ * though highly unlikely, to determine the length. While the evaluation
+ * will be constant time it will always be the time to scan the known string.
+ *
+ * \param[in] s1  NULL-terminated string. Should be (user) input.
+ * \param[in] s2  NULL-terminated string. Should be known (internal) string.
  *
  * \return M_TRUE if equal, M_FALSE if not equal.
  */
@@ -546,6 +562,13 @@ M_API M_bool M_str_eq(const char *s1, const char *s2);
  *
  * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks.
  * Limited to first max bytes. NULL and "" are considered equal strings.
+ *
+ * s1 will be evaluated to max regardless of the length of s2.
+ * s1 should be the input (user) string and s2 the known (internal)
+ * string. This order causes any timing information from this function
+ * to be the timing of reading s1. The length of s2 cannot be determined
+ * though highly unlikely, to determine the length. While the evaluation
+ * will be constant time it will always be the time to scan the known string.
  *
  * \param[in] s1  NULL-terminated string.
  * \param[in] s2  NULL-terminated string.
@@ -561,8 +584,15 @@ M_API M_bool M_str_caseeq_max(const char *s1, const char *s2, size_t max);
  * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks.
  * NULL and "" are considered equal strings.
  *
- * \param[in] s1 NULL-terminated string.
- * \param[in] s2 NULL-terminated string.
+ * s1 will be evaluated to end regardless of the length of s2.
+ * s1 should be the input (user) string and s2 the known (internal)
+ * string. This order causes any timing information from this function
+ * to be the timing of reading s1. The length of s2 cannot be determined
+ * though highly unlikely, to determine the length. While the evaluation
+ * will be constant time it will always be the time to scan the known string.
+ *
+ * \param[in] s1  NULL-terminated string. Should be (user) input.
+ * \param[in] s2  NULL-terminated string. Should be known (internal) string.
  *
  * \return M_TRUE if equal, M_FALSE if not equal.
  */
@@ -571,8 +601,15 @@ M_API M_bool M_str_caseeq(const char *s1, const char *s2);
 
 /*! Determine if a string ends with a given string.
  *
- * \param[in] s1 NULL-terminated string.
+ * The input is slighly different than M_str_eq(). The input reads:
+ * Check that s1 ends with s2.
+ *
+ * s1 length is never (\see M_str_eq) known because evaluation will always be the length of s2.
+ *
+ * \param[in] s1 NULL-terminated string, or non-terminated string that's at least as long as s2.
+ *               Input string.
  * \param[in] s2 NULL-terminated string.
+ *               Ending string that's being compared to s1.
  *
  * \return M_TRUE if s1 ends with s2, otherwise M_FALSE;
  */
@@ -581,8 +618,15 @@ M_API M_bool M_str_eq_end(const char *s1, const char *s2);
 
 /*! Determine if a string ends with a given string in a case-insensitive manner.
  *
- * \param[in] s1 NULL-terminated string.
+ * The input is slighly different than M_str_caseeq(). The input reads:
+ * Check that s1 ends with s2.
+ *
+ * s1 length is never (\see M_str_caseeq) known because evaluation will always be the length of s2.
+ *
+ * \param[in] s1 NULL-terminated string, or non-terminated string that's at least as long as s2.
+ *               Input string.
  * \param[in] s2 NULL-terminated string.
+ *               Ending string that's being compared to s1.
  *
  * \return M_TRUE if s1 ends with s2, otherwise M_FALSE;
  */
@@ -591,8 +635,15 @@ M_API M_bool M_str_caseeq_end(const char *s1, const char *s2);
 
 /*! Determine if a string starts with a given string.
  *
+ * The input is slighly different than M_str_eq(). The input reads:
+ * Check that s1 starts with s2.
+ *
+ * s1 length is never (\see M_str_eq) known because evaluation will always be the length of s2.
+ *
  * \param[in] s1 NULL-terminated string, or non-terminated string that's at least as long as s2.
+ *               Input string.
  * \param[in] s2 NULL-terminated string.
+ *               Staring string that's being compared to s1.
  *
  * \return       M_TRUE if s1 starts with s2, otherwise M_FALSE.
  */
@@ -601,8 +652,15 @@ M_API M_bool M_str_eq_start(const char *s1, const char *s2);
 
 /*! Determine if a string starts with a given string in a case-insensitive manner.
  *
+ * The input is slighly different than M_str_caseeq(). The input reads:
+ * Check that s1 starts with s2.
+ *
+ * s1 length is never (\see M_str_caseeq) known because evaluation will always be the length of s2.
+ *
  * \param[in] s1 NULL-terminated string, or non-terminated string that's at least as long as s2.
+ *               Input string.
  * \param[in] s2 NULL-terminated string.
+ *               Staring string that's being compared to s1.
  *
  * \return       M_TRUE if s1 starts with s2 (case insensitive), otherwise M_FALSE.
  */
