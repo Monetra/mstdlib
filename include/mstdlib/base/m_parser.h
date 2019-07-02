@@ -1518,6 +1518,8 @@ M_API M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M
 
 /*! Validate the parser matches the given predicate function.
  *
+ * If the input char data is signed, use M_parser_is_chr_predicate() instead.
+ *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
  * \param[in] func   Predicate function.
@@ -1528,6 +1530,8 @@ M_API M_bool M_parser_is_predicate(M_parser_t *parser, size_t len, M_parser_pred
 
 
 /*! Validate the parser matches the given chr predicate function.
+ *
+ * If the input char data is unsigned, use M_parser_is_predicate() instead.
  *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
@@ -1563,6 +1567,8 @@ M_API M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char 
 
 /*! Validate the parser does not match the given predicate function.
  *
+ * If the input char data is signed, use M_parser_is_not_chr_predicate() instead.
+ *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
  * \param[in] func   Predicate function.
@@ -1573,6 +1579,8 @@ M_API M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_
 
 
 /*! Validate the parser does not match the given chr predicate function.
+ *
+ * If the input char data is unsigned, use M_parser_is_not_predicate() instead.
  *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
