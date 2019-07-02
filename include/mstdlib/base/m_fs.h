@@ -742,7 +742,7 @@ M_API M_list_str_t *M_fs_path_componentize_path(const char *path, M_fs_system_t 
 /*! Join two parts into one path.
  *
  * If either part is empty the separator won't be added. Unlike M_fs_path_join_parts this does not have special
- * handling (using an empty string) for absolute paths. This is a convince function to write the appropriate system
+ * handling (using an empty string) for absolute paths. This is a convenience function to write the appropriate system
  * separator between two paths.
  *
  * \param[in] p1 First part.
@@ -913,7 +913,7 @@ M_API M_fs_error_t M_fs_path_readlink(char **out, const char *path);
 /*! Normalize a path.
  *
  * This typically does not need to be called because all functions that take a path (file) will
- * call this internally using the appropriate parameters. This is provided as a convince for
+ * call this internally using the appropriate parameters. This is provided as a convenience for
  * displaying paths to a user.
  *
  * Supported features on all OS's;
