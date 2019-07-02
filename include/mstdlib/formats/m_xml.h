@@ -428,9 +428,9 @@ M_API M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node);
  * ..                 | Selects the parent of the current element node.
  * text()             | Selects all text nodes.
  * [\@attrib]         | Selects elements which have an attribute attrib.
- * [\@attrib=val]     | Selects elements which have an sttribute attrib with a value of val.
- * [\@attrib="val"]   | Selects elements which have an sttribute attrib with a value of val.
- * [\@attrib='val']   | Selects elements which have an sttribute attrib with a value of val.
+ * [\@attrib=val]     | Selects elements which have an attribute attrib with a value of val.
+ * [\@attrib="val"]   | Selects elements which have an attribute attrib with a value of val.
+ * [\@attrib='val']   | Selects elements which have an attribute attrib with a value of val.
  * [\@*]              | Selects elements which have an (any) attribute set.
  * [idx]              | Select an element at a given position.
  * [position() ? idx] | Select an element at a given position.
