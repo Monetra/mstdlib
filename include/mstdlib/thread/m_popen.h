@@ -188,8 +188,8 @@ M_API ssize_t M_popen_write(M_popen_handle_t *mp, M_popen_fd_t fd, const char *i
 
 /*! Close the provided file descriptor.
  *
- * This is used mainly to close the stdin stream to signal the command being
- * executed that there is no more data left to be read.  Any file open file
+ * This is used mainly to close the stdin stream to signal to the command being
+ * executed that there is no more data left to be read.  Any open file
  * descriptors are automatically closed by M_popen_close().
  *
  * \param[in,out] mp Open M_popen_t object.
