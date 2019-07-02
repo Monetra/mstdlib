@@ -575,17 +575,17 @@ static void M_xml_xpath_search(M_xml_node_t *node, M_list_str_t *segments, size_
 
 M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flags, size_t *num_matches)
 {
-	M_xml_node_t **matches            = NULL;
+	M_xml_node_t **matches           = NULL;
 	char         **segments;
-	char          **pred_segments;
-	M_list_str_t   *seg_list;
-	M_buf_t        *buf;
-	char           *out;
-	size_t          start_offset      = 0;
-	size_t          num_segments      = 0;
-	size_t          num_pred_segments = 0;
-	size_t          i;
-	size_t          j;
+	char         **pred_segments;
+	M_list_str_t  *seg_list;
+	M_buf_t       *buf;
+	char          *out;
+	size_t         start_offset      = 0;
+	size_t         num_segments      = 0;
+	size_t         num_pred_segments = 0;
+	size_t         i;
+	size_t         j;
 
 	if (num_matches == NULL) {
 		return NULL;
