@@ -545,7 +545,7 @@ static void M_xml_xpath_search(M_xml_node_t *node, M_list_str_t *segments, size_
 		return;
 	}
 
-	/* Determine they type of match we need to use. */
+	/* Determine the type of match we need to use. */
 	match_type = M_xml_xpath_search_segment_type(seg);
 	switch (match_type) {
 		case M_XML_XPATH_MATCH_TYPE_TAG:
