@@ -835,10 +835,10 @@ M_API M_uint64 M_time_elapsed(const M_timeval_t *start_tv) M_WARN_NONNULL(1);
  * - \%Y-\%m-\%d
  *
  * \param[in] timestr            The time string to parse.
- * \param[in] default_end_of_day M_TRUE when the returned time be at the end of the day.
  * \param[in] tz                 The time zone to use. If NULL the local system time zone will be used.
  *                               This will only be used if the parsed time does not include a fixed
  *                               time zone offset.
+ * \param[in] default_end_of_day M_TRUE when the returned time be at the end of the day.
  *
  * \return M_time_t of the parsed time. -1 on error.
  *
