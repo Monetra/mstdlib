@@ -107,7 +107,7 @@ __BEGIN_DECLS
  *     for (i=0; i<len; i++) {
  *         M_printf("%s\n", M_list_str_at(l, i));
  *     }
- *     M_list_str_destory(l);
+ *     M_list_str_destroy(l);
  * \endcode
  */
 
@@ -466,7 +466,7 @@ M_API M_fs_perms_t *M_fs_perms_dup(const M_fs_perms_t *perms) M_MALLOC;
 M_API void M_fs_perms_merge(M_fs_perms_t **dest, M_fs_perms_t *src) M_FREE(2);
 
 
-/*! Destoroy a perms object.
+/*! Destroy a perms object.
  *
  * \param[in] perms The perms.
  */
