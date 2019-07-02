@@ -527,6 +527,11 @@ M_bool M_str_ishex(const char *s)
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_ishex);
 }
 
+M_bool M_str_isbase64(const char *s)
+{
+	return M_str_isbase64_max(s, SIZE_MAX);
+}
+
 M_bool M_str_isnum(const char *s)
 {
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_isdigit);
@@ -691,6 +696,34 @@ M_bool M_str_isprint_max(const char *s, size_t max)
 M_bool M_str_ishex_max(const char *s, size_t max)
 {
 	return M_str_ispredicate_max_inline(s, max, M_chr_ishex);
+}
+
+M_bool M_str_isbase64_max(const char *s, size_t max)
+{
+	size_t       len;
+	unsigned int i;
+
+	if (s == NULL || *s == '\0')
+		return M_FALSE;
+
+	len = M_str_len(s);
+	if (len > max)
+		len = max;
+
+	/* Only check for one before the end so we can allow '=' as padding */
+	for (i=0; i<len-1; i++) {
+		if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
+			return M_FALSE;
+	}
+
+	if (
+		(!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/' && s[i] != '=') ||
+		(s[i] == '=' && M_str_len(s) > max) /* '=' is only allowed at very end of string for padding */
+	) {
+		return M_FALSE;
+	}
+
+	return M_TRUE;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
