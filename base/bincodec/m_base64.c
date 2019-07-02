@@ -151,7 +151,7 @@ size_t M_base64_encode(char *out, size_t outlen, const unsigned char *in, size_t
 		M_base64_encode_adder(out,  tmp        & 63, &pos, &len, wrap, M_FALSE);
 	}
 
-	/* Encode the non-3 btye segement at the end if it exits. Will require padding. */
+	/* Encode the non-3 byte segement at the end if it exits. Will require padding. */
 	if (inlen3 != inlen) {
 		/* We don't have three bytes left, we only have 2 or 1. */
 		switch (inlen - inlen3) {
