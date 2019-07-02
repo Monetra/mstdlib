@@ -2070,20 +2070,32 @@ M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char *chars
 
 M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func)
 {
+	if (parser == NULL || len == 0 || func == NULL)
+		return M_FALSE;
+
 	return !M_parser_is_predicate(parser, len, func);
 }
 
 M_bool M_parser_is_not_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func)
 {
+	if (parser == NULL || len == 0 || func == NULL)
+		return M_FALSE;
+
 	return !M_parser_is_chr_predicate(parser, len, func);
 }
 
 M_bool M_parser_is_not_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len)
 {
+	if (parser == NULL || len == 0 || charset == NULL || charset_len == 0)
+		return M_FALSE;
+
 	return !M_parser_is_charset(parser, len, charset, charset_len);
 }
 
 M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const char *charset)
 {
+	if (parser == NULL || len == 0 || charset == NULL)
+		return M_FALSE;
+
 	return !M_parser_is_str_charset(parser, len, charset);
 }
