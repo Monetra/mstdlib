@@ -206,6 +206,23 @@ M_API M_xml_node_t *M_xml_create_element(const char *name, M_xml_node_t *parent)
 M_API M_xml_node_t *M_xml_create_element_with_text(const char *name, const char *text, size_t max_len, M_xml_node_t *parent) M_MALLOC;
 
 
+/*! Create an XML element with text set from num.
+ *
+ * \param[in]     name    The tag name for the element.
+ * \param[in]     num     The number to be inserted as the text for the element.
+ * \param[in]     max_len The maximum length the text is allowed to be when xml encoded. If the encoded length
+ *                        is greater an error will result. Use 0 to specify that the text length should not be
+ *                        checked and any length is allowed.
+ * \param[in,out] parent  The parent this node should be inserted into. Optional, pass NULL
+ *                        if the node should be created without a parent.
+ *
+ * \return A XML node on success. NULL on failure.
+ *
+ * \see M_xml_node_destroy
+ */
+M_API M_xml_node_t *M_xml_create_element_with_num(const char *name, long num, size_t max_len, M_xml_node_t *parent) M_MALLOC;
+
+
 /*! Create an XML text node.
  *
  * \param[in]     text    The text.
