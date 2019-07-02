@@ -700,9 +700,9 @@ M_API size_t M_fs_path_get_path_max(M_fs_system_t sys_type);
 M_API M_bool M_fs_path_isabs(const char *p, M_fs_system_t sys_type);
 
 
-/*! Check if a path is a unc path.
+/*! Check if a path is a UNC path.
  *
- * A path is unc if it's Windows and starts with "\\\\".
+ * A path is UNC if it's Windows and starts with "\\\\".
  *
  * \param[in] p The path.
  *
