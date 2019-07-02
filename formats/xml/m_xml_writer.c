@@ -133,7 +133,7 @@ static M_bool M_xml_write_node_tag_name(M_buf_t *buf, M_uint32 flags, size_t dep
 }
 
 /* These are the three attributes that are part of the xml declaration.
- * They are in order they should appear in the declaration. */
+ * They are in the order they should appear in the declaration. */
 static struct {
 	const char *key;
 } M_xml_write_declaration_attributes[] = {
