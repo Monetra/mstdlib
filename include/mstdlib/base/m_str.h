@@ -1362,7 +1362,7 @@ M_API size_t M_str_justify_max(char *dest, size_t destlen, const char *src, size
  *
  * \param[out] dest     Destination buffer where the output is placed.
  * \param[in]  dest_len Length of destination buffer.
- * \param[in]  src      Input buffer to be justified.
+ * \param[in]  src      Input buffer.
  *
  * \return M_TRUE on success otherwise M_FALSE.
  */
@@ -1375,8 +1375,8 @@ M_API M_bool M_str_cpy(char *dest, size_t dest_len, const char *src);
  *
  * \param[out] dest     Destination buffer where the output is placed.
  * \param[in]  dest_len Length of destination buffer.
- * \param[in]  src      Input buffer to be justified.
- * \param[in]  src_len  Length of source string. 
+ * \param[in]  src      Input buffer.
+ * \param[in]  src_len  Length of input buffer.
  *
  * \return M_TRUE on success otherwise M_FALSE.
  */
