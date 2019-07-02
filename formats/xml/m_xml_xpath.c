@@ -658,9 +658,6 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 		 * which means we need to scan to the doc node */
 		node         = M_xml_node_find_doc(node);
 		start_offset = 1;
-	} else {
-		/* Anything else is the start of the search pattern, so call
-		 * the actual search function */
 	}
 
 	if (M_list_str_len(seg_list) - start_offset != 0) {
