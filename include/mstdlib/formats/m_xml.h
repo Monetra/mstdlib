@@ -169,7 +169,7 @@ typedef enum {
 
 /*! Create an XML document.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -182,7 +182,7 @@ M_API M_xml_node_t *M_xml_create_doc(void) M_MALLOC;
  * \param[in,out] parent The parent this node should be inserted into. Optional, pass NULL
  *                       if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -199,7 +199,7 @@ M_API M_xml_node_t *M_xml_create_element(const char *name, M_xml_node_t *parent)
  * \param[in,out] parent  The parent this node should be inserted into. Optional, pass NULL
  *                        if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -215,7 +215,7 @@ M_API M_xml_node_t *M_xml_create_element_with_text(const char *name, const char 
  * \param[in,out] parent  The parent this node should be inserted into. Optional, pass NULL
  *                        if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -231,7 +231,7 @@ M_API M_xml_node_t *M_xml_create_text(const char *text, size_t max_len, M_xml_no
  * \param[in,out] parent   The parent this node should be inserted into. Optional, pass NULL
  *                         if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -249,7 +249,7 @@ M_API M_xml_node_t *M_xml_create_xml_declaration(const char *encoding, M_xml_nod
  * \param[in,out] parent The parent this node should be inserted into. Optional, pass NULL
  *                       if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -268,7 +268,7 @@ M_API M_xml_node_t *M_xml_create_declaration(const char *name, M_xml_node_t *par
  * \param[in,out] parent The parent this node should be inserted into. Optional, pass NULL
  *                       if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -281,7 +281,7 @@ M_API M_xml_node_t *M_xml_create_declaration_with_tag_data(const char *name, con
  * \param[in,out] parent The parent this node should be inserted into. Optional, pass NULL
  *                       if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -294,7 +294,7 @@ M_API M_xml_node_t *M_xml_create_processing_instruction(const char *name, M_xml_
  * \param[in,out] parent  The parent this node should be inserted into. Optional, pass NULL
  *                        if the node should be created without a parent.
  *
- * \return A XML node on success. NULL on failure.
+ * \return An XML node on success. NULL on failure.
  *
  * \see M_xml_node_destroy
  */
@@ -328,7 +328,7 @@ M_API void M_xml_node_destroy(M_xml_node_t *node) M_FREE(1);
 M_API M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size_t *processed_len, M_xml_error_t *error, size_t *error_line, size_t *error_pos) M_MALLOC;
 
 
-/*! Parse a file into a XML object.
+/*! Parse a file into an XML object.
  *
  * \param[in]  path       The file to read.
  * \param[in]  flags      M_xml_reader_flags_t flags to control the behavior of the reader.
@@ -428,9 +428,9 @@ M_API M_xml_node_type_t M_xml_node_type(const M_xml_node_t *node);
  * ..                 | Selects the parent of the current element node.
  * text()             | Selects all text nodes.
  * [\@attrib]         | Selects elements which have an attribute attrib.
- * [\@attrib=val]     | Selects elements which have an sttribute attrib with a value of val.
- * [\@attrib="val"]   | Selects elements which have an sttribute attrib with a value of val.
- * [\@attrib='val']   | Selects elements which have an sttribute attrib with a value of val.
+ * [\@attrib=val]     | Selects elements which have an attribute attrib with a value of val.
+ * [\@attrib="val"]   | Selects elements which have an attribute attrib with a value of val.
+ * [\@attrib='val']   | Selects elements which have an attribute attrib with a value of val.
  * [\@*]              | Selects elements which have an (any) attribute set.
  * [idx]              | Select an element at a given position.
  * [position() ? idx] | Select an element at a given position.
