@@ -285,9 +285,9 @@ M_API M_bool M_str_ishex(const char *s) M_WARN_UNUSED_RESULT;
 /*! Check whether each character of a string s is in the base64 character set.
  *
  * The base64 character set is all letters upper and lower case, the digits
- * 0-9, and the special characters '+' and '/'.
+ * 0-9, and the special characters '+' and '/'. Newlines ('\n') are also allowed.
  *
- * The final character may be '=' to allow for padding.
+ * Up to two '=' characters are allowed at the end of the string for padding.
  *
  * \param[in] s NULL-terminated string.
  *
@@ -453,9 +453,9 @@ M_API M_bool M_str_ishex_max(const char *s, size_t max) M_WARN_UNUSED_RESULT;
 /*! Check whether each character of a string s is in the base64 character set up to at most max bytes.
  *
  * The base64 character set is all letters upper and lower case, the digits
- * 0-9, and the special characters '+' and '/'.
+ * 0-9, and the special characters '+' and '/'. Newlines ('\n') are also allowed.
  *
- * The final character may be '=' to allow for padding.
+ * Up to two '=' characters are allowed at the end of the string for padding.
  *
  * \param[in] s   NULL-terminated string.
  * \param[in] max Maximum number of bytes.
