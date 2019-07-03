@@ -47,6 +47,7 @@ var group__m__xml =
     [ "M_xml_create_doc", "group__m__xml.html#ga4c341e31a7c7021b499952980abbcb6d", null ],
     [ "M_xml_create_element", "group__m__xml.html#gae89722680bba6fb8e77682466788a800", null ],
     [ "M_xml_create_element_with_text", "group__m__xml.html#ga04b6ab6bd3f43735767ce8a8efd20f6e", null ],
+    [ "M_xml_create_element_with_num", "group__m__xml.html#gaf4c8083e6cc2454e25158cb4b95d892f", null ],
     [ "M_xml_create_text", "group__m__xml.html#gab984bf8d12bbe7e128f926ba0b0a0e5e", null ],
     [ "M_xml_create_xml_declaration", "group__m__xml.html#gac32687f5df2a76f30fd08b50b664f053", null ],
     [ "M_xml_create_declaration", "group__m__xml.html#ga5dee1a59b4e5c6559ff1d728d6296b31", null ],
