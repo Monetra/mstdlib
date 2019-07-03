@@ -655,12 +655,10 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 
 	if (M_str_len(M_list_str_at(seg_list, 0)) == 0) {
 		/* If the first node is blank, that means the search pattern started with '/',
-		 * which means we need to scan to the doc node */
+		 * which means we need to scan to the doc node. Anything else is the start of
+		 * the search pattern, so we'll use the passed node for searching. */
 		node         = M_xml_node_find_doc(node);
 		start_offset = 1;
-	} else {
-		/* Anything else is the start of the search pattern, so call
-		 * the actual search function */
 	}
 
 	if (M_list_str_len(seg_list) - start_offset != 0) {
