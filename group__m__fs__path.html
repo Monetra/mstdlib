@@ -215,8 +215,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Check if a path is a unc path.</p>
-<p>A path is unc if it's Windows and starts with "\\\\".</p>
+<p>Check if a path is a UNC path.</p>
+<p>A path is UNC if it's Windows and starts with "\\\\".</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">p</td><td>The path.</td></tr>
@@ -329,7 +329,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Join two parts into one path.</p>
-<p>If either part is empty the separator won't be added. Unlike M_fs_path_join_parts this does not have special handling (using an empty string) for absolute paths. This is a convince function to write the appropriate system separator between two paths.</p>
+<p>If either part is empty the separator won't be added. Unlike M_fs_path_join_parts this does not have special handling (using an empty string) for absolute paths. This is a convenience function to write the appropriate system separator between two paths.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">p1</td><td>First part. </td></tr>
@@ -721,7 +721,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Normalize a path.</p>
-<p>This typically does not need to be called because all functions that take a path (file) will call this internally using the appropriate parameters. This is provided as a convince for displaying paths to a user.</p>
+<p>This typically does not need to be called because all functions that take a path (file) will call this internally using the appropriate parameters. This is provided as a convenience for displaying paths to a user.</p>
 <p>Supported features on all OS's;</p><ul>
 <li>Home dir (~) expansion.</li>
 <li>Environment variable expansion (both $var and %var%).</li>
@@ -747,7 +747,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jun 27 2019 17:40:06 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Jul 3 2019 00:03:08 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
