@@ -220,7 +220,7 @@ M_API M_xml_node_t *M_xml_create_element_with_text(const char *name, const char 
  *
  * \see M_xml_node_destroy
  */
-M_API M_xml_node_t *M_xml_create_element_with_num(const char *name, long num, size_t max_len, M_xml_node_t *parent) M_MALLOC;
+M_API M_xml_node_t *M_xml_create_element_with_num(const char *name, M_int64 num, size_t max_len, M_xml_node_t *parent) M_MALLOC;
 
 
 /*! Create an XML text node.

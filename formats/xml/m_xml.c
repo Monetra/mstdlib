@@ -279,11 +279,11 @@ M_xml_node_t *M_xml_create_element_with_text(const char *name, const char *text,
 	return node;
 }
 
-M_xml_node_t *M_xml_create_element_with_num(const char *name, long num, size_t max_len, M_xml_node_t *parent)
+M_xml_node_t *M_xml_create_element_with_num(const char *name, M_int64 num, size_t max_len, M_xml_node_t *parent)
 {
 	char num_str[64];
 
-	M_snprintf(num_str, sizeof(num_str), "%ld", num);
+	M_snprintf(num_str, sizeof(num_str), "%lld", num);
 
 	return M_xml_create_element_with_text(name, num_str, max_len, parent);
 }
