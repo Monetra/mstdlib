@@ -713,14 +713,16 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 	for (i=0; i<max; i++) {
 		/* Allow for the string to be padded with '='. */
 		if (s[i] == '=') {
-			if (i == len-2 && s[len-1] == '=') {
+			if (i == len-3 && s[len-2] == '\n' && s[len-1] == '=') {
+				continue;
+			} else if (i == len-2 && s[len-1] == '=') {
 				continue;
 			} else if (i == len-1) {
 				continue;
 			}
 		}
 
-		if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
+		if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/' && s[i] != '\n')
 			return M_FALSE;
 	}
 
