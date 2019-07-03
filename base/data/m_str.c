@@ -707,20 +707,21 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 		return M_FALSE;
 
 	len = M_str_len(s);
-	if (len > max)
-		len = max;
+	if (max > len)
+		max = len;
 
-	/* Only check for one before the end so we can allow '=' as padding */
-	for (i=0; i<len-1; i++) {
+	for (i=0; i<max; i++) {
+		/* Allow for the string to be padded with '='. */
+		if (s[i] == '=') {
+			if (i == len-2 && s[len-1] == '=') {
+				continue;
+			} else if (i == len-1) {
+				continue;
+			}
+		}
+
 		if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
 			return M_FALSE;
-	}
-
-	if (
-		(!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/' && s[i] != '=') ||
-		(s[i] == '=' && M_str_len(s) > max) /* '=' is only allowed at very end of string for padding */
-	) {
-		return M_FALSE;
 	}
 
 	return M_TRUE;
