@@ -701,47 +701,37 @@ M_bool M_str_ishex_max(const char *s, size_t max)
 M_bool M_str_isbase64_max(const char *s, size_t max)
 {
 	/* We're assuming that the wrap length (if there is any wrapping) is a multiple of 4. */
-	M_bool         ret = M_FALSE;
-	char         **lines;
-	size_t         count;
-	size_t        *lengths;
-	unsigned int   i;
-	unsigned int   j;
+	char         *first;
+	size_t        width = 0;
+	unsigned int  i;
 
 	if (M_str_isempty(s))
 		return M_FALSE;
 
-	lines = M_str_explode('\n', s, max, &count, &lengths);
-	if (lines == NULL || count == 0)
-		goto done;
+	first = M_str_chr(s, '\n');
+	if (first != NULL)
+		width = first - s + 1; /* +1 to make sure we include the newline character. */
 
-	for (i=0; i<count; i++) {
-		/* All lines except for the last must be wrapped to the same width. */
-		if (lengths[i] != lengths[0] && i < count-1)
-			goto done;
+	for (i=0; i<max; i++) {
+		if (width && (i+1)%width == 0) { /* +1 to fake counting from 1 (not 0). */
+			/* Check that every wrap width has a newline. */
+			if (s[i] != '\n')
+				return M_FALSE;
+		} else if (s[i] == '=') {
+			/* Only the last and second-to-last characters can be padding. */
+			if (i < max-2)
+				return M_FALSE;
 
-		for (j=0; j<lengths[i]; j++) {
-			if (lines[i][j] == '=') {
-				/* Only the last line can have padding, and only as the last (two) character(s) of that line. */
-				if (i != count-1 || j < lengths[i]-2)
-					goto done;
-
-				/* If the second-to-last character is a '=', the last one must be as well. */
-				if (j == lengths[i]-2 && lines[i][j+1] != '=')
-					goto done;
-			} else {
-				if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
-					goto done;
-			}
+			/* If the second-to-last character is a '=', the last one must be as well. */
+			if (i == max-2 && s[i+1] != '=')
+				return M_FALSE;
+		} else {
+			if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
+				return M_FALSE;
 		}
 	}
 
-	ret = M_TRUE;
-done:
-	M_str_explode_free(lines, count);
-	M_free(lengths);
-
-	return ret;
+	return M_TRUE;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
