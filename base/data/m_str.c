@@ -703,7 +703,7 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 	size_t       len;
 	unsigned int i;
 
-	if (s == NULL || *s == '\0')
+	if (M_str_isempty(s))
 		return M_FALSE;
 
 	len = M_str_len(s);
@@ -713,12 +713,14 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 	for (i=0; i<max; i++) {
 		/* Allow for the string to be padded with '='. */
 		if (s[i] == '=') {
-			if (i == len-3 && s[len-2] == '\n' && s[len-1] == '=') {
-				continue;
-			} else if (i == len-2 && s[len-1] == '=') {
-				continue;
-			} else if (i == len-1) {
-				continue;
+			if (i == max-3) {
+				return M_str_eq_max(s+i, "=\n=", 3);
+			} else if (i == max-2) {
+				return M_str_eq_max(s+i, "==", 2);
+			} else if (i == max-1) {
+				return M_TRUE;
+			} else {
+				return M_FALSE;
 			}
 		}
 
