@@ -874,10 +874,10 @@ do {\
 	M_buf_t *buf;\
 	char    *query;\
 	buf = M_buf_create();\
-	ck_assert_msg(M_http_add_query_string_buf(buf, URI, PARAMS, USE_PLUS), "Query string failed: expected '%s'", EXPECTED);\
+	ck_assert_msg(M_http_generate_query_string_buf(buf, URI, PARAMS, USE_PLUS), "Query string failed: expected '%s'", EXPECTED);\
 	ck_assert_msg(M_str_eq(M_buf_peek(buf), EXPECTED), "Query buf does not match: got '%s', expected '%s'", M_buf_peek(buf), EXPECTED);\
 	M_buf_cancel(buf);\
-	query = M_http_add_query_string(URI, PARAMS, USE_PLUS);\
+	query = M_http_generate_query_string(URI, PARAMS, USE_PLUS);\
 	ck_assert_msg(M_str_eq(query, EXPECTED), "Query string does not match: got '%s', expected '%s'", query, EXPECTED);\
 	M_free(query);\
 } while (0)

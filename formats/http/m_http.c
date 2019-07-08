@@ -195,9 +195,6 @@ M_http_version_t M_http_version_from_str(const char *version)
 	if (M_str_eq(version, "1.1"))
 		return M_HTTP_VERSION_1_1;
 
-	if (M_str_eq(version, "2"))
-		return M_HTTP_VERSION_2;
-
 	return M_HTTP_VERSION_UNKNOWN;
 }
 
@@ -208,8 +205,6 @@ const char *M_http_version_to_str(M_http_version_t version)
 			return "HTTP/1.0";
 		case M_HTTP_VERSION_1_1:
 			return "HTTP/1.1";
-		case M_HTTP_VERSION_2:
-			return "HTTP/2";
 		case M_HTTP_VERSION_UNKNOWN:
 			break;
 	}
@@ -416,7 +411,6 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 		ERRCASE(M_HTTP_ERROR_SUCCESS);
 		ERRCASE(M_HTTP_ERROR_INVALIDUSE);
 		ERRCASE(M_HTTP_ERROR_STOP);
-		ERRCASE(M_HTTP_ERROR_SKIP);
 		ERRCASE(M_HTTP_ERROR_MOREDATA);
 		ERRCASE(M_HTTP_ERROR_LENGTH_REQUIRED);
 		ERRCASE(M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED);
@@ -426,19 +420,17 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 		ERRCASE(M_HTTP_ERROR_STARTLINE_MALFORMED);
 		ERRCASE(M_HTTP_ERROR_UNKNOWN_VERSION);
 		ERRCASE(M_HTTP_ERROR_REQUEST_METHOD);
-		ERRCASE(M_HTTP_ERROR_REQUEST_URI);
 		ERRCASE(M_HTTP_ERROR_HEADER_LENGTH);
 		ERRCASE(M_HTTP_ERROR_HEADER_FOLD);
-		ERRCASE(M_HTTP_ERROR_HEADER_NOTALLOWED);
 		ERRCASE(M_HTTP_ERROR_HEADER_INVALID);
-		ERRCASE(M_HTTP_ERROR_HEADER_MALFORMEDVAL);
 		ERRCASE(M_HTTP_ERROR_HEADER_DUPLICATE);
+		ERRCASE(M_HTTP_ERROR_CHUNK_STARTLINE_LENGTH);
 		ERRCASE(M_HTTP_ERROR_CHUNK_LENGTH);
 		ERRCASE(M_HTTP_ERROR_CHUNK_MALFORMED);
 		ERRCASE(M_HTTP_ERROR_CHUNK_EXTENSION);
 		ERRCASE(M_HTTP_ERROR_CHUNK_DATA_MALFORMED);
-		ERRCASE(M_HTTP_ERROR_MALFORMED);
-		ERRCASE(M_HTTP_ERROR_BODYLEN_REQUIRED);
+		ERRCASE(M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED);
+		ERRCASE(M_HTTP_ERROR_NOT_HTTP);
 		ERRCASE(M_HTTP_ERROR_MULTIPART_NOBOUNDARY);
 		ERRCASE(M_HTTP_ERROR_MULTIPART_MISSING);
 		ERRCASE(M_HTTP_ERROR_MULTIPART_MISSING_DATA);
@@ -451,11 +443,11 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 }
 
 
-char *M_http_add_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus)
+char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus)
 {
 	M_buf_t *buf = M_buf_create();
 
-	if (!M_http_add_query_string_buf(buf, uri, params, use_plus)) {
+	if (!M_http_generate_query_string_buf(buf, uri, params, use_plus)) {
 		M_buf_cancel(buf);
 		return NULL;
 	}
@@ -464,7 +456,7 @@ char *M_http_add_query_string(const char *uri, M_hash_dict_t *params, M_bool use
 }
 
 
-M_bool M_http_add_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus)
+M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus)
 {
 	size_t               start_len = M_buf_len(buf);
 	M_bool               ret       = M_FALSE;
