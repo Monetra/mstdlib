@@ -88,7 +88,7 @@ var searchData=
   ['m_5fhttp_5freader_5ft',['M_http_reader_t',['../group__m__http__reader.html#ga13514519c922ccb82e00bed74b0e94c7',1,'m_http.h']]],
   ['m_5fhttp_5freader_5ftrailer_5fdone_5ffunc',['M_http_reader_trailer_done_func',['../group__m__http__reader.html#gad3c0f238d2a65f9ecb2a8c34945540ba',1,'m_http.h']]],
   ['m_5fhttp_5freader_5ftrailer_5ffunc',['M_http_reader_trailer_func',['../group__m__http__reader.html#ga6723866423d85728a5a4e47b60456c8d',1,'m_http.h']]],
-  ['m_5fhttp_5fsimple_5ft',['M_http_simple_t',['../group__m__http__simple.html#ga4874e7da6be4c55ba7aa26d17d3caed9',1,'m_http.h']]],
+  ['m_5fhttp_5fsimple_5fread_5ft',['M_http_simple_read_t',['../group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442',1,'m_http.h']]],
   ['m_5fini_5fmerge_5fresolver_5ft',['M_ini_merge_resolver_t',['../group__m__ini.html#gaaf8ecf09e4944c1198388b66872d6115',1,'m_ini.h']]],
   ['m_5fini_5fsettings_5ft',['M_ini_settings_t',['../group__m__ini.html#gaa95acb7c8ec2b85fb8ed7bc65058ab01',1,'m_ini.h']]],
   ['m_5fini_5ft',['M_ini_t',['../group__m__ini.html#gad5f7076cefa9d398231fe34d29ab227a',1,'m_ini.h']]],

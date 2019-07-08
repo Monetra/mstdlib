@@ -6,7 +6,6 @@ var group__m__http =
       [ "M_HTTP_ERROR_SUCCESS", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53", null ],
       [ "M_HTTP_ERROR_INVALIDUSE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd", null ],
       [ "M_HTTP_ERROR_STOP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8", null ],
-      [ "M_HTTP_ERROR_SKIP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a5b114ae731691b09a98b1ee87c4892d5", null ],
       [ "M_HTTP_ERROR_MOREDATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de", null ],
       [ "M_HTTP_ERROR_LENGTH_REQUIRED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4afb0615bfaee10c6ef9d40983e7c9aee2", null ],
       [ "M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a1e6889471cb59cd218ef063fdbca7516", null ],
@@ -16,19 +15,17 @@ var group__m__http =
       [ "M_HTTP_ERROR_STARTLINE_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a72dfd40b264d474da3ee6e1c99b7818e", null ],
       [ "M_HTTP_ERROR_UNKNOWN_VERSION", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a9ff3b755bd6d21c4a0262d1fc895a1bb", null ],
       [ "M_HTTP_ERROR_REQUEST_METHOD", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a0256eae5c7294aaccb7a6dfa759d8b7a", null ],
-      [ "M_HTTP_ERROR_REQUEST_URI", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a61a1d4a13b079ea7877b9110d099dee3", null ],
       [ "M_HTTP_ERROR_HEADER_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a914de23bd91a16ec5eae180d10fb0308", null ],
       [ "M_HTTP_ERROR_HEADER_FOLD", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4adfbc81e3a142df33e9072ea495ff4bd4", null ],
-      [ "M_HTTP_ERROR_HEADER_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a3ff9c79b4e9dd026b9f47005171d20d8", null ],
       [ "M_HTTP_ERROR_HEADER_INVALID", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a629d048344595fcde4fb4c1c5b23c3c2", null ],
-      [ "M_HTTP_ERROR_HEADER_MALFORMEDVAL", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ab7e8528585b58bc12c558c52c366170b", null ],
       [ "M_HTTP_ERROR_HEADER_DUPLICATE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a85596c5e700bc01e177bab578deeb7a0", null ],
+      [ "M_HTTP_ERROR_CHUNK_STARTLINE_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a322c1496df78443cb14902080be4af71", null ],
       [ "M_HTTP_ERROR_CHUNK_LENGTH", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a98d61e3ff467b9270dcf9d116127c6db", null ],
       [ "M_HTTP_ERROR_CHUNK_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4aa9ade43641b4aba4b1db201f9bb1385d", null ],
       [ "M_HTTP_ERROR_CHUNK_EXTENSION", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4aa619f74f2095058b90368fa95e3a7e52", null ],
       [ "M_HTTP_ERROR_CHUNK_DATA_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a6cee04bc068b863fcb2e20585687d3aa", null ],
-      [ "M_HTTP_ERROR_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac8763bb8c82aed2c63b05d7e2ad4b1e1", null ],
-      [ "M_HTTP_ERROR_BODYLEN_REQUIRED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a879140787e3bbe4f2064d3fb5db5da83", null ],
+      [ "M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4a3c726beaf401abeae108b8f46cf812", null ],
+      [ "M_HTTP_ERROR_NOT_HTTP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a64fde3bdd93386efa204bd2771db7408", null ],
       [ "M_HTTP_ERROR_MULTIPART_NOBOUNDARY", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a8b1d6bdcaebc60a2863e6358f221e8b8", null ],
       [ "M_HTTP_ERROR_MULTIPART_MISSING", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a8543cc7e19f703d557e71b2810f651f5", null ],
       [ "M_HTTP_ERROR_MULTIPART_MISSING_DATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a5a8853ef398fc1ccd9e19bf2384e6063", null ],
@@ -45,8 +42,7 @@ var group__m__http =
     [ "M_http_version_t", "group__m__http.html#ga3a1bff9ac4b3078e2bfac1226872d7fa", [
       [ "M_HTTP_VERSION_UNKNOWN", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faade992ecbac664533d433c27c30d339cb", null ],
       [ "M_HTTP_VERSION_1_0", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faadf7a0fc8d34d0c89a5ed7d5c97e156aa", null ],
-      [ "M_HTTP_VERSION_1_1", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faa173aff8d7315eef65784c11c9998bd39", null ],
-      [ "M_HTTP_VERSION_2", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faaf3a7f916147ec33faec025678a752199", null ]
+      [ "M_HTTP_VERSION_1_1", "group__m__http.html#gga3a1bff9ac4b3078e2bfac1226872d7faa173aff8d7315eef65784c11c9998bd39", null ]
     ] ],
     [ "M_http_method_t", "group__m__http.html#ga9009cf9cd2abe5ab4336584eebc7fcee", [
       [ "M_HTTP_METHOD_UNKNOWN", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeac750217e67a5f45e52814518d8dd0a8c", null ],
@@ -72,6 +68,6 @@ var group__m__http =
     [ "M_http_method_to_str", "group__m__http.html#gaae6f70f3b3d06d6977e9eff65cc48ad8", null ],
     [ "M_http_code_to_reason", "group__m__http.html#ga7097f334a63073161405015a1e7aaa35", null ],
     [ "M_http_errcode_to_str", "group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f", null ],
-    [ "M_http_add_query_string", "group__m__http.html#ga200fa6cc2c8480dfbd2430d1e0fda0bb", null ],
-    [ "M_http_add_query_string_buf", "group__m__http.html#gac6cae631568fbcd20aad96ead8ead368", null ]
+    [ "M_http_generate_query_string", "group__m__http.html#ga1c6f384584fbaf473cfaf324ca3f4e2d", null ],
+    [ "M_http_generate_query_string_buf", "group__m__http.html#ga5ad5a037ef7d444dabd2be84d863982a", null ]
 ];
