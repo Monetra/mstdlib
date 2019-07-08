@@ -529,7 +529,7 @@ M_bool M_str_ishex(const char *s)
 
 M_bool M_str_isbase64(const char *s)
 {
-	return M_str_isbase64_max(s, SIZE_MAX);
+	return M_str_isbase64_max(s, M_str_len(s));
 }
 
 M_bool M_str_isnum(const char *s)
@@ -700,35 +700,48 @@ M_bool M_str_ishex_max(const char *s, size_t max)
 
 M_bool M_str_isbase64_max(const char *s, size_t max)
 {
-	size_t       len;
-	unsigned int i;
+	/* We're assuming that the wrap length (if there is any wrapping) is a multiple of 4. */
+	M_bool         ret = M_FALSE;
+	char         **lines;
+	size_t         count;
+	size_t        *lengths;
+	unsigned int   i;
+	unsigned int   j;
 
 	if (M_str_isempty(s))
 		return M_FALSE;
 
-	len = M_str_len(s);
-	if (max > len)
-		max = len;
+	lines = M_str_explode('\n', s, max, &count, &lengths);
+	if (lines == NULL || count == 0)
+		goto done;
 
-	for (i=0; i<max; i++) {
-		/* Allow for the string to be padded with '='. */
-		if (s[i] == '=') {
-			if (i == max-3) {
-				return M_str_eq_max(s+i, "=\n=", 3);
-			} else if (i == max-2) {
-				return M_str_eq_max(s+i, "==", 2);
-			} else if (i == max-1) {
-				return M_TRUE;
+	for (i=0; i<count; i++) {
+		/* All lines except for the last must be wrapped to the same width. */
+		if (lengths[i] != lengths[0] && i < count-1)
+			goto done;
+
+		for (j=0; j<lengths[i]; j++) {
+			if (lines[i][j] == '=') {
+				/* Only the last line can have padding, and only as the last (two) character(s) of that line. */
+				if (i != count-1 || j < lengths[i]-2)
+					goto done;
+
+				/* If the second-to-last character is a '=', the last one must be as well. */
+				if (j == lengths[i]-2 && lines[i][j+1] != '=')
+					goto done;
 			} else {
-				return M_FALSE;
+				if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
+					goto done;
 			}
 		}
-
-		if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/' && s[i] != '\n')
-			return M_FALSE;
 	}
 
-	return M_TRUE;
+	ret = M_TRUE;
+done:
+	M_str_explode_free(lines, count);
+	M_free(lengths);
+
+	return ret;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
