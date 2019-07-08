@@ -30,7 +30,8 @@ set(sources
 	http/m_http_int.h
 	http/m_http_reader.c
 	http/m_http_reader_int.h
-	http/m_http_simple.c
+	http/m_http_simple_reader.c
+	http/m_http_simple_writer.c
 	http/m_http_uri.c
 
 	# json:

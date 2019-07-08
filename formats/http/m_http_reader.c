@@ -200,7 +200,7 @@ static M_http_error_t M_http_read_version(M_parser_t *parser, M_http_version_t *
 	char *temp;
 
 	if (!M_parser_compare_str(parser, "HTTP/", 5, M_FALSE))
-		return M_HTTP_ERROR_MALFORMED;
+		return M_HTTP_ERROR_NOT_HTTP;
 	M_parser_consume(parser, 5);
 
 	temp     = M_parser_read_strdup(parser, M_parser_len(parser));
@@ -226,10 +226,10 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			httpr->body_len      = 0;
 		} else {
 			if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS) {
-				return M_HTTP_ERROR_MALFORMED;
+				return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
 			}
 			if (i64v < 0) {
-				return M_HTTP_ERROR_MALFORMED;
+				return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
 			}
 			if (i64v == 0) {
 				httpr->data_type = M_HTTP_DATA_FORMAT_NONE;
@@ -361,7 +361,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 	http = M_http_create();
 	/* Validate the uri. */
 	if (!M_http_set_uri(http, uri)) {
-		res = M_HTTP_ERROR_REQUEST_URI;
+		res = M_HTTP_ERROR_URI;
 		goto done;
 	}
 
@@ -619,7 +619,7 @@ static M_http_error_t M_http_read_chunk_start(M_http_reader_t *httpr, M_parser_t
 	M_parser_consume(parser, 2);
 
 	if (M_parser_len(msg) > MAX_START_LEN) {
-		res = M_HTTP_ERROR_CHUNK_LENGTH;
+		res = M_HTTP_ERROR_CHUNK_STARTLINE_LENGTH;
 		goto done;
 	}
 
