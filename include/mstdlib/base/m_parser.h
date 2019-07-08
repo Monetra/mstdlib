@@ -1563,53 +1563,45 @@ M_API M_bool M_parser_is_str_charset(M_parser_t *parser, size_t len, const char 
 
 /*! Validate the parser does not match the given predicate function.
  *
- * If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
- *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
  * \param[in] func   Predicate function.
  *
- * \return M_TRUE if not matching. Otherwise M_FALSE.
+ * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
  */
 M_API M_bool M_parser_is_not_predicate(M_parser_t *parser, size_t len, M_parser_predicate_func func);
 
 
 /*! Validate the parser does not match the given chr predicate function.
  *
- * If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
- *
  * \param[in] parser Parser object.
  * \param[in] len    Length to validate. If larger than the parser length the parser length is used.
  * \param[in] func   Char predicate function.
  *
- * \return M_TRUE if not matching. Otherwise M_FALSE.
+ * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or func is NULL, this will return M_TRUE.
  */
 M_API M_bool M_parser_is_not_chr_predicate(M_parser_t *parser, size_t len, M_chr_predicate_func func);
 
 
 /*! Validate the parser does not match the given character set.
  *
- * If parser is NULL, len is 0, charset is NULL, or charset_len is 0, this will return M_TRUE.
- *
  * \param[in] parser      Parser object.
  * \param[in] len         Length to validate. If larger than the parser length the parser length is used.
  * \param[in] charset     Character set.
  * \param[in] charset_len Length of given character set.
  *
- * \return M_TRUE if not matching. Otherwise M_FALSE.
+ * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, charset is NULL, or charset_len is 0, this will return M_TRUE.
  */
 M_API M_bool M_parser_is_not_charset(M_parser_t *parser, size_t len, const unsigned char *charset, size_t charset_len);
 
 
 /*! Validate the parser does not match the given NULL-terminated charset.
  *
- * If parser is NULL, len is 0, or charset is NULL, this will return M_TRUE.
- *
  * \param[in] parser      Parser object.
  * \param[in] len         Length to validate. If larger than the parser length the parser length is used.
  * \param[in] charset     Character set.
  *
- * \return M_TRUE if not matching. Otherwise M_FALSE.
+ * \return M_TRUE if not matching. Otherwise M_FALSE. If parser is NULL, len is 0, or charset is NULL, this will return M_TRUE.
  */
 M_API M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const char *charset);
 
