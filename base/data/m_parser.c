@@ -806,8 +806,8 @@ size_t M_parser_truncate_until(M_parser_t *parser, const unsigned char *pat, siz
 
 	consumed_len = (size_t)(ptr - parser->data);
 	if (!eat_pat)
-		consumed_len -= len;
-	M_parser_truncate(parser, parser->data_len-consumed_len);
+		consumed_len += len;
+	M_parser_truncate(parser, consumed_len);
 	return consumed_len;
 }
 
