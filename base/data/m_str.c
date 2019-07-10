@@ -701,15 +701,14 @@ M_bool M_str_ishex_max(const char *s, size_t max)
 
 M_bool M_str_isbase64_max(const char *s, size_t max)
 {
-	/* TODO: Before being used, this needs to remove whitespace before, after, and between data!!! */
-	M_bool          ret = M_FALSE;
-	M_parser_t     *const_parser;
-	M_parser_t    **parsers;
-	size_t          count;
-	size_t          first_len;
-	size_t          tmp_len;
-	unsigned int    i;
-	unsigned char   c;
+	M_bool              ret = M_FALSE;
+	M_parser_t         *const_parser;
+	M_parser_t        **parsers;
+	size_t              count;
+	size_t              first_len;
+	size_t              tmp_len;
+	unsigned int        i;
+	static const char   base64_charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	if (M_str_isempty(s) || max < 4)
 		return M_FALSE;
@@ -728,19 +727,14 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 			goto done;
 		}
 
-		for ( ; tmp_len > 0; tmp_len = M_parser_len(parsers[i])) {
-			M_parser_read_byte(parsers[i], &c);
-			if (c == '=') {
-				/* Only the last and second-to-last characters can be padding. */
-				if (i != count-1 || tmp_len > 2)
-					goto done;
-
-				/* If the second-to-last character is a '=', the last one must be as well. */
-				if (tmp_len == 2 && M_parser_peek_byte(parsers[i], &c) && c != '=')
-					goto done;
-			} else {
-				if (!M_chr_isalnum((signed char)c) && c != '+' && c != '/')
-					goto done;
+		if (M_parser_consume_str_charset(parsers[i], base64_charset) != tmp_len) {
+			if (i != count-1) {
+				/* All lines except for the last can only have characters in the base64 character set. */
+				goto done;
+			} else if (M_parser_consume_str_charset(parsers[i], "=") > 2 || M_parser_len(parsers[i]) != 0) {
+				/* Only the last and second-to-last characters can be padding.
+				 * If the second-to-last character is a '=', the last one must be as well. */
+				goto done;
 			}
 		}
 	}
