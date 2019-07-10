@@ -164,5 +164,5 @@ Thumbs.db
 
 # Local to this machine #
 ######################
-local.sh
-local.c
+run.sh
+temp.c
