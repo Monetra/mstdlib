@@ -846,15 +846,15 @@ size_t M_parser_truncate_predicate_max(M_parser_t *parser, M_parser_predicate_fu
 	if (max > parser->data_len)
 		max = parser->data_len;
 
-	for (i=max; i-->0; ) {
-		if (!func(parser->data[i])) {
+	for (i=max; i>0; i--) {
+		if (!func(parser->data[i-1])) {
 			break;
 		}
 	}
 
 	if (i == parser->data_len)
 		return 0;
-	M_parser_truncate(parser, parser->data_len - i);
+	M_parser_truncate(parser, i);
 	return i;
 }
 
