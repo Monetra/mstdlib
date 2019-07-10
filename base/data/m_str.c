@@ -700,38 +700,56 @@ M_bool M_str_ishex_max(const char *s, size_t max)
 
 M_bool M_str_isbase64_max(const char *s, size_t max)
 {
-	/* We're assuming that the wrap length (if there is any wrapping) is a multiple of 4. */
-	char         *first;
-	size_t        width = 0;
-	unsigned int  i;
+	/* TODO: Before being used, this needs to remove whitespace before, after, and between data!!! */
+	M_bool          ret = M_FALSE;
+	M_parser_t     *const_parser;
+	M_parser_t    **parsers;
+	size_t          count;
+	size_t          first_len;
+	size_t          tmp_len;
+	unsigned int    i;
+	unsigned char   c;
 
-	if (M_str_isempty(s))
+	if (M_str_isempty(s) || max < 4)
 		return M_FALSE;
 
-	first = M_str_chr(s, '\n');
-	if (first != NULL)
-		width = first - s + 1; /* +1 to make sure we include the newline character. */
+	const_parser = M_parser_create_const((unsigned char *)s, max, M_PARSER_FLAG_NONE);
+	parsers      = M_parser_split(const_parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &count);
 
-	for (i=0; i<max; i++) {
-		if (width && (i+1)%width == 0) { /* +1 to fake counting from 1 (not 0). */
-			/* Check that every wrap width has a newline. */
-			if (s[i] != '\n')
-				return M_FALSE;
-		} else if (s[i] == '=') {
-			/* Only the last and second-to-last characters can be padding. */
-			if (i < max-2)
-				return M_FALSE;
+	first_len = M_parser_len(parsers[0]);
+	for (i=0; i<count; i++) {
+		tmp_len = M_parser_len(parsers[i]);
+		if (
+			(i <  count-1 && tmp_len != first_len) || /* All lines except for the last must be the same length. */
+			(i == count-1 && tmp_len >  first_len) || /* The last line must be equal to or shorter than the others. */
+			tmp_len % 4 != 0                          /* All data must be in blocks of 4. */
+		) {
+			goto done;
+		}
 
-			/* If the second-to-last character is a '=', the last one must be as well. */
-			if (i == max-2 && s[i+1] != '=')
-				return M_FALSE;
-		} else {
-			if (!M_chr_isalnum(s[i]) && s[i] != '+' && s[i] != '/')
-				return M_FALSE;
+		for ( ; tmp_len > 0; tmp_len = M_parser_len(parsers[i])) {
+			M_parser_read_byte(parsers[i], &c);
+			if (c == '=') {
+				/* Only the last and second-to-last characters can be padding. */
+				if (i != count-1 || tmp_len > 2)
+					goto done;
+
+				/* If the second-to-last character is a '=', the last one must be as well. */
+				if (tmp_len == 2 && M_parser_peek_byte(parsers[i], &c) && c != '=')
+					goto done;
+			} else {
+				if (!M_chr_isalnum((signed char)c) && c != '+' && c != '/')
+					goto done;
+			}
 		}
 	}
 
-	return M_TRUE;
+	/* If we made it this far, then we passed all validations. */
+	ret = M_TRUE;
+done:
+	M_parser_split_free(parsers, count);
+	M_parser_destroy(const_parser);
+	return ret;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
