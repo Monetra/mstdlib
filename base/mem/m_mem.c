@@ -419,7 +419,7 @@ void *M_mem_rmem(const void *haystack, size_t haystack_len, const void *needle, 
 	if (needle == NULL || needle_len == 0)
 		return M_CAST_OFF_CONST(void *, haystack);
 
-	if (haystack_len > needle_len)
+	if (needle_len > haystack_len)
 		return NULL;
 
 	for (i=haystack_len-needle_len; i-->0; ) {
