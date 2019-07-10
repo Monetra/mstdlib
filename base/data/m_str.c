@@ -59,7 +59,7 @@ static char *M_strdup_int(const char *s, size_t n)
 }
 
 /* Constant time character to lower function. */
-static char M_ct_tolower(volatile char c)
+static char M_ct_tolower(volatile int c)
 {
 	volatile int  r   = 0;
 	volatile int  q   = 0;
@@ -122,6 +122,7 @@ static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t m
 		s2 = "";
 	if (s2 != NULL)
 		sc = "";
+	(void)sc;
 
 	/* If max is zero, it means we want to scan the entire address range.
 	 * Meaning until the end of s1. Callers shouldn't be setting a
@@ -141,7 +142,7 @@ static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t m
 			result |= (char)(M_ct_tolower(s1[i]) ^ M_ct_tolower(s2[j]));
 		}
 		if (!case_insensitive) {
-			result |= s1[i] ^ s2[j];
+			result |= (char)(s1[i] ^ s2[j]);
 		}
 
 		if (s1[i] == '\0')

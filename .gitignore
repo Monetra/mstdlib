@@ -161,3 +161,9 @@ Makefile.in
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Local to this machine #
+######################
+run.sh
+temp.c
+temp

@@ -72,7 +72,7 @@ struct M_http {
 	M_list_t              *chunks; /* M_http_chunk_t */
 };
 
-struct M_http_simple {
+struct M_http_simple_read {
 	M_http_t                   *http;
 	M_http_simple_read_flags_t  rflags;
 	M_bool                      rdone;

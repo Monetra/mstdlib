@@ -685,7 +685,7 @@ M_API M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t 
 /*! Associate a prefix callback with the given module handle.
  *
  * The prefix callback allows the user to add a string between the timestamp and the body of the log message.
- * If no prefix callback is provided, the default prefix of ": " will be used.  See \link M_log_prefix_cb\endlink
+ * If no prefix callback is provided, the default prefix of ": " will be used.  See \link M_log_prefix_cb \endlink
  * for more details.
  *
  * \see M_log_prefix_cb
@@ -707,7 +707,7 @@ M_API M_log_error_t M_log_module_set_prefix(M_log_t *log, M_log_module_t *module
  * The filter callback allows the user to reject additional log messages. It is applied after the messages are
  * filtered according to the list of accepted tags set by M_log_module_set_accepted_tags(). If no filter callback
  * is provided, no additional filtering beyond the list of accepted tags will be performed. See
- * \link M_log_filter_cb\endlink for more details.
+ * \link M_log_filter_cb \endlink for more details.
  *
  * \see M_log_filter_cb
  * \see M_log_module_set_accepted_tags
@@ -767,7 +767,7 @@ M_API M_log_error_t M_log_module_remove(M_log_t *log, M_log_module_t *module);
 /*! Add a module to output to a standard stream (stdout, stderr).
  *
  * If the library was compiled on a platform that doesn't allow console output (e.g., Android), this function
- * will return \link M_LOG_MODULE_UNSUPPORTED\endlink when called, and no module will be added to the logger.
+ * will return \link M_LOG_MODULE_UNSUPPORTED \endlink when called, and no module will be added to the logger.
  *
  * \warning
  * Normally, you should only add at most one stream output module to a given M_log_t object. This is because
@@ -801,7 +801,7 @@ M_API M_log_error_t M_log_module_add_stream(M_log_t *log, M_stream_type_t type, 
 
 /*! Add a module to output to macOS/iOS logging subsystem (if we're building for an Apple platform).
  *
- * If the library wasn't compiled for an Apple device, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink
+ * If the library wasn't compiled for an Apple device, this function will return \link M_LOG_MODULE_UNSUPPORTED \endlink
  * when called, and no module will be added to the logger.
  *
  * \param[in] log             logger object
@@ -834,7 +834,7 @@ M_API M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes,
  * Android logging allows passing a \c NULL or empty string for the product name - in this case, the "global"
  * product name is used, not the name of the program like in syslog.
  *
- * If the library wasn't compiled for Android, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink
+ * If the library wasn't compiled for Android, this function will return \link M_LOG_MODULE_UNSUPPORTED \endlink
  * when called, and no module will be added to the logger.
  *
  * \param[in]  log             logger object
@@ -849,7 +849,7 @@ M_API M_log_error_t M_log_module_add_android(M_log_t *log, const char *product, 
 
 /*! Associate the given user-defined tag(s) with an Android log priority.
  *
- * If you don't associate a tag with an Android log priority, the default priority of \link M_ANDROID_LOG_INFO\endlink
+ * If you don't associate a tag with an Android log priority, the default priority of \link M_ANDROID_LOG_INFO \endlink
  * will be used for that tag.
  *
  * \see M_LOG_ALL_TAGS
@@ -945,7 +945,7 @@ M_API M_log_error_t M_log_module_file_rotate(M_log_t *log, M_log_module_t *modul
  *
  * Note: syslog messages are limited to 1024 chars / line. Lines longer than this will be truncated.
  *
- * If the library wasn't compiled with syslog support, this function will return \link M_LOG_MODULE_UNSUPPORTED\endlink
+ * If the library wasn't compiled with syslog support, this function will return \link M_LOG_MODULE_UNSUPPORTED \endlink
  * when called, and no module will be added to the logger.
  *
  * \param[in]  log             logger object
@@ -961,7 +961,7 @@ M_API M_log_error_t M_log_module_add_syslog(M_log_t *log, const char *product, M
 
 /*! Associate the given user-defined tag(s) with a syslog priority.
  *
- * If you don't associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will
+ * If you don't associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO \endlink will
  * be used for that tag.
  *
  * \see M_LOG_ALL_TAGS
@@ -1056,7 +1056,7 @@ M_API M_log_error_t M_log_module_tcp_syslog_set_keepalives(M_log_t *log, M_log_m
 
 /*! Associate the given user-defined tag(s) with a syslog priority tag.
  *
- * If you don't associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO\endlink will
+ * If you don't associate a tag with a syslog priority, the default priority of \link M_SYSLOG_INFO \endlink will
  * be used for that tag.
  *
  * \see M_LOG_ALL_TAGS

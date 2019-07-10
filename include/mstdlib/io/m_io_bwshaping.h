@@ -43,7 +43,7 @@ __BEGIN_DECLS
  * - Rate limiting download speed for connected clients.
  * - Throttling to prevent network link saturation.
  * - Testing real world network setups.
- * - Determining how an application will preform in a bad environment.
+ * - Determining how an application will perform in a bad environment.
  *
  * @{
  */

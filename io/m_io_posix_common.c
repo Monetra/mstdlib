@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -101,14 +101,15 @@ M_bool M_io_posix_errormsg(int err, char *error, size_t err_len)
 	if (err == 0)
 		return M_FALSE;
 
-#  if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (!defined(__linux__) || !defined(_GNU_SOURCE))
-	if (strerror_r(err, buf, sizeof(buf)) != 0)
-		return M_FALSE;
-	const_temp = buf;
-#  elif defined(__linux__) && defined(_GNU_SOURCE)
+	/* GLIBC's method, or Bionic >= Android M */
+#  if defined(__linux__) && defined(_GNU_SOURCE) && !(defined(__BIONIC__) || __ANDROID_API__ >= __ANDROID_API_M__)
 	const_temp = strerror_r(err, buf, sizeof(buf));
 	if (const_temp == NULL)
 		return M_FALSE;
+#  elif ((defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600))
+	if (strerror_r(err, buf, sizeof(buf)) != 0)
+		return M_FALSE;
+	const_temp = buf;
 #  else
 	const_temp = strerror(err);
 	if (const_temp == NULL)

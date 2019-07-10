@@ -57,7 +57,7 @@ static M_xml_node_t *M_xml_node_find_doc(M_xml_node_t *node)
 	return node;
 }
 
-static M_xml_xpath_match_type_t M_xml_xpath_search_sement_type(const char *seg)
+static M_xml_xpath_match_type_t M_xml_xpath_search_segment_type(const char *seg)
 {
 	if (seg == NULL || *seg == '\0')
 		return M_XML_XPATH_MATCH_TYPE_TAG;
@@ -406,9 +406,9 @@ static void M_xml_xpath_search_match_node_pos(const char *seg, M_xml_node_t *nod
 	if (num_children == 0)
 		return;
 
-	/* Get the last segement and verify it's a tag. We need to match based on the tag name. */
+	/* Get the last segment and verify it's a tag. We need to match based on the tag name. */
 	last_seg   = M_list_str_at(segments, seg_offset-1);
-	match_type = M_xml_xpath_search_sement_type(last_seg);
+	match_type = M_xml_xpath_search_segment_type(last_seg);
 	if (match_type != M_XML_XPATH_MATCH_TYPE_TAG && match_type != M_XML_XPATH_MATCH_TYPE_TEXT)
 		return;
 
@@ -545,8 +545,8 @@ static void M_xml_xpath_search(M_xml_node_t *node, M_list_str_t *segments, size_
 		return;
 	}
 
-	/* Determine they type of match we need to use. */
-	match_type = M_xml_xpath_search_sement_type(seg);
+	/* Determine the type of match we need to use. */
+	match_type = M_xml_xpath_search_segment_type(seg);
 	switch (match_type) {
 		case M_XML_XPATH_MATCH_TYPE_TAG:
 			M_xml_xpath_search_match_node_tag(seg, node, segments, seg_offset, flags, search_recursive, matches, num_matches);
@@ -575,17 +575,17 @@ static void M_xml_xpath_search(M_xml_node_t *node, M_list_str_t *segments, size_
 
 M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flags, size_t *num_matches)
 {
-	M_xml_node_t **matches            = NULL;
+	M_xml_node_t **matches           = NULL;
 	char         **segments;
-	char          **pred_segments;
-	M_list_str_t   *seg_list;
-	M_buf_t        *buf;
-	char           *out;
-	size_t          start_offset      = 0;
-	size_t          num_segments      = 0;
-	size_t          num_pred_segments = 0;
-	size_t          i;
-	size_t          j;
+	char         **pred_segments;
+	M_list_str_t  *seg_list;
+	M_buf_t       *buf;
+	char          *out;
+	size_t         start_offset      = 0;
+	size_t         num_segments      = 0;
+	size_t         num_pred_segments = 0;
+	size_t         i;
+	size_t         j;
 
 	if (num_matches == NULL) {
 		return NULL;
@@ -621,7 +621,7 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 			if (pred_segments[j] == NULL || *(pred_segments[j]) == '\0')
 				continue;
 
-			/* First one may not start with '['. We need to check if the segement is something like:
+			/* First one may not start with '['. We need to check if the segment is something like:
 			 * 'abc'/'abc[1]' vs '[1]'. */
 			if (j == 0 && *(segments[i]) != '[') {
 				M_list_str_insert(seg_list, pred_segments[j]);
@@ -636,7 +636,7 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 				return NULL;
 			}
 
-			/* Put the '[' back on the front of the segement and add it to our list of segements. */
+			/* Put the '[' back on the front of the segment and add it to our list of segments. */
 			buf = M_buf_create();
 			M_buf_add_byte(buf, '[');
 			M_buf_add_str(buf, pred_segments[j]);
@@ -655,12 +655,10 @@ M_xml_node_t **M_xml_xpath(M_xml_node_t *node, const char *search, M_uint32 flag
 
 	if (M_str_len(M_list_str_at(seg_list, 0)) == 0) {
 		/* If the first node is blank, that means the search pattern started with '/',
-		 * which means we need to scan to the doc node */
+		 * which means we need to scan to the doc node. Anything else is the start of
+		 * the search pattern, so we'll use the passed node for searching. */
 		node         = M_xml_node_find_doc(node);
 		start_offset = 1;
-	} else {
-		/* Anything else is the start of the search pattern, so call
-		 * the actual search function */
 	}
 
 	if (M_list_str_len(seg_list) - start_offset != 0) {

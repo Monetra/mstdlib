@@ -107,7 +107,7 @@ __BEGIN_DECLS
  *     for (i=0; i<len; i++) {
  *         M_printf("%s\n", M_list_str_at(l, i));
  *     }
- *     M_list_str_destory(l);
+ *     M_list_str_destroy(l);
  * \endcode
  */
 
@@ -466,7 +466,7 @@ M_API M_fs_perms_t *M_fs_perms_dup(const M_fs_perms_t *perms) M_MALLOC;
 M_API void M_fs_perms_merge(M_fs_perms_t **dest, M_fs_perms_t *src) M_FREE(2);
 
 
-/*! Destoroy a perms object.
+/*! Destroy a perms object.
  *
  * \param[in] perms The perms.
  */
@@ -700,9 +700,9 @@ M_API size_t M_fs_path_get_path_max(M_fs_system_t sys_type);
 M_API M_bool M_fs_path_isabs(const char *p, M_fs_system_t sys_type);
 
 
-/*! Check if a path is a unc path.
+/*! Check if a path is a UNC path.
  *
- * A path is unc if it's Windows and starts with "\\\\".
+ * A path is UNC if it's Windows and starts with "\\\\".
  *
  * \param[in] p The path.
  *
@@ -742,7 +742,7 @@ M_API M_list_str_t *M_fs_path_componentize_path(const char *path, M_fs_system_t 
 /*! Join two parts into one path.
  *
  * If either part is empty the separator won't be added. Unlike M_fs_path_join_parts this does not have special
- * handling (using an empty string) for absolute paths. This is a convince function to write the appropriate system
+ * handling (using an empty string) for absolute paths. This is a convenience function to write the appropriate system
  * separator between two paths.
  *
  * \param[in] p1 First part.
@@ -913,7 +913,7 @@ M_API M_fs_error_t M_fs_path_readlink(char **out, const char *path);
 /*! Normalize a path.
  *
  * This typically does not need to be called because all functions that take a path (file) will
- * call this internally using the appropriate parameters. This is provided as a convince for
+ * call this internally using the appropriate parameters. This is provided as a convenience for
  * displaying paths to a user.
  *
  * Supported features on all OS's;
@@ -1207,7 +1207,7 @@ M_API M_fs_error_t M_fs_file_read_bytes(const char *path, size_t max_read, unsig
  *                           length of a NULL terminated buffer to write.
  * \param[in]  mode          M_fs_file_mode_t mode. Only supports APPEND. Used to control appending vs overwriting.
  *                           The default it to overwrite the file.
- * \param[out] bytes_written The number of bytes from buf written to the file. Optional pass be NULL if not needed.
+ * \param[out] bytes_written The number of bytes from buf written to the file. Optional, pass NULL if not needed.
  *
  * \return Result.
  */
