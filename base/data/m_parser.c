@@ -820,9 +820,9 @@ size_t M_parser_truncate_charset(M_parser_t *parser, const unsigned char *charse
 	if (parser == NULL || charset == NULL || charset_len == 0)
 		return 0;
 
-	for (i=parser->data_len; i-->0; ) {
+	for (i=parser->data_len; i>0; i--) {
 		for (j=0; j<charset_len; j++) {
-			if (parser->data[i] == charset[j])
+			if (parser->data[i-1] == charset[j])
 				break;
 		}
 		if (j == charset_len)
@@ -831,7 +831,7 @@ size_t M_parser_truncate_charset(M_parser_t *parser, const unsigned char *charse
 
 	if (i == parser->data_len)
 		return 0;
-	M_parser_truncate(parser, parser->data_len - i);
+	M_parser_truncate(parser, i);
 	return i;
 }
 
