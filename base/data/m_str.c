@@ -124,16 +124,6 @@ static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t m
 		sc = "";
 	(void)sc;
 
-	/* If max is zero, it means we want to scan the entire address range.
-	 * Meaning until the end of s1. Callers shouldn't be setting a
-	 * max past the end of s1 but if they do, we'll scan past the end
-	 * of s1 which isn't good. We can only do so much. */
-	i = max;
-	if (max != 0)
-		max = i;
-	if (max == 0)
-		max = SIZE_MAX;
-
 	/* Constant time comparison.  We scan the entire string to prevent timing attacks.
 	 * We don't want to do strlen()'s first that will leak info
 	 * so we have a check for when we reach '\0'. */
@@ -803,7 +793,7 @@ M_bool M_str_eq_max(const char *s1, const char *s2, size_t max)
 
 M_bool M_str_eq(const char *s1, const char *s2)
 {
-	return M_str_eq_max(s1, s2, 0);
+	return M_str_eq_max(s1, s2, SIZE_MAX);
 }
 
 M_bool M_str_caseeq_max(const char *s1, const char *s2, size_t max)
@@ -813,7 +803,7 @@ M_bool M_str_caseeq_max(const char *s1, const char *s2, size_t max)
 
 M_bool M_str_caseeq(const char *s1, const char *s2)
 {
-	return M_str_caseeq_max(s1, s2, 0);
+	return M_str_caseeq_max(s1, s2, SIZE_MAX);
 }
 
 M_bool M_str_eq_end(const char *s1, const char *s2)
