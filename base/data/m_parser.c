@@ -838,24 +838,26 @@ size_t M_parser_truncate_charset(M_parser_t *parser, const unsigned char *charse
 
 size_t M_parser_truncate_predicate_max(M_parser_t *parser, M_parser_predicate_func func, size_t max)
 {
-	size_t i;
+	size_t i = 0;
+	size_t j = 0;
 
 	if (parser == NULL || func == NULL || max == 0)
 		return 0;
 
 	if (max > parser->data_len)
-		max = parser->data_len;
+		max = 0;
 
-	for (i=max; i-->0; ) {
+	/* Scanning backwards from the end stopping once we've reached
+ 	 * the maximum number of characters to check or if the predicate
+	 * returns a match failure. */
+	for (i=parser->data_len, j=0; i-->=max; j++) {
 		if (!func(parser->data[i])) {
 			break;
 		}
 	}
 
-	if (i == parser->data_len)
-		return 0;
-	M_parser_truncate(parser, parser->data_len - i);
-	return i;
+	M_parser_truncate(parser, parser->data_len - j);
+	return j;
 }
 
 size_t M_parser_truncate_predicate(M_parser_t *parser, M_parser_predicate_func func)
