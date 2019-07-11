@@ -113,8 +113,8 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gaebd0f0b9b57a1e50e86576904a9c0be1"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__backtrace__trace.html#gaebd0f0b9b57a1e50e86576904a9c0be1">M_backtrace_filanme_func</a>) (char *fname, size_t fname_len)</td></tr>
-<tr class="separator:gaebd0f0b9b57a1e50e86576904a9c0be1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0be921ee7dd5a6e1fdd1c8b00cbec354"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__backtrace__trace.html#ga0be921ee7dd5a6e1fdd1c8b00cbec354">M_backtrace_filename_func</a>) (char *fname, size_t fname_len)</td></tr>
+<tr class="separator:ga0be921ee7dd5a6e1fdd1c8b00cbec354"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga773d0187e55979ced51165388c4292cf"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__backtrace__trace.html#ga773d0187e55979ced51165388c4292cf">M_backtrace_trace_data_func</a>) (const unsigned char *data, size_t len)</td></tr>
 <tr class="separator:ga773d0187e55979ced51165388c4292cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga601e7312f8e13eaea9ae478254c947fa"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__backtrace__trace.html#ga601e7312f8e13eaea9ae478254c947fa">M_backtrace_log_emergency_func</a>) (int sig, const char *message)</td></tr>
@@ -161,7 +161,7 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Generates a back trace when certain signal are singled. This is primarily used for capturing information about a crash.</p>
 <h1>Use</h1>
-<p>Backtrace data can either be written directly to a file or passed to a configured callback but not both. When writing to a file the M_backtrace_filanme_func callback is required to be implemented. When capturing trace data, the M_backtrace_trace_data_func is required to be implemented. All other callbacks are optional.</p>
+<p>Backtrace data can either be written directly to a file or passed to a configured callback but not both. When writing to a file the M_backtrace_filename_func callback is required to be implemented. When capturing trace data, the M_backtrace_trace_data_func is required to be implemented. All other callbacks are optional.</p>
 <p>Windows has the ability to generate backtrace as well as a mini dump file. Minidump requires writing directly to a file.</p>
 <p>Other OS cannot use dump output and only support backtrace output.</p>
 <h1>Events</h1>
@@ -273,7 +273,7 @@ Functions</h2></td></tr>
 </div><table class="fieldtable">
 <tr><th colspan="3">Data Fields</th></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="a67e9a6620694e4d7e3bdd2689264f3e3"></a><a class="el" href="group__m__backtrace__trace.html#gaebd0f0b9b57a1e50e86576904a9c0be1">M_backtrace_filanme_func</a></td>
+<a class="anchor" id="a2c0652ef99994c45b769ef1b79969984"></a><a class="el" href="group__m__backtrace__trace.html#ga0be921ee7dd5a6e1fdd1c8b00cbec354">M_backtrace_filename_func</a></td>
 <td class="fieldname">
 get_filename</td>
 <td class="fielddoc">
@@ -312,12 +312,12 @@ got_fatal</td>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gaebd0f0b9b57a1e50e86576904a9c0be1"></a>
+<a class="anchor" id="ga0be921ee7dd5a6e1fdd1c8b00cbec354"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* M_backtrace_filanme_func) (char *fname, size_t fname_len)</td>
+          <td class="memname">typedef void(* M_backtrace_filename_func) (char *fname, size_t fname_len)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -614,7 +614,7 @@ got_fatal</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jul 11 2019 15:09:04 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu Jul 11 2019 15:18:13 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

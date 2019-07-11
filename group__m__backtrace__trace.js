@@ -1,13 +1,13 @@
 var group__m__backtrace__trace =
 [
     [ "M_backtrace_callbacks", "group__m__backtrace__trace.html#structM__backtrace__callbacks", [
-      [ "get_filename", "group__m__backtrace__trace.html#a67e9a6620694e4d7e3bdd2689264f3e3", null ],
+      [ "get_filename", "group__m__backtrace__trace.html#a2c0652ef99994c45b769ef1b79969984", null ],
       [ "trace_data", "group__m__backtrace__trace.html#afa1c23970ed1b3b6c4bfd0bbc34bbda6", null ],
       [ "log_emergency", "group__m__backtrace__trace.html#aefe0b4de01a1d7f8e80d3c8da8cb763e", null ],
       [ "got_nonfatal", "group__m__backtrace__trace.html#a170230658d7cbe74c55269bf711695dc", null ],
       [ "got_fatal", "group__m__backtrace__trace.html#a685f96ee85226fe5afe637f4d2fc4a37", null ]
     ] ],
-    [ "M_backtrace_filanme_func", "group__m__backtrace__trace.html#gaebd0f0b9b57a1e50e86576904a9c0be1", null ],
+    [ "M_backtrace_filename_func", "group__m__backtrace__trace.html#ga0be921ee7dd5a6e1fdd1c8b00cbec354", null ],
     [ "M_backtrace_trace_data_func", "group__m__backtrace__trace.html#ga773d0187e55979ced51165388c4292cf", null ],
     [ "M_backtrace_log_emergency_func", "group__m__backtrace__trace.html#ga601e7312f8e13eaea9ae478254c947fa", null ],
     [ "M_backtrace_got_nonfatal_func", "group__m__backtrace__trace.html#gae50760e61b8691f993e45d63f4eff5a8", null ],

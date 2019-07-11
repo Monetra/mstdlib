@@ -4,7 +4,7 @@ var searchData=
   ['m_5fasync_5fthunk_5fstop_5fcb_5ft',['M_async_thunk_stop_cb_t',['../group__m__async__writer.html#ga400a0970970a551f14e81fa2ce7f9bbb',1,'m_async_writer.h']]],
   ['m_5fasync_5fwrite_5fcb_5ft',['M_async_write_cb_t',['../group__m__async__writer.html#gacb49976b477c39e605d92d96b0a8fcf9',1,'m_async_writer.h']]],
   ['m_5fasync_5fwriter_5ft',['M_async_writer_t',['../group__m__async__writer.html#ga647bf1d171634bdb99aaa8a4943a907a',1,'m_async_writer.h']]],
-  ['m_5fbacktrace_5ffilanme_5ffunc',['M_backtrace_filanme_func',['../group__m__backtrace__trace.html#gaebd0f0b9b57a1e50e86576904a9c0be1',1,'m_backtrace.h']]],
+  ['m_5fbacktrace_5ffilename_5ffunc',['M_backtrace_filename_func',['../group__m__backtrace__trace.html#ga0be921ee7dd5a6e1fdd1c8b00cbec354',1,'m_backtrace.h']]],
   ['m_5fbacktrace_5fgot_5ffatal_5ffunc',['M_backtrace_got_fatal_func',['../group__m__backtrace__trace.html#gaa9fc2eb42bf9c786544c095bbf690c7d',1,'m_backtrace.h']]],
   ['m_5fbacktrace_5fgot_5fnonfatal_5ffunc',['M_backtrace_got_nonfatal_func',['../group__m__backtrace__trace.html#gae50760e61b8691f993e45d63f4eff5a8',1,'m_backtrace.h']]],
   ['m_5fbacktrace_5flog_5femergency_5ffunc',['M_backtrace_log_emergency_func',['../group__m__backtrace__trace.html#ga601e7312f8e13eaea9ae478254c947fa',1,'m_backtrace.h']]],
