@@ -44,7 +44,7 @@ __BEGIN_DECLS
  *
  * Backtrace data can either be written directly to a file or passed to
  * a configured callback but not both. When writing to a file the
- * M_backtrace_filanme_func callback is required to be implemented.
+ * M_backtrace_filename_func callback is required to be implemented.
  * When capturing trace data, the M_backtrace_trace_data_func is required
  * to be implemented. All other callbacks are optional.
  *
@@ -211,7 +211,7 @@ __BEGIN_DECLS
  * \param[in] fname     Buffer to store the filename.
  * \param[in] fname_len Length of buffer.
  */
-typedef void (*M_backtrace_filanme_func)(char *fname, size_t fname_len);
+typedef void (*M_backtrace_filename_func)(char *fname, size_t fname_len);
 
 
 /*! Callback to receive backtrace data.
@@ -285,7 +285,7 @@ typedef enum {
 
 /*! Callbacks. */
 struct M_backtrace_callbacks {
-	M_backtrace_filanme_func       get_filename;  /*!< Get a filename when writing to file is enabled. Cannot be
+	M_backtrace_filename_func      get_filename;  /*!< Get a filename when writing to file is enabled. Cannot be
 	                                                   NULL if writing to a file. */
 	M_backtrace_trace_data_func    trace_data;    /*!< Backtrace data. Cannot be NULL when not writing to a file. */
 	M_backtrace_log_emergency_func log_emergency; /*!< Emergency log function with information about a crash event. */
