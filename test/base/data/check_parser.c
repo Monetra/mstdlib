@@ -207,11 +207,11 @@ START_TEST(check_parser_truncate_predicate)
 		size_t      max;
 		size_t      r;
 	} trunc_data[] = {
-		{ "abc", "abc", 0, 0 },
-		{ "abc", "abc", 2, 0 },
-		{ "aaa", "", 0, 3 },
-		{ "bbbaaa", "bbb", 0, 3 },
-		{ "bbbaaa", "bbb", 4, 3 },
+		{ "abc",     "abc",     0, 0 },
+		{ "abc",     "abc",     2, 0 },
+		{ "aaa",     "",        0, 3 },
+		{ "bbbaaa",  "bbb",     0, 3 },
+		{ "bbbaaa",  "bbb",     4, 3 },
 		{ "bbbaaac", "bbbaaac", 4, 0 },
 		{ "bbbaaac", "bbbaaac", 0, 0 },
 		{ NULL, NULL, 0, 0 }
@@ -228,6 +228,69 @@ START_TEST(check_parser_truncate_predicate)
 
 		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
 		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+
+		M_parser_destroy(parser);
+	}
+}
+END_TEST
+
+START_TEST(check_parser_truncate_until)
+{
+	M_parser_t  *parser;
+	size_t       i;
+	size_t       r;
+
+	static struct {
+		const char *data;
+		const char *out_data;
+		const char *pat;
+		M_bool      eat;
+		size_t      r;
+	} trunc_data[] = {
+		{ "abc",                               "abc",                               "x",          M_TRUE,  3  },
+		{ "abc",                               "abc",                               "x",          M_FALSE, 3  },
+
+		{ "abc",                               "",                                  "a",          M_TRUE,  3  },
+		{ "abc",                               "a",                                 "a",          M_FALSE, 2  },
+
+		{ "aaa",                               "aaa",                               "b",          M_TRUE,  3  },
+		{ "aaa",                               "aaa",                               "b",          M_FALSE, 3  },
+
+		{ "bbbaaa",                            "bbba",                              "aa",         M_TRUE,  2  },
+		{ "bbbaaa",                            "bbbaaa",                            "",           M_FALSE, 0  },
+
+		{ "bbbaaa",                            "bb",                                "b",          M_TRUE,  4  },
+		{ "bbbaaa",                            "bbb",                               "b",          M_FALSE, 3  },
+
+		{ "bbbaaac",                           "bb",                                "ba",         M_TRUE,  5  },
+		{ "bbbaaac",                           "bbba",                              "ba",         M_FALSE, 3  },
+
+		{ "bbbaaac",                           "",                                  "bbb",        M_TRUE,  7  },
+		{ "bbbaaac",                           "bbb",                               "bbb",        M_FALSE, 4  },
+
+		{ "bbbaaac",                           "bb",                                "b",          M_TRUE,  5  },
+		{ "bbbaaac",                           "bbb",                               "b",          M_FALSE, 4  },
+
+		{ "bbbaaac",                           "b",                                 "bb",         M_TRUE,  6  },
+		{ "bbbaaac",                           "bbb",                               "bb",         M_FALSE, 4  },
+
+		{ "this is a test of some long stuff", "this is a test of some ",           "long stuff", M_TRUE,  10 },
+		{ "this is a test of some long stuff", "this is a test of some long stuff", "long stuff", M_FALSE, 0  },
+
+		{ "this is a test of some long stuff", "this is a ",                        "test ",      M_TRUE,  23 },
+		{ "this is a test of some long stuff", "this is a test ",                   "test ",      M_FALSE, 18 },
+
+		{ NULL, NULL, NULL, M_FALSE, 0 }
+	};
+
+	for (i=0; trunc_data[i].data!=NULL; i++) {
+		parser = M_parser_create_const((const unsigned char *)trunc_data[i].data, M_str_len(trunc_data[i].data), M_PARSER_FLAG_NONE);
+
+		r = M_parser_truncate_until(parser, (const unsigned char *)trunc_data[i].pat, M_str_len(trunc_data[i].pat), trunc_data[i].eat);
+
+		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
 		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
@@ -266,6 +329,10 @@ static Suite *M_parser_suite(void)
 
 	tc = tcase_create("check_parser_truncate_predicate");
 	tcase_add_test(tc, check_parser_truncate_predicate);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_parser_truncate_until");
+	tcase_add_test(tc, check_parser_truncate_until);
 	suite_add_tcase(suite, tc);
 
 	return suite;
