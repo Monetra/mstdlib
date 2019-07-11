@@ -253,7 +253,7 @@ typedef void (*M_backtrace_log_emergency_func)(int sig, const char *message);
 typedef void (*M_backtrace_got_nonfatal_func)(int sig);
 
 
-/*! Callback to signal a fatal even occurred and the application will exit.
+/*! Callback to signal a fatal event occurred and the application will exit.
  *
  * This will be called after all trace_data and log_emergency calls.
  *
