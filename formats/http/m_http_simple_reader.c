@@ -246,10 +246,9 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
 		}
 
-		/* Let everyone know we have data that is not encoded. There isn't any way to know what the
-		 * underlying content type is and there isn't a decoded version of x-www-form-urlencoded
-		 * so we set text/plain. */
-		M_hash_dict_insert(simple->http->headers, "content-type", "text/plain");
+		/* There isn't any way to know what the underlying content type is and
+		 * there isn't a decoded version of x-www-form-urlencoded so we just
+		 * can't set a new mime type. */
 		update_clen = M_TRUE;
 	}
 
