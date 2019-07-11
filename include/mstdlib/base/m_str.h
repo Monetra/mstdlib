@@ -530,7 +530,7 @@ M_API int M_str_casecmpsort_max(const char *s1, const char *s2, size_t max) M_WA
  *
  * \param[in] s1  NULL-terminated string. Should be (user) input.
  * \param[in] s2  NULL-terminated string. Should be known (internal) string.
- * \param[in] max maximum length to check, or 0 for no maximum.
+ * \param[in] max maximum length to check.
  *
  * \return M_TRUE if equal, M_FALSE if not equal.
  */
@@ -572,7 +572,7 @@ M_API M_bool M_str_eq(const char *s1, const char *s2);
  *
  * \param[in] s1  NULL-terminated string.
  * \param[in] s2  NULL-terminated string.
- * \param[in] max maximum length to check, or 0 for no maximum.
+ * \param[in] max maximum length to check.
  *
  * \return M_TRUE if equal, M_FALSE if not equal.
  */
