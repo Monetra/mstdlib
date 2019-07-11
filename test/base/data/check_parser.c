@@ -298,6 +298,51 @@ START_TEST(check_parser_truncate_until)
 }
 END_TEST
 
+START_TEST(check_parser_truncate_charset)
+{
+	M_parser_t  *parser;
+	size_t       i;
+	size_t       r;
+
+	static struct {
+		const char *data;
+		const char *out_data;
+		const char *set;
+		size_t      r;
+	} trunc_data[] = {
+		{ "abc",     "abc",     "x",       0 },
+		{ "abc",     "a",       "bc",      2 },
+		{ "abc",     "abc",     "a",       0 },
+		{ "abc",     "",        "abc",     3 },
+		{ "abc",     "ab",      "c",       1 },
+		{ "aaa",     "",        "a",       3 },
+		{ "bbbaaa",  "bbb",     "a",       3 },
+		{ "bbbaaac", "bbbaaa",  "c",       1 },
+		{ "bbbaaac", "bbbaaac", "x6eafda", 0 },
+		{ "bbbaaac", "bbbaaac", "x6ecfda", 4 },
+		{ "bbbaaac", "bbbaaac", "x6ecfd",  1 },
+
+		{ "this is a test of some long stuff", "this is a test of some ",   "long stuff",  11 },
+		{ "this is a test of some long stuff", "this is a test of some lo", "a ishtfung",   8 },
+		{ "this is a test of some long stuff", "this is a test of some l",  "a ishtfungo",  9 },
+
+		{ NULL, NULL, NULL, 0 }
+	};
+
+	for (i=0; trunc_data[i].data!=NULL; i++) {
+		parser = M_parser_create_const((const unsigned char *)trunc_data[i].data, M_str_len(trunc_data[i].data), M_PARSER_FLAG_NONE);
+
+		r = M_parser_truncate_charset(parser, (const unsigned char *)trunc_data[i].set, M_str_len(trunc_data[i].set));
+
+		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+
+		M_parser_destroy(parser);
+	}
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *M_parser_suite(void)
@@ -333,6 +378,10 @@ static Suite *M_parser_suite(void)
 
 	tc = tcase_create("check_parser_truncate_until");
 	tcase_add_test(tc, check_parser_truncate_until);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_parser_truncate_charset");
+	tcase_add_test(tc, check_parser_truncate_charset);
 	suite_add_tcase(suite, tc);
 
 	return suite;
