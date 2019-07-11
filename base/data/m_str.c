@@ -518,6 +518,11 @@ M_bool M_str_ishex(const char *s)
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_ishex);
 }
 
+M_bool M_str_isbase64(const char *s)
+{
+	return M_str_isbase64_max(s, M_str_len(s));
+}
+
 M_bool M_str_isnum(const char *s)
 {
 	return M_str_ispredicate_max_inline(s, SIZE_MAX, M_chr_isdigit);
@@ -682,6 +687,54 @@ M_bool M_str_isprint_max(const char *s, size_t max)
 M_bool M_str_ishex_max(const char *s, size_t max)
 {
 	return M_str_ispredicate_max_inline(s, max, M_chr_ishex);
+}
+
+M_bool M_str_isbase64_max(const char *s, size_t max)
+{
+	M_bool              ret = M_FALSE;
+	M_parser_t         *const_parser;
+	M_parser_t        **parsers;
+	size_t              count;
+	size_t              first_len;
+	size_t              tmp_len;
+	unsigned int        i;
+	static const char   base64_charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	if (M_str_isempty(s) || max < 4)
+		return M_FALSE;
+
+	const_parser = M_parser_create_const((unsigned char *)s, max, M_PARSER_FLAG_NONE);
+	parsers      = M_parser_split(const_parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &count);
+
+	first_len = M_parser_len(parsers[0]);
+	for (i=0; i<count; i++) {
+		tmp_len = M_parser_len(parsers[i]);
+		if (
+			(i <  count-1 && tmp_len != first_len) || /* All lines except for the last must be the same length. */
+			(i == count-1 && tmp_len >  first_len) || /* The last line must be equal to or shorter than the others. */
+			tmp_len % 4 != 0                          /* All data must be in blocks of 4. */
+		) {
+			goto done;
+		}
+
+		if (M_parser_consume_str_charset(parsers[i], base64_charset) != tmp_len) {
+			if (i != count-1) {
+				/* All lines except for the last can only have characters in the base64 character set. */
+				goto done;
+			} else if (M_parser_consume_str_charset(parsers[i], "=") > 2 || M_parser_len(parsers[i]) != 0) {
+				/* Only the last and second-to-last characters can be padding.
+				 * If the second-to-last character is a '=', the last one must be as well. */
+				goto done;
+			}
+		}
+	}
+
+	/* If we made it this far, then we passed all validations. */
+	ret = M_TRUE;
+done:
+	M_parser_split_free(parsers, count);
+	M_parser_destroy(const_parser);
+return ret;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
