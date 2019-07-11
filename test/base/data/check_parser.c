@@ -188,6 +188,53 @@ START_TEST(check_parser_boundary)
 }
 END_TEST
 
+static M_bool trunc_pred_func(unsigned char c)
+{
+	if (c == 'A' || c == 'a')
+		return M_TRUE;
+	return M_FALSE;
+}
+
+START_TEST(check_parser_truncate_predicate)
+{
+	M_parser_t  *parser;
+	size_t       i;
+	size_t       r;
+
+	static struct {
+		const char *data;
+		const char *out_data;
+		size_t      max;
+		size_t      r;
+	} trunc_data[] = {
+		{ "abc", "abc", 0, 0 },
+		{ "abc", "abc", 2, 0 },
+		{ "aaa", "", 0, 3 },
+		{ "bbbaaa", "bbb", 0, 3 },
+		{ "bbbaaa", "bbb", 4, 3 },
+		{ "bbbaaac", "bbbaaac", 4, 0 },
+		{ "bbbaaac", "bbbaaac", 0, 0 },
+		{ NULL, NULL, 0, 0 }
+	};
+
+	for (i=0; trunc_data[i].data!=NULL; i++) {
+		parser = M_parser_create_const((const unsigned char *)trunc_data[i].data, M_str_len(trunc_data[i].data), M_PARSER_FLAG_NONE);
+
+		if (trunc_data[i].max == 0) {
+			r = M_parser_truncate_predicate(parser, trunc_pred_func);
+		} else {
+			r = M_parser_truncate_predicate_max(parser, trunc_pred_func, trunc_data[i].max);
+		}
+
+		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+
+		M_parser_destroy(parser);
+	}
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *M_parser_suite(void)
@@ -215,6 +262,10 @@ static Suite *M_parser_suite(void)
 
 	tc = tcase_create("check_parser_boundary");
 	tcase_add_test(tc, check_parser_boundary);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_parser_truncate_predicate");
+	tcase_add_test(tc, check_parser_truncate_predicate);
 	suite_add_tcase(suite, tc);
 
 	return suite;
