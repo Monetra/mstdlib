@@ -797,16 +797,19 @@ size_t M_parser_truncate_until(M_parser_t *parser, const unsigned char *pat, siz
 	const unsigned char *ptr;
 	size_t               consumed_len;
 
-	if (parser == NULL || pat == NULL || len == 0)
+	if (parser == NULL || pat == NULL || len == 0 || len > parser->data_len)
 		return 0;
 
 	ptr = M_mem_rmem(parser->data, parser->data_len, pat, len);
-	if (ptr == NULL)
-		return 0;
+	if (ptr == NULL) {
+		consumed_len = parser->data_len;
+	} else {
+		consumed_len = parser->data_len - (size_t)(ptr - parser->data);
+		if (!eat_pat) {
+			consumed_len -= len;
+		}
+	}
 
-	consumed_len = (size_t)(ptr - parser->data);
-	if (!eat_pat)
-		consumed_len -= len;
 	M_parser_truncate(parser, parser->data_len-consumed_len);
 	return consumed_len;
 }
