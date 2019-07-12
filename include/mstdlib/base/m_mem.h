@@ -466,8 +466,8 @@ M_API void *M_mem_mem(const void *haystack, size_t haystack_len, const void *nee
  * \param[in] needle       Memory to search for.
  * \param[in] needle_len   The size in bytes of needle.
  *
- * \return Pointer to last occurrence of needle in haystack or NULL if not found or haystack is NULL or haystack_len
- *          is 0.
+ * \return Pointer to beginning of the last occurrence of needle in haystack.
+ *         NULL if not found or haystack is NULL or haystack_len is 0.
  */
 M_API void *M_mem_rmem(const void *haystack, size_t haystack_len, const void *needle, size_t needle_len) M_WARN_UNUSED_RESULT M_WARN_NONNULL(1) M_WARN_NONNULL(3);
 

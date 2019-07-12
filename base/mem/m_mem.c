@@ -422,7 +422,7 @@ void *M_mem_rmem(const void *haystack, size_t haystack_len, const void *needle, 
 	if (needle_len > haystack_len)
 		return NULL;
 
-	for (i=haystack_len-needle_len; i>0; i--) {
+	for (i=haystack_len-needle_len+1; i-->0; ) {
 		if (M_mem_eq((const M_uint8 *)haystack+i, needle, needle_len)) {
 			ret = (const M_uint8 *)haystack + i;
 			break;
