@@ -174,7 +174,10 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	const char          *const_temp;
 	char                *dec;
 	char                 tempa[32];
-	M_textcodec_codec_t  codec            = M_TEXTCODEC_ISO8859_1; /* Default if encoding is not set is this one. */
+	/* Note: Default if encoding is not set is M_TEXTCODEC_ISO8859_1 for text.
+	 *       We're ignoring this and assuming anything without a charset set
+	 *       is binary data. Otherwise, we'd have to detect binary vs text data. */
+	M_textcodec_codec_t  codec            = M_TEXTCODEC_UNKNOWN;
 	M_textcodec_error_t  terr;
 	M_bool               update_clen     = M_FALSE;
 	M_bool               is_form_encoded = M_FALSE;
