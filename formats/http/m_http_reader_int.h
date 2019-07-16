@@ -45,7 +45,7 @@ typedef enum {
 	M_HTTP_READER_STEP_DONE
 } M_http_reader_step_t;
 
-struct M_http_reader{
+struct M_http_reader {
 	struct M_http_reader_callbacks  cbs;
 	M_http_reader_flags_t           flags;
 	void                           *thunk;

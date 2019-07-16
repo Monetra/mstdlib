@@ -102,7 +102,7 @@ static M_http_error_t M_http_simple_read_body_cb(const unsigned char *data, size
 	M_http_body_append(simple->http, data, len);
 
 	/* If we don't have a content length and we have a body we can only assume all
- 	 * the data has been sent in. We only know when we have all data once the connection
+	 * the data has been sent in. We only know when we have all data once the connection
 	 * is closed. We assume the caller has already received all data. */
 	if (!simple->http->have_body_len)
 		simple->rdone = M_TRUE;
@@ -171,18 +171,13 @@ static M_http_error_t M_http_simple_read_trailer_done_cb(void *thunk)
 
 static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simple)
 {
-	const char          *const_temp;
-	char                *dec;
+	char                *dec         = NULL;
 	char                 tempa[32];
 	/* Note: Default if encoding is not set is M_TEXTCODEC_ISO8859_1 for text.
 	 *       We're ignoring this and assuming anything without a charset set
 	 *       is binary data. Otherwise, we'd have to detect binary vs text data. */
-	M_textcodec_codec_t  codec            = M_TEXTCODEC_UNKNOWN;
 	M_textcodec_error_t  terr;
-	M_bool               update_clen     = M_FALSE;
-	M_bool               is_form_encoded = M_FALSE;
-	size_t               len;
-	size_t               i;
+	M_bool               update_clen = M_FALSE;
 
 	if (simple == NULL)
 		return M_HTTP_ERROR_INVALIDUSE;
@@ -190,55 +185,12 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	if (simple->rflags & M_HTTP_SIMPLE_READ_NODECODE_BODY)
 		return M_HTTP_ERROR_SUCCESS;
 
-	if (!M_hash_dict_multi_len(simple->http->headers, "content-type", &len))
+	/* Validate we have a content type and a text encoding. */
+	if (M_str_isempty(simple->http->content_type) && simple->http->codec == M_TEXTCODEC_UNKNOWN)
 		return M_HTTP_ERROR_SUCCESS;
 
-	/* Check for form-urlencoding. */
-	for (i=0; i<len; i++) {
-		const_temp = M_hash_dict_multi_get_direct(simple->http->headers, "content-type", i);
-		if (M_str_caseeq(const_temp, "application/x-www-form-urlencoded")) {
-			is_form_encoded = M_TRUE;
-			M_hash_dict_multi_remove(simple->http->headers, "content-type", i);
-			break;
-		}
-	}
-
-	/* Check for charset. */
-	if (!M_hash_dict_multi_len(simple->http->headers, "content-type", &len))
-		len = 0;
-
-	for (i=0; i<len; i++) {
-		char   **parts;
-		size_t   num_parts;
-		M_bool   saw_codec = M_FALSE;
-
-		const_temp = M_hash_dict_multi_get_direct(simple->http->headers, "content-type", i);
-		parts      = M_str_explode_str_quoted('=', const_temp, '"', '\\', 0, &num_parts);
-		if (parts == NULL || num_parts == 0) {
-			continue;
-		}
-		if (num_parts != 2) {
-			M_str_explode_free(parts, num_parts);
-			continue;
-		}
-
-		if (M_str_caseeq(parts[0], "charset")) {
-			codec     = M_textcodec_codec_from_str(parts[1]);
-			saw_codec = M_TRUE;
-		}
-
-		M_str_explode_free(parts, num_parts);
-
-		if (saw_codec) {
-			if (codec != M_TEXTCODEC_UNKNOWN && codec != M_TEXTCODEC_UTF8) {
-				M_hash_dict_multi_remove(simple->http->headers, "content-type", i);
-			}
-			break;
-		}
-	}
-
-	/* url-form decode the data. */
-	if (is_form_encoded) {
+	/* If the Content-Type is form encoded we need to decode. */
+	if (M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded")) {
 		dec  = NULL;
 		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, M_TEXTCODEC_PERCENT_FORM);
 		M_buf_truncate(simple->http->body, 0);
@@ -252,13 +204,14 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 		/* There isn't any way to know what the underlying content type is and
 		 * there isn't a decoded version of x-www-form-urlencoded so we just
 		 * can't set a new mime type. */
+		M_http_update_content_type(simple->http, NULL);
 		update_clen = M_TRUE;
 	}
 
 	/* Decode the data to utf-8 if we can. */
-	if (codec != M_TEXTCODEC_UNKNOWN && codec != M_TEXTCODEC_UTF8) {
+	if (simple->http->codec != M_TEXTCODEC_UNKNOWN && simple->http->codec != M_TEXTCODEC_UTF8) {
 		dec  = NULL;
-		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, codec);
+		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, simple->http->codec);
 		M_buf_truncate(simple->http->body, 0);
 		M_buf_add_str(simple->http->body, dec);
 		M_free(dec);
@@ -267,7 +220,7 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
 		}
 
-		M_hash_dict_insert(simple->http->headers, "content-type", "charset=utf-8");
+		M_http_update_charset(simple->http, M_TEXTCODEC_UTF8);
 		update_clen = M_TRUE;
 	}
 
