@@ -162,6 +162,14 @@ Functions</h2></td></tr>
 <tr class="separator:gae2371cc5bbf6c2dbf8423bcea933ee9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga757f218d628a72b7cff87ae04f3e0014"><td class="memItemLeft" align="right" valign="top">const unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga757f218d628a72b7cff87ae04f3e0014">M_http_simple_read_body</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, size_t *len)</td></tr>
 <tr class="separator:ga757f218d628a72b7cff87ae04f3e0014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3910a5c5b4912c89be043bad3f11670d"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga3910a5c5b4912c89be043bad3f11670d">M_http_simple_read_content_type</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga3910a5c5b4912c89be043bad3f11670d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga23c514066a8163c16691930db9fc6af9"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga23c514066a8163c16691930db9fc6af9">M_http_simple_read_origcontent_type</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga23c514066a8163c16691930db9fc6af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga531c6c2295e3ee1a79e07936c251b62c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga531c6c2295e3ee1a79e07936c251b62c">M_http_simple_read_codec</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga531c6c2295e3ee1a79e07936c251b62c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabbcab2e7de4c88b8439feedc0d5b4577"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#gabbcab2e7de4c88b8439feedc0d5b4577">M_http_simple_read_charset</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:gabbcab2e7de4c88b8439feedc0d5b4577"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Reads a full HTTP message. Useful for small messages. Alls all data is contained within on object for easy processing. </p>
@@ -756,12 +764,116 @@ M_http_simple_destroy</dd></dl>
 
 </div>
 </div>
+<a class="anchor" id="ga3910a5c5b4912c89be043bad3f11670d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_http_simple_read_content_type </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the content type.</p>
+<p>May be empty if the content type was not set. Or if it was application/x-www-form-urlencoded and the body was auto decoded. It's not known what the content type when this encoding is used.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The content type.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga23c514066a8163c16691930db9fc6af9">M_http_simple_read_origcontent_type</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga23c514066a8163c16691930db9fc6af9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_http_simple_read_origcontent_type </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the original content type.</p>
+<p>May be empty if the content type was not set. The orignal content type before any decoding takes place. If the content type was application/x-www-form-urlencoded this can be used to check if the content type is blank due to decoding.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The content type.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga3910a5c5b4912c89be043bad3f11670d">M_http_simple_read_content_type</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga531c6c2295e3ee1a79e07936c251b62c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a> M_http_simple_read_codec </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the codec of the data.</p>
+<p>Codec is detected by charset. May be unkown if charset was not present or if the charset is not supported by mstdlib's text encoding functionality. If body decoding takes place and the data can be decoded this will be utf-8.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Encoded data codec.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#gabbcab2e7de4c88b8439feedc0d5b4577">M_http_simple_read_charset</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gabbcab2e7de4c88b8439feedc0d5b4577"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_http_simple_read_charset </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the text charset of the data.</p>
+<p>May be empty if charset was not present. If the data encoded codec is unknown this can be used to determine if it was not present or if the encoding is a type not supported by mstdlib's text codec. If not suppored it is up to the caller to handle decoding.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Character set.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga531c6c2295e3ee1a79e07936c251b62c">M_http_simple_read_codec</a> </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Jul 16 2019 14:46:55 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Jul 16 2019 16:57:02 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
