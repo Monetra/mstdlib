@@ -335,6 +335,17 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
 
 
+/*! Set a single http header adding additional values.
+ *
+ * Adds a new value to the header list of values. Can be a comma (,) separated list.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] key  Header name.
+ * \param[in] val  Value.
+ */
+M_bool M_http_set_header_append(M_http_t *http, const char *key, const char *val);
+
+
 /*! Add a value to a header.
  *
  * Preserves existing values.
