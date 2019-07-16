@@ -55,7 +55,7 @@ static M_http_error_t M_http_simple_read_header_cb(const char *key, const char *
 {
 	M_http_simple_read_t *simple = thunk;
 
-	M_http_set_header(simple->http, key, val);
+	M_http_set_header_append(simple->http, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
 

@@ -30,10 +30,52 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_list_str_t *M_http_split_header_vals(const char *val)
+{
+	M_list_str_t  *split_header = NULL;
+	char         **parts;
+	char          *temp;
+	size_t         num_parts    = 0;
+	size_t         i;
+
+	if (M_str_isempty(val))
+		return NULL;
+
+	split_header = M_list_str_create(M_LIST_STR_NONE);
+
+	/* Some headers use a ; instead of a , as the separator. The spec says , is the
+	 * separator but the special headers could have a , as part of their value so they
+	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
+	if (M_str_chr(val, ';') != NULL) {
+		parts = M_str_explode_str(';', val, &num_parts);
+	} else {
+		parts = M_str_explode_str(',', val, &num_parts);
+	}
+
+	if (parts == NULL || num_parts == 0) {
+		M_list_str_destroy(split_header);
+		return NULL;
+	}
+
+	/* We're going to ignore duplicate values in the header. They shouldn't have
+	 * been sent in the first place but since we don't really know what to do with
+	 * them we'll put that on whoever is receiving the data. */
+	for (i=0; i<num_parts; i++) {
+		/* After splitting we'll most likely have a space preceding the data. */
+		temp = M_strdup_trim(parts[i]);
+		M_list_str_insert(split_header, temp);
+		M_free(temp);
+	}
+
+	M_str_explode_free(parts, num_parts);
+	return split_header;
+}
+
 static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
 {
 	M_hash_dict_enum_t *he;
 	const char         *key;
+	const char         *oval;
 
 	if (new_headers == NULL && merge)
 		return;
@@ -54,12 +96,21 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 	 * use the = syntax to define sub key value pairs. We need to go through each
 	 * sub key and remove it from current headers it's being replaced. */
 	M_hash_dict_enumerate(new_headers, &he);
-	while (M_hash_dict_enumerate_next(new_headers, he, &key, NULL)) {
-		size_t   nlen = 0;
-		size_t   i;
+	while (M_hash_dict_enumerate_next(new_headers, he, &key, &oval)) {
+		M_list_str_t *split_header = NULL;
+		size_t        nlen         = 0;
+		size_t        i;
+
+		if ((!M_hash_dict_multi_len(new_headers, key, &nlen) || nlen == 0) && M_str_isempty(oval))
+			continue;
+
+		/* No multi length means this isn't a multi hashtable. */
+		if (nlen == 0) {
+			split_header = M_http_split_header_vals(oval);
+			nlen         = M_list_str_len(split_header);
+		}
 
 		/* Go though the new header values. */
-		M_hash_dict_multi_len(new_headers, key, &nlen);
 		for (i=0; i<nlen; i++) {
 			const char  *nval;
 			char       **nparts;
@@ -67,7 +118,12 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 			size_t       clen;
 			size_t       j;
 
-			nval = M_hash_dict_multi_get_direct(new_headers, key, i);
+			/* No split header means this is a multi-value hashtable. */
+			if (split_header == NULL) {
+				nval = M_hash_dict_multi_get_direct(new_headers, key, i);
+			} else {
+				nval = M_list_str_at(split_header, i);
+			}
 
 			/* First split the value in case it's a sub key val. */
 			nparts = M_str_explode_str('=', nval, &num_nparts);
@@ -118,45 +174,70 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 			M_hash_dict_insert(*cur_headers, key, nval);
 			M_str_explode_free(nparts, num_nparts);
 		}
+		M_list_str_destroy(split_header);
 	}
 	M_hash_dict_enumerate_free(he);
 }
 
-static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val)
+static M_bool M_http_set_header_ctype(M_http_t *http, const char *val)
 {
 	char   **parts;
-	char    *sep;
-	char    *temp;
 	size_t   num_parts = 0;
+	size_t   len       = 0;
 	size_t   i;
 
-	if (d == NULL || M_str_isempty(key) || M_str_isempty(val))
+	/* Need to parse out some data from the content type header
+	 * to make processing a bit easier.
+	 *
+	 * We can't use M_http_update_content_type and M_http_update_charset
+	 * functions here because the update the headers which we're currently
+	 * working on.
+	 */
+	if (!M_hash_dict_multi_len(http->headers, "Content-Type", &len) || len == 0)
+		return M_TRUE;
+
+	for (i=0; i<len; i++) {
+		val = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
+
+		/* Split to see if this is a multi part like the char set. */
+		parts = M_str_explode_str('=', val, &num_parts);
+		if (num_parts == 1) {
+			/* Must be the actual content type. */
+			M_free(http->content_type);
+			http->content_type = M_strdup(parts[0]);
+			M_free(http->origcontent_type);
+			http->origcontent_type = M_strdup(parts[0]);
+		} else if (num_parts > 1 && M_str_caseeq(parts[0], "charset")) {
+			/* We have the char set. */
+			M_free(http->charset);
+			http->charset = M_strdup(parts[1]);
+			http->codec   = M_textcodec_codec_from_str(http->charset);
+		}
+		M_str_explode_free(parts, num_parts);
+	}
+
+	return M_TRUE;
+}
+
+static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val, M_bool append)
+{
+	M_hash_dict_t *new_headers;
+
+	if (d == NULL || M_str_isempty(key))
 		return M_FALSE;
 
-	sep = M_str_chr(val, ';');
+	if (!append)
+		M_hash_dict_remove(d, key);
 
-	/* Some headers use a ; instead of a , as the separator. The spec says , is the
-	 * separator but the special headers could have a , as part of their value so they
-	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
-	if (sep != NULL) {
-		parts = M_str_explode_str(';', val, &num_parts);
-	} else {
-		parts = M_str_explode_str(',', val, &num_parts);
-	}
-	if (parts == NULL || num_parts == 0)
-		return M_FALSE;
+	if (M_str_isempty(val))
+		return M_TRUE;
 
-	/* We're going to ignore duplicate values in the header. They shouldn't have
-	 * been sent in the first place but since we don't really know what to do with
-	 * them we'll put that on whoever is receiving the data. */
-	for (i=0; i<num_parts; i++) {
-		/* After splitting we'll most likely have a space preceding the data. */
-		temp = M_strdup_trim(parts[i]);
-		M_hash_dict_insert(d, key, temp);
-		M_free(temp);
-	}
-
-	M_str_explode_free(parts, num_parts);
+	new_headers = M_hash_dict_create(8, 16, M_HASH_DICT_CASECMP);
+	M_hash_dict_insert(new_headers, key, val);
+	/* Merge and d exists so we don't have to worry about d
+ 	 * changing within this function. */
+	M_http_set_headers_int(&d, new_headers, M_TRUE);
+	M_hash_dict_destroy(new_headers);
 	return M_TRUE;
 }
 
@@ -219,51 +300,30 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 	M_http_set_headers_int(&http->headers, headers, merge);
 }
 
-M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
+M_bool M_http_set_header_append(M_http_t *http, const char *key, const char *val)
 {
-	char   **parts;
-	size_t   num_parts = 0;
-	size_t   len       = 0;
-	size_t   i;
-
 	if (http == NULL)
 		return M_FALSE;
 
-	if (!M_http_set_header_int(http->headers, key, val))
+	if (!M_http_set_header_int(http->headers, key, val, M_TRUE))
 		return M_FALSE;
 
-	if (!M_str_caseeq(key, "Content-Type"))
-		return M_TRUE;
+	if (M_str_caseeq(key, "Content-Type"))
+		return M_http_set_header_ctype(http, val);
 
-	/* Need to parse out some data from the content type header
-	 * to make processing a bit easier.
-	 *
-	 * We can't use M_http_update_content_type and M_http_update_charset
-	 * functions here because the update the headers which we're currently
-	 * working on.
-	 */
-	if (!M_hash_dict_multi_len(http->headers, "Content-Type", &len) || len == 0)
-		return M_TRUE;
+	return M_TRUE;
+}
 
-	for (i=0; i<len; i++) {
-		val = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
+M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
+{
+	if (http == NULL)
+		return M_FALSE;
 
-		/* Split to see if this is a multi part like the char set. */
-		parts = M_str_explode_str('=', val, &num_parts);
-		if (num_parts == 1) {
-			/* Must be the actual content type. */
-			M_free(http->content_type);
-			http->content_type = M_strdup(parts[0]);
-			M_free(http->origcontent_type);
-			http->origcontent_type = M_strdup(parts[0]);
-		} else if (num_parts > 1 && M_str_caseeq(parts[0], "charset")) {
-			/* We have the char set. */
-			M_free(http->charset);
-			http->charset = M_strdup(parts[1]);
-			http->codec   = M_textcodec_codec_from_str(http->charset);
-		}
-		M_str_explode_free(parts, num_parts);
-	}
+	if (!M_http_set_header_int(http->headers, key, val, M_FALSE))
+		return M_FALSE;
+
+	if (M_str_caseeq(key, "Content-Type"))
+		return M_http_set_header_ctype(http, val);
 
 	return M_TRUE;
 }
@@ -388,7 +448,7 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 	if (http == NULL)
 		return M_FALSE;
 
-	return M_http_set_header_int(http->trailers, key, val);
+	return M_http_set_header_int(http->trailers, key, val, M_FALSE);
 }
 
 void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
