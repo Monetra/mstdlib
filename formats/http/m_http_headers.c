@@ -236,7 +236,12 @@ M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 		return M_TRUE;
 
 	/* Need to parse out some data from the content type header
-	 * to make processing a bit easier. */
+	 * to make processing a bit easier.
+	 *
+	 * We can't use M_http_update_content_type and M_http_update_charset
+	 * functions here because the update the headers which we're currently
+	 * working on.
+	 */
 	if (!M_hash_dict_multi_len(http->headers, "Content-Type", &len) || len == 0)
 		return M_TRUE;
 
@@ -249,6 +254,8 @@ M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 			/* Must be the actual content type. */
 			M_free(http->content_type);
 			http->content_type = M_strdup(parts[0]);
+			M_free(http->origcontent_type);
+			http->origcontent_type = M_strdup(parts[0]);
 		} else if (num_parts > 1 && M_str_caseeq(parts[0], "charset")) {
 			/* We have the char set. */
 			M_free(http->charset);
@@ -341,7 +348,7 @@ void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec)
 		val = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
 
 		if (M_str_caseeq_start(val, "charset")) {
-			M_hash_dict_multi_remove(http->headers, "Content->Type", i);
+			M_hash_dict_multi_remove(http->headers, "Content-Type", i);
 			break;
 		}
 	}

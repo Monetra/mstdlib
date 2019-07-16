@@ -867,6 +867,70 @@ M_API const M_list_str_t *M_http_simple_read_get_set_cookie(const M_http_simple_
  */
 M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple, size_t *len);
 
+
+/*! Get the content type.
+ *
+ * May be empty if the content type was not set. Or if it was
+ * application/x-www-form-urlencoded and the body was auto decoded.
+ * It's not known what the content type when this encoding is used.
+ *
+ * \param[in] simple Parsed HTTP message.
+ *
+ * \return The content type.
+ *
+ * \see M_http_simple_read_origcontent_type
+ */
+M_API const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple);
+
+
+/*! Get the original content type.
+ *
+ * May be empty if the content type was not set.
+ * The orignal content type before any decoding takes place.
+ * If the content type was application/x-www-form-urlencoded
+ * this can be used to check if the content type is blank
+ * due to decoding.
+ *
+ * \param[in] simple Parsed HTTP message.
+ *
+ * \return The content type.
+ *
+ * \see M_http_simple_read_content_type
+ */
+M_API const char *M_http_simple_read_origcontent_type(const M_http_simple_read_t *simple);
+
+
+/*! Get the codec of the data.
+ *
+ * Codec is detected by charset. May be unkown if charset was not present
+ * or if the charset is not supported by mstdlib's text encoding functionality.
+ * If body decoding takes place and the data can be decoded this will be utf-8.
+ *
+ * \param[in] simple Parsed HTTP message.
+ *
+ * \return Encoded data codec.
+ *
+ * \see M_http_simple_read_charset
+ */
+M_API M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *simple);
+
+
+/*! Get the text charset of the data.
+ *
+ * May be empty if charset was not present.
+ * If the data encoded codec is unknown this can be used to determine if
+ * it was not present or if the encoding is a type not supported by
+ * mstdlib's text codec. If not suppored it is up to the caller to
+ * handle decoding.
+ *
+ * \param[in] simple Parsed HTTP message.
+ *
+ * \return Character set.
+ *
+ * \see M_http_simple_read_codec
+ */
+M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple);
+
 /*! @} */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

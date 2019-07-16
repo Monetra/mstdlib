@@ -372,6 +372,34 @@ const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple,
 	return (unsigned char *)M_buf_peek(simple->http->body);
 }
 
+const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+	return simple->http->content_type;
+}
+
+const char *M_http_simple_read_origcontent_type(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+	return simple->http->origcontent_type;
+}
+
+M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return M_TEXTCODEC_UNKNOWN;
+	return simple->http->codec;
+}
+
+const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+	return simple->http->charset;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned char *data, size_t data_len, M_uint32 flags,

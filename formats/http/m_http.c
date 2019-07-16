@@ -68,6 +68,7 @@ static void M_http_reset_int(M_http_t *http)
 	M_hash_dict_destroy(http->query_args);
 	M_hash_dict_destroy(http->headers);
 	M_free(http->content_type);
+	M_free(http->origcontent_type);
 	M_free(http->charset);
 	M_hash_dict_destroy(http->trailers);
 	M_list_str_destroy(http->set_cookies);

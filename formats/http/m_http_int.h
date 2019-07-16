@@ -65,6 +65,7 @@ struct M_http {
 
 	M_hash_dict_t         *headers;
 	char                  *content_type;
+	char                  *origcontent_type;
 	char                  *charset;
 	M_textcodec_codec_t    codec;
 	M_list_str_t          *set_cookies;
@@ -382,8 +383,22 @@ void M_http_set_cookie_remove(M_http_t *http, size_t idx);
 void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 
-/* XXX: */
+/*! Update the content type of it has changed.
+ * 
+ * Typically it's changed due to decoding.
+ *
+ * \param[in] http HTTP object.
+ * \param[in] val  New content type.
+ *
+ */
 void M_http_update_content_type(M_http_t *http, const char *val);
+
+
+/*! Update the character encoding of it has changed.
+ * 
+ * \param[in] http  HTTP object.
+ * \param[in] codec Text encoding.
+ */
 void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec);
 
 
