@@ -30,7 +30,10 @@
 
 #include "http/m_http_reader_int.h"
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Internal object used by simple and other internal functionality to track
+ * aspects of the http object. Not for public use.
+ */
 
 struct M_http;
 typedef struct M_http M_http_t;
@@ -61,6 +64,9 @@ struct M_http {
 	M_bool                 is_chunked;
 
 	M_hash_dict_t         *headers;
+	char                  *content_type;
+	char                  *charset;
+	M_textcodec_codec_t    codec;
 	M_list_str_t          *set_cookies;
 	M_hash_dict_t         *trailers;
 
@@ -374,6 +380,11 @@ void M_http_set_cookie_remove(M_http_t *http, size_t idx);
  * \param[in] val  Value to append.
  */
 void M_http_set_cookie_insert(M_http_t *http, const char *val);
+
+
+/* XXX: */
+void M_http_update_content_type(M_http_t *http, const char *val);
+void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
