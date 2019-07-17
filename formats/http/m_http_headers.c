@@ -30,7 +30,17 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_list_str_t *M_http_split_header_vals(const char *val)
+static M_bool M_http_header_is_semicolon_header(const char *key)
+{
+	if (M_str_caseeq(key, "WWW-Authenticate") || M_str_caseeq(key, "Proxy-Authorization") ||
+		M_str_caseeq(key, "Content-Type") || M_str_caseeq(key, "Date"))
+	{
+		return M_TRUE;
+	}
+	return M_FALSE;
+}
+
+static M_list_str_t *M_http_split_header_vals(const char *key, const char *val)
 {
 	M_list_str_t  *split_header = NULL;
 	char         **parts;
@@ -46,7 +56,7 @@ static M_list_str_t *M_http_split_header_vals(const char *val)
 	/* Some headers use a ; instead of a , as the separator. The spec says , is the
 	 * separator but the special headers could have a , as part of their value so they
 	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
-	if (M_str_chr(val, ';') != NULL) {
+	if (M_http_header_is_semicolon_header(key) || M_str_chr(val, ';') != NULL) {
 		parts = M_str_explode_str(';', val, &num_parts);
 	} else {
 		parts = M_str_explode_str(',', val, &num_parts);
@@ -104,9 +114,10 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 		if ((!M_hash_dict_multi_len(new_headers, key, &nlen) || nlen == 0) && M_str_isempty(oval))
 			continue;
 
-		/* No multi length means this isn't a multi hashtable. */
+		/* No multi length means this isn't a multi hashtable.
+		 * In a multi we assume sub parts have already been split. */
 		if (nlen == 0) {
-			split_header = M_http_split_header_vals(oval);
+			split_header = M_http_split_header_vals(key, oval);
 			nlen         = M_list_str_len(split_header);
 		}
 
@@ -263,9 +274,7 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 
 	/* Special headers that could have a comma (',') in them
 	 * or are just special. */
-	if (M_str_caseeq(key, "WWW-Authenticate") || M_str_caseeq(key, "Proxy-Authorization") ||
-			M_str_caseeq(key, "Content-Type"))
-	{
+	if (M_http_header_is_semicolon_header(key)) {
 		out = M_list_str_join_str(l, "; ");
 	} else {
 		out = M_list_str_join_str(l, ", ");
