@@ -275,17 +275,47 @@ typedef struct M_http_reader M_http_reader_t;
  */
 typedef M_http_error_t (*M_http_reader_start_func)(M_http_message_type_t type, M_http_version_t version, M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk);
 
-/*! Function definition for reading headers.
+/*! Function definition for reading full headers.
  *
- * Headers are split if a header list. Keys will appear multiple times if values were
- * in a list or if the header appears multiple times. Values with semicolon (;) separated
- * parameters are not split.
+ * This will provide the full unparsed header.
+ * This is always called for every header.
+ * It may be called multiple times if a header appears multiple times.
+ * This is intended for informational use or if passing along data and
+ * not altering any headers in the process.
+ *
+ * A header appearing multiple times here means it was present multiple times.
  *
  * \param[in] key   Header key.
  * \param[in] val   Header value.
  * \param[in] thunk Thunk.
  *
  * \return Result
+ *
+ * \see M_http_reader_header_func
+ */
+typedef M_http_error_t (*M_http_reader_header_full_func)(const char *key, const char *val, void *thunk);
+
+/*! Function definition for reading headers as component parts.
+ *
+ * This is the main header reading callback that should be used when parsing a message.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. The standard uses ',' as a list
+ * separator but some headers will use a semicolon ';'. Values with semicolon ';' separated
+ * parameters are split as well.
+ *
+ * Will be called for headers that have a single part and are not split.
+ *
+ * It is not possible to determine if a header was present multiple times vs being
+ * in list form.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ *
+ * \see M_http_reader_header_full_func
  */
 typedef M_http_error_t (*M_http_reader_header_func)(const char *key, const char *val, void *thunk);
 
@@ -394,7 +424,40 @@ typedef M_http_error_t (*M_http_reader_multipart_preamble_func)(const unsigned c
  */
 typedef M_http_error_t (*M_http_reader_multipart_preamble_done_func)(void *thunk);
 
+/*! Function definition for reading full multi part headers.
+ *
+ * This will provide the full unparsed header.
+ * This is always called for every header.
+ * It may be called multiple times if a header appears multiple times.
+ * This is intended for informational use or if passing along data and
+ * not altering any headers in the process.
+ *
+ * A header appearing multiple times here means it was present multiple times.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] idx   Part number the header belongs to.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ *
+ * \see M_http_reader_header_func
+ */
+typedef M_http_error_t (*M_http_reader_multipart_header_full_func)(const char *key, const char *val, size_t idx, void *thunk);
+
 /*! Function definition for reading multipart part headers.
+ *
+ * This is the main multi part header reading callback that should be used when parsing a message.
+ *
+ * Headers are split if a header list. Keys will appear multiple times if values were
+ * in a list or if the header appears multiple times. The standard uses ',' as a list
+ * separator but some headers will use a semicolon ';'. Values with semicolon ';' separated
+ * parameters are split as well.
+ *
+ * Will be called for headers that have a single part and are not split.
+ *
+ * It is not possible to determine if a header was present multiple times vs being
+ * in list form.
  *
  * \param[in] key   Key.
  * \param[in] val   Value.
@@ -466,11 +529,39 @@ typedef M_http_error_t (*M_http_reader_multipart_epilouge_func)(const unsigned c
  */
 typedef M_http_error_t (*M_http_reader_multipart_epilouge_done_func)(void *thunk);
 
+/*! Function definition for reading full trailer headers.
+ *
+ * This will provide the full unparsed header.
+ * This is always called for every trailer header.
+ * It may be called multiple times if a header appears multiple times.
+ * This is intended for informational use or if passing along data and
+ * not altering any headers in the process.
+ *
+ * A header appearing multiple times here means it was present multiple times.
+ *
+ * \param[in] key   Header key.
+ * \param[in] val   Header value.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ *
+ * \see M_http_reader_header_func
+ */
+typedef M_http_error_t (*M_http_reader_trailer_full_func)(const char *key, const char *val, void *thunk);
+
 /*! Function definition for reading trailing headers.
  *
+ * This is the main trailer header reading callback that should be used when parsing a message.
+ *
  * Headers are split if a header list. Keys will appear multiple times if values were
- * in a list or if the header appears multiple times. Values with semicolon (;) separated
- * parameters are not split.
+ * in a list or if the header appears multiple times. The standard uses ',' as a list
+ * separator but some headers will use a semicolon ';'. Values with semicolon ';' separated
+ * parameters are split as well.
+ *
+ * Will be called for headers that have a single part and are not split.
+ *
+ * It is not possible to determine if a header was present multiple times vs being
+ * in list form.
  *
  * \param[in] key   Header key.
  * \param[in] val   Header value.
@@ -503,6 +594,7 @@ typedef enum {
 /*! Callbacks for various stages of parsing. */
 struct M_http_reader_callbacks {
 	M_http_reader_start_func                   start_func;
+	M_http_reader_header_full_func             header_full_func;
 	M_http_reader_header_func                  header_func;
 	M_http_reader_header_done_func             header_done_func;
 	M_http_reader_body_func                    body_func;
@@ -514,6 +606,7 @@ struct M_http_reader_callbacks {
 	M_http_reader_chunk_data_finished_func     chunk_data_finished_func;
 	M_http_reader_multipart_preamble_func      multipart_preamble_func;
 	M_http_reader_multipart_preamble_done_func multipart_preamble_done_func;
+	M_http_reader_multipart_header_full_func   multipart_header_full_func;
 	M_http_reader_multipart_header_func        multipart_header_func;
 	M_http_reader_multipart_header_done_func   multipart_header_done_func;
 	M_http_reader_multipart_data_func          multipart_data_func;
@@ -521,6 +614,7 @@ struct M_http_reader_callbacks {
 	M_http_reader_multipart_data_finished_func multipart_data_finished_func;
 	M_http_reader_multipart_epilouge_func      multipart_epilouge_func;
 	M_http_reader_multipart_epilouge_done_func multipart_epilouge_done_func;
+	M_http_reader_trailer_full_func            trailer_full_func;
 	M_http_reader_trailer_func                 trailer_func;
 	M_http_reader_trailer_done_func            trailer_done_func;
 };
@@ -549,6 +643,10 @@ M_API void M_http_reader_destroy(M_http_reader_t *httpr);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Parse next http message from given array.
+ *
+ * Will not return M_HTTP_ERROR_MOREDATA. It is up to the caller to
+ * determine when a full message has been read. If Content-Length
+ * is not set it can be impossible to determine if a parse is complete.
  *
  * \param[in]  httpr    Http reader object.
  * \param[in]  data     Data to parse.
@@ -599,7 +697,7 @@ typedef enum {
 
 /*! Read the next HTTP message from the given buffer, store results in a new M_http_simple_read_t object.
  *
- * \param[out] simple   Place to store new M_http_simple_read_t object.
+ * \param[out] simple   Place to store new M_http_simple_read_t object. Can be NULL to check for valid message.
  * \param[in]  data     Buffer containing HTTP messages to read.
  * \param[in]  data_len Length of \a data.
  * \param[in]  flags    Read options (OR'd combo of M_http_simple_read_flags_t).
@@ -615,13 +713,15 @@ M_API M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const uns
 
 /*! Read the next HTTP message from the given parser.
  *
+ * On success parser will consume message.
+ *
  * Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message.
  * No data will be dropped from the parser, in this case.
  *
  * \see M_http_simple_read
  * \see M_http_simple_destroy
  *
- * \param[out] simple Place to store new M_http_simple_read_t object.
+ * \param[out] simple Place to store new M_http_simple_read_t object. Can be NULL to check for valid message.
  * \param[in]  parser Buffer containing HTTP messages to read.
  * \param[in]  flags  Read options (OR'd combo of M_http_simple_read_flags_t).
  *
@@ -796,8 +896,15 @@ M_API const M_hash_dict_t *M_http_simple_read_query_args(const M_http_simple_rea
  *
  * Note that some headers may contain a list of multiple values, so the returned
  * M_hash_dict_t is a multimap (one key may map to a list of values).
+ * The first entry in the list is the first item in the value list if there are
+ * multiple values.
  *
  * Header names are not case-sensitive, when doing lookups into the returned dictionary.
+ *
+ * \warning
+ * M_http_simple_read_header should be used in order to get a full header. This is
+ * a parsed list and is provided to make searching for specific values easier.
+ * Use M_http_simple_read_headers to get a list of headers.
  *
  * \warning
  * The returned dictionary does not include "Set-Cookie" headers, because they can
@@ -809,9 +916,29 @@ M_API const M_hash_dict_t *M_http_simple_read_query_args(const M_http_simple_rea
  * \return Multimap of header names and values.
  *
  * \see M_http_simple_read_header
+ * \see M_http_simple_read_headers
  * \see M_http_simple_read_get_set_cookie
  */
-M_API const M_hash_dict_t *M_http_simple_read_headers(const M_http_simple_read_t *simple);
+M_API const M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple);
+
+
+/*! Get a list of headers.
+ *
+ * Header names are not case-sensitive.
+ *
+ * \warning
+ * The returned list does not include "Set-Cookie" headers, because they can
+ * be sent multiple times with different attributes, and their values cannot be
+ * merged into a list.
+ *
+ * \param[in] simple Parsed HTTP message.
+ *
+ * \return List of headers
+ *
+ * \see M_http_simple_read_header
+ * \see M_http_simple_read_get_set_cookie
+ */
+M_API M_list_str_t *M_http_simple_read_headers(const M_http_simple_read_t *simple);
 
 
 /*! Get value of the named header from the parsed message.
@@ -820,7 +947,7 @@ M_API const M_hash_dict_t *M_http_simple_read_headers(const M_http_simple_read_t
  * of capitalization.
  *
  * Note that some headers may contain a list of multiple values. For these headers,
- * this function will return a comma-delimited list of values. Some extra whitespace
+ * this function will return a comma-delimited list of values. Some extra white space
  * may be added in addition to the commas.
  *
  * \warning
@@ -831,7 +958,7 @@ M_API const M_hash_dict_t *M_http_simple_read_headers(const M_http_simple_read_t
  * \param[in] simple Parsed HTTP message.
  * \param[in] key    Name of header to retrieve values from.
  *
- * \return Comma-delimited list of values for this header, or \c NULL if no data found.
+ * \return Delimited list of values (if necessary) for this header, or \c NULL if no data found.
  *
  * \see M_http_simple_read_headers
  * \see M_http_simple_read_get_set_cookie
@@ -947,100 +1074,139 @@ M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
  * @{
  */
 
-/*! Create an HTTP request message, return as a new string.
+/*! Create an HTTP/1.1 request message, return as a new string.
  *
  * Caller is responsible for freeing the returned string.
  *
  * If the Content-Length header is not provided in \a headers, it will be added
- * automatically for you, using \a data_len as the length. When data will be
- * sent and Content-Length is also set data sent to this function is optional.
+ * automatically for you, using \a data_len as the length. Data can be NULL
+ * If either the header or data_len is provided. Data can be sent later.
  * This allows generating the header and sending large messages without
- * buffering the data in memory. In this case this function will generate
+ * buffering the data in memory. In this case, this function will generate
  * the necessary HTTP header part of the message.
+ *
+ * If set host, port, uri, user_agent, and content_type will all override
+ * any that were previoiusly set in the headers.
  *
  * \see M_http_simple_write_request_buf
  *
- * \param[in]  method   HTTP verb to use (GET, POST, etc).
- * \param[in]  uri      Full URI (may be absolute or relative, may include query string).
- * \param[in]  version  HTTP protocol version to use (1.0, 1.1, etc).
- * \param[in]  headers  Headers to include in request.
- * \param[in]  data     String to place in body of message (may be empty).
- * \param[in]  data_len Number of chars to use from \c data (may be 0).
- * \param[out] len      Place to store length of returned HTTP request message (may be NULL).
+ * \param[in]  method       HTTP verb to use (GET, POST, etc).
+ * \param[in]  host         Host the request will be sent to. Required if 'Host' header is not set.
+ * \param[in]  port         Port the request will be sent on. 0 or 80 will not set the port part of the 'Host' Header.
+ *                          However, if the port is 0 it is assumed to be 80. Will be ignored if 'Host' header is set.
+ * \param[in]  uri          URI (may be absolute or relative, may include query string). Typically, this will be relative.
+ *                          if absolute, the host and port should match the host and port parameters.
+ * \param[in]  user_agent   Optional user agent to include in the request.
+ * \param[in]  content_type Optional content type. If not set and not in headers this will default to 'plain/text'.
+ * \param[in]  headers      Additional headers to include in request.
+ * \param[in]  data         String to place in body of message (may be empty).
+ * \param[in]  data_len     Number of chars to use from \c data (may be 0). Cannot be 0 if data is NULL.
+ * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
+ *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
+ *                          if the data is text. If encoding is specified the input data is assumed to
+ *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
+ *                          be added to the 'Content-type' header if set
+ * \param[out] len          Place to store length of returned HTTP request message (may be NULL).
  *
- * \return Allocated string containing HTTP request message.
+ * \return Allocated string containing HTTP request message. The string will be NULL terminated.
  */
-M_API unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version,
-	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
+M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
+	const char *host, unsigned short port, const char *uri,
+	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding, size_t *len);
 
 
-/*! Create an HTTP request message, add it to the given buffer.
+/*! Create an HTTP/1.1 request message, add it to the given buffer.
  *
  * Same as M_http_simple_write_request(), except that it adds the new message to the given buffer instead
  * of returning it in a newly-allocated string.
  *
- * \param[out] buf      Buffer to add the message to.
- * \param[in]  method   HTTP verb to use (GET, POST, etc).
- * \param[in]  uri      Full URI (may be absolute or relative, may include query string).
- * \param[in]  version  HTTP protocol version to use (1.0, 1.1, etc).
- * \param[in]  headers  Headers to include in request.
- * \param[in]  data     String to place in body of message (may be empty).
- * \param[in]  data_len Number of chars to use from \c data for body (may be 0).
+ * \param[out] buf          Buffer to add the message to.
+ * \param[in]  method       HTTP verb to use (GET, POST, etc).
+ * \param[in]  host         Host the request will be sent to. Required if 'Host' header is not set.
+ * \param[in]  port         Port the request will be sent on. 0 or 80 will not set the port part of the 'Host' Header.
+ *                          However, if the port is 0 it is assumed to be 80. Will be ignored if 'Host' header is set.
+ * \param[in]  uri          URI (may be absolute or relative, may include query string). Typically, this will be relative.
+ *                          if absolute, the host and port should match the host and port parameters.
+ * \param[in]  user_agent   Optional user agent to include in the request.
+ * \param[in]  content_type Optional content type. If not set and not in headers this will default to 'plain/text'.
+ * \param[in]  headers      Additional headers to include in request.
+ * \param[in]  data         String to place in body of message (may be empty).
+ * \param[in]  data_len     Number of chars to use from \c data (may be 0). Cannot be 0 if data is NULL.
+ * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
+ *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
+ *                          if the data is text. If encoding is specified the input data is assumed to
+ *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
+ *                          be added to the 'Content-type' header if set
  *
  * \return M_TRUE if add was successful, M_FALSE if message creation failed.
  *
  * \see M_http_simple_write_request
  */
-M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method, const char *uri,
-	M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len);
+M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
+	const char *host, unsigned short port, const char *uri,
+	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding);
 
 
-/*! Create an HTTP response message, return as new string.
- *
- * If the Content-Length header is not provided in \a headers, it will be added
- * automatically for you, using \a data_len as the length. When data will be
- * sent and Content-Length is also set data sent to this function is optional.
- * This allows generating the header and sending large messages without
- * buffering the data in memory. In this case this function will generate
- * the necessary HTTP header part of the message.
+/*! Create an HTTP/1.1 response message, return as new string.
  *
  * Caller is responsible for freeing the returned string.
  *
- * \param[in]  version  HTTP protocol version to use (1.0, 1.1, etc).
- * \param[in]  code     HTTP status code to use (200, 404, etc).
- * \param[in]  reason   HTTP status reason string. If NULL, will attempt to pick one automatically.
- * \param[in]  headers  Headers to include in response.
- * \param[in]  data     String to place in body of message (may be empty).
- * \param[in]  data_len Number of chars to use from \c data (may be 0).
- * \param[out] len      Place to store length of returned HTTP response message (may be NULL).
+ * If the Content-Length header is not provided in \a headers, it will be added
+ * automatically for you, using \a data_len as the length. Data can be NULL
+ * If either the header or data_len is provided. Data can be sent later.
+ * This allows generating the header and sending large messages without
+ * buffering the data in memory. In this case, this function will generate
+ * the necessary HTTP header part of the message.
+ *
+ * \param[in]  code         HTTP status code to use (200, 404, etc).
+ * \param[in]  reason       HTTP status reason string. If NULL, will attempt to pick one automatically based on code.
+ * \param[in]  content_type Optional content type. If not set and not in headers this will default to 'plain/text'.
+ * \param[in]  headers      Headers to include in response.
+ * \param[in]  data         String to place in body of message (may be empty).
+ * \param[in]  data_len     Number of chars to use from \c data (may be 0).
+ * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
+ *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
+ *                          if the data is text. If encoding is specified the input data is assumed to
+ *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
+ *                          be added to the 'Content-type' header if set
+ * \param[out] len          Place to store length of returned HTTP response message (may be NULL).
  *
  * \return New string containing HTTP response message.
  *
  * \see M_http_simple_write_response_buf
  */
-M_API unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
-	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len);
+M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
+	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+	M_textcodec_codec_t encoding, size_t *len);
 
 
-/*! Create an HTTP response message, add it to the given buffer.
+/*! Create an HTTP/1.1 response message, add it to the given buffer.
  *
  * Same as M_http_simple_write_response(), except that it adds the new message to the given buffer instead
  * of returning it in a newly-allocated string.
  *
  * \param[out] buf      Buffer to add the message to.
- * \param[in]  version  HTTP protocol version to use (1.0, 1.1, etc).
- * \param[in]  code     HTTP status code to use (200, 404, etc).
- * \param[in]  reason   HTTP status reason string. If NULL, will attempt to pick one automatically.
- * \param[in]  headers  Headers to include in response.
- * \param[in]  data     String to place in body of message (may be empty).
- * \param[in]  data_len Number of chars to use from \c data (may be 0).
+ * \param[in]  code         HTTP status code to use (200, 404, etc).
+ * \param[in]  reason       HTTP status reason string. If NULL, will attempt to pick one automatically based on code.
+ * \param[in]  content_type Optional content type. If not set and not in headers this will default to 'plain/text'.
+ * \param[in]  headers      Headers to include in response.
+ * \param[in]  data         String to place in body of message (may be empty).
+ * \param[in]  data_len     Number of chars to use from \c data (may be 0).
+ * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
+ *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
+ *                          if the data is text. If encoding is specified the input data is assumed to
+ *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
+ *                          be added to the 'Content-type' header if set
  *
  * \return M_TRUE if add was successful, M_FALSE if message creation failed.
  *
  * \see M_http_simple_write_response
  */
-M_API M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_http_version_t version, M_uint32 code,
-	const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len);
+M_API M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char *reason,
+	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+	M_textcodec_codec_t encoding);
 
 /*! @} */
 

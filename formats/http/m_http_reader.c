@@ -46,6 +46,14 @@ static M_http_error_t M_http_reader_start_func_default(M_http_message_type_t typ
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_reader_header_full_func_default(const char *key, const char *val, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_reader_header_func_default(const char *key, const char *val, void *thunk)
 {
 	(void)key;
@@ -127,6 +135,15 @@ static M_http_error_t M_http_reader_multipart_preamble_done_func_default(void *t
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t M_http_reader_multipart_header_full_func_default(const char *key, const char *val, size_t idx, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)idx;
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t M_http_reader_multipart_header_func_default(const char *key, const char *val, size_t idx, void *thunk)
 {
 	(void)key;
@@ -175,6 +192,14 @@ static M_http_error_t M_http_reader_multipart_epilouge_func_default(const unsign
 
 static M_http_error_t M_http_reader_multipart_epilouge_done_func_default(void *thunk)
 {
+	(void)thunk;
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_reader_trailer_full_func_default(const char *key, const char *val, void *thunk)
+{
+	(void)key;
+	(void)val;
 	(void)thunk;
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -276,6 +301,23 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t M_http_read_header_full_process(M_http_reader_t *httpr, const char *key, const char *val)
+{
+	M_http_error_t res = M_HTTP_ERROR_INVALIDUSE;
+
+	/* Pass along the data to our callback. Key will appear for every value.
+	 * We don't any basic validating becuase we leave that to the main (splitting) processing function. */
+	if (httpr->rstep == M_HTTP_READER_STEP_HEADER) {
+		res = httpr->cbs.header_full_func(key, val, httpr->thunk);
+	} else if (httpr->rstep == M_HTTP_READER_STEP_TRAILER) {
+		res = httpr->cbs.trailer_full_func(key, val, httpr->thunk);
+	} else if (httpr->rstep == M_HTTP_READER_STEP_MULTIPART_HEADER) {
+		res = httpr->cbs.multipart_header_full_func(key, val, httpr->part_idx, httpr->thunk);
+	}
+
+	return res;
 }
 
 static M_http_error_t M_http_read_header_process(M_http_reader_t *httpr, const char *key, const char *val)
@@ -428,7 +470,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 {
 	M_parser_t      *header      = NULL;
 	M_parser_t     **kv          = NULL;
-	char           **subvals     = NULL;
+	M_list_str_t    *subvals     = NULL;
 	char            *key         = NULL;
 	char            *val         = NULL;
 	char            *subval      = NULL;
@@ -489,48 +531,46 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
 		val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
 
+		M_str_trim(key);
 		M_str_trim(val);
 		if (M_str_isempty(key) || M_str_isempty(val)) {
 			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
-		/* Some keys are special and ',' aren't used as separate's but valid
-		 * parts of the value. */
-		if (M_str_caseeq(key, "date")) {
-			res = M_http_read_header_process(httpr, key, val);
-		} else {
-			/* Values can be a comma (,) separated list. We want to treat these as if
-			 * the header is appearing multiple times. */
-			subvals = M_str_explode_str(',', val, &num_subvals);
-			/* We have to have something. */
-			if (subvals == NULL || num_subvals == 0) {
+		M_http_read_header_full_process(httpr, key, val);
+
+		/* Values can be a separated list. We want to treat these as if
+		 * the header is appearing multiple times. */
+		subvals = M_http_split_header_vals(key, val);
+		if (subvals == NULL) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		num_subvals = M_list_str_len(subvals);
+		for (i=0; i<num_subvals; i++) {
+			subval = M_strdup(M_list_str_at(subvals, i));
+
+			/* We can't have an empty entry in the value list. */
+			M_str_trim(subval);
+			if (M_str_isempty(subval)) {
 				res = M_HTTP_ERROR_HEADER_INVALID;
 				break;
 			}
 
-			for (i=0; i<num_subvals; i++) {
-				subval = M_strdup(subvals[i]);
-
-				/* We can't have an empty entry in the value list. */
-				M_str_trim(subval);
-				if (M_str_isempty(subval)) {
-					res = M_HTTP_ERROR_HEADER_INVALID;
-					break;
-				}
-
-				res = M_http_read_header_process(httpr, key, subval);
-				if (res != M_HTTP_ERROR_SUCCESS) {
-					break;
-				}
-
-				M_free(subval);
-				subval = NULL;
+			res = M_http_read_header_process(httpr, key, subval);
+			if (res != M_HTTP_ERROR_SUCCESS) {
+				break;
 			}
 
-			M_str_explode_free(subvals, num_subvals);
-			num_subvals = 0;
+			M_free(subval);
+			subval = NULL;
 		}
+
+		M_list_str_destroy(subvals);
+		M_free(subval);
+
 		if (res != M_HTTP_ERROR_SUCCESS) {
 			break;
 		}
@@ -546,7 +586,6 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		header = NULL;
 	} while (res == M_HTTP_ERROR_SUCCESS && !(*full_read));
 
-	M_free(subval);
 	M_free(key);
 	M_free(val);
 	M_parser_split_free(kv, num_kv);
@@ -568,6 +607,7 @@ static M_http_error_t M_http_read_body(M_http_reader_t *httpr, M_parser_t *parse
 		*full_read = M_TRUE;
 		return M_HTTP_ERROR_SUCCESS;
 	}
+
 	if (M_parser_len(parser) == 0)
 		return M_HTTP_ERROR_SUCCESS;
 
@@ -1161,6 +1201,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 	httpr->data_type = M_HTTP_DATA_FORMAT_BODY;
 
 	httpr->cbs.start_func                   = M_http_reader_start_func_default;
+	httpr->cbs.header_full_func             = M_http_reader_header_full_func_default;
 	httpr->cbs.header_func                  = M_http_reader_header_func_default;
 	httpr->cbs.header_done_func             = M_http_reader_header_done_func_default;
 	httpr->cbs.body_func                    = M_http_reader_body_func_default;
@@ -1172,6 +1213,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 	httpr->cbs.chunk_data_finished_func     = M_http_reader_chunk_data_finished_func_default;
 	httpr->cbs.multipart_preamble_func      = M_http_reader_multipart_preamble_func_default;
 	httpr->cbs.multipart_preamble_done_func = M_http_reader_multipart_preamble_done_func_default;
+	httpr->cbs.multipart_header_full_func   = M_http_reader_multipart_header_full_func_default;
 	httpr->cbs.multipart_header_func        = M_http_reader_multipart_header_func_default;
 	httpr->cbs.multipart_header_done_func   = M_http_reader_multipart_header_done_func_default;
 	httpr->cbs.multipart_data_func          = M_http_reader_multipart_data_func_default;
@@ -1179,11 +1221,13 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 	httpr->cbs.multipart_data_finished_func = M_http_reader_multipart_data_finished_func_default;
 	httpr->cbs.multipart_epilouge_func      = M_http_reader_multipart_epilouge_func_default;
 	httpr->cbs.multipart_epilouge_done_func = M_http_reader_multipart_epilouge_done_func_default;
+	httpr->cbs.trailer_full_func            = M_http_reader_trailer_full_func_default;
 	httpr->cbs.trailer_func                 = M_http_reader_trailer_func_default;
 	httpr->cbs.trailer_done_func            = M_http_reader_trailer_done_func_default;
 											 
 	if (cbs != NULL) {
 		if (cbs->start_func                   != NULL) httpr->cbs.start_func                   = cbs->start_func;
+		if (cbs->header_full_func             != NULL) httpr->cbs.header_full_func             = cbs->header_full_func;
 		if (cbs->header_func                  != NULL) httpr->cbs.header_func                  = cbs->header_func;
 		if (cbs->header_done_func             != NULL) httpr->cbs.header_done_func             = cbs->header_done_func;
 		if (cbs->body_func                    != NULL) httpr->cbs.body_func                    = cbs->body_func;
@@ -1195,6 +1239,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 		if (cbs->chunk_data_finished_func     != NULL) httpr->cbs.chunk_data_finished_func     = cbs->chunk_data_finished_func;
 		if (cbs->multipart_preamble_func      != NULL) httpr->cbs.multipart_preamble_func      = cbs->multipart_preamble_func;
 		if (cbs->multipart_preamble_done_func != NULL) httpr->cbs.multipart_preamble_done_func = cbs->multipart_preamble_done_func;
+		if (cbs->multipart_header_full_func   != NULL) httpr->cbs.multipart_header_full_func   = cbs->multipart_header_full_func;
 		if (cbs->multipart_header_func        != NULL) httpr->cbs.multipart_header_func        = cbs->multipart_header_func;
 		if (cbs->multipart_header_done_func   != NULL) httpr->cbs.multipart_header_done_func   = cbs->multipart_header_done_func;
 		if (cbs->multipart_data_func          != NULL) httpr->cbs.multipart_data_func          = cbs->multipart_data_func;
@@ -1202,6 +1247,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 		if (cbs->multipart_data_finished_func != NULL) httpr->cbs.multipart_data_finished_func = cbs->multipart_data_finished_func;
 		if (cbs->multipart_epilouge_func      != NULL) httpr->cbs.multipart_epilouge_func      = cbs->multipart_epilouge_func;
 		if (cbs->multipart_epilouge_done_func != NULL) httpr->cbs.multipart_epilouge_done_func = cbs->multipart_epilouge_done_func;
+		if (cbs->trailer_full_func            != NULL) httpr->cbs.trailer_full_func            = cbs->trailer_full_func;
 		if (cbs->trailer_func                 != NULL) httpr->cbs.trailer_func                 = cbs->trailer_func;
 		if (cbs->trailer_done_func            != NULL) httpr->cbs.trailer_done_func            = cbs->trailer_done_func;
 	}

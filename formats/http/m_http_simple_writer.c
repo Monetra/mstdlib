@@ -29,83 +29,255 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* Adds headers and body. */
-static M_bool M_http_simple_write_int(M_buf_t *buf, const M_hash_dict_t *headers, const char *data, size_t data_len)
+static char *M_http_writer_get_date(void)
 {
-	M_http_t           *http = NULL;
-	M_hash_dict_enum_t *he;
-	const char         *key;
-	const char         *val;
-	char                tempa[32];
-	M_int64             i64v;
+	M_buf_t        *buf;
+	M_time_gmtm_t   tm;
+	const char     *day[]   = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char     *month[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-	/* We want to push the headers into an http object to ensure they're in a
- 	 * properly configured hashtable. We need to ensure flags like casecomp
-	 * are enabled. */
+	buf = M_buf_create();
+	M_mem_set(&tm, 0, sizeof(tm));
+	M_time_togm(M_time(), &tm);
+
+	if (tm.wday > 6)
+		goto err;
+	M_buf_add_str(buf, day[tm.wday]);
+	M_buf_add_str(buf, ", ");
+
+	M_buf_add_int_just(buf, tm.day, 2);
+	M_buf_add_byte(buf, ' ');
+
+	if (tm.month > 11)
+		goto err;
+	M_buf_add_str(buf, month[tm.month]);
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_int(buf, tm.year);
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_int_just(buf, tm.hour, 2);
+	M_buf_add_byte(buf, ':');
+
+	M_buf_add_int_just(buf, tm.min, 2);
+	M_buf_add_byte(buf, ':');
+
+	M_buf_add_int_just(buf, tm.sec, 2);
+	M_buf_add_byte(buf, ' ');
+
+	M_buf_add_str(buf, "GMT");
+
+	return M_buf_finish_str(buf, NULL);
+
+err:
+	M_buf_cancel(buf);
+	return NULL;
+}
+
+/* Headers that are specific to a request. */
+static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *headers, const char *host, unsigned short port, const char *user_agent)
+{
+	M_hash_dict_t *myheaders;
+	M_http_t      *http;
+	char          *hostport;
+
+	/* Create our headers that we need to do some work on. */
 	http = M_http_create();
 	if (headers != NULL) {
 		M_http_set_headers(http, headers, M_FALSE);
-		headers = M_http_headers(http);
+	}
+	myheaders = M_hash_dict_duplicate(M_http_headers_dict(http));
+	M_http_destroy(http);
+
+	/* Add the host. */
+	if (!M_str_isempty(host)) {
+		M_hash_dict_remove(myheaders, "Host");
+		if (port == 0 || port == 80) {
+			M_hash_dict_insert(myheaders, "Host", host);
+		} else {
+			M_asprintf(&hostport, "%s:%u", host, port);
+			M_hash_dict_insert(myheaders, "Host", hostport);
+			M_free(hostport);
+		}
+	} else if (!M_hash_dict_get(myheaders, "Host", NULL)) {
+		/* Host is required. */
+		M_hash_dict_destroy(myheaders);
+		return NULL;
+	}
+
+	/* Add the user agent. */
+	if (!M_str_isempty(user_agent)) {
+		M_hash_dict_remove(myheaders, "User-Agent");
+		M_hash_dict_insert(myheaders, "User-Agent", user_agent);
+	}
+
+	return myheaders;
+}
+
+/* Adds headers and body. */
+static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, const M_hash_dict_t *headers,
+		const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding)
+{
+	M_http_t           *http = NULL;
+	M_list_str_t       *header_keys;
+	const char         *key;
+	const char         *val;
+	char               *temp;
+	unsigned char      *mydata = NULL;
+	char                tempa[128];
+	M_int64             i64v;
+	size_t              len;
+	size_t              i;
+
+	/* We want to push the headers into an http object to ensure they're in a
+ 	 * properly configured hashtable. We need to ensure flags like casecomp
+	 * are enabled. Also allows us to get joined header values back out. */
+	http = M_http_create();
+	if (headers != NULL) {
+		M_http_set_headers(http, headers, M_FALSE);
+		headers = M_http_headers_dict(http);
 	}
 
 	/* Validate some headers. */
 	if (data != NULL && data_len != 0) {
 		/* Can't have transfer-encoding AND data. */
-		if (M_hash_dict_get(headers, "transfer-encoding", NULL)) {
+		if (M_hash_dict_get(headers, "Transfer-Encoding", NULL)) {
 			goto err;
 		}
 	}
 
 	/* Ensure that content-length is present (even if body length is zero). */
-	if (M_hash_dict_get(headers, "content-length", &val)) {
+	if (M_hash_dict_get(headers, "Content-Length", &val)) {
 		/* If content-length is already set we need to ensure it matches data
 		 * since this is considered a complete message. */
 		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
 			goto err;
 		}
 
-		if ((size_t)i64v != data_len) {
+		/* If we have data the data length must match the length of the data. */
+		if (data != NULL && (size_t)i64v != data_len) {
 			goto err;
 		}
 	} else {
+		/* Data can be binary and technically data can start with a NULL, but in practice
+ 		 * it really should ever happen. */
+		if (data != NULL && *data != '\0') {
+			/* If we have data and a content length wasn't already set then we
+			 * must have the data length. */
+			if (data_len == 0) {
+				/* If we have a codec this must be text so we're going to
+				 * get the string length. */
+				if (encoding != M_TEXTCODEC_UNKNOWN) {
+					data_len = M_str_len((const char *)data);
+				}
+			}
+
+			/* Encoding only applies to text but we don't know this is really text. We assume
+			 * the callers knowns what they're doing. */
+			if (encoding != M_TEXTCODEC_UNKNOWN && encoding != M_TEXTCODEC_UTF8) {
+				if (M_textcodec_error_is_error(M_textcodec_encode((char **)&mydata, (const char *)data, M_TEXTCODEC_EHANDLER_FAIL, encoding))) {
+					goto err;
+				}
+
+				/* Form encoding is dealt with as a content type. We assume the encoded data is utf-8
+ 				 * because that's what text codec expects. */
+				if (encoding == M_TEXTCODEC_PERCENT_FORM) {
+					content_type = "application/x-www-form-urlencoded";
+					encoding     = M_TEXTCODEC_UTF8;
+				}
+
+				data     = mydata;
+				data_len = M_str_len((const char *)data);
+			}
+		}
+
 		M_snprintf(tempa, sizeof(tempa), "%zu", data_len);
-		M_http_set_header(http, "content-length", tempa);
+		M_http_set_header(http, "Content-Length", tempa);
 	}
 
-	/* We're not going to convert duplicates into a list.
- 	 * We'll write them as individual ones. */
-	M_hash_dict_enumerate(headers, &he);
-	while (M_hash_dict_enumerate_next(headers, he, &key, &val)) {
-		M_buf_add_str(buf, key);
-		M_buf_add_byte(buf, ':');
-		M_buf_add_str(buf, val);
-		M_buf_add_str(buf, "\r\n");
+	if (!M_str_isempty(content_type))
+		M_http_set_header(http, "Content-Type", content_type);
+
+	/* Ensure something is set for content type. */
+	if (!M_hash_dict_get(headers, "Content-Type", NULL)) {
+		/* If there isn't a content type we set a default. */
+		if (encoding == M_TEXTCODEC_UNKNOWN) {
+			M_http_set_header(http, "Content-Type", "application/octet-stream");
+		} else {
+			M_http_set_header(http, "Content-Type", "text/plain");
+			/* Specify the default charset. If an encoding was provided this will
+			 * be replaced. */
+			M_snprintf(tempa, sizeof(tempa), "charset=%s", M_textcodec_codec_to_str(encoding));
+			M_http_set_header_append(http, "Content-Type", tempa);
+		}
 	}
-	M_hash_dict_enumerate_free(he);
+
+	/* If we've encoded the data (or utf-8) mark the content as such. */
+	if (encoding != M_TEXTCODEC_UNKNOWN) {
+		M_snprintf(tempa, sizeof(tempa), "charset=%s", M_textcodec_codec_to_str(encoding));
+		M_http_set_header_append(http, "Content-Type", tempa);
+	}
+
+	/* Set the date if not present. */
+	if (!M_hash_dict_get(headers, "Date", NULL)) {
+		temp = M_http_writer_get_date();
+		M_http_set_header(http, "Date", temp);
+		M_free(temp);
+	}
+
+	/* Write out the headers. We use the key list
+ 	 * instead of enumerating the headers dict directly
+	 * because a multi dict will have the key value
+	 * multiple times for each value. We only want
+	 * a header added once because we're going to
+	 * have all values combined. */
+	header_keys = M_http_headers(http);
+	len         = M_list_str_len(header_keys);
+	for (i=0; i<len; i++) {
+		key = M_list_str_at(header_keys, i);
+
+		/* Get the combined header value. */
+		temp = M_http_header(http, key);
+
+		M_buf_add_str(buf, key);
+		/* There isn't supposed to be a space after the : per the standard.
+		 * People just put it there anyway but we want to be correct. */
+		M_buf_add_byte(buf, ':');
+		M_buf_add_str(buf, temp);
+		M_buf_add_str(buf, "\r\n");
+
+		M_free(temp);
+	}
+	M_list_str_destroy(header_keys);
 
 	/* End of start/headers. */
 	M_buf_add_str(buf, "\r\n");
 
 	/* Add the body data. */
-	M_buf_add_bytes(buf, data, data_len);
+	if (data != NULL)
+		M_buf_add_bytes(buf, data, data_len);
 
+	M_free(mydata);
 	M_http_destroy(http);
 	return M_TRUE;
 
 err:
+	M_free(mydata);
 	M_http_destroy(http);
 	return M_FALSE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-unsigned char *M_http_simple_write_request(M_http_method_t method, const char *uri, M_http_version_t version,
-	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+unsigned char *M_http_simple_write_request(M_http_method_t method,
+	const char *host, unsigned short port, const char *uri,
+	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding, size_t *len)
 {
 	M_bool   res;
 	M_buf_t *buf = M_buf_create();
 
-	res = M_http_simple_write_request_buf(buf, method, uri, version, headers, data, data_len);
+	res = M_http_simple_write_request_buf(buf, method, host, port, uri, user_agent, content_type, headers, data, data_len, encoding);
 
 	if (!res) {
 		if (len != NULL) {
@@ -118,15 +290,19 @@ unsigned char *M_http_simple_write_request(M_http_method_t method, const char *u
 	return M_buf_finish(buf, len);
 }
 
-M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method, const char *uri,
-	M_http_version_t version, const M_hash_dict_t *headers, const char *data, size_t data_len)
+M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
+	const char *host, unsigned short port, const char *uri,
+	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
+	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding)
 {
-	size_t start_len = M_buf_len(buf);
+	M_hash_dict_t *myheaders = NULL;
+	size_t         start_len = M_buf_len(buf);
 
-	if (method == M_HTTP_METHOD_UNKNOWN || M_str_isempty(uri) || version == M_HTTP_VERSION_UNKNOWN ||
-		(headers == NULL && (data == NULL || data_len == 0))) {
+	if (method == M_HTTP_METHOD_UNKNOWN)
 		return M_FALSE;
-	}
+
+	if  (M_str_isempty(uri))
+		uri = "/";
 
 	/* request-line = method SP request-target SP HTTP-version CRLF */
 	M_buf_add_str(buf, M_http_method_to_str(method));
@@ -139,32 +315,40 @@ M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method, con
 	 * +. We have no way to know so we'll go with %20 since it's more common. */
 	if (M_str_chr(uri, ' ') != NULL || !M_str_isascii(uri)) {
 		if (M_textcodec_encode_buf(buf, uri, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL) != M_TEXTCODEC_ERROR_SUCCESS) {
-			M_buf_truncate(buf, start_len);
-			return M_FALSE;
+			goto err;
 		}
 	} else {
 		M_buf_add_str(buf, uri);
 	}
 	M_buf_add_byte(buf, ' ');
 
-	M_buf_add_str(buf, M_http_version_to_str(version));
+	M_buf_add_str(buf, M_http_version_to_str(M_HTTP_VERSION_1_1));
 	M_buf_add_str(buf, "\r\n");
 
-	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
-		M_buf_truncate(buf, start_len);
-		return M_FALSE;
-	}
+	/* Generate the request headers we might want added. */
+	myheaders = M_http_simple_write_request_headers(headers, host, port, user_agent);
+	if (myheaders == NULL)
+		goto err;
 
+	if (!M_http_simple_write_int(buf, content_type, myheaders, data, data_len, encoding))
+		goto err;
+
+	M_hash_dict_destroy(myheaders);
 	return M_TRUE;
+
+err:
+	M_buf_truncate(buf, start_len);
+	return M_FALSE;
 }
 
-unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 code, const char *reason,
-	const M_hash_dict_t *headers, const char *data, size_t data_len, size_t *len)
+unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
+	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+	M_textcodec_codec_t encoding, size_t *len)
 {
 	M_bool   res;
 	M_buf_t *buf = M_buf_create();
 
-	res = M_http_simple_write_response_buf(buf, version, code, reason, headers, data, data_len);
+	res = M_http_simple_write_response_buf(buf, code, reason, content_type, headers, data, data_len, encoding);
 
 	if (!res) {
 		if (len != NULL) {
@@ -177,17 +361,14 @@ unsigned char *M_http_simple_write_response(M_http_version_t version, M_uint32 c
 	return M_buf_finish(buf, len);
 }
 
-M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_http_version_t version, M_uint32 code,
-	const char *reason, const M_hash_dict_t *headers, const char *data, size_t data_len)
+M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char *reason,
+	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
+	M_textcodec_codec_t encoding)
 {
 	size_t start_len = M_buf_len(buf);
 
-	if (version == M_HTTP_VERSION_UNKNOWN) {
-		return M_FALSE;
-	}
-
 	/* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
-	M_buf_add_str(buf, M_http_version_to_str(version));
+	M_buf_add_str(buf, M_http_version_to_str(M_HTTP_VERSION_1_1));
 	M_buf_add_byte(buf, ' ');
 
 	M_buf_add_int(buf, code);
@@ -199,7 +380,7 @@ M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_http_version_t version, 
 	M_buf_add_str(buf, reason);
 	M_buf_add_str(buf, "\r\n");
 
-	if (!M_http_simple_write_int(buf, headers, data, data_len)) {
+	if (!M_http_simple_write_int(buf, content_type, headers, data, data_len, encoding)) {
 		M_buf_truncate(buf, start_len);
 		return M_FALSE;
 	}

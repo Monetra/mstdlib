@@ -336,7 +336,14 @@ const M_hash_dict_t *M_http_simple_read_query_args(const M_http_simple_read_t *s
 	return M_http_query_args(simple->http);
 }
 
-const M_hash_dict_t *M_http_simple_read_headers(const M_http_simple_read_t *simple)
+const M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+	return M_http_headers_dict(simple->http);
+}
+
+M_list_str_t *M_http_simple_read_headers(const M_http_simple_read_t *simple)
 {
 	if (simple == NULL)
 		return NULL;
@@ -406,10 +413,13 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	size_t *len_read)
 {
 	M_http_reader_t                *reader;
+	M_http_simple_read_t           *sr;
 	M_http_error_t                  res;
 	size_t                          mylen_read;
+	M_bool                          have_simple = M_TRUE;
 	struct M_http_reader_callbacks  cbs = {
 		M_http_simple_read_start_cb,
+		NULL, /* header_full_cb */
 		M_http_simple_read_header_cb,
 		M_http_simple_read_header_done_cb,
 		M_http_simple_read_body_cb,
@@ -421,6 +431,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		M_http_simple_read_chunk_data_finished_cb,
 		NULL, /* multipart_preamble_cb */
 		NULL, /* multipart_preamble_done_cb */
+		NULL, /* multipart_header_full_cb */
 		NULL, /* multipart_header_cb */
 		NULL, /* multipart_header_done_cb */
 		NULL, /* multipart_data_cb */
@@ -428,6 +439,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		NULL, /* multipart_data_finished_cb. */
 		NULL, /* multipart_epilouge_cb */
 		NULL, /* multipart_epilouge_done_cb */
+		NULL, /* M_http_simple_read_trailer_full_cb */
 		M_http_simple_read_trailer_cb,
 		M_http_simple_read_trailer_done_cb
 	};
@@ -437,12 +449,13 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	*len_read = 0;
 
 	if (simple == NULL) {
-		return M_HTTP_ERROR_INVALIDUSE;
+		have_simple = M_FALSE;
+		simple      = &sr;
 	}
 
 	if (data == NULL || data_len == 0) {
-		*simple = NULL;
-		return M_HTTP_ERROR_MOREDATA;
+		res = M_HTTP_ERROR_MOREDATA;
+		goto done;
 	}
 
 	*simple = M_http_simple_read_create(flags);
@@ -451,23 +464,29 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	res    = M_http_reader_read(reader, data, data_len, len_read);
 	M_http_reader_destroy(reader);
 
-	if (!(*simple)->rdone) {
+	if (res == M_HTTP_ERROR_SUCCESS && !(*simple)->rdone) {
 		res       = M_HTTP_ERROR_MOREDATA;
 		*len_read = 0;
 	}
 
 	if (res != M_HTTP_ERROR_SUCCESS) {
-		M_http_simple_read_destroy(*simple);
-		*simple = NULL;
-		return res;
+		goto done;
 	}
 
 	res = M_http_simple_read_decode_body(*simple);
 	if (res != M_HTTP_ERROR_SUCCESS) {
 		M_http_simple_read_destroy(*simple);
 		*simple = NULL;
+		goto done;
 	}
 
+done:
+	if (res != M_HTTP_ERROR_SUCCESS || !have_simple) {
+		M_http_simple_read_destroy(*simple);
+		if (have_simple) {
+			*simple = NULL;
+		}
+	}
 	return res;
 }
 

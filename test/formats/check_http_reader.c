@@ -23,6 +23,7 @@ typedef struct {
 	char                  *uri;
 	M_uint32               code;
 	char                  *reason;
+	M_hash_dict_t         *headers_full;
 	M_hash_dict_t         *headers;
 	M_buf_t               *body;
 	M_buf_t               *preamble;
@@ -174,13 +175,14 @@ static httpr_test_t *httpr_test_create(void)
 {
 	httpr_test_t *ht;
 
-	ht              = M_malloc_zero(sizeof(*ht));
-	ht->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-	ht->cextensions = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-	ht->body        = M_buf_create();
-	ht->preamble    = M_buf_create();
-	ht->epilouge    = M_buf_create();
-	ht->bpieces     = M_list_str_create(M_LIST_NONE);
+	ht               = M_malloc_zero(sizeof(*ht));
+	ht->headers_full = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	ht->headers      = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	ht->cextensions  = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	ht->body         = M_buf_create();
+	ht->preamble     = M_buf_create();
+	ht->epilouge     = M_buf_create();
+	ht->bpieces      = M_list_str_create(M_LIST_NONE);
 
 	return ht;
 }
@@ -189,6 +191,7 @@ static void httpr_test_destroy(httpr_test_t *ht)
 {
 	M_free(ht->uri);
 	M_free(ht->reason);
+	M_hash_dict_destroy(ht->headers_full);
 	M_hash_dict_destroy(ht->headers);
 	M_hash_dict_destroy(ht->cextensions);
 	M_buf_cancel(ht->body);
@@ -215,6 +218,14 @@ static M_http_error_t start_func(M_http_message_type_t type, M_http_version_t ve
 	} else {
 		return M_HTTP_ERROR_USER_FAILURE;
 	}
+	return M_HTTP_ERROR_SUCCESS;
+}
+
+static M_http_error_t header_full_func(const char *key, const char *val, void *thunk)
+{
+	httpr_test_t *ht = thunk;
+
+	M_hash_dict_insert(ht->headers_full, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -311,6 +322,16 @@ static M_http_error_t multipart_preamble_done_func(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t multipart_header_full_func(const char *key, const char *val, size_t idx, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)idx;
+	(void)thunk;
+	return header_full_func(key, val, thunk);
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t multipart_header_func(const char *key, const char *val, size_t idx, void *thunk)
 {
 	(void)idx;
@@ -356,6 +377,15 @@ static M_http_error_t multipart_epilouge_done_func(void *thunk)
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_http_error_t trailer_full_func(const char *key, const char *val, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)thunk;
+	return header_full_func(key, val, thunk);
+	return M_HTTP_ERROR_SUCCESS;
+}
+
 static M_http_error_t trailer_func(const char *key, const char *val, void *thunk)
 {
 	return header_func(key, val, thunk);
@@ -374,6 +404,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 	M_http_reader_t *hr;
 	struct M_http_reader_callbacks cbs = {
 		start_func,
+		header_full_func,
 		header_func,
 		header_done_func,
 		body_func,
@@ -385,6 +416,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 		chunk_data_finished_func,
 		multipart_preamble_func,
 		multipart_preamble_done_func,
+		multipart_header_full_func,
 		multipart_header_func,
 		multipart_header_done_func,
 		multipart_data_func,
@@ -392,6 +424,7 @@ static M_http_reader_t *gen_reader(void *thunk)
 		multipart_data_finished_func,
 		multipart_epilouge_func,
 		multipart_epilouge_done_func,
+		trailer_full_func,
 		trailer_func,
 		trailer_done_func
 	};
@@ -428,22 +461,28 @@ START_TEST(check_httpr1)
 
 	/* Headers. */
 	key  = "Date";
-	gval = M_hash_dict_get_direct(ht->headers, key);
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "Mon, 7 May 2018 01:02:03 GMT";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
-	key  = "Content-Length";
+	/* Data is a special case and should not split on ',' since it's part of the value and not a list. */
+	key  = "Date";
 	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "Mon, 7 May 2018 01:02:03 GMT";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed (did split): got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Content-Length";
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "44";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
 	key  = "Connection";
-	gval = M_hash_dict_get_direct(ht->headers, key);
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "close";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
 	key  = "Content-Type";
-	gval = M_hash_dict_get_direct(ht->headers, key);
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "text/html";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
@@ -483,7 +522,7 @@ START_TEST(check_httpr2)
 
 	/* Headers. */
 	key = "dup_header";
-	ck_assert_msg(M_hash_dict_multi_len(ht->headers, "dup_header", &len), "No duplicate headers found");
+	ck_assert_msg(M_hash_dict_multi_len(ht->headers, key, &len), "No duplicate headers found");
 	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%zu", len, 3);
 	for (i=0; i<len; i++) {
 		gval = M_hash_dict_multi_get_direct(ht->headers, key, i);
@@ -494,11 +533,15 @@ START_TEST(check_httpr2)
 		} else {
 			eval = "c";
 		}
-		ck_assert_msg(M_str_eq(gval, eval), "%s (%zu) failed: got '%s', expected '%s'", key, i, gval, eval);
+		ck_assert_msg(M_str_eq(gval, eval), "%s (%zu) failed part: got '%s', expected '%s'", key, i, gval, eval);
 	}
+	/* Full headers should only have the last occurrence since we're replacing as we go on duplicate headers. */
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "c";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed full: got '%s', expected '%s'", key, gval, eval);
 
 	key = "list_header";
-	ck_assert_msg(M_hash_dict_multi_len(ht->headers, "dup_header", &len), "No duplicate headers found");
+	ck_assert_msg(M_hash_dict_multi_len(ht->headers, key, &len), "No duplicate headers found");
 	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%zu", len, 3);
 	for (i=0; i<len; i++) {
 		gval = M_hash_dict_multi_get_direct(ht->headers, key, i);
@@ -511,6 +554,10 @@ START_TEST(check_httpr2)
 		}
 		ck_assert_msg(M_str_eq(gval, eval), "%s (%zu) failed: got '%s', expected '%s'", key, i, gval, eval);
 	}
+	/* Full headers should have the full list. */
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "1, 2, 3";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed full: got '%s', expected '%s'", key, gval, eval);
 
 	/* Body. */
 	ck_assert_msg(M_str_eq(M_buf_peek(ht->body), body), "Body failed: got '%s', expected '%s'", M_buf_peek(ht->body), body);
@@ -596,6 +643,7 @@ START_TEST(check_httpr5)
 
 	/* Headers. */
 	key  = "Content-Type";
+	/* Checking split header dict to ensure we have a value. */
 	gval = M_hash_dict_get_direct(ht->headers, key);
 	eval = "application/x-www-form-urlencoded";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
@@ -751,12 +799,12 @@ START_TEST(check_httpr8)
 
 	/* Part Headers. */
 	key  = "Content-Dispositio1";
-	gval = M_hash_dict_get_direct(ht->headers, key);
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "form-data; name=\"username\"";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
 	key  = "Content-Typ2";
-	gval = M_hash_dict_get_direct(ht->headers, key);
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
 	eval = "text/plain";
 	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
 
