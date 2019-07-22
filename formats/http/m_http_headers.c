@@ -30,6 +30,8 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/* Some keys are special and ',' aren't used as separate's but valid
+ * parts of the value. */
 static M_bool M_http_header_is_semicolon_header(const char *key)
 {
 	if (M_str_caseeq(key, "WWW-Authenticate") || M_str_caseeq(key, "Proxy-Authorization") ||
@@ -38,47 +40,6 @@ static M_bool M_http_header_is_semicolon_header(const char *key)
 		return M_TRUE;
 	}
 	return M_FALSE;
-}
-
-static M_list_str_t *M_http_split_header_vals(const char *key, const char *val)
-{
-	M_list_str_t  *split_header = NULL;
-	char         **parts;
-	char          *temp;
-	size_t         num_parts    = 0;
-	size_t         i;
-
-	if (M_str_isempty(val))
-		return NULL;
-
-	split_header = M_list_str_create(M_LIST_STR_NONE);
-
-	/* Some headers use a ; instead of a , as the separator. The spec says , is the
-	 * separator but the special headers could have a , as part of their value so they
-	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
-	if (M_http_header_is_semicolon_header(key) || M_str_chr(val, ';') != NULL) {
-		parts = M_str_explode_str(';', val, &num_parts);
-	} else {
-		parts = M_str_explode_str(',', val, &num_parts);
-	}
-
-	if (parts == NULL || num_parts == 0) {
-		M_list_str_destroy(split_header);
-		return NULL;
-	}
-
-	/* We're going to ignore duplicate values in the header. They shouldn't have
-	 * been sent in the first place but since we don't really know what to do with
-	 * them we'll put that on whoever is receiving the data. */
-	for (i=0; i<num_parts; i++) {
-		/* After splitting we'll most likely have a space preceding the data. */
-		temp = M_strdup_trim(parts[i]);
-		M_list_str_insert(split_header, temp);
-		M_free(temp);
-	}
-
-	M_str_explode_free(parts, num_parts);
-	return split_header;
 }
 
 static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
@@ -111,15 +72,11 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 		size_t        nlen         = 0;
 		size_t        i;
 
-		if ((!M_hash_dict_multi_len(new_headers, key, &nlen) || nlen == 0) && M_str_isempty(oval))
-			continue;
-
-		/* No multi length means this isn't a multi hashtable.
-		 * In a multi we assume sub parts have already been split. */
-		if (nlen == 0) {
-			split_header = M_http_split_header_vals(key, oval);
-			nlen         = M_list_str_len(split_header);
-		}
+		/* Split the value. It could be a non-multi, in which case
+ 		 * we need it split. It's also possible it's a bad multi and we need
+		 * to split too. */
+		split_header = M_http_split_header_vals(key, oval);
+		nlen         = M_list_str_len(split_header);
 
 		/* Go though the new header values. */
 		for (i=0; i<nlen; i++) {
@@ -129,12 +86,7 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 			size_t       clen;
 			size_t       j;
 
-			/* No split header means this is a multi-value hashtable. */
-			if (split_header == NULL) {
-				nval = M_hash_dict_multi_get_direct(new_headers, key, i);
-			} else {
-				nval = M_list_str_at(split_header, i);
-			}
+			nval = M_list_str_at(split_header, i);
 
 			/* First split the value in case it's a sub key val. */
 			nparts = M_str_explode_str('=', nval, &num_nparts);
@@ -177,6 +129,9 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 				M_str_explode_free(cparts, num_cparts);
 
 				if (found) {
+					/* We need to remove because this is a replace. Value matching can't
+ 					 * happen with sub kvs due to only the first part (key) matching.
+					 * We'll remove on single value too so the code is simpler. */
 					M_hash_dict_multi_remove(*cur_headers, key, j);
 					break;
 				}
@@ -259,6 +214,7 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 	char         *out;
 	size_t        len;
 	size_t        i;
+	M_bool        semicolon_val = M_FALSE;
 
 	if (!M_hash_dict_multi_len(d, key, &len) || len == 0)
 		return NULL;
@@ -270,11 +226,16 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 	for (i=0; i<len; i++) {
 		val = M_hash_dict_multi_get_direct(d, key, i);
 		M_list_str_insert(l, val);
+
+		if (M_str_chr(val, ',') != NULL || M_str_chr(val, '=') != NULL) {
+			semicolon_val = M_TRUE;
+		}
 	}
 
 	/* Special headers that could have a comma (',') in them
-	 * or are just special. */
-	if (M_http_header_is_semicolon_header(key)) {
+	 * or are just special. A ';' also commonly used for headers
+	 * that have sub values separated by an '='. */
+	if (M_http_header_is_semicolon_header(key) || semicolon_val) {
 		out = M_list_str_join_str(l, "; ");
 	} else {
 		out = M_list_str_join_str(l, ", ");
@@ -286,11 +247,34 @@ static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const M_hash_dict_t *M_http_headers(const M_http_t *http)
+const M_hash_dict_t *M_http_headers_dict(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 	return http->headers;
+}
+
+M_list_str_t *M_http_headers(const M_http_t *http)
+{
+	M_list_str_t       *hkeys;
+	M_hash_dict_enum_t *he;
+	const char         *key;
+
+	if (http == NULL)
+		return NULL;
+
+	hkeys = M_list_str_create(M_LIST_STR_SET|M_LIST_STR_CASECMP);
+
+	M_hash_dict_enumerate(http->headers, &he);
+	while (M_hash_dict_enumerate_next(http->headers, he, &key, NULL)) {
+		/* enumerate will have the key multiple times because each value
+ 		 * comes out individually. The list is a set so we will
+		 * get each key in there only once. */
+		M_list_str_insert(hkeys, key);
+	}
+	M_hash_dict_enumerate_free(he);
+
+	return hkeys;
 }
 
 char *M_http_header(const M_http_t *http, const char *key)
@@ -466,4 +450,45 @@ void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
 		return;
 
 	M_hash_dict_insert(http->trailers, key, val);
+}
+
+M_list_str_t *M_http_split_header_vals(const char *key, const char *val)
+{
+	M_list_str_t  *split_header = NULL;
+	char         **parts;
+	char          *temp;
+	size_t         num_parts    = 0;
+	size_t         i;
+
+	if (M_str_isempty(val))
+		return NULL;
+
+	split_header = M_list_str_create(M_LIST_STR_NONE);
+
+	/* Some headers use a ; instead of a , as the separator. The spec says , is the
+	 * separator but the special headers could have a , as part of their value so they
+	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
+	if (M_http_header_is_semicolon_header(key) || M_str_chr(val, ';') != NULL || M_str_chr(val, '=') != NULL) {
+		parts = M_str_explode_str(';', val, &num_parts);
+	} else {
+		parts = M_str_explode_str(',', val, &num_parts);
+	}
+
+	if (parts == NULL || num_parts == 0) {
+		M_list_str_destroy(split_header);
+		return NULL;
+	}
+
+	/* We're going to ignore duplicate values in the header. They shouldn't have
+	 * been sent in the first place but since we don't really know what to do with
+	 * them we'll put that on whoever is receiving the data. */
+	for (i=0; i<num_parts; i++) {
+		/* After splitting we'll most likely have a space preceding the data. */
+		temp = M_strdup_trim(parts[i]);
+		M_list_str_insert(split_header, temp);
+		M_free(temp);
+	}
+
+	M_str_explode_free(parts, num_parts);
+	return split_header;
 }

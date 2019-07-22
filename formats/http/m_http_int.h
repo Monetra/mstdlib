@@ -293,12 +293,25 @@ const M_hash_dict_t *M_http_query_args(const M_http_t *http);
  *
  * Does not included the "Set-Cookie" header which can be sent multiple
  * times with different attributes.
+ * Multi-dict of headers.
  *
  * \param[in] http HTTP object.
  *
  * \return Multi value dict.
  */
-const M_hash_dict_t *M_http_headers(const M_http_t *http);
+const M_hash_dict_t *M_http_headers_dict(const M_http_t *http);
+
+
+/*! Get a list of headers that are sent.
+ *
+ * Should be used with M_http_header to get the
+ * full combined header.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return List of header keys.
+ */
+M_list_str_t *M_http_headers(const M_http_t *http);
 
 
 /*! Get all values for a header combined into a string.
@@ -469,6 +482,16 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
  * \param[in] val  Value.
  */
 void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
+
+
+/*! Split a header which could have multiple values into individual parts
+ *
+ * \param[in] key Header key. Keys use different separators
+ * \param[in] val Header value to split.
+ *
+ * \return List of values or NULL on error.
+ */
+M_list_str_t *M_http_split_header_vals(const char *key, const char *val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
