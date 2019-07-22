@@ -117,6 +117,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:ga13514519c922ccb82e00bed74b0e94c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab064733e43722a71cf189061d81fcb2e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#gab064733e43722a71cf189061d81fcb2e">M_http_reader_start_func</a>) (<a class="el" href="group__m__http.html#gaa4356ca0b99847db3a46f093db0b8940">M_http_message_type_t</a> type, <a class="el" href="group__m__http.html#ga3a1bff9ac4b3078e2bfac1226872d7fa">M_http_version_t</a> version, <a class="el" href="group__m__http.html#ga9009cf9cd2abe5ab4336584eebc7fcee">M_http_method_t</a> method, const char *uri, M_uint32 code, const char *reason, void *thunk)</td></tr>
 <tr class="separator:gab064733e43722a71cf189061d81fcb2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74ca509713f081463a316fd333fbeb76"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga74ca509713f081463a316fd333fbeb76">M_http_reader_header_full_func</a>) (const char *key, const char *val, void *thunk)</td></tr>
+<tr class="separator:ga74ca509713f081463a316fd333fbeb76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga125ed264e1f8c5e0a4f032b28779a671"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga125ed264e1f8c5e0a4f032b28779a671">M_http_reader_header_func</a>) (const char *key, const char *val, void *thunk)</td></tr>
 <tr class="separator:ga125ed264e1f8c5e0a4f032b28779a671"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5a90972a80c421daa447cf5a4f9f920b"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga5a90972a80c421daa447cf5a4f9f920b">M_http_reader_header_done_func</a>) (<a class="el" href="group__m__http.html#ga0e256f6b00615e25738e57ffda1a41c6">M_http_data_format_t</a> format, void *thunk)</td></tr>
@@ -139,6 +141,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:gaf76eaf8e8d86aa55ef83e8e8b8f75713"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga65169091069fdd375529b940f30830b5"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga65169091069fdd375529b940f30830b5">M_http_reader_multipart_preamble_done_func</a>) (void *thunk)</td></tr>
 <tr class="separator:ga65169091069fdd375529b940f30830b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4707ed771c2e5aa37c6fdb5d10c380ad"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga4707ed771c2e5aa37c6fdb5d10c380ad">M_http_reader_multipart_header_full_func</a>) (const char *key, const char *val, size_t idx, void *thunk)</td></tr>
+<tr class="separator:ga4707ed771c2e5aa37c6fdb5d10c380ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga88e9bdbef7d74fe2b8b4ad9fb74311c4"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga88e9bdbef7d74fe2b8b4ad9fb74311c4">M_http_reader_multipart_header_func</a>) (const char *key, const char *val, size_t idx, void *thunk)</td></tr>
 <tr class="separator:ga88e9bdbef7d74fe2b8b4ad9fb74311c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1103de1771a4b3101c9670fd8575632d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga1103de1771a4b3101c9670fd8575632d">M_http_reader_multipart_header_done_func</a>) (size_t idx, void *thunk)</td></tr>
@@ -153,6 +157,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:gae9ae2cfa45c4555ce7cf54cd7a33ee6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8b998a1df8a742fbd63789c0899ea00c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga8b998a1df8a742fbd63789c0899ea00c">M_http_reader_multipart_epilouge_done_func</a>) (void *thunk)</td></tr>
 <tr class="separator:ga8b998a1df8a742fbd63789c0899ea00c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa8342147acbb4fe3033f344dd2f55c1e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#gaa8342147acbb4fe3033f344dd2f55c1e">M_http_reader_trailer_full_func</a>) (const char *key, const char *val, void *thunk)</td></tr>
+<tr class="separator:gaa8342147acbb4fe3033f344dd2f55c1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6723866423d85728a5a4e47b60456c8d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#ga6723866423d85728a5a4e47b60456c8d">M_http_reader_trailer_func</a>) (const char *key, const char *val, void *thunk)</td></tr>
 <tr class="separator:ga6723866423d85728a5a4e47b60456c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad3c0f238d2a65f9ecb2a8c34945540ba"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__reader.html#gad3c0f238d2a65f9ecb2a8c34945540ba">M_http_reader_trailer_done_func</a>) (void *thunk)</td></tr>
@@ -196,6 +202,12 @@ Functions</h2></td></tr>
 <a class="anchor" id="a9ef07c38300360a5dda1110039cc2659"></a><a class="el" href="group__m__http__reader.html#gab064733e43722a71cf189061d81fcb2e">M_http_reader_start_func</a></td>
 <td class="fieldname">
 start_func</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a6555eafc6d5346f69b763cd344cd9e70"></a><a class="el" href="group__m__http__reader.html#ga74ca509713f081463a316fd333fbeb76">M_http_reader_header_full_func</a></td>
+<td class="fieldname">
+header_full_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -265,6 +277,12 @@ multipart_preamble_done_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="abd65fe07ce388156e133c20b5497b1dc"></a><a class="el" href="group__m__http__reader.html#ga4707ed771c2e5aa37c6fdb5d10c380ad">M_http_reader_multipart_header_full_func</a></td>
+<td class="fieldname">
+multipart_header_full_func</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="aaa169bcd0ccffe025c1570ad5f18dc29"></a><a class="el" href="group__m__http__reader.html#ga88e9bdbef7d74fe2b8b4ad9fb74311c4">M_http_reader_multipart_header_func</a></td>
 <td class="fieldname">
 multipart_header_func</td>
@@ -304,6 +322,12 @@ multipart_epilouge_func</td>
 <a class="anchor" id="a69f5cddd44f4200b6771a17a71d84494"></a><a class="el" href="group__m__http__reader.html#ga8b998a1df8a742fbd63789c0899ea00c">M_http_reader_multipart_epilouge_done_func</a></td>
 <td class="fieldname">
 multipart_epilouge_done_func</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a14da30fbe015e4813fac283b64e9efee"></a><a class="el" href="group__m__http__reader.html#gaa8342147acbb4fe3033f344dd2f55c1e">M_http_reader_trailer_full_func</a></td>
+<td class="fieldname">
+trailer_full_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -361,6 +385,31 @@ trailer_done_func</td>
 
 </div>
 </div>
+<a class="anchor" id="ga74ca509713f081463a316fd333fbeb76"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(* M_http_reader_header_full_func) (const char *key, const char *val, void *thunk)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function definition for reading full headers.</p>
+<p>This will provide the full unparsed header. This is always called for every header. It may be called multiple times if a header appears multiple times. This is intended for informational use or if passing along data and not altering any headers in the process.</p>
+<p>A header appearing multiple times here means it was present multiple times.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Header key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Header value. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Result</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga125ed264e1f8c5e0a4f032b28779a671">M_http_reader_header_func</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga125ed264e1f8c5e0a4f032b28779a671"></a>
 <div class="memitem">
 <div class="memproto">
@@ -370,8 +419,11 @@ trailer_done_func</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function definition for reading headers.</p>
-<p>Headers are split if a header list. Keys will appear multiple times if values were in a list or if the header appears multiple times. Values with semicolon (;) separated parameters are not split.</p>
+<p>Function definition for reading headers as component parts.</p>
+<p>This is the main header reading callback that should be used when parsing a message.</p>
+<p>Headers are split if a header list. Keys will appear multiple times if values were in a list or if the header appears multiple times. The standard uses ',' as a list separator but some headers will use a semicolon ';'. Values with semicolon ';' separated parameters are split as well.</p>
+<p>Will be called for headers that have a single part and are not split.</p>
+<p>It is not possible to determine if a header was present multiple times vs being in list form.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Header key. </td></tr>
@@ -380,7 +432,8 @@ trailer_done_func</td>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Result </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Result</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga74ca509713f081463a316fd333fbeb76">M_http_reader_header_full_func</a> </dd></dl>
 
 </div>
 </div>
@@ -603,6 +656,32 @@ trailer_done_func</td>
 
 </div>
 </div>
+<a class="anchor" id="ga4707ed771c2e5aa37c6fdb5d10c380ad"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(* M_http_reader_multipart_header_full_func) (const char *key, const char *val, size_t idx, void *thunk)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function definition for reading full multi part headers.</p>
+<p>This will provide the full unparsed header. This is always called for every header. It may be called multiple times if a header appears multiple times. This is intended for informational use or if passing along data and not altering any headers in the process.</p>
+<p>A header appearing multiple times here means it was present multiple times.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Header key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Header value. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Part number the header belongs to. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Result</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga125ed264e1f8c5e0a4f032b28779a671">M_http_reader_header_func</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga88e9bdbef7d74fe2b8b4ad9fb74311c4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -613,6 +692,10 @@ trailer_done_func</td>
       </table>
 </div><div class="memdoc">
 <p>Function definition for reading multipart part headers.</p>
+<p>This is the main multi part header reading callback that should be used when parsing a message.</p>
+<p>Headers are split if a header list. Keys will appear multiple times if values were in a list or if the header appears multiple times. The standard uses ',' as a list separator but some headers will use a semicolon ';'. Values with semicolon ';' separated parameters are split as well.</p>
+<p>Will be called for headers that have a single part and are not split.</p>
+<p>It is not possible to determine if a header was present multiple times vs being in list form.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Key. </td></tr>
@@ -756,6 +839,31 @@ trailer_done_func</td>
 
 </div>
 </div>
+<a class="anchor" id="gaa8342147acbb4fe3033f344dd2f55c1e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a>(* M_http_reader_trailer_full_func) (const char *key, const char *val, void *thunk)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function definition for reading full trailer headers.</p>
+<p>This will provide the full unparsed header. This is always called for every trailer header. It may be called multiple times if a header appears multiple times. This is intended for informational use or if passing along data and not altering any headers in the process.</p>
+<p>A header appearing multiple times here means it was present multiple times.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Header key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Header value. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Result</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga125ed264e1f8c5e0a4f032b28779a671">M_http_reader_header_func</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga6723866423d85728a5a4e47b60456c8d"></a>
 <div class="memitem">
 <div class="memproto">
@@ -766,7 +874,10 @@ trailer_done_func</td>
       </table>
 </div><div class="memdoc">
 <p>Function definition for reading trailing headers.</p>
-<p>Headers are split if a header list. Keys will appear multiple times if values were in a list or if the header appears multiple times. Values with semicolon (;) separated parameters are not split.</p>
+<p>This is the main trailer header reading callback that should be used when parsing a message.</p>
+<p>Headers are split if a header list. Keys will appear multiple times if values were in a list or if the header appears multiple times. The standard uses ',' as a list separator but some headers will use a semicolon ';'. Values with semicolon ';' separated parameters are split as well.</p>
+<p>Will be called for headers that have a single part and are not split.</p>
+<p>It is not possible to determine if a header was present multiple times vs being in list form.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">key</td><td>Header key. </td></tr>
@@ -924,6 +1035,7 @@ trailer_done_func</td>
       </table>
 </div><div class="memdoc">
 <p>Parse next http message from given array.</p>
+<p>Will not return M_HTTP_ERROR_MOREDATA. It is up to the caller to determine when a full message has been read. If Content-Length is not set it can be impossible to determine if a parse is complete.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">httpr</td><td>Http reader object. </td></tr>
@@ -942,7 +1054,7 @@ trailer_done_func</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 17 2019 19:21:42 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Jul 22 2019 19:39:12 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

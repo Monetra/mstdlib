@@ -1,5 +1,12 @@
 var NAVTREEINDEX10 =
 {
+"group__m__settings.html#gga0c8d125156f133881e1846d73f810a47a5c2d2e238e36d17240ef32fa826863e3":[1,2,5,4,1],
+"group__m__settings.html#gga51785d929043024d94e490b451212fbda1530ccad94463df54662f3415cae13f1":[1,2,5,2,1],
+"group__m__settings.html#gga51785d929043024d94e490b451212fbda8608fe08a9d448e16dea060c6c11ed70":[1,2,5,2,0],
+"group__m__settings.html#gga51785d929043024d94e490b451212fbda8894ddecae01b331f618ed0a90c548ff":[1,2,5,2,2],
+"group__m__settings.html#gga97e72c8343b3c96c5d3700e645e19f21a1b0841612ea13947a9d11b02aaa5183e":[1,2,5,1,0],
+"group__m__settings.html#gga97e72c8343b3c96c5d3700e645e19f21af49e314911634fcbdadd8efa951f6265":[1,2,5,1,1],
+"group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fca2f7b8ceeab4a71e9fc5f3f64197cc2cd":[1,2,5,3,2],
 "group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fca503e880a3b84a24cc14674771000bb1a":[1,2,5,3,0],
 "group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fcad400ec53dbb507efe9a2d1ba94724c93":[1,2,5,3,1],
 "group__m__settings.html#ggaef0add54610359d06b14ae5f2e27c8fcafd4d0356acc288f77af0d4842f18174b":[1,2,5,3,3],
@@ -242,12 +249,5 @@ var NAVTREEINDEX10 =
 "group__m__sql__report.html#ga8395a1aa809332e58ab29edae99c9fed":[1,5,7,3],
 "group__m__sql__report.html#gab74e893ce4166ae1324055e738aa61ae":[1,5,7,8],
 "group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9":[1,5,7,0],
-"group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9":[1,5,7,15],
-"group__m__sql__report.html#gad119e6f3df43fd4f5f6a077136096a1d":[1,5,7,2],
-"group__m__sql__report.html#gad946d57824ad80ee01a367bd5c85fc0b":[1,5,7,14],
-"group__m__sql__report.html#gadd1e167bbf4cb627e13c37fcbc5c2edb":[1,5,7,17],
-"group__m__sql__report.html#gafa488e7db2277ecac6dca66c9878f3b4":[1,5,7,16],
-"group__m__sql__report.html#gafbce3c1366f175c2a43b977798307186":[1,5,7,5],
-"group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663a0672e8006ac37a730c73891632c79527":[1,5,7,4,2],
-"group__m__sql__report.html#gga1c7af596258c77ade7036067ab197663a6b0b26bc5c52bc62418c8c01a0f5692c":[1,5,7,4,3]
+"group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9":[1,5,7,15]
 };

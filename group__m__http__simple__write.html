@@ -154,8 +154,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga05431da36348a35946d9d56506be442c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga10874687f66b8e54dd32aae6f42bbaee"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga10874687f66b8e54dd32aae6f42bbaee">M_http_simple_read_query_args</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
 <tr class="separator:ga10874687f66b8e54dd32aae6f42bbaee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga941671640e22214987663add59babee6"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga941671640e22214987663add59babee6">M_http_simple_read_headers</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
-<tr class="separator:ga941671640e22214987663add59babee6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga90cc1e66e6ea5356de8c1028f9cfc6fb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga90cc1e66e6ea5356de8c1028f9cfc6fb">M_http_simple_read_headers_dict</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga90cc1e66e6ea5356de8c1028f9cfc6fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadeebd623b4baeae9924a222303dd94e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5">M_http_simple_read_headers</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:gadeebd623b4baeae9924a222303dd94e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9fef00388f36d1ed4b5c62551661d1ce"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce">M_http_simple_read_header</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, const char *key)</td></tr>
 <tr class="separator:ga9fef00388f36d1ed4b5c62551661d1ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae2371cc5bbf6c2dbf8423bcea933ee9e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e">M_http_simple_read_get_set_cookie</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
@@ -260,7 +262,7 @@ Functions</h2></td></tr>
 <p>Read the next HTTP message from the given buffer, store results in a new M_http_simple_read_t object.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. Can be NULL to check for valid message. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Buffer containing HTTP messages to read. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">data_len</td><td>Length of <em>data</em>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Read options (OR'd combo of M_http_simple_read_flags_t). </td></tr>
@@ -305,13 +307,14 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Read the next HTTP message from the given parser.</p>
+<p>On success parser will consume message.</p>
 <p>Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message. No data will be dropped from the parser, in this case.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga1183c74485dadf2ebb039fc032a2d403">M_http_simple_read</a> </dd>
 <dd>
 M_http_simple_destroy</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. Can be NULL to check for valid message. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">parser</td><td>Buffer containing HTTP messages to read. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Read options (OR'd combo of M_http_simple_read_flags_t).</td></tr>
   </table>
@@ -629,12 +632,12 @@ M_http_simple_destroy</dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga941671640e22214987663add59babee6"></a>
+<a class="anchor" id="ga90cc1e66e6ea5356de8c1028f9cfc6fb"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_http_simple_read_headers </td>
+          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_http_simple_read_headers_dict </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
           <td class="paramname"><em>simple</em></td><td>)</td>
@@ -643,9 +646,11 @@ M_http_simple_destroy</dd></dl>
       </table>
 </div><div class="memdoc">
 <p>Get headers from parsed message as key-multivalue pairs.</p>
-<p>Note that some headers may contain a list of multiple values, so the returned M_hash_dict_t is a multimap (one key may map to a list of values).</p>
+<p>Note that some headers may contain a list of multiple values, so the returned M_hash_dict_t is a multimap (one key may map to a list of values). The first entry in the list is the first item in the value list if there are multiple values.</p>
 <p>Header names are not case-sensitive, when doing lookups into the returned dictionary.</p>
-<dl class="section warning"><dt>Warning</dt><dd>The returned dictionary does not include "Set-Cookie" headers, because they can be sent multiple times with different attributes, and their values cannot be merged into a list.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>M_http_simple_read_header should be used in order to get a full header. This is a parsed list and is provided to make searching for specific values easier. Use M_http_simple_read_headers to get a list of headers.</dd>
+<dd>
+The returned dictionary does not include "Set-Cookie" headers, because they can be sent multiple times with different attributes, and their values cannot be merged into a list.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
@@ -653,6 +658,37 @@ M_http_simple_destroy</dd></dl>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Multimap of header names and values.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce">M_http_simple_read_header</a> </dd>
+<dd>
+<a class="el" href="group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5">M_http_simple_read_headers</a> </dd>
+<dd>
+<a class="el" href="group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e">M_http_simple_read_get_set_cookie</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gadeebd623b4baeae9924a222303dd94e5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a>* M_http_simple_read_headers </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get a list of headers.</p>
+<p>Header names are not case-sensitive.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The returned list does not include "Set-Cookie" headers, because they can be sent multiple times with different attributes, and their values cannot be merged into a list.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>List of headers</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce">M_http_simple_read_header</a> </dd>
 <dd>
 <a class="el" href="group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e">M_http_simple_read_get_set_cookie</a> </dd></dl>
@@ -684,7 +720,7 @@ M_http_simple_destroy</dd></dl>
 </div><div class="memdoc">
 <p>Get value of the named header from the parsed message.</p>
 <p>The key is not case-sensitive - it will match header names that only differ because of capitalization.</p>
-<p>Note that some headers may contain a list of multiple values. For these headers, this function will return a comma-delimited list of values. Some extra whitespace may be added in addition to the commas.</p>
+<p>Note that some headers may contain a list of multiple values. For these headers, this function will return a comma-delimited list of values. Some extra white space may be added in addition to the commas.</p>
 <dl class="section warning"><dt>Warning</dt><dd>Attempts to retrieve "Set-Cookie" header values with this function will fail, because those headers may be sent multiple times with different attributes, and their values cannot be merged into a list.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -693,8 +729,8 @@ M_http_simple_destroy</dd></dl>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Comma-delimited list of values for this header, or <code>NULL</code> if no data found.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga941671640e22214987663add59babee6">M_http_simple_read_headers</a> </dd>
+<dl class="section return"><dt>Returns</dt><dd>Delimited list of values (if necessary) for this header, or <code>NULL</code> if no data found.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5">M_http_simple_read_headers</a> </dd>
 <dd>
 <a class="el" href="group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e">M_http_simple_read_get_set_cookie</a> </dd></dl>
 
@@ -725,7 +761,7 @@ M_http_simple_destroy</dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>Sorted list of all cookies in the message (may be empty).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce">M_http_simple_read_header</a> </dd>
 <dd>
-<a class="el" href="group__m__http__simple__write.html#ga941671640e22214987663add59babee6">M_http_simple_read_headers</a> </dd></dl>
+<a class="el" href="group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5">M_http_simple_read_headers</a> </dd></dl>
 
 </div>
 </div>
@@ -873,7 +909,7 @@ M_http_simple_destroy</dd></dl>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 17 2019 19:21:42 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Jul 22 2019 19:39:12 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
