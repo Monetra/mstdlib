@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -103,7 +103,7 @@ M_API M_sql_table_t *M_sql_table_create(const char *name);
 
 
 /*! Destroy a table object created with M_sql_table_create().
- * 
+ *
  *  \param[in] table         Table object initialized by M_sql_table_create()
  */
 M_API void M_sql_table_destroy(M_sql_table_t *table);
@@ -191,7 +191,7 @@ M_API M_bool M_sql_index_add_col(M_sql_index_t *idx, const char *col_name);
 M_API M_bool M_sql_table_add_index_str(M_sql_table_t *table, M_uint32 flags, const char *idx_name, const char *idx_cols_csv);
 
 
-/*! Apply the table object definition to the database. 
+/*! Apply the table object definition to the database.
  *
  *  \note This does not destroy the table object. Use M_sql_table_destroy() for that.
  *
@@ -204,6 +204,62 @@ M_API M_bool M_sql_table_add_index_str(M_sql_table_t *table, M_uint32 flags, con
 M_API M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, char *error, size_t error_size);
 
 /*! @} */
+
+/*! \addtogroup m_sql_tabledata SQL Table Data Management
+ *  \ingroup m_sql
+ *
+ * SQL Table Data Management
+ *
+ * @{
+ */
+
+
+/*! Flags for processing table data fields / columns */
+typedef enum {
+	M_SQL_TABLEDATA_FLAG_TAGGED   = 1 << 0, /*!< Field is tagged, grouped under 'table_column' */
+	M_SQL_TABLEDATA_FLAG_EDITABLE = 1 << 1, /*!< Field is allowed to be edited, not add-only */
+	M_SQL_TABLEDATA_FLAG_ID       = 1 << 2, /*!< Field is an auto-generated random ID. Cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_TAGGED. */
+} M_sql_tabledata_flags_t;
+
+/*! Structure to be used to define the various fields and columns stored in a table */
+typedef struct {
+	const char                 *table_column;    /*!< Database column name */
+	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For tagged columns, this field name is also used as the tag name. My only be omitted on M_SQL_TABLEDATA_FLAG_ID columns for add. Required on edit however.*/
+	const char                 *default_val;     /*!< Default value to use if field was not specified on add.  Has no effect on edit. If field was not specified and the default value is NULL, column will be omitted completely from request on add. */
+	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID fields, it is the desired number of digits to generate */
+	M_sql_data_type_t           type;            /*!< Column data type */
+	M_sql_tabledata_flags_t     flags;           /*!< Flags controlling behavior */
+} M_sql_tabledata_t;
+
+
+/*! Callback for fetching a table field.
+ *
+ *  \param[out] out        Pointer to allocated field data.  Will internally be M_free()'d.  MUST be able to handle a NULL value for existence checks.
+ *  \param[out] out_len    Length of data pointed to
+ *  \param[in]  field_name Field name being fetched
+ *  \param[in]  thunk      Thunk parameter for custom state tracking passed to parent function.
+ *  \return M_FALSE if field was not found, M_TRUE otherwise */
+typedef M_bool (*M_sql_tabledata_fetch_cb)(char **out, size_t *out_len, const char *field_name, void *thunk);
+
+
+/*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists
+ *
+ * \param[in] pool        Required if sqltrans not passed. The handle to the SQL pool in use.
+ * \param[in] sqltrans    Required if pool not passed.  If run within a transaction, this must be passed.
+ * \param[in] table_name  Name of the table
+ * \param[in] fields      List of fields (columns) in the table.
+ * \param[in] num_fields  Number of fields in the list
+ * \param[in] fetch_cb    Callback to be called to fetch each field/column.
+ * \param[in] thunk       Thunk parameter for custom state tracking, will be passed to fetch_cb.
+ * \param[in] error       Buffer to hold error if any
+ * \param[in] error_len   Size of error buffer
+ * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
+ */
+M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+
+
+/*! @} */
+
 
 __END_DECLS
 
