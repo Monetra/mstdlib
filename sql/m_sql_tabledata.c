@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  *
- * Copyright (c) 2017 Monetra Technologies, LLC.
+ * Copyright (c) 2019 Monetra Technologies, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,44 +58,21 @@ static char *M_sql_tabledata_row_gather_tagged(M_sql_tabledata_t *fields, size_t
 }
 
 
-M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+static M_bool M_sql_tabledata_validate_fields(M_sql_tabledata_t *fields, size_t num_fields, char *error, size_t error_len)
 {
-	M_buf_t       *request     = NULL;
+	size_t         i;
 	M_hash_dict_t *seen_cols   = NULL;
 	M_hash_dict_t *seen_fields = NULL;
-	M_sql_stmt_t  *stmt        = NULL;
-	size_t         i;
-	M_bool         has_col     = M_FALSE;
-	M_sql_error_t  err         = M_SQL_ERROR_USER_FAILURE;
+	M_bool         rv          = M_FALSE;
 
-	if (pool == NULL && sqltrans == NULL) {
-		M_snprintf(error, error_len, "must specify pool or sqltrans");
-		goto done;
-	}
+/* TODO: 
+ *  - verify there is at least 1 non-id column
+ *  - verify there is at least 1 id column
+ */
 
-	if (pool == NULL) {
-		pool = M_sql_trans_get_pool(sqltrans);
-	}
-
-	if (M_str_isempty(table_name)) {
-		M_snprintf(error, error_len, "missing table name");
-		goto done;
-	}
-	if (fields == NULL || num_fields == 0) {
-		M_snprintf(error, error_len, "fields specified invalid");
-		goto done;
-	}
-
-	request     = M_buf_create();
 	seen_cols   = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
 	seen_fields = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
-	stmt        = M_sql_stmt_create();
 
-	M_buf_add_str(request, "INSERT INTO \"");
-	M_buf_add_str(request, table_name);
-	M_buf_add_str(request, "\" (");
-
-	/* Specify each column name we will be outputting (in case the table as more columns than this) */
 	for (i=0; i<num_fields; i++) {
 		if (M_str_isempty(fields[i].table_column)) {
 			M_snprintf(error, error_len, "field %zu did not specify a column name", i);
@@ -133,6 +110,123 @@ M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltran
 			M_snprintf(error, error_len, "column %s cannot be both tagged and an id", fields[i].table_column);
 			goto done;
 		}
+
+	}
+	rv = M_TRUE;
+
+done:
+	M_hash_dict_destroy(seen_fields);
+	M_hash_dict_destroy(seen_cols);
+	return rv;
+}
+
+/* NOTE: Will M_free()' field_data! */
+static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, char *field_data, size_t field_data_len, size_t max_column_len)
+{
+	switch (type) {
+		case M_SQL_DATA_TYPE_BOOL:
+			if (field_data == NULL) {
+				M_sql_stmt_bind_bool_null(stmt);
+			} else {
+				M_sql_stmt_bind_bool(stmt, M_str_istrue(field_data));
+				M_free(field_data);
+			}
+			break;
+
+		case M_SQL_DATA_TYPE_INT16:
+			if (field_data == NULL) {
+				M_sql_stmt_bind_int16_null(stmt);
+			} else {
+				M_int64 num = 0;
+				M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
+				M_sql_stmt_bind_int16(stmt, (M_int16)(num & 0xFFFF));
+				M_free(field_data);
+			}
+			break;
+
+		case M_SQL_DATA_TYPE_INT32:
+			if (field_data == NULL) {
+				M_sql_stmt_bind_int32_null(stmt);
+			} else {
+				M_int64 num = 0;
+				M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
+				M_sql_stmt_bind_int32(stmt, (M_int32)(num & 0xFFFFFFFF));
+				M_free(field_data);
+			}
+			break;
+
+		case M_SQL_DATA_TYPE_INT64:
+			if (field_data == NULL) {
+				M_sql_stmt_bind_int64_null(stmt);
+			} else {
+				M_int64 num = 0;
+				M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
+				M_sql_stmt_bind_int64(stmt, num);
+				M_free(field_data);
+			}
+			break;
+
+		case M_SQL_DATA_TYPE_TEXT:
+			M_sql_stmt_bind_text_own(stmt, field_data, M_MIN(field_data_len, max_column_len));
+			break;
+
+		case M_SQL_DATA_TYPE_BINARY:
+			M_sql_stmt_bind_binary_own(stmt, (unsigned char *)field_data, M_MIN(field_data_len, max_column_len));
+			break;
+
+		case M_SQL_DATA_TYPE_UNKNOWN:
+		default:
+			M_free(field_data);
+			return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+
+M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+{
+	M_buf_t       *request     = NULL;
+	M_hash_dict_t *seen_cols   = NULL;
+	M_sql_stmt_t  *stmt        = NULL;
+	size_t         i;
+	M_bool         has_col     = M_FALSE;
+	M_sql_error_t  err         = M_SQL_ERROR_USER_FAILURE;
+
+	if (pool == NULL && sqltrans == NULL) {
+		M_snprintf(error, error_len, "must specify pool or sqltrans");
+		goto done;
+	}
+
+	if (pool == NULL) {
+		pool = M_sql_trans_get_pool(sqltrans);
+	}
+
+	if (M_str_isempty(table_name)) {
+		M_snprintf(error, error_len, "missing table name");
+		goto done;
+	}
+	if (fields == NULL || num_fields == 0) {
+		M_snprintf(error, error_len, "fields specified invalid");
+		goto done;
+	}
+
+	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len))
+		goto done;
+
+	request     = M_buf_create();
+	seen_cols   = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
+	stmt        = M_sql_stmt_create();
+
+	M_buf_add_str(request, "INSERT INTO \"");
+	M_buf_add_str(request, table_name);
+	M_buf_add_str(request, "\" (");
+
+	/* Specify each column name we will be outputting (in case the table as more columns than this) */
+	for (i=0; i<num_fields; i++) {
+		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
+			continue;
+		}
+		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
 		/* If no default value is specified, its not an ID and not a tagged field, then we need to test to see if this column should be emitted at all. */
 		if (fields[i].default_val == NULL &&
@@ -205,61 +299,9 @@ M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltran
 		has_col = M_TRUE;
 		M_buf_add_str(request, "?");
 
-		switch (fields[i].type) {
-			case M_SQL_DATA_TYPE_BOOL:
-				if (field_data == NULL) {
-					M_sql_stmt_bind_bool_null(stmt);
-				} else {
-					M_sql_stmt_bind_bool(stmt, M_str_istrue(field_data));
-					M_free(field_data);
-				}
-				break;
-
-			case M_SQL_DATA_TYPE_INT16:
-				if (field_data == NULL) {
-					M_sql_stmt_bind_int16_null(stmt);
-				} else {
-					M_int64 num = 0;
-					M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
-					M_sql_stmt_bind_int16(stmt, (M_int16)(num & 0xFFFF));
-					M_free(field_data);
-				}
-				break;
-
-			case M_SQL_DATA_TYPE_INT32:
-				if (field_data == NULL) {
-					M_sql_stmt_bind_int32_null(stmt);
-				} else {
-					M_int64 num = 0;
-					M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
-					M_sql_stmt_bind_int32(stmt, (M_int32)(num & 0xFFFFFFFF));
-					M_free(field_data);
-				}
-				break;
-
-			case M_SQL_DATA_TYPE_INT64:
-				if (field_data == NULL) {
-					M_sql_stmt_bind_int64_null(stmt);
-				} else {
-					M_int64 num = 0;
-					M_str_to_int64_ex(field_data, field_data_len, 10, &num, NULL);
-					M_sql_stmt_bind_int64(stmt, num);
-					M_free(field_data);
-				}
-				break;
-
-			case M_SQL_DATA_TYPE_TEXT:
-				M_sql_stmt_bind_text_own(stmt, field_data, M_MIN(field_data_len, fields[i].max_column_len));
-				break;
-
-			case M_SQL_DATA_TYPE_BINARY:
-				M_sql_stmt_bind_binary_own(stmt, (unsigned char *)field_data, M_MIN(field_data_len, fields[i].max_column_len));
-				break;
-
-			case M_SQL_DATA_TYPE_UNKNOWN:
-			default:
-				M_snprintf(error, error_len, "column %s unsupported field type", fields[i].table_column);
-				goto done;
+		if (!M_sql_tabledata_bind(stmt, fields[i].type, field_data, field_data_len, fields[i].max_column_len)) {
+			M_snprintf(error, error_len, "column %s unsupported field type", fields[i].table_column);
+			goto done;
 		}
 
 	}
@@ -281,8 +323,6 @@ done:
 		M_buf_cancel(request);
 	if (seen_cols)
 		M_hash_dict_destroy(seen_cols);
-	if (seen_fields)
-		M_hash_dict_destroy(seen_fields);
 	if (stmt != NULL) {
 		if (err != M_SQL_ERROR_SUCCESS && err != M_SQL_ERROR_USER_FAILURE) {
 			M_snprintf(error, error_len, "%s", M_sql_stmt_get_error_string(stmt));
@@ -292,4 +332,150 @@ done:
 	return err;
 }
 
+/*! Query table for matching record and return fieldname to value mappings in a hash dict */
+static M_sql_error_t M_sql_tabledata_query(M_hash_dict_t **dict_out, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+{
+	M_buf_t       *request     = NULL;
+	M_sql_stmt_t  *stmt        = NULL;
+	M_hash_dict_t *seen_cols   = NULL;
+	M_bool         has_col     = M_FALSE;
+	size_t         i;
+	M_sql_error_t  err         = M_SQL_ERROR_USER_FAILURE;
 
+	seen_cols = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
+	request   = M_buf_create();
+
+	M_buf_add_str(request, "SELECT ");
+	for (i=0; i<num_fields; i++) {
+		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
+			continue;
+		}
+		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
+
+		/* ID columns are not part of the selected data */
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID)
+			continue;
+
+		if (has_col) {
+			M_buf_add_str(request, ", ");
+		}
+		has_col = M_TRUE;
+		M_buf_add_str(request, "\"");
+		M_buf_add_str(request, fields[i].table_column);
+		M_buf_add_str(request, "\"");
+	}
+	M_buf_add_str(request, " FROM \"");
+	M_buf_add_str(request, table_name);
+	M_buf_add_str(request, "\"");
+	M_sql_query_append_updlock(M_sql_trans_get_pool(sqltrans), request, M_SQL_QUERY_UPDLOCK_TABLE, NULL);
+	M_buf_add_str(request, " WHERE ");
+
+	has_col = M_FALSE;
+
+	for (i=0; i<num_fields; i++) {
+		char    *field_data     = NULL;
+		size_t   field_data_len = 0;
+
+		if (!(fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
+			continue;
+
+		/* TODO: flag for REQUIRED id fields ? */
+
+		if (!fetch_cb(&field_data, &field_data_len, fields[i].field_name, thunk))
+			continue;
+
+		if (has_col) {
+			M_buf_add_str(request, " AND ");
+		}
+		has_col = M_TRUE;
+		M_buf_add_str(request, "\"");
+		M_buf_add_str(request, fields[i].table_column);
+		M_buf_add_str(request, "\"");
+		if (!M_sql_tabledata_bind(stmt, fields[i].type, field_data, field_data_len, fields[i].max_column_len)) {
+			M_snprintf(error, error_len, "column %s unsupported field type", fields[i].table_column);
+			goto done;
+		}
+	}
+
+	if (!has_col) {
+		M_snprintf(error, error_len, "no search criteria specified");
+		goto done;
+	}
+
+	M_sql_query_append_updlock(M_sql_trans_get_pool(sqltrans), request, M_SQL_QUERY_UPDLOCK_QUERYEND, NULL);
+
+	err = M_sql_stmt_prepare_buf(stmt, request);
+	request = NULL;
+	if (err != M_SQL_ERROR_SUCCESS)
+		goto done;
+
+	err = M_sql_trans_execute(sqltrans, stmt);
+
+	if (err != M_SQL_ERROR_SUCCESS)
+		goto done;
+
+	if (M_sql_stmt_result_num_rows(stmt) == 0) {
+		M_snprintf(error, error_len, "no match found");
+		err = M_SQL_ERROR_USER_FAILURE;
+		goto done;
+	}
+
+	if (M_sql_stmt_result_num_rows(stmt) > 1) {
+		M_snprintf(error, error_len, "more than one matching row found for search criteria");
+		err = M_SQL_ERROR_USER_FAILURE;
+		goto done;
+	}
+
+	/* TODO: map results to hashtable and return */
+
+done:
+	if (request)
+		M_buf_cancel(request);
+	if (seen_cols)
+		M_hash_dict_destroy(seen_cols);
+	if (stmt != NULL) {
+		if (err != M_SQL_ERROR_SUCCESS && err != M_SQL_ERROR_USER_FAILURE) {
+			M_snprintf(error, error_len, "%s", M_sql_stmt_get_error_string(stmt));
+		}
+		M_sql_stmt_destroy(stmt);
+	}
+	return err;
+}
+
+#if 0
+M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+{
+	M_buf_t       *request     = NULL;
+	M_hash_dict_t *seen_cols   = NULL;
+	M_sql_stmt_t  *stmt        = NULL;
+	size_t         i;
+	M_bool         has_col     = M_FALSE;
+	M_sql_error_t  err         = M_SQL_ERROR_USER_FAILURE;
+	M_hash_dict_t *prev_fields = NULL;
+
+	if (pool == NULL && sqltrans == NULL) {
+		M_snprintf(error, error_len, "must specify pool or sqltrans");
+		goto done;
+	}
+
+	if (pool == NULL) {
+		pool = M_sql_trans_get_pool(sqltrans);
+	}
+
+	if (M_str_isempty(table_name)) {
+		M_snprintf(error, error_len, "missing table name");
+		goto done;
+	}
+	if (fields == NULL || num_fields == 0) {
+		M_snprintf(error, error_len, "fields specified invalid");
+		goto done;
+	}
+
+	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len))
+		goto done;
+
+	err = M_sql_tabledata_query(&prev_fields, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, error, error_len);
+
+
+}
+#endif

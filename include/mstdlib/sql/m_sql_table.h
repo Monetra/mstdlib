@@ -229,6 +229,11 @@ typedef struct {
 	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID fields, it is the desired number of digits to generate */
 	M_sql_data_type_t           type;            /*!< Column data type */
 	M_sql_tabledata_flags_t     flags;           /*!< Flags controlling behavior */
+
+	/* TODO: 
+	 * - flags for non-generated ids and required ids vs optional.
+	 * - validator callback?
+	 */
 } M_sql_tabledata_t;
 
 
