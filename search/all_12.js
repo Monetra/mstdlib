@@ -19,6 +19,7 @@ var searchData=
   ['sql_20statement_20management',['SQL Statement Management',['../group__m__sql__stmt.html',1,'']]],
   ['sql_20statement_20request_20parameter_20binding',['SQL Statement Request Parameter Binding',['../group__m__sql__stmt__bind.html',1,'']]],
   ['sql_20statement_20results',['SQL Statement Results',['../group__m__sql__stmt__result.html',1,'']]],
+  ['sql_20table_20data_20management',['SQL Table Data Management',['../group__m__sql__tabledata.html',1,'']]],
   ['sql_20pool_20tracing',['SQL Pool Tracing',['../group__m__sql__trace.html',1,'']]],
   ['sql_20transaction_20handling',['SQL Transaction Handling',['../group__m__sql__trans.html',1,'']]],
   ['state_20machine',['State Machine',['../group__m__state__machine.html',1,'']]],

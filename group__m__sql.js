@@ -10,5 +10,6 @@ var group__m__sql =
     [ "SQL Report Generation", "group__m__sql__report.html", "group__m__sql__report" ],
     [ "SQL Statement Management", "group__m__sql__stmt.html", "group__m__sql__stmt" ],
     [ "SQL Table/Schema Management", "group__m__sql__schema.html", "group__m__sql__schema" ],
+    [ "SQL Table Data Management", "group__m__sql__tabledata.html", "group__m__sql__tabledata" ],
     [ "SQL Transaction Handling", "group__m__sql__trans.html", "group__m__sql__trans" ]
 ];

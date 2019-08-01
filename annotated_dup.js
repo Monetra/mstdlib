@@ -14,6 +14,7 @@ var annotated_dup =
     [ "M_sql_connstr_params_t", "group__m__sql__driver.html#structM__sql__connstr__params", "group__m__sql__driver_structM__sql__connstr__params" ],
     [ "M_sql_driver_t", "group__m__sql__driver.html#structM__sql__driver__t", "group__m__sql__driver_structM__sql__driver__t" ],
     [ "M_sql_hostport_t", "group__m__sql__driver.html#structM__sql__hostport__t", "group__m__sql__driver_structM__sql__hostport__t" ],
+    [ "M_sql_tabledata_t", "group__m__sql__tabledata.html#structM__sql__tabledata__t", "group__m__sql__tabledata_structM__sql__tabledata__t" ],
     [ "M_thread_once_t", "group__m__thread__common__once.html#structM__thread__once__t", "group__m__thread__common__once_structM__thread__once__t" ],
     [ "M_thread_spinlock_t", "group__m__thread__common__spinlock.html#structM__thread__spinlock__t", "group__m__thread__common__spinlock_structM__thread__spinlock__t" ],
     [ "M_time_gmtm_t", "group__m__time.html#structM__time__tm", "group__m__time_structM__time__tm" ],

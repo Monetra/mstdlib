@@ -1,9 +1,7 @@
 var searchData=
 [
-  ['handle',['handle',['../group__m__sql__driver.html#a74b9ca2d4c290ad01fb4c338a1fb6449',1,'M_sql_driver_t']]],
-  ['header_5fdone_5ffunc',['header_done_func',['../group__m__http__reader.html#a22b2eca120880a1f560664776f6cab84',1,'M_http_reader_callbacks']]],
-  ['header_5ffull_5ffunc',['header_full_func',['../group__m__http__reader.html#a6555eafc6d5346f69b763cd344cd9e70',1,'M_http_reader_callbacks']]],
-  ['header_5ffunc',['header_func',['../group__m__http__reader.html#a91f9382d0e726a6037a11e8bfa4b4816',1,'M_http_reader_callbacks']]],
-  ['host',['host',['../group__m__sql__driver.html#ad7abdf91a0ece09b457294513fd7b6fc',1,'M_sql_hostport_t']]],
-  ['hour',['hour',['../group__m__time.html#a37ef85976dd1d34bfe7eb0f278dcb71f',1,'M_time_tm']]]
+  ['get_5ffilename',['get_filename',['../group__m__backtrace__trace.html#a2c0652ef99994c45b769ef1b79969984',1,'M_backtrace_callbacks']]],
+  ['gmtoff',['gmtoff',['../group__m__time.html#a7bf7a53206b6af1c1cc3878c092d892f',1,'M_time_tm']]],
+  ['got_5ffatal',['got_fatal',['../group__m__backtrace__trace.html#a685f96ee85226fe5afe637f4d2fc4a37',1,'M_backtrace_callbacks']]],
+  ['got_5fnonfatal',['got_nonfatal',['../group__m__backtrace__trace.html#a170230658d7cbe74c55269bf711695dc',1,'M_backtrace_callbacks']]]
 ];
