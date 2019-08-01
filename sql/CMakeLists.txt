@@ -19,6 +19,7 @@ set(srcs
 	m_sql_stmt_bind.c
 	m_sql_stmt_result.c
 	m_sql_table.c
+	m_sql_tabledata.c
 	m_sql_trace.c
 	m_sql_trans.c
 )
