@@ -600,7 +600,10 @@ static void print_table(M_sql_connpool_t *pool, const char *tablename)
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_report_process() failed: %s: %s", M_sql_error_string(err), error);
 
 #if defined(DEBUG)
+	M_printf("===================================================================================================\n");
+	M_printf("Table: %s\n", tablename);
 	M_printf("%s", out);
+	M_printf("===================================================================================================\n");
 #endif
 	M_free(out);
 }
