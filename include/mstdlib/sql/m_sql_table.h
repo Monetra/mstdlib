@@ -266,7 +266,23 @@ typedef M_bool (*M_sql_tabledata_fetch_cb)(char **out, size_t *out_len, const ch
  */
 M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
 
-/* NOTE: If returns M_SQL_ERROR_USER_SUCCESS, then that means no updates were performed because data hasn't changed. M_SQL_ERROR_SUCCESS means rows were changed. If more than 1 row would be updated, will return a failure. */
+/*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
+ *   fields that are able to be fetched will be modified.  It is valid to fetch a NULL value to explicitly set a column
+ *   to NULL.  The ID(s) specified must match exactly one row or a failure will be emitted.
+ *
+ * \param[in]     pool         Required if sqltrans not passed. The handle to the SQL pool in use.
+ * \param[in]     sqltrans     Required if pool not passed.  If run within a transaction, this must be passed.
+ * \param[in]     table_name   Name of the table
+ * \param[in]     fields       List of fields (columns) in the table.
+ * \param[in]     num_fields   Number of fields in the list
+ * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
+ * \param[in,out] error        Buffer to hold error if any
+ * \param[in]     error_len    Size of error buffer
+ * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function.
+ *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
+ *         M_SQL_ERROR_SUCCESS means a single row was changed.
+ */
 M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
 
 
