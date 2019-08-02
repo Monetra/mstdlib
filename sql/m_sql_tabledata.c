@@ -65,7 +65,8 @@ static M_bool M_sql_tabledata_edit_fetch(char **field_data, size_t *field_data_l
 		size_t               prior_data_len = 0;
 
 		if (M_hash_strbin_get(prev_fields, field_name, &prior_data, &prior_data_len)) {
-			*field_data     = (char *)M_memdup(prior_data, prior_data_len);
+			*field_data     = M_malloc_zero(prior_data_len + 1);
+			M_mem_copy(*field_data, prior_data, prior_data_len);
 			*field_data_len = prior_data_len;
 		}
 	}
@@ -611,10 +612,11 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	if (M_sql_error_is_error(err))
 		goto done;
 
-	err     = M_SQL_ERROR_USER_FAILURE;
+	err       = M_SQL_ERROR_USER_FAILURE;
 
-	request = M_buf_create();
-	stmt    = M_sql_stmt_create();
+	seen_cols = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
+	request   = M_buf_create();
+	stmt      = M_sql_stmt_create();
 	M_buf_add_str(request, "UPDATE \"");
 	M_buf_add_str(request, info->table_name);
 	M_buf_add_str(request, "\" SET ");
