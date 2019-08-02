@@ -339,6 +339,7 @@ M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltran
 	has_col   = M_FALSE;
 
 	/* Bind values */
+	M_buf_add_str(request, ") VALUES (");
 	for (i=0; i<num_fields; i++) {
 		char  *field_data = NULL;
 		size_t field_data_len = 0;

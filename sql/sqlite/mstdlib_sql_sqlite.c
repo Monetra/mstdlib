@@ -1005,10 +1005,10 @@ static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_dat
 			M_buf_add_str(buf, "SMALLINT");
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_INT32:
-			M_buf_add_str(buf, "BIGINT");
+			M_buf_add_str(buf, "INTEGER");
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_INT64:
-			M_buf_add_str(buf, "INTEGER");
+			M_buf_add_str(buf, "BIGINT");
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_TEXT:
 			if (max_len == 0 || max_len > 16 * 1024) {
