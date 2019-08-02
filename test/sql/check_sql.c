@@ -576,6 +576,35 @@ static M_bool fetch_dict(char **out, size_t *out_len, const char *field_name, vo
 	return M_TRUE;
 }
 
+static void print_table(M_sql_connpool_t *pool, const char *tablename)
+{
+	M_sql_stmt_t   *stmt    = M_sql_stmt_create();
+	M_buf_t        *request = M_buf_create();
+	M_sql_error_t   err;
+	M_sql_report_t *report  = M_sql_report_create(M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED);
+	char           *out     = NULL;
+	size_t          out_len = 0;
+	char            error[256];
+
+	M_buf_add_str(request, "SELECT * FROM \"");
+	M_buf_add_str(request, tablename);
+	M_buf_add_str(request, "\"");
+	err     = M_sql_stmt_prepare_buf(stmt, request);
+	request = NULL;
+	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_prepare(SELECT) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
+	err     = M_sql_stmt_execute(pool, stmt);
+	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_execute(SELECT) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
+
+	err = M_sql_report_process(report, stmt, NULL, &out, &out_len, error, sizeof(error));
+	M_sql_report_destroy(report);
+	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_report_process() failed: %s: %s", M_sql_error_string(err), error);
+
+#if defined(DEBUG)
+	M_printf("%s", out);
+#endif
+	M_free(out);
+}
+
 
 START_TEST(check_tabledata)
 {
@@ -620,6 +649,7 @@ START_TEST(check_tabledata)
 	err = M_sql_table_execute(pool, table, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_table_execute() failed: %s", error);
 	M_sql_table_destroy(table);
+	print_table(pool, "foo");
 
 	/* Create table.  Do not specify tag2 or col4 to make sure they are blank */
 	dict = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
@@ -629,12 +659,24 @@ START_TEST(check_tabledata)
 	M_hash_dict_insert(dict, "tag3", "tag 3 value");
 	err = M_sql_tabledata_add(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_add() failed: %s", error);
+	print_table(pool, "foo");
 
 	/* Edit table, but don't change any values, should return M_SQL_ERROR_USER_SUCCESS to indicate nothing changed */
 	M_snprintf(temp, sizeof(temp), "%lld", id);
 	M_hash_dict_insert(dict, "id", temp);
 	err = M_sql_tabledata_edit(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
-	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit expected to return no rows modified, returned: %s", error);
+	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit(1) expected to return no rows modified, returned: %s", error);
+	print_table(pool,"foo");
+
+	/* Remove some other columns so that the current values are kept without specifying, and set 'tag2' which was not previously set */
+	M_hash_dict_remove(dict, "col1");
+	M_hash_dict_remove(dict, "col2");
+	M_hash_dict_remove(dict, "tag1");
+	M_hash_dict_remove(dict, "tag3");
+	M_hash_dict_insert(dict, "tag2", "added tag 2 after!");
+	err = M_sql_tabledata_edit(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(2) expected to return row modified, returned: %s", error);
+	print_table(pool, "foo");
 
 	/* Close connections */
 	ck_assert_msg(M_sql_connpool_destroy(pool) == M_SQL_ERROR_SUCCESS, "M_sql_connpool_destroy() failed");
