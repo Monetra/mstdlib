@@ -216,22 +216,25 @@ M_API M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *t
 
 /*! Flags for processing table data fields / columns */
 typedef enum {
-	M_SQL_TABLEDATA_FLAG_TAGGED   = 1 << 0, /*!< Field is tagged, grouped under 'table_column' */
-	M_SQL_TABLEDATA_FLAG_EDITABLE = 1 << 1, /*!< Field is allowed to be edited, not add-only */
-	M_SQL_TABLEDATA_FLAG_ID       = 1 << 2, /*!< Field is an auto-generated random ID. Cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_TAGGED. */
+	M_SQL_TABLEDATA_FLAG_TAGGED       = 1 << 0, /*!< Field is tagged, grouped under 'table_column' */
+	M_SQL_TABLEDATA_FLAG_EDITABLE     = 1 << 1, /*!< Field is allowed to be edited, not add-only */
+	M_SQL_TABLEDATA_FLAG_ID           = 1 << 2, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
+	                                             *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_TAGGED. */
+	M_SQL_TABLEDATA_FLAG_ID_GENERATE  = 1 << 3, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. */
+	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 4  /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
+	                                             *   as there may be multiple lookup indexes */
 } M_sql_tabledata_flags_t;
 
 /*! Structure to be used to define the various fields and columns stored in a table */
 typedef struct {
 	const char                 *table_column;    /*!< Database column name */
-	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For tagged columns, this field name is also used as the tag name. My only be omitted on M_SQL_TABLEDATA_FLAG_ID columns for add. Required on edit however.*/
+	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For tagged columns, this field name is also used as the tag name. */
 	const char                 *default_val;     /*!< Default value to use if field was not specified on add.  Has no effect on edit. If field was not specified and the default value is NULL, column will be omitted completely from request on add. */
-	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID fields, it is the desired number of digits to generate */
+	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
 	M_sql_data_type_t           type;            /*!< Column data type */
 	M_sql_tabledata_flags_t     flags;           /*!< Flags controlling behavior */
 
 	/* TODO: 
-	 * - flags for non-generated ids and required ids vs optional.
 	 * - validator callback?
 	 */
 } M_sql_tabledata_t;
@@ -261,6 +264,9 @@ typedef M_bool (*M_sql_tabledata_fetch_cb)(char **out, size_t *out_len, const ch
  * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
  */
 M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+
+/* NOTE: If returns M_SQL_ERROR_USER_SUCCESS, then that means no updates were performed because data hasn't changed. M_SQL_ERROR_SUCCESS means rows were changed. If more than 1 row would be updated, will return a failure. */
+M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
 
 
 /*! @} */
