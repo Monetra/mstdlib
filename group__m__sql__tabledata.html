@@ -412,6 +412,22 @@ flags</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Edit an existing row in a table based on the field definitions. Not all fields need to be available on edit, only fields that are able to be fetched will be modified. It is valid to fetch a NULL value to explicitly set a column to NULL. The ID(s) specified must match exactly one row or a failure will be emitted.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pool</td><td>Required if sqltrans not passed. The handle to the SQL pool in use. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sqltrans</td><td>Required if pool not passed. If run within a transaction, this must be passed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">table_name</td><td>Name of the table </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fields</td><td>List of fields (columns) in the table. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">num_fields</td><td>Number of fields in the list </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fetch_cb</td><td>Callback to be called to fetch each field/column. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk parameter for custom state tracking, will be passed to fetch_cb. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">error</td><td>Buffer to hold error if any </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error_len</td><td>Size of error buffer </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function. Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data). M_SQL_ERROR_SUCCESS means a single row was changed. </dd></dl>
 
 </div>
 </div>
@@ -420,7 +436,7 @@ flags</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Aug 2 2019 18:46:29 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Fri Aug 2 2019 18:52:39 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
