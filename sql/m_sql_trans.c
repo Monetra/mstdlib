@@ -253,6 +253,7 @@ M_sql_error_t M_sql_trans_process(M_sql_connpool_t *pool, M_sql_isolation_t isol
 	M_sql_trans_t *trans    = NULL;
 	M_bool         rollback = M_FALSE;
 	M_sql_error_t  err;
+	M_sql_error_t  cmd_err;
 
 	if (pool == NULL || cmd == NULL) {
 		M_snprintf(error, error_size, "missing pool or cmd");
@@ -281,7 +282,8 @@ M_sql_error_t M_sql_trans_process(M_sql_connpool_t *pool, M_sql_isolation_t isol
 		}
 
 		/* Execute the user-command */
-		err = cmd(trans, cmd_arg, error, error_size);
+		err     = cmd(trans, cmd_arg, error, error_size);
+		cmd_err = err; /* to preserve M_SQL_ERROR_USER_SUCCESS */
 		if (M_sql_error_is_error(err)) {
 			/* If an error occurred, but the error buffer is not filled in, attempt to
 			 * pull the last error message from the 'trans' error buffer instead */
@@ -318,11 +320,14 @@ M_sql_error_t M_sql_trans_process(M_sql_connpool_t *pool, M_sql_isolation_t isol
 
 			/* Must be a fatal error, and commit guarantees it is rolled back already */
 			return err;
+		} else {
+			err = cmd_err; /* Restore return value from command executed, we don't want to possibly override a
+			                * M_SQL_ERROR_USER_SUCCESS with M_SQL_ERROR_SUCCESS */
 		}
 
 	} while (rollback);
 
-	return M_SQL_ERROR_SUCCESS;
+	return err;
 }
 
 M_sql_connpool_t *M_sql_trans_get_pool(M_sql_trans_t *trans)

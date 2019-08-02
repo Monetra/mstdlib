@@ -582,6 +582,8 @@ START_TEST(check_tabledata)
 	M_sql_error_t     err;
 	M_sql_connpool_t *pool    = NULL;
 	char              error[256];
+	char              temp[256];
+	M_int64           id      = 0;
 	M_sql_tabledata_t td[] = {
 		{ "key",  "id",   NULL, 18,  M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED },
 		{ "col1", "col1", NULL, 0,   M_SQL_DATA_TYPE_INT32, M_SQL_TABLEDATA_FLAG_EDITABLE },
@@ -619,15 +621,20 @@ START_TEST(check_tabledata)
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_table_execute() failed: %s", error);
 	M_sql_table_destroy(table);
 
-
+	/* Create table.  Do not specify tag2 or col4 to make sure they are blank */
 	dict = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
 	M_hash_dict_insert(dict, "col1", "123");
 	M_hash_dict_insert(dict, "col2", "my column 2");
 	M_hash_dict_insert(dict, "tag1", "tag 1 value");
 	M_hash_dict_insert(dict, "tag3", "tag 3 value");
-	err = M_sql_tabledata_add(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
-	M_hash_dict_destroy(dict);
+	err = M_sql_tabledata_add(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_add() failed: %s", error);
+
+	/* Edit table, but don't change any values, should return M_SQL_ERROR_USER_SUCCESS to indicate nothing changed */
+	M_snprintf(temp, sizeof(temp), "%lld", id);
+	M_hash_dict_insert(dict, "id", temp);
+	err = M_sql_tabledata_edit(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit expected to return no rows modified, returned: %s", error);
 
 	/* Close connections */
 	ck_assert_msg(M_sql_connpool_destroy(pool) == M_SQL_ERROR_SUCCESS, "M_sql_connpool_destroy() failed");
