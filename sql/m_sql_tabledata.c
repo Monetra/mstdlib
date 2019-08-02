@@ -121,11 +121,12 @@ static char *M_sql_tabledata_row_gather_tagged(M_sql_tabledata_t *fields, size_t
 static M_bool M_sql_tabledata_validate_fields(M_sql_tabledata_t *fields, size_t num_fields, char *error, size_t error_len)
 {
 	size_t         i;
-	M_hash_dict_t *seen_cols   = NULL;
-	M_hash_dict_t *seen_fields = NULL;
-	M_bool         rv          = M_FALSE;
-	M_bool         has_id      = M_FALSE;
-	M_bool         has_nonid   = M_FALSE;
+	M_hash_dict_t *seen_cols     = NULL;
+	M_hash_dict_t *seen_fields   = NULL;
+	M_bool         rv            = M_FALSE;
+	M_bool         has_id        = M_FALSE;
+	M_bool         has_nonid     = M_FALSE;
+	M_bool         has_generated = M_FALSE;
 
 	seen_cols   = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
 	seen_fields = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
@@ -166,6 +167,14 @@ static M_bool M_sql_tabledata_validate_fields(M_sql_tabledata_t *fields, size_t 
 		    !(fields[i].flags & M_SQL_TABLEDATA_FLAG_ID)) {
 			M_snprintf(error, error_len, "field %s must be an id to specify id_generate or id_required", fields[i].field_name);
 			goto done;
+		}
+
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
+			if (has_generated) {
+				M_snprintf(error, error_len, "more than one field with id_generate specified");
+				goto done;
+			}
+			has_generated = M_TRUE;
 		}
 
 		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
@@ -264,7 +273,7 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, c
 }
 
 
-M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
 	M_buf_t       *request     = NULL;
 	M_hash_dict_t *seen_cols   = NULL;
@@ -353,7 +362,8 @@ M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltran
 			field_data     = M_sql_tabledata_row_gather_tagged(fields, num_fields, i, fetch_cb, thunk, NULL);
 			field_data_len = M_str_len(field_data);
 		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
-			size_t max_len = fields[i].max_column_len;
+			size_t  max_len = fields[i].max_column_len;
+			M_int64 id;
 			if (max_len == 0) {
 				if (fields[i].type == M_SQL_DATA_TYPE_INT32) {
 					max_len = 9;
@@ -363,7 +373,10 @@ M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltran
 			}
 			if (max_len > 18)
 				max_len = 18;
-			field_data_len = M_asprintf(&field_data, "%lld", M_sql_gen_timerand_id(pool, max_len));
+			id             = M_sql_gen_timerand_id(pool, max_len);
+			field_data_len = M_asprintf(&field_data, "%lld", id);
+			if (generated_id != NULL)
+				*generated_id = id;
 		} else {
 			if (!fetch_cb(&field_data, &field_data_len, fields[i].field_name, thunk)) {
 				if (fields[i].default_val != NULL) {
