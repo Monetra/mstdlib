@@ -15,6 +15,7 @@ var group__m__sql__stmt__result =
     [ "M_sql_stmt_result_num_cols", "group__m__sql__stmt__result.html#ga8fc27dd2089d505740977de477a9110b", null ],
     [ "M_sql_stmt_result_col_name", "group__m__sql__stmt__result.html#ga3c1ca6e84385323c81d99a4fc4ae50ea", null ],
     [ "M_sql_stmt_result_col_type", "group__m__sql__stmt__result.html#gabc5840867c88190709638a2004d8a376", null ],
+    [ "M_sql_stmt_result_col_type_byname", "group__m__sql__stmt__result.html#ga29c1bf8bc3505eb624eeb3936bcff15c", null ],
     [ "M_sql_stmt_result_col_idx", "group__m__sql__stmt__result.html#ga9c372479c53cc3ccc247bec27b247c35", null ],
     [ "M_sql_stmt_result_isnull", "group__m__sql__stmt__result.html#ga9431e56e0631895c6b2901806e1eafc2", null ],
     [ "M_sql_stmt_result_text", "group__m__sql__stmt__result.html#ga35037dc25c3dbdaa8ede64593a18fa30", null ],

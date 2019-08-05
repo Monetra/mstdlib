@@ -113,8 +113,10 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gae201b6ecb641139171c5a2df4fe7ba71"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a>) (char **out, size_t *out_len, const char *field_name, void *thunk)</td></tr>
-<tr class="separator:gae201b6ecb641139171c5a2df4fe7ba71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab0d3ec10075e1c0e67970d7355863628"><td class="memItemLeft" align="right" valign="top">typedef struct M_sql_tabledata_field&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a></td></tr>
+<tr class="separator:gab0d3ec10075e1c0e67970d7355863628"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>) (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *out, const char *field_name, M_bool is_add, void *thunk)</td></tr>
+<tr class="separator:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -136,13 +138,51 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2">M_sql_tabledata_add</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
+<tr class="memitem:gaaef487509774842d968485f38aef9a18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaaef487509774842d968485f38aef9a18">M_sql_tabledata_field_set_bool</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_bool val)</td></tr>
+<tr class="separator:gaaef487509774842d968485f38aef9a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabed6d61c6577a5312e3333f765513bac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gabed6d61c6577a5312e3333f765513bac">M_sql_tabledata_field_set_int16</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int16 val)</td></tr>
+<tr class="separator:gabed6d61c6577a5312e3333f765513bac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5418eb740c63d5d2a2f9057868ee9bc8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga5418eb740c63d5d2a2f9057868ee9bc8">M_sql_tabledata_field_set_int32</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int32 val)</td></tr>
+<tr class="separator:ga5418eb740c63d5d2a2f9057868ee9bc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga995cffc51525e2bb98201e545122d6dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga995cffc51525e2bb98201e545122d6dd">M_sql_tabledata_field_set_int64</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int64 val)</td></tr>
+<tr class="separator:ga995cffc51525e2bb98201e545122d6dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga61a96ac7098ad22e2cff5c1f29e6acb1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga61a96ac7098ad22e2cff5c1f29e6acb1">M_sql_tabledata_field_set_text_own</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, char *val)</td></tr>
+<tr class="separator:ga61a96ac7098ad22e2cff5c1f29e6acb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae2ccf8d8e32c4e8bde870d1eb2b2df3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gae2ccf8d8e32c4e8bde870d1eb2b2df3e">M_sql_tabledata_field_set_text_dup</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *val)</td></tr>
+<tr class="separator:gae2ccf8d8e32c4e8bde870d1eb2b2df3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2401f6152040d51112d4601cd6c1ed11"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2401f6152040d51112d4601cd6c1ed11">M_sql_tabledata_field_set_text_const</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *val)</td></tr>
+<tr class="separator:ga2401f6152040d51112d4601cd6c1ed11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab4353b27d1b133b0bb5953ccbb9c1465"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gab4353b27d1b133b0bb5953ccbb9c1465">M_sql_tabledata_field_set_binary_own</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, unsigned char *val, size_t len)</td></tr>
+<tr class="separator:gab4353b27d1b133b0bb5953ccbb9c1465"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga002d47104eb59a0d89b983e4eaddbe9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga002d47104eb59a0d89b983e4eaddbe9e">M_sql_tabledata_field_set_binary_dup</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const unsigned char *val, size_t len)</td></tr>
+<tr class="separator:ga002d47104eb59a0d89b983e4eaddbe9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga32b39855377ddf8065797b2f706ffb77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga32b39855377ddf8065797b2f706ffb77">M_sql_tabledata_field_set_binary_const</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const unsigned char *val, size_t len)</td></tr>
+<tr class="separator:ga32b39855377ddf8065797b2f706ffb77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga302ca75169d891262ecf4de79b49f995"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga302ca75169d891262ecf4de79b49f995">M_sql_tabledata_field_set_null</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="separator:ga302ca75169d891262ecf4de79b49f995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9aa9c6f23599a41832c4452ec076fa20"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga9aa9c6f23599a41832c4452ec076fa20">M_sql_tabledata_field_get_bool</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_bool *val)</td></tr>
+<tr class="separator:ga9aa9c6f23599a41832c4452ec076fa20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4971d0d53d012daad1f18846358351f7"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga4971d0d53d012daad1f18846358351f7">M_sql_tabledata_field_get_int16</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int16 *val)</td></tr>
+<tr class="separator:ga4971d0d53d012daad1f18846358351f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ed8e6333f73d91168b7ef3cbb2f7a1a"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2ed8e6333f73d91168b7ef3cbb2f7a1a">M_sql_tabledata_field_get_int32</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int32 *val)</td></tr>
+<tr class="separator:ga2ed8e6333f73d91168b7ef3cbb2f7a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad53599a3b6f5586a7e4f2f9ceec2c303"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad53599a3b6f5586a7e4f2f9ceec2c303">M_sql_tabledata_field_get_int64</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int64 *val)</td></tr>
+<tr class="separator:gad53599a3b6f5586a7e4f2f9ceec2c303"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga06bc1a3b99eb465a6f674cb99ac97234"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga06bc1a3b99eb465a6f674cb99ac97234">M_sql_tabledata_field_get_text</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char **val)</td></tr>
+<tr class="separator:ga06bc1a3b99eb465a6f674cb99ac97234"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga59064bfaff095b86a9eefdf8b4342e12"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga59064bfaff095b86a9eefdf8b4342e12">M_sql_tabledata_field_get_binary</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const unsigned char **val, size_t *len)</td></tr>
+<tr class="separator:ga59064bfaff095b86a9eefdf8b4342e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga54cabcca80ba5e30de44359561ff7f65"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65">M_sql_tabledata_field_is_null</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="separator:ga54cabcca80ba5e30de44359561ff7f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788">M_sql_tabledata_field_type</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="separator:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2">M_sql_tabledata_add</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
 <tr class="separator:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf7065e9d6976dc4cdd29ad3486a6331f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f">M_sql_tabledata_trans_add</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
+<tr class="memitem:gaf7065e9d6976dc4cdd29ad3486a6331f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f">M_sql_tabledata_trans_add</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaf7065e9d6976dc4cdd29ad3486a6331f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf63e0fc02d004363ff70ff9e5b0f8822"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf63e0fc02d004363ff70ff9e5b0f8822">M_sql_tabledata_edit</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, char *error, size_t error_len)</td></tr>
+<tr class="memitem:gaf63e0fc02d004363ff70ff9e5b0f8822"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf63e0fc02d004363ff70ff9e5b0f8822">M_sql_tabledata_edit</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaf63e0fc02d004363ff70ff9e5b0f8822"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaebb4908e047e3871ee2145d1eddd0ca8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8">M_sql_tabledata_trans_edit</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, char *error, size_t error_len)</td></tr>
+<tr class="memitem:gaebb4908e047e3871ee2145d1eddd0ca8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8">M_sql_tabledata_trans_edit</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaebb4908e047e3871ee2145d1eddd0ca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -200,21 +240,34 @@ flags</td>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gae201b6ecb641139171c5a2df4fe7ba71"></a>
+<a class="anchor" id="gab0d3ec10075e1c0e67970d7355863628"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef M_bool(* M_sql_tabledata_fetch_cb) (char **out, size_t *out_len, const char *field_name, void *thunk)</td>
+          <td class="memname">typedef struct M_sql_tabledata_field <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Opaque structure holding field data. Use corresponding setters/getters to manipulate. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaf31b72a8d978ae5591ff4556b2e778e9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef M_bool(* M_sql_tabledata_fetch_cb) (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *out, const char *field_name, M_bool is_add, void *thunk)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Callback for fetching a table field.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Pointer to allocated field data. Will internally be <a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free()</a>'d. MUST be able to handle a NULL value for existence checks. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">out_len</td><td>Length of data pointed to </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Pointer to M_sql_tabledata_field_t to be filled in. MUST allow NULL as it may be called during a 'test' operation. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">field_name</td><td>Field name being fetched </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_add</td><td>M_TRUE if this is called during an add operation, M_FALSE otherwise. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk parameter for custom state tracking passed to parent function. </td></tr>
   </table>
   </dd>
@@ -258,6 +311,644 @@ flags</td>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="gaaef487509774842d968485f38aef9a18"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_bool </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_bool&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a boolean value. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gabed6d61c6577a5312e3333f765513bac"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_int16 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int16&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a 16bit integer Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga5418eb740c63d5d2a2f9057868ee9bc8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_int32 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int32&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a 32bit integer Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga995cffc51525e2bb98201e545122d6dd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_int64 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int64&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a 64bit integer. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga61a96ac7098ad22e2cff5c1f29e6acb1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_text_own </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a text value and will take ownership of pointer passed (will be freed automatically). Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae2ccf8d8e32c4e8bde870d1eb2b2df3e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_text_dup </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a text value and will duplicate the pointer passed. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2401f6152040d51112d4601cd6c1ed11"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_text_const </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a text value and will treat the pointer as const, it must be valid until field is deallocated. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gab4353b27d1b133b0bb5953ccbb9c1465"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_binary_own </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned char *&#160;</td>
+          <td class="paramname"><em>val</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a binary value and will duplicate the pointer passed. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of value </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga002d47104eb59a0d89b983e4eaddbe9e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_binary_dup </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>val</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a binary value and will duplicate the pointer passed. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of value </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga32b39855377ddf8065797b2f706ffb77"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_binary_const </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>val</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field pointer to a binary value and will treat the pointer as const, it must be valid until field is deallocated. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>Value to set </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Length of value </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga302ca75169d891262ecf4de79b49f995"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_set_null </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the field to NULL. Will override existing value and deallocate any prior memory consumed if necessary </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to set </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga9aa9c6f23599a41832c4452ec076fa20"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_bool </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_bool *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as a boolean. If type conversion is necessary, it will be performed such that integer values are treated as true if non-zero and false if zero. Text values will be passed through <a class="el" href="group__m__str__check.html#gac303ef7b7a983bd7a04ba1f148d94dc7">M_str_istrue()</a>. Any other conversion will return failure.</p>
+<p>Once a field is fetched successfully as a bool, it is internally converted to a bool. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Boolean output value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga4971d0d53d012daad1f18846358351f7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_int16 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int16 *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as a 16bit integer. If type conversion is necessary, it will be performed such that integer values are truncated if possible, and boolean values are set to 1 or 0. Text values will be passed through a string conversion if numeric. Any other conversion will return failure.</p>
+<p>Once a field is fetched successfully as an int32, it is internally converted to an int32. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Int32 output value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2ed8e6333f73d91168b7ef3cbb2f7a1a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_int32 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int32 *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as a 32bit integer. If type conversion is necessary, it will be performed such that integer values are truncated if possible, and boolean values are set to 1 or 0. Text values will be passed through a string conversion if numeric. Any other conversion will return failure.</p>
+<p>Once a field is fetched successfully as an int32, it is internally converted to an int32. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Int32 output value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad53599a3b6f5586a7e4f2f9ceec2c303"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_int64 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_int64 *&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as a 64bit integer. If type conversion is necessary, it will be performed such that integer values are expanded, and boolean values are set to 1 or 0. Text values will be passed through a string conversion if numeric. Any other conversion will return failure.</p>
+<p>Once a field is fetched successfully as an int64, it is internally converted to an int64 </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Int64 output value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga06bc1a3b99eb465a6f674cb99ac97234"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_text </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char **&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as text. If type conversion is necessary, it will be performed such that integer values are converted to base10 strings, and boolean values are converted into "yes" and "no". ny other conversion will return failure.</p>
+<p>Once a field is fetched successfully as text, it is internally converted to text </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Pointer to text value that is valid until another conversion occurs or is freed or out of scope. May be NULL if value is NULL; </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga59064bfaff095b86a9eefdf8b4342e12"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_get_binary </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char **&#160;</td>
+          <td class="paramname"><em>val</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve field data as binary.</p>
+<p>Binary fields are not eligible for conversion. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">field</td><td>Field to retrieve data from </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">val</td><td>Pointer to binary value until freed or out of scope. May be NULL if value is NULL. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">len</td><td>Length of value. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE if conversion was not possible, M_TRUE if successful. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga54cabcca80ba5e30de44359561ff7f65"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_is_null </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Determine if field is NULL or not.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">field</td><td>Field to determine if value is NULL. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if NULL, M_FALSE otherwise. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad4e4d21f07b2b6453de21a92ad29a788"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a> M_sql_tabledata_field_type </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Determine current field type. May change if setter or another getter is called.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">field</td><td>Field to retrieve type of. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>field type. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga2575cdd2554f00d9a6ff060a935fd4e2"></a>
 <div class="memitem">
 <div class="memproto">
@@ -289,7 +980,7 @@ flags</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>&#160;</td>
           <td class="paramname"><em>fetch_cb</em>, </td>
         </tr>
         <tr>
@@ -374,7 +1065,7 @@ flags</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>&#160;</td>
           <td class="paramname"><em>fetch_cb</em>, </td>
         </tr>
         <tr>
@@ -459,7 +1150,7 @@ flags</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>&#160;</td>
           <td class="paramname"><em>fetch_cb</em>, </td>
         </tr>
         <tr>
@@ -537,7 +1228,7 @@ flags</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gae201b6ecb641139171c5a2df4fe7ba71">M_sql_tabledata_fetch_cb</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>&#160;</td>
           <td class="paramname"><em>fetch_cb</em>, </td>
         </tr>
         <tr>
@@ -589,7 +1280,7 @@ flags</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Aug 5 2019 19:23:34 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Aug 5 2019 21:47:41 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
