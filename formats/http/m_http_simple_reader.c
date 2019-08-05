@@ -413,7 +413,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	size_t *len_read)
 {
 	M_http_reader_t                *reader;
-	M_http_simple_read_t           *sr;
+	M_http_simple_read_t           *sr          = NULL;
 	M_http_error_t                  res;
 	size_t                          mylen_read;
 	M_bool                          have_simple = M_TRUE;
