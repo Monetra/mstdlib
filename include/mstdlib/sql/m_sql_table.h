@@ -216,19 +216,21 @@ M_API M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *t
 
 /*! Flags for processing table data fields / columns */
 typedef enum {
-	M_SQL_TABLEDATA_FLAG_TAGGED       = 1 << 0, /*!< Field is tagged, grouped under 'table_column' */
+	M_SQL_TABLEDATA_FLAG_NONE         = 0,      /*!< No Flags */
+	M_SQL_TABLEDATA_FLAG_VIRTUAL      = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column' */
 	M_SQL_TABLEDATA_FLAG_EDITABLE     = 1 << 1, /*!< Field is allowed to be edited, not add-only */
 	M_SQL_TABLEDATA_FLAG_ID           = 1 << 2, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
-	                                             *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_TAGGED. */
+	                                             *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. */
 	M_SQL_TABLEDATA_FLAG_ID_GENERATE  = 1 << 3, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
 	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 4  /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
 	                                             *   as there may be multiple lookup indexes */
+/* TODO: flag  column as required to be specified, non-null.  edit can't make null */
 } M_sql_tabledata_flags_t;
 
 /*! Structure to be used to define the various fields and columns stored in a table */
 typedef struct {
 	const char                 *table_column;    /*!< Database column name */
-	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For tagged columns, this field name is also used as the tag name. */
+	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. */
 	const char                 *default_val;     /*!< Default value to use if field was not specified on add.  Has no effect on edit. If field was not specified and the default value is NULL, column will be omitted completely from request on add. */
 	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
 	M_sql_data_type_t           type;            /*!< Column data type */
