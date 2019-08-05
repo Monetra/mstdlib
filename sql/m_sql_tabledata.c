@@ -55,12 +55,17 @@ static M_bool M_sql_tabledata_edit_fetch_int(char **field_data, size_t *field_da
 
 /* Returns M_FALSE if field was not specified, or if it matches the previous value.
  * If output_always is M_TRUE, then field_data and field_data_len will be filled in even if no change is occurring...
- * this is used for tagged fields otherwise we'd lose data. */
+ * this is used for virtual fields otherwise we'd lose data. */
 static M_bool M_sql_tabledata_edit_fetch(char **field_data, size_t *field_data_len, const char *field_name, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strbin_t *prev_fields, M_bool output_identical)
 {
-	M_bool rv = M_sql_tabledata_edit_fetch_int(field_data, field_data_len, field_name, fetch_cb, thunk, prev_fields);
+	M_bool rv;
 
-	if (output_identical && rv == M_FALSE) {
+	*field_data     = NULL;
+	*field_data_len = 0;
+
+	rv = M_sql_tabledata_edit_fetch_int(field_data, field_data_len, field_name, fetch_cb, thunk, prev_fields);
+
+	if (output_identical && rv == M_FALSE && *field_data == NULL) {
 		const unsigned char *prior_data     = NULL;
 		size_t               prior_data_len = 0;
 
@@ -75,7 +80,7 @@ static M_bool M_sql_tabledata_edit_fetch(char **field_data, size_t *field_data_l
 }
 
 /* NOTE: if prev_fields is specified, it is an edit, otherwise its an add.  If NO fields have changed on edit, will return NULL. */
-static char *M_sql_tabledata_row_gather_tagged(const M_sql_tabledata_t *fields, size_t num_fields, size_t curr_idx, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strbin_t *prev_fields)
+static char *M_sql_tabledata_row_gather_virtual(const M_sql_tabledata_t *fields, size_t num_fields, size_t curr_idx, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strbin_t *prev_fields)
 {
 	const char    *column_name   = fields[curr_idx].table_column;
 	size_t         i;
@@ -149,8 +154,8 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 		}
 		M_hash_dict_insert(seen_fields, fields[i].field_name, NULL);
 
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED && fields[i].type != M_SQL_DATA_TYPE_TEXT) {
-			M_snprintf(error, error_len, "Column %s tagged field %s is only allowed to be text", fields[i].table_column, fields[i].field_name);
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL && fields[i].type != M_SQL_DATA_TYPE_TEXT) {
+			M_snprintf(error, error_len, "Column %s virtual field %s is only allowed to be text", fields[i].table_column, fields[i].field_name);
 			goto done;
 		}
 
@@ -159,8 +164,8 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 			goto done;
 		}
 
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED && fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
-			M_snprintf(error, error_len, "field %s cannot be both tagged and an id", fields[i].field_name);
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL && fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
+			M_snprintf(error, error_len, "field %s cannot be both virtual and an id", fields[i].field_name);
 			goto done;
 		}
 
@@ -179,8 +184,8 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 		}
 
 		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
-			if (!(fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED)) {
-				M_snprintf(error, error_len, "non-tagged column %s specified more than once", fields[i].table_column);
+			if (!(fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)) {
+				M_snprintf(error, error_len, "non-virtual column %s specified more than once", fields[i].table_column);
 				goto done;
 			}
 		}
@@ -321,9 +326,9 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		}
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
-		/* If no default value is specified, its not an ID and not a tagged field, then we need to test to see if this column should be emitted at all. */
+		/* If no default value is specified, its not an ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
 		if (fields[i].default_val == NULL &&
-		    !(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_TAGGED)) &&
+		    !(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
 		    !fetch_cb(NULL, NULL, fields[i].field_name, thunk)) {
 			/* Skip! */
 			continue;
@@ -359,8 +364,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		}
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED) {
-			field_data     = M_sql_tabledata_row_gather_tagged(fields, num_fields, i, fetch_cb, thunk, NULL);
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
+			field_data     = M_sql_tabledata_row_gather_virtual(fields, num_fields, i, fetch_cb, thunk, NULL);
 			field_data_len = M_str_len(field_data);
 		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
 			size_t  max_len = fields[i].max_column_len;
@@ -546,7 +551,7 @@ static M_sql_error_t M_sql_tabledata_query(M_hash_strbin_t **params_out, M_sql_t
 	*params_out = M_hash_strbin_create(16, 75, M_HASH_STRBIN_KEYS_LOWER|M_HASH_STRBIN_CASECMP);
 
 	for (i=0; i<num_fields; i++) {
-		/* Skip columns we already have (multiple tagged fields) */
+		/* Skip columns we already have (multiple virtual fields) */
 		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
 			continue;
 		}
@@ -557,7 +562,7 @@ static M_sql_error_t M_sql_tabledata_query(M_hash_strbin_t **params_out, M_sql_t
 			continue;
 
 		/* Need to deserialize and add to output params */
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED) {
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
 			M_hash_dict_t      *dict     = M_hash_dict_deserialize(M_sql_stmt_result_text_byname_direct(stmt, 0, fields[i].table_column), '|', '=', '"', '"', M_HASH_DICT_DESER_FLAG_CASECMP);
 			M_hash_dict_enum_t *hashenum = NULL;
 			const char         *key      = NULL;
@@ -639,16 +644,16 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		if (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID)
 			continue;
 
-		/* Skip columns we already have (multiple tagged fields) */
+		/* Skip columns we already have (multiple virtual fields) */
 		if (M_hash_dict_get(seen_cols, info->fields[i].table_column, NULL)) {
 			continue;
 		}
 
 		M_hash_dict_insert(seen_cols, info->fields[i].table_column, NULL);
 
-		if (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_TAGGED) {
-			/* Only on tagged data does NULL mean not changed.  Otherwise we are explicitly setting a field to NULL */
-			field_data = M_sql_tabledata_row_gather_tagged(info->fields, info->num_fields, i, info->fetch_cb, info->thunk, prev_fields);
+		if (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
+			/* Only on virtual data does NULL mean not changed.  Otherwise we are explicitly setting a field to NULL */
+			field_data = M_sql_tabledata_row_gather_virtual(info->fields, info->num_fields, i, info->fetch_cb, info->thunk, prev_fields);
 			if (field_data == NULL) {
 				is_changed = M_FALSE;
 			} else {
