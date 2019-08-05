@@ -231,7 +231,6 @@ typedef enum {
 typedef struct {
 	const char                 *table_column;    /*!< Database column name */
 	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. */
-	const char                 *default_val;     /*!< Default value to use if field was not specified on add.  Has no effect on edit. If field was not specified and the default value is NULL, column will be omitted completely from request on add. */
 	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
 	M_sql_data_type_t           type;            /*!< Column data type */
 	M_sql_tabledata_flags_t     flags;           /*!< Flags controlling behavior */

@@ -100,10 +100,7 @@ static char *M_sql_tabledata_row_gather_virtual(const M_sql_tabledata_t *fields,
 				field_updated = M_TRUE;
 		} else {
 			if (!fetch_cb(&data, &data_len, fields[i].field_name, thunk)) {
-				if (!fields[i].default_val)
-					continue;
-				data     = M_strdup(fields[i].default_val);
-				data_len = M_str_len(data);
+				continue;
 			}
 		}
 
@@ -326,9 +323,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		}
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
-		/* If no default value is specified, its not an ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
-		if (fields[i].default_val == NULL &&
-		    !(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
+		/* If its not an ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
+		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
 		    !fetch_cb(NULL, NULL, fields[i].field_name, thunk)) {
 			/* Skip! */
 			continue;
@@ -385,12 +381,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 				*generated_id = id;
 		} else {
 			if (!fetch_cb(&field_data, &field_data_len, fields[i].field_name, thunk)) {
-				if (fields[i].default_val != NULL) {
-					field_data = M_strdup(fields[i].default_val);
-				} else {
-					/* Do not emit field */
-					continue;
-				}
+				/* Do not emit field */
+				continue;
 			}
 		}
 
