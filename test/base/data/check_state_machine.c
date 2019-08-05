@@ -517,7 +517,7 @@ START_TEST(check_sm_reset_cleanup)
 
 	/* Cancel the sm. */
 	M_state_machine_reset(sm, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
-	status = M_state_machine_run(sm, (void *)&d);
+	M_state_machine_run(sm, (void *)&d);
 
 	/* Check we're waiting in the csm. */
 	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
