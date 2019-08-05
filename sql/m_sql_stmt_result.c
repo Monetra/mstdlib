@@ -157,6 +157,14 @@ M_bool M_sql_stmt_result_col_idx(M_sql_stmt_t *stmt, const char *col, size_t *id
 }
 
 
+M_sql_data_type_t M_sql_stmt_result_col_type_byname(M_sql_stmt_t *stmt, const char *col, size_t *type_size)
+{
+	size_t idx;
+	if (!M_sql_stmt_result_col_idx(stmt, col, &idx))
+		return M_SQL_DATA_TYPE_UNKNOWN;
+	return M_sql_stmt_result_col_type(stmt, idx, type_size);
+}
+
 M_sql_error_t M_sql_stmt_result_isnull(M_sql_stmt_t *stmt, size_t row, size_t col, M_bool *is_null)
 {
 	if (stmt == NULL || stmt->result == NULL || col >= stmt->result->num_cols || row >= stmt->result->num_rows || is_null == NULL)

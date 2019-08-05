@@ -561,17 +561,18 @@ START_TEST(check_sql)
 END_TEST
 
 
-static M_bool fetch_dict(char **out, size_t *out_len, const char *field_name, void *thunk)
+static M_bool fetch_dict(M_sql_tabledata_field_t *field, const char *field_name, M_bool is_add, void *thunk)
 {
 	M_hash_dict_t *dict = thunk;
 	const char    *val  = NULL;
 
+	(void)is_add;
+
 	if (!M_hash_dict_get(dict, field_name, &val))
 		return M_FALSE;
 
-	if (out != NULL && out_len != NULL) { 
-		*out_len = M_str_len(val);
-		*out     = M_strdup(val);
+	if (field != NULL) {
+		M_sql_tabledata_field_set_text_const(field, val); 
 	}
 	return M_TRUE;
 }
@@ -623,7 +624,7 @@ START_TEST(check_tabledata)
 		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL },
 		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL },
 		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_VIRTUAL },
-		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  0 }
+		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE }
 	};
 	M_hash_dict_t *dict; 
 	M_sql_stmt_t  *stmt;
@@ -679,6 +680,13 @@ START_TEST(check_tabledata)
 	M_hash_dict_insert(dict, "tag2", "added tag 2 after!");
 	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(2) expected to return row modified, returned: %s", error);
+	print_table(pool, "foo");
+
+	/* Add non-virtual column 4*/
+	M_hash_dict_remove(dict, "tag2");
+	M_hash_dict_insert(dict, "col4", "added this col later!");
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(3) expected to return row modified, returned: %s", error);
 	print_table(pool, "foo");
 
 	/* Close connections */
