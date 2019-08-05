@@ -119,7 +119,9 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:gaf5e35f940fabf4f7dbe7330b2e59402b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf5e35f940fabf4f7dbe7330b2e59402b">M_sql_tabledata_flags_t</a> { <br />
-&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402bac18d3af7e368924e12f55f5211323327">M_SQL_TABLEDATA_FLAG_TAGGED</a> = 1 &lt;&lt; 0, 
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba5af1b966d8755de09ceae487e30268d0">M_SQL_TABLEDATA_FLAG_NONE</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af">M_SQL_TABLEDATA_FLAG_VIRTUAL</a> = 1 &lt;&lt; 0, 
 <br />
 &#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba0c0a9038e2c20139babc602dcd5d493a">M_SQL_TABLEDATA_FLAG_EDITABLE</a> = 1 &lt;&lt; 1, 
 <br />
@@ -170,7 +172,7 @@ table_column</td>
 <td class="fieldname">
 field_name</td>
 <td class="fielddoc">
-<p>Field name to fetch in order to retrieve column data. For tagged columns, this field name is also used as the tag name. </p>
+<p>Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. </p>
 </td></tr>
 <tr><td class="fieldtype">
 <a class="anchor" id="a7f93e750dff28204488efcd8e1587880"></a>const char *</td>
@@ -240,14 +242,17 @@ flags</td>
 </div><div class="memdoc">
 <p>Flags for processing table data fields / columns </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402bac18d3af7e368924e12f55f5211323327"></a>M_SQL_TABLEDATA_FLAG_TAGGED&#160;</td><td class="fielddoc">
-<p>Field is tagged, grouped under 'table_column' </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba5af1b966d8755de09ceae487e30268d0"></a>M_SQL_TABLEDATA_FLAG_NONE&#160;</td><td class="fielddoc">
+<p>No Flags </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af"></a>M_SQL_TABLEDATA_FLAG_VIRTUAL&#160;</td><td class="fielddoc">
+<p>Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column' </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba0c0a9038e2c20139babc602dcd5d493a"></a>M_SQL_TABLEDATA_FLAG_EDITABLE&#160;</td><td class="fielddoc">
 <p>Field is allowed to be edited, not add-only </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6"></a>M_SQL_TABLEDATA_FLAG_ID&#160;</td><td class="fielddoc">
-<p>Field is an ID column (meaning it is used for lookups). Can be assigned on add, but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_TAGGED. </p>
+<p>Field is an ID column (meaning it is used for lookups). Can be assigned on add, but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba6613bee13f27ce28b725c99c45b8be87"></a>M_SQL_TABLEDATA_FLAG_ID_GENERATE&#160;</td><td class="fielddoc">
 <p>Auto-generate the ID on the user's behalf. Must be an ID field. Only one allowed per field definition list. </p>
@@ -591,7 +596,7 @@ flags</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Aug 5 2019 14:19:03 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Aug 5 2019 18:06:38 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
