@@ -423,19 +423,31 @@ static M_bool get_peripheral_by_int(NSArray<CBPeripheral *> *peripherals)
 
 static M_bool get_peripheral_by_identifier(const char *identifier)
 {
-	NSUUID                  *uuid        = [[NSUUID alloc] initWithUUIDString:[NSString stringWithUTF8String:identifier]];
-	NSArray<NSUUID *>       *uarr        = @[uuid];
-	NSArray<CBPeripheral *> *peripherals = [cbc_manager retrievePeripheralsWithIdentifiers:uarr];
+	NSUUID                  *uuid;
+	NSArray<NSUUID *>       *uarr;
+	NSArray<CBPeripheral *> *peripherals;
 
+	uuid = [[NSUUID alloc] initWithUUIDString:[NSString stringWithUTF8String:identifier]];
+	if (uuid == nil)
+		return M_FALSE;
+
+	uarr = @[uuid];
+	peripherals = [cbc_manager retrievePeripheralsWithIdentifiers:uarr];
 	return get_peripheral_by_int(peripherals);
 }
 
 static M_bool get_peripheral_by_service(const char *service_uuid)
 {
-	CBUUID                  *uuid        = [CBUUID UUIDWithString:[NSString stringWithUTF8String:service_uuid]];
-	NSArray<CBUUID *>       *cbarr       = @[uuid];
-	NSArray<CBPeripheral *> *peripherals = [cbc_manager retrieveConnectedPeripheralsWithServices:cbarr];
+	CBUUID                  *uuid;
+	NSArray<CBUUID *>       *cbarr;
+	NSArray<CBPeripheral *> *peripherals;
 
+	uuid = [CBUUID UUIDWithString:[NSString stringWithUTF8String:service_uuid]];
+	if (uuid == nil)
+		return M_FALSE;
+
+	cbarr = @[uuid];
+	peripherals = [cbc_manager retrieveConnectedPeripheralsWithServices:cbarr];
 	return get_peripheral_by_int(peripherals);
 }
 
