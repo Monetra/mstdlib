@@ -509,6 +509,19 @@ typedef enum {
  */
 M_API M_sql_data_type_t M_sql_stmt_result_col_type(M_sql_stmt_t *stmt, size_t col, size_t *type_size);
 
+
+/*! Retrieve the data type of the returned column.
+ *
+ * \param[in]  stmt      Initialized and executed #M_sql_stmt_t object.
+ * \param[in]  col       Name of column.
+ * \param[out] type_size Optional, pass NULL if not desired.  For TEXT and BINARY types, the column
+ *                       definition may indicate a possible size (or maximum size).  If the value is 0,
+ *                       it means the column width is bounded by the maximums of the SQL server.
+ * \return Column type for referenced column or M_SQL_DATA_TYPE_UNKNOWN if column not found.
+ */
+M_API M_sql_data_type_t M_sql_stmt_result_col_type_byname(M_sql_stmt_t *stmt, const char *col, size_t *type_size);
+
+
 /*! Retrieve the column index by name
  *
  * \param[in]  stmt Initialized and executed #M_sql_stmt_t object.

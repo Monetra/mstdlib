@@ -241,14 +241,178 @@ typedef struct {
 } M_sql_tabledata_t;
 
 
+/*! Opaque structure holding field data. */
+struct M_sql_tabledata_field;
+
+/*! Opaque structure holding field data. Use corresponding setters/getters to manipulate. */
+typedef struct M_sql_tabledata_field M_sql_tabledata_field_t;
+
+/*! Set the field pointer to a boolean value.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_bool(M_sql_tabledata_field_t *field, M_bool val);
+
+/*! Set the field pointer to a 16bit integer
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_int16(M_sql_tabledata_field_t *field, M_int16 val);
+
+/*! Set the field pointer to a 32bit integer
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_int32(M_sql_tabledata_field_t *field, M_int32 val);
+
+/*! Set the field pointer to a 64bit integer.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_int64(M_sql_tabledata_field_t *field, M_int64 val);
+
+/*! Set the field pointer to a text value and will take ownership of pointer passed (will be freed automatically).
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_text_own(M_sql_tabledata_field_t *field, char *val);
+
+/*! Set the field pointer to a text value and will duplicate the pointer passed.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_text_dup(M_sql_tabledata_field_t *field, const char *val);
+
+/*! Set the field pointer to a text value and will treat the pointer as const, it must be valid until field is deallocated.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ */
+M_API void M_sql_tabledata_field_set_text_const(M_sql_tabledata_field_t *field, const char *val);
+
+/*! Set the field pointer to a binary value and will duplicate the pointer passed.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ * \param[in]     len    Length of value
+ */
+M_API void M_sql_tabledata_field_set_binary_own(M_sql_tabledata_field_t *field, unsigned char *val, size_t len);
+
+/*! Set the field pointer to a binary value and will duplicate the pointer passed.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ * \param[in]     len    Length of value
+ */
+M_API void M_sql_tabledata_field_set_binary_dup(M_sql_tabledata_field_t *field, const unsigned char *val, size_t len);
+
+/*! Set the field pointer to a binary value and will treat the pointer as const, it must be valid until field is deallocated.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ * \param[in]     val    Value to set
+ * \param[in]     len    Length of value
+ */
+M_API void M_sql_tabledata_field_set_binary_const(M_sql_tabledata_field_t *field, const unsigned char *val, size_t len);
+
+/*! Set the field to NULL.
+ *  Will override existing value and deallocate any prior memory consumed if necessary
+ * \param[in,out] field  Field to set
+ */
+M_API void M_sql_tabledata_field_set_null(M_sql_tabledata_field_t *field);
+
+/*! Retrieve field data as a boolean.  If type conversion is necessary, it will be performed such that integer values
+ *  are treated as true if non-zero and false if zero.  Text values will be passed through M_str_istrue().  Any other
+ *  conversion will return failure.
+ *
+ *  Once a field is fetched successfully as a bool, it is internally converted to a bool.
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Boolean output value
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_bool(M_sql_tabledata_field_t *field, M_bool *val);
+
+/*! Retrieve field data as a 16bit integer.  If type conversion is necessary, it will be performed such that integer values
+ *  are truncated if possible, and boolean values are set to 1 or 0.  Text values will be passed through a string conversion
+ *  if numeric. Any other conversion will return failure.
+ *
+ *  Once a field is fetched successfully as an int32, it is internally converted to an int32.
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Int32 output value
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_int16(M_sql_tabledata_field_t *field, M_int16 *val);
+
+/*! Retrieve field data as a 32bit integer.  If type conversion is necessary, it will be performed such that integer values
+ *  are truncated if possible, and boolean values are set to 1 or 0.  Text values will be passed through a string conversion
+ *  if numeric. Any other conversion will return failure.
+ *
+ *  Once a field is fetched successfully as an int32, it is internally converted to an int32.
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Int32 output value
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_int32(M_sql_tabledata_field_t *field, M_int32 *val);
+
+/*! Retrieve field data as a 64bit integer.  If type conversion is necessary, it will be performed such that integer values
+ *  are expanded, and boolean values are set to 1 or 0.  Text values will be passed through a string conversion
+ *  if numeric. Any other conversion will return failure.
+ *
+ *  Once a field is fetched successfully as an int64, it is internally converted to an int64
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Int64 output value
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_int64(M_sql_tabledata_field_t *field, M_int64 *val);
+
+/*! Retrieve field data as text.  If type conversion is necessary, it will be performed such that integer values
+ *  are converted to base10 strings, and boolean values are converted into "yes" and "no".  ny other conversion will return failure.
+ *
+ *  Once a field is fetched successfully as text, it is internally converted to text
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Pointer to text value that is valid until another conversion occurs or is freed or out of scope.  May be NULL if value is NULL;
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_text(M_sql_tabledata_field_t *field, const char **val);
+
+/*! Retrieve field data as binary.
+ *
+ * Binary fields are not eligible for conversion.
+ *  \param[in,out] field  Field to retrieve data from
+ *  \param[out]    val    Pointer to binary value until freed or out of scope.  May be NULL if value is NULL.
+ *  \param[out]    len    Length of value.
+ *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
+ */
+M_API M_bool M_sql_tabledata_field_get_binary(M_sql_tabledata_field_t *field, const unsigned char **val, size_t *len);
+
+/*! Determine if field is NULL or not.
+ *
+ * \param[in] field Field to determine if value is NULL.
+ * \return M_TRUE if NULL, M_FALSE otherwise.
+ */
+M_API M_bool M_sql_tabledata_field_is_null(const M_sql_tabledata_field_t *field);
+
+/*! Determine current field type.  May change if setter or another getter is called.
+ *
+ * \param[in] field Field to retrieve type of.
+ * \return field type.
+ */
+M_API M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t *field);
+
+
 /*! Callback for fetching a table field.
  *
- *  \param[out] out        Pointer to allocated field data.  Will internally be M_free()'d.  MUST be able to handle a NULL value for existence checks.
- *  \param[out] out_len    Length of data pointed to
+ *  \param[out] out        Pointer to M_sql_tabledata_field_t to be filled in.  MUST allow NULL as it may be called during a 'test' operation.
  *  \param[in]  field_name Field name being fetched
+ *  \param[in]  is_add     M_TRUE if this is called during an add operation, M_FALSE otherwise.
  *  \param[in]  thunk      Thunk parameter for custom state tracking passed to parent function.
  *  \return M_FALSE if field was not found, M_TRUE otherwise */
-typedef M_bool (*M_sql_tabledata_fetch_cb)(char **out, size_t *out_len, const char *field_name, void *thunk);
+typedef M_bool (*M_sql_tabledata_fetch_cb)(M_sql_tabledata_field_t *out, const char *field_name, M_bool is_add, void *thunk);
 
 
 /*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists.
