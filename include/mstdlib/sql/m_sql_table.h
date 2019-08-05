@@ -265,7 +265,7 @@ typedef M_bool (*M_sql_tabledata_fetch_cb)(char **out, size_t *out_len, const ch
  * \param[in]     error_len    Size of error buffer
  * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
  */
-M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
 
 
 /*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists.
@@ -283,7 +283,7 @@ M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *tabl
  * \param[in]     error_len    Size of error buffer
  * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
  */
-M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
 
 
 /*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
@@ -304,7 +304,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
 
 /*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
  *   fields that are able to be fetched will be modified.  It is valid to fetch a NULL value to explicitly set a column
@@ -324,7 +324,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
 
 
 /*! @} */
