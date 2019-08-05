@@ -274,7 +274,7 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, c
 }
 
 
-M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
 	M_buf_t       *request     = NULL;
 	M_hash_dict_t *seen_cols   = NULL;
@@ -430,6 +430,15 @@ done:
 	return err;
 }
 
+M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+{
+	return M_sql_tabledata_add_int(pool, NULL, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
+}
+
+M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+{
+	return M_sql_tabledata_add_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
+}
 
 /*! Query table for matching record and return fieldname to value mappings in a hash dict */
 static M_sql_error_t M_sql_tabledata_query(M_hash_strbin_t **params_out, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
@@ -663,7 +672,8 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 				M_snprintf(error, error_len, "column %s unsupported field type", info->fields[i].table_column);
 				goto done;
 			}
-
+		} else {
+			M_free(field_data);
 		}
 	}
 
@@ -741,8 +751,7 @@ done:
 }
 
 
-
-M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
 {
 	M_sql_error_t          err  = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_edit_t info = {
@@ -783,3 +792,15 @@ M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, M_sql_trans_t *sqltra
 done:
 	return err;
 }
+
+M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+{
+	return M_sql_tabledata_edit_int(pool, NULL, table_name, fields, num_fields, fetch_cb, thunk, error, error_len);
+}
+
+M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
+{
+	return M_sql_tabledata_edit_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, error, error_len);
+}
+
+

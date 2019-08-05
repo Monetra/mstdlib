@@ -596,9 +596,9 @@ static void print_table(M_sql_connpool_t *pool, const char *tablename)
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_execute(SELECT) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 
 	err = M_sql_report_process(report, stmt, NULL, &out, &out_len, error, sizeof(error));
+	M_sql_stmt_destroy(stmt);
 	M_sql_report_destroy(report);
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_report_process() failed: %s: %s", M_sql_error_string(err), error);
-
 #if defined(DEBUG)
 	M_printf("===================================================================================================\n");
 	M_printf("Table: %s\n", tablename);
@@ -660,14 +660,14 @@ START_TEST(check_tabledata)
 	M_hash_dict_insert(dict, "col2", "my column 2");
 	M_hash_dict_insert(dict, "tag1", "tag 1 value");
 	M_hash_dict_insert(dict, "tag3", "tag 3 value");
-	err = M_sql_tabledata_add(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
+	err = M_sql_tabledata_add(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_add() failed: %s", error);
 	print_table(pool, "foo");
 
 	/* Edit table, but don't change any values, should return M_SQL_ERROR_USER_SUCCESS to indicate nothing changed */
 	M_snprintf(temp, sizeof(temp), "%lld", id);
 	M_hash_dict_insert(dict, "id", temp);
-	err = M_sql_tabledata_edit(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit(1) expected to return no rows modified, returned: %s", error);
 	print_table(pool,"foo");
 
@@ -677,13 +677,14 @@ START_TEST(check_tabledata)
 	M_hash_dict_remove(dict, "tag1");
 	M_hash_dict_remove(dict, "tag3");
 	M_hash_dict_insert(dict, "tag2", "added tag 2 after!");
-	err = M_sql_tabledata_edit(pool, NULL, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(2) expected to return row modified, returned: %s", error);
 	print_table(pool, "foo");
 
 	/* Close connections */
 	ck_assert_msg(M_sql_connpool_destroy(pool) == M_SQL_ERROR_SUCCESS, "M_sql_connpool_destroy() failed");
 
+	M_hash_dict_destroy(dict);
 	/* Free any internally allocated memory for mstdlib */
 	M_library_cleanup();
 }
