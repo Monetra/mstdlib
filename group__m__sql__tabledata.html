@@ -1328,7 +1328,7 @@ flags</td>
 <p>IMPORTANT: The passed in "table_column" and "field_names" MUST persist until the tabledata structure is no longer needed as they are used as const values internally.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">fields</td><td>Field list to expand. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fields</td><td>Field list to expand. Original input is NOT modified. </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">num_fields</td><td>On input, the size of the fields table passed in. On return, the new size. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">table_column</td><td>Name of real table column virtual columns are tied to. NOTE: Pointer must persist until returned table is no longer needed. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">field_names</td><td>List of virtual column names used to expand table. NOTE: Pointer must persist until returned table is no longer needed. </td></tr>
@@ -1346,7 +1346,7 @@ flags</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Aug 6 2019 14:20:09 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Aug 6 2019 14:25:42 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
