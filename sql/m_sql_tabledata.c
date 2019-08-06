@@ -50,6 +50,9 @@ struct M_sql_tabledata_field {
 
 static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
 {
+	if (field == NULL)
+		return;
+
 	if (field->type == M_SQL_DATA_TYPE_TEXT) {
 		M_free(field->d.t.data_alloc);
 	}
@@ -63,6 +66,9 @@ static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
 
 void M_sql_tabledata_field_set_bool(M_sql_tabledata_field_t *field, M_bool val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type = M_SQL_DATA_TYPE_BOOL;
 	field->d.b  = val;
@@ -71,6 +77,9 @@ void M_sql_tabledata_field_set_bool(M_sql_tabledata_field_t *field, M_bool val)
 
 void M_sql_tabledata_field_set_int16(M_sql_tabledata_field_t *field, M_int16 val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type    = M_SQL_DATA_TYPE_INT16;
 	field->d.i16   = val;
@@ -79,6 +88,9 @@ void M_sql_tabledata_field_set_int16(M_sql_tabledata_field_t *field, M_int16 val
 
 void M_sql_tabledata_field_set_int32(M_sql_tabledata_field_t *field, M_int32 val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type   = M_SQL_DATA_TYPE_INT32;
 	field->d.i32  = val;
@@ -87,6 +99,9 @@ void M_sql_tabledata_field_set_int32(M_sql_tabledata_field_t *field, M_int32 val
 
 void M_sql_tabledata_field_set_int64(M_sql_tabledata_field_t *field, M_int64 val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type   = M_SQL_DATA_TYPE_INT64;
 	field->d.i64  = val;
@@ -95,6 +110,9 @@ void M_sql_tabledata_field_set_int64(M_sql_tabledata_field_t *field, M_int64 val
 
 void M_sql_tabledata_field_set_text_own(M_sql_tabledata_field_t *field, char *val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type            = M_SQL_DATA_TYPE_TEXT;
 	field->d.t.data_alloc  = val;
@@ -106,6 +124,9 @@ void M_sql_tabledata_field_set_text_own(M_sql_tabledata_field_t *field, char *va
 
 void M_sql_tabledata_field_set_text_dup(M_sql_tabledata_field_t *field, const char *val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type            = M_SQL_DATA_TYPE_TEXT;
 	field->d.t.data_alloc  = M_strdup(val);
@@ -117,6 +138,9 @@ void M_sql_tabledata_field_set_text_dup(M_sql_tabledata_field_t *field, const ch
 
 void M_sql_tabledata_field_set_text_const(M_sql_tabledata_field_t *field, const char *val)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type            = M_SQL_DATA_TYPE_TEXT;
 	field->d.t.data        = val;
@@ -127,6 +151,9 @@ void M_sql_tabledata_field_set_text_const(M_sql_tabledata_field_t *field, const 
 
 void M_sql_tabledata_field_set_binary_own(M_sql_tabledata_field_t *field, unsigned char *val, size_t len)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type              = M_SQL_DATA_TYPE_BINARY;
 	field->d.bin.data_alloc  = val;
@@ -152,6 +179,9 @@ void M_sql_tabledata_field_set_binary_dup(M_sql_tabledata_field_t *field, const 
 
 void M_sql_tabledata_field_set_binary_const(M_sql_tabledata_field_t *field, const unsigned char *val, size_t len)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_tabledata_field_clear(field);
 	field->type              = M_SQL_DATA_TYPE_BINARY;
 	field->d.bin.data        = val;
@@ -164,6 +194,9 @@ void M_sql_tabledata_field_set_binary_const(M_sql_tabledata_field_t *field, cons
 
 void M_sql_tabledata_field_set_null(M_sql_tabledata_field_t *field)
 {
+	if (field == NULL)
+		return;
+
 	M_sql_data_type_t type = field->type;
 	M_sql_tabledata_field_clear(field);
 	field->type = type; /* Preserve original field type */
