@@ -194,10 +194,12 @@ void M_sql_tabledata_field_set_binary_const(M_sql_tabledata_field_t *field, cons
 
 void M_sql_tabledata_field_set_null(M_sql_tabledata_field_t *field)
 {
+	M_sql_data_type_t type;
+
 	if (field == NULL)
 		return;
 
-	M_sql_data_type_t type = field->type;
+	type = field->type;
 	M_sql_tabledata_field_clear(field);
 	field->type = type; /* Preserve original field type */
 }
