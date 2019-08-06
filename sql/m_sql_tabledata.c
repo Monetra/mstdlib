@@ -1328,3 +1328,30 @@ M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *ta
 }
 
 
+M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags)
+{
+	size_t             len;
+	size_t             i;
+	M_sql_tabledata_t *out_fields = NULL;
+
+	/* Invalid Use */
+	if (field_names == NULL || max_len == 0)
+		return NULL;
+
+	len        = M_list_str_len(field_names);
+
+	/* Duplicate into expanded list */
+	out_fields = M_malloc_zero(((*num_fields) + len) * sizeof(*out_fields));
+	M_mem_copy(out_fields, fields, (*num_fields) * sizeof(*fields));
+
+	for (i=0; i<len; i++) {
+		const char *name = M_list_str_at(field_names, i);
+		out_fields[(*num_fields)+i].table_column   = table_column;
+		out_fields[(*num_fields)+i].field_name     = name;
+		out_fields[(*num_fields)+i].max_column_len = max_len;
+		out_fields[(*num_fields)+i].type           = M_SQL_DATA_TYPE_TEXT;
+		out_fields[(*num_fields)+i].flags          = flags | M_SQL_TABLEDATA_FLAG_VIRTUAL;
+	}
+	(*num_fields)+=len;
+	return out_fields;
+}

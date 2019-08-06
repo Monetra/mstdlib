@@ -491,6 +491,24 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  */
 M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
 
+/*! Convenience function to expand a list of tabledata fields base on an M_list_str_t list of
+ *  virtual column names tied to a single table column that share the same attributes.  All
+ *  virtual columns are always stored as text.
+ *
+ *  IMPORTANT: The passed in "table_column" and "field_names" MUST persist until the tabledata
+ *             structure is no longer needed as they are used as const values internally.
+ *
+ * \param[in]     fields       Field list to expand.
+ * \param[in,out] num_fields   On input, the size of the fields table passed in. On return, the new size.
+ * \param[in]     table_column Name of real table column virtual columns are tied to.  NOTE: Pointer must
+ *                             persist until returned table is no longer needed.
+ * \param[in]     field_names  List of virtual column names used to expand table.  NOTE: Pointer must
+ *                             persist until returned table is no longer needed.
+ * \param[in]     max_len      Maximum field value length for each field name.
+ * \param[in]     flags        Shared field flags.  M_SQL_TABLEDATA_FLAG_VIRTUAL is automatically added if not specified.
+ * \return Allocated tabledata structure.  Must be M_free()'d when no longer needed.
+ */
+M_API M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags);
 
 /*! @} */
 
