@@ -838,8 +838,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		}
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
-		/* If its not an ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
-		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
+		/* If its not a generated ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
+		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
 		    !fetch_cb(NULL, fields[i].field_name, M_TRUE, thunk)) {
 			/* Skip! */
 			continue;
