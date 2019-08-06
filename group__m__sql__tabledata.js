@@ -39,5 +39,6 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_add", "group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2", null ],
     [ "M_sql_tabledata_trans_add", "group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f", null ],
     [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#gaf63e0fc02d004363ff70ff9e5b0f8822", null ],
-    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8", null ]
+    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8", null ],
+    [ "M_sql_tabledata_append_virtual_list", "group__m__sql__tabledata.html#gad6b827e0f217305bab320e02e9923943", null ]
 ];

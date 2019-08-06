@@ -184,6 +184,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaf63e0fc02d004363ff70ff9e5b0f8822"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaebb4908e047e3871ee2145d1eddd0ca8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8">M_sql_tabledata_trans_edit</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaebb4908e047e3871ee2145d1eddd0ca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad6b827e0f217305bab320e02e9923943"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad6b827e0f217305bab320e02e9923943">M_sql_tabledata_append_virtual_list</a> (const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t *num_fields, const char *table_column, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *field_names, size_t max_len, <a class="el" href="group__m__sql__tabledata.html#gaf5e35f940fabf4f7dbe7330b2e59402b">M_sql_tabledata_flags_t</a> flags)</td></tr>
+<tr class="separator:gad6b827e0f217305bab320e02e9923943"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>SQL Table Data Management </p>
@@ -1275,12 +1277,76 @@ flags</td>
 
 </div>
 </div>
+<a class="anchor" id="gad6b827e0f217305bab320e02e9923943"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a>* M_sql_tabledata_append_virtual_list </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *&#160;</td>
+          <td class="paramname"><em>fields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>num_fields</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table_column</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td>
+          <td class="paramname"><em>field_names</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gaf5e35f940fabf4f7dbe7330b2e59402b">M_sql_tabledata_flags_t</a>&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convenience function to expand a list of tabledata fields base on an M_list_str_t list of virtual column names tied to a single table column that share the same attributes. All virtual columns are always stored as text.</p>
+<p>IMPORTANT: The passed in "table_column" and "field_names" MUST persist until the tabledata structure is no longer needed as they are used as const values internally.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">fields</td><td>Field list to expand. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">num_fields</td><td>On input, the size of the fields table passed in. On return, the new size. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">table_column</td><td>Name of real table column virtual columns are tied to. NOTE: Pointer must persist until returned table is no longer needed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">field_names</td><td>List of virtual column names used to expand table. NOTE: Pointer must persist until returned table is no longer needed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_len</td><td>Maximum field value length for each field name. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Shared field flags. M_SQL_TABLEDATA_FLAG_VIRTUAL is automatically added if not specified. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Allocated tabledata structure. Must be <a class="el" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free()</a>'d when no longer needed. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Aug 6 2019 13:22:21 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Aug 6 2019 14:20:09 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
