@@ -498,7 +498,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const ch
  *  IMPORTANT: The passed in "table_column" and "field_names" MUST persist until the tabledata
  *             structure is no longer needed as they are used as const values internally.
  *
- * \param[in]     fields       Field list to expand.
+ * \param[in]     fields       Field list to expand.  Original input is NOT modified.
  * \param[in,out] num_fields   On input, the size of the fields table passed in. On return, the new size.
  * \param[in]     table_column Name of real table column virtual columns are tied to.  NOTE: Pointer must
  *                             persist until returned table is no longer needed.
