@@ -428,6 +428,9 @@ static M_bool get_peripheral_by_identifier(const char *identifier)
 	NSArray<CBPeripheral *> *peripherals;
 
 	uuid = [[NSUUID alloc] initWithUUIDString:[NSString stringWithUTF8String:identifier]];
+	/* Ensure we actually have a NSUUID object because
+	 * passing nil into the array will cause an exception.
+	 * Creating the NSUUID will fail if the string isn't valid. */
 	if (uuid == nil)
 		return M_FALSE;
 
@@ -439,10 +442,28 @@ static M_bool get_peripheral_by_identifier(const char *identifier)
 static M_bool get_peripheral_by_service(const char *service_uuid)
 {
 	CBUUID                  *uuid;
+	NSUUID                  *ns_uuid;
 	NSArray<CBUUID *>       *cbarr;
 	NSArray<CBPeripheral *> *peripherals;
 
-	uuid = [CBUUID UUIDWithString:[NSString stringWithUTF8String:service_uuid]];
+	@try {
+		/* Validate the UUID is a valid UUID.
+		 * Creating the NSUUID will fail if the string isn't valid. */
+		ns_uuid = [[NSUUID alloc] initWithUUIDString:[NSString stringWithUTF8String:service_uuid]];
+		if (ns_uuid == nil)
+			return M_FALSE;
+
+		/* Pass the UUID along to become a CBUUID. This function will
+		 * throw an exception if the UUID is bad so we're not using UUIDWithString here.
+		 * We're catching exceptions but a bad UUID will generate an assertion warning
+		 * which we'd rather not see. */
+		uuid = [CBUUID UUIDWithNSUUID:ns_uuid];
+	}
+	@catch (NSException *e) {
+		return M_FALSE;
+	}
+	/* Ensure we actually have a CBUUID object because
+	 * passing nil into the array will cause an exception. */
 	if (uuid == nil)
 		return M_FALSE;
 
