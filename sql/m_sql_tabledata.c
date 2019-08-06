@@ -875,7 +875,7 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
 			if (!M_sql_tabledata_row_gather_virtual(&field, fields, num_fields, i, fetch_cb, thunk, NULL))
 				continue;
-		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
+		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
 			size_t  max_len = fields[i].max_column_len;
 			M_int64 id;
 			if (max_len == 0) {
