@@ -523,14 +523,26 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 		return M_SQL_TABLEDATA_FETCH_FAIL;
 	}
 
-	/* If the field wasn't specified, then we use the old value, so no change */
-	if (!fetch_cb(field, fielddef->field_name, is_add, thunk))
+	/* If the field wasn't specified, then we can skip as long as it isn't a NOT NULL field on add */
+	if (!fetch_cb(field, fielddef->field_name, is_add, thunk)) {
+		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
+			M_snprintf(error, sizeof(error), "field %s is required to be specified", fielddef->field_name);
+			return M_SQL_TABLEDATA_FETCH_FAIL;
+		}
 		return M_SQL_TABLEDATA_FETCH_SKIP;
+	}
 
 	/* Run field validator/transformation */
-	if (field && fielddef->field_cb) {
-		if (!fielddef->field_cb(field, fielddef->field_name, thunk, error, error_len))
+	if (field) {
+		if (fielddef->field_cb) {
+			if (!fielddef->field_cb(field, fielddef->field_name, thunk, error, error_len))
+				return M_SQL_TABLEDATA_FETCH_FAIL;
+		}
+		/* On add, verify field is not null if flag is set */
+		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL && M_sql_tabledata_field_is_null(field)) {
+			M_snprintf(error, sizeof(error), "field %s is required to not be null", fielddef->field_name);
 			return M_SQL_TABLEDATA_FETCH_FAIL;
+		}
 	}
 
 	return M_SQL_TABLEDATA_FETCH_SUCCESS;
@@ -572,11 +584,27 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_fie
 	M_sql_tabledata_field_clear(field);
 
 	rv = M_sql_tabledata_edit_fetch_int(field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
+
+	/* Means there was a change to something being set (not a where clause) */
+	if (rv == M_SQL_TABLEDATA_FETCH_SUCCESS && !(fielddef->flags & M_SQL_TABLEDATA_FLAG_ID)) {
+		if (!(fielddef->flags & M_SQL_TABLEDATA_FLAG_EDITABLE)) {
+			M_snprintf(error, error_len, "field %s not allowed to be edited", fielddef->field_name);
+			return M_SQL_TABLEDATA_FETCH_FAIL;
+		}
+	}
 	if (output_identical && rv == M_SQL_TABLEDATA_FETCH_SKIP && M_sql_tabledata_field_is_null(field)) {
 		M_sql_tabledata_field_t *prior_field = NULL;
 		if (M_hash_strvp_get(prev_fields, fielddef->field_name, (void **)&prior_field)) {
 			M_sql_tabledata_field_copy(field, prior_field);
 		}
+	}
+
+	if (field &&
+	    rv == M_SQL_TABLEDATA_FETCH_SUCCESS &&
+	    fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL &&
+	    M_sql_tabledata_field_is_null(field)) {
+		M_snprintf(error, sizeof(error), "field %s is required to not be null", fielddef->field_name);
+		return M_SQL_TABLEDATA_FETCH_FAIL;
 	}
 
 	return rv;
@@ -618,7 +646,8 @@ static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_fi
 		if (!M_sql_tabledata_field_is_null(&field)) {
 			const char *text = NULL;
 			if (!M_sql_tabledata_field_get_text(&field, &text)) {
-				/* TODO: come up with a way to return failure here */
+				M_snprintf(error, error_len, "field %s cannot be converted to text", fields[i].field_name);
+				goto done;
 			}
 			M_hash_dict_insert(dict, fields[i].field_name, text);
 		}
@@ -1270,8 +1299,6 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
 			is_changed = (rv == M_SQL_TABLEDATA_FETCH_SUCCESS)?M_TRUE:M_FALSE;
-
-			/* TODO: see if field is allowed to be edited */
 		}
 
 		if (is_changed) {

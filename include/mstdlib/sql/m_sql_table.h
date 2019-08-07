@@ -219,12 +219,12 @@ typedef enum {
 	M_SQL_TABLEDATA_FLAG_NONE         = 0,      /*!< No Flags */
 	M_SQL_TABLEDATA_FLAG_VIRTUAL      = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column' */
 	M_SQL_TABLEDATA_FLAG_EDITABLE     = 1 << 1, /*!< Field is allowed to be edited, not add-only */
-	M_SQL_TABLEDATA_FLAG_ID           = 1 << 2, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
+	M_SQL_TABLEDATA_FLAG_NOTNULL      = 1 << 2, /*!< Field must be specified and is not allowed to be NULL */
+	M_SQL_TABLEDATA_FLAG_ID           = 1 << 3, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
 	                                             *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. */
-	M_SQL_TABLEDATA_FLAG_ID_GENERATE  = 1 << 3, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
-	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 4  /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
+	M_SQL_TABLEDATA_FLAG_ID_GENERATE  = 1 << 4, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
+	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 5  /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
 	                                             *   as there may be multiple lookup indexes */
-/* TODO: flag  column as required to be specified, non-null.  edit can't make null */
 } M_sql_tabledata_flags_t;
 
 
