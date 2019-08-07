@@ -255,7 +255,7 @@ M_bool M_sql_tabledata_field_get_int16(M_sql_tabledata_field_t *field, M_int16 *
 	} else {
 		switch  (field->type) {
 			case M_SQL_DATA_TYPE_BOOL:
-				M_sql_tabledata_field_set_int16(field, field->d.b);
+				M_sql_tabledata_field_set_int16(field, (M_int16)field->d.b);
 				break;
 			case M_SQL_DATA_TYPE_INT32:
 				if (field->d.i32 > M_INT16_MAX)
@@ -298,7 +298,7 @@ M_bool M_sql_tabledata_field_get_int32(M_sql_tabledata_field_t *field, M_int32 *
 	} else {
 		switch  (field->type) {
 			case M_SQL_DATA_TYPE_BOOL:
-				M_sql_tabledata_field_set_int32(field, field->d.b);
+				M_sql_tabledata_field_set_int32(field, (M_int16)field->d.b);
 				break;
 			case M_SQL_DATA_TYPE_INT16:
 				M_sql_tabledata_field_set_int32(field, (M_int32)field->d.i16);
@@ -1126,7 +1126,7 @@ static M_sql_error_t M_sql_tabledata_query(M_hash_strvp_t **params_out, M_sql_tr
 						break;
 
 					case M_SQL_DATA_TYPE_BINARY:
-						{ 
+						{
 							size_t               len = 0;
 							const unsigned char *bin = M_sql_stmt_result_binary_byname_direct(stmt, 0, fields[i].table_column, &len);
 							M_sql_tabledata_field_set_binary_dup(myfield, bin, len);
