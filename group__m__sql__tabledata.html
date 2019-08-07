@@ -129,11 +129,13 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba0c0a9038e2c20139babc602dcd5d493a">M_SQL_TABLEDATA_FLAG_EDITABLE</a> = 1 &lt;&lt; 1, 
 <br />
-&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6">M_SQL_TABLEDATA_FLAG_ID</a> = 1 &lt;&lt; 2, 
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6f1806b1e6111eb8300438c3fbb3e850">M_SQL_TABLEDATA_FLAG_NOTNULL</a> = 1 &lt;&lt; 2, 
 <br />
-&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6613bee13f27ce28b725c99c45b8be87">M_SQL_TABLEDATA_FLAG_ID_GENERATE</a> = 1 &lt;&lt; 3, 
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6">M_SQL_TABLEDATA_FLAG_ID</a> = 1 &lt;&lt; 3, 
 <br />
-&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b">M_SQL_TABLEDATA_FLAG_ID_REQUIRED</a> = 1 &lt;&lt; 4
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6613bee13f27ce28b725c99c45b8be87">M_SQL_TABLEDATA_FLAG_ID_GENERATE</a> = 1 &lt;&lt; 4, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b">M_SQL_TABLEDATA_FLAG_ID_REQUIRED</a> = 1 &lt;&lt; 5
 <br />
  }</td></tr>
 <tr class="separator:gaf5e35f940fabf4f7dbe7330b2e59402b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -331,6 +333,9 @@ field_cb</td>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba0c0a9038e2c20139babc602dcd5d493a"></a>M_SQL_TABLEDATA_FLAG_EDITABLE&#160;</td><td class="fielddoc">
 <p>Field is allowed to be edited, not add-only </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba6f1806b1e6111eb8300438c3fbb3e850"></a>M_SQL_TABLEDATA_FLAG_NOTNULL&#160;</td><td class="fielddoc">
+<p>Field must be specified and is not allowed to be NULL </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6"></a>M_SQL_TABLEDATA_FLAG_ID&#160;</td><td class="fielddoc">
 <p>Field is an ID column (meaning it is used for lookups). Can be assigned on add, but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. </p>
@@ -1379,7 +1384,7 @@ field_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 7 2019 13:59:10 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Aug 7 2019 14:55:03 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

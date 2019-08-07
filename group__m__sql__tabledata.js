@@ -15,6 +15,7 @@ var group__m__sql__tabledata =
       [ "M_SQL_TABLEDATA_FLAG_NONE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba5af1b966d8755de09ceae487e30268d0", null ],
       [ "M_SQL_TABLEDATA_FLAG_VIRTUAL", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af", null ],
       [ "M_SQL_TABLEDATA_FLAG_EDITABLE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba0c0a9038e2c20139babc602dcd5d493a", null ],
+      [ "M_SQL_TABLEDATA_FLAG_NOTNULL", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6f1806b1e6111eb8300438c3fbb3e850", null ],
       [ "M_SQL_TABLEDATA_FLAG_ID", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6", null ],
       [ "M_SQL_TABLEDATA_FLAG_ID_GENERATE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6613bee13f27ce28b725c99c45b8be87", null ],
       [ "M_SQL_TABLEDATA_FLAG_ID_REQUIRED", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b", null ]
