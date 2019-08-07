@@ -223,8 +223,9 @@ typedef enum {
 	M_SQL_TABLEDATA_FLAG_ID           = 1 << 3, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
 	                                             *   but cannot be used with M_SQL_TABLEDATA_FLAG_EDITABLE or M_SQL_TABLEDATA_FLAG_VIRTUAL. */
 	M_SQL_TABLEDATA_FLAG_ID_GENERATE  = 1 << 4, /*!< Auto-generate the ID on the user's behalf.  Must be an ID field. Only one allowed per field definition list. */
-	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 5  /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
+	M_SQL_TABLEDATA_FLAG_ID_REQUIRED  = 1 << 5, /*!< On edits, this ID must be specified.  On some DBs, you may not have any required IDs
 	                                             *   as there may be multiple lookup indexes */
+	M_SQL_TABLEDATA_FLAG_TIMESTAMP    = 1 << 6  /*!< Field is an auto-generated unix timestamp.  Must be INT64. Cannot be specified with ID. Field fetcher will never be called. If M_SQL_TABLEDATA_FLAG_EDITABLE is specified, will update on edit */
 } M_sql_tabledata_flags_t;
 
 
