@@ -227,25 +227,37 @@ typedef enum {
 /* TODO: flag  column as required to be specified, non-null.  edit can't make null */
 } M_sql_tabledata_flags_t;
 
-/*! Structure to be used to define the various fields and columns stored in a table */
-typedef struct {
-	const char                 *table_column;    /*!< Database column name */
-	const char                 *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. */
-	size_t                      max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
-	M_sql_data_type_t           type;            /*!< Column data type */
-	M_sql_tabledata_flags_t     flags;           /*!< Flags controlling behavior */
-
-	/* TODO: 
-	 * - validator callback?
-	 */
-} M_sql_tabledata_t;
-
 
 /*! Opaque structure holding field data. */
 struct M_sql_tabledata_field;
 
 /*! Opaque structure holding field data. Use corresponding setters/getters to manipulate. */
 typedef struct M_sql_tabledata_field M_sql_tabledata_field_t;
+
+
+/*! A single callback to validate field data matches criteria, and if necessary transform it to the desired form for
+ *  storage into the DB.  Transformation can be used for things like monetary conversion or converting a list of flags
+ *  into an integer.
+ *
+ *  \param[in,out]  field      Field data to be validated.  Use field getters to access data, may cause in-place data conversion.
+ *  \param[in]      field_name Name of field being validated
+ *  \param[in]      thunk      User-defined thunk parameter passed to tabledata add or edit function
+ *  \param[out]     error      Buffer to hold human-readable error on failure
+ *  \param[in]      error_len  Length of error buffer
+ *  \return M_TRUE if validation or conversion succeeded, M_FALSE if validation or conversion failed. */
+typedef M_bool (*M_sql_tabledata_validatetransform_cb)(M_sql_tabledata_field_t *field, const char *field_name, void *thunk, char *error, size_t error_len);
+
+
+/*! Structure to be used to define the various fields and columns stored in a table */
+typedef struct {
+	const char                          *table_column;    /*!< Database column name */
+	const char                          *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. */
+	size_t                               max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
+	M_sql_data_type_t                    type;            /*!< Column data type */
+	M_sql_tabledata_flags_t              flags;           /*!< Flags controlling behavior */
+	M_sql_tabledata_validatetransform_cb field_cb;        /*!< Callback to validate or transform input data. */
+} M_sql_tabledata_t;
+
 
 /*! Set the field pointer to a boolean value.
  *  Will override existing value and deallocate any prior memory consumed if necessary
@@ -508,7 +520,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const ch
  * \param[in]     flags        Shared field flags.  M_SQL_TABLEDATA_FLAG_VIRTUAL is automatically added if not specified.
  * \return Allocated tabledata structure.  Must be M_free()'d when no longer needed.
  */
-M_API M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags);
+M_API M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, const M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags);
 
 /*! @} */
 

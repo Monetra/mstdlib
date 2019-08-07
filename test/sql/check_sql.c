@@ -572,7 +572,7 @@ static M_bool fetch_dict(M_sql_tabledata_field_t *field, const char *field_name,
 		return M_FALSE;
 
 	if (field != NULL) {
-		M_sql_tabledata_field_set_text_const(field, val); 
+		M_sql_tabledata_field_set_text_const(field, val);
 	}
 	return M_TRUE;
 }
@@ -618,15 +618,15 @@ START_TEST(check_tabledata)
 	char              temp[256];
 	M_int64           id      = 0;
 	M_sql_tabledata_t td[] = {
-		{ "key",  "id",   18,  M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED },
-		{ "col1", "col1", 0,   M_SQL_DATA_TYPE_INT32, M_SQL_TABLEDATA_FLAG_EDITABLE },
-		{ "col2", "col2", 32,  M_SQL_DATA_TYPE_TEXT,  0 },
-		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL },
-		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL },
-		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_VIRTUAL },
-		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE }
+		{ "key",  "id",   18,  M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED, NULL },
+		{ "col1", "col1", 0,   M_SQL_DATA_TYPE_INT32, M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL },
+		{ "col2", "col2", 32,  M_SQL_DATA_TYPE_TEXT,  0,                                                                                         NULL },
+		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
+		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
+		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_VIRTUAL,                                                              NULL },
+		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL }
 	};
-	M_hash_dict_t *dict; 
+	M_hash_dict_t *dict;
 	M_sql_stmt_t  *stmt;
 	M_sql_table_t *table   = NULL;
 

@@ -509,42 +509,72 @@ static void M_sql_tabledata_field_copy(M_sql_tabledata_field_t *dest, const M_sq
 }
 
 
-/* Returns M_TRUE on change, M_FALSE on no change */
-static M_bool M_sql_tabledata_edit_fetch_int(M_sql_tabledata_field_t *field, const char *field_name, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields)
+typedef enum {
+	M_SQL_TABLEDATA_FETCH_FAIL    = -1, /*!< An error occurred while fetching, validating, or transforming data */
+	M_SQL_TABLEDATA_FETCH_SKIP    = 0,  /*!< Skip the field, it is not on file */
+	M_SQL_TABLEDATA_FETCH_SUCCESS = 1   /*!< Field fetched successfully */
+} M_sql_tabledata_fetch_rv_t;
+
+
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
 {
-	M_sql_tabledata_field_t *prior_field = NULL;
+	if (fielddef == NULL || fetch_cb == NULL) {
+		M_snprintf(error, error_len, "invalid use");
+		return M_SQL_TABLEDATA_FETCH_FAIL;
+	}
 
 	/* If the field wasn't specified, then we use the old value, so no change */
-	if (!fetch_cb(field, field_name, (prev_fields == NULL)?M_TRUE:M_FALSE, thunk))
-		return M_FALSE;
+	if (!fetch_cb(field, fielddef->field_name, is_add, thunk))
+		return M_SQL_TABLEDATA_FETCH_SKIP;
 
-	/* If didn't exist previously, but does exist now, its a change. */
-	if (!M_hash_strvp_get(prev_fields, field_name, (void **)&prior_field))
-		return M_TRUE;
-
-	if (M_sql_tabledata_field_eq(prior_field, field)) {
-		M_sql_tabledata_field_clear(field);
-		return M_FALSE;
+	/* Run field validator/transformation */
+	if (field && fielddef->field_cb) {
+		if (!fielddef->field_cb(field, fielddef->field_name, thunk, error, error_len))
+			return M_SQL_TABLEDATA_FETCH_FAIL;
 	}
-	return M_TRUE;
+
+	return M_SQL_TABLEDATA_FETCH_SUCCESS;
 }
 
 
-/* Returns M_FALSE if field was not specified, or if it matches the previous value.
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch_int(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, char *error, size_t error_len)
+{
+	M_sql_tabledata_field_t    *prior_field = NULL;
+	M_sql_tabledata_fetch_rv_t  rv;
+
+	rv = M_sql_tabledata_fetch(field, fielddef, fetch_cb, (prev_fields == NULL)?M_TRUE:M_FALSE, thunk, error, error_len);
+	if (rv != M_SQL_TABLEDATA_FETCH_SUCCESS)
+		return rv;
+
+	/* If didn't exist previously, but does exist now, its a change. */
+	if (!M_hash_strvp_get(prev_fields, fielddef->field_name, (void **)&prior_field))
+		return M_SQL_TABLEDATA_FETCH_SUCCESS;
+
+	/* If its the same, we may want to ignore it */
+	if (M_sql_tabledata_field_eq(prior_field, field)) {
+		M_sql_tabledata_field_clear(field);
+		return M_SQL_TABLEDATA_FETCH_SKIP;
+	}
+
+	/* Its different, keep it */
+	return M_SQL_TABLEDATA_FETCH_SUCCESS;
+}
+
+
+/* Returns M_SQL_TABLEDATA_FETCH_SKIP if field was not specified, or if it matches the previous value.
  * If output_always is M_TRUE, then field_data and field_data_len will be filled in even if no change is occurring...
  * this is used for virtual fields otherwise we'd lose data. */
-static M_bool M_sql_tabledata_edit_fetch(M_sql_tabledata_field_t *field, const char *field_name, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, M_bool output_identical)
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, M_bool output_identical, char *error, size_t error_len)
 {
-	M_bool rv;
+	M_sql_tabledata_fetch_rv_t rv;
 
 	M_mem_set(field, 0, sizeof(*field));
 	M_sql_tabledata_field_clear(field);
 
-	rv = M_sql_tabledata_edit_fetch_int(field, field_name, fetch_cb, thunk, prev_fields);
-
-	if (output_identical && rv == M_FALSE && M_sql_tabledata_field_is_null(field)) {
+	rv = M_sql_tabledata_edit_fetch_int(field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
+	if (output_identical && rv == M_SQL_TABLEDATA_FETCH_SKIP && M_sql_tabledata_field_is_null(field)) {
 		M_sql_tabledata_field_t *prior_field = NULL;
-		if (M_hash_strvp_get(prev_fields, field_name, (void **)&prior_field)) {
+		if (M_hash_strvp_get(prev_fields, fielddef->field_name, (void **)&prior_field)) {
 			M_sql_tabledata_field_copy(field, prior_field);
 		}
 	}
@@ -552,14 +582,16 @@ static M_bool M_sql_tabledata_edit_fetch(M_sql_tabledata_field_t *field, const c
 	return rv;
 }
 
-/* NOTE: if prev_fields is specified, it is an edit, otherwise its an add.  If NO fields have changed on edit, will return NULL. */
-static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_field, const M_sql_tabledata_t *fields, size_t num_fields, size_t curr_idx, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields)
+/* NOTE: if prev_fields is specified, it is an edit, otherwise its an add.  If NO fields have changed on edit, out_field will be NULL. Returns M_FALSE if a critical failure occurs. */
+static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_field, const M_sql_tabledata_t *fields, size_t num_fields, size_t curr_idx, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, char *error, size_t error_len)
 {
-	const char             *column_name   = fields[curr_idx].table_column;
-	size_t                  i;
-	M_hash_dict_t          *dict          = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_LOWER);
-	M_bool                  field_updated = M_FALSE;
-	M_sql_tabledata_field_t field;
+	const char                *column_name   = fields[curr_idx].table_column;
+	size_t                     i;
+	M_hash_dict_t             *dict          = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_LOWER);
+	M_bool                     field_updated = M_FALSE;
+	M_sql_tabledata_field_t    field;
+	M_sql_tabledata_fetch_rv_t rv;
+	M_bool                     ret           = M_FALSE;
 
 	M_mem_set(&field, 0, sizeof(field));
 	M_sql_tabledata_field_clear(&field);
@@ -569,12 +601,17 @@ static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_fi
 			continue;
 
 		if (prev_fields) {
-			if (M_sql_tabledata_edit_fetch(&field, fields[i].field_name, fetch_cb, thunk, prev_fields, M_TRUE))
+			rv = M_sql_tabledata_edit_fetch(&field, &fields[i], fetch_cb, thunk, prev_fields, M_TRUE, error, error_len);
+			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+				goto done;
+			if (rv == M_SQL_TABLEDATA_FETCH_SUCCESS)
 				field_updated = M_TRUE;
 		} else {
-			if (!fetch_cb(&field, fields[i].field_name, M_TRUE, thunk)) {
+			rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
+			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+				goto done;
+			if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
 				continue;
-			}
 		}
 
 		/* Null data is the same as the key not existing */
@@ -594,8 +631,10 @@ static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_fi
 		M_sql_tabledata_field_set_text_own(out_field, M_hash_dict_serialize(dict, '|', '=', '"', '"', M_HASH_DICT_SER_FLAG_NONE));
 	}
 
+	ret = M_TRUE;
+done:
 	M_hash_dict_destroy(dict); dict = NULL;
-	return M_TRUE;
+	return ret;
 }
 
 
@@ -840,7 +879,7 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 
 		/* If its not a generated ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
 		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
-		    !fetch_cb(NULL, fields[i].field_name, M_TRUE, thunk)) {
+		    M_sql_tabledata_fetch(NULL, &fields[i], fetch_cb, M_TRUE, thunk, NULL, 0) == M_SQL_TABLEDATA_FETCH_SKIP) {
 			/* Skip! */
 			continue;
 		}
@@ -873,8 +912,14 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
 		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
-			if (!M_sql_tabledata_row_gather_virtual(&field, fields, num_fields, i, fetch_cb, thunk, NULL))
-				continue;
+			if (!M_sql_tabledata_row_gather_virtual(&field, fields, num_fields, i, fetch_cb, thunk, NULL, error, error_len))
+				goto done;
+
+			/* I guess we should probably actually bind NULL
+			 *
+			 * if (M_sql_tabledata_field_is_null(&field))
+			 *	continue;
+			 */
 		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
 			size_t  max_len = fields[i].max_column_len;
 			M_int64 id;
@@ -893,10 +938,12 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 			if (generated_id != NULL)
 				*generated_id = id;
 		} else {
-			if (!fetch_cb(&field, fields[i].field_name, M_TRUE, thunk)) {
-				/* Do not emit field */
+			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
+			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+				goto done;
+			if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
 				continue;
-			}
+
 		}
 
 		/* NOTE: just because field_data is NULL doesn't mean they don't intend us to actually bind NULL */
@@ -1006,10 +1053,15 @@ static M_sql_error_t M_sql_tabledata_query(M_hash_strvp_t **params_out, M_sql_tr
 	has_col = M_FALSE;
 
 	for (i=0; i<num_fields; i++) {
+		M_sql_tabledata_fetch_rv_t rv;
+
 		if (!(fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		if (!fetch_cb(&field, fields[i].field_name, M_FALSE, thunk)) {
+		rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_FALSE, thunk, error, error_len);
+		if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+			goto done;
+		if (rv == M_SQL_TABLEDATA_FETCH_SKIP) {
 			if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_REQUIRED) {
 				M_snprintf(error, error_len, "required field %s not specified", fields[i].field_name);
 				goto done;
@@ -1207,14 +1259,18 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 
 		if (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
 			/* Only on virtual data does NULL mean not changed.  Otherwise we are explicitly setting a field to NULL */
-			M_sql_tabledata_row_gather_virtual(&field, info->fields, info->num_fields, i, info->fetch_cb, info->thunk, prev_fields);
+			M_sql_tabledata_row_gather_virtual(&field, info->fields, info->num_fields, i, info->fetch_cb, info->thunk, prev_fields, error, error_len);
 			if (M_sql_tabledata_field_is_null(&field)) {
 				is_changed = M_FALSE;
 			} else {
 				is_changed = M_TRUE;
 			}
 		} else {
-			is_changed  = M_sql_tabledata_edit_fetch(&field, info->fields[i].field_name, info->fetch_cb, info->thunk, prev_fields, M_FALSE);
+			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_edit_fetch(&field, &info->fields[i], info->fetch_cb, info->thunk, prev_fields, M_FALSE, error, error_len);
+			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+				goto done;
+			is_changed = (rv == M_SQL_TABLEDATA_FETCH_SUCCESS)?M_TRUE:M_FALSE;
+
 			/* TODO: see if field is allowed to be edited */
 		}
 
@@ -1247,13 +1303,17 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	M_buf_add_str(request, " WHERE ");
 	has_col = M_FALSE;
 	for (i=0; i<info->num_fields; i++) {
+		M_sql_tabledata_fetch_rv_t rv;
+
 		/* Skip non-ID columns */
 		if (!(info->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		if (!info->fetch_cb(&field, info->fields[i].field_name, M_FALSE, info->thunk)) {
+		rv = M_sql_tabledata_fetch(&field, &info->fields[i], info->fetch_cb, M_FALSE, info->thunk, error, error_len);
+		if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
+			goto done;
+		if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
 			continue;
-		}
 
 		if (has_col) {
 			M_buf_add_str(request, " AND ");
@@ -1363,7 +1423,7 @@ M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *ta
 }
 
 
-M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags)
+M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, const M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags)
 {
 	size_t             len;
 	size_t             i;
