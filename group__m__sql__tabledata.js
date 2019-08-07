@@ -18,7 +18,8 @@ var group__m__sql__tabledata =
       [ "M_SQL_TABLEDATA_FLAG_NOTNULL", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6f1806b1e6111eb8300438c3fbb3e850", null ],
       [ "M_SQL_TABLEDATA_FLAG_ID", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba62dbee2c67a800ff17da9cae1156baf6", null ],
       [ "M_SQL_TABLEDATA_FLAG_ID_GENERATE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba6613bee13f27ce28b725c99c45b8be87", null ],
-      [ "M_SQL_TABLEDATA_FLAG_ID_REQUIRED", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b", null ]
+      [ "M_SQL_TABLEDATA_FLAG_ID_REQUIRED", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b", null ],
+      [ "M_SQL_TABLEDATA_FLAG_TIMESTAMP", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402baa0c4829f4e17e50356e60a8563e3203f", null ]
     ] ],
     [ "M_sql_tabledata_field_set_bool", "group__m__sql__tabledata.html#gaaef487509774842d968485f38aef9a18", null ],
     [ "M_sql_tabledata_field_set_int16", "group__m__sql__tabledata.html#gabed6d61c6577a5312e3333f765513bac", null ],
