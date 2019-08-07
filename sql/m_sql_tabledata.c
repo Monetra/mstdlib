@@ -645,7 +645,9 @@ static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_fi
 			rv = M_sql_tabledata_edit_fetch(&field, &fields[i], fetch_cb, thunk, prev_fields, M_TRUE, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
-			if (rv == M_SQL_TABLEDATA_FETCH_SUCCESS)
+
+			/* Don't count timestamp field as a modification */
+			if (rv == M_SQL_TABLEDATA_FETCH_SUCCESS && !(fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP))
 				field_updated = M_TRUE;
 		} else {
 			rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
@@ -1282,6 +1284,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	M_sql_error_t           err         = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_edit_t *info        = arg;
 	M_sql_tabledata_field_t field;
+	M_bool                  has_update  = M_FALSE;
 
 	M_mem_set(&field, 0, sizeof(field));
 
@@ -1332,6 +1335,10 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 				M_buf_add_str(request, ", ");
 			has_col = M_TRUE;
 
+			/* Auto-generated timestamp fields should not be considered a real update */
+			if (!(info->fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP))
+				has_update = M_TRUE;
+
 			M_buf_add_str(request, "\"");
 			M_buf_add_str(request, info->fields[i].table_column);
 			M_buf_add_str(request, "\" = ?");
@@ -1346,7 +1353,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		}
 	}
 
-	if (!has_col) {
+	if (!has_update) {
 		err = M_SQL_ERROR_USER_SUCCESS;
 		M_snprintf(error, error_len, "no data has changed");
 		goto done;
