@@ -526,7 +526,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 	/* If the field wasn't specified, then we can skip as long as it isn't a NOT NULL field on add */
 	if (!fetch_cb(field, fielddef->field_name, is_add, thunk)) {
 		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
-			M_snprintf(error, sizeof(error), "field %s is required to be specified", fielddef->field_name);
+			M_snprintf(error, error_len, "field %s is required to be specified", fielddef->field_name);
 			return M_SQL_TABLEDATA_FETCH_FAIL;
 		}
 		return M_SQL_TABLEDATA_FETCH_SKIP;
@@ -540,7 +540,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 		}
 		/* On add, verify field is not null if flag is set */
 		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL && M_sql_tabledata_field_is_null(field)) {
-			M_snprintf(error, sizeof(error), "field %s is required to not be null", fielddef->field_name);
+			M_snprintf(error, error_len, "field %s is required to not be null", fielddef->field_name);
 			return M_SQL_TABLEDATA_FETCH_FAIL;
 		}
 	}
@@ -616,7 +616,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_fie
 	    rv == M_SQL_TABLEDATA_FETCH_SUCCESS &&
 	    fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL &&
 	    M_sql_tabledata_field_is_null(field)) {
-		M_snprintf(error, sizeof(error), "field %s is required to not be null", fielddef->field_name);
+		M_snprintf(error, error_len, "field %s is required to not be null", fielddef->field_name);
 		return M_SQL_TABLEDATA_FETCH_FAIL;
 	}
 
@@ -1472,10 +1472,12 @@ done:
 	return err;
 }
 
+
 M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
 {
 	return M_sql_tabledata_edit_int(pool, NULL, table_name, fields, num_fields, fetch_cb, thunk, error, error_len);
 }
+
 
 M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len)
 {
