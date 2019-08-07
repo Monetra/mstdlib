@@ -1011,7 +1011,7 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		has_col = M_TRUE;
 		M_buf_add_str(request, "?");
 
-		if (!M_sql_tabledata_bind(stmt, fields[i].type, &field, fields[i].max_column_len)) {
+		if (!M_sql_tabledata_bind(stmt, fields[i].type, &field, (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:fields[i].max_column_len)) {
 			M_snprintf(error, error_len, "column %s unsupported field type", fields[i].table_column);
 			M_sql_tabledata_field_clear(&field);
 			goto done;
@@ -1343,7 +1343,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 			M_buf_add_str(request, info->fields[i].table_column);
 			M_buf_add_str(request, "\" = ?");
 
-			if (!M_sql_tabledata_bind(stmt, info->fields[i].type, &field, info->fields[i].max_column_len)) {
+			if (!M_sql_tabledata_bind(stmt, info->fields[i].type, &field, (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:info->fields[i].max_column_len)) {
 				M_snprintf(error, error_len, "column %s unsupported field type", info->fields[i].table_column);
 				M_sql_tabledata_field_clear(&field);
 				goto done;
