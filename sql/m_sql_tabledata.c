@@ -583,7 +583,20 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_fie
 	M_mem_set(field, 0, sizeof(*field));
 	M_sql_tabledata_field_clear(field);
 
-	rv = M_sql_tabledata_edit_fetch_int(field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
+	if (fielddef->flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
+		if (fielddef->flags & M_SQL_TABLEDATA_FLAG_EDITABLE) {
+			M_sql_tabledata_field_set_int64(field, M_time());
+			return M_SQL_TABLEDATA_FETCH_SUCCESS;
+		}
+
+		/* Remember, we need to handle virtual columns, so it may need to pull in a prior value if not editable */
+		rv = M_SQL_TABLEDATA_FETCH_SKIP;
+
+		if (!output_identical)
+			return rv;
+	} else {
+		rv = M_sql_tabledata_edit_fetch_int(field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
+	}
 
 	/* Means there was a change to something being set (not a where clause) */
 	if (rv == M_SQL_TABLEDATA_FETCH_SUCCESS && !(fielddef->flags & M_SQL_TABLEDATA_FLAG_ID)) {
@@ -724,6 +737,17 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 				goto done;
 			}
 			has_generated = M_TRUE;
+		}
+
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
+			if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
+				M_snprintf(error, error_len, "field %s cannot be both an ID and a Timestamp", fields[i].field_name);
+				goto done;
+			}
+			if (fields[i].type != M_SQL_DATA_TYPE_INT64) {
+				M_snprintf(error, error_len, "field %s is a Timestamp field, must be INT64", fields[i].field_name);
+				goto done;
+			}
 		}
 
 		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
@@ -906,8 +930,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		}
 		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
 
-		/* If its not a generated ID and not a virtual field, then we need to test to see if this column should be emitted at all. */
-		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL)) &&
+		/* If its not a generated ID or Timestamp and not a virtual field, then we need to test to see if this column should be emitted at all. */
+		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL|M_SQL_TABLEDATA_FLAG_TIMESTAMP)) &&
 		    M_sql_tabledata_fetch(NULL, &fields[i], fetch_cb, M_TRUE, thunk, NULL, 0) == M_SQL_TABLEDATA_FETCH_SKIP) {
 			/* Skip! */
 			continue;
@@ -966,6 +990,8 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 
 			if (generated_id != NULL)
 				*generated_id = id;
+		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
+			M_sql_tabledata_field_set_int64(&field, M_time());
 		} else {
 			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
