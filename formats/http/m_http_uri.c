@@ -91,7 +91,8 @@ err:
 
 static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **path)
 {
-	unsigned char byte;
+	unsigned char  byte;
+	char          *p = NULL;
 
 	if (parser == NULL || path == NULL)
 		return M_FALSE;
@@ -109,31 +110,27 @@ static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **
 	if (byte == '*' && M_http_method(http) != M_HTTP_METHOD_OPTIONS)
 		goto err;
 
-	*path = M_parser_read_strdup_until(parser, "?", M_FALSE);
-	if (*path == NULL)
-		*path = M_parser_read_strdup(parser, M_parser_len(parser));
+	p = M_parser_read_strdup_until(parser, "?", M_FALSE);
+	if (p == NULL)
+		p = M_parser_read_strdup(parser, M_parser_len(parser));
 
-	if (*path == NULL)
+	if (p == NULL)
 		goto err;
 
+	if (M_textcodec_error_is_error(M_textcodec_encode(path, p, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL)))
+		goto err;
+
+	M_free(p);
 	return M_TRUE;
 
 err:
-	M_free(*path);
-	*path = NULL;
+	M_free(p);
 	return M_FALSE;
 }
 
 static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_string, M_hash_dict_t **query_args)
 {
-	M_parser_t    **parts     = NULL;
-	size_t          num_parts = 0;
-	M_parser_t    **kv        = NULL;
-	size_t          num_kv    = 0;
-	char           *qstr      = NULL;
-	M_hash_dict_t  *qargs     = NULL;
-	unsigned char   byte;
-	size_t          i;
+	unsigned char byte;
 
 	if (parser == NULL || query_string == NULL || query_args == NULL)
 		return M_FALSE;
@@ -150,57 +147,19 @@ static M_bool M_http_uri_parser_query_args(M_parser_t *parser, char **query_stri
 	if (M_parser_len(parser) == 0)
 		return M_TRUE;
 
-	M_parser_mark(parser);
-	qstr = M_parser_read_strdup(parser, M_parser_len(parser));
-	M_parser_mark_rewind(parser);
+	*query_string = M_parser_read_strdup(parser, M_parser_len(parser));
+	*query_args   = M_http_parse_query_string(*query_string, M_TEXTCODEC_UNKNOWN);
 
-	parts = M_parser_split(parser, '&', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (*query_args == NULL)
 		goto err;
-
-	for (i=0; i<num_parts; i++) {
-		char *key;
-		char *val;
-
-		kv = M_parser_split(parser, '=', 0, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
-		if (kv == NULL || num_kv != 2) {
-			goto err;
-		}
-
-		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-		val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
-		if (M_str_isempty(key) || M_str_isempty(val)) {
-			M_free(key);
-			M_free(val);
-			goto err;
-		}
-
-		if (qargs == NULL) {
-			qargs = M_hash_dict_create(8, 75,
-				M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-		}
-		M_hash_dict_insert(qargs, key, val);
-		M_free(key);
-		M_free(val);
-
-		M_parser_split_free(kv, num_kv);
-		kv     = NULL;
-		num_kv = 0;
-	}
-
-	M_parser_split_free(kv, num_kv);
-	M_parser_split_free(parts, num_parts);
-
-	*query_string = qstr;
-	*query_args   = qargs;
 
 	return M_TRUE;
 
 err:
-	M_parser_split_free(kv, num_kv);
-	M_parser_split_free(parts, num_parts);
-	M_hash_dict_destroy(qargs);
-	M_free(qstr);
+	M_hash_dict_destroy(*query_args);
+	M_free(*query_string);
+	*query_args   = NULL;
+	*query_string = NULL;
 	return M_FALSE;
 }
 

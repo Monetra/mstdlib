@@ -68,7 +68,6 @@ static void M_http_reset_int(M_http_t *http)
 	M_hash_dict_destroy(http->query_args);
 	M_hash_dict_destroy(http->headers);
 	M_free(http->content_type);
-	M_free(http->origcontent_type);
 	M_free(http->charset);
 	M_hash_dict_destroy(http->trailers);
 	M_list_str_destroy(http->set_cookies);
@@ -446,11 +445,11 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 }
 
 
-char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus)
+char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params)
 {
 	M_buf_t *buf = M_buf_create();
 
-	if (!M_http_generate_query_string_buf(buf, uri, params, use_plus)) {
+	if (!M_http_generate_query_string_buf(buf, uri, params)) {
 		M_buf_cancel(buf);
 		return NULL;
 	}
@@ -459,17 +458,67 @@ char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params, M_boo
 }
 
 
-M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus)
+M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params)
+{
+	size_t start_len = M_buf_len(buf);
+	M_bool ret;
+
+	if (buf == NULL)
+		return M_FALSE;
+
+	if (M_str_isempty(uri) && M_hash_dict_num_keys(params) == 0)
+		return M_FALSE;
+
+	M_buf_add_str(buf, uri);
+
+	if (M_hash_dict_num_keys(params) == 0)
+		return M_TRUE;
+
+	M_buf_add_byte(buf, '?');
+
+	ret = M_http_generate_form_data_string_buf(buf, params);
+	if (!ret) {
+		M_buf_truncate(buf, start_len);
+	}
+	return ret;
+}
+
+
+M_hash_dict_t *M_http_parse_query_string(const char *data, M_textcodec_codec_t codec)
+{
+	if (M_str_isempty(data))
+		return NULL;
+
+	if (*data == '?')
+		data++;
+
+	return M_http_parse_form_data_string(data, codec);
+}
+
+
+char *M_http_generate_form_data_string(M_hash_dict_t *params)
+{
+	M_buf_t *buf = M_buf_create();
+
+	if (!M_http_generate_form_data_string_buf(buf, params)) {
+		M_buf_cancel(buf);
+		return NULL;
+	}
+
+	return M_buf_finish_str(buf, NULL);
+}
+
+
+M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, M_hash_dict_t *params)
 {
 	size_t               start_len = M_buf_len(buf);
 	M_bool               ret       = M_FALSE;
 	M_hash_dict_enum_t  *it        = NULL;
-	M_textcodec_codec_t  codec     = (use_plus)? M_TEXTCODEC_PERCENT_URLPLUS : M_TEXTCODEC_PERCENT_URL;
 	const char          *key;
 	const char          *value;
 	M_bool               first     = M_TRUE;
 
-	/* A query string will look like this:
+	/* A form data string will look like this:
 	 *
 	 *   f1=v1&f2=v2&f3=v3
 	 *
@@ -484,8 +533,6 @@ M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_di
 		return M_FALSE;
 	}
 
-	M_buf_add_str(buf, uri);
-
 	M_hash_dict_enumerate(params, &it);
 	while (M_hash_dict_enumerate_next(params, it, &key, &value)) {
 
@@ -493,17 +540,20 @@ M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_di
 			continue;
 		}
 
-		M_buf_add_byte(buf, (first)? '?' : '&');
+		if (!first)
+			M_buf_add_byte(buf, '&');
 		first = M_FALSE;
 
-		if (M_textcodec_encode_buf(buf, key, M_TEXTCODEC_EHANDLER_FAIL, codec) != M_TEXTCODEC_ERROR_SUCCESS) {
+		if (M_textcodec_encode_buf(buf, key, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_FORM) != M_TEXTCODEC_ERROR_SUCCESS) {
 			goto done;
 		}
 
 		M_buf_add_byte(buf, '=');
 
-		if (M_textcodec_encode_buf(buf, value, M_TEXTCODEC_EHANDLER_FAIL, codec) != M_TEXTCODEC_ERROR_SUCCESS) {
-			goto done;
+		if (!M_str_isempty(value)) {
+			if (M_textcodec_encode_buf(buf, value, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_FORM) != M_TEXTCODEC_ERROR_SUCCESS) {
+				goto done;
+			}
 		}
 	}
 
@@ -518,4 +568,111 @@ done:
 	}
 
 	return ret;
+}
+
+
+M_hash_dict_t *M_http_parse_form_data_string(const char *data, M_textcodec_codec_t codec)
+{
+	M_hash_dict_t  *args      = NULL;
+	char          **parts     = NULL;
+	char          **kv        = NULL;
+	size_t          num_parts = 0;
+	size_t          num_kv    = 0;
+	size_t          i;
+
+	if (M_str_isempty(data))
+		return NULL;
+
+	args = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+
+	/* Split on & to get sets of key value pairs. */
+	parts = M_str_explode_str('&', data, &num_parts);
+	if (parts == NULL || num_parts == 0)
+		goto err;
+
+	for (i=0; i<num_parts; i++) {
+		const char          *key  = NULL;
+		const char          *val  = NULL;
+		char                *dkey = NULL;
+		char                *dval = NULL;
+		char                *ekey = NULL;
+		char                *eval = NULL;
+		M_textcodec_error_t  tres = M_TEXTCODEC_ERROR_SUCCESS;
+
+		/* Split the key and value. We'll ignore multiple ='s
+		 * and treat additional ones as part of the value. */
+		kv = M_str_explode_str_quoted('=', parts[i], 0, 0, 2, &num_kv);
+		if (kv == NULL) {
+			goto err;
+		}
+
+		/* Get the key. */
+		if (num_kv >= 1) {
+			key = kv[0];
+		}
+		/* Get the value (optional). */
+		if (num_kv >= 2) {
+			val = kv[1];
+		}
+
+		/* Decode the key from form encoding. */
+		tres = M_textcodec_decode(&dkey, key, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_FORM);
+		if (M_textcodec_error_is_error(tres)) {
+			goto loop_end;
+		}
+
+		if (M_str_isempty(val)) {
+			/* Since value can be empty we don't need to waste time decoding. Set to an empty default. */
+			dval = M_strdup("");
+		} else {
+			/* Decode the value form form encoding. */
+			tres = M_textcodec_decode(&dval, val, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_FORM);
+			if (M_textcodec_error_is_error(tres)) {
+				goto loop_end;
+			}
+		}
+
+		/* If an additional codec was specified we need to decode the form decoded data. */
+		if (codec == M_TEXTCODEC_UNKNOWN || codec == M_TEXTCODEC_UTF8) {
+			/* No need to decode if asked not to or already in utf-8. */
+			ekey = dkey;
+			dkey = NULL;
+			eval = dval;
+			dval = NULL;
+		} else {
+			/* Decode the key and value. */
+			tres = M_textcodec_decode(&ekey, dkey, M_TEXTCODEC_EHANDLER_FAIL, codec);
+			if (M_textcodec_error_is_error(tres)) {
+				goto loop_end;
+			}
+			tres = M_textcodec_decode(&eval, dval, M_TEXTCODEC_EHANDLER_FAIL, codec);
+			if (M_textcodec_error_is_error(tres)) {
+				goto loop_end;
+			}
+		}
+
+		/* Insert our data. */
+		M_hash_dict_insert(args, ekey, eval);
+
+loop_end:
+		M_free(ekey);
+		M_free(eval);
+		M_free(dkey);
+		M_free(dval);
+		M_str_explode_free(kv, num_kv);
+		kv     = NULL;
+		num_kv = 0;
+
+		if (M_textcodec_error_is_error(tres)) {
+			goto err;
+		}
+	}
+
+	M_str_explode_free(parts, num_parts);
+	return args;
+
+err:
+	M_str_explode_free(parts, num_parts);
+	M_hash_dict_destroy(args);
+	return NULL;
 }

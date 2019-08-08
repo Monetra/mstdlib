@@ -205,21 +205,17 @@ M_API const char *M_http_errcode_to_str(M_http_error_t err);
  * Empty values are not permitted - keys whose values are set to the empty string will be left out of
  * the query string.
  *
- * Web applications use two slightly-different URL encodings for query strings, one that encodes spaces
- * as '%20' (\link M_TEXTCODEC_PERCENT_URL M_TEXTCODEC_PERCENT_URL\endlink), and one that encodes spaces
- * as '+' (\link M_TEXTCODEC_PERCENT_URLPLUS M_TEXTCODEC_PERCENT_URLPLUS\endlink).  Web apps are about
- * evenly split between these two options, so the caller must pick which one to use based on their own
- * needs, by setting the \a use_plus parameter.
+ * Query string are defined as application/x-www-form-urlencoded data so url form encoding is
+ * used.
  *
  * \see M_http_generate_query_string_buf()
  *
- * \param[in] uri      Uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever).
- * \param[in] params   Key-value pairs to encode in query string.
- * \param[in] use_plus If M_TRUE, sub in '+' for space character. Otherwise, use '%20'.
+ * \param[in] uri    Uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever).
+ * \param[in] params Key-value pairs to encode in query string.
  *
  * \return New string with URI + query string, or \c NULL if there was an encoding error.
  */
-M_API char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params, M_bool use_plus);
+M_API char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params);
 
 
 /*! Create query string, append URI + query string to buffer.
@@ -227,22 +223,78 @@ M_API char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params,
  * Empty values are not permitted - keys whose values are set to the empty string will be left out of
  * the query string.
  *
- * Web applications use two slightly-different URL encodings for query strings, one that encodes spaces
- * as '%20' (\link M_TEXTCODEC_PERCENT_URL M_TEXTCODEC_PERCENT_URL\endlink), and one that encodes spaces
- * as '+' (\link M_TEXTCODEC_PERCENT_URLPLUS M_TEXTCODEC_PERCENT_URLPLUS\endlink).  Web apps are about
- * evenly split between these two options, so the caller must pick which one to use based on their own
- * needs, by setting the \a use_plus parameter.
+ * Query string are defined as application/x-www-form-urlencoded data so url form encoding is
+ * used.
  *
  * \see M_http_generate_query_string()
  *
- * \param[out] buf      Buffer to add URI + query string to, contents remain unchanged if there was an error.
- * \param[in]  uri      Uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever).
- * \param[in]  params   Key-value pairs to encode in query string.
- * \param[in]  use_plus If M_TRUE sub in '+' for space character, otherwise will use '%20'.
+ * \param[out] buf    Buffer to add URI + query string to, contents remain unchanged if there was an error.
+ * \param[in]  uri    Uri string (e.g., /cgi-bin/payment/start, or %http://google.com/whatever).
+ * \param[in]  params Key-value pairs to encode in query string.
  *
  * \return M_TRUE if successful, or \c M_FALSE if there was an encoding error.
  */
-M_API M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params, M_bool use_plus);
+M_API M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params);
+
+
+/*! Parse a query string.
+ *
+ * Components are expected to be application/x-www-form-urlencoded and will be decoded.
+ *
+ * \see M_http_generate_query_string()
+ *
+ * \param[in] data  The formatted query arguments.
+ * \param[in] codec Additional encodings before the data was form encoded.
+ *                  The form decoded data will be decoded to utf-8 from this encoding.
+ *                  Use M_TEXTCODEC_UNKNOWN to skip additional decoding.
+ *
+ * \return Multi value dict of key value pairs. Keys are considered case insensitive.
+ */
+M_API M_hash_dict_t *M_http_parse_query_string(const char *data, M_textcodec_codec_t codec);
+
+
+/*! Create form data string.
+ *
+ * Data is defined as application/x-www-form-urlencoded data so url form encoding is
+ * used.
+ *
+ * \see M_http_generate_form_data_string_buf()
+ *
+ * \param[in] params Key-value pairs to encode in form data string.
+ *
+ * \return New string.
+ */
+M_API char *M_http_generate_form_data_string(M_hash_dict_t *params);
+
+
+/*! Create form data string.
+ *
+ * \see M_http_generate_query_string()
+ *
+ * \param[out] buf    Buffer to add URI + query string to, contents remain unchanged if there was an error.
+ * \param[in]  params Key-value pairs to encode in query string.
+ *
+ * \return M_TRUE if successful, or \c M_FALSE if there was an encoding error.
+ */
+M_API M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, M_hash_dict_t *params);
+
+
+/*! Parse a application/x-www-form-urlencoded paramter string.
+ *
+ * Components are expected to be application/x-www-form-urlencoded and will be decoded.
+ * This is similar to decoding a query string but this is intended for form data from
+ * the body of a message.
+ *
+ * \see M_http_parse_query_string()
+ *
+ * \param[in] data  The formatted query arguments.
+ * \param[in] codec Additional encodings before the data was form encoded.
+ *                  The form decoded data will be decoded to utf-8 from this encoding.
+ *                  Use M_TEXTCODEC_UNKNOWN to skip additional decoding.
+ *
+ * \return Multi value dict of key value pairs. Keys are considered case insensitive.
+ */
+M_API M_hash_dict_t *M_http_parse_form_data_string(const char *data, M_textcodec_codec_t codec);
 
 /*! @} */
 
@@ -987,12 +1039,31 @@ M_API const M_list_str_t *M_http_simple_read_get_set_cookie(const M_http_simple_
 
 /*! Return the body of the parsed message (if any).
  *
+ * If the body is application/x-www-form-urlencoded this will return
+ * the raw body and it will not be decoded. Even if decoding the
+ * body content is enabled. The decoded data can be accessed as a
+ * dict of key value pairs.
+ *
+ * \see M_http_simple_read_body_form_data()
+ *
  * \param[in]  simple Parsed HTTP message.
  * \param[out] len    Place to store length of body (may be \c NULL).
  *
  * \return Bytes from body of message.
  */
 M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple, size_t *len);
+
+
+/*! Return the body of the parsed message (if any).
+ *
+ * This will only be filled when the content-type is application/x-www-form-urlencoded 
+ * and there is key value pair body data.
+ *
+ * \param[in]  simple Parsed HTTP message.
+ *
+ * \return Bytes from body of message.
+ */
+M_API M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple);
 
 
 /*! Get the content type.
@@ -1004,27 +1075,8 @@ M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *s
  * \param[in] simple Parsed HTTP message.
  *
  * \return The content type.
- *
- * \see M_http_simple_read_origcontent_type
  */
 M_API const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple);
-
-
-/*! Get the original content type.
- *
- * May be empty if the content type was not set.
- * The orignal content type before any decoding takes place.
- * If the content type was application/x-www-form-urlencoded
- * this can be used to check if the content type is blank
- * due to decoding.
- *
- * \param[in] simple Parsed HTTP message.
- *
- * \return The content type.
- *
- * \see M_http_simple_read_content_type
- */
-M_API const char *M_http_simple_read_origcontent_type(const M_http_simple_read_t *simple);
 
 
 /*! Get the codec of the data.

@@ -74,8 +74,9 @@ __BEGIN_DECLS
  * ISO8859_15      | latin_9                           | latin-9, latin9, latin 9, l9, iso-8859-15, iso8859-15, iso8859_15, iso885915, 885915
  * ISO8859_16      | latin_10                          | latin-10, latin10, latin 10, l10, iso-8859-16, iso8859-16, iso8859_16, iso885916, 885916
  * PERCENT_URL     | percent                           | url
- * PERCENT_URLPLUS | percent_plus                      | url_plus, , percent-plus, url-plus, percentplus, urlplus
- * PERCENT_FORM    | application/x-www-form-urlencoded | x-www-form-urlencoded, www-form-urlencoded, form-urlencoded
+ * PERCENT_FORM    | application/x-www-form-urlencoded | x-www-form-urlencoded, www-form-urlencoded, form-urlencoded, percent_plus url_plus, , percent-plus, url-plus, percentplus, urlplus
+ * PERCENT_URLMIN  | percent_min                       | url_min
+ * PERCENT_FORMMIN | form_min                          | form-urlencoded-min
  * PUNYCODE        | punycode                          | puny
  *
  * @{
@@ -122,9 +123,14 @@ typedef enum {
 	M_TEXTCODEC_ISO8859_14,      /*!< ISO-8859-14. Latin 8, Celtic languages. */
 	M_TEXTCODEC_ISO8859_15,      /*!< ISO-8859-15. Latin 9, Western Europe. */
 	M_TEXTCODEC_ISO8859_16,      /*!< ISO-8859-16. Latin 10, South-Eastern Europe. */
-	M_TEXTCODEC_PERCENT_URL,     /*!< Percent with space as %20 for use as a URL rules. Must be utf-8. */
-	M_TEXTCODEC_PERCENT_URLPLUS, /*!< Percent with space as + for use as a URL. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_URL,     /*!< Percent encoding for use as a URL rules. Must be utf-8. */
 	M_TEXTCODEC_PERCENT_FORM,    /*!< Percent suitable for use as form data. Space as + and ~ encoded. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_URLMIN,  /*!< Minimal percent encoding. space and non ascii characters will be encoded but
+	                                  all other reserved characters are not encoded. This is intended as a fix up
+	                                  for URLs that have already been built. Typically built by hand. Must be utf-8. */
+	M_TEXTCODEC_PERCENT_FORMMIN, /*!< Minimal percent encoding suitable for use as form data. Space as + and ~ encoded.
+	                                  Space and non-ascii characters are encoded. All other reserved characters are not
+	                                  encoded. This is intended as a fix up. Must be utf-8. */
 	M_TEXTCODEC_PUNYCODE         /*!< IDNA Punycode (RFC 3492). Primarily used for DNS.
 	                                  Error handlers will be ignore and all error conditions are failures. */
 } M_textcodec_codec_t;

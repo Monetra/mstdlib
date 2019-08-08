@@ -28,6 +28,19 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_bool is_percent_reserved(char c)
+{
+	const unsigned char reserved[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '$', ',', '/', '?', '#', '[', ']' };
+	size_t i;
+
+	for (i=0; i<(sizeof(reserved)/sizeof(*reserved)); i++) {
+		if (c == reserved[i]) {
+			return M_TRUE;
+		}
+	};
+	return M_FALSE;
+}
+
 M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_textcodec_codec_t codec)
 {
 	size_t              len;
@@ -47,16 +60,20 @@ M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const 
 		} else {
 			switch (codec) {
 				case M_TEXTCODEC_PERCENT_URL:
-					/* No special rules. */
-					break;
-				case M_TEXTCODEC_PERCENT_URLPLUS:
-					/* '+' is used for space. */
-					if (c == '+') {
+					if (is_percent_reserved(c)) {
 						process = M_TRUE;
 					}
 					break;
+				case M_TEXTCODEC_PERCENT_URLMIN:
+					/* Not processing reserved characters. */
+					break;
 				case M_TEXTCODEC_PERCENT_FORM:
-					/* '+' is used for space and '~' must be encoded. */
+					if (is_percent_reserved(c)) {
+						process = M_TRUE;
+					}
+					/* Fall thru */
+				case M_TEXTCODEC_PERCENT_FORMMIN:
+					/* Only processing a select few reserved characters. */
 					if (c == '+' || c == '~') {
 						process = M_TRUE;
 					}
@@ -67,7 +84,7 @@ M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const 
 		}
 
 		/* Don't encode \r, \n for forms. */
-		if (codec == M_TEXTCODEC_PERCENT_FORM && (c == '\r' || c == '\n'))
+		if ((codec == M_TEXTCODEC_PERCENT_FORM || codec == M_TEXTCODEC_PERCENT_FORMMIN) && (c == '\r' || c == '\n'))
 			process = M_FALSE;
 
 		/* If we don't need to do any proessing add the character as is. */
@@ -79,10 +96,11 @@ M_textcodec_error_t M_textcodec_encode_percent(M_textcodec_buffer_t *buf, const 
 		if (c == ' ') {
 			switch (codec) {
 				case M_TEXTCODEC_PERCENT_URL:
+				case M_TEXTCODEC_PERCENT_URLMIN:
 					M_textcodec_buffer_add_str(buf, "%20");
 					break;
-				case M_TEXTCODEC_PERCENT_URLPLUS:
 				case M_TEXTCODEC_PERCENT_FORM:
+				case M_TEXTCODEC_PERCENT_FORMMIN:
 					M_textcodec_buffer_add_byte(buf, '+');
 					break;
 				default:
@@ -132,7 +150,7 @@ M_textcodec_error_t M_textcodec_decode_percent(M_textcodec_buffer_t *buf, const 
 		size_t        num    = 0;
 
 		M_parser_read_byte(parser, &byte);
-		if (byte == '+' && (codec == M_TEXTCODEC_PERCENT_URLPLUS || codec == M_TEXTCODEC_PERCENT_FORM)) {
+		if (byte == '+' && (codec == M_TEXTCODEC_PERCENT_FORM || codec == M_TEXTCODEC_PERCENT_FORMMIN)) {
 			M_textcodec_buffer_add_byte(buf, ' ');
 			continue;
 		}

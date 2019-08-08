@@ -190,7 +190,7 @@ START_TEST(check_request)
 		{ M_HTTP_METHOD_PUT,     "example.com",  443,  "/",             "swriter",       "",                 NULL,           M_TEXTCODEC_UNKNOWN,         req_data_rsp6  },
 		{ M_HTTP_METHOD_DELETE,  "e.com",        7000, NULL,             NULL,           NULL,               req_data_req7,  M_TEXTCODEC_PERCENT_FORM,    req_data_rsp7  },
 		{ M_HTTP_METHOD_DELETE,  "e.com",        7000, "",               NULL,           "application/xml",  req_data_req8,  M_TEXTCODEC_PERCENT_URL,     req_data_rsp8  },
-		{ M_HTTP_METHOD_OPTIONS, NULL,           0,    "/did",           NULL,           "text/html",        req_data_req8,  M_TEXTCODEC_PERCENT_URLPLUS, NULL           }, /* host is required so this will fail to structure. */
+		{ M_HTTP_METHOD_OPTIONS, NULL,           0,    "/did",           NULL,           "text/html",        req_data_req8,  M_TEXTCODEC_PERCENT_URLMIN,  NULL           }, /* host is required so this will fail to structure. */
 		{ M_HTTP_METHOD_CONNECT, "host.",        999,  "/no",            NULL,           "image/png",        req_data_req9,  M_TEXTCODEC_ISO8859_1,       req_data_rsp9  }, /* Yes, the mime and contents don't match and this will say a PNG is using a text encoding. */
 		{ M_HTTP_METHOD_TRACE,   "host.",        999,  "/no",            NULL,           "none",             req_data_req10, M_TEXTCODEC_CP1252,          req_data_rsp10 },
 		{ M_HTTP_METHOD_HEAD,    ".",            80,   "/80",            "880088",       "uh...",            req_data_req11, M_TEXTCODEC_UNKNOWN,         req_data_rsp11 },

@@ -201,10 +201,6 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
 		}
 
-		/* There isn't any way to know what the underlying content type is and
-		 * there isn't a decoded version of x-www-form-urlencoded so we just
-		 * can't set a new mime type. */
-		M_http_update_content_type(simple->http, NULL);
 		update_clen = M_TRUE;
 	}
 
@@ -379,18 +375,21 @@ const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple,
 	return (unsigned char *)M_buf_peek(simple->http->body);
 }
 
+M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+
+	if (!M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded"))
+		return NULL;
+	return M_http_parse_form_data_string(M_buf_peek(simple->http->body), simple->http->codec);
+}
+
 const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple)
 {
 	if (simple == NULL)
 		return NULL;
 	return simple->http->content_type;
-}
-
-const char *M_http_simple_read_origcontent_type(const M_http_simple_read_t *simple)
-{
-	if (simple == NULL)
-		return NULL;
-	return simple->http->origcontent_type;
 }
 
 M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *simple)
