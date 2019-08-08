@@ -869,23 +869,6 @@ M_API M_http_method_t M_http_simple_read_method(const M_http_simple_read_t *simp
 M_API const char *M_http_simple_read_uri(const M_http_simple_read_t *simple);
 
 
-/*! Return the port number component of the URI from the parsed message.
- *
- * Only request messages have a URI. If the parsed message wasn't a request, the
- * function will return M_FALSE and set \a port to 0.
- *
- * The port may not be present - even absolute URI's don't have to include the port.
- *
- * \param[in]  simple Parsed HTTP message.
- * \param[out] port   Place to store port number. May be \c NULL, if you're just checking to see if a port is present.
- *
- * \return M_TRUE if a port was set, M_FALSE if there was no port in the message.
- *
- * \see M_http_simple_read_uri
- */
-M_API M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint16 *port);
-
-
 /*! Return the path component of the URI from the parsed message.
  *
  * Only request messages have a URI. If the parsed message wasn't a request, the
@@ -942,6 +925,39 @@ M_API const char *M_http_simple_read_query_string(const M_http_simple_read_t *si
  * \see M_http_simple_read_uri
  */
 M_API const M_hash_dict_t *M_http_simple_read_query_args(const M_http_simple_read_t *simple);
+
+
+/*! Return the host.
+ *
+ * Only request messages have a host. If the parsed message wasn't a request, the
+ * function will return NULL.
+ *
+ * The host will be read from the URI and fall back to the Host header.
+ * If neither are present the host will be NULL.
+ *
+ * \param[in]  simple Parsed HTTP message.
+ *
+ * \return Host.
+ */
+M_API const char *M_http_simple_read_host(const M_http_simple_read_t *simple);
+
+
+/*! Return the port number.
+ *
+ * Only request messages have a port. If the parsed message wasn't a request, the
+ * function will return M_FALSE and set \a port to 0.
+ *
+ * The port will be read from the URI and fall back to the Host header.
+ * If neither are present the port will be returned as 0. In this case it
+ * should be assumed to be 80.
+ *
+ * \param[in]  simple Parsed HTTP message.
+ * \param[out] port   Place to store port number. May be \c NULL, if you're just checking to see if a port is present.
+ *
+ * \return M_TRUE if a port was set, M_FALSE if there was no port in the message.
+ */
+M_API M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint16 *port);
+
 
 
 /*! Get headers from parsed message as key-multivalue pairs.
