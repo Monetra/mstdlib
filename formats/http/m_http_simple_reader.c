@@ -29,6 +29,48 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_bool M_http_simple_read_parse_host(const char *full_host, char **host, M_uint16 *port)
+{
+	M_parser_t *parser = NULL;
+	M_uint64    myport = 0;
+
+	*host = NULL;
+	*port = 0;
+
+	if (M_str_isempty(full_host))
+		return M_FALSE;
+
+	parser = M_parser_create_const((const unsigned char *)full_host, M_str_len(full_host), M_PARSER_FLAG_NONE);
+
+	/* Move past any prefix. */
+	M_parser_consume_str_until(parser, "://", M_TRUE);
+
+	/* Mark the start of the host. */
+	M_parser_mark(parser);
+
+	if (M_parser_consume_str_until(parser, ":", M_FALSE) != 0) {
+		/* Having a ":" means we have a port so everything before is
+		 * the host. */
+		*host = M_parser_read_strdup_mark(parser);
+
+		/* kill the ":". */
+		M_parser_consume(parser, 1);
+
+		/* Read the port. */
+		if (M_parser_read_uint(parser, M_PARSER_INTEGER_ASCII, 0, 10, &myport)) {
+			*port = (M_uint16)myport;
+		}
+	} else {
+		M_parser_mark_clear(parser);
+		*host = M_parser_read_strdup(parser, M_parser_len(parser));
+	}
+
+	M_parser_destroy(parser);
+	return M_TRUE;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 static M_http_error_t M_http_simple_read_start_cb(M_http_message_type_t type, M_http_version_t version,
 	M_http_method_t method, const char *uri, M_uint32 code, const char *reason, void *thunk)
 {
@@ -90,6 +132,28 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 
 		simple->http->body_len      = (size_t)i64v;
 		simple->http->have_body_len = M_TRUE;
+	}
+
+	/* Set host/port if they were not part of the URI. */
+	val = M_hash_dict_get_direct(simple->http->headers, "host");
+	if ((M_str_isempty(simple->http->host) || simple->http->port == 0) && !M_str_isempty(val)) {
+		char     *host   = NULL;
+		M_uint16  port   = 0;
+
+		if (M_http_simple_read_parse_host(val, &host, &port)) {
+			/* Store the host if we need to update it. */
+			if (M_str_isempty(simple->http->host)) {
+				M_free(simple->http->host);
+				simple->http->host = host;
+			} else {
+				M_free(host);
+			}
+
+			/* Store the port if we need to update it. */
+			if (simple->http->port == 0) {
+				simple->http->port = port;
+			}
+		}
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -285,19 +349,6 @@ const char *M_http_simple_read_uri(const M_http_simple_read_t *simple)
 	return M_http_uri(simple->http);
 }
 
-M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint16 *port)
-{
-	M_uint16 myport;
-
-	if (port == NULL)
-		port = &myport;
-	*port = 0;
-
-	if (simple == NULL)
-		return M_FALSE;
-	return M_http_port(simple->http, port);
-}
-
 const char *M_http_simple_read_path(const M_http_simple_read_t *simple)
 {
 	if (simple == NULL)
@@ -317,6 +368,26 @@ const M_hash_dict_t *M_http_simple_read_query_args(const M_http_simple_read_t *s
 	if (simple == NULL)
 		return NULL;
 	return M_http_query_args(simple->http);
+}
+
+const char *M_http_simple_read_host(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return NULL;
+	return M_http_host(simple->http);
+}
+
+M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint16 *port)
+{
+	M_uint16 myport;
+
+	if (port == NULL)
+		port = &myport;
+	*port = 0;
+
+	if (simple == NULL)
+		return M_FALSE;
+	return M_http_port(simple->http, port);
 }
 
 const M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple)

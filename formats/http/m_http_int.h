@@ -220,6 +220,7 @@ void M_http_set_method(M_http_t *http, M_http_method_t method);
  */
 const char *M_http_uri(const M_http_t *http);
 
+
 /*! Set the request URI.
  *
  * \param[in] http HTTP object.
