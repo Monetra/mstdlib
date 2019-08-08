@@ -117,7 +117,7 @@ static M_bool M_http_uri_parser_path(M_http_t *http, M_parser_t *parser, char **
 	if (p == NULL)
 		goto err;
 
-	if (M_textcodec_error_is_error(M_textcodec_encode(path, p, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL)))
+	if (M_textcodec_error_is_error(M_textcodec_decode(path, p, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL)))
 		goto err;
 
 	M_free(p);
