@@ -310,11 +310,11 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
 
 	/* We expect the uri to be encoded. We'll check for spaces and
  	 * non-ascii characters. If found we'll encode it to be safe because
-	 * we don't want to build an invalid request. We're going to use URL
-	 * encoding with %20 for spaces. Some web sites want %20 and some want
-	 * +. We have no way to know so we'll go with %20 since it's more common. */
+	 * we don't want to build an invalid request. We're going to use URL minimal
+	 * encoding to try to fix any thing that shouldn't be there. Minimal will
+	 * keep things like '/' so we won't end up with something unreadable. */
 	if (M_str_chr(uri, ' ') != NULL || !M_str_isascii(uri)) {
-		if (M_textcodec_encode_buf(buf, uri, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URL) != M_TEXTCODEC_ERROR_SUCCESS) {
+		if (M_textcodec_encode_buf(buf, uri, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PERCENT_URLMIN) != M_TEXTCODEC_ERROR_SUCCESS) {
 			goto err;
 		}
 	} else {

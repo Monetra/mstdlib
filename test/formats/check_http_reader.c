@@ -917,15 +917,15 @@ START_TEST(check_httpr10)
 }
 END_TEST
 
-#define do_query_check(URI, PARAMS, USE_PLUS, EXPECTED)\
+#define do_query_check(URI, PARAMS, EXPECTED)\
 do {\
 	M_buf_t *buf;\
 	char    *query;\
 	buf = M_buf_create();\
-	ck_assert_msg(M_http_generate_query_string_buf(buf, URI, PARAMS, USE_PLUS), "Query string failed: expected '%s'", EXPECTED);\
+	ck_assert_msg(M_http_generate_query_string_buf(buf, URI, PARAMS), "Query string failed: expected '%s'", EXPECTED);\
 	ck_assert_msg(M_str_eq(M_buf_peek(buf), EXPECTED), "Query buf does not match: got '%s', expected '%s'", M_buf_peek(buf), EXPECTED);\
 	M_buf_cancel(buf);\
-	query = M_http_generate_query_string(URI, PARAMS, USE_PLUS);\
+	query = M_http_generate_query_string(URI, PARAMS);\
 	ck_assert_msg(M_str_eq(query, EXPECTED), "Query string does not match: got '%s', expected '%s'", query, EXPECTED);\
 	M_free(query);\
 } while (0)
@@ -934,8 +934,8 @@ START_TEST(check_query_string)
 {
 	M_hash_dict_t *params = M_hash_dict_create(16, 75, M_HASH_DICT_MULTI_VALUE | M_HASH_DICT_KEYS_ORDERED);
 
-	do_query_check("/cgi-bin/some_app", NULL, M_TRUE, "/cgi-bin/some_app");
-	do_query_check("/cgi-bin/some_app", params, M_TRUE, "/cgi-bin/some_app");
+	do_query_check("/cgi-bin/some_app", NULL, "/cgi-bin/some_app");
+	do_query_check("/cgi-bin/some_app", params, "/cgi-bin/some_app");
 
 	M_hash_dict_insert(params, "field 1", "value 1_1");
 	M_hash_dict_insert(params, "field 1", "value 1_2");
@@ -943,13 +943,16 @@ START_TEST(check_query_string)
 	M_hash_dict_insert(params, "f3", "v3");
 	M_hash_dict_insert(params, "f4", "");
 
-	do_query_check(NULL, params, M_FALSE, "?field%201=value%201_1&field%201=value%201_2&f2=v2&f3=v3");
-	do_query_check(NULL, params, M_TRUE, "?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
+	do_query_check(NULL, params, "?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
 
-	do_query_check("/cgi-bin/some_app", params, M_FALSE,
-		"/cgi-bin/some_app?field%201=value%201_1&field%201=value%201_2&f2=v2&f3=v3");
-	do_query_check("/cgi-bin/some_app", params, M_TRUE,
-		"/cgi-bin/some_app?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
+	do_query_check("/cgi-bin/some_app", params, "/cgi-bin/some_app?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3");
+
+	/* Now do some with litteral + */
+	M_hash_dict_insert(params, "field+1", "value+ +1_1");
+	M_hash_dict_insert(params, "field+1", "value + 1_2");
+
+	do_query_check(NULL, params, "?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3&field%2B1=value%2B+%2B1_1&field%2B1=value+%2B+1_2");
+	do_query_check("/cgi-bin/some_app", params, "/cgi-bin/some_app?field+1=value+1_1&field+1=value+1_2&f2=v2&f3=v3&field%2B1=value%2B+%2B1_1&field%2B1=value+%2B+1_2");
 
 	M_hash_dict_destroy(params);
 }

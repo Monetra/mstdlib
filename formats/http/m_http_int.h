@@ -65,7 +65,6 @@ struct M_http {
 
 	M_hash_dict_t         *headers;
 	char                  *content_type;
-	char                  *origcontent_type;
 	char                  *charset;
 	M_textcodec_codec_t    codec;
 	M_list_str_t          *set_cookies;

@@ -171,8 +171,6 @@ static M_bool M_http_set_header_ctype(M_http_t *http, const char *val)
 			/* Must be the actual content type. */
 			M_free(http->content_type);
 			http->content_type = M_strdup(parts[0]);
-			M_free(http->origcontent_type);
-			http->origcontent_type = M_strdup(parts[0]);
 		} else if (num_parts > 1 && M_str_caseeq(parts[0], "charset")) {
 			/* We have the char set. */
 			M_free(http->charset);
