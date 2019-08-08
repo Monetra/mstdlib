@@ -164,10 +164,10 @@ Functions</h2></td></tr>
 <tr class="separator:gae2371cc5bbf6c2dbf8423bcea933ee9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga757f218d628a72b7cff87ae04f3e0014"><td class="memItemLeft" align="right" valign="top">const unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga757f218d628a72b7cff87ae04f3e0014">M_http_simple_read_body</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, size_t *len)</td></tr>
 <tr class="separator:ga757f218d628a72b7cff87ae04f3e0014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga046f97134877b6f23f45a087a0aecfde"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga046f97134877b6f23f45a087a0aecfde">M_http_simple_read_body_form_data</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga046f97134877b6f23f45a087a0aecfde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3910a5c5b4912c89be043bad3f11670d"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga3910a5c5b4912c89be043bad3f11670d">M_http_simple_read_content_type</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
 <tr class="separator:ga3910a5c5b4912c89be043bad3f11670d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga23c514066a8163c16691930db9fc6af9"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga23c514066a8163c16691930db9fc6af9">M_http_simple_read_origcontent_type</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
-<tr class="separator:ga23c514066a8163c16691930db9fc6af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga531c6c2295e3ee1a79e07936c251b62c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__textcodec.html#ga7503523b8dfaaf72e6d63e05201ab536">M_textcodec_codec_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga531c6c2295e3ee1a79e07936c251b62c">M_http_simple_read_codec</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
 <tr class="separator:ga531c6c2295e3ee1a79e07936c251b62c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabbcab2e7de4c88b8439feedc0d5b4577"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#gabbcab2e7de4c88b8439feedc0d5b4577">M_http_simple_read_charset</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
@@ -789,10 +789,37 @@ The returned dictionary does not include "Set-Cookie" headers, because they can 
       </table>
 </div><div class="memdoc">
 <p>Return the body of the parsed message (if any).</p>
+<p>If the body is application/x-www-form-urlencoded this will return the raw body and it will not be decoded. Even if decoding the body content is enabled. The decoded data can be accessed as a dict of key value pairs.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga046f97134877b6f23f45a087a0aecfde">M_http_simple_read_body_form_data()</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">len</td><td>Place to store length of body (may be <code>NULL</code>).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Bytes from body of message. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga046f97134877b6f23f45a087a0aecfde"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_http_simple_read_body_form_data </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
+          <td class="paramname"><em>simple</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Return the body of the parsed message (if any).</p>
+<p>This will only be filled when the content-type is application/x-www-form-urlencoded and there is key value pair body data.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
   </table>
   </dd>
 </dl>
@@ -821,34 +848,7 @@ The returned dictionary does not include "Set-Cookie" headers, because they can 
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The content type.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga23c514066a8163c16691930db9fc6af9">M_http_simple_read_origcontent_type</a> </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga23c514066a8163c16691930db9fc6af9"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* M_http_simple_read_origcontent_type </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
-          <td class="paramname"><em>simple</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Get the original content type.</p>
-<p>May be empty if the content type was not set. The orignal content type before any decoding takes place. If the content type was application/x-www-form-urlencoded this can be used to check if the content type is blank due to decoding.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>Parsed HTTP message.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The content type.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga3910a5c5b4912c89be043bad3f11670d">M_http_simple_read_content_type</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The content type. </dd></dl>
 
 </div>
 </div>
@@ -909,7 +909,7 @@ The returned dictionary does not include "Set-Cookie" headers, because they can 
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 7 2019 19:12:14 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu Aug 8 2019 15:28:47 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

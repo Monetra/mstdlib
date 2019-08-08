@@ -26,8 +26,8 @@ var group__m__http__simple__write =
     [ "M_http_simple_read_header", "group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce", null ],
     [ "M_http_simple_read_get_set_cookie", "group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e", null ],
     [ "M_http_simple_read_body", "group__m__http__simple__write.html#ga757f218d628a72b7cff87ae04f3e0014", null ],
+    [ "M_http_simple_read_body_form_data", "group__m__http__simple__write.html#ga046f97134877b6f23f45a087a0aecfde", null ],
     [ "M_http_simple_read_content_type", "group__m__http__simple__write.html#ga3910a5c5b4912c89be043bad3f11670d", null ],
-    [ "M_http_simple_read_origcontent_type", "group__m__http__simple__write.html#ga23c514066a8163c16691930db9fc6af9", null ],
     [ "M_http_simple_read_codec", "group__m__http__simple__write.html#ga531c6c2295e3ee1a79e07936c251b62c", null ],
     [ "M_http_simple_read_charset", "group__m__http__simple__write.html#gabbcab2e7de4c88b8439feedc0d5b4577", null ]
 ];

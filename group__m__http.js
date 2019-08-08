@@ -68,6 +68,10 @@ var group__m__http =
     [ "M_http_method_to_str", "group__m__http.html#gaae6f70f3b3d06d6977e9eff65cc48ad8", null ],
     [ "M_http_code_to_reason", "group__m__http.html#ga7097f334a63073161405015a1e7aaa35", null ],
     [ "M_http_errcode_to_str", "group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f", null ],
-    [ "M_http_generate_query_string", "group__m__http.html#ga1c6f384584fbaf473cfaf324ca3f4e2d", null ],
-    [ "M_http_generate_query_string_buf", "group__m__http.html#ga5ad5a037ef7d444dabd2be84d863982a", null ]
+    [ "M_http_generate_query_string", "group__m__http.html#gad264507380732adf026851e3f93df298", null ],
+    [ "M_http_generate_query_string_buf", "group__m__http.html#ga7bb1234155e458f79045317243a9a815", null ],
+    [ "M_http_parse_query_string", "group__m__http.html#ga1e04463fecc1e835a3f79997f0914d57", null ],
+    [ "M_http_generate_form_data_string", "group__m__http.html#ga3abf06bf253eec650e4d5cdfcff32e00", null ],
+    [ "M_http_generate_form_data_string_buf", "group__m__http.html#ga189c417179f19f688f8e7112ee5e7c47", null ],
+    [ "M_http_parse_form_data_string", "group__m__http.html#ga7d4aa5a42e95f3328ffb99ee2b72a6a5", null ]
 ];
