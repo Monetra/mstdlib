@@ -636,6 +636,7 @@ static M_bool M_sql_tabledata_row_gather_virtual(M_sql_tabledata_field_t *out_fi
 
 	M_mem_set(&field, 0, sizeof(field));
 	M_sql_tabledata_field_clear(&field);
+	M_sql_tabledata_field_clear(out_field);
 
 	for (i=curr_idx; i<num_fields; i++) {
 		if (!M_str_caseeq(fields[i].table_column, column_name))
@@ -893,6 +894,7 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 	M_sql_tabledata_field_t field;
 
 	M_mem_set(&field, 0, sizeof(field));
+	M_sql_tabledata_field_clear(&field);
 
 	if (pool == NULL && sqltrans == NULL) {
 		M_snprintf(error, error_len, "must specify pool or sqltrans");
@@ -1287,6 +1289,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	M_bool                  has_update  = M_FALSE;
 
 	M_mem_set(&field, 0, sizeof(field));
+	M_sql_tabledata_field_clear(&field);
 
 	err = M_sql_tabledata_query(&prev_fields, sqltrans, info->table_name, info->fields, info->num_fields, info->fetch_cb, info->thunk, error, error_len);
 	if (M_sql_error_is_error(err))
