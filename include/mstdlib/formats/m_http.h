@@ -215,7 +215,7 @@ M_API const char *M_http_errcode_to_str(M_http_error_t err);
  *
  * \return New string with URI + query string, or \c NULL if there was an encoding error.
  */
-M_API char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params);
+M_API char *M_http_generate_query_string(const char *uri, const M_hash_dict_t *params);
 
 
 /*! Create query string, append URI + query string to buffer.
@@ -234,7 +234,7 @@ M_API char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params)
  *
  * \return M_TRUE if successful, or \c M_FALSE if there was an encoding error.
  */
-M_API M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params);
+M_API M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, const M_hash_dict_t *params);
 
 
 /*! Parse a query string.
@@ -264,7 +264,7 @@ M_API M_hash_dict_t *M_http_parse_query_string(const char *data, M_textcodec_cod
  *
  * \return New string.
  */
-M_API char *M_http_generate_form_data_string(M_hash_dict_t *params);
+M_API char *M_http_generate_form_data_string(const M_hash_dict_t *params);
 
 
 /*! Create form data string.
@@ -276,7 +276,7 @@ M_API char *M_http_generate_form_data_string(M_hash_dict_t *params);
  *
  * \return M_TRUE if successful, or \c M_FALSE if there was an encoding error.
  */
-M_API M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, M_hash_dict_t *params);
+M_API M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, const M_hash_dict_t *params);
 
 
 /*! Parse a application/x-www-form-urlencoded paramter string.
@@ -1079,7 +1079,7 @@ M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *s
  *
  * \return Bytes from body of message.
  */
-M_API M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple);
+M_API const M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple);
 
 
 /*! Get the content type.

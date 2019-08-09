@@ -445,7 +445,7 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 }
 
 
-char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params)
+char *M_http_generate_query_string(const char *uri, const M_hash_dict_t *params)
 {
 	M_buf_t *buf = M_buf_create();
 
@@ -458,7 +458,7 @@ char *M_http_generate_query_string(const char *uri, M_hash_dict_t *params)
 }
 
 
-M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, M_hash_dict_t *params)
+M_bool M_http_generate_query_string_buf(M_buf_t *buf, const char *uri, const M_hash_dict_t *params)
 {
 	size_t start_len = M_buf_len(buf);
 	M_bool ret;
@@ -496,7 +496,7 @@ M_hash_dict_t *M_http_parse_query_string(const char *data, M_textcodec_codec_t c
 }
 
 
-char *M_http_generate_form_data_string(M_hash_dict_t *params)
+char *M_http_generate_form_data_string(const M_hash_dict_t *params)
 {
 	M_buf_t *buf = M_buf_create();
 
@@ -509,7 +509,7 @@ char *M_http_generate_form_data_string(M_hash_dict_t *params)
 }
 
 
-M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, M_hash_dict_t *params)
+M_bool M_http_generate_form_data_string_buf(M_buf_t *buf, const M_hash_dict_t *params)
 {
 	size_t               start_len = M_buf_len(buf);
 	M_bool               ret       = M_FALSE;

@@ -241,7 +241,8 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	 *       We're ignoring this and assuming anything without a charset set
 	 *       is binary data. Otherwise, we'd have to detect binary vs text data. */
 	M_textcodec_error_t  terr;
-	M_bool               update_clen = M_FALSE;
+	M_bool               update_clen  = M_FALSE;
+	M_bool               is_form_data = M_FALSE;
 
 	if (simple == NULL)
 		return M_HTTP_ERROR_INVALIDUSE;
@@ -253,10 +254,15 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	if (M_str_isempty(simple->http->content_type) && simple->http->codec == M_TEXTCODEC_UNKNOWN)
 		return M_HTTP_ERROR_SUCCESS;
 
+	if (M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded"))
+		is_form_data = M_TRUE;
+
+	/* Decode form data if we have it. */
+	if (is_form_data)
+		simple->body_form_data = M_http_parse_form_data_string(M_buf_peek(simple->http->body), simple->http->codec);
+
 	/* Decode the data to utf-8 if we can. */
-	if (!M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded") &&
-			simple->http->codec != M_TEXTCODEC_UNKNOWN && simple->http->codec != M_TEXTCODEC_UTF8)
-	{
+	if (!is_form_data && simple->http->codec != M_TEXTCODEC_UNKNOWN && simple->http->codec != M_TEXTCODEC_UTF8) {
 		dec  = NULL;
 		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, simple->http->codec);
 		M_buf_truncate(simple->http->body, 0);
@@ -302,6 +308,7 @@ void M_http_simple_read_destroy(M_http_simple_read_t *simple)
 		return;
 
 	M_http_destroy(simple->http);
+	M_hash_dict_destroy(simple->body_form_data);
 	M_free(simple);
 }
 
@@ -433,14 +440,11 @@ const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple,
 	return (unsigned char *)M_buf_peek(simple->http->body);
 }
 
-M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple)
+const M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple_read_t *simple)
 {
 	if (simple == NULL)
 		return NULL;
-
-	if (!M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded"))
-		return NULL;
-	return M_http_parse_form_data_string(M_buf_peek(simple->http->body), simple->http->codec);
+	return simple->body_form_data;
 }
 
 const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple)
