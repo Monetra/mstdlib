@@ -82,6 +82,7 @@ struct M_http_simple_read {
 	M_http_t                   *http;
 	M_http_simple_read_flags_t  rflags;
 	M_bool                      rdone;
+	M_hash_dict_t              *body_form_data;
 } ;
 
 
