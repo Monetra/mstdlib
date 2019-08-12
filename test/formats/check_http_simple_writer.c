@@ -118,16 +118,16 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Date:\r\n" \
 	"\r\n"
 
-#define req_data_req7 "test 123 + done"
+#define req_data_req7 "test+123+%2B+done"
 #define req_data_rsp7 "DELETE / HTTP/1.1\r\n" \
 	"Host:e.com:7000\r\n" \
 	"Content-Length:17\r\n" \
-	"Content-Type:application/x-www-form-urlencoded; charset=utf8\r\n" \
+	"Content-Type:application/x-www-form-urlencoded; charset=application/x-www-form-urlencoded\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test+123+%2B+done"
 
-#define req_data_req8 "test 123 + done"
+#define req_data_req8 "test%20123%20+%20done"
 #define req_data_rsp8 "DELETE / HTTP/1.1\r\n" \
 	"Host:e.com:7000\r\n" \
 	"Content-Length:21\r\n" \
@@ -236,32 +236,32 @@ START_TEST(check_request)
 	size_t  out_len;
 	size_t  i;
 	struct {
-		M_http_method_t      method;
-		const char          *host;
-		unsigned short       port;
-		const char          *uri;
-		const char          *user_agent;
-		const char          *content_type;
-		const char          *data;
-		M_textcodec_codec_t  encoding;
-		const char          *out;
+		M_http_method_t  method;
+		const char      *host;
+		unsigned short   port;
+		const char      *uri;
+		const char      *user_agent;
+		const char      *content_type;
+		const char      *data;
+		const char      *charset;
+		const char      *out;
 	} params[] = {
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", "text/plain",       req_data_req1,  M_TEXTCODEC_UNKNOWN,         req_data_rsp1  },
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", "text/plain",       NULL,           M_TEXTCODEC_UNKNOWN,         req_data_rsp2  },
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", "text/plain",       NULL,           M_TEXTCODEC_UTF8,            req_data_rsp3  },
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", NULL,               "",             M_TEXTCODEC_UNKNOWN,         req_data_rsp4  },
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", "",                 "",             M_TEXTCODEC_UTF8,            req_data_rsp3  },
-		{ M_HTTP_METHOD_GET,     "example.com",  0,    "/cgi/bin/blah", "simple-writer", NULL,               "",             M_TEXTCODEC_UTF8,            req_data_rsp3  },
-		{ M_HTTP_METHOD_POST,    "example2.com", 443,  "/",             "swriter",       "application/json", req_data_req5,  M_TEXTCODEC_UTF8,            req_data_rsp5  },
-		{ M_HTTP_METHOD_PUT,     "example.com",  443,  "/",             "swriter",       "",                 NULL,           M_TEXTCODEC_UNKNOWN,         req_data_rsp6  },
-		{ M_HTTP_METHOD_DELETE,  "e.com",        7000, NULL,             NULL,           NULL,               req_data_req7,  M_TEXTCODEC_PERCENT_FORM,    req_data_rsp7  },
-		{ M_HTTP_METHOD_DELETE,  "e.com",        7000, "",               NULL,           "application/xml",  req_data_req8,  M_TEXTCODEC_PERCENT_URL,     req_data_rsp8  },
-		{ M_HTTP_METHOD_OPTIONS, NULL,           0,    "/did",           NULL,           "text/html",        req_data_req8,  M_TEXTCODEC_PERCENT_URLMIN,  NULL           }, /* host is required so this will fail to structure. */
-		{ M_HTTP_METHOD_CONNECT, "host.",        999,  "/no",            NULL,           "image/png",        req_data_req9,  M_TEXTCODEC_ISO8859_1,       req_data_rsp9  }, /* Yes, the mime and contents don't match and this will say a PNG is using a text encoding. */
-		{ M_HTTP_METHOD_TRACE,   "host.",        999,  "/no",            NULL,           "none",             req_data_req10, M_TEXTCODEC_CP1252,          req_data_rsp10 },
-		{ M_HTTP_METHOD_HEAD,    ".",            80,   "/80",            "880088",       "uh...",            req_data_req11, M_TEXTCODEC_UNKNOWN,         req_data_rsp11 },
-		{ M_HTTP_METHOD_POST, "patterts.vaneerprednee.com", 443, "/nab/communication/olliv", "the main user", "text/xml", req_data_req12, M_TEXTCODEC_ASCII, req_data_rsp12 },
-		{ M_HTTP_METHOD_UNKNOWN, NULL, 0, NULL, NULL, NULL, NULL, M_TEXTCODEC_UNKNOWN, NULL }
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        req_data_req1,  NULL,                                                 req_data_rsp1  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        NULL,           "",                                                   req_data_rsp2  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        NULL,           "utf8",                                               req_data_rsp3  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", NULL,                                "",             NULL,                                                 req_data_rsp4  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "",                                  "",             M_textcodec_codec_to_str(M_TEXTCODEC_UTF8),           req_data_rsp3  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", NULL,                                "",             "utf8",                                               req_data_rsp3  },
+		{ M_HTTP_METHOD_POST,    "example2.com",               443,  "/",                        "swriter",       "application/json",                  req_data_req5,  "utf8",                                               req_data_rsp5  },
+		{ M_HTTP_METHOD_PUT,     "example.com",                443,  "/",                        "swriter",       "",                                  NULL,           "",                                                   req_data_rsp6  },
+		{ M_HTTP_METHOD_DELETE,  "e.com",                      7000, NULL,                       NULL,            "application/x-www-form-urlencoded", req_data_req7,  M_textcodec_codec_to_str(M_TEXTCODEC_PERCENT_FORM),   req_data_rsp7  },
+		{ M_HTTP_METHOD_DELETE,  "e.com",                      7000, "",                         NULL,            "application/xml",                   req_data_req8,  M_textcodec_codec_to_str(M_TEXTCODEC_PERCENT_URL),    req_data_rsp8  },
+		{ M_HTTP_METHOD_OPTIONS, NULL,                         0,    "/did",                     NULL,            "text/html",                         req_data_req8,  M_textcodec_codec_to_str(M_TEXTCODEC_PERCENT_URLMIN), NULL           }, /* host is required so this will fail to structure. */
+		{ M_HTTP_METHOD_CONNECT, "host.",                      999,  "/no",                      NULL,            "image/png",                         req_data_req9,  M_textcodec_codec_to_str(M_TEXTCODEC_ISO8859_1),      req_data_rsp9  }, /* Yes, the mime and contents don't match and this will say a PNG is using a text charset. If this was binary data, this would be very bad. */
+		{ M_HTTP_METHOD_TRACE,   "host.",                      999,  "/no",                      NULL,            "none",                              req_data_req10, "cp1252",                                             req_data_rsp10 },
+		{ M_HTTP_METHOD_HEAD,    ".",                          80,   "/80",                      "880088",        "uh...",                             req_data_req11, NULL,                                                 req_data_rsp11 },
+		{ M_HTTP_METHOD_POST,    "patterts.vaneerprednee.com", 443,  "/nab/communication/olliv", "the main user", "text/xml",                          req_data_req12, "ascii",                                              req_data_rsp12 },
+		{ M_HTTP_METHOD_UNKNOWN, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL }
 	};
 
 	for (i=0; params[i].method!=M_HTTP_METHOD_UNKNOWN; i++) {
@@ -269,7 +269,7 @@ START_TEST(check_request)
 		out = (char *)M_http_simple_write_request(params[i].method,
 				params[i].host, params[i].port, params[i].uri,
 				params[i].user_agent, params[i].content_type, NULL /* Not testing custom headers. */,
-				(const unsigned char *)params[i].data, M_str_len(params[i].data), params[i].encoding, &out_len);
+				(const unsigned char *)params[i].data, M_str_len(params[i].data), params[i].charset, &out_len);
 
 		/* Check if it was supposed to fail. */
 		if (params[i].out == NULL) {
@@ -416,11 +416,11 @@ START_TEST(check_request_headers)
 		if (params[i].use_defs) {
 			out = (char *)M_http_simple_write_request(M_HTTP_METHOD_GET,
 					"localhost", 443, "/", "test", "t", headers,
-					(const unsigned char *)params[i].data, M_str_len(params[i].data), M_TEXTCODEC_UNKNOWN, &out_len);
+					(const unsigned char *)params[i].data, M_str_len(params[i].data), NULL, &out_len);
 		} else {
 			out = (char *)M_http_simple_write_request(M_HTTP_METHOD_GET,
 					NULL, 0, "/", NULL, NULL, headers,
-					(const unsigned char *)req_data_req1, M_str_len(req_data_req1), M_TEXTCODEC_UNKNOWN, &out_len);
+					(const unsigned char *)req_data_req1, M_str_len(req_data_req1), "", &out_len);
 		}
 
 		validate_output(out, &out_len, params[i].out, i);
@@ -466,25 +466,25 @@ START_TEST(check_response)
 	size_t  out_len;
 	size_t  i;
 	struct {
-		M_uint32             code;
-		const char          *reason;
-		const char          *content_type;
-		const char          *data;
-		M_textcodec_codec_t  encoding;
-		const char          *out;
+		M_uint32    code;
+		const char *reason;
+		const char *content_type;
+		const char *data;
+		const char *charset;
+		const char *out;
 	} params[] = {
-		{ 200, NULL,  "application/json", req_data_req1, M_TEXTCODEC_UNKNOWN, rsp_data_rsp1 },
-		{ 201, "OMG", NULL,               NULL,          M_TEXTCODEC_UNKNOWN, rsp_data_rsp2 },
-		{ 400, NULL,  "text/plain",       NULL,          M_TEXTCODEC_UTF8,    rsp_data_rsp3 },
-		{ 600, NULL,  NULL,               req_data_req5, M_TEXTCODEC_UTF8,    rsp_data_rsp4 },
-		{  0, NULL, NULL, NULL, M_TEXTCODEC_UNKNOWN, NULL }
+		{ 200, NULL,  "application/json", req_data_req1, NULL,   rsp_data_rsp1 },
+		{ 201, "OMG", NULL,               NULL,          "",     rsp_data_rsp2 },
+		{ 400, NULL,  "text/plain",       NULL,          "utf8", rsp_data_rsp3 },
+		{ 600, NULL,  NULL,               req_data_req5, "utf8", rsp_data_rsp4 },
+		{  0, NULL, NULL, NULL, NULL, NULL }
 	};
 
 	for (i=0; params[i].code!=0; i++) {
 		/* Generate our message. */
 		out = (char *)M_http_simple_write_response(params[i].code, params[i].reason,
 			params[i].content_type, NULL, (const unsigned char *)params[i].data, M_str_len(params[i].data),
-			params[i].encoding, &out_len);
+			params[i].charset, &out_len);
 
 		/* Check if it was supposed to fail. */
 		if (params[i].out == NULL) {
@@ -528,7 +528,7 @@ START_TEST(check_content_length)
 
 	for (i=0; params[i].out!=NULL; i++) {
 		/* Generate our message. */
-		out = (char *)M_http_simple_write_response(200, NULL, NULL, NULL, NULL, params[i].len, M_TEXTCODEC_UNKNOWN, &out_len);
+		out = (char *)M_http_simple_write_response(200, NULL, NULL, NULL, NULL, params[i].len, NULL, &out_len);
 		validate_output(out, &out_len, params[i].out, i);
 
 		M_free(out);
