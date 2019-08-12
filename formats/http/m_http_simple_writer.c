@@ -116,7 +116,7 @@ static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *h
 
 /* Adds headers and body. */
 static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, const M_hash_dict_t *headers,
-		const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding)
+		const unsigned char *data, size_t data_len, const char *charset)
 {
 	M_http_t           *http = NULL;
 	M_list_str_t       *header_keys;
@@ -159,34 +159,12 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 			goto err;
 		}
 	} else {
-		/* Data can be binary and technically data can start with a NULL, but in practice
- 		 * it really should ever happen. */
-		if (data != NULL && *data != '\0') {
+		/* Data can be binary so we'll check for a text encoding to know if
+		 * we can treat the data as text. */
+		if (!M_str_isempty(charset) && !M_str_isempty((const char *)data)) {
 			/* If we have data and a content length wasn't already set then we
 			 * must have the data length. */
 			if (data_len == 0) {
-				/* If we have a codec this must be text so we're going to
-				 * get the string length. */
-				if (encoding != M_TEXTCODEC_UNKNOWN) {
-					data_len = M_str_len((const char *)data);
-				}
-			}
-
-			/* Encoding only applies to text but we don't know this is really text. We assume
-			 * the callers knowns what they're doing. */
-			if (encoding != M_TEXTCODEC_UNKNOWN && encoding != M_TEXTCODEC_UTF8) {
-				if (M_textcodec_error_is_error(M_textcodec_encode((char **)&mydata, (const char *)data, M_TEXTCODEC_EHANDLER_FAIL, encoding))) {
-					goto err;
-				}
-
-				/* Form encoding is dealt with as a content type. We assume the encoded data is utf-8
- 				 * because that's what text codec expects. */
-				if (encoding == M_TEXTCODEC_PERCENT_FORM) {
-					content_type = "application/x-www-form-urlencoded";
-					encoding     = M_TEXTCODEC_UTF8;
-				}
-
-				data     = mydata;
 				data_len = M_str_len((const char *)data);
 			}
 		}
@@ -201,7 +179,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	/* Ensure something is set for content type. */
 	if (!M_hash_dict_get(headers, "Content-Type", NULL)) {
 		/* If there isn't a content type we set a default. */
-		if (encoding == M_TEXTCODEC_UNKNOWN) {
+		if (M_str_isempty(charset)) {
 			M_http_set_header(http, "Content-Type", "application/octet-stream");
 		} else {
 			M_http_set_header(http, "Content-Type", "text/plain");
@@ -209,8 +187,8 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	}
 
 	/* If we've encoded the data (or utf-8) mark the content as such. */
-	if (encoding != M_TEXTCODEC_UNKNOWN) {
-		M_snprintf(tempa, sizeof(tempa), "charset=%s", M_textcodec_codec_to_str(encoding));
+	if (!M_str_isempty(charset)) {
+		M_snprintf(tempa, sizeof(tempa), "charset=%s", charset);
 		M_http_set_header_append(http, "Content-Type", tempa);
 	}
 
@@ -268,12 +246,12 @@ err:
 unsigned char *M_http_simple_write_request(M_http_method_t method,
 	const char *host, unsigned short port, const char *uri,
 	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding, size_t *len)
+	const unsigned char *data, size_t data_len, const char *charset, size_t *len)
 {
 	M_bool   res;
 	M_buf_t *buf = M_buf_create();
 
-	res = M_http_simple_write_request_buf(buf, method, host, port, uri, user_agent, content_type, headers, data, data_len, encoding);
+	res = M_http_simple_write_request_buf(buf, method, host, port, uri, user_agent, content_type, headers, data, data_len, charset);
 
 	if (!res) {
 		if (len != NULL) {
@@ -289,7 +267,7 @@ unsigned char *M_http_simple_write_request(M_http_method_t method,
 M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
 	const char *host, unsigned short port, const char *uri,
 	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding)
+	const unsigned char *data, size_t data_len, const char *charset)
 {
 	M_hash_dict_t *myheaders = NULL;
 	size_t         start_len = M_buf_len(buf);
@@ -326,7 +304,7 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
 	if (myheaders == NULL)
 		goto err;
 
-	if (!M_http_simple_write_int(buf, content_type, myheaders, data, data_len, encoding))
+	if (!M_http_simple_write_int(buf, content_type, myheaders, data, data_len, charset))
 		goto err;
 
 	M_hash_dict_destroy(myheaders);
@@ -339,12 +317,12 @@ err:
 
 unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
 	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	M_textcodec_codec_t encoding, size_t *len)
+	const char *charset, size_t *len)
 {
 	M_bool   res;
 	M_buf_t *buf = M_buf_create();
 
-	res = M_http_simple_write_response_buf(buf, code, reason, content_type, headers, data, data_len, encoding);
+	res = M_http_simple_write_response_buf(buf, code, reason, content_type, headers, data, data_len, charset);
 
 	if (!res) {
 		if (len != NULL) {
@@ -359,7 +337,7 @@ unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
 
 M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char *reason,
 	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	M_textcodec_codec_t encoding)
+	const char *charset)
 {
 	size_t start_len = M_buf_len(buf);
 
@@ -376,7 +354,7 @@ M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char 
 	M_buf_add_str(buf, reason);
 	M_buf_add_str(buf, "\r\n");
 
-	if (!M_http_simple_write_int(buf, content_type, headers, data, data_len, encoding)) {
+	if (!M_http_simple_write_int(buf, content_type, headers, data, data_len, charset)) {
 		M_buf_truncate(buf, start_len);
 		return M_FALSE;
 	}

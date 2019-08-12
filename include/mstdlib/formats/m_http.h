@@ -1169,11 +1169,9 @@ M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
  * \param[in]  headers      Additional headers to include in request.
  * \param[in]  data         String to place in body of message (may be empty).
  * \param[in]  data_len     Number of chars to use from \c data (may be 0). Cannot be 0 if data is NULL.
- * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
- *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
- *                          if the data is text. If encoding is specified the input data is assumed to
- *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
- *                          be added to the 'Content-type' header if set
+ * \param[in]  charset      Encoding of the data. M_TEXTCODEC_UNKNOWN should be used if charset should not be added
+ *                          to the Content-Type header. This will overwrite the charset if already present in
+ *                          Content-Type. Also use M_TEXTCODEC_UNKNOWN for non-text data.
  * \param[out] len          Place to store length of returned HTTP request message (may be NULL).
  *
  * \return Allocated string containing HTTP request message. The string will be NULL terminated.
@@ -1181,7 +1179,7 @@ M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
 M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
 	const char *host, unsigned short port, const char *uri,
 	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding, size_t *len);
+	const unsigned char *data, size_t data_len, const char *charset, size_t *len);
 
 
 /*! Create an HTTP/1.1 request message, add it to the given buffer.
@@ -1201,11 +1199,8 @@ M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
  * \param[in]  headers      Additional headers to include in request.
  * \param[in]  data         String to place in body of message (may be empty).
  * \param[in]  data_len     Number of chars to use from \c data (may be 0). Cannot be 0 if data is NULL.
- * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
- *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
- *                          if the data is text. If encoding is specified the input data is assumed to
- *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
- *                          be added to the 'Content-type' header if set
+ * \param[in]  charset      Encoding of the data. Set NULL or empty to not add a charset to the Content-Type header.
+ *                          If set, this will overwrite the charset if already present in Content-Type.
  *
  * \return M_TRUE if add was successful, M_FALSE if message creation failed.
  *
@@ -1214,7 +1209,7 @@ M_API unsigned char *M_http_simple_write_request(M_http_method_t method,
 M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
 	const char *host, unsigned short port, const char *uri,
 	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
-	const unsigned char *data, size_t data_len, M_textcodec_codec_t encoding);
+	const unsigned char *data, size_t data_len, const char *charset);
 
 
 /*! Create an HTTP/1.1 response message, return as new string.
@@ -1234,11 +1229,8 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
  * \param[in]  headers      Headers to include in response.
  * \param[in]  data         String to place in body of message (may be empty).
  * \param[in]  data_len     Number of chars to use from \c data (may be 0).
- * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
- *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
- *                          if the data is text. If encoding is specified the input data is assumed to
- *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
- *                          be added to the 'Content-type' header if set
+ * \param[in]  charset      Encoding of the data. Set NULL or empty to not add a charset to the Content-Type header.
+ *                          If set, this will overwrite the charset if already present in Content-Type.
  * \param[out] len          Place to store length of returned HTTP response message (may be NULL).
  *
  * \return New string containing HTTP response message.
@@ -1247,7 +1239,7 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
  */
 M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *reason,
 	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	M_textcodec_codec_t encoding, size_t *len);
+	const char *charset, size_t *len);
 
 
 /*! Create an HTTP/1.1 response message, add it to the given buffer.
@@ -1262,11 +1254,8 @@ M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *rea
  * \param[in]  headers      Headers to include in response.
  * \param[in]  data         String to place in body of message (may be empty).
  * \param[in]  data_len     Number of chars to use from \c data (may be 0).
- * \param[in]  encoding     Encoding to encode data using. M_TEXTCODEC_UNKNOWN should be used if no
- *                          automatic encoding should happen. Or if the data is not text. Encoding is only applicable 
- *                          if the data is text. If encoding is specified the input data is assumed to
- *                          be utf-8 encoded and will be encoded with the specified encoding. The 'charset' attribute will
- *                          be added to the 'Content-type' header if set
+ * \param[in]  charset      Encoding of the data. Set NULL or empty to not add a charset to the Content-Type header.
+ *                          If set, this will overwrite the charset if already present in Content-Type.
  *
  * \return M_TRUE if add was successful, M_FALSE if message creation failed.
  *
@@ -1274,7 +1263,7 @@ M_API unsigned char *M_http_simple_write_response(M_uint32 code, const char *rea
  */
 M_API M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char *reason,
 	const char *content_type, const M_hash_dict_t *headers, const unsigned char *data, size_t data_len,
-	M_textcodec_codec_t encoding);
+	const char *charset);
 
 /*! @} */
 
