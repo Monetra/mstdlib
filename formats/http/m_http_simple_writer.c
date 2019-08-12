@@ -205,10 +205,6 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 			M_http_set_header(http, "Content-Type", "application/octet-stream");
 		} else {
 			M_http_set_header(http, "Content-Type", "text/plain");
-			/* Specify the default charset. If an encoding was provided this will
-			 * be replaced. */
-			M_snprintf(tempa, sizeof(tempa), "charset=%s", M_textcodec_codec_to_str(encoding));
-			M_http_set_header_append(http, "Content-Type", tempa);
 		}
 	}
 
