@@ -164,6 +164,72 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"\r\n" \
 	"test \r\n123 \r\n done\n+3\n\n\n"
 
+#define req_data_req12 "<xadaaaaaaaaaaaaa version=\"1.80\" xmlns=\"http://www.website.p.com/schema\" variable=\"2789393\">\n" \
+"  <authentication>\n" \
+"    <user>the user n1</user>\n" \
+"    <password>8uio098i</password>\n" \
+"  </authentication>\n" \
+"  <8ut9adaetgaon id=\"8789087898976\" otherThingp=\"3895393\">\n" \
+"    <ourxrId>10</ourxrId>\n" \
+"    <num3sd>10100</num3sd>\n" \
+"    <bingoSource>universee</bingoSource>\n" \
+"    <PersonInfoess>\n" \
+"      <name>John and Mary Smith</name>\n" \
+"      <addressLine1>1 Main St.</addressLine1>\n" \
+"      <zip>789763747</zip>\n" \
+"    </PersonInfoess>\n" \
+"    <ding>\n" \
+"      <dddn>II</ddne>\n" \
+"      <samber>890oaifdadfa398i</samber>\n" \
+"      <driFter>A1B2</driFter>\n" \
+"      <doingWorkForAaaaa>349</doingWorkForAaaaa>\n" \
+"    </ding>\n" \
+"    <p11>\n" \
+"      <capability>what?!?</capability>\n" \
+"      <gotoyMstd>still?!</gotoyMstd>\n" \
+"      <somekindofId>anotherone?t</somekindofId>\n" \
+"    </p11>\n" \
+"    <allowXMLTagsNoww>false</allowXMLTagsNoww>\n" \
+"    <howNoXMLToday>false</howNoXMLToday>\n" \
+"  </8ut9adaetgaon>\n" \
+"</xadaaaaaaaaaaaaa>"
+#define req_data_rsp12 "POST /nab/communication/olliv HTTP/1.1\r\n" \
+"Host:patterts.vaneerprednee.com:443\r\n" \
+"User-Agent:the main user\r\n" \
+"Content-Length:936\r\n" \
+"Content-Type:text/xml; charset=ascii\r\n" \
+"Date:\r\n" \
+"\r\n" \
+"<xadaaaaaaaaaaaaa version=\"1.80\" xmlns=\"http://www.website.p.com/schema\" variable=\"2789393\">\n" \
+"  <authentication>\n" \
+"    <user>the user n1</user>\n" \
+"    <password>8uio098i</password>\n" \
+"  </authentication>\n" \
+"  <8ut9adaetgaon id=\"8789087898976\" otherThingp=\"3895393\">\n" \
+"    <ourxrId>10</ourxrId>\n" \
+"    <num3sd>10100</num3sd>\n" \
+"    <bingoSource>universee</bingoSource>\n" \
+"    <PersonInfoess>\n" \
+"      <name>John and Mary Smith</name>\n" \
+"      <addressLine1>1 Main St.</addressLine1>\n" \
+"      <zip>789763747</zip>\n" \
+"    </PersonInfoess>\n" \
+"    <ding>\n" \
+"      <dddn>II</ddne>\n" \
+"      <samber>890oaifdadfa398i</samber>\n" \
+"      <driFter>A1B2</driFter>\n" \
+"      <doingWorkForAaaaa>349</doingWorkForAaaaa>\n" \
+"    </ding>\n" \
+"    <p11>\n" \
+"      <capability>what?!?</capability>\n" \
+"      <gotoyMstd>still?!</gotoyMstd>\n" \
+"      <somekindofId>anotherone?t</somekindofId>\n" \
+"    </p11>\n" \
+"    <allowXMLTagsNoww>false</allowXMLTagsNoww>\n" \
+"    <howNoXMLToday>false</howNoXMLToday>\n" \
+"  </8ut9adaetgaon>\n" \
+"</xadaaaaaaaaaaaaa>"
+
 START_TEST(check_request)
 {
 	char   *out;
@@ -194,6 +260,7 @@ START_TEST(check_request)
 		{ M_HTTP_METHOD_CONNECT, "host.",        999,  "/no",            NULL,           "image/png",        req_data_req9,  M_TEXTCODEC_ISO8859_1,       req_data_rsp9  }, /* Yes, the mime and contents don't match and this will say a PNG is using a text encoding. */
 		{ M_HTTP_METHOD_TRACE,   "host.",        999,  "/no",            NULL,           "none",             req_data_req10, M_TEXTCODEC_CP1252,          req_data_rsp10 },
 		{ M_HTTP_METHOD_HEAD,    ".",            80,   "/80",            "880088",       "uh...",            req_data_req11, M_TEXTCODEC_UNKNOWN,         req_data_rsp11 },
+		{ M_HTTP_METHOD_POST, "patterts.vaneerprednee.com", 443, "/nab/communication/olliv", "the main user", "text/xml", req_data_req12, M_TEXTCODEC_ASCII, req_data_rsp12 },
 		{ M_HTTP_METHOD_UNKNOWN, NULL, 0, NULL, NULL, NULL, NULL, M_TEXTCODEC_UNKNOWN, NULL }
 	};
 
