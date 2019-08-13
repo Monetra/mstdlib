@@ -53,7 +53,8 @@ var group__m__http =
       [ "M_HTTP_METHOD_PUT", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeac8ee7ded45460348f18c1ee7f3ac0303", null ],
       [ "M_HTTP_METHOD_DELETE", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea4b5927204006aaef05c9cd5d5cdd5b77", null ],
       [ "M_HTTP_METHOD_TRACE", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaf7537dd0517fce14b4249099b46bc241", null ],
-      [ "M_HTTP_METHOD_CONNECT", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea75ba9ecd337eae90cec1a43a84f8ff6a", null ]
+      [ "M_HTTP_METHOD_CONNECT", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea75ba9ecd337eae90cec1a43a84f8ff6a", null ],
+      [ "M_HTTP_METHOD_PATCH", "group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeae43835c6833eedba3a21cee0abe5632d", null ]
     ] ],
     [ "M_http_data_format_t", "group__m__http.html#ga0e256f6b00615e25738e57ffda1a41c6", [
       [ "M_HTTP_DATA_FORMAT_UNKNOWN", "group__m__http.html#gga0e256f6b00615e25738e57ffda1a41c6a40efaccc8823f4aa40ba795b839a348b", null ],

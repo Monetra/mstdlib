@@ -1055,6 +1055,7 @@ var searchData=
   ['m_5fhttp_5fmethod_5fget',['M_HTTP_METHOD_GET',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceead3ed73c6a24aad12bb5fa2d02dd264e9',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5fhead',['M_HTTP_METHOD_HEAD',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaaa5d2d33e53972fe04f62733341764ec',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5foptions',['M_HTTP_METHOD_OPTIONS',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceea3d21b3dacd636ddf333aa5c28be2565d',1,'m_http.h']]],
+  ['m_5fhttp_5fmethod_5fpatch',['M_HTTP_METHOD_PATCH',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeae43835c6833eedba3a21cee0abe5632d',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5fpost',['M_HTTP_METHOD_POST',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeaf47da09f2cc5cb6ae1bfc8b05f494d75',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5fput',['M_HTTP_METHOD_PUT',['../group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceeac8ee7ded45460348f18c1ee7f3ac0303',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5ft',['M_http_method_t',['../group__m__http.html#ga9009cf9cd2abe5ab4336584eebc7fcee',1,'m_http.h']]],
