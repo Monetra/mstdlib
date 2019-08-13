@@ -123,7 +123,8 @@ typedef enum {
 	M_HTTP_METHOD_PUT,         /*!< Put. */
 	M_HTTP_METHOD_DELETE,      /*!< Delete. */
 	M_HTTP_METHOD_TRACE,       /*!< Trace. */
-	M_HTTP_METHOD_CONNECT      /*!< Connect. */
+	M_HTTP_METHOD_CONNECT,     /*!< Connect. */
+	M_HTTP_METHOD_PATCH        /*!< Patch. */
 } M_http_method_t;
 
 

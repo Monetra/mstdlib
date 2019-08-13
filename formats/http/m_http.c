@@ -240,6 +240,9 @@ M_http_method_t M_http_method_from_str(const char *method)
 	if (M_str_caseeq(method, "CONNECT"))
 		return M_HTTP_METHOD_CONNECT;
 
+	if (M_str_caseeq(method, "PATCH"))
+		return M_HTTP_METHOD_PATCH;
+
 	return M_HTTP_METHOD_UNKNOWN;
 }
 
@@ -262,6 +265,8 @@ const char *M_http_method_to_str(M_http_method_t method)
 			return "TRACE";
 		case M_HTTP_METHOD_CONNECT:
 			return "CONNECT";
+		case M_HTTP_METHOD_PATCH:
+			return "PATCH";
 		case M_HTTP_METHOD_UNKNOWN:
 			break;
 	}
