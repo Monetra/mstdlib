@@ -590,7 +590,7 @@ static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 	handle->is_timeout = M_TRUE;
 
 	/* Tell the thread to shutdown by closing the socket on our end */
-	M_io_bluetooth_close(handle, M_IO_STATE_ERROR);
+	M_io_bluetooth_close(handle, handle->state);
 
 	M_io_layer_release(layer);
 }
