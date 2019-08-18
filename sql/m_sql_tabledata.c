@@ -883,7 +883,7 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, M
 }
 
 
-static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
 	M_buf_t                *request     = NULL;
 	M_hash_dict_t          *seen_cols   = NULL;
@@ -895,29 +895,6 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 
 	M_mem_set(&field, 0, sizeof(field));
 	M_sql_tabledata_field_clear(&field);
-
-	if (pool == NULL && sqltrans == NULL) {
-		M_snprintf(error, error_len, "must specify pool or sqltrans");
-		goto done;
-	}
-
-	if (pool == NULL) {
-		pool = M_sql_trans_get_pool(sqltrans);
-	}
-
-	if (M_str_isempty(table_name)) {
-		M_snprintf(error, error_len, "missing table name");
-		goto done;
-	}
-	if (fields == NULL || num_fields == 0) {
-		M_snprintf(error, error_len, "fields specified invalid");
-		goto done;
-	}
-
-	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len))
-		goto done;
-
-	/* TODO: Loop up to 10x if key conflict AND table has ID_GENERATE flag on at least 1 key */
 
 	request     = M_buf_create();
 	seen_cols   = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
@@ -1045,6 +1022,50 @@ done:
 		}
 		M_sql_stmt_destroy(stmt);
 	}
+	return err;
+}
+
+
+static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+{
+	M_sql_error_t err  = M_SQL_ERROR_USER_FAILURE;
+	M_int64       myid;
+	size_t        cnt  = 0;
+
+	if (pool == NULL && sqltrans == NULL) {
+		M_snprintf(error, error_len, "must specify pool or sqltrans");
+		goto done;
+	}
+
+	if (pool == NULL) {
+		pool = M_sql_trans_get_pool(sqltrans);
+	}
+
+	if (M_str_isempty(table_name)) {
+		M_snprintf(error, error_len, "missing table name");
+		goto done;
+	}
+	if (fields == NULL || num_fields == 0) {
+		M_snprintf(error, error_len, "fields specified invalid");
+		goto done;
+	}
+
+	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len))
+		goto done;
+
+	/* If user didn't pass one in, we still need the value, so set it */
+	if (generated_id == NULL)
+		generated_id = &myid;
+
+	/* TODO: Loop up to 10x if key conflict AND table had an auto-generated id */
+
+	do {
+		*generated_id = 0;
+		err           = M_sql_tabledata_add_do(pool, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
+		cnt++;
+	} while (err == M_SQL_ERROR_QUERY_CONSTRAINT && *generated_id != 0 && cnt < 10);
+
+done:
 	return err;
 }
 
