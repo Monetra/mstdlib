@@ -186,6 +186,7 @@ var searchData=
   ['m_5fsql_5freport_5ft',['M_sql_report_t',['../group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9',1,'m_sql_report.h']]],
   ['m_5fsql_5fstmt_5ft',['M_sql_stmt_t',['../group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498',1,'m_sql_stmt.h']]],
   ['m_5fsql_5ftable_5ft',['M_sql_table_t',['../group__m__sql__schema.html#ga380c760a249b265986336b993c1fef8b',1,'m_sql_table.h']]],
+  ['m_5fsql_5ftabledata_5fedit_5fnotify_5fcb',['M_sql_tabledata_edit_notify_cb',['../group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffetch_5fcb',['M_sql_tabledata_fetch_cb',['../group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5ft',['M_sql_tabledata_field_t',['../group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5fvalidatetransform_5fcb',['M_sql_tabledata_validatetransform_cb',['../group__m__sql__tabledata.html#gafe942b90a962438016f2849abcbb8d94',1,'m_sql_table.h']]],

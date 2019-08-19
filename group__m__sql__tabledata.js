@@ -11,6 +11,7 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_field_t", "group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628", null ],
     [ "M_sql_tabledata_validatetransform_cb", "group__m__sql__tabledata.html#gafe942b90a962438016f2849abcbb8d94", null ],
     [ "M_sql_tabledata_fetch_cb", "group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9", null ],
+    [ "M_sql_tabledata_edit_notify_cb", "group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e", null ],
     [ "M_sql_tabledata_flags_t", "group__m__sql__tabledata.html#gaf5e35f940fabf4f7dbe7330b2e59402b", [
       [ "M_SQL_TABLEDATA_FLAG_NONE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba5af1b966d8755de09ceae487e30268d0", null ],
       [ "M_SQL_TABLEDATA_FLAG_VIRTUAL", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af", null ],
@@ -42,7 +43,7 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_field_type", "group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788", null ],
     [ "M_sql_tabledata_add", "group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2", null ],
     [ "M_sql_tabledata_trans_add", "group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f", null ],
-    [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#gaf63e0fc02d004363ff70ff9e5b0f8822", null ],
-    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#gaebb4908e047e3871ee2145d1eddd0ca8", null ],
+    [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#ga1c8349bcf1ee53fc977520ea36386c8f", null ],
+    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#gad3efe2f6f4bfa7998c0ea8a4d0580459", null ],
     [ "M_sql_tabledata_append_virtual_list", "group__m__sql__tabledata.html#ga634ddd627ced8b89856a8852aff69227", null ]
 ];
