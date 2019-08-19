@@ -668,7 +668,7 @@ START_TEST(check_tabledata)
 	/* Edit table, but don't change any values, should return M_SQL_ERROR_USER_SUCCESS to indicate nothing changed */
 	M_snprintf(temp, sizeof(temp), "%lld", id);
 	M_hash_dict_insert(dict, "id", temp);
-	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, NULL, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit(1) expected to return no rows modified, returned: %s", error);
 	print_table(pool,"foo");
 
@@ -678,14 +678,14 @@ START_TEST(check_tabledata)
 	M_hash_dict_remove(dict, "tag1");
 	M_hash_dict_remove(dict, "tag3");
 	M_hash_dict_insert(dict, "tag2", "added tag 2 after!");
-	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, NULL, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(2) expected to return row modified, returned: %s", error);
 	print_table(pool, "foo");
 
 	/* Add non-virtual column 4*/
 	M_hash_dict_remove(dict, "tag2");
 	M_hash_dict_insert(dict, "col4", "added this col later!");
-	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, error, sizeof(error));
+	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, NULL, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_edit(3) expected to return row modified, returned: %s", error);
 	print_table(pool, "foo");
 
