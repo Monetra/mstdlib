@@ -427,6 +427,20 @@ M_API M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t
  *  \return M_FALSE if field was not found, M_TRUE otherwise */
 typedef M_bool (*M_sql_tabledata_fetch_cb)(M_sql_tabledata_field_t *out, const char *field_name, M_bool is_add, void *thunk);
 
+/*! Callback that is called when a field is detected as changed during edit.  Both the prior and new field data are \
+ * available as well as the field name.  It may be necessary to do cross-table modifications based on a change to
+ * a single field, so this facilitates that ability.  If making linked changes, you must use the passed in sqltrans
+ * parameter to ensure it is treated as a single atomic operation.
+ *
+ * \param[in]     sqltrans  SQL Transaction for chaining atomic actions
+ * \param[in,out] old_field Old field data, technically it may be 'transformed', but will be thrown away on exit.
+ * \param[in,out] new_field New field data, may be modified by caller if desired.
+ * \param[in]     thunk     Thunk parameter for custom state tracking passed to parent function.
+ * \param[in,out] error     Buffer to hold error if any
+ * \param[in]     error_len Size of error buffer
+ * \return one fo the M_sql_error_t codes. Use M_SQL_ERROR_USER_SUCCESS and M_SQL_ERROR_USER_FAIL for non-SQL success/fail.
+ */
+typedef M_sql_error_t (*M_sql_tabledata_edit_notify_cb)(M_sql_trans_t *sqltrans, const char *field_name, M_sql_tabledata_field_t *orig_field, M_sql_tabledata_field_t *new_field, void *thunk, char *error, size_t error_len);
 
 /*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists.
  *
@@ -475,6 +489,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified of a field change.
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
@@ -482,7 +497,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
 
 /*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
  *   fields that are able to be fetched will be modified.  It is valid to fetch a NULL value to explicitly set a column
@@ -495,6 +510,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified of a field change.
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
@@ -502,7 +518,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
 
 /*! Convenience function to expand a list of tabledata fields base on an M_list_str_t list of
  *  virtual column names tied to a single table column that share the same attributes.  All
