@@ -38,6 +38,9 @@ __BEGIN_DECLS
  *
  * Generic table construction and manipulation.
  *
+ * JSON input and output conform to [csv2json](https://www.w3.org/TR/csv2json/)
+ * Minimal Mode format.
+ *
  * @{
  */
 
