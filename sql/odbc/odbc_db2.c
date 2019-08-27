@@ -53,9 +53,10 @@ M_sql_error_t db2_resolve_error(const char *sqlstate, M_int32 errorcode)
 }
 
 
-M_bool db2_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len)
+M_bool db2_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
 {
 	(void)pool;
+	(void)is_cast;
 
 	if (max_len == 0) {
 		max_len = SIZE_MAX;

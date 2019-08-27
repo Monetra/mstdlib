@@ -1857,12 +1857,12 @@ static M_sql_error_t odbc_cb_commit(M_sql_conn_t *conn, char *error, size_t erro
 }
 
 
-static M_bool odbc_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len)
+static M_bool odbc_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
 {
 	M_sql_driver_connpool_t  *dpool      = M_sql_driver_pool_get_dpool(pool);
 	odbc_connpool_data_t     *data       = &dpool->primary;
 
-	return data->profile->cb_datatype(pool, buf, type, max_len);
+	return data->profile->cb_datatype(pool, buf, type, max_len, is_cast);
 }
 
 

@@ -116,7 +116,7 @@ M_sql_error_t mysql_cb_connect_runonce(M_sql_conn_t *conn, M_sql_driver_connpool
 }
 
 
-M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len)
+M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
 {
 	(void)pool;
 
@@ -138,14 +138,20 @@ M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t
 			M_buf_add_str(buf, "BIGINT"); /* 64 bit */
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_TEXT:
-			if (max_len < 16 * 1024) {
-				M_buf_add_str(buf, "VARCHAR(");
+			if (is_cast) {
+				if (max_len < 16 * 1024) {
+					M_buf_add_str(buf, "VARCHAR(");
+					M_buf_add_uint(buf, max_len);
+					M_buf_add_str(buf, ")");
+				} else if (max_len < (1 << 23)) {
+					M_buf_add_str(buf, "MEDIUMTEXT");
+				} else {
+					M_buf_add_str(buf, "LONGTEXT");
+				}
+			} else {
+				M_buf_add_str(buf, "CHAR(");
 				M_buf_add_uint(buf, max_len);
 				M_buf_add_str(buf, ")");
-			} else if (max_len < (1 << 23)) {
-				M_buf_add_str(buf, "MEDIUMTEXT");
-			} else {
-				M_buf_add_str(buf, "LONGTEXT");
 			}
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_BINARY:

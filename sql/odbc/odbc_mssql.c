@@ -70,9 +70,10 @@ M_sql_error_t mssql_cb_connect_runonce(M_sql_conn_t *conn, M_sql_driver_connpool
 }
 
 
-M_bool mssql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len)
+M_bool mssql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
 {
 	(void)pool;
+	(void)is_cast;
 
 	if (max_len == 0) {
 		max_len = SIZE_MAX;
