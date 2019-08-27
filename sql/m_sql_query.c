@@ -57,7 +57,7 @@ void M_sql_query_append_datatype(M_sql_connpool_t *pool, M_buf_t *query, M_sql_d
 	const M_sql_driver_t *driver = M_sql_connpool_get_driver(pool);
 
 	if (driver == NULL)
-		return M_FALSE;
+		return;
 
-	return driver->cb_datatype(pool, query, type, max_len, is_cast);
+	driver->cb_datatype(pool, query, type, max_len, is_cast);
 }

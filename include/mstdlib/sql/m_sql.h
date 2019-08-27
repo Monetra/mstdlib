@@ -243,6 +243,17 @@ typedef enum {
 	M_SQL_ERROR_UNSET                = 999   /*!< Error message not set. Internal use only. */
 } M_sql_error_t;
 
+/*! Possible SQL data types */
+typedef enum {
+	M_SQL_DATA_TYPE_UNKNOWN = 0, /*!< Not Known, not yet set, most likely an error */
+	M_SQL_DATA_TYPE_BOOL    = 1, /*!< Implemented as an 8bit integer */
+	M_SQL_DATA_TYPE_INT16   = 2, /*!< 16bit signed integer */
+	M_SQL_DATA_TYPE_INT32   = 3, /*!< 32bit signed integer */
+	M_SQL_DATA_TYPE_INT64   = 4, /*!< 64bit signed integer */
+	M_SQL_DATA_TYPE_TEXT    = 5, /*!< Textual data type such as VARCHAR or TEXT, with possible length */
+	M_SQL_DATA_TYPE_BINARY  = 6  /*!< Binary data type such as BLOB or BINARY, with possible length */
+} M_sql_data_type_t;
+
 
 /*! Retrieve generic error string associated with error code.
  *

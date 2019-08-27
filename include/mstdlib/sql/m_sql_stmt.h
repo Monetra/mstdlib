@@ -487,16 +487,6 @@ M_API size_t M_sql_stmt_result_num_cols(M_sql_stmt_t *stmt);
  */
 M_API const char *M_sql_stmt_result_col_name(M_sql_stmt_t *stmt, size_t col);
 
-/*! Possible data type response values */
-typedef enum {
-	M_SQL_DATA_TYPE_UNKNOWN = 0, /*!< Not Known, not yet set, most likely an error */
-	M_SQL_DATA_TYPE_BOOL    = 1, /*!< Implemented as an 8bit integer */
-	M_SQL_DATA_TYPE_INT16   = 2, /*!< 16bit signed integer */
-	M_SQL_DATA_TYPE_INT32   = 3, /*!< 32bit signed integer */
-	M_SQL_DATA_TYPE_INT64   = 4, /*!< 64bit signed integer */
-	M_SQL_DATA_TYPE_TEXT    = 5, /*!< Textual data type such as VARCHAR or TEXT, with possible length */
-	M_SQL_DATA_TYPE_BINARY  = 6  /*!< Binary data type such as BLOB or BINARY, with possible length */
-} M_sql_data_type_t;
 
 /*! Retrieve the data type of the returned column.
  *
