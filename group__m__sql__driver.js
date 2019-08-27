@@ -64,7 +64,7 @@ var group__m__sql__driver =
     [ "M_sql_driver_cb_begin_t", "group__m__sql__driver.html#ga0bc7df8cb95e24f9335b3259412c010d", null ],
     [ "M_sql_driver_cb_rollback_t", "group__m__sql__driver.html#ga64f7ef3c16f5b1be23d4f5eda97d3ca7", null ],
     [ "M_sql_driver_cb_commit_t", "group__m__sql__driver.html#gaa1aadaac7b0e182283050c6cd6b684e5", null ],
-    [ "M_sql_driver_cb_datatype_t", "group__m__sql__driver.html#ga52355c05b86724a8845a6f93d143ec2e", null ],
+    [ "M_sql_driver_cb_datatype_t", "group__m__sql__driver.html#gaaa2e679d19eff190f6e19e8b882e449b", null ],
     [ "M_sql_driver_cb_createtable_suffix_t", "group__m__sql__driver.html#ga108a492ed22c7f2c07c33f0d6e4b3360", null ],
     [ "M_sql_driver_cb_append_updlock_t", "group__m__sql__driver.html#ga9294791c35566595d9815597b785135f", null ],
     [ "M_sql_driver_cb_append_bitop_t", "group__m__sql__driver.html#ga2626e8bd72d2f4a3743ab6e695bebda7", null ],

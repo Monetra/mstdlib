@@ -114,7 +114,7 @@ var searchData=
   ['m_5fsql_5fconn_5ftype_5ft',['M_sql_conn_type_t',['../group__m__sql__trace.html#ga92af031d020feb375738bf3a43d19de5',1,'m_sql_trace.h']]],
   ['m_5fsql_5fconnpool_5fflags_5ft',['M_sql_connpool_flags_t',['../group__m__sql__conn.html#ga2272f071ed4f702373040e54869a440f',1,'m_sql.h']]],
   ['m_5fsql_5fconnstr_5ftype_5ft',['M_sql_connstr_type_t',['../group__m__sql__driver.html#gac47d3c940551d97b1f18e95cf26956e8',1,'m_sql_driver.h']]],
-  ['m_5fsql_5fdata_5ftype_5ft',['M_sql_data_type_t',['../group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb',1,'m_sql_stmt.h']]],
+  ['m_5fsql_5fdata_5ftype_5ft',['M_sql_data_type_t',['../group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb',1,'m_sql.h']]],
   ['m_5fsql_5fdriver_5fbitop_5fcaps_5ft',['M_sql_driver_bitop_caps_t',['../group__m__sql__driver.html#ga02c224c26f838de6ae8a15f008b3e2d5',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fqueryformat_5fflags_5ft',['M_sql_driver_queryformat_flags_t',['../group__m__sql__driver.html#gaf46c619c3bb9dfc5b9517537667ea911',1,'m_sql_driver.h']]],
   ['m_5fsql_5fdriver_5fupdlock_5fcaps_5ft',['M_sql_driver_updlock_caps_t',['../group__m__sql__driver.html#ga9f7cbede943c3693059e9fec4ecb97a0',1,'m_sql_driver.h']]],

@@ -9,5 +9,6 @@ var group__m__sql__query =
       [ "M_SQL_BITOP_OR", "group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2", null ]
     ] ],
     [ "M_sql_query_append_updlock", "group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca", null ],
-    [ "M_sql_query_append_bitop", "group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39", null ]
+    [ "M_sql_query_append_bitop", "group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39", null ],
+    [ "M_sql_query_append_datatype", "group__m__sql__query.html#gab8568b3a74085a901b930c26c08a53a6", null ]
 ];

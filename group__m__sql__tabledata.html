@@ -182,7 +182,7 @@ Functions</h2></td></tr>
 <tr class="separator:ga59064bfaff095b86a9eefdf8b4342e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga54cabcca80ba5e30de44359561ff7f65"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65">M_sql_tabledata_field_is_null</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
 <tr class="separator:ga54cabcca80ba5e30de44359561ff7f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788">M_sql_tabledata_field_type</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="memitem:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788">M_sql_tabledata_field_type</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
 <tr class="separator:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2">M_sql_tabledata_add</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
 <tr class="separator:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -232,7 +232,7 @@ max_column_len</td>
 <p>Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate </p>
 </td></tr>
 <tr><td class="fieldtype">
-<a class="anchor" id="ab6e66a5db8ba6da135bae7b1690e6421"></a><a class="el" href="group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a></td>
+<a class="anchor" id="ab6e66a5db8ba6da135bae7b1690e6421"></a><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a></td>
 <td class="fieldname">
 type</td>
 <td class="fielddoc">
@@ -1002,7 +1002,7 @@ field_cb</td>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__m__sql__stmt__result.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a> M_sql_tabledata_field_type </td>
+          <td class="memname"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a> M_sql_tabledata_field_type </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
           <td class="paramname"><em>field</em></td><td>)</td>
@@ -1430,7 +1430,7 @@ field_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Aug 23 2019 14:47:13 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Aug 27 2019 18:57:53 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

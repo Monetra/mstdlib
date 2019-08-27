@@ -127,6 +127,8 @@ Functions</h2></td></tr>
 <tr class="separator:gae3a709e6c13fd44cbcb1f8a767a4ffca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga70c65566ff6270f731ef0751c1a9cf39"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39">M_sql_query_append_bitop</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944">M_sql_query_bitop_t</a> op, const char *exp1, const char *exp2)</td></tr>
 <tr class="separator:ga70c65566ff6270f731ef0751c1a9cf39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab8568b3a74085a901b930c26c08a53a6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__query.html#gab8568b3a74085a901b930c26c08a53a6">M_sql_query_append_datatype</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *query, <a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a> type, size_t max_len, M_bool is_cast)</td></tr>
+<tr class="separator:gab8568b3a74085a901b930c26c08a53a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>SQL Query Extension/Portability Helpers are used to assist in ensuring queries are portable across various database servers utilizing extensions they offer. </p>
@@ -285,12 +287,66 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gab8568b3a74085a901b930c26c08a53a6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_query_append_datatype </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *&#160;</td>
+          <td class="paramname"><em>pool</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_bool&#160;</td>
+          <td class="paramname"><em>is_cast</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>It may be necessary to know the data type name mapping for an mstdlib datatype. This function can be used to retrieve that value. Data types may differ depending on an operation. For instance, MySQL can use VARCHAR for column creation but only CHAR for CAST operations </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pool</td><td>Initialized <a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> object </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">query</td><td>A pointer to an already populated M_buf_t with a partial request. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">type</td><td>mstdlib datatype </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_len</td><td>Maximum length of data type if a TEXT or BINARY type. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_cast</td><td>If this datatype is used during a CAST operation. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Aug 23 2019 14:47:13 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Aug 27 2019 18:57:53 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

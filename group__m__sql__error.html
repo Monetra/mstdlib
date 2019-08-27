@@ -159,6 +159,23 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:gaae10ff11eb7d5583afcffa6ec87c753e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae672a1a5ceb3af4f3a01347ffd839beb"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a> { <br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba3ff1cadda0c32a960b59712261123029">M_SQL_DATA_TYPE_UNKNOWN</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839bebaba964fed11b6741888d10f42c896e85d">M_SQL_DATA_TYPE_BOOL</a> = 1, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba828428f9faa222ed326083ffdeeee6ec">M_SQL_DATA_TYPE_INT16</a> = 2, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae">M_SQL_DATA_TYPE_INT32</a> = 3, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227">M_SQL_DATA_TYPE_INT64</a> = 4, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba4198d25518297d44e9c8b9c97fb974ad">M_SQL_DATA_TYPE_TEXT</a> = 5, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5">M_SQL_DATA_TYPE_BINARY</a> = 6
+<br />
+ }</td></tr>
+<tr class="separator:gae672a1a5ceb3af4f3a01347ffd839beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -261,6 +278,42 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="ggaae10ff11eb7d5583afcffa6ec87c753ea3c4abf1e509c34965635f1022e974817"></a>M_SQL_ERROR_UNSET&#160;</td><td class="fielddoc">
 <p>Error message not set. Internal use only. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="gae672a1a5ceb3af4f3a01347ffd839beb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Possible SQL data types </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba3ff1cadda0c32a960b59712261123029"></a>M_SQL_DATA_TYPE_UNKNOWN&#160;</td><td class="fielddoc">
+<p>Not Known, not yet set, most likely an error </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839bebaba964fed11b6741888d10f42c896e85d"></a>M_SQL_DATA_TYPE_BOOL&#160;</td><td class="fielddoc">
+<p>Implemented as an 8bit integer </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba828428f9faa222ed326083ffdeeee6ec"></a>M_SQL_DATA_TYPE_INT16&#160;</td><td class="fielddoc">
+<p>16bit signed integer </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae"></a>M_SQL_DATA_TYPE_INT32&#160;</td><td class="fielddoc">
+<p>32bit signed integer </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227"></a>M_SQL_DATA_TYPE_INT64&#160;</td><td class="fielddoc">
+<p>64bit signed integer </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba4198d25518297d44e9c8b9c97fb974ad"></a>M_SQL_DATA_TYPE_TEXT&#160;</td><td class="fielddoc">
+<p>Textual data type such as VARCHAR or TEXT, with possible length </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5"></a>M_SQL_DATA_TYPE_BINARY&#160;</td><td class="fielddoc">
+<p>Binary data type such as BLOB or BINARY, with possible length </p>
 </td></tr>
 </table>
 
@@ -395,7 +448,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Aug 23 2019 14:47:13 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Tue Aug 27 2019 18:57:53 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

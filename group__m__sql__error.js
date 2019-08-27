@@ -27,6 +27,15 @@ var group__m__sql__error =
       [ "M_SQL_ERROR_USER_FAILURE", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea65adfae56a8b6eb303401f4511acaf74", null ],
       [ "M_SQL_ERROR_UNSET", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3c4abf1e509c34965635f1022e974817", null ]
     ] ],
+    [ "M_sql_data_type_t", "group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb", [
+      [ "M_SQL_DATA_TYPE_UNKNOWN", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba3ff1cadda0c32a960b59712261123029", null ],
+      [ "M_SQL_DATA_TYPE_BOOL", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839bebaba964fed11b6741888d10f42c896e85d", null ],
+      [ "M_SQL_DATA_TYPE_INT16", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba828428f9faa222ed326083ffdeeee6ec", null ],
+      [ "M_SQL_DATA_TYPE_INT32", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae", null ],
+      [ "M_SQL_DATA_TYPE_INT64", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227", null ],
+      [ "M_SQL_DATA_TYPE_TEXT", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba4198d25518297d44e9c8b9c97fb974ad", null ],
+      [ "M_SQL_DATA_TYPE_BINARY", "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5", null ]
+    ] ],
     [ "M_sql_error_string", "group__m__sql__error.html#ga737da880cae25712e80590f755629717", null ],
     [ "M_sql_error_is_error", "group__m__sql__error.html#gab8ad99c470f310750e92c6bae2e8a918", null ],
     [ "M_sql_error_is_disconnect", "group__m__sql__error.html#ga79b3538d1dcbf15c56ae8cdb8a3cd007", null ],

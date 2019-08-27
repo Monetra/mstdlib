@@ -1472,6 +1472,7 @@ var searchData=
   ['m_5fsql_5fgen_5ftimerand_5fid',['M_sql_gen_timerand_id',['../group__m__sql__helpers.html#ga5652e2f45f004c7e5bfa9599f70ec049',1,'m_sql.h']]],
   ['m_5fsql_5findex_5fadd_5fcol',['M_sql_index_add_col',['../group__m__sql__schema.html#ga6cec41f1e850c73b26201f1b46844046',1,'m_sql_table.h']]],
   ['m_5fsql_5fquery_5fappend_5fbitop',['M_sql_query_append_bitop',['../group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39',1,'m_sql.h']]],
+  ['m_5fsql_5fquery_5fappend_5fdatatype',['M_sql_query_append_datatype',['../group__m__sql__query.html#gab8568b3a74085a901b930c26c08a53a6',1,'m_sql.h']]],
   ['m_5fsql_5fquery_5fappend_5fupdlock',['M_sql_query_append_updlock',['../group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca',1,'m_sql.h']]],
   ['m_5fsql_5freport_5fadd_5fcolumn',['M_sql_report_add_column',['../group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fcell_5fcb_5fboolyesno',['M_sql_report_cell_cb_boolyesno',['../group__m__sql__report.html#gad946d57824ad80ee01a367bd5c85fc0b',1,'m_sql_report.h']]],
