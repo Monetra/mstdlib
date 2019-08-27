@@ -988,7 +988,7 @@ static M_sql_error_t sqlite_cb_commit(M_sql_conn_t *conn, char *error, size_t er
 }
 
 
-static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len)
+static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
 {
 	/* NOTE: SQLite really only supports TEXT, NUMERIC, INTEGER, REAL, BLOB.
 	 *       So we are just mapping to these primitives.  It does support
@@ -996,6 +996,7 @@ static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_dat
 	 *       the primitive.  For instance, VARCHAR(32) by no means actually imposes
 	 *       a 32 character limit as you'd expect. */
 	(void)pool;
+	(void)is_cast;
 
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:

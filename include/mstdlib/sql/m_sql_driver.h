@@ -290,7 +290,7 @@ typedef M_sql_error_t (*M_sql_driver_cb_commit_t)(M_sql_conn_t *conn, char *erro
  *                          or use 0 for maximum supported server size.
  *  \return M_TRUE on success, M_FALSE on error such as misuse
  */
-typedef M_bool (*M_sql_driver_cb_datatype_t)(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len);
+typedef M_bool (*M_sql_driver_cb_datatype_t)(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast);
 
 /*! Append an SQL-driver specific suffix to the end of the provided CREATE TABLE query.
  *

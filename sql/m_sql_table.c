@@ -366,7 +366,7 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 		M_buf_add_str(query, col->name);
 		M_buf_add_str(query, "\" ");
 
-		if (!driver->cb_datatype(pool, query, col->datatype, col->max_len)) {
+		if (!driver->cb_datatype(pool, query, col->datatype, col->max_len, M_FALSE)) {
 			err = M_SQL_ERROR_INVALID_USE;
 			goto done;
 		}

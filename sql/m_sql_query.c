@@ -51,3 +51,13 @@ M_bool M_sql_query_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_qu
 
 	return driver->cb_append_bitop(pool, query, op, exp1, exp2);
 }
+
+void M_sql_query_append_datatype(M_sql_connpool_t *pool, M_buf_t *query, M_sql_data_type_t type, size_t max_len, M_bool is_cast)
+{
+	const M_sql_driver_t *driver = M_sql_connpool_get_driver(pool);
+
+	if (driver == NULL)
+		return M_FALSE;
+
+	return driver->cb_datatype(pool, query, type, max_len, is_cast);
+}
