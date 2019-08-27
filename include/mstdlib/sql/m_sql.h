@@ -763,6 +763,18 @@ typedef enum {
 M_API M_bool M_sql_query_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_bitop_t op, const char *exp1, const char *exp2);
 
 
+/*! It may be necessary to know the data type name mapping for an mstdlib datatype.
+ *  This function can be used to retrieve that value.  Data types may differ depending
+ *  on an operation.  For instance, MySQL can use VARCHAR for column creation but only
+ *  CHAR for CAST operations 
+ *  \param[in]     pool       Initialized #M_sql_connpool_t object
+ *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial request.
+ *  \param[in]     type       mstdlib datatype
+ *  \param[in]     max_len    Maximum length of data type if a TEXT or BINARY type.
+ *  \param[in]     is_cast    If this datatype is used during a CAST operation.
+ */
+M_API void M_sql_query_append_datatype(M_sql_connpool_t *pool, M_buf_t *query, M_sql_data_type_t type, size_t max_len, M_bool is_cast);
+
 /*! @} */
 
 __END_DECLS
