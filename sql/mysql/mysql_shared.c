@@ -138,7 +138,7 @@ M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t
 			M_buf_add_str(buf, "BIGINT"); /* 64 bit */
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_TEXT:
-			if (is_cast) {
+			if (!is_cast) {
 				if (max_len < 16 * 1024) {
 					M_buf_add_str(buf, "VARCHAR(");
 					M_buf_add_uint(buf, max_len);
@@ -149,6 +149,7 @@ M_bool mysql_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t
 					M_buf_add_str(buf, "LONGTEXT");
 				}
 			} else {
+				/* MySQL can only cast to CHAR */
 				M_buf_add_str(buf, "CHAR(");
 				M_buf_add_uint(buf, max_len);
 				M_buf_add_str(buf, ")");
