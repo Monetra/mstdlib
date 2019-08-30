@@ -153,7 +153,8 @@ M_API M_threadpool_parent_t *M_threadpool_parent_create(M_threadpool_t *pool);
 M_API M_bool M_threadpool_parent_destroy(M_threadpool_parent_t *parent);
 
 
-/*! Dispatch a task or set of tasks to the threadpool.
+/*! Dispatch a task or set of tasks to the threadpool.  Identical to
+ *  M_threadpool_dispatch_notify() if passed a NULL finished argument.
  *
  * Requires a callback function to do the processing and an argument that is
  * passed to the function.  There is no way to retrieve a return value from the
@@ -169,6 +170,27 @@ M_API M_bool M_threadpool_parent_destroy(M_threadpool_parent_t *parent);
  * \param[in]     num_tasks total number of tasks being enqueued.
  */
 M_API void M_threadpool_dispatch(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks);
+
+
+/*! Dispatch a task or set of tasks to the threadpool and notify on task completion.
+ *
+ * Requires a callback function to do the processing and an argument that is
+ * passed to the function.  There is no way to retrieve a return value from the
+ * task, so the argument passed to the task should hold a result parameter if
+ * it is necessary to know the completion status.  Multiple tasks may be queued
+ * simultaneously.
+ *
+ * This may take a while to complete if there are no queue slots available.
+ *
+ * \param[in,out] parent    Initialized parent handle.
+ * \param[in]     task      Task callback.
+ * \param[in,out] task_args Argument array to pass to each task (one per task).
+ * \param[in]     num_tasks total number of tasks being enqueued.
+ * \param[in]     finished  Optional. Callback to call for each task completion.
+ *                          Will pass the callback the same argument passed to the task.
+ *                          Use NULL if no notification desired.
+ */
+M_API void M_threadpool_dispatch_notify(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks, void (*finished)(void *));
 
 
 /*! Count the number of queue slots available to be enqueued for a threadpool.
