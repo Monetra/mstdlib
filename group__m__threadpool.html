@@ -123,6 +123,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga45eb17d7f036032fb44c32e144f3e8f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0468dfae4c5c82d3fdaef7c5c7734ce3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__threadpool.html#ga0468dfae4c5c82d3fdaef7c5c7734ce3">M_threadpool_dispatch</a> (<a class="el" href="group__m__threadpool.html#ga4e1cd3d78d5740b959b4684e560a4cc5">M_threadpool_parent_t</a> *parent, void(*task)(void *), void **task_args, size_t num_tasks)</td></tr>
 <tr class="separator:ga0468dfae4c5c82d3fdaef7c5c7734ce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4d19612f1315482681aca7c0021c9dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__threadpool.html#gad4d19612f1315482681aca7c0021c9dd">M_threadpool_dispatch_notify</a> (<a class="el" href="group__m__threadpool.html#ga4e1cd3d78d5740b959b4684e560a4cc5">M_threadpool_parent_t</a> *parent, void(*task)(void *), void **task_args, size_t num_tasks, void(*finished)(void *))</td></tr>
+<tr class="separator:gad4d19612f1315482681aca7c0021c9dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa9f6594acaa1233e809eb93c8700f13c"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__threadpool.html#gaa9f6594acaa1233e809eb93c8700f13c">M_threadpool_available_slots</a> (const <a class="el" href="group__m__threadpool.html#ga591e1b82137fdb49fb995364e599db83">M_threadpool_t</a> *pool)</td></tr>
 <tr class="separator:gaa9f6594acaa1233e809eb93c8700f13c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga41028a733fdb790ec220c014bbebd428"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__threadpool.html#ga41028a733fdb790ec220c014bbebd428">M_threadpool_wait_available_thread</a> (<a class="el" href="group__m__threadpool.html#ga4e1cd3d78d5740b959b4684e560a4cc5">M_threadpool_parent_t</a> *parent)</td></tr>
@@ -319,7 +321,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Dispatch a task or set of tasks to the threadpool.</p>
+<p>Dispatch a task or set of tasks to the threadpool. Identical to <a class="el" href="group__m__threadpool.html#gad4d19612f1315482681aca7c0021c9dd">M_threadpool_dispatch_notify()</a> if passed a NULL finished argument.</p>
 <p>Requires a callback function to do the processing and an argument that is passed to the function. There is no way to retrieve a return value from the task, so the argument passed to the task should hold a result parameter if it is necessary to know the completion status. Multiple tasks may be queued simultaneously.</p>
 <p>This may take a while to complete if there are no queue slots available.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -328,6 +330,63 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">task</td><td>Task callback. </td></tr>
     <tr><td class="paramdir">[in,out]</td><td class="paramname">task_args</td><td>Argument array to pass to each task (one per task). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">num_tasks</td><td>total number of tasks being enqueued. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gad4d19612f1315482681aca7c0021c9dd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_threadpool_dispatch_notify </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__threadpool.html#ga4e1cd3d78d5740b959b4684e560a4cc5">M_threadpool_parent_t</a> *&#160;</td>
+          <td class="paramname"><em>parent</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(*)(void *)&#160;</td>
+          <td class="paramname"><em>task</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>task_args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>num_tasks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(*)(void *)&#160;</td>
+          <td class="paramname"><em>finished</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Dispatch a task or set of tasks to the threadpool and notify on task completion.</p>
+<p>Requires a callback function to do the processing and an argument that is passed to the function. There is no way to retrieve a return value from the task, so the argument passed to the task should hold a result parameter if it is necessary to know the completion status. Multiple tasks may be queued simultaneously.</p>
+<p>This may take a while to complete if there are no queue slots available.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">parent</td><td>Initialized parent handle. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">task</td><td>Task callback. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">task_args</td><td>Argument array to pass to each task (one per task). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">num_tasks</td><td>total number of tasks being enqueued. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">finished</td><td>Optional. Callback to call for each task completion. Will pass the callback the same argument passed to the task. Use NULL if no notification desired. </td></tr>
   </table>
   </dd>
 </dl>
@@ -434,7 +493,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Aug 28 2019 15:25:45 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Fri Aug 30 2019 17:57:24 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

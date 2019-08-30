@@ -7,6 +7,7 @@ var group__m__threadpool =
     [ "M_threadpool_parent_create", "group__m__threadpool.html#ga4bfadc97aca23406a2c137a60005a189", null ],
     [ "M_threadpool_parent_destroy", "group__m__threadpool.html#ga45eb17d7f036032fb44c32e144f3e8f6", null ],
     [ "M_threadpool_dispatch", "group__m__threadpool.html#ga0468dfae4c5c82d3fdaef7c5c7734ce3", null ],
+    [ "M_threadpool_dispatch_notify", "group__m__threadpool.html#gad4d19612f1315482681aca7c0021c9dd", null ],
     [ "M_threadpool_available_slots", "group__m__threadpool.html#gaa9f6594acaa1233e809eb93c8700f13c", null ],
     [ "M_threadpool_wait_available_thread", "group__m__threadpool.html#ga41028a733fdb790ec220c014bbebd428", null ],
     [ "M_threadpool_num_threads", "group__m__threadpool.html#gac2d71bce2c7268c2e7d8b9e66a1df688", null ],
