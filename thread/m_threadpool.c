@@ -36,9 +36,10 @@
 
 /*! Queue holding tasks to be run */
 typedef struct M_threadpool_queue_st {
-	void                 (*task)(void *); /*!< Task callback */
-	void                  *task_arg;      /*!< Argument for task callback */
-	M_threadpool_parent_t *parent;        /*!< Handle of threadpool user */
+	void                 (*task)(void *);     /*!< Task callback */
+	void                  *task_arg;          /*!< Argument for task callback */
+	void                 (*finished)(void *); /*!< Optional callback to be called on task completion */
+	M_threadpool_parent_t *parent;            /*!< Handle of threadpool user */
 } M_threadpool_queue_t;
 
 /*! Main structure holding metadata for threadpool */
@@ -143,6 +144,7 @@ static M_bool M_threadpool_queue_fetch(M_threadpool_t *pool, M_threadpool_queue_
 			queue_copy->parent   = q->parent;
 			queue_copy->task     = q->task;
 			queue_copy->task_arg = q->task_arg;
+			queue_copy->finished = q->finished;
 			M_free(q);
 
 			/* Signal someone waiting for a queue slot to put a task in */
@@ -210,6 +212,10 @@ static void *M_threadpool_thread(void *arg)
 		/* Perform task */
 		task.task(task.task_arg);
 
+		/* Notify on completion */
+		if (task.finished)
+			task.finished(task.task_arg);
+
 		/* Tell the parent the task is done, and wake them up if we were the
 		 * last task left */
 		M_thread_mutex_lock(task.parent->lock);
@@ -253,7 +259,7 @@ static M_bool M_threadpool_thread_spawn(M_threadpool_t *pool)
  *  \param task      Callback for task to perform
  *  \param task_args Argument passed to task (array, one per task)
  *  \param num_tasks Number of tasks being inserted */
-static void M_threadpool_queue_insert(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks)
+static void M_threadpool_queue_insert(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks, void (*finished)(void *))
 {
 	M_bool          i_just_woke_up = M_FALSE;
 	M_threadpool_t *pool           = parent->pool;
@@ -270,6 +276,7 @@ static void M_threadpool_queue_insert(M_threadpool_parent_t *parent, void (*task
 				M_threadpool_queue_t *q = M_malloc_zero(sizeof(*q));
 				q->parent   = parent;
 				q->task     = task;
+				q->finished = finished;
 				if (task_args != NULL)
 					q->task_arg = *task_args;
 
@@ -459,7 +466,7 @@ void M_threadpool_wait_available_thread(M_threadpool_parent_t *parent)
 }
 
 
-void M_threadpool_dispatch(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks)
+void M_threadpool_dispatch_notify(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks, void (*finished)(void *))
 {
 	if (parent == NULL || task == NULL || num_tasks == 0)
 		return;
@@ -467,9 +474,13 @@ void M_threadpool_dispatch(M_threadpool_parent_t *parent, void (*task)(void *), 
 	M_thread_mutex_lock(parent->lock);
 	parent->tasks_remaining += num_tasks;
 	M_thread_mutex_unlock(parent->lock);
-	M_threadpool_queue_insert(parent, task, task_args, num_tasks);
+	M_threadpool_queue_insert(parent, task, task_args, num_tasks, finished);
 }
 
+void M_threadpool_dispatch(M_threadpool_parent_t *parent, void (*task)(void *), void **task_args, size_t num_tasks)
+{
+	M_threadpool_dispatch_notify(parent, task, task_args, num_tasks, NULL);
+}
 
 void M_threadpool_parent_wait(M_threadpool_parent_t *parent)
 {
