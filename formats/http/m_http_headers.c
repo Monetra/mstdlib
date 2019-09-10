@@ -183,7 +183,7 @@ static M_bool M_http_set_header_ctype(M_http_t *http, const char *val)
 	return M_TRUE;
 }
 
-static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const char *val, M_bool append)
+static M_bool M_http_set_header_int(M_hash_dict_t **d, const char *key, const char *val, M_bool append)
 {
 	M_hash_dict_t *new_headers;
 
@@ -191,7 +191,7 @@ static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const cha
 		return M_FALSE;
 
 	if (!append)
-		M_hash_dict_remove(d, key);
+		M_hash_dict_remove(*d, key);
 
 	if (M_str_isempty(val))
 		return M_TRUE;
@@ -200,7 +200,7 @@ static M_bool M_http_set_header_int(M_hash_dict_t *d, const char *key, const cha
 	M_hash_dict_insert(new_headers, key, val);
 	/* Merge and d exists so we don't have to worry about d
  	 * changing within this function. */
-	M_http_set_headers_int(&d, new_headers, M_TRUE);
+	M_http_set_headers_int(d, new_headers, M_TRUE);
 	M_hash_dict_destroy(new_headers);
 	return M_TRUE;
 }
@@ -296,7 +296,7 @@ M_bool M_http_set_header_append(M_http_t *http, const char *key, const char *val
 	if (http == NULL)
 		return M_FALSE;
 
-	if (!M_http_set_header_int(http->headers, key, val, M_TRUE))
+	if (!M_http_set_header_int(&http->headers, key, val, M_TRUE))
 		return M_FALSE;
 
 	if (M_str_caseeq(key, "Content-Type"))
@@ -310,7 +310,7 @@ M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 	if (http == NULL)
 		return M_FALSE;
 
-	if (!M_http_set_header_int(http->headers, key, val, M_FALSE))
+	if (!M_http_set_header_int(&http->headers, key, val, M_FALSE))
 		return M_FALSE;
 
 	if (M_str_caseeq(key, "Content-Type"))
@@ -439,7 +439,7 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 	if (http == NULL)
 		return M_FALSE;
 
-	return M_http_set_header_int(http->trailers, key, val, M_FALSE);
+	return M_http_set_header_int(&http->trailers, key, val, M_FALSE);
 }
 
 void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
