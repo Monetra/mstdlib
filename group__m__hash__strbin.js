@@ -20,6 +20,7 @@ var group__m__hash__strbin =
     [ "M_hash_strbin_remove", "group__m__hash__strbin.html#ga3c12c4d319f1395b0ce999fe5e4d2b29", null ],
     [ "M_hash_strbin_get", "group__m__hash__strbin.html#ga88d7b34ffccb1b6295fa161b06751787", null ],
     [ "M_hash_strbin_get_direct", "group__m__hash__strbin.html#ga25c412f7dbdff129995dc17f09f4a181", null ],
+    [ "M_hash_strbin_is_multi", "group__m__hash__strbin.html#gab394c802c833d729a06b0836c2a57151", null ],
     [ "M_hash_strbin_multi_len", "group__m__hash__strbin.html#gaeb531b94841c1fd6c80d52acba50f0ae", null ],
     [ "M_hash_strbin_multi_get", "group__m__hash__strbin.html#gab81b2b75ff55ef66ec4e8d2e352afc8d", null ],
     [ "M_hash_strbin_multi_get_direct", "group__m__hash__strbin.html#ga92828d1d74e08d2bd81f7c73102d88d9", null ],

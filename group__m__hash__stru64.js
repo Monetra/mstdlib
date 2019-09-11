@@ -20,6 +20,7 @@ var group__m__hash__stru64 =
     [ "M_hash_stru64_remove", "group__m__hash__stru64.html#ga139a250c2a7d3e34938b35c32730d3b8", null ],
     [ "M_hash_stru64_get", "group__m__hash__stru64.html#ga30f139d6c88f53178c352a794298365e", null ],
     [ "M_hash_stru64_get_direct", "group__m__hash__stru64.html#gaeb9e205d65b1d9e8f5a54dc2987a3cfa", null ],
+    [ "M_hash_stru64_is_multi", "group__m__hash__stru64.html#gaccefd07b3b6310eb9705363b706a9c13", null ],
     [ "M_hash_stru64_multi_len", "group__m__hash__stru64.html#ga0a09a790e469acfc19af4fc3cf7537c2", null ],
     [ "M_hash_stru64_multi_get", "group__m__hash__stru64.html#ga5c9bd891ca996aacadbe57db503e5a4e", null ],
     [ "M_hash_stru64_multi_get_direct", "group__m__hash__stru64.html#ga535e36af0dd6e9263fd9613b382b6819", null ],

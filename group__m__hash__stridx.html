@@ -152,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:gad22c3acccffebad1bec70c22ff2c778e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5e540f5c375ce7ea455566f2a8776c14"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stridx.html#ga5e540f5c375ce7ea455566f2a8776c14">M_hash_stridx_get_direct</a> (const <a class="el" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h, const char *key)</td></tr>
 <tr class="separator:ga5e540f5c375ce7ea455566f2a8776c14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad5b9e72a32b2a15dcb75544c1f091ddf"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stridx.html#gad5b9e72a32b2a15dcb75544c1f091ddf">M_hash_stridx_is_multi</a> (const <a class="el" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h)</td></tr>
+<tr class="separator:gad5b9e72a32b2a15dcb75544c1f091ddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9db2660c3516a80df79fe0f7a21ddac"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stridx.html#gab9db2660c3516a80df79fe0f7a21ddac">M_hash_stridx_multi_len</a> (const <a class="el" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h, const char *key, size_t *len)</td></tr>
 <tr class="separator:gab9db2660c3516a80df79fe0f7a21ddac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0b5372516400c2d5bb50854b9302ea21"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stridx.html#ga0b5372516400c2d5bb50854b9302ea21">M_hash_stridx_multi_get</a> (const <a class="el" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *h, const char *key, size_t idx, size_t *value)</td></tr>
@@ -473,6 +475,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>NULL if key doesn't exist or NULL value on file, otherwise the value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad5b9e72a32b2a15dcb75544c1f091ddf"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_hash_stridx_is_multi </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__hash__stridx.html#ga0c108608be018cc814c5d513bff48e4c">M_hash_stridx_t</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wether the hashtable a multi value table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">h</td><td>Hashtable being referenced.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if a multi value hashtable. </dd></dl>
 
 </div>
 </div>
@@ -924,7 +950,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Sep 11 2019 17:29:15 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Sep 11 2019 18:08:54 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

@@ -33,6 +33,7 @@ var group__m__hash__dict =
     [ "M_hash_dict_get", "group__m__hash__dict.html#ga54ede92f5adf0bf42b6a6afee07e4eaa", null ],
     [ "M_hash_dict_get_direct", "group__m__hash__dict.html#gad4df6c96df7aaa1ea788f866a09c58c5", null ],
     [ "M_hash_dict_get_direct_default", "group__m__hash__dict.html#gac6a6352c05e7db1e1d7f4145a8b7142e", null ],
+    [ "M_hash_dict_is_multi", "group__m__hash__dict.html#ga98adb6b03a8eaf7f66b723e044deae25", null ],
     [ "M_hash_dict_multi_len", "group__m__hash__dict.html#gaf3ed49a5ca3126f89cc2e02e606fd3b2", null ],
     [ "M_hash_dict_multi_get", "group__m__hash__dict.html#gae81bc02944e8780c48cf7e7eb74376e2", null ],
     [ "M_hash_dict_multi_get_direct", "group__m__hash__dict.html#gad0a192c156c63efb63b699c76a2d47d7", null ],

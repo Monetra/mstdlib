@@ -20,6 +20,7 @@ var group__m__hash__stridx =
     [ "M_hash_stridx_remove", "group__m__hash__stridx.html#ga046b5bb9e48f810ec4205f330cc8211f", null ],
     [ "M_hash_stridx_get", "group__m__hash__stridx.html#gad22c3acccffebad1bec70c22ff2c778e", null ],
     [ "M_hash_stridx_get_direct", "group__m__hash__stridx.html#ga5e540f5c375ce7ea455566f2a8776c14", null ],
+    [ "M_hash_stridx_is_multi", "group__m__hash__stridx.html#gad5b9e72a32b2a15dcb75544c1f091ddf", null ],
     [ "M_hash_stridx_multi_len", "group__m__hash__stridx.html#gab9db2660c3516a80df79fe0f7a21ddac", null ],
     [ "M_hash_stridx_multi_get", "group__m__hash__stridx.html#ga0b5372516400c2d5bb50854b9302ea21", null ],
     [ "M_hash_stridx_multi_get_direct", "group__m__hash__stridx.html#ga221e84296fc162cde08dafc0c9154d4c", null ],

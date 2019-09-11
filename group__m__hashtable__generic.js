@@ -43,6 +43,7 @@ var group__m__hashtable__generic =
     [ "M_hashtable_insert", "group__m__hashtable__generic.html#ga8a3c6ea1647539743d74f21ea5353046", null ],
     [ "M_hashtable_remove", "group__m__hashtable__generic.html#ga4cc0f451df5106d38c3543c9d7e62f23", null ],
     [ "M_hashtable_get", "group__m__hashtable__generic.html#gaf110f08ad20a61cea0834dd85c99e744", null ],
+    [ "M_hashtable_is_multi", "group__m__hashtable__generic.html#gae44100e0658ea1aad043ff16128fb37e", null ],
     [ "M_hashtable_multi_len", "group__m__hashtable__generic.html#ga3b51626c6849e1f2f698683607bc839b", null ],
     [ "M_hashtable_multi_get", "group__m__hashtable__generic.html#ga2d3c54178f0fb5fb2e7fba0df5103a14", null ],
     [ "M_hashtable_multi_remove", "group__m__hashtable__generic.html#ga4ae8f9c55497ca4335f09444aea1774c", null ],

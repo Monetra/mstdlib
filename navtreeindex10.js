@@ -1,5 +1,15 @@
 var NAVTREEINDEX10 =
 {
+"group__m__settings.html#ga566390fea3ec142003be94a610b8c57b":[1,2,5,19],
+"group__m__settings.html#ga5b6504fd05757a29987abdff2e356bb5":[1,2,5,11],
+"group__m__settings.html#ga6b47e462ea78031744fbe5588883ba38":[1,2,5,21],
+"group__m__settings.html#ga6ff65e9aa58fe01644d5610037490415":[1,2,5,15],
+"group__m__settings.html#ga710b6520e34d1c2e0fccfd76da2ffb0e":[1,2,5,10],
+"group__m__settings.html#ga75874e60c591305436ad3673914a4277":[1,2,5,17],
+"group__m__settings.html#ga853e600fe539040e35285802530ea505":[1,2,5,0],
+"group__m__settings.html#ga97e72c8343b3c96c5d3700e645e19f21":[1,2,5,1],
+"group__m__settings.html#ga9defb42a00312cab9015968940176bd0":[1,2,5,6],
+"group__m__settings.html#gab08e2a7e79a9ca90bfe2343e7900d05f":[1,2,5,9],
 "group__m__settings.html#gab80b123eb97df2ece9a73c4fe50e335c":[1,2,5,7],
 "group__m__settings.html#gac96c851b8acedf9a4d664203819e9da9":[1,2,5,18],
 "group__m__settings.html#gadd84f3b607aa713e594e4d8770e23ab6":[1,2,5,13],
@@ -239,15 +249,5 @@ var NAVTREEINDEX10 =
 "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839bebaba964fed11b6741888d10f42c896e85d":[1,5,2,1,1],
 "group__m__sql__helpers.html":[1,5,4],
 "group__m__sql__helpers.html#ga5652e2f45f004c7e5bfa9599f70ec049":[1,5,4,0],
-"group__m__sql__helpers.html#ga968e3bfef73d9b44d862dc70553d6afb":[1,5,4,1],
-"group__m__sql__query.html":[1,5,5],
-"group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944":[1,5,5,1],
-"group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0":[1,5,5,0],
-"group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39":[1,5,5,3],
-"group__m__sql__query.html#gab8568b3a74085a901b930c26c08a53a6":[1,5,5,4],
-"group__m__sql__query.html#gae3a709e6c13fd44cbcb1f8a767a4ffca":[1,5,5,2],
-"group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944acd8f90df52ba81040a309373b4a836cf":[1,5,5,1,0],
-"group__m__sql__query.html#gga37d5f0e16066904bba1519f2117f4944ad355f80e9bd8d62dad2a75dd7dcc4ae2":[1,5,5,1,1],
-"group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0ad5d2d238b6f95c5998316db53fedb970":[1,5,5,0,0],
-"group__m__sql__query.html#gga6ebebe6fd69e22bb87d506b2c7e4e8f0aff7c6763b3ed0ab24f605e8fddf4091a":[1,5,5,0,1]
+"group__m__sql__helpers.html#ga968e3bfef73d9b44d862dc70553d6afb":[1,5,4,1]
 };

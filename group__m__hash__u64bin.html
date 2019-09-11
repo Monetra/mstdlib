@@ -146,6 +146,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga7269e06d6de159877caa6b99811da336"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga55211a1b4c16f5d03440aa2d5f94c817"><td class="memItemLeft" align="right" valign="top">const M_uint8 *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__u64bin.html#ga55211a1b4c16f5d03440aa2d5f94c817">M_hash_u64bin_get_direct</a> (const <a class="el" href="group__m__hash__u64bin.html#ga72d70c95b207349952beca8d58640fdc">M_hash_u64bin_t</a> *h, M_uint64 key, size_t *value_len)</td></tr>
 <tr class="separator:ga55211a1b4c16f5d03440aa2d5f94c817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab2b8b9e1f6607b5fac709ff18462f90f"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__u64bin.html#gab2b8b9e1f6607b5fac709ff18462f90f">M_hash_u64bin_is_multi</a> (const <a class="el" href="group__m__hash__u64bin.html#ga72d70c95b207349952beca8d58640fdc">M_hash_u64bin_t</a> *h)</td></tr>
+<tr class="separator:gab2b8b9e1f6607b5fac709ff18462f90f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaaeb6ea25ea1e57fae7b1bf44d345ed1a"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__u64bin.html#gaaeb6ea25ea1e57fae7b1bf44d345ed1a">M_hash_u64bin_multi_len</a> (const <a class="el" href="group__m__hash__u64bin.html#ga72d70c95b207349952beca8d58640fdc">M_hash_u64bin_t</a> *h, M_uint64 key, size_t *len)</td></tr>
 <tr class="separator:gaaeb6ea25ea1e57fae7b1bf44d345ed1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafaf3fac2ee5723e6a74bd6c3b2b46ddb"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__u64bin.html#gafaf3fac2ee5723e6a74bd6c3b2b46ddb">M_hash_u64bin_multi_get</a> (const <a class="el" href="group__m__hash__u64bin.html#ga72d70c95b207349952beca8d58640fdc">M_hash_u64bin_t</a> *h, M_uint64 key, size_t idx, const M_uint8 **value, size_t *value_len)</td></tr>
@@ -479,6 +481,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>NULL if key doesn't exist, otherwise the value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gab2b8b9e1f6607b5fac709ff18462f90f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_hash_u64bin_is_multi </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__hash__u64bin.html#ga72d70c95b207349952beca8d58640fdc">M_hash_u64bin_t</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wether the hashtable a multi value table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">h</td><td>Hashtable being referenced.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if a multi value hashtable. </dd></dl>
 
 </div>
 </div>
@@ -951,7 +977,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Sep 11 2019 17:29:15 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Sep 11 2019 18:08:54 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

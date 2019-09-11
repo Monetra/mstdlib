@@ -152,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga30f139d6c88f53178c352a794298365e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaeb9e205d65b1d9e8f5a54dc2987a3cfa"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stru64.html#gaeb9e205d65b1d9e8f5a54dc2987a3cfa">M_hash_stru64_get_direct</a> (const <a class="el" href="group__m__hash__stru64.html#ga864c212c70c9914c2d4db8274368a982">M_hash_stru64_t</a> *h, const char *key)</td></tr>
 <tr class="separator:gaeb9e205d65b1d9e8f5a54dc2987a3cfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaccefd07b3b6310eb9705363b706a9c13"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stru64.html#gaccefd07b3b6310eb9705363b706a9c13">M_hash_stru64_is_multi</a> (const <a class="el" href="group__m__hash__stru64.html#ga864c212c70c9914c2d4db8274368a982">M_hash_stru64_t</a> *h)</td></tr>
+<tr class="separator:gaccefd07b3b6310eb9705363b706a9c13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0a09a790e469acfc19af4fc3cf7537c2"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stru64.html#ga0a09a790e469acfc19af4fc3cf7537c2">M_hash_stru64_multi_len</a> (const <a class="el" href="group__m__hash__stru64.html#ga864c212c70c9914c2d4db8274368a982">M_hash_stru64_t</a> *h, const char *key, size_t *len)</td></tr>
 <tr class="separator:ga0a09a790e469acfc19af4fc3cf7537c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5c9bd891ca996aacadbe57db503e5a4e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__stru64.html#ga5c9bd891ca996aacadbe57db503e5a4e">M_hash_stru64_multi_get</a> (const <a class="el" href="group__m__hash__stru64.html#ga864c212c70c9914c2d4db8274368a982">M_hash_stru64_t</a> *h, const char *key, size_t idx, M_uint64 *value)</td></tr>
@@ -473,6 +475,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>NULL if key doesn't exist or NULL value on file, otherwise the value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaccefd07b3b6310eb9705363b706a9c13"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_hash_stru64_is_multi </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__hash__stru64.html#ga864c212c70c9914c2d4db8274368a982">M_hash_stru64_t</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wether the hashtable a multi value table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">h</td><td>Hashtable being referenced.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if a multi value hashtable. </dd></dl>
 
 </div>
 </div>
@@ -924,7 +950,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Sep 11 2019 17:29:15 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Sep 11 2019 18:08:54 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

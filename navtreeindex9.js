@@ -1,5 +1,15 @@
 var NAVTREEINDEX9 =
 {
+"group__m__math.html#ga8d52537ee0d10d9f682e268e153abf07":[1,0,12,19],
+"group__m__math.html#ga8dc88152fa95dd6be8cc7ba4fb0715fb":[1,0,12,20],
+"group__m__math.html#gab1487e621f9a5d3cdf462fa174d5f6b9":[1,0,12,1],
+"group__m__math.html#gac369b20b9ba76c827c4720573b3c7c3d":[1,0,12,2],
+"group__m__math.html#gac67ab2a60bbda0a15e3c25c8fed4cb7e":[1,0,12,11],
+"group__m__math.html#gaca72ffe0e176b8c973b46bf97f063fc9":[1,0,12,14],
+"group__m__math.html#gafa6fbbd60e7414a1db5d1281ee4108d1":[1,0,12,7],
+"group__m__mem.html":[1,0,13],
+"group__m__mem.html#ga0592a2af948ccf908e9c7deeb8c140e1":[1,0,13,4],
+"group__m__mem.html#ga093cdece4ecd385dcac6cddff35e216d":[1,0,13,21],
 "group__m__mem.html#ga11a800ea6a534a0cc7c5d21951401502":[1,0,13,17],
 "group__m__mem.html#ga128a100f9252845e07cf83d90175b165":[1,0,13,12],
 "group__m__mem.html#ga12f125e84df307ef19f5d418b734202c":[1,0,13,13],
@@ -239,15 +249,5 @@ var NAVTREEINDEX9 =
 "group__m__settings.html#ga225c2bf604c0946eebc334a183ecfaec":[1,2,5,5],
 "group__m__settings.html#ga2a31aae00e72ab897d194ffade2f9b1d":[1,2,5,20],
 "group__m__settings.html#ga50f4826de37fcb103f15252d5474e83d":[1,2,5,12],
-"group__m__settings.html#ga51785d929043024d94e490b451212fbd":[1,2,5,2],
-"group__m__settings.html#ga566390fea3ec142003be94a610b8c57b":[1,2,5,19],
-"group__m__settings.html#ga5b6504fd05757a29987abdff2e356bb5":[1,2,5,11],
-"group__m__settings.html#ga6b47e462ea78031744fbe5588883ba38":[1,2,5,21],
-"group__m__settings.html#ga6ff65e9aa58fe01644d5610037490415":[1,2,5,15],
-"group__m__settings.html#ga710b6520e34d1c2e0fccfd76da2ffb0e":[1,2,5,10],
-"group__m__settings.html#ga75874e60c591305436ad3673914a4277":[1,2,5,17],
-"group__m__settings.html#ga853e600fe539040e35285802530ea505":[1,2,5,0],
-"group__m__settings.html#ga97e72c8343b3c96c5d3700e645e19f21":[1,2,5,1],
-"group__m__settings.html#ga9defb42a00312cab9015968940176bd0":[1,2,5,6],
-"group__m__settings.html#gab08e2a7e79a9ca90bfe2343e7900d05f":[1,2,5,9]
+"group__m__settings.html#ga51785d929043024d94e490b451212fbd":[1,2,5,2]
 };

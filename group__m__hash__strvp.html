@@ -152,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaa354b75e8cc92460ab183ddaaf991d38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga41421fd1fecc9a8b91bff7fd1a3a52a3"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__strvp.html#ga41421fd1fecc9a8b91bff7fd1a3a52a3">M_hash_strvp_get_direct</a> (const <a class="el" href="group__m__hash__strvp.html#gad3dd7a4bb94ce3af33d4ec56cc080f84">M_hash_strvp_t</a> *h, const char *key)</td></tr>
 <tr class="separator:ga41421fd1fecc9a8b91bff7fd1a3a52a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad7d4143500bcac23a286b00704ad1bf8"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__strvp.html#gad7d4143500bcac23a286b00704ad1bf8">M_hash_strvp_is_multi</a> (const <a class="el" href="group__m__hash__strvp.html#gad3dd7a4bb94ce3af33d4ec56cc080f84">M_hash_strvp_t</a> *h)</td></tr>
+<tr class="separator:gad7d4143500bcac23a286b00704ad1bf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabf108ee26435ca19ff095a632eeb220e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__strvp.html#gabf108ee26435ca19ff095a632eeb220e">M_hash_strvp_multi_len</a> (const <a class="el" href="group__m__hash__strvp.html#gad3dd7a4bb94ce3af33d4ec56cc080f84">M_hash_strvp_t</a> *h, const char *key, size_t *len)</td></tr>
 <tr class="separator:gabf108ee26435ca19ff095a632eeb220e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga54cd85474d3a20f83fd29276b0be4ec6"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__hash__strvp.html#ga54cd85474d3a20f83fd29276b0be4ec6">M_hash_strvp_multi_get</a> (const <a class="el" href="group__m__hash__strvp.html#gad3dd7a4bb94ce3af33d4ec56cc080f84">M_hash_strvp_t</a> *h, const char *key, size_t idx, void **value)</td></tr>
@@ -496,6 +498,30 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>NULL if key doesn't exist or NULL value on file, otherwise the value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad7d4143500bcac23a286b00704ad1bf8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_hash_strvp_is_multi </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__hash__strvp.html#gad3dd7a4bb94ce3af33d4ec56cc080f84">M_hash_strvp_t</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wether the hashtable a multi value table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">h</td><td>Hashtable being referenced.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if a multi value hashtable. </dd></dl>
 
 </div>
 </div>
@@ -929,7 +955,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Sep 11 2019 17:29:15 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Wed Sep 11 2019 18:08:54 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

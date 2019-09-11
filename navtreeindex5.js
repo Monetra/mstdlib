@@ -1,5 +1,15 @@
 var NAVTREEINDEX5 =
 {
+"group__m__http__simple__write.html#ggad2b7dd9942cccd2e30b5260b60642f4eaa3ed825aba9d53f96692101e83be9c56":[1,2,1,1,0,1,0],
+"group__m__http__simple__write.html#ggad2b7dd9942cccd2e30b5260b60642f4eaa94bfe07160a062bb28d1cd37b3a51ee":[1,2,1,1,0,1,3],
+"group__m__http__simple__write.html#ggad2b7dd9942cccd2e30b5260b60642f4ead3c7ab5474089d9620b6431160de363c":[1,2,1,1,0,1,1],
+"group__m__ini.html":[1,2,2],
+"group__m__ini.html#ga030d04eac62a431fa9c828355f6b5ab8":[1,2,2,41],
+"group__m__ini.html#ga056b85c6b41c5b402b7413ec39f003f4":[1,2,2,49],
+"group__m__ini.html#ga0ec5ac408f31997ca37b82290b8569fc":[1,2,2,53],
+"group__m__ini.html#ga133ad0f028149d365b4d0f1919e26bf7":[1,2,2,45],
+"group__m__ini.html#ga141ed8fd8c8e66f1dc2d8cb57260ccee":[1,2,2,10],
+"group__m__ini.html#ga17cddb30ec2eb233b3f0c184631f65a1":[1,2,2,23],
 "group__m__ini.html#ga1e1a667d08c09d53c700868892ea5360":[1,2,2,36],
 "group__m__ini.html#ga24e60fbdf2ad0f89d1e6c94469171e4c":[1,2,2,50],
 "group__m__ini.html#ga2b3ec44e622cd956e84cffc05fca24a2":[1,2,2,29],
@@ -239,15 +249,5 @@ var NAVTREEINDEX5 =
 "group__m__io__jni.html#ga25e6ef10c73b9afaee79f9da10d6e2c8":[1,3,2,0,4],
 "group__m__io__jni.html#ga2b82b08ef43e2d315935df7e43a6f22f":[1,3,2,0,33],
 "group__m__io__jni.html#ga32caf70934534b40226c29a3ecff371e":[1,3,2,0,9],
-"group__m__io__jni.html#ga33a8e75420544383e88fafa5b94546f0":[1,3,2,0,15],
-"group__m__io__jni.html#ga435a4ed4ced7361a280cd9fb8bd9b042":[1,3,2,0,43],
-"group__m__io__jni.html#ga45085868045becacde7aa0ad8ef1d03d":[1,3,2,0,13],
-"group__m__io__jni.html#ga5230cfe15967d5e606bf58f79f6e8d6b":[1,3,2,0,14],
-"group__m__io__jni.html#ga543ba34bd716947cfd356b941e5cf7d7":[1,3,2,0,38],
-"group__m__io__jni.html#ga60d8e9438feab71ff79f1bcd99ca8450":[1,3,2,0,30],
-"group__m__io__jni.html#ga68570258f9950ca93f43c677c52eeccd":[1,3,2,0,40],
-"group__m__io__jni.html#ga73f476926c71a478fe26792fc7238597":[1,3,2,0,11],
-"group__m__io__jni.html#ga7445c3c8b8c3af1271d9ad356fdbf72e":[1,3,2,0,42],
-"group__m__io__jni.html#ga7b1333e6a034d6dcf41211c4e81d3be6":[1,3,2,0,27],
-"group__m__io__jni.html#ga81795761f21cd2e117a969ba66fc7cdb":[1,3,2,0,34]
+"group__m__io__jni.html#ga33a8e75420544383e88fafa5b94546f0":[1,3,2,0,15]
 };

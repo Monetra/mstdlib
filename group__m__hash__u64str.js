@@ -20,6 +20,7 @@ var group__m__hash__u64str =
     [ "M_hash_u64str_remove", "group__m__hash__u64str.html#ga7a5f84b4824f58f8ef8983b2d5951880", null ],
     [ "M_hash_u64str_get", "group__m__hash__u64str.html#ga6e735bd087970d6f42dcb7625616634d", null ],
     [ "M_hash_u64str_get_direct", "group__m__hash__u64str.html#ga8a34760f1ab0558e524f58b32b2480d5", null ],
+    [ "M_hash_u64str_is_multi", "group__m__hash__u64str.html#gac92d3e25e68edfc5189499d7df136a3f", null ],
     [ "M_hash_u64str_multi_len", "group__m__hash__u64str.html#ga2f0d6a0d58e5dd8f0579bda5bbdc77c9", null ],
     [ "M_hash_u64str_multi_get", "group__m__hash__u64str.html#ga81c8fbe2708db37a530fe7f5817b4b56", null ],
     [ "M_hash_u64str_multi_get_direct", "group__m__hash__u64str.html#ga29c6c98656c56bef68c03e76d89afecb", null ],

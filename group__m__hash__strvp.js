@@ -20,6 +20,7 @@ var group__m__hash__strvp =
     [ "M_hash_strvp_remove", "group__m__hash__strvp.html#ga8ad1b782774143c92a5ea3c2dcaaa946", null ],
     [ "M_hash_strvp_get", "group__m__hash__strvp.html#gaa354b75e8cc92460ab183ddaaf991d38", null ],
     [ "M_hash_strvp_get_direct", "group__m__hash__strvp.html#ga41421fd1fecc9a8b91bff7fd1a3a52a3", null ],
+    [ "M_hash_strvp_is_multi", "group__m__hash__strvp.html#gad7d4143500bcac23a286b00704ad1bf8", null ],
     [ "M_hash_strvp_multi_len", "group__m__hash__strvp.html#gabf108ee26435ca19ff095a632eeb220e", null ],
     [ "M_hash_strvp_multi_get", "group__m__hash__strvp.html#ga54cd85474d3a20f83fd29276b0be4ec6", null ],
     [ "M_hash_strvp_multi_get_direct", "group__m__hash__strvp.html#gae9387d56113ced1fc737ec458c391977", null ],
