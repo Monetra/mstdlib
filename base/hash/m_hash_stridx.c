@@ -140,6 +140,12 @@ size_t M_hash_stridx_get_direct(const M_hash_stridx_t *h, const char *key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_bool M_hash_stridx_is_multi(const M_hash_stridx_t *h)
+{
+	return M_hashtable_is_multi((const M_hashtable_t *)h);
+}
+
+
 M_bool M_hash_stridx_multi_len(const M_hash_stridx_t *h, const char *key, size_t *len)
 {
 	return M_hashtable_multi_len((const M_hashtable_t *)h, key, len);

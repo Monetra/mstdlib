@@ -134,6 +134,12 @@ const char *M_hash_u64str_get_direct(const M_hash_u64str_t *h, M_uint64 key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_bool M_hash_u64str_is_multi(const M_hash_u64str_t *h)
+{
+	return M_hashtable_is_multi((const M_hashtable_t *)h);
+}
+
+
 M_bool M_hash_u64str_multi_len(const M_hash_u64str_t *h, M_uint64 key, size_t *len)
 {
 	return M_hashtable_multi_len((const M_hashtable_t *)h, &key, len);

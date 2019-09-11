@@ -168,6 +168,12 @@ const char *M_hash_dict_get_direct_default(const M_hash_dict_t *h, const char *k
 }
 
 
+M_bool M_hash_dict_is_multi(const M_hash_dict_t *h)
+{
+	return M_hashtable_is_multi((const M_hashtable_t *)h);
+}
+
+
 M_bool M_hash_dict_multi_len(const M_hash_dict_t *h, const char *key, size_t *len)
 {
 	return M_hashtable_multi_len((const M_hashtable_t *)h, key, len);

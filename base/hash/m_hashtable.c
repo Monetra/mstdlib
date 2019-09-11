@@ -598,6 +598,14 @@ M_bool M_hashtable_remove(M_hashtable_t *h, const void *key, M_bool destroy_vals
 }
 
 
+M_bool M_hashtable_is_multi(const M_hashtable_t *h)
+{
+	if (h == NULL || !(h->flags & M_HASHTABLE_MULTI_VALUE))
+		return M_FALSE;
+	return M_TRUE;
+}
+
+
 M_bool M_hashtable_multi_len(const M_hashtable_t *h, const void *key, size_t *len)
 {
 	struct M_hashtable_bucket *entry;
