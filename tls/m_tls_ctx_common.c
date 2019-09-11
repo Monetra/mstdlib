@@ -48,6 +48,37 @@
 #define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 #define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 
+static size_t M_tls_ctx_count_protocols(M_tls_protocols_t protocols)
+{
+	size_t cnt = 0;
+
+	if (protocols & M_TLS_PROTOCOL_TLSv1_0)
+		cnt++;
+	if (protocols & M_TLS_PROTOCOL_TLSv1_1)
+		cnt++;
+	if (protocols & M_TLS_PROTOCOL_TLSv1_2)
+		cnt++;
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
+	if (protocols & M_TLS_PROTOCOL_TLSv1_3)
+		cnt++;
+#endif
+	return cnt;
+}
+
+static void M_tls_ctx_set_fallback_scsv(SSL_CTX *ctx, M_tls_protocols_t protocols)
+{
+	/* This is a client-only thing */
+	if (SSL_CTX_get_ssl_method(ctx) == SSLv23_server_method())
+		return;
+
+	/* Enable TLS_FALLBACK_SCSV as a POODLE mitigation ONLY if ciphers < TLS 1.2 are enabled AND more than 1 cipher is enabled */
+	if (protocols & (M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1) && M_tls_ctx_count_protocols(protocols) > 1) {
+		SSL_CTX_set_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
+	} else {
+		SSL_CTX_clear_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
+	}
+}
+
 
 SSL_CTX *M_tls_ctx_init(M_bool is_server)
 {
@@ -76,9 +107,6 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 		 */
 		SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
 #endif
-
-		/* Enable TLS_FALLBACK_SCSV as a POODLE mitigation */
-		SSL_CTX_set_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
 	}
 
 	/* Server-only settings */
@@ -343,6 +371,8 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 	SSL_CTX_set_options(ctx, options);
 #  endif
 #endif
+
+	M_tls_ctx_set_fallback_scsv(ctx, protocols);
 
 	return M_TRUE;
 }
