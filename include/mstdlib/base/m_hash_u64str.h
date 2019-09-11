@@ -161,6 +161,15 @@ M_API const char *M_hash_u64str_get_direct(const M_hash_u64str_t *h, M_uint64 ke
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Wether the hashtable a multi value table.
+ *
+ * \param[in] h Hashtable being referenced.
+ *
+ * \return M_TRUE if a multi value hashtable.
+ */
+M_bool M_hash_u64str_is_multi(const M_hash_u64str_t *h);
+
+
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.

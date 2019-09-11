@@ -174,6 +174,15 @@ M_API void *M_hash_strvp_get_direct(const M_hash_strvp_t *h, const char *key);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Wether the hashtable a multi value table.
+ *
+ * \param[in] h Hashtable being referenced.
+ *
+ * \return M_TRUE if a multi value hashtable.
+ */
+M_bool M_hash_strvp_is_multi(const M_hash_strvp_t *h);
+
+
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.

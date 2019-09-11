@@ -135,6 +135,12 @@ void *M_hash_strvp_get_direct(const M_hash_strvp_t *h, const char *key)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_bool M_hash_strvp_is_multi(const M_hash_strvp_t *h)
+{
+	return M_hashtable_is_multi((const M_hashtable_t *)h);
+}
+
+
 M_bool M_hash_strvp_multi_len(const M_hash_strvp_t *h, const char *key, size_t *len)
 {
 	return M_hashtable_multi_len((const M_hashtable_t *)h, key, len);

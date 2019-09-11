@@ -291,6 +291,15 @@ M_API M_bool M_hashtable_get(const M_hashtable_t *h, const void *key, void **val
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Wether the hashtable a multi value table.
+ *
+ * \param[in]  h   Hashtable being referenced.
+ *
+ * \return M_TRUE if a multi value hashtable.
+ */
+M_bool M_hashtable_is_multi(const M_hashtable_t *h);
+
+
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
