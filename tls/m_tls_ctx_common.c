@@ -48,6 +48,7 @@
 #define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 #define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 
+#if 0
 static size_t M_tls_ctx_count_protocols(M_tls_protocols_t protocols)
 {
 	size_t cnt = 0;
@@ -78,6 +79,7 @@ static void M_tls_ctx_set_fallback_scsv(SSL_CTX *ctx, M_tls_protocols_t protocol
 		SSL_CTX_clear_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
 	}
 }
+#endif
 
 
 SSL_CTX *M_tls_ctx_init(M_bool is_server)
@@ -372,7 +374,10 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 #  endif
 #endif
 
+	/* As of TLS1.3 SCSV just doesn't work */
+#if 0
 	M_tls_ctx_set_fallback_scsv(ctx, protocols);
+#endif
 
 	return M_TRUE;
 }
