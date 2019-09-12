@@ -156,8 +156,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaa1a8418354bc4329851d102159e3a997"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a3cafbdd941dd6e4e77e58a638b41bf"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga8a3cafbdd941dd6e4e77e58a638b41bf">M_http_simple_read_port</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, M_uint16 *port)</td></tr>
 <tr class="separator:ga8a3cafbdd941dd6e4e77e58a638b41bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga90cc1e66e6ea5356de8c1028f9cfc6fb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga90cc1e66e6ea5356de8c1028f9cfc6fb">M_http_simple_read_headers_dict</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
-<tr class="separator:ga90cc1e66e6ea5356de8c1028f9cfc6fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga57dfa1f2e40cfc3fb56d5e4119c96133"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga57dfa1f2e40cfc3fb56d5e4119c96133">M_http_simple_read_headers_dict</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
+<tr class="separator:ga57dfa1f2e40cfc3fb56d5e4119c96133"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadeebd623b4baeae9924a222303dd94e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5">M_http_simple_read_headers</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple)</td></tr>
 <tr class="separator:gadeebd623b4baeae9924a222303dd94e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9fef00388f36d1ed4b5c62551661d1ce"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce">M_http_simple_read_header</a> (const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, const char *key)</td></tr>
@@ -659,12 +659,12 @@ M_http_simple_destroy</dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga90cc1e66e6ea5356de8c1028f9cfc6fb"></a>
+<a class="anchor" id="ga57dfa1f2e40cfc3fb56d5e4119c96133"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_http_simple_read_headers_dict </td>
+          <td class="memname"><a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_http_simple_read_headers_dict </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *&#160;</td>
           <td class="paramname"><em>simple</em></td><td>)</td>
@@ -674,6 +674,7 @@ M_http_simple_destroy</dd></dl>
 </div><div class="memdoc">
 <p>Get headers from parsed message as key-multivalue pairs.</p>
 <p>Note that some headers may contain a list of multiple values, so the returned M_hash_dict_t is a multimap (one key may map to a list of values). The first entry in the list is the first item in the value list if there are multiple values.</p>
+<p>Modfiers that are part of the value are included with the value.</p>
 <p>Header names are not case-sensitive, when doing lookups into the returned dictionary.</p>
 <dl class="section warning"><dt>Warning</dt><dd>M_http_simple_read_header should be used in order to get a full header. This is a parsed list and is provided to make searching for specific values easier. Use M_http_simple_read_headers to get a list of headers.</dd>
 <dd>
@@ -936,7 +937,7 @@ The returned dictionary does not include "Set-Cookie" headers, because they can 
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Sep 12 2019 13:47:50 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Thu Sep 12 2019 14:26:47 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

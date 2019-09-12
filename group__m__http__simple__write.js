@@ -22,7 +22,7 @@ var group__m__http__simple__write =
     [ "M_http_simple_read_query_args", "group__m__http__simple__write.html#ga10874687f66b8e54dd32aae6f42bbaee", null ],
     [ "M_http_simple_read_host", "group__m__http__simple__write.html#gaa1a8418354bc4329851d102159e3a997", null ],
     [ "M_http_simple_read_port", "group__m__http__simple__write.html#ga8a3cafbdd941dd6e4e77e58a638b41bf", null ],
-    [ "M_http_simple_read_headers_dict", "group__m__http__simple__write.html#ga90cc1e66e6ea5356de8c1028f9cfc6fb", null ],
+    [ "M_http_simple_read_headers_dict", "group__m__http__simple__write.html#ga57dfa1f2e40cfc3fb56d5e4119c96133", null ],
     [ "M_http_simple_read_headers", "group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5", null ],
     [ "M_http_simple_read_header", "group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce", null ],
     [ "M_http_simple_read_get_set_cookie", "group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e", null ],

@@ -620,7 +620,7 @@ var searchData=
   ['m_5fhttp_5fsimple_5fread_5fget_5fset_5fcookie',['M_http_simple_read_get_set_cookie',['../group__m__http__simple__write.html#gae2371cc5bbf6c2dbf8423bcea933ee9e',1,'m_http.h']]],
   ['m_5fhttp_5fsimple_5fread_5fheader',['M_http_simple_read_header',['../group__m__http__simple__write.html#ga9fef00388f36d1ed4b5c62551661d1ce',1,'m_http.h']]],
   ['m_5fhttp_5fsimple_5fread_5fheaders',['M_http_simple_read_headers',['../group__m__http__simple__write.html#gadeebd623b4baeae9924a222303dd94e5',1,'m_http.h']]],
-  ['m_5fhttp_5fsimple_5fread_5fheaders_5fdict',['M_http_simple_read_headers_dict',['../group__m__http__simple__write.html#ga90cc1e66e6ea5356de8c1028f9cfc6fb',1,'m_http.h']]],
+  ['m_5fhttp_5fsimple_5fread_5fheaders_5fdict',['M_http_simple_read_headers_dict',['../group__m__http__simple__write.html#ga57dfa1f2e40cfc3fb56d5e4119c96133',1,'m_http.h']]],
   ['m_5fhttp_5fsimple_5fread_5fhost',['M_http_simple_read_host',['../group__m__http__simple__write.html#gaa1a8418354bc4329851d102159e3a997',1,'m_http.h']]],
   ['m_5fhttp_5fsimple_5fread_5fmessage_5ftype',['M_http_simple_read_message_type',['../group__m__http__simple__write.html#gae5cc065d78831e3993b260e701e2c9eb',1,'m_http.h']]],
   ['m_5fhttp_5fsimple_5fread_5fmethod',['M_http_simple_read_method',['../group__m__http__simple__write.html#ga2f2f9492ba21f7dfd630f73635e16310',1,'m_http.h']]],
