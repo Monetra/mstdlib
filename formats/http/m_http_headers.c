@@ -27,22 +27,37 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 #include "http/m_http_int.h"
+#include "http/m_http_header.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* Some keys are special and ',' aren't used as separate's but valid
- * parts of the value. */
-static M_bool M_http_header_is_semicolon_header(const char *key)
+static M_hash_dict_t *M_http_headers_dict_int(M_hash_strvp_t *headers)
 {
-	if (M_str_caseeq(key, "WWW-Authenticate") || M_str_caseeq(key, "Proxy-Authorization") ||
-		M_str_caseeq(key, "Content-Type") || M_str_caseeq(key, "Date"))
-	{
-		return M_TRUE;
+	M_hash_dict_t       *headers_dict;
+	M_hash_strvp_enum_t *he;
+	const char          *key;
+	M_http_header_t     *hval;
+	char                *out;
+
+	if (headers == NULL)
+		return NULL;
+
+	headers_dict = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+
+	/* Multi value, keys will be called multiple times, once for each value.
+	 * Insert into multi will append to multi. */
+	M_hash_strvp_enumerate(headers, &he);
+	while (M_hash_strvp_enumerate_next(headers, he, &key, (void **)&hval)) {
+		out = M_http_header_value(hval);
+		M_hash_dict_insert(headers_dict, key, out);
+		M_free(out);
 	}
-	return M_FALSE;
+	M_hash_strvp_enumerate_free(he);
+
+	return headers_dict;
 }
 
-static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
+static void M_http_set_headers_int(M_hash_strvp_t **cur_headers, const M_hash_dict_t *new_headers, M_bool merge)
 {
 	M_hash_dict_enum_t *he;
 	const char         *key;
@@ -56,134 +71,30 @@ static void M_http_set_headers_int(M_hash_dict_t **cur_headers, const M_hash_dic
 	 * hash table. We don't want to duplicate because the new headers might
 	 * not be constructed properly (multi). */
 	if (!merge) {
-		M_hash_dict_destroy(*cur_headers);
-		*cur_headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+		M_hash_strvp_destroy(*cur_headers, M_TRUE);
+		*cur_headers = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void(*)(void *))M_http_header_destroy);
 	}
 
 	if (new_headers == NULL || M_hash_dict_num_keys(new_headers) == 0)
 		return;
 
-	/* We can't do a straight merge because we need to deal with header fields that
-	 * use the = syntax to define sub key value pairs. We need to go through each
-	 * sub key and remove it from current headers it's being replaced. */
 	M_hash_dict_enumerate(new_headers, &he);
 	while (M_hash_dict_enumerate_next(new_headers, he, &key, &oval)) {
-		M_list_str_t *split_header = NULL;
-		size_t        nlen         = 0;
-		size_t        i;
+		M_http_header_t *hval;
 
-		/* Split the value. It could be a non-multi, in which case
- 		 * we need it split. It's also possible it's a bad multi and we need
-		 * to split too. */
-		split_header = M_http_split_header_vals(key, oval);
-		nlen         = M_list_str_len(split_header);
-
-		/* Go though the new header values. */
-		for (i=0; i<nlen; i++) {
-			const char  *nval;
-			char       **nparts;
-			size_t       num_nparts;
-			size_t       clen;
-			size_t       j;
-
-			nval = M_list_str_at(split_header, i);
-
-			/* First split the value in case it's a sub key val. */
-			nparts = M_str_explode_str('=', nval, &num_nparts);
-			/* Nothing shouldn't happen but we want to be sure we
-			 * don't operate on anything invalid. */
-			if (nparts == NULL || num_nparts == 0)
-				continue;
-
-			/* Now we need to go though the current headers and see if we need
-			 * to replace or add the value from new the headers */
-
-			/* If we don't have this header yet add this value. */
-			if (!M_hash_dict_multi_len(*cur_headers, key, &clen) || clen == 0) {
-				M_hash_dict_insert(*cur_headers, key, nval);
-				M_str_explode_free(nparts, num_nparts);
-				continue;
-			}
-
-			/* Go backwards because we can remove from the multi value
-			 * list backwards without the list reshuffling. */
-			for (j=clen; j-->0; ) {
-				const char  *cval;
-				char       **cparts;
-				size_t       num_cparts;
-				M_bool       found = M_FALSE;
-
-				cval   = M_hash_dict_multi_get_direct(*cur_headers, key, j);
-				cparts = M_str_explode_str('=', cval, &num_cparts);
-				if (cparts == NULL || num_cparts == 0) {
-					M_hash_dict_insert(*cur_headers, key, nval);
-					continue;
-				}
-
-				if (num_nparts == 2 && num_cparts == 2 && M_str_caseeq(nparts[0], cparts[0])) {
-					found = M_TRUE;
-				} else if (num_nparts == 1 && num_cparts == 1 && M_str_caseeq(nval, cval)) {
-					found = M_TRUE;
-				}
-
-				M_str_explode_free(cparts, num_cparts);
-
-				if (found) {
-					/* We need to remove because this is a replace. Value matching can't
- 					 * happen with sub kvs due to only the first part (key) matching.
-					 * We'll remove on single value too so the code is simpler. */
-					M_hash_dict_multi_remove(*cur_headers, key, j);
-					break;
-				}
-			}
-
-			M_hash_dict_insert(*cur_headers, key, nval);
-			M_str_explode_free(nparts, num_nparts);
+		hval = M_hash_strvp_get_direct(*cur_headers, key);
+		if (hval == NULL) {
+			hval = M_http_header_create(key, oval);
+			M_hash_strvp_insert(*cur_headers, key, hval);
+			continue;
 		}
-		M_list_str_destroy(split_header);
+
+		M_http_header_update(hval, oval);
 	}
 	M_hash_dict_enumerate_free(he);
 }
 
-static M_bool M_http_set_header_ctype(M_http_t *http, const char *val)
-{
-	char   **parts;
-	size_t   num_parts = 0;
-	size_t   len       = 0;
-	size_t   i;
-
-	/* Need to parse out some data from the content type header
-	 * to make processing a bit easier.
-	 *
-	 * We can't use M_http_update_content_type and M_http_update_charset
-	 * functions here because the update the headers which we're currently
-	 * working on.
-	 */
-	if (!M_hash_dict_multi_len(http->headers, "Content-Type", &len) || len == 0)
-		return M_TRUE;
-
-	for (i=0; i<len; i++) {
-		val = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
-
-		/* Split to see if this is a multi part like the char set. */
-		parts = M_str_explode_str('=', val, &num_parts);
-		if (num_parts == 1) {
-			/* Must be the actual content type. */
-			M_free(http->content_type);
-			http->content_type = M_strdup(parts[0]);
-		} else if (num_parts > 1 && M_str_caseeq(parts[0], "charset")) {
-			/* We have the char set. */
-			M_free(http->charset);
-			http->charset = M_strdup(parts[1]);
-			http->codec   = M_textcodec_codec_from_str(http->charset);
-		}
-		M_str_explode_free(parts, num_parts);
-	}
-
-	return M_TRUE;
-}
-
-static M_bool M_http_set_header_int(M_hash_dict_t **d, const char *key, const char *val, M_bool append)
+static M_bool M_http_set_header_int(M_hash_strvp_t **d, const char *key, const char *val, M_bool append)
 {
 	M_hash_dict_t *new_headers;
 
@@ -191,7 +102,7 @@ static M_bool M_http_set_header_int(M_hash_dict_t **d, const char *key, const ch
 		return M_FALSE;
 
 	if (!append)
-		M_hash_dict_remove(*d, key);
+		M_hash_strvp_remove(*d, key, M_TRUE);
 
 	if (M_str_isempty(val))
 		return M_TRUE;
@@ -199,87 +110,134 @@ static M_bool M_http_set_header_int(M_hash_dict_t **d, const char *key, const ch
 	new_headers = M_hash_dict_create(8, 16, M_HASH_DICT_CASECMP);
 	M_hash_dict_insert(new_headers, key, val);
 	/* Merge and d exists so we don't have to worry about d
- 	 * changing within this function. */
+	 * changing within this function. */
 	M_http_set_headers_int(d, new_headers, M_TRUE);
 	M_hash_dict_destroy(new_headers);
 	return M_TRUE;
 }
 
-static char *M_http_header_int(const M_hash_dict_t *d, const char *key)
+static char *M_http_header_int(const M_hash_strvp_t *d, const char *key)
 {
-	M_list_str_t *l;
-	const char   *val;
-	char         *out;
-	size_t        len;
-	size_t        i;
-	M_bool        semicolon_val = M_FALSE;
+	M_http_header_t *hval;
 
-	if (!M_hash_dict_multi_len(d, key, &len) || len == 0)
+	/* Check if key exists. */
+	if (!M_hash_strvp_get(d, key, (void **)&hval))
 		return NULL;
 
-	if (len == 1)
-		return M_strdup(M_hash_dict_multi_get_direct(d, key, 0));
+	return M_http_header_value(hval);
+}
 
-	l = M_list_str_create(M_LIST_STR_NONE);
-	for (i=0; i<len; i++) {
-		val = M_hash_dict_multi_get_direct(d, key, i);
-		M_list_str_insert(l, val);
+static M_list_str_t *M_http_headers_int(const M_hash_strvp_t *d)
+{
+	M_list_str_t        *hkeys;
+	M_hash_strvp_enum_t *he;
+	const char          *key;
 
-		if (M_str_chr(val, ',') != NULL || M_str_chr(val, '=') != NULL) {
-			semicolon_val = M_TRUE;
+	hkeys = M_list_str_create(M_LIST_STR_CASECMP);
+
+	M_hash_strvp_enumerate(d, &he);
+	while (M_hash_strvp_enumerate_next(d, he, &key, NULL)) {
+		M_list_str_insert(hkeys, key);
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	return hkeys;
+}
+
+static void M_http_update_ctype(M_http_t *http)
+{
+	M_http_header_t  *hval;
+	char             *value   = NULL;
+	char             *p;
+	const char       *modifiers = NULL;
+	char            **parts;
+	size_t            num_parts    = 0;
+	size_t            i;
+
+	if (!M_hash_strvp_get(http->headers, "Content-Type", (void **)&hval)) {
+		M_free(http->content_type);
+		http->content_type = NULL;
+		M_free(http->charset);
+		http->charset = NULL;
+		http->codec = M_TEXTCODEC_UNKNOWN;
+		return;
+	}
+
+	value = M_http_header_value(hval);
+	if (value == NULL)
+		return;
+
+	/* If there are multiple entries for some reason, we only care about the first. */
+	p = M_str_chr(value, ',');
+	if (p != NULL)
+		*p = '\0';
+
+	p = M_str_chr(value, ';');
+	if (p != NULL) {
+		modifiers = p+1;
+		*p        = '\0';
+	}
+
+	M_free(http->content_type);
+	http->content_type = M_strdup_trim(value);
+
+	M_free(http->charset);
+	http->charset = NULL;
+	http->codec   = M_TEXTCODEC_UNKNOWN;
+
+	parts = M_str_explode_str(';', modifiers, &num_parts);
+	if (parts == NULL || num_parts == 0) {
+		M_free(value);
+		return;
+	}
+
+	for (i=0; i<num_parts; i++) {
+		char **bparts;
+		size_t num_bparts = 0;
+
+		bparts = M_str_explode_str('=', parts[i], &num_bparts);
+		if (bparts == NULL || num_bparts != 2) {
+			M_str_explode_free(bparts, num_bparts);
+			continue;
 		}
+
+		if (!M_str_caseeq(bparts[0], "charset")) {
+			M_str_explode_free(bparts, num_bparts);
+			continue;
+		}
+
+		http->charset = M_strdup_trim(bparts[1]);
+		http->codec   = M_textcodec_codec_from_str(http->charset);
+		M_str_explode_free(bparts, num_bparts);
+		break;
 	}
 
-	/* Special headers that could have a comma (',') in them
-	 * or are just special. A ';' also commonly used for headers
-	 * that have sub values separated by an '='. */
-	if (M_http_header_is_semicolon_header(key) || semicolon_val) {
-		out = M_list_str_join_str(l, "; ");
-	} else {
-		out = M_list_str_join_str(l, ", ");
-	}
+	M_str_explode_free(parts, num_parts);
 
-	M_list_str_destroy(l);
-	return out;
+	M_free(value);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const M_hash_dict_t *M_http_headers_dict(const M_http_t *http)
+M_hash_dict_t *M_http_headers_dict(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
-	return http->headers;
+	return M_http_headers_dict_int(http->headers);
 }
 
 M_list_str_t *M_http_headers(const M_http_t *http)
 {
-	M_list_str_t       *hkeys;
-	M_hash_dict_enum_t *he;
-	const char         *key;
-
 	if (http == NULL)
 		return NULL;
 
-	hkeys = M_list_str_create(M_LIST_STR_SET|M_LIST_STR_CASECMP);
-
-	M_hash_dict_enumerate(http->headers, &he);
-	while (M_hash_dict_enumerate_next(http->headers, he, &key, NULL)) {
-		/* enumerate will have the key multiple times because each value
- 		 * comes out individually. The list is a set so we will
-		 * get each key in there only once. */
-		M_list_str_insert(hkeys, key);
-	}
-	M_hash_dict_enumerate_free(he);
-
-	return hkeys;
+	return M_http_headers_int(http->headers);
 }
 
 char *M_http_header(const M_http_t *http, const char *key)
 {
 	if (http == NULL)
 		return NULL;
-
 	return M_http_header_int(http->headers, key);
 }
 
@@ -289,20 +247,10 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 		return;
 
 	M_http_set_headers_int(&http->headers, headers, merge);
-}
 
-M_bool M_http_set_header_append(M_http_t *http, const char *key, const char *val)
-{
-	if (http == NULL)
-		return M_FALSE;
-
-	if (!M_http_set_header_int(&http->headers, key, val, M_TRUE))
-		return M_FALSE;
-
-	if (M_str_caseeq(key, "Content-Type"))
-		return M_http_set_header_ctype(http, val);
-
-	return M_TRUE;
+	/* headers dict might not be casecmp so we can't check it
+	 * directly if the content-type header is in there or not. */
+	M_http_update_ctype(http);
 }
 
 M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
@@ -314,17 +262,17 @@ M_bool M_http_set_header(M_http_t *http, const char *key, const char *val)
 		return M_FALSE;
 
 	if (M_str_caseeq(key, "Content-Type"))
-		return M_http_set_header_ctype(http, val);
+		M_http_update_ctype(http);
 
 	return M_TRUE;
 }
 
-void M_http_add_header(M_http_t *http, const char *key, const char *val)
+M_bool M_http_add_header(M_http_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
-		return;
+		return M_FALSE;
 
-	M_hash_dict_insert(http->headers, key, val);
+	return M_http_set_header_int(&http->headers, key, val, M_TRUE);
 }
 
 void M_http_remove_header(M_http_t *http, const char *key)
@@ -332,7 +280,7 @@ void M_http_remove_header(M_http_t *http, const char *key)
 	if (http == NULL || M_str_isempty(key))
 		return;
 
-	M_hash_dict_remove(http->headers, key);
+	M_hash_strvp_remove(http->headers, key, M_TRUE);
 }
 
 const M_list_str_t *M_http_get_set_cookie(const M_http_t *http)
@@ -356,66 +304,21 @@ void M_http_set_cookie_insert(M_http_t *http, const char *val)
 	M_list_str_insert(http->set_cookies, val);
 }
 
-void M_http_update_content_type(M_http_t *http, const char *val)
-{
-	const char *const_temp;
-	size_t      len = 0;
-	size_t      i;
-
-	M_free(http->content_type);
-	if (M_str_isempty(val)) {
-		http->content_type = NULL;
-	} else {
-		http->content_type = M_strdup(val);
-	}
-
-	M_hash_dict_multi_len(http->headers, "Content-Type", &len);
-	for (i=0; i<len; i++) {
-		const_temp = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
-
-		if (M_str_chr(const_temp, '=') == NULL) {
-			M_hash_dict_multi_remove(http->headers, "Content->Type", i);
-			break;
-		}
-	}
-
-	if (!M_str_isempty(val))
-		M_hash_dict_insert(http->headers, "Content-Type", val);
-}
-
-void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec)
-{
-	const char *val;
-	char        tempa[256];
-	size_t      len = 0;
-	size_t      i;
-
-	http->codec   = codec;
-	M_free(http->charset);
-	http->charset = M_strdup(M_textcodec_codec_to_str(codec));
-
-	M_hash_dict_multi_len(http->headers, "Content-Type", &len);
-	for (i=0; i<len; i++) {
-		val = M_hash_dict_multi_get_direct(http->headers, "Content-Type", i);
-
-		if (M_str_caseeq_start(val, "charset")) {
-			M_hash_dict_multi_remove(http->headers, "Content-Type", i);
-			break;
-		}
-	}
-
-	M_snprintf(tempa, sizeof(tempa), "charset=%s", http->charset);
-	M_hash_dict_insert(http->headers, "Content-Type", tempa);
-}
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const M_hash_dict_t *M_http_trailers(const M_http_t *http)
+M_hash_dict_t *M_http_trailers_dict(const M_http_t *http)
+{
+	if (http == NULL)
+		return NULL;
+	return M_http_headers_dict_int(http->trailers);
+}
+
+M_list_str_t *M_http_trailers(const M_http_t *http)
 {
 	if (http == NULL)
 		return NULL;
 
-	return http->trailers;
+	return M_http_headers_int(http->trailers);
 }
 
 char *M_http_trailer(const M_http_t *http, const char *key)
@@ -442,51 +345,29 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val)
 	return M_http_set_header_int(&http->trailers, key, val, M_FALSE);
 }
 
-void M_http_add_trailer(M_http_t *http, const char *key, const char *val)
+M_bool M_http_add_trailer(M_http_t *http, const char *key, const char *val)
 {
 	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
-		return;
+		return M_FALSE;
 
-	M_hash_dict_insert(http->trailers, key, val);
+	return M_http_set_header_int(&http->trailers, key, val, M_TRUE);
 }
 
-M_list_str_t *M_http_split_header_vals(const char *key, const char *val)
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec)
 {
-	M_list_str_t  *split_header = NULL;
-	char         **parts;
-	char          *temp;
-	size_t         num_parts    = 0;
-	size_t         i;
+	M_http_header_t *hval;
+	char             tempa[256];
 
-	if (M_str_isempty(val))
-		return NULL;
+	hval = M_hash_strvp_get_direct(http->headers, "Content-Type");
+	if (hval == NULL)
+		return;
 
-	split_header = M_list_str_create(M_LIST_STR_NONE);
+	http->codec   = codec;
+	M_free(http->charset);
+	http->charset = M_strdup(M_textcodec_codec_to_str(codec));
 
-	/* Some headers use a ; instead of a , as the separator. The spec says , is the
-	 * separator but the special headers could have a , as part of their value so they
-	 * will use ; instead. This behavior isn't part of the spec but this is how it's done. */
-	if (M_http_header_is_semicolon_header(key) || M_str_chr(val, ';') != NULL || M_str_chr(val, '=') != NULL) {
-		parts = M_str_explode_str(';', val, &num_parts);
-	} else {
-		parts = M_str_explode_str(',', val, &num_parts);
-	}
-
-	if (parts == NULL || num_parts == 0) {
-		M_list_str_destroy(split_header);
-		return NULL;
-	}
-
-	/* We're going to ignore duplicate values in the header. They shouldn't have
-	 * been sent in the first place but since we don't really know what to do with
-	 * them we'll put that on whoever is receiving the data. */
-	for (i=0; i<num_parts; i++) {
-		/* After splitting we'll most likely have a space preceding the data. */
-		temp = M_strdup_trim(parts[i]);
-		M_list_str_insert(split_header, temp);
-		M_free(temp);
-	}
-
-	M_str_explode_free(parts, num_parts);
-	return split_header;
+	M_snprintf(tempa, sizeof(tempa), "%s; charset=%s", http->content_type, http->charset);
+	M_http_header_update(hval, tempa);
 }

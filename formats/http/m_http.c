@@ -48,8 +48,8 @@ static void M_http_create_init(M_http_t *http)
 	 * because it's created when the URI is set. There is
 	 * no other way to manipulate it so we don't need
 	 * it before hand. */
-	http->headers     = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
-	http->trailers    = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_CASECMP);
+	http->headers     = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void(*)(void *))M_http_header_destroy);
+	http->trailers    = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void(*)(void *))M_http_header_destroy);
 	http->set_cookies = M_list_str_create(M_LIST_STR_STABLE);
 	http->body        = M_buf_create();
 	http->chunks      = M_list_create(&cbs, M_LIST_NONE);
@@ -66,10 +66,10 @@ static void M_http_reset_int(M_http_t *http)
 	M_free(http->path);
 	M_free(http->query_string);
 	M_hash_dict_destroy(http->query_args);
-	M_hash_dict_destroy(http->headers);
+	M_hash_strvp_destroy(http->headers, M_TRUE);
 	M_free(http->content_type);
 	M_free(http->charset);
-	M_hash_dict_destroy(http->trailers);
+	M_hash_strvp_destroy(http->trailers, M_TRUE);
 	M_list_str_destroy(http->set_cookies);
 	M_buf_cancel(http->body);
 	M_list_destroy(http->chunks, M_TRUE);

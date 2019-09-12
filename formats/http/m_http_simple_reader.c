@@ -97,14 +97,14 @@ static M_http_error_t M_http_simple_read_header_cb(const char *key, const char *
 {
 	M_http_simple_read_t *simple = thunk;
 
-	M_http_set_header_append(simple->http, key, val);
+	M_http_add_header(simple->http, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
 
 static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t format, void *thunk)
 {
 	M_http_simple_read_t *simple = thunk;
-	const char           *val;
+	char                 *val;
 	M_int64               i64v;
 
 	switch (format) {
@@ -117,11 +117,13 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 			return M_HTTP_ERROR_UNSUPPORTED_DATA;
 	}
 
-	val = M_hash_dict_get_direct(simple->http->headers, "content-length");
+	val = M_http_header(simple->http, "content-length");
 	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
+		M_free(val);
 		return M_HTTP_ERROR_LENGTH_REQUIRED;
 	} else if (!M_str_isempty(val)) {
 		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
+			M_free(val);
 			return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
 		}
 
@@ -133,9 +135,10 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 		simple->http->body_len      = (size_t)i64v;
 		simple->http->have_body_len = M_TRUE;
 	}
+	M_free(val);
 
 	/* Set host/port if they were not part of the URI. */
-	val = M_hash_dict_get_direct(simple->http->headers, "host");
+	val = M_http_header(simple->http, "host");
 	if ((M_str_isempty(simple->http->host) || simple->http->port == 0) && !M_str_isempty(val)) {
 		char     *host   = NULL;
 		M_uint16  port   = 0;
@@ -155,6 +158,7 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 			}
 		}
 	}
+	M_free(val);
 
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -279,9 +283,8 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 
 	/* We've decoded the data so we need to update the content length. */
 	if (update_clen) {
-		M_hash_dict_remove(simple->http->headers, "content-length");
 		M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
-		M_hash_dict_insert(simple->http->headers, "content-length", tempa);
+		M_http_set_header(simple->http, "content-length", tempa);
 	}
 
 	return M_HTTP_ERROR_SUCCESS;
@@ -397,7 +400,7 @@ M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint16 *por
 	return M_http_port(simple->http, port);
 }
 
-const M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple)
+M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple)
 {
 	if (simple == NULL)
 		return NULL;

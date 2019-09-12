@@ -28,6 +28,7 @@
 #include <mstdlib/mstdlib_formats.h>
 #include "m_defs_int.h"
 
+#include "http/m_http_header.h"
 #include "http/m_http_reader_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,12 +64,12 @@ struct M_http {
 
 	M_bool                 is_chunked;
 
-	M_hash_dict_t         *headers;
+	M_hash_strvp_t        *headers;
 	char                  *content_type;
 	char                  *charset;
 	M_textcodec_codec_t    codec;
 	M_list_str_t          *set_cookies;
-	M_hash_dict_t         *trailers;
+	M_hash_strvp_t        *trailers;
 
 	M_buf_t               *body;
 	M_bool                 have_body_len;
@@ -83,7 +84,7 @@ struct M_http_simple_read {
 	M_http_simple_read_flags_t  rflags;
 	M_bool                      rdone;
 	M_hash_dict_t              *body_form_data;
-} ;
+};
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -296,11 +297,13 @@ const M_hash_dict_t *M_http_query_args(const M_http_t *http);
  * times with different attributes.
  * Multi-dict of headers.
  *
+ * Value attributes will be part of the value in the dict.
+ *
  * \param[in] http HTTP object.
  *
  * \return Multi value dict.
  */
-const M_hash_dict_t *M_http_headers_dict(const M_http_t *http);
+M_hash_dict_t *M_http_headers_dict(const M_http_t *http);
 
 
 /*! Get a list of headers that are sent.
@@ -349,28 +352,16 @@ void M_http_set_headers(M_http_t *http, const M_hash_dict_t *headers, M_bool mer
 M_bool M_http_set_header(M_http_t *http, const char *key, const char *val);
 
 
-/*! Set a single http header adding additional values.
+/*! Add a value to a header.
  *
+ * Preserves existing values.
  * Adds a new value to the header list of values. Can be a comma (,) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-M_bool M_http_set_header_append(M_http_t *http, const char *key, const char *val);
-
-
-/*! Add a value to a header.
- *
- * Preserves existing values.
- * Cannot not be a comma (,) separated list.
- * This adds to any existing values
- *
- * \param[in] http HTTP object.
- * \param[in] key  Header name.
- * \param[in] val  Value.
- */
-void M_http_add_header(M_http_t *http, const char *key, const char *val);
+M_bool M_http_add_header(M_http_t *http, const char *key, const char *val);
 
 
 /*! Remove a header.
@@ -408,17 +399,6 @@ void M_http_set_cookie_remove(M_http_t *http, size_t idx);
 void M_http_set_cookie_insert(M_http_t *http, const char *val);
 
 
-/*! Update the content type of it has changed.
- * 
- * Typically it's changed due to decoding.
- *
- * \param[in] http HTTP object.
- * \param[in] val  New content type.
- *
- */
-void M_http_update_content_type(M_http_t *http, const char *val);
-
-
 /*! Update the character encoding of it has changed.
  * 
  * \param[in] http  HTTP object.
@@ -431,11 +411,26 @@ void M_http_update_charset(M_http_t *http, M_textcodec_codec_t codec);
 
 /*! Get the trailing headers.
  *
+ * Value attributes will be part of the value in the dict.
+ *
  * \param[in] http HTTP object.
  *
  * \return Multi value dict.
  */
-const M_hash_dict_t *M_http_trailers(const M_http_t *http);
+M_hash_dict_t *M_http_trailers_dict(const M_http_t *http);
+
+
+/*! Get a list of trailing headers that are sent.
+ *
+ * Should be used with M_http_trailer to get the
+ * full combined trailer.
+ *
+ * \param[in] http HTTP object.
+ *
+ * \return List of trailer keys.
+ */
+
+M_list_str_t *M_http_trailers(const M_http_t *http);
 
 
 /*! Get all values for a trailer combined into a single
@@ -475,24 +470,13 @@ M_bool M_http_set_trailer(M_http_t *http, const char *key, const char *val);
 /*! Add a value to a trailer.
  *
  * Preserves existing values.
- * Cannot not be a comma (,) separated list.
- * This adds a single value to any existing values
+ * Adds a new value to the header list of values. Can be a comma (,) separated list.
  *
  * \param[in] http HTTP object.
  * \param[in] key  Header name.
  * \param[in] val  Value.
  */
-void M_http_add_trailer(M_http_t *http, const char *key, const char *val);
-
-
-/*! Split a header which could have multiple values into individual parts
- *
- * \param[in] key Header key. Keys use different separators
- * \param[in] val Header value to split.
- *
- * \return List of values or NULL on error.
- */
-M_list_str_t *M_http_split_header_vals(const char *key, const char *val);
+M_bool M_http_add_trailer(M_http_t *http, const char *key, const char *val);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
