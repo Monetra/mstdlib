@@ -328,7 +328,7 @@ static M_hash_dict_t *check_request_headers_cb2(void)
 }
 #define hreq_data_rsp2 "GET / HTTP/1.1\r\n" \
 	"ABC:XYZ\r\n" \
-	"val:456, 123\r\n" \
+	"val:123, 456\r\n" \
 	"Host:localhost:443\r\n" \
 	"User-Agent:test\r\n" \
 	"Content-Length:26\r\n" \
@@ -389,6 +389,31 @@ static M_hash_dict_t *check_request_headers_cb4(void)
 	"Date:\r\n" \
 	"\r\n"
 
+static M_hash_dict_t *check_request_headers_cb5(void)
+{
+	M_hash_dict_t *headers;
+
+	headers = M_hash_dict_create(8, 16, M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	M_hash_dict_insert(headers, "Accept-Language", "en, mi");
+	M_hash_dict_insert(headers, "Modifiers", "text/*; q=0.3; m=9, text/html; q=0.7, text/html; level=1, text/html; level=2; q=0.4, */*; q=0.5");
+
+	return headers;
+}
+#define hreq_data_rsp5 "GET / HTTP/1.1\r\n" \
+	"Accept-Language:en, mi\r\n" \
+	"Modifiers:text/*; q=0.3; m=9, text/html; q=0.4; level=2, */*; q=0.5\r\n" \
+	"Host:localhost:443\r\n" \
+	"User-Agent:test\r\n" \
+	"Content-Length:26\r\n" \
+	"Content-Type:t\r\n" \
+	"Date:\r\n" \
+	"\r\n" \
+	"This is\n" \
+	"data\n" \
+	"\n" \
+	"\n" \
+	"That I have"
+
 START_TEST(check_request_headers)
 {
 	M_hash_dict_t *headers;
@@ -405,6 +430,7 @@ START_TEST(check_request_headers)
 		{ check_request_headers_cb2, req_data_req1, M_TRUE,  hreq_data_rsp2 },
 		{ check_request_headers_cb3, req_data_req1, M_FALSE, hreq_data_rsp3 },
 		{ check_request_headers_cb4, NULL,          M_TRUE,  hreq_data_rsp4 },
+		{ check_request_headers_cb5, req_data_req1, M_TRUE,  hreq_data_rsp5 },
 		{ NULL, NULL, M_FALSE, NULL }
 	};
 
@@ -433,7 +459,7 @@ END_TEST
 
 #define rsp_data_rsp1 "HTTP/1.1 200 OK\r\n" \
 	"Content-Length:26\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Content-Type:application/json\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \

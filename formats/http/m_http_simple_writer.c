@@ -78,16 +78,10 @@ err:
 static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *headers, const char *host, unsigned short port, const char *user_agent)
 {
 	M_hash_dict_t *myheaders;
-	M_http_t      *http;
 	char          *hostport;
 
-	/* Create our headers that we need to do some work on. */
-	http = M_http_create();
-	if (headers != NULL) {
-		M_http_set_headers(http, headers, M_FALSE);
-	}
-	myheaders = M_hash_dict_duplicate(M_http_headers_dict(http));
-	M_http_destroy(http);
+	myheaders = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	M_hash_dict_merge(&myheaders, M_hash_dict_duplicate(headers));
 
 	/* Add the host. */
 	if (!M_str_isempty(host)) {
@@ -106,10 +100,8 @@ static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *h
 	}
 
 	/* Add the user agent. */
-	if (!M_str_isempty(user_agent)) {
-		M_hash_dict_remove(myheaders, "User-Agent");
+	if (!M_str_isempty(user_agent))
 		M_hash_dict_insert(myheaders, "User-Agent", user_agent);
-	}
 
 	return myheaders;
 }
@@ -119,10 +111,12 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		const unsigned char *data, size_t data_len, const char *charset)
 {
 	M_http_t           *http = NULL;
+	M_hash_dict_t      *myheaders;
 	M_list_str_t       *header_keys;
 	const char         *key;
 	const char         *val;
 	char               *temp;
+	M_buf_t            *tbuf;
 	unsigned char      *mydata = NULL;
 	char                tempa[128];
 	M_int64             i64v;
@@ -130,24 +124,23 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	size_t              i;
 
 	/* We want to push the headers into an http object to ensure they're in a
- 	 * properly configured hashtable. We need to ensure flags like casecomp
+	 * properly configured hashtable. We need to ensure flags like casecomp
 	 * are enabled. Also allows us to get joined header values back out. */
 	http = M_http_create();
-	if (headers != NULL) {
+	if (headers != NULL)
 		M_http_set_headers(http, headers, M_FALSE);
-		headers = M_http_headers_dict(http);
-	}
+	myheaders = M_http_headers_dict(http);
 
 	/* Validate some headers. */
 	if (data != NULL && data_len != 0) {
 		/* Can't have transfer-encoding AND data. */
-		if (M_hash_dict_get(headers, "Transfer-Encoding", NULL)) {
+		if (M_hash_dict_get(myheaders, "Transfer-Encoding", NULL)) {
 			goto err;
 		}
 	}
 
 	/* Ensure that content-length is present (even if body length is zero). */
-	if (M_hash_dict_get(headers, "Content-Length", &val)) {
+	if (M_hash_dict_get(myheaders, "Content-Length", &val)) {
 		/* If content-length is already set we need to ensure it matches data
 		 * since this is considered a complete message. */
 		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
@@ -173,34 +166,51 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		M_http_set_header(http, "Content-Length", tempa);
 	}
 
-	if (!M_str_isempty(content_type))
+	if (!M_str_isempty(content_type)) {
 		M_http_set_header(http, "Content-Type", content_type);
-
-	/* Ensure something is set for content type. */
-	if (!M_hash_dict_get(headers, "Content-Type", NULL)) {
-		/* If there isn't a content type we set a default. */
-		if (M_str_isempty(charset)) {
-			M_http_set_header(http, "Content-Type", "application/octet-stream");
-		} else {
-			M_http_set_header(http, "Content-Type", "text/plain");
+	} else {
+		/* Ensure something is set for content type. */
+		if (!M_hash_dict_get(myheaders, "Content-Type", NULL)) {
+			/* If there isn't a content type we set a default. */
+			if (M_str_isempty(charset)) {
+				M_http_set_header(http, "Content-Type", "application/octet-stream");
+			} else {
+				M_http_set_header(http, "Content-Type", "text/plain");
+			}
 		}
 	}
 
 	/* If we've encoded the data (or utf-8) mark the content as such. */
 	if (!M_str_isempty(charset)) {
+		/* We might already have a charaset modifier but that's okay.
+ 		 * The last value of the same key will be used. Since we're
+		 * adding charset as the last element ours will be used.
+		 *
+		 * It is *possible* that we'll get back a Content-Type value
+		 * with multiple elements. That's invalid because Content-Type
+		 * is only allowed one type to be specified. We're not going
+		 * to deal with someone making invalid headers. */
+		temp = M_http_header(http, "Content-Type");
+		tbuf = M_buf_create();
+		M_buf_add_str(tbuf, temp);
+		M_free(temp);
+		M_buf_add_str(tbuf, "; ");
 		M_snprintf(tempa, sizeof(tempa), "charset=%s", charset);
-		M_http_set_header_append(http, "Content-Type", tempa);
+		M_buf_add_str(tbuf, tempa);
+		temp = M_buf_finish_str(tbuf, NULL);
+		M_http_add_header(http, "Content-Type", temp);
+		M_free(temp);
 	}
 
 	/* Set the date if not present. */
-	if (!M_hash_dict_get(headers, "Date", NULL)) {
+	if (!M_hash_dict_get(myheaders, "Date", NULL)) {
 		temp = M_http_writer_get_date();
 		M_http_set_header(http, "Date", temp);
 		M_free(temp);
 	}
 
 	/* Write out the headers. We use the key list
- 	 * instead of enumerating the headers dict directly
+	 * instead of enumerating the headers dict directly
 	 * because a multi dict will have the key value
 	 * multiple times for each value. We only want
 	 * a header added once because we're going to
@@ -232,11 +242,13 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		M_buf_add_bytes(buf, data, data_len);
 
 	M_free(mydata);
+	M_hash_dict_destroy(myheaders);
 	M_http_destroy(http);
 	return M_TRUE;
 
 err:
 	M_free(mydata);
+	M_hash_dict_destroy(myheaders);
 	M_http_destroy(http);
 	return M_FALSE;
 }
@@ -283,7 +295,7 @@ M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t metho
 	M_buf_add_byte(buf, ' ');
 
 	/* We expect the uri to be encoded. We'll check for spaces and
- 	 * non-ascii characters. If found we'll encode it to be safe because
+	 * non-ascii characters. If found we'll encode it to be safe because
 	 * we don't want to build an invalid request. We're going to use URL minimal
 	 * encoding to try to fix any thing that shouldn't be there. Minimal will
 	 * keep things like '/' so we won't end up with something unreadable. */

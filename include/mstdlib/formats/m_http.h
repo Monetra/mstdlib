@@ -968,6 +968,8 @@ M_API M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint1
  * The first entry in the list is the first item in the value list if there are
  * multiple values.
  *
+ * Modfiers that are part of the value are included with the value.
+ *
  * Header names are not case-sensitive, when doing lookups into the returned dictionary.
  *
  * \warning
@@ -988,7 +990,7 @@ M_API M_bool M_http_simple_read_port(const M_http_simple_read_t *simple, M_uint1
  * \see M_http_simple_read_headers
  * \see M_http_simple_read_get_set_cookie
  */
-M_API const M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple);
+M_API M_hash_dict_t *M_http_simple_read_headers_dict(const M_http_simple_read_t *simple);
 
 
 /*! Get a list of headers.
