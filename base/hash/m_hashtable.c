@@ -898,7 +898,8 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 	callbacks.key_duplicate_copy     = src->key_duplicate_copy;
 	callbacks.key_free               = src->key_free;
 	h3 = M_hashtable_create(src->size, src->fillpct, src->key_hash, src->key_equality, src->flags, &callbacks);
-	hm = M_hashtable_create(src->size, src->fillpct, src->key_hash, src->key_equality, src->flags, &callbacks);
+	/* hm is for tracking keys that have been put into other hashtables. We don't want anything freed. */
+	hm = M_hashtable_create(src->size, src->fillpct, src->key_hash, src->key_equality, src->flags, NULL);
 
 	/* Since will be doing direct pointer copying of keys and values,
 	 * rather than reallocing and freeing the old ones.  Make sure
@@ -952,6 +953,7 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 	 * we disallow freeing of the actualy key/value pairs earlier, this should
 	 * be safe */
 	M_hashtable_destroy(src, M_FALSE);
+	M_hashtable_destroy(hm, M_FALSE);
 	M_hashtable_destroy(h3, M_FALSE);
 }
 
