@@ -877,6 +877,7 @@ M_bool M_hashtable_enumerate_next(const M_hashtable_t *h, M_hashtable_enum_t *ha
 void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 {
 	M_hashtable_t                *h3;
+	M_hashtable_t                *hm;
 	const void                   *key;
 	const void                   *value;
 	M_hashtable_enum_t            hashenum;
@@ -897,6 +898,7 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 	callbacks.key_duplicate_copy     = src->key_duplicate_copy;
 	callbacks.key_free               = src->key_free;
 	h3 = M_hashtable_create(src->size, src->fillpct, src->key_hash, src->key_equality, src->flags, &callbacks);
+	hm = M_hashtable_create(src->size, src->fillpct, src->key_hash, src->key_equality, src->flags, &callbacks);
 
 	/* Since will be doing direct pointer copying of keys and values,
 	 * rather than reallocing and freeing the old ones.  Make sure
@@ -919,9 +921,26 @@ void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src)
 			 * The src key needs to be destoryed so we put it in a temporary to
 			 * track it for destruction later. */
 			if (M_hashtable_get(*dest, key, NULL)) {
-				M_hashtable_insert_direct(h3, M_HASHTABLE_INSERT_NODUP, key, NULL);
+				/* A multi value will hae enumerate return the key multiple times.
+				 * Once for each value. We need to track if we put the key
+				 * into dest once. If we did we can't add to h3 and destory
+				 * the key. We need to track if the key was moved into src
+				 * so we don't destory it on subsequent times it's seen. */
+				if (src->flags & M_HASHTABLE_MULTI_VALUE) {
+					/* In dest and wasn't moved into dest previously. */
+					if (!M_hashtable_get(hm, key, NULL)) {
+						M_hashtable_insert_direct(h3, M_HASHTABLE_INSERT_NODUP, key, NULL);
+					}
+				} else {
+					M_hashtable_insert_direct(h3, M_HASHTABLE_INSERT_NODUP, key, NULL);
+				}
 			}
 			M_hashtable_insert_direct(*dest, M_HASHTABLE_INSERT_NODUP, key, value);
+			/* We've seen this key at least once. We've already moved it into dest or h3.
+			 * Keep track of this so we don't try putting it into h3 multiple times. */
+			if (src->flags & M_HASHTABLE_MULTI_VALUE && !M_hashtable_get(hm, key, NULL)) {
+				M_hashtable_insert_direct(hm, M_HASHTABLE_INSERT_NODUP, key, NULL);
+			}
 
 			/* See if we need to rehash it because we added so many entries */
 			if (M_hashtable_exceeds_load(*dest))

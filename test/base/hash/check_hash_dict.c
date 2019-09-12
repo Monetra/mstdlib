@@ -397,6 +397,40 @@ START_TEST(check_merge)
 }
 END_TEST
 
+START_TEST(check_merge_different)
+{
+	M_hash_dict_t      *dest;
+	M_hash_dict_t      *src;
+	M_hash_dict_enum_t *he;
+	const char         *key;
+	const char         *val;
+
+	dest = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	src  = M_hash_dict_create(8, 16, M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+
+	M_hash_dict_insert(src, "ABC", "XYZ");
+	M_hash_dict_insert(src, "val", "123");
+	M_hash_dict_insert(src, "val", "456");
+	M_hash_dict_insert(src, "Val", "456");
+	M_hash_dict_insert(src, "Val", "123");
+	M_hash_dict_insert(src, "key", "lab");
+
+	M_hash_dict_merge(&dest, M_hash_dict_duplicate(src));
+
+	M_hash_dict_enumerate(dest, &he);
+	while (M_hash_dict_enumerate_next(dest, he, &key, &val)) {
+		ck_assert_msg(M_str_len(key) == 3, "Key length %zu != 3", M_str_len(key));
+		ck_assert_msg(M_str_len(val) == 3, "Value length %zu != 3", M_str_len(val));
+	}
+	M_hash_dict_enumerate_free(he);
+	M_hash_dict_remove(dest, "vAl");
+	ck_assert_msg(M_hash_dict_num_keys(dest) == 2, "Num keys in dest %zu != 2", M_hash_dict_num_keys(dest));
+
+	M_hash_dict_destroy(src);
+	M_hash_dict_destroy(dest);
+}
+END_TEST
+
 START_TEST(check_casesensitive)
 {
 	static struct {
@@ -616,6 +650,7 @@ static Suite *M_hash_dict_suite(void)
 #endif
 	TCase *tc_enumerate;
 	TCase *tc_merge;
+	TCase *tc_merge_different;
 	TCase *tc_casesensitive;
 	TCase *tc_multi;
 	TCase *tc_ordered_insert;
@@ -674,6 +709,11 @@ static Suite *M_hash_dict_suite(void)
 	tcase_add_checked_fixture(tc_merge, setup, teardown);
 	tcase_add_test(tc_merge, check_merge);
 	suite_add_tcase(suite, tc_merge);
+
+	tc_merge_different = tcase_create("hash_dict_merge_different");
+	tcase_add_checked_fixture(tc_merge_different, setup, teardown);
+	tcase_add_test(tc_merge_different, check_merge_different);
+	suite_add_tcase(suite, tc_merge_different);
 
 	tc_casesensitive = tcase_create("hash_dict_casesensitive");
 	tcase_add_test(tc_casesensitive, check_casesensitive);
