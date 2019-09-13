@@ -617,7 +617,7 @@ M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:
 			/* start timer to time out operation */
-			handle->timer = M_event_timer_oneshot(event, 10000, M_TRUE, M_io_bluetooth_timer_cb, handle);
+			handle->timer = M_event_timer_oneshot(event, 20000, M_TRUE, M_io_bluetooth_timer_cb, handle);
 			break;
 		case M_IO_STATE_CONNECTED:
 			/* Trigger connected soft event when registered with event handle */
