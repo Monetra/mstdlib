@@ -25,9 +25,6 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
-
-/* XXX: Here until we add m_http.h to mstdlib_formats.h */
-#include <mstdlib/formats/m_http.h>
 #include "http/m_http_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
