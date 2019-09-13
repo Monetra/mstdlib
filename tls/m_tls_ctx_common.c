@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,39 +48,6 @@
 #define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 #define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
 
-#if 0
-static size_t M_tls_ctx_count_protocols(M_tls_protocols_t protocols)
-{
-	size_t cnt = 0;
-
-	if (protocols & M_TLS_PROTOCOL_TLSv1_0)
-		cnt++;
-	if (protocols & M_TLS_PROTOCOL_TLSv1_1)
-		cnt++;
-	if (protocols & M_TLS_PROTOCOL_TLSv1_2)
-		cnt++;
-#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
-	if (protocols & M_TLS_PROTOCOL_TLSv1_3)
-		cnt++;
-#endif
-	return cnt;
-}
-
-static void M_tls_ctx_set_fallback_scsv(SSL_CTX *ctx, M_tls_protocols_t protocols)
-{
-	/* This is a client-only thing */
-	if (SSL_CTX_get_ssl_method(ctx) == SSLv23_server_method())
-		return;
-
-	/* Enable TLS_FALLBACK_SCSV as a POODLE mitigation ONLY if ciphers < TLS 1.2 are enabled AND more than 1 cipher is enabled */
-	if (protocols & (M_TLS_PROTOCOL_TLSv1_0|M_TLS_PROTOCOL_TLSv1_1) && M_tls_ctx_count_protocols(protocols) > 1) {
-		SSL_CTX_set_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
-	} else {
-		SSL_CTX_clear_mode(ctx, SSL_MODE_SEND_FALLBACK_SCSV);
-	}
-}
-#endif
-
 
 SSL_CTX *M_tls_ctx_init(M_bool is_server)
 {
@@ -89,7 +56,7 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 	if (ctx == NULL) {
 		return NULL;
 	}
-	
+
 	/* Set some default options */
 	M_tls_ctx_set_protocols(ctx, M_TLS_PROTOCOL_DEFAULT);
 	M_tls_ctx_set_ciphers(ctx, is_server?TLS_SERVER_CIPHERS:TLS_CLIENT_CIPHERS);
@@ -135,7 +102,7 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 			SSL_CTX_free(ctx);
 			return NULL;
 		}
-		SSL_CTX_set_tmp_ecdh(ctx, ecdh); 
+		SSL_CTX_set_tmp_ecdh(ctx, ecdh);
 		EC_KEY_free(ecdh); /* Safe because of reference counts */
 #endif
 
@@ -374,11 +341,6 @@ M_bool M_tls_ctx_set_protocols(SSL_CTX *ctx, int protocols)
 #  endif
 #endif
 
-	/* As of TLS1.3 SCSV just doesn't work */
-#if 0
-	M_tls_ctx_set_fallback_scsv(ctx, protocols);
-#endif
-
 	return M_TRUE;
 }
 
@@ -457,7 +419,7 @@ done:
 
 static M_bool M_tls_ctx_set_cert_chain(SSL_CTX *ctx, const unsigned char *data, size_t data_len, M_bool is_intermediate, X509 **x509_out)
 {
-	BIO                 *bio; 
+	BIO                 *bio;
 	STACK_OF(X509_INFO) *sk;
 	int                  i;
 	size_t               count = 0;
@@ -591,7 +553,7 @@ M_bool M_tls_ctx_load_os_trust(SSL_CTX *ctx)
 		/* DER-encoded
  		 *
  		 * CFDataGetLength will be auto converted to long by
-		 * the compiler (this is not undefined behavior). */ 
+		 * the compiler (this is not undefined behavior). */
 		data = CFDataGetBytePtr(dref);
 		x509 = d2i_X509(NULL, &data, CFDataGetLength(dref));
 		CFRelease(dref);
@@ -642,7 +604,7 @@ M_bool M_tls_ctx_load_os_trust(SSL_CTX *ctx)
 	CertCloseStore(hStore, 0);
 
 	return M_TRUE;
-} 
+}
 
 #else /* Unix */
 
@@ -706,7 +668,7 @@ M_bool M_tls_ctx_set_x509trust(SSL_CTX *ctx, STACK_OF(X509) *trustlist)
 
 M_bool M_tls_ctx_set_trust_ca(SSL_CTX *ctx, STACK_OF(X509) *trustlist_cache, const unsigned char *ca, size_t len)
 {
-	BIO                 *bio; 
+	BIO                 *bio;
 	STACK_OF(X509_INFO) *sk;
 	X509_STORE          *store;
 	int                  i;
