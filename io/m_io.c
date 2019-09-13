@@ -969,6 +969,18 @@ const char *M_io_error_string(M_io_error_t error)
 }
 
 
+M_io_error_t M_io_get_error(M_io_t *io)
+{
+	M_io_error_t err = M_IO_ERROR_INVALID;
+	if (io) {
+		M_io_lock(io);
+		err = io->last_error;
+		M_io_unlock(io);
+	}
+	return err;
+}
+
+
 void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)
 {
 	size_t       num;
