@@ -375,6 +375,13 @@ M_API size_t M_io_layer_count(M_io_t *io);
  */
 M_API const char *M_io_layer_name(M_io_t *io, size_t idx);
 
+/*! Get the last error associated with the io object.
+ *
+ *  \param[in]  io      io object.
+ *  \return an M_io_error_t error
+ */
+M_API M_io_error_t M_io_get_error(M_io_t *io);
+
 
 /*! Get a textual error message associated with the io object.
  *
