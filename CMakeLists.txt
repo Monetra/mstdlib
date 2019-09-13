@@ -59,6 +59,7 @@ option(MSTDLIB_BUILD_FORMATS   "Build formats module"                           
 option(MSTDLIB_BUILD_THREAD    "Build thread module"                               TRUE)
 option(MSTDLIB_BUILD_IO        "Build io module"                                   TRUE)
 option(MSTDLIB_BUILD_TLS       "Build tls module"                                  TRUE)
+option(MSTDLIB_BUILD_NET       "Build net module"                                  TRUE)
 option(MSTDLIB_BUILD_LOG       "Build log module"                                  TRUE)
 option(MSTDLIB_BUILD_SQL       "Build sql module"                                  TRUE)
 
@@ -475,6 +476,14 @@ if (MSTDLIB_BUILD_TLS AND MSTDLIB_BUILD_THREAD AND MSTDLIB_BUILD_IO)
 else ()
 	message(STATUS "Building MSTDLIB tls... Disabled")
 	set(MSTDLIB_BUILD_TLS FALSE CACHE BOOL "" FORCE)
+endif ()
+
+if (MSTDLIB_BUILD_NET AND MSTDLIB_BUILD_FORMATS AND MSTDLIB_BUILD_THREAD AND MSTDLIB_BUILD_IO AND MSTDLIB_BUILD_TLS)
+	message(STATUS "Building MSTDLIB net... Enabled")
+	add_subdirectory(net)
+else ()
+	message(STATUS "Building MSTDLIB net... Disabled")
+	set(MSTDLIB_BUILD_NET FALSE CACHE BOOL "" FORCE)
 endif ()
 
 if (MSTDLIB_BUILD_LOG AND MSTDLIB_BUILD_THREAD AND MSTDLIB_BUILD_IO)
