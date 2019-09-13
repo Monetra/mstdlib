@@ -97,6 +97,7 @@ var searchData=
   ['m_5flog_5ferror_5ft',['M_log_error_t',['../group__m__log__common.html#gab5f4f197e827f0ecab0b79f0f2478672',1,'m_log.h']]],
   ['m_5flog_5fline_5fend_5fmode_5ft',['M_log_line_end_mode_t',['../group__m__log__common.html#ga30bbd00fb22bc02ccab5430640387357',1,'m_log.h']]],
   ['m_5flog_5fmodule_5ftype_5ft',['M_log_module_type_t',['../group__m__log__common.html#ga0a5c987c0e5d46816830fa5820d721b0',1,'m_log.h']]],
+  ['m_5fnet_5ferror_5ft',['M_net_error_t',['../group__m__net__common.html#gaa3294221a2148caa4239f649dd7962df',1,'m_net.h']]],
   ['m_5fparser_5fflags',['M_PARSER_FLAGS',['../group__m__parser.html#ga5f283601804b657a199f6574996ccf87',1,'m_parser.h']]],
   ['m_5fparser_5fframe_5fbyes',['M_PARSER_FRAME_BYES',['../group__m__parser.html#ga3fbdc774c77f61b74f797598209b682c',1,'m_parser.h']]],
   ['m_5fparser_5fframe_5ferror',['M_PARSER_FRAME_ERROR',['../group__m__parser.html#ga6993008e1f0881f84431d5813f33d127',1,'m_parser.h']]],
