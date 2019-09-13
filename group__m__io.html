@@ -236,6 +236,8 @@ Functions</h2></td></tr>
 <tr class="separator:gab85f18fea241a1a9eb2f6ba966e5c892"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga461d147f5c261845ce7656eb75c37329"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io.html#ga461d147f5c261845ce7656eb75c37329">M_io_layer_name</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, size_t idx)</td></tr>
 <tr class="separator:ga461d147f5c261845ce7656eb75c37329"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf68b925e7667a227fe781dd35e3477f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io.html#gacf68b925e7667a227fe781dd35e3477f">M_io_get_error</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
+<tr class="separator:gacf68b925e7667a227fe781dd35e3477f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3e1f56ec1e586649c1b26eb7c72238de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io.html#ga3e1f56ec1e586649c1b26eb7c72238de">M_io_get_error_string</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, char *error, size_t err_len)</td></tr>
 <tr class="separator:ga3e1f56ec1e586649c1b26eb7c72238de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga70fb95d358ecd3ddf932879754ee4201"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io.html#ga70fb95d358ecd3ddf932879754ee4201">M_io_reconnect</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
@@ -1184,6 +1186,30 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gacf68b925e7667a227fe781dd35e3477f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a> M_io_get_error </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the last error associated with the io object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>io object. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>an M_io_error_t error </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga3e1f56ec1e586649c1b26eb7c72238de"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1328,7 +1354,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Sep 13 2019 14:23:43 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Fri Sep 13 2019 18:20:58 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

@@ -61,6 +61,7 @@ var group__m__io =
     [ "M_io_get_layer_state", "group__m__io.html#ga37f75893a961b84168bf9c77b5fa6d32", null ],
     [ "M_io_layer_count", "group__m__io.html#gab85f18fea241a1a9eb2f6ba966e5c892", null ],
     [ "M_io_layer_name", "group__m__io.html#ga461d147f5c261845ce7656eb75c37329", null ],
+    [ "M_io_get_error", "group__m__io.html#gacf68b925e7667a227fe781dd35e3477f", null ],
     [ "M_io_get_error_string", "group__m__io.html#ga3e1f56ec1e586649c1b26eb7c72238de", null ],
     [ "M_io_reconnect", "group__m__io.html#ga70fb95d358ecd3ddf932879754ee4201", null ],
     [ "M_io_disconnect", "group__m__io.html#ga02a1aa7eee8d2fb2e7fdc189f33e649e", null ],
