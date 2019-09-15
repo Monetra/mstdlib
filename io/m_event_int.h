@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -71,7 +71,7 @@ struct M_event_evhandle {
 	M_EVENT_HANDLE      handle;
 	M_EVENT_SOCKET      sock;
 	M_event_wait_type_t waittype;
-	M_event_caps_t      caps; 
+	M_event_caps_t      caps;
 	M_io_t             *io;
 };
 typedef struct M_event_evhandle M_event_evhandle_t;
@@ -90,7 +90,7 @@ struct M_event_trigger {
 M_uint64 M_event_timer_minimum_ms(M_event_t *event);
 void M_event_timer_process(M_event_t *event);
 void M_event_deliver_io(M_event_t *event, M_io_t *io, M_event_type_t type);
-void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type);
+void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type, M_io_error_t err);
 
 
 struct M_event_data;
@@ -194,7 +194,7 @@ void M_event_wake(M_event_t *event);
 void M_event_lock(M_event_t *event);
 void M_event_unlock(M_event_t *event);
 
-void M_io_user_softevent_add(M_io_t *io, M_event_type_t type);
+void M_io_user_softevent_add(M_io_t *io, M_event_type_t type, M_io_error_t err);
 void M_io_user_softevent_del(M_io_t *io, M_event_type_t type);
 void M_io_softevent_clearall(M_io_t *io, M_bool nonerror_only);
 void M_event_queue_pending_clear(M_event_t *event, M_io_t *io);

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,15 +30,15 @@
 /* BWShaping does bandwidth shaping, whether to impose read/write bandwidth
  * restrictions, or to inject latency into a connection.  It also tracks
  * bandwidth for the connection, even if shaping is not in use.
- * 
+ *
  * Shaping occurs by calculating the number of bytes allowed to be written
  * or read to stay within the constraints, and if that number is zero, it
  * calculates the time, in milliseconds when the next read or write is allowed
  * to take place.  This offset is put into a timer which will then signal
  * a read or write event as appropriate.
- * 
+ *
  * If shaping is not in use, no timers will be used.
- * 
+ *
  * Timers get activated on these conditions:
  *  * A write is attempted, and the allowed size is either zero, or less
  *    than requested, set flag out_waiting = M_TRUE, otherwise set
@@ -48,7 +48,7 @@
  *    wait on an OS event (out_waiting = M_FALSE).
  *    Set timers based on out_waiting and calculated metrics.
  *  * A read is attempted, and the allowed size is either zero, or less
- *    than requested, set flag in_waiting = M_TRUE, otherwise set 
+ *    than requested, set flag in_waiting = M_TRUE, otherwise set
  *    in_waiting = M_FALSE.  If the size is non-zero, and the OS-read operation
  *    returns WOULDBLOCK *or* returns less than the requested number of bytes,
  *    then the timer should *NOT* be activated as we can wait on an OS event
@@ -222,7 +222,7 @@ static M_uint64 M_io_bwshaping_bwtrack_bytesinperiod(M_io_bwshaping_bwtrack_t *b
 	slot = M_io_bwshaping_slots_last(bwtrack);
 	if (slot == NULL)
 		return 0;
-	
+
 	elapsed = M_time_elapsed(&slot->tv);
 	if (elapsed >= frequency_ms)
 		return 0;
@@ -301,7 +301,7 @@ static M_io_bwshaping_bwtrack_t *M_io_bwshaping_bwtrack_create(M_io_handle_t *ha
 {
 	M_io_bwshaping_bwtrack_t *bwtrack = M_malloc_zero(sizeof(*bwtrack));
 
-	M_io_bwshaping_slots_create(bwtrack, M_io_bwshaping_bwtrack_size(handle, direction)); 
+	M_io_bwshaping_slots_create(bwtrack, M_io_bwshaping_bwtrack_size(handle, direction));
 	return bwtrack;
 }
 
@@ -351,10 +351,10 @@ static M_uint64 M_io_bwshaping_latency_next_ms(M_io_handle_t *handle, M_io_bwsha
 	return handle->settings.out_latency_ms - elapsed;
 }
 
-/* 
+/*
  *  - Returns M_TIMEOUT_INF if no timeout is being enforced at this moment.
  *  - Returns 0 if timeout has elapsed
- *  - Returns number of milliseconds remaining in timeout otherwise 
+ *  - Returns number of milliseconds remaining in timeout otherwise
  */
 static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bwshaping_direction_t direction)
 {
@@ -455,13 +455,13 @@ static void M_io_bwshaping_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_IN);
 	if (to_ms == 0) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		num_wait--;
 	}
 
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
 	if (to_ms == 0) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 		num_wait--;
 	}
 

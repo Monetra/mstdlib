@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -332,7 +332,7 @@ void M_io_disconnect(M_io_t *comm)
 
 	/* Layer reported disconnect, trigger soft event */
 	if (cont && comm->reg_event) {
-		M_io_user_softevent_add(comm, M_EVENT_TYPE_DISCONNECTED);
+		M_io_user_softevent_add(comm, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	}
 	M_io_unlock(comm);
 }
@@ -387,7 +387,7 @@ fail:
 		 * The connection is no longer valid, enqueue a disconnect or error softevent as necessary to ensure the error
 		 * is caught */
 		M_io_softevent_clearall(io, M_TRUE);
-		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, err);
 	}
 
 	return err;
@@ -431,7 +431,7 @@ M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size
 		M_io_user_softevent_del(io, M_EVENT_TYPE_READ);
 	} else if (err == M_IO_ERROR_SUCCESS) {
 		/* There's more likely more data to read, trigger a soft event */
-		M_io_user_softevent_add(io, M_EVENT_TYPE_READ);
+		M_io_user_softevent_add(io, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 	}
 
 fail:
@@ -576,7 +576,7 @@ M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned char *
 		 * The connection is no longer valid, enqueue a disconnect or error softevent as necessary to ensure the error
 		 * is caught */
 		M_io_softevent_clearall(io, M_TRUE);
-		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_FALSE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, err);
 	}
 	return err;
 }
@@ -618,7 +618,7 @@ M_io_error_t M_io_write_meta(M_io_t *comm, const unsigned char *buf, size_t buf_
 		M_io_user_softevent_del(comm, M_EVENT_TYPE_WRITE);
 	} else if (err == M_IO_ERROR_SUCCESS) {
 		/* There's more likely more room to write, trigger a soft event */
-		M_io_user_softevent_add(comm, M_EVENT_TYPE_WRITE);
+		M_io_user_softevent_add(comm, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 	}
 fail:
 	if (comm != NULL)
@@ -675,7 +675,7 @@ M_io_error_t M_io_accept(M_io_t **io_out, M_io_t *server_io)
 	}
 
 	/* On success, we may have more connections to accept, trigger a soft event */
-	M_io_user_softevent_add(server_io, M_EVENT_TYPE_ACCEPT);
+	M_io_user_softevent_add(server_io, M_EVENT_TYPE_ACCEPT, M_IO_ERROR_SUCCESS);
 	err = M_IO_ERROR_SUCCESS;
 
 fail:
@@ -964,6 +964,8 @@ const char *M_io_error_string(M_io_error_t error)
 			return "Command Interrupted";
 		case M_IO_ERROR_NOTFOUND:
 			return "File or Resource Not Found";
+		case M_IO_ERROR_BADCERTIFICATE:
+			return "Invalid Peer Certificate";
 	}
 	return "UNKNOWN";
 }
@@ -1034,8 +1036,8 @@ M_bool M_io_error_is_critical(M_io_error_t err)
 		case M_IO_ERROR_INTERRUPTED:
 		/* No need to generate a signal for these 2, its either API misuse or the connection
 		 * was already notified of a disconnect */
-		case M_IO_ERROR_NOTCONNECTED: 
-		case M_IO_ERROR_INVALID: 
+		case M_IO_ERROR_NOTCONNECTED:
+		case M_IO_ERROR_INVALID:
 			return M_FALSE;
 		default:
 			break;

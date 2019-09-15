@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -171,8 +171,8 @@ M_API M_io_error_t M_io_layer_write(M_io_t *io, size_t layer_id, const unsigned 
 
 M_API M_bool M_io_error_is_critical(M_io_error_t err);
 
-/*! Add a soft-event.  If sibling_only is true, will only notify next layer and not self. */
-M_API void M_io_layer_softevent_add(M_io_layer_t *layer, M_bool sibling_only, M_event_type_t type);
+/*! Add a soft-event.  If sibling_only is true, will only notify next layer and not self. Must specify an error. */
+M_API void M_io_layer_softevent_add(M_io_layer_t *layer, M_bool sibling_only, M_event_type_t type, M_io_error_t err);
 
 /*! Clear all soft events for the current layer */
 M_API void M_io_layer_softevent_clear(M_io_layer_t *layer);
@@ -180,6 +180,8 @@ M_API void M_io_layer_softevent_clear(M_io_layer_t *layer);
 /*! Add a soft-event.  If sibling_only is true, will only delete the soft event for the next layer up and not self. */
 M_API void M_io_layer_softevent_del(M_io_layer_t *layer, M_bool sibling_only, M_event_type_t type);
 
+/*! Sets the internal error for the IO object.  Used within a process events callback if emitting an error */
+M_API void M_io_set_error(M_io_t *io, M_io_error_t err);
 
 /*! @} */
 

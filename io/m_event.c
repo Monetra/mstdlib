@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -253,7 +253,18 @@ void M_event_destroy(M_event_t *event)
 }
 
 
-void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
+void M_io_set_error(M_io_t *io, M_io_error_t err)
+{
+	if (io == NULL)
+		return;
+
+	/* Save first error, or replace with more specific error than ERROR */
+	if (err != M_IO_ERROR_SUCCESS && (io->last_error == M_IO_ERROR_SUCCESS || io->last_error == M_IO_ERROR_ERROR))
+		io->last_error = err;
+}
+
+
+void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type, M_io_error_t err)
 {
 	M_event_t            *event  = M_io_get_event(io);
 	M_event_io_t         *ioev   = NULL;
@@ -286,6 +297,9 @@ void M_io_softevent_add(M_io_t *io, size_t layer_id, M_event_type_t type)
 //M_printf("%s(): WARN: added softevent of io %p that does not exist\n", __FUNCTION__, io);
 	}
 
+	/* Save first error, or replace with more specific error than ERROR */
+	M_io_set_error(io, err);
+
 	/* If the event loop is sleeping and this was sent from another thread, wake it */
 	M_event_wake(event);
 
@@ -306,7 +320,7 @@ static M_bool M_io_layer_softevent_is_empty(M_io_t *io, M_event_softevent_t *sof
 	return M_TRUE;
 }
 
-void M_io_layer_softevent_add(M_io_layer_t *layer, M_bool sibling_only, M_event_type_t type)
+void M_io_layer_softevent_add(M_io_layer_t *layer, M_bool sibling_only, M_event_type_t type, M_io_error_t err)
 {
 	M_io_t               *io    = M_io_layer_get_io(layer);
 	size_t                id    = M_io_layer_get_index(layer);
@@ -314,13 +328,13 @@ void M_io_layer_softevent_add(M_io_layer_t *layer, M_bool sibling_only, M_event_
 	if (sibling_only)
 		id++;
 
-	M_io_softevent_add(io, id, type);
+	M_io_softevent_add(io, id, type, err);
 }
 
 
-void M_io_user_softevent_add(M_io_t *io, M_event_type_t type)
+void M_io_user_softevent_add(M_io_t *io, M_event_type_t type, M_io_error_t err)
 {
-	M_io_softevent_add(io, M_io_layer_count(io), type);
+	M_io_softevent_add(io, M_io_layer_count(io), type, err);
 }
 
 
@@ -914,7 +928,7 @@ static void M_event_queue_deliver(M_event_t *event)
 			}
 		}
 	}
-	
+
 done:
 
 	/* Clean up events */
@@ -1270,7 +1284,7 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 			} else {
 				event->u.loop.impl = event->u.loop.impl_large;
 			}
-		} 
+		}
 
 		/* Support escalating to event handler which better handles high member counts */
 		if (event->u.loop.impl == event->u.loop.impl_short && num_members >= M_EVENT_LARGE_MEMBERS) {
@@ -1347,7 +1361,7 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 		M_event_softevent_process(event);
 		M_event_queue_deliver(event);
 
-		
+
 		/* Record event processing time */
 		event->u.loop.process_time_ms += M_time_elapsed(&event_process_tv);
 		/* ----- End Process Events ----- */

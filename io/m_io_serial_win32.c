@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -301,7 +301,7 @@ M_io_error_t M_io_serial_handle_set_mode(M_io_handle_t *handle, M_io_serial_mode
 static M_io_error_t M_io_serial_handle_set_defaults(DCB *options, M_io_handle_t *handle)
 {
 	/* From "Remarks" under MSDN for "COMMTIMEOUTS structure":
-	 * 
+	 *
 	 * If an application sets ReadIntervalTimeout and ReadTotalTimeoutMultiplier to MAXDWORD
 	 * and sets ReadTotalTimeoutConstant to a value greater than zero and less than MAXDWORD,
 	 * one of the following occurs when the ReadFile function is called:
@@ -312,7 +312,7 @@ static M_io_error_t M_io_serial_handle_set_defaults(DCB *options, M_io_handle_t 
 	 *   returns immediately.
 	 * - If no bytes arrive within the time specified by ReadTotalTimeoutConstant, ReadFile times
 	 *   out.
-	 * 
+	 *
 	 * NOTE: We use overlapped i/o so I'd think we want these maxed out
 	 */
 	COMMTIMEOUTS cto = {
@@ -426,10 +426,10 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
 	HANDLE         shandle;
-	M_io_error_t   err;
+	M_io_error_t   err     = M_IO_ERROR_SUCCESS;
 
 	if (handle->rhandle == M_EVENT_INVALID_HANDLE && handle->whandle == M_EVENT_INVALID_HANDLE) {
-		
+
 		DWORD cfflags = FILE_FLAG_NO_BUFFERING;
 
 		if (!(handle->priv->flags & M_IO_SERIAL_FLAG_BUSY_POLLING)) {
@@ -438,6 +438,7 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 		shandle = CreateFile(handle->priv->path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, cfflags, NULL);
 		if (shandle == M_EVENT_INVALID_HANDLE) {
 			handle->last_error_sys = GetLastError();
+			err = M_io_win32_err_to_ioerr(handle->last_error_sys);
 			goto fail;
 		}
 
@@ -456,7 +457,7 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 		}
 
 	}
-	
+
 	return (handle->priv->flags & M_IO_SERIAL_FLAG_BUSY_POLLING)?M_io_w32overlap_busyemu_init_cb(layer):M_io_w32overlap_init_cb(layer);
 
 fail:
@@ -467,7 +468,7 @@ fail:
 	}
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, err);
 
 	return M_TRUE; /* not usage issue */
 }

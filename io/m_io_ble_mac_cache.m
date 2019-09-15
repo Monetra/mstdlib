@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2018-2019 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -280,7 +280,7 @@ static void M_io_ble_waiting_destroy(M_io_handle_t *handle)
 	layer = M_io_layer_acquire(handle->io, 0, NULL);
 	M_snprintf(handle->error, sizeof(handle->error), "Timeout");
 	handle->state = M_IO_STATE_ERROR;
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 	M_io_layer_release(layer);
 }
 
@@ -491,7 +491,7 @@ void M_io_ble_cbc_event_reset(void)
 			continue;
 		}
 		layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 		M_io_layer_release(layer);
 		dev->handle = NULL;
 	}
@@ -649,7 +649,7 @@ void M_io_ble_device_set_connected(CBPeripheral *peripheral)
 		M_str_cpy(dev->handle->uuid, sizeof(dev->handle->uuid), uuid);
 		dev->handle->state     = M_IO_STATE_CONNECTED;
 		dev->handle->can_write = M_TRUE;
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 	} else {
 		/* We have a connect event but no io objects are attached.
@@ -693,7 +693,7 @@ static void M_io_ble_device_set_disconnected(const char *uuid)
 
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	dev->handle->state = M_IO_STATE_DISCONNECTED;
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	M_io_layer_release(layer);
 
 	M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
@@ -731,7 +731,7 @@ static void M_io_ble_device_set_error(const char *uuid, const char *error)
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	dev->handle->state = M_IO_STATE_ERROR;
 	M_snprintf(dev->handle->error, sizeof(dev->handle->error), "%s", error);
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO : better error? */);
 	M_io_layer_release(layer);
 
 	M_hash_strvp_remove(ble_devices, uuid, M_TRUE);
@@ -981,7 +981,7 @@ void M_io_ble_device_write_complete(const char *uuid)
 	/* Inform the io object that we can write again. */
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	dev->handle->can_write = M_TRUE;
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	update_seen(uuid);
@@ -1009,7 +1009,7 @@ void M_io_ble_device_read_data(const char *uuid, const char *service_uuid, const
 	/* Inform the io object that we read data. */
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	if (M_io_ble_rdata_queue_add_read(dev->handle->read_queue, service_uuid, characteristic_uuid, data, data_len))
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	update_seen(uuid);
@@ -1037,7 +1037,7 @@ void M_io_ble_device_read_rssi(const char *uuid, M_int64 rssi)
 	/* Inform the io object that we read data. */
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	if (M_io_ble_rdata_queue_add_rssi(dev->handle->read_queue, rssi))
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	update_seen(uuid);
@@ -1064,7 +1064,7 @@ void M_io_ble_device_notify_done(const char *uuid, const char *service_uuid, con
 
 	layer = M_io_layer_acquire(dev->handle->io, 0, NULL);
 	if (M_io_ble_rdata_queue_add_notify(dev->handle->read_queue, service_uuid, characteristic_uuid))
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	update_seen(uuid);
@@ -1144,7 +1144,7 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		M_snprintf(handle->error, sizeof(handle->error), "Device in use");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		handle->state = M_IO_STATE_ERROR;
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Better error? */);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
 		return;
@@ -1166,13 +1166,13 @@ void M_io_ble_connect(M_io_handle_t *handle)
 		}
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
 		handle->state = M_IO_STATE_ERROR;
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Better error? */);
 		M_io_layer_release(layer);
 		M_thread_mutex_unlock(lock);
 		return;
 	}
 
-	/* Cache that we want to get a device. 
+	/* Cache that we want to get a device.
  	 * We'll check if a matching device is
 	 * present by asking the OS if it has one
 	 * cached. If so we'll use that instead of

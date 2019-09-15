@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -58,7 +58,7 @@ M_uint16                  _mtu     = 0;
 	if (uuid == nil)
 		uuid = [NSString stringWithUTF8String:M_IO_BLUETOOTH_RFCOMM_UUID];
 	cuuid = [uuid UTF8String];
-	
+
 	/* Create the device. */
 	_dev = [IOBluetoothDevice deviceWithAddressString:mac];
 	if (_dev == nil)
@@ -158,7 +158,7 @@ M_uint16                  _mtu     = 0;
 {
 	if (_channel == nil)
 		return;
-	
+
 	[_channel setDelegate:nil];
 	[_channel closeChannel];
 	[_dev closeConnection];
@@ -198,7 +198,7 @@ M_uint16                  _mtu     = 0;
 	} else {
 		send_len = (M_uint16)len;
 	}
-	
+
 	ioret = [_channel writeAsync:((void *)M_buf_peek(_handle->writebuf)) length:send_len refcon:NULL];
 	ioerr = M_io_mac_ioreturn_to_err(ioret);
 	if (ioerr == M_IO_ERROR_SUCCESS) {
@@ -209,7 +209,7 @@ M_uint16                  _mtu     = 0;
 		_handle->can_write = M_FALSE;
 	} else {
 		M_snprintf(_handle->error, sizeof(_handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, ioerr);
 		[self close_int];
 	}
 
@@ -233,7 +233,7 @@ M_uint16                  _mtu     = 0;
 	(void)rfcommChannel;
 	layer = M_io_layer_acquire(_handle->io, 0, NULL);
 	_handle->state = M_IO_STATE_DISCONNECTED;
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 
 	M_io_layer_release(layer);
 }
@@ -249,7 +249,7 @@ M_uint16                  _mtu     = 0;
 
 	layer = M_io_layer_acquire(_handle->io, 0, NULL);
 	M_buf_add_bytes(_handle->readbuf, (unsigned char *)dataPointer, dataLength);
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ);
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 }
 
@@ -266,11 +266,11 @@ M_uint16                  _mtu     = 0;
 		/* Let everyone know we've connected. */
 		_handle->state     = M_IO_STATE_CONNECTED;
 		_handle->can_write = M_TRUE;
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 	} else {
 		_handle->state = M_IO_STATE_ERROR;
 		M_snprintf(_handle->error, sizeof(_handle->error), "%s", M_io_mac_ioreturn_errormsg(error));
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_io_mac_ioreturn_to_err(error));
 		[self close_int];
 	}
 	M_io_layer_release(layer);
@@ -284,7 +284,7 @@ M_uint16                  _mtu     = 0;
 
 	layer = M_io_layer_acquire(_handle->io, 0, NULL);
 	if (_handle->state == M_IO_STATE_CONNECTED)
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 }
 
@@ -307,12 +307,12 @@ M_uint16                  _mtu     = 0;
 		} else {
 			/* All pending data has been written. Let everyone know they can write again. */
 			_handle->can_write = M_TRUE;
-			M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE);
+			M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 		}
 	} else {
 		_handle->state = M_IO_STATE_ERROR;
 		M_snprintf(_handle->error, sizeof(_handle->error), "%s", M_io_mac_ioreturn_errormsg(error));
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_IO_ERROR_SUCCESS);
 		[self close_int];
 	}
 	M_io_layer_release(layer);

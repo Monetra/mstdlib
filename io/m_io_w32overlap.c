@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ static void M_io_w32overlap_unreg(M_io_t *io, M_io_handle_t *handle)
 
 	if (handle->rhandle != M_EVENT_INVALID_HANDLE) {
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_HANDLE, io, handle->roverlapped.hEvent, M_EVENT_INVALID_SOCKET, 0, 0);
-	} 
+	}
 	if (handle->whandle != M_EVENT_INVALID_HANDLE) {
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_HANDLE, io, handle->woverlapped.hEvent, M_EVENT_INVALID_SOCKET, 0, 0);
 	}
@@ -204,7 +204,7 @@ static M_io_error_t M_io_w32overlap_startrw(M_io_layer_t *layer, M_bool is_read)
 		return err;
 
 	M_io_w32overlap_close(layer);
-	M_io_layer_softevent_add(layer, M_TRUE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_TRUE, (err == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, err);
 	return err;
 }
 
@@ -220,7 +220,7 @@ M_bool M_io_w32overlap_init_cb(M_io_layer_t *layer)
 		return M_FALSE;
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* Connect event handles to event system */
 	if (type == M_IO_TYPE_WRITER || type == M_IO_TYPE_STREAM) {
@@ -498,7 +498,7 @@ static void M_io_w32overlap_disc_timer_cb(M_event_t *event, M_event_type_t type,
 	(void)iodummy;
 
 	if (handle->whandle != NULL) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	}
 
 	handle->disconnect_timer = NULL;

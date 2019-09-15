@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -67,7 +67,7 @@ BOOL           _wopened  = NO;
 			/* Close out the EA beaus there was an error and it's
 			 * no longer in a useable state. */
 			[self close];
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error? */);
 
 			M_io_layer_release(layer);
 			layer = NULL;
@@ -77,7 +77,7 @@ BOOL           _wopened  = NO;
 			M_buf_add_bytes(_handle->readbuf, temp, (size_t)bread);
 			/* If _handle->readbuf was empty, send READ soft event */
 			if (is_empty && _handle->state == M_IO_STATE_CONNECTED)
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		}
 
 		/* Unlock IO layer */
@@ -105,7 +105,7 @@ BOOL           _wopened  = NO;
 		_handle->state = M_IO_STATE_ERROR;
 
 		[self close];
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error ? */);
 
 		goto cleanup;
 	}
@@ -120,7 +120,7 @@ BOOL           _wopened  = NO;
 		M_snprintf(_handle->error, sizeof(_handle->error), "Write error: %s", [[[[_session outputStream] streamError] localizedDescription] UTF8String]);
 		_handle->state = M_IO_STATE_ERROR;
 		[self close];
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error ? */);
 	} else {
 		M_buf_drop(_handle->writebuf, (size_t)bwritten);
 	}
@@ -147,7 +147,7 @@ cleanup:
 	if (_handle->state == M_IO_STATE_CONNECTING || _handle->state == M_IO_STATE_CONNECTED) {
 		M_snprintf(_handle->error, sizeof(_handle->error), "Device disconnected");
 		_handle->state = M_IO_STATE_ERROR;
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_DISCONNECT);
 	}
 
 	/* Unlock IO layer */
@@ -177,12 +177,12 @@ cleanup:
 				layer = M_io_layer_acquire(_handle->io, 0, NULL);
 
 				/* Sent connected soft event */
-				M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
+				M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 				_handle->state = M_IO_STATE_CONNECTED;
 
 				/* We could have buffered bytes before both streams were open */
 				if (M_buf_len(_handle->readbuf))
-					M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ);
+					M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 
 				/* Unlock IO layer */
 				M_io_layer_release(layer);
@@ -206,8 +206,13 @@ cleanup:
 			/* Sent disconnected or error soft event */
 			if (_handle->state == M_IO_STATE_CONNECTING || _handle->state == M_IO_STATE_CONNECTED) {
 				M_snprintf(_handle->error, sizeof(_handle->error), (eventCode == NSStreamEventErrorOccurred)?"Received NSStreamEventErrorOccurred":"Received NSStreamEventEndEncountered");
-				_handle->state = (eventCode == NSStreamEventErrorOccurred)?M_IO_STATE_ERROR:M_IO_STATE_DISCONNECTED;
-				M_io_layer_softevent_add(layer, M_TRUE, (eventCode == NSStreamEventErrorOccurred)?M_EVENT_TYPE_ERROR:M_EVENT_TYPE_DISCONNECTED);
+				if (eventcode == NSStreamEventErrorOccurred) {
+					_handle->state = M_IO_STATE_ERROR;
+					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Can we get a better error? */);
+				} else {
+					_handle->state = M_IO_STATE_DISCONNECTED;
+					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
+				}
 			}
 
 			/* Unlock IO layer */
