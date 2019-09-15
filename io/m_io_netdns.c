@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -227,7 +227,7 @@ static void M_io_netdns_handle_connect(M_io_layer_t *layer, M_io_t *realio)
 	handle->data.netdns.io           = realio;
 	handle->state                    = M_IO_NET_STATE_CONNECTED;
 	handle->data.netdns.connect_time = M_time_elapsed(&handle->data.netdns.connect_start);
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* Clean up */
 	M_free(handle->data.netdns.io_try);
@@ -262,7 +262,7 @@ static void M_io_netdns_handle_connect_error(M_io_layer_t *layer, M_io_t *realio
 		handle->data.netdns.io           = realio;
 		handle->state                    = M_IO_NET_STATE_ERROR;
 		handle->data.netdns.connect_time = M_time_elapsed(&handle->data.netdns.connect_start);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_io_get_error(realio));
 
 		/* Clean up */
 		M_free(handle->data.netdns.io_try);
@@ -271,7 +271,7 @@ static void M_io_netdns_handle_connect_error(M_io_layer_t *layer, M_io_t *realio
 		handle->data.netdns.io_try_idx = 0;
 		return;
 	}
-	
+
 	/* Destroy self */
 	M_io_destroy(handle->data.netdns.io_try[idx]);
 	handle->data.netdns.io_try[idx] = NULL;
@@ -298,14 +298,14 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 		case M_EVENT_TYPE_READ:
 		case M_EVENT_TYPE_WRITE:
 			/* Pass-on */
-			M_io_layer_softevent_add(layer, M_FALSE /* Self, must be same as below or order of events may be reversed, bad! */, type);
+			M_io_layer_softevent_add(layer, M_FALSE /* Self, must be same as below or order of events may be reversed, bad! */, type, M_IO_ERROR_SUCCESS);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:
 			/* Relay to self, we won't change our own state until we receive it from
 			 * M_io_netdns_process_cb() as it will properly re-order events to make
 			 * sure a read event is delivered first so a user can read */
-			M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_DISCONNECTED);
+			M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 			break;
 
 		case M_EVENT_TYPE_ERROR:
@@ -315,7 +315,7 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 				/* Relay to self, we won't change our own state until we receive it from
 				 * M_io_netdns_process_cb() as it will properly re-order events to make
 				 * sure a read event is delivered first so a user can read */
-				M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_ERROR);
+				M_io_layer_softevent_add(layer, M_FALSE /* Self */, M_EVENT_TYPE_ERROR, M_io_get_error(realio));
 			}
 			break;
 
@@ -387,7 +387,7 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 				break;
 
 		}
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_NOTFOUND /* TODO: do we need more error codes? */);
 		return;
 	}
 
@@ -407,7 +407,7 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 	if (!M_io_netdns_init_connect(layer)) {
 		handle->state = M_IO_NET_STATE_ERROR;
 		M_snprintf(handle->data.netdns.error, sizeof(handle->data.netdns.error), "%s", "Unable to start IP connection");
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_NOTFOUND /* Only reason it couldn't start is if there were no ips */);
 		return;
 	}
 }
@@ -435,7 +435,7 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 			break;
 		case M_IO_NET_STATE_CONNECTED:
 //M_printf("%s(): already connected\n", __FUNCTION__); fflush(stdout);
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 			/* Fallthrough */
 		case M_IO_NET_STATE_DISCONNECTING:
 			/* Re-bind io event handle */

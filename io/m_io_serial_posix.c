@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -140,20 +140,23 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
+	M_io_error_t   err    = M_IO_ERROR_SUCCESS;
 
 	if (handle->fd == -1) {
-		M_io_error_t err;
+
 #ifndef O_NDELAY
 #  define O_NDELAY O_NONBLOCK
 #endif
 		handle->fd = open(handle->path, O_RDWR | O_NDELAY | O_NOCTTY);
 		if (handle->fd == -1) {
 			handle->last_error_sys = errno;
+			err = M_io_posix_err_to_ioerr(handle->last_error_sys);
 			goto fail;
 		}
 
 		if (!M_io_setnonblock(handle->fd)) {
 			handle->last_error_sys = errno;
+			err = M_io_posix_err_to_ioerr(handle->last_error_sys);
 			goto fail;
 		}
 
@@ -187,7 +190,7 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 	}
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* Register fd to event subsystem */
 	M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_HANDLE, io, handle->fd, M_EVENT_INVALID_SOCKET, M_EVENT_WAIT_READ, M_EVENT_CAPS_WRITE|M_EVENT_CAPS_READ);
@@ -196,7 +199,7 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 fail:
 	M_io_serial_close(layer);
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, err);
 	return M_TRUE; /* not usage issue */
 }
 
@@ -286,9 +289,9 @@ static void M_io_serial_disc_timer_cb(M_event_t *event, M_event_type_t type, M_i
 	(void)event;
 	(void)type;
 	(void)iodummy;
-	
+
 	if (handle->fd != M_EVENT_INVALID_HANDLE) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	}
 
 	handle->disconnect_timer = NULL;
@@ -673,7 +676,7 @@ M_io_serial_enum_t *M_io_serial_enum(M_bool include_modems)
 		}
 		IOObjectRelease(serialPortIterator);
 	}
-	
+
 
 	return serenum;
 }

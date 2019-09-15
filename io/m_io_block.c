@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -74,7 +74,7 @@ static void M_io_block_event(M_event_t *event, M_event_type_t type, M_io_t *io, 
 		if (io != NULL) {
 			size_t        idx   = M_io_layer_count(io)-1; /* Use last index */
 			M_io_layer_t *layer = M_io_layer_acquire(io, idx, NULL);
-			M_io_layer_softevent_add(layer, M_TRUE /* Sibling-only=true will make it only notify user callbacks */, type);
+			M_io_layer_softevent_add(layer, M_TRUE /* Sibling-only=true will make it only notify user callbacks */, type, M_IO_ERROR_SUCCESS);
 			M_io_layer_release(layer);
 		}
 		return;
@@ -125,7 +125,7 @@ static void M_io_block_event(M_event_t *event, M_event_type_t type, M_io_t *io, 
 
 	if (type == M_EVENT_TYPE_WRITE) {
 		if (data->request == M_IO_SYNC_REQUEST_WRITEUCHAR) {
-			data->retval = M_io_write(io, data->buf_cuchar, data->buf_len, &data->out_len); 
+			data->retval = M_io_write(io, data->buf_cuchar, data->buf_len, &data->out_len);
 			if (data->retval != M_IO_ERROR_WOULDBLOCK) {
 				M_event_return(event);
 				data->done = M_TRUE;
@@ -133,7 +133,7 @@ static void M_io_block_event(M_event_t *event, M_event_type_t type, M_io_t *io, 
 			return;
 		}
 		if (data->request == M_IO_SYNC_REQUEST_WRITEBUF) {
-			data->retval = M_io_write_from_buf(io, data->buf_buf); 
+			data->retval = M_io_write_from_buf(io, data->buf_buf);
 			if (data->retval != M_IO_ERROR_WOULDBLOCK) {
 				M_event_return(event);
 				data->done = M_TRUE;

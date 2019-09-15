@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -169,7 +169,7 @@ static void *M_io_w32overlap_busyemu_thread(void *arg)
 
 		/* Buffer was empty, trigger a READ signal */
 		if (retlen != 0 && M_buf_len(handle->rbuf) == retlen) {
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		}
 
 		/* Try to do a direct write from the buffer, non-blocking */
@@ -185,7 +185,7 @@ static void *M_io_w32overlap_busyemu_thread(void *arg)
 
 			/* No data left, need more, trigger WRITE signal */
 			if (M_buf_len(handle->wbuf) == 0) {
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 			}
 		}
 
@@ -202,7 +202,7 @@ static void *M_io_w32overlap_busyemu_thread(void *arg)
 		M_thread_sleep(100000);
 		M_io_layer_acquire(io, 0, NULL);
 		M_io_w32overlap_busyemu_close_handle(handle);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 		M_io_layer_release(layer);
 	}
 
@@ -218,8 +218,8 @@ fail:
 	M_io_w32overlap_busyemu_close_handle(handle);
 
 	/* Send disconnect or error signal depending on which is appropriate */
-	M_io_layer_softevent_add(layer, M_TRUE, (M_io_win32_err_to_ioerr(handle->last_error_sys) == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
-	
+	M_io_layer_softevent_add(layer, M_TRUE, (M_io_win32_err_to_ioerr(handle->last_error_sys) == M_IO_ERROR_DISCONNECT)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, M_io_win32_err_to_ioerr(handle->last_error_sys));
+
 	/* Mark thread as shutdown */
 	handle->busyemu_state = M_IO_W32OVERLAP_BUSYEMU_STATE_STOPPED;
 
@@ -239,7 +239,7 @@ M_bool M_io_w32overlap_busyemu_init_cb(M_io_layer_t *layer)
 		return M_FALSE;
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* Start thread */
 	handle->busyemu_state  = M_IO_W32OVERLAP_BUSYEMU_STATE_RUNNING;

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -276,14 +276,14 @@ static void M_tls_op_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *i
 		M_snprintf(handle->error, sizeof(handle->error), "TLS %s timeout negotiating connection", (handle->state == M_TLS_STATE_CONNECTING)?"client":"server");
 		handle->state            = M_TLS_STATE_ERROR;
 		handle->negotiation_time = M_time_elapsed(&handle->negotiation_start);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_WOULDBLOCK);
 		return;
 	}
 
 	if (handle->state == M_TLS_STATE_SHUTDOWN) {
 		/* Ignore error */
 		handle->state = M_TLS_STATE_DISCONNECTED;
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 		return;
 	}
 
@@ -395,6 +395,7 @@ cert_err:
 				handle->state            = M_TLS_STATE_ERROR;
 				*type                    = M_EVENT_TYPE_ERROR;
 				handle->negotiation_time = M_time_elapsed(&handle->negotiation_start);
+				M_io_set_error(M_io_layer_get_io(layer), M_IO_ERROR_BADCERTIFICATE);
 				return M_FALSE; /* Not consumed, relay rewritten error message */
 			}
 			err = SSL_get_error(handle->ssl, rv);
@@ -490,7 +491,7 @@ static M_bool M_io_tls_process_state_connected(M_io_layer_t *layer, M_event_type
 				 * immediately as a higher priority, but still trigger a "read" event
 				 * too as a secondary event in case we're also waiting on this */
 				*type = M_EVENT_TYPE_WRITE;
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 			}
 			return M_FALSE;
 		case M_EVENT_TYPE_WRITE:
@@ -499,7 +500,7 @@ static M_bool M_io_tls_process_state_connected(M_io_layer_t *layer, M_event_type
 				 * immediately as a higher priority, but still trigger a "write" event
 				 * too as a secondary event in case we're also waiting on this */
 				*type = M_EVENT_TYPE_READ;
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 			}
 			return M_FALSE;
 		default:
@@ -816,7 +817,7 @@ static M_io_error_t M_io_tls_read_cb(M_io_layer_t *layer, unsigned char *buf, si
 	if (*read_len != 0) {
 		/* Send signal if we obscured a critical error */
 		if (ioerr != M_IO_ERROR_WOULDBLOCK) {
-			M_io_layer_softevent_add(layer, M_TRUE, ioerr == M_IO_ERROR_DISCONNECT?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
+			M_io_layer_softevent_add(layer, M_TRUE, ioerr == M_IO_ERROR_DISCONNECT?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, ioerr);
 		}
 		ioerr = M_IO_ERROR_SUCCESS;
 	}
@@ -880,7 +881,7 @@ static M_io_error_t M_io_tls_write_cb(M_io_layer_t *layer, const unsigned char *
 	if (*write_len != 0) {
 		/* Send signal if we obscured a critical error */
 		if (ioerr != M_IO_ERROR_WOULDBLOCK) {
-			M_io_layer_softevent_add(layer, M_TRUE, ioerr == M_IO_ERROR_DISCONNECT?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR);
+			M_io_layer_softevent_add(layer, M_TRUE, ioerr == M_IO_ERROR_DISCONNECT?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, ioerr);
 		}
 		ioerr = M_IO_ERROR_SUCCESS;
 	}
@@ -1174,7 +1175,7 @@ static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 	handle->ssl         = SSL_new(handle->serverctx->ctx);
 
 	/* If DHE negotiation is enabled, set it up now */
-	if (handle->serverctx->dh) 
+	if (handle->serverctx->dh)
 		SSL_set_tmp_dh(handle->ssl, handle->serverctx->dh);
 
 	/* Set the layer as the 'thunk' data for the custom bio */

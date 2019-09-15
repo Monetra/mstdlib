@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2019 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -491,7 +491,7 @@ static void M_io_hid_handle_rw_error(M_io_handle_t *handle, M_io_layer_t *layer)
 		handle->disconnect_timer = NULL;
 
 		if (!handle->in_destroy)
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	}
 }
 
@@ -510,7 +510,7 @@ static void *M_io_hid_read_loop(void *arg)
 	if (env == NULL) {
 		M_snprintf(handle->error, sizeof(handle->error), "Failed to start read thread");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 		M_io_layer_release(layer);
 		return NULL;
 	}
@@ -552,7 +552,7 @@ static void *M_io_hid_read_loop(void *arg)
 
 		/* Let the caller know there is data to read. */
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 	}
 
@@ -587,7 +587,7 @@ static void *M_io_hid_write_loop(void *arg)
 	if (env == NULL) {
 		M_snprintf(handle->error, sizeof(handle->error), "Failed to start write thread");
 		layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 		M_io_layer_release(layer);
 		return NULL;
 	}
@@ -665,7 +665,7 @@ static void *M_io_hid_write_loop(void *arg)
 			/* Unlock and relock to honor lock ordering */
 			M_thread_mutex_unlock(handle->write_lock);
 			layer = M_io_layer_acquire(handle->io, 0, NULL);
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 			M_io_layer_release(layer);
 			M_thread_mutex_lock(handle->write_lock);
 		}
@@ -1111,7 +1111,7 @@ static void M_io_hid_disconnect_runner_step2(M_event_t *event, M_event_type_t ty
 	M_event_timer_remove(handle->disconnect_timer);
 
 	/* Send disconnect event */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	M_io_layer_release(layer);
 }
 
@@ -1159,7 +1159,7 @@ M_bool M_io_hid_disconnect_cb(M_io_layer_t *layer)
 	/* Tell our threads they can stop running. And wake up the writer thread. */
 	M_io_hid_signal_shutdown(handle);
 
-	/* Enqueue a task to wait 50ms for writes to flush out, then it will start the 
+	/* Enqueue a task to wait 50ms for writes to flush out, then it will start the
 	 * process of killing the read loop and wait another 50ms for that to exit
 	 * before issuing a disconnect */
 	handle->disconnect_timer = M_event_timer_oneshot(M_io_get_event(handle->io), 50, M_FALSE, M_io_hid_disconnect_runner_step1, handle);
@@ -1200,7 +1200,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	}
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* If the connection was already started check if we have any
 	 * read data. It might have come in while moving between event loops
@@ -1208,7 +1208,7 @@ M_bool M_io_hid_init_cb(M_io_layer_t *layer)
 	if (handle->status & M_IO_HID_STATUS_READERUP) {
 		M_thread_mutex_lock(handle->read_lock);
 		if (M_buf_len(handle->readbuf) > 0) {
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		}
 		M_thread_mutex_unlock(handle->read_lock);
 	}

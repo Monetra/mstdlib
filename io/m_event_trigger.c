@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,7 +27,7 @@
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
 
-/* Create Dummy Event object.  This is used so we can add softevents to it. 
+/* Create Dummy Event object.  This is used so we can add softevents to it.
  * It prevents us from having to track an explicit trigger queue, we can
  * use all the standard io layers */
 
@@ -111,7 +111,7 @@ static void M_io_event_trigger(M_io_t *io)
 	layer = M_io_layer_acquire(io, 0, "TRIGGER");
 	if (layer == NULL)
 		return;
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_OTHER);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_OTHER, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	/* Since we rely on soft events, we have to wake the event loop */

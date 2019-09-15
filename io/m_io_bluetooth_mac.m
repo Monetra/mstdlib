@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -261,10 +261,10 @@ static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 		M_io_bluetooth_close(handle, M_IO_STATE_ERROR);
 
 		M_snprintf(handle->error, sizeof(handle->error), "Timeout waiting on connect");
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_WOULDBLOCK);
 	} else if (handle->state == M_IO_STATE_DISCONNECTING) {
 		M_io_bluetooth_close(handle, M_IO_STATE_DISCONNECTED);
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	} else {
 		/* Shouldn't ever happen */
 	}
@@ -321,11 +321,11 @@ M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 			break;
 		case M_IO_STATE_CONNECTED:
 			/* Trigger connected soft event when registered with event handle */
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 			/* If there is data in the read buffer, signal there is data to be read as well */
 			if (M_buf_len(handle->readbuf)) {
-				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ);
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 			}
 			break;
 		default:

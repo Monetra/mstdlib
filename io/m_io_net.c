@@ -188,7 +188,7 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 
 	M_io_net_handle_close(io, handle);
 
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR);
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_io_net_resolve_error_sys(handle->data.net.last_error_sys));
 	M_event_timer_stop(handle->timer);
 }
 
@@ -971,7 +971,7 @@ static M_bool M_io_net_start_connect(M_io_layer_t *layer, struct sockaddr *peer,
 #else
 		handle->data.net.evhandle = handle->data.net.sock;
 #endif
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_HANDLE, io, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, M_EVENT_CAPS_READ|M_EVENT_CAPS_WRITE);
 		return M_TRUE;
 	}
@@ -1003,7 +1003,7 @@ static M_bool M_io_net_stream_init_cb(M_io_layer_t *layer)
 	handle->timer = M_event_timer_add(event, M_io_net_timeout_cb, layer);
 
 	if (handle->state == M_IO_NET_STATE_CONNECTED) {
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_HANDLE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, M_EVENT_CAPS_READ|M_EVENT_CAPS_WRITE);
 		return M_TRUE;
 	}
@@ -1026,7 +1026,7 @@ static M_bool M_io_net_stream_init_cb(M_io_layer_t *layer)
 		}
 		if (!M_io_net_start_connect(layer, peer, peer_size, type)) {
 			/* If we can't start to connect, trigger an error immediately */
-			M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR);
+			M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, handle->data.net.last_error);
 			M_free(peer);
 			return M_TRUE;
 		}

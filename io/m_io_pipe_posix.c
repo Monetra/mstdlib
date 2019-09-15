@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,7 +51,7 @@ static M_bool M_io_pipe_init_cb(M_io_layer_t *layer)
 		return M_FALSE;
 
 	/* Trigger connected soft event when registered with event handle */
-	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED);
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 
 	/* Add the handles with read wait type if reader, or no waittype if writer */
 	M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_HANDLE, io, handle->handle, M_EVENT_INVALID_SOCKET, (type == M_IO_TYPE_WRITER)?0:M_EVENT_WAIT_READ, (type == M_IO_TYPE_WRITER)?M_EVENT_CAPS_WRITE:M_EVENT_CAPS_READ);
@@ -112,7 +112,7 @@ static M_io_error_t M_io_pipe_read_cb(M_io_layer_t *layer, unsigned char *buf, s
 	err = M_io_posix_read(io, handle->handle, buf, read_len, &handle->last_error_sys, meta);
 	if (M_io_error_is_critical(err))
 		M_io_pipe_close_handle(io, handle);
-		
+
 	return err;
 }
 
