@@ -33,7 +33,8 @@ var group__m__io__layer =
     [ "M_io_layer_read", "group__m__io__layer.html#ga5458358c5cd46f140520b27d0a17db1c", null ],
     [ "M_io_layer_write", "group__m__io__layer.html#ga2bd63bc8d12ca0735492aebcfc9cb759", null ],
     [ "M_io_error_is_critical", "group__m__io__layer.html#ga15da485fce90d4ec273554a35ec50bfa", null ],
-    [ "M_io_layer_softevent_add", "group__m__io__layer.html#ga59da7a4d5a57e674d3268d826cee4c10", null ],
+    [ "M_io_layer_softevent_add", "group__m__io__layer.html#ga0c6d9cf0f642515db16a6e85d9285bbe", null ],
     [ "M_io_layer_softevent_clear", "group__m__io__layer.html#ga91f8925cbfbc6f137b2060db65358748", null ],
-    [ "M_io_layer_softevent_del", "group__m__io__layer.html#ga418842462a423550ca48a1c6150cc6fd", null ]
+    [ "M_io_layer_softevent_del", "group__m__io__layer.html#ga418842462a423550ca48a1c6150cc6fd", null ],
+    [ "M_io_set_error", "group__m__io__layer.html#ga57d07f7ff756808ff5033b62d2d11c4a", null ]
 ];

@@ -179,12 +179,14 @@ Functions</h2></td></tr>
 <tr class="separator:ga2bd63bc8d12ca0735492aebcfc9cb759"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga15da485fce90d4ec273554a35ec50bfa"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga15da485fce90d4ec273554a35ec50bfa">M_io_error_is_critical</a> (<a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a> err)</td></tr>
 <tr class="separator:ga15da485fce90d4ec273554a35ec50bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga59da7a4d5a57e674d3268d826cee4c10"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga59da7a4d5a57e674d3268d826cee4c10">M_io_layer_softevent_add</a> (<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer, M_bool sibling_only, <a class="el" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> type)</td></tr>
-<tr class="separator:ga59da7a4d5a57e674d3268d826cee4c10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0c6d9cf0f642515db16a6e85d9285bbe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga0c6d9cf0f642515db16a6e85d9285bbe">M_io_layer_softevent_add</a> (<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer, M_bool sibling_only, <a class="el" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> type, <a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a> err)</td></tr>
+<tr class="separator:ga0c6d9cf0f642515db16a6e85d9285bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga91f8925cbfbc6f137b2060db65358748"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga91f8925cbfbc6f137b2060db65358748">M_io_layer_softevent_clear</a> (<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer)</td></tr>
 <tr class="separator:ga91f8925cbfbc6f137b2060db65358748"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga418842462a423550ca48a1c6150cc6fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga418842462a423550ca48a1c6150cc6fd">M_io_layer_softevent_del</a> (<a class="el" href="group__m__io__layer.html#ga2c76e456b8335433f53eadfac91e4533">M_io_layer_t</a> *layer, M_bool sibling_only, <a class="el" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> type)</td></tr>
 <tr class="separator:ga418842462a423550ca48a1c6150cc6fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga57d07f7ff756808ff5033b62d2d11c4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__layer.html#ga57d07f7ff756808ff5033b62d2d11c4a">M_io_set_error</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a> err)</td></tr>
+<tr class="separator:ga57d07f7ff756808ff5033b62d2d11c4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Included using the semi-public header of &lt;<a class="el" href="m__io__layer_8h_source.html">mstdlib/io/m_io_layer.h</a>&gt;</p>
@@ -930,7 +932,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga59da7a4d5a57e674d3268d826cee4c10"></a>
+<a class="anchor" id="ga0c6d9cf0f642515db16a6e85d9285bbe"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -950,7 +952,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a>&#160;</td>
-          <td class="paramname"><em>type</em>&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td>
+          <td class="paramname"><em>err</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -959,7 +967,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Add a soft-event. If sibling_only is true, will only notify next layer and not self. </p>
+<p>Add a soft-event. If sibling_only is true, will only notify next layer and not self. Must specify an error. </p>
 
 </div>
 </div>
@@ -1013,12 +1021,39 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga57d07f7ff756808ff5033b62d2d11c4a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_io_set_error </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td>
+          <td class="paramname"><em>err</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Sets the internal error for the IO object. Used within a process events callback if emitting an error </p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Sep 13 2019 19:24:03 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Sun Sep 15 2019 23:36:53 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

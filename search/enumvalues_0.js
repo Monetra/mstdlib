@@ -364,6 +364,7 @@ var searchData=
   ['m_5fio_5fbwshaping_5fmode_5fburst',['M_IO_BWSHAPING_MODE_BURST',['../group__m__io__bwshaping.html#ggac5ce83c2e3bcccbcf8fd9de503dd3a8bab007dd689f99047a6235ca9f7d068734',1,'m_io_bwshaping.h']]],
   ['m_5fio_5fbwshaping_5fmode_5ftrickle',['M_IO_BWSHAPING_MODE_TRICKLE',['../group__m__io__bwshaping.html#ggac5ce83c2e3bcccbcf8fd9de503dd3a8ba27630573f71c44722dc837ff497c85fa',1,'m_io_bwshaping.h']]],
   ['m_5fio_5ferror_5faddrinuse',['M_IO_ERROR_ADDRINUSE',['../group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dbaddd9a595c1d376ffac800237d258a3e2',1,'m_io.h']]],
+  ['m_5fio_5ferror_5fbadcertificate',['M_IO_ERROR_BADCERTIFICATE',['../group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba52f00854e2fa7afab2addfd526805352',1,'m_io.h']]],
   ['m_5fio_5ferror_5fconnaborted',['M_IO_ERROR_CONNABORTED',['../group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba2cc2e8c4601d3d2d13affc60e67b446c',1,'m_io.h']]],
   ['m_5fio_5ferror_5fconnrefused',['M_IO_ERROR_CONNREFUSED',['../group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba9c7f121b7914b1fdc4665b5bfc4ef084',1,'m_io.h']]],
   ['m_5fio_5ferror_5fconnreset',['M_IO_ERROR_CONNRESET',['../group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba375361b8545611725ceeb0a98626ca0c',1,'m_io.h']]],

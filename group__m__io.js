@@ -31,6 +31,7 @@ var group__m__io =
       [ "M_IO_ERROR_INVALID", "group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dbad9e65db26d85903e8f8a473adea33db3", null ],
       [ "M_IO_ERROR_NOTIMPL", "group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba2a3a495d8c1f508f3a683b2a1bae1594", null ],
       [ "M_IO_ERROR_NOTFOUND", "group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dbae322f170b331bb4e797e3f88f6421ae9", null ],
+      [ "M_IO_ERROR_BADCERTIFICATE", "group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dba52f00854e2fa7afab2addfd526805352", null ],
       [ "M_IO_ERROR_INTERRUPTED", "group__m__io.html#gga1ea9e3c1babf09b22f2b98899db790dbab697d69fffeb5ef85a31ea9675e7062d", null ]
     ] ],
     [ "M_io_state", "group__m__io.html#ga6c99c2da0a998791d1d08ec7fe5dd3cd", [
