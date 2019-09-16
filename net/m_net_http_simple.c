@@ -187,6 +187,10 @@ static void split_url(const char *url, char **host, M_uint16 *port, char **uri)
 
 static void call_done(M_net_http_simple_t *hs)
 {
+	/* Got the final data. Stop our timers. */
+	M_event_timer_stop(hs->timer_stall);
+	M_event_timer_stop(hs->timer_overall);
+
 	hs->done_cb(hs->neterr, hs->httperr, hs->simple, hs->error, hs->thunk);
 
 	/* DO NOT USE hs after this point. Nothing can set
@@ -367,10 +371,6 @@ static void process_response(M_net_http_simple_t *hs)
 		return;
 	}
 
-	/* Got the final data. Stop our overall timer. */
-	M_event_timer_stop(hs->timer_overall);
-
-	/* XXX: Might need to set success error codes. */
 	call_done(hs);
 }
 
@@ -430,20 +430,25 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
         case M_EVENT_TYPE_READ:
             M_io_read_into_parser(io, hs->read_parser);
 
+			M_parser_mark(hs->read_parser);
 			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
 			if (httperr == M_HTTP_ERROR_SUCCESS) {
-				M_event_timer_stop(hs->timer_stall);
 				process_response(hs);
-			} else if (httperr == M_HTTP_ERROR_MOREDATA) {
+			} else if (httperr == M_HTTP_ERROR_MOREDATA || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+				/* More possible means we didn't get a content-length so we don't
+				 * know if we have all the data. We need to wait for a disconenct
+				 * to find out. */
+				if (httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+					M_http_simple_read_destroy(hs->simple);
+					hs->simple = NULL;
+				}
+
+				M_parser_mark_rewind(hs->read_parser);
 				timer_start_stall(hs);
 			} else {
 				hs->neterr  = M_NET_ERROR_PROTOFORMAT;
 				hs->httperr = httperr;
 				M_snprintf(hs->error, sizeof(hs->error), "Format error: %s", M_http_errcode_to_str(httperr));
-
-				M_event_timer_stop(hs->timer_stall);
-				M_event_timer_stop(hs->timer_overall);
-
 				call_done(hs);
 			}
 
@@ -455,6 +460,16 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 			}
             break;
         case M_EVENT_TYPE_DISCONNECTED:
+			/* We got a disconenct from the server. Normally we're the ones
+			 * to disconnect once we get the response.
+			 *
+			 * We'll do a final check on the data because we might not have gotten
+			 * content-length and this is how we'd know when all data is sent. */
+			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
+			if (httperr == M_HTTP_ERROR_SUCCESS || httperr == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
+				process_response(hs);
+				break;
+			}
 			hs->neterr = M_NET_ERROR_DISCONNET;
 			M_io_get_error_string(io, hs->error, sizeof(hs->error));
 			call_done(hs);
@@ -612,6 +627,7 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	/* Start/reset our timers. */
 	timer_start_connect(hs);
 	timer_start_stall(hs);
+	/* Will only ever be started once. */
 	timer_start_overall(hs);
 
 	/* Add the object to the io object to the loop. */

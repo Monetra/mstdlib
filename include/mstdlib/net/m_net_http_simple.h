@@ -34,7 +34,7 @@
 
 __BEGIN_DECLS
 
-/*! \addtogroup m_net_http_simple HTTP Simple I/O 
+/*! \addtogroup m_net_http_simple HTTP Simple Net
  *  \ingroup m_net
  * 
  * Simple HTTP interface
