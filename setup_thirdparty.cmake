@@ -63,7 +63,7 @@ endif ()
 if (BUILDCHECK)
 	file(REMOVE_RECURSE "${bindir}/thirdparty/check")
 	file(REMOVE_RECURSE "${bindir}/thirdparty/check_src")
-	execute_process(COMMAND "${GIT}" clone https://github.com/libcheck/check.git --depth 1 "${bindir}/thirdparty/check_src"
+	execute_process(COMMAND "${GIT}" clone -b '0.12.0' https://github.com/libcheck/check.git --depth 1 "${bindir}/thirdparty/check_src"
 		RESULT_VARIABLE res
 	)
 	if (NOT res EQUAL 0)
