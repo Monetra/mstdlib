@@ -11,6 +11,8 @@ var group__m__net__common =
       [ "M_NET_ERROR_DISCONNET", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfaf98ae3479c81de50d96fd3b4c61a492b", null ],
       [ "M_NET_ERROR_TLS_REQUIRED", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfac16076f95f4a83ca633f74bb60c13d01", null ],
       [ "M_NET_ERROR_TLS_SETUP_FAILURE", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfacec5791d078d278f436a2903f156992e", null ],
+      [ "M_NET_ERROR_TLS_BAD_CERTIFICATE", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa8dff938617fb1ce72cf3d44f8df7dbc1", null ],
+      [ "M_NET_ERROR_NOT_FOUND", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa00dbae0ee73aae2e5beff586c873934d", null ],
       [ "M_NET_ERROR_TIMEOUT", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfab19a86b2b1941fc6e069aeef39008c6b", null ],
       [ "M_NET_ERROR_TIMEOUT_STALL", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa82520161aef47aea0af4e26e7c74a7d2", null ],
       [ "M_NET_ERROR_NOTPERM", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa267d6f76daa755b4dbe2bc140de4e8ff", null ],
