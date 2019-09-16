@@ -25,5 +25,5 @@ var searchData=
   ['http_20simple_20writer',['HTTP Simple Writer',['../group__m__http__simple__read.html',1,'']]],
   ['http_20simple_20reader',['HTTP Simple Reader',['../group__m__http__simple__write.html',1,'']]],
   ['hid_20_28human_20interface_20device_29_20io_20functions',['HID (Human Interface Device) IO functions',['../group__m__io__hid.html',1,'']]],
-  ['http_20simple_20i_2fo',['HTTP Simple I/O',['../group__m__net__http__simple.html',1,'']]]
+  ['http_20simple_20net',['HTTP Simple Net',['../group__m__net__http__simple.html',1,'']]]
 ];

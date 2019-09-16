@@ -117,6 +117,8 @@ Enumerations</h2></td></tr>
 <tr class="memitem:ga70262c0c0a6eb609fc7bd86797f7d4f4"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a> { <br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53">M_HTTP_ERROR_SUCCESS</a> = 0, 
 <br />
+&#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db">M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE</a>, 
+<br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd">M_HTTP_ERROR_INVALIDUSE</a>, 
 <br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8">M_HTTP_ERROR_STOP</a>, 
@@ -290,6 +292,9 @@ Functions</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53"></a>M_HTTP_ERROR_SUCCESS&#160;</td><td class="fielddoc">
 <p>Success. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db"></a>M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE&#160;</td><td class="fielddoc">
+<p>Success but more data possible. No content length was sent so the only way to know all data was received is by a disconnect. </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd"></a>M_HTTP_ERROR_INVALIDUSE&#160;</td><td class="fielddoc">
 <p>Invalid use. </p>
@@ -876,7 +881,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Sep 16 2019 15:20:57 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Sep 16 2019 15:56:20 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>

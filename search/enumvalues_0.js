@@ -304,6 +304,7 @@ var searchData=
   ['m_5fhttp_5ferror_5fstartline_5fmalformed',['M_HTTP_ERROR_STARTLINE_MALFORMED',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a72dfd40b264d474da3ee6e1c99b7818e',1,'m_http.h']]],
   ['m_5fhttp_5ferror_5fstop',['M_HTTP_ERROR_STOP',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8',1,'m_http.h']]],
   ['m_5fhttp_5ferror_5fsuccess',['M_HTTP_ERROR_SUCCESS',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53',1,'m_http.h']]],
+  ['m_5fhttp_5ferror_5fsuccess_5fmore_5fpossible',['M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db',1,'m_http.h']]],
   ['m_5fhttp_5ferror_5ftextcodec_5ffailure',['M_HTTP_ERROR_TEXTCODEC_FAILURE',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a465f4adc8ed8a5a8b353b85b574dde79',1,'m_http.h']]],
   ['m_5fhttp_5ferror_5ftrailer_5fnotallowed',['M_HTTP_ERROR_TRAILER_NOTALLOWED',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a3bdf5635bf24a79d15101b6e435bad43',1,'m_http.h']]],
   ['m_5fhttp_5ferror_5funknown_5fversion',['M_HTTP_ERROR_UNKNOWN_VERSION',['../group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a9ff3b755bd6d21c4a0262d1fc895a1bb',1,'m_http.h']]],

@@ -4,6 +4,7 @@ var group__m__http =
     [ "HTTP Simple", "group__m__http__simple.html", "group__m__http__simple" ],
     [ "M_http_error_t", "group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4", [
       [ "M_HTTP_ERROR_SUCCESS", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53", null ],
+      [ "M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db", null ],
       [ "M_HTTP_ERROR_INVALIDUSE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd", null ],
       [ "M_HTTP_ERROR_STOP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8", null ],
       [ "M_HTTP_ERROR_MOREDATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de", null ],
