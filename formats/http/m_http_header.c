@@ -262,6 +262,7 @@ char *M_http_header_value(const M_http_header_t *h)
 		M_list_str_insert(l, out);
 		M_free(out);
 	}
+	M_hash_strvp_enumerate_free(he);
 
 	if (M_http_header_nosplit(h->key)) {
 		/* We really shouldn't have multiple of these because
