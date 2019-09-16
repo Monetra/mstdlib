@@ -65,6 +65,7 @@ __BEGIN_DECLS
 
 typedef enum {
 	M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. */
+	M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent so the only way to know all data was received is by a disconnect. */
 	M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
 	M_HTTP_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
 	M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. */

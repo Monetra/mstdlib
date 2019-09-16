@@ -413,6 +413,7 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 	const char *ret = "unknown";
 	switch (err) {
 		ERRCASE(M_HTTP_ERROR_SUCCESS);
+		ERRCASE(M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE);
 		ERRCASE(M_HTTP_ERROR_INVALIDUSE);
 		ERRCASE(M_HTTP_ERROR_STOP);
 		ERRCASE(M_HTTP_ERROR_MOREDATA);
