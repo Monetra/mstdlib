@@ -133,8 +133,13 @@ Functions</h2></td></tr>
 <tr class="separator:gaec175c97f64dcf05b7a266e2ffb23a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Simple HTTP interface</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_io.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_net.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_formats.h&gt;</span></div><div class="line"></div><div class="line"><a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *el;</div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> done_cb(<a class="code" href="group__m__net__common.html#gaa3294221a2148caa4239f649dd7962df">M_net_error_t</a> net_error, <a class="code" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a> http_error, <span class="keyword">const</span> <a class="code" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, <span class="keyword">const</span> <span class="keywordtype">char</span> *error, <span class="keywordtype">void</span> *thunk)</div><div class="line">{</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>       *headers;</div><div class="line">    <a class="code" href="group__m__hash__dict.html#gab143ed3e4427ecff40710f467a90ae3f">M_hash_dict_enum_t</a>  *he;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>          *key;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>          *val;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *data;</div><div class="line">    <span class="keywordtype">size_t</span>               len;</div><div class="line"></div><div class="line">    <span class="keywordflow">if</span> (net_error != <a class="code" href="group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa5168d726e175f2aaa681774cd9365b01">M_NET_ERROR_SUCCESS</a>) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Ner Error: %s: %s\n&quot;</span>, <a class="code" href="group__m__net__common.html#gab235bdf1e3f78678f2548d001473bb7b">M_net_errcode_to_str</a>(net_error), error);</div><div class="line">        <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">        <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordflow">if</span> (http_error != <a class="code" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53">M_HTTP_ERROR_SUCCESS</a>) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;HTTP Error: %s: %s\n&quot;</span>, <a class="code" href="group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f">M_http_errcode_to_str</a>(http_error), error);</div><div class="line">        <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">        <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Status code: %u - %s\n&quot;</span>, <a class="code" href="group__m__http__simple__write.html#gaaeeb8386251cd3104be32fd36e6a747d">M_http_simple_read_status_code</a>(simple), <a class="code" href="group__m__http__simple__write.html#ga87680370989eae646ad55d4f945f424d">M_http_simple_read_reason_phrase</a>(simple));</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Headers:\n&quot;</span>);</div><div class="line">    headers = <a class="code" href="group__m__http__simple__write.html#ga57dfa1f2e40cfc3fb56d5e4119c96133">M_http_simple_read_headers_dict</a>(simple);</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga6ac0a0649bc07e3c7f2754a66abe4a58">M_hash_dict_enumerate</a>(headers, &amp;he);</div><div class="line">    <span class="keywordflow">while</span> (<a class="code" href="group__m__hash__dict.html#ga8aa61ab5f78bccca6351ff26bc5029f3">M_hash_dict_enumerate_next</a>(headers, he, &amp;key, &amp;val)) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;\t%s: %s\n&quot;</span>, key, val);</div><div class="line">    }</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga12154e881606ff70c01fa38b443602f2">M_hash_dict_enumerate_free</a>(he);</div><div class="line">    <a class="code" href="group__m__hash__dict.html#gaedc49aa7e8f01d9d3358f6bb169c3894">M_hash_dict_destroy</a>(headers);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Body:\n&quot;</span>);</div><div class="line">    data = <a class="code" href="group__m__http__simple__write.html#ga757f218d628a72b7cff87ae04f3e0014">M_http_simple_read_body</a>(simple, &amp;len);</div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;%.*s\n&quot;</span>, (<span class="keywordtype">int</span>)len, data);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> trace_cb(<span class="keywordtype">void</span> *cb_arg, <a class="code" href="group__m__io__trace.html#ga9de6468f493c8465ee53389d50c1dc87">M_io_trace_type_t</a> type, <a class="code" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> event_type, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> data_len)</div><div class="line">{</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span> *io_type = <span class="stringliteral">&quot;UNKNOWN&quot;</span>;</div><div class="line">    <span class="keywordtype">char</span>       *dump    = NULL;</div><div class="line"></div><div class="line">    <span class="keywordflow">switch</span> (type) {</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69a08ed08ce37e683a12bf3a77dd62c468d">M_IO_TRACE_TYPE_READ</a>:</div><div class="line">            io_type = <span class="stringliteral">&quot;READ&quot;</span>;</div><div class="line">            <span class="keywordflow">break</span>;</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69a8156a9773735d37f3d4baf2446315f16">M_IO_TRACE_TYPE_WRITE</a>:</div><div class="line">            io_type = <span class="stringliteral">&quot;WRITE&quot;</span>;</div><div class="line">            <span class="keywordflow">break</span>;</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69ad2563951fa1129d3df49ed762aa95298">M_IO_TRACE_TYPE_EVENT</a>:</div><div class="line">            <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    dump = <a class="code" href="group__m__str__convert.html#ga92578e5f93242d414f9042c3d23ac7cb">M_str_hexdump</a>(<a class="code" href="group__m__str__convert.html#gga91fbd8e7976f8f06d8f54048585159efaa95c86d2b7e0b61253c5f6b0c0e52c34">M_STR_HEXDUMP_NONE</a>, 0, <span class="stringliteral">&quot;\t&quot;</span>, data, data_len);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group__m__str__check.html#ga530dc6e198ebf9e5c30bc7a28ea4567d">M_str_isempty</a>(dump)) {</div><div class="line">        <a class="code" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a>(dump);</div><div class="line">        dump = <a class="code" href="group__m__str__dup.html#gad511c2fd84ceea2451b4c478de7d374a">M_strdup</a>(<span class="stringliteral">&quot;\t&lt;No Data&gt;&quot;</span>);</div><div class="line">    }</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;%s\n%s\n&quot;</span>, io_type, dump);</div><div class="line">    <a class="code" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a>(dump);</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">static</span> M_bool iocreate_cb(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">char</span> *error, <span class="keywordtype">size_t</span> errlen, <span class="keywordtype">void</span> *thunk)</div><div class="line">{</div><div class="line">    (void)error;</div><div class="line">    (void)errlen;</div><div class="line">    (void)thunk;</div><div class="line"></div><div class="line">    <a class="code" href="group__m__io__trace.html#ga3edd3da8777f275f6a3d9891650bbeda">M_io_add_trace</a>(io, NULL, trace_cb, io, NULL, NULL);</div><div class="line">    <span class="keywordflow">return</span> M_TRUE;</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> **argv)</div><div class="line">{</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga108b8f6a295f48b218f6a1b134f92f30">M_net_http_simple_t</a> *hs;</div><div class="line">    <a class="code" href="group__m__dns.html#ga6d7651186321b1cc222aa53bd0fa3d22">M_dns_t</a>             *dns;</div><div class="line">    <a class="code" href="group__m__tls__funcs.html#ga926973c7a274988ccc7c65ca90cb8d6d">M_tls_clientctx_t</a>   *ctx;</div><div class="line"></div><div class="line">    el  = <a class="code" href="group__m__event.html#gae169dca80125767d87fe196f32ea8d74">M_event_create</a>(<a class="code" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1ac7efcb61cf28fa27d4a0a3daf68aaecf">M_EVENT_FLAG_NONE</a>);</div><div class="line">    dns = <a class="code" href="group__m__dns.html#ga6bf84aa1b967a06d2daf585ecce30128">M_dns_create</a>();</div><div class="line"></div><div class="line">    ctx = <a class="code" href="group__m__tls__funcs.html#ga466b388617ba458ea935448b1fc94276">M_tls_clientctx_create</a>();</div><div class="line">    <a class="code" href="group__m__tls__funcs.html#ga08e14903c8aba305505e8eed3dbcb913">M_tls_clientctx_set_default_trust</a>(ctx);</div><div class="line">    <a class="code" href="group__m__tls__funcs.html#ga2d99804011b84cd98b326560322a90d8">M_tls_clientctx_set_verify_level</a>(ctx, <a class="code" href="group__m__tls__funcs.html#gga7af29260b998209add89c7b03f918e4aa4e3e3297f242a54fd7b97e54a420b1bc">M_TLS_VERIFY_NONE</a>);</div><div class="line"></div><div class="line">    hs   = <a class="code" href="group__m__net__http__simple.html#gafa1b5004ed002c39ea4369688778aef4">M_net_http_simple_create</a>(el, dns, done_cb);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga4576ad793a8de7eeb98312fd3100f5a1">M_net_http_simple_set_timeouts</a>(hs, 2000, 0, 0);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga2122b5ca91942787dd6e52d018498abb">M_net_http_simple_set_tlsctx</a>(hs, ctx);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga1b1abd4f77de3b1eeca6a49f2bfe2853">M_net_http_simple_set_message</a>(hs, <a class="code" href="group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceead3ed73c6a24aad12bb5fa2d02dd264e9">M_HTTP_METHOD_GET</a>, NULL, <span class="stringliteral">&quot;text/plain&quot;</span>, <span class="stringliteral">&quot;utf-8&quot;</span>, NULL, NULL, 0);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__net__http__simple.html#gae9e369c4ba5ba633e56aaf1405168935">M_net_http_simple_set_iocreate</a>(hs, iocreate_cb);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__net__http__simple.html#gaec175c97f64dcf05b7a266e2ffb23a84">M_net_http_simple_send</a>(hs, <span class="stringliteral">&quot;http://google.com/&quot;</span>, NULL);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd">M_event_loop</a>(el, M_TIMEOUT_INF);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__tls__funcs.html#gaf5ee2284fcaa5f91acf06f14db32c409">M_tls_clientctx_destroy</a>(ctx);</div><div class="line">    <a class="code" href="group__m__dns.html#ga242ac37ba5fc0ad26dae4cc53553092a">M_dns_destroy</a>(dns);</div><div class="line">    <a class="code" href="group__m__event.html#ga603f06976101b21e00517deb529f86bb">M_event_destroy</a>(el);</div><div class="line">    <span class="keywordflow">return</span> 0;</div><div class="line">}</div></div><!-- fragment --> <h2 class="groupheader">Typedef Documentation</h2>
+<p>Simple HTTP network interface</p>
+<p>Allows for sending a request to a remote system and receiving a response. The response will be delivered as an M_http_simple_read_t via a callback.</p>
+<p>Redirects, and TLS upgrade/downgrades are handled internally by the module.</p>
+<p>Redirects have a default limit of 16 but this can be changed. It is imperative that the limit never be disabled or be set excessively large. Loop tracking is not supported and exiting redirect loops is handled by the redirect limit.</p>
+<p>Each instance of an M_net_http_simple_t can only be used once. Upon completion or cancel the object is internally destroyed and all references are invalidated.</p>
+<p>Example:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_io.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_net.h&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mstdlib/mstdlib_formats.h&gt;</span></div><div class="line"></div><div class="line"><a class="code" href="group__m__event.html#ga747f0301bfcc6db3b51eaf07e2582350">M_event_t</a> *el;</div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> done_cb(<a class="code" href="group__m__net__common.html#gaa3294221a2148caa4239f649dd7962df">M_net_error_t</a> net_error, <a class="code" href="group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4">M_http_error_t</a> http_error, <span class="keyword">const</span> <a class="code" href="group__m__http__simple__write.html#ga8bac178e94ce5b0230b6321a27282442">M_http_simple_read_t</a> *simple, <span class="keyword">const</span> <span class="keywordtype">char</span> *error, <span class="keywordtype">void</span> *thunk)</div><div class="line">{</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>       *headers;</div><div class="line">    <a class="code" href="group__m__hash__dict.html#gab143ed3e4427ecff40710f467a90ae3f">M_hash_dict_enum_t</a>  *he;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>          *key;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>          *val;</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *data;</div><div class="line">    <span class="keywordtype">size_t</span>               len;</div><div class="line"></div><div class="line">    <span class="keywordflow">if</span> (net_error != <a class="code" href="group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa5168d726e175f2aaa681774cd9365b01">M_NET_ERROR_SUCCESS</a>) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Ner Error: %s: %s\n&quot;</span>, <a class="code" href="group__m__net__common.html#gab235bdf1e3f78678f2548d001473bb7b">M_net_errcode_to_str</a>(net_error), error);</div><div class="line">        <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">        <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordflow">if</span> (http_error != <a class="code" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53">M_HTTP_ERROR_SUCCESS</a>) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;HTTP Error: %s: %s\n&quot;</span>, <a class="code" href="group__m__http.html#ga47c67c1475c6cdaf99d2df70c4925e6f">M_http_errcode_to_str</a>(http_error), error);</div><div class="line">        <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">        <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Status code: %u - %s\n&quot;</span>, <a class="code" href="group__m__http__simple__write.html#gaaeeb8386251cd3104be32fd36e6a747d">M_http_simple_read_status_code</a>(simple), <a class="code" href="group__m__http__simple__write.html#ga87680370989eae646ad55d4f945f424d">M_http_simple_read_reason_phrase</a>(simple));</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Headers:\n&quot;</span>);</div><div class="line">    headers = <a class="code" href="group__m__http__simple__write.html#ga57dfa1f2e40cfc3fb56d5e4119c96133">M_http_simple_read_headers_dict</a>(simple);</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga6ac0a0649bc07e3c7f2754a66abe4a58">M_hash_dict_enumerate</a>(headers, &amp;he);</div><div class="line">    <span class="keywordflow">while</span> (<a class="code" href="group__m__hash__dict.html#ga8aa61ab5f78bccca6351ff26bc5029f3">M_hash_dict_enumerate_next</a>(headers, he, &amp;key, &amp;val)) {</div><div class="line">        <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;\t%s: %s\n&quot;</span>, key, val);</div><div class="line">    }</div><div class="line">    <a class="code" href="group__m__hash__dict.html#ga12154e881606ff70c01fa38b443602f2">M_hash_dict_enumerate_free</a>(he);</div><div class="line">    <a class="code" href="group__m__hash__dict.html#gaedc49aa7e8f01d9d3358f6bb169c3894">M_hash_dict_destroy</a>(headers);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;Body:\n&quot;</span>);</div><div class="line">    data = <a class="code" href="group__m__http__simple__write.html#ga757f218d628a72b7cff87ae04f3e0014">M_http_simple_read_body</a>(simple, &amp;len);</div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;%.*s\n&quot;</span>, (<span class="keywordtype">int</span>)len, data);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;---\n&quot;</span>);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__event.html#ga91277642f8c76eb816003d2cea649897">M_event_done</a>(el);</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span> trace_cb(<span class="keywordtype">void</span> *cb_arg, <a class="code" href="group__m__io__trace.html#ga9de6468f493c8465ee53389d50c1dc87">M_io_trace_type_t</a> type, <a class="code" href="group__m__event.html#ga66b039653a61c8702310d03e6ba69802">M_event_type_t</a> event_type, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> data_len)</div><div class="line">{</div><div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span> *io_type = <span class="stringliteral">&quot;UNKNOWN&quot;</span>;</div><div class="line">    <span class="keywordtype">char</span>       *dump    = NULL;</div><div class="line"></div><div class="line">    <span class="keywordflow">switch</span> (type) {</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69a08ed08ce37e683a12bf3a77dd62c468d">M_IO_TRACE_TYPE_READ</a>:</div><div class="line">            io_type = <span class="stringliteral">&quot;READ&quot;</span>;</div><div class="line">            <span class="keywordflow">break</span>;</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69a8156a9773735d37f3d4baf2446315f16">M_IO_TRACE_TYPE_WRITE</a>:</div><div class="line">            io_type = <span class="stringliteral">&quot;WRITE&quot;</span>;</div><div class="line">            <span class="keywordflow">break</span>;</div><div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__m__io__trace.html#gga906c49459ff07273bc2111733993ed69ad2563951fa1129d3df49ed762aa95298">M_IO_TRACE_TYPE_EVENT</a>:</div><div class="line">            <span class="keywordflow">return</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    dump = <a class="code" href="group__m__str__convert.html#ga92578e5f93242d414f9042c3d23ac7cb">M_str_hexdump</a>(<a class="code" href="group__m__str__convert.html#gga91fbd8e7976f8f06d8f54048585159efaa95c86d2b7e0b61253c5f6b0c0e52c34">M_STR_HEXDUMP_NONE</a>, 0, <span class="stringliteral">&quot;\t&quot;</span>, data, data_len);</div><div class="line">    <span class="keywordflow">if</span> (<a class="code" href="group__m__str__check.html#ga530dc6e198ebf9e5c30bc7a28ea4567d">M_str_isempty</a>(dump)) {</div><div class="line">        <a class="code" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a>(dump);</div><div class="line">        dump = <a class="code" href="group__m__str__dup.html#gad511c2fd84ceea2451b4c478de7d374a">M_strdup</a>(<span class="stringliteral">&quot;\t&lt;No Data&gt;&quot;</span>);</div><div class="line">    }</div><div class="line"></div><div class="line">    <a class="code" href="group__m__fmt.html#gae54b252ea2bcf34b09ef1fa0f134ffa8">M_printf</a>(<span class="stringliteral">&quot;%s\n%s\n&quot;</span>, io_type, dump);</div><div class="line">    <a class="code" href="group__m__mem.html#gac4b3c1d73d6efe2542f5e729b58a271d">M_free</a>(dump);</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">static</span> M_bool iocreate_cb(<a class="code" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, <span class="keywordtype">char</span> *error, <span class="keywordtype">size_t</span> errlen, <span class="keywordtype">void</span> *thunk)</div><div class="line">{</div><div class="line">    (void)error;</div><div class="line">    (void)errlen;</div><div class="line">    (void)thunk;</div><div class="line"></div><div class="line">    <a class="code" href="group__m__io__trace.html#ga3edd3da8777f275f6a3d9891650bbeda">M_io_add_trace</a>(io, NULL, trace_cb, io, NULL, NULL);</div><div class="line">    <span class="keywordflow">return</span> M_TRUE;</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> **argv)</div><div class="line">{</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga108b8f6a295f48b218f6a1b134f92f30">M_net_http_simple_t</a> *hs;</div><div class="line">    <a class="code" href="group__m__dns.html#ga6d7651186321b1cc222aa53bd0fa3d22">M_dns_t</a>             *dns;</div><div class="line">    <a class="code" href="group__m__tls__funcs.html#ga926973c7a274988ccc7c65ca90cb8d6d">M_tls_clientctx_t</a>   *ctx;</div><div class="line"></div><div class="line">    el  = <a class="code" href="group__m__event.html#gae169dca80125767d87fe196f32ea8d74">M_event_create</a>(<a class="code" href="group__m__event.html#gga72bc04891ff7b6142b7672a207ae74b1ac7efcb61cf28fa27d4a0a3daf68aaecf">M_EVENT_FLAG_NONE</a>);</div><div class="line">    dns = <a class="code" href="group__m__dns.html#ga6bf84aa1b967a06d2daf585ecce30128">M_dns_create</a>();</div><div class="line"></div><div class="line">    ctx = <a class="code" href="group__m__tls__funcs.html#ga466b388617ba458ea935448b1fc94276">M_tls_clientctx_create</a>();</div><div class="line">    <a class="code" href="group__m__tls__funcs.html#ga08e14903c8aba305505e8eed3dbcb913">M_tls_clientctx_set_default_trust</a>(ctx);</div><div class="line">    <span class="comment">//M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);</span></div><div class="line"></div><div class="line">    hs   = <a class="code" href="group__m__net__http__simple.html#gafa1b5004ed002c39ea4369688778aef4">M_net_http_simple_create</a>(el, dns, done_cb);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga4576ad793a8de7eeb98312fd3100f5a1">M_net_http_simple_set_timeouts</a>(hs, 2000, 0, 0);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga2122b5ca91942787dd6e52d018498abb">M_net_http_simple_set_tlsctx</a>(hs, ctx);</div><div class="line">    <a class="code" href="group__m__net__http__simple.html#ga1b1abd4f77de3b1eeca6a49f2bfe2853">M_net_http_simple_set_message</a>(hs, <a class="code" href="group__m__http.html#gga9009cf9cd2abe5ab4336584eebc7fceead3ed73c6a24aad12bb5fa2d02dd264e9">M_HTTP_METHOD_GET</a>, NULL, <span class="stringliteral">&quot;text/plain&quot;</span>, <span class="stringliteral">&quot;utf-8&quot;</span>, NULL, NULL, 0);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__net__http__simple.html#gae9e369c4ba5ba633e56aaf1405168935">M_net_http_simple_set_iocreate</a>(hs, iocreate_cb);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__net__http__simple.html#gaec175c97f64dcf05b7a266e2ffb23a84">M_net_http_simple_send</a>(hs, <span class="stringliteral">&quot;http://google.com/&quot;</span>, NULL);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__event.html#gab5e0ea9055833a684aee9587252ed5fd">M_event_loop</a>(el, M_TIMEOUT_INF);</div><div class="line"></div><div class="line">    <a class="code" href="group__m__tls__funcs.html#gaf5ee2284fcaa5f91acf06f14db32c409">M_tls_clientctx_destroy</a>(ctx);</div><div class="line">    <a class="code" href="group__m__dns.html#ga242ac37ba5fc0ad26dae4cc53553092a">M_dns_destroy</a>(dns);</div><div class="line">    <a class="code" href="group__m__event.html#ga603f06976101b21e00517deb529f86bb">M_event_destroy</a>(el);</div><div class="line">    <span class="keywordflow">return</span> 0;</div><div class="line">}</div></div><!-- fragment --> <h2 class="groupheader">Typedef Documentation</h2>
 <a class="anchor" id="ga108b8f6a295f48b218f6a1b134f92f30"></a>
 <div class="memitem">
 <div class="memproto">
@@ -156,6 +161,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Done callback called when the request has completed.</p>
+<p>Once this callback returns the M_net_http_simple_t object that called this callback is destroyed internally. All external references are thus invalidated.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">net_error</td><td>Indicates where there was a network problem of some type or if the network operation succeeded. If set to anything other than M_NET_ERROR_SUCCESS http_error and simple should not be vaulted because HTTP data was never received and parsed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">http_error</td><td>Status of the HTTP response data parse. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">simple</td><td>The parsed HTTP data object. Will only be non-NULL when net_error is M_NET_ERROR_SUCCESS and http_error is M_HTTP_ERROR_SUCCESS. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Textual error message when either net_error or http_error indicate an error condition. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk parameter provided to send call. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -168,6 +185,19 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Callback to set additional I/O layers on the internal network request I/O object.</p>
+<p>The primary use for this callback is to add tracing or bandwidth shaping. TLS should not be added here because it is handled internally.</p>
+<p>Due to redirects multiple connection to multiple servers may need to be established. The callback may be called multiple times. Once for each I/O object created to establish a connection with a given server.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>The base I/O object to add layers on top of. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Error buffer to set a textual error message when returning a failure response. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">errlen</td><td>Size of error buffer. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk parameter provided to send call.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success. M_FALSE if setting up the I/O object failed and the operation should abort. </dd></dl>
 
 </div>
 </div>
@@ -201,6 +231,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Create an HTTP simple network object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">el</td><td>Event loop to operate on. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dns</td><td>DNS object. Must be valid for the duration of this object's life. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">done_cb</td><td>Callback that's called on completion of the request.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>HTTP network object on success. Otherwise NULL on error. </dd></dl>
 
 </div>
 </div>
@@ -217,6 +257,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Cancel the operation that's in progress.</p>
+<p>The hs object is invalided by this call. The registered done callback will not be called.</p>
+<p>Can be used to cancel an operation that has not yet been sent in order to destroy the hs object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -255,6 +304,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set operation timeouts.</p>
+<p>On timeout the operation will abort.</p>
+<p>No timeouts are set by default. Set to 0 to disable a timeout.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">connect_ms</td><td>Connect timeout in milliseconds. Will trigger when a connection has not been established within this time. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">stall_ms</td><td>Stall timeout in milliseconds. Will trigger when the time between read and write events has been exceeded. This helps prevent a server from causing a denial of service by sending 1 byte at a time with a large internal between each one. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">overall_ms</td><td>Overall time the operation can take in milliseconds. When exceeded the operation will abort. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -281,6 +342,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set the maximum number of allowed redirects</p>
+<p>Default 16 redirects.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>Maximum number of redirects. 0 will disable redirects. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -307,6 +377,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set the TLS client context for use with HTTPS connections.</p>
+<p>It is highly recommend a TLS client context be provided even if the initial connection address is not HTTPS. It is possible for a redirect to imitate a redirect upgrade to a TLS connection.</p>
+<p>Even if the system is known to not support HTTPS it's possible it will be changed to require it in the future. Providing the client context will prevent connections from failing in the future due to this type of server side change.</p>
+<p>The context is only applied when necessary.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ctx</td><td>The TLS client context. The context does not have to persist after being set here. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -333,6 +414,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set the I/O create callback.</p>
+<p>The callback is called when the hs object internally creates an I/O connection with a remote system.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">iocreate_cb</td><td>I/O create callback. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -395,6 +485,21 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Set message data that should be sent with the request.</p>
+<p>This is optional. If this function is not called M_net_http_simple_send will issue a GET with no data.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">method</td><td>HTTP method. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">user_agent</td><td>User agent to identify the request using. Optional. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">content_type</td><td>Type of data being sent. Optional if no data is being sent. Or if set in headers. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">charset</td><td>Character set of data being sent. Only applies to textual data and should not be be set for binary. Optional depending on content type or if included in headers. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">headers</td><td>Additional headers to send with the request. Optional. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">message</td><td>The data to send. Optional. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">message_len</td><td>The length of the data. Required if message is not NULL otherwise should be 0. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -427,6 +532,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Send the request and wait for a response.</p>
+<p>This can <b>only</b> be called once on an hs object. Behavior is undefined if called multiple times.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">hs</td><td>HTTP simple network object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>The <b>full</b> URL to send the request to. Must include <a href="http://">http://</a> or <a href="https://">https://</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk parameter that will be passed to the done callback.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success. Otherwise M_FALSE. Will not call the done callback when M_FALSE. </dd></dl>
 
 </div>
 </div>
@@ -435,7 +551,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Sep 16 2019 15:56:20 for Mstdlib-1.6.0 by
+    <li class="footer">Generated on Mon Sep 16 2019 16:38:15 for Mstdlib-1.6.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.11 </li>
   </ul>
