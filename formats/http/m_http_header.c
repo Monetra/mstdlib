@@ -304,7 +304,9 @@ M_list_str_t *M_http_split_header_vals(const char *key, const char *header_value
 		}
 
 		for (i=0; i<num_parts; i++) {
-			M_list_str_insert(split_header, M_strdup_trim(parts[i]));
+			temp = M_strdup_trim(parts[i]);
+			M_list_str_insert(split_header, temp);
+			M_free(temp);
 		}
 
 		M_str_explode_free(parts, num_parts);
