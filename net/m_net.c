@@ -69,7 +69,7 @@ M_net_error_t M_net_io_error_to_net_error(M_io_error_t ioerr)
 
 const char *M_net_errcode_to_str(M_net_error_t err)
 {
-	const char *ret;
+	const char *ret = "unknown";
 
 	switch (err) {
 		ERRCASE(M_NET_ERROR_SUCCESS);
