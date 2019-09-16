@@ -213,7 +213,10 @@ static M_http_error_t M_http_simple_read_chunk_data_finished_cb(void *thunk)
 {
 	M_http_simple_read_t *simple = thunk;
 
-	simple->rdone = M_TRUE;
+	/* We have all the data so we now know the final body length.
+	 * and that we're all done. */
+	simple->http->have_body_len = M_TRUE;
+	simple->rdone               = M_TRUE;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -544,8 +547,13 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		goto done;
 	}
 
+	/* No body length sent. We have a sucessful parse
+	 * but we more data is possible. */
+	if (!(*simple)->http->have_body_len)
+		res = M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE;
+
 done:
-	if (res != M_HTTP_ERROR_SUCCESS || !have_simple) {
+	if ((res != M_HTTP_ERROR_SUCCESS && res != M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) || !have_simple) {
 		M_http_simple_read_destroy(*simple);
 		if (have_simple) {
 			*simple = NULL;
