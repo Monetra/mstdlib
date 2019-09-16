@@ -41,35 +41,41 @@ __BEGIN_DECLS
  * 
  * Common net functions
  *
- *
  * @{
  */
 
+/*! Error codes. */
 typedef enum {
-	M_NET_ERROR_SUCCESS = 0,
-	M_NET_ERROR_ERROR,
-	M_NET_ERROR_INTERNAL,
-	M_NET_ERROR_CREATE,
-	M_NET_ERROR_PROTOFORMAT,
-	M_NET_ERROR_REDIRECT,
-	M_NET_ERROR_REDIRECT_LIMIT,
-	M_NET_ERROR_DISCONNET,
-	M_NET_ERROR_TLS_REQUIRED,
-	M_NET_ERROR_TLS_SETUP_FAILURE,
-	M_NET_ERROR_TLS_BAD_CERTIFICATE,
-	M_NET_ERROR_NOT_FOUND,
-	M_NET_ERROR_TIMEOUT,
-	M_NET_ERROR_TIMEOUT_STALL,
-	M_NET_ERROR_NOTPERM,
-	M_NET_ERROR_CONNRESET,
-	M_NET_ERROR_CONNABORTED,
-	M_NET_ERROR_PROTONOTSUPPORTED,
-	M_NET_ERROR_CONNREFUSED,
-	M_NET_ERROR_UNREACHABLE,
+	M_NET_ERROR_SUCCESS = 0,         /*!< Success. */
+	M_NET_ERROR_ERROR,               /*!< Generic error. */
+	M_NET_ERROR_INTERNAL,            /*!< Internal error. */
+	M_NET_ERROR_CREATE,              /*!< Error setting up I/O objects. */
+	M_NET_ERROR_PROTOFORMAT,         /*!< Protocol format error. */
+	M_NET_ERROR_REDIRECT,            /*!< Invalid redirect encountered. */
+	M_NET_ERROR_REDIRECT_LIMIT,      /*!< Maximum number of redirects reached. */
+	M_NET_ERROR_DISCONNET,           /*!< Unexpected disconnect. */
+	M_NET_ERROR_TLS_REQUIRED,        /*!< TLS required but TLS client context was not provided. */
+	M_NET_ERROR_TLS_SETUP_FAILURE,   /*!< Failed to add TLS context to I/O object. */
+	M_NET_ERROR_TLS_BAD_CERTIFICATE, /*!< TLS certificate verification failed. */
+	M_NET_ERROR_NOT_FOUND,           /*!< Host or location not found. */
+	M_NET_ERROR_TIMEOUT,             /*!< Operation timed out. Could be during connect or overall. */
+	M_NET_ERROR_TIMEOUT_STALL,       /*!< Operation timed out due to stall. */
+	M_NET_ERROR_NOTPERM,             /*!< Operation not permitted. */
+	M_NET_ERROR_CONNRESET,           /*!< Connection reset by peer. */
+	M_NET_ERROR_CONNABORTED,         /*!< Connection aborted. */
+	M_NET_ERROR_PROTONOTSUPPORTED,   /*!< Protocol not supported. */
+	M_NET_ERROR_CONNREFUSED,         /*!< Connection refused. */
+	M_NET_ERROR_UNREACHABLE,         /*!< Host or location unreachable. */
 } M_net_error_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Convert a Net error code to a string.
+ *
+ * \param[in] err Error code
+ *
+ * \return Name of error code (not a description, just the enum name, like M_NET_ERROR_SUCCESS)
+ */
 M_API const char *M_net_errcode_to_str(M_net_error_t err);
 
 /*! @} */
