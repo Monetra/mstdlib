@@ -460,7 +460,7 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 			call_done(hs);
             break;
         case M_EVENT_TYPE_ERROR:
-			hs->neterr = M_NET_ERROR_ERROR;
+			hs->neterr = M_net_io_error_to_net_error(M_io_get_error(io));
 			M_io_get_error_string(io, hs->error, sizeof(hs->error));
 			call_done(hs);
             break;
