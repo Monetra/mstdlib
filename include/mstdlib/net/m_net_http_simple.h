@@ -63,9 +63,9 @@ __BEGIN_DECLS
  * #include <mstdlib/mstdlib_io.h>
  * #include <mstdlib/mstdlib_net.h>
  * #include <mstdlib/mstdlib_formats.h>
- * 
+ *
  * M_event_t *el;
- * 
+ *
  * static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_http_simple_read_t *simple, const char *error, void *thunk)
  * {
  *     M_hash_dict_t       *headers;
@@ -74,25 +74,25 @@ __BEGIN_DECLS
  *     const char          *val;
  *     const unsigned char *data;
  *     size_t               len;
- * 
+ *
  *     if (net_error != M_NET_ERROR_SUCCESS) {
  *         M_printf("Ner Error: %s: %s\n", M_net_errcode_to_str(net_error), error);
  *         M_event_done(el);
  *         return;
  *     }
- * 
+ *
  *     if (http_error != M_HTTP_ERROR_SUCCESS) {
  *         M_printf("HTTP Error: %s: %s\n", M_http_errcode_to_str(http_error), error);
  *         M_event_done(el);
  *         return;
  *     }
- * 
+ *
  *     M_printf("---\n");
- * 
+ *
  *     M_printf("Status code: %u - %s\n", M_http_simple_read_status_code(simple), M_http_simple_read_reason_phrase(simple));
- * 
+ *
  *     M_printf("---\n");
- * 
+ *
  *     M_printf("Headers:\n");
  *     headers = M_http_simple_read_headers_dict(simple);
  *     M_hash_dict_enumerate(headers, &he);
@@ -101,23 +101,23 @@ __BEGIN_DECLS
  *     }
  *     M_hash_dict_enumerate_free(he);
  *     M_hash_dict_destroy(headers);
- * 
+ *
  *     M_printf("---\n");
- * 
+ *
  *     M_printf("Body:\n");
  *     data = M_http_simple_read_body(simple, &len);
  *     M_printf("%.*s\n", (int)len, data);
- * 
+ *
  *     M_printf("---\n");
- * 
+ *
  *     M_event_done(el);
  * }
- * 
+ *
  * static void trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
  * {
  *     const char *io_type = "UNKNOWN";
  *     char       *dump    = NULL;
- * 
+ *
  *     switch (type) {
  *         case M_IO_TRACE_TYPE_READ:
  *             io_type = "READ";
@@ -128,51 +128,54 @@ __BEGIN_DECLS
  *         case M_IO_TRACE_TYPE_EVENT:
  *             return;
  *     }
- * 
+ *
  *     dump = M_str_hexdump(M_STR_HEXDUMP_NONE, 0, "\t", data, data_len);
  *     if (M_str_isempty(dump)) {
  *         M_free(dump);
  *         dump = M_strdup("\t<No Data>");
  *     }
- * 
+ *
  *     M_printf("%s\n%s\n", io_type, dump);
  *     M_free(dump);
  * }
- * 
+ *
  * static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
  * {
  *     (void)error;
  *     (void)errlen;
  *     (void)thunk;
- * 
+ *
  *     M_io_add_trace(io, NULL, trace_cb, io, NULL, NULL);
  *     return M_TRUE;
  * }
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_net_http_simple_t *hs;
  *     M_dns_t             *dns;
  *     M_tls_clientctx_t   *ctx;
- * 
+ *
  *     el  = M_event_create(M_EVENT_FLAG_NONE);
  *     dns = M_dns_create();
- * 
+ *
  *     ctx = M_tls_clientctx_create();
  *     M_tls_clientctx_set_default_trust(ctx);
  *     //M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
- * 
+ *
  *     hs   = M_net_http_simple_create(el, dns, done_cb);
  *     M_net_http_simple_set_timeouts(hs, 2000, 0, 0);
  *     M_net_http_simple_set_tlsctx(hs, ctx);
  *     M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
- * 
+ *
  *     M_net_http_simple_set_iocreate(hs, iocreate_cb);
- * 
- *     M_net_http_simple_send(hs, "http://google.com/", NULL);
- * 
- *     M_event_loop(el, M_TIMEOUT_INF);
- * 
+ *
+ *     if (M_net_http_simple_send(hs, "http://google.com/", NULL)) {
+ *         M_event_loop(el, M_TIMEOUT_INF);
+ *     } else {
+ *         M_net_http_simple_cancel(hs);
+ *         M_printf("Send failed\n");
+ *     }
+ *
  *     M_tls_clientctx_destroy(ctx);
  *     M_dns_destroy(dns);
  *     M_event_destroy(el);
@@ -332,13 +335,17 @@ M_API void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_
  * This can **only** be called once on an hs object.
  * Behavior is undefined if called multiple times.
  *
+ * On failure of this call it can be called again if the error can be corrected.
+ * Otherwise if this fails M_net_http_simple_cancel needs to be called to
+ * cleanup the `hs` object.
+ *
  * \param[in] hs    HTTP simple network object.
  * \param[in] url   The **full** URL to send the request to. Must include http:// or https://.
  * \param[in] thunk Thunk parameter that will be passed to the done callback.
  *
  * \return M_TRUE on success. Otherwise M_FALSE. Will not call the done callback when M_FALSE.
  */
-M_API M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk);
+M_API M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk) M_WARN_UNUSED_RESULT;
 
 /*! @} */
 
