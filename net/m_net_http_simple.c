@@ -296,13 +296,15 @@ static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
 		if (hs->ctx == NULL) {
 			hs->neterr = M_NET_ERROR_TLS_REQUIRED;
 			M_snprintf(hs->error, sizeof(hs->error), "HTTPS Connection required but client context no set");
+			io_disconnect_and_destroy(hs);
 			return M_FALSE;
 		}
 			
 		ioerr = M_io_tls_client_add(hs->io, hs->ctx, NULL, &lid);
 		if (ioerr != M_IO_ERROR_SUCCESS) {
 			hs->neterr = M_NET_ERROR_TLS_SETUP_FAILURE;
-			M_snprintf(hs->error, sizeof(hs->error), "Failed to add client conntext: %s", M_io_error_string(ioerr));
+			M_snprintf(hs->error, sizeof(hs->error), "Failed to add client context: %s", M_io_error_string(ioerr));
+			io_disconnect_and_destroy(hs);
 			return M_FALSE;
 		}
 	}
@@ -314,6 +316,7 @@ static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
 			if (M_str_isempty(hs->error)) {
 				M_snprintf(hs->error, sizeof(hs->error), "iocreate generic failure");
 			}
+			io_disconnect_and_destroy(hs);
 			return M_FALSE;
 		}
 	}
@@ -634,6 +637,7 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	if (!M_event_add(hs->el, hs->io, run_cb, hs)) {
 		hs->neterr = M_NET_ERROR_INTERNAL;
 		M_snprintf(hs->error, sizeof(hs->error), "Event error: Failed to start");
+		io_disconnect_and_destroy(hs);
 		return M_FALSE;
 	}
 
