@@ -272,7 +272,13 @@ M_bool M_http_add_header(M_http_t *http, const char *key, const char *val)
 	if (http == NULL || M_str_isempty(key) || M_str_isempty(val))
 		return M_FALSE;
 
-	return M_http_set_header_int(&http->headers, key, val, M_TRUE);
+	if (!M_http_set_header_int(&http->headers, key, val, M_TRUE))
+		return M_FALSE;
+
+	if (M_str_caseeq(key, "Content-Type"))
+		M_http_update_ctype(http);
+
+	return M_TRUE;
 }
 
 void M_http_remove_header(M_http_t *http, const char *key)
