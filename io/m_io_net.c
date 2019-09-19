@@ -529,11 +529,11 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 			case M_EVENT_TYPE_ERROR:        /* This might be emitted on error */
 				arglen = (socklen_t)sizeof(handle->data.net.last_error_sys);
 #ifdef _WIN32
-				if (getsockopt(handle->data.net.sock, SOL_SOCKET, SO_ERROR, (char *)&handle->data.net.last_error_sys, &arglen) < 0) {
+				if (getsockopt(handle->data.net.sock, SOL_SOCKET, SO_ERROR, (char *)&handle->data.net.last_error_sys, &arglen) == 0) {
 #else
-				if (getsockopt(handle->data.net.sock, SOL_SOCKET, SO_ERROR, &handle->data.net.last_error_sys, &arglen) < 0) {
+				if (getsockopt(handle->data.net.sock, SOL_SOCKET, SO_ERROR, &handle->data.net.last_error_sys, &arglen) == 0) {
 #endif
-					M_io_net_resolve_error(handle);
+					handle->data.net.last_error = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
 				}
 
 				if (*type == M_EVENT_TYPE_WRITE && handle->data.net.last_error_sys == 0) {
@@ -571,7 +571,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 				return M_TRUE;
 		}
 	}
-
 
 	/* Attempting to listen */
 	if (ctype == M_IO_TYPE_LISTENER) {
@@ -612,6 +611,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		}
 	}
 
+
 	switch (*type) {
 		case M_EVENT_TYPE_CONNECTED:
 			M_io_net_set_sockopts(handle);
@@ -647,7 +647,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		default:
 			break;
 	}
-
 
 
 	/* Pass event on to next layer */
@@ -1122,6 +1121,7 @@ static void M_io_net_unregister_cb(M_io_layer_t *layer)
 static M_io_state_t M_io_net_state_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
 	switch (handle->state) {
 		case M_IO_NET_STATE_INIT:
 			return M_IO_STATE_INIT;
@@ -1147,17 +1147,21 @@ static M_io_state_t M_io_net_state_cb(M_io_layer_t *layer)
 static M_bool M_io_net_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_bool         rv;
 
 	if (handle->state == M_IO_NET_STATE_DISCONNECTED) {
 		M_snprintf(error, err_len, "Gracefully Closed Connection");
-		return M_TRUE;
-	}
+		rv = M_TRUE;
+	} else {
 
 #ifdef _WIN32
-	return M_io_win32_errormsg(handle->data.net.last_error_sys, error, err_len);
+		rv = M_io_win32_errormsg(handle->data.net.last_error_sys, error, err_len);
 #else
-	return M_io_posix_errormsg(handle->data.net.last_error_sys, error, err_len);
+		rv = M_io_posix_errormsg(handle->data.net.last_error_sys, error, err_len);
 #endif
+	}
+
+	return rv;
 }
 
 
