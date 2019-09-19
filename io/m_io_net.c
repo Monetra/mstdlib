@@ -563,6 +563,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 				*type         = M_EVENT_TYPE_ERROR;
 				handle->state = M_IO_NET_STATE_ERROR;
 				M_io_net_handle_close(comm, handle);
+				M_io_set_error(comm, handle->data.net.last_error);
 				return M_FALSE;
 
 			default:
@@ -619,13 +620,16 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		case M_EVENT_TYPE_ERROR:
 			if (handle->state == M_IO_NET_STATE_CONNECTED && handle->data.net.last_error_sys == 0) {
 				/* No way to *really* know the error, use the reset by peer error */
+				/* NOTE: really? couldn't we getsockopt(handle->data.net.sock, SOL_SOCKET, SO_ERROR, ...) like we do for connect errors? */
 #ifdef _WIN32
 				handle->data.net.last_error_sys = WSAECONNRESET;
 #else
 				handle->data.net.last_error_sys = ECONNRESET;
 #endif
 			}
-			handle->state = M_IO_NET_STATE_ERROR;
+			handle->state               = M_IO_NET_STATE_ERROR;
+			handle->data.net.last_error = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
+			M_io_set_error(comm, handle->data.net.last_error);
 			/* DO NOT close handle automatically, user will do so. */
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
