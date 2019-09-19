@@ -98,22 +98,26 @@ M_bool M_io_posix_errormsg(int err, char *error, size_t err_len)
 	M_mem_set(buf, 0, sizeof(buf));
 	M_mem_set(error, 0, err_len);
 
-	if (err == 0)
+	if (err == 0) {
 		return M_FALSE;
+	}
 
 	/* GLIBC's method, or Bionic >= Android M */
-#  if defined(__linux__) && defined(_GNU_SOURCE) && !(defined(__BIONIC__) || __ANDROID_API__ >= __ANDROID_API_M__)
+#  if defined(__linux__) && defined(_GNU_SOURCE) && (!defined(__ANDROID_API__) || __ANDROID_API__ >= __ANDROID_API_M__)
 	const_temp = strerror_r(err, buf, sizeof(buf));
-	if (const_temp == NULL)
+	if (const_temp == NULL) {
 		return M_FALSE;
+	}
 #  elif ((defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600))
-	if (strerror_r(err, buf, sizeof(buf)) != 0)
+	if (strerror_r(err, buf, sizeof(buf)) != 0) {
 		return M_FALSE;
+	}
 	const_temp = buf;
 #  else
 	const_temp = strerror(err);
-	if (const_temp == NULL)
+	if (const_temp == NULL) {
 		return M_FALSE;
+	}
 #  endif
 
 	M_snprintf(error, err_len, "%s", const_temp);

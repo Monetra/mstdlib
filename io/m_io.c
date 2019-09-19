@@ -1014,6 +1014,7 @@ void M_io_get_error_string(M_io_t *io, char *error, size_t err_len)
 
 	if (!done) {
 		M_io_state_t state = M_io_get_state(io);
+
 		if (state == M_IO_STATE_DISCONNECTED) {
 			/* We want to avoid a "Success. No Error" response when someone queries
 			 * for the reason for a disconnect.  Even though that is technically

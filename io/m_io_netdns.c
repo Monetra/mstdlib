@@ -283,6 +283,7 @@ static void M_io_netdns_realio_cb(M_event_t *event, M_event_type_t type, M_io_t 
 	M_io_t        *io     = arg;
 	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, "NET");
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
 	(void)event;
 //M_printf("%s(): [%p] event %p io %p type %d realio %p\n", __FUNCTION__, (void *)M_thread_self(), event, io, (int)type, realio);
 
