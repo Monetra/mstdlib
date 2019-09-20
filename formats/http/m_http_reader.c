@@ -264,7 +264,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 		}
 	}
 
-	if (M_str_caseeq(key, "transfer-encoding") && M_str_caseeq(val, "chunked")) {
+	if (M_str_caseeq(key, "transfer-encoding") && M_str_caseeq_start(val, "chunked")) {
 		if (httpr->data_type == M_HTTP_DATA_FORMAT_CHUNKED) {
 			return M_HTTP_ERROR_HEADER_DUPLICATE;
 		}
