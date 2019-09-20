@@ -105,6 +105,7 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 {
 	M_http_simple_read_t *simple = thunk;
 	char                 *val;
+	M_http_method_t       method;
 	M_int64               i64v;
 
 	switch (format) {
@@ -116,26 +117,6 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 		case M_HTTP_DATA_FORMAT_UNKNOWN:
 			return M_HTTP_ERROR_UNSUPPORTED_DATA;
 	}
-
-	val = M_http_header(simple->http, "content-length");
-	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
-		M_free(val);
-		return M_HTTP_ERROR_LENGTH_REQUIRED;
-	} else if (!M_str_isempty(val)) {
-		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
-			M_free(val);
-			return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
-		}
-
-		/* No body so we're all done. */
-		if (i64v == 0) {
-			simple->rdone = M_TRUE;
-		}
-
-		simple->http->body_len      = (size_t)i64v;
-		simple->http->have_body_len = M_TRUE;
-	}
-	M_free(val);
 
 	/* Set host/port if they were not part of the URI. */
 	val = M_http_header(simple->http, "host");
@@ -157,6 +138,43 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 				simple->http->port = port;
 			}
 		}
+	}
+	M_free(val);
+
+	/* We have a callback to let us know when all the data is done. */
+	if (format == M_HTTP_DATA_FORMAT_CHUNKED)
+		return M_HTTP_ERROR_SUCCESS;
+
+	val = M_http_header(simple->http, "content-length");
+	/* These typically don't have a body. That said, a client **could** send a
+	 * body with these bodiless methods. In which case we need to honor
+	 * content-length and read the body. The body should be ignored but we need
+	 * to parse the full message. */
+	method = M_http_method(simple->http);
+	if (method == M_HTTP_METHOD_GET || method == M_HTTP_METHOD_HEAD || method == M_HTTP_METHOD_DELETE || method == M_HTTP_METHOD_TRACE) {
+		if (M_str_isempty(val)) {
+			simple->rdone = M_TRUE;
+			simple->http->have_body_len = M_TRUE;
+			return M_HTTP_ERROR_SUCCESS;
+		}
+	}
+
+	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
+		M_free(val);
+		return M_HTTP_ERROR_LENGTH_REQUIRED;
+	} else if (!M_str_isempty(val)) {
+		if (M_str_to_int64_ex(val, M_str_len(val), 10, &i64v, NULL) != M_STR_INT_SUCCESS || i64v < 0) {
+			M_free(val);
+			return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
+		}
+
+		/* No body so we're all done. */
+		if (i64v == 0) {
+			simple->rdone = M_TRUE;
+		}
+
+		simple->http->body_len      = (size_t)i64v;
+		simple->http->have_body_len = M_TRUE;
 	}
 	M_free(val);
 
