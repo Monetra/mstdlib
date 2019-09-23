@@ -206,7 +206,7 @@ cleanup:
 			/* Sent disconnected or error soft event */
 			if (_handle->state == M_IO_STATE_CONNECTING || _handle->state == M_IO_STATE_CONNECTED) {
 				M_snprintf(_handle->error, sizeof(_handle->error), (eventCode == NSStreamEventErrorOccurred)?"Received NSStreamEventErrorOccurred":"Received NSStreamEventEndEncountered");
-				if (eventcode == NSStreamEventErrorOccurred) {
+				if (eventCode == NSStreamEventErrorOccurred) {
 					_handle->state = M_IO_STATE_ERROR;
 					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Can we get a better error? */);
 				} else {
