@@ -38,6 +38,7 @@ static struct {
 	{ "{ \"a\":0.55 }",      "{\n  \"a\" : 0.55\n}",          M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
 	{ "{ \"a\":0.55 }",      "{\r\n  \"a\" : 0.55\r\n}",      M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
 	{ "{ \"a\":0.5500 }",    "{\"a\":0.55}",                  M_JSON_WRITER_NONE                                                   },
+	{ "{ \"a\":\"\" }",       "{\"a\":\"\"}",                 M_JSON_WRITER_NONE                                                   },
 	{ "{ \"a\":\"1\" }",     "{\"a\":\"1\"}",                 M_JSON_WRITER_NONE                                                   },
 	{ "{ \"a\":\"1\" }",     "{\n\t\"a\" : \"1\"\n}",         M_JSON_WRITER_PRETTYPRINT_TAB                                        },
 	{ "{ \"a\":\"1\" }",     "{\n  \"a\" : \"1\"\n}",         M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
@@ -83,6 +84,7 @@ static struct {
 	{ "[ 1, 2 ]",            "[\n\t1,\n\t2\n]",               M_JSON_WRITER_PRETTYPRINT_TAB                                        },
 	{ "[ 1, 2 ]",            "[\n  1,\n  2\n]",               M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
 	{ "[ 1, 2 ]",            "[\r\n  1,\r\n  2\r\n]",         M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_WINLINEEND },
+	{ "[ \"\" ]",            "[\"\"]",                        M_JSON_WRITER_NONE                                                   },
 	{ "[ \"ab\\\"cd\" ]",    "[\"ab\\\"cd\"]",                M_JSON_WRITER_NONE                                                   },
 	{ "[ \"ab\\\"cd\" ]",    "[\n\t\"ab\\\"cd\"\n]",          M_JSON_WRITER_PRETTYPRINT_TAB                                        },
 	{ "[ \"ab\\\"cd\" ]",    "[\n  \"ab\\\"cd\"\n]",          M_JSON_WRITER_PRETTYPRINT_SPACE                                      },
@@ -799,6 +801,27 @@ START_TEST(check_json_object_unique_keys)
 }
 END_TEST
 
+#define JSON_OBJECT_GET_STRING "{\"a\":1,\"b\":\"2\",\"c\":\"\"}"
+START_TEST(check_json_object_get_string)
+{
+	M_json_node_t  *json;
+	const char     *const_temp;
+	M_json_error_t  error;
+
+	json = M_json_read(JSON_OBJECT_GET_STRING, M_str_len(JSON_OBJECT_GET_STRING), M_JSON_READER_NONE, NULL, &error, NULL, NULL);
+	ck_assert_msg(json != NULL, "String was not parsed");
+
+	const_temp = M_json_object_value_string(json, "a");
+	ck_assert_msg(const_temp == NULL, "'a' == NULL");
+
+	const_temp = M_json_object_value_string(json, "b");
+	ck_assert_msg(const_temp != NULL, "'b' == NULL");
+
+	const_temp = M_json_object_value_string(json, "c");
+	ck_assert_msg(const_temp != NULL, "'c' == NULL");
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_json_suite(void)
@@ -814,6 +837,7 @@ Suite *M_json_suite(void)
 	TCase *tc_json_parent_object;
 	TCase *tc_json_parent_array;
 	TCase *tc_json_object_unique_keys;
+	TCase *tc_json_object_get_string;
 
 	suite = suite_create("json");
 
@@ -856,6 +880,10 @@ Suite *M_json_suite(void)
 	tc_json_object_unique_keys = tcase_create("check_json_object_unique_keys");
 	tcase_add_test(tc_json_object_unique_keys, check_json_object_unique_keys);
 	suite_add_tcase(suite, tc_json_object_unique_keys);
+
+	tc_json_object_get_string = tcase_create("check_json_object_get_string");
+	tcase_add_test(tc_json_object_get_string, check_json_object_get_string);
+	suite_add_tcase(suite, tc_json_object_get_string);
 
 	return suite;
 }
