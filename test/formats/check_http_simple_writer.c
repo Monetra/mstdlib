@@ -65,10 +65,10 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"\n\n" \
 	"That I have"
 #define req_data_rsp1 "GET /cgi/bin/blah HTTP/1.1\r\n" \
-	"Host:example.com\r\n" \
-	"User-Agent:simple-writer\r\n" \
-	"Content-Length:26\r\n" \
-	"Content-Type:text/plain\r\n" \
+	"Host: example.com\r\n" \
+	"User-Agent: simple-writer\r\n" \
+	"Content-Length: 26\r\n" \
+	"Content-Type: text/plain\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -78,88 +78,88 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"That I have"
 
 #define req_data_rsp2 "GET /cgi/bin/blah HTTP/1.1\r\n" \
-	"Host:example.com\r\n" \
-	"User-Agent:simple-writer\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:text/plain\r\n" \
+	"Host: example.com\r\n" \
+	"User-Agent: simple-writer\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define req_data_rsp3  "GET /cgi/bin/blah HTTP/1.1\r\n" \
-	"Host:example.com\r\n" \
-	"User-Agent:simple-writer\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:text/plain; charset=utf8\r\n" \
+	"Host: example.com\r\n" \
+	"User-Agent: simple-writer\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain; charset=utf8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define req_data_rsp4  "GET /cgi/bin/blah HTTP/1.1\r\n" \
-	"Host:example.com\r\n" \
-	"User-Agent:simple-writer\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Host: example.com\r\n" \
+	"User-Agent: simple-writer\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define req_data_req5 "[ 4, 'float', { key: 'v1', key2: 1, key3: inf } ]"
 #define req_data_rsp5 "POST / HTTP/1.1\r\n" \
-	"Host:example2.com:443\r\n" \
-	"User-Agent:swriter\r\n" \
-	"Content-Length:49\r\n" \
-	"Content-Type:application/json; charset=utf8\r\n" \
+	"Host: example2.com:443\r\n" \
+	"User-Agent: swriter\r\n" \
+	"Content-Length: 49\r\n" \
+	"Content-Type: application/json; charset=utf8\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"[ 4, 'float', { key: 'v1', key2: 1, key3: inf } ]"
 #define req_data_rsp6 "PUT / HTTP/1.1\r\n" \
-	"Host:example.com:443\r\n" \
-	"User-Agent:swriter\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Host: example.com:443\r\n" \
+	"User-Agent: swriter\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define req_data_req7 "test+123+%2B+done"
 #define req_data_rsp7 "DELETE / HTTP/1.1\r\n" \
-	"Host:e.com:7000\r\n" \
-	"Content-Length:17\r\n" \
-	"Content-Type:application/x-www-form-urlencoded; charset=application/x-www-form-urlencoded\r\n" \
+	"Host: e.com:7000\r\n" \
+	"Content-Length: 17\r\n" \
+	"Content-Type: application/x-www-form-urlencoded; charset=application/x-www-form-urlencoded\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test+123+%2B+done"
 
 #define req_data_req8 "test%20123%20+%20done"
 #define req_data_rsp8 "DELETE / HTTP/1.1\r\n" \
-	"Host:e.com:7000\r\n" \
-	"Content-Length:21\r\n" \
-	"Content-Type:application/xml; charset=percent\r\n" \
+	"Host: e.com:7000\r\n" \
+	"Content-Length: 21\r\n" \
+	"Content-Type: application/xml; charset=percent\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test%20123%20+%20done"
 
 #define req_data_req9 "test \r\n123 \r\n done\n+3\n\n\n"
 #define req_data_rsp9 "CONNECT /no HTTP/1.1\r\n" \
-	"Host:host.:999\r\n" \
-	"Content-Length:24\r\n" \
-	"Content-Type:image/png; charset=latin_1\r\n" \
+	"Host: host.:999\r\n" \
+	"Content-Length: 24\r\n" \
+	"Content-Type: image/png; charset=latin_1\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test \r\n123 \r\n done\n+3\n\n\n"
 
 #define req_data_req10 "test \r\n123 \r\n done\n+3\n\n\n"
 #define req_data_rsp10 "TRACE /no HTTP/1.1\r\n" \
-	"Host:host.:999\r\n" \
-	"Content-Length:24\r\n" \
-	"Content-Type:none; charset=cp1252\r\n" \
+	"Host: host.:999\r\n" \
+	"Content-Length: 24\r\n" \
+	"Content-Type: none; charset=cp1252\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test \r\n123 \r\n done\n+3\n\n\n"
 
 #define req_data_req11 "test \r\n123 \r\n done\n+3\n\n\n"
 #define req_data_rsp11 "HEAD /80 HTTP/1.1\r\n" \
-	"Host:.\r\n" \
-	"User-Agent:880088\r\n" \
-	"Content-Length:24\r\n" \
-	"Content-Type:uh...\r\n" \
+	"Host: .\r\n" \
+	"User-Agent: 880088\r\n" \
+	"Content-Length: 24\r\n" \
+	"Content-Type: uh...\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"test \r\n123 \r\n done\n+3\n\n\n"
@@ -194,10 +194,10 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 "  </8ut9adaetgaon>\n" \
 "</xadaaaaaaaaaaaaa>"
 #define req_data_rsp12 "POST /nab/communication/olliv HTTP/1.1\r\n" \
-"Host:patterts.vaneerprednee.com:443\r\n" \
-"User-Agent:the main user\r\n" \
-"Content-Length:936\r\n" \
-"Content-Type:text/xml; charset=ascii\r\n" \
+"Host: patterts.vaneerprednee.com:443\r\n" \
+"User-Agent: the main user\r\n" \
+"Content-Length: 936\r\n" \
+"Content-Type: text/xml; charset=ascii\r\n" \
 "Date:\r\n" \
 "\r\n" \
 "<xadaaaaaaaaaaaaa version=\"1.80\" xmlns=\"http://www.website.p.com/schema\" variable=\"2789393\">\n" \
@@ -297,13 +297,13 @@ static M_hash_dict_t *check_request_headers_cb1(void)
 	return headers;
 }
 #define hreq_data_rsp1 "GET / HTTP/1.1\r\n" \
-	"ABC:XYZ\r\n" \
-	"Val:123, 456\r\n" \
-	"C-V:This is a test\r\n" \
-	"Host:localhost:443\r\n" \
-	"User-Agent:test\r\n" \
-	"Content-Length:26\r\n" \
-	"Content-Type:t\r\n" \
+	"ABC: XYZ\r\n" \
+	"Val: 123, 456\r\n" \
+	"C-V: This is a test\r\n" \
+	"Host: localhost:443\r\n" \
+	"User-Agent: test\r\n" \
+	"Content-Length: 26\r\n" \
+	"Content-Type: t\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -327,12 +327,12 @@ static M_hash_dict_t *check_request_headers_cb2(void)
 	return headers;
 }
 #define hreq_data_rsp2 "GET / HTTP/1.1\r\n" \
-	"ABC:XYZ\r\n" \
-	"val:123, 456\r\n" \
-	"Host:localhost:443\r\n" \
-	"User-Agent:test\r\n" \
-	"Content-Length:26\r\n" \
-	"Content-Type:t\r\n" \
+	"ABC: XYZ\r\n" \
+	"val: 123, 456\r\n" \
+	"Host: localhost:443\r\n" \
+	"User-Agent: test\r\n" \
+	"Content-Length: 26\r\n" \
+	"Content-Type: t\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -358,12 +358,12 @@ static M_hash_dict_t *check_request_headers_cb3(void)
 	return headers;
 }
 #define hreq_data_rsp3 "GET / HTTP/1.1\r\n" \
-	"ABC:XYZ\r\n" \
-	"val:123, 456, 789\r\n" \
-	"user-agent:The checker\r\n" \
-	"Content-TYPe:application/json\r\n" \
-	"Host:l.internal:8080\r\n" \
-	"Content-Length:26\r\n" \
+	"ABC: XYZ\r\n" \
+	"val: 123, 456, 789\r\n" \
+	"user-agent: The checker\r\n" \
+	"Content-TYPe: application/json\r\n" \
+	"Host: l.internal:8080\r\n" \
+	"Content-Length: 26\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -382,10 +382,10 @@ static M_hash_dict_t *check_request_headers_cb4(void)
 	return headers;
 }
 #define hreq_data_rsp4 "GET / HTTP/1.1\r\n" \
-	"Content-Length:9430\r\n" \
-	"Host:localhost:443\r\n" \
-	"User-Agent:test\r\n" \
-	"Content-Type:t\r\n" \
+	"Content-Length: 9430\r\n" \
+	"Host: localhost:443\r\n" \
+	"User-Agent: test\r\n" \
+	"Content-Type: t\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -400,12 +400,12 @@ static M_hash_dict_t *check_request_headers_cb5(void)
 	return headers;
 }
 #define hreq_data_rsp5 "GET / HTTP/1.1\r\n" \
-	"Accept-Language:en, mi\r\n" \
-	"Modifiers:text/*; q=0.3; m=9, text/html; q=0.4; level=2, */*; q=0.5\r\n" \
-	"Host:localhost:443\r\n" \
-	"User-Agent:test\r\n" \
-	"Content-Length:26\r\n" \
-	"Content-Type:t\r\n" \
+	"Accept-Language: en, mi\r\n" \
+	"Modifiers: text/*; q=0.3; m=9, text/html; q=0.4; level=2, */*; q=0.5\r\n" \
+	"Host: localhost:443\r\n" \
+	"User-Agent: test\r\n" \
+	"Content-Length: 26\r\n" \
+	"Content-Type: t\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -458,8 +458,8 @@ START_TEST(check_request_headers)
 END_TEST
 
 #define rsp_data_rsp1 "HTTP/1.1 200 OK\r\n" \
-	"Content-Length:26\r\n" \
-	"Content-Type:application/json\r\n" \
+	"Content-Length: 26\r\n" \
+	"Content-Type: application/json\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"This is\n" \
@@ -468,20 +468,20 @@ END_TEST
 	"That I have"
 
 #define rsp_data_rsp2 "HTTP/1.1 201 OMG\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define rsp_data_rsp3 "HTTP/1.1 400 Bad Request\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:text/plain; charset=utf8\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain; charset=utf8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define rsp_data_rsp4 "HTTP/1.1 600 Generic\r\n" \
-	"Content-Length:49\r\n" \
-	"Content-Type:text/plain; charset=utf8\r\n" \
+	"Content-Length: 49\r\n" \
+	"Content-Type: text/plain; charset=utf8\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"[ 4, 'float', { key: 'v1', key2: 1, key3: inf } ]"
@@ -526,14 +526,14 @@ START_TEST(check_response)
 END_TEST
 
 #define clen_rsp1 "HTTP/1.1 200 OK\r\n" \
-	"Content-Length:102\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Content-Length: 102\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define clen_rsp2 "HTTP/1.1 200 OK\r\n" \
-	"Content-Length:0\r\n" \
-	"Content-Type:application/octet-stream\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 

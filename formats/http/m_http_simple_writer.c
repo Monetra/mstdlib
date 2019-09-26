@@ -224,9 +224,9 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		temp = M_http_header(http, key);
 
 		M_buf_add_str(buf, key);
-		/* There isn't supposed to be a space after the : per the standard.
-		 * People just put it there anyway but we want to be correct. */
-		M_buf_add_byte(buf, ':');
+		/* We're adding the optional white space after the colon because it's
+		 * easier to read when looking at a trace. */
+		M_buf_add_str(buf, ": ");
 		M_buf_add_str(buf, temp);
 		M_buf_add_str(buf, "\r\n");
 
