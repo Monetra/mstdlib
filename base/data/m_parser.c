@@ -1452,8 +1452,8 @@ char *M_parser_read_strdup_hex(M_parser_t *parser, size_t len)
 		return NULL;
 	}
 
-	hex = M_bincodec_encode_alloc(M_parser_peek(parser), parser->data_len, 0, M_BINCODEC_HEX);
-	M_parser_consume(parser, parser->data_len);
+	hex = M_bincodec_encode_alloc(M_parser_peek(parser), len, 0, M_BINCODEC_HEX);
+	M_parser_consume(parser, len);
 	return hex;
 }
 
