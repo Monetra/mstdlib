@@ -15,6 +15,7 @@ var group__m__net__common =
       [ "M_NET_ERROR_NOT_FOUND", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa00dbae0ee73aae2e5beff586c873934d", null ],
       [ "M_NET_ERROR_TIMEOUT", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfab19a86b2b1941fc6e069aeef39008c6b", null ],
       [ "M_NET_ERROR_TIMEOUT_STALL", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa82520161aef47aea0af4e26e7c74a7d2", null ],
+      [ "M_NET_ERROR_OVER_LIMIT", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa4d20ccab57e733da1e519fa06e8b9478", null ],
       [ "M_NET_ERROR_NOTPERM", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa267d6f76daa755b4dbe2bc140de4e8ff", null ],
       [ "M_NET_ERROR_CONNRESET", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa750a280df67a8794ba36d16d0d0a4cfa", null ],
       [ "M_NET_ERROR_CONNABORTED", "group__m__net__common.html#ggaa3294221a2148caa4239f649dd7962dfa63dcecbf6d31f7e0d6c03fcf784f5e16", null ],
