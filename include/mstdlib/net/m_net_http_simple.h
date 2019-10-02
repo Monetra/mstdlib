@@ -52,6 +52,14 @@ __BEGIN_DECLS
  * is not supported and exiting redirect loops is handled
  * by the redirect limit.
  *
+ * Since this buffers data in memory the maximum received
+ * data size can be configured to prevent running out
+ * of memory. The default if not set is 50 MB.
+ *
+ * By default there is no timeout waiting for the
+ * operation to complete. It will wait indefinitely
+ * unless timeouts are explicitly set.
+ *
  * Each instance of an M_net_http_simple_t can only be
  * used once. Upon completion or cancel the object is internally
  * destroyed and all references are invalidated.
@@ -281,6 +289,17 @@ M_API void M_net_http_simple_set_timeouts(M_net_http_simple_t *hs, M_uint64 conn
  * \param[in] max Maximum number of redirects. 0 will disable redirects.
  */
 M_API void M_net_http_simple_set_max_redirects(M_net_http_simple_t *hs, M_uint64 max);
+
+
+/*! Set max receive data size
+ *
+ * Default 50 MB.
+ *
+ * \param[in] hs  HTTP simple network object.
+ * \param[in] max Maximum number of bytes that can be received. 0 will disable redirects.
+ *                Use the value (1024*1024*50) bytes to set a 50 MB limit.
+ */
+M_API void M_net_http_simple_set_max_receive_size(M_net_http_simple_t *hs, M_uint64 max);
 
 
 /*! Set the TLS client context for use with HTTPS connections.

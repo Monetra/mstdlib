@@ -34,6 +34,8 @@ struct M_net_http_simple {
 	M_uint64           redirect_max;
 	M_uint64           redirect_cnt;
 
+	M_uint64           receive_max;
+
 	M_uint64           timeout_connect_ms;
 	M_uint64           timeout_stall_ms;
 	M_uint64           timeout_overall_ms;
@@ -433,6 +435,13 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
         case M_EVENT_TYPE_READ:
             M_io_read_into_parser(io, hs->read_parser);
 
+			if (hs->receive_max != 0 && M_parser_len(hs->read_parser) > hs->receive_max) {
+				hs->neterr = M_NET_ERROR_OVER_LIMIT;
+				M_snprintf(hs->error, sizeof(hs->error), "Exceeded maximum receive data size limit");
+				call_done(hs);
+				break;
+			}
+
 			M_parser_mark(hs->read_parser);
 			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
 			if (httperr == M_HTTP_ERROR_SUCCESS) {
@@ -501,6 +510,7 @@ M_net_http_simple_t *M_net_http_simple_create(M_event_t *el, M_dns_t *dns, M_net
 	hs->el           = el;
 	hs->dns          = dns;
 	hs->redirect_max = 16;
+	hs->receive_max  = 1024*1024*50; /* 50 MB */
 	hs->done_cb      = done_cb;
 	hs->method       = M_HTTP_METHOD_GET;
 	hs->user_agent   = M_strdup(DEFAULT_USER_AGENT);
@@ -531,6 +541,13 @@ void M_net_http_simple_set_max_redirects(M_net_http_simple_t *hs, M_uint64 max)
 	if (hs == NULL)
 		return;
 	hs->redirect_max = max;
+}
+
+void M_net_http_simple_set_max_receive_size(M_net_http_simple_t *hs, M_uint64 max)
+{
+	if (hs == NULL)
+		return;
+	hs->receive_max = max;
 }
 
 void M_net_http_simple_set_tlsctx(M_net_http_simple_t *hs, M_tls_clientctx_t *ctx)
