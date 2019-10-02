@@ -60,6 +60,7 @@ typedef enum {
 	M_NET_ERROR_NOT_FOUND,           /*!< Host or location not found. */
 	M_NET_ERROR_TIMEOUT,             /*!< Operation timed out. Could be during connect or overall. */
 	M_NET_ERROR_TIMEOUT_STALL,       /*!< Operation timed out due to stall. */
+	M_NET_ERROR_OVER_LIMIT,          /*!< Maximum data size limit exceeded. */
 	M_NET_ERROR_NOTPERM,             /*!< Operation not permitted. */
 	M_NET_ERROR_CONNRESET,           /*!< Connection reset by peer. */
 	M_NET_ERROR_CONNABORTED,         /*!< Connection aborted. */
