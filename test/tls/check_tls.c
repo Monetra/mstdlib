@@ -104,6 +104,8 @@ static const char *tls_protocol_name(M_tls_protocols_t protocol)
 			return "TLSv1.1";
 		case M_TLS_PROTOCOL_TLSv1_2:
 			return "TLSv1.2";
+		case M_TLS_PROTOCOL_TLSv1_3:
+			return "TLSv1.3";
 		default:
 			break;
 	}
@@ -451,6 +453,7 @@ M_printf("ServerCert: %s\n", realcert);
 		return M_EVENT_ERR_RETURN;
 	}
 
+	//M_tls_clientctx_set_protocols(clientctx, M_TLS_PROTOCOL_TLSv1_2);
 	M_tls_clientctx_set_applications(clientctx, applist);
 
 	/* GENERATE SERVER CTX */
