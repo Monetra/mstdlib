@@ -82,6 +82,26 @@ struct M_io_handle {
 static M_tls_init_t       M_tls_initialized       = 0;
 static BIO_METHOD        *M_tls_bio_method        = NULL;
 
+/* Compatibility functions */
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL || defined(LIBRESSL_VERSION_NUMBER)
+static int SSL_has_pending(const SSL *s)
+{
+	(void)s;
+	return 0;
+}
+
+static void BIO_set_shutdown(BIO *a, int shut)
+{
+	a->shutdown = shut;
+}
+
+static int BIO_get_shutdown(BIO *a)
+{
+	return a->shutdown;
+}
+#endif
+
+
 static void M_tls_bio_method_new(void);
 
 static M_uint64 M_tls_get_negotiation_timeout_ms(M_io_handle_t *handle)
