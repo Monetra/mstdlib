@@ -19,7 +19,7 @@ M_uint64 expected_connections;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -173,7 +173,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_atomic_inc_u64(&active_client_connections);
 			M_atomic_inc_u64(&client_connection_count);
 			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %llums, IPConnect: %llums) (TLS: %llums %s %s %s)",
-				M_io_net_get_host(comm), net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), 
+				M_io_net_get_host(comm), net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_io_net_time_dns_ms(comm), M_io_net_time_connect_ms(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
 				tls_protocol_name(M_tls_get_protocol(comm, M_IO_LAYER_FIND_FIRST_ID)),
@@ -234,7 +234,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_atomic_inc_u64(&active_server_connections);
 			M_atomic_inc_u64(&server_connection_count);
 			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %llums %s %s %s)",
-				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), 
+				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
 				tls_protocol_name(M_tls_get_protocol(comm, M_IO_LAYER_FIND_FIRST_ID)),
 				M_tls_get_cipher(comm, M_IO_LAYER_FIND_FIRST_ID),
@@ -271,7 +271,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 }
 
 #if DEBUG
-static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
+static void trace_ssl(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_type, const unsigned char *data, size_t data_len)
 {
 	char       *buf;
 	M_timeval_t tv;
@@ -284,13 +284,14 @@ M_thread_mutex_unlock(debug_lock);
 		return;
 	}
 
-	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
-	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
 M_thread_mutex_lock(debug_lock);
+	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len);
 	M_printf("%s\n", buf);
 M_thread_mutex_unlock(debug_lock);
 	M_free(buf);
 }
+
 #endif
 
 static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *data)
@@ -351,7 +352,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 #ifdef RANDOMIZE_HOSTS
 	, "127.0.0.1", "::1"
 #endif
-}; 
+};
 
 	expected_connections      = num_connections;
 	active_client_connections = 0;
@@ -478,7 +479,7 @@ M_printf("ServerCert: %s\n", realcert);
 		event_debug("failed to add child serverctx");
 		return M_EVENT_ERR_RETURN;
 	}
-	
+
 	/* CLEAN UP */
 	M_list_str_destroy(applist);
 	M_free(boguskey);
@@ -505,7 +506,7 @@ M_printf("ServerCert: %s\n", realcert);
 	}
 
 #if DEBUG
-	M_io_add_trace(netserver, NULL, trace, netserver, NULL, NULL);
+	M_io_add_trace(netserver, NULL, trace_ssl, netserver, NULL, NULL);
 #endif
 
 	event_debug("listener started");
@@ -526,7 +527,7 @@ M_printf("ServerCert: %s\n", realcert);
 		}
 
 #if DEBUG
-		M_io_add_trace(netclient, NULL, trace, netclient, NULL, NULL);
+		M_io_add_trace(netclient, NULL, trace_ssl, netclient, NULL, NULL);
 #endif
 
 		if (!M_event_add(event, netclient, net_client_cb, NULL)) {
@@ -557,13 +558,15 @@ M_printf("ServerCert: %s\n", realcert);
 
 START_TEST(check_tls)
 {
-	M_uint64 tests[] = { 1, 25, 50, /*  100,  200, -- disable because of mac */ 0 };
+
+	M_uint64 tests[] = {  1,  25, 50, /*  100,  200, -- disable because of mac */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {
 		M_event_err_t err = check_tls_test(tests[i]);
 		ck_assert_msg(err == M_EVENT_ERR_DONE, "%d cnt%d expected M_EVENT_ERR_DONE got %s", (int)i, (int)tests[i], event_err_msg(err));
 	}
+
 }
 END_TEST
 

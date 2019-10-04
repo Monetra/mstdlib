@@ -292,6 +292,7 @@ static M_bool check_tlsspeed_test(void)
 		return M_FALSE;
 	}
 
+	//M_tls_clientctx_set_protocols(clientctx, M_TLS_PROTOCOL_TLSv1_2);
 
 	/* GENERATE SERVER CTX */
 	serverctx = M_tls_serverctx_create((const M_uint8 *)key, M_str_len(key), (const M_uint8 *)cert, M_str_len(cert), NULL, 0);
