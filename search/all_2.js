@@ -38,5 +38,6 @@ var searchData=
   ['common_20blocking_20_28synchronous_29_20io_20functions',['Common Blocking (synchronous) IO functions',['../group__m__io__block.html',1,'']]],
   ['common',['Common',['../group__m__log__common.html',1,'']]],
   ['common_20net_20functions',['Common Net functions',['../group__m__net__common.html',1,'']]],
-  ['common_20threading_20functions',['Common Threading Functions',['../group__m__thread__common.html',1,'']]]
+  ['common_20threading_20functions',['Common Threading Functions',['../group__m__thread__common.html',1,'']]],
+  ['case_20folding',['Case Folding',['../group__m__utf8__case.html',1,'']]]
 ];
