@@ -36,6 +36,7 @@ set(sources
 	data/m_str_num.c
 	data/m_str_patmatch.c
 	data/m_utf8.c
+	data/m_utf8_case.c
 
 	# fs:
 	fs/m_fs.c

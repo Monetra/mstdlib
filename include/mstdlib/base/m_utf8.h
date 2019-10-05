@@ -41,6 +41,9 @@ __BEGIN_DECLS
  * \note Non-characters are considered an error conditions because
  *       they do not have a defined meaning.
  *
+ * A utf-8 sequence is defined as the variable number of bytes that represent
+ * a single utf-8 display character.
+ *
  * @{
  */ 
 
@@ -200,6 +203,153 @@ M_API M_utf8_error_t M_utf8_cp_at(const char *str, size_t idx, M_uint32 *cp);
  * \return Result.
  */
 M_API M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, size_t *len, size_t idx);
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! \addtogroup m_utf8_case Case Folding
+ *  \ingroup m_utf8
+ *
+ * One-to-one case mappings.
+ *
+ * This is intended for programmatic comparison only. It is
+ * not intended for display. Locale specific handling is not
+ * supported.
+ *
+ * Does not account for:
+ * - One to many mapping
+ * - Many to many mapping
+ * - Equivalents. Such as, the German Eszett and ss
+ *
+ * One to many mappings use the lowest code point that
+ * matches. For example, 0x004B (capital K) maps to 0x006B (lower k).
+ * 0x212A (kelvin sign) also maps to 0x006B. The lowest code points
+ * are 0x0048 and 0x006B so those are used for the one to one case fold.
+ *
+ * \note
+ * Not all characters have a case equivalent. These characters
+ * will return themselves when folded.
+ *
+ * @{
+ */
+
+/*! Read a utf-8 sequence converting to upper case.
+ *
+ * Output is _not_ NULL terminated.
+ *
+ * \param[in]  str      utf-8 string.
+ * \param[in]  buf      Buffer to put utf-8 sequence. Can be NULL.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[out] next     Start of next character. Will point to NULL terminator
+ *                      if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr_toupper(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+
+
+/*! Read a utf-8 sequence into an M_buf_t converting to upper case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put upper case utf-8 sequence.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr_toupper_buf(const char *str, M_buf_t *buf, const char **next);
+
+
+/*! Convert a code point to the equivalent upper case code point.
+ *
+ * \param[in]  cp       Code point to convert.
+ * \param[out] upper_cp Equivalent upper case code point. Or cp if
+ *                      there is no equivalent.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_cp_toupper(M_uint32 cp, M_uint32 *upper_cp);
+
+
+/*! Convert a utf-8 string to an upper case equivalent string.
+ *
+ * \param[in]   str  utf-8 string.
+ * \param[out]  out  Upper case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_toupper(const char *str, char **out);
+
+
+/*! Read a utf-8 string into an M_buf_t converting to upper case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put upper case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_toupper_buf(const char *str, M_buf_t *buf);
+
+/*! Read a utf-8 sequence converting to lower case.
+ *
+ * Output is _not_ NULL terminated.
+ *
+ * \param[in]  str      utf-8 string.
+ * \param[in]  buf      Buffer to put utf-8 sequence. Can be NULL.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[out] next     Start of next character. Will point to NULL terminator
+ *                      if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr_tolower(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+
+
+/*! Read a utf-8 sequence into an M_buf_t converting to lower case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put lower case utf-8 sequence.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_get_chr_tolower_buf(const char *str, M_buf_t *buf, const char **next);
+
+
+/*! Convert a code point to the equivalent loer case code point.
+ *
+ * \param[in]  cp       Code point to convert.
+ * \param[out] lower_cp Equivalent lower case code point. Or cp if
+ *                      there is no equivalent.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_cp_tolower(M_uint32 cp, M_uint32 *lower_cp);
+
+
+/*! Convert a utf-8 string to an lower case equivalent string.
+ *
+ * \param[in]   str  utf-8 string.
+ * \param[out]  out  Lower case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_tolower(const char *str, char **out);
+
+
+/*! Read a utf-8 string into an M_buf_t converting to lower case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put lower case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_tolower_buf(const char *str, M_buf_t *buf);
+
+/*! @} */
 
 /*! @} */
 
