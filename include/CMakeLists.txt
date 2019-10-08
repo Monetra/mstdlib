@@ -39,6 +39,11 @@ if (MSTDLIB_INSTALL_HEADERS)
 		install(DIRECTORY mstdlib/tls/          DESTINATION "${dest}/tls" FILES_MATCHING PATTERN "*.h")
 	endif ()
 
+	if (MSTDLIB_BUILD_NET)
+		install(FILES     mstdlib/mstdlib_net.h DESTINATION "${dest}")
+		install(DIRECTORY mstdlib/net/          DESTINATION "${dest}/net" FILES_MATCHING PATTERN "*.h")
+	endif ()
+
 	if (MSTDLIB_BUILD_LOG)
 		install(FILES     mstdlib/mstdlib_log.h DESTINATION "${dest}")
 		install(DIRECTORY mstdlib/log/          DESTINATION "${dest}/log" FILES_MATCHING PATTERN "*.h")
