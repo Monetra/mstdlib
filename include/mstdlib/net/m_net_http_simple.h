@@ -26,9 +26,10 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#include <mstdlib/base/m_defs.h>
-#include <mstdlib/base/m_types.h>
-#include <mstdlib/formats/m_http.h>
+#include <mstdlib/mstdlib.h>
+#include <mstdlib/mstdlib_io.h>
+#include <mstdlib/mstdlib_formats.h>
+#include <mstdlib/mstdlib_tls.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
