@@ -465,10 +465,10 @@ static M_bool M_io_tls_process_state_connecting(M_io_layer_t *layer, M_event_typ
 				handle->negotiation_time = M_time_elapsed(&handle->negotiation_start);
 				M_io_tls_flush_write_buf(layer);
 
-				/* If there is data that has been buffered but not processed, trigger a read event */
-				if (SSL_pending(handle->ssl) || SSL_has_pending(handle->ssl)) {
-					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
-				}
+				/* If there is data that has been buffered but not processed, trigger a read event.
+				 * NOTE: Just *assume* there might be data, do NOT rely on SSL_pending() or SSL_has_pending()
+				 *       to tell you this! */
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 
 				return M_FALSE; /* Not consumed, relay rewritten connect message */
 
@@ -528,10 +528,10 @@ static M_bool M_io_tls_process_state_accepting(M_io_layer_t *layer, M_event_type
 
 				M_io_tls_flush_write_buf(layer);
 
-				/* If there is data that has been buffered but not processed, trigger a read event */
-				if (SSL_pending(handle->ssl) || SSL_has_pending(handle->ssl)) {
-					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
-				}
+				/* If there is data that has been buffered but not processed, trigger a read event.
+				 * NOTE: Just *assume* there might be data, do NOT rely on SSL_pending() or SSL_has_pending()
+				 *       to tell you this! */
+				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 
 				return M_FALSE; /* Not consumed, relay rewritten connect message */
 			}

@@ -113,7 +113,8 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 	/* Enable non-blocking support properly */
 	SSL_CTX_set_mode(ctx, SSL_MODE_ENABLE_PARTIAL_WRITE|SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-	/* Should we set this?  Not tested:
+	/* Read Ahead appears to actually cause a performance regression.  It also changes
+	 * some of the symantics of the calls which could hide bugs, so do not enable
 	 * SSL_CTX_set_read_ahead(ctx, 1);
 	 */
 
