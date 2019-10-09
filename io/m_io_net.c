@@ -772,12 +772,14 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 #ifdef AF_INET6
 	/* If requested IPv6 only, and bind ip provided was not ipv6, error */
 	if (handle->type == M_IO_NET_IPV6 && aftype != AF_INET6) {
+		M_free(sa);
 		return M_IO_ERROR_INVALID;
 	}
 #endif
 
 	/* If requested IPv4 only, and bind ip provided was not ipv4, error */
 	if (handle->type == M_IO_NET_IPV4 && aftype != AF_INET) {
+		M_free(sa);
 		return M_IO_ERROR_INVALID;
 	}
 
@@ -798,6 +800,7 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	handle->data.net.sock = socket(aftype, type, IPPROTO_TCP);
 	if (handle->data.net.sock == M_EVENT_INVALID_SOCKET) {
 		M_io_net_resolve_error(handle);
+		M_free(sa);
 		return handle->data.net.last_error;
 	}
 #if !defined(SOCK_CLOEXEC) && !defined(_WIN32)
