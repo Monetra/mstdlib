@@ -7,8 +7,6 @@ cache:
 
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
       - cmake
       - libssl-dev
@@ -22,7 +20,6 @@ addons:
       - libsqlite3-dev
       - libc-ares-dev
       - gcc-9
-      - g++-9
 
 # Add coverity certificate to system ca-certificates
 before_install:
@@ -127,9 +124,6 @@ install:
     fi
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 700 --slave /usr/bin/g++ g++ /usr/bin/g++-7
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 900 --slave /usr/bin/g++ g++ /usr/bin/g++-9
-      sudo update-alternatives --set gcc /usr/bin/gcc-9
       # The libcheck in Ubuntu 18.04 can't be linked against, so we need to build our own.
       MYDIR=`pwd` && \
       cd /tmp && \
