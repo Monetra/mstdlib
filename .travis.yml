@@ -109,8 +109,11 @@ install:
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew update --quiet && \
       brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite && \
-      export CC="clang" && \
-      export CXX="clang++"
+      sudo mkdir -p /usr/local/bin /usr/local/libexec && \
+      sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/bin/scan-build -O /usr/local/bin/scan-build && \
+      sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/libexec/ccc-analyzer -O /usr/local/libexec/ccc-analyzer && \
+      sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/libexec/c++-analyzer -O /usr/local/libexec/c++-analyzer && \
+      sudo chmod a+rx /usr/local/bin/* /usr/local/libexec/*
     fi
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
