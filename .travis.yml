@@ -83,8 +83,6 @@ jobs:
           build_command: "cmake --build _builds"
           branch_pattern: coverity_scan
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
           packages:
             - cmake
             - libssl-dev
@@ -97,8 +95,6 @@ jobs:
 #            - clang-tools-7
             - libsqlite3-dev
             - libc-ares-dev
-            - gcc-9
-            - g++-9
     - stage: Runtime Analysis
       os: linux
       env:
