@@ -107,7 +107,7 @@ jobs:
 install:
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update --quiet && \
+#      brew update --quiet && \
       brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite && \
       sudo mkdir -p /usr/local/bin /usr/local/libexec && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/bin/scan-build -O /usr/local/bin/scan-build && \
