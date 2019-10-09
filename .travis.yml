@@ -13,6 +13,7 @@ addons:
       - doxygen
       - libpq-dev
       - libmariadbd-dev
+      - clang-tools
 # already installed
 #      - clang-7
 #      - clang-tools-7
