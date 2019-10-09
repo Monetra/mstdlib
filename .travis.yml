@@ -19,7 +19,6 @@ addons:
       - unixodbc-dev
       - libsqlite3-dev
       - libc-ares-dev
-      - gcc-9
 
 # Add coverity certificate to system ca-certificates
 before_install:
