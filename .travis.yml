@@ -109,10 +109,12 @@ install:
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite && \
-      sudo mkdir -p /usr/local/bin /usr/local/libexec && \
+      sudo mkdir -p /usr/local/bin /usr/local/libexec /usr/local/share/scan-build && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/bin/scan-build -O /usr/local/bin/scan-build && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/libexec/ccc-analyzer -O /usr/local/libexec/ccc-analyzer && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/libexec/c++-analyzer -O /usr/local/libexec/c++-analyzer && \
+      sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/share/scan-build/sorttable.js -O /usr/local/share/scan-build/sorttable.js && \
+      sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/share/scan-build/scanview.css -O /usr/local/share/scan-build/scanview.css && \
       sudo chmod a+rx /usr/local/bin/* /usr/local/libexec/*
     fi
   - |
