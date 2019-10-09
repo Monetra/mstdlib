@@ -428,6 +428,7 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 	 */
 	if (wdata->fstream == NULL || (cmd & M_LOG_CMD_FILE_REOPEN) != 0) {
 		M_fs_file_close(wdata->fstream);
+		wdata->fstream = NULL;
 		open_head_logfile(wdata, M_FALSE);
 	}
 
