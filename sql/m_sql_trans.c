@@ -166,9 +166,10 @@ M_sql_error_t M_sql_trans_commit(M_sql_trans_t *trans, char *error, size_t error
 
 	/* Prevent attempting a commit if we must roll back, issue a rollback instead */
 	if (M_sql_conn_get_state(trans->conn) != M_SQL_CONN_STATE_OK) {
+		M_sql_conn_t *conn = trans->conn;
 		M_snprintf(error, error_size, "forced rollback");
 		M_sql_trans_rollback(trans);
-		if (M_sql_conn_get_state(trans->conn) == M_SQL_CONN_STATE_FAILED) {
+		if (M_sql_conn_get_state(conn) == M_SQL_CONN_STATE_FAILED) {
 			err = M_SQL_ERROR_CONN_FAILED;
 		} else {
 			err = M_SQL_ERROR_QUERY_DEADLOCK;
