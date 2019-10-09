@@ -54,22 +54,23 @@ jobs:
 # OSX is sometimes unreliable. Comment out if we start having issues.
     - os: osx
       osx_image: xcode11
+      compiler: clang
       env:
         - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite"
     - os: osx
       osx_image: xcode11
+      compiler: clang
       env:
         - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl --with-sqlite-dir=/usr/local/opt/sqlite --with-mysql-dir=/usr/local/opt/mariadb-connector-c"
     - stage: Static Analysis
       os: linux
       env:
         - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="" SCAN_BUILD="scan-build-7"
-      compiler: clang
     - os: osx
       osx_image: xcode11
+      compiler: clang
       env:
         - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite" SCAN_BUILD="scan-build"
-      compiler: clang
     - os: linux
       env:
         - BUILD_TYPE="coverity"
@@ -111,11 +112,9 @@ jobs:
 install:
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update --quiet
-      brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite llvm
-      brew link --force --overwrite llvm
-      export PATH="/usr/local/opt/llvm/bin:$PATH"
-      export CC="clang"
+      brew update --quiet && \
+      brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite && \
+      export CC="clang" && \
       export CXX="clang++"
     fi
   - |
@@ -144,28 +143,28 @@ script:
     - |
       case "${BUILD_TYPE}" in
         cmake)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds
-          cmake --build _builds
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          cmake --build _builds && \
           cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
           ;;
         asan)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds
-          cmake --build _builds
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds && \
+          cmake --build _builds && \
           cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
           ;;
         autotools)
-          ./buildconf.sh
-          mkdir build
-          pushd build
-          ../configure ${CONFIG_OPTS}
-          make -j2
-          cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/
-          make check
+          ./buildconf.sh && \
+          mkdir build && \
+          pushd build && \
+          ../configure ${CONFIG_OPTS} && \
+          make -j2 && \
+          cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
+          make check && \
           popd
           ;;
         analyze)
-          ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds
-          travis_wait 30 ${SCAN_BUILD} cmake --build _builds
+          ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          travis_wait 30 ${SCAN_BUILD} cmake --build _builds && \
           cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
           ;;
        esac
