@@ -13,10 +13,7 @@ addons:
       - doxygen
       - libpq-dev
       - libmariadbd-dev
-      - clang-tools
-# already installed
-#      - clang-7
-#      - clang-tools-7
+      - clang-tools-7
       - unixodbc-dev
       - libsqlite3-dev
       - libc-ares-dev
@@ -92,9 +89,7 @@ jobs:
             - libpq-dev
             - libmariadbd-dev
             - unixodbc-dev
-# Already installed
-#            - clang-7
-#            - clang-tools-7
+            - clang-tools-7
             - libsqlite3-dev
             - libc-ares-dev
     - stage: Runtime Analysis
