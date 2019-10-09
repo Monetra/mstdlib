@@ -1510,8 +1510,10 @@ M_tls_protocols_t M_tls_protocols_from_str(const char *protocols_str)
 		return M_TLS_PROTOCOL_INVALID;
 
 	parts = M_str_explode_str(' ', protocols_str, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (parts == NULL || num_parts == 0) {
+		M_str_explode_free(parts, num_parts);
 		return M_TLS_PROTOCOL_INVALID;
+	}
 
 	for (i=0; i<num_parts; i++) {
 		if (M_str_isempty(parts[i])) {
