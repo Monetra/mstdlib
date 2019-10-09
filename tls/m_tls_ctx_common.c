@@ -827,8 +827,10 @@ unsigned char *M_tls_alpn_list(M_list_str_t *apps, size_t *applen)
 
 	*applen = 0;
 
-	if (apps == NULL || M_list_str_len(apps) == 0)
+	if (apps == NULL || M_list_str_len(apps) == 0) {
+		M_buf_cancel(buf);
 		return NULL;
+	}
 
 	for (i=0; i<M_list_str_len(apps); i++) {
 		const char *str = M_list_str_at(apps, i);
