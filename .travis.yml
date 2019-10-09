@@ -1,5 +1,5 @@
 language: c
-dist: xenial
+dist: bionic
 sudo: required
 
 cache:
@@ -9,21 +9,20 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
-      - llvm-toolchain-xenial-7
     packages:
       - cmake
       - libssl-dev
       - doxygen
       - libpq-dev
       - libmariadbd-dev
+# already installed
+#      - clang-7
+#      - clang-tools-7
       - unixodbc-dev
-      - clang-7
-      - clang-tools-7
       - libsqlite3-dev
       - libc-ares-dev
-      - gcc-8
-      - g++-8
+      - gcc-9
+      - g++-9
 
 # Add coverity certificate to system ca-certificates
 before_install:
@@ -90,8 +89,6 @@ jobs:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - sourceline: 'ppa:adrozdoff/cmake' # newer cmake
-            - llvm-toolchain-xenial-7
           packages:
             - cmake
             - libssl-dev
@@ -99,12 +96,13 @@ jobs:
             - libpq-dev
             - libmariadbd-dev
             - unixodbc-dev
-            - clang-7
-            - clang-tools-7
+# Already installed
+#            - clang-7
+#            - clang-tools-7
             - libsqlite3-dev
             - libc-ares-dev
-            - gcc-8
-            - g++-8
+            - gcc-9
+            - g++-9
     - stage: Runtime Analysis
       os: linux
       env:
@@ -129,10 +127,10 @@ install:
     fi
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 500 --slave /usr/bin/g++ g++ /usr/bin/g++-5
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-      sudo update-alternatives --set gcc /usr/bin/gcc-8
-      # The libcheck in Ubuntu 16.04 can't be linked against, so we need to build our own.
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 700 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 900 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+      sudo update-alternatives --set gcc /usr/bin/gcc-9
+      # The libcheck in Ubuntu 18.04 can't be linked against, so we need to build our own.
       MYDIR=`pwd` && \
       cd /tmp && \
       wget https://github.com/libcheck/check/releases/download/0.12.0/check-0.12.0.tar.gz && \
