@@ -480,7 +480,7 @@ size_t M_list_insert_idx(const M_list_t *d, const void *val)
 	/* Figure out where we need to insert */
 	if ((d->flags & M_LIST_SORTED) && !d->multi_insert) {
 		stable = (d->flags&M_LIST_STABLE)?M_TRUE:M_FALSE;
-		at = M_sort_binary_insert_idx(d->start, d->elements, sizeof(*d->start), val, stable, d->equality, d->thunk);
+		at = M_sort_binary_insert_idx(d->start, d->elements, sizeof(*d->start), &val, stable, d->equality, d->thunk);
 	/* Non-sorted so insert always appends */
 	} else {
 		at = d->elements;
@@ -557,7 +557,7 @@ M_bool M_list_index_of(const M_list_t *d, const void *val, M_uint32 type, size_t
 	/* Sorted. */
 	if ((d->flags & M_LIST_SORTED) && !d->multi_insert) {
 		stable = (d->flags&M_LIST_STABLE)?M_TRUE:M_FALSE;
-		ret = M_sort_binary_search(d->start, d->elements, sizeof(*d->start), val, stable, d->equality, d->thunk, idx);
+		ret = M_sort_binary_search(d->start, d->elements, sizeof(*d->start), &val, stable, d->equality, d->thunk, idx);
 
 		if (ret && (type & M_LIST_MATCH_PTR)) {
 			ret = M_FALSE;
