@@ -35,8 +35,6 @@ set(sources
 	data/m_str_hexdump.c
 	data/m_str_num.c
 	data/m_str_patmatch.c
-	data/m_utf8.c
-	data/m_utf8_case.c
 
 	# fs:
 	fs/m_fs.c
@@ -141,6 +139,12 @@ set(sources
 	time/m_time_tz_posix.c
 	time/m_time_tz_rule.c
 	time/m_time_tzs.c
+
+	# utf8:
+	utf8/m_utf8.c
+	utf8/m_utf8_case.c
+	utf8/m_utf8_check.c
+	utf8/m_utf8_tables.c
 )
 
 if (WIN32 OR MINGW)
