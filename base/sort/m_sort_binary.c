@@ -56,7 +56,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 	if (!stable) {
 		/* Check the last value first, if we're inserting (!match), then it is probably
 		 * more efficient to append */
-		eq = compar(&key, (const unsigned char *)base+((size_t)right*esize), thunk);
+		eq = compar(key, (const unsigned char *)base+((size_t)right*esize), thunk);
 		if (eq == 0) {
 			/* We have a match so this is the element idx */
 			*idx = (size_t)right;
@@ -80,7 +80,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 
 
 		/* Check the first value. */
-		eq = compar(&key, (const unsigned char *)base+((size_t)left*esize), thunk);
+		eq = compar(key, (const unsigned char *)base+((size_t)left*esize), thunk);
 		if (eq <= 0) {
 			if (eq != 0 && match) {
 				/* No match and there isn't anything before so not found. */
@@ -98,7 +98,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 	/* Try to find the value by halving (binary search). */
 	while (left <= right) {
 		mid = ((size_t)(left + right)) >> 1;
-		eq  = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
+		eq  = compar(key, (const unsigned char *)base+(mid*esize), thunk);
 		if (eq == 0) {
 			break;
 		} else if (eq < 0) {
@@ -135,7 +135,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 
 		/* Scan backwards to find the *first* match, this is what makes it stable */
 		for ( ; mid > 0 && mid >= (size_t)left ; mid--) {
-			eq = compar(&key, (const unsigned char *)base+((mid-1)*esize), thunk);
+			eq = compar(key, (const unsigned char *)base+((mid-1)*esize), thunk);
 			if (eq != 0)
 				break;
 		}
@@ -149,7 +149,7 @@ static M_bool M_sort_binary_idx(const void *base, size_t nmemb, size_t esize, co
 		 * so we want to insert to the *end* of the identical matches */
 		while (mid < (size_t)right && eq == 0) {
 			mid++;
-			eq = compar(&key, (const unsigned char *)base+(mid*esize), thunk);
+			eq = compar(key, (const unsigned char *)base+(mid*esize), thunk);
 		}
 		*idx = mid;
 	}
