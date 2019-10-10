@@ -1,6 +1,7 @@
 var group__m__utf8 =
 [
     [ "Case Folding", "group__m__utf8__case.html", "group__m__utf8__case" ],
+    [ "Checking/Validation", "group__m__utf8__check.html", "group__m__utf8__check" ],
     [ "M_utf8_error_t", "group__m__utf8.html#ga28785f3b98f542c6f04fed54b7e341ed", [
       [ "M_UTF8_ERROR_SUCCESS", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341edaf5aecfa7fdb08312d8f95dce6f3f743c", null ],
       [ "M_UTF8_ERROR_BAD_START", "group__m__utf8.html#gga28785f3b98f542c6f04fed54b7e341eda6665f61e1e10baded3941a2aa8b868c7", null ],
