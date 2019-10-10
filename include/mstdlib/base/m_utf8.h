@@ -351,6 +351,46 @@ M_API M_utf8_error_t M_utf8_tolower_buf(const char *str, M_buf_t *buf);
 
 /*! @} */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! \addtogroup m_utf8_check Checking/Validation
+ *  \ingroup m_utf8
+ *
+ * UTF-8 Checking and Validation
+ * 
+ * @{
+ */
+
+M_API M_bool M_utf8_islower_cp(M_uint32 cp);
+M_API M_bool M_utf8_islower_chr(const char *str);
+M_API M_bool M_utf8_islower(const char *str);
+
+M_API M_bool M_utf8_isupper_cp(M_uint32 cp);
+M_API M_bool M_utf8_isupper_chr(const char *str);
+M_API M_bool M_utf8_isupper(const char *str);
+
+M_API M_bool M_utf8_isalpha_cp(M_uint32 cp);
+M_API M_bool M_utf8_isalpha_chr(const char *str);
+M_API M_bool M_utf8_isalpha(const char *str);
+
+M_API M_bool M_utf8_isalnum_cp(M_uint32 cp);
+M_API M_bool M_utf8_isalnum_chr(const char *str);
+M_API M_bool M_utf8_isalnum(const char *str);
+
+M_API M_bool M_utf8_isnum_cp(M_uint32 cp);
+M_API M_bool M_utf8_isnum_chr(const char *str);
+M_API M_bool M_utf8_isnum(const char *str);
+
+M_API M_bool M_utf8_iscntrl_cp(M_uint32 cp);
+M_API M_bool M_utf8_iscntrl_chr(const char *str);
+M_API M_bool M_utf8_iscntrl(const char *str);
+
+M_API M_bool M_utf8_ispunct_cp(M_uint32 cp);
+M_API M_bool M_utf8_ispunct_chr(const char *str);
+M_API M_bool M_utf8_ispunct(const char *str);
+
+/*! @} */
+
 /*! @} */
 
 __END_DECLS

@@ -21,10 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "m_config.h"
-
-#include <mstdlib/mstdlib.h>
-#include "m_defs_int.h"
+#include "m_utf8_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
