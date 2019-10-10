@@ -44,14 +44,14 @@ static int M_utf8_compar_cp(const void *arg1, const void *arg2, void *thunk)
 	return 1;
 }
 
-static M_bool is_x_chr(const char *str, M_bool(*cp_func)(M_uint32))
+static M_bool is_x_chr(const char *str, const char **next, M_bool(*cp_func)(M_uint32))
 {
 	M_uint32 cp;
 
 	if (M_str_isempty(str))
 		return M_FALSE;
 
-	if (M_utf8_get_cp(str, &cp, NULL) != M_UTF8_ERROR_SUCCESS)
+	if (M_utf8_get_cp(str, &cp, next) != M_UTF8_ERROR_SUCCESS)
 		return M_FALSE;
 
 	if (!M_utf8_is_valid_cp(cp))
@@ -96,9 +96,9 @@ M_bool M_utf8_islower_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_islower_chr(const char *str)
+M_bool M_utf8_islower_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_islower_cp);
+	return is_x_chr(str, next, M_utf8_islower_cp);
 }
 
 M_bool M_utf8_islower(const char *str)
@@ -119,9 +119,9 @@ M_bool M_utf8_isupper_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_isupper_chr(const char *str)
+M_bool M_utf8_isupper_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_isupper_cp);
+	return is_x_chr(str, next, M_utf8_isupper_cp);
 }
 
 M_bool M_utf8_isupper(const char *str)
@@ -157,9 +157,9 @@ M_bool M_utf8_isalpha_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_isalpha_chr(const char *str)
+M_bool M_utf8_isalpha_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_isalpha_cp);
+	return is_x_chr(str, next, M_utf8_isalpha_cp);
 }
 
 M_bool M_utf8_isalpha(const char *str)
@@ -183,9 +183,9 @@ M_bool M_utf8_isalnum_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_isalnum_chr(const char *str)
+M_bool M_utf8_isalnum_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_isalnum_cp);
+	return is_x_chr(str, next, M_utf8_isalnum_cp);
 }
 
 M_bool M_utf8_isalnum(const char *str)
@@ -212,9 +212,9 @@ M_bool M_utf8_isnum_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_isnum_chr(const char *str)
+M_bool M_utf8_isnum_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_isnum_cp);
+	return is_x_chr(str, next, M_utf8_isnum_cp);
 }
 
 M_bool M_utf8_isnum(const char *str)
@@ -235,9 +235,9 @@ M_bool M_utf8_iscntrl_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_iscntrl_chr(const char *str)
+M_bool M_utf8_iscntrl_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_iscntrl_cp);
+	return is_x_chr(str, next, M_utf8_iscntrl_cp);
 }
 
 M_bool M_utf8_iscntrl(const char *str)
@@ -276,9 +276,9 @@ M_bool M_utf8_ispunct_cp(M_uint32 cp)
 	return M_FALSE;
 }
 
-M_bool M_utf8_ispunct_chr(const char *str)
+M_bool M_utf8_ispunct_chr(const char *str, const char **next)
 {
-	return is_x_chr(str, M_utf8_ispunct_cp);
+	return is_x_chr(str, next, M_utf8_ispunct_cp);
 }
 
 M_bool M_utf8_ispunct(const char *str)
