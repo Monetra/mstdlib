@@ -33,7 +33,7 @@ static int M_utf8_compar_cp(const void *arg1, const void *arg2, void *thunk)
 	(void)thunk;
 
 	if (arg1 != NULL)
-		i1 = *(*((M_uint32 * const *)arg1));
+		i1 = *((M_uint32 const *)arg1);
 	if (arg2 != NULL)
 		i2 = *((M_uint32 const *)arg2);
 
