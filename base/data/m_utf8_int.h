@@ -33,6 +33,13 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef struct {
+	M_uint32 cp1;
+	M_uint32 cp2;
+} M_utf8_cp_map_t;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 extern M_uint32 M_utf8_table_Cc[];
 extern size_t M_utf8_table_Cc_len;
 
@@ -119,6 +126,12 @@ extern size_t M_utf8_table_Zp_len;
 
 extern M_uint32 M_utf8_table_Zs[];
 extern size_t M_utf8_table_Zs_len;
+
+extern M_utf8_cp_map_t M_utf8_table_uptolow[];
+extern size_t M_utf8_table_uptolow_len;
+
+extern M_utf8_cp_map_t M_utf8_table_lowtoup[];
+extern size_t M_utf8_table_lowtoup_len;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
