@@ -233,6 +233,17 @@ M_API M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, 
  * @{
  */
 
+/*! Convert a code point to the equivalent upper case code point.
+ *
+ * \param[in]  cp       Code point to convert.
+ * \param[out] upper_cp Equivalent upper case code point. Or cp if
+ *                      there is no equivalent.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_toupper_cp(M_uint32 cp, M_uint32 *upper_cp);
+
+
 /*! Read a utf-8 sequence converting to upper case.
  *
  * Output is _not_ NULL terminated.
@@ -246,7 +257,7 @@ M_API M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, 
  *
  * \return Result.
  */
-M_API M_utf8_error_t M_utf8_get_chr_toupper(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+M_API M_utf8_error_t M_utf8_toupper_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
 
 
 /*! Read a utf-8 sequence into an M_buf_t converting to upper case.
@@ -258,18 +269,7 @@ M_API M_utf8_error_t M_utf8_get_chr_toupper(const char *str, char *buf, size_t b
  *
  * \return Result.
  */
-M_API M_utf8_error_t M_utf8_get_chr_toupper_buf(const char *str, M_buf_t *buf, const char **next);
-
-
-/*! Convert a code point to the equivalent upper case code point.
- *
- * \param[in]  cp       Code point to convert.
- * \param[out] upper_cp Equivalent upper case code point. Or cp if
- *                      there is no equivalent.
- *
- * \return Result.
- */
-M_API M_utf8_error_t M_utf8_cp_toupper(M_uint32 cp, M_uint32 *upper_cp);
+M_API M_utf8_error_t M_utf8_toupper_chr_buf(const char *str, M_buf_t *buf, const char **next);
 
 
 /*! Convert a utf-8 string to an upper case equivalent string.
@@ -291,6 +291,18 @@ M_API M_utf8_error_t M_utf8_toupper(const char *str, char **out);
  */
 M_API M_utf8_error_t M_utf8_toupper_buf(const char *str, M_buf_t *buf);
 
+
+/*! Convert a code point to the equivalent loer case code point.
+ *
+ * \param[in]  cp       Code point to convert.
+ * \param[out] lower_cp Equivalent lower case code point. Or cp if
+ *                      there is no equivalent.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_tolower_cp(M_uint32 cp, M_uint32 *lower_cp);
+
+
 /*! Read a utf-8 sequence converting to lower case.
  *
  * Output is _not_ NULL terminated.
@@ -304,7 +316,7 @@ M_API M_utf8_error_t M_utf8_toupper_buf(const char *str, M_buf_t *buf);
  *
  * \return Result.
  */
-M_API M_utf8_error_t M_utf8_get_chr_tolower(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+M_API M_utf8_error_t M_utf8_tolower_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
 
 
 /*! Read a utf-8 sequence into an M_buf_t converting to lower case.
@@ -316,18 +328,7 @@ M_API M_utf8_error_t M_utf8_get_chr_tolower(const char *str, char *buf, size_t b
  *
  * \return Result.
  */
-M_API M_utf8_error_t M_utf8_get_chr_tolower_buf(const char *str, M_buf_t *buf, const char **next);
-
-
-/*! Convert a code point to the equivalent loer case code point.
- *
- * \param[in]  cp       Code point to convert.
- * \param[out] lower_cp Equivalent lower case code point. Or cp if
- *                      there is no equivalent.
- *
- * \return Result.
- */
-M_API M_utf8_error_t M_utf8_cp_tolower(M_uint32 cp, M_uint32 *lower_cp);
+M_API M_utf8_error_t M_utf8_tolower_chr_buf(const char *str, M_buf_t *buf, const char **next);
 
 
 /*! Convert a utf-8 string to an lower case equivalent string.

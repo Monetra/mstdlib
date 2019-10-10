@@ -62,29 +62,29 @@ START_TEST(check_utf8_case_cp)
 	M_utf8_error_t res;
 
 	for (i=0; i<sizeof(upper_cp)/sizeof(*upper_cp); i++) {
-		res = M_utf8_cp_toupper(upper_cp[i], &cp);
+		res = M_utf8_toupper_cp(upper_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper cp to upper cp failed: %d\n", i, res);
 		ck_assert_msg(upper_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, upper_cp[i], cp);
 
-		res = M_utf8_cp_tolower(upper_cp[i], &cp);
+		res = M_utf8_tolower_cp(upper_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper cp to lower cp failed: %d\n", i, res);
 		ck_assert_msg(lower_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, lower_cp[i], cp);
 
-		res = M_utf8_cp_tolower(lower_cp[i], &cp);
+		res = M_utf8_tolower_cp(lower_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower cp to lower cp failed: %d\n", i, res);
 		ck_assert_msg(lower_cp[i] == cp, "%zu: lower cp != cp: expected %04X, got %04X", i, lower_cp[i], cp);
 
-		res = M_utf8_cp_toupper(lower_cp[i], &cp);
+		res = M_utf8_toupper_cp(lower_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower cp to upper cp failed: %d\n", i, res);
 		ck_assert_msg(upper_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, upper_cp[i], cp);
 	}
 
 	for (i=0; i<sizeof(same_cp)/sizeof(*same_cp); i++) {
-		res = M_utf8_cp_toupper(same_cp[i], &cp);
+		res = M_utf8_toupper_cp(same_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: same cp to upper cp failed: %d\n", i, res);
 		ck_assert_msg(same_cp[i] == cp, "%zu: same cp != to upper cp: expected %04X, got %04X", i, same_cp[i], cp);
 
-		res = M_utf8_cp_tolower(same_cp[i], &cp);
+		res = M_utf8_tolower_cp(same_cp[i], &cp);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: same cp to lower cp failed: %d\n", i, res);
 		ck_assert_msg(same_cp[i] == cp, "%zu: same cp != to lower cp: expected %04X, got %04X", i, same_cp[i], cp);
 	}
