@@ -172,5 +172,10 @@ size_t M_sort_binary_insert_idx(const void *base, size_t nmemb, size_t esize, co
 
 M_bool M_sort_binary_search(const void *base, size_t nmemb, size_t esize, const void *key, M_bool stable, M_sort_compar_t compar, void *thunk, size_t *idx)
 {
+	size_t myidx;
+
+	if (idx == NULL)
+		idx = &myidx;
+
 	return M_sort_binary_idx(base, nmemb, esize, key, compar, thunk, M_TRUE, stable, idx);
 }
