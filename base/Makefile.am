@@ -29,7 +29,6 @@ libmstdlib_la_SOURCES =                \
 	data/m_str_hexdump.c               \
 	data/m_str_num.c                   \
 	data/m_str_patmatch.c              \
-	data/m_utf8.c                      \
 	\
 	fs/m_fs.c                          \
 	fs/m_fs_dir.c                      \
@@ -126,7 +125,11 @@ libmstdlib_la_SOURCES =                \
 	time/m_time_tz_olson_transitions.c \
 	time/m_time_tz_posix.c             \
 	time/m_time_tz_rule.c              \
-	time/m_time_tzs.c
+	time/m_time_tzs.c                  \
+	utf8/m_utf8.c                      \
+	utf8/m_utf8_case.c                 \
+	utf8/m_utf8_check.c                \
+	utf8/m_utf8_tables.c
 
 if WIN32
 libmstdlib_la_SOURCES += \
