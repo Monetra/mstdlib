@@ -66,7 +66,7 @@ __BEGIN_DECLS
  * `[^]`           | Negative character range. Can be specific characters or '-' specified range. Multiple ranges can be specified. E.g. `[^a-z-8XYZ]`
  * \|              | Composite A or B. E.g. A\|B
  * `()`            | Pattern and capture group. Groups expressions together for evaluation when used with \|. Also, defines a capture group.
- * `(?imsu-imsu)`  | Allows specifying compile flags in the expression. Supports `i` (ignore case), `m` (multiline), `s` (dot all), `U` (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern.
+ * `(?imsU-imsU)`  | Allows specifying compile flags in the expression. Supports `i` (ignore case), `m` (multiline), `s` (dot all), `U` (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern.
  * `\s`            | White space. Equivalent to `[ \t\n\r\f\v]`
  * `\S`            | Not white space. Equivalent to `[^ \t\n\r\f\v]`
  * `\d`            | Digit (number). Equivalent to `[0-9]`
@@ -90,7 +90,7 @@ __BEGIN_DECLS
  * `[:word:]`      | Alpha numeric characters. Contains `[a-zA-Z0-9_]`. Equivalent to `\w`
  * `[:space:]`     | White space characters. Contains `[ \t\r\n\v\f]`. Equivalent to `\s`
  * `[:digit:]`     | Digit (number) characters. Contains `[0-9]`. Equivalent to `\d`
- * `[:cntrl:]`     | Control characters. Contains `[\x00-\x1F\x7F]`
+ * `[:cntrl:]`     | Control characters. Contains `[\x00-\x1F\x7F]`. Note: `\x00` is the NULL string terminator so this is really `[\x01-\x1F\x7F]` because `\x00` can never be encountered in a string.
  * `[:print:]`     | Printable characters range. Contains `[\x20-\x7E]`
  * `[:xdigit:]`    | Hexadecimal digit range. Contains `[0-9a-fA-F]`
  * `[:lower:]`     | Lower case character range. Contains `[a-z]`
@@ -110,10 +110,8 @@ __BEGIN_DECLS
  * - Collating symbols (in brackets)
  * - Equivalence classes (in brackets)
  * - 100% POSIX conformance
- * - BRE
- * - \ escapse short hands (\\d, \\w, ...) inside of a bracket ([]) expression.
- *
- * ## Matches
+ * - BRE (Basic Regular Expression) syntax
+ * - \ escape short hands (\\d, \\w, ...) inside of a bracket ([]) expression.
  *
  * @{
  */ 

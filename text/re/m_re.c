@@ -356,7 +356,7 @@ char *M_re_sub(const M_re_t *re, const char *repl, const char *str)
 	for (i=0; i<len; i++) {
 		match = M_list_at(matches, i);
 
-		/* Get the catrued data we're going to replace. */
+		/* Get the captured data we're going to replace. */
 		M_re_match_idx(match, 0, &offset, &mlen);
 
 		/* Add anything from our last pos to the start of this match. */
