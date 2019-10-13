@@ -174,7 +174,7 @@ Functions</h2></td></tr>
 <tr>
 <td><code>()</code> </td><td>Pattern and capture group. Groups expressions together for evaluation when used with |. Also, defines a capture group. </td></tr>
 <tr>
-<td><code>(?imsu-imsu)</code> </td><td>Allows specifying compile flags in the expression. Supports <code>i</code> (ignore case), <code>m</code> (multiline), <code>s</code> (dot all), <code>U</code> (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern. </td></tr>
+<td><code>(?imsU-imsU)</code> </td><td>Allows specifying compile flags in the expression. Supports <code>i</code> (ignore case), <code>m</code> (multiline), <code>s</code> (dot all), <code>U</code> (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern. </td></tr>
 <tr>
 <td><code>\s</code> </td><td>White space. Equivalent to <code>[ \t\n\r\f\v]</code> </td></tr>
 <tr>
@@ -211,7 +211,7 @@ Functions</h2></td></tr>
 <tr>
 <td><code>[:digit:]</code> </td><td>Digit (number) characters. Contains <code>[0-9]</code>. Equivalent to <code>\d</code> </td></tr>
 <tr>
-<td><code>[:cntrl:]</code> </td><td>Control characters. Contains <code>[\x00-\x1F\x7F]</code> </td></tr>
+<td><code>[:cntrl:]</code> </td><td>Control characters. Contains <code>[\x00-\x1F\x7F]</code>. Note: <code>\x00</code> is the NULL string terminator so this is really <code>[\x01-\x1F\x7F]</code> because <code>\x00</code> can never be encountered in a string. </td></tr>
 <tr>
 <td><code>[:print:]</code> </td><td>Printable characters range. Contains <code>[\x20-\x7E]</code> </td></tr>
 <tr>
@@ -238,10 +238,9 @@ Functions</h2></td></tr>
 <li>Collating symbols (in brackets)</li>
 <li>Equivalence classes (in brackets)</li>
 <li>100% POSIX conformance</li>
-<li>BRE</li>
-<li>\ escapse short hands (\d, \w, ...) inside of a bracket ([]) expression.</li>
+<li>BRE (Basic Regular Expression) syntax</li>
+<li>\ escape short hands (\d, \w, ...) inside of a bracket ([]) expression. </li>
 </ul>
-<h2>Matches</h2>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="gaead35ef8d9c13414897e61edd2eaf669"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaead35ef8d9c13414897e61edd2eaf669">&#9670;&nbsp;</a></span>M_re_t</h2>
@@ -683,7 +682,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Oct 13 2019 01:50:01 for Mstdlib-1.8.0 by
+    <li class="footer">Generated on Sun Oct 13 2019 01:56:10 for Mstdlib-1.8.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
