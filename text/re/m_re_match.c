@@ -86,6 +86,29 @@ void M_re_match_insert(M_re_match_t *match, size_t idx, size_t start, size_t len
 	M_hash_u64vp_insert(match->idx_captures, idx, entry);
 }
 
+M_list_u64_t *M_re_match_idxs(const M_re_match_t *match)
+{
+	M_hash_u64vp_enum_t *he;
+	M_list_u64_t        *l;
+	M_uint64             idx;
+
+	if (match == NULL)
+		return NULL;
+
+	if (M_hash_u64vp_num_keys(match->idx_captures) == 0)
+		return NULL;
+
+	l = M_list_u64_create(M_LIST_U64_SORTASC);
+
+	M_hash_u64vp_enumerate(match->idx_captures, &he);
+	while (M_hash_u64vp_enumerate_next(match->idx_captures, he, &idx, NULL)) {
+		M_list_u64_insert(l, idx);
+	}
+	M_hash_u64vp_enumerate_free(he);
+
+	return l;
+}
+
 M_bool M_re_match_idx(const M_re_match_t *match, size_t idx, size_t *offset, size_t *len)
 {
 	const M_re_match_entry_t *entry;
