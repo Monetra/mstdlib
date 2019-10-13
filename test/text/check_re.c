@@ -16,6 +16,7 @@ do {\
 	TCase *tc;\
 	tc = tcase_create(#TESTNAME);\
 	tcase_add_test(tc, TESTNAME);\
+	tcase_set_timeout(tc, 300);\
 	suite_add_tcase(SUITENAME, tc);\
 } while (0)
 

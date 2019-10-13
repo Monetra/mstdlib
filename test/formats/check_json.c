@@ -843,46 +843,57 @@ Suite *M_json_suite(void)
 
 	tc_json_valid = tcase_create("check_json_valid");
 	tcase_add_test(tc_json_valid, check_json_valid);
+	tcase_set_timeout(tc_json_valid, 300);
 	suite_add_tcase(suite, tc_json_valid);
 
 	tc_json_invalid = tcase_create("check_json_invalid");
 	tcase_add_test(tc_json_invalid, check_json_invalid);
+	tcase_set_timeout(tc_json_invalid, 300);
 	suite_add_tcase(suite, tc_json_invalid);
 
 	tc_json_reader_flags = tcase_create("check_json_reader_flags");
 	tcase_add_test(tc_json_reader_flags, check_json_reader_flags);
+	tcase_set_timeout(tc_json_reader_flags, 300);
 	suite_add_tcase(suite, tc_json_reader_flags);
 
 	tc_json_jsonpath_book = tcase_create("check_json_jsonpath_book");
 	tcase_add_test(tc_json_jsonpath_book, check_json_jsonpath_book);
+	tcase_set_timeout(tc_json_jsonpath_book, 300);
 	suite_add_tcase(suite, tc_json_jsonpath_book);
 
 	tc_json_jsonpath_str = tcase_create("check_json_jsonpath_str");
 	tcase_add_test(tc_json_jsonpath_str, check_json_jsonpath_str);
+	tcase_set_timeout(tc_json_jsonpath_str, 300);
 	suite_add_tcase(suite, tc_json_jsonpath_str);
 
 	tc_json_jsonpath_array = tcase_create("check_json_jsonpath_array");
 	tcase_add_test(tc_json_jsonpath_array, check_json_jsonpath_array);
+	tcase_set_timeout(tc_json_jsonpath_array, 300);
 	suite_add_tcase(suite, tc_json_jsonpath_array);
 
 	tc_json_values = tcase_create("check_json_values");
 	tcase_add_test(tc_json_values, check_json_values);
+	tcase_set_timeout(tc_json_values, 300);
 	suite_add_tcase(suite, tc_json_values);
 
 	tc_json_parent_object = tcase_create("check_json_parent_object");
 	tcase_add_test(tc_json_parent_object, check_json_parent_object);
+	tcase_set_timeout(tc_json_parent_object, 300);
 	suite_add_tcase(suite, tc_json_parent_object);
 
 	tc_json_parent_array = tcase_create("check_json_parent_array");
 	tcase_add_test(tc_json_parent_array, check_json_parent_array);
+	tcase_set_timeout(tc_json_parent_array, 300);
 	suite_add_tcase(suite, tc_json_parent_array);
 
 	tc_json_object_unique_keys = tcase_create("check_json_object_unique_keys");
 	tcase_add_test(tc_json_object_unique_keys, check_json_object_unique_keys);
+	tcase_set_timeout(tc_json_object_unique_keys, 300);
 	suite_add_tcase(suite, tc_json_object_unique_keys);
 
 	tc_json_object_get_string = tcase_create("check_json_object_get_string");
 	tcase_add_test(tc_json_object_get_string, check_json_object_get_string);
+	tcase_set_timeout(tc_json_object_get_string, 300);
 	suite_add_tcase(suite, tc_json_object_get_string);
 
 	return suite;
