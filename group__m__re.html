@@ -131,6 +131,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga285384173b665353e59d3285307a46fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3c366011eee34a59fab3d7f30f584429"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__re.html#ga3c366011eee34a59fab3d7f30f584429">M_re_match_destroy</a> (<a class="el" href="group__m__re.html#ga859a6898a41d362675aa0d96774538ef">M_re_match_t</a> *match)</td></tr>
 <tr class="separator:ga3c366011eee34a59fab3d7f30f584429"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa3b022488f3ae963135e3f23035d4db7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__list__u64.html#ga4d4f1f9a5342d57c53c2f0da97da2c7a">M_list_u64_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__re.html#gaa3b022488f3ae963135e3f23035d4db7">M_re_match_idxs</a> (const <a class="el" href="group__m__re.html#ga859a6898a41d362675aa0d96774538ef">M_re_match_t</a> *match)</td></tr>
+<tr class="separator:gaa3b022488f3ae963135e3f23035d4db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaff620e2de30019d20f78c10c2b7ffdc2"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__re.html#gaff620e2de30019d20f78c10c2b7ffdc2">M_re_match_idx</a> (const <a class="el" href="group__m__re.html#ga859a6898a41d362675aa0d96774538ef">M_re_match_t</a> *match, size_t idx, size_t *offset, size_t *len)</td></tr>
 <tr class="separator:gaff620e2de30019d20f78c10c2b7ffdc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -239,8 +241,13 @@ Functions</h2></td></tr>
 <li>Equivalence classes (in brackets)</li>
 <li>100% POSIX conformance</li>
 <li>BRE (Basic Regular Expression) syntax</li>
-<li>\ escape short hands (\d, \w, ...) inside of a bracket ([]) expression. </li>
+<li>\ escape short hands (\d, \w, ...) inside of a bracket ([]) expression.</li>
 </ul>
+<h2>Match object</h2>
+<p>Patterns can have capture groups which can be filled in a match object during string evaluation. Only numbered capture indexes are supported. Up to 99 captures can be recorded.</p>
+<p>Index 0 is the full match for the regular expression. If the pattern matches the string, this will always be populated. Groups (when present) are number 1-99.</p>
+<p>If a capture is present the index will be available. Composite (|) patterns can cause gaps in captures. Meaning capture 1, and 5 could be present but capture 3 and 4 not. Also, captures can be present but have zero length.</p>
+<p>Finally, captures are reported with offset from the start of the string and the length of the captured data. This is different than some other libraries which return start and end offsets. Utilizing length instead of end offsets was decided based on captures being passed to other functions, the majority of which take a start and length; not an end offset. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="gaead35ef8d9c13414897e61edd2eaf669"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaead35ef8d9c13414897e61edd2eaf669">&#9670;&nbsp;</a></span>M_re_t</h2>
@@ -397,7 +404,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">re</td><td>Re object. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">str</td><td>String to evaluate. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">match</td><td>Optional match pattern object.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">match</td><td>Optional match object.</td></tr>
   </table>
   </dd>
 </dl>
@@ -626,6 +633,32 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gaa3b022488f3ae963135e3f23035d4db7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa3b022488f3ae963135e3f23035d4db7">&#9670;&nbsp;</a></span>M_re_match_idxs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__list__u64.html#ga4d4f1f9a5342d57c53c2f0da97da2c7a">M_list_u64_t</a>* M_re_match_idxs </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__re.html#ga859a6898a41d362675aa0d96774538ef">M_re_match_t</a> *&#160;</td>
+          <td class="paramname"><em>match</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get a list of all the captured indexes.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">match</td><td>Match object.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>List of indexes. Otherwise NULL if no indexes captured. </dd></dl>
+
+</div>
+</div>
 <a id="gaff620e2de30019d20f78c10c2b7ffdc2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaff620e2de30019d20f78c10c2b7ffdc2">&#9670;&nbsp;</a></span>M_re_match_idx()</h2>
 
@@ -669,7 +702,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">match</td><td>Match object. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">offset</td><td>Start of match from the beginning of evaluated string. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">len</td><td>Length of matched daat.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">len</td><td>Length of matched data.</td></tr>
   </table>
   </dd>
 </dl>
@@ -682,7 +715,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sun Oct 13 2019 13:50:44 for Mstdlib-1.8.0 by
+    <li class="footer">Generated on Sun Oct 13 2019 13:56:43 for Mstdlib-1.8.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

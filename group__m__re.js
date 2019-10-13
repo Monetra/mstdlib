@@ -18,5 +18,6 @@ var group__m__re =
     [ "M_re_find_all", "group__m__re.html#ga6045ba4b3d40fcff0b1b5134829cb7c5", null ],
     [ "M_re_sub", "group__m__re.html#ga285384173b665353e59d3285307a46fa", null ],
     [ "M_re_match_destroy", "group__m__re.html#ga3c366011eee34a59fab3d7f30f584429", null ],
+    [ "M_re_match_idxs", "group__m__re.html#gaa3b022488f3ae963135e3f23035d4db7", null ],
     [ "M_re_match_idx", "group__m__re.html#gaff620e2de30019d20f78c10c2b7ffdc2", null ]
 ];
