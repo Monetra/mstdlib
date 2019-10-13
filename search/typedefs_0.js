@@ -153,6 +153,8 @@ var searchData=
   ['m_5fqueue_5fforeach_5ft',['M_queue_foreach_t',['../group__m__queue.html#gaf6051f776a0611d4bb7a6f6f16772949',1,'m_queue.h']]],
   ['m_5fqueue_5ft',['M_queue_t',['../group__m__queue.html#gaeb11d9651c49b69f8839e2c5a215963c',1,'m_queue.h']]],
   ['m_5frand_5ft',['M_rand_t',['../group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed',1,'m_rand.h']]],
+  ['m_5fre_5fmatch_5ft',['M_re_match_t',['../group__m__re.html#ga859a6898a41d362675aa0d96774538ef',1,'m_re.h']]],
+  ['m_5fre_5ft',['M_re_t',['../group__m__re.html#gaead35ef8d9c13414897e61edd2eaf669',1,'m_re.h']]],
   ['m_5fsettings_5ft',['M_settings_t',['../group__m__settings.html#ga853e600fe539040e35285802530ea505',1,'m_settings.h']]],
   ['m_5fsort_5fcompar_5ft',['M_sort_compar_t',['../group__m__sort.html#gac72502df2ae525e19025d37cf3c77c17',1,'m_sort.h']]],
   ['m_5fsql_5fconn_5ft',['M_sql_conn_t',['../group__m__sql__driver.html#gacee7eea240b3a53d0f09704c0f0ff8df',1,'m_sql_driver.h']]],

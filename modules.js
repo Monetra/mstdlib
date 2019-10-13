@@ -7,6 +7,7 @@ var modules =
     [ "Logging Subsystem", "group__m__log.html", "group__m__log" ],
     [ "Network Protocol Operations", "group__m__net.html", "group__m__net" ],
     [ "SQL Subsystem", "group__m__sql.html", "group__m__sql" ],
+    [ "Text processing", "group__m__text.html", "group__m__text" ],
     [ "Threading Support", "group__m__thread.html", "group__m__thread" ],
     [ "TLS System", "group__m__tls.html", "group__m__tls" ]
 ];
