@@ -24,6 +24,7 @@
 #include "m_config.h"
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/io/m_io_layer.h>
+#include <mstdlib/mstdlib_text.h>
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
 #include "m_dns_int.h"

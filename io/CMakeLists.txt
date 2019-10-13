@@ -189,6 +189,7 @@ endif ()
 # Link dependencies on other modules.
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::thread
+	        Mstdlib::text
 	PRIVATE Mstdlib::config c-ares::cares
 )
 

@@ -24,8 +24,8 @@
 #include "m_config.h"
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/sql/m_sql_driver.h>
-#include <mstdlib/mstdlib_formats.h>
 #include <mstdlib/mstdlib_io.h>
+#include <mstdlib/mstdlib_text.h>
 #include "base/m_defs_int.h"
 #include "m_sql_int.h"
 
