@@ -160,14 +160,14 @@ typedef enum {
  *
  * \return Re object on success. NULL on compilation error.
  */
-M_re_t *M_re_compile(const char *pattern, M_uint32 flags);
+M_API M_re_t *M_re_compile(const char *pattern, M_uint32 flags);
 
 
 /*! Destroy a re object.
  *
  * \param[in] re Re object.
  */
-void M_re_destroy(M_re_t *re);
+M_API void M_re_destroy(M_re_t *re);
 
 
 /*! Search for the first match of patten in string.
@@ -178,7 +178,7 @@ void M_re_destroy(M_re_t *re);
  *
  * \return M_TRUE if match was found. Otherwise, M_FALSE.
  */
-M_bool M_re_search(const M_re_t *re, const char *str, M_re_match_t **match);
+M_API M_bool M_re_search(const M_re_t *re, const char *str, M_re_match_t **match);
 
 
 /*! Check if the pattern matches from the beginning of the string.
@@ -190,7 +190,7 @@ M_bool M_re_search(const M_re_t *re, const char *str, M_re_match_t **match);
  *
  * \return M_TRUE if match was found. Otherwise, M_FALSE.
  */
-M_bool M_re_eq_start(const M_re_t *re, const char *str);
+M_API M_bool M_re_eq_start(const M_re_t *re, const char *str);
 
 
 /*! Check if the pattern matches the entire string
@@ -213,7 +213,7 @@ M_bool M_re_eq(const M_re_t *re, const char *str);
  * \return List of M_re_match_t objects for every match found in the string.
  *         NULL if no matches found.
  */
-M_list_t *M_re_matches(const M_re_t *re, const char *str);
+M_API M_list_t *M_re_matches(const M_re_t *re, const char *str);
 
 
 /*! Get all matching text within a string.
@@ -227,7 +227,7 @@ M_list_t *M_re_matches(const M_re_t *re, const char *str);
  * \return List of matching strings for every match found in the string.
  *         NULL if no matches found.
  */
-M_list_str_t *M_re_find_all(const M_re_t *re, const char *str);
+M_API M_list_str_t *M_re_find_all(const M_re_t *re, const char *str);
 
 
 /*! Substitute matching pattern in string.
@@ -250,14 +250,16 @@ M_list_str_t *M_re_find_all(const M_re_t *re, const char *str);
  *
  * \return String with substitutions or original string if no sub situations were made.
  */
-char *M_re_sub(const M_re_t *re, const char *repl, const char *str);
+M_API char *M_re_sub(const M_re_t *re, const char *repl, const char *str);
 
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Destroy a match object.
  *
  * \param[in] match Match object.
  */
-void M_re_match_destroy(M_re_match_t *match);
+M_API void M_re_match_destroy(M_re_match_t *match);
 
 
 /*! Get a list of all the captured indexes.
@@ -266,7 +268,7 @@ void M_re_match_destroy(M_re_match_t *match);
  *
  * \return List of indexes. Otherwise NULL if no indexes captured.
  */
-M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
+M_API M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
 
 
 /*! Get the offset and length of a match at a given index.
@@ -278,7 +280,7 @@ M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
  *
  * \return M_TRUE if match found for index. Otherwise, M_FALSE.
  */
-M_bool M_re_match_idx(const M_re_match_t *match, size_t idx, size_t *offset, size_t *len);
+M_API M_bool M_re_match_idx(const M_re_match_t *match, size_t idx, size_t *offset, size_t *len);
 
 /*! @} */
 
