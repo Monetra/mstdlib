@@ -144,11 +144,16 @@ if(MSTDLIB_BUILD_TLS)
 		tls/check_tlsspeed.c
 	)
 endif()
-
-# tls
+# sql
 if(MSTDLIB_BUILD_SQL)
 	list(APPEND tests
 		sql/check_sql.c
+	)
+endif()
+# sql
+if(MSTDLIB_BUILD_TEXT)
+	list(APPEND tests
+		text/check_re.c
 	)
 endif()
 
@@ -174,6 +179,9 @@ if (TARGET Mstdlib::tls)
 endif ()
 if (TARGET Mstdlib::sql)
 	list(APPEND test_deps Mstdlib::sql)
+endif ()
+if (TARGET Mstdlib::text)
+	list(APPEND test_deps Mstdlib::text)
 endif ()
 if (UNIX AND NOT APPLE)
 	list(APPEND test_deps m)

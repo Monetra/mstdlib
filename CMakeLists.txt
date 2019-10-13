@@ -62,6 +62,7 @@ option(MSTDLIB_BUILD_TLS       "Build tls module"                               
 option(MSTDLIB_BUILD_NET       "Build net module"                                  TRUE)
 option(MSTDLIB_BUILD_LOG       "Build log module"                                  TRUE)
 option(MSTDLIB_BUILD_SQL       "Build sql module"                                  TRUE)
+option(MSTDLIB_BUILD_TEXT      "Build text module"                                 TRUE)
 
 mark_as_advanced(FORCE MSTDLIB_INSTALL_EXPORTS)
 
@@ -500,6 +501,13 @@ if (MSTDLIB_BUILD_SQL AND MSTDLIB_BUILD_THREAD)
 else ()
 	message(STATUS "Building MSTDLIB sql... Disabled")
 	set(MSTDLIB_BUILD_SQL FALSE CACHE BOOL "" FORCE)
+endif ()
+
+if (MSTDLIB_BUILD_TEXT)
+	message(STATUS "Building MSTDLIB text... Enabled")
+	add_subdirectory(text)
+else ()
+	message(STATUS "Building MSTDLIB text... Disabled")
 endif ()
 
 # Tests need to check for the test frame work so it will handle enabled/disable itself.
