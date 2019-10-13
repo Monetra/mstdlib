@@ -78,6 +78,9 @@
 #include "tre.h"
 
 #define MRE_DUP_MAX 255
+/* Maximum length of a character class (text inside of [::]).
+ * Anything longer will result in an error. */
+#define MCHARCLASS_NAME_MAX 14
 
 typedef struct {
 	int           position;
@@ -674,11 +677,11 @@ static reg_errcode_t parse_bracket_terms(tre_parse_ctx_t *ctx, const char *s, st
 		}
 
 		if (*s == '[' && s[1] == ':') {
-			char tmp[CHARCLASS_NAME_MAX+1];
+			char tmp[MCHARCLASS_NAME_MAX+1];
 			ret = REG_ECTYPE;
 
 			s += 2;
-			for (len=0; len<CHARCLASS_NAME_MAX && s[len]; len++) {
+			for (len=0; len<MCHARCLASS_NAME_MAX && s[len]; len++) {
 				if (s[len] == ':') {
 					M_mem_copy(tmp, s, (size_t)len);
 					tmp[len] = 0;
