@@ -56,9 +56,6 @@ set(sources
 	# time:
 	time/m_mtzfile.c
 
-	# verify:
-	verify/m_verify.c
-
 	# xml:
 	xml/m_xml.c
 	xml/m_xml_entities.c
@@ -91,7 +88,7 @@ target_include_directories(${PROJECT_NAME}
 
 # Link against any dependencies from other modules.
 target_link_libraries(${PROJECT_NAME}
-	PUBLIC  Mstdlib::base
+	PUBLIC  Mstdlib::text
 	PRIVATE Mstdlib::config
 )
 

@@ -26,6 +26,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
+#include <mstdlib/mstdlib_text.h>
 #include "m_defs_int.h"
 
 #include "http/m_http_header.h"

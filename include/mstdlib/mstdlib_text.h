@@ -10,5 +10,7 @@
  */
 
 #include <mstdlib/text/m_re.h>
+#include <mstdlib/text/m_textcodec.h>
+#include <mstdlib/text/m_verify.h>
 
 #endif /* __MSTDLIB_TEXT_H__ */

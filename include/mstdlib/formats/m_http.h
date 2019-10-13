@@ -32,6 +32,7 @@
 #include <mstdlib/base/m_hash_multi.h>
 #include <mstdlib/base/m_parser.h>
 #include <mstdlib/base/m_buf.h>
+#include <mstdlib/text/m_textcodec.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
