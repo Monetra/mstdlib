@@ -251,6 +251,7 @@ MSTDLIB_BUILD_THREAD             | Build thread module.               | ON
 MSTDLIB_BUILD_IO                 | Build io module.                   | ON
 MSTDLIB_BUILD_TLS                | Build tls module.                  | ON
 MSTDLIB_BUILD_LOG                | Build log module.                  | ON
+MSTDLIB_BUILD_TEXT               | Build text module.                 | ON
 MSTDLIB_BUILD_SQL                | Build sql module.                  | ON
 MSTDLIB_BUILD_SQL_MYSQL          | Build MySQL/MariaDB plugin for sql | ON
 MSTDLIB_BUILD_SQL_SQLITE         | Build SQLite plugin for SQL        | ON
