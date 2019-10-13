@@ -113,6 +113,26 @@ __BEGIN_DECLS
  * - BRE (Basic Regular Expression) syntax
  * - \ escape short hands (\\d, \\w, ...) inside of a bracket ([]) expression.
  *
+ * ## Match object
+ *
+ * Patterns can have capture groups which can be filled in a match object
+ * during string evaluation. Only numbered capture indexes are supported.
+ * Up to 99 captures can be recorded.
+ *
+ * Index 0 is the full match for the regular expression. If the pattern matches
+ * the string, this will always be populated. Groups (when present) are number
+ * 1-99.
+ *
+ * If a capture is present the index will be available. Composite (|) patterns
+ * can cause gaps in captures. Meaning capture 1, and 5 could be present but capture
+ * 3 and 4 not. Also, captures can be present but have zero length.
+ *
+ * Finally, captures are reported with offset from the start of the string and
+ * the length of the captured data. This is different than some other libraries
+ * which return start and end offsets. Utilizing length instead of end offsets
+ * was decided based on captures being passed to other functions, the majority
+ * of which take a start and length; not an end offset.
+ *
  * @{
  */ 
 
@@ -154,7 +174,7 @@ void M_re_destroy(M_re_t *re);
  *
  * \param[in]  re    Re object.
  * \param[in]  str   String to evaluate.
- * \param[out] match Optional match pattern object.
+ * \param[out] match Optional match object.
  *
  * \return M_TRUE if match was found. Otherwise, M_FALSE.
  */
@@ -240,12 +260,21 @@ char *M_re_sub(const M_re_t *re, const char *repl, const char *str);
 void M_re_match_destroy(M_re_match_t *match);
 
 
+/*! Get a list of all the captured indexes.
+ *
+ * \param[in] match  Match object.
+ *
+ * \return List of indexes. Otherwise NULL if no indexes captured.
+ */
+M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
+
+
 /*! Get the offset and length of a match at a given index.
  *
  * \param[in]  match  Match object.
  * \param[in]  idx    Index.
  * \param[out] offset Start of match from the beginning of evaluated string.
- * \param[out] len    Length of matched daat.
+ * \param[out] len    Length of matched data.
  *
  * \return M_TRUE if match found for index. Otherwise, M_FALSE.
  */
