@@ -31,14 +31,12 @@
 #include <mstdlib/base/m_defs.h>
 #include <mstdlib/base/m_types.h>
 
-
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 __BEGIN_DECLS
 
 /*! \addtogroup m_verify Verification
- *  \ingroup m_formats
+ *  \ingroup m_text
  *
  * \brief Validation of strings against various standards (email address, domain name, etc.).
  * 

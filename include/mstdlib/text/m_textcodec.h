@@ -34,7 +34,7 @@
 __BEGIN_DECLS
 
 /*! \addtogroup m_textcodec Text Encoding Conversion
- *  \ingroup mstdlib_base
+ *  \ingroup m_text
  *
  * Text codec conversion. E.g. utf-8 to X and X to utf-8.
  *

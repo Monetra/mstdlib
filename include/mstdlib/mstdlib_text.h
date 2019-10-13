@@ -1,7 +1,7 @@
 #ifndef __MSTDLIB_TEXT_H__
 #define __MSTDLIB_TEXT_H__
 
-/*! \defgroup m_text Text processing
+/*! \defgroup m_text Text Processing
  *
  * \code{.c}
  * #include <mstdlib/mstdlib_text.h>
