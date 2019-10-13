@@ -202,7 +202,7 @@ M_API M_bool M_re_eq_start(const M_re_t *re, const char *str);
  *
  * \return M_TRUE if match was found. Otherwise, M_FALSE.
  */
-M_bool M_re_eq(const M_re_t *re, const char *str);
+M_API M_bool M_re_eq(const M_re_t *re, const char *str);
 
 
 /*! Get all pattern matches within a string.
@@ -268,7 +268,7 @@ M_API void M_re_match_destroy(M_re_match_t *match);
  *
  * \return List of indexes. Otherwise NULL if no indexes captured.
  */
-M_API M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
+M_API M_list_u64_t *M_re_match_idxs(const M_re_match_t *match);
 
 
 /*! Get the offset and length of a match at a given index.
