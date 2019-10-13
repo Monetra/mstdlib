@@ -145,12 +145,12 @@ script:
         cmake)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
           cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
         asan)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds && \
           cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
         autotools)
           ./buildconf.sh && \
@@ -159,12 +159,13 @@ script:
           ../configure ${CONFIG_OPTS} && \
           make -j2 && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
+          export CK_VERBOSITY=verbose && \
           make check && \
           popd
           ;;
         analyze)
           ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
           travis_wait 30 ${SCAN_BUILD} cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 cmake --build _builds --target check
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
        esac
