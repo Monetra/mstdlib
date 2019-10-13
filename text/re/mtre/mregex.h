@@ -39,8 +39,8 @@ typedef enum {
 	REG_BADRPT,
 } reg_errcode_t;
 
-reg_errcode_t mregcomp(regex_t *__restrict, const char *__restrict, regex_flags_t);
-reg_errcode_t mregexec(const regex_t *__restrict, const char *__restrict, size_t, regmatch_t *__restrict);
+reg_errcode_t mregcomp(regex_t *preg, const char *regex, regex_flags_t cflags);
+reg_errcode_t mregexec(const regex_t *preg, const char *string, size_t nmatch, regmatch_t *pmatch);
 void mregfree(regex_t *);
 
 #endif
