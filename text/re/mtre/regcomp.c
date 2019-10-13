@@ -2815,7 +2815,7 @@ static reg_errcode_t tre_ast_to_tnfa(tre_ast_node_t *node, tre_tnfa_transition_t
 while (/*CONSTCOND*/0)
 
 
-reg_errcode_t mregcomp(regex_t *restrict preg, const char *restrict regex, regex_flags_t cflags)
+reg_errcode_t mregcomp(regex_t *preg, const char *regex, regex_flags_t cflags)
 {
 	tre_stack_t           *stack;
 	tre_ast_node_t        *tree;

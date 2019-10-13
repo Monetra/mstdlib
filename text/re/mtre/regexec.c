@@ -480,7 +480,7 @@ static void tre_fill_pmatch(size_t nmatch, regmatch_t pmatch[],
 	unsigned int               j;
 	int                       *parents;
 
-	if (pmatch == NULL)
+	if (pmatch == NULL || nmatch == 0)
 		return;
 
 	i = 0;
@@ -534,8 +534,7 @@ static void tre_fill_pmatch(size_t nmatch, regmatch_t pmatch[],
 }
 
 
-reg_errcode_t mregexec(const regex_t *restrict preg, const char *restrict string,
-		size_t nmatch, regmatch_t pmatch[restrict])
+reg_errcode_t mregexec(const regex_t *preg, const char *string, size_t nmatch, regmatch_t *pmatch)
 {
 	tre_tnfa_t    *tnfa = (void *)preg->tnfa;
 	reg_errcode_t  status;
