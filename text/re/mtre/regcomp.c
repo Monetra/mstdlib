@@ -751,9 +751,9 @@ static reg_errcode_t parse_bracket(tre_parse_ctx_t *ctx, const char *s)
 	size_t           i;
 	int              max;
 	int              min;
-	int              negmax;
-	int              negmin;
-	tre_ast_node_t  *node = 0;
+	int              negmax = 0;
+	int              negmin = 0;
+	tre_ast_node_t  *node   = 0;
 	tre_ast_node_t  *n;
 	tre_literal_t   *lit;
 	struct literals  ls;
@@ -802,7 +802,6 @@ static reg_errcode_t parse_bracket(tre_parse_ctx_t *ctx, const char *s)
 	}
 
 	/* Build a union of the items in the array, negated if necessary. */
-	negmax = negmin = 0;
 	for (i=0; i<ls.len; i++) {
 		lit = ls.a[i];
 		min = lit->code_min;
@@ -1806,7 +1805,6 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 		tnfa->minimal_tags[i]   = tag;
 		tnfa->minimal_tags[i+1] = minimal_tag;
 		tnfa->minimal_tags[i+2] = -1;
-		minimal_tag             = -1;
 		num_minimals++;
 	}
 
@@ -2116,7 +2114,7 @@ static reg_errcode_t tre_expand_ast(tre_mem_t mem, tre_stack_t *stack, tre_ast_n
 						} else {
 							for (j = iter->min; j < iter->max; j++) {
 								tre_ast_node_t *tmp;
-								tre_ast_node_t *copy;
+								tre_ast_node_t *copy = NULL;
 
 								pos_add_save = pos_add;
 								status       = tre_copy_ast(mem, stack, iter->arg, 0, &pos_add, NULL, &copy, &max_pos);
