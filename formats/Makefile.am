@@ -27,8 +27,6 @@ libmstdlib_formats_la_SOURCES =  \
 	\
 	time/m_mtzfile.c             \
 	\
-	verify/m_verify.c            \
-	\
 	xml/m_xml.c                  \
 	xml/m_xml_entities.c         \
 	xml/m_xml_reader.c           \
