@@ -5,7 +5,7 @@ AM_CPPFLAGS = $(AM_CFLAGS)
 
 libmstdlib_io_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@ @C_ARES_LDFLAGS@
 libmstdlib_io_la_DEPENDENCIES = @ADD_OBJECTS@
-libmstdlib_io_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/thread/libmstdlib_thread.la @C_ARES_LIBADD@
+libmstdlib_io_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/thread/libmstdlib_thread.la $(top_builddir)/text/libmstdlib_text.la @C_ARES_LIBADD@
 
 libmstdlib_io_la_SOURCES = \
 	m_dns.c \
