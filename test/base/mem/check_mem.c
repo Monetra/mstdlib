@@ -114,6 +114,8 @@ START_TEST(check_realloc_resize_growing)
 	ck_assert(mem1 != mem2);
 	/* ensure expected content */
 	ck_assert_msg(M_mem_eq(mem2,temp,size-1));
+
+	M_free(mem2);
 }
 END_TEST
 
@@ -143,6 +145,8 @@ START_TEST(check_realloc_resize_shrinking)
 	ck_assert(mem1 != mem2);
 	/* ensure expected content */
 	ck_assert_msg(M_mem_eq(mem2,temp,size));
+
+	M_free(mem2);
 }
 END_TEST
 
