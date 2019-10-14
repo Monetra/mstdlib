@@ -798,6 +798,8 @@ START_TEST(check_json_object_unique_keys)
 
 	json = M_json_read(JSON_OBJECT_UNIQUE_KEYS, M_str_len(JSON_OBJECT_UNIQUE_KEYS), M_JSON_READER_OBJECT_UNIQUE_KEYS, NULL, &error, NULL, NULL);
 	ck_assert_msg(json == NULL, "String was parsed");
+
+	M_json_node_destroy(json);
 }
 END_TEST
 
@@ -819,6 +821,8 @@ START_TEST(check_json_object_get_string)
 
 	const_temp = M_json_object_value_string(json, "c");
 	ck_assert_msg(const_temp != NULL, "'c' == NULL");
+
+	M_json_node_destroy(json);
 }
 END_TEST
 
