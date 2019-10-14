@@ -788,6 +788,7 @@ int M_str_casecmpsort_max(const char *s1, const char *s2, size_t max)
 
 M_bool M_str_eq_max(const char *s1, const char *s2, size_t max)
 {
+	/* coverity[index_parm_in_call : FALSE] */
 	return M_str_eq_max_int(s1, s2, max, M_FALSE);
 }
 
@@ -798,6 +799,7 @@ M_bool M_str_eq(const char *s1, const char *s2)
 
 M_bool M_str_caseeq_max(const char *s1, const char *s2, size_t max)
 {
+	/* coverity[index_parm_in_call : FALSE] */
 	return M_str_eq_max_int(s1, s2, max, M_TRUE);
 }
 
