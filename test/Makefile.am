@@ -22,6 +22,7 @@ AM_TESTS_FD_REDIRECT = 9>&2
 TESTS = \
 	base/check_types \
 	base/bincodec/check_bincodec \
+	base/cache/check_cache_strvp \
 	base/data/check_bit_buf \
 	base/data/check_bit_parser \
 	base/data/check_buf \
@@ -33,6 +34,7 @@ TESTS = \
 	base/data/check_str \
 	base/data/check_str_int64 \
 	base/data/check_str_uint64 \
+	base/data/check_utf8 \
 	base/fs/check_file \
 	base/fs/check_path \
 	base/hash/check_hash_dict \
@@ -55,9 +57,11 @@ TESTS +=  \
 	formats/check_csv \
 	formats/check_ini \
 	formats/check_json \
+	formats/check_http_reader \
+	formats/check_http_simple_writer \
 	formats/check_mtzfile \
 	formats/check_settings \
-	formats/check_verify \
+	formats/check_table \
 	formats/check_xml \
 	formats/check_xml_entities
 AM_LDFLAGS += -L$(top_builddir)/formats/.libs/
@@ -97,6 +101,7 @@ endif
 if MSTDLIB_TLS
 TESTS += \
 		tls/check_tls \
+		tls/check_block_tls \
 		tls/check_tlsspeed 
 AM_LDFLAGS += -L$(top_builddir)/tls/.libs/
 LDADD += $(top_builddir)/tls/libmstdlib_tls.la -lssl -lcrypto
@@ -108,6 +113,16 @@ TESTS += \
 AM_LDFLAGS += -L$(top_builddir)/sql/.libs/
 LDADD += $(top_builddir)/sql/libmstdlib_sql.la
 endif
+
+if MSTDLIB_TEXT
+TESTS +=  \
+		text/check_puny \
+		text/check_re \
+		text/check_verify
+AM_LDFLAGS += -L$(top_builddir)/text/.libs/
+LDADD += $(top_builddir)/text/libmstdlib_text.la
+endif
+
 
 ######################################################################
 
