@@ -503,7 +503,7 @@ else ()
 	message(STATUS "Building MSTDLIB text... Disabled")
 endif ()
 
-if (MSTDLIB_BUILD_FORMATS AND MSTDLIB_BUILD_FORMATS)
+if (MSTDLIB_BUILD_FORMATS AND MSTDLIB_BUILD_TEXT)
 	message(STATUS "Building MSTDLIB formats ... Enabled")
 	add_subdirectory(formats)
 else ()
