@@ -491,12 +491,16 @@ static void tre_fill_pmatch(size_t nmatch, regmatch_t pmatch[],
 		while (i < tnfa->num_submatches && i < nmatch) {
 			if (submatch_data[i].so_tag == tnfa->end_tag) {
 				pmatch[i].rm_so = match_eo;
+			} else if (tags == NULL) {
+				pmatch[i].rm_so = -1;
 			} else {
 				pmatch[i].rm_so = tags[submatch_data[i].so_tag];
 			}
 
 			if (submatch_data[i].eo_tag == tnfa->end_tag) {
 				pmatch[i].rm_eo = match_eo;
+			} else if (tags == NULL) {
+				pmatch[i].rm_eo = -1;
 			} else {
 				pmatch[i].rm_eo = tags[submatch_data[i].eo_tag];
 			}
