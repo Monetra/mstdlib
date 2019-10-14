@@ -563,11 +563,12 @@ static M_bool add_icase_literals(struct literals *ls, int min, int max)
 
 static reg_errcode_t parse_bracket_character_range(tre_parse_ctx_t *ctx, const char *range, struct literals *ls)
 {
-	const char *s = range;
-	const char *next;
-	int         min;
-	int         max;
-	M_uint32    cp;
+	const char    *s = range;
+	const char    *next;
+	tre_literal_t *lit;
+	int            min;
+	int            max;
+	M_uint32       cp;
 
 	if (*s == '\0')
 		return REG_EBRACK;
@@ -593,7 +594,7 @@ static reg_errcode_t parse_bracket_character_range(tre_parse_ctx_t *ctx, const c
 			}
 		}
 
-		tre_literal_t *lit = tre_new_lit(ls);
+		lit = tre_new_lit(ls);
 		if (lit == NULL) {
 			return REG_ESPACE;
 		}
@@ -651,6 +652,7 @@ static reg_errcode_t parse_bracket_terms(tre_parse_ctx_t *ctx, const char *s, st
 {
 	const char    *start = s;
 	const char    *next;
+	tre_literal_t *lit;
 	int            min;
 	int            max;
 	int            len;
@@ -719,7 +721,7 @@ static reg_errcode_t parse_bracket_terms(tre_parse_ctx_t *ctx, const char *s, st
 			}
 		}
 
-		tre_literal_t *lit = tre_new_lit(ls);
+		lit = tre_new_lit(ls);
 		if (lit == NULL) {
 			return REG_ESPACE;
 		}
@@ -958,32 +960,34 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 					node = tre_ast_new_literal(ctx->mem, ASSERTION, ASSERT_AT_EOW, -1);
 					break;
 				case 'x':
-					s++;
-					int i;
-					int v = 0;
-					int c;
+					{
+						int i;
+						int v = 0;
+						int c;
+						s++;
 
-					len = 2;
-					if (*s == '{') {
-						len = 8;
-						s++;
-					}
-					for (i=0; i<len && v<0x110000; i++) {
-						c = hexval(s[i]);
-						if (c < 0) {
-							break;
+						len = 2;
+						if (*s == '{') {
+							len = 8;
+							s++;
 						}
-						v = 16*v + c;
-					}
-					s += i;
-					if (len == 8) {
-						if (*s != '}') {
-							return REG_EBRACE;
+						for (i=0; i<len && v<0x110000; i++) {
+							c = hexval(s[i]);
+							if (c < 0) {
+								break;
+							}
+							v = 16*v + c;
 						}
-						s++;
+						s += i;
+						if (len == 8) {
+							if (*s != '}') {
+								return REG_EBRACE;
+							}
+							s++;
+						}
+						node = tre_ast_new_literal(ctx->mem, v, v, ctx->position++);
+						s--;
 					}
-					node = tre_ast_new_literal(ctx->mem, v, v, ctx->position++);
-					s--;
 					break;
 				case '{':
 				case '+':
@@ -1376,15 +1380,14 @@ static void tre_purge_regset(int *regset, tre_tnfa_t *tnfa, int tag)
 
 /* Adds tags to appropriate locations in the parse tree in `tree', so that
    subexpressions marked for submatch addressing can be traced. */
-static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_node_t *tree,
-		tre_tnfa_t *tnfa)
+static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_node_t *tree, tre_tnfa_t *tnfa)
 {
 	reg_errcode_t         status       = REG_OK;
 	tre_addtags_symbol_t  symbol;
 	tre_ast_node_t       *node         = tree; /* Tree node we are currently looking at. */
 	size_t                bottom       = tre_stack_num_objects(stack);
 	/* True for first pass (counting number of needed tags) */
-	int                   first_pass   = (mem == NULL || tnfa == NULL);
+	int                   first_pass   = (mem == NULL);
 	int                  *regset;
 	int                  *orig_regset;
 	int                   num_tags     = 0; /* Total number of tags. */
@@ -1875,8 +1878,12 @@ static reg_errcode_t tre_copy_ast(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 								min = EMPTY;
 								max = pos = -1;
 							} else if (IS_TAG(lit) && (flags & COPY_MAXIMIZE_FIRST_TAG) && first_tag) {
-								/* Maximize the first tag. */
-								tag_directions[max] = TRE_TAG_LEFT_MAXIMIZE;
+								/* This will never be NULL due to it always being set with this
+								 * flag. But we need to silence a warning. */
+								if (tag_directions != NULL) {
+									/* Maximize the first tag. */
+									tag_directions[max] = TRE_TAG_LEFT_MAXIMIZE;
+								}
 								first_tag           = 0;
 							}
 
@@ -2070,7 +2077,7 @@ static reg_errcode_t tre_expand_ast(tre_mem_t mem, tre_stack_t *stack, tre_ast_n
 
 						/* Create a catenated sequence of copies of the node. */
 						for (j = 0; j < iter->min; j++) {
-							tre_ast_node_t *copy;
+							tre_ast_node_t *copy = NULL;
 
 							/* Remove tags from all but the last copy. */
 							int flags = ((j + 1 < iter->min)
