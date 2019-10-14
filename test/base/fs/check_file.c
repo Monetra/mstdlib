@@ -238,7 +238,7 @@ int main(void)
 {
 	int nf;
 	SRunner *sr = srunner_create(M_fs_file_suite());
-	srunner_set_log(sr, "check_file.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_file.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

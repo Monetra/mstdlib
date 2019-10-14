@@ -128,7 +128,7 @@ int main(void)
 	int      nf;
 
 	sr = srunner_create(M_hash_strvp_suite());
-	srunner_set_log(sr, "check_hash_strvp.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_hash_strvp.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

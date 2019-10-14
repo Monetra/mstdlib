@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	(void)argv;
 
 	sr = srunner_create(M_xml_entities_suite());
-	srunner_set_log(sr, "check_xml_entities.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_xml_entities.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

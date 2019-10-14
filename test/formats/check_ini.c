@@ -520,7 +520,7 @@ int main(void)
 {
 	int nf;
 	SRunner *sr = srunner_create(M_ini_suite());
-	srunner_set_log(sr, "check_ini.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_ini.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

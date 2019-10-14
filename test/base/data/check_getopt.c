@@ -385,7 +385,7 @@ int main(void)
 {
 	int nf;
 	SRunner *sr = srunner_create(M_getopt_suite());
-	srunner_set_log(sr, "check_getopt.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_getopt.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

@@ -480,7 +480,7 @@ int main(void)
 	add_test(suite, check_xml_xpath_text_first);
 
 	sr = srunner_create(suite);
-	srunner_set_log(sr, "check_xml.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_xml.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

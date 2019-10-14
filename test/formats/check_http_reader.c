@@ -982,7 +982,7 @@ int main(void)
 	add_test(suite, check_query_string);
 
 	sr = srunner_create(suite);
-	srunner_set_log(sr, "check_http_reader.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_http_reader.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

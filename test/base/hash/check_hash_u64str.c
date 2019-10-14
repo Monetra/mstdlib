@@ -106,7 +106,7 @@ int main(void)
 	int      nf;
 
 	sr = srunner_create(M_hash_u64str_suite());
-	srunner_set_log(sr, "check_hash_u64str.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_hash_u64str.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

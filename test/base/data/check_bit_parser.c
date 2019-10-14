@@ -746,7 +746,7 @@ int main(void)
 	add_test(suite, check_bparser_count);
 
 	sr = srunner_create(suite);
-	srunner_set_log(sr, "check_bit_parser.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_bit_parser.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

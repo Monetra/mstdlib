@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	(void)argv;
 
 	sr = srunner_create(test_suite());
-	srunner_set_log(sr, "check_puny.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_puny.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
