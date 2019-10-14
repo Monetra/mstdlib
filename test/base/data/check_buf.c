@@ -371,7 +371,7 @@ int main(void)
 	add_test(suite, check_buf_trim);
 
 	sr = srunner_create(suite);
-	srunner_set_log(sr, "check_buf.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_buf.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

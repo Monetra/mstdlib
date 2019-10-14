@@ -6,7 +6,7 @@ int main(void)
 	int      nf;
 
 	sr = srunner_create(M_thread_suite(M_THREAD_MODEL_NATIVE, "thread_native"));
-	srunner_set_log(sr, "check_thread_native.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_thread_native.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

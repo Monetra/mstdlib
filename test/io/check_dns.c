@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	(void)argv;
 
 	sr = srunner_create(dns_suite());
-	srunner_set_log(sr, "check_dns.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_dns.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

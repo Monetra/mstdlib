@@ -903,7 +903,7 @@ int main(void)
 {
 	int nf;
 	SRunner *sr = srunner_create(M_json_suite());
-	srunner_set_log(sr, "check_json.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_json.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);

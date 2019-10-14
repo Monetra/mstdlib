@@ -276,7 +276,7 @@ int main(void)
 	add_test(suite, check_write_cell_edit);
 
 	sr = srunner_create(suite);
-	srunner_set_log(sr, "check_csv.log");
+	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_csv.log");
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
