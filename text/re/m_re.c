@@ -371,6 +371,8 @@ char *M_re_sub(const M_re_t *re, const char *repl, const char *str)
 		pos = offset + mlen;
 	}
 
+	M_list_destroy(matches, M_TRUE);
+
 	/* Add any trailing data. */
 	M_buf_add_bytes(buf, str+pos, M_str_len(str)-pos);
 
