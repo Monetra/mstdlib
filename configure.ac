@@ -772,8 +772,8 @@ if test "${build_mstdlib_io}" = "yes" ; then
 	if test "${build_mstdlib_thread}" = "no" ; then
 		AC_MSG_ERROR(IO REQUIRES THREAD)
 	fi
-	if test "${build_mstdlib_formats}" = "no" ; then
-		AC_MSG_ERROR(IO REQUIRES FORMATS)
+	if test "${build_mstdlib_text}" = "no" ; then
+		AC_MSG_ERROR(IO REQUIRES TEXT)
 	fi
 
 	AC_CHECK_FUNC(kqueue, [ have_kqueue="yes" ], [ have_kqueue="no" ])
