@@ -33,6 +33,7 @@ M_uint64 M_uint64_prec_round(M_uint64 num, int currentDecimals, int wantedDecima
 	if (wantedDecimals >= currentDecimals)
 		return num;
 
+	/* coverity[return_constant : FALSE] */
 	roundDivisor = M_uint64_exp(10, currentDecimals-wantedDecimals);
 
 	ret = num / roundDivisor;
