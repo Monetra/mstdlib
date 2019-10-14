@@ -456,7 +456,7 @@ else ()
 	message(STATUS "Building MSTDLIB thread... Disabled")
 endif ()
 
-if (MSTDLIB_BUILD_IO AND MSTDLIB_BUILD_THREAD and MSTDLIB_BUILD_TEXT)
+if (MSTDLIB_BUILD_IO AND MSTDLIB_BUILD_THREAD AND MSTDLIB_BUILD_TEXT)
 	message(STATUS "Building MSTDLIB io... Enabled")
 	add_subdirectory(io)
 else ()
