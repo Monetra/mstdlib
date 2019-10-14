@@ -459,7 +459,7 @@ static const char *tre_expand_macro(const char *s)
 	size_t i;
 
 	for (i=0; tre_macros[i].c && tre_macros[i].c!=*s; i++)
-		;;
+		;
 
 	return tre_macros[i].expansion;
 }
@@ -1445,14 +1445,14 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 					/* Add end of this submatch to regset. */
 					for (i = 0; regset[i] >= 0; i++)
-						;;
+						;
 
 					regset[i]   = id * 2 + 1;
 					regset[i+1] = -1;
 
 					/* Pop this submatch from the parents stack. */
 					for (i = 0; parents[i] >= 0; i++)
-						;;
+						;
 
 					parents[i-1] = -1;
 				}
@@ -1471,7 +1471,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 					if (!first_pass) {
 						for (i = 0; parents[i] >= 0; i++)
-							;;
+							;
 
 						tnfa->submatch_data[id].parents = NULL;
 						if (i > 0) {
@@ -1510,7 +1510,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 										if (minimal_tag >= 0) {
 											for (i = 0; tnfa->minimal_tags[i] >= 0; i++)
-												;;
+												;
 
 											tnfa->minimal_tags[i]   = tag;
 											tnfa->minimal_tags[i+1] = minimal_tag;
@@ -1594,7 +1594,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 									if (minimal_tag >= 0) {
 										for (i = 0; tnfa->minimal_tags[i] >= 0; i++)
-											;;
+											;
 
 										tnfa->minimal_tags[i]   = tag;
 										tnfa->minimal_tags[i+1] = minimal_tag;
@@ -1659,7 +1659,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 									if (minimal_tag >= 0) {
 										for (i = 0; tnfa->minimal_tags[i] >= 0; i++)
-											;;
+											;
 
 										tnfa->minimal_tags[i]   = tag;
 										tnfa->minimal_tags[i+1] = minimal_tag;
@@ -1689,7 +1689,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 				if (node->submatch_id >= 0) {
 					/* Push this submatch on the parents stack. */
 					for (i = 0; parents[i] >= 0; i++)
-						;;
+						;
 
 					parents[i] = node->submatch_id;
 					parents[i + 1] = -1;
@@ -1800,7 +1800,7 @@ static reg_errcode_t tre_add_tags(tre_mem_t mem, tre_stack_t *stack, tre_ast_nod
 
 	if (!first_pass && minimal_tag >= 0) {
 		for (i = 0; tnfa->minimal_tags[i] >= 0; i++)
-			;;
+			;
 
 		tnfa->minimal_tags[i]   = tag;
 		tnfa->minimal_tags[i+1] = minimal_tag;
@@ -1995,9 +1995,6 @@ static reg_errcode_t tre_expand_ast(tre_mem_t mem, tre_stack_t *stack, tre_ast_n
 	while (status == REG_OK && tre_stack_num_objects(stack) > bottom) {
 		tre_ast_node_t          *node;
 		tre_expand_ast_symbol_t  symbol;
-
-		if (status != REG_OK)
-			break;
 
 		symbol = (tre_expand_ast_symbol_t)tre_stack_pop_int(stack);
 		node   = tre_stack_pop_voidptr(stack);
@@ -2229,13 +2226,13 @@ static tre_pos_and_tags_t *tre_set_union(tre_mem_t mem, tre_pos_and_tags_t *set1
 	size_t              num_tags;
 
 	for (num_tags = 0; tags != NULL && tags[num_tags] >= 0; num_tags++)
-		;;
+		;
 
 	for (s1 = 0; set1[s1].position >= 0; s1++)
-		;;
+		;
 
 	for (s2 = 0; set2[s2].position >= 0; s2++)
-		;;
+		;
 
 	new_set = tre_mem_calloc(mem, sizeof(*new_set) * (s1 + s2 + 1));
 	if (!new_set )
@@ -2250,7 +2247,7 @@ static tre_pos_and_tags_t *tre_set_union(tre_mem_t mem, tre_pos_and_tags_t *set1
 			new_set[s1].tags = NULL;
 		} else {
 			for (i = 0; set1[s1].tags != NULL && set1[s1].tags[i] >= 0; i++)
-				;;
+				;
 
 			new_tags = tre_mem_alloc(mem, (sizeof(*new_tags) * (i + num_tags + 1)));
 			if (new_tags == NULL)
@@ -2281,7 +2278,7 @@ static tre_pos_and_tags_t *tre_set_union(tre_mem_t mem, tre_pos_and_tags_t *set1
 			new_set[s1 + s2].tags = NULL;
 		} else {
 			for (i = 0; set2[s2].tags[i] >= 0; i++)
-				;;
+				;
 
 			new_tags = tre_mem_alloc(mem, sizeof(*new_tags) * (i + 1));
 			if (new_tags == NULL) {
@@ -2978,7 +2975,7 @@ reg_errcode_t mregcomp(regex_t *preg, const char *regex, regex_flags_t cflags)
 			size_t j;
 
 			for (j = 0; p->tags[j] >= 0; j++)
-				;;
+				;
 
 			initial[i].tags = M_malloc(sizeof(*p->tags) * (j + 1));
 			if (!initial[i].tags)
