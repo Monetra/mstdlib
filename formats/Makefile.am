@@ -34,4 +34,4 @@ libmstdlib_formats_la_SOURCES =  \
 	xml/m_xml_xpath.c
 
 libmstdlib_formats_la_DEPENDENCIES = @ADD_OBJECTS@
-libmstdlib_formats_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/base/libmstdlib_text.la
+libmstdlib_formats_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/text/libmstdlib_text.la
