@@ -588,7 +588,7 @@ static M_uint64 M_str_fmt_get_unsigned_integer(M_str_fmt_data_type_t data_type, 
 			val = va_arg(ap->ap, size_t);
 			break;
 		case M_STR_FMT_DATA_TYPE_VOIDP:
-			/* Can't be unsigned. */
+			val = (M_uint64)(M_uintptr)va_arg(ap->ap, void *);
 			break;
 		case M_STR_FMT_DATA_TYPE_DOUBLE:
 			/* Not an integer. */
@@ -839,8 +839,8 @@ static ssize_t M_str_fmt_handle_control(M_str_fmt_t *data, M_parser_t *parser, M
 			 */
 			case 'p':
 			case 'P':
-				sdval   = M_str_fmt_get_signed_integer(M_STR_FMT_DATA_TYPE_VOIDP, ap);
-				out_len = M_str_fmt_add_integer_just(data, (M_uint64)M_ABS(sdval), 16, sdval<0?M_FALSE:M_TRUE, sign_type, M_TRUE, b=='P'?M_TRUE:M_FALSE, pad_char, pad_len, ljust);
+				udval   = M_str_fmt_get_unsigned_integer(M_STR_FMT_DATA_TYPE_VOIDP, ap);
+				out_len = M_str_fmt_add_integer_just(data, udval, 16, M_TRUE, M_STR_FMT_SIGN_TYPE_NEG, M_TRUE, b=='P'?M_TRUE:M_FALSE, pad_char, pad_len, ljust);
 				goto done;
 
 			/* Floating point types. */
