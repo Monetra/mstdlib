@@ -2447,8 +2447,7 @@ static reg_errcode_t tre_compute_nfl(tre_mem_t mem, tre_stack_t *stack, tre_ast_
 								/* Literal at position i: nullable = false, firstpos = {i},
 								   lastpos = {i}. */
 								node->nullable = 0;
-								node->firstpos =
-									tre_set_one(mem, lit->position, (int)lit->code_min, (int)lit->code_max);
+								node->firstpos = tre_set_one(mem, lit->position, (int)lit->code_min, (int)lit->code_max);
 
 								if (!node->firstpos) {
 									return REG_ESPACE;

@@ -49,55 +49,72 @@ __BEGIN_DECLS
  *
  * ### Syntax
  * 
- * Expression      | Description
- * ----------      | -----------
- * `.`             | any character (except newline, see DOTALL)
- * `^`             | Start of string. Or start of line in MULTILINE
- * `$`             | End of string. Or end of line in MULTILINE
- * `*`             | 0 or more repetitions
- * `+`             | 1 or more repetitions
- * `?`             | 0 or 1 repetitions
- * `*? +? ??`      | Ungreedy version of repetition
- * `{#}`           | Exactly # of repetitions
- * `{#,}`          | # or more repetitions
- * `{#,#}`         | Inclusive of # and # repetitions
- * `\`             | Escape character. E.g. `\\ => \`
- * `[]`            | Character range. Can be specific characters or '-' specified range. Multiple ranges can be specified. E.g. `[a-z-8XYZ]`
- * `[^]`           | Negative character range. Can be specific characters or '-' specified range. Multiple ranges can be specified. E.g. `[^a-z-8XYZ]`
- * \|              | Composite A or B. E.g. A\|B
- * `()`            | Pattern and capture group. Groups expressions together for evaluation when used with \|. Also, defines a capture group.
- * `(?imsU-imsU)`  | Allows specifying compile flags in the expression. Supports `i` (ignore case), `m` (multiline), `s` (dot all), `U` (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern.
- * `\s`            | White space. Equivalent to `[ \t\n\r\f\v]`
- * `\S`            | Not white space. Equivalent to `[^ \t\n\r\f\v]`
- * `\d`            | Digit (number). Equivalent to `[0-9]`
- * `\D`            | Not digit Equivalent to `[^0-9]`
- * `\w`            | Word
- * `\W`            | Not word
- * `\xHH \x{HHHH}` | Hex values
- * `\<`            | Beginning of word
- * `\>`            | End of word
+ * Expression     | Description
+ * ----------     | -----------
+ * `.`            | any character (except newline, see DOTALL)
+ * `^`            | Start of string. Or start of line in MULTILINE
+ * `$`            | End of string. Or end of line in MULTILINE
+ * `*`            | 0 or more repetitions
+ * `+`            | 1 or more repetitions
+ * `?`            | 0 or 1 repetitions
+ * `*? +? ??`     | Ungreedy version of repetition
+ * `{#}`          | Exactly # of repetitions
+ * `{#,}`         | # or more repetitions
+ * `{#,#}`        | Inclusive of # and # repetitions
+ * `\`            | Escape character. E.g. `\\ => \`
+ * `[]`           | Character range. Can be specific characters or '-' specified range. Multiple ranges can be specified. E.g. `[a-z-8XYZ]`
+ * `[^]`          | Negative character range. Can be specific characters or '-' specified range. Multiple ranges can be specified. E.g. `[^a-z-8XYZ]`
+ * \|             | Composite A or B. E.g. A\|B
+ * `()`           | Pattern and capture group. Groups expressions together for evaluation when used with \|. Also, defines a capture group.
+ * `(?imsU-imsU)` | Allows specifying compile flags in the expression. Supports `i` (ignore case), `m` (multiline), `s` (dot all), `U` (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern.
  *
  * \note \ as part of \| (pipe) shown in table is for escaping and not part of syntax.
+ *
+ * ### Escapes
+ * 
+ * Expression         | Description
+ * ----------         | -----------
+ * C escape sequences | Any standard escape sequence that is part of C. Such as, `\n` (newline) and `\t` (tab)
+ * `\xHH \x{HHHH}`    | Hex values
+ * `\<`               | Beginning of word
+ * `\>`               | End of word
+ *
+ * ### Short hand character classes
+ *
+ * Cannot be used within brackets.
+ *
+ * ASCII only.
+ *
+ * Expression | Description
+ * ---------- | -----------
+ * `\s`       | White space. Equivalent to `[ \t\n\r\f\v]`
+ * `\S`       | Not white space. Equivalent to `[^ \t\n\r\f\v]`
+ * `\d`       | Digit (number). Equivalent to `[0-9].
+ * `\D`       | Not digit Equivalent to `[^0-9]`
+ * `\w`       | Word. Equivalent to `[a-zA-Z0-9_]`
+ * `\W`       | Not word. Equivalent to `[^a-zA-Z0-9_]`
  *
  * ### POSIX character classes for bracket expressions
  *
  * Character ranges _must_ be used in `[]` expressions. `^` negation is supported with ranges.
  *
- * Range           | Description
- * -----           | -----------
- * `[:alpha:]`     | Alpha characters. Contains `[a-zA-Z]`
- * `[:alnum:]`     | Alpha numeric characters. Contains `[a-zA-Z0-9]`
- * `[:word:]`      | Alpha numeric characters. Contains `[a-zA-Z0-9_]`. Equivalent to `\w`
- * `[:space:]`     | White space characters. Contains `[ \t\r\n\v\f]`. Equivalent to `\s`
- * `[:digit:]`     | Digit (number) characters. Contains `[0-9]`. Equivalent to `\d`
- * `[:cntrl:]`     | Control characters. Contains `[\x00-\x1F\x7F]`. Note: `\x00` is the NULL string terminator so this is really `[\x01-\x1F\x7F]` because `\x00` can never be encountered in a string.
- * `[:print:]`     | Printable characters range. Contains `[\x20-\x7E]`
- * `[:xdigit:]`    | Hexadecimal digit range. Contains `[0-9a-fA-F]`
- * `[:lower:]`     | Lower case character range. Contains `[a-z]`
- * `[:upper:]`     | Upper case character range. Contains `[A-Z]`
- * `[:blank:]`     | Blank character range. Contains `[ \t]`
- * `[:graph:]`     | Graph character range. Contains `[\x21-\x7E]`
- * `[:punct:]`     | Punctuation character range. Contains `[!"\#$%&'()*+,\-./:;<=>?@\[\\\]^_\`{\|}~]`
+ * ASCII only.
+ *
+ * Range        | Description
+ * -----        | -----------
+ * `[:alpha:]`  | Alpha characters. Contains `[a-zA-Z]`
+ * `[:alnum:]`  | Alpha numeric characters. Contains `[a-zA-Z0-9]`
+ * `[:word:]`   | Alpha numeric characters. Contains `[a-zA-Z0-9_]`. Equivalent to `\w`
+ * `[:space:]`  | White space characters. Contains `[ \t\r\n\v\f]`. Equivalent to `\s`
+ * `[:digit:]`  | Digit (number) characters. Contains `[0-9]`. Equivalent to `\d`
+ * `[:cntrl:]`  | Control characters. Contains `[\x00-\x1F\x7F]`. Note: `\x00` is the NULL string terminator so this is really `[\x01-\x1F\x7F]` because `\x00` can never be encountered in a string.
+ * `[:print:]`  | Printable characters range. Contains `[\x20-\x7E]`
+ * `[:xdigit:]` | Hexadecimal digit range. Contains `[0-9a-fA-F]`
+ * `[:lower:]`  | Lower case character range. Contains `[a-z]`
+ * `[:upper:]`  | Upper case character range. Contains `[A-Z]`
+ * `[:blank:]`  | Blank character range. Contains `[ \t]`
+ * `[:graph:]`  | Graph character range. Contains `[\x21-\x7E]`
+ * `[:punct:]`  | Punctuation character range. Contains `[!"\#$%&'()*+,\-./:;<=>?@\[\\\]^_\`{\|}~]`
  *
  * \note \ as part of \| (pipe) and \` shown in `[:punct:]` is for escaping and not part of character set.
  *
@@ -132,6 +149,16 @@ __BEGIN_DECLS
  * which return start and end offsets. Utilizing length instead of end offsets
  * was decided based on captures being passed to other functions, the majority
  * of which take a start and length; not an end offset.
+ *
+ * ## Unicode
+ *
+ * Patterns and strings are expected to be UTF-8 encoded and will be interpreted
+ * as such.
+ *
+ * While Unicode is supported normalization is not. Every Unicode character is
+ * treated as a unique character. Many characters match multiple Unicode code
+ * points. Equivalence is not applied and each code point is treated as its
+ * own character.
  *
  * @{
  */ 
