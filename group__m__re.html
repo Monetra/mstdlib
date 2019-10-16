@@ -177,18 +177,14 @@ Functions</h2></td></tr>
 <td><code>()</code> </td><td>Pattern and capture group. Groups expressions together for evaluation when used with |. Also, defines a capture group. </td></tr>
 <tr>
 <td><code>(?imsU-imsU)</code> </td><td>Allows specifying compile flags in the expression. Supports <code>i</code> (ignore case), <code>m</code> (multiline), <code>s</code> (dot all), <code>U</code> (ungreedy). - can be used to disable a flag. E.g. (?im-s). Only allowed to be used once at the start of the pattern. </td></tr>
+</table>
+<dl class="section note"><dt>Note</dt><dd>\ as part of | (pipe) shown in table is for escaping and not part of syntax.</dd></dl>
+<h3>Escapes</h3>
+<table class="doxtable">
 <tr>
-<td><code>\s</code> </td><td>White space. Equivalent to <code>[ \t\n\r\f\v]</code> </td></tr>
+<th>Expression </th><th>Description  </th></tr>
 <tr>
-<td><code>\S</code> </td><td>Not white space. Equivalent to <code>[^ \t\n\r\f\v]</code> </td></tr>
-<tr>
-<td><code>\d</code> </td><td>Digit (number). Equivalent to <code>[0-9]</code> </td></tr>
-<tr>
-<td><code>\D</code> </td><td>Not digit Equivalent to <code>[^0-9]</code> </td></tr>
-<tr>
-<td><code>\w</code> </td><td>Word </td></tr>
-<tr>
-<td><code>\W</code> </td><td>Not word </td></tr>
+<td>C escape sequences </td><td>Any standard escape sequence that is part of C. Such as, <code>\n</code> (newline) and <code>\t</code> (tab) </td></tr>
 <tr>
 <td><code>\xHH \x{HHHH}</code> </td><td>Hex values </td></tr>
 <tr>
@@ -196,9 +192,22 @@ Functions</h2></td></tr>
 <tr>
 <td><code>\&gt;</code> </td><td>End of word </td></tr>
 </table>
-<dl class="section note"><dt>Note</dt><dd>\ as part of | (pipe) shown in table is for escaping and not part of syntax.</dd></dl>
+<h3>Short hand character classes</h3>
+<p>Cannot be used within brackets.</p>
+<p>ASCII only.</p>
+<table class="doxtable">
+<tr>
+<th>Expression </th><th>Description  </th></tr>
+<tr>
+<td><code>\s</code> </td><td>White space. Equivalent to <code>[ \t\n\r\f\v]</code> </td></tr>
+<tr>
+<td><code>\S</code> </td><td>Not white space. Equivalent to <code>[^ \t\n\r\f\v]</code> </td></tr>
+<tr>
+<td><code>\d</code> </td><td>Digit (number). Equivalent to <code>[0-9]. &lt;tr&gt;&lt;td&gt;</code><code>&lt;td&gt; Not digit Equivalent to</code>[^0-9]<code> &lt;tr&gt;&lt;td&gt;</code><code>&lt;td&gt; Word. Equivalent to</code>[a-zA-Z0-9_]<code> &lt;tr&gt;&lt;td&gt;</code><code>&lt;td&gt; Not word. Equivalent to</code>[^a-zA-Z0-9_]` </td></tr>
+</table>
 <h3>POSIX character classes for bracket expressions</h3>
 <p>Character ranges <em>must</em> be used in <code>[]</code> expressions. <code>^</code> negation is supported with ranges.</p>
+<p>ASCII only.</p>
 <table class="doxtable">
 <tr>
 <th>Range </th><th>Description  </th></tr>
@@ -247,7 +256,10 @@ Functions</h2></td></tr>
 <p>Patterns can have capture groups which can be filled in a match object during string evaluation. Only numbered capture indexes are supported. Up to 99 captures can be recorded.</p>
 <p>Index 0 is the full match for the regular expression. If the pattern matches the string, this will always be populated. Groups (when present) are number 1-99.</p>
 <p>If a capture is present the index will be available. Composite (|) patterns can cause gaps in captures. Meaning capture 1, and 5 could be present but capture 3 and 4 not. Also, captures can be present but have zero length.</p>
-<p>Finally, captures are reported with offset from the start of the string and the length of the captured data. This is different than some other libraries which return start and end offsets. Utilizing length instead of end offsets was decided based on captures being passed to other functions, the majority of which take a start and length; not an end offset. </p>
+<p>Finally, captures are reported with offset from the start of the string and the length of the captured data. This is different than some other libraries which return start and end offsets. Utilizing length instead of end offsets was decided based on captures being passed to other functions, the majority of which take a start and length; not an end offset.</p>
+<h2>Unicode</h2>
+<p>Patterns and strings are expected to be UTF-8 encoded and will be interpreted as such.</p>
+<p>While Unicode is supported normalization is not. Every Unicode character is treated as a unique character. Many characters match multiple Unicode code points. Equivalence is not applied and each code point is treated as its own character. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="gaead35ef8d9c13414897e61edd2eaf669"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaead35ef8d9c13414897e61edd2eaf669">&#9670;&nbsp;</a></span>M_re_t</h2>
@@ -715,7 +727,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Oct 15 2019 19:24:45 for Mstdlib-1.8.0 by
+    <li class="footer">Generated on Wed Oct 16 2019 19:41:16 for Mstdlib-1.8.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
