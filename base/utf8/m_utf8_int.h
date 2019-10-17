@@ -40,98 +40,98 @@ typedef struct {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-extern M_uint32 M_utf8_table_Cc[];
-extern size_t M_utf8_table_Cc_len;
+extern const M_uint32 M_utf8_table_Cc[];
+extern const size_t M_utf8_table_Cc_len;
 
-extern M_uint32 M_utf8_table_Cf[];
-extern size_t M_utf8_table_Cf_len;
+extern const M_uint32 M_utf8_table_Cf[];
+extern const size_t M_utf8_table_Cf_len;
 
-extern M_uint32 M_utf8_table_Co[];
-extern size_t M_utf8_table_Co_len;
+extern const M_uint32 M_utf8_table_Co[];
+extern const size_t M_utf8_table_Co_len;
 
-extern M_uint32 M_utf8_table_Cs[];
-extern size_t M_utf8_table_Cs_len;
+extern const M_uint32 M_utf8_table_Cs[];
+extern const size_t M_utf8_table_Cs_len;
 
-extern M_uint32 M_utf8_table_Ll[];
-extern size_t M_utf8_table_Ll_len;
+extern const M_uint32 M_utf8_table_Ll[];
+extern const size_t M_utf8_table_Ll_len;
 
-extern M_uint32 M_utf8_table_Lm[];
-extern size_t M_utf8_table_Lm_len;
+extern const M_uint32 M_utf8_table_Lm[];
+extern const size_t M_utf8_table_Lm_len;
 
-extern M_uint32 M_utf8_table_Lo[];
-extern size_t M_utf8_table_Lo_len;
+extern const M_uint32 M_utf8_table_Lo[];
+extern const size_t M_utf8_table_Lo_len;
 
-extern M_uint32 M_utf8_table_Lt[];
-extern size_t M_utf8_table_Lt_len;
+extern const M_uint32 M_utf8_table_Lt[];
+extern const size_t M_utf8_table_Lt_len;
 
-extern M_uint32 M_utf8_table_Lu[];
-extern size_t M_utf8_table_Lu_len;
+extern const M_uint32 M_utf8_table_Lu[];
+extern const size_t M_utf8_table_Lu_len;
 
-extern M_uint32 M_utf8_table_Mc[];
-extern size_t M_utf8_table_Mc_len;
+extern const M_uint32 M_utf8_table_Mc[];
+extern const size_t M_utf8_table_Mc_len;
 
-extern M_uint32 M_utf8_table_Me[];
-extern size_t M_utf8_table_Me_len;
+extern const M_uint32 M_utf8_table_Me[];
+extern const size_t M_utf8_table_Me_len;
 
-extern M_uint32 M_utf8_table_Mn[];
-extern size_t M_utf8_table_Mn_len;
+extern const M_uint32 M_utf8_table_Mn[];
+extern const size_t M_utf8_table_Mn_len;
 
-extern M_uint32 M_utf8_table_Nd[];
-extern size_t M_utf8_table_Nd_len;
+extern const M_uint32 M_utf8_table_Nd[];
+extern const size_t M_utf8_table_Nd_len;
 
-extern M_uint32 M_utf8_table_Nl[];
-extern size_t M_utf8_table_Nl_len;
+extern const M_uint32 M_utf8_table_Nl[];
+extern const size_t M_utf8_table_Nl_len;
 
-extern M_uint32 M_utf8_table_No[];
-extern size_t M_utf8_table_No_len;
+extern const M_uint32 M_utf8_table_No[];
+extern const size_t M_utf8_table_No_len;
 
-extern M_uint32 M_utf8_table_Pc[];
-extern size_t M_utf8_table_Pc_len;
+extern const M_uint32 M_utf8_table_Pc[];
+extern const size_t M_utf8_table_Pc_len;
 
-extern M_uint32 M_utf8_table_Pd[];
-extern size_t M_utf8_table_Pd_len;
+extern const M_uint32 M_utf8_table_Pd[];
+extern const size_t M_utf8_table_Pd_len;
 
-extern M_uint32 M_utf8_table_Pe[];
-extern size_t M_utf8_table_Pe_len;
+extern const M_uint32 M_utf8_table_Pe[];
+extern const size_t M_utf8_table_Pe_len;
 
-extern M_uint32 M_utf8_table_Pf[];
-extern size_t M_utf8_table_Pf_len;
+extern const M_uint32 M_utf8_table_Pf[];
+extern const size_t M_utf8_table_Pf_len;
 
-extern M_uint32 M_utf8_table_Pi[];
-extern size_t M_utf8_table_Pi_len;
+extern const M_uint32 M_utf8_table_Pi[];
+extern const size_t M_utf8_table_Pi_len;
 
-extern M_uint32 M_utf8_table_Po[];
-extern size_t M_utf8_table_Po_len;
+extern const M_uint32 M_utf8_table_Po[];
+extern const size_t M_utf8_table_Po_len;
 
-extern M_uint32 M_utf8_table_Ps[];
-extern size_t M_utf8_table_Ps_len;
+extern const M_uint32 M_utf8_table_Ps[];
+extern const size_t M_utf8_table_Ps_len;
 
-extern M_uint32 M_utf8_table_Sc[];
-extern size_t M_utf8_table_Sc_len;
+extern const M_uint32 M_utf8_table_Sc[];
+extern const size_t M_utf8_table_Sc_len;
 
-extern M_uint32 M_utf8_table_Sk[];
-extern size_t M_utf8_table_Sk_len;
+extern const M_uint32 M_utf8_table_Sk[];
+extern const size_t M_utf8_table_Sk_len;
 
-extern M_uint32 M_utf8_table_Sm[];
-extern size_t M_utf8_table_Sm_len;
+extern const M_uint32 M_utf8_table_Sm[];
+extern const size_t M_utf8_table_Sm_len;
 
-extern M_uint32 M_utf8_table_So[];
-extern size_t M_utf8_table_So_len;
+extern const M_uint32 M_utf8_table_So[];
+extern const size_t M_utf8_table_So_len;
 
-extern M_uint32 M_utf8_table_Zl[];
-extern size_t M_utf8_table_Zl_len;
+extern const M_uint32 M_utf8_table_Zl[];
+extern const size_t M_utf8_table_Zl_len;
 
-extern M_uint32 M_utf8_table_Zp[];
-extern size_t M_utf8_table_Zp_len;
+extern const M_uint32 M_utf8_table_Zp[];
+extern const size_t M_utf8_table_Zp_len;
 
-extern M_uint32 M_utf8_table_Zs[];
-extern size_t M_utf8_table_Zs_len;
+extern const M_uint32 M_utf8_table_Zs[];
+extern const size_t M_utf8_table_Zs_len;
 
-extern M_utf8_cp_map_t M_utf8_table_uptolow[];
-extern size_t M_utf8_table_uptolow_len;
+extern const M_utf8_cp_map_t M_utf8_table_uptolow[];
+extern const size_t M_utf8_table_uptolow_len;
 
-extern M_utf8_cp_map_t M_utf8_table_lowtoup[];
-extern size_t M_utf8_table_lowtoup_len;
+extern const M_utf8_cp_map_t M_utf8_table_lowtoup[];
+extern const size_t M_utf8_table_lowtoup_len;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
