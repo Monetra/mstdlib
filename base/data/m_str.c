@@ -242,6 +242,29 @@ static M_bool is_escaped(const char *str, const char *str_pos, char escape)
 	return (escape_count % 2 == 1)? M_TRUE : M_FALSE;
 }
 
+static M_bool is_base64_char(unsigned char c)
+{
+	/* Return M_TRUE if c is in this character set: ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ */
+
+	/* + and / */
+	if (c == 43 || c == 47)
+		return M_TRUE;
+
+	/* 0 - 9 */
+	if (c >= 48 && c <= 57)
+		return M_TRUE;
+
+	/* A - Z */
+	if (c >= 65 && c <= 90)
+		return M_TRUE;
+
+	/* a - z */
+	if (c >= 97 && c <= 122)
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 const char *M_str_safe(const char *s)
@@ -691,37 +714,36 @@ M_bool M_str_ishex_max(const char *s, size_t max)
 
 M_bool M_str_isbase64_max(const char *s, size_t max)
 {
-	M_bool              ret = M_FALSE;
-	M_parser_t         *const_parser;
-	M_parser_t        **parsers;
-	size_t              count;
-	size_t              first_len;
-	size_t              tmp_len;
-	unsigned int        i;
-	static const char   base64_charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	M_bool         ret = M_FALSE;
+	M_parser_t    *const_parser;
+	M_parser_t   **lines;
+	size_t         line_cnt;
+	size_t         std_len;
+	size_t         tmp_len;
+	unsigned int   i;
 
 	if (M_str_isempty(s) || max < 4)
 		return M_FALSE;
 
 	const_parser = M_parser_create_const((unsigned char *)s, max, M_PARSER_FLAG_NONE);
-	parsers      = M_parser_split(const_parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &count);
+	lines        = M_parser_split(const_parser, '\n', 0, M_PARSER_SPLIT_FLAG_NONE, &line_cnt);
 
-	first_len = M_parser_len(parsers[0]);
-	for (i=0; i<count; i++) {
-		tmp_len = M_parser_len(parsers[i]);
+	std_len = M_parser_len(lines[0]);
+	for (i=0; i<line_cnt; i++) {
+		tmp_len = M_parser_len(lines[i]);
 		if (
-			(i <  count-1 && tmp_len != first_len) || /* All lines except for the last must be the same length. */
-			(i == count-1 && tmp_len >  first_len) || /* The last line must be equal to or shorter than the others. */
-			tmp_len % 4 != 0                          /* All data must be in blocks of 4. */
+			(i <  line_cnt-1 && tmp_len != std_len) || /* All lines except for the last must be the same length. */
+			(i == line_cnt-1 && tmp_len >  std_len) || /* The last line must be equal to or shorter than the others. */
+			tmp_len % 4 != 0                            /* All data must be in blocks of 4. */
 		) {
 			goto done;
 		}
 
-		if (M_parser_consume_str_charset(parsers[i], base64_charset) != tmp_len) {
-			if (i != count-1) {
+		if (M_parser_consume_predicate(lines[i], is_base64_char) != tmp_len) {
+			if (i != line_cnt-1) {
 				/* All lines except for the last can only have characters in the base64 character set. */
 				goto done;
-			} else if (M_parser_consume_str_charset(parsers[i], "=") > 2 || M_parser_len(parsers[i]) != 0) {
+			} else if (M_parser_consume_str_charset(lines[i], "=") > 2 || M_parser_len(lines[i]) != 0) {
 				/* Only the last and second-to-last characters can be padding.
 				 * If the second-to-last character is a '=', the last one must be as well. */
 				goto done;
@@ -732,9 +754,9 @@ M_bool M_str_isbase64_max(const char *s, size_t max)
 	/* If we made it this far, then we passed all validations. */
 	ret = M_TRUE;
 done:
-	M_parser_split_free(parsers, count);
+	M_parser_split_free(lines, line_cnt);
 	M_parser_destroy(const_parser);
-return ret;
+	return ret;
 }
 
 M_bool M_str_isnum_max(const char *s, size_t max)
