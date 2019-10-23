@@ -22,6 +22,9 @@
 #   - Checks to see if code signing has been enabled, and the required certificate info has been set. Places result
 #     in variable named [outname].
 #
+# code_sign_entitlements_enabled(outname)
+#   - Checks to see if code signing entitlements have been specified. Places result in variable named [outname].
+#
 # code_sign_files([... full paths of files to sign ...])
 #   - Immediately signs the given files. Files must already exist on disk when this is called, so this is usually
 #     called as part of a custom install script.
@@ -55,6 +58,8 @@
 #
 # For details on using the entitlements file to enable app sandboxing, see here:
 #   https://developer.apple.com/library/content/documentation/Miscellaneous/Reference/EntitlementKeyReference
+#
+# Note: Using an entitlements file will enable hardended run time. Hardended entitlements may be necessary.
 #
 # On MacOS, the name passed to M_SIGN_CERT_NAME should match all or part of the "Common Name" field in the certificate.
 # Examples of certificate names:
@@ -360,6 +365,22 @@ function(code_sign_is_enabled out_enabled)
 endfunction()
 
 
+function(code_sign_entitlements_enabled out_enabled)
+	set(enabled FALSE)
+	if ("QUIET" IN_LIST ARGN)
+		set(quiet TRUE)
+	endif ()
+
+	if (M_SIGN_ENTITLEMENTS)
+		set(enabled TRUE)
+	elseif (NOT quiet)
+		message("Code signing entitlements disabled, specify -DM_SIGN_ENTITLEMENTS=... to enable")
+	endif ()
+
+	set(${out_enabled} ${enabled} PARENT_SCOPE)
+endfunction()
+
+
 # Switch to next timestamp server in the list.
 # Helper for code_sign_files_win32
 function(code_sign_next_ts_server)
@@ -501,6 +522,9 @@ function(code_sign_get_cmd_macos out_cmd)
 	set(cmd "${CODESIGN}")
 
 	if (M_SIGN_ENTITLEMENTS)
+		# Enable hardened runtime
+		list(APPEND cmd --options=runtime)
+
 		list(APPEND cmd --entitlements "${M_SIGN_ENTITLEMENTS}")
 	endif ()
    
