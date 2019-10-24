@@ -35,9 +35,7 @@
 #
 # Options:
 # --------
-# M_NOTARIZE_USERNAME     - Username to use for notarization. Can be a reference to a username stored in the key chain.
-#                           Key chain reference takes the form "@keychain:<KEY CHAIN ENTRY NAME>". For example, 
-#                           "@keychain:AC_USERNAME".
+# M_NOTARIZE_USERNAME     - Username to use for notarization.
 # M_NOTARIZE_PASSWORD     - Password to use for notarization. Should be a reference to a username stored in the key chain.
 #                           Key chain reference takes the form "@keychain:<KEY CHAIN ENTRY NAME>". For example, 
 #                           "@keychain:AC_PASSWORD". An app specific password is most likely needed.
