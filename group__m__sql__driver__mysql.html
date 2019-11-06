@@ -89,6 +89,7 @@ $(document).ready(function(){initNavTree('group__m__sql__driver__mysql.html','')
 <li>db: Required. Database Name.</li>
 <li>socketpath: Conditional. If using Unix Domain Sockets to connect to MySQL, this is the path to the Unix Domain Socket. Use the keyword of 'search' to search for the socket based on standard known paths. Cannot be used with host.</li>
 <li>host: Conditional. If using IP or SSL/TLS to connect to MySQL, this is the hostname or IP address of the server. If not using the default port of 3306, may append a ":port#" to the end of the host. For specifying multiple hosts in a pool, hosts should be comma delimited. Cannot be used with socketpath. <div class="fragment"><div class="line">host=10.40.30.2,10.50.30.2:13306  </div></div><!-- fragment --></li>
+<li>aurora: Optional. Defaults to false. If true, enables the MariaDB Aurora Connection handler plugin.</li>
 <li>ssl: Optional. Defaults to false, if true enables SSL/TLS to the server.</li>
 <li>mysql_engine: Optional. Used during table creation, defaults to INNODB. The default data storage engine to use with mysql. Typically it is recommended to leave this at the default.</li>
 <li>mysql_charset: Optional. Used during table creation, defaults to utfmb4.</li>
@@ -99,7 +100,7 @@ $(document).ready(function(){initNavTree('group__m__sql__driver__mysql.html','')
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Oct 24 2019 12:38:06 for Mstdlib-1.8.0 by
+    <li class="footer">Generated on Wed Nov 6 2019 17:07:34 for Mstdlib-1.8.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
