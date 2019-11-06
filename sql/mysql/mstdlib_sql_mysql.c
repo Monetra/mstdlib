@@ -42,6 +42,7 @@ typedef struct {
 	M_sql_hostport_t *hosts;
 	size_t            num_hosts;
 	M_bool            ssl;
+	M_bool            aurora;
 	M_sql_isolation_t max_isolation;
 	M_hash_dict_t    *settings;
 } mysql_connpool_data_t;
@@ -135,6 +136,7 @@ static M_bool mysql_connpool_readconf(mysql_connpool_data_t *data, const M_hash_
 		{ "socketpath",      M_SQL_CONNSTR_TYPE_ANY,      M_FALSE,  1,  1024 },
 		{ "host",            M_SQL_CONNSTR_TYPE_ANY,      M_FALSE,  1,  1024 },
 		{ "ssl",             M_SQL_CONNSTR_TYPE_BOOL,     M_FALSE,  0,     0 },
+		{ "aurora",          M_SQL_CONNSTR_TYPE_BOOL,     M_FALSE,  0,     0 },
 		{ "mysql_engine",    M_SQL_CONNSTR_TYPE_ALPHA,    M_FALSE,  1,    31 },
 		{ "mysql_charset",   M_SQL_CONNSTR_TYPE_ALPHANUM, M_FALSE,  1,    31 },
 		{ "max_isolation",   M_SQL_CONNSTR_TYPE_ANY,      M_FALSE,  1,    31 },
@@ -195,6 +197,10 @@ static M_bool mysql_connpool_readconf(mysql_connpool_data_t *data, const M_hash_
 	/* XXX - use me */
 	const_temp = M_hash_dict_get_direct(conndict, "ssl");
 	data->ssl  = M_str_istrue(const_temp);
+
+	/* aurora - defaults to off */
+	const_temp = M_hash_dict_get_direct(conndict, "aurora");
+	data->aurora = M_str_istrue(const_temp);
 
 	/* max_isolation - defaults to serializable */
 	data->max_isolation = M_SQL_ISOLATION_SERIALIZABLE;
@@ -313,6 +319,23 @@ static M_sql_error_t mysql_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool
 	 * reconnects ourself */
 	arg_b = 0;
 	mysql_options((*conn)->conn, MYSQL_OPT_RECONNECT, &arg_b);
+
+	/* Enable experimental Aurora-specific logic */
+#ifdef MARIADB_OPT_CONNECTION_HANDLER
+	if (data->aurora) {
+		if (mysql_optionsv((*conn)->conn, MARIADB_OPT_CONNECTION_HANDLER, (void *)"aurora") != 0) {
+			err = M_SQL_ERROR_CONN_FAILED;
+			M_snprintf(error, error_size, "mysql_optionsv(mysql, MARIADB_OPT_CONNECTION_HANDLER, (void *)\"aurora\")) failed. Most likely MariaDB Connector/C not compiled with Aurora support.");
+			goto done;
+		}
+	}
+#else
+	if (data->aurora) {
+		err = M_SQL_ERROR_CONN_FAILED;
+		M_snprintf(error, error_size, "Must use MariaDB Connector/C for Aurora support.");
+		goto done;
+	}
+#endif
 
 	/* XXX:
 	 * MYSQL_OPT_SSL_CA

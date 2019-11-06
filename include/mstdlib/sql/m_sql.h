@@ -80,6 +80,8 @@ __BEGIN_DECLS
  *    3306, may append a ":port#" to the end of the host.  For specifying multiple
  *    hosts in a pool, hosts should be comma delimited. Cannot be used with socketpath.
  *    \code  host=10.40.30.2,10.50.30.2:13306  \endcode
+ *  - aurora: Optional. Defaults to false. If true, enables the MariaDB Aurora Connection
+ *    handler plugin.
  *  - ssl: Optional. Defaults to false, if true enables SSL/TLS to the server.
  *  - mysql_engine: Optional.  Used during table creation, defaults to INNODB.  The default
  *    data storage engine to use with mysql.  Typically it is recommended to leave
