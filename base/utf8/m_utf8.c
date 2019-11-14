@@ -141,7 +141,6 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 {
 	M_uint32 mycp;
 	size_t   width = 0;
-	size_t   len;
 	size_t   i;
 
 	if (str == NULL)
@@ -149,17 +148,22 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 
 	if (cp != NULL)
 		*cp = 0;
+	if (next != NULL)
+		*next = NULL;
 
-	if (*str == '\0')
+	if (*str == '\0') {
+		if (next != NULL) {
+			*next = str;
+		}
 		return M_UTF8_ERROR_SUCCESS;
+	}
 
-	len   = M_str_len(str);
 	width = M_utf8_byte_width((unsigned char)str[0]);
 	if (width == 0)
 		return M_UTF8_ERROR_BAD_START;
 
-	if (width > len)
-		return M_UTF8_ERROR_TRUNCATED;
+	if (width > 4)
+		return M_UTF8_ERROR_BAD_CODE_POINT;
 
 	/* Single byte values are as is. */
 	if (width == 1) {
@@ -174,6 +178,10 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
 
 	/* Validate the next bytes in the sequence are continues. */
 	for (i=1; i<width; i++) {
+		if (str[i] == '\0') {
+			return M_UTF8_ERROR_TRUNCATED;
+		}
+
 		if (!M_utf8_is_continue((unsigned char)str[i])) {
 			return M_UTF8_ERROR_EXPECT_CONTINUE;
 		}
@@ -184,10 +192,8 @@ M_utf8_error_t M_utf8_get_cp(const char *str, M_uint32 *cp, const char **next)
  		mycp = (M_uint32)(((str[0] & 0x1F) << 6) | (str[1] & 0x3F));
 	} else if (width == 3) {
  		mycp = (M_uint32)(((str[0] & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F));
-	} else if (width == 4) {
+	} else /* width == 4 */ {
  		mycp = (M_uint32)(((str[0] & 0x07) << 18) | ((str[1] & 0x3F) << 12) | ((str[2] & 0x3F) << 6) | (str[3] & 0x3F));
-	} else {
-		return M_UTF8_ERROR_BAD_CODE_POINT;
 	}
 
 	/* Validate code point is valid. */
