@@ -684,7 +684,9 @@ static M_sql_error_t sqlite_cb_prepare(M_sql_driver_stmt_t **driver_stmt, M_sql_
 				(*driver_stmt)->is_commit = M_TRUE;
 
 			if ((rc & 0xFF) == SQLITE_LOCKED) {
-				M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, "sqlite3_prepare_v2() returned locked, retry.");
+				char temp[256];
+				M_snprintf(temp, sizeof(temp), "sqlite3_prepare_v2() returned locked, retry (%zu).", retry_cnt);
+				M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, temp);
 				if (retry_cnt >= 10) {
 					break;
 				}
@@ -818,10 +820,14 @@ static M_sql_error_t sqlite_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, s
 		} else
 #endif
 		if (rc == SQLITE_LOCKED) {
+			char temp[256];
+
 			/* Retry */
-			M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, "sqlite3_step (execute) returned locked, retry.");
+			M_snprintf(temp, sizeof(temp), "sqlite3_step (execute) returned locked, retry (%zu).", retry_cnt);
+			M_sql_driver_trace_message(M_FALSE, NULL, conn, M_SQL_ERROR_UNSET, temp);
 			if (retry_cnt >= 10) {
 				M_snprintf(error, error_size, "Rollback (%d), max retry count: %s", real_rc, sqlite3_errmsg(driver_conn->conn));
+				break;
 			}
 		} else {
 			M_snprintf(error, error_size, "Query Failed (%d): %s", real_rc, sqlite3_errmsg(driver_conn->conn));
