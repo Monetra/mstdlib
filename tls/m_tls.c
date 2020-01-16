@@ -887,10 +887,52 @@ static BIO *M_tls_bio_new(M_io_layer_t *layer)
 	return bio;
 }
 
-
 static M_bool M_io_tls_init_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle     = M_io_layer_get_handle(layer);
+	M_io_t        *io         = M_io_layer_get_io(layer);
+
+	/* This init is only for clients, not server connections */
+	if (!handle->is_client)
+		return M_TRUE;
+
+	/* See if we're already initialized */
+	if (handle->ssl != NULL)
+		return M_TRUE;
+
+	/* Set up SSL handle */
+	handle->ssl = SSL_new(handle->clientctx->ctx);
+
+	/* Attempt to look up session object to use */
+	if (!M_str_isempty(handle->hostname) && handle->clientctx->sessions_enabled) {
+		char        *hostport = NULL;
+		SSL_SESSION *session;
+		M_asprintf(&hostport, "%s:%u", handle->hostname, (unsigned int)M_io_net_get_port(io));
+
+		/* Attempt to resume session */
+		M_thread_mutex_lock(handle->clientctx->lock);
+		session = M_hash_strvp_multi_get_direct(handle->clientctx->sessions, hostport, 0);
+		if (session) {
+			SSL_set_session(handle->ssl, session);
+			/* This will also reduce the reference count on that session */
+			M_hash_strvp_multi_remove(handle->clientctx->sessions, hostport, 0, M_TRUE);
+		}
+		M_thread_mutex_unlock(handle->clientctx->lock);
+		M_free(hostport);
+	}
+
+	if (!M_str_isempty(handle->hostname)) {
+		/* support SNI */
+		SSL_set_tlsext_host_name(handle->ssl, handle->hostname);
+	}
+
+	/* Set the layer as the 'thunk' data for the custom bio */
+	handle->bio_glue = M_tls_bio_new(layer);
+	SSL_set_bio(handle->ssl, handle->bio_glue, handle->bio_glue);
+
+#ifdef TLS_BUFFER_WRITES
+	handle->write_buf = M_buf_create();
+#endif
 
 	return M_TRUE;
 }
@@ -1236,7 +1278,6 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 	M_io_handle_t    *handle;
 	M_io_layer_t     *layer;
 	M_io_callbacks_t *callbacks;
-	SSL_SESSION      *session;
 
 	if (io == NULL || ctx == NULL)
 		return M_IO_ERROR_INVALID;
@@ -1253,30 +1294,7 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 		hostname = M_io_net_get_host(io);
 	}
 
-	handle->hostname    = M_strdup(hostname);
-	handle->ssl         = SSL_new(handle->clientctx->ctx);
-
-	/* Attempt to look up session object to use */
-	if (!M_str_isempty(hostname) && ctx->sessions_enabled) {
-		char *hostport = NULL;
-		M_asprintf(&hostport, "%s:%u", handle->hostname, (unsigned int)M_io_net_get_port(io));
-
-		/* Attempt to resume session */
-		M_thread_mutex_lock(ctx->lock);
-		session = M_hash_strvp_multi_get_direct(ctx->sessions, hostport, 0);
-		if (session) {
-			SSL_set_session(handle->ssl, session);
-			/* This will also reduce the reference count on that session */
-			M_hash_strvp_multi_remove(ctx->sessions, hostport, 0, M_TRUE);
-		}
-		M_thread_mutex_unlock(ctx->lock);
-		M_free(hostport);
-	}
-
-	if (!M_str_isempty(handle->hostname)) {
-		/* support SNI */
-		SSL_set_tlsext_host_name(handle->ssl, handle->hostname);
-	}
+	handle->hostname = M_strdup(hostname);
 
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_tls_init_cb);
@@ -1294,14 +1312,6 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 
 	if (layer_id != NULL)
 		*layer_id = M_io_layer_get_index(layer);
-
-	/* Set the layer as the 'thunk' data for the custom bio */
-	handle->bio_glue = M_tls_bio_new(layer);
-	SSL_set_bio(handle->ssl, handle->bio_glue, handle->bio_glue);
-
-#ifdef TLS_BUFFER_WRITES
-	handle->write_buf = M_buf_create();
-#endif
 
 	return M_IO_ERROR_SUCCESS;
 }
