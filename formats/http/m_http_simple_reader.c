@@ -97,6 +97,10 @@ static M_http_error_t M_http_simple_read_header_cb(const char *key, const char *
 {
 	M_http_simple_read_t *simple = thunk;
 
+	/* Ignore empty headers. */
+	if (M_str_isempty(val))
+		return M_HTTP_ERROR_SUCCESS;
+
 	M_http_add_header(simple->http, key, val);
 	return M_HTTP_ERROR_SUCCESS;
 }
