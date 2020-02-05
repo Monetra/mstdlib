@@ -168,7 +168,6 @@ typedef struct {
 	"\r\n" \
 	"Message 3"
 
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static httpr_test_t *httpr_test_create(void)
@@ -232,6 +231,9 @@ static M_http_error_t header_full_func(const char *key, const char *val, void *t
 static M_http_error_t header_func(const char *key, const char *val, void *thunk)
 {
 	httpr_test_t *ht = thunk;
+
+	if (M_str_isempty(val))
+		return M_HTTP_ERROR_SUCCESS;
 
 	M_hash_dict_insert(ht->headers, key, val);
 	return M_HTTP_ERROR_SUCCESS;
@@ -917,6 +919,66 @@ START_TEST(check_httpr10)
 }
 END_TEST
 
+START_TEST(check_header_format)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	M_buf_t         *buf;
+	unsigned char   *out;
+	M_http_error_t   res;
+	size_t           out_len;
+	size_t           len_read = 0;
+	size_t           i;
+	static struct {
+		const char     *header;
+		M_bool          stored;
+		M_http_error_t  res;
+	} headers[] = {
+		{ "Server:v",     M_TRUE,  M_HTTP_ERROR_SUCCESS        },
+		{ "Server:",      M_FALSE, M_HTTP_ERROR_SUCCESS        },
+		{ "Server",       M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ "Server v",     M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ "Server :",     M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ "Server : val", M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ "Server: ",     M_FALSE, M_HTTP_ERROR_SUCCESS        },
+		{ " Server: ",    M_FALSE, M_HTTP_ERROR_HEADER_FOLD    },
+		{ " Server : ",   M_FALSE, M_HTTP_ERROR_HEADER_FOLD    },
+		{ ":",            M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ " :",           M_FALSE, M_HTTP_ERROR_HEADER_FOLD    },
+		{ " : ",          M_FALSE, M_HTTP_ERROR_HEADER_FOLD    },
+		{ ": ",           M_FALSE, M_HTTP_ERROR_HEADER_INVALID },
+		{ " ",            M_FALSE, M_HTTP_ERROR_HEADER_FOLD    },
+		{ NULL, M_FALSE, M_HTTP_ERROR_INVALIDUSE }
+	};
+
+	for (i=0; headers[i].header!=NULL; i++) {
+		ht  = httpr_test_create();
+		hr  = gen_reader(ht);
+
+		buf = M_buf_create();
+		M_buf_add_str(buf, "HTTP/1.1 200 OK\r\n");
+		M_buf_add_str(buf, headers[i].header);
+		M_buf_add_str(buf, "\r\n");
+		M_buf_add_str(buf, "Content-Length:0\r\n");
+		M_buf_add_str(buf, "\r\n");
+		out = M_buf_finish(buf, &out_len);
+
+		res = M_http_reader_read(hr, out, out_len, &len_read);
+		ck_assert_msg(res == headers[i].res, "Parse failed header %zu: got %d, expected %d", i, res, headers[i].res);
+		ck_assert_msg(M_hash_dict_get(ht->headers, "Server", NULL) == headers[i].stored, "Ignored header 'Server' found: %zu\n", i);
+		if (res == M_HTTP_ERROR_SUCCESS) {
+			ck_assert_msg(M_hash_dict_get(ht->headers_full, "Server", NULL), "Ignored header 'Server' found: %zu\n", i);
+		} else {
+			ck_assert_msg(!M_hash_dict_get(ht->headers_full, "Server", NULL), "Ignored header 'Server' found: %zu\n", i);
+		}
+
+		M_free(out);
+		httpr_test_destroy(ht);
+		M_http_reader_destroy(hr);
+	}
+}
+END_TEST
+
 #define do_query_check(URI, PARAMS, EXPECTED)\
 do {\
 	M_buf_t *buf;\
@@ -978,7 +1040,7 @@ int main(void)
 	add_test(suite, check_httpr8);
 	add_test(suite, check_httpr9);
 	add_test(suite, check_httpr10);
-
+	add_test(suite, check_header_format);
 	add_test(suite, check_query_string);
 
 	sr = srunner_create(suite);

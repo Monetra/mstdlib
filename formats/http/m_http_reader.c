@@ -496,7 +496,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 		if (M_parser_len(header) == 0) {
 			break;
 		}
-		/* Eat the \r\n */
+		/* Eat the \r\n after the header. */
 		M_parser_consume(parser, 2);
 
 		httpr->header_len += M_parser_len(header);
@@ -513,32 +513,48 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 
 		/* Split the key from the value. */
 		kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
-		if (kv == NULL || num_kv != 2) {
+		if (kv == NULL || num_kv == 0) {
 			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
-		/* Spaces between the separator (:) and value are not allowed, but we still see them.
-		 * We'll just ignore spaces. */
-		M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
-
-		/* Validate we actually have a key and value.  */
-		if (M_parser_len(kv[0]) == 0 || M_parser_len(kv[1]) == 0) {
+		/* Spaces between the key and separator (:) are _NOT_allowed. */
+		if (M_parser_truncate_whitespace(kv[0], M_PARSER_WHITESPACE_NONE) != 0) {
 			res = M_HTTP_ERROR_HEADER_INVALID;
 			break;
 		}
 
+		/* Validate we actually have a key. */
+		if (M_parser_len(kv[0]) == 0) {
+			res = M_HTTP_ERROR_HEADER_INVALID;
+			break;
+		}
+
+		/* Get the key. */
 		key = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-		val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
 
-		M_str_trim(key);
-		M_str_trim(val);
-		if (M_str_isempty(key) || M_str_isempty(val)) {
-			res = M_HTTP_ERROR_HEADER_INVALID;
-			break;
+		/* We support a header being sent without a value. If there is a value
+ 		 * we'll pull it off. */
+		val = NULL;
+		if (num_kv == 2) {
+			/* Spaces between the separator (:) and value are allowed and should be ignored. Consume them. */
+			M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
+			val = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
+			M_str_trim(val);
 		}
 
+		/* Record we saw this header. */
 		M_http_read_header_full_process(httpr, key, val);
+
+		/* Empty value means we don't need to process it any further.
+ 		 * Just inform the header was seen without a value. */
+		if (M_str_isempty(val)) {
+			res = M_http_read_header_process(httpr, key, val);
+			if (res != M_HTTP_ERROR_SUCCESS) {
+				break;
+			}
+			goto end_of_header;
+		}
 
 		/* Values can be a separated list. We want to treat these as if
 		 * the header is appearing multiple times. */
@@ -575,6 +591,7 @@ static M_http_error_t M_http_read_header(M_http_reader_t *httpr, M_parser_t *par
 			break;
 		}
 
+end_of_header:
 		M_free(key);
 		M_free(val);
 		key = NULL;
