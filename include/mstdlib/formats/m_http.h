@@ -64,12 +64,23 @@ __BEGIN_DECLS
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Error codes.
+ *
+ * M_HTTP_ERROR_SUCCESS, and M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE are both
+ * Success conditions. All data is valid and has been parsed.
+ *
+ * M_HTTP_ERROR_MOREDATA indicates valid data and isn't always considered an
+ * error condition. It typically indicates a retry once more data is received
+ * condition. For example more headers could follow or the content length or
+ * chucked data was not complete.  There is more data needed to complete the
+ * message. It is only an error if end of data has been reached.
+ */
 typedef enum {
-	M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. */
-	M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent so the only way to know all data was received is by a disconnect. */
+	M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed and all data is present. */
+	M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent or chunking was used. The only way to know all data was received is by a disconnect. */
+	M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. */
 	M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
 	M_HTTP_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
-	M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. */
 	M_HTTP_ERROR_LENGTH_REQUIRED,            /*!< Content-Length is required but not provided. 411 code. */
 	M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED, /*!< Chunk extensions are present but not allowed. */
 	M_HTTP_ERROR_TRAILER_NOTALLOWED,         /*!< Chunk trailer present but not allowed. */
