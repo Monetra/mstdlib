@@ -5,9 +5,9 @@ var group__m__http =
     [ "M_http_error_t", "group__m__http.html#ga70262c0c0a6eb609fc7bd86797f7d4f4", [
       [ "M_HTTP_ERROR_SUCCESS", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53", null ],
       [ "M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db", null ],
+      [ "M_HTTP_ERROR_MOREDATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de", null ],
       [ "M_HTTP_ERROR_INVALIDUSE", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd", null ],
       [ "M_HTTP_ERROR_STOP", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8", null ],
-      [ "M_HTTP_ERROR_MOREDATA", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de", null ],
       [ "M_HTTP_ERROR_LENGTH_REQUIRED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4afb0615bfaee10c6ef9d40983e7c9aee2", null ],
       [ "M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a1e6889471cb59cd218ef063fdbca7516", null ],
       [ "M_HTTP_ERROR_TRAILER_NOTALLOWED", "group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a3bdf5635bf24a79d15101b6e435bad43", null ],

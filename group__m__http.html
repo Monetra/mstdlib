@@ -102,11 +102,11 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db">M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE</a>, 
 <br />
+&#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de">M_HTTP_ERROR_MOREDATA</a>, 
+<br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd">M_HTTP_ERROR_INVALIDUSE</a>, 
 <br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8">M_HTTP_ERROR_STOP</a>, 
-<br />
-&#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de">M_HTTP_ERROR_MOREDATA</a>, 
 <br />
 &#160;&#160;<a class="el" href="group__m__http.html#gga70262c0c0a6eb609fc7bd86797f7d4f4afb0615bfaee10c6ef9d40983e7c9aee2">M_HTTP_ERROR_LENGTH_REQUIRED</a>, 
 <br />
@@ -274,16 +274,19 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Error codes.</p>
+<p>M_HTTP_ERROR_SUCCESS, and M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE are both Success conditions. All data is valid and has been parsed.</p>
+<p>M_HTTP_ERROR_MOREDATA indicates valid data and isn't always considered an error condition. It typically indicates a retry once more data is received condition. For example more headers could follow or the content length or chucked data was not complete. There is more data needed to complete the message. It is only an error if end of data has been reached. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53"></a>M_HTTP_ERROR_SUCCESS&#160;</td><td class="fielddoc"><p>Success. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4ac34d4a660bec76a92faa5f27edb11a53"></a>M_HTTP_ERROR_SUCCESS&#160;</td><td class="fielddoc"><p>Success. Data fully parsed and all data is present. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db"></a>M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE&#160;</td><td class="fielddoc"><p>Success but more data possible. No content length was sent so the only way to know all data was received is by a disconnect. </p>
+<tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4a35da420f5444284c186699ce7126b5db"></a>M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE&#160;</td><td class="fielddoc"><p>Success but more data possible. No content length was sent or chunking was used. The only way to know all data was received is by a disconnect. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de"></a>M_HTTP_ERROR_MOREDATA&#160;</td><td class="fielddoc"><p>Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4ac86ac443c7d883756a80e939afcea0fd"></a>M_HTTP_ERROR_INVALIDUSE&#160;</td><td class="fielddoc"><p>Invalid use. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4a666c6e15ce5521b06703b827c2599bb8"></a>M_HTTP_ERROR_STOP&#160;</td><td class="fielddoc"><p>Stop processing (Used by callback functions to indicate non-error but stop processing). </p>
-</td></tr>
-<tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4a4c4c0647ac80da85c53da823f77393de"></a>M_HTTP_ERROR_MOREDATA&#160;</td><td class="fielddoc"><p>Incomplete message, more data required. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga70262c0c0a6eb609fc7bd86797f7d4f4afb0615bfaee10c6ef9d40983e7c9aee2"></a>M_HTTP_ERROR_LENGTH_REQUIRED&#160;</td><td class="fielddoc"><p>Content-Length is required but not provided. 411 code. </p>
 </td></tr>
@@ -846,7 +849,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Feb 5 2020 22:18:35 for Mstdlib-1.10.0 by
+    <li class="footer">Generated on Fri Feb 7 2020 14:57:54 for Mstdlib-1.10.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
