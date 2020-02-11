@@ -1075,8 +1075,9 @@ trailer_done_func</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Parse next http message from given array.</p>
-<p>Will not return M_HTTP_ERROR_MOREDATA. It is up to the caller to determine when a full message has been read. If Content-Length is not set it can be impossible to determine if a parse is complete.</p>
+<p>Parse http message from given data.</p>
+<p>When a parse returns without error but a full message has not been read, the parse should be run again starting where the last parse stopped. The reader can only be used once per complete message.</p>
+<p>Will <em>not</em> return M_HTTP_ERROR_MOREDATA. It is up to the caller to determine when a full message has been read based on the callbacks that have been called. The _done callbacks can indicate if all processing has completed. If Content-Length is not set it can be impossible to determine if a parse is complete.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">httpr</td><td>Http reader object. </td></tr>
@@ -1095,7 +1096,7 @@ trailer_done_func</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Feb 11 2020 14:01:55 for Mstdlib-1.10.0 by
+    <li class="footer">Generated on Tue Feb 11 2020 20:23:22 for Mstdlib-1.10.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
