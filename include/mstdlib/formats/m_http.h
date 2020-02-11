@@ -714,11 +714,17 @@ M_API void M_http_reader_destroy(M_http_reader_t *httpr);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Parse next http message from given array.
+/*! Parse http message from given data.
  *
- * Will not return M_HTTP_ERROR_MOREDATA. It is up to the caller to
- * determine when a full message has been read. If Content-Length
- * is not set it can be impossible to determine if a parse is complete.
+ * When a parse returns without error but a full message has not been read, the
+ * parse should be run again starting where the last parse stopped. The reader
+ * can only be used once per complete message.
+ *
+ * Will _not_ return M_HTTP_ERROR_MOREDATA. It is up to the caller to determine
+ * when a full message has been read based on the callbacks that have been
+ * called. The _done callbacks can indicate if all processing has completed.
+ * If Content-Length is not set it can be impossible to determine if a parse is
+ * complete.
  *
  * \param[in]  httpr    Http reader object.
  * \param[in]  data     Data to parse.
