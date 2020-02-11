@@ -74,13 +74,19 @@ __BEGIN_DECLS
  * condition. For example more headers could follow or the content length or
  * chucked data was not complete.  There is more data needed to complete the
  * message. It is only an error if end of data has been reached.
+ *
+ * M_HTTP_ERROR_STOP is not considered an error and means no more processing
+ * will/should take place. A callback should generate this if all data the caller
+ * wants has been processed if partial processing is taking place. For example,
+ * a proxy looking for X-Forwarded-For header in order to blacklist an abusive
+ * IP before forwarding the message.
  */
 typedef enum {
 	M_HTTP_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed and all data is present. */
 	M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE,      /*!< Success but more data possible. No content length was sent or chunking was used. The only way to know all data was received is by a disconnect. */
 	M_HTTP_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. */
-	M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
 	M_HTTP_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
+	M_HTTP_ERROR_INVALIDUSE,                 /*!< Invalid use. */
 	M_HTTP_ERROR_LENGTH_REQUIRED,            /*!< Content-Length is required but not provided. 411 code. */
 	M_HTTP_ERROR_CHUNK_EXTENSION_NOTALLOWED, /*!< Chunk extensions are present but not allowed. */
 	M_HTTP_ERROR_TRAILER_NOTALLOWED,         /*!< Chunk trailer present but not allowed. */
