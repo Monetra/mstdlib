@@ -109,7 +109,6 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 {
 	M_http_simple_read_t *simple = thunk;
 	char                 *val;
-	M_http_method_t       method;
 	M_int64               i64v;
 
 	switch (format) {
@@ -150,19 +149,6 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 		return M_HTTP_ERROR_SUCCESS;
 
 	val = M_http_header(simple->http, "content-length");
-	/* These typically don't have a body. That said, a client **could** send a
-	 * body with these bodiless methods. In which case we need to honor
-	 * content-length and read the body. The body should be ignored but we need
-	 * to parse the full message. */
-	method = M_http_method(simple->http);
-	if (method == M_HTTP_METHOD_GET || method == M_HTTP_METHOD_HEAD || method == M_HTTP_METHOD_DELETE || method == M_HTTP_METHOD_TRACE) {
-		if (M_str_isempty(val)) {
-			simple->rdone = M_TRUE;
-			simple->http->have_body_len = M_TRUE;
-			return M_HTTP_ERROR_SUCCESS;
-		}
-	}
-
 	if (M_str_isempty(val) && simple->rflags & M_HTTP_SIMPLE_READ_LEN_REQUIRED) {
 		M_free(val);
 		return M_HTTP_ERROR_LENGTH_REQUIRED;
@@ -171,14 +157,6 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 			M_free(val);
 			return M_HTTP_ERROR_CONTENT_LENGTH_MALFORMED;
 		}
-
-		/* No body so we're all done. */
-		if (i64v == 0) {
-			simple->rdone = M_TRUE;
-		}
-
-		simple->http->body_len      = (size_t)i64v;
-		simple->http->have_body_len = M_TRUE;
 	}
 	M_free(val);
 
@@ -190,21 +168,6 @@ static M_http_error_t M_http_simple_read_body_cb(const unsigned char *data, size
 	M_http_simple_read_t *simple = thunk;
 
 	M_http_body_append(simple->http, data, len);
-
-	/* If we don't have a content length and we have a body we can only assume all
-	 * the data has been sent in. We only know when we have all data once the connection
-	 * is closed. We assume the caller has already received all data. */
-	if (!simple->http->have_body_len)
-		simple->rdone = M_TRUE;
-
-	return M_HTTP_ERROR_SUCCESS;
-}
-
-static M_http_error_t M_http_simple_read_body_done_cb(void *thunk)
-{
-	M_http_simple_read_t *simple = thunk;
-
-	simple->rdone = M_TRUE;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -231,17 +194,6 @@ static M_http_error_t M_http_simple_read_chunk_data_cb(const unsigned char *data
 	return M_HTTP_ERROR_SUCCESS;
 }
 
-static M_http_error_t M_http_simple_read_chunk_data_finished_cb(void *thunk)
-{
-	M_http_simple_read_t *simple = thunk;
-
-	/* We have all the data so we now know the final body length.
-	 * and that we're all done. */
-	simple->http->have_body_len = M_TRUE;
-	simple->rdone               = M_TRUE;
-	return M_HTTP_ERROR_SUCCESS;
-}
-
 static M_http_error_t M_http_simple_read_trailer_cb(const char *key, const char *val, void *thunk)
 {
 	M_http_simple_read_t *simple = thunk;
@@ -251,14 +203,6 @@ static M_http_error_t M_http_simple_read_trailer_cb(const char *key, const char 
 
 	if (simple->rflags & M_HTTP_SIMPLE_READ_FAIL_TRAILERS)
 		return M_HTTP_ERROR_TRAILER_NOTALLOWED;
-	return M_HTTP_ERROR_SUCCESS;
-}
-
-static M_http_error_t M_http_simple_read_trailer_done_cb(void *thunk)
-{
-	M_http_simple_read_t *simple = thunk;
-
-	simple->rdone = M_TRUE;
 	return M_HTTP_ERROR_SUCCESS;
 }
 
@@ -512,12 +456,12 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		M_http_simple_read_header_cb,
 		M_http_simple_read_header_done_cb,
 		M_http_simple_read_body_cb,
-		M_http_simple_read_body_done_cb,
+		NULL, /* body_done_cb */
 		M_http_simple_read_chunk_extensions_cb,
 		NULL, /* chunk_extensions_done_cb */
 		M_http_simple_read_chunk_data_cb,
 		NULL, /* chunk_data_done_cb */
-		M_http_simple_read_chunk_data_finished_cb,
+		NULL, /* chunk_data_finished_cb */
 		NULL, /* multipart_preamble_cb */
 		NULL, /* multipart_preamble_done_cb */
 		NULL, /* multipart_header_full_cb */
@@ -530,7 +474,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		NULL, /* multipart_epilouge_done_cb */
 		NULL, /* M_http_simple_read_trailer_full_cb */
 		M_http_simple_read_trailer_cb,
-		M_http_simple_read_trailer_done_cb
+		NULL /* trailer_done_cb */
 	};
 
 	if (len_read == NULL)
@@ -553,12 +497,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	res    = M_http_reader_read(reader, data, data_len, len_read);
 	M_http_reader_destroy(reader);
 
-	if (res == M_HTTP_ERROR_SUCCESS && !(*simple)->rdone) {
-		res       = M_HTTP_ERROR_MOREDATA;
-		*len_read = 0;
-	}
-
-	if (res != M_HTTP_ERROR_SUCCESS) {
+	if (res != M_HTTP_ERROR_SUCCESS && res != M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) {
 		goto done;
 	}
 
@@ -568,11 +507,6 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		*simple = NULL;
 		goto done;
 	}
-
-	/* No body length sent. We have a sucessful parse
-	 * but we more data is possible. */
-	if (!(*simple)->http->have_body_len)
-		res = M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE;
 
 done:
 	if ((res != M_HTTP_ERROR_SUCCESS && res != M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE) || !have_simple) {

@@ -281,8 +281,10 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			if (httpr->data_type == M_HTTP_DATA_FORMAT_MULTIPART) {
 				return M_HTTP_ERROR_HEADER_DUPLICATE;
 			}
-
-			httpr->data_type = M_HTTP_DATA_FORMAT_MULTIPART;
+			/* Ignore the multipart if we know there is no body data. */
+			if (httpr->data_type != M_HTTP_DATA_FORMAT_NONE) {
+				httpr->data_type = M_HTTP_DATA_FORMAT_MULTIPART;
+			}
 		}
 
 		val = M_str_casestr(val, "boundary");
@@ -397,6 +399,14 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 	M_free(temp);
 	if (method == M_HTTP_METHOD_UNKNOWN)
 		return M_HTTP_ERROR_REQUEST_METHOD;
+
+	/* These typically don't have a body. That said, a client **could** send a
+	 * body with these bodiless methods. In which case we need to honor
+	 * content-length and read the body. The body should be ignored but we need
+	 * to parse the full message. TRACE **should** never have a body per the spec
+	 * but people do bad things. */
+	if (method == M_HTTP_METHOD_GET || method == M_HTTP_METHOD_HEAD || method == M_HTTP_METHOD_DELETE || method == M_HTTP_METHOD_TRACE)
+		httpr->no_body_method = M_TRUE;
 
 	/* Part 2: URI */
 	uri  = M_parser_read_strdup(parts[1], M_parser_len(parts[1]));
@@ -982,7 +992,7 @@ static M_http_error_t M_http_read_multipart_epilouge(M_http_reader_t *httpr, M_p
 
 	if (!httpr->have_epilouge) {
 		if (M_parser_len(parser) < 2) {
-			return M_HTTP_ERROR_SUCCESS;
+			goto done;
 		} else if (!M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
 			/* If an epilogue is present it will start with a \r\n to separate it from the -- ending marker. */
 			return M_HTTP_ERROR_MULTIPART_INVALID;
@@ -996,6 +1006,7 @@ static M_http_error_t M_http_read_multipart_epilouge(M_http_reader_t *httpr, M_p
 		M_parser_consume(parser, M_parser_len(parser));
 	}
 
+done:
 	if (httpr->have_body_len && httpr->body_len == httpr->body_len_seen)
 		*full_read = M_TRUE;
 	return res;
@@ -1162,13 +1173,23 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 			httpr->rstep = M_HTTP_READER_STEP_CHUNK_START;
 		} else if (httpr->data_type == M_HTTP_DATA_FORMAT_MULTIPART) {
 			httpr->rstep = M_HTTP_READER_STEP_MULTIPART_PREAMBLE;
+		} else if (httpr->data_type == M_HTTP_DATA_FORMAT_BODY) {
+			if (httpr->no_body_method && !httpr->have_body_len) {
+				/* Assume no body if there is no content length and it's
+ 				 * a method that typically doesn't have a body. */
+				httpr->rstep     = M_HTTP_READER_STEP_DONE;
+				httpr->data_type = M_HTTP_DATA_FORMAT_NONE;
+			} else {
+				httpr->rstep = M_HTTP_READER_STEP_BODY;
+			}
 		} else {
-			httpr->rstep = M_HTTP_READER_STEP_BODY;
+			httpr->rstep = M_HTTP_READER_STEP_DONE;
 		}
 
 		res = httpr->cbs.header_done_func(httpr->data_type, httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS)
+		if (res != M_HTTP_ERROR_SUCCESS) {
 			goto done;
+		}
 	}
 
 	/* Read the body (not chunked message). */
@@ -1203,6 +1224,17 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 done:
 	*len_read = start_len - M_parser_len(parser);
 	M_parser_destroy(parser);
+
+	/* On a succesful parse determine the overall state of the message. */
+	if (res == M_HTTP_ERROR_SUCCESS) {
+		if ((httpr->data_type == M_HTTP_DATA_FORMAT_BODY && httpr->rstep == M_HTTP_READER_STEP_BODY && !httpr->have_body_len) ||
+			(httpr->data_type == M_HTTP_DATA_FORMAT_MULTIPART && httpr->rstep == M_HTTP_READER_STEP_MULTIPART_EPILOUGE && !httpr->have_body_len))
+		{
+			res = M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE;
+		} else if (httpr->rstep != M_HTTP_READER_STEP_DONE) {
+			res = M_HTTP_ERROR_MOREDATA;
+		}
+	}
 	return res;
 }
 
