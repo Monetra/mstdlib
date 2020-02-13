@@ -1076,8 +1076,9 @@ trailer_done_func</td>
       </table>
 </div><div class="memdoc">
 <p>Parse http message from given data.</p>
-<p>When a parse returns without error but a full message has not been read, the parse should be run again starting where the last parse stopped. The reader can only be used once per complete message.</p>
-<p>Will <em>not</em> return M_HTTP_ERROR_MOREDATA. It is up to the caller to determine when a full message has been read based on the callbacks that have been called. The _done callbacks can indicate if all processing has completed. If Content-Length is not set it can be impossible to determine if a parse is complete.</p>
+<p>M_HTTP_ERROR_SUCCESS, and M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE are both Success conditions. Data is valid and has been parsed. Remaining unread data in the buffer on M_HTTP_ERROR_SUCCESS indicates a possible additional message.</p>
+<p>M_HTTP_ERROR_MOREDATA indicates valid data but an incomplete message. The parse should be run again starting where the last parse stopped. Until a known or possible full parse has completed.</p>
+<p>The reader can only be used once per complete message.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">httpr</td><td>Http reader object. </td></tr>
@@ -1096,7 +1097,7 @@ trailer_done_func</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Feb 13 2020 15:19:00 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Feb 13 2020 21:34:56 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
