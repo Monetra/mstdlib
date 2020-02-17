@@ -88,8 +88,9 @@ void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val)
 M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority)
 {
 	if (attr == NULL)
-		return 0;
+		return M_FALSE;
 	if (priority < M_THREAD_PRIORITY_MIN || priority > M_THREAD_PRIORITY_MAX)
-		return 0;
-	attr->priority = val;
+		return M_FALSE;
+	attr->priority = priority;
+	return M_TRUE;
 }

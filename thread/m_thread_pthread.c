@@ -92,8 +92,8 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
 
 		M_mem_set(&tparam, 0, sizeof(tparam));
 
-		sys_priority_min       = sched_get_priority_min();
-		sys_priority_max       = sched_get_priority_max();
+		sys_priority_min       = sched_get_priority_min(SCHED_OTHER);
+		sys_priority_max       = sched_get_priority_max(SCHED_OTHER);
 		sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
 		mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
 		priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
@@ -107,7 +107,9 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
 			tparam.sched_priority = sys_priority_min + (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
 		}
 
-		pthread_attr_setschedparam(tattr, &tparam);
+		pthread_attr_setschedpolicy(tattr, SCHED_OTHER);             /* Appears to be the default, non-realtime */
+		pthread_attr_setschedparam(tattr, &tparam);                  /* Set priority */
+		pthread_attr_setinheritsched(tattr, PTHREAD_EXPLICIT_SCHED); /* Use the policy and priority we set above */
 	}
 }
 
