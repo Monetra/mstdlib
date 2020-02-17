@@ -24,14 +24,7 @@
 #include "m_config.h"
 
 #include <mstdlib/mstdlib_thread.h>
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-struct M_thread_attr {
-	M_bool  create_joinable;
-	size_t  stack_size;
-	M_uint8 priority;
-};
+#include "m_thread_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

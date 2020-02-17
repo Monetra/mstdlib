@@ -77,6 +77,20 @@ typedef struct {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+struct M_thread_attr {
+	M_bool  create_joinable;
+	size_t  stack_size;
+	M_uint8 priority;
+
+#ifdef __linux__
+	/* Linux-only */
+	M_bool  linux_nice_priority;
+	int     linux_priority;
+#endif
+};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void M_thread_coop_register(M_thread_model_callbacks_t *cbs);
 #if defined(_WIN32)
 void M_thread_win_register(M_thread_model_callbacks_t *cbs);

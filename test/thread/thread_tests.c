@@ -383,6 +383,7 @@ START_TEST(check_sched)
 
 	tattr  = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	M_thread_attr_set_priority(tattr, 1); /* wanted to check to see if this works */
 	thread = M_thread_create(tattr, thread_scheder, &count);
 	M_thread_attr_destroy(tattr);
 	M_thread_join(thread, NULL);
