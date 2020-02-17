@@ -80,6 +80,7 @@ $(document).ready(function(){initNavTree('group__m__thread__common__create.html'
 
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -87,6 +88,15 @@ $(document).ready(function(){initNavTree('group__m__thread__common__create.html'
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:gaf69c457ea8fe3ab0bebc0fac2774a6b9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gaf69c457ea8fe3ab0bebc0fac2774a6b9">M_THREAD_PRIORITY_MIN</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:gaf69c457ea8fe3ab0bebc0fac2774a6b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0dfceeec47200293d68235f58af953b9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga0dfceeec47200293d68235f58af953b9">M_THREAD_PRIORITY_NORMAL</a>&#160;&#160;&#160;5</td></tr>
+<tr class="separator:ga0dfceeec47200293d68235f58af953b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6c50b80fac81e398ebd2c2c30ac2c45a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga6c50b80fac81e398ebd2c2c30ac2c45a">M_THREAD_PRIORITY_MAX</a>&#160;&#160;&#160;9</td></tr>
+<tr class="separator:ga6c50b80fac81e398ebd2c2c30ac2c45a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:gaff7324b3e6d67d3479d047eb79beb06c"><td class="memItemLeft" align="right" valign="top">typedef M_uintptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a></td></tr>
@@ -114,17 +124,63 @@ Functions</h2></td></tr>
 <tr class="separator:gae81a9cba3ac81fca95f84066138e39c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga81cc22738c7bcec33d207f70e69d064b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga81cc22738c7bcec33d207f70e69d064b">M_thread_attr_get_stack_size</a> (const <a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr)</td></tr>
 <tr class="separator:ga81cc22738c7bcec33d207f70e69d064b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8b1c60af516012f9b4fe36780949c401"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga8b1c60af516012f9b4fe36780949c401">M_thread_attr_get_priority</a> (const <a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr)</td></tr>
-<tr class="separator:ga8b1c60af516012f9b4fe36780949c401"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0311c3621cd3460dbcdb2f0db8f5a635"><td class="memItemLeft" align="right" valign="top">M_uint8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga0311c3621cd3460dbcdb2f0db8f5a635">M_thread_attr_get_priority</a> (const <a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr)</td></tr>
+<tr class="separator:ga0311c3621cd3460dbcdb2f0db8f5a635"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafce2d3e68ed6e4f3850225712cd63a7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gafce2d3e68ed6e4f3850225712cd63a7a">M_thread_attr_set_create_joinable</a> (<a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr, M_bool val)</td></tr>
 <tr class="separator:gafce2d3e68ed6e4f3850225712cd63a7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4a868e35efe070dc35303c8d5415335e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga4a868e35efe070dc35303c8d5415335e">M_thread_attr_set_stack_size</a> (<a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr, size_t val)</td></tr>
 <tr class="separator:ga4a868e35efe070dc35303c8d5415335e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf30bbc7a1ee8a19460f2be319626721c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gaf30bbc7a1ee8a19460f2be319626721c">M_thread_attr_set_priority</a> (<a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr, int val)</td></tr>
-<tr class="separator:gaf30bbc7a1ee8a19460f2be319626721c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga70dc89b38038811e0e70d6adaf562cba"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga70dc89b38038811e0e70d6adaf562cba">M_thread_attr_set_priority</a> (<a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *attr, M_uint8 priority)</td></tr>
+<tr class="separator:ga70dc89b38038811e0e70d6adaf562cba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Thread Creation and Management </p>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="gaf69c457ea8fe3ab0bebc0fac2774a6b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf69c457ea8fe3ab0bebc0fac2774a6b9">&#9670;&nbsp;</a></span>M_THREAD_PRIORITY_MIN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define M_THREAD_PRIORITY_MIN&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Minimum thread priority value </p>
+
+</div>
+</div>
+<a id="ga0dfceeec47200293d68235f58af953b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0dfceeec47200293d68235f58af953b9">&#9670;&nbsp;</a></span>M_THREAD_PRIORITY_NORMAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define M_THREAD_PRIORITY_NORMAL&#160;&#160;&#160;5</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Normal thread priority value </p>
+
+</div>
+</div>
+<a id="ga6c50b80fac81e398ebd2c2c30ac2c45a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6c50b80fac81e398ebd2c2c30ac2c45a">&#9670;&nbsp;</a></span>M_THREAD_PRIORITY_MAX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define M_THREAD_PRIORITY_MAX&#160;&#160;&#160;9</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Maximum thread priority value </p>
+
+</div>
+</div>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="gaff7324b3e6d67d3479d047eb79beb06c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaff7324b3e6d67d3479d047eb79beb06c">&#9670;&nbsp;</a></span>M_threadid_t</h2>
@@ -408,14 +464,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga8b1c60af516012f9b4fe36780949c401"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8b1c60af516012f9b4fe36780949c401">&#9670;&nbsp;</a></span>M_thread_attr_get_priority()</h2>
+<a id="ga0311c3621cd3460dbcdb2f0db8f5a635"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0311c3621cd3460dbcdb2f0db8f5a635">&#9670;&nbsp;</a></span>M_thread_attr_get_priority()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int M_thread_attr_get_priority </td>
+          <td class="memname">M_uint8 M_thread_attr_get_priority </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *&#160;</td>
           <td class="paramname"><em>attr</em></td><td>)</td>
@@ -424,13 +480,14 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Get the priority a given thread should be created with.</p>
+<p>Thread priorities are 1-9, with 1 being the lowest priority and 9 being the highest. The default value is 5.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">attr</td><td>Attribute object.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The requested priority. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The requested priority, or 0 on usage error. </dd></dl>
 
 </div>
 </div>
@@ -507,14 +564,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaf30bbc7a1ee8a19460f2be319626721c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf30bbc7a1ee8a19460f2be319626721c">&#9670;&nbsp;</a></span>M_thread_attr_set_priority()</h2>
+<a id="ga70dc89b38038811e0e70d6adaf562cba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga70dc89b38038811e0e70d6adaf562cba">&#9670;&nbsp;</a></span>M_thread_attr_set_priority()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_thread_attr_set_priority </td>
+          <td class="memname">M_bool M_thread_attr_set_priority </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__thread__common__create.html#ga8365ddefe78fb767a9fc80347192b4ff">M_thread_attr_t</a> *&#160;</td>
           <td class="paramname"><em>attr</em>, </td>
@@ -522,8 +579,8 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>val</em>&#160;</td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>priority</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -536,10 +593,11 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">attr</td><td>Attribute object. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>The value to set. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">val</td><td>The priority to set. Valid range is 1-9 with 1 being the lowest priority and 9 being the highest. The default value is 5. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, or M_FALSE on usage error </dd></dl>
 
 </div>
 </div>
@@ -548,7 +606,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Feb 13 2020 21:34:57 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Mon Feb 17 2020 16:28:01 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
