@@ -70,8 +70,9 @@ static DWORD win32_abstime2msoffset(const M_timeval_t *abstime)
 
 static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
-	DWORD dwThreadId;
-	HANDLE hThread;
+	DWORD   dwThreadId;
+	HANDLE  hThread;
+	M_uint8 mthread_priority;
 
 	if (id)
 		*id = 0;
@@ -85,6 +86,45 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 
 	if (id)
 		*id = dwThreadId;
+
+	/* Handle thread priority */
+	mthread_priority = M_thread_attr_get_priority(attr);
+	if (mthread_priority != M_THREAD_PRIORITY_NORMAL) {
+		static const int win_priorities[7] = {
+			THREAD_PRIORITY_IDLE,
+			THREAD_PRIORITY_LOWEST,
+			THREAD_PRIORITY_BELOW_NORMAL,
+			THREAD_PRIORITY_NORMAL,
+			THREAD_PRIORITY_ABOVE_NORMAL,
+			THREAD_PRIORITY_HIGHEST,
+			THREAD_PRIORITY_TIME_CRITICAL
+		};
+		int     sys_priority_min = 0;
+		int     sys_priority_max = 6;
+		int     sys_priority_range;
+		int     mthread_priority_range;
+		double  priority_scale;
+		int     priority;
+
+		sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
+		mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
+		priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
+
+		/* Lets handle min and max without scaling */
+		if (mthread_priority == 1) {
+			priority = sys_priority_min;
+		} else if (mthread_priority == 9) {
+			priority = sys_priority_max;
+		} else {
+			priority = sys_priority_min + (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
+			if (priority > sys_priority_max)
+				priority = sys_priority_max;
+			if (priority < sys_priority_min)
+				priority = sys_priority_min;
+		}
+
+		SetThreadPriority(hThread, win_priorities[priority]);
+	}
 
 	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
 		CloseHandle(hThread);
