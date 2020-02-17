@@ -362,7 +362,11 @@ M_API void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val);
  * \param[in] attr      Attribute object.
  * \param[in] priority  The priority to set.  Valid range is 1-9 with 1 being the
  *                      lowest priority and 9 being the highest.  The default value
- *                      is 5.
+ *                      is 5.  Some systems, like Linux, do not support thread scheduling
+ *                      in relation to the process as a whole, but rather the system as
+ *                      a whole, and therefore require RLIMIT_NICE to be configured on
+ *                      the process in order to successfully increase a thread's priority
+ *                      above '5'.
  * \return M_TRUE on success, or M_FALSE on usage error
  */
 M_API M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority);
