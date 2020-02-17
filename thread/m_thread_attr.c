@@ -28,9 +28,9 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_thread_attr {
-	M_bool create_joinable;
-	size_t stack_size;
-	int    priority;
+	M_bool  create_joinable;
+	size_t  stack_size;
+	M_uint8 priority;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -39,6 +39,7 @@ M_thread_attr_t *M_thread_attr_create(void)
 {
 	M_thread_attr_t *attr;
 	attr = M_malloc_zero(sizeof(*attr));
+	attr->priority = M_THREAD_PRIORITY_NORMAL; /* Defaults to normal */
 	return attr;
 }
 
@@ -63,7 +64,7 @@ size_t M_thread_attr_get_stack_size(const M_thread_attr_t *attr)
 	return attr->stack_size;
 }
 
-int M_thread_attr_get_priority(const M_thread_attr_t *attr)
+M_uint8 M_thread_attr_get_priority(const M_thread_attr_t *attr)
 {
 	if (attr == NULL)
 		return 0;
@@ -84,9 +85,11 @@ void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val)
 	attr->stack_size = val;
 }
 
-void M_thread_attr_set_priority(M_thread_attr_t *attr, int val)
+M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority)
 {
 	if (attr == NULL)
-		return;
+		return 0;
+	if (priority < M_THREAD_PRIORITY_MIN || priority > M_THREAD_PRIORITY_MAX)
+		return 0;
 	attr->priority = val;
 }

@@ -317,13 +317,25 @@ M_API M_bool M_thread_attr_get_create_joinable(const M_thread_attr_t *attr);
 M_API size_t M_thread_attr_get_stack_size(const M_thread_attr_t *attr);
 
 
+/*! Minimum thread priority value */
+#define M_THREAD_PRIORITY_MIN 1
+
+/*! Normal thread priority value */
+#define M_THREAD_PRIORITY_NORMAL 5
+
+/*! Maximum thread priority value */
+#define M_THREAD_PRIORITY_MAX 9
+
 /*! Get the priority a given thread should be created with.
+ *  
+ *  Thread priorities are 1-9, with 1 being the lowest priority and 9 being
+ *  the highest.  The default value is 5.
  *
  * \param[in] attr Attribute object.
  *
- * \return The requested priority.
+ * \return The requested priority, or 0 on usage error.
  */
-M_API int M_thread_attr_get_priority(const M_thread_attr_t *attr);
+M_API M_uint8 M_thread_attr_get_priority(const M_thread_attr_t *attr);
 
 
 /*! Set whether a given thread should be created joinable.
@@ -348,9 +360,12 @@ M_API void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val);
 /*! Set the priority a given thread should be created with.
  *
  * \param[in] attr Attribute object.
- * \param[in] val  The value to set.
+ * \param[in] val  The priority to set.  Valid range is 1-9 with 1 being the
+ *                 lowest priority and 9 being the highest.  The default value
+ *                 is 5.
+ * \return M_TRUE on success, or M_FALSE on usage error
  */
-M_API void M_thread_attr_set_priority(M_thread_attr_t *attr, int val);
+M_API M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority);
 
 /*! @} */
 

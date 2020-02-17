@@ -58,8 +58,7 @@
 
 static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_attr_t *tattr)
 {
-	struct sched_param tparam;
-
+	M_uint8 mthread_priority;
 	pthread_attr_init(tattr);
 
 	if (attr == NULL)
@@ -80,9 +79,36 @@ static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_a
 		pthread_attr_setstacksize(tattr, 128 * 1024 * (sizeof(void *)/4));
 	}
 
-	M_mem_set(&tparam, 0, sizeof(tparam));
-	tparam.sched_priority = M_thread_attr_get_priority(attr);
-	pthread_attr_setschedparam(tattr, &tparam);
+	mthread_priority = M_thread_attr_get_priority(attr);
+
+	/* When a "normal" priority is specified, lets not even touch the options. */
+	if (mthread_priority != M_THREAD_PRIORITY_NORMAL) {
+		struct  sched_param tparam;
+		int     sys_priority_min;
+		int     sys_priority_max;
+		int     sys_priority_range;
+		int     mthread_priority_range;
+		double  priority_scale;
+
+		M_mem_set(&tparam, 0, sizeof(tparam));
+
+		sys_priority_min       = sched_get_priority_min();
+		sys_priority_max       = sched_get_priority_max();
+		sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
+		mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
+		priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
+
+		/* Lets handle min and max without scaling */
+		if (mthread_priority == 1) {
+			tparam.sched_priority = sys_priority_min;
+		} else if (mthread_priority == 9) {
+			tparam.sched_priority = sys_priority_max;
+		} else {
+			tparam.sched_priority = sys_priority_min + (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
+		}
+
+		pthread_attr_setschedparam(tattr, &tparam);
+	}
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
