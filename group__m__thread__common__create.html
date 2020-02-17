@@ -593,7 +593,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">attr</td><td>Attribute object. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">priority</td><td>The priority to set. Valid range is 1-9 with 1 being the lowest priority and 9 being the highest. The default value is 5. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">priority</td><td>The priority to set. Valid range is 1-9 with 1 being the lowest priority and 9 being the highest. The default value is 5. Some systems, like Linux, do not support thread scheduling in relation to the process as a whole, but rather the system as a whole, and therefore require RLIMIT_NICE to be configured on the process in order to successfully increase a thread's priority above '5'. </td></tr>
   </table>
   </dd>
 </dl>
@@ -606,7 +606,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Mon Feb 17 2020 16:45:36 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Mon Feb 17 2020 19:03:03 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
