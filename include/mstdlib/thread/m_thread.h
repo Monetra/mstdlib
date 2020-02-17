@@ -359,10 +359,10 @@ M_API void M_thread_attr_set_stack_size(M_thread_attr_t *attr, size_t val);
 
 /*! Set the priority a given thread should be created with.
  *
- * \param[in] attr Attribute object.
- * \param[in] val  The priority to set.  Valid range is 1-9 with 1 being the
- *                 lowest priority and 9 being the highest.  The default value
- *                 is 5.
+ * \param[in] attr      Attribute object.
+ * \param[in] priority  The priority to set.  Valid range is 1-9 with 1 being the
+ *                      lowest priority and 9 being the highest.  The default value
+ *                      is 5.
  * \return M_TRUE on success, or M_FALSE on usage error
  */
 M_API M_bool M_thread_attr_set_priority(M_thread_attr_t *attr, M_uint8 priority);
