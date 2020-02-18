@@ -112,6 +112,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga8fdc6d5a069b6d9ca601ffe9753e0355"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga88a661c786896ac217cdda76734eca5d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#ga88a661c786896ac217cdda76734eca5d">M_thread_self</a> (void)</td></tr>
 <tr class="separator:ga88a661c786896ac217cdda76734eca5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab786bd0ee6033335c2c0b54780ad8a02"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gab786bd0ee6033335c2c0b54780ad8a02">M_thread_set_priority</a> (<a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a> tid, M_uint8 priority)</td></tr>
+<tr class="separator:gab786bd0ee6033335c2c0b54780ad8a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf8768143aabbfad3748884bd1270f539"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gaf8768143aabbfad3748884bd1270f539">M_thread_set_processor</a> (<a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a> tid, int processor_id)</td></tr>
+<tr class="separator:gaf8768143aabbfad3748884bd1270f539"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad157454b4bc8ece94d2c02e3a3c5b3a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gad157454b4bc8ece94d2c02e3a3c5b3a0">M_thread_sleep</a> (M_uint64 usec)</td></tr>
 <tr class="separator:gad157454b4bc8ece94d2c02e3a3c5b3a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaea4837975c7c8b5a60d4b5e3e0e72148"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__thread__common__create.html#gaea4837975c7c8b5a60d4b5e3e0e72148">M_thread_yield</a> (M_bool force)</td></tr>
@@ -317,6 +321,80 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Get the threadid of the running thread.</p>
 <dl class="section return"><dt>Returns</dt><dd>The threadid. </dd></dl>
+
+</div>
+</div>
+<a id="gab786bd0ee6033335c2c0b54780ad8a02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab786bd0ee6033335c2c0b54780ad8a02">&#9670;&nbsp;</a></span>M_thread_set_priority()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_thread_set_priority </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a>&#160;</td>
+          <td class="paramname"><em>tid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint8&#160;</td>
+          <td class="paramname"><em>priority</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the priority a given thread should be created with.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">tid</td><td>ThreadID returned from <a class="el" href="group__m__thread__common__create.html#ga21bd63f7d2c726646b7e3d62250c25c6">M_thread_create()</a> or <a class="el" href="group__m__thread__common__create.html#ga88a661c786896ac217cdda76734eca5d">M_thread_self()</a> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">priority</td><td>The priority to set. Valid range is 1-9 with 1 being the lowest priority and 9 being the highest. The default value is 5. Some systems, like Linux, do not support thread scheduling in relation to the process as a whole, but rather the system as a whole, and therefore require RLIMIT_NICE to be configured on the process in order to successfully increase a thread's priority above '5'. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, or M_FALSE on usage error </dd></dl>
+
+</div>
+</div>
+<a id="gaf8768143aabbfad3748884bd1270f539"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf8768143aabbfad3748884bd1270f539">&#9670;&nbsp;</a></span>M_thread_set_processor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_thread_set_processor </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__thread__common__create.html#gaff7324b3e6d67d3479d047eb79beb06c">M_threadid_t</a>&#160;</td>
+          <td class="paramname"><em>tid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>processor_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the processor to assign the thread to run on (aka affinity). The range is 0 to <a class="el" href="group__m__thread__common__main.html#ga3311527fd89ec3a5ed99c8ed12de6398">M_thread_num_cpu_cores()</a>-1, or -1 to unassign.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">tid</td><td>ThreadID returned from <a class="el" href="group__m__thread__common__create.html#ga21bd63f7d2c726646b7e3d62250c25c6">M_thread_create()</a> or <a class="el" href="group__m__thread__common__create.html#ga88a661c786896ac217cdda76734eca5d">M_thread_self()</a> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">processor_id</td><td>-1 to unset prior value. Otherwise 0 to <a class="el" href="group__m__thread__common__main.html#ga3311527fd89ec3a5ed99c8ed12de6398">M_thread_num_cpu_cores()</a>-1 is the valid range. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, or M_FALSE on usage error </dd></dl>
 
 </div>
 </div>
@@ -673,7 +751,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Feb 18 2020 22:06:51 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Tue Feb 18 2020 23:15:42 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

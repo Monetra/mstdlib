@@ -8,6 +8,8 @@ var group__m__thread__common__create =
     [ "M_thread_create", "group__m__thread__common__create.html#ga21bd63f7d2c726646b7e3d62250c25c6", null ],
     [ "M_thread_join", "group__m__thread__common__create.html#ga8fdc6d5a069b6d9ca601ffe9753e0355", null ],
     [ "M_thread_self", "group__m__thread__common__create.html#ga88a661c786896ac217cdda76734eca5d", null ],
+    [ "M_thread_set_priority", "group__m__thread__common__create.html#gab786bd0ee6033335c2c0b54780ad8a02", null ],
+    [ "M_thread_set_processor", "group__m__thread__common__create.html#gaf8768143aabbfad3748884bd1270f539", null ],
     [ "M_thread_sleep", "group__m__thread__common__create.html#gad157454b4bc8ece94d2c02e3a3c5b3a0", null ],
     [ "M_thread_yield", "group__m__thread__common__create.html#gaea4837975c7c8b5a60d4b5e3e0e72148", null ],
     [ "M_thread_attr_create", "group__m__thread__common__create.html#gaffbb2d659ce017851e30f429a57fe607", null ],

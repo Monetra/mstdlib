@@ -3193,6 +3193,8 @@ var searchData=
   ['m_5fthread_5frwlock_5ftype_5fwrite',['M_THREAD_RWLOCK_TYPE_WRITE',['../group__m__thread__common__rwlock.html#gga77497c04fb1ab97d0fb8c4a6c5f92faca408d2979b1ebeaada0ed3929939d0c66',1,'m_thread.h']]],
   ['m_5fthread_5frwlock_5funlock',['M_thread_rwlock_unlock',['../group__m__thread__common__rwlock.html#gae7a73aa24227fe089d0433d4513f08ad',1,'m_thread.h']]],
   ['m_5fthread_5fself',['M_thread_self',['../group__m__thread__common__create.html#ga88a661c786896ac217cdda76734eca5d',1,'m_thread.h']]],
+  ['m_5fthread_5fset_5fpriority',['M_thread_set_priority',['../group__m__thread__common__create.html#gab786bd0ee6033335c2c0b54780ad8a02',1,'m_thread.h']]],
+  ['m_5fthread_5fset_5fprocessor',['M_thread_set_processor',['../group__m__thread__common__create.html#gaf8768143aabbfad3748884bd1270f539',1,'m_thread.h']]],
   ['m_5fthread_5fsigmask',['M_thread_sigmask',['../group__m__thread__system.html#gaac3d008de5caa860dbf7a462b8cde210',1,'m_thread_system.h']]],
   ['m_5fthread_5fsleep',['M_thread_sleep',['../group__m__thread__common__create.html#gad157454b4bc8ece94d2c02e3a3c5b3a0',1,'m_thread.h']]],
   ['m_5fthread_5fspinlock_5flock',['M_thread_spinlock_lock',['../group__m__thread__common__spinlock.html#ga2eff4916af853df8341b79981a5470a8',1,'m_thread.h']]],
