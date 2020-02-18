@@ -290,6 +290,10 @@ if (MSTDLIB_BUILD_THREAD)
 		check_library_exists(pthread pthread_rwlock_init           "" HAVE_PTHREAD_RWLOCK_INIT)
 		check_library_exists(pthread pthread_rwlockattr_setkind_np "" HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP)
 		check_library_exists(pthread pthread_setaffinity_np        "" HAVE_PTHREAD_SETAFFINITY_NP)
+		list_append_if_set(check_extra_includes HAVE_PTHREAD_H     pthread.h)
+		list_append_if_set(check_extra_includes HAVE_PTHREAD_NP_H  pthread_np.h)
+		mstdlib_type_exists(cpu_set_t "${check_extra_includes}" HAVE_CPU_SET_T)
+		mstdlib_type_exists(cpuset_t  "${check_extra_includes}" HAVE_CPUSET_T)
 
 		if (HAVE_PTHREAD_H)
 			check_symbol_exists(pthread_init "pthread.h" HAVE_PTHREAD_INIT)
@@ -306,6 +310,7 @@ if (MSTDLIB_BUILD_THREAD)
 		check_symbol_exists(poll      "${check_extra_includes}" HAVE_POLL)
 		check_symbol_exists(select    "${check_extra_includes}" HAVE_SELECT)
 		check_symbol_exists(nanosleep "${check_extra_includes}" HAVE_NANOSLEEP)
+
 
 		if ((CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND NOT IOS AND NOT IOSSIM)
 			OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD"

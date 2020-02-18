@@ -711,6 +711,13 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 			AC_SUBST(HAVE_PTHREAD_SETAFFINITY_NP)
 		fi
 
+		AC_CHECK_TYPE(cpu_set_t, [ AC_DEFINE(HAVE_CPU_SET_T, [], [cpu_set_t]) ], [ ] , [
+#include <pthread.h>
+		] )
+		AC_CHECK_TYPE(cpuset_t, [ AC_DEFINE(HAVE_CPUSET_T, [], [cpuset_t]) ], [ ] , [
+#include <pthread_np.h>
+		] )
+
 		dnl -------------------- CHECKING TO SEE IF _REENTRANT IS VALID --------------------
 		AC_MSG_CHECKING(to see if defining _REENTRANT works)
 		AC_TRY_COMPILE([
