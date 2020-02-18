@@ -74,11 +74,14 @@
 #  include <sys/procset.h>
 #endif
 
+#ifdef _AIX
+#  include <sys/thread.h>
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void M_thread_pthread_attr_topattr(M_thread_attr_t *attr, pthread_attr_t *tattr)
+static void M_thread_pthread_attr_topattr(const M_thread_attr_t *attr, pthread_attr_t *tattr)
 {
-	M_uint8 mthread_priority;
 	pthread_attr_init(tattr);
 
 	if (attr == NULL)
@@ -98,84 +101,6 @@ static void M_thread_pthread_attr_topattr(M_thread_attr_t *attr, pthread_attr_t 
 		 * 64bit systems */
 		pthread_attr_setstacksize(tattr, 128 * 1024 * (sizeof(void *)/4));
 	}
-
-	mthread_priority = M_thread_attr_get_priority(attr);
-	/* When a "normal" priority is specified, lets not even touch the options. */
-	if (mthread_priority != M_THREAD_PRIORITY_NORMAL) {
-		struct  sched_param tparam;
-		int     sys_priority_min;
-		int     sys_priority_max;
-		int     sys_priority_range;
-		int     mthread_priority_range;
-		double  priority_scale;
-		int     priority;
-
-		M_mem_set(&tparam, 0, sizeof(tparam));
-
-		sys_priority_min       = sched_get_priority_min(SCHED_OTHER);
-		sys_priority_max       = sched_get_priority_max(SCHED_OTHER);
-		sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
-
-		/* Linux can't seem to use thread priorities, they say the range is 0-0, so we have to recalculate using process nice priorities */
-		if (sys_priority_range <= 1) {
-#ifdef __linux__
-			attr->linux_nice_priority = M_TRUE;
-			/* Nice levels are -20 (highest priority) -> 19 (lowest priority), with normal being 0 */
-			sys_priority_max       = -20;
-			sys_priority_min       = 19;
-			sys_priority_range     = M_ABS(sys_priority_max - sys_priority_min) + 1;
-#endif
-		}
-
-		/* Lets handle min and max without scaling */
-		if (mthread_priority == M_THREAD_PRIORITY_MAX) {
-			priority = sys_priority_range - 1;
-		} else if (mthread_priority == M_THREAD_PRIORITY_MIN) {
-			priority = 0;
-		} else {
-			mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
-			priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
-			priority               = (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
-		}
-
-		/* check bounds */
-		if (priority < 0)
-			priority = 0;
-		if (priority > sys_priority_range - 1)
-			priority = sys_priority_range - 1;
-
-		/* Check for inverted scale */
-		if (sys_priority_max < sys_priority_min) {
-			priority = (sys_priority_range - 1) - priority;
-			priority += sys_priority_max;
-		} else {
-			/* Normalize into range */
-			priority += sys_priority_min;
-		}
-
-#ifdef __linux__
-		if (!attr->linux_nice_priority) {
-#endif
-			/* Lets handle min and max without scaling */
-			if (mthread_priority == 1) {
-				tparam.sched_priority = sys_priority_min;
-			} else if (mthread_priority == 9) {
-				tparam.sched_priority = sys_priority_max;
-			} else {
-				tparam.sched_priority = priority;
-			}
-
-			if (sys_priority_range > 0) {
-				pthread_attr_setschedpolicy(tattr, SCHED_OTHER);             /* Appears to be the default, non-realtime */
-				pthread_attr_setschedparam(tattr, &tparam);                  /* Set priority */
-				pthread_attr_setinheritsched(tattr, PTHREAD_EXPLICIT_SCHED); /* Use the policy and priority we set above */
-			}
-#ifdef __linux__
-		} else {
-			attr->linux_priority = priority;
-		}
-#endif
-	}
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -188,39 +113,114 @@ static void M_thread_pthread_init(void)
 }
 
 
-#ifdef __linux__
-typedef struct M_thread_linux_entry_arg {
-	void *(*entry_func)(void *);
-	void *entry_arg;
-	int   priority;
-} M_thread_linux_entry_arg_t;
-
-static void *M_thread_linux_entry(void *arg)
+static M_threadid_t M_thread_pthread_os_threadid(void)
 {
-	M_thread_linux_entry_arg_t   *larg                = arg;
-	void                       *(*entry_func)(void *) = larg->entry_func;
-	void                         *entry_arg           = larg->entry_arg;
-	int                           priority            = larg->priority;
-	pid_t                         tid;
-	M_free(larg);
-	larg = NULL;
-
+#if defined(__linux__)
 	/* Get pid of thread.  Yes, linux actually assigns an internal pid of the thread
 	 * due to use of clone(). */
-	tid = (pid_t)syscall(__NR_gettid);
-
-	/* Now lets set the nice priority on ourselves. This may fail if set higher than allowed.  I don't think
-	 * its worth calling  getrlimit(RLIMIT_NICE) just to see if it might fail before calling it. */
-	if (setpriority(PRIO_PROCESS, (id_t)tid, priority) != 0) {
-		M_fprintf(stderr, "Thread TID %d: nice priority %d: failed: %s\n", (int)tid, priority, strerror(errno));
-	}
-
-	return entry_func(entry_arg);
-}
+	pid_t tid = (pid_t)syscall(__NR_gettid);
+	return (M_threadid_t)tid;
+#elif defined(_AIX)
+	tid_t tid = thread_self();
+	return (M_threadid_t)tid;
+#else
+	/* Generic */
+	/* We use a couple of temporary variables in order to avoid
+	 * compiler warnings. */
+	pthread_t id = pthread_self();
+	void     *th = (void *)id;
+	return (M_threadid_t)th;
 #endif
 
+/* NOTE: for apple should we instead return  thread_port_t pthread_mach_thread_np(pthread_self()); ?? */
+}
 
-static void M_thread_pthread_set_processor(pthread_t thread, int processor_id)
+
+static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, M_uint8 mthread_priority)
+{
+	struct sched_param tparam;
+	int                sys_priority_min;
+	int                sys_priority_max;
+	int                sys_priority_range;
+	int                mthread_priority_range;
+	double             priority_scale;
+	int                priority;
+	M_bool             use_setpriority = M_FALSE;
+	M_bool             rv              = M_TRUE;
+
+	M_mem_set(&tparam, 0, sizeof(tparam));
+
+	sys_priority_min       = sched_get_priority_min(SCHED_OTHER);
+	sys_priority_max       = sched_get_priority_max(SCHED_OTHER);
+	sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
+
+	/* Linux can't seem to use thread priorities, they say the range is 0-0, so we have to recalculate using process nice priorities */
+	if (sys_priority_range <= 1) {
+#ifdef __linux__
+		use_setpriority = M_TRUE;
+		/* Nice levels are -20 (highest priority) -> 19 (lowest priority), with normal being 0 */
+		sys_priority_max       = -20;
+		sys_priority_min       = 19;
+		sys_priority_range     = M_ABS(sys_priority_max - sys_priority_min) + 1;
+#endif
+	}
+
+	/* Lets handle min and max without scaling */
+	if (mthread_priority == M_THREAD_PRIORITY_MAX) {
+		priority = sys_priority_range - 1;
+	} else if (mthread_priority == M_THREAD_PRIORITY_MIN) {
+		priority = 0;
+	} else {
+		mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
+		priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
+		priority               = (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
+	}
+
+	/* check bounds */
+	if (priority < 0)
+		priority = 0;
+	if (priority > sys_priority_range - 1)
+		priority = sys_priority_range - 1;
+
+	/* Check for inverted scale */
+	if (sys_priority_max < sys_priority_min) {
+		priority = (sys_priority_range - 1) - priority;
+		priority += sys_priority_max;
+	} else {
+		/* Normalize into range */
+		priority += sys_priority_min;
+	}
+
+	if (sys_priority_range > 1 && !use_setpriority) {
+		/* Lets handle min and max without scaling */
+		if (mthread_priority == M_THREAD_PRIORITY_MIN) {
+			tparam.sched_priority = sys_priority_min;
+		} else if (mthread_priority == M_THREAD_PRIORITY_MAX) {
+			tparam.sched_priority = sys_priority_max;
+		} else {
+			tparam.sched_priority = priority;
+		}
+		if (pthread_setschedparam(thread, SCHED_OTHER, &tparam) != 0) {
+			M_fprintf(stderr, "Thread TID %lld: pthread_setschedparam %d: failed\n", (M_int64)tid, priority);
+			rv = M_FALSE;
+		}
+	} else if (use_setpriority) {
+		/* Set the Nice priority. This may fail if set higher than allowed.  I don't think
+		 * its worth calling  getrlimit(RLIMIT_NICE) just to see if it might fail before calling it. */
+		if (setpriority(PRIO_PROCESS, (id_t)tid, priority) != 0) {
+			M_fprintf(stderr, "Thread TID %lld: nice priority %d: failed: %s\n", (M_int64)tid, priority, strerror(errno));
+			rv = M_FALSE;
+		}
+	} else {
+		M_fprintf(stderr, "Thread TID %lld: could not determine how to set priority due to limited range\n", (M_int64)tid);
+		rv = M_FALSE;
+	}
+
+	return rv;
+}
+
+
+static M_bool M_thread_pthread_set_processor(pthread_t thread, M_threadid_t tid, int processor_id)
 {
 #if defined(HAVE_PTHREAD_SETAFFINITY_NP)
 #  if defined(HAVE_CPUSET_T)
@@ -233,90 +233,133 @@ static void M_thread_pthread_set_processor(pthread_t thread, int processor_id)
 
 	CPU_ZERO(&cpuset);
 	CPU_SET(processor_id, &cpuset);
-
+	(void)tid;
 	if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) != 0) {
 		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+		return M_FALSE;
 	}
 
 #elif defined(__sun__)
+	(void)tid;
 	if (processor_bind(P_LWPID, (id_t)thread, (processorid_t)processor_id, NULL) != 0) {
 		M_fprintf(stderr, "processor_bind thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+		return M_FALSE;
 	}
 #elif defined(__APPLE__)
 	thread_port_t                 mach_thread = pthread_mach_thread_np(thread);
 	thread_affinity_policy_data_t policy      = { processor_id };
+	(void)tid;
 	if (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) != KERN_SUCCESS) {
 		M_fprintf(stderr, "thread_policy_set thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+		return M_FALSE;
 	}
 #elif defined(_AIX)
-	/* We need to get the tid_t, but it appears pthread_t can't be used to retrieve it, so you have to call thread_self()
-	 * from within the thread, which is not optimal, so we'll just comment this out for now.
-	 *
-	 * if (bindprocessor(BINDTHREAD,  tid, (cpu_t)processor_id) != 0) {
-	 *    M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
-	 * }
-	 */
+	if (bindprocessor(BINDTHREAD, (id_t)tid, (cpu_t)processor_id) != 0) {
+		M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+		return M_FALSE;
+	}
+
 #else
 #  error do not know how to set thread affinity
 #endif
+	return M_TRUE;
+}
+
+
+
+/*! Wrapper argument for thread startup for task */
+typedef struct {
+	void          *(*entry_func)(void *); /*!< Real function entry point */
+	void            *entry_arg;           /*!< Passed in function entry argument */
+	M_threadid_t    *thread_id;           /*!< Pointer to OS thread id */
+	pthread_cond_t  *cond;                /*!< Pointer for Conditional for signalling when OS thread id has been filled */
+	pthread_mutex_t *mutex;               /*!< Pointer for Mutex for OS thread id filling */
+} M_thread_pthread_entry_arg_t;
+
+
+/*! Some OS'd like Linux and AIX  have a concept of an OS Thread ID that is different
+ *  then the pthread_t, and you cannot obtain this OS Thread ID by using the pthread_t
+ *  but the thread itself can query it.  So we need a hook when a thread initializes
+ *  to capture this data and pass it back to the parent */
+static void *M_thread_pthread_entry(void *arg)
+{
+	M_thread_pthread_entry_arg_t   *larg                = arg;
+	void                         *(*entry_func)(void *) = larg->entry_func;
+	void                           *entry_arg           = larg->entry_arg;
+	pthread_cond_t                 *cond                = larg->cond;
+	pthread_mutex_t                *mutex               = larg->mutex;
+	M_threadid_t                   *thread_id           = larg->thread_id;
+
+	M_free(larg);
+	larg = NULL;
+
+	pthread_mutex_lock(mutex);
+	*thread_id = M_thread_pthread_os_threadid();
+	pthread_cond_signal(cond);
+	pthread_mutex_unlock(mutex);
+
+	return entry_func(entry_arg);
 }
 
 
 static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
-	pthread_t        thread;
-	pthread_attr_t   tattr;
-	int              ret;
-	M_thread_attr_t *attr_dup = NULL;
+	pthread_t                     thread;
+	pthread_attr_t                tattr;
+	int                           ret;
+	M_thread_pthread_entry_arg_t *larg;
+	pthread_cond_t                cond;
+	pthread_mutex_t               mutex;
 
-	if (id)
-		*id = 0;
+	*id = 0;
 
 	if (func == NULL) {
 		return NULL;
 	}
 
-	if (attr) {
-		/* Duplicate as M_thread_pthread_attr_topattr() may need to modify it */
-		attr_dup = M_memdup(attr, sizeof(*attr));
-	}
-	M_thread_pthread_attr_topattr(attr_dup, &tattr);
-	attr = attr_dup;
+	M_thread_pthread_attr_topattr(attr, &tattr);
 
-#ifdef __linux__
-	if (attr && attr->linux_nice_priority) {
-		M_thread_linux_entry_arg_t *larg = M_malloc_zero(sizeof(*larg));
-		larg->entry_func                 = func;
-		larg->entry_arg                  = arg;
-		larg->priority                   = attr->linux_priority;
+	larg = M_malloc_zero(sizeof(*larg));
+	larg->entry_func                 = func;
+	larg->entry_arg                  = arg;
+	larg->thread_id                  = id;
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
+	larg->cond                       = &cond;
+	larg->mutex                      = &mutex;
 
-		func                             = M_thread_linux_entry;
-		arg                              = larg;
-	}
-#endif
-	M_free(attr_dup); attr_dup = NULL; attr = NULL;
+	pthread_mutex_lock(&mutex);
 
-	ret = pthread_create(&thread, &tattr, func, arg);
+	ret = pthread_create(&thread, &tattr, M_thread_pthread_entry, larg);
+	pthread_attr_destroy(&tattr);
+
 	if (ret != 0) {
-#ifdef __linux__
-		if (attr->linux_nice_priority) {
-			M_free(arg);
-		}
-#endif
-		pthread_attr_destroy(&tattr);
+		pthread_mutex_unlock(&mutex);
+		pthread_mutex_destroy(&mutex);
+		pthread_cond_destroy(&cond);
+		M_free(larg);
 		return NULL;
 	}
 
+	/* Wait for thread to signal us that it has set the OS thread ID */
+	pthread_cond_wait(&cond, &mutex);
+
+	/* Cleanup */
+	pthread_mutex_unlock(&mutex);
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
+
 	if (M_thread_attr_get_processor(attr) != -1) {
-		M_thread_pthread_set_processor(thread, M_thread_attr_get_processor(attr));
+		M_thread_pthread_set_processor(thread, *id, M_thread_attr_get_processor(attr));
 	}
 
-	pthread_attr_destroy(&tattr);
+	if (M_thread_attr_get_priority(attr) != M_THREAD_PRIORITY_NORMAL) {
+		M_thread_pthread_set_priority(thread, *id, M_thread_attr_get_priority(attr));
+	}
 
-	if (id != NULL)
-		*id = (M_threadid_t)thread;
 	return (M_thread_t *)thread;
 }
+
 
 static M_bool M_thread_pthread_join(M_thread_t *thread, void **value_ptr)
 {
@@ -328,14 +371,6 @@ static M_bool M_thread_pthread_join(M_thread_t *thread, void **value_ptr)
 	return M_TRUE;
 }
 
-static M_threadid_t M_thread_pthread_self(void)
-{
-	/* We use a couple of temporary variables in order to avoid
-	 * compiler warnings. */
-	pthread_t id = pthread_self();
-	void     *th = (void *)id;
-	return (M_threadid_t)th;
-}
 
 static void M_thread_pthread_sleep(M_uint64 usec)
 {
@@ -591,7 +626,7 @@ void M_thread_pthread_register(M_thread_model_callbacks_t *cbs)
 	/* Thread */
 	cbs->thread_create  = M_thread_pthread_create;
 	cbs->thread_join    = M_thread_pthread_join;
-	cbs->thread_self    = M_thread_pthread_self;
+	cbs->thread_self    = M_thread_pthread_os_threadid;
 	cbs->thread_yield   = M_thread_pthread_yield;
 	cbs->thread_sleep   = M_thread_pthread_sleep;
 	/* System */

@@ -82,12 +82,6 @@ struct M_thread_attr {
 	size_t  stack_size;
 	M_uint8 priority;
 	int     processor;
-
-#ifdef __linux__
-	/* Linux-only */
-	M_bool  linux_nice_priority;
-	int     linux_priority;
-#endif
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
