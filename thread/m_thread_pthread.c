@@ -61,6 +61,17 @@
 #  include <string.h>
 #endif
 
+#ifdef __APPLE__
+#include <mach/mach.h>
+#include <mach/thread_policy.h>
+#endif
+
+#ifdef __sun__
+#  include <sys/types.h>
+#  include <sys/processor.h>
+#  include <sys/procset.h>
+#endif
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void M_thread_pthread_attr_topattr(M_thread_attr_t *attr, pthread_attr_t *tattr)
@@ -206,6 +217,42 @@ static void *M_thread_linux_entry(void *arg)
 }
 #endif
 
+
+static void M_thread_pthread_set_processor(pthread_t thread, int processor_id)
+{
+#if defined(HAVE_PTHREAD_SETAFFINITY_NP)
+	cpu_set_t cpuset;
+
+	CPU_ZERO(&cpuset)
+	CPU_SET(processor_id, &cpuset);
+	if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) != 0) {
+		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+	}
+
+#elif defined(__sun__)
+	if (processor_bind(P_LWPID, (id_t)thread, (processorid_t)processor_id, NULL) != 0) {
+		M_fprintf(stderr, "processor_bind thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+	}
+#elif defined(__APPLE__)
+	thread_port_t                 mach_thread = pthread_mach_thread_np(thread);
+	thread_affinity_policy_data_t policy      = { processor_id };
+	if (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) != KERN_SUCCESS) {
+		M_fprintf(stderr, "thread_policy_set thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+	}
+#elif defined(_AIX)
+	/* We need to get the tid_t, but it appears pthread_t can't be used to retrieve it, so you have to call thread_self()
+	 * from within the thread, which is not optimal, so we'll just comment this out for now.
+	 *
+	 * if (bindprocessor(BINDTHREAD,  tid, (cpu_t)processor_id) != 0) {
+	 *    M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+	 * }
+	 */
+#else
+#  error do not know how to set thread affinity
+#endif
+}
+
+
 static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
 	pthread_t        thread;
@@ -250,6 +297,11 @@ static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr
 		pthread_attr_destroy(&tattr);
 		return NULL;
 	}
+
+	if (M_thread_attr_get_processor(attr) != -1) {
+		M_thread_pthread_set_processor(thread, M_thread_attr_get_processor(attr));
+	}
+
 	pthread_attr_destroy(&tattr);
 
 	if (id != NULL)
