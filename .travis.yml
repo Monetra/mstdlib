@@ -53,12 +53,12 @@ jobs:
       osx_image: xcode11
       compiler: clang
       env:
-        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite"
+        - BUILD_TYPE="cmake" OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1" SQLite_DIR="/usr/local/opt/sqlite"
     - os: osx
       osx_image: xcode11
       compiler: clang
       env:
-        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl --with-sqlite-dir=/usr/local/opt/sqlite --with-mysql-dir=/usr/local/opt/mariadb-connector-c"
+        - BUILD_TYPE="autotools" CONFIG_OPTS="--with-ssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-mysql-dir=/usr/local/opt/mariadb-connector-c"
     - stage: Static Analysis
       os: linux
       env:
@@ -67,7 +67,7 @@ jobs:
       osx_image: xcode11
       compiler: clang
       env:
-        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite" SCAN_BUILD="scan-build"
+        - BUILD_TYPE="analyze" OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1" SQLite_DIR="/usr/local/opt/sqlite" SCAN_BUILD="scan-build"
     - os: linux
       env:
         - BUILD_TYPE="coverity"
@@ -100,7 +100,7 @@ jobs:
     - os: osx
       osx_image: xcode11
       env:
-        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl" SQLite_DIR="/usr/local/opt/sqlite"
+        - BUILD_TYPE="asan" OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1" SQLite_DIR="/usr/local/opt/sqlite"
       compiler: clang
 
 
