@@ -28,7 +28,9 @@
 #ifdef HAVE_PTHREAD_H
 #  include <pthread.h>
 #endif
-
+#ifdef HAVE_PTHREAD_NP_H
+#  include <pthread_np.h>
+#endif
 #include <poll.h>
 
 #if defined(PTHREAD_SLEEP_USE_SELECT) && defined(HAVE_SYS_SELECT_H)
