@@ -448,6 +448,7 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 	M_http_reader_t                *reader;
 	M_http_simple_read_t           *sr          = NULL;
 	M_http_error_t                  res;
+	M_http_error_t                  dres;
 	size_t                          mylen_read;
 	M_bool                          have_simple = M_TRUE;
 	struct M_http_reader_callbacks  cbs = {
@@ -501,8 +502,9 @@ M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const unsigned 
 		goto done;
 	}
 
-	res = M_http_simple_read_decode_body(*simple);
-	if (res != M_HTTP_ERROR_SUCCESS) {
+	dres = M_http_simple_read_decode_body(*simple);
+	if (dres != M_HTTP_ERROR_SUCCESS) {
+		res     = dres;
 		M_http_simple_read_destroy(*simple);
 		*simple = NULL;
 		goto done;
@@ -525,7 +527,8 @@ M_http_error_t M_http_simple_read_parser(M_http_simple_read_t **simple, M_parser
 
 	res = M_http_simple_read(simple, M_parser_peek(parser), M_parser_len(parser), flags, &len_read);
 
-	M_parser_consume(parser, len_read);
+	if (res != M_HTTP_ERROR_MOREDATA)
+		M_parser_consume(parser, len_read);
 
 	return res;
 }

@@ -776,14 +776,19 @@ typedef enum {
 
 /*! Read the next HTTP message from the given buffer, store results in a new M_http_simple_read_t object.
  *
+ * Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message.
+ *
  * \param[out] simple   Place to store new M_http_simple_read_t object. Can be NULL to check for valid message.
+ *                      Will only be set on M_HTTP_ERROR_SUCCESS, and M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE.
  * \param[in]  data     Buffer containing HTTP messages to read.
  * \param[in]  data_len Length of \a data.
  * \param[in]  flags    Read options (OR'd combo of M_http_simple_read_flags_t).
  * \param[in]  len_read Num bytes consumed from \a data (may be NULL, if caller doesn't need this info).
+ *                      Will be set on error indicating the location in the message that generated the error.
  *
- * \return Error code (M_HTTP_ERROR_SUCCESS if successful).
+ * \return Response code.
  *
+ * \see M_http_reader_read
  * \see M_http_simple_read_parser
  * \see M_http_simple_read_destroy
  */
@@ -792,19 +797,22 @@ M_API M_http_error_t M_http_simple_read(M_http_simple_read_t **simple, const uns
 
 /*! Read the next HTTP message from the given parser.
  *
- * On success parser will consume message.
- *
  * Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message.
  * No data will be dropped from the parser, in this case.
  *
- * \see M_http_simple_read
- * \see M_http_simple_destroy
+ * On all other return values the parser will advance and data consumed. On a hard ERROR condition
+ * the parser will start at the point of the error. If this is undesirable, the parser should be
+ * marked and rewound after this function is called.
  *
  * \param[out] simple Place to store new M_http_simple_read_t object. Can be NULL to check for valid message.
  * \param[in]  parser Buffer containing HTTP messages to read.
  * \param[in]  flags  Read options (OR'd combo of M_http_simple_read_flags_t).
  *
- * \return Error code (M_HTTP_ERROR_SUCCESS if successful).
+ * \return Response code.
+ *
+ * \see M_http_reader_read
+ * \see M_http_simple_read
+ * \see M_http_simple_destroy
  */
 M_API M_http_error_t M_http_simple_read_parser(M_http_simple_read_t **simple, M_parser_t *parser, M_uint32 flags);
 
