@@ -246,18 +246,21 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Read the next HTTP message from the given buffer, store results in a new M_http_simple_read_t object.</p>
+<p>Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. Can be NULL to check for valid message. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. Can be NULL to check for valid message. Will only be set on M_HTTP_ERROR_SUCCESS, and M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Buffer containing HTTP messages to read. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">data_len</td><td>Length of <em>data</em>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>Read options (OR'd combo of M_http_simple_read_flags_t). </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">len_read</td><td>Num bytes consumed from <em>data</em> (may be NULL, if caller doesn't need this info).</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len_read</td><td>Num bytes consumed from <em>data</em> (may be NULL, if caller doesn't need this info). Will be set on error indicating the location in the message that generated the error.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Error code (M_HTTP_ERROR_SUCCESS if successful).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#gae0a44197f0ad0614ec5d1d28321e5270">M_http_simple_read_parser</a> </dd>
+<dl class="section return"><dt>Returns</dt><dd>Response code.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga4a3d0da05e543cf5c9b881ae1c30e153">M_http_reader_read</a> </dd>
+<dd>
+<a class="el" href="group__m__http__simple__write.html#gae0a44197f0ad0614ec5d1d28321e5270">M_http_simple_read_parser</a> </dd>
 <dd>
 <a class="el" href="group__m__http__simple__write.html#gad1c7c01434a51b45eba029c9b65b199a">M_http_simple_read_destroy</a> </dd></dl>
 
@@ -295,11 +298,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Read the next HTTP message from the given parser.</p>
-<p>On success parser will consume message.</p>
 <p>Will return M_HTTP_ERROR_MOREDATA if we need to wait for more data to get a complete message. No data will be dropped from the parser, in this case.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__simple__write.html#ga1183c74485dadf2ebb039fc032a2d403">M_http_simple_read</a> </dd>
-<dd>
-M_http_simple_destroy</dd></dl>
+<p>On all other return values the parser will advance and data consumed. On a hard ERROR condition the parser will start at the point of the error. If this is undesirable, the parser should be marked and rewound after this function is called.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">simple</td><td>Place to store new M_http_simple_read_t object. Can be NULL to check for valid message. </td></tr>
@@ -308,7 +308,12 @@ M_http_simple_destroy</dd></dl>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Error code (M_HTTP_ERROR_SUCCESS if successful). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Response code.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__m__http__reader.html#ga4a3d0da05e543cf5c9b881ae1c30e153">M_http_reader_read</a> </dd>
+<dd>
+<a class="el" href="group__m__http__simple__write.html#ga1183c74485dadf2ebb039fc032a2d403">M_http_simple_read</a> </dd>
+<dd>
+M_http_simple_destroy </dd></dl>
 
 </div>
 </div>
@@ -965,7 +970,7 @@ The returned dictionary does not include "Set-Cookie" headers, because they can 
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Feb 18 2020 14:26:57 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Tue Feb 18 2020 16:04:32 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
