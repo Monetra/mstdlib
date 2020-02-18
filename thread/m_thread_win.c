@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -169,7 +169,7 @@ static void M_thread_win_yield(M_bool force)
 
 static void M_thread_win_sleep(M_uint64 usec)
 {
-	DWORD    msec; 
+	DWORD    msec;
 	M_uint64 r;
 
 	r = usec/1000;
@@ -194,7 +194,7 @@ static M_thread_mutex_t *M_thread_win_mutex_create(M_uint32 attr)
 	M_thread_mutex_t *mutex;
 
 	(void)attr;
-	/* NOTE: we never define "struct M_thread_mutex", as we're aliasing it to a 
+	/* NOTE: we never define "struct M_thread_mutex", as we're aliasing it to a
 	 *       different type.  Bad style, but keeps our type safety */
 	mutex = M_malloc_zero(sizeof(CRITICAL_SECTION));
 	InitializeCriticalSection((LPCRITICAL_SECTION)mutex);
@@ -371,7 +371,7 @@ static void M_thread_win_cond_signal(M_thread_cond_t *cond)
 	/* close gate to prevent more waiters while signalling */
 	WaitForSingleObject(cond->gate, INFINITE);
 
-	/* If there are waiters, wake one, otherwise, just 
+	/* If there are waiters, wake one, otherwise, just
 	 * reopen the gate */
 	EnterCriticalSection(&cond->mutex);
 	cond->event = SIGNAL;
@@ -397,11 +397,13 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 	cbs->init   = NULL;
 	cbs->deinit = NULL;
 	/* Thread */
-	cbs->thread_create  = M_thread_win_create;
-	cbs->thread_join    = M_thread_win_join;
-	cbs->thread_self    = M_thread_win_self;
-	cbs->thread_yield   = M_thread_win_yield;
-	cbs->thread_sleep   = M_thread_win_sleep;
+	cbs->thread_create        = M_thread_win_create;
+	cbs->thread_join          = M_thread_win_join;
+	cbs->thread_self          = M_thread_win_self;
+	cbs->thread_yield         = M_thread_win_yield;
+	cbs->thread_sleep         = M_thread_win_sleep;
+	cbs->thread_set_priority  = NULL;
+	cbs->thread_set_processor = NULL;
 	/* System */
 	cbs->thread_poll    = M_thread_win_poll;
 	/* Mutex */

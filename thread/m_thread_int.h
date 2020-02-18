@@ -45,11 +45,13 @@ typedef struct {
 	void (*init)(void);
 	void (*deinit)(void);
 	/* Thread */
-	M_thread_t   *(*thread_create) (M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
-	M_bool        (*thread_join)   (M_thread_t *thread, void **value_ptr);
-	M_threadid_t  (*thread_self)   (void);
-	void          (*thread_yield)  (M_bool force);
-	void          (*thread_sleep)  (M_uint64 usec);
+	M_thread_t   *(*thread_create)       (M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
+	M_bool        (*thread_join)         (M_thread_t *thread, void **value_ptr);
+	M_threadid_t  (*thread_self)         (void);
+	void          (*thread_yield)        (M_bool force);
+	void          (*thread_sleep)        (M_uint64 usec);
+	M_bool        (*thread_set_priority) (M_thread_t *thread, M_threadid_t tid, M_uint8 priority);
+	M_bool        (*thread_set_processor)(M_thread_t *thread, M_threadid_t tid, int     processor);
 	/* System */
 	int    (*thread_poll) (struct pollfd fds[], nfds_t nfds, int timeout);
 #ifndef _WIN32

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -243,7 +243,7 @@ static size_t M_thread_num_cpu_cores_int(void)
 	count = (int)sysconf(_SC_NPROC_ONLN);
 #elif defined(HW_AVAILCPU) || defined(HW_NCPU)
 	int    mib[4];
-	size_t len    = sizeof(count); 
+	size_t len    = sizeof(count);
 
 	/* set the mib for hw.ncpu */
 	mib[0] = CTL_HW;
@@ -325,7 +325,7 @@ static void M_thread_spinlock_lock_int(M_thread_spinlock_t *spinlock, M_bool ato
 	 * reads only.  We should be guaranteed that a read of a 32bit integer
 	 * is both cheap and reliable (we won't read a corrupt value) */
 	while ((current = spinlock->current) != myqueue) {
-		
+
 		M_uint32 diff;
 
 		if (!atomics_only) {
@@ -380,6 +380,17 @@ void M_thread_spinlock_unlock(M_thread_spinlock_t *spinlock)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_thread_t *M_thread_from_threadid(M_threadid_t threadid)
+{
+	M_thread_t *thread = NULL;
+
+	M_thread_mutex_lock(threadid_mutex);
+	thread = M_hash_u64vp_get_direct(threadid_map, threadid);
+	M_thread_mutex_unlock(threadid_mutex);
+
+	return thread;
+}
+
 M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
 	M_thread_wrapfunc_data_t *data;
@@ -426,7 +437,7 @@ M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 
 	M_thread_mutex_lock(threadid_mutex);
 	thread = M_hash_u64vp_get_direct(threadid_map, id);
-	M_hash_u64vp_remove(threadid_map, id, M_FALSE); 
+	M_hash_u64vp_remove(threadid_map, id, M_FALSE);
 	M_thread_mutex_unlock(threadid_mutex);
 
 	if (thread == NULL)
@@ -438,10 +449,48 @@ M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 M_threadid_t M_thread_self(void)
 {
 	M_thread_auto_init();
-	if (thread_cbs.thread_self == 0)
+	if (thread_cbs.thread_self == NULL)
 		return 0;
 	return thread_cbs.thread_self();
 }
+
+M_bool M_thread_set_priority(M_threadid_t tid, M_uint8 priority)
+{
+	M_thread_t *thread;
+	M_thread_auto_init();
+
+	if (priority < M_THREAD_PRIORITY_MIN || priority > M_THREAD_PRIORITY_MAX)
+		return M_FALSE;
+
+	if (thread_cbs.thread_set_priority == NULL)
+		return M_FALSE;
+
+	thread = M_thread_from_threadid(tid);
+	if (thread == NULL) {
+		M_fprintf(stderr, "%s(): ThreadID %lld could not find Thread pointer\n", __FUNCTION__, (M_int64)tid);
+	}
+	return thread_cbs.thread_set_priority(thread, tid, priority);
+}
+
+M_bool M_thread_set_processor(M_threadid_t tid, int processor_id)
+{
+	M_thread_t *thread;
+	M_thread_auto_init();
+
+	/* NOTE: -1 is valid to unbind a thread from a processor */
+	if (processor_id < -1 || processor_id >= (int)M_thread_num_cpu_cores())
+		return M_FALSE;
+
+	if (thread_cbs.thread_set_processor == NULL)
+		return M_FALSE;
+
+	thread = M_thread_from_threadid(tid);
+	if (thread == NULL) {
+		M_fprintf(stderr, "%s(): ThreadID %lld could not find Thread pointer\n", __FUNCTION__, (M_int64)tid);
+	}
+	return thread_cbs.thread_set_processor(thread, tid, processor_id);
+}
+
 
 void M_thread_yield(M_bool force)
 {

@@ -106,7 +106,7 @@ M_bool M_thread_attr_set_processor(M_thread_attr_t *attr, int processor_id)
 		return M_TRUE;
 	}
 
-	if (processor_id < 0 || processor_id > (int)M_thread_num_cpu_cores())
+	if (processor_id < 0 || processor_id >= (int)M_thread_num_cpu_cores())
 		return M_FALSE;
 
 	attr->processor = processor_id;

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -200,7 +200,7 @@ static int M_thread_coop_test_poll(M_thread_coop_poll_t *pollst)
 
 	do {
 
-		ret = 
+		ret =
 #ifdef _WIN32
 		M_pollemu
 #else
@@ -597,7 +597,7 @@ static void M_thread_coop_create_int(M_thread_coop_t *thread, void *(*func)(void
 
 	/* Create the new context */
 	getcontext(&thread->th_context);
-	thread->th_context.uc_stack.ss_sp   = thread->stack; 
+	thread->th_context.uc_stack.ss_sp   = thread->stack;
 	thread->th_context.uc_stack.ss_size = COOP_THREAD_STACK;
 	thread->th_context.uc_link          = &athread->th_context;
 
@@ -664,7 +664,7 @@ static M_bool M_thread_coop_join(M_thread_t *thread, void **value_ptr)
 
 	if (thread == NULL)
 		return M_FALSE;
-	
+
 	mythread = (M_thread_coop_t *)thread;
 
 	/* Sanity check to make sure they didn't pass a garbage pointer */
@@ -715,7 +715,7 @@ static int M_thread_coop_poll(struct pollfd fds[], nfds_t nfds, int timeout)
 	/* Don't do the whole yield thing if it wants a quick check */
 	if (timeout == 0) {
 		do {
-			ret = 
+			ret =
 #ifdef _WIN32
 				M_pollemu
 #else
@@ -864,7 +864,7 @@ static M_bool M_thread_coop_cond_timedwait(M_thread_cond_t *cond, M_thread_mutex
 
 	if (cond == NULL || mutex == NULL || abstime == NULL)
 		return M_FALSE;
-	
+
 	thread = M_llist_node_val(M_llist_first(coop_active_threads));
 
 	/* Set some data so the scheduler will know when to wake up */
@@ -960,11 +960,13 @@ void M_thread_coop_register(M_thread_model_callbacks_t *cbs)
 	cbs->init   = M_thread_coop_init;
 	cbs->deinit = M_thread_coop_deinit;
 	/* Thread */
-	cbs->thread_create  = M_thread_coop_create;
-	cbs->thread_join    = M_thread_coop_join;
-	cbs->thread_self    = M_thread_coop_self;
-	cbs->thread_yield   = M_thread_coop_yield;
-	cbs->thread_sleep   = M_thread_coop_sleep;
+	cbs->thread_create        = M_thread_coop_create;
+	cbs->thread_join          = M_thread_coop_join;
+	cbs->thread_self          = M_thread_coop_self;
+	cbs->thread_yield         = M_thread_coop_yield;
+	cbs->thread_sleep         = M_thread_coop_sleep;
+	cbs->thread_set_priority  = NULL;
+	cbs->thread_set_processor = NULL;
 	/* System */
 	cbs->thread_poll    = M_thread_coop_poll;
 #ifndef _WIN32
