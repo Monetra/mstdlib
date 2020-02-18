@@ -125,10 +125,12 @@ static M_threadid_t M_thread_pthread_os_threadid(void)
 	return (M_threadid_t)tid;
 #else
 	/* Generic */
-	/* We use a couple of temporary variables in order to avoid
-	 * compiler warnings. */
+	/* Yes, of course we could do this in a single line, but due to all the possible
+	 * underlying datatypes of pthread_t, we actually need to do some work to prevent
+	 * warnings on various systems */
 	pthread_t id = pthread_self();
-	void     *th = (void *)id;
+	void     *th = (void *)((M_uintptr)id);
+
 	return (M_threadid_t)th;
 #endif
 
