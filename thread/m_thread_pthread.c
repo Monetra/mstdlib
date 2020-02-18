@@ -223,7 +223,7 @@ static void M_thread_pthread_set_processor(pthread_t thread, int processor_id)
 #if defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	cpu_set_t cpuset;
 
-	CPU_ZERO(&cpuset)
+	CPU_ZERO(&cpuset);
 	CPU_SET(processor_id, &cpuset);
 	if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) != 0) {
 		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
