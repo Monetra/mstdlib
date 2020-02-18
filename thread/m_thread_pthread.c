@@ -204,6 +204,7 @@ static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, 
 			M_fprintf(stderr, "Thread TID %lld: pthread_setschedparam %d: failed\n", (M_int64)tid, priority);
 			rv = M_FALSE;
 		}
+#ifdef __linux__
 	} else if (use_setpriority) {
 		/* Set the Nice priority. This may fail if set higher than allowed.  I don't think
 		 * its worth calling  getrlimit(RLIMIT_NICE) just to see if it might fail before calling it. */
@@ -211,6 +212,7 @@ static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, 
 			M_fprintf(stderr, "Thread TID %lld: nice priority %d: failed: %s\n", (M_int64)tid, priority, strerror(errno));
 			rv = M_FALSE;
 		}
+#endif
 	} else {
 		M_fprintf(stderr, "Thread TID %lld: could not determine how to set priority due to limited range\n", (M_int64)tid);
 		rv = M_FALSE;
