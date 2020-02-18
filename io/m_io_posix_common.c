@@ -294,7 +294,7 @@ void M_io_posix_sigpipe_unblock(M_io_posix_sigpipe_state_t *state)
 
 	if (sigismember(&pending, SIGPIPE)) {
 		/* Consume the signal from the signal queue */
-#if defined(HAVE_SIGTIMEDWAIT) && _POSIX_C_SOURCE >= 199309L
+#if defined(HAVE_SIGTIMEDWAIT) && ((defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309L) || (defined(__POSIX_VISIBLE) && __POSIX_VISIBLE > 199309L))
 		/* Prefer sigtimedwait this as it has the advantage of making sure we can't ever deadlock */
 		const struct timespec timeout = { 0, 0 };
 
