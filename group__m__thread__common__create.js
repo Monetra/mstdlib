@@ -17,5 +17,7 @@ var group__m__thread__common__create =
     [ "M_thread_attr_get_priority", "group__m__thread__common__create.html#ga0311c3621cd3460dbcdb2f0db8f5a635", null ],
     [ "M_thread_attr_set_create_joinable", "group__m__thread__common__create.html#gafce2d3e68ed6e4f3850225712cd63a7a", null ],
     [ "M_thread_attr_set_stack_size", "group__m__thread__common__create.html#ga4a868e35efe070dc35303c8d5415335e", null ],
-    [ "M_thread_attr_set_priority", "group__m__thread__common__create.html#ga70dc89b38038811e0e70d6adaf562cba", null ]
+    [ "M_thread_attr_set_priority", "group__m__thread__common__create.html#ga70dc89b38038811e0e70d6adaf562cba", null ],
+    [ "M_thread_attr_get_processor", "group__m__thread__common__create.html#ga593ba314cdbc4458be82ac8a8bc65cf6", null ],
+    [ "M_thread_attr_set_processor", "group__m__thread__common__create.html#ga2d3c8462fbf3ec729d39401305d6f67d", null ]
 ];
