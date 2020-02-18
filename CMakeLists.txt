@@ -285,6 +285,7 @@ if (MSTDLIB_BUILD_THREAD)
 
 		# PThread functions.
 		check_include_files(pthread.h                                 HAVE_PTHREAD_H)
+		check_include_files(pthread_np.h                              HAVE_PTHREAD_NP_H)
 		check_library_exists(pthread pthread_yield                 "" HAVE_PTHREAD_YIELD)
 		check_library_exists(pthread pthread_rwlock_init           "" HAVE_PTHREAD_RWLOCK_INIT)
 		check_library_exists(pthread pthread_rwlockattr_setkind_np "" HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP)

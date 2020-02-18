@@ -73,6 +73,7 @@
 #cmakedefine HAVE_ATOMIC_H
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_PTHREAD_H
+#cmakedefine HAVE_PTHREAD_NP_H
 #cmakedefine HAVE_PTHREAD_INIT
 #cmakedefine HAVE_PTHREAD_YIELD
 #cmakedefine HAVE_PTHREAD_RWLOCK_INIT

@@ -663,6 +663,7 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 		have_sco5="no"
 	fi
 	AC_CHECK_HEADER(pthread.h, [ have_pthreads="yes" ], [ have_pthreads="no" ])
+	AC_CHECK_HEADERS([pthread_np.h])
 	AC_CHECK_HEADERS([atomic.h])
 
 	if test "$have_pthreads" = "yes" -a "$have_sco5" = "no" ; then
