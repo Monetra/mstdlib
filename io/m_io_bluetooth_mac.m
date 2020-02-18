@@ -107,7 +107,6 @@ M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error
 	M_io_bluetooth_mac_rfcomm *conn   = nil;
 
 	*ioerr = M_IO_ERROR_SUCCESS;
-
 	if (M_str_isempty(mac)) {
 		*ioerr = M_IO_ERROR_INVALID;
 		return NULL;
@@ -122,16 +121,28 @@ M_io_handle_t *M_io_bluetooth_open(const char *mac, const char *uuid, M_io_error
 	handle->readbuf  = M_buf_create();
 	handle->writebuf = M_buf_create();
 
-	conn = [M_io_bluetooth_mac_rfcomm m_io_bluetooth_mac_rfcomm:[NSString stringWithUTF8String:mac] uuid:[NSString stringWithUTF8String:uuid] handle:handle];
-	if (conn == nil) {
-		*ioerr = M_IO_ERROR_NOTFOUND;
-		M_buf_cancel(handle->readbuf);
-		M_buf_cancel(handle->writebuf);
-		M_free(handle);
-		return NULL;
-	}
+	/* Wrap creating the rfcomm object in an auto release block.
+	 * The object is retained and won't be destroyed until we transfer it
+	 * back to ARC. If we create it in an auto release block it will be
+	 * dealloced when the transfer happens and the reference count his 0.
+	 * If we don't put it in an auto release block ARC still marks it
+	 * as able to be dealloced but does not do so until application exit.
+	 * While this isn't a memory leak in the sense the memory will be properly
+	 * freed, it is a memory leak because the application will just keep eating
+	 * memory until it exits. */
+	@autoreleasepool {
+		conn = [M_io_bluetooth_mac_rfcomm m_io_bluetooth_mac_rfcomm:[NSString stringWithUTF8String:mac] uuid:[NSString stringWithUTF8String:uuid]];
+		if (conn == nil) {
+			*ioerr = M_IO_ERROR_NOTFOUND;
+			M_buf_cancel(handle->readbuf);
+			M_buf_cancel(handle->writebuf);
+			M_free(handle);
+			return NULL;
+		}
 
-	handle->conn = (__bridge_retained CFTypeRef)conn;
+		handle->conn = (__bridge_retained CFTypeRef)conn;
+		conn = nil;
+	}
 	return handle;
 }
 
@@ -163,12 +174,15 @@ static void M_io_bluetooth_close(M_io_handle_t *handle, M_io_state_t state)
 	conn = (__bridge_transfer M_io_bluetooth_mac_rfcomm *)handle->conn;
 	[conn close];
 	conn         = nil;
-	handle->conn = nil;
+	handle->conn = NULL;
 }
 
 void M_io_bluetooth_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (handle == NULL)
+		return;
 
 	if (handle->timer) {
 		M_event_timer_remove(handle->timer);
@@ -256,7 +270,6 @@ static void M_io_bluetooth_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 	handle->timer = NULL;
 
 	if (handle->state == M_IO_STATE_CONNECTING) {
-
 		/* Tell the thread to shutdown by closing the socket on our end */
 		M_io_bluetooth_close(handle, M_IO_STATE_ERROR);
 
@@ -311,9 +324,7 @@ M_bool M_io_bluetooth_init_cb(M_io_layer_t *layer)
 		case M_IO_STATE_INIT:
 			handle->state = M_IO_STATE_CONNECTING;
 			handle->io    = io;
-			if (![(__bridge M_io_bluetooth_mac_rfcomm *)handle->conn connect]) {
-				return M_FALSE;
-			}
+			[(__bridge M_io_bluetooth_mac_rfcomm *)handle->conn connect:handle];
 			/* Fall-thru */
 		case M_IO_STATE_CONNECTING:
 			/* start timer to time out operation */
