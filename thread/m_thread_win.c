@@ -73,6 +73,7 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 	DWORD   dwThreadId;
 	HANDLE  hThread;
 	M_uint8 mthread_priority;
+	int     processor;
 
 	if (id)
 		*id = 0;
@@ -124,6 +125,14 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 		}
 
 		SetThreadPriority(hThread, win_priorities[priority]);
+	}
+
+	/* Handle thread processor binding */
+	processor = M_thread_attr_get_processor(attr);
+	if (processor != -1) {
+		if (SetThreadAffinityMask(hThread, ((DWORD_PTR)1) << processor) == 0) {
+			M_fprintf(stderr, "SetThreadAffinityMask for %lld to processor %d failed\n", (M_int64)dwThreadId, processor);
+		}
 	}
 
 	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
