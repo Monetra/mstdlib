@@ -121,6 +121,9 @@ static void *thread_scheder(void *arg)
 	M_uint32 *count = (M_uint32 *)arg;
 	size_t    i;
 
+	/* This is really because this test case sets thread priority and processor, so this may exit quickly */
+	M_thread_sleep(50);
+
 	for (i=0; i<5; i++) {
 		M_atomic_inc_u32(count);
 	}
@@ -138,7 +141,7 @@ typedef struct {
 	M_thread_cond_t  *cond;
 	M_uint32         *count;
 	M_uint64          wait_msec;
-} cond_data_t; 
+} cond_data_t;
 
 static void *thread_cond(void *arg)
 {
@@ -384,6 +387,7 @@ START_TEST(check_sched)
 	tattr  = M_thread_attr_create();
 	M_thread_attr_set_create_joinable(tattr, M_TRUE);
 	M_thread_attr_set_priority(tattr, 1); /* wanted to check to see if this works */
+	M_thread_attr_set_processor(tattr, 0);
 	thread = M_thread_create(tattr, thread_scheder, &count);
 	M_thread_attr_destroy(tattr);
 	M_thread_join(thread, NULL);

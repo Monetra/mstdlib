@@ -229,7 +229,6 @@ typedef struct M_thread_attr M_thread_attr_t;
 
 
 
-
 /*! Create and run a thread.
  *
  * Threads are created detached by default.
@@ -262,6 +261,38 @@ M_API M_bool M_thread_join(M_threadid_t id, void **value_ptr);
  * \return The threadid.
  */
 M_API M_threadid_t M_thread_self(void);
+
+/*! Minimum thread priority value */
+#define M_THREAD_PRIORITY_MIN 1
+
+/*! Normal thread priority value */
+#define M_THREAD_PRIORITY_NORMAL 5
+
+/*! Maximum thread priority value */
+#define M_THREAD_PRIORITY_MAX 9
+
+/*! Set the priority a given thread should be created with.
+ *
+ * \param[in] tid       ThreadID returned from M_thread_create() or M_thread_self()
+ * \param[in] priority  The priority to set.  Valid range is 1-9 with 1 being the
+ *                      lowest priority and 9 being the highest.  The default value
+ *                      is 5.  Some systems, like Linux, do not support thread scheduling
+ *                      in relation to the process as a whole, but rather the system as
+ *                      a whole, and therefore require RLIMIT_NICE to be configured on
+ *                      the process in order to successfully increase a thread's priority
+ *                      above '5'.
+ * \return M_TRUE on success, or M_FALSE on usage error
+ */
+M_API M_bool M_thread_set_priority(M_threadid_t tid, M_uint8 priority);
+
+/*! Set the processor to assign the thread to run on (aka affinity).  The range is
+ *  0 to M_thread_num_cpu_cores()-1, or -1 to unassign.
+ *
+ * \param[in] tid          ThreadID returned from M_thread_create() or M_thread_self()
+ * \param[in] processor_id -1 to unset prior value.
+ *                         Otherwise 0 to M_thread_num_cpu_cores()-1 is the valid range.
+ * \return M_TRUE on success, or M_FALSE on usage error */
+M_API M_bool M_thread_set_processor(M_threadid_t tid, int processor_id);
 
 
 /*! Sleep for the specified amount of time.
@@ -316,15 +347,6 @@ M_API M_bool M_thread_attr_get_create_joinable(const M_thread_attr_t *attr);
  */
 M_API size_t M_thread_attr_get_stack_size(const M_thread_attr_t *attr);
 
-
-/*! Minimum thread priority value */
-#define M_THREAD_PRIORITY_MIN 1
-
-/*! Normal thread priority value */
-#define M_THREAD_PRIORITY_NORMAL 5
-
-/*! Maximum thread priority value */
-#define M_THREAD_PRIORITY_MAX 9
 
 /*! Get the priority a given thread should be created with.
  *

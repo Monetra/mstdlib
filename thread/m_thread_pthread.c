@@ -138,7 +138,7 @@ static M_threadid_t M_thread_pthread_os_threadid(void)
 }
 
 
-static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, M_uint8 mthread_priority)
+static M_bool M_thread_pthread_set_priority(M_thread_t *thread, M_threadid_t tid, M_uint8 mthread_priority)
 {
 	struct sched_param tparam;
 	int                sys_priority_min;
@@ -149,6 +149,7 @@ static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, 
 	int                priority;
 	M_bool             use_setpriority = M_FALSE;
 	M_bool             rv              = M_TRUE;
+	int                retval;
 
 	M_mem_set(&tparam, 0, sizeof(tparam));
 
@@ -202,16 +203,18 @@ static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, 
 		} else {
 			tparam.sched_priority = priority;
 		}
-		if (pthread_setschedparam(thread, SCHED_OTHER, &tparam) != 0) {
-			M_fprintf(stderr, "Thread TID %lld: pthread_setschedparam %d: failed\n", (M_int64)tid, priority);
+		retval = pthread_setschedparam(thread, SCHED_OTHER, &tparam);
+		if (retval != 0) {
+			M_fprintf(stderr, "Thread TID %lld: pthread_setschedparam %d (min %d, max %d): failed: %d: %s\n", (M_int64)tid, priority, sys_priority_min, sys_priority_max, retval, strerror(retval));
 			rv = M_FALSE;
 		}
 #ifdef __linux__
 	} else if (use_setpriority) {
 		/* Set the Nice priority. This may fail if set higher than allowed.  I don't think
 		 * its worth calling  getrlimit(RLIMIT_NICE) just to see if it might fail before calling it. */
-		if (setpriority(PRIO_PROCESS, (id_t)tid, priority) != 0) {
-			M_fprintf(stderr, "Thread TID %lld: nice priority %d: failed: %s\n", (M_int64)tid, priority, strerror(errno));
+		retval = setpriority(PRIO_PROCESS, (id_t)tid, priority);
+		if (retval != 0) {
+			M_fprintf(stderr, "Thread TID %lld: nice priority %d: failed: %d: %s\n", (M_int64)tid, priority, retval, strerror(errno));
 			rv = M_FALSE;
 		}
 #endif
@@ -224,7 +227,7 @@ static M_bool M_thread_pthread_set_priority(pthread_t thread, M_threadid_t tid, 
 }
 
 
-static M_bool M_thread_pthread_set_processor(pthread_t thread, M_threadid_t tid, int processor_id)
+static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t tid, int processor_id)
 {
 #if defined(HAVE_PTHREAD_SETAFFINITY_NP)
 #  if defined(HAVE_CPUSET_T)
@@ -236,29 +239,37 @@ static M_bool M_thread_pthread_set_processor(pthread_t thread, M_threadid_t tid,
 #  endif
 
 	CPU_ZERO(&cpuset);
-	CPU_SET(processor_id, &cpuset);
+	if (processor_id == -1) {
+		int i;
+		for (i=0; i<M_thread_num_cpu_cores(); i++) {
+			CPU_SET(i, &cpuset);
+		}
+	} else {
+		CPU_SET(processor_id, &cpuset);
+	}
 	(void)tid;
-	if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset) != 0) {
+	if (pthread_setaffinity_np((pthread_t)thread, sizeof(cpuset), &cpuset) != 0) {
 		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
 
 #elif defined(__sun__)
 	(void)tid;
-	if (processor_bind(P_LWPID, (id_t)thread, (processorid_t)processor_id, NULL) != 0) {
+	if (processor_bind(P_LWPID, (id_t)((pthread_t)thread), (processorid_t)((processor_id == -1)?PBIND_NONE:processor_id), NULL) != 0) {
 		M_fprintf(stderr, "processor_bind thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
 #elif defined(__APPLE__)
-	thread_port_t                 mach_thread = pthread_mach_thread_np(thread);
+	thread_port_t                 mach_thread = pthread_mach_thread_np((pthread_t)thread);
 	thread_affinity_policy_data_t policy      = { processor_id };
 	(void)tid;
-	if (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) != KERN_SUCCESS) {
+	if (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)((processor_id == -1)?NULL:&policy), 1) != KERN_SUCCESS) {
 		M_fprintf(stderr, "thread_policy_set thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
 #elif defined(_AIX)
-	if (bindprocessor(BINDTHREAD, (id_t)tid, (cpu_t)processor_id) != 0) {
+	(void)thread;
+	if (bindprocessor(BINDTHREAD, (id_t)tid, (cpu_t)((processor_id == -1)?PROCESSOR_CLASS_ANY:processor_id)) != 0) {
 		M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
@@ -301,7 +312,6 @@ static void *M_thread_pthread_entry(void *arg)
 	*thread_id = M_thread_pthread_os_threadid();
 	pthread_cond_signal(cond);
 	pthread_mutex_unlock(mutex);
-
 	return entry_func(entry_arg);
 }
 
@@ -354,11 +364,11 @@ static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr
 	pthread_cond_destroy(&cond);
 
 	if (M_thread_attr_get_processor(attr) != -1) {
-		M_thread_pthread_set_processor(thread, *id, M_thread_attr_get_processor(attr));
+		M_thread_pthread_set_processor((M_thread_t *)thread, *id, M_thread_attr_get_processor(attr));
 	}
 
 	if (M_thread_attr_get_priority(attr) != M_THREAD_PRIORITY_NORMAL) {
-		M_thread_pthread_set_priority(thread, *id, M_thread_attr_get_priority(attr));
+		M_thread_pthread_set_priority((M_thread_t *)thread, *id, M_thread_attr_get_priority(attr));
 	}
 
 	return (M_thread_t *)thread;
@@ -628,11 +638,13 @@ void M_thread_pthread_register(M_thread_model_callbacks_t *cbs)
 	cbs->init   = M_thread_pthread_init;
 	cbs->deinit = NULL;
 	/* Thread */
-	cbs->thread_create  = M_thread_pthread_create;
-	cbs->thread_join    = M_thread_pthread_join;
-	cbs->thread_self    = M_thread_pthread_os_threadid;
-	cbs->thread_yield   = M_thread_pthread_yield;
-	cbs->thread_sleep   = M_thread_pthread_sleep;
+	cbs->thread_create        = M_thread_pthread_create;
+	cbs->thread_join          = M_thread_pthread_join;
+	cbs->thread_self          = M_thread_pthread_os_threadid;
+	cbs->thread_yield         = M_thread_pthread_yield;
+	cbs->thread_sleep         = M_thread_pthread_sleep;
+	cbs->thread_set_priority  = M_thread_pthread_set_priority;
+	cbs->thread_set_processor = M_thread_pthread_set_processor;
 	/* System */
 	cbs->thread_poll    = M_thread_pthread_poll;
 	cbs->thread_sigmask = M_thread_pthread_sigmask;
