@@ -1122,7 +1122,6 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 {
 	M_parser_t     *parser;
 	M_http_error_t  res       = M_HTTP_ERROR_SUCCESS;
-	size_t          start_len = 0;
 	size_t          mylen_read;
 	M_bool          full_read;
 
@@ -1136,15 +1135,22 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 	if (httpr->rstep == M_HTTP_READER_STEP_DONE)
 		return M_HTTP_ERROR_SUCCESS;
 
-	parser    = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
-	start_len = M_parser_len(parser);
+	parser = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
 
 	if (httpr->rstep == M_HTTP_READER_STEP_UNKNONW) {
-		/* We want to consume any and all new lines that might start the date.
+		/* We want to consume any and all new lines that might start the data.
 		 * If multiple http messages were packed together in one stream there could
 		 * be a new line at the end of the previous stream. We want to ignore this
 		 * because, while valid to be there, it's not really part of either message. */
-		M_parser_consume_whitespace(parser,M_PARSER_WHITESPACE_NONE);
+		M_parser_consume_whitespace(parser, M_PARSER_WHITESPACE_NONE);
+
+		/* No data following, we need more. Maybe there is more whitespace
+		 * following we need to eat. */
+		if (M_parser_len(parser) == 0) {
+			res = M_HTTP_ERROR_MOREDATA;
+			goto done;
+		}
+
 		if (httpr->flags & M_HTTP_READER_SKIP_START) {
 			httpr->rstep = M_HTTP_READER_STEP_HEADER;
 		} else {
@@ -1222,7 +1228,7 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 	}
 
 done:
-	*len_read = start_len - M_parser_len(parser);
+	*len_read = data_len - M_parser_len(parser);
 	M_parser_destroy(parser);
 
 	/* On a succesful parse determine the overall state of the message. */
