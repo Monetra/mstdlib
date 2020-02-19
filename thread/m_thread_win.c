@@ -67,6 +67,69 @@ static DWORD win32_abstime2msoffset(const M_timeval_t *abstime)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+static M_bool M_thread_win_set_priority(M_thread_t *thread, M_threadid_t tid, M_uint8 mthread_priority)
+{
+	static const int win_priorities[7] = {
+		THREAD_PRIORITY_IDLE,
+		THREAD_PRIORITY_LOWEST,
+		THREAD_PRIORITY_BELOW_NORMAL,
+		THREAD_PRIORITY_NORMAL,
+		THREAD_PRIORITY_ABOVE_NORMAL,
+		THREAD_PRIORITY_HIGHEST,
+		THREAD_PRIORITY_TIME_CRITICAL
+	};
+	int     sys_priority_min = 0;
+	int     sys_priority_max = 6;
+	int     sys_priority_range;
+	int     mthread_priority_range;
+	double  priority_scale;
+	int     priority;
+
+	sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
+	mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
+	priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
+
+	/* Lets handle min, max, and normal without scaling */
+	if (mthread_priority == M_THREAD_PRIORITY_MIN) {
+		priority = sys_priority_min;
+	} else if (mthread_priority == M_THREAD_PRIORITY_MAX) {
+		priority = sys_priority_max;
+	} else if (mthread_priority == M_THREAD_PRIORITY_NORMAL) {
+		priority = 3;
+	} else {
+		priority = sys_priority_min + (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
+		if (priority > sys_priority_max)
+			priority = sys_priority_max;
+		if (priority < sys_priority_min)
+			priority = sys_priority_min;
+	}
+
+	if (SetThreadPriority((HANDLE)thread, win_priorities[priority]) == 0) {
+		M_fprintf(stderr, "SetThreadPriority on thread %lld to %d failed: %ld\n", (M_int64)tid, win_priorities[priority], (long)GetLastError());
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+
+static M_bool M_thread_win_set_processor(M_thread_t *thread, M_threadid_t tid, int processor_id)
+{
+	DWORD_PTR mask;
+
+	if (processor_id == -1) {
+		/* Set to same as process as a whole */
+		DWORD_PTR dwSystemAffinity;
+		GetProcessAffinityMask(GetCurrentProcess(), &mask, &dwSystemAffinity /* unused */);
+	} else {
+		mask = ((DWORD_PTR)1) << processor_id;
+	}
+
+	if (SetThreadAffinityMask((HANDLE)thread, mask) == 0) {
+		M_fprintf(stderr, "SetThreadAffinityMask for %lld to processor %d failed: %ld\n", (M_int64)tid, processor_id, (long)GetLastError());
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
 
 static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
@@ -75,9 +138,6 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 	M_uint8 mthread_priority;
 	int     processor;
 
-	if (id)
-		*id = 0;
-
 	if (func == NULL)
 		return NULL;
 
@@ -85,54 +145,18 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 	if (hThread == NULL)
 		return NULL;
 
-	if (id)
-		*id = dwThreadId;
+	*id = (M_threadid_t)dwThreadId;
 
 	/* Handle thread priority */
 	mthread_priority = M_thread_attr_get_priority(attr);
 	if (mthread_priority != M_THREAD_PRIORITY_NORMAL) {
-		static const int win_priorities[7] = {
-			THREAD_PRIORITY_IDLE,
-			THREAD_PRIORITY_LOWEST,
-			THREAD_PRIORITY_BELOW_NORMAL,
-			THREAD_PRIORITY_NORMAL,
-			THREAD_PRIORITY_ABOVE_NORMAL,
-			THREAD_PRIORITY_HIGHEST,
-			THREAD_PRIORITY_TIME_CRITICAL
-		};
-		int     sys_priority_min = 0;
-		int     sys_priority_max = 6;
-		int     sys_priority_range;
-		int     mthread_priority_range;
-		double  priority_scale;
-		int     priority;
-
-		sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
-		mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
-		priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
-
-		/* Lets handle min and max without scaling */
-		if (mthread_priority == 1) {
-			priority = sys_priority_min;
-		} else if (mthread_priority == 9) {
-			priority = sys_priority_max;
-		} else {
-			priority = sys_priority_min + (int)(((double)(mthread_priority - M_THREAD_PRIORITY_MIN)) * priority_scale);
-			if (priority > sys_priority_max)
-				priority = sys_priority_max;
-			if (priority < sys_priority_min)
-				priority = sys_priority_min;
-		}
-
-		SetThreadPriority(hThread, win_priorities[priority]);
+		M_thread_win_set_priority((M_thread_t *)hThread, *id, mthread_priority);
 	}
 
 	/* Handle thread processor binding */
 	processor = M_thread_attr_get_processor(attr);
 	if (processor != -1) {
-		if (SetThreadAffinityMask(hThread, ((DWORD_PTR)1) << processor) == 0) {
-			M_fprintf(stderr, "SetThreadAffinityMask for %lld to processor %d failed\n", (M_int64)dwThreadId, processor);
-		}
+		 M_thread_win_set_processor((M_thread_t *)hThread, *id, processor);
 	}
 
 	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
@@ -402,8 +426,9 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 	cbs->thread_self          = M_thread_win_self;
 	cbs->thread_yield         = M_thread_win_yield;
 	cbs->thread_sleep         = M_thread_win_sleep;
-	cbs->thread_set_priority  = NULL;
-	cbs->thread_set_processor = NULL;
+	cbs->thread_set_priority  = M_thread_win_set_priority;
+	cbs->thread_set_processor = M_thread_win_set_processor;
+
 	/* System */
 	cbs->thread_poll    = M_thread_win_poll;
 	/* Mutex */
