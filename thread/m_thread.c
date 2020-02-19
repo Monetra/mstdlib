@@ -468,6 +468,7 @@ M_bool M_thread_set_priority(M_threadid_t tid, M_uint8 priority)
 	thread = M_thread_from_threadid(tid);
 	if (thread == NULL) {
 		M_fprintf(stderr, "%s(): ThreadID %lld could not find Thread pointer\n", __FUNCTION__, (M_int64)tid);
+		return M_FALSE;
 	}
 	return thread_cbs.thread_set_priority(thread, tid, priority);
 }
@@ -487,6 +488,7 @@ M_bool M_thread_set_processor(M_threadid_t tid, int processor_id)
 	thread = M_thread_from_threadid(tid);
 	if (thread == NULL) {
 		M_fprintf(stderr, "%s(): ThreadID %lld could not find Thread pointer\n", __FUNCTION__, (M_int64)tid);
+		return M_FALSE;
 	}
 	return thread_cbs.thread_set_processor(thread, tid, processor_id);
 }
