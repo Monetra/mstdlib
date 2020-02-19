@@ -154,6 +154,8 @@ static void M_thread_deinit(void *arg)
 static void M_thread_init_routine(M_uint64 flags)
 {
 	size_t i;
+	M_thread_t  *thread = NULL;
+	M_threadid_t threadid = 0;
 
 	M_thread_model_t model = (M_thread_model_t)flags;
 
@@ -172,6 +174,10 @@ static void M_thread_init_routine(M_uint64 flags)
 
 	threadid_mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	threadid_map   = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, NULL);
+
+	/* Add self to thread map -- needed for things like setting a priority/processor */
+	threadid = thread_cbs.thread_self(&thread);
+	M_hash_u64vp_insert(threadid_map, threadid, thread);
 
 	thread_count_mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -451,7 +457,7 @@ M_threadid_t M_thread_self(void)
 	M_thread_auto_init();
 	if (thread_cbs.thread_self == NULL)
 		return 0;
-	return thread_cbs.thread_self();
+	return thread_cbs.thread_self(NULL);
 }
 
 M_bool M_thread_set_priority(M_threadid_t tid, M_uint8 priority)

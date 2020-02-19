@@ -206,8 +206,11 @@ static M_bool M_thread_win_join(M_thread_t *thread, void **value_ptr)
 	return M_TRUE;
 }
 
-static M_threadid_t M_thread_win_self(void)
+static M_threadid_t M_thread_win_self(M_thread_t **thread)
 {
+	if (thread != NULL)
+		*thread = (M_thread_t *)GetCurrentThread();
+
 	return (M_threadid_t)GetCurrentThreadId();
 }
 
