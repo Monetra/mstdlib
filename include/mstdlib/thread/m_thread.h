@@ -188,7 +188,7 @@ M_API void M_library_cleanup(void);
 M_API void M_library_cleanup_register(void (*cleanup_cb)(void *arg), void *arg);
 
 
-/*! Get the number of actively running threads.
+/*! Get the number of actively running threads.  This count includes the main process thread.
  *
  * This count does not include the threads that have finished but are still joinable.
  *

@@ -113,16 +113,18 @@ static void M_thread_pthread_init(void)
 }
 
 
-static M_threadid_t M_thread_pthread_os_threadid(void)
+static M_threadid_t M_thread_pthread_self(M_thread_t **thread)
 {
+	M_threadid_t rv = 0;
+
 #if defined(__linux__)
 	/* Get pid of thread.  Yes, linux actually assigns an internal pid of the thread
 	 * due to use of clone(). */
 	pid_t tid = (pid_t)syscall(__NR_gettid);
-	return (M_threadid_t)tid;
+	rv = (M_threadid_t)tid;
 #elif defined(_AIX)
 	tid_t tid = thread_self();
-	return (M_threadid_t)tid;
+	rv = (M_threadid_t)tid;
 #else
 	/* Generic */
 	/* Yes, of course we could do this in a single line, but due to all the possible
@@ -131,10 +133,14 @@ static M_threadid_t M_thread_pthread_os_threadid(void)
 	pthread_t id = pthread_self();
 	void     *th = (void *)((M_uintptr)id);
 
-	return (M_threadid_t)th;
+	rv = (M_threadid_t)th;
 #endif
 
+	if (thread != NULL)
+		*thread = (M_thread_t *)pthread_self();
+
 /* NOTE: for apple should we instead return  thread_port_t pthread_mach_thread_np(pthread_self()); ?? */
+	return rv;
 }
 
 
@@ -309,7 +315,7 @@ static void *M_thread_pthread_entry(void *arg)
 	larg = NULL;
 
 	pthread_mutex_lock(mutex);
-	*thread_id = M_thread_pthread_os_threadid();
+	*thread_id = M_thread_pthread_self(NULL);
 	pthread_cond_signal(cond);
 	pthread_mutex_unlock(mutex);
 	return entry_func(entry_arg);
@@ -640,7 +646,7 @@ void M_thread_pthread_register(M_thread_model_callbacks_t *cbs)
 	/* Thread */
 	cbs->thread_create        = M_thread_pthread_create;
 	cbs->thread_join          = M_thread_pthread_join;
-	cbs->thread_self          = M_thread_pthread_os_threadid;
+	cbs->thread_self          = M_thread_pthread_self;
 	cbs->thread_yield         = M_thread_pthread_yield;
 	cbs->thread_sleep         = M_thread_pthread_sleep;
 	cbs->thread_set_priority  = M_thread_pthread_set_priority;

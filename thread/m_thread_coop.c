@@ -697,9 +697,13 @@ static M_bool M_thread_coop_join(M_thread_t *thread, void **value_ptr)
 	return M_TRUE;
 }
 
-static M_threadid_t M_thread_coop_self(void)
+static M_threadid_t M_thread_coop_self(M_thread_t **thread)
 {
 	void *th = M_llist_node_val(M_llist_first(coop_active_threads));
+
+	if (thread != NULL)
+		*thread = th;
+
 	return (M_threadid_t)th;
 }
 
