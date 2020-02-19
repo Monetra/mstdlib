@@ -1444,6 +1444,9 @@ static M_event_err_t M_event_pool_loop(M_event_t *event, M_uint64 timeout_ms)
 
 	M_thread_attr_destroy(attr);
 
+	/* Bind self to first CPU core */
+	M_thread_set_processor(M_thread_self(), 0);
+
 	rv = M_event_loop_loop(&event->u.pool.thread_evloop[0], timeout_ms);
 
 	/* Wait for all threads to exit */
@@ -1451,6 +1454,9 @@ static M_event_err_t M_event_pool_loop(M_event_t *event, M_uint64 timeout_ms)
 		void *val = NULL;
 		M_thread_join(event->u.pool.thread_ids[i], &val);
 	}
+
+	/* Unbind the main thread from the first core */
+	M_thread_set_processor(M_thread_self(), -1);
 
 	/* All threads return values should be the same */
 	return rv;
