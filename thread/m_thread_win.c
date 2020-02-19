@@ -85,6 +85,8 @@ static M_bool M_thread_win_set_priority(M_thread_t *thread, M_threadid_t tid, M_
 	double  priority_scale;
 	int     priority;
 
+	(void)thread;
+
 	sys_priority_range     = (sys_priority_max - sys_priority_min) + 1;
 	mthread_priority_range = (M_THREAD_PRIORITY_MAX - M_THREAD_PRIORITY_MIN) + 1;
 	priority_scale         = ((double)sys_priority_range) / ((double)mthread_priority_range);
@@ -104,10 +106,20 @@ static M_bool M_thread_win_set_priority(M_thread_t *thread, M_threadid_t tid, M_
 			priority = sys_priority_min;
 	}
 
-	if (SetThreadPriority((HANDLE)thread, win_priorities[priority]) == 0) {
-		M_fprintf(stderr, "SetThreadPriority on thread %lld to %d failed: %ld\n", (M_int64)tid, win_priorities[priority], (long)GetLastError());
+	/* NOTE: On Windows we need to create a new thread handle from the thread id as it may have been closed if the thread
+	 *       was created as detached. */
+	hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, (DWORD)tid);
+	if (hThread == NULL) {
+		M_fprintf(stderr, "%s(): Unable to get thread handle for Thread %lld: %ld\n", __FUNCTION__, (M_int64)tid, (long)GetLastError());
 		return M_FALSE;
 	}
+
+	if (SetThreadPriority(hThread, win_priorities[priority]) == 0) {
+		M_fprintf(stderr, "SetThreadPriority on thread %lld to %d failed: %ld\n", (M_int64)tid, win_priorities[priority], (long)GetLastError());
+		CloseHandle(hThread);
+		return M_FALSE;
+	}
+	CloseHandle(hThread);
 	return M_TRUE;
 }
 
@@ -115,6 +127,9 @@ static M_bool M_thread_win_set_priority(M_thread_t *thread, M_threadid_t tid, M_
 static M_bool M_thread_win_set_processor(M_thread_t *thread, M_threadid_t tid, int processor_id)
 {
 	DWORD_PTR mask;
+	HANDLE    hThread;
+
+	(void)thread;
 
 	if (processor_id == -1) {
 		/* Set to same as process as a whole */
@@ -124,12 +139,23 @@ static M_bool M_thread_win_set_processor(M_thread_t *thread, M_threadid_t tid, i
 		mask = ((DWORD_PTR)1) << processor_id;
 	}
 
-	if (SetThreadAffinityMask((HANDLE)thread, mask) == 0) {
-		M_fprintf(stderr, "SetThreadAffinityMask for %lld to processor %d failed: %ld\n", (M_int64)tid, processor_id, (long)GetLastError());
+	/* NOTE: On Windows we need to create a new thread handle from the thread id as it may have been closed if the thread
+	 *       was created as detached. */
+	hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, (DWORD)tid);
+	if (hThread == NULL) {
+		M_fprintf(stderr, "%s(): Unable to get thread handle for Thread %lld: %ld\n", __FUNCTION__, (M_int64)tid, (long)GetLastError());
 		return M_FALSE;
 	}
+
+	if (SetThreadAffinityMask(hThread, mask) == 0) {
+		M_fprintf(stderr, "SetThreadAffinityMask for %lld to processor %d failed: %ld\n", (M_int64)tid, processor_id, (long)GetLastError());
+		CloseHandle(hThread);
+		return M_FALSE;
+	}
+	CloseHandle(hThread);
 	return M_TRUE;
 }
+
 
 static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
