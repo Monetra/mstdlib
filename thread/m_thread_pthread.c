@@ -203,7 +203,7 @@ static M_bool M_thread_pthread_set_priority(M_thread_t *thread, M_threadid_t tid
 		} else {
 			tparam.sched_priority = priority;
 		}
-		retval = pthread_setschedparam(thread, SCHED_OTHER, &tparam);
+		retval = pthread_setschedparam((pthread_t)thread, SCHED_OTHER, &tparam);
 		if (retval != 0) {
 			M_fprintf(stderr, "Thread TID %lld: pthread_setschedparam %d (min %d, max %d): failed: %d: %s\n", (M_int64)tid, priority, sys_priority_min, sys_priority_max, retval, strerror(retval));
 			rv = M_FALSE;
