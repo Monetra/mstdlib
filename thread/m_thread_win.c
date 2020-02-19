@@ -84,6 +84,7 @@ static M_bool M_thread_win_set_priority(M_thread_t *thread, M_threadid_t tid, M_
 	int     mthread_priority_range;
 	double  priority_scale;
 	int     priority;
+	HANDLE  hThread;
 
 	(void)thread;
 
