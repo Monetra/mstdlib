@@ -1435,7 +1435,7 @@ static M_event_err_t M_event_pool_loop(M_event_t *event, M_uint64 timeout_ms)
 		M_event_pool_loop_thread_arg_t *thread_arg = M_malloc_zero(sizeof(*thread_arg));
 
 		/* Bind thread to single cpu core */
-		M_thread_attr_set_processor(attr, i);
+		M_thread_attr_set_processor(attr, (int)i);
 
 		thread_arg->event                          = &event->u.pool.thread_evloop[i];
 		thread_arg->timeout_ms                     = timeout_ms;
