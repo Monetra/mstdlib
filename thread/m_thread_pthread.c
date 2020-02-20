@@ -246,9 +246,9 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 
 	CPU_ZERO(&cpuset);
 	if (processor_id == -1) {
-		int i;
+		size_t i;
 		for (i=0; i<M_thread_num_cpu_cores(); i++) {
-			CPU_SET(i, &cpuset);
+			CPU_SET((int)i, &cpuset);
 		}
 	} else {
 		CPU_SET(processor_id, &cpuset);
