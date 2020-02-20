@@ -56,11 +56,11 @@
 #include "base/time/m_time_int.h"
 #include "m_thread_int.h"
 #include <errno.h>
+#include <string.h>
 
 #ifdef __linux__
 #  include <sys/syscall.h>
 #  include <sys/resource.h>
-#  include <string.h>
 #endif
 
 #ifdef __APPLE__
