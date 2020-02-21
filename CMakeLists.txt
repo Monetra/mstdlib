@@ -294,6 +294,7 @@ if (MSTDLIB_BUILD_THREAD)
 		list_append_if_set(check_extra_includes HAVE_PTHREAD_NP_H  pthread_np.h)
 		mstdlib_type_exists(cpu_set_t "${check_extra_includes}" HAVE_CPU_SET_T)
 		mstdlib_type_exists(cpuset_t  "${check_extra_includes}" HAVE_CPUSET_T)
+		check_symbol_exists(sched_setaffinity "${check_extra_includes}" HAVE_SCHED_SETAFFINITY)
 
 		if (HAVE_PTHREAD_H)
 			check_symbol_exists(pthread_init "pthread.h" HAVE_PTHREAD_INIT)
