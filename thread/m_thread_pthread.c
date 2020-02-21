@@ -258,7 +258,27 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
+#elif defined(HAVE_SCHED_SETAFFINITY) && defined(HAVE_CPU_SET_T)
+	/* Other C libraries on Linux may not wrap sched_setaffinity() into a pthread_setaffinity_np().  So lets support passing
+	 * the tid to sched_setaffinity() which according to the docs has the same effect on linux. */
+	cpu_set_t cpuset;
 
+	(void)thread;
+
+	CPU_ZERO(&cpuset);
+	if (processor_id == -1) {
+		size_t i;
+		for (i=0; i<M_thread_num_cpu_cores(); i++) {
+			CPU_SET((int)i, &cpuset);
+		}
+	} else {
+		CPU_SET(processor_id, &cpuset);
+	}
+
+	if (sched_setaffinity(tid, sizeof(cpuset), &cpuset) != 0) {
+		M_fprintf(stderr, "sched_setaffinity thread %lld to processor %d failed: %s\n", (M_int64)thread, processor_id, strerror(errno));
+		return M_FALSE;
+	}
 #elif defined(__sun__)
 	(void)tid;
 	if (processor_bind(P_LWPID, (id_t)((pthread_t)thread), (processorid_t)((processor_id == -1)?PBIND_NONE:processor_id), NULL) != 0) {

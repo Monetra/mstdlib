@@ -710,6 +710,11 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 			AC_DEFINE([HAVE_PTHREAD_SETAFFINITY_NP], [], [pthread_setaffinity_np exists])
 			AC_SUBST(HAVE_PTHREAD_SETAFFINITY_NP)
 		fi
+		AC_CHECK_DECL(sched_setaffinity, [ sched_setaffinity="yes"], [ sched_setaffinity="no" ], [ #include <sched.h> ])
+		if test "$sched_setaffinity" = "yes" ; then
+			AC_DEFINE([HAVE_SCHED_SETAFFINITY], [], [sched_setaffinity exists])
+			AC_SUBST(HAVE_SCHED_SETAFFINITY)
+		fi
 
 		AC_CHECK_TYPE(cpu_set_t, [ AC_DEFINE(HAVE_CPU_SET_T, [], [cpu_set_t]) ], [ ] , [
 #include <pthread.h>
