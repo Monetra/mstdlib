@@ -119,8 +119,13 @@ static M_threadid_t M_thread_pthread_self(M_thread_t **thread)
 
 #if defined(__linux__)
 	/* Get pid of thread.  Yes, linux actually assigns an internal pid of the thread
-	 * due to use of clone(). */
-	pid_t tid = (pid_t)syscall(__NR_gettid);
+	 * due to use of clone(). We cache it in a thread-local static variable since
+	 * we don't want to call a syscall constantly, thats really slow. */
+	static __thread pid_t tid = 0;
+
+	if (tid == 0)
+		tid = (pid_t)syscall(__NR_gettid);
+
 	rv = (M_threadid_t)tid;
 #elif defined(_AIX)
 	tid_t tid = thread_self();
