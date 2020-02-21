@@ -279,6 +279,8 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
+#elif defined(__ANDROID__)
+#  warning thread affinity not supported on this OS
 
 #else
 #  error do not know how to set thread affinity
