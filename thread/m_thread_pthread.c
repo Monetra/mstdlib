@@ -305,6 +305,9 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		return M_FALSE;
 	}
 #elif defined(__ANDROID__)
+	(void)thread;
+	(void)tid;
+	(void)processor_id;
 #  warning thread affinity not supported on this OS
 
 #else

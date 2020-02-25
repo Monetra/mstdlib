@@ -111,6 +111,8 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 	if (!M_str_isempty(msg)) {
 		__android_log_write(to_native_priority(priority), product, msg);
 	}
+
+	return M_TRUE;
 }
 
 /* writer thunk destroy callback is M_free. */
@@ -219,6 +221,8 @@ static M_bool log_destroy_blocking_cb(void *thunk, M_bool flush, M_uint64 timeou
 	/* Ask internal thread to destroy itself, then block until it's done. */
 	done = M_async_writer_destroy_blocking(mdata->writer, flush, timeout_ms);
 	M_free(mdata);
+
+	return M_TRUE;
 }
 
 
