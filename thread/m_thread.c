@@ -65,8 +65,9 @@ static struct {
 };
 
 typedef struct {
-	void *(*func)(void *arg);
-	void *arg;
+	void   *(*func)(void *arg);
+	void     *arg;
+	M_bool    joinable;
 } M_thread_wrapfunc_data_t;
 
 static M_bool M_thread_once_int(M_thread_once_t *once_control, M_bool atomics_only, void (*init_routine)(M_uint64 flags), M_uint64 init_flags);
@@ -78,37 +79,48 @@ static M_bool M_thread_once_reset_int(M_thread_once_t *once_control, M_bool atom
 
 static void *M_thread_wrapfunc(void *arg)
 {
-	M_thread_wrapfunc_data_t *data;
+	M_thread_wrapfunc_data_t *data = arg;
 	void                     *ret;
-	size_t                   len;
-	size_t                   i;
-	void                     (**destructors)(void);
+	size_t                    len;
+	size_t                    i;
+	void                   (**destructors)(void);
 
 	M_thread_mutex_lock(thread_count_mutex);
 	thread_count++;
 	M_thread_mutex_unlock(thread_count_mutex);
 
-	data = (M_thread_wrapfunc_data_t *)arg;
-	ret  = data->func(data->arg);
+	ret         = data->func(data->arg);
 
 	M_thread_mutex_lock(thread_destructor_mutex);
-	len = M_list_len(thread_destructors);
+	len         = M_list_len(thread_destructors);
 	destructors = M_malloc(sizeof(void (*)(void))*len);
-	for (i=0;i<len;i++) {
+
+	for (i=0; i<len; i++) {
 		const void *dst = M_list_at(thread_destructors, i);
 		destructors[i] = M_CAST_OFF_CONST(void *, dst);
 	}
+
 	M_thread_mutex_unlock(thread_destructor_mutex);
+
 	for (i=0; i<len; i++) {
 		destructors[i]();
 	}
-	M_free(destructors);
 
-	M_free(data);
+	M_free(destructors);
 
 	M_thread_mutex_lock(thread_count_mutex);
 	thread_count--;
 	M_thread_mutex_unlock(thread_count_mutex);
+
+	if (!data->joinable) {
+		M_threadid_t id = M_thread_self();
+		M_thread_mutex_lock(threadid_mutex);
+		M_hash_u64vp_remove(threadid_map, id, M_FALSE);
+		M_thread_mutex_unlock(threadid_mutex);
+	}
+
+	M_free(data);
+
 	return ret;
 }
 
@@ -393,7 +405,6 @@ static M_thread_t *M_thread_from_threadid(M_threadid_t threadid)
 	M_thread_mutex_lock(threadid_mutex);
 	thread = M_hash_u64vp_get_direct(threadid_map, threadid);
 	M_thread_mutex_unlock(threadid_mutex);
-
 	return thread;
 }
 
@@ -409,8 +420,9 @@ M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *),
 		return 0;
 
 	data = M_malloc(sizeof(*data));
-	data->func = func;
-	data->arg  = arg;
+	data->func     = func;
+	data->arg      = arg;
+	data->joinable = M_thread_attr_get_create_joinable(attr);
 
 	/* ensure an attr is created so threads are setup properly (in a detachted state by default). */
 	if (attr == NULL) {
@@ -436,6 +448,7 @@ M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *),
 M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 {
 	M_thread_t *thread;
+	M_bool      rv;
 
 	M_thread_auto_init();
 	if (thread_cbs.thread_join == NULL)
@@ -443,21 +456,32 @@ M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 
 	M_thread_mutex_lock(threadid_mutex);
 	thread = M_hash_u64vp_get_direct(threadid_map, id);
-	M_hash_u64vp_remove(threadid_map, id, M_FALSE);
 	M_thread_mutex_unlock(threadid_mutex);
 
 	if (thread == NULL)
 		return M_FALSE;
 
-	return thread_cbs.thread_join(thread, value_ptr);
+	rv = thread_cbs.thread_join(thread, value_ptr);
+
+	M_thread_mutex_lock(threadid_mutex);
+	M_hash_u64vp_remove(threadid_map, id, M_FALSE);
+	M_thread_mutex_unlock(threadid_mutex);
+
+	return rv;
 }
 
 M_threadid_t M_thread_self(void)
 {
+	M_thread_t  *thread = NULL;
+	M_threadid_t id     = 0;
+
 	M_thread_auto_init();
 	if (thread_cbs.thread_self == NULL)
 		return 0;
-	return thread_cbs.thread_self(NULL);
+
+	id = thread_cbs.thread_self(&thread);
+
+	return id;
 }
 
 M_bool M_thread_set_priority(M_threadid_t tid, M_uint8 priority)
@@ -496,6 +520,7 @@ M_bool M_thread_set_processor(M_threadid_t tid, int processor_id)
 		M_fprintf(stderr, "%s(): ThreadID %lld could not find Thread pointer\n", __FUNCTION__, (M_int64)tid);
 		return M_FALSE;
 	}
+
 	return thread_cbs.thread_set_processor(thread, tid, processor_id);
 }
 
