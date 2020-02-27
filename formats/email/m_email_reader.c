@@ -1,0 +1,1042 @@
+/* The MIT License (MIT)
+ * 
+ * Copyright (c) 2020 Monetra Technologies, LLC.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+#include "m_config.h"
+
+#include <mstdlib/mstdlib.h>
+#include <mstdlib/mstdlib_formats.h>
+#include <mstdlib/mstdlib_text.h>
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+typedef enum {
+	M_EMAIL_PART_TYPE_UNKNOWN,
+	M_EMAIL_PART_TYPE_ATTACHMENT
+} M_email_part_type_t;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+struct M_email_reader {
+	struct M_email_reader_callbacks  cbs;
+	M_email_reader_flags_t           flags;
+	void                            *thunk;
+	M_state_machine_t               *sm;
+	char                            *boundary;
+	size_t                           boundary_len;
+	M_email_data_format_t            data_format;
+	size_t                           part_idx;
+	M_email_part_type_t              part_type;
+	char                            *part_content_type;
+	char                            *part_transfer_encoding;
+	char                            *part_filename;
+	M_email_error_t                  res;
+	M_parser_t                      *parser;
+};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+static M_email_error_t M_email_reader_header_func_default(const char *key, const char *val, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_to_func_default(const char *group, const char *name, const char *address, void *thunk)
+{
+	(void)group;
+	(void)name;
+	(void)address;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_from_func_default(const char *group, const char *name, const char *address, void *thunk)
+{
+	(void)group;
+	(void)name;
+	(void)address;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_cc_func_default(const char *group, const char *name, const char *address, void *thunk)
+{
+	(void)group;
+	(void)name;
+	(void)address;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_bcc_func_default(const char *group, const char *name, const char *address, void *thunk)
+{
+	(void)group;
+	(void)name;
+	(void)address;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_reply_to_func_default(const char *group, const char *name, const char *address, void *thunk)
+{
+	(void)group;
+	(void)name;
+	(void)address;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_subject_func_default(const char *subject, void *thunk)
+{
+	(void)subject;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_header_done_func_default(M_email_data_format_t format, void *thunk)
+{
+	(void)format;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_body_func_default(const unsigned char *data, size_t len, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_preamble_func_default(const unsigned char *data, size_t len, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_preamble_done_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_header_func_default(const char *key, const char *val, size_t idx, void *thunk)
+{
+	(void)key;
+	(void)val;
+	(void)idx;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_header_done_func_default(size_t idx, void *thunk)
+{
+	(void)idx;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_header_attachment_func_default(const char *mime, const char *transfer_encoding, const char *filename, size_t idx, void *thunk)
+{
+	(void)mime;
+	(void)transfer_encoding;
+	(void)filename;
+	(void)idx;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_data_func_default(const unsigned char *data, size_t len, size_t idx, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)idx;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_data_done_func_default(size_t idx, void *thunk)
+{
+	(void)idx;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_data_finished_func_default(void *thunk)
+{
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t M_email_reader_multipart_epilouge_func_default(const unsigned char *data, size_t len, void *thunk)
+{
+	(void)data;
+	(void)len;
+	(void)thunk;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+static M_email_error_t M_email_header_process_address_address_list(M_email_reader_t *emailr, M_email_error_t (*address_func)(const char *group, const char *name, const char *address, void *thunk), const char *group_name, char * const *addresses, size_t num_addresses)
+{
+	char            **parts     = NULL;
+	char             *name      = NULL;
+	char             *temp      = NULL;
+	char             *address   = NULL;
+	size_t            num_parts = 0;
+	size_t            part_idx  = 0;
+	size_t            len;
+	size_t            i;
+	M_email_error_t   res       = M_EMAIL_ERROR_SUCCESS;
+
+	if (addresses == NULL || num_addresses == 0)
+		return M_EMAIL_ERROR_SUCCESS;
+
+	for (i=0; i<num_addresses; i++) {
+		/* Try to split on the start of the email segment if we have the "name <email>" form.
+		 * If we don't have that form (it's just an email) parts[0] will be the input. */
+		parts = M_str_explode_str_quoted('<', addresses[i], '"', '\\', 2, &num_parts);
+		if (parts == NULL || num_parts == 0)
+			continue;
+
+		/* More than one part means we have a split so part[0] is the name and part[1] is the email. */
+		if (num_parts > 1) {
+			temp     = M_strdup_unquote(parts[0], '"', '\\');
+			name     = M_strdup_trim(temp);
+			M_free(temp);
+			temp = NULL;
+			part_idx = 1;
+		}
+
+		/* Pull out the email. */
+		if (part_idx != 0) {
+			temp = M_strdup_trim(parts[part_idx]);
+			/* If we're not the only thing in the list we
+			 * split on <. We need to remove the closing >. */
+			len  = M_str_len(temp);
+			if (temp[len-1] == '>') {
+				temp[len-1] = '\0';
+			}
+			address = M_strdup_trim(temp);
+			M_free(temp);
+			temp    = NULL;
+		} else {
+			address = M_strdup_trim(parts[part_idx]);
+		}
+
+		if (!M_verify_email_address(address)) {
+			res = M_EMAIL_ERROR_ADDRESS;
+			goto done;
+		}
+
+		res = address_func(group_name, name, address, emailr->thunk);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			goto done;
+		}
+
+		M_free(temp);
+		M_free(name);
+		M_free(address);
+		M_str_explode_free(parts, num_parts);
+		temp      = NULL;
+		name      = NULL;
+		address   = NULL;
+		parts     = NULL;
+		num_parts = 0;
+	}
+
+done:
+	M_free(temp);
+	M_free(name);
+	M_free(address);
+	M_str_explode_free(parts, num_parts);
+
+	return res;
+}
+
+static M_email_error_t M_email_header_process_address(M_email_reader_t *emailr, M_email_error_t (*address_func)(const char *group, const char *name, const char *address, void *thunk), const char *val)
+{
+	char            **groups        = NULL;
+	char            **group         = NULL;
+	char            **addresses     = NULL;
+	char             *group_name    = NULL;
+	char             *temp          = NULL;
+	size_t            num_groups    = 0;
+	size_t            num_group     = 0;
+	size_t            num_addresses = 0;
+	size_t            i;
+	M_email_error_t   res           = M_EMAIL_ERROR_SUCCESS;
+
+	/* Address entires contain several types of entries.
+ 	 *
+	 * - Single address
+	 * - list of addresses comma (,) separated
+	 *   - some email clients use semi-colon (not part of an RFC) instead of a comma
+	 * - Group referencing one or more emails
+	 * - List of groups (RFC 6854). This does use a semicolon as a separator
+	 * - List of groups and emails not in a group
+ 	 *
+	 * Giving us these possible scenarios:
+	 * - address
+	 * - address_list
+ 	 * - group: adress
+ 	 * - group: adress_list
+	 * - group_list
+	 *
+	 * An address can be a name and address or just an address. The name can be quoted.
+	 * - name <address>
+	 * - <address>
+	 * - address
+	 *
+	 * We're going to split on group_lists using ';'. Then, split on ':' (separator
+	 * between group name and addresses. Then split on ',' to split the addresses.
+	 * Finally, we can parse the address.
+	 *
+	 * Spitting on ';', then ',' will allow us to support both proper (,) and incorrect
+	 * (;) separators.
+	 *
+	 * A lot of this can be quoted and there can be a lot of white space around
+	 * each parts so we're going to do a lot of unquoting and trimming.
+ 	 */
+
+	/* Split on semicolon. This gives us either a group, email, or an email list in each part. */
+	groups = M_str_explode_str_quoted(';', val, '"', '\\', 0, &num_groups);
+	if (groups == NULL || num_groups == 0)
+		goto done;
+
+	for (i=0; i<num_groups; i++) {
+		size_t address_idx = 0;
+
+		/* Split on colon to split off the group name from the addresses. */
+		group = M_str_explode_str_quoted(':', groups[i], '"', '\\', 2, &num_group);
+		if (group == NULL || num_group == 0) {
+			continue;
+		}
+
+		/* This might not be group. If we have 2 parts then we do have
+ 		 * a group and the first part is the name. Otherwise it's an email or email list. */
+		if (num_group > 1) {
+			temp        = M_strdup_unquote(group[0], '"', '\\');
+			group_name  = M_strdup_trim(temp);
+			M_free(temp);
+			temp = NULL;
+			address_idx = 1;
+		}
+
+		/* Split address within the group or address list. */
+		addresses = M_str_explode_str_quoted(',', group[address_idx], '"', '\\', 0, &num_addresses);
+		if (addresses == NULL || num_addresses == 0) {
+			/* Groups don't have to have addresses. */
+			if (group_name != NULL) {
+				res = address_func(group_name, NULL, NULL, emailr->thunk);
+				M_free(group_name);
+				if (res != M_EMAIL_ERROR_SUCCESS) {
+					goto done;
+				}
+			}
+			/* Ignore empty elements. */
+			continue;
+		}
+
+		/* At this point we should have a list with individual addresses. */
+		res = M_email_header_process_address_address_list(emailr, address_func, group_name, addresses, num_addresses);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			goto done;
+		}
+
+		M_free(temp);
+		M_free(group_name);
+		M_str_explode_free(addresses, num_addresses);
+		temp          = NULL;
+		group_name    = NULL;
+		addresses     = NULL;
+		num_addresses = 0;
+	}
+
+done:
+	M_free(temp);
+	M_free(group_name);
+	M_str_explode_free(addresses, num_addresses);
+
+	return res;
+}
+
+static M_email_error_t M_email_header_process_content_type(M_email_reader_t *emailr, const char *val)
+{
+	M_parser_t    *parser;
+	M_buf_t       *buf;
+	unsigned char  byte;
+
+	/* Format defaults to BODY.
+ 	 * We only care about mulipart because data is handled differently. */
+	if (M_str_casestr(val, "multipart") == NULL)
+		return M_EMAIL_ERROR_SUCCESS;
+
+	emailr->data_format = M_EMAIL_DATA_FORMAT_MULTIPART;
+
+	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
+	if (M_parser_consume_str_until(parser, "boundary=", M_FALSE) == 0) {
+		M_parser_destroy(parser);
+		return M_EMAIL_ERROR_MULTIPART_NOBOUNDARY;
+	}
+	M_parser_consume(parser, 9 /* "boundary=" */);
+
+	if (M_parser_peek_byte(parser, &byte) && byte == '"')
+		M_parser_consume(parser, 1);
+
+	/* Mulipart boundaries are prefixed with -- to signify the start
+ 	 * of the given boundary. */
+	buf = M_buf_create();
+	M_buf_add_str(buf, "--");
+	M_parser_read_buf_not_charset(parser, buf, (const unsigned char *)";\r\n\"", 4);
+	emailr->boundary = M_buf_finish_str(buf, &emailr->boundary_len);
+	M_parser_destroy(parser);
+
+	if (M_str_isempty(emailr->boundary))
+		return M_EMAIL_ERROR_MULTIPART_NOBOUNDARY;
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_bool M_email_header_process(M_email_reader_t *emailr, const char *key, const char *val)
+{
+	M_email_error_t res;
+
+	res = emailr->cbs.header_func(key, val, emailr->thunk);
+	if (res != M_EMAIL_ERROR_SUCCESS) {
+		emailr->res = res;
+		return M_FALSE;
+	}
+
+	if (M_str_caseeq(key, "To")) {
+		res = M_email_header_process_address(emailr, emailr->cbs.to_func, val);
+	} else if (M_str_caseeq(key, "From")) {
+		res = M_email_header_process_address(emailr, emailr->cbs.from_func, val);
+	} else if (M_str_caseeq(key, "CC")) {
+		res = M_email_header_process_address(emailr, emailr->cbs.cc_func, val);
+	} else if (M_str_caseeq(key, "BCC")) {
+		res = M_email_header_process_address(emailr, emailr->cbs.bcc_func, val);
+	} else if (M_str_caseeq(key, "Reply-To")) {
+		res = M_email_header_process_address(emailr, emailr->cbs.reply_to_func, val);
+	} else if (M_str_caseeq(key, "Subject")) {
+		res = emailr->cbs.subject_func(val, emailr->thunk);
+	} else if (M_str_caseeq(key, "Content-Type")) {
+		res = M_email_header_process_content_type(emailr, val);
+	}
+
+	if (res != M_EMAIL_ERROR_SUCCESS) {
+		emailr->res = res;
+		return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
+static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const char *key, const char *val)
+{
+	M_parser_t       *parser    = NULL;
+	M_parser_t      **parts     = NULL;
+	size_t            num_parts = 0;
+	size_t            i;
+	M_email_error_t   res;
+
+	res = emailr->cbs.multipart_header_func(key, val, emailr->part_idx, emailr->thunk);
+	if (res != M_EMAIL_ERROR_SUCCESS) {
+		emailr->res = res;
+		return M_FALSE;
+	}
+
+	/* We only care about additional processing of these headers. */
+	if (!M_str_caseeq(key, "Content-Disposition") &&
+			!M_str_caseeq(key, "Content-Transfer-Encoding") &&
+			!M_str_caseeq(key, "Content-Type"))
+	{
+		return M_TRUE;
+	}
+
+	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
+	parts  = M_parser_split(parser, ';', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+
+	for (i=0; i<num_parts; i++) {
+		M_parser_consume_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+		M_parser_truncate_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+
+		if (M_str_caseeq(key, "Content-Disposition")) {
+			/* Content-Disposition: attachment; filename="file.text" */
+			if (M_parser_compare_str(parts[i], "attachment", 0, M_TRUE)) {
+				emailr->part_type = M_EMAIL_PART_TYPE_ATTACHMENT;
+			} else if (M_parser_consume_str_until(parts[i], "filename=", M_TRUE) != 0) {
+				M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+				M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+
+				M_free(emailr->part_filename);
+				emailr->part_filename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+			}
+		} else if (M_str_caseeq(key, "Content-Transfer-Encoding")) {
+			/* Content-Transfer-Encoding: base64 */
+			M_free(emailr->part_transfer_encoding);
+			emailr->part_transfer_encoding = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+		} else if (M_str_caseeq(key, "Content-Type")) {
+			/* Content-Type: application/octet-stream; name="file.log" */
+			M_parser_mark(parts[i]);
+			if (M_parser_consume_until(parts[i], (const unsigned char *)"=", 1, M_TRUE) == 0) {
+				M_free(emailr->part_content_type);
+				emailr->part_content_type = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+			} else if (M_str_isempty(emailr->part_filename) && M_parser_consume_str_until(parts[i], "name=", M_TRUE) != 0) {
+				/* Fallback in case filename is not set in Content-Disposition.
+				 * Older mail clients with put the name here when they really shouldn't. */
+				M_parser_mark_rewind(parts[i]);
+
+				M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+				M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+				M_free(emailr->part_filename);
+				emailr->part_filename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+			}
+		}
+	}
+
+	M_parser_destroy(parser);
+	M_parser_split_free(parts, num_parts);
+
+	return M_TRUE;
+}
+
+static M_email_error_t M_email_header_process_header_done(M_email_reader_t *emailr, M_bool is_multipart)
+{
+	M_email_error_t res = M_EMAIL_ERROR_SUCCESS;
+
+	if (!is_multipart)
+		return emailr->cbs.header_done_func(emailr->data_format, emailr->thunk);
+
+	res = emailr->cbs.multipart_header_done_func(emailr->part_idx, emailr->thunk);
+	if (res == M_EMAIL_ERROR_SUCCESS) {
+		if (emailr->part_type == M_EMAIL_PART_TYPE_ATTACHMENT) {
+			res = emailr->cbs.multipart_header_attachment_func(emailr->part_content_type, emailr->part_transfer_encoding, emailr->part_filename, emailr->part_idx, emailr->thunk);
+		}
+	}
+
+	M_free(emailr->part_content_type);
+	M_free(emailr->part_transfer_encoding);
+	M_free(emailr->part_filename);
+	emailr->part_content_type      = NULL;
+	emailr->part_transfer_encoding = NULL;
+	emailr->part_filename          = NULL;
+	emailr->part_type              = M_EMAIL_PART_TYPE_UNKNOWN;
+
+	return res;
+}
+
+typedef enum {
+	HEADER_STATE_END,
+	HEADER_STATE_SUCCESS,
+	HEADER_STATE_MOREDATA,
+	HEADER_STATE_FAIL,
+} header_state_t;
+
+static header_state_t M_email_header_get_next(M_email_reader_t *emailr, char **key, char **val)
+{
+	M_parser_t      *header = NULL;
+	M_buf_t         *buf    = NULL;
+	M_parser_t     **kv     = NULL;
+	char            *temp   = NULL;
+	header_state_t   hsres  = HEADER_STATE_SUCCESS;
+	size_t           num_kv = 0;
+
+	*key = NULL;
+	*val = NULL;
+
+	/* An empty line means the end of the header. */
+	if (M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
+		M_parser_consume(emailr->parser, 2);
+		return HEADER_STATE_END;
+	}
+
+	/* Mark the header because we need to rewind if we don't have
+	 * a full header. Headers can span multiple lines and we want
+	 * to parser a complete header not line by line because some
+	 * data like an email address in the 'TO' header can be split
+	 * on spaces across lines. */
+	M_parser_mark(emailr->parser);
+
+	/* Use a buf because we need to join lines. */
+	buf = M_buf_create();
+	while (1) {
+		if (M_parser_read_buf_until(emailr->parser, buf, (const unsigned char *)"\r\n", 2, M_FALSE) == 0) {
+			/* Not enough data so nothing to do. */
+			M_parser_mark_rewind(emailr->parser);
+			hsres = HEADER_STATE_MOREDATA;
+			goto done;
+		}
+		/* Eat the \r\n after the header. */
+		M_parser_consume(emailr->parser, 2);
+
+		/* If there is nothing after we don't know if we'll have a new header, end of header,
+		 * or continuation line. We need to wait for more data. */
+		if (M_parser_len(emailr->parser) == 0) {
+			M_parser_mark_rewind(emailr->parser);
+			hsres = HEADER_STATE_MOREDATA;
+			goto done;
+		}
+
+		/* If we have space or tab starting a line then this is a continuation line
+		 * for the header. We'll kill the empty space and add a single one to join
+		 * this line to the rest of the header. */
+		if (M_parser_consume_charset(emailr->parser, (const unsigned char *)" \t", 2) != 0) {
+			M_buf_add_byte(buf, ' ');
+		} else {
+			break;
+		}
+	}
+	M_parser_mark_clear(emailr->parser);
+
+	/* buf is filled with a full header. */
+	header = M_parser_create_const((const unsigned char *)M_buf_peek(buf), M_buf_len(buf), M_PARSER_FLAG_NONE);
+
+	/* Split the key from the value. */
+	kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
+	if (kv == NULL || num_kv == 0) {
+		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
+		hsres       = HEADER_STATE_FAIL;
+		goto done;
+	}
+
+	/* Spaces between the key and separator (:) are _NOT_allowed. */
+	if (M_parser_truncate_whitespace(kv[0], M_PARSER_WHITESPACE_NONE) != 0) {
+		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
+		hsres       = HEADER_STATE_FAIL;
+		goto done;
+	}
+
+	/* Validate we actually have a key. */
+	if (M_parser_len(kv[0]) == 0) {
+		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
+		hsres       = HEADER_STATE_FAIL;
+		goto done;
+	}
+
+	/* Get the key. */
+	temp = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
+	*key = M_strdup_trim(temp);
+	M_free(temp);
+
+	/* We support a header being sent without a value. If there is a value
+	 * we'll pull it off. */
+	if (num_kv == 2) {
+		/* Spaces between the separator (:) and value are allowed and should be ignored. Consume them. */
+		M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
+		temp = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
+		*val = M_strdup_trim(temp);
+		M_free(temp);
+	}
+
+done:
+		M_parser_destroy(header);
+		M_buf_cancel(buf);
+		M_parser_split_free(kv, num_kv);
+		return hsres;
+}
+
+static M_state_machine_status_t M_email_header_process_headers(M_email_reader_t *emailr, M_bool is_multipart)
+{
+	M_email_error_t res;
+	header_state_t  hsres;
+	M_bool          process_success = M_TRUE;
+
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	do {
+		char *key = NULL;
+		char *val = NULL;
+
+		hsres = M_email_header_get_next(emailr, &key, &val);
+		switch (hsres) {
+			case HEADER_STATE_END:
+			case HEADER_STATE_MOREDATA:
+			case HEADER_STATE_FAIL:
+				goto end_of_header;
+			case HEADER_STATE_SUCCESS:
+				break;
+		}
+
+		if (is_multipart) {
+			process_success = M_email_header_process_multipart(emailr, key, val);
+		} else {
+			process_success = M_email_header_process(emailr, key, val);
+		}
+
+		M_free(key);
+		M_free(val);
+	} while (M_parser_len(emailr->parser) != 0 && process_success);
+
+end_of_header:
+	if (hsres != HEADER_STATE_END)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	res = M_email_header_process_header_done(emailr, is_multipart);
+	if (res != M_EMAIL_ERROR_SUCCESS)
+		emailr->res = res;
+
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+typedef enum {
+	STATE_START = 1,
+	STATE_HEADER,
+	STATE_BODY,
+	STATE_MULTIPART_PREAMBLE,
+	STATE_MULTIPART_HEADER,
+	STATE_MULTIPART_DATA,
+	STATE_MULTIPART_CHECK_END,
+	STATE_MULTIPART_EPILOUGE
+} state_ids;
+
+static M_state_machine_status_t state_start(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr = data;
+
+	(void)next;
+
+	/* We want to consume any and all new lines that might start the data. */
+	M_parser_consume_whitespace(emailr->parser, M_PARSER_WHITESPACE_NONE);
+
+	/* No data following, we need more. Maybe there is more whitespace
+	 * following we need to eat. */
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t state_header(void *data, M_uint64 *next)
+{
+	(void)next;
+	return M_email_header_process_headers((M_email_reader_t *)data, M_FALSE);
+}
+
+static M_state_machine_status_t state_body(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr = data;
+
+	if (emailr->data_format != M_EMAIL_DATA_FORMAT_BODY) {
+		*next = STATE_MULTIPART_PREAMBLE;
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
+
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	emailr->res = emailr->cbs.body_func(M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
+	if (emailr->res == M_EMAIL_ERROR_SUCCESS)
+		M_parser_consume(emailr->parser, M_parser_len(emailr->parser));
+	return M_STATE_MACHINE_STATUS_WAIT;
+}
+
+static M_state_machine_status_t state_multipart_preamble(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr    = data;
+	M_email_error_t   res;
+	size_t            consume_len;
+	size_t            data_len;
+	M_bool            found     = M_FALSE;
+	M_bool            full_read = M_FALSE;
+
+	(void)next;
+
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	/* Pull off all data before the first boundary. */
+	M_parser_mark(emailr->parser);
+	data_len    = M_parser_consume_boundary(emailr->parser, (const unsigned char *)emailr->boundary, emailr->boundary_len, M_FALSE, &found);
+	consume_len = data_len;
+	if (found && M_parser_len(emailr->parser) >= emailr->boundary_len + 2) {
+		/* Eat the boundary. */
+		M_parser_consume(emailr->parser, emailr->boundary_len);
+
+		if (M_parser_compare_str(emailr->parser, "--", 2, M_FALSE)) {
+			/* Check for an ending boundary to check which shouldn't be here. */
+			M_parser_mark_rewind(emailr->parser);
+			emailr->res = M_EMAIL_ERROR_MULTIPART_MISSING_DATA;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		} else if (M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
+			/* End the line end. */
+			M_parser_consume(emailr->parser, 2);
+		} else {
+			/* We have a boundary existing in data. */
+			M_parser_mark_rewind(emailr->parser);
+			emailr->res = M_EMAIL_ERROR_MULTIPART_INVALID;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+
+		full_read   = M_TRUE;
+		consume_len = M_parser_mark_len(emailr->parser);
+	}
+	M_parser_mark_rewind(emailr->parser);
+
+	/* The data before the boundary should end with a \r\n. The only time it
+ 	 * doesn't is if there is no preamble. The \r\n is not part of the data. */
+	if (data_len == 1) {
+		M_parser_mark_rewind(emailr->parser);
+		emailr->res = M_EMAIL_ERROR_MULTIPART_INVALID;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	} else if (data_len >= 2) {
+		M_parser_mark(emailr->parser);
+		M_parser_consume(emailr->parser, data_len-2);
+		if (!M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
+			emailr->res = M_EMAIL_ERROR_MULTIPART_INVALID;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+		data_len -= 2;
+		M_parser_mark_rewind(emailr->parser);
+	}
+
+	if (data_len != 0) {
+		res = emailr->cbs.multipart_preamble_func(M_parser_peek(emailr->parser), data_len, emailr->thunk);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			emailr->res = res;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+	}
+	M_parser_consume(emailr->parser, consume_len);
+
+	if (full_read) {
+		res = emailr->cbs.multipart_preamble_done_func(emailr->thunk);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			emailr->res = res;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
+	return M_STATE_MACHINE_STATUS_WAIT;
+}
+
+static M_state_machine_status_t state_multipart_header(void *data, M_uint64 *next)
+{
+	(void)next;
+	return M_email_header_process_headers((M_email_reader_t *)data, M_TRUE);
+}
+
+static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr  = data;
+	size_t            consume_len;
+	size_t            data_len;
+	M_email_error_t   res     = M_EMAIL_ERROR_SUCCESS;
+	M_bool            found   = M_FALSE;
+
+	(void)next;
+
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	/* Find all the data before the boundary. */
+	M_parser_mark(emailr->parser);
+	consume_len = M_parser_consume_boundary(emailr->parser, (unsigned char *)emailr->boundary, emailr->boundary_len, M_FALSE, &found); 
+	data_len    = consume_len;
+	M_parser_mark_rewind(emailr->parser);
+
+	/* The data and boundary are separated by a \r\n which is not part of the data.
+	 *
+	 * While we should treat a missing \r\n as an error, we're going to be lenient and allow it. */
+	if (consume_len >= 2) {
+		M_parser_mark(emailr->parser);
+		M_parser_consume(emailr->parser, consume_len-2);
+		if (M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
+			data_len -= 2;
+		}
+		M_parser_mark_rewind(emailr->parser);
+	}
+
+	if (data_len != 0) {
+		res = emailr->cbs.multipart_data_func(M_parser_peek(emailr->parser), data_len, emailr->part_idx, emailr->thunk);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			emailr->res = res;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+	}
+	M_parser_consume(emailr->parser, consume_len);
+
+	if (found) {
+		/* Eat the boundary. */
+		M_parser_consume(emailr->parser, emailr->boundary_len);
+		emailr->part_idx++;
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
+	return M_STATE_MACHINE_STATUS_WAIT;
+}
+
+static M_state_machine_status_t state_multipart_check_end(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr = data;
+
+	if (M_parser_len(emailr->parser) < 2)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	if (M_parser_compare_str(emailr->parser, "--", 2, M_FALSE)) {
+		M_parser_consume(emailr->parser, 2);
+		*next = STATE_MULTIPART_EPILOUGE;
+	} else if (!M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
+		emailr->res = M_EMAIL_ERROR_MULTIPART_INVALID;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	} else {
+		*next = STATE_MULTIPART_HEADER;
+	}
+	M_parser_consume(emailr->parser, 2);
+
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t state_multipart_epilouge(void *data, M_uint64 *next)
+{
+	M_email_reader_t *emailr = data;
+
+	(void)next;
+
+	if (M_parser_len(emailr->parser) == 0)
+		return M_STATE_MACHINE_STATUS_WAIT;
+
+	emailr->res = emailr->cbs.multipart_epilouge_func(M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
+	if (emailr->res == M_EMAIL_ERROR_SUCCESS)
+		M_parser_consume(emailr->parser, M_parser_len(emailr->parser));
+	return M_STATE_MACHINE_STATUS_WAIT;
+}
+
+static M_state_machine_t *M_email_reader_create_sm(void)
+{
+	M_state_machine_t *sm;
+
+	sm = M_state_machine_create(0, NULL, M_STATE_MACHINE_LINEAR_END);
+
+	M_state_machine_insert_state(sm, STATE_START, 0, NULL, state_start, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_HEADER, 0, NULL, state_header, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_BODY, 0, NULL, state_body, NULL, NULL);
+
+	M_state_machine_insert_state(sm, STATE_MULTIPART_PREAMBLE, 0, NULL, state_multipart_preamble, NULL, NULL);
+
+	M_state_machine_insert_state(sm, STATE_MULTIPART_HEADER, 0, NULL, state_multipart_header, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_MULTIPART_DATA, 0, NULL, state_multipart_data, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_MULTIPART_CHECK_END, 0, NULL, state_multipart_check_end, NULL, NULL);
+
+	M_state_machine_insert_state(sm, STATE_MULTIPART_EPILOUGE, 0, NULL, state_multipart_epilouge, NULL, NULL);
+
+	return sm;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsigned char *data, size_t data_len, size_t *len_read)
+{
+	size_t mylen_read;
+
+	if (len_read == NULL)
+		len_read = &mylen_read;
+	*len_read = 0;
+
+	if (emailr == NULL || data == NULL || data_len == 0)
+		return M_EMAIL_ERROR_INVALIDUSE;
+
+	emailr->parser = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
+	emailr->res    = M_EMAIL_ERROR_MOREDATA;
+
+	M_state_machine_run(emailr->sm, emailr);
+
+	*len_read = data_len - M_parser_len(emailr->parser);
+	M_parser_destroy(emailr->parser);
+	emailr->parser = NULL;
+	return emailr->res;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_email_reader_t *M_email_reader_create(struct M_email_reader_callbacks *cbs, M_uint32 flags, void *thunk)
+{
+	M_email_reader_t *emailr;
+
+	emailr              = M_malloc_zero(sizeof(*emailr));
+	emailr->flags       = flags;
+	emailr->thunk       = thunk;
+	emailr->data_format = M_EMAIL_DATA_FORMAT_BODY;
+	emailr->sm          = M_email_reader_create_sm();
+
+	emailr->cbs.header_func                      = M_email_reader_header_func_default;
+	emailr->cbs.to_func                          = M_email_reader_to_func_default;
+	emailr->cbs.from_func                        = M_email_reader_from_func_default;
+	emailr->cbs.cc_func                          = M_email_reader_cc_func_default;
+	emailr->cbs.bcc_func                         = M_email_reader_bcc_func_default;
+	emailr->cbs.reply_to_func                    = M_email_reader_reply_to_func_default;
+	emailr->cbs.subject_func                     = M_email_reader_subject_func_default;
+	emailr->cbs.header_done_func                 = M_email_reader_header_done_func_default;
+	emailr->cbs.body_func                        = M_email_reader_body_func_default;
+	emailr->cbs.multipart_preamble_func          = M_email_reader_multipart_preamble_func_default;
+	emailr->cbs.multipart_preamble_done_func     = M_email_reader_multipart_preamble_done_func_default;
+	emailr->cbs.multipart_header_func            = M_email_reader_multipart_header_func_default;
+	emailr->cbs.multipart_header_done_func       = M_email_reader_multipart_header_done_func_default;
+	emailr->cbs.multipart_header_attachment_func = M_email_reader_multipart_header_attachment_func_default;
+	emailr->cbs.multipart_data_func              = M_email_reader_multipart_data_func_default;
+	emailr->cbs.multipart_data_done_func         = M_email_reader_multipart_data_done_func_default;
+	emailr->cbs.multipart_data_finished_func     = M_email_reader_multipart_data_finished_func_default;
+	emailr->cbs.multipart_epilouge_func          = M_email_reader_multipart_epilouge_func_default;
+
+	if (cbs != NULL) {
+		if (cbs->header_func                      != NULL) emailr->cbs.header_func                      = cbs->header_func;
+		if (cbs->to_func                          != NULL) emailr->cbs.to_func                          = cbs->to_func;
+		if (cbs->from_func                        != NULL) emailr->cbs.from_func                        = cbs->from_func;
+		if (cbs->cc_func                          != NULL) emailr->cbs.cc_func                          = cbs->cc_func;
+		if (cbs->bcc_func                         != NULL) emailr->cbs.bcc_func                         = cbs->bcc_func;
+		if (cbs->reply_to_func                    != NULL) emailr->cbs.reply_to_func                    = cbs->reply_to_func;
+		if (cbs->subject_func                     != NULL) emailr->cbs.subject_func                     = cbs->subject_func;
+		if (cbs->header_done_func                 != NULL) emailr->cbs.header_done_func                 = cbs->header_done_func;
+		if (cbs->body_func                        != NULL) emailr->cbs.body_func                        = cbs->body_func;
+		if (cbs->multipart_preamble_func          != NULL) emailr->cbs.multipart_preamble_func          = cbs->multipart_preamble_func;
+		if (cbs->multipart_preamble_done_func     != NULL) emailr->cbs.multipart_preamble_done_func     = cbs->multipart_preamble_done_func;
+		if (cbs->multipart_header_func            != NULL) emailr->cbs.multipart_header_func            = cbs->multipart_header_func;
+		if (cbs->multipart_header_done_func       != NULL) emailr->cbs.multipart_header_done_func       = cbs->multipart_header_done_func;
+		if (cbs->multipart_header_attachment_func != NULL) emailr->cbs.multipart_header_attachment_func = cbs->multipart_header_attachment_func;
+		if (cbs->multipart_data_func              != NULL) emailr->cbs.multipart_data_func              = cbs->multipart_data_func;
+		if (cbs->multipart_data_done_func         != NULL) emailr->cbs.multipart_data_done_func         = cbs->multipart_data_done_func;
+		if (cbs->multipart_data_finished_func     != NULL) emailr->cbs.multipart_data_finished_func     = cbs->multipart_data_finished_func;
+		if (cbs->multipart_epilouge_func          != NULL) emailr->cbs.multipart_epilouge_func          = cbs->multipart_epilouge_func;
+	}
+
+	return emailr;
+}
+
+void M_email_reader_destroy(M_email_reader_t *emailr)
+{
+	if (emailr == NULL)
+		return;
+	M_state_machine_destroy(emailr->sm);
+	M_free(emailr->boundary);
+	M_free(emailr->part_content_type);
+	M_free(emailr->part_transfer_encoding);
+	M_free(emailr->part_filename);
+	M_free(emailr);
+}

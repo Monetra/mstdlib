@@ -11,6 +11,9 @@ set(sources
 	# csv:
 	csv/m_csv.c
 
+	# email:
+	email/m_email_reader.c
+
 	# ini:
 	ini/m_ini.c
 	ini/m_ini_element.c
