@@ -30,7 +30,6 @@
 
 static size_t MAX_START_LEN    = 6*1024;
 static size_t MAX_HEADERS_SIZE = 8*1024;
-#define READ_BUF_SIZE (8*1024)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -299,6 +298,7 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 				return M_HTTP_ERROR_MULTIPART_NOBOUNDARY;
 			}
 			M_asprintf(&httpr->boundary, "--%s", val);
+			httpr->boundary_len = M_str_len(httpr->boundary);
 		}
 	}
 
@@ -625,7 +625,6 @@ end_of_header:
 
 static M_http_error_t M_http_read_body(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
-	unsigned char  buf[READ_BUF_SIZE];
 	size_t         len;
 	M_http_error_t res = M_HTTP_ERROR_SUCCESS;
 
@@ -638,19 +637,17 @@ static M_http_error_t M_http_read_body(M_http_reader_t *httpr, M_parser_t *parse
 	if (M_parser_len(parser) == 0)
 		return M_HTTP_ERROR_SUCCESS;
 
-	do {
-		if (httpr->have_body_len) {
-			len = M_parser_read_bytes_max(parser, M_MIN(sizeof(buf), httpr->body_len-httpr->body_len_seen), buf, sizeof(buf));
-		} else {
-			len = M_parser_read_bytes_max(parser, sizeof(buf), buf, sizeof(buf));
-		}
-		httpr->body_len_seen += len;
+	if (httpr->have_body_len) {
+		len = M_MIN(M_parser_len(parser), httpr->body_len-httpr->body_len_seen);
+	} else {
+		len = M_parser_len(parser);
+	}
 
-		res = httpr->cbs.body_func(buf, len, httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
-			break;
-		}
-	} while ((!httpr->have_body_len && len > 0) || (httpr->have_body_len && len > 0 && httpr->body_len != httpr->body_len_seen));
+	res = httpr->cbs.body_func(M_parser_peek(parser), len, httpr->thunk);
+	if (res == M_HTTP_ERROR_SUCCESS) {
+		httpr->body_len_seen += len;
+		M_parser_consume(parser, len);
+	}
 
 	if (httpr->have_body_len && httpr->body_len == httpr->body_len_seen)
 		*full_read = M_TRUE;
@@ -775,7 +772,6 @@ done:
 
 static M_http_error_t M_http_read_chunk_data(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
-	unsigned char  buf[READ_BUF_SIZE];
 	size_t         len;
 	M_http_error_t res = M_HTTP_ERROR_SUCCESS;
 
@@ -788,18 +784,12 @@ static M_http_error_t M_http_read_chunk_data(M_http_reader_t *httpr, M_parser_t 
 	if (M_parser_len(parser) == 0)
 		return M_HTTP_ERROR_SUCCESS;
 
-	/* Set len to something so the loop will run if we're waiting
-	 * for body data. */
-	len = 1;
-	while (len > 0 && httpr->body_len != httpr->body_len_seen) {
-		len = M_parser_read_bytes_max(parser, M_MIN(sizeof(buf), httpr->body_len-httpr->body_len_seen), buf, sizeof(buf));
+	len = M_MIN(M_parser_len(parser), httpr->body_len-httpr->body_len_seen);
+	res = httpr->cbs.chunk_data_func(M_parser_peek(parser), len, httpr->part_idx, httpr->thunk);
+	if (res == M_HTTP_ERROR_SUCCESS) {
 		httpr->body_len_seen += len;
-
-		res = httpr->cbs.chunk_data_func(buf, len, httpr->part_idx, httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
-			break;
-		}
-	} 
+		M_parser_consume(parser, len);
+	}
 
 	/* Chunks are trailed by \r\n which is not part of the length. */
 	if (httpr->body_len == httpr->body_len_seen &&  M_parser_len(parser) >= 2) {
@@ -875,9 +865,10 @@ done:
 
 static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
-	M_parser_t     *msg = NULL;
 	M_http_error_t  res = M_HTTP_ERROR_SUCCESS;
 	M_bool          found;
+	size_t          data_len;
+	size_t          consume_len;
 
 	*full_read = M_FALSE;
 	if (M_parser_len(parser) == 0)
@@ -885,20 +876,15 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 
 	/* Pull off all data before the first boundary. */
 	M_parser_mark(parser);
-	msg = M_parser_read_parser_boundary(parser, (const unsigned char *)httpr->boundary, M_str_len(httpr->boundary), M_FALSE, &found);
-	if (found) {
+	data_len    = M_parser_consume_boundary(parser, (const unsigned char *)httpr->boundary, httpr->boundary_len, M_FALSE, &found);
+	consume_len = data_len;
+	if (found && M_parser_len(parser) >= httpr->boundary_len + 2) {
 		/* Eat the boundary. */
 		M_parser_consume(parser, M_str_len(httpr->boundary));
 
-		if (M_parser_len(parser) <= 2) {
-			/* Less than 2 bytes left we can't know if it's an end or not. */
-			M_parser_mark_rewind(parser);
-			M_parser_destroy(msg);
-			return M_HTTP_ERROR_SUCCESS;
-		} else if (M_parser_compare_str(parser, "--", 2, M_FALSE)) {
+		if (M_parser_compare_str(parser, "--", 2, M_FALSE)) {
 			/* Check for an ending boundary to check which shouldn't be here. */
 			M_parser_mark_rewind(parser);
-			M_parser_destroy(msg);
 			return M_HTTP_ERROR_MULTIPART_MISSING_DATA;
 		} else if (M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
 			/* End the line end. */
@@ -906,62 +892,88 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 		} else {
 			/* We have a boundary existing in data. */
 			M_parser_mark_rewind(parser);
-			M_parser_destroy(msg);
 			return M_HTTP_ERROR_MULTIPART_INVALID;
 		}
 
-		*full_read = M_TRUE;
+		*full_read  = M_TRUE;
+		consume_len = M_parser_mark_len(parser);
 	}
-	M_parser_mark_clear(parser);
+	M_parser_mark_rewind(parser);
 
-	/* No data yet or we found the boundary and there was no data. */
-	if (msg == NULL)
-		return M_HTTP_ERROR_SUCCESS;
-
-	if (M_parser_len(msg) > 2) {
-		M_parser_mark(msg);
-		M_parser_consume(msg, M_parser_len(msg)-2);
-		if (!M_parser_compare_str(msg, "\r\n", 2, M_FALSE)) {
-			/* The boundary should start with a \r\n. The only time it doesn't
-			 * is if there is no preamble. */
+	/* The boundary should start with a \r\n. The only time it doesn't
+	 * is if there is no preamble. 1 byte isn't enough to start properly
+	 * and 2 or more should have a \r\n. */
+	if (data_len == 1) {
+		M_parser_mark_rewind(parser);
+		return M_HTTP_ERROR_MULTIPART_INVALID;
+	} else if (data_len >= 2) {
+		M_parser_mark(parser);
+		M_parser_consume(parser, data_len-2);
+		if (!M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
+			M_parser_mark_rewind(parser);
 			return M_HTTP_ERROR_MULTIPART_INVALID;
 		}
-		M_parser_mark_rewind(msg);
-		res = httpr->cbs.multipart_preamble_func(M_parser_peek(msg), M_parser_len(msg)-2, httpr->thunk);
+		data_len -= 2;
+		M_parser_mark_rewind(parser);
 	}
 
-	M_parser_destroy(msg);
+	if (data_len != 0)
+		res = httpr->cbs.multipart_preamble_func(M_parser_peek(parser), data_len, httpr->thunk);
+
+	if (res == M_HTTP_ERROR_SUCCESS)
+		M_parser_consume(parser, consume_len);
+
 	return res;
 }
 
 static M_http_error_t M_http_read_multipart_data(M_http_reader_t *httpr, M_parser_t *parser, M_bool *full_read)
 {
-	unsigned char  buf[READ_BUF_SIZE];
-	char           boundary[128];
-	size_t         len;
+	size_t         consume_len;
+	size_t         data_len;
 	M_http_error_t res   = M_HTTP_ERROR_SUCCESS;
-	size_t         boundary_len;
 	M_bool         found = M_FALSE;
 
 	*full_read = M_FALSE;
 	if (M_parser_len(parser) == 0)
 		return M_HTTP_ERROR_SUCCESS;
 
-	M_snprintf(boundary, sizeof(boundary), "\r\n%s", httpr->boundary);
-	boundary_len = M_str_len(boundary);
-	do {
-		len = M_parser_read_bytes_boundary(parser, buf, sizeof(buf), (unsigned char *)boundary, boundary_len, M_FALSE, &found); 
-		res = httpr->cbs.multipart_data_func(buf, len, httpr->part_idx, httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
-			break;
-		}
-		httpr->have_part = M_TRUE;
-	} while (len > 0 && !found);
+	M_parser_mark(parser);
+	consume_len = M_parser_consume_boundary(parser, (unsigned char *)httpr->boundary, httpr->boundary_len, M_FALSE, &found);
+	data_len    = consume_len;
+	M_parser_mark_rewind(parser);
 
-	if (found) {
-		/* Eat the boundary. */
-		M_parser_consume(parser, boundary_len);
-		*full_read = M_TRUE;
+	/* The boundary should start with a \r\n. The only time it doesn't
+	 * is if there is no preamble. 1 byte isn't enough to start properly
+	 * and 2 or more should have a \r\n. */
+	if (data_len == 1) {
+		M_parser_mark_rewind(parser);
+		return M_HTTP_ERROR_MULTIPART_INVALID;
+	} else if (data_len >= 2) {
+		M_parser_mark(parser);
+		M_parser_consume(parser, data_len-2);
+		if (!M_parser_compare_str(parser, "\r\n", 2, M_FALSE)) {
+			M_parser_mark_rewind(parser);
+			return M_HTTP_ERROR_MULTIPART_INVALID;
+		}
+		data_len -= 2;
+		M_parser_mark_rewind(parser);
+	}
+
+	if (data_len != 0) {
+		res = httpr->cbs.multipart_data_func(M_parser_peek(parser), data_len, httpr->part_idx, httpr->thunk);
+		if (res == M_HTTP_ERROR_SUCCESS) {
+			httpr->have_part = M_TRUE;
+		}
+	}
+
+	if (res == M_HTTP_ERROR_SUCCESS) {
+		M_parser_consume(parser, consume_len);
+
+		if (found) {
+			/* Eat the boundary. */
+			M_parser_consume(parser, httpr->boundary_len);
+			*full_read = M_TRUE;
+		}
 	}
 	return res;
 }
