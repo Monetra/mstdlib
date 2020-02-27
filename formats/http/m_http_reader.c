@@ -297,6 +297,8 @@ static M_http_error_t M_http_read_header_validate_kv(M_http_reader_t *httpr, con
 			if (M_str_isempty(val) || M_str_len(val) > 70) {
 				return M_HTTP_ERROR_MULTIPART_NOBOUNDARY;
 			}
+			/* Mulipart boundaries are prefixed with -- to signify the start
+			 * of the given boundary. */
 			M_asprintf(&httpr->boundary, "--%s", val);
 			httpr->boundary_len = M_str_len(httpr->boundary);
 		}
@@ -900,9 +902,8 @@ static M_http_error_t M_http_read_multipart_preamble(M_http_reader_t *httpr, M_p
 	}
 	M_parser_mark_rewind(parser);
 
-	/* The boundary should start with a \r\n. The only time it doesn't
-	 * is if there is no preamble. 1 byte isn't enough to start properly
-	 * and 2 or more should have a \r\n. */
+	/* The data before the boundary should end with a \r\n. The only time it
+ 	 * doesn't is if there is no preamble. The \r\n is not part of the data. */
 	if (data_len == 1) {
 		M_parser_mark_rewind(parser);
 		return M_HTTP_ERROR_MULTIPART_INVALID;
@@ -942,9 +943,7 @@ static M_http_error_t M_http_read_multipart_data(M_http_reader_t *httpr, M_parse
 	data_len    = consume_len;
 	M_parser_mark_rewind(parser);
 
-	/* The boundary should start with a \r\n. The only time it doesn't
-	 * is if there is no preamble. 1 byte isn't enough to start properly
-	 * and 2 or more should have a \r\n. */
+	/* The data and boundary are separated by a \r\n which is not part of the data. */
 	if (data_len == 1) {
 		M_parser_mark_rewind(parser);
 		return M_HTTP_ERROR_MULTIPART_INVALID;
