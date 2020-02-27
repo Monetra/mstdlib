@@ -1,0 +1,48 @@
+var group__m__email__reader =
+[
+    [ "M_email_reader_callbacks", "group__m__email__reader.html#structM__email__reader__callbacks", [
+      [ "header_func", "group__m__email__reader.html#a9069fe1009bf82048c3d26369f68f435", null ],
+      [ "to_func", "group__m__email__reader.html#a2c181ad7a9f3d617ade2d7fe9af02917", null ],
+      [ "from_func", "group__m__email__reader.html#a6a34ea6ea09c0dc0fd657d50e2a8de70", null ],
+      [ "cc_func", "group__m__email__reader.html#a316d376b5bff6f0e4b12d04eb6fceab6", null ],
+      [ "bcc_func", "group__m__email__reader.html#adff46c7c774c67bd36311c6a9aa95494", null ],
+      [ "reply_to_func", "group__m__email__reader.html#a2593a32eacc7edfa59066d920a6e1a0f", null ],
+      [ "subject_func", "group__m__email__reader.html#a0716e4bb0210af75deddd87d45a019c0", null ],
+      [ "header_done_func", "group__m__email__reader.html#a5e0f5ea40693f98be421f01b62750eb6", null ],
+      [ "body_func", "group__m__email__reader.html#a627ae13f999a37d2c4cdc236deeb4798", null ],
+      [ "multipart_preamble_func", "group__m__email__reader.html#a68301b26ea11dbf88d48c011592f2fa2", null ],
+      [ "multipart_preamble_done_func", "group__m__email__reader.html#a64614406e69b0c035febb610b43ee746", null ],
+      [ "multipart_header_func", "group__m__email__reader.html#a9ceb212d013d0895debb614e64c33031", null ],
+      [ "multipart_header_done_func", "group__m__email__reader.html#a77bfc55a9da8ccac75bdaf2b5f22031f", null ],
+      [ "multipart_header_attachment_func", "group__m__email__reader.html#ad12edcc59167f88fc6f3d649882733f8", null ],
+      [ "multipart_data_func", "group__m__email__reader.html#a3879e9840b8360a2cb1f5c3e52c4b052", null ],
+      [ "multipart_data_done_func", "group__m__email__reader.html#a9d4205e342f3987f5dca345aaa15865b", null ],
+      [ "multipart_data_finished_func", "group__m__email__reader.html#ad35928cd2adcae2a08feb6f3521a0067", null ],
+      [ "multipart_epilouge_func", "group__m__email__reader.html#ad0808255caa4423503ab8dd71f7fbb53", null ]
+    ] ],
+    [ "M_email_reader_t", "group__m__email__reader.html#ga2cb44ac89bc3b1b8190c826eeefcd859", null ],
+    [ "M_email_reader_header_func", "group__m__email__reader.html#ga095eedf74d8bb338cdec733b55ca295d", null ],
+    [ "M_email_reader_to_func", "group__m__email__reader.html#ga2c99ce1911a0ada733c168559da80e96", null ],
+    [ "M_email_reader_from_func", "group__m__email__reader.html#gabf7ed063bc19541b545a8b8ef1c0b3ea", null ],
+    [ "M_email_reader_cc_func", "group__m__email__reader.html#ga446e5082e213e947d521d5fd288d22f4", null ],
+    [ "M_email_reader_bcc_func", "group__m__email__reader.html#gace1c0d4a05b0180356216662c4aeee09", null ],
+    [ "M_email_reader_reply_to_func", "group__m__email__reader.html#gadd540d84acd4225d561ee4e56d544540", null ],
+    [ "M_email_reader_subject_func", "group__m__email__reader.html#gab7ceb6f02110740468dd8105e7fe7b14", null ],
+    [ "M_email_reader_header_done_func", "group__m__email__reader.html#ga2dae77212c36cf9e06a6259bc1da8c93", null ],
+    [ "M_email_reader_body_func", "group__m__email__reader.html#ga05c5b89d35d9adbfbfcf170a47c1a369", null ],
+    [ "M_email_reader_multipart_preamble_func", "group__m__email__reader.html#gaaabdc913dead82ff7759a62e7236308f", null ],
+    [ "M_email_reader_multipart_preamble_done_func", "group__m__email__reader.html#ga99fd7f423af902d5f8b5ddbb37a7d621", null ],
+    [ "M_email_reader_multipart_header_func", "group__m__email__reader.html#ga923d8ed03c550b6b2e06add9719d3f98", null ],
+    [ "M_email_reader_multipart_header_done_func", "group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d", null ],
+    [ "M_email_reader_multipart_header_attachment_func", "group__m__email__reader.html#gab7054d5ab64fd80e7a689da53e4bdedb", null ],
+    [ "M_email_reader_multipart_data_func", "group__m__email__reader.html#ga05bd26f51a7eec36428f65ac6f54598a", null ],
+    [ "M_email_reader_multipart_data_done_func", "group__m__email__reader.html#gae827c3bc66d28b2ebb938a5fe03a023e", null ],
+    [ "M_email_reader_multipart_data_finished_func", "group__m__email__reader.html#ga2d2676af52abcd6e546328eeb7731fa9", null ],
+    [ "M_email_reader_multipart_epilouge_func", "group__m__email__reader.html#ga1c85aa0f6bcfaa76c2f9acc721bf6ff6", null ],
+    [ "M_email_reader_flags_t", "group__m__email__reader.html#ga47c6d87c30d33a3eadf8192be2d12722", [
+      [ "M_EMAIL_READER_NONE", "group__m__email__reader.html#gga47c6d87c30d33a3eadf8192be2d12722ac6ff4d16fe78b544a7b710d0c3796dda", null ]
+    ] ],
+    [ "M_email_reader_create", "group__m__email__reader.html#ga4b57597f1ac83a4ff822502bd19f1677", null ],
+    [ "M_email_reader_destroy", "group__m__email__reader.html#gaa11aa7599fda4afa057f70f39b762c55", null ],
+    [ "M_email_reader_read", "group__m__email__reader.html#gafe5abf6471c7f6a38e8d3da33941fbfe", null ]
+];

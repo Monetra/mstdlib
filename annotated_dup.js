@@ -3,6 +3,7 @@ var annotated_dup =
     [ "M_backtrace_callbacks", "group__m__backtrace__trace.html#structM__backtrace__callbacks", "group__m__backtrace__trace_structM__backtrace__callbacks" ],
     [ "M_cache_callbacks", "group__m__cache__generic.html#structM__cache__callbacks", "group__m__cache__generic_structM__cache__callbacks" ],
     [ "M_decimal_t", "group__m__decimal.html#structM__decimal__t", "group__m__decimal_structM__decimal__t" ],
+    [ "M_email_reader_callbacks", "group__m__email__reader.html#structM__email__reader__callbacks", "group__m__email__reader_structM__email__reader__callbacks" ],
     [ "M_hashtable_callbacks", "group__m__hashtable__generic.html#structM__hashtable__callbacks", "group__m__hashtable__generic_structM__hashtable__callbacks" ],
     [ "M_hashtable_enum.entry", "group__m__hashtable__generic.html#unionM__hashtable__enum_8entry", "group__m__hashtable__generic_unionM__hashtable__enum_8entry" ],
     [ "M_hashtable_enum.entry.ordered", "group__m__hashtable__generic.html#structM__hashtable__enum_8entry_8ordered", "group__m__hashtable__generic_structM__hashtable__enum_8entry_8ordered" ],

@@ -1,6 +1,7 @@
 var group__m__formats =
 [
     [ "CSV", "group__m__csv.html", "group__m__csv" ],
+    [ "Email", "group__m__email.html", "group__m__email" ],
     [ "HTTP", "group__m__http.html", "group__m__http" ],
     [ "INI", "group__m__ini.html", "group__m__ini" ],
     [ "JSON", "group__m__json.html", "group__m__json" ],
