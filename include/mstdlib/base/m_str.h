@@ -282,22 +282,6 @@ M_API M_bool M_str_isprint(const char *s) M_WARN_UNUSED_RESULT;
 M_API M_bool M_str_ishex(const char *s) M_WARN_UNUSED_RESULT;
 
 
-/*! Check whether each character of a string s is in the base64 character set.
- *
- * The base64 character set is all letters upper and lower case, the digits
- * 0-9, and the special characters '+' and '/'. Newlines ('\n') are also allowed.
- * If the data is broken up into lines, all lines must be the same length, except
- * for the last, which can be shorter.
- *
- * Up to two '=' characters are allowed at the end of the string for padding.
- *
- * \param[in] s NULL-terminated string.
- *
- * \return M_TRUE if all characters match. Otherwise M_FALSE.
- */
-M_API M_bool M_str_isbase64(const char *s) M_WARN_UNUSED_RESULT;
-
-
 /*! Check whether each character of a string s is a decimal digit 0-9.
  *
  * \param[in] s NULL-terminated string.
@@ -450,23 +434,6 @@ M_API M_bool M_str_isprint_max(const char *s, size_t max) M_WARN_UNUSED_RESULT;
  * \return M_TRUE if all characters match. Otherwise M_FALSE.
  */
 M_API M_bool M_str_ishex_max(const char *s, size_t max) M_WARN_UNUSED_RESULT;
-
-
-/*! Check whether each character of a string s is in the base64 character set up to at most max bytes.
- *
- * The base64 character set is all letters upper and lower case, the digits
- * 0-9, and the special characters '+' and '/'. Newlines ('\n') are also allowed.
- * If the data is broken up into lines, all lines must be the same length, except
- * for the last, which can be shorter.
- *
- * Up to two '=' characters are allowed at the end of the string for padding.
- *
- * \param[in] s   NULL-terminated string.
- * \param[in] max Maximum number of bytes.
- *
- * \return M_TRUE if all characters match. Otherwise M_FALSE.
- */
-M_API M_bool M_str_isbase64_max(const char *s, size_t max) M_WARN_UNUSED_RESULT;
 
 
 /*! Check whether each character of a string s is a decimal digit 0-9 up to at most max bytes.
