@@ -120,65 +120,15 @@ M_uint16                  _mtu     = 0;
 		return;
 	_handle = handle;
 
-	/* The connect call needs to happen in our global macOS io runloop because
-	 * the bluetooth interface needs to be on a runloop. We can't assign the
-	 * object to a runloop like we can with HID; instead it's bound to which
-	 * ever thread connect was called on.
-	 *
-	 * We use CFRunLoopPerformBlock to run the connect function (within a
-	 * block) on the global runloop.
-	 *
-	 * CFRunLoopPerformBlock queues the block but it won't run until an event
-	 * triggers the runloop to wake up. We use CFRunLoopWakeUp to force it to
-	 * run pending blocks. Such as our connect block.
-	 */
-	M_io_mac_runloop_start();
-
-	CFRunLoopPerformBlock(M_io_mac_runloop, kCFRunLoopCommonModes, ^{
-		/* Use a temporary channel for storage because openRFCOMMChannelAsync takes an __auto_release paraemter.
-		 * We are going to assign it to a __strong parameter to prevent it from being cleaned up from under
-		 * us but we can't do that directly. */
+	dispatch_async(dispatch_get_main_queue(), ^{
 		IOBluetoothRFCOMMChannel *channel = nil;
 		IOReturn                  ioret;
 
-		/* We've seen crashes trying to open the rfcomm channel due to
-		 * some very bad internal issues within IOBluetooth due to an uncaught
-		 * exception unrelated to opening the channel. This function is not supposed to throw
-		 * exceptions as an error condition. It uses a ret return parameter.
-		 *
-		 * 2020-02-14 11:45:32.601930-0500 uniterm_console[85643:11048148] *** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: '*** -[__NSPlaceholderArray initWithObjects:count:]: attempt to insert nil object from objects[14]'
-         * *** First throw call stack:
-         * (
-         * 	0   CoreFoundation                      0x00007fff3d655acd __exceptionPreprocess + 256
-         * 	1   libobjc.A.dylib                     0x00007fff67d57a17 objc_exception_throw + 48
-         * 	2   CoreFoundation                      0x00007fff3d694ac4 -[CFPrefsConfigurationFileSource initWithConfigurationPropertyList:containingPreferences:] + 0
-         * 	3   CoreFoundation                      0x00007fff3d56836e -[__NSPlaceholderArray initWithObjects:count:] + 230
-         * 	4   CoreFoundation                      0x00007fff3d5d5064 +[NSArray arrayWithObjects:count:] + 52
-         * 	5   CoreFoundation                      0x00007fff3d5d5176 -[NSDictionary allValues] + 249
-         * 	6   IOBluetooth                         0x00007fff3fd8e6f6 +[IOBluetoothObject getAllUniqueObjects] + 70
-         * 	7   IOBluetooth                         0x00007fff3fd4f9f3 -[IOBluetoothDevice openRFCOMMChannelAsync:withChannelID:delegate:] + 115
-		 * 	...
-		 *
-		 * This is something happening internally and there isn't anything we can do about it.
-		 * We've only seen it happen when hammering the bluetooth system when repeatedly opening
-		 * and closing connections.
-		 *
-		 * When the application starts throwing the above exception it will never stop when
-		 * trying to open any bluetooth device. It will not be able to open any device and
-		 * the application will need to be restarted. We're going to catch and log the exception
-		 * instead of crashing from the exception.
-		 */
-		@try {
-			ioret = [_dev openRFCOMMChannelAsync:&channel withChannelID:_cid delegate:self];
-			if (ioret == kIOReturnSuccess) {
-				_channel = channel;
-			}
-		}
-		@catch (NSException *exception) {
-			NSLog(@"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Bluetooth openRFCOMMChannelAsync EXCEPTION! === '%@'", exception);
+		ioret = [_dev openRFCOMMChannelAsync:&channel withChannelID:_cid delegate:self];
+		if (ioret == kIOReturnSuccess) {
+			_channel = channel;
 		}
 	});
-	CFRunLoopWakeUp(M_io_mac_runloop);
 }
 
 - (void)close_int
@@ -254,7 +204,7 @@ M_uint16                  _mtu     = 0;
 	/* This function should be called when the layer is locked but _write will also
 	 * lock the layer. We will displatch the actual write so this can return and unlock
 	 * the layer. Otherwise, we'll end up in a dead lock. */
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+	dispatch_async(dispatch_get_main_queue(), ^{
 		[self _write];
 	});
 }
