@@ -58,7 +58,7 @@ var searchData=
   ['m_5fhttp_5fmessage_5ftype_5ft',['M_http_message_type_t',['../group__m__http.html#gaa4356ca0b99847db3a46f093db0b8940',1,'m_http.h']]],
   ['m_5fhttp_5fmethod_5ft',['M_http_method_t',['../group__m__http.html#ga9009cf9cd2abe5ab4336584eebc7fcee',1,'m_http.h']]],
   ['m_5fhttp_5freader_5fflags_5ft',['M_http_reader_flags_t',['../group__m__http__reader.html#ga6196eb1dce89efc3f6e6793356ecbdf4',1,'m_http.h']]],
-  ['m_5fhttp_5fsimple_5fread_5fflags_5ft',['M_http_simple_read_flags_t',['../group__m__http__simple__write.html#gad2b7dd9942cccd2e30b5260b60642f4e',1,'m_http.h']]],
+  ['m_5fhttp_5fsimple_5fread_5fflags_5ft',['M_http_simple_read_flags_t',['../group__m__http__simple__read.html#gad2b7dd9942cccd2e30b5260b60642f4e',1,'m_http.h']]],
   ['m_5fhttp_5fversion_5ft',['M_http_version_t',['../group__m__http.html#ga3a1bff9ac4b3078e2bfac1226872d7fa',1,'m_http.h']]],
   ['m_5fini_5fdupkvs_5ft',['M_ini_dupkvs_t',['../group__m__ini.html#gaba7b134a1d375a874080b7b20e0ba727',1,'m_ini.h']]],
   ['m_5fini_5fmerge_5fconflict_5ft',['M_ini_merge_conflict_t',['../group__m__ini.html#ga51f99dd0e8fc72bb30d081d000e1762b',1,'m_ini.h']]],
