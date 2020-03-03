@@ -749,7 +749,7 @@ M_API M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned c
  * @{
  */
 
-/*! \addtogroup m_http_simple_write HTTP Simple Reader
+/*! \addtogroup m_http_simple_read HTTP Simple Reader
  *  \ingroup m_http_simple
  *
  * Reads a full HTTP message. Useful for small messages.
@@ -1167,7 +1167,7 @@ M_API const char *M_http_simple_read_charset(const M_http_simple_read_t *simple)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! \addtogroup m_http_simple_read HTTP Simple Writer
+/*! \addtogroup m_http_simple_write HTTP Simple Writer
  *  \ingroup m_http_simple
  *
  * Generate request and response messages.
