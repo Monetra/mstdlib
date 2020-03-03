@@ -94,6 +94,105 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+
+/*! \addtogroup m_email_msssage Email Message
+ *  \ingroup m_email
+ *
+ * Email message.
+ *
+ * @{
+ */
+
+struct M_email_message;
+typedef struct M_email_message M_email_message_t;
+
+
+/*! Create an empty email message
+ *
+ * return Message
+ */
+M_API M_email_message_t *M_email_message_create(void);
+M_API void M_email_message_destroy(M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* Will update / replace / remove, To, CC, BCC, Subject, Reply-To.
+ * Nothing updated on failure. */
+M_API M_bool M_email_message_set_headers(M_email_message_t *message, const M_hash_dict_t *headers);
+M_API M_bool M_email_message_headers_insert(M_email_message_t *message, const char *key, const char *val);
+M_API void M_email_message_headers_remove(M_email_message_t *message, const char *key);
+/* Does not include, To, CC, BCC, Subject, Reply-To. */
+M_API const M_hash_dict_t *M_email_message_headers(const M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API M_bool M_email_message_from(const M_email_message_t *message, char const **group, char const **name, char const **address);
+M_API void M_email_message_set_from(M_email_message_t *message, const char *group, const char *name, const char *address);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API size_t M_email_message_to_len(const M_email_message_t *message);
+M_API M_bool M_email_message_to(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_message_to_append(M_email_message_t *message, const char *group, const char *name, const char *address);
+M_API void M_email_message_to_remove(M_email_message_t *message, size_t idx);
+M_API void M_email_message_to_clear(M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API size_t M_email_message_cc_len(const M_email_message_t *message);
+M_API M_bool M_email_message_cc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_message_cc_append(M_email_message_t *message, const char *group, const char *name, const char *address);
+M_API void M_email_message_cc_remove(M_email_message_t *message, size_t idx);
+M_API void M_email_message_cc_clear(M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API size_t M_email_message_bcc_len(const M_email_message_t *message);
+M_API M_bool M_email_message_bcc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_message_bcc_append(M_email_message_t *message, const char *group, const char *name, const char *address);
+M_API void M_email_message_bcc_remove(M_email_message_t *message, size_t idx);
+M_API void M_email_message_bcc_clear(M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API void M_email_message_set_reply_to(M_email_message_t *message, const char *group, const char *name, const char *address);
+M_API M_bool M_email_message_reply_to(const M_email_message_t *message, char const **group, char const **name, char const **address);
+M_API void M_email_message_reply_to_remove(M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API void M_email_message_set_subject(M_email_message_t *message, const char *subject);
+M_API const char *M_email_message_subject(const M_email_message_t *message);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_API const char *M_email_message_preamble(M_email_message_t *message);
+M_API void M_email_message_set_preamble(M_email_message_t *message, const char *data);
+M_API const char *M_email_message_epilouge(M_email_message_t *message);
+M_API void M_email_message_set_epilouge(M_email_message_t *message, const char *data);
+
+M_API M_bool M_email_message_part_append(M_email_message_t *message, const char *data, M_hash_dict_t *headers, size_t *idx);
+/* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
+M_API M_bool M_email_message_part_append_attachment(M_email_message_t *message, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
+M_API M_bool M_email_message_part_append_data(M_email_message_t *message, size_t idx, const char *data, size_t len);
+M_API M_bool M_email_message_part_set_data(M_email_message_t *message, size_t idx, const char *data);
+
+M_API size_t M_email_message_parts_len(const M_email_message_t *message);
+M_API void M_email_message_parts_clear(M_email_message_t *message);
+
+M_API const char *M_email_message_part_data(const M_email_message_t *message, size_t idx);
+/* If attachment, exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
+M_API const M_hash_dict_t *M_email_message_part_headers(const M_email_message_t *message, size_t idx);
+
+M_API M_bool M_email_message_part_is_attachmenet(const M_email_message_t *message, size_t idx);
+M_API M_bool M_email_message_part_attachment_info(const M_email_message_t *message, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename);
+
+M_API void M_email_message_part_remove(M_email_message_t *message, size_t idx);
+
+
+/*! @} */
+
+
 /*! \addtogroup m_email_reader Email Stream Reader
  *  \ingroup m_email
  *
