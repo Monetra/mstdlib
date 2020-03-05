@@ -122,10 +122,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:ga99fd7f423af902d5f8b5ddbb37a7d621"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga923d8ed03c550b6b2e06add9719d3f98"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga923d8ed03c550b6b2e06add9719d3f98">M_email_reader_multipart_header_func</a>) (const char *key, const char *val, size_t idx, void *thunk)</td></tr>
 <tr class="separator:ga923d8ed03c550b6b2e06add9719d3f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d">M_email_reader_multipart_header_done_func</a>) (size_t idx, void *thunk)</td></tr>
-<tr class="separator:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab7054d5ab64fd80e7a689da53e4bdedb"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gab7054d5ab64fd80e7a689da53e4bdedb">M_email_reader_multipart_header_attachment_func</a>) (const char *content_type, const char *transfer_encoding, const char *filename, size_t idx, void *thunk)</td></tr>
 <tr class="separator:gab7054d5ab64fd80e7a689da53e4bdedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d">M_email_reader_multipart_header_done_func</a>) (size_t idx, void *thunk)</td></tr>
+<tr class="separator:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga05bd26f51a7eec36428f65ac6f54598a"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga05bd26f51a7eec36428f65ac6f54598a">M_email_reader_multipart_data_func</a>) (const unsigned char *data, size_t len, size_t idx, void *thunk)</td></tr>
 <tr class="separator:ga05bd26f51a7eec36428f65ac6f54598a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae827c3bc66d28b2ebb938a5fe03a023e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gae827c3bc66d28b2ebb938a5fe03a023e">M_email_reader_multipart_data_done_func</a>) (size_t idx, void *thunk)</td></tr>
@@ -240,15 +240,15 @@ multipart_header_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a77bfc55a9da8ccac75bdaf2b5f22031f"></a><a class="el" href="group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d">M_email_reader_multipart_header_done_func</a></td>
-<td class="fieldname">
-multipart_header_done_func</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
 <a id="ad12edcc59167f88fc6f3d649882733f8"></a><a class="el" href="group__m__email__reader.html#gab7054d5ab64fd80e7a689da53e4bdedb">M_email_reader_multipart_header_attachment_func</a></td>
 <td class="fieldname">
 multipart_header_attachment_func</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a77bfc55a9da8ccac75bdaf2b5f22031f"></a><a class="el" href="group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d">M_email_reader_multipart_header_done_func</a></td>
+<td class="fieldname">
+multipart_header_done_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -501,7 +501,7 @@ multipart_epilouge_func</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function definition for the message Subject</p>
+<p>Function definition for the email Subject</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">subject</td><td>The subject. </td></tr>
@@ -636,6 +636,33 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
+<a id="gab7054d5ab64fd80e7a689da53e4bdedb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab7054d5ab64fd80e7a689da53e4bdedb">&#9670;&nbsp;</a></span>M_email_reader_multipart_header_attachment_func</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_header_attachment_func) (const char *content_type, const char *transfer_encoding, const char *filename, size_t idx, void *thunk)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function definition for multipart attachment meta data.</p>
+<p>Will only be called when a part is marked as an attachment. Will be called immediately before M_email_reader_multipart_header_done_func.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">content_type</td><td>The content type. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">transfer_encoding</td><td>The format the data was received in. E.g. Base64, clear text, ext.. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">filename</td><td>The filename of the attachment. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Part number. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Result </dd></dl>
+
+</div>
+</div>
 <a id="gae1c2e64b9affc63b0df81e881e036f5d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gae1c2e64b9affc63b0df81e881e036f5d">&#9670;&nbsp;</a></span>M_email_reader_multipart_header_done_func</h2>
 
@@ -650,33 +677,6 @@ multipart_epilouge_func</td>
 <p>Function definition for completion of multipart part header parsing.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Part number. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Result </dd></dl>
-
-</div>
-</div>
-<a id="gab7054d5ab64fd80e7a689da53e4bdedb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab7054d5ab64fd80e7a689da53e4bdedb">&#9670;&nbsp;</a></span>M_email_reader_multipart_header_attachment_func</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_header_attachment_func) (const char *content_type, const char *transfer_encoding, const char *filename, size_t idx, void *thunk)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Function definition for multipart attachment meta data.</p>
-<p>Will only be called when a part is marked as an attachment.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">content_type</td><td>The content type. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">transfer_encoding</td><td>The format the data was received in. E.g. Base64, clear text, ext.. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">filename</td><td>The filename of the attachment. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Part number. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">thunk</td><td>Thunk.</td></tr>
   </table>
@@ -907,9 +907,9 @@ multipart_epilouge_func</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Parse email message from given data.</p>
-<p>When a parse returns without error but a full message has not been read, the parse should be run again starting where the last parse stopped. The reader can only be used once per complete message.</p>
-<p>Will <em>not</em> return M_EMAIL_ERROR_MOREDATA. It is up to the caller to determine when a full message has been read based on the callbacks that have been called. The _done callbacks can indicate if all processing has completed. If the message is not multipart it is impossible to determine if a parse is complete.</p>
+<p>Parse email email from given data.</p>
+<p>When a parse returns without error but a full email has not been read, the parse should be run again starting where the last parse stopped. The reader can only be used once per complete email.</p>
+<p>Will <em>not</em> return M_EMAIL_ERROR_MOREDATA. It is up to the caller to determine when a full email has been read based on the callbacks that have been called. The _done callbacks can indicate if all processing has completed. If the email is not multipart it is impossible to determine if a parse is complete.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">emailr</td><td>email reader object. </td></tr>
@@ -928,7 +928,7 @@ multipart_epilouge_func</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 3 2020 21:18:55 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Mar 5 2020 13:16:53 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

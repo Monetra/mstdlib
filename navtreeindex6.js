@@ -1,5 +1,13 @@
 var NAVTREEINDEX6 =
 {
+"group__m__io.html#gga6c99c2da0a998791d1d08ec7fe5dd3cda5d4b60ef06700b8ef87ecef4b35c8ae8":[1,3,4,8,0],
+"group__m__io.html#gga6c99c2da0a998791d1d08ec7fe5dd3cda70e8122687f8536174cdafd1de69315d":[1,3,4,8,6],
+"group__m__io.html#gga6c99c2da0a998791d1d08ec7fe5dd3cda890f1634ed75dbdf0c336d9762ab2083":[1,3,4,8,5],
+"group__m__io.html#gga6c99c2da0a998791d1d08ec7fe5dd3cdaba0bbb638e37f517723584fd3b3f6626":[1,3,4,8,4],
+"group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98a0194b89044df4088faa0569dd2810d80":[1,3,4,6,4],
+"group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98a21773fa054a7f10498aad0ee69f3bdd9":[1,3,4,6,2],
+"group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98a256ac088e39b233c33a20b7fce430235":[1,3,4,6,1],
+"group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98a8b73c3992930aa7557d9ef0adcba1861":[1,3,4,6,3],
 "group__m__io.html#ggae49cd1a696a09a24c22eb65b97616b98abd942952a6717c697bc58b56e9051049":[1,3,4,6,0],
 "group__m__io__ble.html":[1,3,0,0],
 "group__m__io__ble.html#ga160a92372e31a502282a7a81e01b766f":[1,3,0,0,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX6 =
 "group__m__io__serial.html#gac34e14f6062f62482544d259236a4f0d":[1,3,0,7,14],
 "group__m__io__serial.html#gad25fd5153f067a480e0772cee4502cf1":[1,3,0,7,24],
 "group__m__io__serial.html#gae47fb0fadce4556a0824bed10b041cb2":[1,3,0,7,20],
-"group__m__io__serial.html#gaf2eae9ba98ea2b614f2f9d1a74d880b6":[1,3,0,7,23],
-"group__m__io__serial.html#gaf5f6fa562b6f6be2d395ddcee1d36e28":[1,3,0,7,17],
-"group__m__io__serial.html#gaf87020bb9ba0c9258649e252e3142a57":[1,3,0,7,4],
-"group__m__io__serial.html#gga123b16d7797646c945653437f9f7e8c7a889ff0a5cbfc44dfbb0fa35eed4969cf":[1,3,0,7,19,1],
-"group__m__io__serial.html#gga123b16d7797646c945653437f9f7e8c7ade086b5c166795c7eb2c9aaf25256209":[1,3,0,7,19,2],
-"group__m__io__serial.html#gga123b16d7797646c945653437f9f7e8c7ade28d41eee79240a54642aeecc90cea4":[1,3,0,7,19,0],
-"group__m__io__serial.html#gga9b5b1436fa13a1ab64b76e09c6513214a548df4d863257abb358dd9bc46159576":[1,3,0,7,18,0],
-"group__m__io__serial.html#gga9b5b1436fa13a1ab64b76e09c6513214a620d6cdf42616168b303384e234625b0":[1,3,0,7,18,1],
-"group__m__io__serial.html#gga9b5b1436fa13a1ab64b76e09c6513214a875cbcc3838529cece8f8e863d6b47af":[1,3,0,7,18,2]
+"group__m__io__serial.html#gaf2eae9ba98ea2b614f2f9d1a74d880b6":[1,3,0,7,23]
 };

@@ -15,6 +15,7 @@ var searchData=
   ['m_5femail_5fdata_5fformat_5ft',['M_email_data_format_t',['../group__m__email.html#ga7e76feb375db757f20e7f6feef5c33f8',1,'m_email.h']]],
   ['m_5femail_5ferror_5ft',['M_email_error_t',['../group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34',1,'m_email.h']]],
   ['m_5femail_5freader_5fflags_5ft',['M_email_reader_flags_t',['../group__m__email__reader.html#ga47c6d87c30d33a3eadf8192be2d12722',1,'m_email.h']]],
+  ['m_5femail_5fsimple_5fread_5fflags_5ft',['M_email_simple_read_flags_t',['../group__m__email__simple__read.html#ga7b85bcd4fb358eda215b04dae2379f13',1,'m_email.h']]],
   ['m_5fendian_5ft',['M_endian_t',['../group__m__endian.html#ga02da5a0d367fd4db6676cfdc4f7eeba2',1,'m_endian.h']]],
   ['m_5fevent_5ferr',['M_event_err',['../group__m__event.html#ga3d93964ec33daa93f69ee7205f341e9f',1,'m_event.h']]],
   ['m_5fevent_5fflags',['M_EVENT_FLAGS',['../group__m__event.html#ga72bc04891ff7b6142b7672a207ae74b1',1,'m_event.h']]],

@@ -89,109 +89,109 @@ $(document).ready(function(){initNavTree('group__m__email__msssage.html','');});
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gae73062f049f582e180427a098331f77f"><td class="memItemLeft" align="right" valign="top">typedef struct M_email_message&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a></td></tr>
-<tr class="separator:gae73062f049f582e180427a098331f77f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga98989ba32e6ae23118ad7e128917720a"><td class="memItemLeft" align="right" valign="top">typedef struct M_email&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a></td></tr>
+<tr class="separator:ga98989ba32e6ae23118ad7e128917720a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga43c71199d72d128d7caed991be77a3f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga43c71199d72d128d7caed991be77a3f8">M_email_message_create</a> (void)</td></tr>
-<tr class="separator:ga43c71199d72d128d7caed991be77a3f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8affc495f77a7ba5ce2f2f1ab49f9805"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga8affc495f77a7ba5ce2f2f1ab49f9805">M_email_message_destroy</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga8affc495f77a7ba5ce2f2f1ab49f9805"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga262a2737c0c0e6597a030542d2977a7e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga262a2737c0c0e6597a030542d2977a7e">M_email_message_set_headers</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers)</td></tr>
-<tr class="separator:ga262a2737c0c0e6597a030542d2977a7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa089a6fb8e7b0f2e2609cdf276e089fe"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaa089a6fb8e7b0f2e2609cdf276e089fe">M_email_message_headers_insert</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *key, const char *val)</td></tr>
-<tr class="separator:gaa089a6fb8e7b0f2e2609cdf276e089fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf00c9c0bc599ad5c8a1399af4f15bb19"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaf00c9c0bc599ad5c8a1399af4f15bb19">M_email_message_headers_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *key)</td></tr>
-<tr class="separator:gaf00c9c0bc599ad5c8a1399af4f15bb19"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga59aa496bac9f5c9cdd8886cb7211d2c7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga59aa496bac9f5c9cdd8886cb7211d2c7">M_email_message_headers</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga59aa496bac9f5c9cdd8886cb7211d2c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1b64ae4dbcc17fcb88e73912df682d9d"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga1b64ae4dbcc17fcb88e73912df682d9d">M_email_message_from</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, char const **group, char const **name, char const **address)</td></tr>
-<tr class="separator:ga1b64ae4dbcc17fcb88e73912df682d9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga91fb95ed22e85f75f4833188e92b3848"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga91fb95ed22e85f75f4833188e92b3848">M_email_message_set_from</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *group, const char *name, const char *address)</td></tr>
-<tr class="separator:ga91fb95ed22e85f75f4833188e92b3848"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae26cfd11643c9c9d60db396267edaf1f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae26cfd11643c9c9d60db396267edaf1f">M_email_message_to_len</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gae26cfd11643c9c9d60db396267edaf1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac983a6bcbb923553b92027451139d995"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gac983a6bcbb923553b92027451139d995">M_email_message_to</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, char const **group, char const **name, char const **address)</td></tr>
-<tr class="separator:gac983a6bcbb923553b92027451139d995"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9c9c81256e098f3d84a0a40bcac57fe7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga9c9c81256e098f3d84a0a40bcac57fe7">M_email_message_to_append</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *group, const char *name, const char *address)</td></tr>
-<tr class="separator:ga9c9c81256e098f3d84a0a40bcac57fe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga09d876eb43f38ab4b4a85ac73f55b97e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga09d876eb43f38ab4b4a85ac73f55b97e">M_email_message_to_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga09d876eb43f38ab4b4a85ac73f55b97e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga98559075c74da3fbe35e4636663f88ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga98559075c74da3fbe35e4636663f88ce">M_email_message_to_clear</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga98559075c74da3fbe35e4636663f88ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga207487592d5288ec7939ca2727235a64"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga207487592d5288ec7939ca2727235a64">M_email_message_cc_len</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga207487592d5288ec7939ca2727235a64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga40b09ea0ca0a2758ca8d652677171119"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga40b09ea0ca0a2758ca8d652677171119">M_email_message_cc</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, char const **group, char const **name, char const **address)</td></tr>
-<tr class="separator:ga40b09ea0ca0a2758ca8d652677171119"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1b0edcb746e0ca3470644b3812eff56d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga1b0edcb746e0ca3470644b3812eff56d">M_email_message_cc_append</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *group, const char *name, const char *address)</td></tr>
-<tr class="separator:ga1b0edcb746e0ca3470644b3812eff56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga83feaa23af905c68e01aaf7e64f968b2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga83feaa23af905c68e01aaf7e64f968b2">M_email_message_cc_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga83feaa23af905c68e01aaf7e64f968b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaad9e0767a0ec100da63437fb456c9283"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaad9e0767a0ec100da63437fb456c9283">M_email_message_cc_clear</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gaad9e0767a0ec100da63437fb456c9283"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8c7b5cc3ac83f161afaea4835a6aaa41"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga8c7b5cc3ac83f161afaea4835a6aaa41">M_email_message_bcc_len</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga8c7b5cc3ac83f161afaea4835a6aaa41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac11e78997b037b4167e9ac22651886cb"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gac11e78997b037b4167e9ac22651886cb">M_email_message_bcc</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, char const **group, char const **name, char const **address)</td></tr>
-<tr class="separator:gac11e78997b037b4167e9ac22651886cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga708204644f60f9ecaa6c0d9eecfec837"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga708204644f60f9ecaa6c0d9eecfec837">M_email_message_bcc_append</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *group, const char *name, const char *address)</td></tr>
-<tr class="separator:ga708204644f60f9ecaa6c0d9eecfec837"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga638083f8c9da9b1e65692874475903c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga638083f8c9da9b1e65692874475903c1">M_email_message_bcc_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga638083f8c9da9b1e65692874475903c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaab2112159a818ddc2cca9fb182856285"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaab2112159a818ddc2cca9fb182856285">M_email_message_bcc_clear</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gaab2112159a818ddc2cca9fb182856285"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7bc1f74bad11156f546b5aa136dd3f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga7bc1f74bad11156f546b5aa136dd3f25">M_email_message_set_reply_to</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *group, const char *name, const char *address)</td></tr>
-<tr class="separator:ga7bc1f74bad11156f546b5aa136dd3f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacaf5bf9079793a99afd9a59323b9615d"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gacaf5bf9079793a99afd9a59323b9615d">M_email_message_reply_to</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, char const **group, char const **name, char const **address)</td></tr>
-<tr class="separator:gacaf5bf9079793a99afd9a59323b9615d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafbf86ce466d146b6d759315dbabf3323"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gafbf86ce466d146b6d759315dbabf3323">M_email_message_reply_to_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gafbf86ce466d146b6d759315dbabf3323"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0ced42547003947c338431407a311f51"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga0ced42547003947c338431407a311f51">M_email_message_set_subject</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *subject)</td></tr>
-<tr class="separator:ga0ced42547003947c338431407a311f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafc72076ebb367228ff275531107c61f4"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gafc72076ebb367228ff275531107c61f4">M_email_message_subject</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gafc72076ebb367228ff275531107c61f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga392ac6ff3f8843ee3f824bd1eb4a3f79"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga392ac6ff3f8843ee3f824bd1eb4a3f79">M_email_message_preamble</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga392ac6ff3f8843ee3f824bd1eb4a3f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5843ec4f0a63e0d8938f093886c6aecf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga5843ec4f0a63e0d8938f093886c6aecf">M_email_message_set_preamble</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *data)</td></tr>
-<tr class="separator:ga5843ec4f0a63e0d8938f093886c6aecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa82f16057464207e9b1d0abb5e093528"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaa82f16057464207e9b1d0abb5e093528">M_email_message_epilouge</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:gaa82f16057464207e9b1d0abb5e093528"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2f1712a6ce5c89dcf08112ad2b9e35d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga2f1712a6ce5c89dcf08112ad2b9e35d0">M_email_message_set_epilouge</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *data)</td></tr>
-<tr class="separator:ga2f1712a6ce5c89dcf08112ad2b9e35d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4c2d1ad79c498e8397c9109ab2f83b9c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga4c2d1ad79c498e8397c9109ab2f83b9c">M_email_message_part_append</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *data, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers, size_t *idx)</td></tr>
-<tr class="separator:ga4c2d1ad79c498e8397c9109ab2f83b9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaef1fa2aac0d28f080a24a68ae80426b6"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaef1fa2aac0d28f080a24a68ae80426b6">M_email_message_part_append_attachment</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, const char *data, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)</td></tr>
-<tr class="separator:gaef1fa2aac0d28f080a24a68ae80426b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabd110cd1569e399e31fc85b042f0bb27"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gabd110cd1569e399e31fc85b042f0bb27">M_email_message_part_append_data</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, const char *data, size_t len)</td></tr>
-<tr class="separator:gabd110cd1569e399e31fc85b042f0bb27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad6f375665038c11ede59f26c076ffc47"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gad6f375665038c11ede59f26c076ffc47">M_email_message_part_set_data</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, const char *data)</td></tr>
-<tr class="separator:gad6f375665038c11ede59f26c076ffc47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1873211ab9a3a1ca62a67eb0cae572fd"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga1873211ab9a3a1ca62a67eb0cae572fd">M_email_message_parts_len</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga1873211ab9a3a1ca62a67eb0cae572fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga89692468bb67fd61f7eba459b732eadb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga89692468bb67fd61f7eba459b732eadb">M_email_message_parts_clear</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message)</td></tr>
-<tr class="separator:ga89692468bb67fd61f7eba459b732eadb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga811606dbaaee38d75a42ad3c49141ade"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga811606dbaaee38d75a42ad3c49141ade">M_email_message_part_data</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga811606dbaaee38d75a42ad3c49141ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa2f657c2712d98ea5ce12ca9a4245617"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaa2f657c2712d98ea5ce12ca9a4245617">M_email_message_part_headers</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:gaa2f657c2712d98ea5ce12ca9a4245617"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga978b7d3579d02bc0ffbb0cfdd8a6b724"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga978b7d3579d02bc0ffbb0cfdd8a6b724">M_email_message_part_is_attachmenet</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga978b7d3579d02bc0ffbb0cfdd8a6b724"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga486277b8e561ac19e7b339e7beb7d2b7"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga486277b8e561ac19e7b339e7beb7d2b7">M_email_message_part_attachment_info</a> (const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename)</td></tr>
-<tr class="separator:ga486277b8e561ac19e7b339e7beb7d2b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga81155824520c914846473b72175b02e7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga81155824520c914846473b72175b02e7">M_email_message_part_remove</a> (<a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *message, size_t idx)</td></tr>
-<tr class="separator:ga81155824520c914846473b72175b02e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacbe4ccc09dd1406cb51523407b364c6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gacbe4ccc09dd1406cb51523407b364c6d">M_email_create</a> (void)</td></tr>
+<tr class="separator:gacbe4ccc09dd1406cb51523407b364c6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafdf0252e7a7d0415138e020366990a80"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gafdf0252e7a7d0415138e020366990a80">M_email_destroy</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gafdf0252e7a7d0415138e020366990a80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3c2ad3e7c3abebab4c49878972d24240"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga3c2ad3e7c3abebab4c49878972d24240">M_email_set_headers</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers)</td></tr>
+<tr class="separator:ga3c2ad3e7c3abebab4c49878972d24240"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga03f00b9b197909d5057a007d9c6f9e94"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga03f00b9b197909d5057a007d9c6f9e94">M_email_headers_insert</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *key, const char *val)</td></tr>
+<tr class="separator:ga03f00b9b197909d5057a007d9c6f9e94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga12b35765479a0b6b97005c4b5e2588dc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga12b35765479a0b6b97005c4b5e2588dc">M_email_headers_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *key)</td></tr>
+<tr class="separator:ga12b35765479a0b6b97005c4b5e2588dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9501912b1b7d9567ab970a205edec8b6"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga9501912b1b7d9567ab970a205edec8b6">M_email_headers</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:ga9501912b1b7d9567ab970a205edec8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0dd310d406aa7aac78b413a7c0bb1f2d"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga0dd310d406aa7aac78b413a7c0bb1f2d">M_email_from</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, char const **group, char const **name, char const **address)</td></tr>
+<tr class="separator:ga0dd310d406aa7aac78b413a7c0bb1f2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga71711e0a1d8385e813f66ee632bb664c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga71711e0a1d8385e813f66ee632bb664c">M_email_set_from</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *group, const char *name, const char *address)</td></tr>
+<tr class="separator:ga71711e0a1d8385e813f66ee632bb664c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1ebdc88e9c4c3b9fb2523432fada5156"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga1ebdc88e9c4c3b9fb2523432fada5156">M_email_to_len</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:ga1ebdc88e9c4c3b9fb2523432fada5156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaee0c89676d2e1c8231c96d8cac3817b7"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaee0c89676d2e1c8231c96d8cac3817b7">M_email_to</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, char const **group, char const **name, char const **address)</td></tr>
+<tr class="separator:gaee0c89676d2e1c8231c96d8cac3817b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga42a3b028d12fa6961c8f55e2f5999d3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga42a3b028d12fa6961c8f55e2f5999d3f">M_email_to_append</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *group, const char *name, const char *address)</td></tr>
+<tr class="separator:ga42a3b028d12fa6961c8f55e2f5999d3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga557122e5234e2deccc5995de1446ca4c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga557122e5234e2deccc5995de1446ca4c">M_email_to_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:ga557122e5234e2deccc5995de1446ca4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadb1443a521e79b60fbd3a0e229a6c458"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gadb1443a521e79b60fbd3a0e229a6c458">M_email_to_clear</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gadb1443a521e79b60fbd3a0e229a6c458"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadfe7701e0f7a965c2bb10efa3d2e7fbd"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gadfe7701e0f7a965c2bb10efa3d2e7fbd">M_email_cc_len</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gadfe7701e0f7a965c2bb10efa3d2e7fbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaeb3e413bdc9636d1b3c284ffd620c5a3"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaeb3e413bdc9636d1b3c284ffd620c5a3">M_email_cc</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, char const **group, char const **name, char const **address)</td></tr>
+<tr class="separator:gaeb3e413bdc9636d1b3c284ffd620c5a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf71aa9aad93b1c51c24a7e1148dbe39e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaf71aa9aad93b1c51c24a7e1148dbe39e">M_email_cc_append</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *group, const char *name, const char *address)</td></tr>
+<tr class="separator:gaf71aa9aad93b1c51c24a7e1148dbe39e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf14d2f99fdcb4ddf444d3fee6002cbaf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaf14d2f99fdcb4ddf444d3fee6002cbaf">M_email_cc_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:gaf14d2f99fdcb4ddf444d3fee6002cbaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac0ea61c06fd9192c30451ce37d75c921"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gac0ea61c06fd9192c30451ce37d75c921">M_email_cc_clear</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gac0ea61c06fd9192c30451ce37d75c921"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5d51d10a12665b6b508f8bdf413de944"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga5d51d10a12665b6b508f8bdf413de944">M_email_bcc_len</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:ga5d51d10a12665b6b508f8bdf413de944"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafd27f3e0dbe8a51dc241d6ffb498e735"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gafd27f3e0dbe8a51dc241d6ffb498e735">M_email_bcc</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, char const **group, char const **name, char const **address)</td></tr>
+<tr class="separator:gafd27f3e0dbe8a51dc241d6ffb498e735"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaef32ada93fa9ffb9bb130a26eb49647a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaef32ada93fa9ffb9bb130a26eb49647a">M_email_bcc_append</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *group, const char *name, const char *address)</td></tr>
+<tr class="separator:gaef32ada93fa9ffb9bb130a26eb49647a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1faae9f3ffe9bc2d1613500daceebd86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga1faae9f3ffe9bc2d1613500daceebd86">M_email_bcc_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:ga1faae9f3ffe9bc2d1613500daceebd86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae00c00e7da6304cd79590199f3f2a5f1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae00c00e7da6304cd79590199f3f2a5f1">M_email_bcc_clear</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gae00c00e7da6304cd79590199f3f2a5f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa7424907fe91720d2cdef084af92ac60"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaa7424907fe91720d2cdef084af92ac60">M_email_set_reply_to</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *group, const char *name, const char *address)</td></tr>
+<tr class="separator:gaa7424907fe91720d2cdef084af92ac60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga24f15f5fbcf51a23afa2525cba00f822"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga24f15f5fbcf51a23afa2525cba00f822">M_email_reply_to</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, char const **group, char const **name, char const **address)</td></tr>
+<tr class="separator:ga24f15f5fbcf51a23afa2525cba00f822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf06022140a4034ba8b6809f7abb3078d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaf06022140a4034ba8b6809f7abb3078d">M_email_reply_to_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gaf06022140a4034ba8b6809f7abb3078d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3727c0b03c7190ce425291dd287ca1a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga3727c0b03c7190ce425291dd287ca1a2">M_email_set_subject</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *subject)</td></tr>
+<tr class="separator:ga3727c0b03c7190ce425291dd287ca1a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga57cfe96b00b56dba06d4152c55608328"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga57cfe96b00b56dba06d4152c55608328">M_email_subject</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:ga57cfe96b00b56dba06d4152c55608328"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad8842aeec43cf0384afd93635e0dda5f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gad8842aeec43cf0384afd93635e0dda5f">M_email_preamble</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gad8842aeec43cf0384afd93635e0dda5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga09eec233fe081d0002eebf100c2f9c9b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga09eec233fe081d0002eebf100c2f9c9b">M_email_set_preamble</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *data)</td></tr>
+<tr class="separator:ga09eec233fe081d0002eebf100c2f9c9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae69eb05b566b2b11c19d2a6add84710e"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae69eb05b566b2b11c19d2a6add84710e">M_email_epilouge</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gae69eb05b566b2b11c19d2a6add84710e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4e8d623c72788a5ec8b68225716126aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga4e8d623c72788a5ec8b68225716126aa">M_email_set_epilouge</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *data)</td></tr>
+<tr class="separator:ga4e8d623c72788a5ec8b68225716126aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacd619719b165ad669fa0ff4d80e4328a"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gacd619719b165ad669fa0ff4d80e4328a">M_email_part_append</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *data, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers, size_t *idx)</td></tr>
+<tr class="separator:gacd619719b165ad669fa0ff4d80e4328a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad99310aa5dfb96420dd4088b4e6b80a7"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gad99310aa5dfb96420dd4088b4e6b80a7">M_email_part_append_attachment</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, const char *data, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)</td></tr>
+<tr class="separator:gad99310aa5dfb96420dd4088b4e6b80a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae86904277373968061fcfc0609d18f7b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae86904277373968061fcfc0609d18f7b">M_email_part_append_data</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, const char *data, size_t len)</td></tr>
+<tr class="separator:gae86904277373968061fcfc0609d18f7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabd51538353a1b522ad9a7ce1aa6b094c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gabd51538353a1b522ad9a7ce1aa6b094c">M_email_part_set_data</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, const char *data)</td></tr>
+<tr class="separator:gabd51538353a1b522ad9a7ce1aa6b094c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae49a129f41a231a3b0bb11de76ee003e"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gae49a129f41a231a3b0bb11de76ee003e">M_email_parts_len</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gae49a129f41a231a3b0bb11de76ee003e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga32e79b5242cd5f573ff2fa208f139c5a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga32e79b5242cd5f573ff2fa208f139c5a">M_email_parts_clear</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:ga32e79b5242cd5f573ff2fa208f139c5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8386d36f34fb9882dfbae6de555fdd14"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga8386d36f34fb9882dfbae6de555fdd14">M_email_part_data</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:ga8386d36f34fb9882dfbae6de555fdd14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf5028a3b65f4153acf46d5670a6361bd"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gaf5028a3b65f4153acf46d5670a6361bd">M_email_part_headers</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:gaf5028a3b65f4153acf46d5670a6361bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3a8adb3053fed141614219e5543541dc"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#ga3a8adb3053fed141614219e5543541dc">M_email_part_is_attachmenet</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:ga3a8adb3053fed141614219e5543541dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafd8187b2146a61ff2a46a638d02bd95c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gafd8187b2146a61ff2a46a638d02bd95c">M_email_part_attachment_info</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename)</td></tr>
+<tr class="separator:gafd8187b2146a61ff2a46a638d02bd95c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab1d1220a6b3a436ca96e1e6918a8e4de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__msssage.html#gab1d1220a6b3a436ca96e1e6918a8e4de">M_email_part_remove</a> (<a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, size_t idx)</td></tr>
+<tr class="separator:gab1d1220a6b3a436ca96e1e6918a8e4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>Email message. </p>
+<p>Email email. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="gae73062f049f582e180427a098331f77f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae73062f049f582e180427a098331f77f">&#9670;&nbsp;</a></span>M_email_message_t</h2>
+<a id="ga98989ba32e6ae23118ad7e128917720a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga98989ba32e6ae23118ad7e128917720a">&#9670;&nbsp;</a></span>M_email_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct M_email_message <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a></td>
+          <td class="memname">typedef struct M_email <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -199,14 +199,14 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga43c71199d72d128d7caed991be77a3f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga43c71199d72d128d7caed991be77a3f8">&#9670;&nbsp;</a></span>M_email_message_create()</h2>
+<a id="gacbe4ccc09dd1406cb51523407b364c6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacbe4ccc09dd1406cb51523407b364c6d">&#9670;&nbsp;</a></span>M_email_create()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a>* M_email_message_create </td>
+          <td class="memname"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a>* M_email_create </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -214,22 +214,22 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Create an empty email message</p>
+<p>Create an empty email email</p>
 <p>return Message </p>
 
 </div>
 </div>
-<a id="ga8affc495f77a7ba5ce2f2f1ab49f9805"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8affc495f77a7ba5ce2f2f1ab49f9805">&#9670;&nbsp;</a></span>M_email_message_destroy()</h2>
+<a id="gafdf0252e7a7d0415138e020366990a80"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafdf0252e7a7d0415138e020366990a80">&#9670;&nbsp;</a></span>M_email_destroy()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_destroy </td>
+          <td class="memname">void M_email_destroy </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -237,17 +237,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga262a2737c0c0e6597a030542d2977a7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga262a2737c0c0e6597a030542d2977a7e">&#9670;&nbsp;</a></span>M_email_message_set_headers()</h2>
+<a id="ga3c2ad3e7c3abebab4c49878972d24240"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3c2ad3e7c3abebab4c49878972d24240">&#9670;&nbsp;</a></span>M_email_set_headers()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_set_headers </td>
+          <td class="memname">M_bool M_email_set_headers </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -265,17 +265,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaa089a6fb8e7b0f2e2609cdf276e089fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa089a6fb8e7b0f2e2609cdf276e089fe">&#9670;&nbsp;</a></span>M_email_message_headers_insert()</h2>
+<a id="ga03f00b9b197909d5057a007d9c6f9e94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga03f00b9b197909d5057a007d9c6f9e94">&#9670;&nbsp;</a></span>M_email_headers_insert()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_headers_insert </td>
+          <td class="memname">M_bool M_email_headers_insert </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -299,17 +299,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaf00c9c0bc599ad5c8a1399af4f15bb19"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf00c9c0bc599ad5c8a1399af4f15bb19">&#9670;&nbsp;</a></span>M_email_message_headers_remove()</h2>
+<a id="ga12b35765479a0b6b97005c4b5e2588dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga12b35765479a0b6b97005c4b5e2588dc">&#9670;&nbsp;</a></span>M_email_headers_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_headers_remove </td>
+          <td class="memname">void M_email_headers_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -327,17 +327,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga59aa496bac9f5c9cdd8886cb7211d2c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga59aa496bac9f5c9cdd8886cb7211d2c7">&#9670;&nbsp;</a></span>M_email_message_headers()</h2>
+<a id="ga9501912b1b7d9567ab970a205edec8b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9501912b1b7d9567ab970a205edec8b6">&#9670;&nbsp;</a></span>M_email_headers()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_email_message_headers </td>
+          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_email_headers </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -345,17 +345,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga1b64ae4dbcc17fcb88e73912df682d9d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1b64ae4dbcc17fcb88e73912df682d9d">&#9670;&nbsp;</a></span>M_email_message_from()</h2>
+<a id="ga0dd310d406aa7aac78b413a7c0bb1f2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0dd310d406aa7aac78b413a7c0bb1f2d">&#9670;&nbsp;</a></span>M_email_from()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_from </td>
+          <td class="memname">M_bool M_email_from </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -385,17 +385,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga91fb95ed22e85f75f4833188e92b3848"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga91fb95ed22e85f75f4833188e92b3848">&#9670;&nbsp;</a></span>M_email_message_set_from()</h2>
+<a id="ga71711e0a1d8385e813f66ee632bb664c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga71711e0a1d8385e813f66ee632bb664c">&#9670;&nbsp;</a></span>M_email_set_from()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_set_from </td>
+          <td class="memname">void M_email_set_from </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -425,17 +425,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gae26cfd11643c9c9d60db396267edaf1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae26cfd11643c9c9d60db396267edaf1f">&#9670;&nbsp;</a></span>M_email_message_to_len()</h2>
+<a id="ga1ebdc88e9c4c3b9fb2523432fada5156"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1ebdc88e9c4c3b9fb2523432fada5156">&#9670;&nbsp;</a></span>M_email_to_len()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">size_t M_email_message_to_len </td>
+          <td class="memname">size_t M_email_to_len </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -443,17 +443,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gac983a6bcbb923553b92027451139d995"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac983a6bcbb923553b92027451139d995">&#9670;&nbsp;</a></span>M_email_message_to()</h2>
+<a id="gaee0c89676d2e1c8231c96d8cac3817b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaee0c89676d2e1c8231c96d8cac3817b7">&#9670;&nbsp;</a></span>M_email_to()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_to </td>
+          <td class="memname">M_bool M_email_to </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -489,17 +489,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga9c9c81256e098f3d84a0a40bcac57fe7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga9c9c81256e098f3d84a0a40bcac57fe7">&#9670;&nbsp;</a></span>M_email_message_to_append()</h2>
+<a id="ga42a3b028d12fa6961c8f55e2f5999d3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga42a3b028d12fa6961c8f55e2f5999d3f">&#9670;&nbsp;</a></span>M_email_to_append()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_to_append </td>
+          <td class="memname">void M_email_to_append </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -529,17 +529,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga09d876eb43f38ab4b4a85ac73f55b97e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga09d876eb43f38ab4b4a85ac73f55b97e">&#9670;&nbsp;</a></span>M_email_message_to_remove()</h2>
+<a id="ga557122e5234e2deccc5995de1446ca4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga557122e5234e2deccc5995de1446ca4c">&#9670;&nbsp;</a></span>M_email_to_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_to_remove </td>
+          <td class="memname">void M_email_to_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -557,17 +557,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga98559075c74da3fbe35e4636663f88ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga98559075c74da3fbe35e4636663f88ce">&#9670;&nbsp;</a></span>M_email_message_to_clear()</h2>
+<a id="gadb1443a521e79b60fbd3a0e229a6c458"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadb1443a521e79b60fbd3a0e229a6c458">&#9670;&nbsp;</a></span>M_email_to_clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_to_clear </td>
+          <td class="memname">void M_email_to_clear </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -575,17 +575,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga207487592d5288ec7939ca2727235a64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga207487592d5288ec7939ca2727235a64">&#9670;&nbsp;</a></span>M_email_message_cc_len()</h2>
+<a id="gadfe7701e0f7a965c2bb10efa3d2e7fbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadfe7701e0f7a965c2bb10efa3d2e7fbd">&#9670;&nbsp;</a></span>M_email_cc_len()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">size_t M_email_message_cc_len </td>
+          <td class="memname">size_t M_email_cc_len </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -593,17 +593,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga40b09ea0ca0a2758ca8d652677171119"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga40b09ea0ca0a2758ca8d652677171119">&#9670;&nbsp;</a></span>M_email_message_cc()</h2>
+<a id="gaeb3e413bdc9636d1b3c284ffd620c5a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaeb3e413bdc9636d1b3c284ffd620c5a3">&#9670;&nbsp;</a></span>M_email_cc()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_cc </td>
+          <td class="memname">M_bool M_email_cc </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -639,17 +639,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga1b0edcb746e0ca3470644b3812eff56d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1b0edcb746e0ca3470644b3812eff56d">&#9670;&nbsp;</a></span>M_email_message_cc_append()</h2>
+<a id="gaf71aa9aad93b1c51c24a7e1148dbe39e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf71aa9aad93b1c51c24a7e1148dbe39e">&#9670;&nbsp;</a></span>M_email_cc_append()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_cc_append </td>
+          <td class="memname">void M_email_cc_append </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -679,17 +679,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga83feaa23af905c68e01aaf7e64f968b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga83feaa23af905c68e01aaf7e64f968b2">&#9670;&nbsp;</a></span>M_email_message_cc_remove()</h2>
+<a id="gaf14d2f99fdcb4ddf444d3fee6002cbaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf14d2f99fdcb4ddf444d3fee6002cbaf">&#9670;&nbsp;</a></span>M_email_cc_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_cc_remove </td>
+          <td class="memname">void M_email_cc_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -707,17 +707,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaad9e0767a0ec100da63437fb456c9283"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaad9e0767a0ec100da63437fb456c9283">&#9670;&nbsp;</a></span>M_email_message_cc_clear()</h2>
+<a id="gac0ea61c06fd9192c30451ce37d75c921"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac0ea61c06fd9192c30451ce37d75c921">&#9670;&nbsp;</a></span>M_email_cc_clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_cc_clear </td>
+          <td class="memname">void M_email_cc_clear </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -725,17 +725,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga8c7b5cc3ac83f161afaea4835a6aaa41"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8c7b5cc3ac83f161afaea4835a6aaa41">&#9670;&nbsp;</a></span>M_email_message_bcc_len()</h2>
+<a id="ga5d51d10a12665b6b508f8bdf413de944"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5d51d10a12665b6b508f8bdf413de944">&#9670;&nbsp;</a></span>M_email_bcc_len()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">size_t M_email_message_bcc_len </td>
+          <td class="memname">size_t M_email_bcc_len </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -743,17 +743,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gac11e78997b037b4167e9ac22651886cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac11e78997b037b4167e9ac22651886cb">&#9670;&nbsp;</a></span>M_email_message_bcc()</h2>
+<a id="gafd27f3e0dbe8a51dc241d6ffb498e735"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafd27f3e0dbe8a51dc241d6ffb498e735">&#9670;&nbsp;</a></span>M_email_bcc()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_bcc </td>
+          <td class="memname">M_bool M_email_bcc </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -789,17 +789,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga708204644f60f9ecaa6c0d9eecfec837"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga708204644f60f9ecaa6c0d9eecfec837">&#9670;&nbsp;</a></span>M_email_message_bcc_append()</h2>
+<a id="gaef32ada93fa9ffb9bb130a26eb49647a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaef32ada93fa9ffb9bb130a26eb49647a">&#9670;&nbsp;</a></span>M_email_bcc_append()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_bcc_append </td>
+          <td class="memname">void M_email_bcc_append </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -829,17 +829,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga638083f8c9da9b1e65692874475903c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga638083f8c9da9b1e65692874475903c1">&#9670;&nbsp;</a></span>M_email_message_bcc_remove()</h2>
+<a id="ga1faae9f3ffe9bc2d1613500daceebd86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1faae9f3ffe9bc2d1613500daceebd86">&#9670;&nbsp;</a></span>M_email_bcc_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_bcc_remove </td>
+          <td class="memname">void M_email_bcc_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -857,17 +857,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaab2112159a818ddc2cca9fb182856285"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaab2112159a818ddc2cca9fb182856285">&#9670;&nbsp;</a></span>M_email_message_bcc_clear()</h2>
+<a id="gae00c00e7da6304cd79590199f3f2a5f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae00c00e7da6304cd79590199f3f2a5f1">&#9670;&nbsp;</a></span>M_email_bcc_clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_bcc_clear </td>
+          <td class="memname">void M_email_bcc_clear </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -875,17 +875,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga7bc1f74bad11156f546b5aa136dd3f25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga7bc1f74bad11156f546b5aa136dd3f25">&#9670;&nbsp;</a></span>M_email_message_set_reply_to()</h2>
+<a id="gaa7424907fe91720d2cdef084af92ac60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa7424907fe91720d2cdef084af92ac60">&#9670;&nbsp;</a></span>M_email_set_reply_to()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_set_reply_to </td>
+          <td class="memname">void M_email_set_reply_to </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -915,17 +915,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gacaf5bf9079793a99afd9a59323b9615d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gacaf5bf9079793a99afd9a59323b9615d">&#9670;&nbsp;</a></span>M_email_message_reply_to()</h2>
+<a id="ga24f15f5fbcf51a23afa2525cba00f822"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga24f15f5fbcf51a23afa2525cba00f822">&#9670;&nbsp;</a></span>M_email_reply_to()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_reply_to </td>
+          <td class="memname">M_bool M_email_reply_to </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -955,17 +955,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gafbf86ce466d146b6d759315dbabf3323"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafbf86ce466d146b6d759315dbabf3323">&#9670;&nbsp;</a></span>M_email_message_reply_to_remove()</h2>
+<a id="gaf06022140a4034ba8b6809f7abb3078d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf06022140a4034ba8b6809f7abb3078d">&#9670;&nbsp;</a></span>M_email_reply_to_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_reply_to_remove </td>
+          <td class="memname">void M_email_reply_to_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -973,17 +973,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga0ced42547003947c338431407a311f51"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga0ced42547003947c338431407a311f51">&#9670;&nbsp;</a></span>M_email_message_set_subject()</h2>
+<a id="ga3727c0b03c7190ce425291dd287ca1a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3727c0b03c7190ce425291dd287ca1a2">&#9670;&nbsp;</a></span>M_email_set_subject()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_set_subject </td>
+          <td class="memname">void M_email_set_subject </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1001,17 +1001,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gafc72076ebb367228ff275531107c61f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafc72076ebb367228ff275531107c61f4">&#9670;&nbsp;</a></span>M_email_message_subject()</h2>
+<a id="ga57cfe96b00b56dba06d4152c55608328"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga57cfe96b00b56dba06d4152c55608328">&#9670;&nbsp;</a></span>M_email_subject()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_email_message_subject </td>
+          <td class="memname">const char* M_email_subject </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1019,17 +1019,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga392ac6ff3f8843ee3f824bd1eb4a3f79"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga392ac6ff3f8843ee3f824bd1eb4a3f79">&#9670;&nbsp;</a></span>M_email_message_preamble()</h2>
+<a id="gad8842aeec43cf0384afd93635e0dda5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad8842aeec43cf0384afd93635e0dda5f">&#9670;&nbsp;</a></span>M_email_preamble()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_email_message_preamble </td>
+          <td class="memname">const char* M_email_preamble </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1037,17 +1037,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga5843ec4f0a63e0d8938f093886c6aecf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5843ec4f0a63e0d8938f093886c6aecf">&#9670;&nbsp;</a></span>M_email_message_set_preamble()</h2>
+<a id="ga09eec233fe081d0002eebf100c2f9c9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga09eec233fe081d0002eebf100c2f9c9b">&#9670;&nbsp;</a></span>M_email_set_preamble()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_set_preamble </td>
+          <td class="memname">void M_email_set_preamble </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1065,17 +1065,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaa82f16057464207e9b1d0abb5e093528"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa82f16057464207e9b1d0abb5e093528">&#9670;&nbsp;</a></span>M_email_message_epilouge()</h2>
+<a id="gae69eb05b566b2b11c19d2a6add84710e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae69eb05b566b2b11c19d2a6add84710e">&#9670;&nbsp;</a></span>M_email_epilouge()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_email_message_epilouge </td>
+          <td class="memname">const char* M_email_epilouge </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1083,17 +1083,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga2f1712a6ce5c89dcf08112ad2b9e35d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2f1712a6ce5c89dcf08112ad2b9e35d0">&#9670;&nbsp;</a></span>M_email_message_set_epilouge()</h2>
+<a id="ga4e8d623c72788a5ec8b68225716126aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4e8d623c72788a5ec8b68225716126aa">&#9670;&nbsp;</a></span>M_email_set_epilouge()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_set_epilouge </td>
+          <td class="memname">void M_email_set_epilouge </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1111,17 +1111,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga4c2d1ad79c498e8397c9109ab2f83b9c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4c2d1ad79c498e8397c9109ab2f83b9c">&#9670;&nbsp;</a></span>M_email_message_part_append()</h2>
+<a id="gacd619719b165ad669fa0ff4d80e4328a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacd619719b165ad669fa0ff4d80e4328a">&#9670;&nbsp;</a></span>M_email_part_append()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_append </td>
+          <td class="memname">M_bool M_email_part_append </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1151,17 +1151,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaef1fa2aac0d28f080a24a68ae80426b6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaef1fa2aac0d28f080a24a68ae80426b6">&#9670;&nbsp;</a></span>M_email_message_part_append_attachment()</h2>
+<a id="gad99310aa5dfb96420dd4088b4e6b80a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad99310aa5dfb96420dd4088b4e6b80a7">&#9670;&nbsp;</a></span>M_email_part_append_attachment()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_append_attachment </td>
+          <td class="memname">M_bool M_email_part_append_attachment </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1209,17 +1209,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gabd110cd1569e399e31fc85b042f0bb27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabd110cd1569e399e31fc85b042f0bb27">&#9670;&nbsp;</a></span>M_email_message_part_append_data()</h2>
+<a id="gae86904277373968061fcfc0609d18f7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae86904277373968061fcfc0609d18f7b">&#9670;&nbsp;</a></span>M_email_part_append_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_append_data </td>
+          <td class="memname">M_bool M_email_part_append_data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1249,17 +1249,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gad6f375665038c11ede59f26c076ffc47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad6f375665038c11ede59f26c076ffc47">&#9670;&nbsp;</a></span>M_email_message_part_set_data()</h2>
+<a id="gabd51538353a1b522ad9a7ce1aa6b094c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gabd51538353a1b522ad9a7ce1aa6b094c">&#9670;&nbsp;</a></span>M_email_part_set_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_set_data </td>
+          <td class="memname">M_bool M_email_part_set_data </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1283,17 +1283,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga1873211ab9a3a1ca62a67eb0cae572fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1873211ab9a3a1ca62a67eb0cae572fd">&#9670;&nbsp;</a></span>M_email_message_parts_len()</h2>
+<a id="gae49a129f41a231a3b0bb11de76ee003e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae49a129f41a231a3b0bb11de76ee003e">&#9670;&nbsp;</a></span>M_email_parts_len()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">size_t M_email_message_parts_len </td>
+          <td class="memname">size_t M_email_parts_len </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1301,17 +1301,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga89692468bb67fd61f7eba459b732eadb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga89692468bb67fd61f7eba459b732eadb">&#9670;&nbsp;</a></span>M_email_message_parts_clear()</h2>
+<a id="ga32e79b5242cd5f573ff2fa208f139c5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga32e79b5242cd5f573ff2fa208f139c5a">&#9670;&nbsp;</a></span>M_email_parts_clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_parts_clear </td>
+          <td class="memname">void M_email_parts_clear </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1319,17 +1319,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga811606dbaaee38d75a42ad3c49141ade"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga811606dbaaee38d75a42ad3c49141ade">&#9670;&nbsp;</a></span>M_email_message_part_data()</h2>
+<a id="ga8386d36f34fb9882dfbae6de555fdd14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8386d36f34fb9882dfbae6de555fdd14">&#9670;&nbsp;</a></span>M_email_part_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* M_email_message_part_data </td>
+          <td class="memname">const char* M_email_part_data </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1347,17 +1347,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaa2f657c2712d98ea5ce12ca9a4245617"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa2f657c2712d98ea5ce12ca9a4245617">&#9670;&nbsp;</a></span>M_email_message_part_headers()</h2>
+<a id="gaf5028a3b65f4153acf46d5670a6361bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf5028a3b65f4153acf46d5670a6361bd">&#9670;&nbsp;</a></span>M_email_part_headers()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_email_message_part_headers </td>
+          <td class="memname">const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a>* M_email_part_headers </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1375,17 +1375,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga978b7d3579d02bc0ffbb0cfdd8a6b724"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga978b7d3579d02bc0ffbb0cfdd8a6b724">&#9670;&nbsp;</a></span>M_email_message_part_is_attachmenet()</h2>
+<a id="ga3a8adb3053fed141614219e5543541dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3a8adb3053fed141614219e5543541dc">&#9670;&nbsp;</a></span>M_email_part_is_attachmenet()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_is_attachmenet </td>
+          <td class="memname">M_bool M_email_part_is_attachmenet </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1403,17 +1403,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga486277b8e561ac19e7b339e7beb7d2b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga486277b8e561ac19e7b339e7beb7d2b7">&#9670;&nbsp;</a></span>M_email_message_part_attachment_info()</h2>
+<a id="gafd8187b2146a61ff2a46a638d02bd95c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafd8187b2146a61ff2a46a638d02bd95c">&#9670;&nbsp;</a></span>M_email_part_attachment_info()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_email_message_part_attachment_info </td>
+          <td class="memname">M_bool M_email_part_attachment_info </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1449,17 +1449,17 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga81155824520c914846473b72175b02e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga81155824520c914846473b72175b02e7">&#9670;&nbsp;</a></span>M_email_message_part_remove()</h2>
+<a id="gab1d1220a6b3a436ca96e1e6918a8e4de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab1d1220a6b3a436ca96e1e6918a8e4de">&#9670;&nbsp;</a></span>M_email_part_remove()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void M_email_message_part_remove </td>
+          <td class="memname">void M_email_part_remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#gae73062f049f582e180427a098331f77f">M_email_message_t</a> *&#160;</td>
-          <td class="paramname"><em>message</em>, </td>
+          <td class="paramtype"><a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1482,7 +1482,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 3 2020 21:18:55 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Mar 5 2020 13:16:53 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
