@@ -36,11 +36,13 @@ __BEGIN_DECLS
 /*! \addtogroup m_email Email
  *  \ingroup m_formats
  *
+ * \warning incomplete and under active development
+ *
  * Email envelope reading and writing.
  *
  * This is a flexible implementation and does not auto encode or decode. Also, only
  * minimal data validation is performed. It is possible generate messages that are
- * not standard compliant but it should not be possible to generate a message that
+ * not standard compliant but it should not be possible to generate a email that
  * with this module that cannot then be parsed by this module.
  *
  * Conforms to:
@@ -53,7 +55,7 @@ __BEGIN_DECLS
  * - RFC 2047 MIME (Multipurpose Internet Mail Extensions) Part Three: Message Header Extensions for Non-ASCII Text
  * - Splitting multipart within a multipart body part. The sub multipart will be returned as if it is all body data
  *
- * There are two types of message parsing supported.
+ * There are two types of email parsing supported.
  * - Stream based callback
  * - Simple reader (memory buffered)
  *
@@ -71,17 +73,17 @@ __BEGIN_DECLS
 
 /*! Error codes. */
 typedef enum {
-	M_EMAIL_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed data is present. More data is possible because email does not have a length indicator. However, a complete message has been seen. */
-	M_EMAIL_ERROR_MOREDATA,                   /*!< Incomplete message, more data required. Not necessarily an error if parsing as data is streaming. */
+	M_EMAIL_ERROR_SUCCESS = 0,                /*!< Success. Data fully parsed data is present. More data is possible because email does not have a length indicator. However, a complete email has been seen. */
+	M_EMAIL_ERROR_MOREDATA,                   /*!< Incomplete email, more data required. Not necessarily an error if parsing as data is streaming. */
 	M_EMAIL_ERROR_STOP,                       /*!< Stop processing (Used by callback functions to indicate non-error but stop processing). */
 	M_EMAIL_ERROR_INVALIDUSE,                 /*!< Invalid use. */
 	M_EMAIL_ERROR_HEADER_INVALID,             /*!< Header is malformed.  */
 	M_EMAIL_ERROR_ADDRESS,                    /*!< Address is malformed. */
-	M_EMAIL_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart message missing boundary. */
-	M_EMAIL_ERROR_MULTIPART_HEADER_INVALID,   /*!< Multipart message missing boundary. */
+	M_EMAIL_ERROR_MULTIPART_NOBOUNDARY,       /*!< Multipart email missing boundary. */
+	M_EMAIL_ERROR_MULTIPART_HEADER_INVALID,   /*!< Multipart email missing boundary. */
 	M_EMAIL_ERROR_MULTIPART_MISSING_DATA,     /*!< Multipart data missing. */
 	M_EMAIL_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
-	M_EMAIL_ERROR_NOT_EMAIL,                  /*!< Not an EMAIL message. */
+	M_EMAIL_ERROR_NOT_EMAIL,                  /*!< Not an EMAIL email. */
 	M_EMAIL_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
 } M_email_error_t;
 
@@ -98,96 +100,96 @@ typedef enum {
 /*! \addtogroup m_email_msssage Email Message
  *  \ingroup m_email
  *
- * Email message.
+ * Email email.
  *
  * @{
  */
 
-struct M_email_message;
-typedef struct M_email_message M_email_message_t;
+struct M_email;
+typedef struct M_email M_email_t;
 
 
-/*! Create an empty email message
+/*! Create an empty email email
  *
  * return Message
  */
-M_API M_email_message_t *M_email_message_create(void);
-M_API void M_email_message_destroy(M_email_message_t *message);
+M_API M_email_t *M_email_create(void);
+M_API void M_email_destroy(M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Will update / replace / remove, To, CC, BCC, Subject, Reply-To.
  * Nothing updated on failure. */
-M_API M_bool M_email_message_set_headers(M_email_message_t *message, const M_hash_dict_t *headers);
-M_API M_bool M_email_message_headers_insert(M_email_message_t *message, const char *key, const char *val);
-M_API void M_email_message_headers_remove(M_email_message_t *message, const char *key);
+M_API M_bool M_email_set_headers(M_email_t *email, const M_hash_dict_t *headers);
+M_API M_bool M_email_headers_insert(M_email_t *email, const char *key, const char *val);
+M_API void M_email_headers_remove(M_email_t *email, const char *key);
 /* Does not include, To, CC, BCC, Subject, Reply-To. */
-M_API const M_hash_dict_t *M_email_message_headers(const M_email_message_t *message);
+M_API const M_hash_dict_t *M_email_headers(const M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API M_bool M_email_message_from(const M_email_message_t *message, char const **group, char const **name, char const **address);
-M_API void M_email_message_set_from(M_email_message_t *message, const char *group, const char *name, const char *address);
+M_API M_bool M_email_from(const M_email_t *email, char const **group, char const **name, char const **address);
+M_API void M_email_set_from(M_email_t *email, const char *group, const char *name, const char *address);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API size_t M_email_message_to_len(const M_email_message_t *message);
-M_API M_bool M_email_message_to(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
-M_API void M_email_message_to_append(M_email_message_t *message, const char *group, const char *name, const char *address);
-M_API void M_email_message_to_remove(M_email_message_t *message, size_t idx);
-M_API void M_email_message_to_clear(M_email_message_t *message);
+M_API size_t M_email_to_len(const M_email_t *email);
+M_API M_bool M_email_to(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_to_append(M_email_t *email, const char *group, const char *name, const char *address);
+M_API void M_email_to_remove(M_email_t *email, size_t idx);
+M_API void M_email_to_clear(M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API size_t M_email_message_cc_len(const M_email_message_t *message);
-M_API M_bool M_email_message_cc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
-M_API void M_email_message_cc_append(M_email_message_t *message, const char *group, const char *name, const char *address);
-M_API void M_email_message_cc_remove(M_email_message_t *message, size_t idx);
-M_API void M_email_message_cc_clear(M_email_message_t *message);
+M_API size_t M_email_cc_len(const M_email_t *email);
+M_API M_bool M_email_cc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_cc_append(M_email_t *email, const char *group, const char *name, const char *address);
+M_API void M_email_cc_remove(M_email_t *email, size_t idx);
+M_API void M_email_cc_clear(M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API size_t M_email_message_bcc_len(const M_email_message_t *message);
-M_API M_bool M_email_message_bcc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address);
-M_API void M_email_message_bcc_append(M_email_message_t *message, const char *group, const char *name, const char *address);
-M_API void M_email_message_bcc_remove(M_email_message_t *message, size_t idx);
-M_API void M_email_message_bcc_clear(M_email_message_t *message);
+M_API size_t M_email_bcc_len(const M_email_t *email);
+M_API M_bool M_email_bcc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API void M_email_bcc_append(M_email_t *email, const char *group, const char *name, const char *address);
+M_API void M_email_bcc_remove(M_email_t *email, size_t idx);
+M_API void M_email_bcc_clear(M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API void M_email_message_set_reply_to(M_email_message_t *message, const char *group, const char *name, const char *address);
-M_API M_bool M_email_message_reply_to(const M_email_message_t *message, char const **group, char const **name, char const **address);
-M_API void M_email_message_reply_to_remove(M_email_message_t *message);
+M_API void M_email_set_reply_to(M_email_t *email, const char *group, const char *name, const char *address);
+M_API M_bool M_email_reply_to(const M_email_t *email, char const **group, char const **name, char const **address);
+M_API void M_email_reply_to_remove(M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API void M_email_message_set_subject(M_email_message_t *message, const char *subject);
-M_API const char *M_email_message_subject(const M_email_message_t *message);
+M_API void M_email_set_subject(M_email_t *email, const char *subject);
+M_API const char *M_email_subject(const M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API const char *M_email_message_preamble(M_email_message_t *message);
-M_API void M_email_message_set_preamble(M_email_message_t *message, const char *data);
-M_API const char *M_email_message_epilouge(M_email_message_t *message);
-M_API void M_email_message_set_epilouge(M_email_message_t *message, const char *data);
+M_API const char *M_email_preamble(M_email_t *email);
+M_API void M_email_set_preamble(M_email_t *email, const char *data);
+M_API const char *M_email_epilouge(M_email_t *email);
+M_API void M_email_set_epilouge(M_email_t *email, const char *data);
 
-M_API M_bool M_email_message_part_append(M_email_message_t *message, const char *data, M_hash_dict_t *headers, size_t *idx);
+M_API M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *headers, size_t *idx);
 /* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
-M_API M_bool M_email_message_part_append_attachment(M_email_message_t *message, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
-M_API M_bool M_email_message_part_append_data(M_email_message_t *message, size_t idx, const char *data, size_t len);
-M_API M_bool M_email_message_part_set_data(M_email_message_t *message, size_t idx, const char *data);
+M_API M_bool M_email_part_append_attachment(M_email_t *email, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
+M_API M_bool M_email_part_append_data(M_email_t *email, size_t idx, const char *data, size_t len);
+M_API M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data);
 
-M_API size_t M_email_message_parts_len(const M_email_message_t *message);
-M_API void M_email_message_parts_clear(M_email_message_t *message);
+M_API size_t M_email_parts_len(const M_email_t *email);
+M_API void M_email_parts_clear(M_email_t *email);
 
-M_API const char *M_email_message_part_data(const M_email_message_t *message, size_t idx);
+M_API const char *M_email_part_data(const M_email_t *email, size_t idx);
 /* If attachment, exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
-M_API const M_hash_dict_t *M_email_message_part_headers(const M_email_message_t *message, size_t idx);
+M_API const M_hash_dict_t *M_email_part_headers(const M_email_t *email, size_t idx);
 
-M_API M_bool M_email_message_part_is_attachmenet(const M_email_message_t *message, size_t idx);
-M_API M_bool M_email_message_part_attachment_info(const M_email_message_t *message, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename);
+M_API M_bool M_email_part_is_attachmenet(const M_email_t *email, size_t idx);
+M_API M_bool M_email_part_attachment_info(const M_email_t *email, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename);
 
-M_API void M_email_message_part_remove(M_email_message_t *message, size_t idx);
+M_API void M_email_part_remove(M_email_t *email, size_t idx);
 
 
 /*! @} */
@@ -336,7 +338,7 @@ typedef M_email_error_t (*M_email_reader_bcc_func)(const char *group, const char
 typedef M_email_error_t (*M_email_reader_reply_to_func)(const char *group, const char *name, const char *address, void *thunk);
 
 
-/*! Function definition for the message Subject
+/*! Function definition for the email Subject
  *
  * \param[in] subject The subject.
  * \param[in] thunk   Thunk.
@@ -412,19 +414,10 @@ typedef M_email_error_t (*M_email_reader_multipart_preamble_done_func)(void *thu
 typedef M_email_error_t (*M_email_reader_multipart_header_func)(const char *key, const char *val, size_t idx, void *thunk);
 
 
-/*! Function definition for completion of multipart part header parsing.
- *
- * \param[in] idx   Part number.
- * \param[in] thunk Thunk.
- *
- * \return Result
- */
-typedef M_email_error_t (*M_email_reader_multipart_header_done_func)(size_t idx, void *thunk);
-
-
 /*! Function definition for multipart attachment meta data.
  *
  * Will only be called when a part is marked as an attachment.
+ * Will be called immediately before M_email_reader_multipart_header_done_func.
  *
  * \param[in] content_type      The content type.
  * \param[in] transfer_encoding The format the data was received in. E.g. Base64, clear text, ext..
@@ -435,6 +428,16 @@ typedef M_email_error_t (*M_email_reader_multipart_header_done_func)(size_t idx,
  * \return Result
  */
 typedef M_email_error_t (*M_email_reader_multipart_header_attachment_func)(const char *content_type, const char *transfer_encoding, const char *filename, size_t idx, void *thunk);
+
+
+/*! Function definition for completion of multipart part header parsing.
+ *
+ * \param[in] idx   Part number.
+ * \param[in] thunk Thunk.
+ *
+ * \return Result
+ */
+typedef M_email_error_t (*M_email_reader_multipart_header_done_func)(size_t idx, void *thunk);
 
 
 /*! Function definition for reading multipart part data.
@@ -503,8 +506,8 @@ struct M_email_reader_callbacks {
 	M_email_reader_multipart_preamble_func          multipart_preamble_func;
 	M_email_reader_multipart_preamble_done_func     multipart_preamble_done_func;
 	M_email_reader_multipart_header_func            multipart_header_func;
-	M_email_reader_multipart_header_done_func       multipart_header_done_func;
 	M_email_reader_multipart_header_attachment_func multipart_header_attachment_func;
+	M_email_reader_multipart_header_done_func       multipart_header_done_func;
 	M_email_reader_multipart_data_func              multipart_data_func;
 	M_email_reader_multipart_data_done_func         multipart_data_done_func;
 	M_email_reader_multipart_data_finished_func     multipart_data_finished_func;
@@ -534,16 +537,16 @@ M_API void M_email_reader_destroy(M_email_reader_t *emailr);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Parse email message from given data.
+/*! Parse email email from given data.
  *
- * When a parse returns without error but a full message has not been read, the
+ * When a parse returns without error but a full email has not been read, the
  * parse should be run again starting where the last parse stopped. The reader
- * can only be used once per complete message.
+ * can only be used once per complete email.
  *
  * Will _not_ return M_EMAIL_ERROR_MOREDATA. It is up to the caller to
- * determine when a full message has been read based on the callbacks that have
+ * determine when a full email has been read based on the callbacks that have
  * been called. The _done callbacks can indicate if all processing has
- * completed. If the message is not multipart it is impossible to determine if
+ * completed. If the email is not multipart it is impossible to determine if
  * a parse is complete.
  *
  * \param[in]  emailr   email reader object.
@@ -554,6 +557,92 @@ M_API void M_email_reader_destroy(M_email_reader_t *emailr);
  * \return Result.
  */
 M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsigned char *data, size_t data_len, size_t *len_read);
+
+/*! @} */
+
+/*! \addtogroup m_email_simple Email Simple
+ *  \ingroup m_email
+ *
+ * Buffered reader and writer.
+ *
+ * @{
+ */
+
+/*! \addtogroup m_email_simple_read Email Simple Reader
+ *  \ingroup m_email_simple
+ *
+ * Reads a full email email. Useful for small messages.
+ * Alls all data is contained within on object for
+ * easy processing.
+ *
+ * @{
+ */
+
+struct M_email_simple_read;
+typedef struct M_email_simple_read M_email_simple_read_t;
+
+
+typedef enum {
+	M_EMAIL_SIMPLE_READ_NONE = 0,
+} M_email_simple_read_flags_t;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/*! Read the next email from the given buffer, store results in a new M_email_t object.
+ *
+ * Will return M_EMAIL_ERROR_MOREDATA if we need to wait for more data to get a complete email.
+ *
+ * \param[out] email    Place to store new M_email_t object. Can be NULL to check for valid email.
+ *                      Will only be set on M_EMAIL_ERROR_SUCCESS, and M_EMAIL_ERROR_SUCCESS_MORE_POSSIBLE.
+ * \param[in]  data     Buffer containing EMAIL messages to read.
+ * \param[in]  data_len Length of \a data.
+ * \param[in]  flags    Read options (OR'd combo of M_email_simple_read_flags_t).
+ * \param[in]  len_read Num bytes consumed from \a data (may be NULL, if caller doesn't need this info).
+ *                      Will be set on error indicating the location in the email that generated the error.
+ *
+ * \return Response code.
+ *
+ * \see M_email_reader_read
+ * \see M_email_simple_read_parser
+ */
+M_API M_email_error_t M_email_simple_read(M_email_t **email, const char *data, size_t data_len, M_uint32 flags, size_t *len_read);
+
+
+/*! Read the next email from the given parser.
+ *
+ * Will return M_EMAIL_ERROR_MOREDATA if we need to wait for more data to get a complete email.
+ * No data will be dropped from the parser, in this case.
+ *
+ * On all other return values the parser will advance and data consumed. On a hard ERROR condition
+ * the parser will start at the point of the error. If this is undesirable, the parser should be
+ * marked and rewound after this function is called.
+ *
+ * \param[out] email  Place to store new M_email_t object. Can be NULL to check for valid email.
+ *                    Will only be set on M_EMAIL_ERROR_SUCCESS, and M_EMAIL_ERROR_SUCCESS_MORE_POSSIBLE.
+ * \param[in]  parser Buffer containing messages to read.
+ * \param[in]  flags  Read options (OR'd combo of M_email_simple_read_flags_t).
+ *
+ * \return Response code.
+ *
+ * \see M_email_reader_read
+ * \see M_email_simple_read
+ */
+M_API M_email_error_t M_email_simple_read_parser(M_email_t **email, M_parser_t *parser, M_uint32 flags);
+
+/*! @} */
+
+
+/*! \addtogroup m_email_simple_write Email Simple Reader
+ *  \ingroup m_email_simple
+ *
+ * Reads a full email email. Useful for small messages.
+ * Alls all data is contained within on object for
+ * easy processing.
+ *
+ * @{
+ */
+
+/*! @} */
 
 /*! @} */
 

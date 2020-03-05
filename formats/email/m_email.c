@@ -38,24 +38,24 @@ typedef struct {
 	char          *content_type;
 	char          *transfer_encoding;
 	char          *filename;
-} M_email_message_part_t;
+} M_email_part_t;
 
 typedef struct {
 	char *group;
 	char *name;
 	char *address;
-} M_email_message_address_t;
+} M_email_address_t;
 
-struct M_email_message {
+struct M_email {
 	M_hash_dict_t             *headers;
-	M_list_t                  *to;    /* List of M_email_message_address_t */
-	M_list_t                  *cc;    /* List of M_email_message_address_t */
-	M_list_t                  *bcc;   /* List of M_email_message_address_t */
-	M_list_t                  *parts; /* List of M_email_message_part_t */
+	M_list_t                  *to;    /* List of M_email_address_t */
+	M_list_t                  *cc;    /* List of M_email_address_t */
+	M_list_t                  *bcc;   /* List of M_email_address_t */
+	M_list_t                  *parts; /* List of M_email_part_t */
 	char                      *preamble;
 	char                      *epilogue;
-	M_email_message_address_t *reply_to;
-	M_email_message_address_t *from;
+	M_email_address_t *reply_to;
+	M_email_address_t *from;
 	char                      *subject;
 };
 
@@ -63,15 +63,15 @@ struct M_email_message {
 
 static int address_list_cmp(const void *a, const void *b)
 {
-	const M_email_message_address_t *sa = *(const M_email_message_address_t **)a;
-	const M_email_message_address_t *sb = *(const M_email_message_address_t **)b;
+	const M_email_address_t *sa = *(const M_email_address_t **)a;
+	const M_email_address_t *sb = *(const M_email_address_t **)b;
 
 	return M_str_cmpsort(sa->group, sb->group);
 }
 
-static M_email_message_address_t *M_email_message_address_create(const char *group, const char *name, const char *address)
+static M_email_address_t *M_email_address_create(const char *group, const char *name, const char *address)
 {
-	M_email_message_address_t *ad;
+	M_email_address_t *ad;
 
 	ad          = M_malloc_zero(sizeof(*ad));
 	ad->group   = M_strdup(group);
@@ -81,7 +81,7 @@ static M_email_message_address_t *M_email_message_address_create(const char *gro
 	return ad;
 }
 
-static void M_email_message_address_destroy(M_email_message_address_t *ad)
+static void M_email_address_destroy(M_email_address_t *ad)
 {
 	if (ad == NULL)
 		return;
@@ -99,13 +99,13 @@ static M_list_t *create_address_list(void)
 		(M_sort_compar_t)address_list_cmp,
 		NULL,
 		NULL,
-		(M_list_free_func)M_email_message_address_destroy
+		(M_list_free_func)M_email_address_destroy
 	};
 
 	return M_list_create(&cbs, M_LIST_SORTED);
 }
 
-static M_bool M_email_message_address_entry(M_email_message_address_t *ad, char const **group, char const **name, char const **address)
+static M_bool M_email_address_entry(M_email_address_t *ad, char const **group, char const **name, char const **address)
 {
 	if (ad == NULL ||
 			(M_str_isempty(ad->group) &&
@@ -136,10 +136,10 @@ static M_bool M_email_message_address_entry(M_email_message_address_t *ad, char 
 
 static M_email_error_t set_address_list(const char *group, const char *name, const char *address, void *thunk)
 {
-	M_email_message_address_t *ad;
+	M_email_address_t *ad;
 	M_list_t                  *alist = thunk;
 
-	ad = M_email_message_address_create(group, name, address);
+	ad = M_email_address_create(group, name, address);
 	M_list_insert(alist, ad);
 
 	return M_EMAIL_ERROR_SUCCESS;
@@ -147,7 +147,7 @@ static M_email_error_t set_address_list(const char *group, const char *name, con
 
 static M_email_error_t set_single_address(const char *group, const char *name, const char *address, void *thunk)
 {
-	M_email_message_address_t *ad = thunk;
+	M_email_address_t *ad = thunk;
 
 	M_free(ad->group);
 	M_free(ad->name);
@@ -161,9 +161,9 @@ static M_email_error_t set_single_address(const char *group, const char *name, c
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_email_message_part_t *M_email_message_part_create(void)
+static M_email_part_t *M_email_part_create(void)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
 	part          = M_malloc_zero(sizeof(*part));
 	part->data    = M_buf_create();
@@ -172,7 +172,7 @@ static M_email_message_part_t *M_email_message_part_create(void)
 	return part;
 }
 
-static void M_email_message_part_destroy(M_email_message_part_t *part)
+static void M_email_part_destroy(M_email_part_t *part)
 {
 	if (part == NULL)
 		return;
@@ -194,7 +194,7 @@ static M_list_t *create_part_list(void)
 		NULL,
 		NULL,
 		NULL,
-		(M_list_free_func)M_email_message_part_destroy
+		(M_list_free_func)M_email_part_destroy
 	};
 	return M_list_create(&cbs, M_LIST_NONE);
 }
@@ -214,68 +214,68 @@ static M_bool append_part_is_attachment(const M_hash_dict_t *headers)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_email_message_t *M_email_message_create(void)
+M_email_t *M_email_create(void)
 {
-	M_email_message_t *message;
+	M_email_t *email;
 
-	message           = M_malloc_zero(sizeof(*message));
-	message->headers  = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
+	email           = M_malloc_zero(sizeof(*email));
+	email->headers  = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
 
-	message->to       = create_address_list();
-	message->cc       = create_address_list();
-	message->bcc      = create_address_list();
-	message->reply_to = M_email_message_address_create(NULL, NULL, NULL);
-	message->from     = M_email_message_address_create(NULL, NULL, NULL);
+	email->to       = create_address_list();
+	email->cc       = create_address_list();
+	email->bcc      = create_address_list();
+	email->reply_to = M_email_address_create(NULL, NULL, NULL);
+	email->from     = M_email_address_create(NULL, NULL, NULL);
 
-	message->parts    = create_part_list();
+	email->parts    = create_part_list();
 
-	return message;
+	return email;
 }
 
-void M_email_message_destroy(M_email_message_t *message)
+void M_email_destroy(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_hash_dict_destroy(message->headers);
-	M_list_destroy(message->to, M_TRUE);
-	M_list_destroy(message->cc, M_TRUE);
-	M_list_destroy(message->bcc, M_TRUE);
-	M_email_message_address_destroy(message->reply_to);
-	M_email_message_address_destroy(message->from);
-	M_list_destroy(message->parts, M_TRUE);
-	M_free(message->preamble);
-	M_free(message->epilogue);
-	M_free(message->subject);
+	M_hash_dict_destroy(email->headers);
+	M_list_destroy(email->to, M_TRUE);
+	M_list_destroy(email->cc, M_TRUE);
+	M_list_destroy(email->bcc, M_TRUE);
+	M_email_address_destroy(email->reply_to);
+	M_email_address_destroy(email->from);
+	M_list_destroy(email->parts, M_TRUE);
+	M_free(email->preamble);
+	M_free(email->epilogue);
+	M_free(email->subject);
 
-	M_free(message);
+	M_free(email);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_email_message_set_headers(M_email_message_t *message, const M_hash_dict_t *headers)
+M_bool M_email_set_headers(M_email_t *email, const M_hash_dict_t *headers)
 {
 	M_hash_dict_t             *new_headers;
 	M_list_t                  *to       = NULL;
 	M_list_t                  *cc       = NULL;
 	M_list_t                  *bcc      = NULL;
-	M_email_message_address_t *reply_to = NULL;
-	M_email_message_address_t *from     = NULL;
+	M_email_address_t *reply_to = NULL;
+	M_email_address_t *from     = NULL;
 	char                      *subject  = NULL;
 	M_hash_dict_enum_t        *he;
 	const char                *key;
 	const char                *val;
 	M_email_error_t            res      = M_EMAIL_ERROR_SUCCESS;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
 	new_headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
 	to          = create_address_list();
 	cc          = create_address_list();
 	bcc         = create_address_list();
-	reply_to    = M_email_message_address_create(NULL, NULL, NULL);
-	from        = M_email_message_address_create(NULL, NULL, NULL);
+	reply_to    = M_email_address_create(NULL, NULL, NULL);
+	from        = M_email_address_create(NULL, NULL, NULL);
 
 	/* Enumerating and not duplicating because we want to ensure we have
  	 * a single value dict with casecmp keys. */
@@ -303,44 +303,44 @@ M_bool M_email_message_set_headers(M_email_message_t *message, const M_hash_dict
 		M_list_destroy(to, M_TRUE);
 		M_list_destroy(cc, M_TRUE);
 		M_list_destroy(bcc, M_TRUE);
-		M_email_message_address_destroy(reply_to);
-		M_email_message_address_destroy(from);
+		M_email_address_destroy(reply_to);
+		M_email_address_destroy(from);
 		M_free(subject);
 		M_hash_dict_destroy(new_headers);
 		return M_FALSE;
 	}
 
-	M_hash_dict_destroy(message->headers);
-	message->headers = new_headers;
+	M_hash_dict_destroy(email->headers);
+	email->headers = new_headers;
 
-	M_list_destroy(message->to, M_TRUE);
-	message->to = to;
+	M_list_destroy(email->to, M_TRUE);
+	email->to = to;
 
-	M_list_destroy(message->cc, M_TRUE);
-	message->cc = cc;
+	M_list_destroy(email->cc, M_TRUE);
+	email->cc = cc;
 
-	M_list_destroy(message->bcc, M_TRUE);
-	message->bcc = bcc;
+	M_list_destroy(email->bcc, M_TRUE);
+	email->bcc = bcc;
 
-	M_email_message_address_destroy(message->reply_to);
-	message->reply_to = reply_to;
+	M_email_address_destroy(email->reply_to);
+	email->reply_to = reply_to;
 
-	M_email_message_address_destroy(message->from);
-	message->from = from;
+	M_email_address_destroy(email->from);
+	email->from = from;
 
-	M_free(message->subject);
-	message->subject = subject;
+	M_free(email->subject);
+	email->subject = subject;
 
 	return M_TRUE;
 }
 
-M_bool M_email_message_headers_insert(M_email_message_t *message, const char *key, const char *val)
+M_bool M_email_headers_insert(M_email_t *email, const char *key, const char *val)
 {
 	M_list_t                  *alist = NULL;
-	M_email_message_address_t *ad    = NULL;
+	M_email_address_t *ad    = NULL;
 	M_email_error_t            res;
 
-	if (message == NULL || M_str_isempty(key))
+	if (email == NULL || M_str_isempty(key))
 		return M_FALSE;
 
 	if (M_str_caseeq(key, "To") || M_str_caseeq(key, "CC") || M_str_caseeq(key, "BCC")) {
@@ -352,296 +352,296 @@ M_bool M_email_message_headers_insert(M_email_message_t *message, const char *ke
 		}
 
 		if (M_str_caseeq(key, "To")) {
-			M_list_destroy(message->to, M_TRUE);
-			message->to = alist;
+			M_list_destroy(email->to, M_TRUE);
+			email->to = alist;
 		} else if (M_str_caseeq(key, "CC")) {
-			M_list_destroy(message->cc, M_TRUE);
-			message->cc = alist;
+			M_list_destroy(email->cc, M_TRUE);
+			email->cc = alist;
 		} else if (M_str_caseeq(key, "BCC")) {
-			M_list_destroy(message->bcc, M_TRUE);
-			message->bcc = alist;
+			M_list_destroy(email->bcc, M_TRUE);
+			email->bcc = alist;
 		}
 
 		return M_TRUE;
 	}
 
 	if (M_str_caseeq(key, "Reply-To") || M_str_caseeq(key, "From")) {
-		ad  = M_email_message_address_create(NULL, NULL, NULL);
+		ad  = M_email_address_create(NULL, NULL, NULL);
 		res = M_email_process_address(val, set_single_address, ad);
 		if (res != M_EMAIL_ERROR_SUCCESS) {
-			M_email_message_address_destroy(ad);
+			M_email_address_destroy(ad);
 			return M_FALSE;
 		}
 
 		if (M_str_caseeq(key, "Reply-To")) {
-			M_email_message_address_destroy(message->reply_to);
-			message->reply_to = ad;
+			M_email_address_destroy(email->reply_to);
+			email->reply_to = ad;
 		} else if (M_str_caseeq(key, "From")) {
-			M_email_message_address_destroy(message->from);
-			message->from = ad;
+			M_email_address_destroy(email->from);
+			email->from = ad;
 		}
 
 		return M_TRUE;
 	}
 
 	if (M_str_caseeq(key, "Subject")) {
-		M_free(message->subject);
-		message->subject = M_strdup(val);
+		M_free(email->subject);
+		email->subject = M_strdup(val);
 		return M_TRUE;
 	}
 
-	return M_hash_dict_insert(message->headers, key, val);
+	return M_hash_dict_insert(email->headers, key, val);
 }
 
-void M_email_message_headers_remove(M_email_message_t *message, const char *key)
+void M_email_headers_remove(M_email_t *email, const char *key)
 {
-	if (message == NULL || M_str_isempty(key))
+	if (email == NULL || M_str_isempty(key))
 		return;
 
-	M_hash_dict_remove(message->headers, key);
+	M_hash_dict_remove(email->headers, key);
 }
 
-const M_hash_dict_t *M_email_message_headers(const M_email_message_t *message)
+const M_hash_dict_t *M_email_headers(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
 
-	return message->headers;
+	return email->headers;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_email_message_from(const M_email_message_t *message, char const **group, char const **name, char const **address)
+M_bool M_email_from(const M_email_t *email, char const **group, char const **name, char const **address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
-	return M_email_message_address_entry(message->from, group, name, address);
+	return M_email_address_entry(email->from, group, name, address);
 }
 
-void M_email_message_set_from(M_email_message_t *message, const char *group, const char *name, const char *address)
+void M_email_set_from(M_email_t *email, const char *group, const char *name, const char *address)
 {
-	M_email_message_address_t *ad;
+	M_email_address_t *ad;
 
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
 	/* Set before destroy in case the input parameters are
- 	 * from M_email_message_from because something is being added
+ 	 * from M_email_from because something is being added
 	 * to the entry. */
-	ad = M_email_message_address_create(group, name, address);
-	M_email_message_address_destroy(message->from);
-	message->from = ad;
+	ad = M_email_address_create(group, name, address);
+	M_email_address_destroy(email->from);
+	email->from = ad;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-size_t M_email_message_to_len(const M_email_message_t *message)
+size_t M_email_to_len(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return 0;
 
-	return M_list_len(message->to);
+	return M_list_len(email->to);
 }
 
-M_bool M_email_message_to(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address)
+M_bool M_email_to(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
-	return M_email_message_address_entry((M_email_message_address_t *)M_list_at(message->to, idx), group, name, address);
+	return M_email_address_entry((M_email_address_t *)M_list_at(email->to, idx), group, name, address);
 }
 
-void M_email_message_to_append(M_email_message_t *message, const char *group, const char *name, const char *address)
+void M_email_to_append(M_email_t *email, const char *group, const char *name, const char *address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_insert(message->to, M_email_message_address_create(group, name, address));
+	M_list_insert(email->to, M_email_address_create(group, name, address));
 }
 
-void M_email_message_to_remove(M_email_message_t *message, size_t idx)
+void M_email_to_remove(M_email_t *email, size_t idx)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_remove_at(message->to, idx);
+	M_list_remove_at(email->to, idx);
 }
 
-void M_email_message_to_clear(M_email_message_t *message)
+void M_email_to_clear(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_destroy(message->to, M_TRUE);
-	message->to = create_address_list(); 
+	M_list_destroy(email->to, M_TRUE);
+	email->to = create_address_list(); 
 }
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-size_t M_email_message_cc_len(const M_email_message_t *message)
+size_t M_email_cc_len(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return 0;
 
-	return M_list_len(message->cc);
+	return M_list_len(email->cc);
 }
 
-M_bool M_email_message_cc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address)
+M_bool M_email_cc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
-	return M_email_message_address_entry((M_email_message_address_t *)M_list_at(message->cc, idx), group, name, address);
+	return M_email_address_entry((M_email_address_t *)M_list_at(email->cc, idx), group, name, address);
 }
 
-void M_email_message_cc_append(M_email_message_t *message, const char *group, const char *name, const char *address)
+void M_email_cc_append(M_email_t *email, const char *group, const char *name, const char *address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_insert(message->cc, M_email_message_address_create(group, name, address));
+	M_list_insert(email->cc, M_email_address_create(group, name, address));
 }
 
-void M_email_message_cc_remove(M_email_message_t *message, size_t idx)
+void M_email_cc_remove(M_email_t *email, size_t idx)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_remove_at(message->cc, idx);
+	M_list_remove_at(email->cc, idx);
 }
 
-void M_email_message_cc_clear(M_email_message_t *message)
+void M_email_cc_clear(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_destroy(message->cc, M_TRUE);
-	message->cc = create_address_list(); 
+	M_list_destroy(email->cc, M_TRUE);
+	email->cc = create_address_list(); 
 }
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-size_t M_email_message_bcc_len(const M_email_message_t *message)
+size_t M_email_bcc_len(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return 0;
 
-	return M_list_len(message->bcc);
+	return M_list_len(email->bcc);
 }
 
-M_bool M_email_message_bcc(const M_email_message_t *message, size_t idx, char const **group, char const **name, char const **address)
+M_bool M_email_bcc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
-	return M_email_message_address_entry((M_email_message_address_t *)M_list_at(message->bcc, idx), group, name, address);
+	return M_email_address_entry((M_email_address_t *)M_list_at(email->bcc, idx), group, name, address);
 }
 
-void M_email_message_bcc_append(M_email_message_t *message, const char *group, const char *name, const char *address)
+void M_email_bcc_append(M_email_t *email, const char *group, const char *name, const char *address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_insert(message->bcc, M_email_message_address_create(group, name, address));
+	M_list_insert(email->bcc, M_email_address_create(group, name, address));
 }
 
-void M_email_message_bcc_remove(M_email_message_t *message, size_t idx)
+void M_email_bcc_remove(M_email_t *email, size_t idx)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_remove_at(message->bcc, idx);
+	M_list_remove_at(email->bcc, idx);
 }
 
-void M_email_message_bcc_clear(M_email_message_t *message)
+void M_email_bcc_clear(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_destroy(message->bcc, M_TRUE);
-	message->bcc = create_address_list(); 
+	M_list_destroy(email->bcc, M_TRUE);
+	email->bcc = create_address_list(); 
 }
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_email_message_reply_to(const M_email_message_t *message, char const **group, char const **name, char const **address)
+M_bool M_email_reply_to(const M_email_t *email, char const **group, char const **name, char const **address)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
-	return M_email_message_address_entry(message->reply_to, group, name, address);
+	return M_email_address_entry(email->reply_to, group, name, address);
 }
 
-void M_email_message_set_reply_to(M_email_message_t *message, const char *group, const char *name, const char *address)
+void M_email_set_reply_to(M_email_t *email, const char *group, const char *name, const char *address)
 {
-	M_email_message_address_t *ad;
+	M_email_address_t *ad;
 
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
 	/* Set before destroy in case the input parameters are
- 	 * reply_to M_email_message_reply_to because something is being added
+ 	 * reply_to M_email_reply_to because something is being added
 	 * to the entry. */
-	ad = M_email_message_address_create(group, name, address);
-	M_email_message_address_destroy(message->reply_to);
-	message->reply_to = ad;
+	ad = M_email_address_create(group, name, address);
+	M_email_address_destroy(email->reply_to);
+	email->reply_to = ad;
 }
 
-void M_email_message_reply_to_remove(M_email_message_t *message)
+void M_email_reply_to_remove(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_email_message_address_destroy(message->reply_to);
-	message->reply_to = M_email_message_address_create(NULL, NULL, NULL);
+	M_email_address_destroy(email->reply_to);
+	email->reply_to = M_email_address_create(NULL, NULL, NULL);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void M_email_message_set_subject(M_email_message_t *message, const char *subject)
+void M_email_set_subject(M_email_t *email, const char *subject)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_free(message->subject);
-	message->subject = M_strdup(subject);
+	M_free(email->subject);
+	email->subject = M_strdup(subject);
 }
 
-const char *M_email_message_subject(const M_email_message_t *message)
+const char *M_email_subject(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
-	return message->subject;
+	return email->subject;
 }
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-const char *M_email_message_preamble(M_email_message_t *message)
+const char *M_email_preamble(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
-	return message->preamble;
+	return email->preamble;
 }
 
-void M_email_message_set_preamble(M_email_message_t *message, const char *data)
+void M_email_set_preamble(M_email_t *email, const char *data)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_free(message->preamble);
-	message->preamble = M_strdup(data);
+	M_free(email->preamble);
+	email->preamble = M_strdup(data);
 }
 
-const char *M_email_message_epilouge(M_email_message_t *message)
+const char *M_email_epilouge(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
-	return message->epilogue;
+	return email->epilogue;
 }
 
-void M_email_message_set_epilouge(M_email_message_t *message, const char *data)
+void M_email_set_epilouge(M_email_t *email, const char *data)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_free(message->epilogue);
-	message->epilogue = M_strdup(data);
+	M_free(email->epilogue);
+	email->epilogue = M_strdup(data);
 }
 
-M_bool M_email_message_part_append(M_email_message_t *message, const char *data, M_hash_dict_t *headers, size_t *idx)
+M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *headers, size_t *idx)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 	M_hash_dict_enum_t     *he;
 	const char             *key;
 	const char             *val;
@@ -651,13 +651,13 @@ M_bool M_email_message_part_append(M_email_message_t *message, const char *data,
 		idx = &myidx;
 	*idx = 0;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
 	if (append_part_is_attachment(headers))
-		return M_email_message_part_append_attachment(message, data, headers, NULL, NULL, NULL, idx);
+		return M_email_part_append_attachment(email, data, headers, NULL, NULL, NULL, idx);
 
-	part = M_email_message_part_create();
+	part = M_email_part_create();
 	M_buf_add_str(part->data, data);
 
 	if (headers != NULL) {
@@ -668,18 +668,18 @@ M_bool M_email_message_part_append(M_email_message_t *message, const char *data,
 		M_hash_dict_enumerate_free(he);
 	}
 
-	if (!M_list_insert(message->parts, part)) {
-		M_email_message_part_destroy(part);
+	if (!M_list_insert(email->parts, part)) {
+		M_email_part_destroy(part);
 		return M_FALSE;
 	}
 
-	*idx = M_list_len(message->parts)-1;
+	*idx = M_list_len(email->parts)-1;
 	return M_TRUE;
 }
 
-M_bool M_email_message_part_append_attachment(M_email_message_t *message, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)
+M_bool M_email_part_append_attachment(M_email_t *email, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 	M_hash_dict_enum_t     *he;
 	const char             *key;
 	const char             *val;
@@ -689,10 +689,10 @@ M_bool M_email_message_part_append_attachment(M_email_message_t *message, const 
 		idx = &myidx;
 	*idx = 0;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
-	part                    = M_email_message_part_create();
+	part                    = M_email_part_create();
 	M_buf_add_str(part->data, data);
 	part->content_type      = M_strdup(content_type);
 	part->transfer_encoding = M_strdup(transfer_encoding);
@@ -713,23 +713,23 @@ M_bool M_email_message_part_append_attachment(M_email_message_t *message, const 
 		M_hash_dict_enumerate_free(he);
 	}
 
-	if (!M_list_insert(message->parts, part)) {
-		M_email_message_part_destroy(part);
+	if (!M_list_insert(email->parts, part)) {
+		M_email_part_destroy(part);
 		return M_FALSE;
 	}
 
-	*idx = M_list_len(message->parts)-1;
+	*idx = M_list_len(email->parts)-1;
 	return M_TRUE;
 }
 
-M_bool M_email_message_part_append_data(M_email_message_t *message, size_t idx, const char *data, size_t len)
+M_bool M_email_part_append_data(M_email_t *email, size_t idx, const char *data, size_t len)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 
@@ -737,14 +737,14 @@ M_bool M_email_message_part_append_data(M_email_message_t *message, size_t idx, 
 	return M_TRUE;
 }
 
-M_bool M_email_message_part_set_data(M_email_message_t *message, size_t idx, const char *data)
+M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 
@@ -754,63 +754,63 @@ M_bool M_email_message_part_set_data(M_email_message_t *message, size_t idx, con
 	return M_TRUE;
 }
 
-size_t M_email_message_parts_len(const M_email_message_t *message)
+size_t M_email_parts_len(const M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return 0;
-	return M_list_len(message->parts);
+	return M_list_len(email->parts);
 }
 
-void M_email_message_parts_clear(M_email_message_t *message)
+void M_email_parts_clear(M_email_t *email)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
-	M_list_destroy(message->parts, M_TRUE);
-	message->parts = create_part_list();
+	M_list_destroy(email->parts, M_TRUE);
+	email->parts = create_part_list();
 }
 
-const char *M_email_message_part_data(const M_email_message_t *message, size_t idx)
+const char *M_email_part_data(const M_email_t *email, size_t idx)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return NULL;
 	return M_buf_peek(part->data);
 }
 
-const M_hash_dict_t *M_email_message_part_headers(const M_email_message_t *message, size_t idx)
+const M_hash_dict_t *M_email_part_headers(const M_email_t *email, size_t idx)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
-	if (message == NULL)
+	if (email == NULL)
 		return NULL;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return NULL;
 	return part->headers;
 }
 
-M_bool M_email_message_part_is_attachmenet(const M_email_message_t *message, size_t idx)
+M_bool M_email_part_is_attachmenet(const M_email_t *email, size_t idx)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 	return part->is_attachment;
 }
 
-M_bool M_email_message_part_attachment_info(const M_email_message_t *message, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename)
+M_bool M_email_part_attachment_info(const M_email_t *email, size_t idx, char const **content_type, char const **transfer_encoding, char const **filename)
 {
-	M_email_message_part_t *part;
+	M_email_part_t *part;
 
 	if (content_type != NULL)
 		*content_type = NULL;
@@ -819,10 +819,10 @@ M_bool M_email_message_part_attachment_info(const M_email_message_t *message, si
 	if (filename != NULL)
 		filename = NULL;
 
-	if (message == NULL)
+	if (email == NULL)
 		return M_FALSE;
 
-	part = (M_email_message_part_t *)M_list_at(message->parts, idx);
+	part = (M_email_part_t *)M_list_at(email->parts, idx);
 	if (part == NULL)
 		return M_FALSE;
 
@@ -836,10 +836,10 @@ M_bool M_email_message_part_attachment_info(const M_email_message_t *message, si
 	return M_TRUE;
 }
 
-void M_email_message_part_remove(M_email_message_t *message, size_t idx)
+void M_email_part_remove(M_email_t *email, size_t idx)
 {
-	if (message == NULL)
+	if (email == NULL)
 		return;
 
-	M_list_remove_at(message->parts, idx);
+	M_list_remove_at(email->parts, idx);
 }

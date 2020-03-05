@@ -105,19 +105,19 @@ static M_email_error_t multipart_header_func(const char *key, const char *val, s
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t multipart_header_done_func(size_t idx, void *thunk)
-{
-	(void)thunk;
-
-	M_printf("M HEADER (%zu) DONE!!!\n", idx);
-	return M_EMAIL_ERROR_SUCCESS;
-}
-
 static M_email_error_t multipart_header_attachment_func(const char *content_type, const char *transfer_encoding, const char *filename, size_t idx, void *thunk)
 {
 	(void)thunk;
 
 	M_printf("M (%zu) is ATTACHMENT:\t\t content type = '%s', transfer encoding = '%s', filename = '%s'\n", idx, content_type, transfer_encoding, filename);
+	return M_EMAIL_ERROR_SUCCESS;
+}
+
+static M_email_error_t multipart_header_done_func(size_t idx, void *thunk)
+{
+	(void)thunk;
+
+	M_printf("M HEADER (%zu) DONE!!!\n", idx);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -171,8 +171,8 @@ static M_email_reader_t *gen_reader(void *thunk)
 		multipart_preamble_func,
 		multipart_preamble_done_func,
 		multipart_header_func,
-		multipart_header_done_func,
 		multipart_header_attachment_func,
+		multipart_header_done_func,
 		multipart_data_func,
 		multipart_data_done_func,
 		multipart_data_finished_func,
