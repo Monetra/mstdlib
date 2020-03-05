@@ -169,15 +169,15 @@ M_API const char *M_email_subject(const M_email_t *email);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_API const char *M_email_preamble(M_email_t *email);
-M_API void M_email_set_preamble(M_email_t *email, const char *data);
+M_API void M_email_set_preamble(M_email_t *email, const char *data, size_t len);
 M_API const char *M_email_epilouge(M_email_t *email);
-M_API void M_email_set_epilouge(M_email_t *email, const char *data);
+M_API void M_email_set_epilouge(M_email_t *email, const char *data, size_t len);
 
-M_API M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *headers, size_t *idx);
+M_API M_bool M_email_part_append(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, size_t *idx);
 /* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
-M_API M_bool M_email_part_append_attachment(M_email_t *email, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
+M_API M_bool M_email_part_append_attachment(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
 M_API M_bool M_email_part_append_data(M_email_t *email, size_t idx, const char *data, size_t len);
-M_API M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data);
+M_API M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data, size_t len);
 
 M_API size_t M_email_parts_len(const M_email_t *email);
 M_API void M_email_parts_clear(M_email_t *email);
@@ -366,7 +366,7 @@ typedef M_email_error_t (*M_email_reader_header_done_func)(M_email_data_format_t
  *
  * \return Result
  */
-typedef M_email_error_t (*M_email_reader_body_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_email_error_t (*M_email_reader_body_func)(const char *data, size_t len, void *thunk);
 
 
 /*! Function definition for reading multipart preamble.
@@ -379,7 +379,7 @@ typedef M_email_error_t (*M_email_reader_body_func)(const unsigned char *data, s
  *
  * \return Result
  */
-typedef M_email_error_t (*M_email_reader_multipart_preamble_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_email_error_t (*M_email_reader_multipart_preamble_func)(const char *data, size_t len, void *thunk);
 
 
 /*! Function definition for completion of multipart preamble parsing.
@@ -449,7 +449,7 @@ typedef M_email_error_t (*M_email_reader_multipart_header_done_func)(size_t idx,
  *
  * \return Result
  */
-typedef M_email_error_t (*M_email_reader_multipart_data_func)(const unsigned char *data, size_t len, size_t idx, void *thunk);
+typedef M_email_error_t (*M_email_reader_multipart_data_func)(const char *data, size_t len, size_t idx, void *thunk);
 
 
 /*! Function definition for completion of multipart part data.
@@ -481,7 +481,7 @@ typedef M_email_error_t (*M_email_reader_multipart_data_finished_func)(void *thu
  *
  * \return Result
  */
-typedef M_email_error_t (*M_email_reader_multipart_epilouge_func)(const unsigned char *data, size_t len, void *thunk);
+typedef M_email_error_t (*M_email_reader_multipart_epilouge_func)(const char *data, size_t len, void *thunk);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -556,7 +556,7 @@ M_API void M_email_reader_destroy(M_email_reader_t *emailr);
  *
  * \return Result.
  */
-M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsigned char *data, size_t data_len, size_t *len_read);
+M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const char *data, size_t data_len, size_t *len_read);
 
 /*! @} */
 
@@ -577,10 +577,6 @@ M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsign
  *
  * @{
  */
-
-struct M_email_simple_read;
-typedef struct M_email_simple_read M_email_simple_read_t;
-
 
 typedef enum {
 	M_EMAIL_SIMPLE_READ_NONE = 0,

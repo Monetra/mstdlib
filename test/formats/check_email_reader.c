@@ -73,7 +73,7 @@ static M_email_error_t header_done_func(M_email_data_format_t format, void *thun
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t body_func(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t body_func(const char *data, size_t len, void *thunk)
 {
 	(void)thunk;
 
@@ -81,7 +81,7 @@ static M_email_error_t body_func(const unsigned char *data, size_t len, void *th
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t multipart_preamble_func(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t multipart_preamble_func(const char *data, size_t len, void *thunk)
 {
 	(void)thunk;
 
@@ -121,7 +121,7 @@ static M_email_error_t multipart_header_done_func(size_t idx, void *thunk)
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t multipart_data_func(const unsigned char *data, size_t len, size_t idx, void *thunk)
+static M_email_error_t multipart_data_func(const char *data, size_t len, size_t idx, void *thunk)
 {
 	(void)thunk;
 
@@ -145,7 +145,7 @@ static M_email_error_t multipart_data_finished_func(void *thunk)
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t multipart_epilouge_func(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t multipart_epilouge_func(const char *data, size_t len, void *thunk)
 {
 	(void)thunk;
 
@@ -194,7 +194,7 @@ START_TEST(check_testing)
 
 	et  = emailr_test_create();
 	er  = gen_reader(et);
-	res = M_email_reader_read(er, (const unsigned char *)test_data, M_str_len(test_data), &len_read);
+	res = M_email_reader_read(er, test_data, M_str_len(test_data), &len_read);
 	M_printf("res = %d\n", res);
 
 	emailr_test_destroy(et);
