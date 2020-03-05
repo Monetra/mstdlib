@@ -22,10 +22,9 @@
  */
 
 
-#include <mstdlib/mstdlib.h>
-#include <mstdlib/mstdlib_formats.h>
-#include <mstdlib/mstdlib_text.h>
+#include "m_config.h"
 
+#include <mstdlib/mstdlib_text.h>
 #include "email/m_email_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
