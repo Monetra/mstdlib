@@ -1,6 +1,5 @@
 var group__m__email__simple__read =
 [
-    [ "M_email_simple_read_t", "group__m__email__simple__read.html#ga008486b11a4b3de40b0c1d78c6608a7e", null ],
     [ "M_email_simple_read_flags_t", "group__m__email__simple__read.html#ga7b85bcd4fb358eda215b04dae2379f13", [
       [ "M_EMAIL_SIMPLE_READ_NONE", "group__m__email__simple__read.html#gga7b85bcd4fb358eda215b04dae2379f13abf45e223bdcfc6d0abe9a9466c4c38ed", null ]
     ] ],

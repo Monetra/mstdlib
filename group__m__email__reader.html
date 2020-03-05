@@ -114,10 +114,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:gab7ceb6f02110740468dd8105e7fe7b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2dae77212c36cf9e06a6259bc1da8c93"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga2dae77212c36cf9e06a6259bc1da8c93">M_email_reader_header_done_func</a>) (<a class="el" href="group__m__email.html#ga7e76feb375db757f20e7f6feef5c33f8">M_email_data_format_t</a> format, void *thunk)</td></tr>
 <tr class="separator:ga2dae77212c36cf9e06a6259bc1da8c93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05c5b89d35d9adbfbfcf170a47c1a369"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga05c5b89d35d9adbfbfcf170a47c1a369">M_email_reader_body_func</a>) (const unsigned char *data, size_t len, void *thunk)</td></tr>
-<tr class="separator:ga05c5b89d35d9adbfbfcf170a47c1a369"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaaabdc913dead82ff7759a62e7236308f"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gaaabdc913dead82ff7759a62e7236308f">M_email_reader_multipart_preamble_func</a>) (const unsigned char *data, size_t len, void *thunk)</td></tr>
-<tr class="separator:gaaabdc913dead82ff7759a62e7236308f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacd6520847b94a91c9e70965fe08d68a4"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gacd6520847b94a91c9e70965fe08d68a4">M_email_reader_body_func</a>) (const char *data, size_t len, void *thunk)</td></tr>
+<tr class="separator:gacd6520847b94a91c9e70965fe08d68a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac65a5bfef7dc4f1c5bfd6481b6dee385"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gac65a5bfef7dc4f1c5bfd6481b6dee385">M_email_reader_multipart_preamble_func</a>) (const char *data, size_t len, void *thunk)</td></tr>
+<tr class="separator:gac65a5bfef7dc4f1c5bfd6481b6dee385"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga99fd7f423af902d5f8b5ddbb37a7d621"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga99fd7f423af902d5f8b5ddbb37a7d621">M_email_reader_multipart_preamble_done_func</a>) (void *thunk)</td></tr>
 <tr class="separator:ga99fd7f423af902d5f8b5ddbb37a7d621"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga923d8ed03c550b6b2e06add9719d3f98"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga923d8ed03c550b6b2e06add9719d3f98">M_email_reader_multipart_header_func</a>) (const char *key, const char *val, size_t idx, void *thunk)</td></tr>
@@ -126,14 +126,14 @@ Typedefs</h2></td></tr>
 <tr class="separator:gab7054d5ab64fd80e7a689da53e4bdedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gae1c2e64b9affc63b0df81e881e036f5d">M_email_reader_multipart_header_done_func</a>) (size_t idx, void *thunk)</td></tr>
 <tr class="separator:gae1c2e64b9affc63b0df81e881e036f5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05bd26f51a7eec36428f65ac6f54598a"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga05bd26f51a7eec36428f65ac6f54598a">M_email_reader_multipart_data_func</a>) (const unsigned char *data, size_t len, size_t idx, void *thunk)</td></tr>
-<tr class="separator:ga05bd26f51a7eec36428f65ac6f54598a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga39f45e677ab5619d5ad6d287acd3a4d2"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga39f45e677ab5619d5ad6d287acd3a4d2">M_email_reader_multipart_data_func</a>) (const char *data, size_t len, size_t idx, void *thunk)</td></tr>
+<tr class="separator:ga39f45e677ab5619d5ad6d287acd3a4d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae827c3bc66d28b2ebb938a5fe03a023e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gae827c3bc66d28b2ebb938a5fe03a023e">M_email_reader_multipart_data_done_func</a>) (size_t idx, void *thunk)</td></tr>
 <tr class="separator:gae827c3bc66d28b2ebb938a5fe03a023e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2d2676af52abcd6e546328eeb7731fa9"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga2d2676af52abcd6e546328eeb7731fa9">M_email_reader_multipart_data_finished_func</a>) (void *thunk)</td></tr>
 <tr class="separator:ga2d2676af52abcd6e546328eeb7731fa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1c85aa0f6bcfaa76c2f9acc721bf6ff6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga1c85aa0f6bcfaa76c2f9acc721bf6ff6">M_email_reader_multipart_epilouge_func</a>) (const unsigned char *data, size_t len, void *thunk)</td></tr>
-<tr class="separator:ga1c85aa0f6bcfaa76c2f9acc721bf6ff6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf5ae782df0877c6ae527c3415578447c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gaf5ae782df0877c6ae527c3415578447c">M_email_reader_multipart_epilouge_func</a>) (const char *data, size_t len, void *thunk)</td></tr>
+<tr class="separator:gaf5ae782df0877c6ae527c3415578447c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -147,8 +147,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga4b57597f1ac83a4ff822502bd19f1677"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa11aa7599fda4afa057f70f39b762c55"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gaa11aa7599fda4afa057f70f39b762c55">M_email_reader_destroy</a> (<a class="el" href="group__m__email__reader.html#ga2cb44ac89bc3b1b8190c826eeefcd859">M_email_reader_t</a> *emailr)</td></tr>
 <tr class="separator:gaa11aa7599fda4afa057f70f39b762c55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafe5abf6471c7f6a38e8d3da33941fbfe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#gafe5abf6471c7f6a38e8d3da33941fbfe">M_email_reader_read</a> (<a class="el" href="group__m__email__reader.html#ga2cb44ac89bc3b1b8190c826eeefcd859">M_email_reader_t</a> *emailr, const unsigned char *data, size_t data_len, size_t *len_read)</td></tr>
-<tr class="separator:gafe5abf6471c7f6a38e8d3da33941fbfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga83c67aebe12fbd4b8f5aae4bdeceac3c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__reader.html#ga83c67aebe12fbd4b8f5aae4bdeceac3c">M_email_reader_read</a> (<a class="el" href="group__m__email__reader.html#ga2cb44ac89bc3b1b8190c826eeefcd859">M_email_reader_t</a> *emailr, const char *data, size_t data_len, size_t *len_read)</td></tr>
+<tr class="separator:ga83c67aebe12fbd4b8f5aae4bdeceac3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Stream reader used for parsing using callbacks. Very useful for large Email messages. </p>
@@ -216,13 +216,13 @@ header_done_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a627ae13f999a37d2c4cdc236deeb4798"></a><a class="el" href="group__m__email__reader.html#ga05c5b89d35d9adbfbfcf170a47c1a369">M_email_reader_body_func</a></td>
+<a id="a627ae13f999a37d2c4cdc236deeb4798"></a><a class="el" href="group__m__email__reader.html#gacd6520847b94a91c9e70965fe08d68a4">M_email_reader_body_func</a></td>
 <td class="fieldname">
 body_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a68301b26ea11dbf88d48c011592f2fa2"></a><a class="el" href="group__m__email__reader.html#gaaabdc913dead82ff7759a62e7236308f">M_email_reader_multipart_preamble_func</a></td>
+<a id="a68301b26ea11dbf88d48c011592f2fa2"></a><a class="el" href="group__m__email__reader.html#gac65a5bfef7dc4f1c5bfd6481b6dee385">M_email_reader_multipart_preamble_func</a></td>
 <td class="fieldname">
 multipart_preamble_func</td>
 <td class="fielddoc">
@@ -252,7 +252,7 @@ multipart_header_done_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a3879e9840b8360a2cb1f5c3e52c4b052"></a><a class="el" href="group__m__email__reader.html#ga05bd26f51a7eec36428f65ac6f54598a">M_email_reader_multipart_data_func</a></td>
+<a id="a3879e9840b8360a2cb1f5c3e52c4b052"></a><a class="el" href="group__m__email__reader.html#ga39f45e677ab5619d5ad6d287acd3a4d2">M_email_reader_multipart_data_func</a></td>
 <td class="fieldname">
 multipart_data_func</td>
 <td class="fielddoc">
@@ -270,7 +270,7 @@ multipart_data_finished_func</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="ad0808255caa4423503ab8dd71f7fbb53"></a><a class="el" href="group__m__email__reader.html#ga1c85aa0f6bcfaa76c2f9acc721bf6ff6">M_email_reader_multipart_epilouge_func</a></td>
+<a id="ad0808255caa4423503ab8dd71f7fbb53"></a><a class="el" href="group__m__email__reader.html#gaf5ae782df0877c6ae527c3415578447c">M_email_reader_multipart_epilouge_func</a></td>
 <td class="fieldname">
 multipart_epilouge_func</td>
 <td class="fielddoc">
@@ -536,14 +536,14 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
-<a id="ga05c5b89d35d9adbfbfcf170a47c1a369"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga05c5b89d35d9adbfbfcf170a47c1a369">&#9670;&nbsp;</a></span>M_email_reader_body_func</h2>
+<a id="gacd6520847b94a91c9e70965fe08d68a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacd6520847b94a91c9e70965fe08d68a4">&#9670;&nbsp;</a></span>M_email_reader_body_func</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_body_func) (const unsigned char *data, size_t len, void *thunk)</td>
+          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_body_func) (const char *data, size_t len, void *thunk)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -560,14 +560,14 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
-<a id="gaaabdc913dead82ff7759a62e7236308f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaaabdc913dead82ff7759a62e7236308f">&#9670;&nbsp;</a></span>M_email_reader_multipart_preamble_func</h2>
+<a id="gac65a5bfef7dc4f1c5bfd6481b6dee385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac65a5bfef7dc4f1c5bfd6481b6dee385">&#9670;&nbsp;</a></span>M_email_reader_multipart_preamble_func</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_preamble_func) (const unsigned char *data, size_t len, void *thunk)</td>
+          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_preamble_func) (const char *data, size_t len, void *thunk)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -686,14 +686,14 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
-<a id="ga05bd26f51a7eec36428f65ac6f54598a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga05bd26f51a7eec36428f65ac6f54598a">&#9670;&nbsp;</a></span>M_email_reader_multipart_data_func</h2>
+<a id="ga39f45e677ab5619d5ad6d287acd3a4d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga39f45e677ab5619d5ad6d287acd3a4d2">&#9670;&nbsp;</a></span>M_email_reader_multipart_data_func</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_data_func) (const unsigned char *data, size_t len, size_t idx, void *thunk)</td>
+          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_data_func) (const char *data, size_t len, size_t idx, void *thunk)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -757,14 +757,14 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
-<a id="ga1c85aa0f6bcfaa76c2f9acc721bf6ff6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1c85aa0f6bcfaa76c2f9acc721bf6ff6">&#9670;&nbsp;</a></span>M_email_reader_multipart_epilouge_func</h2>
+<a id="gaf5ae782df0877c6ae527c3415578447c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf5ae782df0877c6ae527c3415578447c">&#9670;&nbsp;</a></span>M_email_reader_multipart_epilouge_func</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_epilouge_func) (const unsigned char *data, size_t len, void *thunk)</td>
+          <td class="memname">typedef <a class="el" href="group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34">M_email_error_t</a>(* M_email_reader_multipart_epilouge_func) (const char *data, size_t len, void *thunk)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -870,8 +870,8 @@ multipart_epilouge_func</td>
 
 </div>
 </div>
-<a id="gafe5abf6471c7f6a38e8d3da33941fbfe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafe5abf6471c7f6a38e8d3da33941fbfe">&#9670;&nbsp;</a></span>M_email_reader_read()</h2>
+<a id="ga83c67aebe12fbd4b8f5aae4bdeceac3c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga83c67aebe12fbd4b8f5aae4bdeceac3c">&#9670;&nbsp;</a></span>M_email_reader_read()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -885,7 +885,7 @@ multipart_epilouge_func</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>data</em>, </td>
         </tr>
         <tr>
@@ -928,7 +928,7 @@ multipart_epilouge_func</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 5 2020 13:16:53 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Mar 5 2020 16:17:29 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
