@@ -614,13 +614,13 @@ const char *M_email_preamble(M_email_t *email)
 	return email->preamble;
 }
 
-void M_email_set_preamble(M_email_t *email, const char *data)
+void M_email_set_preamble(M_email_t *email, const char *data, size_t len)
 {
 	if (email == NULL)
 		return;
 
 	M_free(email->preamble);
-	email->preamble = M_strdup(data);
+	email->preamble = M_strdup_max(data, len);
 }
 
 const char *M_email_epilouge(M_email_t *email)
@@ -630,16 +630,16 @@ const char *M_email_epilouge(M_email_t *email)
 	return email->epilogue;
 }
 
-void M_email_set_epilouge(M_email_t *email, const char *data)
+void M_email_set_epilouge(M_email_t *email, const char *data, size_t len)
 {
 	if (email == NULL)
 		return;
 
 	M_free(email->epilogue);
-	email->epilogue = M_strdup(data);
+	email->epilogue = M_strdup_max(data, len);
 }
 
-M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *headers, size_t *idx)
+M_bool M_email_part_append(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, size_t *idx)
 {
 	M_email_part_t *part;
 	M_hash_dict_enum_t     *he;
@@ -655,10 +655,10 @@ M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *he
 		return M_FALSE;
 
 	if (append_part_is_attachment(headers))
-		return M_email_part_append_attachment(email, data, headers, NULL, NULL, NULL, idx);
+		return M_email_part_append_attachment(email, data, len, headers, NULL, NULL, NULL, idx);
 
 	part = M_email_part_create();
-	M_buf_add_str(part->data, data);
+	M_buf_add_bytes(part->data, data, len);
 
 	if (headers != NULL) {
 		M_hash_dict_enumerate(headers, &he);
@@ -677,7 +677,7 @@ M_bool M_email_part_append(M_email_t *email, const char *data, M_hash_dict_t *he
 	return M_TRUE;
 }
 
-M_bool M_email_part_append_attachment(M_email_t *email, const char *data, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)
+M_bool M_email_part_append_attachment(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx)
 {
 	M_email_part_t *part;
 	M_hash_dict_enum_t     *he;
@@ -693,7 +693,7 @@ M_bool M_email_part_append_attachment(M_email_t *email, const char *data, M_hash
 		return M_FALSE;
 
 	part                    = M_email_part_create();
-	M_buf_add_str(part->data, data);
+	M_buf_add_bytes(part->data, data, len);
 	part->content_type      = M_strdup(content_type);
 	part->transfer_encoding = M_strdup(transfer_encoding);
 	part->filename          = M_strdup(filename);
@@ -737,7 +737,7 @@ M_bool M_email_part_append_data(M_email_t *email, size_t idx, const char *data, 
 	return M_TRUE;
 }
 
-M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data)
+M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data, size_t len)
 {
 	M_email_part_t *part;
 
@@ -749,7 +749,7 @@ M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data)
 		return M_FALSE;
 
 	M_buf_truncate(part->data, 0);
-	M_buf_add_str(part->data, data);
+	M_buf_add_bytes(part->data, data, len);
 
 	return M_TRUE;
 }

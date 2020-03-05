@@ -123,7 +123,7 @@ static M_email_error_t M_email_reader_header_done_func_default(M_email_data_form
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t M_email_reader_body_func_default(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t M_email_reader_body_func_default(const char *data, size_t len, void *thunk)
 {
 	(void)data;
 	(void)len;
@@ -131,7 +131,7 @@ static M_email_error_t M_email_reader_body_func_default(const unsigned char *dat
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t M_email_reader_multipart_preamble_func_default(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t M_email_reader_multipart_preamble_func_default(const char *data, size_t len, void *thunk)
 {
 	(void)data;
 	(void)len;
@@ -171,7 +171,7 @@ static M_email_error_t M_email_reader_multipart_header_attachment_func_default(c
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t M_email_reader_multipart_data_func_default(const unsigned char *data, size_t len, size_t idx, void *thunk)
+static M_email_error_t M_email_reader_multipart_data_func_default(const char *data, size_t len, size_t idx, void *thunk)
 {
 	(void)data;
 	(void)len;
@@ -193,7 +193,7 @@ static M_email_error_t M_email_reader_multipart_data_finished_func_default(void 
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
-static M_email_error_t M_email_reader_multipart_epilouge_func_default(const unsigned char *data, size_t len, void *thunk)
+static M_email_error_t M_email_reader_multipart_epilouge_func_default(const char *data, size_t len, void *thunk)
 {
 	(void)data;
 	(void)len;
@@ -568,7 +568,7 @@ static M_state_machine_status_t state_body(void *data, M_uint64 *next)
 	if (M_parser_len(emailr->parser) == 0)
 		return M_STATE_MACHINE_STATUS_WAIT;
 
-	emailr->res = emailr->cbs.body_func(M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
+	emailr->res = emailr->cbs.body_func((const char *)M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
 	if (emailr->res == M_EMAIL_ERROR_SUCCESS)
 		M_parser_consume(emailr->parser, M_parser_len(emailr->parser));
 	return M_STATE_MACHINE_STATUS_WAIT;
@@ -634,7 +634,7 @@ static M_state_machine_status_t state_multipart_preamble(void *data, M_uint64 *n
 	}
 
 	if (data_len != 0) {
-		res = emailr->cbs.multipart_preamble_func(M_parser_peek(emailr->parser), data_len, emailr->thunk);
+		res = emailr->cbs.multipart_preamble_func((const char *)M_parser_peek(emailr->parser), data_len, emailr->thunk);
 		if (res != M_EMAIL_ERROR_SUCCESS) {
 			emailr->res = res;
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -691,7 +691,7 @@ static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 	}
 
 	if (data_len != 0) {
-		res = emailr->cbs.multipart_data_func(M_parser_peek(emailr->parser), data_len, emailr->part_idx, emailr->thunk);
+		res = emailr->cbs.multipart_data_func((const char *)M_parser_peek(emailr->parser), data_len, emailr->part_idx, emailr->thunk);
 		if (res != M_EMAIL_ERROR_SUCCESS) {
 			emailr->res = res;
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -702,6 +702,13 @@ static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 	if (found) {
 		/* Eat the boundary. */
 		M_parser_consume(emailr->parser, emailr->boundary_len);
+
+		res = emailr->cbs.multipart_data_done_func(emailr->part_idx, emailr->thunk);
+		if (res != M_EMAIL_ERROR_SUCCESS) {
+			emailr->res = res;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+		}
+
 		emailr->part_idx++;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
@@ -711,6 +718,7 @@ static M_state_machine_status_t state_multipart_data(void *data, M_uint64 *next)
 static M_state_machine_status_t state_multipart_check_end(void *data, M_uint64 *next)
 {
 	M_email_reader_t *emailr = data;
+	M_email_error_t   res    = M_EMAIL_ERROR_SUCCESS;
 
 	if (M_parser_len(emailr->parser) < 2)
 		return M_STATE_MACHINE_STATUS_WAIT;
@@ -726,6 +734,12 @@ static M_state_machine_status_t state_multipart_check_end(void *data, M_uint64 *
 	}
 	M_parser_consume(emailr->parser, 2);
 
+	res = emailr->cbs.multipart_data_finished_func(emailr->thunk);
+	if (res != M_EMAIL_ERROR_SUCCESS) {
+		emailr->res = res;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	}
+
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
@@ -735,10 +749,12 @@ static M_state_machine_status_t state_multipart_epilouge(void *data, M_uint64 *n
 
 	(void)next;
 
-	if (M_parser_len(emailr->parser) == 0)
-		return M_STATE_MACHINE_STATUS_WAIT;
+	if (M_parser_len(emailr->parser) == 0) {
+		emailr->res = M_EMAIL_ERROR_SUCCESS;
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
 
-	emailr->res = emailr->cbs.multipart_epilouge_func(M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
+	emailr->res = emailr->cbs.multipart_epilouge_func((const char *)M_parser_peek(emailr->parser), M_parser_len(emailr->parser), emailr->thunk);
 	if (emailr->res == M_EMAIL_ERROR_SUCCESS)
 		M_parser_consume(emailr->parser, M_parser_len(emailr->parser));
 	return M_STATE_MACHINE_STATUS_WAIT;
@@ -767,7 +783,7 @@ static M_state_machine_t *M_email_reader_create_sm(void)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsigned char *data, size_t data_len, size_t *len_read)
+M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const char *data, size_t data_len, size_t *len_read)
 {
 	size_t mylen_read;
 
@@ -778,7 +794,7 @@ M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const unsigned cha
 	if (emailr == NULL || data == NULL || data_len == 0)
 		return M_EMAIL_ERROR_INVALIDUSE;
 
-	emailr->parser = M_parser_create_const(data, data_len, M_PARSER_FLAG_NONE);
+	emailr->parser = M_parser_create_const((const unsigned char *)data, data_len, M_PARSER_FLAG_NONE);
 	emailr->res    = M_EMAIL_ERROR_MOREDATA;
 
 	M_state_machine_run(emailr->sm, emailr);
