@@ -349,12 +349,11 @@ static M_email_error_t M_email_header_process_header_done(M_email_reader_t *emai
 	if (!is_multipart)
 		return emailr->cbs.header_done_func(emailr->data_format, emailr->thunk);
 
-	res = emailr->cbs.multipart_header_done_func(emailr->part_idx, emailr->thunk);
-	if (res == M_EMAIL_ERROR_SUCCESS) {
-		if (emailr->part_type == M_EMAIL_PART_TYPE_ATTACHMENT) {
-			res = emailr->cbs.multipart_header_attachment_func(emailr->part_content_type, emailr->part_transfer_encoding, emailr->part_filename, emailr->part_idx, emailr->thunk);
-		}
-	}
+	if (emailr->part_type == M_EMAIL_PART_TYPE_ATTACHMENT)
+		res = emailr->cbs.multipart_header_attachment_func(emailr->part_content_type, emailr->part_transfer_encoding, emailr->part_filename, emailr->part_idx, emailr->thunk);
+
+	if (res == M_EMAIL_ERROR_SUCCESS)
+		res = emailr->cbs.multipart_header_done_func(emailr->part_idx, emailr->thunk);
 
 	M_free(emailr->part_content_type);
 	M_free(emailr->part_transfer_encoding);
@@ -814,8 +813,8 @@ M_email_reader_t *M_email_reader_create(struct M_email_reader_callbacks *cbs, M_
 	emailr->cbs.multipart_preamble_func          = M_email_reader_multipart_preamble_func_default;
 	emailr->cbs.multipart_preamble_done_func     = M_email_reader_multipart_preamble_done_func_default;
 	emailr->cbs.multipart_header_func            = M_email_reader_multipart_header_func_default;
-	emailr->cbs.multipart_header_done_func       = M_email_reader_multipart_header_done_func_default;
 	emailr->cbs.multipart_header_attachment_func = M_email_reader_multipart_header_attachment_func_default;
+	emailr->cbs.multipart_header_done_func       = M_email_reader_multipart_header_done_func_default;
 	emailr->cbs.multipart_data_func              = M_email_reader_multipart_data_func_default;
 	emailr->cbs.multipart_data_done_func         = M_email_reader_multipart_data_done_func_default;
 	emailr->cbs.multipart_data_finished_func     = M_email_reader_multipart_data_finished_func_default;
@@ -834,8 +833,8 @@ M_email_reader_t *M_email_reader_create(struct M_email_reader_callbacks *cbs, M_
 		if (cbs->multipart_preamble_func          != NULL) emailr->cbs.multipart_preamble_func          = cbs->multipart_preamble_func;
 		if (cbs->multipart_preamble_done_func     != NULL) emailr->cbs.multipart_preamble_done_func     = cbs->multipart_preamble_done_func;
 		if (cbs->multipart_header_func            != NULL) emailr->cbs.multipart_header_func            = cbs->multipart_header_func;
-		if (cbs->multipart_header_done_func       != NULL) emailr->cbs.multipart_header_done_func       = cbs->multipart_header_done_func;
 		if (cbs->multipart_header_attachment_func != NULL) emailr->cbs.multipart_header_attachment_func = cbs->multipart_header_attachment_func;
+		if (cbs->multipart_header_done_func       != NULL) emailr->cbs.multipart_header_done_func       = cbs->multipart_header_done_func;
 		if (cbs->multipart_data_func              != NULL) emailr->cbs.multipart_data_func              = cbs->multipart_data_func;
 		if (cbs->multipart_data_done_func         != NULL) emailr->cbs.multipart_data_done_func         = cbs->multipart_data_done_func;
 		if (cbs->multipart_data_finished_func     != NULL) emailr->cbs.multipart_data_finished_func     = cbs->multipart_data_finished_func;
