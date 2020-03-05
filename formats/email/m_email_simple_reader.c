@@ -22,9 +22,7 @@
  */
 
 
-#include <mstdlib/mstdlib.h>
-#include <mstdlib/mstdlib_formats.h>
-#include <mstdlib/mstdlib_text.h>
+#include "m_config.h"
 
 #include "email/m_email_int.h"
 
@@ -222,7 +220,7 @@ M_email_error_t M_email_simple_read(M_email_t **email, const char *data, size_t 
 done:
 	M_email_reader_destroy(reader);
 	M_email_simple_read_destroy(simple);
-	if (res != M_HTTP_ERROR_SUCCESS || !have_email) {
+	if (res != M_EMAIL_ERROR_SUCCESS || !have_email) {
 		M_email_destroy(*email);
 		*email = NULL;
 	}
