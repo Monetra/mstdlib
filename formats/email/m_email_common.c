@@ -218,3 +218,98 @@ done:
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* Content-Disposition */
+M_bool M_email_attachment_parse_info_attachment(const char *val, char **filename)
+{
+	M_parser_t  *parser        = NULL;
+	M_parser_t **parts         = NULL;
+	char        *myfilename    = NULL;
+	size_t       num_parts     = 0;
+	size_t       i;
+	M_bool       is_attachment = M_FALSE;
+
+	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
+	parts  = M_parser_split(parser, ';', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+
+	for (i=0; i<num_parts; i++) {
+		M_parser_consume_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+		M_parser_truncate_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+
+		if (M_parser_compare_str(parts[i], "attachment", 0, M_TRUE)) {
+			is_attachment = M_TRUE;
+		} else if (M_parser_consume_str_until(parts[i], "filename=", M_TRUE) != 0) {
+			M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+			M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+
+			M_free(myfilename);
+			myfilename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+		}
+	}
+
+	M_parser_destroy(parser);
+	M_parser_split_free(parts, num_parts);
+
+	if (is_attachment) {
+		if (filename != NULL) {
+			*filename = myfilename;
+		} else {
+			M_free(myfilename);
+		}
+		return M_TRUE;
+	}
+
+	M_free(myfilename);
+	return M_FALSE;
+}
+
+/* Content-Type */
+char *M_email_attachment_parse_info_content_type(const char *val, char **filename)
+{
+	M_parser_t    *parser     = NULL;
+	M_parser_t   **parts      = NULL;
+	M_list_str_t  *abriged    = NULL;
+	char          *myfilename = NULL;
+	size_t         num_parts  = 0;
+	size_t         i;
+	char          *out;
+
+	parser  = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
+	parts   = M_parser_split(parser, ';', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	abriged = M_list_str_create(M_LIST_STR_NONE);
+
+	for (i=0; i<num_parts; i++) {
+			M_parser_consume_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+			M_parser_truncate_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
+
+			/* Content-Type: application/octet-stream; name="file.log"
+ 			 * Content-Type: text/xml; charset=UTF-8; x-mac-type="0"; x-mac-creator="0"; */
+			M_parser_mark(parts[i]);
+			if (M_str_isempty(myfilename) && M_parser_consume_str_until(parts[i], "name=", M_TRUE) != 0) {
+				M_parser_mark_rewind(parts[i]);
+
+				M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+				M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
+
+				M_free(myfilename);
+				myfilename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+			} else {
+				out = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+				M_list_str_insert(abriged, out);
+				M_free(out);
+			}
+	}
+
+	M_parser_destroy(parser);
+	M_parser_split_free(parts, num_parts);
+
+	out = M_list_str_join_str(abriged, "; ");
+	M_list_str_destroy(abriged);
+	if (filename != NULL) {
+		*filename = myfilename;
+	} else {
+		M_free(myfilename);
+	}
+
+	return out;
+}
