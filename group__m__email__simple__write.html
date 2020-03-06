@@ -79,17 +79,92 @@ $(document).ready(function(){initNavTree('group__m__email__simple__write.html','
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Email Simple Reader<div class="ingroups"><a class="el" href="group__m__formats.html">Data Formats</a> &raquo; <a class="el" href="group__m__email.html">Email</a> &raquo; <a class="el" href="group__m__email__simple.html">Email Simple</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
-<p>Reads a full email email. Useful for small messages. Alls all data is contained within on object for easy processing. </p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:gafb40eb50a1dbae395395618b93a8859a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__simple__write.html#gafb40eb50a1dbae395395618b93a8859a">M_email_simple_write</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email)</td></tr>
+<tr class="separator:gafb40eb50a1dbae395395618b93a8859a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga33b1cbb2679f46dddeb626d05c385beb"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__email__simple__write.html#ga33b1cbb2679f46dddeb626d05c385beb">M_email_simple_write_buf</a> (const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *email, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf)</td></tr>
+<tr class="separator:ga33b1cbb2679f46dddeb626d05c385beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<p>Writes an email. Useful for small messages. Alls all data is contained within an email object for easy processing. </p>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="gafb40eb50a1dbae395395618b93a8859a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafb40eb50a1dbae395395618b93a8859a">&#9670;&nbsp;</a></span>M_email_simple_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* M_email_simple_write </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create an email message string.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">email</td><td>Email object.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String. </dd></dl>
+
+</div>
+</div>
+<a id="ga33b1cbb2679f46dddeb626d05c385beb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga33b1cbb2679f46dddeb626d05c385beb">&#9670;&nbsp;</a></span>M_email_simple_write_buf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_email_simple_write_buf </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__email__msssage.html#ga98989ba32e6ae23118ad7e128917720a">M_email_t</a> *&#160;</td>
+          <td class="paramname"><em>email</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create an email message string added to the given buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">email</td><td>Email object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">buf</td><td>Buffer to write message.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE on success, otherwise M_FALSE. </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 5 2020 20:43:56 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Fri Mar 6 2020 16:36:48 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
