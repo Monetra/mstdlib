@@ -32,5 +32,9 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_email_error_t M_email_process_address(const char *val, M_email_error_t (*address_func)(const char *group, const char *name, const char *address, void *thunk), void *thunk);
+/* return true if attachment. */
+M_bool M_email_attachment_parse_info_attachment(const char *val, char **filename);
+/* Returns content-type without name entry. */
+char *M_email_attachment_parse_info_content_type(const char *val, char **filename);
 
 #endif /* __M_EMAIL_INT_H__ */

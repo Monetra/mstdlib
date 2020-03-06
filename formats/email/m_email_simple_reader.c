@@ -32,6 +32,7 @@ typedef struct {
 	M_buf_t                     *collector;
 	M_hash_dict_t               *headers;
 	M_email_t                   *email;  /* Managed outside of the object create/destroy. */
+	M_bool                       is_attachment;
 	M_email_simple_read_flags_t  rflags;
 } M_email_simple_read_t;
 
@@ -56,7 +57,7 @@ static M_email_error_t M_email_simple_read_body_cb(const char *data, size_t len,
  	 * reader always create a multi part even when there is only one. The
 	 * main header will need to change to be multi part when reassembled. */
 	if (M_hash_dict_get(M_email_headers(simple->email), "Content-Type", &const_temp)) {
-		headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
+		headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_STRVP_KEYS_ORDERED);
 		M_hash_dict_insert(headers, "Content-Type", const_temp);
 		M_email_headers_remove(simple->email, "Content-Type");
 	}
@@ -102,11 +103,16 @@ static M_email_error_t M_email_simple_read_multipart_header_done_cb(size_t idx, 
 
 	(void)idx;
 
-	if (!M_email_part_append(simple->email, NULL, 0, simple->headers, NULL))
-		return M_EMAIL_ERROR_MULTIPART_HEADER_INVALID;
+	if (!simple->is_attachment) {
+		if (!M_email_part_append(simple->email, NULL, 0, simple->headers, NULL)) {
+			return M_EMAIL_ERROR_MULTIPART_HEADER_INVALID;
+		}
+	}
 
 	M_hash_dict_destroy(simple->headers);
-	simple->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
+	simple->headers       = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	simple->is_attachment = M_FALSE;
+
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -146,7 +152,7 @@ static M_email_simple_read_t *M_email_simple_read_create(M_email_simple_read_fla
 
 	simple            = M_malloc_zero(sizeof(*simple));
 	simple->collector = M_buf_create();
-	simple->headers   = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP);
+	simple->headers   = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
 	simple->rflags    = rflags;
 
 	return simple;

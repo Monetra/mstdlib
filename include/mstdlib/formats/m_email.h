@@ -100,7 +100,7 @@ typedef enum {
 /*! \addtogroup m_email_msssage Email Message
  *  \ingroup m_email
  *
- * Email email.
+ * Email Message.
  *
  * @{
  */
@@ -168,14 +168,16 @@ M_API const char *M_email_subject(const M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_API const char *M_email_preamble(M_email_t *email);
+M_API const char *M_email_preamble(const M_email_t *email);
 M_API void M_email_set_preamble(M_email_t *email, const char *data, size_t len);
-M_API const char *M_email_epilouge(M_email_t *email);
+M_API const char *M_email_epilouge(const M_email_t *email);
 M_API void M_email_set_epilouge(M_email_t *email, const char *data, size_t len);
 
-M_API M_bool M_email_part_append(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, size_t *idx);
-/* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding */
-M_API M_bool M_email_part_append_attachment(M_email_t *email, const char *data, size_t len, M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
+M_API M_bool M_email_part_append(M_email_t *email, const char *data, size_t len, const M_hash_dict_t *headers, size_t *idx);
+/* Headers exclude Content-Type, Content-Disposition, Content-Transfer-Encoding.
+ * If need to be parsed instead of being set directly use part_append which
+ * will parse these headers out. */
+M_API M_bool M_email_part_append_attachment(M_email_t *email, const char *data, size_t len, const M_hash_dict_t *headers, const char *content_type, const char *transfer_encoding, const char *filename, size_t *idx);
 M_API M_bool M_email_part_append_data(M_email_t *email, size_t idx, const char *data, size_t len);
 M_API M_bool M_email_part_set_data(M_email_t *email, size_t idx, const char *data, size_t len);
 
@@ -571,8 +573,8 @@ M_API M_email_error_t M_email_reader_read(M_email_reader_t *emailr, const char *
 /*! \addtogroup m_email_simple_read Email Simple Reader
  *  \ingroup m_email_simple
  *
- * Reads a full email email. Useful for small messages.
- * Alls all data is contained within on object for
+ * Reads a full email. Useful for small messages.
+ * Alls all data is contained within an email object for
  * easy processing.
  *
  * @{
@@ -631,12 +633,30 @@ M_API M_email_error_t M_email_simple_read_parser(M_email_t **email, M_parser_t *
 /*! \addtogroup m_email_simple_write Email Simple Reader
  *  \ingroup m_email_simple
  *
- * Reads a full email email. Useful for small messages.
- * Alls all data is contained within on object for
+ * Writes an email. Useful for small messages.
+ * Alls all data is contained within an email object for
  * easy processing.
  *
  * @{
  */
+
+/*! Create an email message string.
+ *
+ * \param[in] email Email object.
+ *
+ * \return String.
+ */
+M_API char *M_email_simple_write(const M_email_t *email);
+
+
+/*! Create an email message string added to the given buffer.
+ *
+ * \param[in] email Email object.
+ * \param[in] buf   Buffer to write message.
+ *
+ * \return M_TRUE on success, otherwise M_FALSE.
+ */
+M_API M_bool M_email_simple_write_buf(const M_email_t *email, M_buf_t *buf);
 
 /*! @} */
 

@@ -15,6 +15,7 @@ set(sources
 	email/m_email.c
 	email/m_email_common.c
 	email/m_email_simple_reader.c
+	email/m_email_simple_writer.c
 	email/m_email_reader.c
 
 	# ini:

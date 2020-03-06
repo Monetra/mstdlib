@@ -273,11 +273,8 @@ static M_bool M_email_header_process(M_email_reader_t *emailr, const char *key, 
 
 static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const char *key, const char *val)
 {
-	M_parser_t       *parser    = NULL;
-	M_parser_t      **parts     = NULL;
-	size_t            num_parts = 0;
-	size_t            i;
-	M_email_error_t   res;
+	char            *myfilename = NULL;
+	M_email_error_t  res;
 
 	res = emailr->cbs.multipart_header_func(key, val, emailr->part_idx, emailr->thunk);
 	if (res != M_EMAIL_ERROR_SUCCESS) {
@@ -286,56 +283,29 @@ static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const c
 	}
 
 	/* We only care about additional processing of these headers. */
-	if (!M_str_caseeq(key, "Content-Disposition") &&
-			!M_str_caseeq(key, "Content-Transfer-Encoding") &&
-			!M_str_caseeq(key, "Content-Type"))
-	{
-		return M_TRUE;
-	}
+	if (M_str_caseeq(key, "Content-Transfer-Encoding")) {
+		/* Content-Transfer-Encoding: base64 */
+		M_free(emailr->part_transfer_encoding);
+		emailr->part_transfer_encoding = M_strdup(val);
+	} else if (M_str_caseeq(key, "Content-Disposition")) {
+		if (M_email_attachment_parse_info_attachment(val, &myfilename)) {
+			emailr->part_type = M_EMAIL_PART_TYPE_ATTACHMENT;
 
-	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
-	parts  = M_parser_split(parser, ';', 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
-
-	for (i=0; i<num_parts; i++) {
-		M_parser_consume_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
-		M_parser_truncate_whitespace(parts[i], M_PARSER_WHITESPACE_NONE);
-
-		if (M_str_caseeq(key, "Content-Disposition")) {
-			/* Content-Disposition: attachment; filename="file.text" */
-			if (M_parser_compare_str(parts[i], "attachment", 0, M_TRUE)) {
-				emailr->part_type = M_EMAIL_PART_TYPE_ATTACHMENT;
-			} else if (M_parser_consume_str_until(parts[i], "filename=", M_TRUE) != 0) {
-				M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
-				M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
-
+			if (!M_str_isempty(myfilename)) {
 				M_free(emailr->part_filename);
-				emailr->part_filename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
-			}
-		} else if (M_str_caseeq(key, "Content-Transfer-Encoding")) {
-			/* Content-Transfer-Encoding: base64 */
-			M_free(emailr->part_transfer_encoding);
-			emailr->part_transfer_encoding = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
-		} else if (M_str_caseeq(key, "Content-Type")) {
-			/* Content-Type: application/octet-stream; name="file.log" */
-			M_parser_mark(parts[i]);
-			if (M_parser_consume_until(parts[i], (const unsigned char *)"=", 1, M_TRUE) == 0) {
-				M_free(emailr->part_content_type);
-				emailr->part_content_type = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
-			} else if (M_str_isempty(emailr->part_filename) && M_parser_consume_str_until(parts[i], "name=", M_TRUE) != 0) {
-				/* Fallback in case filename is not set in Content-Disposition.
-				 * Older mail clients with put the name here when they really shouldn't. */
-				M_parser_mark_rewind(parts[i]);
-
-				M_parser_consume_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
-				M_parser_truncate_until(parts[i], (const unsigned char *)"\"", 1, M_TRUE);
-				M_free(emailr->part_filename);
-				emailr->part_filename = M_parser_read_strdup(parts[i], M_parser_len(parts[i]));
+				emailr->part_filename = myfilename;
 			}
 		}
-	}
+	} else if (M_str_caseeq(key, "Content-Type")) {
+		M_free(emailr->part_content_type);
+		emailr->part_content_type = M_email_attachment_parse_info_content_type(val, &myfilename);
 
-	M_parser_destroy(parser);
-	M_parser_split_free(parts, num_parts);
+		if (M_str_isempty(emailr->part_filename)) {
+			emailr->part_filename = myfilename;
+		} else {
+			M_free(myfilename);
+		}
+	}
 
 	return M_TRUE;
 }
