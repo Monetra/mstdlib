@@ -120,6 +120,11 @@ M_textcodec_error_t M_textcodec_decode_punycode(M_textcodec_buffer_t *buf, const
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+M_textcodec_error_t M_textcodec_encode_quoted_printable(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
+M_textcodec_error_t M_textcodec_decode_quoted_printable(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_textcodec_error_t M_textcodec_encode_iso8859_1(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
 M_textcodec_error_t M_textcodec_decode_iso8859_1(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler);
 
