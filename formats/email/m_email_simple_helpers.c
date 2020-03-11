@@ -68,7 +68,7 @@ M_email_error_t M_email_simple_split_header_body(const char *message, M_hash_dic
 end_of_header:
 	if (hsres == HEADER_STATE_END) {
 		if (headers != NULL) {
-			*headers == &myheaders;
+			*headers  = myheaders;
 			myheaders = NULL;
 		}
 		if (body != NULL) {
