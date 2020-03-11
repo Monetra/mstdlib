@@ -167,7 +167,9 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a63a23cbd3df3035a0d73a4dcc1be3da5">M_TEXTCODEC_PERCENT_FORMMIN</a>, 
 <br />
-&#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06">M_TEXTCODEC_PUNYCODE</a>
+&#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06">M_TEXTCODEC_PUNYCODE</a>, 
+<br />
+&#160;&#160;<a class="el" href="group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af52132cbd453d88ceeb7bd97215b54d9">M_TEXTCODEC_QUOTED_PRINTABLE</a>
 <br />
  }</td></tr>
 <tr class="separator:ga7503523b8dfaaf72e6d63e05201ab536"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -280,6 +282,8 @@ Functions</h2></td></tr>
 <td>PERCENT_FORMMIN </td><td>form_min </td><td>form-urlencoded-min </td></tr>
 <tr>
 <td>PUNYCODE </td><td>punycode </td><td>puny </td></tr>
+<tr>
+<td>QUOTED_PRINTABLE </td><td>puoted-printable </td><td>qp </td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="gabce257a204b55a46ad9835114b8673df"></a>
@@ -387,6 +391,8 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="gga7503523b8dfaaf72e6d63e05201ab536a63a23cbd3df3035a0d73a4dcc1be3da5"></a>M_TEXTCODEC_PERCENT_FORMMIN&#160;</td><td class="fielddoc"><p>Minimal percent encoding suitable for use as form data. Space as + and ~ encoded. Space and non-ascii characters are encoded. All other reserved characters are not encoded. This is intended as a fix up. Must be utf-8. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06"></a>M_TEXTCODEC_PUNYCODE&#160;</td><td class="fielddoc"><p>IDNA Punycode (RFC 3492). Primarily used for DNS. Error handlers will be ignore and all error conditions are failures. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga7503523b8dfaaf72e6d63e05201ab536af52132cbd453d88ceeb7bd97215b54d9"></a>M_TEXTCODEC_QUOTED_PRINTABLE&#160;</td><td class="fielddoc"><p>RFC 2045 quoted printable content transfer encoding. </p>
 </td></tr>
 </table>
 
@@ -809,7 +815,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Mar 11 2020 14:30:12 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Mar 11 2020 21:36:18 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

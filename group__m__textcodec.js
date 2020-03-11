@@ -40,7 +40,8 @@ var group__m__textcodec =
       [ "M_TEXTCODEC_PERCENT_FORM", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a93c2676a7b7ee50e9e2b323de039a34f", null ],
       [ "M_TEXTCODEC_PERCENT_URLMIN", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a7a65bdfaf629b43c7b198a7422521ac2", null ],
       [ "M_TEXTCODEC_PERCENT_FORMMIN", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a63a23cbd3df3035a0d73a4dcc1be3da5", null ],
-      [ "M_TEXTCODEC_PUNYCODE", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06", null ]
+      [ "M_TEXTCODEC_PUNYCODE", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536a0804e80e6211e908c66d4f580940ce06", null ],
+      [ "M_TEXTCODEC_QUOTED_PRINTABLE", "group__m__textcodec.html#gga7503523b8dfaaf72e6d63e05201ab536af52132cbd453d88ceeb7bd97215b54d9", null ]
     ] ],
     [ "M_textcodec_error_t", "group__m__textcodec.html#gaa22fe6fec7d582fd36d45cabba4e8352", [
       [ "M_TEXTCODEC_ERROR_SUCCESS", "group__m__textcodec.html#ggaa22fe6fec7d582fd36d45cabba4e8352ae0be42e9b00a73f5a94d1bd235b8ca9d", null ],
