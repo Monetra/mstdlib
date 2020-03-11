@@ -65,6 +65,7 @@ static M_bool M_textcodec_validate_params(M_textcodec_buffer_t *buf, M_textcodec
 		case M_TEXTCODEC_PERCENT_URLMIN:
 		case M_TEXTCODEC_PERCENT_FORMMIN:
 		case M_TEXTCODEC_PUNYCODE:
+		case M_TEXTCODEC_QUOTED_PRINTABLE:
 			fail = M_FALSE;
 			break;
 	}
@@ -183,6 +184,8 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_encode_percent(buf, in, ehandler, codec);
 		case M_TEXTCODEC_PUNYCODE:
 			return M_textcodec_encode_punycode(buf, in, ehandler);
+		case M_TEXTCODEC_QUOTED_PRINTABLE:
+			return M_textcodec_encode_quoted_printable(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -265,6 +268,8 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 			return M_textcodec_decode_percent(buf, in, ehandler, codec);
 		case M_TEXTCODEC_PUNYCODE:
 			return M_textcodec_decode_punycode(buf, in, ehandler);
+		case M_TEXTCODEC_QUOTED_PRINTABLE:
+			return M_textcodec_decode_quoted_printable(buf, in, ehandler);
 	}
 
 	return M_TEXTCODEC_ERROR_FAIL;
@@ -643,6 +648,9 @@ M_textcodec_codec_t M_textcodec_codec_from_str(const char *s)
 	if (M_str_caseeq(s, "punycode") || M_str_caseeq(s, "puny"))
 		return M_TEXTCODEC_PUNYCODE;
 
+	if (M_str_caseeq(s, "quoted-printable") || M_str_caseeq(s, "qp"))
+		return M_TEXTCODEC_QUOTED_PRINTABLE;
+
 	return M_TEXTCODEC_UNKNOWN;
 }
 
@@ -719,6 +727,8 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 			return "form_min";
 		case M_TEXTCODEC_PUNYCODE:
 			return "punycode";
+		case M_TEXTCODEC_QUOTED_PRINTABLE:
+			return "quoted-printable";
 	}
 
 	return "unknown";

@@ -50,6 +50,7 @@ set(sources
 	textcodec/m_textcodec_iso8859_16.c
 	textcodec/m_textcodec_percent.c
 	textcodec/m_textcodec_punycode.c
+	textcodec/m_textcodec_quoted_printable.c
 
 	# verify:
 	verify/m_verify.c
