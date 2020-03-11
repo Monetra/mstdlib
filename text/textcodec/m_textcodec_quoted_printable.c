@@ -37,7 +37,10 @@ M_textcodec_error_t M_textcodec_encode_quoted_printable(M_textcodec_buffer_t *bu
 	for (i=0; i<len; i++) {
 		char c = in[i];
 
-		if (c < 32 || c == '=' || c > 126) {
+		/* Tab, \r, \n, and space are allowed to be left alone.
+ 		 * RFC says safe characters are 33-60 and 62-126 inclusive but
+		 * we want a few more in this list. */
+		if (c != 9 && c != 10 && c != 13 && (c < 32 || c == '=' || c > 126)) {
 			M_textcodec_buffer_add_byte(buf, '=');
 			M_textcodec_buffer_add_byte(buf, (unsigned char)("0123456789ABCDEF"[c >> 4]));
 			M_textcodec_buffer_add_byte(buf, (unsigned char)("0123456789ABCDEF"[c & 0x0F]));
