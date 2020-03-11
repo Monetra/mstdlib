@@ -334,116 +334,6 @@ static M_email_error_t M_email_header_process_header_done(M_email_reader_t *emai
 	return res;
 }
 
-typedef enum {
-	HEADER_STATE_END,
-	HEADER_STATE_SUCCESS,
-	HEADER_STATE_MOREDATA,
-	HEADER_STATE_FAIL,
-} header_state_t;
-
-static header_state_t M_email_header_get_next(M_email_reader_t *emailr, char **key, char **val)
-{
-	M_parser_t      *header = NULL;
-	M_buf_t         *buf    = NULL;
-	M_parser_t     **kv     = NULL;
-	char            *temp   = NULL;
-	header_state_t   hsres  = HEADER_STATE_SUCCESS;
-	size_t           num_kv = 0;
-
-	*key = NULL;
-	*val = NULL;
-
-	/* An empty line means the end of the header. */
-	if (M_parser_compare_str(emailr->parser, "\r\n", 2, M_FALSE)) {
-		M_parser_consume(emailr->parser, 2);
-		return HEADER_STATE_END;
-	}
-
-	/* Mark the header because we need to rewind if we don't have
-	 * a full header. Headers can span multiple lines and we want
-	 * to parser a complete header not line by line because some
-	 * data like an email address in the 'TO' header can be split
-	 * on spaces across lines. */
-	M_parser_mark(emailr->parser);
-
-	/* Use a buf because we need to join lines. */
-	buf = M_buf_create();
-	while (1) {
-		if (M_parser_read_buf_until(emailr->parser, buf, (const unsigned char *)"\r\n", 2, M_FALSE) == 0) {
-			/* Not enough data so nothing to do. */
-			M_parser_mark_rewind(emailr->parser);
-			hsres = HEADER_STATE_MOREDATA;
-			goto done;
-		}
-		/* Eat the \r\n after the header. */
-		M_parser_consume(emailr->parser, 2);
-
-		/* If there is nothing after we don't know if we'll have a new header, end of header,
-		 * or continuation line. We need to wait for more data. */
-		if (M_parser_len(emailr->parser) == 0) {
-			M_parser_mark_rewind(emailr->parser);
-			hsres = HEADER_STATE_MOREDATA;
-			goto done;
-		}
-
-		/* If we have space or tab starting a line then this is a continuation line
-		 * for the header. We'll kill the empty space and add a single one to join
-		 * this line to the rest of the header. */
-		if (M_parser_consume_charset(emailr->parser, (const unsigned char *)" \t", 2) != 0) {
-			M_buf_add_byte(buf, ' ');
-		} else {
-			break;
-		}
-	}
-	M_parser_mark_clear(emailr->parser);
-
-	/* buf is filled with a full header. */
-	header = M_parser_create_const((const unsigned char *)M_buf_peek(buf), M_buf_len(buf), M_PARSER_FLAG_NONE);
-
-	/* Split the key from the value. */
-	kv = M_parser_split(header, ':', 2, M_PARSER_SPLIT_FLAG_NODELIM_ERROR, &num_kv);
-	if (kv == NULL || num_kv == 0) {
-		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
-		hsres       = HEADER_STATE_FAIL;
-		goto done;
-	}
-
-	/* Spaces between the key and separator (:) are _NOT_allowed. */
-	if (M_parser_truncate_whitespace(kv[0], M_PARSER_WHITESPACE_NONE) != 0) {
-		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
-		hsres       = HEADER_STATE_FAIL;
-		goto done;
-	}
-
-	/* Validate we actually have a key. */
-	if (M_parser_len(kv[0]) == 0) {
-		emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
-		hsres       = HEADER_STATE_FAIL;
-		goto done;
-	}
-
-	/* Get the key. */
-	temp = M_parser_read_strdup(kv[0], M_parser_len(kv[0]));
-	*key = M_strdup_trim(temp);
-	M_free(temp);
-
-	/* We support a header being sent without a value. If there is a value
-	 * we'll pull it off. */
-	if (num_kv == 2) {
-		/* Spaces between the separator (:) and value are allowed and should be ignored. Consume them. */
-		M_parser_consume_whitespace(kv[1], M_PARSER_WHITESPACE_NONE);
-		temp = M_parser_read_strdup(kv[1], M_parser_len(kv[1]));
-		*val = M_strdup_trim(temp);
-		M_free(temp);
-	}
-
-done:
-		M_parser_destroy(header);
-		M_buf_cancel(buf);
-		M_parser_split_free(kv, num_kv);
-		return hsres;
-}
-
 static M_state_machine_status_t M_email_header_process_headers(M_email_reader_t *emailr, M_bool is_multipart)
 {
 	M_email_error_t res;
@@ -457,11 +347,12 @@ static M_state_machine_status_t M_email_header_process_headers(M_email_reader_t 
 		char *key = NULL;
 		char *val = NULL;
 
-		hsres = M_email_header_get_next(emailr, &key, &val);
+		hsres = M_email_header_get_next(emailr->parser, &key, &val);
 		switch (hsres) {
+			case HEADER_STATE_FAIL:
+				emailr->res = M_EMAIL_ERROR_HEADER_INVALID;
 			case HEADER_STATE_END:
 			case HEADER_STATE_MOREDATA:
-			case HEADER_STATE_FAIL:
 				goto end_of_header;
 			case HEADER_STATE_SUCCESS:
 				break;
