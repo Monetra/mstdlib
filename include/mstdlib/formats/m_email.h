@@ -660,6 +660,17 @@ M_API M_bool M_email_simple_write_buf(const M_email_t *email, M_buf_t *buf);
 
 /*! @} */
 
+
+/*! \addtogroup m_email_simple_helper Email Simple Helpers
+ *  \ingroup m_email_simple
+ *
+ * @{
+ */
+
+M_API M_email_error_t M_email_simple_split_header_body(const char *message, M_hash_dict_t **headers, char **body);
+
+/*! @} */
+
 /*! @} */
 
 /*! @} */
