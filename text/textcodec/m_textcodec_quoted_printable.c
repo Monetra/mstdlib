@@ -40,7 +40,7 @@ M_textcodec_error_t M_textcodec_encode_quoted_printable(M_textcodec_buffer_t *bu
 		/* Tab, \r, \n, and space are allowed to be left alone.
  		 * RFC says safe characters are 33-60 and 62-126 inclusive but
 		 * we want a few more in this list. */
-		if (c != 9 && c != 10 && c != 13 && (c < 32 || c == '=' || c > 126)) {
+		if (c != '\t' && c != '\r' && c != '\n' && (c < 32 || c == '=' || c > 126)) {
 			M_textcodec_buffer_add_byte(buf, '=');
 			M_textcodec_buffer_add_byte(buf, (unsigned char)("0123456789ABCDEF"[c >> 4]));
 			M_textcodec_buffer_add_byte(buf, (unsigned char)("0123456789ABCDEF"[c & 0x0F]));
@@ -49,6 +49,9 @@ M_textcodec_error_t M_textcodec_encode_quoted_printable(M_textcodec_buffer_t *bu
 			M_textcodec_buffer_add_byte(buf, (unsigned char)c);
 			cnt++;
 		}
+
+		if (c == '\n')
+			cnt = 0;
 
 		/* Max line lenght is 76. We're going to ensure we never exceed this.
  		 * Some lines might break earlier due to us not using a look ahead. */
