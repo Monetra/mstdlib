@@ -387,6 +387,7 @@ var searchData=
   ['m_5femail_5fsimple_5fread_5fflags_5ft',['M_email_simple_read_flags_t',['../group__m__email__simple__read.html#ga7b85bcd4fb358eda215b04dae2379f13',1,'m_email.h']]],
   ['m_5femail_5fsimple_5fread_5fnone',['M_EMAIL_SIMPLE_READ_NONE',['../group__m__email__simple__read.html#gga7b85bcd4fb358eda215b04dae2379f13abf45e223bdcfc6d0abe9a9466c4c38ed',1,'m_email.h']]],
   ['m_5femail_5fsimple_5fread_5fparser',['M_email_simple_read_parser',['../group__m__email__simple__read.html#ga246878ddb2faa507673bb57dfcee91b0',1,'m_email.h']]],
+  ['m_5femail_5fsimple_5fsplit_5fheader_5fbody',['M_email_simple_split_header_body',['../group__m__email__simple__helper.html#ga1d8328c436eaa8638f830c79c4001afb',1,'m_email.h']]],
   ['m_5femail_5fsimple_5fwrite',['M_email_simple_write',['../group__m__email__simple__write.html#gafb40eb50a1dbae395395618b93a8859a',1,'m_email.h']]],
   ['m_5femail_5fsimple_5fwrite_5fbuf',['M_email_simple_write_buf',['../group__m__email__simple__write.html#ga33b1cbb2679f46dddeb626d05c385beb',1,'m_email.h']]],
   ['m_5femail_5fsubject',['M_email_subject',['../group__m__email__msssage.html#ga57cfe96b00b56dba06d4152c55608328',1,'m_email.h']]],

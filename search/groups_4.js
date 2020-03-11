@@ -4,6 +4,7 @@ var searchData=
   ['email_20message',['Email Message',['../group__m__email__msssage.html',1,'']]],
   ['email_20stream_20reader',['Email Stream Reader',['../group__m__email__reader.html',1,'']]],
   ['email_20simple',['Email Simple',['../group__m__email__simple.html',1,'']]],
+  ['email_20simple_20helpers',['Email Simple Helpers',['../group__m__email__simple__helper.html',1,'']]],
   ['email_20simple_20reader',['Email Simple Reader',['../group__m__email__simple__read.html',1,'']]],
   ['email_20simple_20reader',['Email Simple Reader',['../group__m__email__simple__write.html',1,'']]],
   ['endian',['Endian',['../group__m__endian.html',1,'']]],
