@@ -42,6 +42,27 @@ START_TEST(check_testing)
 }
 END_TEST
 
+START_TEST(check_splitting)
+{
+	M_hash_dict_t    *headers = NULL;
+	char             *body    = NULL;
+	char             *out     = NULL;
+	M_email_error_t   res;
+
+
+	res = M_email_simple_split_header_body(test_data, &headers, &body);
+	M_printf("res: %d\n", res);
+
+	out = M_hash_dict_serialize(headers, ';', '=', '\"', '\\', M_HASH_DICT_SER_FLAG_NONE);
+	M_printf("HEADERS:\n'''\n%s\n'''\n", out);
+	M_printf("BODY:\n'''\n%s\n'''\n", body);
+
+	M_free(body);
+	M_hash_dict_destroy(headers);
+
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -53,6 +74,7 @@ int main(void)
 	suite = suite_create("email");
 
 	add_test(suite, check_testing);
+	add_test(suite, check_splitting);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
