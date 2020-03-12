@@ -630,7 +630,7 @@ M_API M_email_error_t M_email_simple_read_parser(M_email_t **email, M_parser_t *
 /*! @} */
 
 
-/*! \addtogroup m_email_simple_write Email Simple Reader
+/*! \addtogroup m_email_simple_write Email Simple Writer
  *  \ingroup m_email_simple
  *
  * Writes an email. Useful for small messages.
