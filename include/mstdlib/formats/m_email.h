@@ -121,9 +121,11 @@ M_API void M_email_destroy(M_email_t *email);
 /* Will update / replace / remove, To, CC, BCC, Subject, Reply-To.
  * Nothing updated on failure. */
 M_API M_bool M_email_set_headers(M_email_t *email, const M_hash_dict_t *headers);
+/* If exists will add to list. Use remove if needing to replace. */
 M_API M_bool M_email_headers_insert(M_email_t *email, const char *key, const char *val);
 M_API void M_email_headers_remove(M_email_t *email, const char *key);
-/* Does not include, To, CC, BCC, Subject, Reply-To. */
+/* Does not include, To, CC, BCC, Subject, Reply-To.
+ * Multi value. */
 M_API const M_hash_dict_t *M_email_headers(const M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

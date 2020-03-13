@@ -165,7 +165,7 @@ static M_email_part_t *M_email_part_create(void)
 
 	part          = M_malloc_zero(sizeof(*part));
 	part->data    = M_buf_create();
-	part->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	part->headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
 
 	return part;
 }
@@ -243,7 +243,7 @@ M_email_t *M_email_create(void)
 	M_email_t *email;
 
 	email           = M_malloc_zero(sizeof(*email));
-	email->headers  = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	email->headers  = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
 
 	email->to       = create_address_list();
 	email->cc       = create_address_list();
@@ -294,7 +294,7 @@ M_bool M_email_set_headers(M_email_t *email, const M_hash_dict_t *headers)
 	if (email == NULL)
 		return M_FALSE;
 
-	new_headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED);
+	new_headers = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
 	to          = create_address_list();
 	cc          = create_address_list();
 	bcc         = create_address_list();
