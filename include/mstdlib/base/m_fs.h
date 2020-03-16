@@ -1189,7 +1189,7 @@ M_API M_fs_error_t M_fs_file_sync(M_fs_file_t *fd, M_uint32 type);
 /*! Read a file into a buffer as a str.
  *
  * \param[in]  path       The path to read from.
- * \param[in]  max_read   A maximum amount of data to read. 0 for no maximum.
+ * \param[in]  max_read   A maximum of bytes to read. 0 for no maximum.
  * \param[out] buf        A buffer that will be allocated and contain the file contents. It will be NULL terminated
  *                        on success.
  * \param[out] bytes_read The number of bytes read and contained in the buffer excluding the NULL terminator.
