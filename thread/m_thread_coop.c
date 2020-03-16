@@ -617,7 +617,7 @@ static void M_thread_coop_create_int(M_thread_coop_t *thread, void *(*func)(void
 #endif /* COOPTHREADS_SETJMP */
 
 
-static M_thread_t *M_thread_coop_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
+static M_thread_t *M_thread_coop_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
 	M_thread_coop_t *thread = NULL;
 
@@ -646,9 +646,6 @@ static M_thread_t *M_thread_coop_create(M_threadid_t *id, const M_thread_attr_t 
 	M_llist_insert(coop_active_threads, thread);
 
 	M_thread_coop_create_int(thread, func, arg);
-
-	if (id != NULL)
-		*id = (M_threadid_t)thread;
 
 	M_thread_coop_switch_to_thread(M_llist_last(coop_active_threads), thread);
 

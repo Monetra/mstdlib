@@ -45,7 +45,7 @@ typedef struct {
 	void (*init)(void);
 	void (*deinit)(void);
 	/* Thread */
-	M_thread_t   *(*thread_create)       (M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
+	M_thread_t   *(*thread_create)       (const M_thread_attr_t *attr, void *(*func)(void *), void *arg);
 	M_bool        (*thread_join)         (M_thread_t *thread, void **value_ptr);
 	M_threadid_t  (*thread_self)         (M_thread_t **thread);
 	void          (*thread_yield)        (M_bool force);
