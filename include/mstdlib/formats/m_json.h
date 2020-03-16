@@ -210,7 +210,7 @@ M_API M_json_node_t *M_json_read(const char *data, size_t data_len, M_uint32 fla
  *
  * \param[in]  path       The file to read.
  * \param[in]  flags      M_json_reader_flags_t flags to control the behavior of the reader.
- * \param[in]  max_read   The maximum amount of data to read from the file. If the data in the file is
+ * \param[in]  max_read   The maximum number of bytes to read from the file. If the data in the file is
  *                        larger than max_read an error will most likely result. Optional pass 0 to read all data.
  * \param[out] error      On error this will be populated with an error reason. Optional, pass NULL if not needed.
  * \param[out] error_line The line the error occurred. Optional, pass NULL if not needed.
