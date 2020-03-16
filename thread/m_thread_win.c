@@ -158,7 +158,7 @@ static M_bool M_thread_win_set_processor(M_thread_t *thread, M_threadid_t tid, i
 }
 
 
-static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
+static M_thread_t *M_thread_win_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
 	DWORD   dwThreadId;
 	HANDLE  hThread;
@@ -172,20 +172,6 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 	if (hThread == NULL)
 		return NULL;
 
-	*id = (M_threadid_t)dwThreadId;
-
-	/* Handle thread priority */
-	mthread_priority = M_thread_attr_get_priority(attr);
-	if (mthread_priority != M_THREAD_PRIORITY_NORMAL) {
-		M_thread_win_set_priority((M_thread_t *)hThread, *id, mthread_priority);
-	}
-
-	/* Handle thread processor binding */
-	processor = M_thread_attr_get_processor(attr);
-	if (processor != -1) {
-		 M_thread_win_set_processor((M_thread_t *)hThread, *id, processor);
-	}
-
 	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
 		CloseHandle(hThread);
 		return (M_thread_t *)1;
@@ -195,7 +181,7 @@ static M_thread_t *M_thread_win_create(M_threadid_t *id, const M_thread_attr_t *
 
 static M_bool M_thread_win_join(M_thread_t *thread, void **value_ptr)
 {
-	if (thread == NULL)
+	if (thread == NULL || thread == (M_thread_t *)1)
 		return M_FALSE;
 
 	if (WaitForSingleObject((HANDLE)thread, INFINITE) != WAIT_OBJECT_0)

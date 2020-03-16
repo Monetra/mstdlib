@@ -65,9 +65,12 @@ static struct {
 };
 
 typedef struct {
-	void   *(*func)(void *arg);
-	void     *arg;
-	M_bool    joinable;
+	void             *(*func)(void *arg);
+	void             *arg;
+	M_bool            joinable;
+	M_threadid_t     *thread_id;  /*!< Pointer to OS thread id */
+	M_thread_cond_t  *cond;       /*!< Pointer for Conditional for signalling when OS thread id has been filled */
+	M_thread_mutex_t *mutex;      /*!< Pointer for Mutex for OS thread id filling */
 } M_thread_wrapfunc_data_t;
 
 static M_bool M_thread_once_int(M_thread_once_t *once_control, M_bool atomics_only, void (*init_routine)(M_uint64 flags), M_uint64 init_flags);
@@ -89,6 +92,24 @@ static void *M_thread_wrapfunc(void *arg)
 	thread_count++;
 	M_thread_mutex_unlock(thread_count_mutex);
 
+
+	/* Notify parent we have set the thread id */
+	M_thread_mutex_lock(data->mutex);
+	*(data->thread_id) = thread_cbs.thread_self(NULL);
+	M_thread_cond_signal(data->cond);
+
+	/* Wait for parent to say it is ok to continue */
+	M_thread_cond_wait(data->cond, data->mutex);
+
+	/* Destroy unneeded data */
+	M_thread_mutex_unlock(data->mutex);
+	M_thread_cond_destroy(data->cond);
+	M_thread_mutex_destroy(data->mutex);
+	data->cond      = NULL;
+	data->mutex     = NULL;
+	data->thread_id = NULL;
+
+	/* Run user function */
 	ret         = data->func(data->arg);
 
 	M_thread_mutex_lock(thread_destructor_mutex);
@@ -414,15 +435,22 @@ M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *),
 	M_thread_t               *thread;
 	M_threadid_t              id     = 0;
 	M_thread_attr_t          *myattr = NULL;
+	M_thread_cond_t          *cond   = NULL;
+	M_thread_mutex_t         *mutex  = NULL;
 
 	M_thread_auto_init();
 	if (thread_cbs.thread_create == NULL)
 		return 0;
 
-	data = M_malloc(sizeof(*data));
-	data->func     = func;
-	data->arg      = arg;
-	data->joinable = M_thread_attr_get_create_joinable(attr);
+	data            = M_malloc(sizeof(*data));
+	data->func      = func;
+	data->arg       = arg;
+	cond            = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	mutex           = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	data->cond      = cond;
+	data->mutex     = mutex;
+	data->thread_id = &id;
+	data->joinable  = M_thread_attr_get_create_joinable(attr);
 
 	/* ensure an attr is created so threads are setup properly (in a detachted state by default). */
 	if (attr == NULL) {
@@ -430,13 +458,41 @@ M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *),
 		attr   = myattr;
 	}
 
-	thread = thread_cbs.thread_create(&id, attr, M_thread_wrapfunc, data);
+	M_thread_mutex_lock(mutex);
 
-	if (M_thread_attr_get_create_joinable(attr) && thread_cbs.thread_join != NULL) {
-		M_thread_mutex_lock(threadid_mutex);
-		M_hash_u64vp_insert(threadid_map, id, thread);
-		M_thread_mutex_unlock(threadid_mutex);
+	thread = thread_cbs.thread_create(attr, M_thread_wrapfunc, data);
+	if (thread == NULL) {
+		M_thread_mutex_unlock(mutex);
+		M_thread_cond_destroy(cond);
+		M_thread_mutex_destroy(mutex);
+		M_free(data);
+		if (myattr != NULL) {
+			M_thread_attr_destroy(myattr);
+		}
+		return 0;
 	}
+
+	/* Wait to be signaled that the thread id has been set by the thread */
+	M_thread_cond_wait(cond, mutex);
+
+	/* Add to thread map */
+	M_thread_mutex_lock(threadid_mutex);
+	M_hash_u64vp_insert(threadid_map, id, thread);
+	M_thread_mutex_unlock(threadid_mutex);
+
+	/* Set thread processor and priority if necessary */
+	if (M_thread_attr_get_processor(attr) != -1) {
+		M_thread_set_processor(id, M_thread_attr_get_processor(attr));
+	}
+
+	if (M_thread_attr_get_priority(attr) != M_THREAD_PRIORITY_NORMAL) {
+		M_thread_set_priority(id, M_thread_attr_get_priority(attr));
+	}
+
+	/* Signal thread its ok to continue as we've recorded the necessary information
+	 * NOTE:  it is the responsibility of the thread to destroy cond and mutex */
+	M_thread_cond_signal(cond);
+	M_thread_mutex_unlock(mutex);
 
 	if (myattr != NULL) {
 		M_thread_attr_destroy(myattr);
@@ -444,6 +500,7 @@ M_threadid_t M_thread_create(const M_thread_attr_t *attr, void *(*func)(void *),
 
 	return id;
 }
+
 
 M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 {

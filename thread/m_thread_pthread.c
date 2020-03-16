@@ -317,51 +317,11 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 }
 
 
-
-/*! Wrapper argument for thread startup for task */
-typedef struct {
-	void          *(*entry_func)(void *); /*!< Real function entry point */
-	void            *entry_arg;           /*!< Passed in function entry argument */
-	M_threadid_t    *thread_id;           /*!< Pointer to OS thread id */
-	pthread_cond_t  *cond;                /*!< Pointer for Conditional for signalling when OS thread id has been filled */
-	pthread_mutex_t *mutex;               /*!< Pointer for Mutex for OS thread id filling */
-} M_thread_pthread_entry_arg_t;
-
-
-/*! Some OS'd like Linux and AIX  have a concept of an OS Thread ID that is different
- *  then the pthread_t, and you cannot obtain this OS Thread ID by using the pthread_t
- *  but the thread itself can query it.  So we need a hook when a thread initializes
- *  to capture this data and pass it back to the parent */
-static void *M_thread_pthread_entry(void *arg)
-{
-	M_thread_pthread_entry_arg_t   *larg                = arg;
-	void                         *(*entry_func)(void *) = larg->entry_func;
-	void                           *entry_arg           = larg->entry_arg;
-	pthread_cond_t                 *cond                = larg->cond;
-	pthread_mutex_t                *mutex               = larg->mutex;
-	M_threadid_t                   *thread_id           = larg->thread_id;
-
-	M_free(larg);
-	larg = NULL;
-
-	pthread_mutex_lock(mutex);
-	*thread_id = M_thread_pthread_self(NULL);
-	pthread_cond_signal(cond);
-	pthread_mutex_unlock(mutex);
-	return entry_func(entry_arg);
-}
-
-
-static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
+static M_thread_t *M_thread_pthread_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
 {
 	pthread_t                     thread;
 	pthread_attr_t                tattr;
 	int                           ret;
-	M_thread_pthread_entry_arg_t *larg;
-	pthread_cond_t                cond;
-	pthread_mutex_t               mutex;
-
-	*id = 0;
 
 	if (func == NULL) {
 		return NULL;
@@ -369,42 +329,11 @@ static M_thread_t *M_thread_pthread_create(M_threadid_t *id, const M_thread_attr
 
 	M_thread_pthread_attr_topattr(attr, &tattr);
 
-	larg = M_malloc_zero(sizeof(*larg));
-	larg->entry_func                 = func;
-	larg->entry_arg                  = arg;
-	larg->thread_id                  = id;
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-	larg->cond                       = &cond;
-	larg->mutex                      = &mutex;
-
-	pthread_mutex_lock(&mutex);
-
-	ret = pthread_create(&thread, &tattr, M_thread_pthread_entry, larg);
+	ret = pthread_create(&thread, &tattr, func, arg);
 	pthread_attr_destroy(&tattr);
 
 	if (ret != 0) {
-		pthread_mutex_unlock(&mutex);
-		pthread_mutex_destroy(&mutex);
-		pthread_cond_destroy(&cond);
-		M_free(larg);
 		return NULL;
-	}
-
-	/* Wait for thread to signal us that it has set the OS thread ID */
-	pthread_cond_wait(&cond, &mutex);
-
-	/* Cleanup */
-	pthread_mutex_unlock(&mutex);
-	pthread_mutex_destroy(&mutex);
-	pthread_cond_destroy(&cond);
-
-	if (M_thread_attr_get_processor(attr) != -1) {
-		M_thread_pthread_set_processor((M_thread_t *)thread, *id, M_thread_attr_get_processor(attr));
-	}
-
-	if (M_thread_attr_get_priority(attr) != M_THREAD_PRIORITY_NORMAL) {
-		M_thread_pthread_set_priority((M_thread_t *)thread, *id, M_thread_attr_get_priority(attr));
 	}
 
 	return (M_thread_t *)thread;
