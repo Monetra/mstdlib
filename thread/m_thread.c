@@ -520,9 +520,11 @@ M_bool M_thread_join(M_threadid_t id, void **value_ptr)
 
 	rv = thread_cbs.thread_join(thread, value_ptr);
 
-	M_thread_mutex_lock(threadid_mutex);
-	M_hash_u64vp_remove(threadid_map, id, M_FALSE);
-	M_thread_mutex_unlock(threadid_mutex);
+	if (rv) {
+		M_thread_mutex_lock(threadid_mutex);
+		M_hash_u64vp_remove(threadid_map, id, M_FALSE);
+		M_thread_mutex_unlock(threadid_mutex);
+	}
 
 	return rv;
 }
