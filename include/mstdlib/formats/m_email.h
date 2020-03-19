@@ -131,12 +131,14 @@ M_API const M_hash_dict_t *M_email_headers(const M_email_t *email);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_API M_bool M_email_from(const M_email_t *email, char const **group, char const **name, char const **address);
+M_API char *M_email_from_field(const M_email_t *email);
 M_API void M_email_set_from(M_email_t *email, const char *group, const char *name, const char *address);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_API size_t M_email_to_len(const M_email_t *email);
 M_API M_bool M_email_to(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API char *M_email_to_field(const M_email_t *email);
 M_API void M_email_to_append(M_email_t *email, const char *group, const char *name, const char *address);
 M_API void M_email_to_remove(M_email_t *email, size_t idx);
 M_API void M_email_to_clear(M_email_t *email);
@@ -145,6 +147,7 @@ M_API void M_email_to_clear(M_email_t *email);
 
 M_API size_t M_email_cc_len(const M_email_t *email);
 M_API M_bool M_email_cc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API char *M_email_cc_field(const M_email_t *email);
 M_API void M_email_cc_append(M_email_t *email, const char *group, const char *name, const char *address);
 M_API void M_email_cc_remove(M_email_t *email, size_t idx);
 M_API void M_email_cc_clear(M_email_t *email);
@@ -153,6 +156,7 @@ M_API void M_email_cc_clear(M_email_t *email);
 
 M_API size_t M_email_bcc_len(const M_email_t *email);
 M_API M_bool M_email_bcc(const M_email_t *email, size_t idx, char const **group, char const **name, char const **address);
+M_API char *M_email_bcc_field(const M_email_t *email);
 M_API void M_email_bcc_append(M_email_t *email, const char *group, const char *name, const char *address);
 M_API void M_email_bcc_remove(M_email_t *email, size_t idx);
 M_API void M_email_bcc_clear(M_email_t *email);
@@ -160,6 +164,7 @@ M_API void M_email_bcc_clear(M_email_t *email);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_API void M_email_set_reply_to(M_email_t *email, const char *group, const char *name, const char *address);
+M_API char *M_email_reply_to_field(const M_email_t *email);
 M_API M_bool M_email_reply_to(const M_email_t *email, char const **group, char const **name, char const **address);
 M_API void M_email_reply_to_remove(M_email_t *email);
 

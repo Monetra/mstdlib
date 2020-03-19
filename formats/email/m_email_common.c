@@ -217,6 +217,44 @@ done:
 	return res;
 }
 
+static char *M_email_address_format(const char *name, const char *address)
+{
+	M_buf_t *buf;
+
+	if (M_str_isempty(address))
+		return NULL;
+
+	buf = M_buf_create();
+
+	if (M_str_isempty(name)) {
+		M_buf_add_str(buf, address);
+		return M_buf_finish_str(buf, NULL);
+	}
+
+	M_buf_add_str_quoted(buf, '\"', '\\', "<>,@.", M_FALSE, name);
+	M_buf_add_byte(buf, ' ');
+	M_buf_add_byte(buf, '<');
+	M_buf_add_str(buf, address);
+	M_buf_add_byte(buf, '>');
+
+	return M_buf_finish_str(buf, NULL);
+}
+
+static char *M_email_address_format_group(const char *group, const char *address_list)
+{
+	M_buf_t *buf;
+
+	if (M_str_isempty(group))
+		return M_strdup(address_list);
+
+	buf = M_buf_create();
+	M_buf_add_str(buf, group);
+	M_buf_add_str(buf, ": ");
+	M_buf_add_str(buf, address_list);
+
+	return M_buf_finish_str(buf, NULL);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* Content-Disposition */
@@ -412,4 +450,104 @@ done:
 		M_buf_cancel(buf);
 		M_parser_split_free(kv, num_kv);
 		return hsres;
+}
+
+char *M_email_write_recipients(const M_email_t *email, M_email_recp_len_func_t recp_len, M_email_recp_func_t recp)
+{
+	M_hash_strvp_t      *group_entires;
+	M_list_str_t        *non_group_entires;
+	M_list_str_t        *recp_list;
+	M_list_str_t        *l;
+	M_hash_strvp_enum_t *he;
+	const char          *group;
+	const char          *name;
+	const char          *address;
+	char                *out   = NULL;
+	char                *full;
+	size_t               len;
+	size_t               i;
+
+	len = recp_len(email);
+	if (len == 0)
+		return NULL;
+
+	group_entires     = M_hash_strvp_create(8, 75, M_HASH_STRVP_CASECMP|M_HASH_STRVP_KEYS_ORDERED, (void(*)(void *))M_list_str_destroy);
+	non_group_entires = M_list_str_create(M_LIST_STR_NONE);
+
+	for (i=0; i<len; i++) {
+		group   = NULL;
+		name    = NULL;
+		address = NULL;
+
+		recp(email, i, &group, &name, &address);
+		full = M_email_address_format(name, address);
+
+		if (!M_str_isempty(group)) {
+			/* Get the list for this group. Creating a new
+ 			 * list if there isn't one already. */
+			l = M_hash_strvp_get_direct(group_entires, group);
+			if (l == NULL) {
+				l = M_list_str_create(M_LIST_STR_NONE);
+				M_hash_strvp_insert(group_entires, group, l);
+			}
+
+			/* We might not have a name/address because it's
+ 			 * an empty (valid) group. Don't add anything if
+			 * this is the case. */
+			if (!M_str_isempty(full)) {
+				M_list_str_insert(l, full);
+			}
+		} else if (!M_str_isempty(full)) {
+			/* No group, add it to our list of non-grouped entires. */
+			M_list_str_insert(non_group_entires, full);
+		}
+
+		M_free(full);
+	}
+
+	/* Go through all the groups and put together the full
+ 	 * group lists. */
+	recp_list = M_list_str_create(M_LIST_STR_NONE);
+	M_hash_strvp_enumerate(group_entires, &he);
+	while (M_hash_strvp_enumerate_next(group_entires, he, &group, (void **)&l)) {
+		/* Name/addresses are separated by a comma. */
+		out  = M_list_str_join_str(l, ", ");
+		/* Put the list together with the group. */
+		full = M_email_address_format_group(group, out);
+		M_free(out);
+		M_list_str_insert(recp_list, full);
+		M_free(full);
+	}
+	M_hash_strvp_enumerate_free(he);
+
+	/* Create our list of non-grouped entries and
+ 	 * append it to our group list (there might not be any groups). */
+	out = M_list_str_join_str(non_group_entires, ", ");
+	M_list_str_insert(recp_list, out);
+	M_free(out);
+
+	/* Groups are separated by a semicolon. */
+	out = M_list_str_join_str(recp_list, "; ");
+
+	/* Clean up. */
+	M_list_str_destroy(non_group_entires);
+	M_list_str_destroy(recp_list);
+	M_hash_strvp_destroy(group_entires, M_TRUE);
+
+	return out;
+}
+
+char *M_email_write_single_recipient(const char *group, const char *name, const char *address)
+{
+	char *ad;
+	char *full;
+
+	if (M_str_isempty(group) && M_str_isempty(address))
+		return NULL;
+
+	ad   = M_email_address_format(name, address);
+	full = M_email_address_format_group(group, ad);
+
+	M_free(ad);
+	return full;
 }
