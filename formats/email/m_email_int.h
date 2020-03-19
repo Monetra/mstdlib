@@ -38,6 +38,9 @@ typedef enum {
 	HEADER_STATE_FAIL,
 } header_state_t;
 
+typedef M_bool (*M_email_recp_func_t)(const M_email_t *, size_t, char const **, char const **, char const **);
+typedef size_t (*M_email_recp_len_func_t)(const M_email_t *);
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_email_error_t M_email_process_address(const char *val, M_email_error_t (*address_func)(const char *group, const char *name, const char *address, void *thunk), void *thunk);
@@ -47,5 +50,8 @@ M_bool M_email_attachment_parse_info_attachment(const char *val, char **filename
 char *M_email_attachment_parse_info_content_type(const char *val, char **filename);
 
 header_state_t M_email_header_get_next(M_parser_t *parser, char **key, char **val);
+
+char *M_email_write_recipients(const M_email_t *email, M_email_recp_len_func_t recp_len, M_email_recp_func_t recp);
+char *M_email_write_single_recipient(const char *group, const char *name, const char *address);
 
 #endif /* __M_EMAIL_INT_H__ */

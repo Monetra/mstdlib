@@ -442,6 +442,19 @@ M_bool M_email_from(const M_email_t *email, char const **group, char const **nam
 	return M_email_address_entry(email->from, group, name, address);
 }
 
+char *M_email_from_field(const M_email_t *email)
+{
+	const char *group;
+	const char *name;
+	const char *address;
+
+	if (email == NULL)
+		return NULL;
+
+	M_email_from(email, &group, &name, &address);
+	return M_email_write_single_recipient(group, name, address);
+}
+
 void M_email_set_from(M_email_t *email, const char *group, const char *name, const char *address)
 {
 	M_email_address_t *ad;
@@ -472,6 +485,13 @@ M_bool M_email_to(const M_email_t *email, size_t idx, char const **group, char c
 	if (email == NULL)
 		return M_FALSE;
 	return M_email_address_entry((M_email_address_t *)M_list_at(email->to, idx), group, name, address);
+}
+
+char *M_email_to_field(const M_email_t *email)
+{
+	if (email == NULL)
+		return NULL;
+	return M_email_write_recipients(email, M_email_to_len, M_email_to);
 }
 
 void M_email_to_append(M_email_t *email, const char *group, const char *name, const char *address)
@@ -514,6 +534,13 @@ M_bool M_email_cc(const M_email_t *email, size_t idx, char const **group, char c
 	return M_email_address_entry((M_email_address_t *)M_list_at(email->cc, idx), group, name, address);
 }
 
+char *M_email_cc_field(const M_email_t *email)
+{
+	if (email == NULL)
+		return NULL;
+	return M_email_write_recipients(email, M_email_cc_len, M_email_cc);
+}
+
 void M_email_cc_append(M_email_t *email, const char *group, const char *name, const char *address)
 {
 	if (email == NULL)
@@ -554,6 +581,13 @@ M_bool M_email_bcc(const M_email_t *email, size_t idx, char const **group, char 
 	return M_email_address_entry((M_email_address_t *)M_list_at(email->bcc, idx), group, name, address);
 }
 
+char *M_email_bcc_field(const M_email_t *email)
+{
+	if (email == NULL)
+		return NULL;
+	return M_email_write_recipients(email, M_email_bcc_len, M_email_bcc);
+}
+
 void M_email_bcc_append(M_email_t *email, const char *group, const char *name, const char *address)
 {
 	if (email == NULL)
@@ -584,6 +618,19 @@ M_bool M_email_reply_to(const M_email_t *email, char const **group, char const *
 	if (email == NULL)
 		return M_FALSE;
 	return M_email_address_entry(email->reply_to, group, name, address);
+}
+
+char *M_email_reply_to_field(const M_email_t *email)
+{
+	const char *group;
+	const char *name;
+	const char *address;
+
+	if (email == NULL)
+		return NULL;
+
+	M_email_reply_to(email, &group, &name, &address);
+	return M_email_write_single_recipient(group, name, address);
 }
 
 void M_email_set_reply_to(M_email_t *email, const char *group, const char *name, const char *address)
