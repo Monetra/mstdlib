@@ -1,6 +1,7 @@
 var searchData=
 [
   ['semi_2dpublic_20interfaces',['Semi-Public interfaces',['../group__m__eventio__semipublic.html',1,'']]],
+  ['start_20a_20process_20and_20perform_20i_2fo_20using_20stdin_2c_20stdout_2c_20and_20stderr',['Start a process and perform I/O using stdin, stdout, and stderr',['../group__m__io__process.html',1,'']]],
   ['serial_20port_20i_2fo_20functions',['Serial Port I/O functions',['../group__m__io__serial.html',1,'']]],
   ['stream_20module',['Stream Module',['../group__m__log__stream.html',1,'']]],
   ['syslog_20module',['Syslog Module',['../group__m__log__syslog.html',1,'']]],

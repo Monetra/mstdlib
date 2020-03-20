@@ -7,5 +7,6 @@ var group__m__eventio__base =
     [ "Made for iPod/iPhone/iPad IO functions", "group__m__io__mfi.html", "group__m__io__mfi" ],
     [ "Network I/O", "group__m__io__net.html", "group__m__io__net" ],
     [ "PIPE I/O functions", "group__m__io__pipe.html", "group__m__io__pipe" ],
+    [ "Start a process and perform I/O using stdin, stdout, and stderr", "group__m__io__process.html", "group__m__io__process" ],
     [ "Serial Port I/O functions", "group__m__io__serial.html", "group__m__io__serial" ]
 ];
