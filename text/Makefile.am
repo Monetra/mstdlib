@@ -45,6 +45,7 @@ libmstdlib_text_la_SOURCES =           \
 	textcodec/m_textcodec_iso8859_9.c  \
 	textcodec/m_textcodec_percent.c    \
 	textcodec/m_textcodec_punycode.c   \
+	textcodec/m_textcodec_quoted_printable.c \
 	\
 	verify/m_verify.c
 
