@@ -63,6 +63,7 @@
 #cmakedefine HAVE_ALIGNOF
 #cmakedefine HAVE_ACCEPT4
 #cmakedefine HAVE_PIPE2
+#cmakedefine HAVE_CONFSTR
 
 #cmakedefine _FILE_OFFSET_BITS @_FILE_OFFSET_BITS@
 #cmakedefine _LARGE_FILES
