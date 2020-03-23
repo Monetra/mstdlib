@@ -305,7 +305,7 @@ static char *M_io_process_get_envpath(void)
 	retpath           = M_malloc_zero(retpath_len);
 	retpath_len_final = GetEnvironmentVariable("PATH", retpath, retpath_len);
 	/* On failure the '\0' is included in the len. On sucess it is not. */
-	if (retpath_final_len == 0 || retpath_len-1 != retpath_final_len) {
+	if (retpath_len_final == 0 || retpath_len-1 != retpath_len_final) {
 		M_free(retpath);
 		return NULL;
 	}
