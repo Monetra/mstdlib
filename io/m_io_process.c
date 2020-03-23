@@ -26,16 +26,20 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
+#include "m_io_pipe_int.h"
 
 #ifndef _WIN32
+#  include "m_io_posix_common.h"
 #  include <unistd.h>
 #  include <signal.h>
+#  include <sys/wait.h>
 #endif
+#include <errno.h>
 
 /* Overview:
  *   - We must search the PATH environment variable for the specified "command" if it is not an absolute path.  Check
  *     for executability on each file.
- *     - PATH must be taken from the passed in 'environ' if environ is specified.
+ *     - PATH must be taken from the passed in 'env' if specified.
  *     - if no PATH set, on Unix use confstr(_CS_PATH, path, sizeof(path));
  *   - Assuming the command can be found, we need to spawn a thread before we can launch the process.
  *     the reason for this is there is no easy way to be notified when a process exits.  So the thread will create the
@@ -61,36 +65,222 @@
  *.. The function is passed in Eip or Rip (32 vs 64) need to figure out how to pass the arg (most likely in the first register). I also don't think we need to do any exception state copying.
  *   We're not trying to emulate fork() afterall. */
 
+typedef enum {
+	M_IO_PROC_STATUS_INIT     = 0,
+	M_IO_PROC_STATUS_STARTING,
+	M_IO_PROC_STATUS_RUNNING,
+	M_IO_PROC_STATUS_ERROR,
+	M_IO_PROC_STATUS_EXITED
+} M_io_process_status_t;
+
 struct M_io_handle {
-	char          *command;
-	M_list_str_t  *args;
-	M_hash_dict_t *environ;
-	M_io_t        *proc;
-	M_io_t        *pipe_stdin;
-	M_io_t        *pipe_stdout;
-	M_io_t        *pipe_stderr;
-	int            pid;
-	int            return_code;
-	M_uint64       timeout_ms;
+	char                 *command;
+	M_list_str_t         *args;
+	M_hash_dict_t        *env;
+	M_io_t               *proc;
+	M_io_t               *pipe_stdin;
+	M_io_t               *pipe_stdout;
+	M_io_t               *pipe_stderr;
+	int                   pid;
+	int                   return_code;
+	M_uint64              timeout_ms;
+	M_io_process_status_t status;
+	int                   last_sys_error;
 };
 
 
+static char **M_io_process_dict_to_env(M_hash_dict_t *dict)
+{
+	char              **env      = NULL;
+	M_hash_dict_enum_t *hashenum = NULL;
+	const char         *key      = NULL;
+	const char         *val      = NULL;
+	size_t              i        = 0;
+	if (dict == NULL)
+		return NULL;
+
+	/* Must be NULL-terminated */
+	env = M_malloc_zero(sizeof(*env) * (M_hash_dict_num_keys(dict) + 1));
+	M_hash_dict_enumerate(dict, &hashenum);
+
+	while (M_hash_dict_enumerate_next(dict, hashenum, &key, &val)) {
+		M_asprintf(&env[i++], "%s=%s", key, val);
+	}
+	M_hash_dict_enumerate_free(hashenum);
+
+	return env;
+}
+
+
+static char **M_io_process_list_to_args(const char *command, M_list_str_t *list)
+{
+	char              **args     = NULL;
+	size_t              i        = 0;
+	size_t              len      = M_list_str_len(list);
+
+	/* Must be NULL-terminated, and include the command in the first entry */
+	args    = M_malloc_zero(sizeof(*args) * (len + 2));
+	args[0] = M_strdup(command);
+	for (i=0; i<len; i++) {
+		args[i+1] = M_strdup(M_list_str_at(list, i));
+	}
+
+	return args;
+}
+
+#define DEFAULT_EXIT_ERRORCODE 130
+
+static struct {
+	int err;
+	int exitcode;
+} M_io_process_exitcodes[] = {
+	{ EACCES,  126 },
+	{ ENOENT,  127 },
+	{ ENOEXEC, 128 },
+	{ E2BIG,   129 }
+};
+
+
+static int M_io_process_errno_to_exitcode(int my_errno)
+{
+	size_t i;
+	for (i=0; i<sizeof(M_io_process_exitcodes) / sizeof(*M_io_process_exitcodes); i++) {
+		if (my_errno == M_io_process_exitcodes[i].err)
+			return M_io_process_exitcodes[i].exitcode;
+	}
+	return DEFAULT_EXIT_ERRORCODE;
+}
+
+static int M_io_process_exitcode_to_errno(int exitcode)
+{
+	size_t i;
+	if (exitcode == DEFAULT_EXIT_ERRORCODE)
+		return EFAULT;
+
+	for (i=0; i<sizeof(M_io_process_exitcodes) / sizeof(*M_io_process_exitcodes); i++) {
+		if (exitcode == M_io_process_exitcodes[i].exitcode)
+			return M_io_process_exitcodes[i].err;
+	}
+
+	return 0;
+}
+
+#ifndef _WIN32
 static void *M_io_process_thread(void *arg)
 {
-	M_io_handle_t *handle = arg;
-	/* fork() */
+	M_io_handle_t *handle  = arg;
+	pid_t          pid;
+	M_io_layer_t  *layer   = NULL;
+	int            wstatus = 0;
 
-	/* in-parent :
-	 *    set pid in handle
-	 *  - wait_pid
-	 *  - set return code 
-	 *  - wake up caller
-	 */
+	pid = fork();
 
-	/* in-child :
-	 *   dup2() for STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
-	 *   execve() */
+	/* Error */
+	if (pid == -1) {
+		int           myerrno  = errno;
+
+		layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+		handle->status         = M_IO_PROC_STATUS_ERROR;
+		handle->last_sys_error = myerrno;
+		M_io_destroy(handle->pipe_stdin);
+		M_io_destroy(handle->pipe_stdout);
+		M_io_destroy(handle->pipe_stderr);
+		handle->pipe_stdin     = NULL;
+		handle->pipe_stdout    = NULL;
+		handle->pipe_stderr    = NULL;
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_io_posix_err_to_ioerr(handle->last_sys_error));
+		M_io_layer_release(layer);
+		return NULL;
+	}
+
+	/* Child */
+	if (pid == 0) {
+		int fd;
+
+		char **args = M_io_process_list_to_args(handle->command, handle->args);
+		char **env  = M_io_process_dict_to_env(handle->env);
+
+		/* Clone file descriptors to the proper ids */
+		fd = M_io_pipe_get_fd(handle->pipe_stdin);
+		dup2(fd, STDIN_FILENO);
+		if (fd > 2)
+			close(fd);
+
+		fd = M_io_pipe_get_fd(handle->pipe_stdout);
+		dup2(fd, STDOUT_FILENO);
+		if (fd > 2)
+			close(fd);
+
+		fd = M_io_pipe_get_fd(handle->pipe_stderr);
+		dup2(fd, STDERR_FILENO);
+		if (fd > 2)
+			close(fd);
+
+		if (env) {
+			execve(handle->command, args, env);
+		} else {
+			execv(handle->command, args);
+		}
+
+		/* A typical shell will reserve some exit codes: http://www.tldp.org/LDP/abs/html/exitcodes.html
+		 *    126   - Command invoked cannot execute - Permission problem or command is not an executable
+		 *    127   - "command not found" - Possible problem with $PATH or a typo
+		 *    128   - Invalid argument to exit 
+		 *    128+n - Fatal error signal "n". Control-C is signal 2, so code would be 130
+		 * In general this means the user can use 0-125 for themselves, so we can use 126+ for our own
+		 * purposes.  Really what we need to be able to do is map these error codes:
+		 *  - E2BIG   - The total number of bytes in the environment (envp) and argument list (argv) is too large.
+		 *  - EACCESS - a) The file or a script interpreter is not a regular file  b)execute permission is denied for
+		 *              the file or a script or ELF interpreter. c) The filesystem is mounted noexec.
+		 *  - ENOENT  - The file filename or a script or ELF interpreter does not exist, or a shared library needed for
+		 *              the file or interpreter cannot be found.
+		 *  - ENOEXEC - An executable is not in a recognized format, is for the wrong architecture, or has some other
+		 *              format error that means it cannot be executed.
+		 *  - OTHERS  - Any other reason
+		 */
+		exit(M_io_process_errno_to_exitcode(errno));
+	}
+
+	/* Parent */
+
+	/* Close pipe endpoints, record pid, notify parent the process has started */
+	layer               = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+	M_io_destroy(handle->pipe_stdin);
+	M_io_destroy(handle->pipe_stdout);
+	M_io_destroy(handle->pipe_stderr);
+	handle->pipe_stdin  = NULL;
+	handle->pipe_stdout = NULL;
+	handle->pipe_stderr = NULL;
+	handle->status      = M_IO_PROC_STATUS_RUNNING;
+	handle->pid         = pid;
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+
+	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
+	while (waitpid(pid, &wstatus, WEXITED) == -1) {
+		if (errno != EINTR)
+			break;
+	}
+
+	/* Record exit code and notify watcher */
+	layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+	handle->return_code    = WEXITSTATUS(wstatus);
+	handle->status         = M_IO_PROC_STATUS_EXITED;
+	handle->last_sys_error = M_io_process_exitcode_to_errno(handle->return_code);
+	M_io_layer_softevent_add(layer, M_FALSE, handle->last_sys_error == 0?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, M_io_posix_err_to_ioerr(handle->last_sys_error));
+	M_io_layer_release(layer);
+
+	return NULL;
 }
+#else
+/* Win32 */
+static void *M_io_process_thread(void *arg)
+{
+
+}
+
+
+#endif
 
 #ifndef _WIN32
 static M_thread_once_t block_sigchild_once = M_THREAD_ONCE_STATIC_INITIALIZER;
@@ -179,8 +369,72 @@ next:
 	return first_invalid_found;
 }
 
+static M_bool M_io_process_init_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash_dict_t *environ, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr)
+	if (handle->status == M_IO_PROC_STATUS_INIT) {
+		/* Spawn thread */
+		handle->status = M_IO_PROC_STATUS_STARTING;
+		M_thread_create(NULL, M_io_process_thread, handle);
+	} else if (handle->status == M_IO_PROC_STATUS_RUNNING) {
+		/* Trigger connected soft event when registered with event handle */
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+	} else if (handle->status == M_IO_PROC_STATUS_EXITED) {
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, 0 /* XXX: M_io_posix_err_to_ioerr(handle->last_sys_error) */);
+	} else if (handle->status == M_IO_PROC_STATUS_ERROR) {
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, 0 /* XXX : M_io_posix_err_to_ioerr(handle->last_sys_error) */);
+	}
+
+	return M_TRUE;
+}
+
+static void M_io_process_unregister_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_event_t     *event  = M_io_get_event(io);
+
+	/* XXX: What do we need to do here?  Stop timer? */
+}
+
+static void M_io_process_destroy_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+
+	/* XXX: What do we need to do here?  What if process is still running? */
+}
+
+static M_io_state_t M_io_process_state_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
+	/* XXX: Implement me */
+	return M_IO_STATE_CONNECTED;
+}
+
+
+static M_bool M_io_process_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	/* XXX: Implement me */
+	return M_FALSE;
+}
+
+
+static M_bool M_io_process_process_cb(M_io_layer_t *layer, M_event_type_t *type)
+{
+	(void)type;
+
+	/* XXX: Start timer on connected, stop timer on disconnect or error */
+
+	/* Pass on */
+	return M_FALSE;
+}
+
+
+M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash_dict_t *env, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr)
 {
 	M_io_handle_t    *handle        = NULL;
 	M_io_callbacks_t *callbacks     = NULL;
@@ -193,6 +447,15 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 	M_io_t           *pipe_stderr_w = NULL;
 	M_io_error_t      rv            = M_IO_ERROR_SUCCESS;
 
+	if (proc)
+		*proc        = NULL;
+	if (proc_stdin)
+		*proc_stdin  = NULL;
+	if (proc_stdout)
+		*proc_stdout = NULL;
+	if (proc_stderr)
+		*proc_stderr = NULL;
+
 #ifndef _WIN32
 	/* Thread_once to block SIGCHLD ... as if someone starts using this, we assume they're not spawning children any other way. */
 	M_thread_once(&block_sigchild_once, block_sigchild, 0);
@@ -203,13 +466,13 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 		goto fail;
 	}
 
-	/* Search "PATH" for "command" with execute perms - Order: 'environ', getenv(), confstr(_CS_PATH)
+	/* Search "PATH" for "command" with execute perms - Order: 'env', getenv(), confstr(_CS_PATH)
 	 * - If not found, return error */
 	if (!M_fs_path_isabs(command, M_FS_SYSTEM_AUTO)) {
 		char       *path       = NULL;
 
-		if (environ != NULL) {
-			const char *const_path = M_hash_dict_get_direct(environ, "PATH");
+		if (env != NULL) {
+			const char *const_path = M_hash_dict_get_direct(env, "PATH");
 			if (const_path) {
 				path = M_strdup(const_path);
 			}
@@ -251,35 +514,29 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 		goto fail;
 	}
 
-
 	handle    = M_malloc_zero(sizeof(*handle));
-	*proc     = M_io_init(M_IO_TYPE_EVENT);
-	callbacks = M_io_callbacks_create();
-#if 0
-	M_io_callbacks_reg_init        (callbacks, M_io_w32overlap_init_cb);
-	M_io_callbacks_reg_processevent(callbacks, M_io_w32overlap_process_cb);
-	M_io_callbacks_reg_unregister  (callbacks, M_io_w32overlap_unregister_cb);
-	M_io_callbacks_reg_destroy     (callbacks, M_io_w32overlap_destroy_cb);
-	M_io_callbacks_reg_state       (callbacks, M_io_w32overlap_state_cb);
-	M_io_callbacks_reg_errormsg    (callbacks, M_io_w32overlap_errormsg_cb);
-#endif
-	M_io_layer_add(*proc, "PROCESS", handle, callbacks);
-	M_io_callbacks_destroy(callbacks);
-
-
-	/* Spawn thread, pass M_io_handle */
 	handle->proc        = *proc;
 	handle->pipe_stdin  = pipe_stdin_r;
 	handle->pipe_stdout = pipe_stdout_w;
 	handle->pipe_stderr = pipe_stderr_w;
 	handle->command     = full_command;
-	if (environ)
-		handle->environ = M_hash_dict_duplicate(environ);
+	if (env)
+		handle->env     = M_hash_dict_duplicate(env);
 	if (args)
 		handle->args    = M_list_str_duplicate(args);
 	handle->timeout_ms  = timeout_ms;
 
-	// M_thread_create()
+	*proc        = M_io_init(M_IO_TYPE_EVENT);
+	handle->proc = *proc;
+	callbacks    = M_io_callbacks_create();
+	M_io_callbacks_reg_init        (callbacks, M_io_process_init_cb);
+	M_io_callbacks_reg_processevent(callbacks, M_io_process_process_cb);
+	M_io_callbacks_reg_unregister  (callbacks, M_io_process_unregister_cb);
+	M_io_callbacks_reg_destroy     (callbacks, M_io_process_destroy_cb);
+	M_io_callbacks_reg_state       (callbacks, M_io_process_state_cb);
+	M_io_callbacks_reg_errormsg    (callbacks, M_io_process_errormsg_cb);
+	M_io_layer_add(*proc, "PROCESS", handle, callbacks);
+	M_io_callbacks_destroy(callbacks);
 
 	/* If no desire to return stdin/stdout/stderr, close respective ends otherwise bind them to the output params */
 	if (proc_stdin == NULL) {
@@ -300,12 +557,15 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 		*proc_stderr = pipe_stderr_r;
 	}
 
+	/* NOTE: process will not be started until it is connected to an event loop */
+
 	return M_IO_ERROR_SUCCESS;
 
-	/* NOTE: when _init() is called, it may need to signal itself if process has already exited ... it also may need to set a timer if timeout_ms is non-zero */
-
 fail:
+	if (proc)
+		*proc = NULL;
 	M_free(full_command);
+	M_free(handle);
 	M_io_destroy(pipe_stdin_r);
 	M_io_destroy(pipe_stdin_w);
 	M_io_destroy(pipe_stdout_r);

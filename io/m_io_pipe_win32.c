@@ -28,6 +28,16 @@
 #include "base/m_defs_int.h"
 #include "m_io_w32overlap.h"
 
+M_EVENT_HANDLE M_io_pipe_get_fd(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, NULL);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_type_t    type   = M_io_get_type(io);
+	M_EVENT_HANDLE fd     = type == M_IO_TYPE_READER?handle->rhandle:handle->whandle;
+	M_io_layer_release(layer);
+	return fd;
+}
+
 #define PIPE_BUFSIZE 4096
 
 static M_uint32 M_io_pipe_id = 0;

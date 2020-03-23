@@ -53,9 +53,9 @@ __BEGIN_DECLS
  * \param[out] proc_stdout Optional. The io object handle for the read-only stdout process handle.  If NULL is passed, will close handle to process.
  * \param[out] proc_stderr Optional. The io object handle for the read-only stderr process handle.  If NULL is passed, will close handle to process.
  *
- * \return Result.
+ * \return M_IO_ERROR_SUCCESS on SUCCESS.  Otherwise, M_IO_ERROR_INVALID on misuse, M_IO_ERROR_NOTFOUND if specified executable not found, M_IO_ERROR_NOTPERM if execution not permitted.
  */
-M_API M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_list_str_t *environ, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr);
+M_API M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash_dict_t *environ, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr);
 
 /*! Retrieve the result code of the process.
  *
