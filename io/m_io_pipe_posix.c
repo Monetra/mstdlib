@@ -30,7 +30,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "m_io_posix_common.h"
-
+#include "m_io_pipe_int.h"
 /* XXX: currently needed for M_io_setnonblock() which should be moved */
 #include "m_io_int.h"
 
@@ -39,6 +39,15 @@ struct M_io_handle {
 	int            last_error_sys;
 };
 
+
+M_EVENT_HANDLE M_io_pipe_get_fd(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, NULL);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_EVENT_HANDLE fd     = handle->handle;
+	M_io_layer_release(layer);
+	return fd;
+}
 
 static M_bool M_io_pipe_init_cb(M_io_layer_t *layer)
 {
