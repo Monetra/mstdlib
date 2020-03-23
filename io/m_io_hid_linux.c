@@ -462,7 +462,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	}
 
 #ifndef O_CLOEXEC
-	M_io_posix_fd_set_closeonexec(fd);
+	M_io_posix_fd_set_closeonexec(fd, M_TRUE);
 #endif
 
 	if (!M_io_setnonblock(fd)) {

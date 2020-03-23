@@ -96,7 +96,7 @@ static void M_event_impl_epoll_data_structure(M_event_t *event)
 	event->u.loop.impl_data->epoll_fd  = epoll_create1(EPOLL_CLOEXEC);
 #else
 	event->u.loop.impl_data->epoll_fd  = epoll_create(128 /* Bogus as of kernel 2.6.8 */);
-	M_io_posix_fd_set_closeonexec(event->u.loop.impl_data->epoll_fd);
+	M_io_posix_fd_set_closeonexec(event->u.loop.impl_data->epoll_fd, M_TRUE);
 #endif
 
 	M_hash_u64vp_enumerate(event->u.loop.evhandles, &hashenum);

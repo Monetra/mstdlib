@@ -94,7 +94,7 @@ static void M_event_impl_kqueue_data_structure(M_event_t *event)
 
 	event->u.loop.impl_data            = M_malloc_zero(sizeof(*event->u.loop.impl_data));
 	event->u.loop.impl_data->kqueue_fd = kqueue();
-	M_io_posix_fd_set_closeonexec(event->u.loop.impl_data->kqueue_fd);
+	M_io_posix_fd_set_closeonexec(event->u.loop.impl_data->kqueue_fd, M_TRUE);
 
 	M_hash_u64vp_enumerate(event->u.loop.evhandles, &hashenum);
 	while (M_hash_u64vp_enumerate_next(event->u.loop.evhandles, hashenum, NULL, (void **)&member)) {
