@@ -31,14 +31,15 @@
 #define PIPE_BUFSIZE 4096
 
 static M_uint32 M_io_pipe_id = 0;
-M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer)
+M_io_error_t M_io_pipe_create(M_uint32 flags, M_io_t **reader, M_io_t **writer)
 {
-	HANDLE            r;
-	HANDLE            w;
-	M_io_handle_t    *riohandle;
-	M_io_handle_t    *wiohandle;
-	char              pipename[256];
-	M_io_callbacks_t *callbacks;
+	HANDLE              r;
+	HANDLE              w;
+	M_io_handle_t      *riohandle;
+	M_io_handle_t      *wiohandle;
+	char                pipename[256];
+	M_io_callbacks_t   *callbacks;
+	SECURITY_ATTRIBUTES sa;
 
 	if (reader == NULL || writer == NULL)
 		return M_IO_ERROR_ERROR;
@@ -48,6 +49,11 @@ M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer)
 
 	M_snprintf(pipename, sizeof(pipename), "\\\\.\\Pipe\\Anon.%08x.%08x", GetCurrentProcessId(), M_atomic_inc_u32(&M_io_pipe_id));
 
+	M_mem_set(&sa, 0, sizeof(sa));
+	sa.nLength              = sizeof(sa);
+	sa.lpSecurityDescriptor = NULL;
+	sa.bInheritHandle       = flags & M_IO_PIPE_INHERIT_READ?TRUE : FALSE;
+
 	r = CreateNamedPipeA(pipename,
 		PIPE_ACCESS_INBOUND|FILE_FLAG_FIRST_PIPE_INSTANCE|FILE_FLAG_OVERLAPPED,
 		PIPE_READMODE_BYTE /* |PIPE_REJECT_REMOTE_CLIENTS */, 
@@ -56,15 +62,19 @@ M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer)
 		PIPE_BUFSIZE,
 		PIPE_BUFSIZE,
 		0,
-		NULL);
+		&sa);
 
+	M_mem_set(&sa, 0, sizeof(sa));
+	sa.nLength              = sizeof(sa);
+	sa.lpSecurityDescriptor = NULL;
+	sa.bInheritHandle       = flags & M_IO_PIPE_INHERIT_WRITE?TRUE : FALSE;
 	w = CreateFileA(pipename,
 		GENERIC_WRITE,
 		0,
 		NULL,
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
-		NULL);
+		&sa);
 
 	if (r == NULL || w == NULL) {
 		CloseHandle(r);

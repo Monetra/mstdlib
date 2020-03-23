@@ -1223,7 +1223,7 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 	}
 
 #ifndef _WIN32
-	M_io_posix_fd_set_closeonexec(handle->data.net.sock);
+	M_io_posix_fd_set_closeonexec(handle->data.net.sock, M_TRUE);
 #endif
 
 	handle->state  = M_IO_NET_STATE_CONNECTED;

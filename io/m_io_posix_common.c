@@ -342,14 +342,14 @@ void M_io_posix_sigpipe_unblock(M_io_posix_sigpipe_state_t *state)
 }
 
 
-void M_io_posix_fd_set_closeonexec(int fd)
+void M_io_posix_fd_set_closeonexec(int fd, M_bool tf)
 {
 	int flags = fcntl(fd, F_GETFD);
 	int rv;
 	if (flags == -1)
 		return;
 
-	rv = fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+	rv = fcntl(fd, F_SETFD, tf?(flags | FD_CLOEXEC):(flags & ~FD_CLOEXEC));
 	(void)rv; /* Appease coverity, really if this fails, its not a huge deal */
 }
 
