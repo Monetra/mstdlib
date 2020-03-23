@@ -129,8 +129,8 @@ M_io_t *M_io_osevent_create(M_event_t *event)
 	if (pipe2(handle->handles, O_CLOEXEC) == 0) {
 #else
 	if (pipe(handle->handles) == 0) {
-		M_io_posix_fd_set_closeonexec(handle->handles[0]);
-		M_io_posix_fd_set_closeonexec(handle->handles[1]);
+		M_io_posix_fd_set_closeonexec(handle->handles[0], M_TRUE);
+		M_io_posix_fd_set_closeonexec(handle->handles[1], M_TRUE);
 #endif
 	} else {
 		M_free(handle->handles);
