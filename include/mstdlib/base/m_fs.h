@@ -485,7 +485,7 @@ M_API void M_fs_perms_destroy(M_fs_perms_t *perms) M_FREE(1);
  * Time-of-check Time-of-use (TOCTOU) race condition attacks.
  *
  * \param[in] path The path to access.
- * \param[in] mode M_fs_file_mode_t permissions to should be checked. Optional, pass
+ * \param[in] mode M_fs_perms_mode_t permissions to should be checked. Optional, pass
  *                 0 if only checking if the path exists.
  *
  * \return Result.
