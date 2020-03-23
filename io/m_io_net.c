@@ -804,7 +804,7 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		return handle->data.net.last_error;
 	}
 #if !defined(SOCK_CLOEXEC) && !defined(_WIN32)
-	M_io_posix_fd_set_closeonexec(handle->data.net.sock);
+	M_io_posix_fd_set_closeonexec(handle->data.net.sock, M_TRUE);
 #endif
 
 
@@ -957,7 +957,7 @@ static M_bool M_io_net_start_connect(M_io_layer_t *layer, struct sockaddr *peer,
 	}
 
 #if !defined(SOCK_CLOEXEC) && !defined(_WIN32)
-	M_io_posix_fd_set_closeonexec(handle->data.net.sock);
+	M_io_posix_fd_set_closeonexec(handle->data.net.sock, M_TRUE);
 #endif
 
 	handle->state  = M_IO_NET_STATE_CONNECTING;
