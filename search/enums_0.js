@@ -71,6 +71,7 @@ var searchData=
   ['m_5fio_5fbwshaping_5fmode',['M_io_bwshaping_mode',['../group__m__io__bwshaping.html#gac5ce83c2e3bcccbcf8fd9de503dd3a8b',1,'m_io_bwshaping.h']]],
   ['m_5fio_5ferror',['M_io_error',['../group__m__io.html#ga1ea9e3c1babf09b22f2b98899db790db',1,'m_io.h']]],
   ['m_5fio_5fnet_5ftype',['M_io_net_type',['../group__m__io__net.html#ga84d77b37b252e30d90cc6fd2a416267e',1,'m_io_net.h']]],
+  ['m_5fio_5fpipe_5fflags_5ft',['M_io_pipe_flags_t',['../group__m__io__pipe.html#ga3e19eb61d4983169d8d408d5c19e5d06',1,'m_io_pipe.h']]],
   ['m_5fio_5fserial_5fbaud',['M_io_serial_baud',['../group__m__io__serial.html#gaf5f6fa562b6f6be2d395ddcee1d36e28',1,'m_io_serial.h']]],
   ['m_5fio_5fserial_5fflags',['M_io_serial_flags',['../group__m__io__serial.html#gae47fb0fadce4556a0824bed10b041cb2',1,'m_io_serial.h']]],
   ['m_5fio_5fserial_5fflowcontrol',['M_io_serial_flowcontrol',['../group__m__io__serial.html#ga9b5b1436fa13a1ab64b76e09c6513214',1,'m_io_serial.h']]],
