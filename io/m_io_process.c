@@ -480,7 +480,7 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 			path = M_io_process_get_envpath();
 		}
 
-#ifndef _WIN32
+#ifdef HAVE_CONFSTR
 		if (path == NULL) {
 			size_t len = confstr(_CS_PATH, NULL, 0);
 			if (len != 0) {

@@ -821,6 +821,11 @@ if test "${build_mstdlib_io}" = "yes" ; then
 		AC_DEFINE([HAVE_PIPE2], [], [Use pipe2 for SOCK_CLOEXEC])
 	fi
 
+	AC_CHECK_FUNC(confstr, [ have_confstr="yes" ], [ have_confstr="no"])
+	if test "$have_confstr" = "yes" ; then
+		AC_DEFINE([HAVE_CONFSTR], [], [Use confstr() for fallback path])
+	fi
+
 	dnl chain build if thirdparty/c-ares exists, otherwise search for it
 	if test -d "${srcdir}/thirdparty/c-ares" ; then
 		dnl Tell c-ares to only build static if chain building

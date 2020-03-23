@@ -361,6 +361,7 @@ if (MSTDLIB_BUILD_IO)
 	check_symbol_exists(epoll_create1 "${check_extra_includes}" HAVE_EPOLL_CREATE1)
 	check_symbol_exists(kqueue        "${check_extra_includes}" HAVE_KQUEUE)
 	check_symbol_exists(pipe2         "${check_extra_includes}" HAVE_PIPE2)
+	check_symbol_exists(confstr       "${check_extra_includes}" HAVE_CONFSTR)
 
 	mstdlib_type_exists(socklen_t                 "${check_extra_includes}" HAVE_SOCKLEN_T)
 	mstdlib_type_exists("struct sockaddr_storage" "${check_extra_includes}" HAVE_SOCKADDR_STORAGE)
