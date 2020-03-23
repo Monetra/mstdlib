@@ -162,8 +162,6 @@ static M_thread_t *M_thread_win_create(const M_thread_attr_t *attr, void *(*func
 {
 	DWORD   dwThreadId;
 	HANDLE  hThread;
-	M_uint8 mthread_priority;
-	int     processor;
 
 	if (func == NULL)
 		return NULL;
