@@ -21,6 +21,7 @@ libmstdlib_io_la_SOURCES = \
 	m_io_loopback.c \
 	m_io_net.c \
 	m_io_netdns.c \
+	m_io_process.c \
 	m_io_serial.c \
 	m_io_trace.c
 

@@ -37,6 +37,7 @@ set(sources
 	m_io_net.c
 	m_io_netdns.c
 	m_io_meta.c
+	m_io_process.c
 	m_io_trace.c
 
 	# Stubs
