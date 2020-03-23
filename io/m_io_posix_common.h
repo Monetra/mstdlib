@@ -39,6 +39,6 @@ struct M_io_posix_sigpipe_state {
 typedef struct M_io_posix_sigpipe_state M_io_posix_sigpipe_state_t;
 void M_io_posix_sigpipe_block(M_io_posix_sigpipe_state_t *state);
 void M_io_posix_sigpipe_unblock(M_io_posix_sigpipe_state_t *state);
-void M_io_posix_fd_set_closeonexec(int fd);
+void M_io_posix_fd_set_closeonexec(int fd, M_bool tf);
 
 #endif

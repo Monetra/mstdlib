@@ -170,7 +170,7 @@ M_io_error_t M_io_loopback_create(M_io_t **io_out)
 		return M_IO_ERROR_INVALID;
 
 	handle = M_malloc_zero(sizeof(*handle));
-	err    = M_io_pipe_create(&handle->reader, &handle->writer);
+	err    = M_io_pipe_create(M_IO_PIPE_NONE, &handle->reader, &handle->writer);
 	if (err != M_IO_ERROR_SUCCESS) {
 		M_free(handle);
 		return err;

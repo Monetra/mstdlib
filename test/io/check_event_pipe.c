@@ -187,7 +187,7 @@ static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 	event_debug("starting %llu pipe test", num_connections);
 
 	for (i=0; i<num_connections; i++) {
-		if (M_io_pipe_create(&pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
+		if (M_io_pipe_create(M_IO_PIPE_NONE, &pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create pipe %zu", i);
 			return M_EVENT_ERR_RETURN;
 		}

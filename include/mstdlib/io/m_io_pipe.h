@@ -41,15 +41,22 @@ __BEGIN_DECLS
  * @{
  */
 
+typedef enum {
+	M_IO_PIPE_NONE           = 0,      /*!< No flags */
+	M_IO_PIPE_INHERIT_READ   = 1 << 0, /*!< Read handle can be inherited by child */
+	M_IO_PIPE_INHERIT_WRITE  = 1 << 1  /*!< Write handle can be inherited by child */
+} M_io_pipe_flags_t;
+
 
 /*! Create a pipe object
  *
+ * \param[in]  flags  One or more M_io_pipe_flags_t flags controlling pipe creation
  * \param[out] reader io object for reading.
  * \param[out] writer io object for writing.
  *
  * \return Result.
  */
-M_API M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer);
+M_API M_io_error_t M_io_pipe_create(M_uint32 flags, M_io_t **reader, M_io_t **writer);
 
 /*! @} */
 

@@ -154,6 +154,8 @@ static M_bool M_io_serial_init_cb(M_io_layer_t *layer)
 			goto fail;
 		}
 
+		M_io_posix_fd_set_closeonexec(handle->fd, M_TRUE);
+
 		if (!M_io_setnonblock(handle->fd)) {
 			handle->last_error_sys = errno;
 			err = M_io_posix_err_to_ioerr(handle->last_error_sys);

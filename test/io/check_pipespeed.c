@@ -196,7 +196,7 @@ static M_bool check_pipespeed_test(void)
 
 	runtime_ms = 4000;
 
-	if (M_io_pipe_create(&pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
+	if (M_io_pipe_create(M_IO_PIPE_NONE, &pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create pipe");
 		return M_FALSE;
 	}

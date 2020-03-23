@@ -167,7 +167,7 @@ static M_bool M_io_pipe_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 }
 
 
-M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer)
+M_io_error_t M_io_pipe_create(M_uint32 flags, M_io_t **reader, M_io_t **writer)
 {
 	M_io_handle_t    *rhandle;
 	M_io_handle_t    *whandle;
@@ -184,11 +184,18 @@ M_io_error_t M_io_pipe_create(M_io_t **reader, M_io_t **writer)
 	if (pipe2(pipefds, O_CLOEXEC) == 0) {
 #else
 	if (pipe(pipefds) == 0) {
-		M_io_posix_fd_set_closeonexec(pipefds[0]);
-		M_io_posix_fd_set_closeonexec(pipefds[1]);
+		M_io_posix_fd_set_closeonexec(pipefds[0], M_TRUE);
+		M_io_posix_fd_set_closeonexec(pipefds[1], M_TRUE);
 #endif
 	} else {
 		return M_io_posix_err_to_ioerr(errno);
+	}
+
+	if (flags & M_IO_PIPE_INHERIT_READ) {
+		M_io_posix_fd_set_closeonexec(pipefds[0], M_FALSE);
+	}
+	if (flags & M_IO_PIPE_INHERIT_WRITE) {
+		M_io_posix_fd_set_closeonexec(pipefds[1], M_FALSE);
 	}
 
 	if (!M_io_setnonblock(pipefds[0]) || !M_io_setnonblock(pipefds[1])) {
