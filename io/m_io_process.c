@@ -334,7 +334,7 @@ static void M_io_process_append_escaped(M_buf_t *buf, const char *data)
 		if (data[i] == '"') {
 			M_buf_add_byte(buf, '\\');
 		}
-		M_buf_add_byte(buf, data[i]);
+		M_buf_add_byte(buf, (unsigned char)data[i]);
 	}
 }
 
@@ -344,7 +344,6 @@ static char *M_io_process_list_to_args(const char *command, M_list_str_t *list)
 	M_buf_t *buf           = M_buf_create();
 	size_t   i             = 0;
 	size_t   len           = M_list_str_len(list);
-	M_bool   needs_quoting;
 
 	/* Windows docs on how it handles command line parsing:
 	 *   https://docs.microsoft.com/en-us/cpp/c-language/parsing-c-command-line-arguments?redirectedfrom=MSDN&view=vs-2019
