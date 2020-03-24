@@ -86,6 +86,7 @@ TESTS += \
 		io/check_dns \
 		io/check_event_bwshaping \
 		io/check_serial \
+		io/check_process \
 		io/check_pipespeed \
 		io/check_netspeed
 
@@ -102,14 +103,14 @@ if MSTDLIB_TLS
 TESTS += \
 		tls/check_tls \
 		tls/check_block_tls \
-		tls/check_tlsspeed 
+		tls/check_tlsspeed
 AM_LDFLAGS += -L$(top_builddir)/tls/.libs/
 LDADD += $(top_builddir)/tls/libmstdlib_tls.la -lssl -lcrypto
 endif
 
 if MSTDLIB_SQL
 TESTS += \
-		sql/check_sql 
+		sql/check_sql
 AM_LDFLAGS += -L$(top_builddir)/sql/.libs/
 LDADD += $(top_builddir)/sql/libmstdlib_sql.la
 endif
