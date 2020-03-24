@@ -167,7 +167,7 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. List of environment variables to pass on to process. Use NULL to pass current environment through. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Optional. Maximum execution time of the process before it is forcibly terminated. Use 0 for infinite. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">proc</td><td>Required. The io object handle for the process itself. Used to notify when the process has exited, or request termination of process. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">proc_stdin</td><td>Optional. The io object handle for the write-only stdin process handle. If NULL is passed, will close handle to process. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">proc_stdin</td><td>Optional. The io object handle for the write-only stdin process handle. If NULL is passed, will close handle to process. The stdin process will not be notified when the process closes so it must be tracked and closed when the process exits by the caller. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">proc_stdout</td><td>Optional. The io object handle for the read-only stdout process handle. If NULL is passed, will close handle to process. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">proc_stderr</td><td>Optional. The io object handle for the read-only stderr process handle. If NULL is passed, will close handle to process.</td></tr>
   </table>
@@ -245,7 +245,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 24 2020 17:35:42 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Tue Mar 24 2020 17:52:33 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
