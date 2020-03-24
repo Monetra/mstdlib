@@ -88,8 +88,8 @@ $(document).ready(function(){initNavTree('group__m__io__process.html','');});
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga5f036d3ad382c7d6647ef06a77077a2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__process.html#ga5f036d3ad382c7d6647ef06a77077a2d">M_io_process_create</a> (const char *command, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *args, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *environ, M_uint64 timeout_ms, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stdin, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stdout, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stderr)</td></tr>
-<tr class="separator:ga5f036d3ad382c7d6647ef06a77077a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad59fe46ebd3f48957ea2d5163f97c476"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__process.html#gad59fe46ebd3f48957ea2d5163f97c476">M_io_process_create</a> (const char *command, <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *args, <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *env, M_uint64 timeout_ms, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stdin, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stdout, <a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **proc_stderr)</td></tr>
+<tr class="separator:gad59fe46ebd3f48957ea2d5163f97c476"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8106b8db09d0db068f7023829466983e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__process.html#ga8106b8db09d0db068f7023829466983e">M_io_process_get_result_code</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *proc, int *result_code)</td></tr>
 <tr class="separator:ga8106b8db09d0db068f7023829466983e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaed22e075b2fcd50f15690363912052f2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__process.html#gaed22e075b2fcd50f15690363912052f2">M_io_process_get_pid</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *proc)</td></tr>
@@ -98,8 +98,8 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>A process starts an executable and opens the processes communication endpoints of stdin, stdout, and stderr as unidirectional pipes for communicating with the process. </p>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga5f036d3ad382c7d6647ef06a77077a2d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5f036d3ad382c7d6647ef06a77077a2d">&#9670;&nbsp;</a></span>M_io_process_create()</h2>
+<a id="gad59fe46ebd3f48957ea2d5163f97c476"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad59fe46ebd3f48957ea2d5163f97c476">&#9670;&nbsp;</a></span>M_io_process_create()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -120,7 +120,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *&#160;</td>
-          <td class="paramname"><em>environ</em>, </td>
+          <td class="paramname"><em>env</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -164,7 +164,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">command</td><td>Required. Command to execute. If an absolute path is not provided, will search the PATH environment variable. Will honor PATH specified in environ. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Optional. List of arguments to pass to command. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">environ</td><td>Optional. List of environment variables to pass on to process. Use NULL to pass current environment through. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. List of environment variables to pass on to process. Use NULL to pass current environment through. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Optional. Maximum execution time of the process before it is forcibly terminated. Use 0 for infinite. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">proc</td><td>Required. The io object handle for the process itself. Used to notify when the process has exited, or request termination of process. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">proc_stdin</td><td>Optional. The io object handle for the write-only stdin process handle. If NULL is passed, will close handle to process. </td></tr>
@@ -205,7 +205,7 @@ Functions</h2></td></tr>
 <p>Retrieve the result code of the process.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">proc</td><td>Proc IO object returned from <a class="el" href="group__m__io__process.html#ga5f036d3ad382c7d6647ef06a77077a2d">M_io_process_create()</a>; </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">proc</td><td>Proc IO object returned from <a class="el" href="group__m__io__process.html#gad59fe46ebd3f48957ea2d5163f97c476">M_io_process_create()</a>; </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">result_code</td><td>Exit code returned from process.</td></tr>
   </table>
   </dd>
@@ -232,7 +232,7 @@ Functions</h2></td></tr>
 <p>Retrieve the OS Process ID of the process.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">proc</td><td>Proc IO object returned from <a class="el" href="group__m__io__process.html#ga5f036d3ad382c7d6647ef06a77077a2d">M_io_process_create()</a>; </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">proc</td><td>Proc IO object returned from <a class="el" href="group__m__io__process.html#gad59fe46ebd3f48957ea2d5163f97c476">M_io_process_create()</a>; </td></tr>
   </table>
   </dd>
 </dl>
@@ -245,7 +245,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 24 2020 01:53:31 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Tue Mar 24 2020 02:11:47 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
