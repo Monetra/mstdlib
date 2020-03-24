@@ -386,7 +386,7 @@ static void *M_io_process_thread(void *arg)
 	char               *env     = M_io_process_dict_to_env(handle->env);
 	DWORD               err;
 	BOOL                rv;
-	DWORD               resultcode;
+	DWORD               resultcode = 0;
 
 	M_mem_set(&siStartInfo, 0, sizeof(siStartInfo));
 	siStartInfo.cb         = sizeof(siStartInfo);
@@ -437,12 +437,16 @@ M_printf("%s(): Starting command '%s'\r\n", __FUNCTION__, command);
 	M_io_layer_release(layer);
 
 	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
-	WaitForSingleObject(pi.hProcess, INFINITE);
+	while (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0) 
+		;
 
 	/* Record exit code and notify watcher */
 	layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");
-	GetExitCodeProcess(pi.hProcess, &resultcode);
-	handle->return_code    = (int)resultcode;
+	if (GetExitCodeProcess(pi.hProcess, &resultcode)) {
+		handle->return_code    = (int)resultcode;
+	} else {
+		handle->return_code    = 130;
+	}
 	handle->status         = M_IO_PROC_STATUS_EXITED;
 	handle->last_sys_error = 0;
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_SUCCESS);
