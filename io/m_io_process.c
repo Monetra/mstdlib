@@ -33,6 +33,8 @@
 #  include <unistd.h>
 #  include <signal.h>
 #  include <sys/wait.h>
+#else
+#  include "m_io_win32_common.h"
 #endif
 #include <errno.h>
 
@@ -301,7 +303,7 @@ static char *M_io_process_dict_to_env(M_hash_dict_t *dict)
 	while (M_hash_dict_enumerate_next(dict, hashenum, &key, &val)) {
 		M_buf_add_str(buf, key);
 		M_buf_add_byte(buf, '=');
-		M_buf_add_str(buf, value);
+		M_buf_add_str(buf, val);
 		M_buf_add_byte(buf, 0); /* Terminate entry */
 	}
 	M_hash_dict_enumerate_free(hashenum);
@@ -315,6 +317,7 @@ static char *M_io_process_dict_to_env(M_hash_dict_t *dict)
 
 static void M_io_process_append_quoted(M_buf_t *buf, const char *data, char quote, char escape)
 {
+	size_t i;
 	M_buf_add_byte(buf, quote);
 
 	for (i=0; data[i] != 0; i++) {
@@ -351,6 +354,7 @@ static void *M_io_process_thread(void *arg)
 	STARTUPINFO         siStartInfo;
 	PROCESS_INFORMATION pi;
 	M_io_handle_t      *handle  = arg;
+	M_io_layer_t       *layer   = NULL;
 	char               *command = M_io_process_list_to_args(command, handle->args);
 	char               *env     = M_io_process_dict_to_env(handle->env);
 	DWORD               err;
@@ -418,9 +422,9 @@ static void *M_io_process_thread(void *arg)
 	M_io_layer_release(layer);
 
 	if (pi.hProcess != NULL)
-		CloseHandle(mp->processInfo.hProcess);
+		CloseHandle(pi.hProcess);
 	if (pi.hThread != NULL)
-		CloseHandle(mp->processInfo.hThread);
+		CloseHandle(pi.hThread);
 
 	return NULL;
 }
