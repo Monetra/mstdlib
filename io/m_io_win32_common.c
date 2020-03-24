@@ -81,6 +81,9 @@ M_io_error_t M_io_win32_err_to_ioerr(DWORD err)
 			return M_IO_ERROR_NOTFOUND;
 		case ERROR_BROKEN_PIPE:
 			return M_IO_ERROR_DISCONNECT;
+		case ERROR_BAD_EXE_FORMAT:
+		case ERROR_INVALID_EXE_SIGNATURE:
+			return M_IO_ERROR_ERROR;
 		default:
 			break;
 	}
