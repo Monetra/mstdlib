@@ -315,34 +315,62 @@ static char *M_io_process_dict_to_env(M_hash_dict_t *dict)
 }
 
 
-static void M_io_process_append_quoted(M_buf_t *buf, const char *data, char quote, char escape)
+static M_bool M_io_process_arg_needs_quoting(const char *data)
 {
 	size_t i;
-	M_buf_add_byte(buf, quote);
+	for (i=0; data[i] != 0; i++) {
+		if (data[i] == ' ' || data[i] == '"')
+			return M_TRUE;
+	}
+	return M_FALSE;
+}
+
+
+static void M_io_process_append_escaped(M_buf_t *buf, const char *data)
+{
+	size_t i;
 
 	for (i=0; data[i] != 0; i++) {
-		if (data[i] == quote || data[i] == escape) {
-			M_buf_add_byte(buf, escape);
+		if (data[i] == '"') {
+			M_buf_add_byte(buf, '\\');
 		}
 		M_buf_add_byte(buf, data[i]);
 	}
-
-	M_buf_add_byte(buf, quote);
 }
 
 
 static char *M_io_process_list_to_args(const char *command, M_list_str_t *list)
 {
-	M_buf_t *buf = M_buf_create();
-	size_t   i   = 0;
-	size_t   len = M_list_str_len(list);
+	M_buf_t *buf           = M_buf_create();
+	size_t   i             = 0;
+	size_t   len           = M_list_str_len(list);
+	M_bool   needs_quoting;
 
-	/* Must be in full command line format.  For safety, all arguments should be quoted */
-	M_io_process_append_quoted(buf, command, '"', '\\');
+	/* Windows docs on how it handles command line parsing:
+	 *   https://docs.microsoft.com/en-us/cpp/c-language/parsing-c-command-line-arguments?redirectedfrom=MSDN&view=vs-2019
+	 * I can't even make this stuff up.
+	 * So if a parameter contains a space or a double quote, we'll quote and escape it.  Otherwise, emit as-is.
+	 * The escape character is '\' but its not necessary to escape another escape character it appears.
+	 */
+
+	/* Output command */
+	if (M_io_process_arg_needs_quoting(command)) {
+		M_buf_add_byte(buf, '"');
+		M_io_process_append_escaped(buf, command);
+		M_buf_add_byte(buf, '"');
+	} else {
+		M_buf_add_str(buf, command);
+	}
 
 	for (i=0; i<len; i++) {
 		M_buf_add_byte(buf, ' ');
-		M_io_process_append_quoted(buf, M_list_str_at(list, i), '"', '\\');
+		if (M_io_process_arg_needs_quoting(M_list_str_at(list, i))) {
+			M_buf_add_byte(buf, '"');
+			M_io_process_append_escaped(buf, M_list_str_at(list, i));
+			M_buf_add_byte(buf, '"');
+		} else {
+			M_buf_add_str(buf, M_list_str_at(list, i));
+		}
 	}
 
 	return M_buf_finish_str(buf, NULL);
