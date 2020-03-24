@@ -586,6 +586,7 @@ static void M_io_process_destroy_cb(M_io_layer_t *layer)
 	M_io_destroy(handle->pipe_stdin);
 	M_io_destroy(handle->pipe_stdout);
 	M_io_destroy(handle->pipe_stderr);
+	M_free(handle);
 }
 
 static M_io_state_t M_io_process_state_cb(M_io_layer_t *layer)
