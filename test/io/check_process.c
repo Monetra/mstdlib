@@ -140,6 +140,7 @@ static M_bool process_test(void)
 		event_debug("failed to create process %s", command);
 		return M_FALSE;
 	}
+	M_list_str_destroy(args);
 
 	M_io_add_trace(proc,        NULL, process_trace_cb, (void *)"process", NULL, NULL);
 	M_io_add_trace(proc_stdin,  NULL, process_trace_cb, (void *)"stdin",   NULL, NULL);

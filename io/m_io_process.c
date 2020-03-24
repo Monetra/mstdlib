@@ -503,6 +503,7 @@ static char *M_io_process_search_command(const char *command, const char *path)
 			} else {
 				/* Found! */
 				M_free(first_invalid_found); /* No need for this */
+				M_str_explode_free(paths, num_paths);
 				return fullpath;
 			}
 		}
@@ -511,6 +512,7 @@ next:
 		M_free(fullpath);
 	}
 
+	M_str_explode_free(paths, num_paths);
 	/* Return a matching found file, but that we don't have perms for */
 	return first_invalid_found;
 }
