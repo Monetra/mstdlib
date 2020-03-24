@@ -65,6 +65,9 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 	event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
+			if (M_str_caseeq(name, "process")) {
+				event_debug("process %p %s created with pid %d", io, name, M_io_process_get_pid(io));
+			}
 			break;
 		case M_EVENT_TYPE_READ:
 			buf = M_buf_create();
@@ -77,7 +80,13 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
 			M_io_get_error_string(io, error, sizeof(error));
-			event_debug("process %p %s ended, cleaning up: %s", io, name, error);
+			if (M_str_caseeq(name, "process")) {
+				int return_code = 0;
+				M_io_process_get_result_code(io, &return_code);
+				event_debug("process %p %s ended with return code (%d), cleaning up: %s", io, name, return_code, error);
+			} else {
+				event_debug("process %p %s ended, cleaning up: %s", io, name, error);
+			}
 			M_io_destroy(io);
 			break;
 		default:
