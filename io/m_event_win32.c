@@ -335,7 +335,6 @@ static void *M_event_impl_win32_eventthread(void *arg)
 
 						if (WaitForSingleObject(handles[i], 0) != WAIT_OBJECT_0)
 							continue;
-M_printf("%s(): Signal handle %p\r\n", __FUNCTION__, handles[i]);
 						M_event_impl_win32_signal(threaddata->parent, handles[i]);
 					}
 				}
@@ -407,7 +406,6 @@ static void M_event_impl_win32_modify_event(M_event_t *event, M_event_modify_typ
 
 
 	if (modtype == M_EVENT_MODTYPE_DEL_HANDLE) {
-M_printf("%s(): Delete handle %p\r\n", __FUNCTION__, handle);
 		M_thread_mutex_lock(data->lock);
 		/* Find registered event */
 		if (M_hashtable_get(data->events, handle, (void **)&evhandle) && evhandle != NULL) {
@@ -425,7 +423,6 @@ M_printf("%s(): Delete handle %p\r\n", __FUNCTION__, handle);
 
 
 	/* modtype == M_EVENT_MODTYPE_ADD_HANDLE */
-M_printf("%s(): Add handle %p\r\n", __FUNCTION__, handle);
 
 	M_thread_mutex_lock(data->lock);
 
