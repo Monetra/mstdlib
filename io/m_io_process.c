@@ -403,7 +403,7 @@ static void *M_io_process_thread(void *arg)
 	handle->pipe_stdout = NULL;
 	handle->pipe_stderr = NULL;
 	handle->status      = M_IO_PROC_STATUS_RUNNING;
-	handle->pid         = (int)pi.pwProcessId;
+	handle->pid         = (int)pi.dwProcessId;
 	M_time_elapsed_start(&handle->start_timer);
 
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
@@ -559,7 +559,7 @@ static void M_io_process_kill(M_io_handle_t *handle)
 #ifdef _WIN32
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)handle->pid);
 	TerminateProcess(hProcess, 130);
-	CloseHandle(processHandle);
+	CloseHandle(hProcess);
 #else
 	kill(handle->pid, SIGKILL);
 #endif
