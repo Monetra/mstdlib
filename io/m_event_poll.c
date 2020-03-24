@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -82,6 +82,13 @@ static void M_event_impl_poll_data_structure(M_event_t *event)
 			event->u.loop.impl_data->fds[event->u.loop.impl_data->num_fds].events |= POLLIN;
 		if (member->waittype & M_EVENT_WAIT_WRITE)
 			event->u.loop.impl_data->fds[event->u.loop.impl_data->num_fds].events |= POLLOUT;
+
+		/* If capabilities for the connection are write-only, we need to always listedn for POLLIN
+		 * to be notified of disconnects for some reason */
+		if (member->caps & M_EVENT_CAPS_WRITE) {
+			event->u.loop.impl_data->fds[event->u.loop.impl_data->num_fds].events |= POLLIN;
+		}
+
 		event->u.loop.impl_data->num_fds++;
 	}
 
@@ -128,8 +135,10 @@ static void M_event_impl_poll_process(M_event_t *event)
 
 			/* Read */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLPRI|POLLIN)) {
-				M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
-				cnt++;
+				if (member->caps & M_EVENT_CAPS_READ) {
+					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
+					cnt++;
+				}
 			}
 
 			/* Error */
@@ -168,7 +177,7 @@ static void M_event_impl_poll_process(M_event_t *event)
 				 * it will do a partial read if there is still data buffered, and not ever attempt
 				 * to read again.   We do this as a soft event as it is delivered after processing
 				 * of normal events.  We don't know why this is necessary as it is very hard to
-				 * reproduce outside of a PRODUCTION environment! 
+				 * reproduce outside of a PRODUCTION environment!
 				 * NOTE: if not waiting on a READ event, deliver the real error */
 				M_event_deliver_io(event, member->io, M_EVENT_TYPE_DISCONNECTED);
 				cnt++;

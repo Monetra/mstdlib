@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -61,11 +61,15 @@ static void M_event_impl_kqueue_modify_event(M_event_t *event, M_event_modify_ty
 
 	switch (modtype) {
 		case M_EVENT_MODTYPE_ADD_HANDLE:
-			if (caps & M_EVENT_CAPS_READ) {
-				/* NOTE: EV_CLEAR sets edge-triggered instead of level-triggered */
-				EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
-				nev++;
-			}
+			/* NOTE: EV_CLEAR sets edge-triggered instead of level-triggered */
+
+			/* Always use EVFILT_READ so we can be notified of a disconnect on WRITE-only connections.
+			 * The reverse is NOT true however as it could cause and endless loop of WRITE
+			 * events.
+			 *	if (caps & M_EVENT_CAPS_READ) {
+			 */
+			EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+			nev++;
 			if (caps & M_EVENT_CAPS_WRITE) {
 				/* NOTE: EV_CLEAR sets edge-triggered instead of level-triggered */
 				EV_SET(&ev[1], handle, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
