@@ -396,7 +396,7 @@ static void *M_io_process_thread(void *arg)
 	siStartInfo.dwFlags   |= STARTF_USESTDHANDLES;
 
 	M_mem_set(&pi, 0, sizeof(pi));
-M_printf("%s(): Starting command '%s'\r\n", __FUNCTION__, command);
+
 	rv  = CreateProcessA(NULL, command, NULL, NULL, TRUE, CREATE_NO_WINDOW, env, NULL, &siStartInfo, &pi);
 	err = GetLastError();
 	M_free(command);
@@ -805,10 +805,6 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 	M_io_callbacks_reg_errormsg    (callbacks, M_io_process_errormsg_cb);
 	M_io_layer_add(*proc, "PROCESS", handle, callbacks);
 	M_io_callbacks_destroy(callbacks);
-
-#ifdef _WIN32
-M_printf("%s(): stdin: %p, stdout: %p, stderr: %p\r\n", __FUNCTION__, M_io_pipe_get_fd(pipe_stdin_w), M_io_pipe_get_fd(pipe_stdout_r), M_io_pipe_get_fd(pipe_stderr_r));
-#endif
 
 	/* If no desire to return stdin/stdout/stderr, close respective ends otherwise bind them to the output params */
 	if (proc_stdin == NULL) {
