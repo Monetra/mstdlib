@@ -613,12 +613,10 @@ static M_bool M_io_process_errormsg_cb(M_io_layer_t *layer, char *error, size_t 
 
 #ifndef _WIN32
 	M_io_posix_errormsg(handle->last_sys_error, error, err_len);
-	return M_TRUE;
 #else
 	M_io_win32_errormsg(handle->last_sys_error, error, err_len);
-
 #endif
-	return M_FALSE;
+	return M_TRUE;
 }
 
 
