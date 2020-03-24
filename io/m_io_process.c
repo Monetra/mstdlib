@@ -282,7 +282,7 @@ static void *M_io_process_thread(void *arg)
 /* Win32 */
 static void *M_io_process_thread(void *arg)
 {
-
+	return NULL;
 }
 
 
