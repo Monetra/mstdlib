@@ -59,32 +59,51 @@ M_io_error_t M_io_pipe_create(M_uint32 flags, M_io_t **reader, M_io_t **writer)
 
 	M_snprintf(pipename, sizeof(pipename), "\\\\.\\Pipe\\Anon.%08x.%08x", GetCurrentProcessId(), M_atomic_inc_u32(&M_io_pipe_id));
 
-	M_mem_set(&sa, 0, sizeof(sa));
-	sa.nLength              = sizeof(sa);
-	sa.lpSecurityDescriptor = NULL;
-	sa.bInheritHandle       = flags & M_IO_PIPE_INHERIT_READ?TRUE : FALSE;
-
-	r = CreateNamedPipeA(pipename,
-		PIPE_ACCESS_INBOUND|FILE_FLAG_FIRST_PIPE_INSTANCE|FILE_FLAG_OVERLAPPED,
-		PIPE_READMODE_BYTE /* |PIPE_REJECT_REMOTE_CLIENTS */, 
-		1,
-		/* These are supposedly advisory and the OS will grow them */
-		PIPE_BUFSIZE,
-		PIPE_BUFSIZE,
-		0,
-		&sa);
+	/* NOTE: only 1 end of a named pipe can be inherited, and it MUST be the *pipe* not the CreateFile end.  So we need to
+	 *       switch between inbound and outbound on the pipe, and GENERIC_READ vs GENERIC_WRITE on the file */
 
 	M_mem_set(&sa, 0, sizeof(sa));
 	sa.nLength              = sizeof(sa);
 	sa.lpSecurityDescriptor = NULL;
-	sa.bInheritHandle       = flags & M_IO_PIPE_INHERIT_WRITE?TRUE : FALSE;
-	w = CreateFileA(pipename,
-		GENERIC_WRITE,
-		0,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
-		&sa);
+	sa.bInheritHandle       = flags & (M_IO_PIPE_INHERIT_READ|M_IO_PIPE_INHERIT_WRITE)?TRUE : FALSE;
+
+	if (flags & M_IO_PIPE_INHERIT_WRITE) {
+		w = CreateNamedPipeA(pipename,
+			PIPE_ACCESS_OUTBOUND|FILE_FLAG_FIRST_PIPE_INSTANCE|FILE_FLAG_OVERLAPPED,
+			PIPE_READMODE_BYTE /* |PIPE_REJECT_REMOTE_CLIENTS */, 
+			1,
+			/* These are supposedly advisory and the OS will grow them */
+			PIPE_BUFSIZE,
+			PIPE_BUFSIZE,
+			0,
+			&sa);
+
+		r = CreateFileA(pipename,
+			GENERIC_READ,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
+			NULL);
+	} else { /* M_IO_PIP_INHERIT_READ or no inheritance */
+		r = CreateNamedPipeA(pipename,
+			PIPE_ACCESS_INBOUND|FILE_FLAG_FIRST_PIPE_INSTANCE|FILE_FLAG_OVERLAPPED,
+			PIPE_READMODE_BYTE /* |PIPE_REJECT_REMOTE_CLIENTS */, 
+			1,
+			/* These are supposedly advisory and the OS will grow them */
+			PIPE_BUFSIZE,
+			PIPE_BUFSIZE,
+			0,
+			&sa);
+
+		w = CreateFileA(pipename,
+			GENERIC_WRITE,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED,
+			NULL);
+	}
 
 	if (r == NULL || w == NULL) {
 		CloseHandle(r);
