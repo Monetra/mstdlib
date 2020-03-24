@@ -121,9 +121,18 @@ static M_bool process_test(void)
 	M_io_t            *proc_stdin;
 	M_io_t            *proc_stdout;
 	M_io_t            *proc_stderr;
+
+#ifdef _WIN32
+	const char        *command = "cmd.exe";
+	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
+	M_list_str_insert(args, "/c");
+	M_list_str_insert(args, "echo");
+	M_list_str_insert(args, "Hello World!");
+#else
 	const char        *command = "echo";
 	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
 	M_list_str_insert(args, "Hello World!");
+#endif
 
 	event_debug("starting process test");
 
@@ -155,7 +164,7 @@ static M_bool process_test(void)
 	}
 
 	event_debug("entering loop");
-	if (M_event_loop(event, 3000) != M_EVENT_ERR_DONE) {
+	if (M_event_loop(event, 1000) != M_EVENT_ERR_DONE) {
 		event_debug("event loop did not return done");
 		return M_FALSE;
 	}

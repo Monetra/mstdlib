@@ -90,10 +90,14 @@ M_io_layer_t *M_io_layer_add(M_io_t *comm, const char *layer_name, M_io_handle_t
 	/* XXX: validate necessary callbacks are registered, this may depend on count of
 	 *      existing layers */
 
+#if 0
+	/* We previously blocked layers ... but that's not true for things like trace
+	 * layers.  The other layers need to do their own limitations. */
 	if (comm->type == M_IO_TYPE_EVENT && M_list_len(comm->layer) == 1) {
 		M_io_unlock(comm);
 		return NULL;
 	}
+#endif
 
 	if (M_list_len(comm->layer) == M_IO_LAYERS_MAX-1 /* 1 reserved for user */ ) {
 		M_io_unlock(comm);
