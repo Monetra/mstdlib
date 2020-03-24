@@ -123,6 +123,7 @@ if (MSTDLIB_BUILD_IO)
 		io/check_dns.c
 		io/check_serial.c
 		io/check_pipespeed.c
+		io/check_process.c
 		io/check_netspeed.c
 		io/check_event_bwshaping.c
 	)
