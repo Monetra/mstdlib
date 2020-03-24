@@ -9,7 +9,7 @@
  * \code{.c}
  * #include <mstdlib/mstdlib_io.h>
  * \endcode
- * 
+ *
  * The I/O system is designed to be a series of stackable
  * layers. For example: Client - Trace <-> TLS <-> Net - Server.
  *
@@ -41,7 +41,7 @@
 
 /*! \defgroup m_eventio_base Base I/O subsystems
  *  \ingroup m_eventio
- * 
+ *
  *  Some I/O layers are considered base layers and typically do not
  *  have any layers underneath them. These are subsystems that handle
  *  communication with an endpoint. While higher layers typically deal
@@ -55,18 +55,18 @@
 
 /*! \defgroup m_eventio_base_addon Add-on IO layers
  *  \ingroup m_eventio
- * 
+ *
  *  Common layers that stack on base IO objects
  *
  */
 
 /*! \defgroup m_eventio_semipublic Semi-Public interfaces
  *  \ingroup m_eventio
- * 
+ *
  *  Interfaces that can be used when extending the I/O subsystem, requires
  *  manual inclusion of additional headers that are not in the normal
  *  public API.
- * 
+ *
  *  These APIs are more likely to change from release to release and should
  *  not be considered as stable as the public interfaces.
  *
@@ -82,6 +82,7 @@
 #include <mstdlib/io/m_io_bluetooth.h>
 #include <mstdlib/io/m_io_bwshaping.h>
 #include <mstdlib/io/m_io_loopback.h>
+#include <mstdlib/io/m_io_process.h>
 #include <mstdlib/io/m_io_serial.h>
 #include <mstdlib/io/m_io_hid.h>
 #include <mstdlib/io/m_io_mfi.h>
