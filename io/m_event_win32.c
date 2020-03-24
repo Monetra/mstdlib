@@ -407,7 +407,7 @@ static void M_event_impl_win32_modify_event(M_event_t *event, M_event_modify_typ
 
 
 	if (modtype == M_EVENT_MODTYPE_DEL_HANDLE) {
-M_printf("%s(): Delete handle %p\r\n", __FUNCTION__, handles);
+M_printf("%s(): Delete handle %p\r\n", __FUNCTION__, handle);
 		M_thread_mutex_lock(data->lock);
 		/* Find registered event */
 		if (M_hashtable_get(data->events, handle, (void **)&evhandle) && evhandle != NULL) {
@@ -425,7 +425,7 @@ M_printf("%s(): Delete handle %p\r\n", __FUNCTION__, handles);
 
 
 	/* modtype == M_EVENT_MODTYPE_ADD_HANDLE */
-M_printf("%s(): Add handle %p\r\n", __FUNCTION__, handles);
+M_printf("%s(): Add handle %p\r\n", __FUNCTION__, handle);
 
 	M_thread_mutex_lock(data->lock);
 
