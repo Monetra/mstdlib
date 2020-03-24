@@ -355,7 +355,7 @@ static void *M_io_process_thread(void *arg)
 	PROCESS_INFORMATION pi;
 	M_io_handle_t      *handle  = arg;
 	M_io_layer_t       *layer   = NULL;
-	char               *command = M_io_process_list_to_args(command, handle->args);
+	char               *command = M_io_process_list_to_args(handle->command, handle->args);
 	char               *env     = M_io_process_dict_to_env(handle->env);
 	DWORD               err;
 	BOOL                rv;
