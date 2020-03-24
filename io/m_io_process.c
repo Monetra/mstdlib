@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
- * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
+ * Copyright (c) 2020 Monetra Technologies, LLC.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,8 +52,8 @@
  *     inheritable handles to M_io_pipe_create().
  */
 
-/* TODO:  Does it make sense to create an 
- *   M_io_process_create_func(int (*func)(void *), void *arg, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr)) 
+/* TODO:  Does it make sense to create an
+ *   M_io_process_create_func(int (*func)(void *), void *arg, M_uint64 timeout_ms, M_io_t **proc, M_io_t **proc_stdin, M_io_t **proc_stdout, M_io_t **proc_stderr))
  * ??
  * For unix it is easy as we'd just fork() and call the function instead of execve().
  * For Windows, we'd call ZwCreateProcess() and friends ... a fork() for windows is here:
@@ -86,6 +86,9 @@ struct M_io_handle {
 	M_uint64              timeout_ms;
 	M_io_process_status_t status;
 	int                   last_sys_error;
+	M_timeval_t           start_timer;
+	M_event_timer_t      *timer;
+	M_threadid_t          thread;
 };
 
 
@@ -128,6 +131,8 @@ static char **M_io_process_list_to_args(const char *command, M_list_str_t *list)
 	return args;
 }
 
+#ifndef _WIN32
+
 #define DEFAULT_EXIT_ERRORCODE 130
 
 static struct {
@@ -165,7 +170,6 @@ static int M_io_process_exitcode_to_errno(int exitcode)
 	return 0;
 }
 
-#ifndef _WIN32
 static void *M_io_process_thread(void *arg)
 {
 	M_io_handle_t *handle  = arg;
@@ -225,7 +229,7 @@ static void *M_io_process_thread(void *arg)
 		/* A typical shell will reserve some exit codes: http://www.tldp.org/LDP/abs/html/exitcodes.html
 		 *    126   - Command invoked cannot execute - Permission problem or command is not an executable
 		 *    127   - "command not found" - Possible problem with $PATH or a typo
-		 *    128   - Invalid argument to exit 
+		 *    128   - Invalid argument to exit
 		 *    128+n - Fatal error signal "n". Control-C is signal 2, so code would be 130
 		 * In general this means the user can use 0-125 for themselves, so we can use 126+ for our own
 		 * purposes.  Really what we need to be able to do is map these error codes:
@@ -253,6 +257,8 @@ static void *M_io_process_thread(void *arg)
 	handle->pipe_stderr = NULL;
 	handle->status      = M_IO_PROC_STATUS_RUNNING;
 	handle->pid         = pid;
+	M_time_elapsed_start(&handle->start_timer);
+
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
@@ -375,8 +381,11 @@ static M_bool M_io_process_init_cb(M_io_layer_t *layer)
 
 	if (handle->status == M_IO_PROC_STATUS_INIT) {
 		/* Spawn thread */
-		handle->status = M_IO_PROC_STATUS_STARTING;
-		M_thread_create(NULL, M_io_process_thread, handle);
+		M_thread_attr_t *attr = M_thread_attr_create();
+		M_thread_attr_set_create_joinable(attr, M_TRUE);
+		handle->status        = M_IO_PROC_STATUS_STARTING;
+		handle->thread        = M_thread_create(attr, M_io_process_thread, handle);
+		M_thread_attr_destroy(attr);
 	} else if (handle->status == M_IO_PROC_STATUS_RUNNING) {
 		/* Trigger connected soft event when registered with event handle */
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
@@ -392,25 +401,61 @@ static M_bool M_io_process_init_cb(M_io_layer_t *layer)
 static void M_io_process_unregister_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_event_t     *event  = M_io_get_event(io);
 
-	/* XXX: What do we need to do here?  Stop timer? */
+	if (handle->timer) {
+		M_event_timer_remove(handle->timer);
+		handle->timer = NULL;
+	}
+}
+
+static void M_io_process_kill(M_io_handle_t *handle)
+{
+#ifdef _WIN32
+	//	TerminateProcess(mp->processInfo.hProcess, 0);
+#else
+	kill(handle->pid, SIGKILL);
+#endif
 }
 
 static void M_io_process_destroy_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_t        *io     = M_io_layer_get_io(layer);
+	void          *rv;
 
-	/* XXX: What do we need to do here?  What if process is still running? */
+	/* Forcibly kill process as it appears to still be running */
+	if (handle->status == M_IO_PROC_STATUS_STARTING || handle->status == M_IO_PROC_STATUS_RUNNING) {
+		M_io_process_kill(handle);
+	}
+
+	/* Join the thread to wait for it to exit */
+	if (handle->thread)
+		M_thread_join(handle->thread, &rv);
+
+	/* Clean up */
+	M_free(handle->command);
+	M_list_str_destroy(handle->args);
+	M_hash_dict_destroy(handle->env);
+	M_io_destroy(handle->pipe_stdin);
+	M_io_destroy(handle->pipe_stdout);
+	M_io_destroy(handle->pipe_stderr);
 }
 
 static M_io_state_t M_io_process_state_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle  = M_io_layer_get_handle(layer);
-	/* XXX: Implement me */
-	return M_IO_STATE_CONNECTED;
+	switch (handle->status) {
+		case M_IO_PROC_STATUS_INIT:
+			return M_IO_STATE_INIT;
+		case M_IO_PROC_STATUS_STARTING:
+			return M_IO_STATE_CONNECTING;
+		case M_IO_PROC_STATUS_RUNNING:
+			return M_IO_STATE_CONNECTED;
+		case M_IO_PROC_STATUS_EXITED:
+			return M_IO_STATE_DISCONNECTED;
+		case M_IO_PROC_STATUS_ERROR:
+			return M_IO_STATE_ERROR;
+	}
+	return M_IO_STATE_ERROR;
 }
 
 
@@ -418,16 +463,62 @@ static M_bool M_io_process_errormsg_cb(M_io_layer_t *layer, char *error, size_t 
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
+#ifndef _WIN32
+	M_io_posix_errormsg(handle->last_sys_error, error, err_len);
+	return M_TRUE;
+#else
 	/* XXX: Implement me */
+
+#endif
 	return M_FALSE;
+}
+
+
+static void M_io_process_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *io_dummy, void *cb_arg)
+{
+	M_io_handle_t *handle = cb_arg;
+	M_io_t        *io     = handle->proc;
+	M_io_layer_t  *layer;
+
+	(void)event;
+	(void)type;
+	(void)io_dummy;
+
+	layer = M_io_layer_acquire(io, 0, NULL);
+
+	M_io_process_kill(handle);
+
+	M_event_timer_remove(handle->timer);
+	handle->timer = NULL;
+	M_io_layer_release(layer);
+
 }
 
 
 static M_bool M_io_process_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
-	(void)type;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_event_t     *event  = M_io_get_event(io);
 
 	/* XXX: Start timer on connected, stop timer on disconnect or error */
+	if (*type == M_EVENT_TYPE_CONNECTED) {
+		if (handle->timeout_ms) {
+			M_uint64 elapsed   = M_time_elapsed(&handle->start_timer);
+			M_uint64 remaining = 0;
+			if (elapsed < handle->timeout_ms)
+				remaining = handle->timeout_ms - elapsed;
+
+			handle->timer = M_event_timer_oneshot(event, remaining, M_FALSE, M_io_process_timeout_cb, handle);
+		}
+	}
+
+	if (*type == M_EVENT_TYPE_ERROR || *type == M_EVENT_TYPE_DISCONNECTED) {
+		if (handle->timer) {
+			M_event_timer_remove(handle->timer);
+			handle->timer = NULL;
+		}
+	}
 
 	/* Pass on */
 	return M_FALSE;
@@ -576,17 +667,54 @@ fail:
 }
 
 
-
-
 M_bool M_io_process_get_result_code(M_io_t *proc, int *result_code)
 {
+	M_io_layer_t  *layer  = NULL;
+	M_io_handle_t *handle = NULL;
+	M_bool         rv     = M_FALSE;
 
+	if (proc == NULL || result_code == NULL)
+		return M_FALSE;
+
+	*result_code = -1;
+
+	layer = M_io_layer_acquire(proc, 0, "PROCESS");
+	if (layer == NULL)
+		return M_FALSE;
+
+	handle = M_io_layer_get_handle(layer);
+
+	if (handle->status == M_IO_PROC_STATUS_EXITED) {
+		rv           = M_TRUE;
+		*result_code = handle->return_code;
+	}
+
+	M_io_layer_release(layer);
+
+	return rv;
 }
 
 
 int M_io_process_get_pid(M_io_t *proc)
 {
+	M_io_layer_t  *layer  = NULL;
+	M_io_handle_t *handle = NULL;
+	int            pid    = 0;
 
+	if (proc == NULL)
+		return 0;
+
+	layer = M_io_layer_acquire(proc, 0, "PROCESS");
+	if (layer == NULL)
+		return M_FALSE;
+
+	handle = M_io_layer_get_handle(layer);
+
+	pid    = handle->pid;
+
+	M_io_layer_release(layer);
+
+	return pid;
 }
 
 
