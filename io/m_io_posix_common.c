@@ -53,6 +53,7 @@ M_io_error_t M_io_posix_err_to_ioerr(int err)
 			return M_IO_ERROR_NOTCONNECTED;
 		case EACCES:
 		case EPERM:
+		case ENOEXEC:
 			return M_IO_ERROR_NOTPERM;
 		case ECONNRESET:
 		case ENETRESET:
@@ -79,6 +80,8 @@ M_io_error_t M_io_posix_err_to_ioerr(int err)
 		case ENOBUFS:
 		case ENOMEM:
 			return M_IO_ERROR_NOSYSRESOURCES;
+		case ENOENT:
+			return M_IO_ERROR_NOTFOUND;
 		case ENOTSOCK:
 		case EBADF:
 		case EFAULT:

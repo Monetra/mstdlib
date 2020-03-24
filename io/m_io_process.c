@@ -85,7 +85,11 @@ struct M_io_handle {
 	int                   return_code;
 	M_uint64              timeout_ms;
 	M_io_process_status_t status;
+#ifdef _WIN32
+	DWORD                 last_sys_error;
+#else
 	int                   last_sys_error;
+#endif
 	M_timeval_t           start_timer;
 	M_event_timer_t      *timer;
 	M_threadid_t          thread;
@@ -279,9 +283,145 @@ static void *M_io_process_thread(void *arg)
 	return NULL;
 }
 #else
+
+static char *M_io_process_dict_to_env(M_hash_dict_t *dict)
+{
+	M_buf_t            *buf      = NULL;
+	M_hash_dict_enum_t *hashenum = NULL;
+	const char         *key      = NULL;
+	const char         *val      = NULL;
+
+	if (dict == NULL)
+		return NULL;
+
+	/* Windows environment is a NULL-terminated list of environment variables in key=value format,
+	 * that is then NULL terminated, so the last 2 characters are always \0\0 */
+
+	buf = M_buf_create();
+	while (M_hash_dict_enumerate_next(dict, hashenum, &key, &val)) {
+		M_buf_add_str(buf, key);
+		M_buf_add_byte(buf, '=');
+		M_buf_add_str(buf, value);
+		M_buf_add_byte(buf, 0); /* Terminate entry */
+	}
+	M_hash_dict_enumerate_free(hashenum);
+
+	/* Terminate list */
+	M_buf_add_byte(buf, 0);
+
+	return M_buf_finish_str(buf, NULL);
+}
+
+
+static void M_io_process_append_quoted(M_buf_t *buf, const char *data, char quote, char escape)
+{
+	M_buf_add_byte(buf, quote);
+
+	for (i=0; data[i] != 0; i++) {
+		if (data[i] == quote || data[i] == escape) {
+			M_buf_add_byte(buf, escape);
+		}
+		M_buf_add_byte(buf, data[i]);
+	}
+
+	M_buf_add_byte(buf, quote);
+}
+
+
+static char *M_io_process_list_to_args(const char *command, M_list_str_t *list)
+{
+	M_buf_t *buf = M_buf_create();
+	size_t   i   = 0;
+	size_t   len = M_list_str_len(list);
+
+	/* Must be in full command line format.  For safety, all arguments should be quoted */
+	M_io_process_append_quoted(buf, command, '"', '\\');
+
+	for (i=0; i<len; i++) {
+		M_buf_add_byte(buf, ' ');
+		M_io_process_append_quoted(buf, M_list_str_at(list, i), '"', '\\');
+	}
+
+	return M_buf_finish_str(buf, NULL);
+}
+
 /* Win32 */
 static void *M_io_process_thread(void *arg)
 {
+	STARTUPINFO         siStartInfo;
+	PROCESS_INFORMATION pi;
+	M_io_handle_t      *handle  = arg;
+	char               *command = M_io_process_list_to_args(command, handle->args);
+	char               *env     = M_io_process_dict_to_env(handle->env);
+	DWORD               err;
+	BOOL                rv;
+	DWORD               resultcode;
+
+	M_mem_set(&siStartInfo, 0, sizeof(siStartInfo));
+	siStartInfo.cb         = sizeof(siStartInfo);
+	siStartInfo.hStdInput  = M_io_pipe_get_fd(handle->pipe_stdin);
+	siStartInfo.hStdOutput = M_io_pipe_get_fd(handle->pipe_stdout);
+	siStartInfo.hStdError  = M_io_pipe_get_fd(handle->pipe_stderr);
+	siStartInfo.dwFlags   |= STARTF_USESTDHANDLES;
+
+	M_mem_set(&pi, 0, sizeof(pi));
+
+	rv  = CreateProcessA(NULL, command, NULL, NULL, TRUE, CREATE_NO_WINDOW, env, NULL, &siStartInfo, &pi);
+	err = GetLastError();
+	M_free(command);
+	M_free(env);
+
+	/* Error starting process */
+	if (!rv) {
+		layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+		handle->status         = M_IO_PROC_STATUS_ERROR;
+		handle->last_sys_error = err;
+		M_io_destroy(handle->pipe_stdin);
+		M_io_destroy(handle->pipe_stdout);
+		M_io_destroy(handle->pipe_stderr);
+		handle->pipe_stdin     = NULL;
+		handle->pipe_stdout    = NULL;
+		handle->pipe_stderr    = NULL;
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_io_win32_err_to_ioerr(handle->last_sys_error));
+		M_io_layer_release(layer);
+		return NULL;
+	}
+
+
+	/* In parent */
+
+	/* Close pipe endpoints, record pid, notify parent the process has started */
+	layer               = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+	M_io_destroy(handle->pipe_stdin);
+	M_io_destroy(handle->pipe_stdout);
+	M_io_destroy(handle->pipe_stderr);
+	handle->pipe_stdin  = NULL;
+	handle->pipe_stdout = NULL;
+	handle->pipe_stderr = NULL;
+	handle->status      = M_IO_PROC_STATUS_RUNNING;
+	handle->pid         = (int)pi.pwProcessId;
+	M_time_elapsed_start(&handle->start_timer);
+
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+
+	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	/* Record exit code and notify watcher */
+	layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");
+	GetExitCodeProcess(pi.hProcess, &resultcode);
+	handle->return_code    = (int)resultcode;
+	handle->status         = M_IO_PROC_STATUS_EXITED;
+	handle->last_sys_error = 0;
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+
+	if (pi.hProcess != NULL)
+		CloseHandle(mp->processInfo.hProcess);
+	if (pi.hThread != NULL)
+		CloseHandle(mp->processInfo.hThread);
+
 	return NULL;
 }
 
@@ -411,7 +551,9 @@ static void M_io_process_unregister_cb(M_io_layer_t *layer)
 static void M_io_process_kill(M_io_handle_t *handle)
 {
 #ifdef _WIN32
-	//	TerminateProcess(mp->processInfo.hProcess, 0);
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)handle->pid);
+	TerminateProcess(hProcess, 130);
+	CloseHandle(processHandle);
 #else
 	kill(handle->pid, SIGKILL);
 #endif
@@ -467,7 +609,7 @@ static M_bool M_io_process_errormsg_cb(M_io_layer_t *layer, char *error, size_t 
 	M_io_posix_errormsg(handle->last_sys_error, error, err_len);
 	return M_TRUE;
 #else
-	/* XXX: Implement me */
+	M_io_win32_errormsg(handle->last_sys_error, error, err_len);
 
 #endif
 	return M_FALSE;
