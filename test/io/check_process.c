@@ -53,6 +53,9 @@ static const char *event_type_str(M_event_type_t type)
 	return "UNKNOWN";
 }
 
+/* We need proc_stdin as global as we cannot rely on receiving a disconnect event
+ * when the process exits.  So we should close this endpoint when the process exits */
+static M_io_t            *proc_stdin = NULL;
 
 static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *data)
 {
@@ -84,10 +87,17 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 				int return_code = 0;
 				M_io_process_get_result_code(io, &return_code);
 				event_debug("process %p %s ended with return code (%d), cleaning up: %s", io, name, return_code, error);
+				if (proc_stdin)
+					M_io_destroy(proc_stdin);
+				proc_stdin = NULL;
 			} else {
 				event_debug("process %p %s ended, cleaning up: %s", io, name, error);
+				/* On Linux/Mac we will be notified of stdin being disconnected, so mark as cleaned up already */
+				if (io == proc_stdin)
+					proc_stdin = NULL;
 			}
 			M_io_destroy(io);
+
 			break;
 		default:
 			/* Ignore */
@@ -114,11 +124,12 @@ static void process_trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_
 	M_free(temp);
 }
 
+
 static M_bool process_test(void)
 {
 	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *proc;
-	M_io_t            *proc_stdin;
+
 	M_io_t            *proc_stdout;
 	M_io_t            *proc_stderr;
 

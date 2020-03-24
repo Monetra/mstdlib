@@ -49,7 +49,8 @@ __BEGIN_DECLS
  * \param[in]  env         Optional. List of environment variables to pass on to process.  Use NULL to pass current environment through.
  * \param[in]  timeout_ms  Optional. Maximum execution time of the process before it is forcibly terminated.  Use 0 for infinite.
  * \param[out] proc        Required. The io object handle for the process itself.  Used to notify when the process has exited, or request termination of process.
- * \param[out] proc_stdin  Optional. The io object handle for the write-only stdin process handle.  If NULL is passed, will close handle to process.
+ * \param[out] proc_stdin  Optional. The io object handle for the write-only stdin process handle.  If NULL is passed, will close handle to process.  The
+ *                         stdin process will not be notified when the process closes so it must be tracked and closed when the process exits by the caller.
  * \param[out] proc_stdout Optional. The io object handle for the read-only stdout process handle.  If NULL is passed, will close handle to process.
  * \param[out] proc_stderr Optional. The io object handle for the read-only stderr process handle.  If NULL is passed, will close handle to process.
  *
