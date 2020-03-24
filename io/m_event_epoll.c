@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -58,18 +58,22 @@ static void M_event_impl_epoll_modify_event(M_event_t *event, M_event_modify_typ
 
 	M_mem_set(&ev, 0, sizeof(ev));
 
-/* XXX: We need to know capabilities! Especially for pipes */
 	switch (modtype) {
 		case M_EVENT_MODTYPE_ADD_HANDLE:
 			ev.events = (M_uint32)EPOLLET;
+
+			/* Only listen for write events if the endpoint is capable. */
 			if (caps & M_EVENT_CAPS_WRITE)
 				ev.events |= EPOLLOUT;
-			if (caps & M_EVENT_CAPS_READ) {
-				ev.events |= EPOLLIN;
+
+			/* Always listen for read events as for write-only pipes for some reason this is
+			 * how we are notified of a closure on the remote end, so no reason to look for
+			 * caps & M_EVENT_CAPS_READ */
+			ev.events |= EPOLLIN;
 #ifdef EPOLLRDHUP
-				ev.events |= EPOLLRDHUP;
+			ev.events |= EPOLLRDHUP;
 #endif
-			}
+
 			ev.data.fd = handle;
 			epoll_ctl(event->u.loop.impl_data->epoll_fd, EPOLL_CTL_ADD, handle, &ev);
 			break;

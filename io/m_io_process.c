@@ -91,6 +91,7 @@ struct M_io_handle {
 	M_threadid_t          thread;
 };
 
+#ifndef _WIN32
 
 static char **M_io_process_dict_to_env(M_hash_dict_t *dict)
 {
@@ -131,7 +132,6 @@ static char **M_io_process_list_to_args(const char *command, M_list_str_t *list)
 	return args;
 }
 
-#ifndef _WIN32
 
 #define DEFAULT_EXIT_ERRORCODE 130
 
@@ -501,7 +501,6 @@ static M_bool M_io_process_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
 
-	/* XXX: Start timer on connected, stop timer on disconnect or error */
 	if (*type == M_EVENT_TYPE_CONNECTED) {
 		if (handle->timeout_ms) {
 			M_uint64 elapsed   = M_time_elapsed(&handle->start_timer);
