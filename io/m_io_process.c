@@ -86,6 +86,7 @@ struct M_io_handle {
 	int                   pid;
 	int                   return_code;
 	M_uint64              timeout_ms;
+	M_bool                timedout;
 	M_io_process_status_t status;
 #ifdef _WIN32
 	DWORD                 last_sys_error;
@@ -279,7 +280,7 @@ static void *M_io_process_thread(void *arg)
 	handle->return_code    = WEXITSTATUS(wstatus);
 	handle->status         = M_IO_PROC_STATUS_EXITED;
 	handle->last_sys_error = M_io_process_exitcode_to_errno(handle->return_code);
-	M_io_layer_softevent_add(layer, M_FALSE, handle->last_sys_error == 0?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, M_io_posix_err_to_ioerr(handle->last_sys_error));
+	M_io_layer_softevent_add(layer, M_FALSE, (handle->last_sys_error == 0 && !handle->timedout)?M_EVENT_TYPE_DISCONNECTED:M_EVENT_TYPE_ERROR, handle->timedout?M_IO_ERROR_TIMEDOUT:M_io_posix_err_to_ioerr(handle->last_sys_error));
 	M_io_layer_release(layer);
 
 	return NULL;
@@ -449,7 +450,7 @@ static void *M_io_process_thread(void *arg)
 	}
 	handle->status         = M_IO_PROC_STATUS_EXITED;
 	handle->last_sys_error = 0;
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_SUCCESS);
+	M_io_layer_softevent_add(layer, M_FALSE, handle->timedout?M_EVENT_TYPE_ERROR:M_EVENT_TYPE_DISCONNECTED, handle->timedout?M_IO_ERROR_TIMEDOUT:M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 
 	if (pi.hProcess != NULL)
@@ -552,6 +553,18 @@ next:
 	return first_invalid_found;
 }
 
+static M_io_error_t M_io_process_os_error(M_io_handle_t *handle)
+{
+	if (handle->timedout)
+		return M_IO_ERROR_TIMEDOUT;
+
+#ifdef _WIN32
+	return M_io_win32_err_to_ioerr(handle->last_sys_error);
+#else
+	return M_io_posix_err_to_ioerr(handle->last_sys_error);
+#endif
+}
+
 static M_bool M_io_process_init_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -567,9 +580,9 @@ static M_bool M_io_process_init_cb(M_io_layer_t *layer)
 		/* Trigger connected soft event when registered with event handle */
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 	} else if (handle->status == M_IO_PROC_STATUS_EXITED) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, 0 /* XXX: M_io_posix_err_to_ioerr(handle->last_sys_error) */);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_io_process_os_error(handle));
 	} else if (handle->status == M_IO_PROC_STATUS_ERROR) {
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, 0 /* XXX : M_io_posix_err_to_ioerr(handle->last_sys_error) */);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_io_process_os_error(handle));
 	}
 
 	return M_TRUE;
@@ -643,6 +656,10 @@ static M_bool M_io_process_errormsg_cb(M_io_layer_t *layer, char *error, size_t 
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
+	if (handle->timedout) {
+		M_snprintf(error, err_len, "Killed by timeout");
+		return M_TRUE;
+	}
 #ifndef _WIN32
 	M_io_posix_errormsg(handle->last_sys_error, error, err_len);
 #else
@@ -662,8 +679,8 @@ static void M_io_process_timeout_cb(M_event_t *event, M_event_type_t type, M_io_
 	(void)type;
 	(void)io_dummy;
 
-	layer = M_io_layer_acquire(io, 0, NULL);
-
+	layer            = M_io_layer_acquire(io, 0, NULL);
+	handle->timedout = M_TRUE;
 	M_io_process_kill(handle);
 
 	M_event_timer_remove(handle->timer);
@@ -861,7 +878,7 @@ M_bool M_io_process_get_result_code(M_io_t *proc, int *result_code)
 
 	handle = M_io_layer_get_handle(layer);
 
-	if (handle->status == M_IO_PROC_STATUS_EXITED) {
+	if (handle->status == M_IO_PROC_STATUS_EXITED && !handle->timedout) {
 		rv           = M_TRUE;
 		*result_code = handle->return_code;
 	}
