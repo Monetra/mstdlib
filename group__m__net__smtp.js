@@ -28,9 +28,9 @@ var group__m__net__smtp =
       [ "M_NET_SMTP_STATUS_NOENDPOINTS", "group__m__net__smtp.html#gga882d2d48f1a62596b7770a4e63d6f612a0861f421c8c54e8718dcb128be505137", null ],
       [ "M_NET_SMTP_STATUS_STOPPING", "group__m__net__smtp.html#gga882d2d48f1a62596b7770a4e63d6f612a47391b35022c7a325ebe071aa6965893", null ]
     ] ],
-    [ "M_net_smtp_mode_t", "group__m__net__smtp.html#ga164f87a7a5029ff10ffe5281ae2ed430", [
-      [ "M_NET_SMTP_MODE_FAILOVER", "group__m__net__smtp.html#gga164f87a7a5029ff10ffe5281ae2ed430a498db8a2ff878694bab5841f82647c0f", null ],
-      [ "M_NET_SMTP_MODE_ROUNDROBIN", "group__m__net__smtp.html#gga164f87a7a5029ff10ffe5281ae2ed430a25bc2db5d47376d1a3fb8dc61593bdba", null ]
+    [ "M_net_smtp_load_balance_t", "group__m__net__smtp.html#ga5391bff84ac0215d5ec7a5c0be38bc6f", [
+      [ "M_NET_SMTP_LOAD_BALANCE_FAILOVER", "group__m__net__smtp.html#gga5391bff84ac0215d5ec7a5c0be38bc6fa1eeb9f192862a7ef967c3992f2e3e73b", null ],
+      [ "M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN", "group__m__net__smtp.html#gga5391bff84ac0215d5ec7a5c0be38bc6fa83c364142b548b7c506f06c7b45ff166", null ]
     ] ],
     [ "M_net_smtp_create", "group__m__net__smtp.html#gabd452d6503b6d13aed2d4ebe6f5c6bd3", null ],
     [ "M_net_smtp_destroy", "group__m__net__smtp.html#gaa6385969061fb7eebf669a4e1b3cb3bc", null ],
@@ -40,8 +40,8 @@ var group__m__net__smtp =
     [ "M_net_smtp_setup_tcp", "group__m__net__smtp.html#ga0743d58eeae8381bcfd6ae468f0c466e", null ],
     [ "M_net_smtp_setup_tcp_timeouts", "group__m__net__smtp.html#ga8a32a49d26fbba298e0568e4510db95f", null ],
     [ "M_net_smtp_add_endpoint_tcp", "group__m__net__smtp.html#ga7dc5aa452bd6ec6e2ad8a0e5cd578257", null ],
-    [ "M_net_smtp_add_endpoint_process", "group__m__net__smtp.html#gaf63d0cc109319daa248afd26b2aa3879", null ],
-    [ "M_net_smtp_mode", "group__m__net__smtp.html#ga3dd8962308b94b69934eab07100db1dc", null ],
+    [ "M_net_smtp_add_endpoint_process", "group__m__net__smtp.html#gacf57b048005c2dcb47204a7486a473c6", null ],
+    [ "M_net_smtp_load_balance", "group__m__net__smtp.html#ga0893f10456472ed2a705a779fbbbb94b", null ],
     [ "M_net_smtp_set_num_attempts", "group__m__net__smtp.html#gabedecc74d92a20776cf28be13fc72673", null ],
     [ "M_net_smtp_dump_queue", "group__m__net__smtp.html#ga00d143eb79b8ab1d1403d4a7c4965333", null ],
     [ "M_net_smtp_queue_smtp", "group__m__net__smtp.html#ga3aef6609e11d3c0d3da245018f0c6efb", null ],

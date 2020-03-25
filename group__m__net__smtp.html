@@ -132,13 +132,13 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:ga882d2d48f1a62596b7770a4e63d6f612"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga164f87a7a5029ff10ffe5281ae2ed430"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga164f87a7a5029ff10ffe5281ae2ed430">M_net_smtp_mode_t</a> { <br />
-&#160;&#160;<a class="el" href="group__m__net__smtp.html#gga164f87a7a5029ff10ffe5281ae2ed430a498db8a2ff878694bab5841f82647c0f">M_NET_SMTP_MODE_FAILOVER</a> = 0, 
+<tr class="memitem:ga5391bff84ac0215d5ec7a5c0be38bc6f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga5391bff84ac0215d5ec7a5c0be38bc6f">M_net_smtp_load_balance_t</a> { <br />
+&#160;&#160;<a class="el" href="group__m__net__smtp.html#gga5391bff84ac0215d5ec7a5c0be38bc6fa1eeb9f192862a7ef967c3992f2e3e73b">M_NET_SMTP_LOAD_BALANCE_FAILOVER</a> = 0, 
 <br />
-&#160;&#160;<a class="el" href="group__m__net__smtp.html#gga164f87a7a5029ff10ffe5281ae2ed430a25bc2db5d47376d1a3fb8dc61593bdba">M_NET_SMTP_MODE_ROUNDROBIN</a>
+&#160;&#160;<a class="el" href="group__m__net__smtp.html#gga5391bff84ac0215d5ec7a5c0be38bc6fa83c364142b548b7c506f06c7b45ff166">M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN</a>
 <br />
  }</td></tr>
-<tr class="separator:ga164f87a7a5029ff10ffe5281ae2ed430"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ga5391bff84ac0215d5ec7a5c0be38bc6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -158,10 +158,10 @@ Functions</h2></td></tr>
 <tr class="separator:ga8a32a49d26fbba298e0568e4510db95f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7dc5aa452bd6ec6e2ad8a0e5cd578257"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga7dc5aa452bd6ec6e2ad8a0e5cd578257">M_net_smtp_add_endpoint_tcp</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, const char *address, M_uint16 port, M_bool connect_tls, const char *username, const char *password, size_t max_conns)</td></tr>
 <tr class="separator:ga7dc5aa452bd6ec6e2ad8a0e5cd578257"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf63d0cc109319daa248afd26b2aa3879"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#gaf63d0cc109319daa248afd26b2aa3879">M_net_smtp_add_endpoint_process</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, const char *command, const <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *args, const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *env, M_uint64 timeout_ms)</td></tr>
-<tr class="separator:gaf63d0cc109319daa248afd26b2aa3879"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3dd8962308b94b69934eab07100db1dc"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga3dd8962308b94b69934eab07100db1dc">M_net_smtp_mode</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, <a class="el" href="group__m__net__smtp.html#ga164f87a7a5029ff10ffe5281ae2ed430">M_net_smtp_mode_t</a> mode)</td></tr>
-<tr class="separator:ga3dd8962308b94b69934eab07100db1dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf57b048005c2dcb47204a7486a473c6"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#gacf57b048005c2dcb47204a7486a473c6">M_net_smtp_add_endpoint_process</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, const char *command, const <a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *args, const <a class="el" href="group__m__hash__dict.html#ga01ab9873e5c24644b27b099a032bea00">M_hash_dict_t</a> *env, M_uint64 timeout_ms, size_t max_processes)</td></tr>
+<tr class="separator:gacf57b048005c2dcb47204a7486a473c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0893f10456472ed2a705a779fbbbb94b"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga0893f10456472ed2a705a779fbbbb94b">M_net_smtp_load_balance</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, <a class="el" href="group__m__net__smtp.html#ga5391bff84ac0215d5ec7a5c0be38bc6f">M_net_smtp_load_balance_t</a> mode)</td></tr>
+<tr class="separator:ga0893f10456472ed2a705a779fbbbb94b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabedecc74d92a20776cf28be13fc72673"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#gabedecc74d92a20776cf28be13fc72673">M_net_smtp_set_num_attempts</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp, size_t num)</td></tr>
 <tr class="separator:gabedecc74d92a20776cf28be13fc72673"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga00d143eb79b8ab1d1403d4a7c4965333"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__list__str.html#ga6de38b5604cb0dee336dccb52b5ae077">M_list_str_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__net__smtp.html#ga00d143eb79b8ab1d1403d4a7c4965333">M_net_smtp_dump_queue</a> (<a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *sp)</td></tr>
@@ -520,22 +520,22 @@ iocreate_cb</td>
 
 </div>
 </div>
-<a id="ga164f87a7a5029ff10ffe5281ae2ed430"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga164f87a7a5029ff10ffe5281ae2ed430">&#9670;&nbsp;</a></span>M_net_smtp_mode_t</h2>
+<a id="ga5391bff84ac0215d5ec7a5c0be38bc6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5391bff84ac0215d5ec7a5c0be38bc6f">&#9670;&nbsp;</a></span>M_net_smtp_load_balance_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="group__m__net__smtp.html#ga164f87a7a5029ff10ffe5281ae2ed430">M_net_smtp_mode_t</a></td>
+          <td class="memname">enum <a class="el" href="group__m__net__smtp.html#ga5391bff84ac0215d5ec7a5c0be38bc6f">M_net_smtp_load_balance_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>Pool operation mode. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga164f87a7a5029ff10ffe5281ae2ed430a498db8a2ff878694bab5841f82647c0f"></a>M_NET_SMTP_MODE_FAILOVER&#160;</td><td class="fielddoc"><p>Only one endpoint should be used and others should be used when the current endpoint has a failure. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga5391bff84ac0215d5ec7a5c0be38bc6fa1eeb9f192862a7ef967c3992f2e3e73b"></a>M_NET_SMTP_LOAD_BALANCE_FAILOVER&#160;</td><td class="fielddoc"><p>Only one endpoint should be used and others should be used when the current endpoint has a failure. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga164f87a7a5029ff10ffe5281ae2ed430a25bc2db5d47376d1a3fb8dc61593bdba"></a>M_NET_SMTP_MODE_ROUNDROBIN&#160;</td><td class="fielddoc"><p>Connections should rotate across all endpoints. </p>
+<tr><td class="fieldname"><a id="gga5391bff84ac0215d5ec7a5c0be38bc6fa83c364142b548b7c506f06c7b45ff166"></a>M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN&#160;</td><td class="fielddoc"><p>Connections should rotate across all endpoints. </p>
 </td></tr>
 </table>
 
@@ -855,8 +855,8 @@ iocreate_cb</td>
 
 </div>
 </div>
-<a id="gaf63d0cc109319daa248afd26b2aa3879"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf63d0cc109319daa248afd26b2aa3879">&#9670;&nbsp;</a></span>M_net_smtp_add_endpoint_process()</h2>
+<a id="gacf57b048005c2dcb47204a7486a473c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacf57b048005c2dcb47204a7486a473c6">&#9670;&nbsp;</a></span>M_net_smtp_add_endpoint_process()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -889,7 +889,13 @@ iocreate_cb</td>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">M_uint64&#160;</td>
-          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+          <td class="paramname"><em>timeout_ms</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_processes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -905,7 +911,8 @@ iocreate_cb</td>
     <tr><td class="paramdir">[in]</td><td class="paramname">command</td><td>Command to send message using. Must accept message as STDIN. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Optional. List of arguments to pass to command. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. List of environment variables to pass on to process. Use NULL to pass current environment through. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Optional. Maximum execution time of the process before it is forcibly terminated. Use 0 for infinite.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Optional. Maximum execution time of the process before it is forcibly terminated. Use 0 for infinite. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_processes</td><td>Optional. Maximum number of processes to open simultaneously. Default is 1.</td></tr>
   </table>
   </dd>
 </dl>
@@ -913,14 +920,14 @@ iocreate_cb</td>
 
 </div>
 </div>
-<a id="ga3dd8962308b94b69934eab07100db1dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3dd8962308b94b69934eab07100db1dc">&#9670;&nbsp;</a></span>M_net_smtp_mode()</h2>
+<a id="ga0893f10456472ed2a705a779fbbbb94b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0893f10456472ed2a705a779fbbbb94b">&#9670;&nbsp;</a></span>M_net_smtp_load_balance()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">M_bool M_net_smtp_mode </td>
+          <td class="memname">M_bool M_net_smtp_load_balance </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__m__net__smtp.html#gae57d7bc037d1875558918f1bd58cf382">M_net_smtp_t</a> *&#160;</td>
           <td class="paramname"><em>sp</em>, </td>
@@ -928,7 +935,7 @@ iocreate_cb</td>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__m__net__smtp.html#ga164f87a7a5029ff10ffe5281ae2ed430">M_net_smtp_mode_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__m__net__smtp.html#ga5391bff84ac0215d5ec7a5c0be38bc6f">M_net_smtp_load_balance_t</a>&#160;</td>
           <td class="paramname"><em>mode</em>&#160;</td>
         </tr>
         <tr>
@@ -942,7 +949,7 @@ iocreate_cb</td>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">sp</td><td>SMTP pool. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mode</td><td>Operation mode. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mode</td><td>Load balancing method that should be used. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1156,7 +1163,7 @@ iocreate_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Mar 25 2020 18:36:23 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Mar 25 2020 18:53:44 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
