@@ -462,17 +462,6 @@ static void *M_io_process_thread(void *arg)
 
 	return NULL;
 }
-
-
-#endif
-
-#ifndef _WIN32
-static M_thread_once_t block_sigchild_once = M_THREAD_ONCE_STATIC_INITIALIZER;
-static void block_sigchild(M_uint64 flags)
-{
-	(void)flags;
-	signal(SIGCHLD, SIG_IGN);
-}
 #endif
 
 
@@ -744,11 +733,6 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 		*proc_stdout = NULL;
 	if (proc_stderr)
 		*proc_stderr = NULL;
-
-#ifndef _WIN32
-	/* Thread_once to block SIGCHLD ... as if someone starts using this, we assume they're not spawning children any other way. */
-	M_thread_once(&block_sigchild_once, block_sigchild, 0);
-#endif
 
 	if (M_str_isempty(command) || proc == NULL) {
 		rv = M_IO_ERROR_INVALID;
