@@ -27,6 +27,7 @@
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
 #include "m_io_w32overlap.h"
+#include "m_io_pipe_int.h"
 
 M_EVENT_HANDLE M_io_pipe_get_fd(M_io_t *io)
 {
