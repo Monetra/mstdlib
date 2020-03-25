@@ -5,6 +5,7 @@ var searchData=
   ['serial_20port_20i_2fo_20functions',['Serial Port I/O functions',['../group__m__io__serial.html',1,'']]],
   ['stream_20module',['Stream Module',['../group__m__log__stream.html',1,'']]],
   ['syslog_20module',['Syslog Module',['../group__m__log__syslog.html',1,'']]],
+  ['smtp_20mailer',['SMTP mailer',['../group__m__net__smtp.html',1,'']]],
   ['settings',['Settings',['../group__m__settings.html',1,'']]],
   ['search_20and_20sort',['Search and Sort',['../group__m__sort.html',1,'']]],
   ['sql_20subsystem',['SQL Subsystem',['../group__m__sql.html',1,'']]],

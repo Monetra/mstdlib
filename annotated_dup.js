@@ -12,6 +12,7 @@ var annotated_dup =
     [ "M_http_reader_callbacks", "group__m__http__reader.html#structM__http__reader__callbacks", "group__m__http__reader_structM__http__reader__callbacks" ],
     [ "M_list_callbacks", "group__m__list__generic.html#structM__list__callbacks", "group__m__list__generic_structM__list__callbacks" ],
     [ "M_llist_callbacks", "group__m__llist__generic.html#structM__llist__callbacks", "group__m__llist__generic_structM__llist__callbacks" ],
+    [ "M_net_smtp_callbacks", "group__m__net__smtp.html#structM__net__smtp__callbacks", "group__m__net__smtp_structM__net__smtp__callbacks" ],
     [ "M_sql_connstr_params_t", "group__m__sql__driver.html#structM__sql__connstr__params", "group__m__sql__driver_structM__sql__connstr__params" ],
     [ "M_sql_driver_t", "group__m__sql__driver.html#structM__sql__driver__t", "group__m__sql__driver_structM__sql__driver__t" ],
     [ "M_sql_hostport_t", "group__m__sql__driver.html#structM__sql__hostport__t", "group__m__sql__driver_structM__sql__hostport__t" ],

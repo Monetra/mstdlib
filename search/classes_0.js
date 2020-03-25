@@ -12,6 +12,7 @@ var searchData=
   ['m_5fhttp_5freader_5fcallbacks',['M_http_reader_callbacks',['../group__m__http__reader.html#structM__http__reader__callbacks',1,'']]],
   ['m_5flist_5fcallbacks',['M_list_callbacks',['../group__m__list__generic.html#structM__list__callbacks',1,'']]],
   ['m_5fllist_5fcallbacks',['M_llist_callbacks',['../group__m__llist__generic.html#structM__llist__callbacks',1,'']]],
+  ['m_5fnet_5fsmtp_5fcallbacks',['M_net_smtp_callbacks',['../group__m__net__smtp.html#structM__net__smtp__callbacks',1,'']]],
   ['m_5fsql_5fconnstr_5fparams',['M_sql_connstr_params',['../group__m__sql__driver.html#structM__sql__connstr__params',1,'']]],
   ['m_5fsql_5fdriver_5ft',['M_sql_driver_t',['../group__m__sql__driver.html#structM__sql__driver__t',1,'']]],
   ['m_5fsql_5fhostport_5ft',['M_sql_hostport_t',['../group__m__sql__driver.html#structM__sql__hostport__t',1,'']]],
