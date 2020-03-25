@@ -68,10 +68,10 @@ typedef enum {
 
 /*! Pool operation mode. */
 typedef enum {
-	M_NET_SMTP_MODE_FAILOVER = 0, /*!< Only one endpoint should be used and others should
-	                                   be used when the current endpoint has a failure. */
-	M_NET_SMTP_MODE_ROUNDROBIN    /*!< Connections should rotate across all endpoints. */
-} M_net_smtp_mode_t;
+	M_NET_SMTP_LOAD_BALANCE_FAILOVER = 0, /*!< Only one endpoint should be used and others should
+	                                           be used when the current endpoint has a failure. */
+	M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN    /*!< Connections should rotate across all endpoints. */
+} M_net_smtp_load_balance_t;
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -328,23 +328,24 @@ M_API M_bool M_net_smtp_add_endpoint_tcp(M_net_smtp_t *sp, const char *address, 
 
 /*! Add a process endpoint.
  *
- * \param[in] sp           SMTP pool.
- * \param[in] command      Command to send message using. Must accept message as STDIN.
- * \param[in]  args        Optional. List of arguments to pass to command.
- * \param[in]  env         Optional. List of environment variables to pass on to process.  Use NULL to pass current environment through.
- * \param[in]  timeout_ms  Optional. Maximum execution time of the process before it is forcibly terminated.  Use 0 for infinite.
+ * \param[in] sp             SMTP pool.
+ * \param[in] command        Command to send message using. Must accept message as STDIN.
+ * \param[in]  args          Optional. List of arguments to pass to command.
+ * \param[in]  env           Optional. List of environment variables to pass on to process.  Use NULL to pass current environment through.
+ * \param[in]  timeout_ms    Optional. Maximum execution time of the process before it is forcibly terminated.  Use 0 for infinite.
+ * \param[in]  max_processes Optional. Maximum number of processes to open simultaneously. Default is 1.
  *
  * \return M_TRUE if the endpoint was added. Otherwise, M_FALSE.
  */
-M_API M_bool M_net_smtp_add_endpoint_process(M_net_smtp_t *sp, const char *command, const M_list_str_t *args, const M_hash_dict_t *env, M_uint64 timeout_ms);
+M_API M_bool M_net_smtp_add_endpoint_process(M_net_smtp_t *sp, const char *command, const M_list_str_t *args, const M_hash_dict_t *env, M_uint64 timeout_ms, size_t max_processes);
 
 
 /*! Set how the pool should handle multiple endpoints.
  *
  * \param[in] sp   SMTP pool.
- * \param[in] mode Operation mode.
+ * \param[in] mode Load balancing method that should be used.
  */
-M_API M_bool M_net_smtp_mode(M_net_smtp_t *sp, M_net_smtp_mode_t mode);
+M_API M_bool M_net_smtp_load_balance(M_net_smtp_t *sp, M_net_smtp_load_balance_t mode);
 
 
 /*! Number of resend attempts allowed per message.
