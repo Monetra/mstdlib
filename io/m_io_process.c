@@ -33,6 +33,7 @@
 #  include <unistd.h>
 #  include <signal.h>
 #  include <sys/wait.h>
+#  include <string.h>
 #else
 #  include "m_io_win32_common.h"
 #endif
@@ -270,7 +271,7 @@ static void *M_io_process_thread(void *arg)
 	M_io_layer_release(layer);
 
 	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
-	while (waitpid(pid, &wstatus, WEXITED) == -1) {
+	while (waitpid(pid, &wstatus, 0) == -1) {
 		if (errno != EINTR)
 			break;
 	}
@@ -440,6 +441,7 @@ static void *M_io_process_thread(void *arg)
 	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
 	while (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0)
 		;
+	M_thread_sleep(100000);
 
 	/* Record exit code and notify watcher */
 	layer                  = M_io_layer_acquire(handle->proc, 0, "PROCESS");

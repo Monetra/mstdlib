@@ -55,7 +55,7 @@ static const char *event_type_str(M_event_type_t type)
 
 /* We need proc_stdin as global as we cannot rely on receiving a disconnect event
  * when the process exits.  So we should close this endpoint when the process exits */
-static M_io_t            *proc_stdin = NULL;
+static M_io_t            *proc_stdin  = NULL;
 
 static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *data)
 {
@@ -132,9 +132,9 @@ typedef enum {
 static M_bool process_test(process_test_cases_t test_case)
 {
 	M_event_t         *event   = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
-	M_io_t            *proc;
-	M_io_t            *proc_stdout;
-	M_io_t            *proc_stderr;
+	M_io_t            *proc        = NULL;
+	M_io_t            *proc_stdout = NULL;
+	M_io_t            *proc_stderr = NULL;
 	const char        *command;
 	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
 
@@ -163,8 +163,10 @@ static M_bool process_test(process_test_cases_t test_case)
 			break;
 	}
 
-	event_debug("starting process test");
-	proc_stdin = NULL;
+	event_debug("starting process test case %d", test_case);
+	proc_stdin  = NULL;
+	proc_stdout = NULL;
+	proc_stderr = NULL;
 	if (M_io_process_create(command, args, NULL, 2000, &proc, &proc_stdin, &proc_stdout, &proc_stderr) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create process %s", command);
 		return M_FALSE;
@@ -209,12 +211,18 @@ static M_bool process_test(process_test_cases_t test_case)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(check_process)
+START_TEST(check_process_echo)
 {
 	ck_assert_msg(process_test(TEST_CASE_ECHO));
-	ck_assert_msg(process_test(TEST_CASE_SLEEP));
 }
 END_TEST
+
+START_TEST(check_process_timeout)
+{
+	ck_assert_msg(process_test(TEST_CASE_TIMEOUT));
+}
+END_TEST
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -226,8 +234,10 @@ static Suite *process_suite(void)
 	suite = suite_create("process");
 
 	tc = tcase_create("process");
-	tcase_add_test(tc, check_process);
+	tcase_add_test(tc, check_process_echo);
+	tcase_add_test(tc, check_process_timeout);
 	suite_add_tcase(suite, tc);
+
 
 	return suite;
 }
