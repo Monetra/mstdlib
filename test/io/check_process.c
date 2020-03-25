@@ -124,30 +124,48 @@ static void process_trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_
 	M_free(temp);
 }
 
+typedef enum {
+	TEST_CASE_ECHO    = 1,
+	TEST_CASE_TIMEOUT = 2
+} process_test_cases_t;
 
-static M_bool process_test(void)
+static M_bool process_test(process_test_cases_t test_case)
 {
-	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
+	M_event_t         *event   = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *proc;
-
 	M_io_t            *proc_stdout;
 	M_io_t            *proc_stderr;
+	const char        *command;
+	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
 
+	switch (test_case) {
+		case TEST_CASE_ECHO:
 #ifdef _WIN32
-	const char        *command = "cmd.exe";
-	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
-	M_list_str_insert(args, "/c");
-	M_list_str_insert(args, "echo");
-	M_list_str_insert(args, "Hello World!");
+			command = "cmd.exe";
+			M_list_str_insert(args, "/c");
+			M_list_str_insert(args, "echo");
+			M_list_str_insert(args, "Hello World!");
 #else
-	const char        *command = "echo";
-	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
-	M_list_str_insert(args, "Hello World!");
+			command = "echo";
+			M_list_str_insert(args, "Hello World!");
 #endif
+			break;
+		case TEST_CASE_TIMEOUT:
+#ifdef _WIN32
+			command = "cmd.exe";
+			M_list_str_insert(args, "/c");
+			M_list_str_insert(args, "sleep");
+			M_list_str_insert(args, "4");
+#else
+			command = "sleep";
+			M_list_str_insert(args, "4");
+#endif
+			break;
+	}
 
 	event_debug("starting process test");
-
-	if (M_io_process_create(command, args, NULL, 0, &proc, &proc_stdin, &proc_stdout, &proc_stderr) != M_IO_ERROR_SUCCESS) {
+	proc_stdin = NULL;
+	if (M_io_process_create(command, args, NULL, 2000, &proc, &proc_stdin, &proc_stdout, &proc_stderr) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create process %s", command);
 		return M_FALSE;
 	}
@@ -176,7 +194,7 @@ static M_bool process_test(void)
 	}
 
 	event_debug("entering loop");
-	if (M_event_loop(event, 1000) != M_EVENT_ERR_DONE) {
+	if (M_event_loop(event, 5000) != M_EVENT_ERR_DONE) {
 		event_debug("event loop did not return done");
 		return M_FALSE;
 	}
@@ -193,7 +211,8 @@ static M_bool process_test(void)
 
 START_TEST(check_process)
 {
-	ck_assert_msg(process_test());
+	ck_assert_msg(process_test(TEST_CASE_ECHO));
+	ck_assert_msg(process_test(TEST_CASE_SLEEP));
 }
 END_TEST
 
