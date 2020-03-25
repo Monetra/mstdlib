@@ -73,10 +73,10 @@ static struct {
 } path_split_cases[] = {
 	{ "this/is/p1",  "this/is", "p1"         },
 	{ "this/is/p2/", "this/is", "p2"         },
-	{ "this_is_p3",  ".",       "this_is_p3" },
+	{ "this_is_p3",  NULL,      "this_is_p3" },
 	{ "/bin",        "/",       "bin"        },
 	{ "/",           "/",       NULL         },
-	{ ".",           ".",       "."          },
+	{ ".",           NULL,       "."          },
 	{ NULL,          NULL,      NULL         }
 };
 
@@ -90,7 +90,7 @@ START_TEST(check_path_split)
 		dir  = M_fs_path_dirname(path_split_cases[i].path, M_FS_SYSTEM_UNIX);
 		name = M_fs_path_basename(path_split_cases[i].path, M_FS_SYSTEM_UNIX);
 
-		ck_assert_msg(dir != NULL, "%zu: %s split failed", i, path_split_cases[i].path);
+//		ck_assert_msg(dir != NULL, "%zu: %s split failed", i, path_split_cases[i].path);
 		ck_assert_msg(M_str_eq(dir, path_split_cases[i].dir) && M_str_eq(name, path_split_cases[i].name), "%zu: Split path: dir='%s', name='%s', does not match expected parts: dir='%s', name='%s'", i, dir, name, path_split_cases[i].dir, path_split_cases[i].name);
 
 		M_free(dir);
