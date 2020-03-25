@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,7 +47,7 @@ __BEGIN_DECLS
  *         M_printf("path exists\n");
  *     } else {
  *         M_printf("path does not exist\n");
- *     } 
+ *     }
  * \endcode
  *
  * Example (information about a file or directory):
@@ -59,7 +59,7 @@ __BEGIN_DECLS
  *         M_printf("user='%s'\n", M_fs_info_get_user(info));
  *     } else {
  *         M_printf("Failed to get file information\n");
- *     } 
+ *     }
  *     M_fs_info_destroy(info);
  * \endcode
  *
@@ -82,7 +82,7 @@ __BEGIN_DECLS
  *         M_printf("failed to normalize p1\n");
  *     }
  *     M_free(out);
- *     
+ *
  *     if (M_fs_path_norm(&out, p2, M_FS_PATH_NORM_ABSOLUTE, M_FS_SYSTEM_WINDOWS) == M_FS_ERROR_SUCCESS) {
  *         if (M_str_eq(out, n2)) {
  *             M_printf("p2 normalized correctly\n")
@@ -91,7 +91,7 @@ __BEGIN_DECLS
  *         }
  *     } else {
  *         M_printf("failed to normalize p2\n");
- *     } 
+ *     }
  *     M_free(out);
  * \endcode
  *
@@ -260,8 +260,8 @@ typedef enum {
 /*! Read / Write behavior */
 typedef enum {
 	M_FS_FILE_RW_NORMAL  = 0,      /*!< Normal operation */
-	M_FS_FILE_RW_FULLBUF = 1 << 0  /*!< Read until the given buffer is full or until there is no more data to read.	
-	                                    Write all data in the buffer. Normal operation is to return after the system 
+	M_FS_FILE_RW_FULLBUF = 1 << 0  /*!< Read until the given buffer is full or until there is no more data to read.
+	                                    Write all data in the buffer. Normal operation is to return after the system
 	                                    reads/writes what it can. This will cause the read/write to retry until the
 	                                    given all data is read/written. */
 } M_fs_file_read_write_t;
@@ -288,7 +288,7 @@ typedef enum {
 typedef enum {
 	M_FS_DIR_WALK_FILTER_NONE            = 0,      /*!< No filters. */
 	/* Types. */
-	M_FS_DIR_WALK_FILTER_FILE            = 1 << 0, /*!< Include files in the list of entries. 
+	M_FS_DIR_WALK_FILTER_FILE            = 1 << 0, /*!< Include files in the list of entries.
 	                                                    Anything that is not another type is considered a file. */
 	M_FS_DIR_WALK_FILTER_DIR             = 1 << 1, /*!< Include directories in the list of entries. */
 	M_FS_DIR_WALK_FILTER_PIPE            = 1 << 2, /*!< Include pipes in the list of entries. */
@@ -343,7 +343,7 @@ typedef enum {
 	M_FS_DIR_SORT_ISDIR,            /*!< Sort by is directory. */
 	M_FS_DIR_SORT_ISHIDDEN,         /*!< Sort by hidden status. */
 	M_FS_DIR_SORT_NONE,             /*!< Don't sort. This is an option because sorting can have primary and secondary.
-	                                  This allows only a primary sort to be applied. */ 
+	                                  This allows only a primary sort to be applied. */
 	/* Requires info. */
 	M_FS_DIR_SORT_SIZE,             /*!< Sort by file size. */
 	M_FS_DIR_SORT_ATIME,            /*!< Sort by last access time. */
@@ -445,7 +445,7 @@ M_API M_fs_perms_t *M_fs_perms_dup(const M_fs_perms_t *perms) M_MALLOC;
 
 /*! Merge two perms objects together.
  *
- * The second (src) perms will be destroyed automatically upon completion of this function. 
+ * The second (src) perms will be destroyed automatically upon completion of this function.
  *
  * This is intended for dest to hold exact permissions. In this case, when src is exact then
  * src will replace the permissions in dest. If src is an add or remove it will modify dest
@@ -812,10 +812,10 @@ M_API char *M_fs_path_join_resolved(const char *path, const char *part, const ch
 /*! Strip last component from a filename.
  *
  * Remove last full non-slash component. Output will not include trailing slashes.
- * E.g: /usr/bin/ -> /usr
+ * E.g: /usr/bin/echo.exe -> /usr/bin
  *
- * A path without a dir component will output a '.' (current dir.).
- * E.g: bin -> . (meaning the current directory).
+ * A path without a dir component will output NULL as there is no directory and
+ * cannot be assumed to be a relative path.
  *
  * \param[in] path     The path.
  * \param[in] sys_type The system path logic and separator to use.
@@ -942,7 +942,7 @@ M_API M_fs_error_t M_fs_path_readlink(char **out, const char *path);
  *                      Notice there is no '\' or drive letter because they are not technically
  *                      valid. However, the path was properly converted to an absolute path.
  *
- *                      
+ *
  *
  * \return Result.
  */
@@ -962,7 +962,7 @@ M_API M_fs_error_t M_fs_path_norm(char **out, const char *path, M_uint32 flags, 
 /*! Get information about a given path.
  *
  * \param[out] info Allocated info object with the info about the path. If passed as NULL then
- *                  this only verifies that a path exists. However, M_fs_perms_can_access is 
+ *                  this only verifies that a path exists. However, M_fs_perms_can_access is
  *                  more useful for checking for file existence.
  * \param[in] path  The path.
  * \param[in] flags M_fs_info_flags_t defining behavior of how and what info to read.
@@ -1138,7 +1138,7 @@ M_API void M_fs_file_close(M_fs_file_t *fd);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Read from a file. 
+/*! Read from a file.
  *
  * \param[in]  fd       The file object.
  * \param[out] buf      A buffer to put the read data into.
@@ -1545,7 +1545,7 @@ M_API M_fs_error_t M_fs_symlink(const char *target, const char *link_name);
 
 /*! Move a file or directory from one location to another.
  *
- * If moving a file to an existing directory the file will be copied into the directory with the same name. 
+ * If moving a file to an existing directory the file will be copied into the directory with the same name.
  *
  * \param[in] path_old       The file to move.
  * \param[in] path_new       The location the file should be moved to.
@@ -1562,7 +1562,7 @@ M_API M_fs_error_t M_fs_move(const char *path_old, const char *path_new, M_uint3
 
 /*! Copy a file or directory to a new location.
  *
- * If copying a file to an existing directory the file will be copied into the directory with the same name. 
+ * If copying a file to an existing directory the file will be copied into the directory with the same name.
  *
  * \param[in] path_old       The file to move.
  * \param[in] path_new       The location the file should be copied to.

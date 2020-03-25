@@ -83,9 +83,12 @@ static void M_fs_path_split(const char *path, char **dir, char **name, M_fs_syst
 
 	if (dir != NULL) {
 		*dir = M_fs_path_join_parts(parts, sys_type);
+/* Do not assume path is relavant at all */
+#if 0
 		if (*dir == NULL) {
 			*dir = M_strdup(".");
 		}
+#endif
 	}
 
 	M_list_str_destroy(parts);
