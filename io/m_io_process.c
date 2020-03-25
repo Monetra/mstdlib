@@ -438,7 +438,7 @@ static void *M_io_process_thread(void *arg)
 	M_io_layer_release(layer);
 
 	/* Wait for process to exit - indefinitely, yes, really ... we have to be killed externally. */
-	while (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0) 
+	while (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0)
 		;
 
 	/* Record exit code and notify watcher */
@@ -731,6 +731,8 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 	M_io_t           *pipe_stderr_r = NULL;
 	M_io_t           *pipe_stderr_w = NULL;
 	M_io_error_t      rv            = M_IO_ERROR_SUCCESS;
+	char             *dirname       = NULL;
+	M_fs_path_norm_t  normflags     = M_FS_PATH_NORM_FOLLOWSYMLINKS|M_FS_PATH_NORM_HOME;
 
 	if (proc)
 		*proc        = NULL;
@@ -751,11 +753,29 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 		goto fail;
 	}
 
+	dirname = M_fs_path_dirname(command, M_FS_SYSTEM_AUTO);
+	if (!M_str_isempty(dirname)) {
+		/* If the command is something like just 'echo', M_fs_path_norm() with M_FS_PATH_NORM_ABSOLUTE
+		 * will prepend the cwd which isn't right for unix systems */
+		normflags |= M_FS_PATH_NORM_ABSOLUTE;
+	}
+	M_free(dirname);
+
+	/* Normalize command */
+	if (M_fs_path_norm(&full_command, command,
+		normflags,
+		M_FS_SYSTEM_AUTO)  != M_FS_ERROR_SUCCESS) {
+		rv = M_IO_ERROR_NOTFOUND;
+		goto fail;
+	}
+
 	/* Search "PATH" for "command" with execute perms - Order: 'env', getenv(), confstr(_CS_PATH)
 	 * - If not found, return error */
-	if (!M_fs_path_isabs(command, M_FS_SYSTEM_AUTO)) {
-		char       *path       = NULL;
-
+	if (M_fs_path_isabs(command, M_FS_SYSTEM_AUTO)) {
+		/* Nothing to do */
+	} else {
+		char       *path = NULL;
+		char       *temp = NULL;
 		if (env != NULL) {
 			const char *const_path = M_hash_dict_get_direct(env, "PATH");
 			if (const_path) {
@@ -774,12 +794,23 @@ M_io_error_t M_io_process_create(const char *command, M_list_str_t *args, M_hash
 			}
 		}
 #endif
-		full_command = M_io_process_search_command(command, path);
-		M_free(path);
-	} else {
-		full_command = M_strdup(command);
-	}
 
+#ifdef _WIN32
+		/* Windows puts the current working directory in the search path */
+		if (M_fs_path_get_cwd(&temp) == M_FS_ERROR_SUCCESS) {
+			char *temppath = NULL;
+			M_asprintf(&temppath, "%s;%s", path, temp);
+			M_free(temp);
+			M_free(path);
+			path = temppath;
+		}
+#endif
+
+		temp = M_io_process_search_command(full_command, path);
+		M_free(full_command);
+		full_command = temp;
+		M_free(path);
+	}
 	if (M_str_isempty(full_command)) {
 		rv = M_IO_ERROR_NOTFOUND;
 		goto fail;
