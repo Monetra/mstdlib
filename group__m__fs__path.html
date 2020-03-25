@@ -501,8 +501,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Strip last component from a filename.</p>
-<p>Remove last full non-slash component. Output will not include trailing slashes. E.g: /usr/bin/ -&gt; /usr</p>
-<p>A path without a dir component will output a '.' (current dir.). E.g: bin -&gt; . (meaning the current directory).</p>
+<p>Remove last full non-slash component. Output will not include trailing slashes. E.g: /usr/bin/echo.exe -&gt; /usr/bin</p>
+<p>A path without a dir component will output NULL as there is no directory and cannot be assumed to be a relative path.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path. </td></tr>
@@ -764,7 +764,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue Mar 24 2020 17:52:32 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Mar 25 2020 01:00:34 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
