@@ -240,7 +240,7 @@ cleanup:
 	accs = [[EAAccessoryManager sharedAccessoryManager] connectedAccessories];
 	for (_acc in accs) {
 		if ([_acc.protocolStrings containsObject:protocol]) {
-			if ([serialnum length] == 0 || serialnum == _acc.serialNumber) {
+			if ([serialnum length] == 0 || [serialnum isEqualToString:_acc.serialNumber]) {
 				break;
 			}
 		}
