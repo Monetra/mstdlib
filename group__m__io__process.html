@@ -160,9 +160,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Create a process and return IO handles for the process itself as well as unidirectional pipes for stdin, stdout, and stderr.</p>
+<p>Validation will be performed on the command upon calling this function, but the process will not actually be started until the 'proc' returned value is associated with an event loop. It is possible that the process may fail to start due to system resource limitations or missing validations for system ACLs; an ERROR event will be delivered in such a case. Otherwise if the process is started successfully, a DISCONNECT will be triggered on exit regardless of the process exit code (unless the specified timeout is exceeded, then an ERROR) event will be triggered.</p>
+<p>NOTE: If using stdin to pass data to the command, stdin MUST be closed once done to notify the remote process there is no more data or the process may hang indefinitely.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">command</td><td>Required. Command to execute. If an absolute path is not provided, will search the PATH environment variable. Will honor PATH specified in environ. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">command</td><td>Required. Command to execute. If an absolute path or relative path is not provided, will search the PATH environment variable, which can be overwritten in the 'env' parameter and honored. On Windows, the current working directory is also scanned as is common practice (but not on any other OS). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Optional. List of arguments to pass to command. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">env</td><td>Optional. List of environment variables to pass on to process. Use NULL to pass current environment through. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>Optional. Maximum execution time of the process before it is forcibly terminated. Use 0 for infinite. </td></tr>
@@ -245,7 +247,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Mar 26 2020 16:04:45 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Fri Mar 27 2020 12:11:45 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
