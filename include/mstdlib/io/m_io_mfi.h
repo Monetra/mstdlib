@@ -109,6 +109,46 @@ M_API const char *M_io_mfi_enum_protocol(const M_io_mfi_enum_t *mfienum, size_t 
 M_API const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx);
 
 
+/*! Manufacturer.
+ *
+ * \param[in]  mfienum mfi enumeration object.
+ * \param[in]  idx    Index in mfi enumeration.
+ *
+ * \return String
+ */
+M_API const char *M_io_mfi_enum_manufacturer(const M_io_mfi_enum_t *mfienum, size_t idx);
+
+
+/*! Model number.
+ *
+ * \param[in]  mfienum mfi enumeration object.
+ * \param[in]  idx    Index in mfi enumeration.
+ *
+ * \return String
+ */
+M_API const char *M_io_mfi_enum_model_numer(const M_io_mfi_enum_t *mfienum, size_t idx);
+
+
+/*! Firmware revision.
+ *
+ * \param[in]  mfienum mfi enumeration object.
+ * \param[in]  idx    Index in mfi enumeration.
+ *
+ * \return String
+ */
+M_API const char *M_io_mfi_enum_firmware_revision(const M_io_mfi_enum_t *mfienum, size_t idx);
+
+
+/*! Hardware revision.
+ *
+ * \param[in]  mfienum mfi enumeration object.
+ * \param[in]  idx    Index in mfi enumeration.
+ *
+ * \return String
+ */
+M_API const char *M_io_mfi_enum_hardware_revision(const M_io_mfi_enum_t *mfienum, size_t idx);
+
+
 /*! Create a mfi connection.
  *
  * \param[out] io_out    io object for communication.

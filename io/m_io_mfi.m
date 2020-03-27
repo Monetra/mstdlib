@@ -28,9 +28,13 @@
 #define M_IO_MFI_NAME "MFI"
 
 typedef struct {
-	char *name;
-	char *protocol;
-	char *serialnum;
+	char   *name;
+	char   *protocol;
+	char   *serialnum;
+	char   *manufacturer;
+	char   *modelNumber;
+	char   *firmwareRevision;
+	char   *hardwareRevision;
 } M_io_mfi_enum_device_t;
 
 struct M_io_mfi_enum {
@@ -43,20 +47,28 @@ static void M_io_mfi_enum_free_device(void *arg)
 	M_free(device->name);
 	M_free(device->protocol);
 	M_free(device->serialnum);
+	M_free(device->manufacturer);
+	M_free(device->modelNumber);
+	M_free(device->firmwareRevision);
+	M_free(device->hardwareRevision);
 	M_free(device);
 }
 
-static void M_io_mfi_enum_add(M_io_mfi_enum_t *mfienum, const char *name, const char *protocol, const char *serialnum)
+static void M_io_mfi_enum_add(M_io_mfi_enum_t *mfienum, const char *name, const char *protocol, const char *serialnum, const char *manufacturer, const char *modelNumber, const char *firmwareRevision, const char *hardwareRevision)
 {
 	M_io_mfi_enum_device_t *device;
 
-	if (mfienum == NULL || M_str_isempty(name) || M_str_isempty(protocol) || M_str_isempty(serialnum))
+	if (mfienum == NULL || M_str_isempty(protocol))
 		return;
 
-	device            = M_malloc_zero(sizeof(*device));
-	device->name      = M_strdup(name);
-	device->protocol  = M_strdup(protocol);
-	device->serialnum = M_strdup(serialnum);
+	device                   = M_malloc_zero(sizeof(*device));
+	device->name             = M_strdup(name);
+	device->protocol         = M_strdup(protocol);
+	device->serialnum        = M_strdup(serialnum);
+	device->manufacturer     = M_strdup(manufacturer);
+	device->modelNumber      = M_strdup(modelNumber);
+	device->firmwareRevision = M_strdup(firmwareRevision);
+	device->hardwareRevision = M_strdup(hardwareRevision);
 
 	M_list_insert(mfienum->devices, device);
 }
@@ -83,10 +95,14 @@ M_io_mfi_enum_t *M_io_mfi_enum(void)
 	accs = [[EAAccessoryManager sharedAccessoryManager] connectedAccessories];
 	for (acc in accs) {
 		for (NSString *k in acc.protocolStrings) {
-			const char *name      = [acc.name UTF8String];
-			const char *serialnum = [acc.serialNumber UTF8String];
-			const char *protocol  = [k UTF8String];
-			M_io_mfi_enum_add(mfienum, name, protocol, serialnum);
+			const char *name             = [acc.name UTF8String];
+			const char *serialnum        = [acc.serialNumber UTF8String];
+			const char *protocol         = [k UTF8String];
+			const char *manufacturer     = [acc.manufacturer UTF8String];
+			const char *modelNumber      = [acc.modelNumber UTF8String];
+			const char *firmwareRevision = [acc.firmwareRevision UTF8String];
+			const char *hardwareRevision = [acc.hardwareRevision UTF8String];
+			M_io_mfi_enum_add(mfienum, name, protocol, serialnum, manufacturer, modelNumber, firmwareRevision, hardwareRevision);
 		}
 	}
 
@@ -140,6 +156,50 @@ const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx)
 	if (device == NULL)
 		return NULL;
 	return device->serialnum;
+}
+
+const char *M_io_mfi_enum_manufacturer(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	const M_io_mfi_enum_device_t *device;
+	if (mfienum == NULL)
+		return NULL;
+	device = M_list_at(mfienum->devices, idx);
+	if (device == NULL)
+		return NULL;
+	return device->manufacturer;
+}
+
+const char *M_io_mfi_enum_model_numer(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	const M_io_mfi_enum_device_t *device;
+	if (mfienum == NULL)
+		return NULL;
+	device = M_list_at(mfienum->devices, idx);
+	if (device == NULL)
+		return NULL;
+	return device->modelNumber;
+}
+
+const char *M_io_mfi_enum_firmware_revision(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	const M_io_mfi_enum_device_t *device;
+	if (mfienum == NULL)
+		return NULL;
+	device = M_list_at(mfienum->devices, idx);
+	if (device == NULL)
+		return NULL;
+	return device->firmwareRevision;
+}
+
+const char *M_io_mfi_enum_hardware_revision(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	const M_io_mfi_enum_device_t *device;
+	if (mfienum == NULL)
+		return NULL;
+	device = M_list_at(mfienum->devices, idx);
+	if (device == NULL)
+		return NULL;
+	return device->hardwareRevision;
 }
 
 static M_io_handle_t *M_io_mfi_open(const char *protocol, const char *serialnum, M_io_error_t *ioerr)
