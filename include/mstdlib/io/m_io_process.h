@@ -44,14 +44,30 @@ __BEGIN_DECLS
 /*! Create a process and return IO handles for the process itself as well as
  *  unidirectional pipes for stdin, stdout, and stderr.
  *
- * \param[in]  command     Required. Command to execute.  If an absolute path is not provided, will search the PATH environment variable.  Will honor PATH specified in environ.
+ *  Validation will be performed on the command upon calling this function, but
+ *  the process will not actually be started until the 'proc' returned value is
+ *  associated with an event loop.  It is possible that the process may fail to
+ *  start due to system resource limitations or missing validations for system
+ *  ACLs; an ERROR event will be delivered in such a case.  Otherwise if the
+ *  process is started successfully, a DISCONNECT will be triggered on exit
+ *  regardless of the process exit code (unless the specified timeout is
+ *  exceeded, then an ERROR) event will be triggered.
+ *
+ *  NOTE: If using stdin to pass data to the command, stdin MUST be closed once
+ *        done to notify the remote process there is no more data or the process
+ *        may hang indefinitely.
+ *
+ * \param[in]  command     Required. Command to execute.  If an absolute path or relative path is not provided, will
+ *                         search the PATH environment variable, which can be overwritten in the 'env' parameter and
+ *                         honored.  On Windows, the current working directory is also scanned as is common practice
+ *                         (but not on any other OS).
  * \param[in]  args        Optional. List of arguments to pass to command.
  * \param[in]  env         Optional. List of environment variables to pass on to process.  Use NULL to pass current environment through.
  * \param[in]  timeout_ms  Optional. Maximum execution time of the process before it is forcibly terminated.  Use 0 for infinite.
  * \param[out] proc        Required. The io object handle for the process itself.  Used to notify when the process has exited, or request termination of process.
  * \param[out] proc_stdin  Optional. The io object handle for the write-only stdin process handle.  If NULL is passed, will close handle to process.  The
  *                         stdin endpoint will not be notified when the process closes so it must be tracked and closed when the process exits by the caller.
- * \param[out] proc_stdout Optional. The io object handle for the read-only stdout process handle.  If NULL is passed, will close handle to process. 
+ * \param[out] proc_stdout Optional. The io object handle for the read-only stdout process handle.  If NULL is passed, will close handle to process.
  * \param[out] proc_stderr Optional. The io object handle for the read-only stderr process handle.  If NULL is passed, will close handle to process.
  *
  * \return M_IO_ERROR_SUCCESS on SUCCESS.  Otherwise, M_IO_ERROR_INVALID on misuse, M_IO_ERROR_NOTFOUND if specified executable not found, M_IO_ERROR_NOTPERM if execution not permitted.
