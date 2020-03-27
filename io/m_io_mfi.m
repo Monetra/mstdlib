@@ -169,7 +169,7 @@ const char *M_io_mfi_enum_manufacturer(const M_io_mfi_enum_t *mfienum, size_t id
 	return device->manufacturer;
 }
 
-const char *M_io_mfi_enum_model_numer(const M_io_mfi_enum_t *mfienum, size_t idx)
+const char *M_io_mfi_enum_model_number(const M_io_mfi_enum_t *mfienum, size_t idx)
 {
 	const M_io_mfi_enum_device_t *device;
 	if (mfienum == NULL)

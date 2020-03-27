@@ -126,7 +126,7 @@ M_API const char *M_io_mfi_enum_manufacturer(const M_io_mfi_enum_t *mfienum, siz
  *
  * \return String
  */
-M_API const char *M_io_mfi_enum_model_numer(const M_io_mfi_enum_t *mfienum, size_t idx);
+M_API const char *M_io_mfi_enum_model_number(const M_io_mfi_enum_t *mfienum, size_t idx);
 
 
 /*! Firmware revision.
