@@ -488,7 +488,10 @@ static __inline__ M_bool M_sql_report_data_matches(const unsigned char *data, si
 	return M_mem_eq(data, srch, srch_len);
 	*/
 	size_t i;
-	for (i=0; data_len && i<srch_len; i++) {
+	if (data_len == 0)
+		return M_FALSE;
+
+	for (i=0; i<srch_len; i++) {
 		if (data[0] == srch[i])
 			return M_TRUE;
 	}
