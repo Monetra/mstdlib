@@ -106,6 +106,14 @@ Functions</h2></td></tr>
 <tr class="separator:ga6e092fb415095219c5f4bab418f9f5f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga63a89a434f9b299b6bb813570deb9e75"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#ga63a89a434f9b299b6bb813570deb9e75">M_io_mfi_enum_serialnum</a> (const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *mfienum, size_t idx)</td></tr>
 <tr class="separator:ga63a89a434f9b299b6bb813570deb9e75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0f1a918affd7752179cb6330f7f2caf6"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#ga0f1a918affd7752179cb6330f7f2caf6">M_io_mfi_enum_manufacturer</a> (const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *mfienum, size_t idx)</td></tr>
+<tr class="separator:ga0f1a918affd7752179cb6330f7f2caf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadaea0e992769bba31ffa40ce80dec0ee"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#gadaea0e992769bba31ffa40ce80dec0ee">M_io_mfi_enum_model_numer</a> (const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *mfienum, size_t idx)</td></tr>
+<tr class="separator:gadaea0e992769bba31ffa40ce80dec0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3716821924877514bd933506acf5e883"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#ga3716821924877514bd933506acf5e883">M_io_mfi_enum_firmware_revision</a> (const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *mfienum, size_t idx)</td></tr>
+<tr class="separator:ga3716821924877514bd933506acf5e883"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e43a27ab4a6a41d2fc34f1b17b2737d"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#ga5e43a27ab4a6a41d2fc34f1b17b2737d">M_io_mfi_enum_hardware_revision</a> (const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *mfienum, size_t idx)</td></tr>
+<tr class="separator:ga5e43a27ab4a6a41d2fc34f1b17b2737d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabaed38c6f1e3f9f4d64591b850124346"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__io.html#ga2d3bea9aaa4491c3c8dad94cf24498a2">M_io_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__mfi.html#gabaed38c6f1e3f9f4d64591b850124346">M_io_mfi_create</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> **io_out, const char *protocol, const char *serialnum)</td></tr>
 <tr class="separator:gabaed38c6f1e3f9f4d64591b850124346"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -315,6 +323,154 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ga0f1a918affd7752179cb6330f7f2caf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0f1a918affd7752179cb6330f7f2caf6">&#9670;&nbsp;</a></span>M_io_mfi_enum_manufacturer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_mfi_enum_manufacturer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *&#160;</td>
+          <td class="paramname"><em>mfienum</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>idx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Manufacturer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">mfienum</td><td>mfi enumeration object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index in mfi enumeration.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String </dd></dl>
+
+</div>
+</div>
+<a id="gadaea0e992769bba31ffa40ce80dec0ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadaea0e992769bba31ffa40ce80dec0ee">&#9670;&nbsp;</a></span>M_io_mfi_enum_model_numer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_mfi_enum_model_numer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *&#160;</td>
+          <td class="paramname"><em>mfienum</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>idx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Model number.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">mfienum</td><td>mfi enumeration object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index in mfi enumeration.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String </dd></dl>
+
+</div>
+</div>
+<a id="ga3716821924877514bd933506acf5e883"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3716821924877514bd933506acf5e883">&#9670;&nbsp;</a></span>M_io_mfi_enum_firmware_revision()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_mfi_enum_firmware_revision </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *&#160;</td>
+          <td class="paramname"><em>mfienum</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>idx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Firmware revision.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">mfienum</td><td>mfi enumeration object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index in mfi enumeration.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String </dd></dl>
+
+</div>
+</div>
+<a id="ga5e43a27ab4a6a41d2fc34f1b17b2737d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5e43a27ab4a6a41d2fc34f1b17b2737d">&#9670;&nbsp;</a></span>M_io_mfi_enum_hardware_revision()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_mfi_enum_hardware_revision </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__io__mfi.html#gafa05805db98d1ae8dc3e98f2b5a5c4e8">M_io_mfi_enum_t</a> *&#160;</td>
+          <td class="paramname"><em>mfienum</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>idx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Hardware revision.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">mfienum</td><td>mfi enumeration object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">idx</td><td>Index in mfi enumeration.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String </dd></dl>
+
+</div>
+</div>
 <a id="gabaed38c6f1e3f9f4d64591b850124346"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gabaed38c6f1e3f9f4d64591b850124346">&#9670;&nbsp;</a></span>M_io_mfi_create()</h2>
 
@@ -364,7 +520,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Mar 27 2020 13:35:20 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Fri Mar 27 2020 14:11:36 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
