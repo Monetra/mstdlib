@@ -410,7 +410,15 @@ static M_bool get_peripheral_by_int(NSArray<CBPeripheral *> *peripherals)
 	if (peripherals == nil || [peripherals count] <= 0)
 		return M_FALSE;
 
-	/* Setup and try to connect to the first peripheral in the list. */
+	/* Setup and try to connect to the first peripheral in the list.
+ 	 *
+	 * This will generate a warning: "Potential leak of an object stored into 'peripheral'".
+	 * As far as we can tell this is a spurious warning and there will not be a leak.
+	 * We pass the peripheral to M_io_ble_device_cache_peripherial_int which then
+	 * uses bridge transfers for the life of the object. The compiler doesn't appear
+	 * to be able to follow the life of the object to know it will be cleaned up
+	 * later. We can't found a way to silence this warning.
+	 */
 	peripheral = peripherals[0];
 	if (peripheral.delegate != manager)
 		peripheral.delegate = manager;
