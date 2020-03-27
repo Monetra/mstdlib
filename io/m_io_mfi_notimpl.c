@@ -62,6 +62,34 @@ const char *M_io_mfi_enum_serialnum(const M_io_mfi_enum_t *mfienum, size_t idx)
 	return NULL;
 }
 
+const char *M_io_mfi_enum_manufacturer(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	(void)mfienum;
+	(void)idx;
+	return NULL;
+}
+
+const char *M_io_mfi_enum_model_number(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	(void)mfienum;
+	(void)idx;
+	return NULL;
+}
+
+const char *M_io_mfi_enum_firmware_revision(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	(void)mfienum;
+	(void)idx;
+	return NULL;
+}
+
+const char *M_io_mfi_enum_hardware_revision(const M_io_mfi_enum_t *mfienum, size_t idx)
+{
+	(void)mfienum;
+	(void)idx;
+	return NULL;
+}
+
 M_io_error_t M_io_mfi_create(M_io_t **io_out, const char *protocol, const char *serialnum)
 {
 	(void)io_out;
