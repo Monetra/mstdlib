@@ -57,8 +57,8 @@ static char *M_email_write_gen_boundary(void)
 static void M_email_add_header_entry(M_buf_t *buf, const char *key, const char *val)
 {
 	M_parser_t *parser;
-	size_t      len;
-	size_t      plen;
+	size_t      len    = 0;
+	size_t      plen   = 0;
 
 	if (M_str_isempty(val))
 		return;
@@ -81,17 +81,25 @@ static void M_email_add_header_entry(M_buf_t *buf, const char *key, const char *
 	/* Eat any starting whitepace because it's not necessary. */
 	M_parser_consume_whitespace(parser, M_PARSER_WHITESPACE_NONE);
 
+	/* Lines are only broken on whitespace. This could cause some lines
+	 * to be longer than the max length but we can't break in the middle
+	 * of a continous string. */
 	M_parser_mark(parser);
-	while (M_parser_consume_until(parser, (const unsigned char *)" \t", 1, M_FALSE) > 0) {
+	while (M_parser_consume_until(parser, (const unsigned char *)" \t", 2, M_FALSE) > 0) {
 		plen = M_parser_mark_len(parser);
 		/* Eat the whitespace so the next iteration will start after.
  		 * We don't want it included in our length because if we have
 		 * to back up and split we want the space to start the next line. */
 		M_parser_consume(parser, 1);
 
+		/* Store the last length shorter than lenth. */
 		if (plen < LINE_LEN) {
 			len = plen;
 			continue;
+		} else if (len == 0) {
+			/* We never found a space to break on shorter thean the max line length.
+			 * We have to split on plen. */
+			len = plen;
 		}
 
 		/* The parser exceeded the line len. */
