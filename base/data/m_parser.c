@@ -1279,7 +1279,7 @@ size_t M_parser_read_bytes_charset(M_parser_t *parser, const unsigned char *char
 
 size_t M_parser_read_bytes_not_charset(M_parser_t *parser, const unsigned char *charset, size_t charset_len, unsigned char *buf, size_t buf_len)
 {
-	return M_parser_read_bytes_charset_int(parser, charset, charset_len, buf, buf_len, M_TRUE);
+	return M_parser_read_bytes_charset_int(parser, charset, charset_len, buf, buf_len, M_FALSE);
 }
 
 
