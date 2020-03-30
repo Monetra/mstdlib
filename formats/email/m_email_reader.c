@@ -294,6 +294,7 @@ static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const c
 			if (!M_str_isempty(myfilename)) {
 				M_free(emailr->part_filename);
 				emailr->part_filename = myfilename;
+				myfilename            = NULL;
 			}
 		}
 	} else if (M_str_caseeq(key, "Content-Type")) {
@@ -302,11 +303,11 @@ static M_bool M_email_header_process_multipart(M_email_reader_t *emailr, const c
 
 		if (M_str_isempty(emailr->part_filename)) {
 			emailr->part_filename = myfilename;
-		} else {
-			M_free(myfilename);
+			myfilename            = NULL;
 		}
 	}
 
+	M_free(myfilename);
 	return M_TRUE;
 }
 
