@@ -76,16 +76,14 @@ M_textcodec_error_t M_textcodec_decode_quoted_printable(M_textcodec_buffer_t *bu
 
 	do {
 		size_t        len;
-		unsigned char byte;
+		unsigned char byte = 0;
 		M_int64       i64v;
 
 		M_parser_mark(parser);
 
-		M_parser_peek_byte(parser, &byte);
 		len = M_parser_consume_until(parser, (const unsigned char *)"=", 1, M_FALSE);
-
 		/* Stop precessing if this doesn't start with an = or there is no more escapes. */
-		if (byte != '=' && len == 0) {
+		if (!M_parser_peek_byte(parser, &byte) || (byte != '=' && len == 0)) {
 			break;
 		}
 
