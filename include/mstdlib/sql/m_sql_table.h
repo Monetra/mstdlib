@@ -217,7 +217,7 @@ M_API M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *t
 /*! Flags for processing table data fields / columns */
 typedef enum {
 	M_SQL_TABLEDATA_FLAG_NONE         = 0,      /*!< No Flags */
-	M_SQL_TABLEDATA_FLAG_VIRTUAL      = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column' */
+	M_SQL_TABLEDATA_FLAG_VIRTUAL      = 1 << 0, /*!< Field is a virtual column, multiple serialized virtual columns can be stored in a single 'real' database column under 'table_column'. Any data type except binary may be used. */
 	M_SQL_TABLEDATA_FLAG_EDITABLE     = 1 << 1, /*!< Field is allowed to be edited, not add-only */
 	M_SQL_TABLEDATA_FLAG_NOTNULL      = 1 << 2, /*!< Field must be specified and is not allowed to be NULL */
 	M_SQL_TABLEDATA_FLAG_ID           = 1 << 3, /*!< Field is an ID column (meaning it is used for lookups). Can be assigned on add,
@@ -263,7 +263,7 @@ typedef struct {
 /*! Set the field pointer to a boolean value.
  *  Will override existing value and deallocate any prior memory consumed if necessary
  * \param[in,out] field  Field to set
- * \param[in]     val    Value to set
+ * \param[in]     val    Value to set. May be NULL if just error ch
  */
 M_API void M_sql_tabledata_field_set_bool(M_sql_tabledata_field_t *field, M_bool val);
 
@@ -340,12 +340,12 @@ M_API void M_sql_tabledata_field_set_binary_const(M_sql_tabledata_field_t *field
 M_API void M_sql_tabledata_field_set_null(M_sql_tabledata_field_t *field);
 
 /*! Retrieve field data as a boolean.  If type conversion is necessary, it will be performed such that integer values
- *  are treated as true if non-zero and false if zero.  Text values will be passed through M_str_istrue().  Any other
- *  conversion will return failure.
+ *  are treated as true if non-zero and false if zero.  Text values must have a valid boolean string and evaluate as
+ *  appropriate or return failure.  Any other conversion will return failure.
  *
  *  Once a field is fetched successfully as a bool, it is internally converted to a bool.
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Boolean output value
+ *  \param[out]    val    Boolean output value. May be NULL if just error checking.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_bool(M_sql_tabledata_field_t *field, M_bool *val);
@@ -356,7 +356,7 @@ M_API M_bool M_sql_tabledata_field_get_bool(M_sql_tabledata_field_t *field, M_bo
  *
  *  Once a field is fetched successfully as an int32, it is internally converted to an int32.
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Int32 output value
+ *  \param[out]    val    Int32 output value. May be NULL if just error checking.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_int16(M_sql_tabledata_field_t *field, M_int16 *val);
@@ -367,7 +367,7 @@ M_API M_bool M_sql_tabledata_field_get_int16(M_sql_tabledata_field_t *field, M_i
  *
  *  Once a field is fetched successfully as an int32, it is internally converted to an int32.
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Int32 output value
+ *  \param[out]    val    Int32 output value. May be NULL if just error checking.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_int32(M_sql_tabledata_field_t *field, M_int32 *val);
@@ -378,7 +378,7 @@ M_API M_bool M_sql_tabledata_field_get_int32(M_sql_tabledata_field_t *field, M_i
  *
  *  Once a field is fetched successfully as an int64, it is internally converted to an int64
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Int64 output value
+ *  \param[out]    val    Int64 output value. May be NULL if just error checking.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_int64(M_sql_tabledata_field_t *field, M_int64 *val);
@@ -388,7 +388,7 @@ M_API M_bool M_sql_tabledata_field_get_int64(M_sql_tabledata_field_t *field, M_i
  *
  *  Once a field is fetched successfully as text, it is internally converted to text
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Pointer to text value that is valid until another conversion occurs or is freed or out of scope.  May be NULL if value is NULL;
+ *  \param[out]    val    Pointer to text value that is valid until another conversion occurs or is freed or out of scope.  May return NULL if value is NULL. Input may be NULL if just error checking.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_text(M_sql_tabledata_field_t *field, const char **val);
@@ -397,8 +397,8 @@ M_API M_bool M_sql_tabledata_field_get_text(M_sql_tabledata_field_t *field, cons
  *
  * Binary fields are not eligible for conversion.
  *  \param[in,out] field  Field to retrieve data from
- *  \param[out]    val    Pointer to binary value until freed or out of scope.  May be NULL if value is NULL.
- *  \param[out]    len    Length of value.
+ *  \param[out]    val    Pointer to binary value until freed or out of scope.  May return NULL if value is NULL. Input may be NULL if just error checking.
+ *  \param[out]    len    Length of value. May be NULL if just error checking, unless val is non-NULL.
  *  \return M_FALSE if conversion was not possible, M_TRUE if successful.
  */
 M_API M_bool M_sql_tabledata_field_get_binary(M_sql_tabledata_field_t *field, const unsigned char **val, size_t *len);

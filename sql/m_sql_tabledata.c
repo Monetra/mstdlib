@@ -207,16 +207,17 @@ void M_sql_tabledata_field_set_null(M_sql_tabledata_field_t *field)
 
 M_bool M_sql_tabledata_field_get_bool(M_sql_tabledata_field_t *field, M_bool *val)
 {
-	if (field == NULL || val == NULL)
+	if (field == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_BOOL) {
-		*val = field->d.b;
+		if (val)
+			*val = field->d.b;
 		return M_TRUE;
 	}
 
 	if (field->is_null) {
-		field->type = M_SQL_DATA_TYPE_INT64;
+		field->type = M_SQL_DATA_TYPE_BOOL;
 	} else {
 		switch  (field->type) {
 			case M_SQL_DATA_TYPE_INT16:
@@ -229,8 +230,16 @@ M_bool M_sql_tabledata_field_get_bool(M_sql_tabledata_field_t *field, M_bool *va
 				M_sql_tabledata_field_set_bool(field, field->d.i64?M_TRUE:M_FALSE);
 				break;
 			case M_SQL_DATA_TYPE_TEXT:
-				M_sql_tabledata_field_set_bool(field, M_str_istrue(field->d.t.data));
-				break;
+				if (M_str_caseeq(field->d.t.data, "yes")   || M_str_caseeq(field->d.t.data, "y") ||
+				    M_str_caseeq(field->d.t.data, "true")  || M_str_caseeq(field->d.t.data, "1") ||
+				    M_str_caseeq(field->d.t.data, "on")    || 
+				    M_str_caseeq(field->d.t.data, "no")    || M_str_caseeq(field->d.t.data, "n") ||
+				    M_str_caseeq(field->d.t.data, "false") || M_str_caseeq(field->d.t.data, "0") ||
+				    M_str_caseeq(field->d.t.data, "off")) {
+					M_sql_tabledata_field_set_bool(field, M_str_istrue(field->d.t.data));
+					break;
+				}
+				return M_FALSE;
 			default:
 				return M_FALSE;
 		}
@@ -242,11 +251,12 @@ M_bool M_sql_tabledata_field_get_int16(M_sql_tabledata_field_t *field, M_int16 *
 {
 	M_int32 i32;
 
-	if (field == NULL || val == NULL)
+	if (field == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_INT16) {
-		*val = field->d.i16;
+		if (val)
+			*val = field->d.i16;
 		return M_TRUE;
 	}
 
@@ -285,11 +295,12 @@ M_bool M_sql_tabledata_field_get_int32(M_sql_tabledata_field_t *field, M_int32 *
 {
 	M_int32 i32;
 
-	if (field == NULL || val == NULL)
+	if (field == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_INT32) {
-		*val = field->d.i32;
+		if (val)
+			*val = field->d.i32;
 		return M_TRUE;
 	}
 
@@ -325,11 +336,12 @@ M_bool M_sql_tabledata_field_get_int64(M_sql_tabledata_field_t *field, M_int64 *
 {
 	M_int64 i64;
 
-	if (field == NULL || val == NULL)
+	if (field == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_INT64) {
-		*val = field->d.i64;
+		if (val)
+			*val = field->d.i64;
 		return M_TRUE;
 	}
 
@@ -362,11 +374,12 @@ M_bool M_sql_tabledata_field_get_text(M_sql_tabledata_field_t *field, const char
 {
 	char *data = NULL;
 
-	if (field == NULL || val == NULL)
+	if (field == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_TEXT) {
-		*val = field->d.t.data;
+		if (val)
+			*val = field->d.t.data;
 		return M_TRUE;
 	}
 
@@ -398,16 +411,23 @@ M_bool M_sql_tabledata_field_get_text(M_sql_tabledata_field_t *field, const char
 
 M_bool M_sql_tabledata_field_get_binary(M_sql_tabledata_field_t *field, const unsigned char **val, size_t *len)
 {
-	if (field == NULL || val == NULL || len == NULL)
+	if (field == NULL)
+		return M_FALSE;
+
+	/* You can get only the length, but if you request val you must also get the length */
+	if (val != NULL && len == NULL)
 		return M_FALSE;
 
 	if (field->type == M_SQL_DATA_TYPE_BINARY) {
-		*val = field->d.bin.data;
+		if (val)
+			*val = field->d.bin.data;
+		if (len)
+			*len = field->d.bin.len;
 		return M_TRUE;
 	}
 
 	if (field->is_null) {
-		field->type = M_SQL_DATA_TYPE_TEXT;
+		field->type = M_SQL_DATA_TYPE_BINARY;
 	} else {
 		/* No conversion allowed */
 		return M_FALSE;
@@ -516,6 +536,59 @@ typedef enum {
 } M_sql_tabledata_fetch_rv_t;
 
 
+static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_bool is_add, char *error, size_t error_len)
+{
+	/* On add, verify field is not null if flag is set */
+	if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL && M_sql_tabledata_field_is_null(field)) {
+		M_snprintf(error, error_len, "field %s is required to not be null", fielddef->field_name);
+		return M_FALSE;
+	}
+
+	switch (fielddef->type) {
+		case M_SQL_DATA_TYPE_BOOL:
+			if (!M_sql_tabledata_field_get_bool(field, NULL)) {
+				M_snprintf(error, error_len, "field %s: not boolean", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		case M_SQL_DATA_TYPE_INT16:
+			if (!M_sql_tabledata_field_get_int16(field, NULL)) {
+				M_snprintf(error, error_len, "field %s: not a 16bit integer", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		case M_SQL_DATA_TYPE_INT32:
+			if (!M_sql_tabledata_field_get_int32(field, NULL)) {
+				M_snprintf(error, error_len, "field %s: not a 32bit integer", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		case M_SQL_DATA_TYPE_INT64:
+			if (!M_sql_tabledata_field_get_int64(field, NULL)) {
+				M_snprintf(error, error_len, "field %s: not a 64bit integer", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		case M_SQL_DATA_TYPE_TEXT:
+			if (!M_sql_tabledata_field_get_text(field, NULL)) {
+				M_snprintf(error, error_len, "field %s: cannot be represented as text", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		case M_SQL_DATA_TYPE_BINARY:
+			if (!M_sql_tabledata_field_get_binary(field, NULL, NULL)) {
+				M_snprintf(error, error_len, "field %s: cannot be represented as binary", fielddef->field_name);
+				return M_FALSE;
+			}
+			break;
+		default:
+			M_snprintf(error, error_len, "field %s: Invalid data type in field definition", fielddef->field_name);
+			return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
 static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
 {
 	if (fielddef == NULL || fetch_cb == NULL) {
@@ -534,13 +607,14 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 
 	/* Run field validator/transformation */
 	if (field) {
+		/* Run custom callback */
 		if (fielddef->field_cb) {
 			if (!fielddef->field_cb(field, fielddef->field_name, thunk, error, error_len))
 				return M_SQL_TABLEDATA_FETCH_FAIL;
 		}
-		/* On add, verify field is not null if flag is set */
-		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL && M_sql_tabledata_field_is_null(field)) {
-			M_snprintf(error, error_len, "field %s is required to not be null", fielddef->field_name);
+
+		/* Run stock validator */
+		if (!M_sql_tabledata_field_validate(field, fielddef, is_add, error, error_len)) {
 			return M_SQL_TABLEDATA_FETCH_FAIL;
 		}
 	}
@@ -722,11 +796,6 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 		}
 		M_hash_dict_insert(seen_fields, fields[i].field_name, NULL);
 
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL && fields[i].type != M_SQL_DATA_TYPE_TEXT) {
-			M_snprintf(error, error_len, "Column %s virtual field %s is only allowed to be text", fields[i].table_column, fields[i].field_name);
-			goto done;
-		}
-
 		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_EDITABLE && fields[i].flags & M_SQL_TABLEDATA_FLAG_ID) {
 			M_snprintf(error, error_len, "field %s cannot be both editable and an id", fields[i].field_name);
 			goto done;
@@ -737,6 +806,10 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 			goto done;
 		}
 
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL && fields[i].type == M_SQL_DATA_TYPE_BINARY) {
+			M_snprintf(error, error_len, "field %s cannot be both virtual and binary", fields[i].field_name);
+			goto done;
+		}
 		if (fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED) &&
 		    !(fields[i].flags & M_SQL_TABLEDATA_FLAG_ID)) {
 			M_snprintf(error, error_len, "field %s must be an id to specify id_generate or id_required", fields[i].field_name);
@@ -959,11 +1032,7 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 			if (M_sql_error_is_error(err))
 				goto done;
 
-			/* I guess we should probably actually bind NULL
-			 *
-			 * if (M_sql_tabledata_field_is_null(&field))
-			 *	continue;
-			 */
+			/* Virtual columns should actually bind NULL */
 		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
 			size_t  max_len = fields[i].max_column_len;
 			M_int64 id;
