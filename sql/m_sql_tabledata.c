@@ -1629,3 +1629,51 @@ M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *
 	(*num_fields)+=len;
 	return out_fields;
 }
+
+
+M_bool M_sql_tabledata_to_table(M_sql_table_t *table, const M_sql_tabledata_t *fields, size_t num_fields)
+{
+	size_t         i;
+	M_hash_dict_t *seen_fields = NULL;
+	M_bool         rv          = M_FALSE;
+
+	if (table == NULL || fields == NULL)
+		return M_FALSE;
+
+	seen_fields = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
+
+	for (i=0; i<num_fields; i++) {
+		M_uint32 flags = M_SQL_TABLE_COL_FLAG_NONE;
+
+		/* Only insert virtual columns once */
+		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
+			size_t j;
+			if (M_hash_dict_get(seen_fields, fields[i].table_column, NULL))
+				continue;
+
+			M_hash_dict_insert(seen_fields, fields[i].table_column, NULL);
+
+			/* Scan other tagged fields under this name for field flags we may need to set */
+			for (j=i+1; j<num_fields; j++) {
+				if (M_str_caseeq(fields[i].table_column, fields[j].table_column)) {
+					if (fields[j].flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
+						flags |= M_SQL_TABLE_COL_FLAG_NOTNULL;
+					}
+				}
+			}
+
+		}
+
+		if (fields[i].flags & (M_SQL_TABLEDATA_FLAG_NOTNULL|M_SQL_TABLEDATA_FLAG_ID_GENERATE))
+			flags |= M_SQL_TABLE_COL_FLAG_NOTNULL;
+
+		if (!M_sql_table_add_col(table, flags, fields[i].table_column, fields[i].type, fields[i].max_column_len, NULL))
+			goto fail;
+	}
+
+	rv = M_TRUE;
+
+fail:
+	M_hash_dict_destroy(seen_fields);
+	return rv;
+}

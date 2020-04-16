@@ -539,6 +539,20 @@ M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const ch
  */
 M_API M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, const M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags);
 
+
+/*! Convenience function to try to auto-generate the table columns for table creation based on the same tabledata used
+ *  to add/edit.
+ *
+ *  NOTE: This does NOT create the primary key or index, it is expected to be handled externally.
+ *
+ * \param[in,out] table      Initialized table to be populated with column data
+ * \param[in]     fields     Field list to generate columns from
+ * \param[in]     num_fields Number of fields in the field list
+ *
+ * \return M_TRUE on success, M_FALSE on error
+ */
+M_API M_bool M_sql_tabledata_to_table(M_sql_table_t *table, const M_sql_tabledata_t *fields, size_t num_fields);
+
 /*! @} */
 
 
