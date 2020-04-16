@@ -623,7 +623,7 @@ START_TEST(check_tabledata)
 		{ "col2", "col2", 32,  M_SQL_DATA_TYPE_TEXT,  0,                                                                                         NULL },
 		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
 		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
-		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_VIRTUAL,                                                              NULL },
+		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_VIRTUAL,                                                              NULL },
 		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL }
 	};
 	M_hash_dict_t *dict;
@@ -660,7 +660,7 @@ START_TEST(check_tabledata)
 	M_hash_dict_insert(dict, "col1", "123");
 	M_hash_dict_insert(dict, "col2", "my column 2");
 	M_hash_dict_insert(dict, "tag1", "tag 1 value");
-	M_hash_dict_insert(dict, "tag3", "tag 3 value");
+	M_hash_dict_insert(dict, "tag3", "3");
 	err = M_sql_tabledata_add(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_add() failed: %s", error);
 	print_table(pool, "foo");
