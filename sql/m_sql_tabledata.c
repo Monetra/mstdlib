@@ -589,7 +589,7 @@ static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, con
 	return M_TRUE;
 }
 
-static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
 {
 	if (fielddef == NULL || fetch_cb == NULL) {
 		M_snprintf(error, error_len, "invalid use");
@@ -609,7 +609,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 	if (field) {
 		/* Run custom callback */
 		if (fielddef->field_cb) {
-			if (!fielddef->field_cb(field, fielddef->field_name, thunk, error, error_len))
+			if (!fielddef->field_cb(sqltrans, field, fielddef->field_name, thunk, error, error_len))
 				return M_SQL_TABLEDATA_FETCH_FAIL;
 		}
 
@@ -623,12 +623,12 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_fetch(M_sql_tabledata_field_t 
 }
 
 
-static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch_int(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, char *error, size_t error_len)
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch_int(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, char *error, size_t error_len)
 {
 	M_sql_tabledata_field_t    *prior_field = NULL;
 	M_sql_tabledata_fetch_rv_t  rv;
 
-	rv = M_sql_tabledata_fetch(field, fielddef, fetch_cb, (prev_fields == NULL)?M_TRUE:M_FALSE, thunk, error, error_len);
+	rv = M_sql_tabledata_fetch(sqltrans, field, fielddef, fetch_cb, (prev_fields == NULL)?M_TRUE:M_FALSE, thunk, error, error_len);
 	if (rv != M_SQL_TABLEDATA_FETCH_SUCCESS)
 		return rv;
 
@@ -650,7 +650,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch_int(M_sql_tabledata
 /* Returns M_SQL_TABLEDATA_FETCH_SKIP if field was not specified, or if it matches the previous value.
  * If output_always is M_TRUE, then field_data and field_data_len will be filled in even if no change is occurring...
  * this is used for virtual fields otherwise we'd lose data. */
-static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, M_bool output_identical, char *error, size_t error_len)
+static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_hash_strvp_t *prev_fields, M_bool output_identical, char *error, size_t error_len)
 {
 	M_sql_tabledata_fetch_rv_t rv;
 
@@ -669,7 +669,7 @@ static M_sql_tabledata_fetch_rv_t M_sql_tabledata_edit_fetch(M_sql_tabledata_fie
 		if (!output_identical)
 			return rv;
 	} else {
-		rv = M_sql_tabledata_edit_fetch_int(field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
+		rv = M_sql_tabledata_edit_fetch_int(sqltrans, field, fielddef, fetch_cb, thunk, prev_fields, error, error_len);
 	}
 
 	/* Means there was a change to something being set (not a where clause) */
@@ -717,7 +717,7 @@ static M_sql_error_t M_sql_tabledata_row_gather_virtual(M_sql_trans_t *sqltrans,
 			continue;
 
 		if (prev_fields) {
-			rv = M_sql_tabledata_edit_fetch(&field, &fields[i], fetch_cb, thunk, prev_fields, M_TRUE, error, error_len);
+			rv = M_sql_tabledata_edit_fetch(sqltrans, &field, &fields[i], fetch_cb, thunk, prev_fields, M_TRUE, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
 
@@ -734,7 +734,7 @@ static M_sql_error_t M_sql_tabledata_row_gather_virtual(M_sql_trans_t *sqltrans,
 				}
 			}
 		} else {
-			rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
+			rv = M_sql_tabledata_fetch(sqltrans, &field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
 			if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
@@ -964,9 +964,19 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, M
 	return M_TRUE;
 }
 
+typedef struct {
+	const char                    *table_name;
+	const M_sql_tabledata_t       *fields;
+	size_t                         num_fields;
+	M_sql_tabledata_fetch_cb       fetch_cb;
+	M_int64                        generated_id;
+	void                          *thunk;
+} M_sql_tabledata_add_t;
 
-static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+
+static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *arg, char *error, size_t error_len)
 {
+	M_sql_tabledata_add_t  *trans       = arg;
 	M_buf_t                *request     = NULL;
 	M_hash_dict_t          *seen_cols   = NULL;
 	M_sql_stmt_t           *stmt        = NULL;
@@ -983,19 +993,19 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 	stmt        = M_sql_stmt_create();
 
 	M_buf_add_str(request, "INSERT INTO \"");
-	M_buf_add_str(request, table_name);
+	M_buf_add_str(request, trans->table_name);
 	M_buf_add_str(request, "\" (");
 
 	/* Specify each column name we will be outputting (in case the table as more columns than this) */
-	for (i=0; i<num_fields; i++) {
-		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
+	for (i=0; i<trans->num_fields; i++) {
+		if (M_hash_dict_get(seen_cols, trans->fields[i].table_column, NULL)) {
 			continue;
 		}
-		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
+		M_hash_dict_insert(seen_cols, trans->fields[i].table_column, NULL);
 
 		/* If its not a generated ID or Timestamp and not a virtual field, then we need to test to see if this column should be emitted at all. */
-		if (!(fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL|M_SQL_TABLEDATA_FLAG_TIMESTAMP)) &&
-		    M_sql_tabledata_fetch(NULL, &fields[i], fetch_cb, M_TRUE, thunk, NULL, 0) == M_SQL_TABLEDATA_FETCH_SKIP) {
+		if (!(trans->fields[i].flags & (M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_VIRTUAL|M_SQL_TABLEDATA_FLAG_TIMESTAMP)) &&
+		    M_sql_tabledata_fetch(sqltrans, NULL, &trans->fields[i], trans->fetch_cb, M_TRUE, trans->thunk, NULL, 0) == M_SQL_TABLEDATA_FETCH_SKIP) {
 			/* Skip! */
 			continue;
 		}
@@ -1005,7 +1015,7 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 		}
 		has_col = M_TRUE;
 		M_buf_add_str(request, "\"");
-		M_buf_add_str(request, fields[i].table_column);
+		M_buf_add_str(request, trans->fields[i].table_column);
 		M_buf_add_str(request, "\"");
 	}
 
@@ -1021,23 +1031,23 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 
 	/* Bind values */
 	M_buf_add_str(request, ") VALUES (");
-	for (i=0; i<num_fields; i++) {
-		if (M_hash_dict_get(seen_cols, fields[i].table_column, NULL)) {
+	for (i=0; i<trans->num_fields; i++) {
+		if (M_hash_dict_get(seen_cols, trans->fields[i].table_column, NULL)) {
 			continue;
 		}
-		M_hash_dict_insert(seen_cols, fields[i].table_column, NULL);
+		M_hash_dict_insert(seen_cols, trans->fields[i].table_column, NULL);
 
-		if (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
-			err = M_sql_tabledata_row_gather_virtual(NULL, &field, fields, num_fields, i, fetch_cb, NULL, thunk, NULL, error, error_len);
+		if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
+			err = M_sql_tabledata_row_gather_virtual(sqltrans, &field, trans->fields, trans->num_fields, i, trans->fetch_cb, NULL, trans->thunk, NULL, error, error_len);
 			if (M_sql_error_is_error(err))
 				goto done;
 
 			/* Virtual columns should actually bind NULL */
-		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
-			size_t  max_len = fields[i].max_column_len;
+		} else if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
+			size_t  max_len = trans->fields[i].max_column_len;
 			M_int64 id;
 			if (max_len == 0) {
-				if (fields[i].type == M_SQL_DATA_TYPE_INT32) {
+				if (trans->fields[i].type == M_SQL_DATA_TYPE_INT32) {
 					max_len = 9;
 				} else {
 					max_len = 18;
@@ -1045,15 +1055,14 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 			}
 			if (max_len > 18)
 				max_len = 18;
-			id             = M_sql_gen_timerand_id(pool, max_len);
+			id             = M_sql_gen_timerand_id(M_sql_trans_get_pool(sqltrans), max_len);
 			M_sql_tabledata_field_set_int64(&field, id);
 
-			if (generated_id != NULL)
-				*generated_id = id;
-		} else if (fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
+			trans->generated_id = id;
+		} else if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
 			M_sql_tabledata_field_set_int64(&field, M_time());
 		} else {
-			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_TRUE, thunk, error, error_len);
+			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_fetch(sqltrans, &field, &trans->fields[i], trans->fetch_cb, M_TRUE, trans->thunk, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
 			if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
@@ -1069,8 +1078,8 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 		has_col = M_TRUE;
 		M_buf_add_str(request, "?");
 
-		if (!M_sql_tabledata_bind(stmt, fields[i].type, &field, (fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:fields[i].max_column_len)) {
-			M_snprintf(error, error_len, "column %s unsupported field type", fields[i].table_column);
+		if (!M_sql_tabledata_bind(stmt, trans->fields[i].type, &field, (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:trans->fields[i].max_column_len)) {
+			M_snprintf(error, error_len, "column %s unsupported field type", trans->fields[i].table_column);
 			M_sql_tabledata_field_clear(&field);
 			goto done;
 		}
@@ -1084,11 +1093,7 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_connpool_t *pool, M_sql_trans_
 	if (M_sql_error_is_error(err))
 		goto done;
 
-	if (sqltrans != NULL) {
-		err = M_sql_trans_execute(sqltrans, stmt);
-	} else {
-		err = M_sql_stmt_execute(pool, stmt);
-	}
+	err = M_sql_trans_execute(sqltrans, stmt);
 
 done:
 	if (request)
@@ -1105,11 +1110,33 @@ done:
 }
 
 
+static M_sql_error_t M_sql_tabledata_add_do(M_sql_trans_t *sqltrans, void *arg, char *error, size_t error_len)
+{
+	size_t                 cnt   = 0;
+	M_sql_error_t          err   = M_SQL_ERROR_USER_FAILURE;
+	M_sql_tabledata_add_t *trans = arg;
+
+	/* TODO: Loop up to 10x if key conflict AND table had an auto-generated id */
+	do {
+		err = M_sql_tabledata_add_do_int(sqltrans, trans, error, error_len);
+		cnt++;
+	} while (err == M_SQL_ERROR_QUERY_CONSTRAINT && trans->generated_id != 0 && cnt < 10);
+
+	return err;
+}
+
+
 static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
-	M_sql_error_t err  = M_SQL_ERROR_USER_FAILURE;
-	M_int64       myid;
-	size_t        cnt  = 0;
+	M_sql_error_t         err  = M_SQL_ERROR_USER_FAILURE;
+	M_sql_tabledata_add_t info = {
+		table_name,
+		fields,
+		num_fields,
+		fetch_cb,
+		0,
+		thunk
+	};
 
 	if (pool == NULL && sqltrans == NULL) {
 		M_snprintf(error, error_len, "must specify pool or sqltrans");
@@ -1129,24 +1156,27 @@ static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans
 		goto done;
 	}
 
-	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len))
+	if (!M_sql_tabledata_validate_fields(fields, num_fields, error, error_len)) {
+		err = M_SQL_ERROR_USER_FAILURE;
 		goto done;
+	}
 
-	/* If user didn't pass one in, we still need the value, so set it */
-	if (generated_id == NULL)
-		generated_id = &myid;
-
-	/* TODO: Loop up to 10x if key conflict AND table had an auto-generated id */
-
-	do {
+	if (generated_id)
 		*generated_id = 0;
-		err           = M_sql_tabledata_add_do(pool, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
-		cnt++;
-	} while (err == M_SQL_ERROR_QUERY_CONSTRAINT && *generated_id != 0 && cnt < 10);
+
+	if (sqltrans != NULL) {
+		err  = M_sql_tabledata_add_do(sqltrans, &info, error, error_len);
+	} else {
+		err  = M_sql_trans_process(pool, M_SQL_ISOLATION_SERIALIZABLE, M_sql_tabledata_add_do, &info, error, error_len);
+	}
+
+	if (!M_sql_error_is_error(err) && generated_id != NULL)
+		*generated_id = info.generated_id;
 
 done:
 	return err;
 }
+
 
 M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
@@ -1217,7 +1247,7 @@ static M_sql_error_t M_sql_tabledata_query(M_hash_strvp_t **params_out, M_sql_tr
 		if (!(fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		rv = M_sql_tabledata_fetch(&field, &fields[i], fetch_cb, M_FALSE, thunk, error, error_len);
+		rv = M_sql_tabledata_fetch(sqltrans, &field, &fields[i], fetch_cb, M_FALSE, thunk, error, error_len);
 		if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 			goto done;
 		if (rv == M_SQL_TABLEDATA_FETCH_SKIP) {
@@ -1433,7 +1463,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 				is_changed = M_TRUE;
 			}
 		} else {
-			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_edit_fetch(&field, &info->fields[i], info->fetch_cb, info->thunk, prev_fields, M_FALSE, error, error_len);
+			M_sql_tabledata_fetch_rv_t rv = M_sql_tabledata_edit_fetch(sqltrans, &field, &info->fields[i], info->fetch_cb, info->thunk, prev_fields, M_FALSE, error, error_len);
 			if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 				goto done;
 			is_changed = (rv == M_SQL_TABLEDATA_FETCH_SUCCESS)?M_TRUE:M_FALSE;
@@ -1485,7 +1515,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		if (!(info->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		rv = M_sql_tabledata_fetch(&field, &info->fields[i], info->fetch_cb, M_FALSE, info->thunk, error, error_len);
+		rv = M_sql_tabledata_fetch(sqltrans, &field, &info->fields[i], info->fetch_cb, M_FALSE, info->thunk, error, error_len);
 		if (rv == M_SQL_TABLEDATA_FETCH_FAIL)
 			goto done;
 		if (rv == M_SQL_TABLEDATA_FETCH_SKIP)
