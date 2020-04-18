@@ -246,8 +246,8 @@ typedef struct M_sql_tabledata_field M_sql_tabledata_field_t;
  *  \param[in]      thunk      User-defined thunk parameter passed to tabledata add or edit function
  *  \param[out]     error      Buffer to hold human-readable error on failure
  *  \param[in]      error_len  Length of error buffer
- *  \return M_TRUE if validation or conversion succeeded, M_FALSE if validation or conversion failed. */
-typedef M_bool (*M_sql_tabledata_validatetransform_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const char *field_name, void *thunk, char *error, size_t error_len);
+ *  \return M_SQL_ERROR_SUCCESS or M_SQL_ERROR_USER_SUCCESS if validation or conversion succeeded, other error otherwise (possibly retryable). */
+typedef M_sql_error_t (*M_sql_tabledata_validatetransform_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const char *field_name, void *thunk, char *error, size_t error_len);
 
 
 /*! Structure to be used to define the various fields and columns stored in a table */
