@@ -134,6 +134,8 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea5e58b8b9f87a6903d095f23704e9b1c4">M_SQL_ERROR_USER_SUCCESS</a> = 700, 
 <br />
+&#160;&#160;<a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea2826375c944753477ab71c39a9a5b90c">M_SQL_ERROR_USER_BYPASS</a> = 703, 
+<br />
 &#160;&#160;<a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8">M_SQL_ERROR_USER_RETRY</a> = 701, 
 <br />
 &#160;&#160;<a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea65adfae56a8b6eb303401f4511acaf74">M_SQL_ERROR_USER_FAILURE</a> = 702, 
@@ -232,6 +234,8 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="ggaae10ff11eb7d5583afcffa6ec87c753ea2fe026a2c7b5a2306c3163df3f120ecc"></a>M_SQL_ERROR_INVALID_TYPE&#160;</td><td class="fielddoc"><p>Invalid Data Type for conversion </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ggaae10ff11eb7d5583afcffa6ec87c753ea5e58b8b9f87a6903d095f23704e9b1c4"></a>M_SQL_ERROR_USER_SUCCESS&#160;</td><td class="fielddoc"><p>Return code a User can generate in <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> to Indicate the operation is complete and the system can commit any pending data. This is equivalent to <a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea4321145ef534b2263011566a66b8bef8">M_SQL_ERROR_SUCCESS</a> but can be used in its place if a user needs to have the ability to differentiate how <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> returned success. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaae10ff11eb7d5583afcffa6ec87c753ea2826375c944753477ab71c39a9a5b90c"></a>M_SQL_ERROR_USER_BYPASS&#160;</td><td class="fielddoc"><p>Return code a User can generate in <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> to indicate the operation should be bypassed. This can be used to differentiate a traditional tristate error message. Otherwise this is classified as success. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8"></a>M_SQL_ERROR_USER_RETRY&#160;</td><td class="fielddoc"><p>Return code a User can generate in <a class="el" href="group__m__sql__trans.html#gad028a43c09743a7c4996404c019da128">M_sql_trans_process()</a> to request the system to rollback and retry the entire sequence of events. This is equivalent to <a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea623e81ccfdf15e28336c45d75bc095e2">M_SQL_ERROR_QUERY_DEADLOCK</a> but more accurately indicates the failure was due to user-logic rather than a condition triggered internally to the SQL system </p>
 </td></tr>
@@ -413,7 +417,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Apr 17 2020 17:33:02 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Sat Apr 18 2020 01:24:05 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

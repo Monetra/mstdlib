@@ -23,6 +23,7 @@ var group__m__sql__error =
       [ "M_SQL_ERROR_INVALID_USE", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea9f1a8181cfd40ca2b919f40e0e28bec6", null ],
       [ "M_SQL_ERROR_INVALID_TYPE", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea2fe026a2c7b5a2306c3163df3f120ecc", null ],
       [ "M_SQL_ERROR_USER_SUCCESS", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea5e58b8b9f87a6903d095f23704e9b1c4", null ],
+      [ "M_SQL_ERROR_USER_BYPASS", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea2826375c944753477ab71c39a9a5b90c", null ],
       [ "M_SQL_ERROR_USER_RETRY", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8", null ],
       [ "M_SQL_ERROR_USER_FAILURE", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea65adfae56a8b6eb303401f4511acaf74", null ],
       [ "M_SQL_ERROR_UNSET", "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3c4abf1e509c34965635f1022e974817", null ]

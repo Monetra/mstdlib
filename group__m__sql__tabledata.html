@@ -98,8 +98,8 @@ Data Structures</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:gab0d3ec10075e1c0e67970d7355863628"><td class="memItemLeft" align="right" valign="top">typedef struct M_sql_tabledata_field&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a></td></tr>
 <tr class="separator:gab0d3ec10075e1c0e67970d7355863628"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0304b9114b0da6818b25345368fe1a5c"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga0304b9114b0da6818b25345368fe1a5c">M_sql_tabledata_validatetransform_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *field_name, void *thunk, char *error, size_t error_len)</td></tr>
-<tr class="separator:ga0304b9114b0da6818b25345368fe1a5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf154f3290e09dfa843ca28479ede90b6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf154f3290e09dfa843ca28479ede90b6">M_sql_tabledata_validatetransform_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *field_name, void *thunk, char *error, size_t error_len)</td></tr>
+<tr class="separator:gaf154f3290e09dfa843ca28479ede90b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>) (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *out, const char *field_name, M_bool is_add, void *thunk)</td></tr>
 <tr class="separator:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1ba9773ee51650ac29c3f45932e45c0e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e">M_sql_tabledata_edit_notify_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *field_name, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *orig_field, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *new_field, void *thunk, char *error, size_t error_len)</td></tr>
@@ -233,7 +233,7 @@ flags</td>
 <p>Flags controlling behavior </p>
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a94acc156f44038830a0977305a7cb317"></a><a class="el" href="group__m__sql__tabledata.html#ga0304b9114b0da6818b25345368fe1a5c">M_sql_tabledata_validatetransform_cb</a></td>
+<a id="a94acc156f44038830a0977305a7cb317"></a><a class="el" href="group__m__sql__tabledata.html#gaf154f3290e09dfa843ca28479ede90b6">M_sql_tabledata_validatetransform_cb</a></td>
 <td class="fieldname">
 field_cb</td>
 <td class="fielddoc">
@@ -259,14 +259,14 @@ field_cb</td>
 
 </div>
 </div>
-<a id="ga0304b9114b0da6818b25345368fe1a5c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga0304b9114b0da6818b25345368fe1a5c">&#9670;&nbsp;</a></span>M_sql_tabledata_validatetransform_cb</h2>
+<a id="gaf154f3290e09dfa843ca28479ede90b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf154f3290e09dfa843ca28479ede90b6">&#9670;&nbsp;</a></span>M_sql_tabledata_validatetransform_cb</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef M_bool(* M_sql_tabledata_validatetransform_cb) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *field_name, void *thunk, char *error, size_t error_len)</td>
+          <td class="memname">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(* M_sql_tabledata_validatetransform_cb) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *field_name, void *thunk, char *error, size_t error_len)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -282,7 +282,7 @@ field_cb</td>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>M_TRUE if validation or conversion succeeded, M_FALSE if validation or conversion failed. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>M_SQL_ERROR_SUCCESS or M_SQL_ERROR_USER_SUCCESS if validation or conversion succeeded, other error otherwise (possibly retryable). </dd></dl>
 
 </div>
 </div>
@@ -1513,7 +1513,7 @@ field_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Apr 17 2020 17:33:02 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Sat Apr 18 2020 01:24:05 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

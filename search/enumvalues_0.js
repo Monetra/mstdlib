@@ -736,6 +736,7 @@ var searchData=
   ['m_5fsql_5ferror_5fsuccess',['M_SQL_ERROR_SUCCESS',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea4321145ef534b2263011566a66b8bef8',1,'m_sql.h']]],
   ['m_5fsql_5ferror_5fsuccess_5frow',['M_SQL_ERROR_SUCCESS_ROW',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea18a28fa2a16e66ca214f7d3dcd3f8b00',1,'m_sql.h']]],
   ['m_5fsql_5ferror_5funset',['M_SQL_ERROR_UNSET',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3c4abf1e509c34965635f1022e974817',1,'m_sql.h']]],
+  ['m_5fsql_5ferror_5fuser_5fbypass',['M_SQL_ERROR_USER_BYPASS',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea2826375c944753477ab71c39a9a5b90c',1,'m_sql.h']]],
   ['m_5fsql_5ferror_5fuser_5ffailure',['M_SQL_ERROR_USER_FAILURE',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea65adfae56a8b6eb303401f4511acaf74',1,'m_sql.h']]],
   ['m_5fsql_5ferror_5fuser_5fretry',['M_SQL_ERROR_USER_RETRY',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ead2b4ab4167e37e152a2d786e0a687ed8',1,'m_sql.h']]],
   ['m_5fsql_5ferror_5fuser_5fsuccess',['M_SQL_ERROR_USER_SUCCESS',['../group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea5e58b8b9f87a6903d095f23704e9b1c4',1,'m_sql.h']]],
