@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -73,10 +73,10 @@ __BEGIN_DECLS
  *  - db: Required. Database Name.
  *  - socketpath: Conditional. If using Unix Domain Sockets to connect to MySQL,
  *    this is the path to the Unix Domain Socket.  Use the keyword of 'search'
- *    to search for the socket based on standard known paths.  Cannot be used 
+ *    to search for the socket based on standard known paths.  Cannot be used
  *    with host.
  *  - host: Conditional. If using IP or SSL/TLS to connect to MySQL, this is the
- *    hostname or IP address of the server.  If not using the default port of 
+ *    hostname or IP address of the server.  If not using the default port of
  *    3306, may append a ":port#" to the end of the host.  For specifying multiple
  *    hosts in a pool, hosts should be comma delimited. Cannot be used with socketpath.
  *    \code  host=10.40.30.2,10.50.30.2:13306  \endcode
@@ -225,12 +225,16 @@ typedef enum {
 	M_SQL_ERROR_INVALID_TYPE         = 601,  /*!< Invalid Data Type for conversion */
 
 	/* User-generated errors or conditions via M_sql_trans_process() */
-	M_SQL_ERROR_USER_SUCCESS         = 700,  /*!< Return code a User can generate in M_sql_trans_process() to 
+	M_SQL_ERROR_USER_SUCCESS         = 700,  /*!< Return code a User can generate in M_sql_trans_process() to
 	                                          *   Indicate the operation is complete and the system can
 	                                          *   commit any pending data.  This is equivalent to #M_SQL_ERROR_SUCCESS
 	                                          *   but can be used in its place if a user needs to have the
 	                                          *   ability to differentiate how M_sql_trans_process() returned
 	                                          *   success. */
+	M_SQL_ERROR_USER_BYPASS          = 703,  /*!< Return code a User can generate in M_sql_trans_process() to
+	                                          *   indicate the operation should be bypassed.  This can be used to
+	                                          *   differentiate a traditional tristate error message.  Otherwise
+	                                          *   this is classified as success. */
 	M_SQL_ERROR_USER_RETRY           = 701,  /*!< Return code a User can generate in M_sql_trans_process() to
 	                                          *   request the system to rollback and retry the entire sequence
 	                                          *   of events.  This is equivalent to #M_SQL_ERROR_QUERY_DEADLOCK
@@ -268,7 +272,7 @@ typedef enum {
 M_API const char *M_sql_error_string(M_sql_error_t err);
 
 /*! Returns if error code is a failure or not.
- * 
+ *
  *  Currently this returns true if the error condition is any error other than
  *  #M_SQL_ERROR_SUCCESS or #M_SQL_ERROR_SUCCESS_ROW.
  *
@@ -299,7 +303,7 @@ M_API M_bool M_sql_error_is_disconnect(M_sql_error_t err);
 M_API M_bool M_sql_error_is_rollback(M_sql_error_t err);
 
 /*! Returns if the error code represents a fatal error returned from the server
- *  that is unlikely to succeed if simply re-attempted.  Often this is the 
+ *  that is unlikely to succeed if simply re-attempted.  Often this is the
  *  result of a poorly formed query that can't be parsed or prepared.
  *
  *  Currently this is equivelent to:
@@ -317,7 +321,7 @@ M_API M_bool M_sql_error_is_fatal(M_sql_error_t err);
 
 /*! \addtogroup m_sql_conn SQL Connection Management
  *  \ingroup m_sql
- * 
+ *
  * SQL Connection Management
  *
  * @{
@@ -330,9 +334,9 @@ typedef struct M_sql_connpool M_sql_connpool_t;
 /*! Flags controlling behavior of the connection pool */
 typedef enum {
 	M_SQL_CONNPOOL_FLAG_NONE               = 0,       /*!< No special pool flags */
-	M_SQL_CONNPOOL_FLAG_PRESPAWN_ALL       = 1 << 0,  /*!< Pre-spawn all connections, not just the first. 
+	M_SQL_CONNPOOL_FLAG_PRESPAWN_ALL       = 1 << 0,  /*!< Pre-spawn all connections, not just the first.
 	                                                   *   Without this, the remaining connections are on-demand */
-	M_SQL_CONNPOOL_FLAG_NO_AUTORETRY_QUERY = 1 << 1,  /*!< If a non-transactional query is rolled back due to a deadlock 
+	M_SQL_CONNPOOL_FLAG_NO_AUTORETRY_QUERY = 1 << 1,  /*!< If a non-transactional query is rolled back due to a deadlock
                                                        *   or connectivity failure, the default behavior is to automatically
                                                        *   retry the query, indefinitely.  For queries executed as part of
                                                        *   a transaction, rollbacks must be handled by the caller as they
@@ -345,7 +349,7 @@ typedef enum {
 
 
 /*! Create an SQL connection pool.
- * 
+ *
  *  A connection pool is required to be able to run SQL transactions.  An internal
  *  connection is automatically claimed for a transaction or statement, or will
  *  wait on an available connection.
@@ -355,7 +359,7 @@ typedef enum {
  *
  *  \warning Pool modifications such as M_sql_connpool_add_readonly_pool() and M_sql_connpool_add_trace()
  *  must be called prior to M_sql_connpool_start().
- * 
+ *
  *  \param[out] pool               Newly initialized pool object
  *  \param[in]  driver             Name of driver to use. If the driver is not already loaded, will attempt
  *                                 to load the driver module automatically.  Driver modules are named
@@ -381,8 +385,8 @@ M_API M_sql_error_t M_sql_connpool_create(M_sql_connpool_t **pool, const char *d
 
 
 /*! Create a read-only pool attached to our already-created pool.
- * 
- *  The read-only pool will automatically route SELECT transactions, not part of a 
+ *
+ *  The read-only pool will automatically route SELECT transactions, not part of a
  *  transaction (e.g. not within a M_sql_trans_begin() ... M_sql_trans_commit() block)
  *  to the read-only pool.  This can be useful for report generation, where the data
  *  is coming from an asyncronous replication pool for reducing load on the master.
@@ -418,7 +422,7 @@ M_API M_sql_error_t M_sql_connpool_add_readonly_pool(M_sql_connpool_t *pool, con
  *  stale connections from being used if known firewall timers expire, or to
  *  force reconnects to possibly rebalance connections across multiple servers.
  *
- *  Typically these should be set before M_sql_connpool_start() however it is 
+ *  Typically these should be set before M_sql_connpool_start() however it is
  *  safe to change these on an active pool.
  *
  *  \param[in] pool              Initialized connection pool object
@@ -433,7 +437,7 @@ M_API M_sql_error_t M_sql_connpool_add_readonly_pool(M_sql_connpool_t *pool, con
  *                               advisable to set this to below that threshold so the connection will be
  *                               forcibly terminated rather than use.  The connection will be terminated
  *                               before use and the consumer will attempt to grab a different connection
- *                               from the pool, or start a new one if none are available.  Set to 0 for infinite, 
+ *                               from the pool, or start a new one if none are available.  Set to 0 for infinite,
  *                               set to -1 to not change the current value.  Default is 0.
  *  \param[in] fallback_s        Number of seconds when a connection error occurs to a host before it is
  *                               eligible for "fallback".  If this isn't set, the only time the first host
@@ -465,7 +469,7 @@ M_API M_sql_error_t M_sql_connpool_start(M_sql_connpool_t *pool, char *error, si
 
 
 /*! Destroy the SQL connection pool and close all open connections.
- * 
+ *
  *  All connections must be idle/unused or will return a failure.
  *
  *  \param[in] pool  Pool object to be destroyed
@@ -475,18 +479,18 @@ M_API M_sql_error_t M_sql_connpool_destroy(M_sql_connpool_t *pool);
 
 
 /*! Count of active/connected SQL connections (but not ones that are in process of being brought online).
- * 
+ *
  *  \param[in] pool     Initialized pool object
  *  \param[in] readonly M_TRUE if querying for readonly connections, M_FALSE for primary
- * 
+ *
  *  \return count of active/connected SQL connections.
  */
 M_API size_t M_sql_connpool_active_conns(M_sql_connpool_t *pool, M_bool readonly);
 
 /*! SQL server name and version
- * 
+ *
  *  \param[in] pool  Initialized pool object
- * 
+ *
  *  \return SQL server name and version
  */
 M_API const char *M_sql_connpool_server_version(M_sql_connpool_t *pool);
@@ -494,7 +498,7 @@ M_API const char *M_sql_connpool_server_version(M_sql_connpool_t *pool);
 /*! SQL driver display (pretty) name
  *
  *  \param[in] pool  Initialized pool object
- * 
+ *
  *  \return SQL driver pretty name
  */
 M_API const char *M_sql_connpool_driver_display_name(M_sql_connpool_t *pool);
@@ -502,7 +506,7 @@ M_API const char *M_sql_connpool_driver_display_name(M_sql_connpool_t *pool);
 /*! SQL driver internal/short name
  *
  *  \param[in] pool  Initialized pool object
- * 
+ *
  *  \return SQL driver internal/short name
  */
 M_API const char *M_sql_connpool_driver_name(M_sql_connpool_t *pool);
@@ -510,7 +514,7 @@ M_API const char *M_sql_connpool_driver_name(M_sql_connpool_t *pool);
 /*! SQL driver version (not db version)
  *
  *  \param[in] pool  Initialized pool object
- * 
+ *
  *  \return SQL driver version (not db version)
  */
 M_API const char *M_sql_connpool_driver_version(M_sql_connpool_t *pool);
@@ -520,14 +524,14 @@ M_API const char *M_sql_connpool_driver_version(M_sql_connpool_t *pool);
 
 /*! \addtogroup m_sql_helpers SQL Helpers
  *  \ingroup m_sql
- * 
+ *
  * SQL Helpers for various situations
  *
  * @{
  */
 
 /*! Generate a time-based + random unique id suitable for primary key use rather
- *  than using an auto-increment column. 
+ *  than using an auto-increment column.
  *
  *  It is not recommended to use auto-increment columns for portability reasons,
  *  therefore a suitable unique id needs to be chosen that has a low probability
@@ -536,7 +540,7 @@ M_API const char *M_sql_connpool_driver_version(M_sql_connpool_t *pool);
  *  operation (even though this may be an extremely low probability).
  *
  *  The generated key is a combination of the current timestamp in UTC and
- *  a random suffix.  The reason for a timestamp prefix is some databases 
+ *  a random suffix.  The reason for a timestamp prefix is some databases
  *  cannot handle purely random numbers as they cause index splits that cause
  *  exponential slowdown as the number of rows increase.  This can be observed
  *  with MySQL in particular.
@@ -614,7 +618,7 @@ M_API M_uint64 M_sql_rollback_delay_ms(M_sql_connpool_t *pool);
  *  for a future update with in a transaction.  All values must be used within a
  *  single query */
 typedef enum {
-	M_SQL_QUERY_UPDLOCK_TABLE    = 1, /*!< Apply SQL-specific lock to rows in the table being updated. 
+	M_SQL_QUERY_UPDLOCK_TABLE    = 1, /*!< Apply SQL-specific lock to rows in the table being updated.
 	                                   *   This must be appended immediately after every referenced table
 	                                   *   name when row locking is desired.  Must be used in conjunction
 	                                   *   with a later call for #M_SQL_QUERY_UPDLOCK_QUERYEND */
@@ -772,14 +776,14 @@ typedef enum {
  *  \param[in]     exp1       Left-hand side of SQL expression.
  *  \param[in]     exp2       Right-hande size of SQL expression.
  *  \return M_TRUE on success, M_FALSE on misuse
- */ 
+ */
 M_API M_bool M_sql_query_append_bitop(M_sql_connpool_t *pool, M_buf_t *query, M_sql_query_bitop_t op, const char *exp1, const char *exp2);
 
 
 /*! It may be necessary to know the data type name mapping for an mstdlib datatype.
  *  This function can be used to retrieve that value.  Data types may differ depending
  *  on an operation.  For instance, MySQL can use VARCHAR for column creation but only
- *  CHAR for CAST operations 
+ *  CHAR for CAST operations
  *  \param[in]     pool       Initialized #M_sql_connpool_t object
  *  \param[in,out] query      A pointer to an already populated M_buf_t with a partial request.
  *  \param[in]     type       mstdlib datatype
