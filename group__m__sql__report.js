@@ -27,5 +27,7 @@ var group__m__sql__report =
     [ "M_sql_report_add_column", "group__m__sql__report.html#gaccee8d2f61a20b6a34b5f6b5f043f6a9", null ],
     [ "M_sql_report_hide_column", "group__m__sql__report.html#gafa488e7db2277ecac6dca66c9878f3b4", null ],
     [ "M_sql_report_process", "group__m__sql__report.html#gadd1e167bbf4cb627e13c37fcbc5c2edb", null ],
-    [ "M_sql_report_process_partial", "group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2", null ]
+    [ "M_sql_report_process_json", "group__m__sql__report.html#gae4ebf3f4f5ed7e5959048075fdeaa4b5", null ],
+    [ "M_sql_report_process_partial", "group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2", null ],
+    [ "M_sql_report_process_partial_json", "group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63", null ]
 ];

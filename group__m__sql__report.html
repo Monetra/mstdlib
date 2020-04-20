@@ -148,8 +148,12 @@ Functions</h2></td></tr>
 <tr class="separator:gafa488e7db2277ecac6dca66c9878f3b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadd1e167bbf4cb627e13c37fcbc5c2edb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#gadd1e167bbf4cb627e13c37fcbc5c2edb">M_sql_report_process</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, void *arg, char **out, size_t *out_len, char *error, size_t error_size)</td></tr>
 <tr class="separator:gadd1e167bbf4cb627e13c37fcbc5c2edb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae4ebf3f4f5ed7e5959048075fdeaa4b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#gae4ebf3f4f5ed7e5959048075fdeaa4b5">M_sql_report_process_json</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, void *arg, <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *json, char *error, size_t error_size)</td></tr>
+<tr class="separator:gae4ebf3f4f5ed7e5959048075fdeaa4b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ca8f003494aee9d708722ecf72479c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2">M_sql_report_process_partial</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t max_rows, void *arg, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, <a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> **state, char *error, size_t error_size)</td></tr>
 <tr class="separator:ga5ca8f003494aee9d708722ecf72479c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2aef154f6ba05ef5c283693b62720f63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63">M_sql_report_process_partial_json</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t max_rows, void *arg, <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *json, <a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> **state, char *error, size_t error_size)</td></tr>
+<tr class="separator:ga2aef154f6ba05ef5c283693b62720f63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>SQL Report Generation </p>
@@ -253,9 +257,9 @@ Functions</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663aa1b29e4cc27fcf3aa0d4640f333b1248"></a>M_SQL_REPORT_FLAG_NONE&#160;</td><td class="fielddoc"><p>No special flags </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663ae653082648a8e7a52158dd2f26008a97"></a>M_SQL_REPORT_FLAG_ALWAYS_ENCAP&#160;</td><td class="fielddoc"><p>Always encapsulate the fields, even if there are no conflicting characters. However, NULL fields will still never be encapsulated so NULL vs empty strings can be determined by the output. </p>
+<tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663ae653082648a8e7a52158dd2f26008a97"></a>M_SQL_REPORT_FLAG_ALWAYS_ENCAP&#160;</td><td class="fielddoc"><p>CSV: Always encapsulate the fields, even if there are no conflicting characters. However, NULL fields will still never be encapsulated so NULL vs empty strings can be determined by the output. Ignored for JSON. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663a0672e8006ac37a730c73891632c79527"></a>M_SQL_REPORT_FLAG_OMIT_HEADERS&#160;</td><td class="fielddoc"><p>Do not output the first row as headers </p>
+<tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663a0672e8006ac37a730c73891632c79527"></a>M_SQL_REPORT_FLAG_OMIT_HEADERS&#160;</td><td class="fielddoc"><p>CSV: Do not output the first row as headers. Ignored for JSON. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga1c7af596258c77ade7036067ab197663a6b0b26bc5c52bc62418c8c01a0f5692c"></a>M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED&#160;</td><td class="fielddoc"><p>By default, all columns in the output report must be specified. This flag will use the column name returned from the SQL server as the header and pass the data thru with no manipulation. Other columns may be overwritten or added, or even suppressed. When set, columns will be output in the order returned from the SQL server, additional added columns will be appended to the end. </p>
 </td></tr>
@@ -407,7 +411,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set desired delimiters, encapsulation, and escaping sequences to be used for the output data.</p>
+<p>Set desired CSV delimiters, encapsulation, and escaping sequences to be used for the output data. Ignored for JSON.</p>
 <p>If this function is not called, the defaults are used.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -950,6 +954,73 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gae4ebf3f4f5ed7e5959048075fdeaa4b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae4ebf3f4f5ed7e5959048075fdeaa4b5">&#9670;&nbsp;</a></span>M_sql_report_process_json()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> M_sql_report_process_json </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *&#160;</td>
+          <td class="paramname"><em>report</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *&#160;</td>
+          <td class="paramname"><em>stmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>arg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Process the results from the SQL statement based on the report template configured and append to the provided JSON array.</p>
+<p>This function will call the registered report output generation functions to output each desired column of the report. If row fetching is used due to <a class="el" href="group__m__sql__stmt.html#ga224186bd19c5a87ceec4d7110d1e9647">M_sql_stmt_set_max_fetch_rows()</a>, this will automatically call <a class="el" href="group__m__sql__stmt.html#ga430124c9f04db0408333b7f5e5984102">M_sql_stmt_fetch()</a> until all rows are returned.</p>
+<p>No state is tracked in the report handle, it may be reused, and used concurrently if the implementor decides to cache the handle.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">report</td><td>Initialized report object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">stmt</td><td>Executed statement handle. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">arg</td><td>Custom user-supplied argument to be passed through to registered callbacks for column formatting. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">json</td><td>Passed in initialized json array node that each row will be appended to. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">error</td><td>Buffer to hold error message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error_size</td><td>Size of error buffer passed in. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea4321145ef534b2263011566a66b8bef8">M_SQL_ERROR_SUCCESS</a> on success, or one of the <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> error conditions. If an internal error is generated, the text from the error can be found in the statement handle's error buffer via <a class="el" href="group__m__sql__stmt.html#ga08eaa960f3acebe383ed05cd4d749b3f">M_sql_stmt_get_error_string()</a>. </dd></dl>
+
+</div>
+</div>
 <a id="ga5ca8f003494aee9d708722ecf72479c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga5ca8f003494aee9d708722ecf72479c2">&#9670;&nbsp;</a></span>M_sql_report_process_partial()</h2>
 
@@ -1032,12 +1103,94 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ga2aef154f6ba05ef5c283693b62720f63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2aef154f6ba05ef5c283693b62720f63">&#9670;&nbsp;</a></span>M_sql_report_process_partial_json()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> M_sql_report_process_partial_json </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *&#160;</td>
+          <td class="paramname"><em>report</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *&#160;</td>
+          <td class="paramname"><em>stmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>arg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> **&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>error_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Process a chunk of report data rather than the whole report and append to the provided JSON array.</p>
+<p>This function is useful if it is necessary to send a report in pieces either to a file or via a network connection, especially if the report may become extremely large and exceed the memory capabilities of the machine.</p>
+<p>This function will be called in a loop until the return value is NOT <a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea18a28fa2a16e66ca214f7d3dcd3f8b00">M_SQL_ERROR_SUCCESS_ROW</a>, it will fill in the user-supplied <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> with the data. It is up to the user to clear the data from this buffer if the same buffer handle is passed in, or create a new handle, otherwise data will be appended.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The caller MUST call this repeatedly until a return value other than <a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea18a28fa2a16e66ca214f7d3dcd3f8b00">M_SQL_ERROR_SUCCESS_ROW</a> is returned or otherwise risk memory leaks, or possibly holding a lock on an SQL connection.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">report</td><td>Initialized report object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">stmt</td><td>Executed statement handle. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max_rows</td><td>Maximum number of rows to output per pass. Or 0 to output all. Typically it makes more sense to just call <a class="el" href="group__m__sql__report.html#gadd1e167bbf4cb627e13c37fcbc5c2edb">M_sql_report_process()</a> if you want to use 0 for this value. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">arg</td><td>Custom user-supplied argument to be passed through to registered callbacks for column formatting. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">json</td><td>Passed in initialized json array node that each row will be appended to. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>Pointer to an <a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> * object, initialized to NULL on first pass. When there are more rows available, pass the same returned pointer back in. When the report generation is complete (last pass), this pointer will be automatically cleaned up. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">error</td><td>Buffer to hold error message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error_size</td><td>Size of error buffer passed in. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea4321145ef534b2263011566a66b8bef8">M_SQL_ERROR_SUCCESS</a> on successful completion of the report, or <a class="el" href="group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea18a28fa2a16e66ca214f7d3dcd3f8b00">M_SQL_ERROR_SUCCESS_ROW</a> if this function must be called again to get the remaining report data. On failure, one of the <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a> errors may be returned </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sat Apr 18 2020 01:24:05 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Mon Apr 20 2020 19:16:08 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
