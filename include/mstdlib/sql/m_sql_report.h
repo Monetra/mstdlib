@@ -30,6 +30,7 @@
 #include <mstdlib/base/m_types.h>
 #include <mstdlib/sql/m_sql.h>
 #include <mstdlib/sql/m_sql_stmt.h>
+#include <mstdlib/formats/m_json.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -45,10 +46,10 @@ __BEGIN_DECLS
 
 typedef enum {
 	M_SQL_REPORT_FLAG_NONE              = 0,      /*!< No special flags */
-	M_SQL_REPORT_FLAG_ALWAYS_ENCAP      = 1 << 0, /*!< Always encapsulate the fields, even if there are no conflicting characters.
+	M_SQL_REPORT_FLAG_ALWAYS_ENCAP      = 1 << 0, /*!< CSV: Always encapsulate the fields, even if there are no conflicting characters.
 	                                               *   However, NULL fields will still never be encapsulated so NULL vs empty
-	                                               *   strings can be determined by the output. */
-	M_SQL_REPORT_FLAG_OMIT_HEADERS      = 1 << 1, /*!< Do not output the first row as headers */
+	                                               *   strings can be determined by the output. Ignored for JSON. */
+	M_SQL_REPORT_FLAG_OMIT_HEADERS      = 1 << 1, /*!< CSV: Do not output the first row as headers. Ignored for JSON. */
 	M_SQL_REPORT_FLAG_PASSTHRU_UNLISTED = 1 << 2  /*!< By default, all columns in the output report must be specified.  This flag
 	                                                   will use the column name returned from the SQL server as the header and
 	                                                   pass the data thru with no manipulation.  Other columns may be overwritten
@@ -95,8 +96,8 @@ M_API M_sql_report_t *M_sql_report_create(M_uint32 flags);
  */
 M_API void M_sql_report_destroy(M_sql_report_t *report);
 
-/*! Set desired delimiters, encapsulation, and escaping sequences to be used for the
- *  output data.
+/*! Set desired CSV delimiters, encapsulation, and escaping sequences to be used for the
+ *  output data.  Ignored for JSON.
  *
  *  If this function is not called, the defaults are used.
  *
@@ -255,6 +256,30 @@ M_API M_bool M_sql_report_hide_column(M_sql_report_t *report, const char *sql_co
  */
 M_API M_sql_error_t M_sql_report_process(const M_sql_report_t *report, M_sql_stmt_t *stmt, void *arg, char **out, size_t *out_len, char *error, size_t error_size);
 
+
+/*! Process the results from the SQL statement based on the report template configured and
+ *  append to the provided JSON array.
+ *
+ *  This function will call the registered report output generation functions to output
+ *  each desired column of the report.  If row fetching is used due to M_sql_stmt_set_max_fetch_rows(),
+ *  this will automatically call M_sql_stmt_fetch() until all rows are returned.
+ *
+ *  No state is tracked in the report handle, it may be reused, and used concurrently if
+ *  the implementor decides to cache the handle.
+ * 
+ * \param[in]     report     Initialized report object.
+ * \param[in]     stmt       Executed statement handle.
+ * \param[in]     arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.
+ * \param[in,out] json       Passed in initialized json array node that each row will be appended to.
+ * \param[out]    error      Buffer to hold error message.
+ * \param[in]     error_size Size of error buffer passed in.
+ * \return #M_SQL_ERROR_SUCCESS on success, or one of the #M_sql_error_t error conditions. If an internal error is
+ *         generated, the text from the error can be found in the statement handle's error buffer via
+ *         M_sql_stmt_get_error_string().
+ */
+M_API M_sql_error_t M_sql_report_process_json(const M_sql_report_t *report, M_sql_stmt_t *stmt, void *arg, M_json_node_t *json, char *error, size_t error_size);
+
+
 /*! Process a chunk of report data rather than the whole report.
  *
  *  This function is useful if it is necessary to send a report in pieces either to a file
@@ -285,6 +310,39 @@ M_API M_sql_error_t M_sql_report_process(const M_sql_report_t *report, M_sql_stm
  *          be returned
  */
 M_API M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_sql_report_state_t **state, char *error, size_t error_size);
+
+
+/*! Process a chunk of report data rather than the whole report and append to the provided JSON array.
+ *
+ *  This function is useful if it is necessary to send a report in pieces either to a file
+ *  or via a network connection, especially if the report may become extremely large and
+ *  exceed the memory capabilities of the machine.
+ *
+ *  This function will be called in a loop until the return value is NOT #M_SQL_ERROR_SUCCESS_ROW,
+ *  it will fill in the user-supplied #M_buf_t with the data.  It is up to the user to clear
+ *  the data from this buffer if the same buffer handle is passed in, or create a new handle,
+ *  otherwise data will be appended.
+ *
+ *  \warning The caller MUST call this repeatedly until a return value other than #M_SQL_ERROR_SUCCESS_ROW is
+ *           returned or otherwise risk memory leaks, or possibly holding a lock on an SQL connection.
+ *
+ *  \param[in]     report     Initialized report object.
+ *  \param[in]     stmt       Executed statement handle. 
+ *  \param[in]     max_rows   Maximum number of rows to output per pass.  Or 0 to output all.  Typically it makes
+ *                            more sense to just call M_sql_report_process() if you want to use 0 for this value.
+ *  \param[in]     arg        Custom user-supplied argument to be passed through to registered callbacks for column formatting.
+ * \param[in,out]  json       Passed in initialized json array node that each row will be appended to.
+ *  \param[in,out] state      Pointer to an #M_sql_report_state_t * object, initialized to NULL on first pass.  When there
+ *                            are more rows available, pass the same returned pointer back in.  When the report generation
+ *                            is complete (last pass), this pointer will be automatically cleaned up.
+ *  \param[out]    error      Buffer to hold error message.
+ *  \param[in]     error_size Size of error buffer passed in.
+ *  \return #M_SQL_ERROR_SUCCESS on successful completion of the report, or #M_SQL_ERROR_SUCCESS_ROW if this function
+ *          must be called again to get the remaining report data.  On failure, one of the #M_sql_error_t errors may
+ *          be returned
+ */
+M_API M_sql_error_t M_sql_report_process_partial_json(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_json_node_t *json, M_sql_report_state_t **state, char *error, size_t error_size);
+
 
 /*! @} */
 

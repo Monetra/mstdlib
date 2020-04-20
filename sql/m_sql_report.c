@@ -23,6 +23,7 @@
 
 #include "m_config.h"
 #include <mstdlib/mstdlib_sql.h>
+#include <mstdlib/mstdlib_formats.h>
 #include "base/m_defs_int.h"
 #include "m_sql_int.h"
 
@@ -565,15 +566,20 @@ struct M_sql_report_state {
 };
 
 
-M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_sql_report_state_t **state, char *error, size_t error_size)
+static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_json_node_t *json, M_sql_report_state_t **state, char *error, size_t error_size)
 {
 	M_sql_error_t  err         = M_SQL_ERROR_SUCCESS;
 	size_t         rows_output = 0;
 
 	M_mem_set(error, 0, error_size);
 
-	if (report == NULL || stmt == NULL || state == NULL || buf == NULL) {
+	if (report == NULL || stmt == NULL || state == NULL || (buf == NULL && json == NULL) || (buf != NULL && json != NULL)) {
 		M_snprintf(error, error_size, "invalid parameters passed");
+		return M_SQL_ERROR_INVALID_USE;
+	}
+
+	if (json != NULL && M_json_node_type(json) != M_JSON_TYPE_ARRAY) {
+		M_snprintf(error, error_size, "json node must be an array");
 		return M_SQL_ERROR_INVALID_USE;
 	}
 
@@ -613,7 +619,7 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 		(*state)->colbuf = M_buf_create();
 
 		/* Output headers if desired -- only when first initializing state! */
-		if (!(report->flags & M_SQL_REPORT_FLAG_OMIT_HEADERS)) {
+		if (buf && !(report->flags & M_SQL_REPORT_FLAG_OMIT_HEADERS)) {
 			size_t                    i;
 			M_sql_report_encap_type_t encap_type;
 			for (i=0; i<(*state)->num_cols; i++) {
@@ -644,11 +650,16 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 		for (  ; (*state)->rowidx < rows; (*state)->rowidx++) {
 			size_t                 start_buf_len = M_buf_len(buf);
 			M_sql_report_cberror_t cberr         = M_SQL_REPORT_SUCCESS;
+			M_json_node_t         *json_row      = NULL;
+
+			if (json) {
+				json_row = M_json_node_create(M_JSON_TYPE_OBJECT);
+			}
 
 			for (j=0; j<(*state)->num_cols; j++) {
 				M_bool                 is_null = M_FALSE;
 
-				if (j != 0)
+				if (buf && j != 0)
 					M_buf_add_bytes(buf, report->field_delim, report->field_delim_size);
 
 				M_buf_truncate((*state)->colbuf, 0);
@@ -658,26 +669,42 @@ M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_s
 					err = M_SQL_ERROR_INVALID_USE;
 					goto done;
 				} else if (cberr == M_SQL_REPORT_SKIP_ROW) {
-					/* Kill anything already added to the buf, and stop processing columns for this row */
-					M_buf_truncate(buf, start_buf_len);
+					if (buf) {
+						/* Kill anything already added to the buf, and stop processing columns for this row */
+						M_buf_truncate(buf, start_buf_len);
+					} else {
+						/* Kill JSON object, throwing away result. */
+						M_json_node_destroy(json_row);
+						json_row = NULL;
+					}
 					break;
 				}
 
-				encap_type = M_sql_report_col_needs_encap(report, (const M_uint8 *)M_buf_peek((*state)->colbuf), M_buf_len((*state)->colbuf));
+				if (buf) {
+					encap_type = M_sql_report_col_needs_encap(report, (const M_uint8 *)M_buf_peek((*state)->colbuf), M_buf_len((*state)->colbuf));
 
-				if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
-					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
-				}
+					if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
+						M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
+					}
 
-				M_sql_report_col_append(report, buf, encap_type, (const M_uint8 *)(is_null?NULL:M_buf_peek((*state)->colbuf)), is_null?0:M_buf_len((*state)->colbuf));
+					M_sql_report_col_append(report, buf, encap_type, (const M_uint8 *)(is_null?NULL:M_buf_peek((*state)->colbuf)), is_null?0:M_buf_len((*state)->colbuf));
 
-				if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
-					M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
+					if (!is_null && (report->flags & M_SQL_REPORT_FLAG_ALWAYS_ENCAP || encap_type != M_SQL_REPORT_ENCAP_NONE)) {
+						M_buf_add_bytes(buf, report->field_encaps, report->field_encaps_size);
+					}
+				} else {
+					if (!is_null)
+						M_json_object_insert_string(json_row, (*state)->cols[j].name, M_buf_peek((*state)->colbuf));
 				}
 			}
 
 			if (cberr == M_SQL_REPORT_SUCCESS) {
-				M_buf_add_bytes(buf, report->row_delim, report->row_delim_size);
+				if (buf) {
+					M_buf_add_bytes(buf, report->row_delim, report->row_delim_size);
+				} else {
+					M_json_array_insert(json, json_row);
+					json_row = NULL;
+				}
 
 				/* Don't output more than the requested number of rows at once */
 				rows_output++;
@@ -728,6 +755,19 @@ done:
 }
 
 
+M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_sql_report_state_t **state, char *error, size_t error_size)
+{
+	return M_sql_report_process_partial_int(report, stmt, max_rows, arg, buf, NULL, state, error, error_size);
+}
+
+
+M_sql_error_t M_sql_report_process_partial_json(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_json_node_t *json, M_sql_report_state_t **state, char *error, size_t error_size)
+{
+	return M_sql_report_process_partial_int(report, stmt, max_rows, arg, NULL, json, state, error, error_size);
+}
+
+
+
 M_sql_error_t M_sql_report_process(const M_sql_report_t *report, M_sql_stmt_t *stmt, void *arg, char **out, size_t *out_len, char *error, size_t error_size)
 {
 	M_buf_t              *buf   = M_buf_create();
@@ -738,5 +778,15 @@ M_sql_error_t M_sql_report_process(const M_sql_report_t *report, M_sql_stmt_t *s
 		return err;
 	}
 	*out = M_buf_finish_str(buf, out_len);
+	return M_SQL_ERROR_SUCCESS;
+}
+
+M_sql_error_t M_sql_report_process_json(const M_sql_report_t *report, M_sql_stmt_t *stmt, void *arg, M_json_node_t *json, char *error, size_t error_size)
+{
+	M_sql_report_state_t *state = NULL;
+	M_sql_error_t         err   = M_sql_report_process_partial_json(report, stmt, 0, arg, json, &state, error, error_size);
+	if (err != M_SQL_ERROR_SUCCESS) {
+		return err;
+	}
 	return M_SQL_ERROR_SUCCESS;
 }
