@@ -1,5 +1,14 @@
 var NAVTREEINDEX11 =
 {
+"group__m__settings.html#ga2a31aae00e72ab897d194ffade2f9b1d":[1,2,6,20],
+"group__m__settings.html#ga50f4826de37fcb103f15252d5474e83d":[1,2,6,12],
+"group__m__settings.html#ga51785d929043024d94e490b451212fbd":[1,2,6,2],
+"group__m__settings.html#ga566390fea3ec142003be94a610b8c57b":[1,2,6,19],
+"group__m__settings.html#ga5b6504fd05757a29987abdff2e356bb5":[1,2,6,11],
+"group__m__settings.html#ga6b47e462ea78031744fbe5588883ba38":[1,2,6,21],
+"group__m__settings.html#ga6ff65e9aa58fe01644d5610037490415":[1,2,6,15],
+"group__m__settings.html#ga710b6520e34d1c2e0fccfd76da2ffb0e":[1,2,6,10],
+"group__m__settings.html#ga75874e60c591305436ad3673914a4277":[1,2,6,17],
 "group__m__settings.html#ga853e600fe539040e35285802530ea505":[1,2,6,0],
 "group__m__settings.html#ga97e72c8343b3c96c5d3700e645e19f21":[1,2,6,1],
 "group__m__settings.html#ga9defb42a00312cab9015968940176bd0":[1,2,6,6],
@@ -240,14 +249,5 @@ var NAVTREEINDEX11 =
 "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba45c1c64d0510f750864f2e9ffaf00bae":[1,6,2,1,3],
 "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba7ee9b255d306ece8ca8e507c7755e227":[1,6,2,1,4],
 "group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba828428f9faa222ed326083ffdeeee6ec":[1,6,2,1,2],
-"group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5":[1,6,2,1,6],
-"group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839bebaba964fed11b6741888d10f42c896e85d":[1,6,2,1,1],
-"group__m__sql__helpers.html":[1,6,4],
-"group__m__sql__helpers.html#ga5652e2f45f004c7e5bfa9599f70ec049":[1,6,4,0],
-"group__m__sql__helpers.html#ga968e3bfef73d9b44d862dc70553d6afb":[1,6,4,1],
-"group__m__sql__query.html":[1,6,5],
-"group__m__sql__query.html#ga37d5f0e16066904bba1519f2117f4944":[1,6,5,1],
-"group__m__sql__query.html#ga6ebebe6fd69e22bb87d506b2c7e4e8f0":[1,6,5,0],
-"group__m__sql__query.html#ga70c65566ff6270f731ef0751c1a9cf39":[1,6,5,3],
-"group__m__sql__query.html#gab8568b3a74085a901b930c26c08a53a6":[1,6,5,4]
+"group__m__sql__error.html#ggae672a1a5ceb3af4f3a01347ffd839beba97d9459c2c13f30d023d68cabfc8d9c5":[1,6,2,1,6]
 };
