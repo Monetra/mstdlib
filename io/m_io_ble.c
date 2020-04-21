@@ -194,6 +194,26 @@ M_time_t M_io_ble_enum_last_seen(const M_io_ble_enum_t *btenum, size_t idx)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+char *M_io_ble_get_identifier(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return NULL;
+	return M_io_ble_get_device_identifier(handle->uuid);
+}
+
+char *M_io_ble_get_name(M_io_t *io)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return NULL;
+	return M_io_ble_get_device_name(handle->uuid);
+}
+
 M_list_str_t *M_io_ble_get_services(M_io_t *io)
 {
 	M_io_handle_t *handle;
@@ -212,6 +232,16 @@ M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *servi
 	if (handle == NULL)
 		return NULL;
 	return M_io_ble_get_device_service_characteristics(handle->uuid, service_uuid);
+}
+
+M_io_ble_property_t M_io_ble_get_characteristic_properties(M_io_t *io, const char *service_uuid, const char *characteristic_uuid)
+{
+	M_io_handle_t *handle;
+
+	handle = M_io_ble_get_io_handle(io);
+	if (handle == NULL)
+		return M_IO_BLE_PROPERTY_NONE;
+	return M_io_ble_get_device_service_characteristic_properties(handle->uuid, service_uuid, characteristic_uuid);
 }
 
 void M_io_ble_get_max_write_sizes(M_io_t *io, size_t *with_response, size_t *without_response)

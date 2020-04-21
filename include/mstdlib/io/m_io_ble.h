@@ -401,6 +401,167 @@ __BEGIN_DECLS
  * }
  * \endcode
  *
+ *
+ * #### Application that enumerates all devices, connects to them and inspects their services, characteristics and characteristic properties
+ *
+ * \code{.c}
+ * // Build:
+ * // clang -g -fobjc-arc -framework CoreFoundation test_ble_list.c -I ../../include/ -L ../../build/lib/ -l mstdlib_io -l mstdlib_thread -l mstdlib
+ * //
+ * // Run:
+ * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
+ *
+ * #include <mstdlib/mstdlib.h>
+ * #include <mstdlib/mstdlib_thread.h>
+ * #include <mstdlib/mstdlib_io.h>
+ * #include <mstdlib/io/m_io_ble.h>
+ *
+ * #include <CoreFoundation/CoreFoundation.h>
+ *
+ * M_event_t    *el;
+ * CFRunLoopRef  mrl = NULL;
+ * size_t        cnt = 0;
+ *
+ * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+ * {
+ * 	char                *temp;
+ * 	const char          *service_uuid;
+ * 	const char          *characteristic_uuid;
+ *     M_list_str_t        *services;
+ *     M_list_str_t        *characteristics;
+ * 	M_io_ble_property_t  props;
+ *     size_t               len;
+ *     size_t               len2;
+ *     size_t               i;
+ *     size_t               j;
+ *
+ *     (void)el;
+ *     (void)thunk;
+ *
+ *     switch (etype) {
+ *         case M_EVENT_TYPE_CONNECTED:
+ *             M_printf("Device:\n");
+ *
+ * 			temp = M_io_ble_get_identifier(io);
+ * 			M_printf("\tIdentifier: %s\n", temp);
+ * 			M_free(temp);
+ *
+ * 			temp = M_io_ble_get_name(io);
+ * 			M_printf("\tName: %s\n", temp);
+ * 			M_free(temp);
+ *
+ *             services = M_io_ble_get_services(io);
+ *             len      = M_list_str_len(services);
+ *             for (i=0; i<len; i++) {
+ * 				service_uuid = M_list_str_at(services, i);
+ *                 M_printf("\t\tService = %s:\n", service_uuid);
+ *
+ *                 characteristics = M_io_ble_get_service_characteristics(io, M_list_str_at(services, i));
+ *                 len2            = M_list_str_len(characteristics);
+ *                 for (j=0; j<len2; j++) {
+ * 					characteristic_uuid = M_list_str_at(characteristics, j);
+ *                     M_printf("\t\t\tCharacteristic = %s\n", characteristic_uuid);
+ *
+ * 					props = M_io_ble_get_characteristic_properties(io, service_uuid, characteristic_uuid);
+ * 					if (props == M_IO_BLE_PROPERTY_NONE) {
+ *                     	M_printf("\t\t\t\tProperty = NONE\n");
+ * 					}
+ * 					if (props & M_IO_BLE_PROPERTY_READ) {
+ *                     	M_printf("\t\t\t\tProperty = READ\n");
+ * 					}
+ * 					if (props & M_IO_BLE_PROPERTY_WRITE) {
+ *                     	M_printf("\t\t\t\tProperty = WRITE\n");
+ * 					}
+ * 					if (props & M_IO_BLE_PROPERTY_WRITENORESP) {
+ *                     	M_printf("\t\t\t\tProperty = WRITE NO RESPONSE\n");
+ * 					}
+ * 					if (props & M_IO_BLE_PROPERTY_NOTIFY) {
+ *                     	M_printf("\t\t\t\tProperty = NOTIFY\n");
+ * 					}
+ *                 }
+ *                 M_list_str_destroy(characteristics);
+ *             }
+ *             M_list_str_destroy(services);
+ *
+ *             M_io_disconnect(io);
+ *             break;
+ *         case M_EVENT_TYPE_DISCONNECTED:
+ *         case M_EVENT_TYPE_READ:
+ *         case M_EVENT_TYPE_WRITE:
+ *         case M_EVENT_TYPE_ACCEPT:
+ *         case M_EVENT_TYPE_ERROR:
+ *             M_io_destroy(io);
+ * 			cnt--;
+ *             if (cnt == 0 && mrl != NULL)
+ *                 CFRunLoopStop(mrl);
+ *             break;
+ *         case M_EVENT_TYPE_OTHER:
+ *             break;
+ *     }
+ * }
+ *
+ * static void scan_done_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+ * {
+ *     M_io_ble_enum_t *btenum;
+ * 	M_io_error_t     io_err;
+ *     size_t           len;
+ *     size_t           i;
+ *
+ *     (void)event;
+ *     (void)type;
+ *     (void)io;
+ *     (void)cb_arg;
+ *
+ *     btenum = M_io_ble_enum();
+ *
+ *     len = M_io_ble_enum_count(btenum);
+ *     for (i=0; i<len; i++) {
+ * 		M_io_t *dio = NULL;
+ *
+ * 		io_err = M_io_ble_create(&dio, M_io_ble_enum_identifier(btenum, i), 5000);
+ * 		if (io_err == M_IO_ERROR_SUCCESS) {
+ * 			M_event_add(el, dio, events, NULL);
+ * 			cnt++;
+ * 		}
+ *     }
+ *
+ * 	if (cnt == 0 && mrl != NULL)
+ * 		CFRunLoopStop(mrl);
+ *
+ *     M_io_ble_enum_destroy(btenum);
+ * }
+ *
+ * static void *run_el(void *arg)
+ * {
+ *     (void)arg;
+ *     M_event_loop(el, M_TIMEOUT_INF);
+ *     return NULL;
+ * }
+ *
+ * int main(int argc, char **argv)
+ * {
+ *     M_threadid_t     el_thread;
+ *     M_thread_attr_t *tattr;
+ *
+ *     el = M_event_create(M_EVENT_FLAG_NONE);
+ *
+ *     tattr = M_thread_attr_create();
+ *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
+ *     el_thread = M_thread_create(tattr, run_el, NULL);
+ *     M_thread_attr_destroy(tattr);
+ *
+ *     M_io_ble_scan(el, scan_done_cb, NULL, 15000);
+ *     mrl = CFRunLoopGetCurrent();
+ *     CFRunLoopRun();
+ *
+ *     M_event_done_with_disconnect(el, 0, 5*1000);
+ *     M_thread_join(el_thread, NULL);
+ *
+ *     return 0;
+ * }
+ * \endcode
+ *
+ *
  * #### Application that lists services and their characteristics for a specific device
  *
  * \code{.c}
@@ -409,18 +570,18 @@ __BEGIN_DECLS
  * //
  * // Run:
  * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
- * 
+ *
  * #include <mstdlib/mstdlib.h>
  * #include <mstdlib/mstdlib_thread.h>
  * #include <mstdlib/mstdlib_io.h>
  * #include <mstdlib/io/m_io_ble.h>
- * 
+ *
  * #include <CoreFoundation/CoreFoundation.h>
- * 
+ *
  * M_event_t    *el;
  * M_io_t       *dio;
  * CFRunLoopRef  mrl = NULL;
- * 
+ *
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_list_str_t *services;
@@ -429,15 +590,15 @@ __BEGIN_DECLS
  *     size_t        len2;
  *     size_t        i;
  *     size_t        j;
- * 
+ *
  *     (void)el;
  *     (void)io;
  *     (void)thunk;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED!!!\n");
- * 
+ *
  *             services = M_io_ble_get_services(dio);
  *             len      = M_list_str_len(services);
  *             for (i=0; i<len; i++) {
@@ -450,7 +611,7 @@ __BEGIN_DECLS
  *                 M_list_str_destroy(characteristics);
  *             }
  *             M_list_str_destroy(services);
- * 
+ *
  *             M_io_disconnect(dio);
  *             break;
  *         case M_EVENT_TYPE_DISCONNECTED:
@@ -467,36 +628,36 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * static void *run_el(void *arg)
  * {
  *     (void)arg;
  *     M_event_loop(el, M_TIMEOUT_INF);
  *     return NULL;
  * }
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_threadid_t     el_thread;
  *     M_thread_attr_t *tattr;
- * 
+ *
  *     el = M_event_create(M_EVENT_FLAG_NONE);
- * 
+ *
  *     tattr = M_thread_attr_create();
  *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
  *     el_thread = M_thread_create(tattr, run_el, NULL);
  *     M_thread_attr_destroy(tattr);
- * 
+ *
  *     // XXX: Set the id to the device you want to connect to.
  *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
  *     M_event_add(el, dio, events, NULL);
- * 
+ *
  *     mrl = CFRunLoopGetCurrent();
  *     CFRunLoopRun();
- * 
+ *
  *     M_event_done_with_disconnect(el, 0, 5*1000);
  *     M_thread_join(el_thread, NULL);
- * 
+ *
  *     return 0;
  * }
  * \endcode
@@ -619,18 +780,18 @@ __BEGIN_DECLS
  * //
  * // Run:
  * // DYLD_LIBRARY_PATH="../../build/lib/" ./a.out
- * 
+ *
  * #include <mstdlib/mstdlib.h>
  * #include <mstdlib/mstdlib_thread.h>
  * #include <mstdlib/mstdlib_io.h>
  * #include <mstdlib/io/m_io_ble.h>
- * 
+ *
  * #include <CoreFoundation/CoreFoundation.h>
- * 
+ *
  * M_event_t    *el;
  * M_io_t       *dio;
  * CFRunLoopRef  mrl = NULL;
- * 
+ *
  * void events(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  * {
  *     M_int64      rssi  = M_INT64_MIN;
@@ -639,15 +800,15 @@ __BEGIN_DECLS
  *     const char  *characteristic_uuid;
  *     char         msg[256];
  *     size_t       len;
- * 
+ *
  *     (void)el;
  *     (void)io;
  *     (void)thunk;
- * 
+ *
  *     switch (etype) {
  *         case M_EVENT_TYPE_CONNECTED:
  *             M_printf("CONNECTED!!!\n");
- * 
+ *
  *             // XXX: Set notify service and characteristic.
  *             meta = M_io_meta_create();
  *             M_io_ble_meta_set_write_type(dio, meta, M_IO_BLE_WTYPE_REQNOTIFY);
@@ -658,7 +819,7 @@ __BEGIN_DECLS
  *             break;
  *         case M_EVENT_TYPE_READ:
  *             meta = M_io_meta_create();
- * 
+ *
  *             if (M_io_read_meta(dio, msg, sizeof(msg), &len, meta) != M_IO_ERROR_SUCCESS) {
  *                 M_io_meta_destroy(meta);
  *                 break;
@@ -671,13 +832,13 @@ __BEGIN_DECLS
  *                 M_io_meta_destroy(meta);
  *                 break;
  *             }
- * 
+ *
  *             msg[len]            = '\0';
  *             service_uuid        = M_io_ble_meta_get_service(dio, meta);
  *             characteristic_uuid = M_io_ble_meta_get_characteristic(dio, meta);
- * 
+ *
  *             M_printf("%s - %s: %s\n", service_uuid, characteristic_uuid, msg);
- * 
+ *
  *             M_io_meta_destroy(meta);
  *             break;
  *         case M_EVENT_TYPE_WRITE:
@@ -697,36 +858,36 @@ __BEGIN_DECLS
  *             break;
  *     }
  * }
- * 
+ *
  * static void *run_el(void *arg)
  * {
  *     (void)arg;
  *     M_event_loop(el, M_TIMEOUT_INF);
  *     return NULL;
  * }
- * 
+ *
  * int main(int argc, char **argv)
  * {
  *     M_threadid_t     el_thread;
  *     M_thread_attr_t *tattr;
- * 
+ *
  *     el = M_event_create(M_EVENT_FLAG_NONE);
- * 
+ *
  *     tattr = M_thread_attr_create();
  *     M_thread_attr_set_create_joinable(tattr, M_TRUE);
  *     el_thread = M_thread_create(tattr, run_el, NULL);
  *     M_thread_attr_destroy(tattr);
- * 
+ *
  *     // XXX: Set the id to the device you want to connect to.
  *     M_io_ble_create(&dio, "92BD9AC6-3BC8-4B24-8BF8-AE583AFE3ED4", 5000);
  *     M_event_add(el, dio, events, NULL);
- * 
+ *
  *     mrl = CFRunLoopGetCurrent();
  *     CFRunLoopRun();
- * 
+ *
  *     M_event_done_with_disconnect(el, 0, 5*1000);
  *     M_thread_join(el_thread, NULL);
- * 
+ *
  *     return 0;
  * }
  * \endcode
@@ -961,6 +1122,22 @@ typedef enum {
 } M_io_ble_rtype_t;
 
 
+/*! Characteristic properties.
+ *
+ * This is the subset of properties currently supported and used
+ * for interaction with the device. Other types of properties, such
+ * as extended, properties or ones indicating encryption requirements
+ * are not currently included.
+ */
+typedef enum {
+	M_IO_BLE_PROPERTY_NONE        = 0,
+	M_IO_BLE_PROPERTY_READ        = 1 << 0,
+	M_IO_BLE_PROPERTY_WRITE       = 1 << 1,
+	M_IO_BLE_PROPERTY_WRITENORESP = 1 << 2,
+	M_IO_BLE_PROPERTY_NOTIFY      = 1 << 3
+} M_io_ble_property_t;
+
+
 struct M_io_ble_enum;
 typedef struct M_io_ble_enum M_io_ble_enum_t;
 
@@ -1100,6 +1277,24 @@ M_API M_io_error_t M_io_ble_create(M_io_t **io_out, const char *identifier, M_ui
 M_API M_io_error_t M_io_ble_create_with_service(M_io_t **io_out, const char *service_uuid, M_uint64 timeout_ms);
 
 
+/*! Get the device identifier
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
+M_API char *M_io_ble_get_identifier(M_io_t *io);
+
+
+/*! Get the device name
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
+M_API char *M_io_ble_get_name(M_io_t *io);
+
+
 /*! Get a list of service UUIDs provided by the device.
  *
  * \param[in] io io object.
@@ -1117,6 +1312,18 @@ M_API M_list_str_t *M_io_ble_get_services(M_io_t *io);
  * \return List of strings.
  */
 M_API M_list_str_t *M_io_ble_get_service_characteristics(M_io_t *io, const char *service_uuid);
+
+
+
+/*! Get the properties for the specific characteristic.
+ *
+ * \param[in] io io object.
+ * \param[in] service_uuid UUID of service.
+ * \param[in] characteristic_uuid UUID of characteristic.
+ *
+ * \return Properties
+ */
+M_API M_io_ble_property_t M_io_ble_get_characteristic_properties(M_io_t *io, const char *service_uuid, const char *characteristic_uuid);
 
 
 /*! Get the maximum write sizes from an io object.

@@ -1299,6 +1299,48 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 	return M_IO_ERROR_SUCCESS;
 }
 
+char *M_io_ble_get_device_identifier(const char *uuid)
+{
+	M_io_ble_device_t *dev;
+	CBPeripheral      *p;
+	char              *out;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return NULL;
+	}
+
+	p   = (__bridge CBPeripheral *)dev->peripheral;
+	out = M_strdup([[[p identifier] UUIDString] UTF8String]);
+
+	M_thread_mutex_unlock(lock);
+
+	return out;
+}
+
+char *M_io_ble_get_device_name(const char *uuid)
+{
+	M_io_ble_device_t *dev;
+	CBPeripheral      *p;
+	char              *out;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return NULL;
+	}
+
+	p   = (__bridge CBPeripheral *)dev->peripheral;
+	out = M_strdup([p.name UTF8String]);
+
+	M_thread_mutex_unlock(lock);
+
+	return out;
+}
+
 M_list_str_t *M_io_ble_get_device_services(const char *uuid)
 {
 	const char          *const_temp;
@@ -1355,6 +1397,49 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, cons
 	M_thread_mutex_unlock(lock);
 
 	return l;
+}
+
+M_io_ble_property_t M_io_ble_get_device_service_characteristic_properties(const char *uuid, const char *service_uuid, const char *characteristic_uuid)
+{
+	M_io_ble_device_t   *dev;
+	M_hash_strvp_t      *service;
+	void                *v;
+	CBCharacteristic    *c;
+	M_io_ble_property_t  props = M_IO_BLE_PROPERTY_NONE;
+
+	M_thread_mutex_lock(lock);
+
+	if (!M_hash_strvp_get(ble_devices, uuid, (void **)&dev)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_BLE_PROPERTY_NONE;
+	}
+
+	if (!M_hash_strvp_get(dev->services, service_uuid, (void **)&service)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_BLE_PROPERTY_NONE;
+	}
+
+	/* Check if the characteristic is valid and get it. */
+	if (!M_hash_strvp_get(service, characteristic_uuid, &v)) {
+		M_thread_mutex_unlock(lock);
+		return M_IO_BLE_PROPERTY_NONE;
+	}
+	c = (__bridge CBCharacteristic *)v;
+
+	if (c.properties & CBCharacteristicPropertyRead)
+		props |= M_IO_BLE_PROPERTY_READ;
+	if (c.properties & CBCharacteristicPropertyWrite)
+		props |= M_IO_BLE_PROPERTY_WRITE;
+	if (c.properties & CBCharacteristicPropertyWriteWithoutResponse)
+		props |= M_IO_BLE_PROPERTY_WRITENORESP;
+	if (c.properties & CBCharacteristicPropertyNotify)
+		props |= M_IO_BLE_PROPERTY_NOTIFY;
+	if (c.properties & CBCharacteristicPropertyIndicate)
+		props |= M_IO_BLE_PROPERTY_NOTIFY;
+
+	M_thread_mutex_unlock(lock);
+
+	return props;
 }
 
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response)
