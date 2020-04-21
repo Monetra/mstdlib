@@ -235,7 +235,7 @@ M_io_error_t M_io_ble_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 			if (M_str_isempty(service_uuid) || M_str_isempty(characteristic_uuid)) {
 				return M_IO_ERROR_INVALID;
 			}
-			/* Default to ture if not set. */
+			/* Default to true if not set. */
 			if (!M_hash_multi_u64_get_bool(mdata, M_IO_BLE_META_KEY_NOTIFY, &enable)) {
 				enable = M_TRUE;
 			}

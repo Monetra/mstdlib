@@ -40,6 +40,18 @@ M_io_error_t M_io_ble_set_device_notify(const char *uuid, const char *service_uu
 	return M_IO_ERROR_NOTIMPL;
 }
 
+char *M_io_ble_get_device_identifier(const char *uuid)
+{
+	(void)uuid;
+	return NULL;
+}
+
+char *M_io_ble_get_device_name(const char *uuid)
+{
+	(void)uuid;
+	return NULL;
+}
+
 M_list_str_t *M_io_ble_get_device_services(const char *uuid)
 {
 	(void)uuid;
@@ -51,6 +63,14 @@ M_list_str_t *M_io_ble_get_device_service_characteristics(const char *uuid, cons
 	(void)uuid;
 	(void)service_uuid;
 	return NULL;
+}
+
+M_io_ble_property_t M_io_ble_get_device_service_characteristic_properties(const char *uuid, const char *service_uuid, const char *characteristic_uuid)
+{
+	(void)uuid;
+	(void)service_uuid;
+	(void)characteristic_uuid;
+	return M_IO_BLE_PROPERTY_NONE;
 }
 
 void M_io_ble_get_device_max_write_sizes(const char *uuid, size_t *with_response, size_t *without_response)
