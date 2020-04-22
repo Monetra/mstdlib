@@ -190,7 +190,11 @@ M_email_error_t M_email_process_address(const char *val, M_email_error_t (*addre
 					goto done;
 				}
 			}
+
 			/* Ignore empty elements. */
+			M_str_explode_free(group, num_group);
+			group     = NULL;
+			num_group = 0;
 			continue;
 		}
 
@@ -203,16 +207,21 @@ M_email_error_t M_email_process_address(const char *val, M_email_error_t (*addre
 		M_free(temp);
 		M_free(group_name);
 		M_str_explode_free(addresses, num_addresses);
+		M_str_explode_free(group, num_group);
 		temp          = NULL;
 		group_name    = NULL;
 		addresses     = NULL;
 		num_addresses = 0;
+		group         = NULL;
+		num_group     = 0;
 	}
 
 done:
 	M_free(temp);
 	M_free(group_name);
 	M_str_explode_free(addresses, num_addresses);
+	M_str_explode_free(group, num_group);
+	M_str_explode_free(groups, num_groups);
 
 	return res;
 }
