@@ -153,7 +153,7 @@ static void M_thread_deinit(void *arg)
 {
 	(void)arg;
 
-	if (thread_model == M_THREAD_MODEL_INVALID || M_thread_count() != 0 || M_hash_u64vp_num_keys(threadid_map) != 0)
+	if (thread_model == M_THREAD_MODEL_INVALID || M_thread_count() != 0 || M_hash_u64vp_num_keys(threadid_map) > 1 /* Main thread is counted */)
 		return;
 
 	if (!M_thread_once_reset_int(&M_thread_init_once, M_TRUE))
