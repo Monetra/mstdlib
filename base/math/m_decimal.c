@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -62,7 +62,7 @@ M_int64 M_decimal_to_int(const M_decimal_t *dec, M_uint8 implied_dec)
 		return 0;
 
 	M_decimal_duplicate(&dupl, dec);
-	rv = M_decimal_transform(&dupl, implied_dec);
+	rv = M_decimal_transform(&dupl, implied_dec, M_DECIMAL_ROUND_TRADITIONAL);
 	if (rv != M_DECIMAL_SUCCESS && rv != M_DECIMAL_TRUNCATION)
 		return 0;
 
@@ -113,7 +113,7 @@ static M_NOINLINE enum M_DECIMAL_RETVAL M_decimal_mult_int64(M_int64 *out, M_int
 }
 
 
-static enum M_DECIMAL_RETVAL M_decimal_div_int64(M_int64 *out, M_int64 num, M_int64 denom, M_bool round)
+static enum M_DECIMAL_RETVAL M_decimal_div_int64(M_int64 *out, M_int64 num, M_int64 denom, M_decimal_round_t round)
 {
 	enum M_DECIMAL_RETVAL rv;
 	M_int64               moddenom;
@@ -131,10 +131,35 @@ static enum M_DECIMAL_RETVAL M_decimal_div_int64(M_int64 *out, M_int64 num, M_in
 	*out = num / denom;
 
 	/* Round */
-	if (round) {
+	if (round != M_DECIMAL_ROUND_NONE) {
 		moddenom = denom/10;
-		if (moddenom && (num / moddenom) % 10 >= 5)
-			(*out)++;
+		if (moddenom) {
+			M_uint8 digit = M_ABS(num / moddenom) % 10;
+			if (num > 0 && digit > 5) {
+				(*out)++;
+			} else if (num < 0 && digit > 5) {
+				(*out)--;
+			} else if (digit == 5) {
+				if (round == M_DECIMAL_ROUND_TRADITIONAL) {
+					if (num > 0) {
+						(*out)++;
+					} else {
+						(*out)--;
+					}
+				} else if (round == M_DECIMAL_ROUND_BANKERS) {
+					if ((M_ABS(*out) % 10) % 2) {
+						/* Digit is odd, round to even */
+						if (num > 0) {
+							(*out)++;
+						} else {
+							(*out)--;
+						}
+					} else {
+						/* Digit is even, do nothing */
+					}
+				}
+			}
+		}
 	}
 
 	rv = M_DECIMAL_SUCCESS;
@@ -155,7 +180,7 @@ static enum M_DECIMAL_RETVAL M_decimal_add_int64(M_int64 *out, M_int64 num1, M_i
 	    (num2 < 0 && num1 < M_INT64_MIN - num2)) {
 		return M_DECIMAL_OVERFLOW;
 	}
-	
+
 	*out = num1 + num2;
 	return M_DECIMAL_SUCCESS;
 }
@@ -175,7 +200,7 @@ static enum M_DECIMAL_RETVAL M_decimal_exp_int64(M_int64 *out, M_int64 num, M_ui
 }
 
 
-enum M_DECIMAL_RETVAL M_decimal_transform(M_decimal_t *dec, M_uint8 num_dec)
+enum M_DECIMAL_RETVAL M_decimal_transform(M_decimal_t *dec, M_uint8 num_dec, M_decimal_round_t round)
 {
 	enum M_DECIMAL_RETVAL rv    = M_DECIMAL_SUCCESS;
 	M_int64               opnum;
@@ -205,7 +230,7 @@ enum M_DECIMAL_RETVAL M_decimal_transform(M_decimal_t *dec, M_uint8 num_dec)
 		if (rv == M_DECIMAL_OVERFLOW)
 			return rv; /* Not possible, is it? */
 
-		rv = M_decimal_div_int64(&dec->num, dec->num, opnum, M_TRUE);
+		rv = M_decimal_div_int64(&dec->num, dec->num, opnum, round);
 	}
 	dec->num_dec = num_dec;
 	return rv;
@@ -272,8 +297,8 @@ static enum M_DECIMAL_RETVAL M_decimal_prepmath(M_decimal_t *tdec1, M_decimal_t 
 	num_dec    = wanted_dec;
 
 	do {
-		if (M_decimal_transform(tdec1, num_dec) != M_DECIMAL_OVERFLOW &&
-		    M_decimal_transform(tdec2, num_dec) != M_DECIMAL_OVERFLOW)
+		if (M_decimal_transform(tdec1, num_dec, M_DECIMAL_ROUND_TRADITIONAL) != M_DECIMAL_OVERFLOW &&
+		    M_decimal_transform(tdec2, num_dec, M_DECIMAL_ROUND_TRADITIONAL) != M_DECIMAL_OVERFLOW)
 			break;
 
 		/* Shouldn't be possible */
@@ -311,7 +336,7 @@ enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decimal_t *d
 	 * overflows */
 	for (i=0; ; i++) {
 		rv = M_decimal_mult_int64(&num, tdec1.num, tdec2.num);
-		
+
 		if (rv != M_DECIMAL_OVERFLOW)
 			break;
 
@@ -319,8 +344,8 @@ enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decimal_t *d
 			break;
 
 		/* reduce to avoid overflow */
-		M_decimal_transform(&tdec1, (M_uint8)(tdec1.num_dec - 1));
-		M_decimal_transform(&tdec2, (M_uint8)(tdec2.num_dec - 1));
+		M_decimal_transform(&tdec1, (M_uint8)(tdec1.num_dec - 1), M_DECIMAL_ROUND_TRADITIONAL);
+		M_decimal_transform(&tdec2, (M_uint8)(tdec2.num_dec - 1), M_DECIMAL_ROUND_TRADITIONAL);
 	}
 
 	if (rv != M_DECIMAL_SUCCESS)
@@ -338,7 +363,7 @@ enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decimal_t *d
 }
 
 
-enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
+enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2, M_decimal_round_t round)
 {
 	M_decimal_t           tdec1;
 	M_decimal_t           tdec2;
@@ -392,7 +417,7 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 		return rv;
 
 	/* Calculate the number after the decimal */
-	rv = M_decimal_div_int64(&afterdec, remexp, tdec2.num, M_TRUE);
+	rv = M_decimal_div_int64(&afterdec, remexp, tdec2.num, round);
 	if (rv != M_DECIMAL_SUCCESS && rv != M_DECIMAL_TRUNCATION)
 		return rv;
 
@@ -408,7 +433,7 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 			break;
 
 		/* Otherwise overflow occurred and we need to lose precision */
-		M_decimal_div_int64(&afterdec, afterdec, 10, M_TRUE);
+		M_decimal_div_int64(&afterdec, afterdec, 10, round);
 		wanted_dec--;
 	}
 
@@ -511,8 +536,8 @@ M_int8 M_decimal_cmp(const M_decimal_t *dec1, const M_decimal_t *dec2)
 		M_decimal_duplicate(&tdec1, dec1);
 		M_decimal_duplicate(&tdec2, dec2);
 
-		if (M_decimal_transform(&tdec1, num_dec) == M_DECIMAL_SUCCESS &&
-		    M_decimal_transform(&tdec2, num_dec) == M_DECIMAL_SUCCESS) {
+		if (M_decimal_transform(&tdec1, num_dec, M_DECIMAL_ROUND_TRADITIONAL) == M_DECIMAL_SUCCESS &&
+		    M_decimal_transform(&tdec2, num_dec, M_DECIMAL_ROUND_TRADITIONAL) == M_DECIMAL_SUCCESS) {
 			break;
 		}
 		num_dec--;
@@ -602,7 +627,7 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 		len_left = len - num_read;
 
 		/* Read in a loop.  If the read causes an overflow, read one less
-		 * until it no longer overflows.  Save the original end position 
+		 * until it no longer overflows.  Save the original end position
 		 * though for further processing (exponents) */
 		while (len_left) {
 			intrv = M_str_to_int64_ex(ptr, len_left, 10, &afterdec, &temp);
@@ -622,6 +647,10 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 		/* If the number read is negative, invalid format! */
 		if (afterdec < 0)
 			return M_DECIMAL_INVALID;
+
+		/* But make negative if before decimal was */
+		if (num < 0)
+			afterdec *= -1;
 	} else {
 		end = ptr;
 	}
@@ -649,7 +678,7 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 				break;
 			}
 
-			M_decimal_div_int64(&afterdec, afterdec, 10, M_FALSE);
+			M_decimal_div_int64(&afterdec, afterdec, 10, M_DECIMAL_ROUND_NONE);
 			num_digits--;
 			rv = M_DECIMAL_TRUNCATION;
 		}
@@ -659,7 +688,7 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 				break;
 			}
 			/* Overflow, need to reduce num_digits */
-			M_decimal_div_int64(&afterdec, afterdec, 10, M_FALSE);
+			M_decimal_div_int64(&afterdec, afterdec, 10, M_DECIMAL_ROUND_NONE);
 			num_digits--;
 			rv = M_DECIMAL_TRUNCATION;
 		} else {

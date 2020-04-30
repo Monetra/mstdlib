@@ -255,7 +255,7 @@ M_sql_report_cberror_t M_sql_report_cell_cb_int5min2dec(M_sql_stmt_t *stmt, void
 	/* Make sure we have at least 2 decimal places */
 	num_dec = M_decimal_num_decimals(&dec);
 	if (num_dec < 2) {
-		M_decimal_transform(&dec, 2);
+		M_decimal_transform(&dec, 2, M_DECIMAL_ROUND_TRADITIONAL);
 		num_dec = 2;
 	}
 
