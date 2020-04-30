@@ -106,6 +106,15 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:ga7c1d6ded689031ea022be05e0a3bcbd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf6e9b1916d95063c37be9ac5ce101cc7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a> { <br />
+&#160;&#160;<a class="el" href="group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ae62798c5f10891df49f5e6383b94b901">M_DECIMAL_ROUND_NONE</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ab1f0db264736d944a2335237027f0370">M_DECIMAL_ROUND_TRADITIONAL</a> = 1, 
+<br />
+&#160;&#160;<a class="el" href="group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ae5d087e225bcda6e9f3ccc4a1801184d">M_DECIMAL_ROUND_BANKERS</a> = 2
+<br />
+ }</td></tr>
+<tr class="separator:gaf6e9b1916d95063c37be9ac5ce101cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -121,8 +130,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaaea26bb8cb5cbc58327617f3170cb2b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga173a205d8dc5e0751a3011fd898c853c"><td class="memItemLeft" align="right" valign="top">M_int8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#ga173a205d8dc5e0751a3011fd898c853c">M_decimal_cmp</a> (const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2)</td></tr>
 <tr class="separator:ga173a205d8dc5e0751a3011fd898c853c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac8dff6bf82fd9592d4d4d1b28826b8d8"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gac8dff6bf82fd9592d4d4d1b28826b8d8">M_decimal_transform</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec, M_uint8 num_dec)</td></tr>
-<tr class="separator:gac8dff6bf82fd9592d4d4d1b28826b8d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac837b20353e7fa3ac93b1693deed9c06"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gac837b20353e7fa3ac93b1693deed9c06">M_decimal_transform</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec, M_uint8 num_dec, <a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a> round)</td></tr>
+<tr class="separator:gac837b20353e7fa3ac93b1693deed9c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafbc4191eb80a01009fa1c441d5061154"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gafbc4191eb80a01009fa1c441d5061154">M_decimal_reduce</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec)</td></tr>
 <tr class="separator:gafbc4191eb80a01009fa1c441d5061154"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa1fa2c6423593cdcb06a4a632d1ec6a7"><td class="memItemLeft" align="right" valign="top">M_uint8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gaa1fa2c6423593cdcb06a4a632d1ec6a7">M_decimal_num_decimals</a> (const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec)</td></tr>
@@ -131,8 +140,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga72a803b07b44725ede417fec1f5cd4e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf73b6337a16661de7680b6f2e549d288"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gaf73b6337a16661de7680b6f2e549d288">M_decimal_multiply</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dest, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2)</td></tr>
 <tr class="separator:gaf73b6337a16661de7680b6f2e549d288"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga34a9b045d125d56edec63824b5b85cec"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#ga34a9b045d125d56edec63824b5b85cec">M_decimal_divide</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dest, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2)</td></tr>
-<tr class="separator:ga34a9b045d125d56edec63824b5b85cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga61891f5b801920d1badc787455369acf"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#ga61891f5b801920d1badc787455369acf">M_decimal_divide</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dest, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2, <a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a> round)</td></tr>
+<tr class="separator:ga61891f5b801920d1badc787455369acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac8b8ad41e4fd21f115526033ac92e154"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#gac8b8ad41e4fd21f115526033ac92e154">M_decimal_subtract</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dest, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2)</td></tr>
 <tr class="separator:gac8b8ad41e4fd21f115526033ac92e154"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga430951ffc555522486ff38de08dbe825"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8">M_DECIMAL_RETVAL</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__decimal.html#ga430951ffc555522486ff38de08dbe825">M_decimal_add</a> (<a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dest, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec1, const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *dec2)</td></tr>
@@ -197,6 +206,29 @@ num_dec</td>
 <tr><td class="fieldname"><a id="gga7c1d6ded689031ea022be05e0a3bcbd8a7be3a9e6220a09c482aa3d020bbb2632"></a>M_DECIMAL_TRUNCATION&#160;</td><td class="fielddoc"><p>The result was truncated/rounded in order to approximate the best result. This is true on most divide operations. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga7c1d6ded689031ea022be05e0a3bcbd8aa695d03e99d1f23a3dd72cad3b5207dc"></a>M_DECIMAL_INVALID&#160;</td><td class="fielddoc"><p>Invalid data. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="gaf6e9b1916d95063c37be9ac5ce101cc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf6e9b1916d95063c37be9ac5ce101cc7">&#9670;&nbsp;</a></span>M_decimal_round_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Rounding formula </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggaf6e9b1916d95063c37be9ac5ce101cc7ae62798c5f10891df49f5e6383b94b901"></a>M_DECIMAL_ROUND_NONE&#160;</td><td class="fielddoc"><p>Truncate </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf6e9b1916d95063c37be9ac5ce101cc7ab1f0db264736d944a2335237027f0370"></a>M_DECIMAL_ROUND_TRADITIONAL&#160;</td><td class="fielddoc"><p>Traditional, aka Round Half away from Zero. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf6e9b1916d95063c37be9ac5ce101cc7ae5d087e225bcda6e9f3ccc4a1801184d"></a>M_DECIMAL_ROUND_BANKERS&#160;</td><td class="fielddoc"><p>Bankers, aka Round Half to Even </p>
 </td></tr>
 </table>
 
@@ -440,8 +472,8 @@ num_dec</td>
 
 </div>
 </div>
-<a id="gac8dff6bf82fd9592d4d4d1b28826b8d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac8dff6bf82fd9592d4d4d1b28826b8d8">&#9670;&nbsp;</a></span>M_decimal_transform()</h2>
+<a id="gac837b20353e7fa3ac93b1693deed9c06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac837b20353e7fa3ac93b1693deed9c06">&#9670;&nbsp;</a></span>M_decimal_transform()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -456,7 +488,13 @@ num_dec</td>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">M_uint8&#160;</td>
-          <td class="paramname"><em>num_dec</em>&#160;</td>
+          <td class="paramname"><em>num_dec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a>&#160;</td>
+          <td class="paramname"><em>round</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -469,7 +507,8 @@ num_dec</td>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">dec</td><td>Decimal type. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">num_dec</td><td>Number of decimal places number should be transformed to.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">num_dec</td><td>Number of decimal places number should be transformed to. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">round</td><td>Round method to use when rounding.</td></tr>
   </table>
   </dd>
 </dl>
@@ -609,8 +648,8 @@ num_dec</td>
 
 </div>
 </div>
-<a id="ga34a9b045d125d56edec63824b5b85cec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga34a9b045d125d56edec63824b5b85cec">&#9670;&nbsp;</a></span>M_decimal_divide()</h2>
+<a id="ga61891f5b801920d1badc787455369acf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga61891f5b801920d1badc787455369acf">&#9670;&nbsp;</a></span>M_decimal_divide()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -631,7 +670,13 @@ num_dec</td>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="group__m__decimal.html#structM__decimal__t">M_decimal_t</a> *&#160;</td>
-          <td class="paramname"><em>dec2</em>&#160;</td>
+          <td class="paramname"><em>dec2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7">M_decimal_round_t</a>&#160;</td>
+          <td class="paramname"><em>round</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -646,7 +691,8 @@ num_dec</td>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">dest</td><td>New decimal with result. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dec1</td><td>First decimal (numerator). </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dec2</td><td>Second decimal (denominator).</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dec2</td><td>Second decimal (denominator). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">round</td><td>The result may not be able to be represented fully, select the rounding method if truncated.</td></tr>
   </table>
   </dd>
 </dl>
@@ -749,7 +795,7 @@ num_dec</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Apr 23 2020 11:58:44 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Apr 30 2020 03:10:51 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

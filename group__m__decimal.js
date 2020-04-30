@@ -10,18 +10,23 @@ var group__m__decimal =
       [ "M_DECIMAL_TRUNCATION", "group__m__decimal.html#gga7c1d6ded689031ea022be05e0a3bcbd8a7be3a9e6220a09c482aa3d020bbb2632", null ],
       [ "M_DECIMAL_INVALID", "group__m__decimal.html#gga7c1d6ded689031ea022be05e0a3bcbd8aa695d03e99d1f23a3dd72cad3b5207dc", null ]
     ] ],
+    [ "M_decimal_round_t", "group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7", [
+      [ "M_DECIMAL_ROUND_NONE", "group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ae62798c5f10891df49f5e6383b94b901", null ],
+      [ "M_DECIMAL_ROUND_TRADITIONAL", "group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ab1f0db264736d944a2335237027f0370", null ],
+      [ "M_DECIMAL_ROUND_BANKERS", "group__m__decimal.html#ggaf6e9b1916d95063c37be9ac5ce101cc7ae5d087e225bcda6e9f3ccc4a1801184d", null ]
+    ] ],
     [ "M_decimal_create", "group__m__decimal.html#ga3de2ad050804e2b619d07babb7d91bf0", null ],
     [ "M_decimal_from_int", "group__m__decimal.html#gaa450d5e6421111623119a8873979f184", null ],
     [ "M_decimal_to_int", "group__m__decimal.html#ga48a94a7bba03656f9139db70d1388bb8", null ],
     [ "M_decimal_from_str", "group__m__decimal.html#ga9404f5e38cf5241e0edc65f30fb5ccc6", null ],
     [ "M_decimal_to_str", "group__m__decimal.html#gaaea26bb8cb5cbc58327617f3170cb2b3", null ],
     [ "M_decimal_cmp", "group__m__decimal.html#ga173a205d8dc5e0751a3011fd898c853c", null ],
-    [ "M_decimal_transform", "group__m__decimal.html#gac8dff6bf82fd9592d4d4d1b28826b8d8", null ],
+    [ "M_decimal_transform", "group__m__decimal.html#gac837b20353e7fa3ac93b1693deed9c06", null ],
     [ "M_decimal_reduce", "group__m__decimal.html#gafbc4191eb80a01009fa1c441d5061154", null ],
     [ "M_decimal_num_decimals", "group__m__decimal.html#gaa1fa2c6423593cdcb06a4a632d1ec6a7", null ],
     [ "M_decimal_duplicate", "group__m__decimal.html#ga72a803b07b44725ede417fec1f5cd4e5", null ],
     [ "M_decimal_multiply", "group__m__decimal.html#gaf73b6337a16661de7680b6f2e549d288", null ],
-    [ "M_decimal_divide", "group__m__decimal.html#ga34a9b045d125d56edec63824b5b85cec", null ],
+    [ "M_decimal_divide", "group__m__decimal.html#ga61891f5b801920d1badc787455369acf", null ],
     [ "M_decimal_subtract", "group__m__decimal.html#gac8b8ad41e4fd21f115526033ac92e154", null ],
     [ "M_decimal_add", "group__m__decimal.html#ga430951ffc555522486ff38de08dbe825", null ]
 ];

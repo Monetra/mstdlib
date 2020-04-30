@@ -12,6 +12,7 @@ var searchData=
   ['m_5fcache_5fstrvp_5fflags_5ft',['M_cache_strvp_flags_t',['../group__m__cache__strvp.html#ga654b978ed67d7e79215418d38dd39510',1,'m_cache_strvp.h']]],
   ['m_5fcsv_5fflags',['M_CSV_FLAGS',['../group__m__csv.html#gade9466bcfd2428a9884ca62ccf01926e',1,'m_csv.h']]],
   ['m_5fdecimal_5fretval',['M_DECIMAL_RETVAL',['../group__m__decimal.html#ga7c1d6ded689031ea022be05e0a3bcbd8',1,'m_decimal.h']]],
+  ['m_5fdecimal_5fround_5ft',['M_decimal_round_t',['../group__m__decimal.html#gaf6e9b1916d95063c37be9ac5ce101cc7',1,'m_decimal.h']]],
   ['m_5femail_5fdata_5fformat_5ft',['M_email_data_format_t',['../group__m__email.html#ga7e76feb375db757f20e7f6feef5c33f8',1,'m_email.h']]],
   ['m_5femail_5ferror_5ft',['M_email_error_t',['../group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34',1,'m_email.h']]],
   ['m_5femail_5freader_5fflags_5ft',['M_email_reader_flags_t',['../group__m__email__reader.html#ga47c6d87c30d33a3eadf8192be2d12722',1,'m_email.h']]],
