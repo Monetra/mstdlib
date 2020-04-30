@@ -40,6 +40,14 @@ __BEGIN_DECLS
  *
  * Mostly EMCA-404 compliant JSON manipulation.
  *
+ * Number handling while writing:
+ * - Integrals are limited a range of -(2^53)+1 to (2^53)-1 for Java Script
+ *   compatibility. Larger numbers will be encoded as a string.
+ * - Decimals are limited to 15 places for Java Script compatibility. Larger
+ *   precision decimals will be encoded as strings.
+ * - Number to string compatibility conversion can be disabled with the
+ *   M_JSON_WRITER_NUMBER_NOCOMPAT flag.
+ *
  * Additional Features:
  * - Comments (C/C++)
  *
@@ -130,7 +138,9 @@ typedef enum {
 	                                                    Requires space or tab pretty printing. */
 	M_JSON_WRITER_DONT_ENCODE_UNICODE    = 1 << 3, /*!< By default utf-8 characters will be enocded into unicode
 	                                                    escapes. */
-	M_JSON_WRITER_REPLACE_BAD_CHARS      = 1 << 4  /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
+	M_JSON_WRITER_REPLACE_BAD_CHARS      = 1 << 4, /*!< Replace bad characters (invalid utf-8 sequences with "?"). */
+	M_JSON_WRITER_NUMBER_NOCOMPAT        = 1 << 5  /*!< Write numbers as they are instead of limiting to Java Script
+	                                                    minimum and maximum sizes. */
 } M_json_writer_flags_t;
 
 
