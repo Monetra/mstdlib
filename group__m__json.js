@@ -25,7 +25,8 @@ var group__m__json =
       [ "M_JSON_WRITER_PRETTYPRINT_TAB", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca0058d4f0750cebe6e4c826e910ddf252", null ],
       [ "M_JSON_WRITER_PRETTYPRINT_WINLINEEND", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c", null ],
       [ "M_JSON_WRITER_DONT_ENCODE_UNICODE", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f", null ],
-      [ "M_JSON_WRITER_REPLACE_BAD_CHARS", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7", null ]
+      [ "M_JSON_WRITER_REPLACE_BAD_CHARS", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7", null ],
+      [ "M_JSON_WRITER_NUMBER_NOCOMPAT", "group__m__json.html#gga63635736f37f73ef0c594496bed1ca7cadd14765451e19941496f0df12a908eca", null ]
     ] ],
     [ "M_json_error_t", "group__m__json.html#gaa8f38cc98ce6c3d373a95c613d721b06", [
       [ "M_JSON_ERROR_SUCCESS", "group__m__json.html#ggaa8f38cc98ce6c3d373a95c613d721b06a27efbfb292692fadf0e7fed299e05dba", null ],

@@ -519,6 +519,7 @@ var searchData=
   ['m_5fjson_5ftype_5funknown',['M_JSON_TYPE_UNKNOWN',['../group__m__json.html#gga5defb18ee28b514f10247a1fb2dbf6f7ae30ce0a289248902fefd9c1ccff6d5c9',1,'m_json.h']]],
   ['m_5fjson_5fwriter_5fdont_5fencode_5funicode',['M_JSON_WRITER_DONT_ENCODE_UNICODE',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f',1,'m_json.h']]],
   ['m_5fjson_5fwriter_5fnone',['M_JSON_WRITER_NONE',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7cafef85b99e167e01357f491f25b9deaa9',1,'m_json.h']]],
+  ['m_5fjson_5fwriter_5fnumber_5fnocompat',['M_JSON_WRITER_NUMBER_NOCOMPAT',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7cadd14765451e19941496f0df12a908eca',1,'m_json.h']]],
   ['m_5fjson_5fwriter_5fprettyprint_5fspace',['M_JSON_WRITER_PRETTYPRINT_SPACE',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca80389bc0ddaa5178ecb7ef7870a0cc8e',1,'m_json.h']]],
   ['m_5fjson_5fwriter_5fprettyprint_5ftab',['M_JSON_WRITER_PRETTYPRINT_TAB',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca0058d4f0750cebe6e4c826e910ddf252',1,'m_json.h']]],
   ['m_5fjson_5fwriter_5fprettyprint_5fwinlineend',['M_JSON_WRITER_PRETTYPRINT_WINLINEEND',['../group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca43e373143cf64a1076992f66b699320c',1,'m_json.h']]],

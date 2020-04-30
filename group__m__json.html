@@ -140,7 +140,9 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f">M_JSON_WRITER_DONT_ENCODE_UNICODE</a> = 1 &lt;&lt; 3, 
 <br />
-&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7">M_JSON_WRITER_REPLACE_BAD_CHARS</a> = 1 &lt;&lt; 4
+&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7">M_JSON_WRITER_REPLACE_BAD_CHARS</a> = 1 &lt;&lt; 4, 
+<br />
+&#160;&#160;<a class="el" href="group__m__json.html#gga63635736f37f73ef0c594496bed1ca7cadd14765451e19941496f0df12a908eca">M_JSON_WRITER_NUMBER_NOCOMPAT</a> = 1 &lt;&lt; 5
 <br />
  }</td></tr>
 <tr class="separator:ga63635736f37f73ef0c594496bed1ca7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -305,6 +307,11 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Mostly EMCA-404 compliant JSON manipulation.</p>
+<p>Number handling while writing:</p><ul>
+<li>Integrals are limited a range of -(2^53)+1 to (2^53)-1 for Java Script compatibility. Larger numbers will be encoded as a string.</li>
+<li>Decimals are limited to 15 places for Java Script compatibility. Larger precision decimals will be encoded as strings.</li>
+<li>Number to string compatibility conversion can be disabled with the M_JSON_WRITER_NUMBER_NOCOMPAT flag.</li>
+</ul>
 <p>Additional Features:</p><ul>
 <li>Comments (C/C++)</li>
 </ul>
@@ -412,6 +419,8 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="gga63635736f37f73ef0c594496bed1ca7ca1a63a3c1409ab3dcdc6ffc5d1ea3397f"></a>M_JSON_WRITER_DONT_ENCODE_UNICODE&#160;</td><td class="fielddoc"><p>By default utf-8 characters will be enocded into unicode escapes. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="gga63635736f37f73ef0c594496bed1ca7ca8d7a4c69464c372b62ab8aea60015bc7"></a>M_JSON_WRITER_REPLACE_BAD_CHARS&#160;</td><td class="fielddoc"><p>Replace bad characters (invalid utf-8 sequences with "?"). </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga63635736f37f73ef0c594496bed1ca7cadd14765451e19941496f0df12a908eca"></a>M_JSON_WRITER_NUMBER_NOCOMPAT&#160;</td><td class="fielddoc"><p>Write numbers as they are instead of limiting to Java Script minimum and maximum sizes. </p>
 </td></tr>
 </table>
 
@@ -2374,7 +2383,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Apr 30 2020 03:10:51 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Apr 30 2020 20:07:10 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
