@@ -29,6 +29,9 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_int64 JAVASCRIPT_MIN_INT = -(2^53)+1;
+static M_int64 JAVASCRIPT_MAX_INT = (2^53)-1;
+
 static M_bool M_json_write_node(const M_json_node_t *node, M_buf_t *buf, size_t *depth, M_uint32 flags);
 
 static void M_json_write_depth(M_buf_t *buf, size_t *depth, M_uint32 flags)
@@ -210,19 +213,43 @@ static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf, 
 	return M_TRUE;
 }
 
-static M_bool M_json_write_node_integer(const M_json_node_t *node, M_buf_t *buf)
+static M_bool M_json_write_node_integer(const M_json_node_t *node, M_buf_t *buf, M_uint32 flags)
 {
 	if (buf == NULL || node == NULL || node->type != M_JSON_TYPE_INTEGER)
 		return M_FALSE;
+
+	if (!(flags & M_JSON_WRITER_NUMBER_NOCOMPAT) && (node->data.json_integer < JAVASCRIPT_MIN_INT || node->data.json_integer > JAVASCRIPT_MAX_INT))
+		M_buf_add_byte(buf, '"');
+
 	M_buf_add_int(buf, node->data.json_integer);
+
+	if (node->data.json_integer < JAVASCRIPT_MIN_INT || node->data.json_integer > JAVASCRIPT_MAX_INT)
+		M_buf_add_byte(buf, '"');
+
 	return M_TRUE;
 }
 
-static M_bool M_json_write_node_decimal(const M_json_node_t *node, M_buf_t *buf) 
+static M_bool M_json_write_node_decimal(const M_json_node_t *node, M_buf_t *buf, M_uint32 flags)
 {
+	M_int64 i64v;
+	M_uint8 num_places;
+	M_bool  ret;
+
 	if (buf == NULL || node == NULL || node->type != M_JSON_TYPE_DECIMAL)
 		return M_FALSE;
-	return M_buf_add_decimal(buf, &(node->data.json_decimal), M_FALSE, -1, 0);
+
+	i64v       = M_decimal_to_int(&(node->data.json_decimal), 0);
+	num_places = M_decimal_num_decimals(&(node->data.json_decimal));
+
+	if (!(flags & M_JSON_WRITER_NUMBER_NOCOMPAT) && (num_places > 15 || i64v < JAVASCRIPT_MIN_INT || i64v > JAVASCRIPT_MAX_INT))
+		M_buf_add_byte(buf, '"');
+
+	ret = M_buf_add_decimal(buf, &(node->data.json_decimal), M_FALSE, -1, 0);
+
+	if (!(flags & M_JSON_WRITER_NUMBER_NOCOMPAT) && (num_places > 15 || i64v < JAVASCRIPT_MIN_INT || i64v > JAVASCRIPT_MAX_INT))
+		M_buf_add_byte(buf, '"');
+
+	return ret;
 }
 
 static M_bool M_json_write_node_bool(const M_json_node_t *node, M_buf_t *buf)
@@ -260,9 +287,9 @@ static M_bool M_json_write_node(const M_json_node_t *node, M_buf_t *buf, size_t 
 		case M_JSON_TYPE_STRING:
 			return M_json_write_node_string(node, buf, flags);
 		case M_JSON_TYPE_INTEGER:
-			return M_json_write_node_integer(node, buf);
+			return M_json_write_node_integer(node, buf, flags);
 		case M_JSON_TYPE_DECIMAL:
-			return M_json_write_node_decimal(node, buf);
+			return M_json_write_node_decimal(node, buf, flags);
 		case M_JSON_TYPE_BOOL:
 			return M_json_write_node_bool(node, buf);
 		case M_JSON_TYPE_NULL:
