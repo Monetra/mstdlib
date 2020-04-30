@@ -341,7 +341,7 @@ START_TEST(check_json_reader_flags)
 		} else {
 			ck_assert_msg(json != NULL, "JSON (%zu) '%s' could not be parsed: %d", i, check_json_reader_flags_data[i].data, error);
 			if (check_json_reader_flags_data[i].out != NULL) {
-				out = M_json_write(json, M_JSON_WRITER_NONE, NULL);
+				out = M_json_write(json, M_JSON_WRITER_NUMBER_NOCOMPAT, NULL);
 				ck_assert_msg(M_str_eq(out, check_json_reader_flags_data[i].out), "Output not as expected (%zu):\ngot='%s'\nexpected='%s'", i, out, check_json_reader_flags_data[i].out);
 				M_free(out);
 			}
@@ -826,6 +826,35 @@ START_TEST(check_json_object_get_string)
 }
 END_TEST
 
+START_TEST(check_json_large_number)
+{
+	M_json_node_t *json;
+	M_decimal_t    dec;
+	const char    *lnum     = "1.123456789012345678";
+	const char    *lnum2    = "922337203685477580.1";
+	char          *out;
+	const char    *expected = "[\"9223372036854775806\",\"1.123456789012345678\",\"922337203685477580.1\",1]";
+
+	json = M_json_node_create(M_JSON_TYPE_ARRAY);
+
+	M_json_array_insert_int(json, 9223372036854775806LL);
+
+	M_decimal_from_str(lnum, M_str_len(lnum), &dec, NULL);
+	M_json_array_insert_decimal(json, &dec);
+
+	M_decimal_from_str(lnum2, M_str_len(lnum2), &dec, NULL);
+	M_json_array_insert_decimal(json, &dec);
+
+	M_json_array_insert_int(json, 1);
+
+	out = M_json_write(json, M_JSON_WRITER_NONE, NULL);
+	ck_assert_msg(M_str_eq(out, expected), "Number compat failure:\ngot='%s'\nexpected='%s'", out, expected);
+
+	M_free(out);
+	M_json_node_destroy(json);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_json_suite(void)
@@ -842,6 +871,7 @@ Suite *M_json_suite(void)
 	TCase *tc_json_parent_array;
 	TCase *tc_json_object_unique_keys;
 	TCase *tc_json_object_get_string;
+	TCase *tc_json_large_number;
 
 	suite = suite_create("json");
 
@@ -899,6 +929,11 @@ Suite *M_json_suite(void)
 	tcase_add_test(tc_json_object_get_string, check_json_object_get_string);
 	tcase_set_timeout(tc_json_object_get_string, 300);
 	suite_add_tcase(suite, tc_json_object_get_string);
+
+	tc_json_large_number = tcase_create("check_json_large_number");
+	tcase_add_test(tc_json_large_number, check_json_large_number);
+	tcase_set_timeout(tc_json_large_number, 300);
+	suite_add_tcase(suite, tc_json_large_number);
 
 	return suite;
 }
