@@ -321,7 +321,8 @@ M_csv_t *M_csv_parse_inplace(char *data, size_t len, char delim, char quote, M_u
 
 M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uint32 flags)
 {
-	char *out;
+	M_csv_t *csv;
+	char    *out;
 
 	if (data == NULL || len == 0)
 		return NULL;
@@ -331,7 +332,10 @@ M_csv_t *M_csv_parse(const char *data, size_t len, char delim, char quote, M_uin
 	M_mem_copy(out, data, len);
 	out[len] = 0;
 
-	return M_csv_parse_inplace(out, len, delim, quote, flags);
+	csv = M_csv_parse_inplace(out, len, delim, quote, flags);
+	if (csv == NULL)
+		M_free(out);
+	return csv;
 }
 
 
