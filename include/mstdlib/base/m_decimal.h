@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -91,6 +91,12 @@ enum M_DECIMAL_RETVAL {
 	M_DECIMAL_INVALID    = 3  /*!< Invalid data. */
 };
 
+/*! Rounding formula */
+typedef enum {
+	M_DECIMAL_ROUND_NONE        = 0, /*!< Truncate */
+	M_DECIMAL_ROUND_TRADITIONAL = 1, /*!< Traditional, aka Round Half away from Zero. */
+	M_DECIMAL_ROUND_BANKERS     = 2, /*!< Bankers, aka Round Half to Even */
+} M_decimal_round_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -163,10 +169,11 @@ M_API M_int8 M_decimal_cmp(const M_decimal_t *dec1, const M_decimal_t *dec2);
  *
  * \param[in,out] dec     Decimal type.
  * \param[in]     num_dec Number of decimal places number should be transformed to.
+ * \param[in]     round   Round method to use when rounding.
  *
  * \return One of the enum M_DECIMAL_RETVAL values.
  */
-M_API enum M_DECIMAL_RETVAL M_decimal_transform(M_decimal_t *dec, M_uint8 num_dec);
+M_API enum M_DECIMAL_RETVAL M_decimal_transform(M_decimal_t *dec, M_uint8 num_dec, M_decimal_round_t round);
 
 
 /*! Reduce the decimal representation to the smallest number of decimal places
@@ -215,13 +222,14 @@ M_API enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decima
  * The destination and one of the sources may be the same. The number of resulting decimal places will be the same as
  * the largest input.
  *
- * \param[out] dest New decimal with result.
- * \param[in]  dec1 First decimal (numerator).
- * \param[in]  dec2 Second decimal (denominator).
+ * \param[out] dest  New decimal with result.
+ * \param[in]  dec1  First decimal (numerator).
+ * \param[in]  dec2  Second decimal (denominator).
+ * \param[in]  round The result may not be able to be represented fully, select the rounding method if truncated.
  *
  * \return One of the enum M_DECIMAL_RETVAL values.
  */
-M_API enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2);
+M_API enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2, M_decimal_round_t round);
 
 
 /*! Subtract two decimals, putting the result in dest.

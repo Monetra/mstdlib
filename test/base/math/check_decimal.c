@@ -40,20 +40,39 @@ struct math_test {
 	const char             *r;
 };
 
+static enum M_DECIMAL_RETVAL M_decimal_divide_trad(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
+{
+	return M_decimal_divide(dest, dec1, dec2, M_DECIMAL_ROUND_TRADITIONAL);
+}
+
+static enum M_DECIMAL_RETVAL M_decimal_transform_trad(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
+{
+	M_decimal_duplicate(dest, dec1);
+
+	return M_decimal_transform(dest, (M_uint8)M_decimal_to_int(dec2, 0), M_DECIMAL_ROUND_TRADITIONAL);
+}
+
+static enum M_DECIMAL_RETVAL M_decimal_transform_bank(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
+{
+	M_decimal_duplicate(dest, dec1);
+
+	return M_decimal_transform(dest, (M_uint8)M_decimal_to_int(dec2, 0), M_DECIMAL_ROUND_BANKERS);
+}
+
 static const struct math_test math_tests[] = {
 	/* Basic tests, no decimal places */
 	{ "1", "1", M_decimal_add,      M_DECIMAL_SUCCESS, "2" },
 	{ "1", "1", M_decimal_subtract, M_DECIMAL_SUCCESS, "0" },
 	{ "2", "2", M_decimal_multiply, M_DECIMAL_SUCCESS, "4" },
-	{ "9", "3", M_decimal_divide,   M_DECIMAL_SUCCESS, "3" },
-	{ "9", "0", M_decimal_divide,   M_DECIMAL_INVALID, "0" },
+	{ "9", "3", M_decimal_divide_trad, M_DECIMAL_SUCCESS, "3" },
+	{ "9", "0", M_decimal_divide_trad, M_DECIMAL_INVALID, "0" },
 
 	/* Simple tests */
-	{ "1.1",        "1.1",       M_decimal_add,      M_DECIMAL_SUCCESS,  "2.2"   },
- 	{ "2.2",        "1.1",       M_decimal_subtract, M_DECIMAL_SUCCESS,  "1.1"   },
-	{ "2.2",        "2.2",       M_decimal_multiply, M_DECIMAL_SUCCESS,  "4.84"  },
-	{ "1.23",       "5",         M_decimal_divide,   M_DECIMAL_SUCCESS,  "0.246" },
-	{ "1.01",       "0.001",     M_decimal_add,      M_DECIMAL_SUCCESS,  "1.011" },
+	{ "1.1",        "1.1",       M_decimal_add,         M_DECIMAL_SUCCESS,  "2.2"   },
+ 	{ "2.2",        "1.1",       M_decimal_subtract,    M_DECIMAL_SUCCESS,  "1.1"   },
+	{ "2.2",        "2.2",       M_decimal_multiply,    M_DECIMAL_SUCCESS,  "4.84"  },
+	{ "1.23",       "5",         M_decimal_divide_trad, M_DECIMAL_SUCCESS,  "0.246" },
+	{ "1.01",       "0.001",     M_decimal_add,         M_DECIMAL_SUCCESS,  "1.011" },
 
 	/* Range */
 	{ "9223372036854775807",  "0",     M_decimal_add,      M_DECIMAL_SUCCESS, "9223372036854775807"  },
@@ -63,10 +82,10 @@ static const struct math_test math_tests[] = {
 	{ "9223372036854775.807", "0.807", M_decimal_subtract, M_DECIMAL_SUCCESS, "9223372036854775"     },
 
 	/* Overflow */
-	{ "922337203685477580",   "11", M_decimal_multiply, M_DECIMAL_OVERFLOW, "0"  },
-	{ "9223372036854775807",   "1", M_decimal_add,      M_DECIMAL_OVERFLOW, "0"  },
-	{ "-9223372036854775808",  "1", M_decimal_subtract, M_DECIMAL_OVERFLOW, "0"  },
-	{ "-9223372036854775808", "-1", M_decimal_divide,   M_DECIMAL_OVERFLOW, "0"  },
+	{ "922337203685477580",   "11", M_decimal_multiply,    M_DECIMAL_OVERFLOW, "0"  },
+	{ "9223372036854775807",   "1", M_decimal_add,         M_DECIMAL_OVERFLOW, "0"  },
+	{ "-9223372036854775808",  "1", M_decimal_subtract,    M_DECIMAL_OVERFLOW, "0"  },
+	{ "-9223372036854775808", "-1", M_decimal_divide_trad, M_DECIMAL_OVERFLOW, "0"  },
 
 	/* Truncation */
 	{ "9999.123456",          "9999.123456", M_decimal_multiply, M_DECIMAL_TRUNCATION, "99982469.9683223716"  },
@@ -78,8 +97,22 @@ static const struct math_test math_tests[] = {
 
 	/* Reading of exponents */
 	{ "1.00e2",                  "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "100"                  },
-	{ "1.00e-2",                 "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "0.01"                 }
+	{ "1.00e-2",                 "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "0.01"                 },
 
+	/* Rounding */
+	{ "1.2344",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "1.234" },
+	{ "1.2345",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "1.235" },
+	{ "1.2346",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "1.235" },
+	{ "1.2344",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "1.234" },
+	{ "1.2345",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "1.234" },
+	{ "1.2346",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "1.235" },
+
+	{ "-1.2344",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "-1.234" },
+	{ "-1.2345",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "-1.235" },
+	{ "-1.2346",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "-1.235" },
+	{ "-1.2344",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "-1.234" },
+	{ "-1.2345",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "-1.234" },
+	{ "-1.2346",    "3", M_decimal_transform_bank, M_DECIMAL_TRUNCATION, "-1.235" },
 };
 
 START_TEST(check_decimal_math)
@@ -97,6 +130,7 @@ START_TEST(check_decimal_math)
 		M_decimal_from_str(math_tests[i].d1, M_str_len(math_tests[i].d1), &d1, NULL);
 		M_decimal_from_str(math_tests[i].d2, M_str_len(math_tests[i].d2), &d2, NULL);
 		M_decimal_from_str(math_tests[i].r, M_str_len(math_tests[i].r), &exp, NULL);
+
 		rv = math_tests[i].op(&r, &d1, &d2);
 		M_decimal_to_str(&r, r_out, sizeof(r_out));
 		M_decimal_to_str(&exp, exp_out, sizeof(exp_out));

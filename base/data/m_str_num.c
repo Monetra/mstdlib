@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -401,7 +401,7 @@ char *M_str_dot_money_out(const char *amount)
 	M_decimal_create(&dec_amount);
 	if (M_decimal_from_str(amount, M_str_len(amount), &dec_amount, NULL) != M_DECIMAL_SUCCESS)
 		return NULL;
-	if (M_decimal_transform(&dec_amount, 2) != M_DECIMAL_SUCCESS)
+	if (M_decimal_transform(&dec_amount, 2, M_DECIMAL_ROUND_TRADITIONAL) != M_DECIMAL_SUCCESS)
 		return NULL;
 	if (M_decimal_to_str(&dec_amount, temp, sizeof(temp)) != M_DECIMAL_SUCCESS)
 		return NULL;

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -822,12 +822,12 @@ M_bool M_buf_add_uintbin(M_buf_t *buf, M_uint64 n, size_t width, M_endian_t endi
 		return M_FALSE;
 
 	/* Range is 1-8. */
-	if (width > 8 || width < 1) 
-		return M_FALSE; 
+	if (width > 8 || width < 1)
+		return M_FALSE;
 
-	/* Check to make sure n isn't too large for the number of bytes requestd. */ 
-	if (width != 8 && n >= ((M_uint64)1 << (width * 8))) 
-		return M_FALSE; 
+	/* Check to make sure n isn't too large for the number of bytes requestd. */
+	if (width != 8 && n >= ((M_uint64)1 << (width * 8)))
+		return M_FALSE;
 
 	for (i=0; i<width; i++) {
 		if (endianness == M_ENDIAN_BIG) {
@@ -866,7 +866,7 @@ M_bool M_buf_add_uintbcd(M_buf_t *buf, M_uint64 n, size_t width)
 	if (buf == NULL)
 		return M_FALSE;
 
-	digits = num_udigits(n, 10); 
+	digits = num_udigits(n, 10);
 	len    = (digits/2) + (digits%2);
 	if (len > width)
 		return M_FALSE;
@@ -1031,7 +1031,7 @@ M_bool M_buf_add_decimal(M_buf_t *buf, const M_decimal_t *decimal, M_bool implie
 
 	M_decimal_duplicate(&dupdec, decimal);
 	if (num_decimals != -1) {
-		rv = M_decimal_transform(&dupdec, (M_uint8)num_decimals);
+		rv = M_decimal_transform(&dupdec, (M_uint8)num_decimals, M_DECIMAL_ROUND_TRADITIONAL);
 		if (rv != M_DECIMAL_SUCCESS && rv != M_DECIMAL_TRUNCATION)
 			return M_FALSE;
 	}
@@ -1070,7 +1070,7 @@ M_bool M_buf_add_decimal_just(M_buf_t *buf, const M_decimal_t *decimal, M_bool i
 
 	M_decimal_duplicate(&dupdec, decimal);
 	if (num_decimals != -1) {
-		rv = M_decimal_transform(&dupdec, (M_uint8)num_decimals);
+		rv = M_decimal_transform(&dupdec, (M_uint8)num_decimals, M_DECIMAL_ROUND_TRADITIONAL);
 		if (rv != M_DECIMAL_SUCCESS && rv != M_DECIMAL_TRUNCATION)
 			return M_FALSE;
 	}
