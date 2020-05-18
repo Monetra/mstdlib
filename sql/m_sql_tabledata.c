@@ -1037,9 +1037,11 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 		M_hash_dict_insert(seen_cols, trans->fields[i].table_column, NULL);
 
 		if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
-			err = M_sql_tabledata_row_gather_virtual(sqltrans, &field, trans->fields, trans->num_fields, i, trans->fetch_cb, NULL, trans->thunk, NULL, error, error_len);
-			if (M_sql_error_is_error(err))
+			M_sql_error_t rv = M_sql_tabledata_row_gather_virtual(sqltrans, &field, trans->fields, trans->num_fields, i, trans->fetch_cb, NULL, trans->thunk, NULL, error, error_len);
+			if (M_sql_error_is_error(rv)) {
+				err = rv;
 				goto done;
+			}
 
 			/* Virtual columns should actually bind NULL */
 		} else if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_GENERATE) {
@@ -1079,7 +1081,12 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 		has_col = M_TRUE;
 		M_buf_add_str(request, "?");
 
-		if (!M_sql_tabledata_bind(stmt, trans->fields[i].type, &field, (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:trans->fields[i].max_column_len)) {
+		if (!M_sql_tabledata_bind(
+		    stmt,
+		    (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?M_SQL_DATA_TYPE_TEXT:trans->fields[i].type,
+		    &field,
+		    (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:trans->fields[i].max_column_len)
+		) {
 			M_snprintf(error, error_len, "column %s unsupported field type", trans->fields[i].table_column);
 			M_sql_tabledata_field_clear(&field);
 			goto done;
@@ -1495,8 +1502,13 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 			M_buf_add_str(request, info->fields[i].table_column);
 			M_buf_add_str(request, "\" = ?");
 
-			if (!M_sql_tabledata_bind(stmt, info->fields[i].type, &field, (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:info->fields[i].max_column_len)) {
-				M_snprintf(error, error_len, "column %s unsupported field type", info->fields[i].table_column);
+			if (!M_sql_tabledata_bind(
+			     stmt,
+			     (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?M_SQL_DATA_TYPE_TEXT:info->fields[i].type,
+			     &field,
+			     (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?SIZE_MAX:info->fields[i].max_column_len)
+			) {
+				M_snprintf(error, error_len, "column %s unsupported field type (%d vs %d)", info->fields[i].table_column, (int)info->fields[i].type, (int)M_sql_tabledata_field_type(&field));
 				goto done;
 			}
 		} else {
@@ -1536,7 +1548,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		M_buf_add_str(request, info->fields[i].table_column);
 		M_buf_add_str(request, "\" = ?");
 		if (!M_sql_tabledata_bind(stmt, info->fields[i].type, &field, info->fields[i].max_column_len)) {
-			M_snprintf(error, error_len, "column %s unsupported field type", info->fields[i].table_column);
+			M_snprintf(error, error_len, "column %s unsupported field type (%d vs %d)", info->fields[i].table_column, (int)info->fields[i].type, (int)M_sql_tabledata_field_type(&field));
 			goto done;
 		}
 		M_sql_tabledata_field_clear(&field);
