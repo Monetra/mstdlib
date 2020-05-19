@@ -110,6 +110,8 @@ Functions</h2></td></tr>
 <tr class="separator:gab8a4be0f077c21880f7d91471e9e1dbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga89a1192daa0583ab952bab68dfea47d4"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__rand.html#ga89a1192daa0583ab952bab68dfea47d4">M_rand_max</a> (<a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *state, M_uint64 max)</td></tr>
 <tr class="separator:ga89a1192daa0583ab952bab68dfea47d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8324d08c6bfa3d1704f909b73f3e303c"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__rand.html#ga8324d08c6bfa3d1704f909b73f3e303c">M_rand_str</a> (<a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *state, const char *charset, char *out, size_t len)</td></tr>
+<tr class="separator:ga8324d08c6bfa3d1704f909b73f3e303c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac6ee271cfb5f506cf726e027fb2ddbaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__rand.html#gac6ee271cfb5f506cf726e027fb2ddbaa">M_rand_duplicate</a> (<a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *state)</td></tr>
 <tr class="separator:gac6ee271cfb5f506cf726e027fb2ddbaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga594960124c2295c1caebf6880eead955"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__rand.html#ga594960124c2295c1caebf6880eead955">M_rand_jump</a> (<a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *state)</td></tr>
@@ -307,6 +309,57 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ga8324d08c6bfa3d1704f909b73f3e303c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8324d08c6bfa3d1704f909b73f3e303c">&#9670;&nbsp;</a></span>M_rand_str()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_rand_str </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__rand.html#ga6b2c18d3fdba40ff2f62a28b92a3daed">M_rand_t</a> *&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>charset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generate a random string based on the provided character set.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">state</td><td>The state. Optional, can be NULL, but will incur the overhead of M_rand_create(0); <a class="el" href="group__m__rand.html#ga0d4b7a5a84409cb67a40089127f4e332">M_rand_destroy()</a>; per iteration if not provided. It is possible, in a tight loop on a very fast system for example, the same string could be generated multiple times if the state is NULL. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">charset</td><td>Character set to use to generate the random string. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Buffer to use to hold the resulting random string. Must be len+1 bytes in length or greater to handle NULL terminator. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">len</td><td>Number of characters to generate. Actual number of bytes written will be 1 larger for the NULL terminator. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_FALSE on usage error. M_TRUE on success. </dd></dl>
+
+</div>
+</div>
 <a id="gac6ee271cfb5f506cf726e027fb2ddbaa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gac6ee271cfb5f506cf726e027fb2ddbaa">&#9670;&nbsp;</a></span>M_rand_duplicate()</h2>
 
@@ -367,7 +420,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Tue May 19 2020 14:05:42 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Tue May 19 2020 18:09:06 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
