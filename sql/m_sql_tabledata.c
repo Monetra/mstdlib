@@ -589,6 +589,9 @@ static M_sql_error_t M_sql_tabledata_fetch(M_sql_trans_t *sqltrans, M_sql_tabled
 		return M_SQL_ERROR_USER_FAILURE;
 	}
 
+	if (M_str_isempty(fielddef->field_name))
+		return M_SQL_ERROR_USER_BYPASS;
+
 	/* If the field wasn't specified, then we can skip as long as it isn't a NOT NULL field on add */
 	if (!fetch_cb(field, fielddef->field_name, is_add, thunk)) {
 		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
