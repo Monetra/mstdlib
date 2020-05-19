@@ -253,7 +253,7 @@ typedef M_sql_error_t (*M_sql_tabledata_validatetransform_cb)(M_sql_trans_t *sql
 /*! Structure to be used to define the various fields and columns stored in a table */
 typedef struct {
 	const char                          *table_column;    /*!< Database column name */
-	const char                          *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. */
+	const char                          *field_name;      /*!< Field name to fetch in order to retrieve column data. For virtual columns, this field name is also used as the tag name. If NULL or blank, means field not used. Reserved for external modification. */
 	size_t                               max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
 	M_sql_data_type_t                    type;            /*!< Column data type */
 	M_sql_tabledata_flags_t              flags;           /*!< Flags controlling behavior */
