@@ -197,13 +197,13 @@ M_bool M_rand_str(M_rand_t *state, const char *charset, char *out, size_t len)
 	size_t    charset_len = M_str_len(charset);
 	size_t    i;
 
+	if (charset_len == 0 || out == NULL || len == 0)
+		return M_FALSE;
+
 	if (state == NULL) {
 		alloc_state = M_rand_create(0);
 		state       = alloc_state;
 	}
-
-	if (charset_len == 0 || out == NULL || len == 0)
-		return M_FALSE;
 
 	for (i=0; i<len; i++) {
 		out[i] = charset[M_rand_range(state, 0, charset_len)];
