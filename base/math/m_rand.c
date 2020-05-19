@@ -191,6 +191,29 @@ M_uint64 M_rand_max(M_rand_t *state, M_uint64 max)
 }
 
 
+M_bool M_rand_str(M_rand_t *state, const char *charset, char *out, size_t len)
+{
+	M_rand_t *alloc_state = NULL;
+	size_t    charset_len = M_str_len(charset);
+	size_t    i;
+
+	if (state == NULL) {
+		alloc_state = M_rand_create(0);
+		state       = alloc_state;
+	}
+
+	if (charset_len == 0 || out == NULL || len == 0)
+		return M_FALSE;
+
+	for (i=0; i<len; i++) {
+		out[i] = charset[M_rand_range(state, 0, charset_len)];
+	}
+	out[len] = 0;
+
+	M_rand_destroy(alloc_state);
+	return M_TRUE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_rand_t *M_rand_duplicate(M_rand_t *state)
