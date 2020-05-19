@@ -112,6 +112,21 @@ M_API M_uint64 M_rand_range(M_rand_t *state, M_uint64 min, M_uint64 max);
  */
 M_API M_uint64 M_rand_max(M_rand_t *state, M_uint64 max);
 
+/*! Generate a random string based on the provided character set. 
+ *
+ * \param[in,out] state   The state. Optional, can be NULL, but will incur the overhead of
+ *                        M_rand_create(0); M_rand_destroy(); per iteration if not provided.
+ *                        It is possible, in a tight loop on a very fast system for example,
+ *                        the same string could be generated multiple times if the state is NULL.
+ * \param[in]     charset Character set to use to generate the random string.
+ * \param[out]    out     Buffer to use to hold the resulting random string.  Must be
+ *                        len+1 bytes in length or greater to handle NULL terminator.
+ * \param[in]     len     Number of characters to generate.  Actual number of bytes written
+ *                        will be 1 larger for the NULL terminator.
+ * \return M_FALSE on usage error. M_TRUE on success.
+ */
+M_API M_bool M_rand_str(M_rand_t *state, const char *charset, char *out, size_t len);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
