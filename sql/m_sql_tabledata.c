@@ -1000,9 +1000,6 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 
 	/* Specify each column name we will be outputting (in case the table as more columns than this) */
 	for (i=0; i<trans->num_fields; i++) {
-		/* Skip NULL column names */
-		if (M_str_isempty(info->fields[i].table_column))
-			continue;
 
 		if (M_hash_dict_get(seen_cols, trans->fields[i].table_column, NULL)) {
 			continue;
@@ -1038,10 +1035,6 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 	/* Bind values */
 	M_buf_add_str(request, ") VALUES (");
 	for (i=0; i<trans->num_fields; i++) {
-		/* Skip NULL column names */
-		if (M_str_isempty(info->fields[i].table_column))
-			continue;
-
 		if (M_hash_dict_get(seen_cols, trans->fields[i].table_column, NULL)) {
 			continue;
 		}
@@ -1074,7 +1067,9 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 		} else if (trans->fields[i].flags & M_SQL_TABLEDATA_FLAG_TIMESTAMP) {
 			M_sql_tabledata_field_set_int64(&field, M_time());
 		} else {
-			M_sql_error_t rv = M_sql_tabledata_fetch(sqltrans, &field, &trans->fields[i], trans->fetch_cb, M_TRUE, trans->thunk, error, error_len);
+			M_sql_error_t rv;
+
+			rv = M_sql_tabledata_fetch(sqltrans, &field, &trans->fields[i], trans->fetch_cb, M_TRUE, trans->thunk, error, error_len);
 			if (M_sql_error_is_error(rv)) {
 				err = rv;
 				goto done;
@@ -1458,10 +1453,6 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 
 	for (i=0; i<info->num_fields; i++) {
 		M_bool is_changed;
-
-		/* Skip NULL column names */
-		if (M_str_isempty(info->fields[i].table_column))
-			continue;
 
 		/* Skip ID columns */
 		if (info->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID)
