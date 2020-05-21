@@ -102,8 +102,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:ga6ecefe068467cf3e5560091912ff5e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga96e37bc7cace45ca31535dcc8269952d"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga96e37bc7cace45ca31535dcc8269952d">M_sql_tabledata_filtertransform_cb</a>) (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, char *error, size_t error_len)</td></tr>
 <tr class="separator:ga96e37bc7cace45ca31535dcc8269952d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9a2db989236b856afb31bbe1f2b431c3"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga9a2db989236b856afb31bbe1f2b431c3">M_sql_tabledata_validate_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, char *error, size_t error_len)</td></tr>
-<tr class="separator:ga9a2db989236b856afb31bbe1f2b431c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0db3f1b61a308a2e05a2a069732c1e01"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga0db3f1b61a308a2e05a2a069732c1e01">M_sql_tabledata_validate_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, char *error, size_t error_len)</td></tr>
+<tr class="separator:ga0db3f1b61a308a2e05a2a069732c1e01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>) (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *out, const char *field_name, M_bool is_add, void *thunk)</td></tr>
 <tr class="separator:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9e537f3af197c0c1cb3e01595b39814c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga9e537f3af197c0c1cb3e01595b39814c">M_sql_tabledata_notify_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, char *error, size_t error_len)</td></tr>
@@ -281,7 +281,7 @@ filter_cb</td>
 <p>Callback to filter or transform input data. Called only on new user-specified params. </p>
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a4b9fffe2e225587a2a1273149b55b4ee"></a><a class="el" href="group__m__sql__tabledata.html#ga9a2db989236b856afb31bbe1f2b431c3">M_sql_tabledata_validate_cb</a></td>
+<a id="a4b9fffe2e225587a2a1273149b55b4ee"></a><a class="el" href="group__m__sql__tabledata.html#ga0db3f1b61a308a2e05a2a069732c1e01">M_sql_tabledata_validate_cb</a></td>
 <td class="fieldname">
 validate_cb</td>
 <td class="fielddoc">
@@ -349,14 +349,14 @@ validate_cb</td>
 
 </div>
 </div>
-<a id="ga9a2db989236b856afb31bbe1f2b431c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga9a2db989236b856afb31bbe1f2b431c3">&#9670;&nbsp;</a></span>M_sql_tabledata_validate_cb</h2>
+<a id="ga0db3f1b61a308a2e05a2a069732c1e01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0db3f1b61a308a2e05a2a069732c1e01">&#9670;&nbsp;</a></span>M_sql_tabledata_validate_cb</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef M_bool(* M_sql_tabledata_validate_cb) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, char *error, size_t error_len)</td>
+          <td class="memname">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(* M_sql_tabledata_validate_cb) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, char *error, size_t error_len)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2146,7 +2146,7 @@ validate_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 21 2020 15:41:30 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu May 21 2020 16:00:08 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
