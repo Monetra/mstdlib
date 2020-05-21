@@ -5,5 +5,6 @@ var group__m__sql__tabledata_structM__sql__tabledata__t =
     [ "max_column_len", "group__m__sql__tabledata.html#a42c2f27b73ef7bf687a0de8446d0a5bb", null ],
     [ "type", "group__m__sql__tabledata.html#ab6e66a5db8ba6da135bae7b1690e6421", null ],
     [ "flags", "group__m__sql__tabledata.html#ae5564a82d3a3346db21efe4d7b21de98", null ],
-    [ "field_cb", "group__m__sql__tabledata.html#a94acc156f44038830a0977305a7cb317", null ]
+    [ "filter_cb", "group__m__sql__tabledata.html#a6a07a7d806b2bc8abfaa39fc8ffa82b6", null ],
+    [ "validate_cb", "group__m__sql__tabledata.html#a4b9fffe2e225587a2a1273149b55b4ee", null ]
 ];

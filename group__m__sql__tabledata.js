@@ -6,13 +6,15 @@ var group__m__sql__tabledata =
       [ "max_column_len", "group__m__sql__tabledata.html#a42c2f27b73ef7bf687a0de8446d0a5bb", null ],
       [ "type", "group__m__sql__tabledata.html#ab6e66a5db8ba6da135bae7b1690e6421", null ],
       [ "flags", "group__m__sql__tabledata.html#ae5564a82d3a3346db21efe4d7b21de98", null ],
-      [ "field_cb", "group__m__sql__tabledata.html#a94acc156f44038830a0977305a7cb317", null ]
+      [ "filter_cb", "group__m__sql__tabledata.html#a6a07a7d806b2bc8abfaa39fc8ffa82b6", null ],
+      [ "validate_cb", "group__m__sql__tabledata.html#a4b9fffe2e225587a2a1273149b55b4ee", null ]
     ] ],
     [ "M_sql_tabledata_field_t", "group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628", null ],
-    [ "M_sql_tabledata_validatetransform_cb", "group__m__sql__tabledata.html#gaf154f3290e09dfa843ca28479ede90b6", null ],
     [ "M_sql_tabledata_txn_t", "group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16", null ],
+    [ "M_sql_tabledata_filtertransform_cb", "group__m__sql__tabledata.html#ga96e37bc7cace45ca31535dcc8269952d", null ],
+    [ "M_sql_tabledata_validate_cb", "group__m__sql__tabledata.html#ga9a2db989236b856afb31bbe1f2b431c3", null ],
     [ "M_sql_tabledata_fetch_cb", "group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9", null ],
-    [ "M_sql_tabledata_edit_notify_cb", "group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e", null ],
+    [ "M_sql_tabledata_notify_cb", "group__m__sql__tabledata.html#ga9e537f3af197c0c1cb3e01595b39814c", null ],
     [ "M_sql_tabledata_flags_t", "group__m__sql__tabledata.html#gaf5e35f940fabf4f7dbe7330b2e59402b", [
       [ "M_SQL_TABLEDATA_FLAG_NONE", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402ba5af1b966d8755de09ceae487e30268d0", null ],
       [ "M_SQL_TABLEDATA_FLAG_VIRTUAL", "group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af", null ],
@@ -26,8 +28,15 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_txn_field_select_t", "group__m__sql__tabledata.html#ga53379aeabd1417bacae05f195c3fe67e", [
       [ "M_SQL_TABLEDATA_TXN_FIELD_MERGED", "group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea2c576cbf94b1acbc7bd287f9ee7b9d12", null ],
       [ "M_SQL_TABLEDATA_TXN_FIELD_PRIOR", "group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea03931088f24abfe6f66dc1d952e4ee50", null ],
-      [ "M_SQL_TABLEDATA_TXN_FIELD_CURRENT", "group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67eafac44686fadc430548db29253459aa57", null ]
+      [ "M_SQL_TABLEDATA_TXN_FIELD_CURRENT", "group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67eafac44686fadc430548db29253459aa57", null ],
+      [ "M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW", "group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea7591b7e9adc71ff88f9b8cf3bc81ff46", null ]
     ] ],
+    [ "M_sql_tabledata_filter_int2dec_cb", "group__m__sql__tabledata.html#ga09f3a1c3a3a26aa7959caa8c775a8231", null ],
+    [ "M_sql_tabledata_filter_int5dec_cb", "group__m__sql__tabledata.html#gabbb1d2d1986866faf6d88b6317661a6b", null ],
+    [ "M_sql_tabledata_filter_alnum_cb", "group__m__sql__tabledata.html#ga6bdd7da9a37a8adb96f05d133368cb3b", null ],
+    [ "M_sql_tabledata_filter_alnumsp_cb", "group__m__sql__tabledata.html#gac6042ffa16171c6a4bac6d715a832ccf", null ],
+    [ "M_sql_tabledata_filter_alpha_cb", "group__m__sql__tabledata.html#gaeb61aee675d5f41b0d82dbfa86b6089d", null ],
+    [ "M_sql_tabledata_filter_graph_cb", "group__m__sql__tabledata.html#gaf150623b2479731c2ac48de70059633e", null ],
     [ "M_sql_tabledata_field_set_bool", "group__m__sql__tabledata.html#gaaef487509774842d968485f38aef9a18", null ],
     [ "M_sql_tabledata_field_set_int16", "group__m__sql__tabledata.html#gabed6d61c6577a5312e3333f765513bac", null ],
     [ "M_sql_tabledata_field_set_int32", "group__m__sql__tabledata.html#ga5418eb740c63d5d2a2f9057868ee9bc8", null ],
@@ -47,13 +56,17 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_field_get_binary", "group__m__sql__tabledata.html#ga59064bfaff095b86a9eefdf8b4342e12", null ],
     [ "M_sql_tabledata_field_is_null", "group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65", null ],
     [ "M_sql_tabledata_field_type", "group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788", null ],
-    [ "M_sql_tabledata_txn_fetch_fielddef", "group__m__sql__tabledata.html#ga0d6a5203621e9b55c83c00973476c70d", null ],
+    [ "M_sql_tabledata_txn_get_thunk", "group__m__sql__tabledata.html#ga6b05f4d195fb36c56e2e39f649341074", null ],
+    [ "M_sql_tabledata_txn_get_tablename", "group__m__sql__tabledata.html#gaffe2d753fa3715ec17ea12f35d06414f", null ],
+    [ "M_sql_tabledata_txn_get_generated_id", "group__m__sql__tabledata.html#ga3c13b9712e31714895ed92e9aeac0004", null ],
+    [ "M_sql_tabledata_txn_is_add", "group__m__sql__tabledata.html#ga4da5fa4277ad2d11ab23cdd2a8c26a44", null ],
     [ "M_sql_tabledata_txn_field_get", "group__m__sql__tabledata.html#ga533f29b6f7f553c17214aa368a8f098f", null ],
     [ "M_sql_tabledata_txn_field_changed", "group__m__sql__tabledata.html#gab45ee0d0d6279fedbd3acc7f2a483bf5", null ],
-    [ "M_sql_tabledata_add", "group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2", null ],
-    [ "M_sql_tabledata_trans_add", "group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f", null ],
-    [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#ga1c8349bcf1ee53fc977520ea36386c8f", null ],
-    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#gad3efe2f6f4bfa7998c0ea8a4d0580459", null ],
+    [ "M_sql_tabledata_txn_fetch_fielddef", "group__m__sql__tabledata.html#ga0d6a5203621e9b55c83c00973476c70d", null ],
+    [ "M_sql_tabledata_add", "group__m__sql__tabledata.html#gae0f512c4930ddea0bbc86e0f77b5a367", null ],
+    [ "M_sql_tabledata_trans_add", "group__m__sql__tabledata.html#ga28eee0f21156a25c12835c483d0800f5", null ],
+    [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#ga9678396f17ba2a30da20acc33f9973bd", null ],
+    [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#ga52c40006e3dd628dc543c3b3e6e8c248", null ],
     [ "M_sql_tabledata_append_virtual_list", "group__m__sql__tabledata.html#ga634ddd627ced8b89856a8852aff69227", null ],
     [ "M_sql_tabledata_to_table", "group__m__sql__tabledata.html#gae922e514264c2c08a7642d2b71fff455", null ]
 ];

@@ -777,6 +777,7 @@ var searchData=
   ['m_5fsql_5ftabledata_5fflag_5ftimestamp',['M_SQL_TABLEDATA_FLAG_TIMESTAMP',['../group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402baa0c4829f4e17e50356e60a8563e3203f',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5fflag_5fvirtual',['M_SQL_TABLEDATA_FLAG_VIRTUAL',['../group__m__sql__tabledata.html#ggaf5e35f940fabf4f7dbe7330b2e59402babdc71c9b468bb6d6752bed06667e15af',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ftxn_5ffield_5fcurrent',['M_SQL_TABLEDATA_TXN_FIELD_CURRENT',['../group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67eafac44686fadc430548db29253459aa57',1,'m_sql_table.h']]],
+  ['m_5fsql_5ftabledata_5ftxn_5ffield_5fcurrent_5for_5fnew',['M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW',['../group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea7591b7e9adc71ff88f9b8cf3bc81ff46',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ftxn_5ffield_5fmerged',['M_SQL_TABLEDATA_TXN_FIELD_MERGED',['../group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea2c576cbf94b1acbc7bd287f9ee7b9d12',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ftxn_5ffield_5fprior',['M_SQL_TABLEDATA_TXN_FIELD_PRIOR',['../group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea03931088f24abfe6f66dc1d952e4ee50',1,'m_sql_table.h']]],
   ['m_5fsql_5ftrace_5fbegin_5ffinish',['M_SQL_TRACE_BEGIN_FINISH',['../group__m__sql__trace.html#gga9c352e44fd1d4ef21c33de877021eb90a85ca9c8719901d89507d27b275d4502c',1,'m_sql_trace.h']]],

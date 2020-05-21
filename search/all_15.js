@@ -1,6 +1,7 @@
 var searchData=
 [
   ['verification',['Verification',['../group__m__verify.html',1,'']]],
+  ['validate_5fcb',['validate_cb',['../group__m__sql__tabledata.html#a4b9fffe2e225587a2a1273149b55b4ee',1,'M_sql_tabledata_t']]],
   ['value_5fduplicate',['value_duplicate',['../group__m__cache__generic.html#a3d10f6c47c30594de436e9e20ab38b21',1,'M_cache_callbacks']]],
   ['value_5fduplicate_5fcopy',['value_duplicate_copy',['../group__m__hashtable__generic.html#a96f58448b7308dc21ef8559e62cb9d5d',1,'M_hashtable_callbacks']]],
   ['value_5fduplicate_5finsert',['value_duplicate_insert',['../group__m__hashtable__generic.html#ac3023b748b3c5369646d74b2e575e5d6',1,'M_hashtable_callbacks']]],
