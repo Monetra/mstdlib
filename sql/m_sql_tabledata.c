@@ -1334,7 +1334,7 @@ static M_sql_error_t M_sql_tabledata_txn_uservalidate_fields(M_sql_trans_t *sqlt
 	M_sql_error_t err = M_SQL_ERROR_USER_SUCCESS;
 
 	for (i=0; i<txn->num_fields; i++) {
-		char myerror[256];
+		char myerror[256] = { 0 };
 
 		/* Skip fields that are null */
 		if (M_str_isempty(txn->fields[i].field_name))
