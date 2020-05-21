@@ -1398,6 +1398,8 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 
 	/* Specify each column name we will be outputting (in case the table as more columns than this) */
 	for (i=0; i<txn->num_fields; i++) {
+		M_sql_tabledata_field_t *field = NULL;
+
 		/* Skip empty field name entries (they aren't managed by us) */
 		if (M_str_isempty(txn->fields[i].field_name))
 			continue;
@@ -1411,9 +1413,10 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 
 
 		/* Skip if field blank and not a virtual column which always gets emitted */
-		if (!(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) &&
-		    !M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT)) {
-			continue;
+		if (!(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)) {
+			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+			if (field == NULL || M_sql_tabledata_field_is_null(field))
+				continue;
 		}
 
 		if (has_col) {
@@ -1467,7 +1470,7 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 			/* Virtual columns should actually bind NULL, so no skipping */
 		} else {
 			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
-			if (field == NULL)
+			if (field == NULL || M_sql_tabledata_field_is_null(field))
 				continue;
 		}
 
