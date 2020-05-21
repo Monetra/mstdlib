@@ -618,13 +618,13 @@ START_TEST(check_tabledata)
 	char              temp[256];
 	M_int64           id      = 0;
 	M_sql_tabledata_t td[] = {
-		{ "key",  "id",   18,  M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED, NULL },
-		{ "col1", "col1", 0,   M_SQL_DATA_TYPE_INT32, M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL },
-		{ "col2", "col2", 32,  M_SQL_DATA_TYPE_TEXT,  0,                                                                                         NULL },
-		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
-		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL },
-		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_VIRTUAL,                                                              NULL },
-		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL }
+		{ "key",  "id",   18,  M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_ID|M_SQL_TABLEDATA_FLAG_ID_GENERATE|M_SQL_TABLEDATA_FLAG_ID_REQUIRED, NULL, NULL },
+		{ "col1", "col1", 0,   M_SQL_DATA_TYPE_INT32, M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL, NULL },
+		{ "col2", "col2", 32,  M_SQL_DATA_TYPE_TEXT,  0,                                                                                         NULL, NULL },
+		{ "col3", "tag1", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL, NULL },
+		{ "col3", "tag2", 128, M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE|M_SQL_TABLEDATA_FLAG_VIRTUAL,                                NULL, NULL },
+		{ "col3", "tag3", 128, M_SQL_DATA_TYPE_INT64, M_SQL_TABLEDATA_FLAG_VIRTUAL,                                                              NULL, NULL },
+		{ "col4", "col4", 32,  M_SQL_DATA_TYPE_TEXT,  M_SQL_TABLEDATA_FLAG_EDITABLE,                                                             NULL, NULL }
 	};
 	M_hash_dict_t *dict;
 	M_sql_stmt_t  *stmt;
@@ -661,7 +661,7 @@ START_TEST(check_tabledata)
 	M_hash_dict_insert(dict, "col2", "my column 2");
 	M_hash_dict_insert(dict, "tag1", "tag 1 value");
 	M_hash_dict_insert(dict, "tag3", "3");
-	err = M_sql_tabledata_add(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, dict, &id, error, sizeof(error));
+	err = M_sql_tabledata_add(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, NULL, dict, &id, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_tabledata_add() failed: %s", error);
 	print_table(pool, "foo");
 

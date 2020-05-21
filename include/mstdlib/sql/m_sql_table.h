@@ -214,6 +214,18 @@ M_API M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *t
  */
 
 
+/*! Opaque structure holding field data. */
+struct M_sql_tabledata_field;
+
+/*! Opaque structure holding field data. Use corresponding setters/getters to manipulate. */
+typedef struct M_sql_tabledata_field M_sql_tabledata_field_t;
+
+/*! Opaque Data structure holding add/edit request transaction data. */
+struct M_sql_tabledata_txn;
+
+/*! Opaque Data structure holding add/edit request transaction data. Use the M_sql_tabledata_txn_*() functions to access/modify */
+typedef struct M_sql_tabledata_txn M_sql_tabledata_txn_t;
+
 /*! Flags for processing table data fields / columns */
 typedef enum {
 	M_SQL_TABLEDATA_FLAG_NONE         = 0,      /*!< No Flags */
@@ -229,25 +241,60 @@ typedef enum {
 } M_sql_tabledata_flags_t;
 
 
-/*! Opaque structure holding field data. */
-struct M_sql_tabledata_field;
-
-/*! Opaque structure holding field data. Use corresponding setters/getters to manipulate. */
-typedef struct M_sql_tabledata_field M_sql_tabledata_field_t;
-
-
-/*! A single callback to validate field data matches criteria, and if necessary transform it to the desired form for
- *  storage into the DB.  Transformation can be used for things like monetary conversion or converting a list of flags
- *  into an integer.  It can also perform cross-reference constraints if needed with other tables.
+/*! A callback to perform basic filtering and transformation of a user-input field to how it needs to be
+ *  stored within the database.  This can also reject the data and return an error if it does
+ *  not meet the requirements.
  *
- *  \param[in]      sqltrans   Pointer to an initialized SQL transaction if external queries are needed.
- *  \param[in,out]  field      Field data to be validated.  Use field getters to access data, may cause in-place data conversion.
- *  \param[in]      field_name Name of field being validated
- *  \param[in]      thunk      User-defined thunk parameter passed to tabledata add or edit function
- *  \param[out]     error      Buffer to hold human-readable error on failure
- *  \param[in]      error_len  Length of error buffer
- *  \return M_SQL_ERROR_SUCCESS or M_SQL_ERROR_USER_SUCCESS if validation or conversion succeeded, other error otherwise (possibly retryable). */
-typedef M_sql_error_t (*M_sql_tabledata_validatetransform_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const char *field_name, void *thunk, char *error, size_t error_len);
+ *  This callback is called only when new user data is provided.  For instance, on an edit operation,
+ *  this callback will NOT be called if the user did not supply the field as the only data we have
+ *  is the data from the database which is already sanitized.
+ *
+ *  \param[in]     txn        Transaction data.  May be used to retrieve other useful information that may be needed for proper validation.
+ *  \param[in]     field_name Name of field
+ *  \param[in,out] field      Current data in field.  This should be modified in-place if needed to be transformed.
+ *  \param[out]    error      Buffer to hold error message
+ *  \param[in]     error_len  Length of error buffer
+ *  \return M_TRUE on success, M_FALSE on failure (set error buffer!)
+ */
+typedef M_bool (*M_sql_tabledata_filtertransform_cb)(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate and transform a decimal value with 2 places to an integer with 2 implied decimal places */
+M_API M_bool M_sql_tabledata_filter_int2dec_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate and transform a decimal value with 5 places to an integer with 5 implied decimal places */
+M_API M_bool M_sql_tabledata_filter_int5dec_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate a string is alpha numeric */
+M_API M_bool M_sql_tabledata_filter_alnum_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate a string is alpha numeric with possible spaces */
+M_API M_bool M_sql_tabledata_filter_alnumsp_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate a string is alpha only */
+M_API M_bool M_sql_tabledata_filter_alpha_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+/*! Implementation of M_sql_tabledata_filtertransform_cb to validate a string is graph only */
+M_API M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len);
+
+
+/*! A callback to perform intensive validation of the data field, which may require performing additional SQL queries.
+ *
+ *  This callback is always called for the field, regardless of if it has changed (unless on edit and field is non-editable).
+ *  Recommended to call M_sql_tabledata_txn_field_changed() if only need to perform operations when the field has changed.
+ *
+ *  The field data is not provided and must be fetched via M_sql_tabledata_txn_field_get() as it is not known which variant
+ *  of the data may be needed. 
+ *
+ *  The field data may be manipulated if necessary.
+ *
+ *  \param[in]     sqltrans   SQL transaction to use for any external queries needed.
+ *  \param[in]     txn        Transaction data.  May be used to retrieve other useful information that may be needed for proper validation.
+ *  \param[in]     field_name Name of field
+ *  \param[out]    error      Buffer to hold error message
+ *  \param[in]     error_len  Length of error buffer
+ *  \return M_SQL_ERROR_SUCCESS or M_SQL_ERROR_USER_SUCCESS if validationsucceeded, other error otherwise (possibly retryable).
+ */
+typedef M_bool (*M_sql_tabledata_validate_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, const char *field_name, char *error, size_t error_len);
 
 
 /*! Structure to be used to define the various fields and columns stored in a table */
@@ -257,8 +304,12 @@ typedef struct {
 	size_t                               max_column_len;  /*!< Maximum text or binary length of column allowed. For M_SQL_TABLEDATA_FLAG_ID_GENERATE fields, it is the desired number of digits to generate */
 	M_sql_data_type_t                    type;            /*!< Column data type */
 	M_sql_tabledata_flags_t              flags;           /*!< Flags controlling behavior */
-	M_sql_tabledata_validatetransform_cb field_cb;        /*!< Callback to validate or transform input data. */
+	M_sql_tabledata_filtertransform_cb   filter_cb;       /*!< Callback to filter or transform input data. Called only on new user-specified params. */
+	M_sql_tabledata_validate_cb          validate_cb;     /*!< Callback for in-depth validation of input data that may require external SQL queries. */
 } M_sql_tabledata_t;
+
+
+/* -------------------------------------------------------------------------- */
 
 
 /*! Set the field pointer to a boolean value.
@@ -421,28 +472,42 @@ M_API M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t
 
 /* -------------------------------------------------------------------------- */
 
-/*! Opaque Data structure holding add/edit request transaction data. */
-struct M_sql_tabledata_txn;
+/*! Retrieve thunk parameter passed into transaction
+ *
+ *  \param[in] txn         Transaction provided to callback.
+ *  \return thunk parameter or NULL if none
+ */
+M_API void *M_sql_tabledata_txn_get_thunk(M_sql_tabledata_txn_t *txn);
 
-/*! Opaque Data structure holding add/edit request transaction data. Use the M_sql_tabledata_txn_*() functions to access/modify */
-typedef struct M_sql_tabledata_txn M_sql_tabledata_txn_t;
+/*! Retrieve table name parameter passed into transaction
+ *
+ *  \param[in] txn         Transaction provided to callback.
+ *  \return table name, or NULL on error
+ */
+M_API const char *M_sql_tabledata_txn_get_tablename(M_sql_tabledata_txn_t *txn);
+
+/*! Retrieve generated id during add operation
+ *
+ *  \param[in] txn         Transaction provided to callback.
+ *  \return generated id or 0 on error
+ */
+M_API M_int64 M_sql_tabledata_txn_get_generated_id(M_sql_tabledata_txn_t *txn);
+
+/*! Retrieve if transaction is add (vs edit)
+ *
+ *  \param[in] txn         Transaction provided to callback.
+ *  \return M_TRUE if is add, M_FALSE if is_edit (or misuse)
+ */
+M_API M_bool M_sql_tabledata_txn_is_add(M_sql_tabledata_txn_t *txn);
+
 
 /*! When fetching a field from a transaction, the manner in which to fetch */
 typedef enum {
-	M_SQL_TABLEDATA_TXN_FIELD_MERGED  = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value */
-	M_SQL_TABLEDATA_TXN_FIELD_PRIOR   = 2, /*!< Grab the prior value of the field */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT = 3  /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
+	M_SQL_TABLEDATA_TXN_FIELD_MERGED         = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value */
+	M_SQL_TABLEDATA_TXN_FIELD_PRIOR          = 2, /*!< Grab the prior value of the field */
+	M_SQL_TABLEDATA_TXN_FIELD_CURRENT        = 3, /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
+	M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW = 4, /*!< Grab the current specified value of the field.  If not found, create a new NULL field and return it for modification (field_name specified must be valid) */
 } M_sql_tabledata_txn_field_select_t;
-
-
-
-/*! Retrieve the field definition for a field name from the current transaction. 
- *
- * \param[in] txn        Transaction provided to callback.
- * \param[in] field_name Name of field
- * \return pointer to field definition, or NULL if not found
- */
-M_API const M_sql_tabledata_t *M_sql_tabledata_txn_fetch_fielddef(M_sql_tabledata_txn_t *txn, const char *field_name);
 
 
 /*! Retrieve the field data associated with the field name in the current transaction.
@@ -450,7 +515,7 @@ M_API const M_sql_tabledata_t *M_sql_tabledata_txn_fetch_fielddef(M_sql_tabledat
  * \param[in] txn         Transaction provided to callback.
  * \param[in] field_name  Name of field
  * \param[in] fselect     Manner in which to select the field
- * \return M_sql_tabledata_field_t on success, NULL on failure (not found)
+ * \return M_sql_tabledata_field_t on success, NULL on failure (not found, or invalid field name)
  */
 M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect);
 
@@ -462,6 +527,16 @@ M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn
  * \return M_TRUE if the field is found and on an add, or has changed on an edit, M_FALSE otherwise
   */
 M_API M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name);
+
+
+/*! Retrieve the field definition for a field name from the current transaction. 
+ *
+ * \param[in] txn        Transaction provided to callback.
+ * \param[in] field_name Name of field
+ * \return pointer to field definition, or NULL if not found
+ */
+M_API const M_sql_tabledata_t *M_sql_tabledata_txn_fetch_fielddef(M_sql_tabledata_txn_t *txn, const char *field_name);
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -475,20 +550,17 @@ M_API M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const
  *  \return M_FALSE if field was not found, M_TRUE otherwise */
 typedef M_bool (*M_sql_tabledata_fetch_cb)(M_sql_tabledata_field_t *out, const char *field_name, M_bool is_add, void *thunk);
 
-/*! Callback that is called when a field is detected as changed during edit.  Both the prior and new field data are \
- * available as well as the field name.  It may be necessary to do cross-table modifications based on a change to
- * a single field, so this facilitates that ability.  If making linked changes, you must use the passed in sqltrans
- * parameter to ensure it is treated as a single atomic operation.
+/*! Callback that is called at completion of an add/edit.  Both the prior and new field data are available for the entire
+ * table. It may be necessary to do cross-table modifications based on a change, so this facilitates that ability.  If
+ * making linked changes, you must use the passed in sqltrans parameter to ensure it is treated as a single atomic operation.
  *
  * \param[in]     sqltrans  SQL Transaction for chaining atomic actions
- * \param[in,out] old_field Old field data, technically it may be 'transformed', but will be thrown away on exit.
- * \param[in,out] new_field New field data, may be modified by caller if desired.
- * \param[in]     thunk     Thunk parameter for custom state tracking passed to parent function.
+ * \param[in]     txn       Tabledata transaction pointer to grab field data
  * \param[in,out] error     Buffer to hold error if any
  * \param[in]     error_len Size of error buffer
  * \return one fo the M_sql_error_t codes. Use M_SQL_ERROR_USER_SUCCESS and M_SQL_ERROR_USER_FAIL for non-SQL success/fail.
  */
-typedef M_sql_error_t (*M_sql_tabledata_edit_notify_cb)(M_sql_trans_t *sqltrans, const char *field_name, M_sql_tabledata_field_t *orig_field, M_sql_tabledata_field_t *new_field, void *thunk, char *error, size_t error_len);
+typedef M_sql_error_t (*M_sql_tabledata_notify_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, char *error, size_t error_len);
 
 /*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists.
  *
@@ -499,13 +571,14 @@ typedef M_sql_error_t (*M_sql_tabledata_edit_notify_cb)(M_sql_trans_t *sqltrans,
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion.
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[out]    generated_id If a column had specified M_SQL_TABLEDATA_FLAG_ID_GENERATE, then this will return that id
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
  * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
  */
-M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
 
 
 /*! Add a row to a table based on the table definition.  If there are key conflicts, it will retry up to 10 times if an auto-generated ID column exists.
@@ -517,13 +590,14 @@ M_API M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *tabl
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion.
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[out]    generated_id If a column had specified M_SQL_TABLEDATA_FLAG_ID_GENERATE, then this will return that id
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
  * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function
  */
-M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb,  M_sql_tabledata_notify_cb notify_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len);
 
 
 /*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
@@ -537,7 +611,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
- * \param[in]     notify_cb    Optional. Callback to be called to be notified of a field change.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
@@ -545,7 +619,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
 
 /*!  Edit an existing row in a table based on the field definitions.  Not all fields need to be available on edit, only
  *   fields that are able to be fetched will be modified.  It is valid to fetch a NULL value to explicitly set a column
@@ -558,7 +632,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
- * \param[in]     notify_cb    Optional. Callback to be called to be notified of a field change.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
@@ -566,7 +640,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
-M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
+M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
 
 /*! Convenience function to expand a list of tabledata fields base on an M_list_str_t list of
  *  virtual column names tied to a single table column that share the same attributes.  All

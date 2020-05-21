@@ -509,60 +509,210 @@ static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_
 }
 
 
+M_bool M_sql_tabledata_filter_int2dec_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char       *const_temp = NULL;
+	M_decimal_t       dec;
+
+	(void)txn;
+	(void)field_name;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp) || M_str_isempty(const_temp)) {
+		M_snprintf(error, error_len, "not provided");
+		return M_FALSE;
+	}
+
+	if (M_decimal_from_str(const_temp, M_str_len(const_temp), &dec, NULL) != M_DECIMAL_SUCCESS) {
+		M_snprintf(error, error_len, "invalid");
+		return M_FALSE;
+	}
+
+	if (M_decimal_num_decimals(&dec) > 2) {
+		M_snprintf(error, error_len, "too many decimal places");
+		return M_FALSE;
+	}
+
+	M_sql_tabledata_field_set_int64(field, M_decimal_to_int(&dec, 2));
+
+	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_filter_int5dec_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char       *const_temp = NULL;
+	M_decimal_t       dec;
+
+	(void)txn;
+	(void)field_name;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp) || M_str_isempty(const_temp)) {
+		M_snprintf(error, error_len, "not provided");
+		return M_FALSE;
+	}
+
+	if (M_decimal_from_str(const_temp, M_str_len(const_temp), &dec, NULL) != M_DECIMAL_SUCCESS) {
+		M_snprintf(error, error_len, "invalid");
+		return M_FALSE;
+	}
+
+	if (M_decimal_num_decimals(&dec) > 5) {
+		M_snprintf(error, error_len, "too many decimal places");
+		return M_FALSE;
+	}
+
+	M_sql_tabledata_field_set_int64(field, M_decimal_to_int(&dec, 5));
+
+	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_filter_alnum_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char *const_temp = NULL;
+	(void)txn;
+	(void)field_name;
+
+	/* Blank should be fine */
+	if (M_sql_tabledata_field_is_null(field))
+		return M_TRUE;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp)) {
+		M_snprintf(error, error_len, "field is not textual");
+		return M_FALSE;
+	}
+
+	if (!M_str_isempty(const_temp) && !M_str_isalnum(const_temp)) {
+		M_snprintf(error, error_len, "field is not alphanumeric");
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_filter_alnumsp_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char *const_temp = NULL;
+	(void)txn;
+	(void)field_name;
+
+	/* Blank should be fine */
+	if (M_sql_tabledata_field_is_null(field))
+		return M_TRUE;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp)) {
+		M_snprintf(error, error_len, "field is not textual");
+		return M_FALSE;
+	}
+
+	if (!M_str_isempty(const_temp) && !M_str_isalnumsp(const_temp)) {
+		M_snprintf(error, error_len, "field is not alphanumeric with spaces");
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_filter_alpha_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char *const_temp = NULL;
+	(void)txn;
+	(void)field_name;
+
+	/* Blank should be fine */
+	if (M_sql_tabledata_field_is_null(field))
+		return M_TRUE;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp)) {
+		M_snprintf(error, error_len, "field is not textual");
+		return M_FALSE;
+	}
+
+	if (!M_str_isempty(const_temp) && !M_str_isalpha(const_temp)) {
+		M_snprintf(error, error_len, "field is not alphabetic");
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_field_t *field, char *error, size_t error_len)
+{
+	const char *const_temp = NULL;
+	(void)txn;
+	(void)field_name;
+
+	/* Blank should be fine */
+	if (M_sql_tabledata_field_is_null(field))
+		return M_TRUE;
+
+	if (!M_sql_tabledata_field_get_text(field, &const_temp)) {
+		M_snprintf(error, error_len, "field is not textual");
+		return M_FALSE;
+	}
+
+	if (!M_str_isempty(const_temp) && !M_str_isgraph(const_temp)) {
+		M_snprintf(error, error_len, "field is not graphical characters");
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
 static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_bool is_add, char *error, size_t error_len)
 {
 	/* On add, verify field is not null if flag is set */
 	if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL && M_sql_tabledata_field_is_null(field)) {
-		M_snprintf(error, error_len, "field %s is required to not be null", fielddef->field_name);
+		M_snprintf(error, error_len, "required to not be null");
 		return M_FALSE;
 	}
 
 	switch (fielddef->type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			if (!M_sql_tabledata_field_get_bool(field, NULL)) {
-				M_snprintf(error, error_len, "field %s: not boolean", fielddef->field_name);
+				M_snprintf(error, error_len, "not boolean");
 				return M_FALSE;
 			}
 			break;
 		case M_SQL_DATA_TYPE_INT16:
 			if (!M_sql_tabledata_field_get_int16(field, NULL)) {
-				M_snprintf(error, error_len, "field %s: not a 16bit integer", fielddef->field_name);
+				M_snprintf(error, error_len, "not a 16bit integer");
 				return M_FALSE;
 			}
 			break;
 		case M_SQL_DATA_TYPE_INT32:
 			if (!M_sql_tabledata_field_get_int32(field, NULL)) {
-				M_snprintf(error, error_len, "field %s: not a 32bit integer", fielddef->field_name);
+				M_snprintf(error, error_len, "not a 32bit integer");
 				return M_FALSE;
 			}
 			break;
 		case M_SQL_DATA_TYPE_INT64:
 			if (!M_sql_tabledata_field_get_int64(field, NULL)) {
-				M_snprintf(error, error_len, "field %s: not a 64bit integer", fielddef->field_name);
+				M_snprintf(error, error_len, "not a 64bit integer");
 				return M_FALSE;
 			}
 			break;
-		case M_SQL_DATA_TYPE_TEXT:
-			if (!M_sql_tabledata_field_get_text(field, NULL)) {
-				M_snprintf(error, error_len, "field %s: cannot be represented as text", fielddef->field_name);
+		case M_SQL_DATA_TYPE_TEXT: {
+			const char *const_temp = NULL;
+			if (!M_sql_tabledata_field_get_text(field, &const_temp)) {
+				M_snprintf(error, error_len, "cannot be represented as text");
+				return M_FALSE;
+			}
+			if (!M_str_isprint(const_temp)) {
+				M_snprintf(error, error_len, "not printable");
 				return M_FALSE;
 			}
 			break;
+		}
 		case M_SQL_DATA_TYPE_BINARY:
 			if (!M_sql_tabledata_field_get_binary(field, NULL, NULL)) {
-				M_snprintf(error, error_len, "field %s: cannot be represented as binary", fielddef->field_name);
+				M_snprintf(error, error_len, "cannot be represented as binary");
 				return M_FALSE;
 			}
 			break;
 		default:
-			M_snprintf(error, error_len, "field %s: Invalid data type in field definition", fielddef->field_name);
+			M_snprintf(error, error_len, "Invalid data type in field definition");
 			return M_FALSE;
 	}
 
 	return M_TRUE;
 }
 
-static M_sql_error_t M_sql_tabledata_fetch(M_sql_trans_t *sqltrans, M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_fetch(M_sql_tabledata_txn_t *txn, M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_sql_tabledata_fetch_cb fetch_cb, M_bool is_add, void *thunk, char *error, size_t error_len)
 {
 	if (fielddef == NULL || fetch_cb == NULL) {
 		M_snprintf(error, error_len, "invalid use");
@@ -583,15 +733,19 @@ static M_sql_error_t M_sql_tabledata_fetch(M_sql_trans_t *sqltrans, M_sql_tabled
 
 	/* Run field validator/transformation */
 	if (field) {
+		char myerror[256] = { 0 };
+
 		/* Run custom callback */
-		if (fielddef->field_cb) {
-			M_sql_error_t err = fielddef->field_cb(sqltrans, field, fielddef->field_name, thunk, error, error_len);
-			if (M_sql_error_is_error(err))
-				return err;
+		if (fielddef->filter_cb) {
+			if (!fielddef->filter_cb(txn, fielddef->field_name, field, myerror, sizeof(myerror))) {
+				M_snprintf(error, error_len, "field %s: %s", fielddef->field_name, myerror);
+				return M_SQL_ERROR_USER_FAILURE;
+			}
 		}
 
 		/* Run stock validator */
-		if (!M_sql_tabledata_field_validate(field, fielddef, is_add, error, error_len)) {
+		if (!M_sql_tabledata_field_validate(field, fielddef, is_add, myerror, sizeof(myerror))) {
+			M_snprintf(error, error_len, "field %s: %s", fielddef->field_name, myerror);
 			return M_SQL_ERROR_USER_FAILURE;
 		}
 	}
@@ -803,6 +957,7 @@ struct M_sql_tabledata_txn {
 	size_t                         num_fields;  /*!< Number of fields in the table definition */
 
 	M_sql_tabledata_fetch_cb       fetch_cb;    /*!< Callback to fetch a requested field. Should not perform any validation. */
+	M_sql_tabledata_notify_cb      notify_cb;   /*!< Callback that is called at completion of an add/edit. */
 
 	M_hash_strvp_t                *curr_fields; /*!< Current fields fetched */
 
@@ -812,6 +967,34 @@ struct M_sql_tabledata_txn {
 	void                          *thunk;        /*!< User-specified argument passed to callbacks */
 };
 
+
+void *M_sql_tabledata_txn_get_thunk(M_sql_tabledata_txn_t *txn)
+{
+	if (txn == NULL)
+		return NULL;
+	return txn->thunk;
+}
+
+const char *M_sql_tabledata_txn_get_tablename(M_sql_tabledata_txn_t *txn)
+{
+	if (txn == NULL)
+		return NULL;
+	return txn->table_name;
+}
+
+M_int64 M_sql_tabledata_txn_get_generated_id(M_sql_tabledata_txn_t *txn)
+{
+	if (txn == NULL || !txn->is_add)
+		return 0;
+	return txn->generated_id;
+}
+
+M_bool M_sql_tabledata_txn_is_add(M_sql_tabledata_txn_t *txn)
+{
+	if (txn == NULL || !txn->is_add)
+		return M_FALSE;
+	return M_TRUE;
+}
 
 static void M_sql_tabledata_txn_destroy(M_sql_tabledata_txn_t *txn)
 {
@@ -846,7 +1029,7 @@ static void M_sql_tabledata_txn_reset(M_sql_tabledata_txn_t *txn)
 	}
 }
 
-static void M_sql_tabledata_txn_create(M_sql_tabledata_txn_t *txn, M_bool is_add, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk)
+static void M_sql_tabledata_txn_create(M_sql_tabledata_txn_t *txn, M_bool is_add, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk)
 {
 	M_mem_set(txn, 0, sizeof(*txn));
 	txn->is_add      = is_add;
@@ -854,6 +1037,7 @@ static void M_sql_tabledata_txn_create(M_sql_tabledata_txn_t *txn, M_bool is_add
 	txn->fields      = fields;
 	txn->num_fields  = num_fields;
 	txn->fetch_cb    = fetch_cb;
+	txn->notify_cb   = notify_cb;
 	txn->thunk       = thunk;
 
 	M_sql_tabledata_txn_reset(txn);
@@ -967,7 +1151,7 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_current(M_sql_trans_t *sqltrans, 
 			continue;
 		}
 
-		err = M_sql_tabledata_fetch(sqltrans, field, &txn->fields[i], txn->fetch_cb, txn->is_add, txn->thunk, error, error_len);
+		err = M_sql_tabledata_fetch(txn, field, &txn->fields[i], txn->fetch_cb, txn->is_add, txn->thunk, error, error_len);
 		if (M_sql_error_is_error(err)) {
 			M_sql_tabledata_field_free_cb(field);
 			return err;
@@ -980,8 +1164,6 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_current(M_sql_trans_t *sqltrans, 
 
 	return M_SQL_ERROR_USER_SUCCESS;
 }
-
-
 
 
 M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect)
@@ -1002,6 +1184,7 @@ M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *tx
 			break;
 
 		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT:
+		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW:
 			field = M_hash_strvp_get_direct(txn->curr_fields, field_name);
 			break;
 
@@ -1011,6 +1194,16 @@ M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *tx
 				field = M_hash_strvp_get_direct(txn->prev_fields, field_name);
 			}
 			break;
+	}
+
+	/* Create a new NULL field */
+	if (fselect == M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW &&
+	    field == NULL &&
+	    M_sql_tabledata_txn_fetch_fielddef(txn, field_name) != NULL
+	) {
+		field = M_malloc_zero(sizeof(*field));
+		M_sql_tabledata_field_set_null(field);
+		M_hash_strvp_insert(txn->curr_fields, field_name, field);
 	}
 
 	return field;
@@ -1134,6 +1327,40 @@ done:
 	return ret;
 }
 
+
+static M_sql_error_t M_sql_tabledata_txn_uservalidate_fields(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, char *error, size_t error_len)
+{
+	size_t        i;
+	M_sql_error_t err = M_SQL_ERROR_USER_SUCCESS;
+
+	for (i=0; i<txn->num_fields; i++) {
+		char myerror[256];
+
+		/* Skip fields that are null */
+		if (M_str_isempty(txn->fields[i].field_name))
+			continue;
+
+		/* Skip non-editable fields on edit */
+		if (!txn->is_add && !(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_EDITABLE))
+			continue;
+
+		if (!txn->fields[i].validate_cb)
+			continue;
+
+		err = txn->fields[i].validate_cb(sqltrans, txn, txn->fields[i].field_name, myerror, sizeof(myerror));
+		if (M_sql_error_is_error(err)) {
+			/* Copy error if user failure */
+			if (err == M_SQL_ERROR_USER_FAILURE) {
+				M_snprintf(error, error_len, "field %s: %s", txn->fields[i].field_name, myerror);
+			}
+			break;
+		}
+	}
+
+	return err;
+}
+
+
 static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *arg, char *error, size_t error_len)
 {
 	M_sql_tabledata_txn_t  *txn         = arg;
@@ -1152,6 +1379,12 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 		return err;
 
 	if (!M_sql_tabledata_txn_sanitycheck_fields(txn, error, error_len)) {
+		goto done;
+	}
+
+	err = M_sql_tabledata_txn_uservalidate_fields(sqltrans, txn, error, error_len);
+	if (M_sql_error_is_error(err)) {
+		rv = err;
 		goto done;
 	}
 
@@ -1280,6 +1513,12 @@ done:
 		}
 		M_sql_stmt_destroy(stmt);
 	}
+
+	/* Call notify-callback as fields have been updated (but not if USER_SUCCESS or failure) */
+	if (err == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
+		err = txn->notify_cb(sqltrans, txn, error, error_len);
+	}
+
 	return rv;
 }
 
@@ -1300,12 +1539,12 @@ static M_sql_error_t M_sql_tabledata_add_do(M_sql_trans_t *sqltrans, void *arg, 
 }
 
 
-static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_add_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
 	M_sql_error_t         err  = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_txn_t txn;
 
-	M_sql_tabledata_txn_create(&txn, M_TRUE, table_name, fields, num_fields, fetch_cb, thunk);
+	M_sql_tabledata_txn_create(&txn, M_TRUE, table_name, fields, num_fields, fetch_cb, notify_cb, thunk);
 
 	if (pool == NULL && sqltrans == NULL) {
 		M_snprintf(error, error_len, "must specify pool or sqltrans");
@@ -1348,14 +1587,14 @@ done:
 }
 
 
-M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+M_sql_error_t M_sql_tabledata_add(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
-	return M_sql_tabledata_add_int(pool, NULL, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
+	return M_sql_tabledata_add_int(pool, NULL, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, generated_id, error, error_len);
 }
 
-M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
+M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)
 {
-	return M_sql_tabledata_add_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, thunk, generated_id, error, error_len);
+	return M_sql_tabledata_add_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, generated_id, error, error_len);
 }
 
 
@@ -1569,6 +1808,10 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		goto done;
 	}
 
+	err = M_sql_tabledata_txn_uservalidate_fields(sqltrans, txn, error, error_len);
+	if (M_sql_error_is_error(err))
+		goto done;
+
 	err       = M_SQL_ERROR_USER_FAILURE;
 
 	seen_cols = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
@@ -1708,7 +1951,6 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		goto done;
 	}
 
-
 done:
 	if (request)
 		M_buf_cancel(request);
@@ -1722,16 +1964,22 @@ done:
 		}
 		M_sql_stmt_destroy(stmt);
 	}
+
+	/* Call notify-callback as fields have been updated (but not if USER_SUCCESS or failure) */
+	if (err == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
+		err = txn->notify_cb(sqltrans, txn, error, error_len);
+	}
+
 	return err;
 }
 
 
-static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
 	M_sql_error_t          err  = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_txn_t  txn;
 
-	M_sql_tabledata_txn_create(&txn, M_FALSE, table_name, fields, num_fields, fetch_cb, thunk);
+	M_sql_tabledata_txn_create(&txn, M_FALSE, table_name, fields, num_fields, fetch_cb, notify_cb, thunk);
 
 	/* XXX: Handle notify_cb */
 
@@ -1768,13 +2016,13 @@ done:
 }
 
 
-M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
 	return M_sql_tabledata_edit_int(pool, NULL, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
 }
 
 
-M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_edit_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
 	return M_sql_tabledata_edit_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
 }
