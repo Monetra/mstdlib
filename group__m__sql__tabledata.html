@@ -100,6 +100,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:gab0d3ec10075e1c0e67970d7355863628"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf154f3290e09dfa843ca28479ede90b6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf154f3290e09dfa843ca28479ede90b6">M_sql_tabledata_validatetransform_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, const char *field_name, void *thunk, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaf154f3290e09dfa843ca28479ede90b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6ecefe068467cf3e5560091912ff5e16"><td class="memItemLeft" align="right" valign="top">typedef struct M_sql_tabledata_txn&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a></td></tr>
+<tr class="separator:ga6ecefe068467cf3e5560091912ff5e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memItemLeft" align="right" valign="top">typedef M_bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>) (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *out, const char *field_name, M_bool is_add, void *thunk)</td></tr>
 <tr class="separator:gaf31b72a8d978ae5591ff4556b2e778e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1ba9773ee51650ac29c3f45932e45c0e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e">M_sql_tabledata_edit_notify_cb</a>) (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *field_name, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *orig_field, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *new_field, void *thunk, char *error, size_t error_len)</td></tr>
@@ -126,6 +128,15 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:gaf5e35f940fabf4f7dbe7330b2e59402b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga53379aeabd1417bacae05f195c3fe67e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga53379aeabd1417bacae05f195c3fe67e">M_sql_tabledata_txn_field_select_t</a> { <br />
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea2c576cbf94b1acbc7bd287f9ee7b9d12">M_SQL_TABLEDATA_TXN_FIELD_MERGED</a> = 1, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67ea03931088f24abfe6f66dc1d952e4ee50">M_SQL_TABLEDATA_TXN_FIELD_PRIOR</a> = 2, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__tabledata.html#gga53379aeabd1417bacae05f195c3fe67eafac44686fadc430548db29253459aa57">M_SQL_TABLEDATA_TXN_FIELD_CURRENT</a> = 3
+<br />
+ }</td></tr>
+<tr class="separator:ga53379aeabd1417bacae05f195c3fe67e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -167,6 +178,12 @@ Functions</h2></td></tr>
 <tr class="separator:ga54cabcca80ba5e30de44359561ff7f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788">M_sql_tabledata_field_type</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
 <tr class="separator:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0d6a5203621e9b55c83c00973476c70d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga0d6a5203621e9b55c83c00973476c70d">M_sql_tabledata_txn_fetch_fielddef</a> (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name)</td></tr>
+<tr class="separator:ga0d6a5203621e9b55c83c00973476c70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga533f29b6f7f553c17214aa368a8f098f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga533f29b6f7f553c17214aa368a8f098f">M_sql_tabledata_txn_field_get</a> (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, <a class="el" href="group__m__sql__tabledata.html#ga53379aeabd1417bacae05f195c3fe67e">M_sql_tabledata_txn_field_select_t</a> fselect)</td></tr>
+<tr class="separator:ga533f29b6f7f553c17214aa368a8f098f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab45ee0d0d6279fedbd3acc7f2a483bf5"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gab45ee0d0d6279fedbd3acc7f2a483bf5">M_sql_tabledata_txn_field_changed</a> (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name)</td></tr>
+<tr class="separator:gab45ee0d0d6279fedbd3acc7f2a483bf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2575cdd2554f00d9a6ff060a935fd4e2">M_sql_tabledata_add</a> (<a class="el" href="group__m__sql__conn.html#ga36847634817b89efb01054d49e3c6352">M_sql_connpool_t</a> *pool, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
 <tr class="separator:ga2575cdd2554f00d9a6ff060a935fd4e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf7065e9d6976dc4cdd29ad3486a6331f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf7065e9d6976dc4cdd29ad3486a6331f">M_sql_tabledata_trans_add</a> (<a class="el" href="group__m__sql__trans.html#gae1f08c66c77af1b890d594c14c6f0a25">M_sql_trans_t</a> *sqltrans, const char *table_name, const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a> *fields, size_t num_fields, <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a> fetch_cb, void *thunk, M_int64 *generated_id, char *error, size_t error_len)</td></tr>
@@ -286,6 +303,21 @@ field_cb</td>
 
 </div>
 </div>
+<a id="ga6ecefe068467cf3e5560091912ff5e16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6ecefe068467cf3e5560091912ff5e16">&#9670;&nbsp;</a></span>M_sql_tabledata_txn_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct M_sql_tabledata_txn <a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Opaque Data structure holding add/edit request transaction data. Use the M_sql_tabledata_txn_*() functions to access/modify </p>
+
+</div>
+</div>
 <a id="gaf31b72a8d978ae5591ff4556b2e778e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaf31b72a8d978ae5591ff4556b2e778e9">&#9670;&nbsp;</a></span>M_sql_tabledata_fetch_cb</h2>
 
@@ -367,6 +399,29 @@ field_cb</td>
 <tr><td class="fieldname"><a id="ggaf5e35f940fabf4f7dbe7330b2e59402ba7db87b3fe1535c5d998943b31455c65b"></a>M_SQL_TABLEDATA_FLAG_ID_REQUIRED&#160;</td><td class="fielddoc"><p>On edits, this ID must be specified. On some DBs, you may not have any required IDs as there may be multiple lookup indexes </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ggaf5e35f940fabf4f7dbe7330b2e59402baa0c4829f4e17e50356e60a8563e3203f"></a>M_SQL_TABLEDATA_FLAG_TIMESTAMP&#160;</td><td class="fielddoc"><p>Field is an auto-generated unix timestamp. Must be INT64. Cannot be specified with ID. Field fetcher will never be called. If M_SQL_TABLEDATA_FLAG_EDITABLE is specified, will update on edit </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="ga53379aeabd1417bacae05f195c3fe67e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga53379aeabd1417bacae05f195c3fe67e">&#9670;&nbsp;</a></span>M_sql_tabledata_txn_field_select_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__m__sql__tabledata.html#ga53379aeabd1417bacae05f195c3fe67e">M_sql_tabledata_txn_field_select_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>When fetching a field from a transaction, the manner in which to fetch </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga53379aeabd1417bacae05f195c3fe67ea2c576cbf94b1acbc7bd287f9ee7b9d12"></a>M_SQL_TABLEDATA_TXN_FIELD_MERGED&#160;</td><td class="fielddoc"><p>Grab the current specified value of the field, if not found, grab the prior value </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga53379aeabd1417bacae05f195c3fe67ea03931088f24abfe6f66dc1d952e4ee50"></a>M_SQL_TABLEDATA_TXN_FIELD_PRIOR&#160;</td><td class="fielddoc"><p>Grab the prior value of the field </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga53379aeabd1417bacae05f195c3fe67eafac44686fadc430548db29253459aa57"></a>M_SQL_TABLEDATA_TXN_FIELD_CURRENT&#160;</td><td class="fielddoc"><p>Grab the current specified value of the field. May not exist on edit if value is unchanged. </p>
 </td></tr>
 </table>
 
@@ -1049,6 +1104,124 @@ field_cb</td>
 
 </div>
 </div>
+<a id="ga0d6a5203621e9b55c83c00973476c70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0d6a5203621e9b55c83c00973476c70d">&#9670;&nbsp;</a></span>M_sql_tabledata_txn_fetch_fielddef()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="group__m__sql__tabledata.html#structM__sql__tabledata__t">M_sql_tabledata_t</a>* M_sql_tabledata_txn_fetch_fielddef </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *&#160;</td>
+          <td class="paramname"><em>txn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve the field definition for a field name from the current transaction.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">txn</td><td>Transaction provided to callback. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">field_name</td><td>Name of field </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to field definition, or NULL if not found </dd></dl>
+
+</div>
+</div>
+<a id="ga533f29b6f7f553c17214aa368a8f098f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga533f29b6f7f553c17214aa368a8f098f">&#9670;&nbsp;</a></span>M_sql_tabledata_txn_field_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a>* M_sql_tabledata_txn_field_get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *&#160;</td>
+          <td class="paramname"><em>txn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#ga53379aeabd1417bacae05f195c3fe67e">M_sql_tabledata_txn_field_select_t</a>&#160;</td>
+          <td class="paramname"><em>fselect</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve the field data associated with the field name in the current transaction.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">txn</td><td>Transaction provided to callback. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">field_name</td><td>Name of field </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">fselect</td><td>Manner in which to select the field </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_sql_tabledata_field_t on success, NULL on failure (not found) </dd></dl>
+
+</div>
+</div>
+<a id="gab45ee0d0d6279fedbd3acc7f2a483bf5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab45ee0d0d6279fedbd3acc7f2a483bf5">&#9670;&nbsp;</a></span>M_sql_tabledata_txn_field_changed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_txn_field_changed </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *&#160;</td>
+          <td class="paramname"><em>txn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field_name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Retrieve if the field has changed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">txn</td><td>Transaction provided to callback. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">field_name</td><td>Name of field </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if the field is found and on an add, or has changed on an edit, M_FALSE otherwise </dd></dl>
+
+</div>
+</div>
 <a id="ga2575cdd2554f00d9a6ff060a935fd4e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga2575cdd2554f00d9a6ff060a935fd4e2">&#9670;&nbsp;</a></span>M_sql_tabledata_add()</h2>
 
@@ -1513,7 +1686,7 @@ field_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu May 21 2020 11:36:40 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu May 21 2020 13:44:04 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -224,6 +224,7 @@ var searchData=
   ['m_5fsql_5ftabledata_5fedit_5fnotify_5fcb',['M_sql_tabledata_edit_notify_cb',['../group__m__sql__tabledata.html#ga1ba9773ee51650ac29c3f45932e45c0e',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffetch_5fcb',['M_sql_tabledata_fetch_cb',['../group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5ft',['M_sql_tabledata_field_t',['../group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628',1,'m_sql_table.h']]],
+  ['m_5fsql_5ftabledata_5ftxn_5ft',['M_sql_tabledata_txn_t',['../group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5fvalidatetransform_5fcb',['M_sql_tabledata_validatetransform_cb',['../group__m__sql__tabledata.html#gaf154f3290e09dfa843ca28479ede90b6',1,'m_sql_table.h']]],
   ['m_5fsql_5ftrace_5fcb_5ft',['M_sql_trace_cb_t',['../group__m__sql__trace.html#ga7ec1b992ac24ab273a435c42a1f7f921',1,'m_sql_trace.h']]],
   ['m_5fsql_5ftrace_5fdata_5ft',['M_sql_trace_data_t',['../group__m__sql__trace.html#ga00fe1620004784dae6a8dc4f7ed07459',1,'m_sql_trace.h']]],
