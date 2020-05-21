@@ -294,7 +294,7 @@ M_API M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const c
  *  \param[in]     error_len  Length of error buffer
  *  \return M_SQL_ERROR_SUCCESS or M_SQL_ERROR_USER_SUCCESS if validationsucceeded, other error otherwise (possibly retryable).
  */
-typedef M_bool (*M_sql_tabledata_validate_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, const char *field_name, char *error, size_t error_len);
+typedef M_sql_error_t (*M_sql_tabledata_validate_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, const char *field_name, char *error, size_t error_len);
 
 
 /*! Structure to be used to define the various fields and columns stored in a table */
