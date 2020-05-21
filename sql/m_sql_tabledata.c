@@ -509,26 +509,6 @@ static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_
 }
 
 
-static void M_sql_tabledata_field_copy(M_sql_tabledata_field_t *dest, const M_sql_tabledata_field_t *src)
-{
-	if (dest == NULL || src == NULL)
-		return;
-
-	M_sql_tabledata_field_clear(dest);
-	M_mem_copy(dest, src, sizeof(*dest));
-
-	/* Duplicate pointers if necessary */
-	if (dest->type == M_SQL_DATA_TYPE_TEXT && dest->d.t.data_alloc) {
-		dest->d.t.data_alloc = M_strdup(dest->d.t.data_alloc);
-		dest->d.t.data       = dest->d.t.data_alloc;
-	}
-	if (dest->type == M_SQL_DATA_TYPE_BINARY && dest->d.bin.data_alloc) {
-		dest->d.bin.data_alloc = M_memdup(dest->d.bin.data_alloc, dest->d.bin.len);
-		dest->d.bin.data       = dest->d.bin.data_alloc;
-	}
-}
-
-
 static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_bool is_add, char *error, size_t error_len)
 {
 	/* On add, verify field is not null if flag is set */
@@ -816,7 +796,7 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, M
 
 
 
-typedef struct {
+struct M_sql_tabledata_txn {
 	M_bool                         is_add;      /*!< Add vs Edit operation*/
 	const char                    *table_name;  /*!< Table Name */
 	const M_sql_tabledata_t       *fields;      /*!< Table definition, per field */
@@ -830,7 +810,7 @@ typedef struct {
 
 	M_int64                        generated_id; /*!< Unique record id generated during add. Add only */
 	void                          *thunk;        /*!< User-specified argument passed to callbacks */
-} M_sql_tabledata_txn_t;
+};
 
 
 static void M_sql_tabledata_txn_destroy(M_sql_tabledata_txn_t *txn)
@@ -940,17 +920,17 @@ static void printf_field(M_sql_tabledata_field_t *field, const M_sql_tabledata_t
 
 	M_printf("NULL");
 }
+#endif
 
-static size_t idx_from_name(M_sql_tabledata_txn_t *txn, const char *field_name)
+const M_sql_tabledata_t *M_sql_tabledata_txn_fetch_fielddef(M_sql_tabledata_txn_t *txn, const char *field_name)
 {
 	size_t i;
 	for (i=0; i<txn->num_fields; i++) {
 		if (M_str_caseeq(field_name, txn->fields[i].field_name))
-			return i;
+			return &txn->fields[i];
 	}
-	return SIZE_MAX;
+	return NULL;
 }
-#endif
 
 static M_sql_error_t M_sql_tabledata_txn_fetch_current(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, char *error, size_t error_len)
 {
@@ -1001,14 +981,10 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_current(M_sql_trans_t *sqltrans, 
 	return M_SQL_ERROR_USER_SUCCESS;
 }
 
-typedef enum {
-	M_SQL_TABLEDATA_TXN_FIELD_MERGED  = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value */
-	M_SQL_TABLEDATA_TXN_FIELD_PRIOR   = 2, /*!< Grab the prior value of the field */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT = 3  /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
-} M_sql_tabledata_txn_field_select_t;
 
 
-static M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect)
+
+M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect)
 {
 	M_sql_tabledata_field_t *field = NULL;
 
@@ -1041,7 +1017,7 @@ static M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_tx
 }
 
 
-static M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name)
+M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name)
 {
 	M_sql_tabledata_field_t    *prior_field;
 	M_sql_tabledata_field_t    *curr_field;

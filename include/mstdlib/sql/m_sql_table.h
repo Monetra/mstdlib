@@ -419,6 +419,53 @@ M_API M_bool M_sql_tabledata_field_is_null(const M_sql_tabledata_field_t *field)
 M_API M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t *field);
 
 
+/* -------------------------------------------------------------------------- */
+
+/*! Opaque Data structure holding add/edit request transaction data. */
+struct M_sql_tabledata_txn;
+
+/*! Opaque Data structure holding add/edit request transaction data. Use the M_sql_tabledata_txn_*() functions to access/modify */
+typedef struct M_sql_tabledata_txn M_sql_tabledata_txn_t;
+
+/*! When fetching a field from a transaction, the manner in which to fetch */
+typedef enum {
+	M_SQL_TABLEDATA_TXN_FIELD_MERGED  = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value */
+	M_SQL_TABLEDATA_TXN_FIELD_PRIOR   = 2, /*!< Grab the prior value of the field */
+	M_SQL_TABLEDATA_TXN_FIELD_CURRENT = 3  /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
+} M_sql_tabledata_txn_field_select_t;
+
+
+
+/*! Retrieve the field definition for a field name from the current transaction. 
+ *
+ * \param[in] txn        Transaction provided to callback.
+ * \param[in] field_name Name of field
+ * \return pointer to field definition, or NULL if not found
+ */
+M_API const M_sql_tabledata_t *M_sql_tabledata_txn_fetch_fielddef(M_sql_tabledata_txn_t *txn, const char *field_name);
+
+
+/*! Retrieve the field data associated with the field name in the current transaction.
+ *
+ * \param[in] txn         Transaction provided to callback.
+ * \param[in] field_name  Name of field
+ * \param[in] fselect     Manner in which to select the field
+ * \return M_sql_tabledata_field_t on success, NULL on failure (not found)
+ */
+M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *txn, const char *field_name, M_sql_tabledata_txn_field_select_t fselect);
+
+
+/*! Retrieve if the field has changed.
+ *
+ * \param[in] txn        Transaction provided to callback.
+ * \param[in] field_name Name of field
+ * \return M_TRUE if the field is found and on an add, or has changed on an edit, M_FALSE otherwise
+  */
+M_API M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name);
+
+/* -------------------------------------------------------------------------- */
+
+
 /*! Callback for fetching a table field.
  *
  *  \param[out] out        Pointer to M_sql_tabledata_field_t to be filled in.  MUST allow NULL as it may be called during a 'test' operation.
