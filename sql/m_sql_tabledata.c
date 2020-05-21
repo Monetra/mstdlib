@@ -1787,6 +1787,7 @@ static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_tran
 	}
 
 done:
+	M_sql_tabledata_txn_destroy(&txn);
 	return err;
 }
 
