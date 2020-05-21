@@ -1515,8 +1515,10 @@ done:
 	}
 
 	/* Call notify-callback as fields have been updated (but not if USER_SUCCESS or failure) */
-	if (err == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
+	if (rv == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
 		err = txn->notify_cb(sqltrans, txn, error, error_len);
+		if (M_sql_error_is_error(err))
+			rv = err;
 	}
 
 	return rv;
@@ -1967,7 +1969,9 @@ done:
 
 	/* Call notify-callback as fields have been updated (but not if USER_SUCCESS or failure) */
 	if (err == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
-		err = txn->notify_cb(sqltrans, txn, error, error_len);
+		M_sql_error_t myerr = txn->notify_cb(sqltrans, txn, error, error_len);
+		if (M_sql_error_is_error(myerr))
+			err = myerr;
 	}
 
 	return err;
