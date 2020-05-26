@@ -774,8 +774,8 @@ static M_bool M_sql_tabledata_validate_fields(const M_sql_tabledata_t *fields, s
 		}
 
 		if (fields[i].field_name == NULL) {
-			M_snprintf(error, error_len, "field %zu did not specify a field name", i);
-			goto done;
+			/* No validation can be performed if the field name is blank */
+			continue;
 		}
 
 		if (M_hash_dict_get(seen_fields, fields[i].field_name, NULL)) {
