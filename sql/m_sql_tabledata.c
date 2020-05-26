@@ -661,6 +661,9 @@ static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, con
 		return M_FALSE;
 	}
 
+	if (M_sql_tabledata_field_is_null(field))
+		return M_TRUE;
+
 	switch (fielddef->type) {
 		case M_SQL_DATA_TYPE_BOOL:
 			if (!M_sql_tabledata_field_get_bool(field, NULL)) {
@@ -724,27 +727,15 @@ static M_sql_error_t M_sql_tabledata_fetch(M_sql_tabledata_txn_t *txn, M_sql_tab
 
 	/* If the field wasn't specified, then we can skip as long as it isn't a NOT NULL field on add */
 	if (!fetch_cb(field, fielddef->field_name, is_add, thunk)) {
-		if (is_add && fielddef->flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
-			M_snprintf(error, error_len, "field %s is required to be specified", fielddef->field_name);
-			return M_SQL_ERROR_USER_FAILURE;
-		}
+		
 		return M_SQL_ERROR_USER_BYPASS;
 	}
 
-	/* Run field validator/transformation */
-	if (field) {
+	/* Run user-supplied field filter */
+	if (field && fielddef->filter_cb) {
 		char myerror[256] = { 0 };
 
-		/* Run custom callback */
-		if (fielddef->filter_cb) {
-			if (!fielddef->filter_cb(txn, fielddef->field_name, field, myerror, sizeof(myerror))) {
-				M_snprintf(error, error_len, "field %s: %s", fielddef->field_name, myerror);
-				return M_SQL_ERROR_USER_FAILURE;
-			}
-		}
-
-		/* Run stock validator */
-		if (!M_sql_tabledata_field_validate(field, fielddef, is_add, myerror, sizeof(myerror))) {
+		if (!fielddef->filter_cb(txn, fielddef->field_name, field, myerror, sizeof(myerror))) {
 			M_snprintf(error, error_len, "field %s: %s", fielddef->field_name, myerror);
 			return M_SQL_ERROR_USER_FAILURE;
 		}
@@ -1245,6 +1236,7 @@ static M_bool M_sql_tabledata_txn_sanitycheck_fields(M_sql_tabledata_txn_t *txn,
 
 	for (i=0; i<txn->num_fields; i++) {
 		M_sql_tabledata_field_t *field;
+		char                     myerror[256] = { 0 };
 
 		if (M_str_isempty(txn->fields[i].field_name))
 			continue;
@@ -1270,6 +1262,12 @@ static M_bool M_sql_tabledata_txn_sanitycheck_fields(M_sql_tabledata_txn_t *txn,
 				M_snprintf(error, error_len, "%s is not editable", txn->fields[i].field_name);
 				return M_FALSE;
 			}
+		}
+
+		/* Run stock validator - after all user supplied callbacks for filter and validate */
+		if (!M_sql_tabledata_field_validate(field, &txn->fields[i], M_sql_tabledata_txn_is_add(txn), myerror, sizeof(myerror))) {
+			M_snprintf(error, error_len, "field %s: %s", txn->fields[i].field_name, myerror);
+			return M_FALSE;
 		}
 	}
 
@@ -1378,13 +1376,13 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 	if (M_sql_error_is_error(err))
 		return err;
 
-	if (!M_sql_tabledata_txn_sanitycheck_fields(txn, error, error_len)) {
-		goto done;
-	}
-
 	err = M_sql_tabledata_txn_uservalidate_fields(sqltrans, txn, error, error_len);
 	if (M_sql_error_is_error(err)) {
 		rv = err;
+		goto done;
+	}
+
+	if (!M_sql_tabledata_txn_sanitycheck_fields(txn, error, error_len)) {
 		goto done;
 	}
 
@@ -1809,15 +1807,15 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	if (M_sql_error_is_error(err))
 		goto done;
 
-	if (!M_sql_tabledata_txn_sanitycheck_fields(txn, error, error_len)) {
-		goto done;
-	}
-
 	err = M_sql_tabledata_txn_uservalidate_fields(sqltrans, txn, error, error_len);
 	if (M_sql_error_is_error(err))
 		goto done;
 
 	err       = M_SQL_ERROR_USER_FAILURE;
+
+	if (!M_sql_tabledata_txn_sanitycheck_fields(txn, error, error_len)) {
+		goto done;
+	}
 
 	seen_cols = M_hash_dict_create(16, 75, M_HASH_DICT_CASECMP);
 	request   = M_buf_create();
