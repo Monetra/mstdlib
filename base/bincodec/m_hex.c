@@ -28,6 +28,17 @@
 
 #define hex2dec(c) ((c) >= 'a'?((c)-'a'+10):((c) >= 'A'?((c)-'A'+10):((c)-'0')))
 
+static __inline__ M_bool hex_isvalidchar(char c)
+{
+	if (c >= '0' && c <= '9')
+		return M_TRUE;
+	if (c >= 'A' && c <= 'F')
+		return M_TRUE;
+	if (c >= 'a' && c <= 'f')
+		return M_TRUE;
+	return M_FALSE;
+}
+
 static __inline__ void add_byte(char *out, size_t *pos, size_t *linelen, size_t wrap, char c)
 {
 	out[(*pos)++] = c;
@@ -44,6 +55,9 @@ static __inline__ M_bool get_byte(const char *in, size_t inLen, size_t *i, char 
 		(*i)++;
 
 	if (*i >= inLen)
+		return M_FALSE;
+
+	if (!hex_isvalidchar(in[*i]))
 		return M_FALSE;
 
 	*val = in[(*i)++];
