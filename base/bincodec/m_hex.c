@@ -49,7 +49,7 @@ static __inline__ void add_byte(char *out, size_t *pos, size_t *linelen, size_t 
 	}
 }
 
-static __inline__ M_bool get_byte(const char *in, size_t inLen, size_t *i, char *val)
+static __inline__ M_bool get_byte(const char *in, size_t inLen, size_t *i, char *val, M_bool *fail)
 {
 	while (*i<inLen && M_chr_isspace(in[*i]))
 		(*i)++;
@@ -57,8 +57,10 @@ static __inline__ M_bool get_byte(const char *in, size_t inLen, size_t *i, char 
 	if (*i >= inLen)
 		return M_FALSE;
 
-	if (!hex_isvalidchar(in[*i]))
+	if (!hex_isvalidchar(in[*i])) {
+		*fail = M_TRUE;
 		return M_FALSE;
+	}
 
 	*val = in[(*i)++];
 	return M_TRUE;
@@ -102,16 +104,19 @@ size_t M_hex_decode(const char *in, size_t inLen, M_uint8 *out, size_t outLen)
 {
 	char   c1;
 	char   c2;
-	size_t i   = 0;
-	size_t pos = 0;
+	size_t i    = 0;
+	size_t pos  = 0;
+	M_bool fail = M_FALSE;
 
 	if (in == NULL || inLen == 0 || inLen%2 != 0 || out == NULL || outLen < inLen/2)
 		return 0;
 
-	while (get_byte(in, inLen, &i, &c1) && get_byte(in, inLen, &i, &c2)) {
+	while (get_byte(in, inLen, &i, &c1, &fail) && get_byte(in, inLen, &i, &c2, &fail)) {
 		out[pos++] = (M_uint8)(hex2dec(c1) << 4 | hex2dec(c2));
 	}
 
+	if (fail)
+		return 0;
 	return pos;
 }
 
