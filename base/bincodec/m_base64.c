@@ -39,6 +39,19 @@ static const int  dec_table[] = { 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static __inline__ M_bool b64_isvalidchar(char c)
+{
+	if (c >= '0' && c <= '9')
+		return M_TRUE;
+	if (c >= 'A' && c <= 'Z')
+		return M_TRUE;
+	if (c >= 'a' && c <= 'z')
+		return M_TRUE;
+	if (c == '+' || c == '/' || c == '=')
+		return M_TRUE;
+	return M_FALSE;
+}
+
 static __inline__ void M_base64_encode_adder(char *out, size_t bidx, size_t *pos, size_t *len, size_t wrap, M_bool ispad)
 {
 	out[(*pos)++] = ispad ? '=' : enc_table[bidx];
@@ -61,6 +74,9 @@ static __inline__ M_bool M_base64_get_decchar(M_int32 *val, const char *in, size
 		(*idx)++;
 
 	if (*idx >= inlen)
+		return M_FALSE;
+
+	if (!b64_isvalidchar(in[*idx]))
 		return M_FALSE;
 
 	c = in[*idx];
