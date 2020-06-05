@@ -727,7 +727,7 @@ static M_sql_error_t M_sql_tabledata_fetch(M_sql_tabledata_txn_t *txn, M_sql_tab
 
 	/* If the field wasn't specified, then we can skip as long as it isn't a NOT NULL field on add */
 	if (!fetch_cb(field, fielddef->field_name, is_add, thunk)) {
-		
+
 		return M_SQL_ERROR_USER_BYPASS;
 	}
 
@@ -2098,7 +2098,9 @@ M_bool M_sql_tabledata_to_table(M_sql_table_t *table, const M_sql_tabledata_t *f
 		if (fields[i].flags & (M_SQL_TABLEDATA_FLAG_NOTNULL|M_SQL_TABLEDATA_FLAG_ID_GENERATE))
 			flags |= M_SQL_TABLE_COL_FLAG_NOTNULL;
 
-		if (!M_sql_table_add_col(table, flags, fields[i].table_column, fields[i].type, fields[i].max_column_len, NULL))
+		if (!M_sql_table_add_col(table, flags, fields[i].table_column,
+			(fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?M_SQL_DATA_TYPE_TEXT:fields[i].type,
+			(fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)?(64*1024):fields[i].max_column_len, NULL))
 			goto fail;
 	}
 
