@@ -52,7 +52,12 @@ void M_sql_stmt_destroy(M_sql_stmt_t *stmt)
 			return;
 	}
 
-/* XXX: If stmt->last_error == M_SQL_ERROR_SUCCESS_ROW, cancel fetch! */
+	/* XXX: If stmt->last_error == M_SQL_ERROR_SUCCESS_ROW, cancel fetch! Way more efficient than fetching the remaining!
+	 *      This is a safeguard to make sure a caller doesn't forget to do this. */
+	while (M_sql_stmt_has_remaining_rows(stmt)) {
+		M_sql_stmt_fetch(stmt);
+	}
+
 	M_sql_stmt_bind_clear(stmt);
 	M_sql_stmt_result_clear(stmt);
 
