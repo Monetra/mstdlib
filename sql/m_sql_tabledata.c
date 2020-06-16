@@ -1338,9 +1338,12 @@ static M_sql_error_t M_sql_tabledata_txn_uservalidate_fields(M_sql_trans_t *sqlt
 		if (M_str_isempty(txn->fields[i].field_name))
 			continue;
 
+/* Should still run.  The user-callback needs to handle this */
+#if 0
 		/* Skip non-editable fields on edit */
 		if (!txn->is_add && !(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_EDITABLE))
 			continue;
+#endif
 
 		if (!txn->fields[i].validate_cb)
 			continue;
