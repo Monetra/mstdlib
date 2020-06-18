@@ -61,10 +61,10 @@ struct M_email {
 
 static int address_list_cmp(const void *a, const void *b, void *thunk)
 {
-	(void)thunk;
-
 	const M_email_address_t *sa = *(const M_email_address_t **)a;
 	const M_email_address_t *sb = *(const M_email_address_t **)b;
+
+	(void)thunk;
 
 	return M_str_cmpsort(sa->group, sb->group);
 }
