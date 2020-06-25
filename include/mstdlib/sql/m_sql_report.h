@@ -311,6 +311,12 @@ M_API M_sql_error_t M_sql_report_process_json(const M_sql_report_t *report, M_sq
  */
 M_API M_sql_error_t M_sql_report_process_partial(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_sql_report_state_t **state, char *error, size_t error_size);
 
+/*! If for some reason a report must be aborted when using partial processing, this will clear up the memory associated
+ *  with the state handle
+ *
+ *  \param[in] state #M_sql_report_state_t * object populated from M_sql_report_process_partial() or M_sql_report_process_partial_json()
+ */
+M_API void M_sql_report_state_cancel(M_sql_report_state_t *state);
 
 /*! Process a chunk of report data rather than the whole report and append to the provided JSON array.
  *

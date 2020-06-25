@@ -565,6 +565,14 @@ struct M_sql_report_state {
 	size_t              rowidx;
 };
 
+void M_sql_report_state_cancel(M_sql_report_state_t *state)
+{
+	if (state == NULL)
+		return;
+	M_free(state->cols);
+	M_buf_cancel(state->colbuf);
+	M_free(state);
+}
 
 static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *report, M_sql_stmt_t *stmt, size_t max_rows, void *arg, M_buf_t *buf, M_json_node_t *json, M_sql_report_state_t **state, char *error, size_t error_size)
 {
@@ -746,9 +754,7 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 
 done:
 	if (*state != NULL && err != M_SQL_ERROR_SUCCESS_ROW) {
-		M_free((*state)->cols);
-		M_buf_cancel((*state)->colbuf);
-		M_free(*state);
+		M_sql_report_state_cancel(*state);
 		*state = NULL;
 	}
 	return err;
