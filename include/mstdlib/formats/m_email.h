@@ -680,6 +680,17 @@ M_API M_email_error_t M_email_simple_split_header_body(const char *message, M_ha
 
 /*! @} */
 
+/*! \addtogroup m_email_address Email Address
+ *  \ingroup m_email
+ *
+ * @{
+ */
+
+M_API M_email_error_t M_email_process_address(const char *val, M_email_error_t (*address_func)(const char *group, const char *name, const char *address, void *thunk), void *thunk);
+M_API char *M_email_write_single_recipient(const char *group, const char *name, const char *address);
+
+/*! @} */
+
 /*! @} */
 
 __END_DECLS
