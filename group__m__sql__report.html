@@ -152,6 +152,8 @@ Functions</h2></td></tr>
 <tr class="separator:gae4ebf3f4f5ed7e5959048075fdeaa4b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ca8f003494aee9d708722ecf72479c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2">M_sql_report_process_partial</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t max_rows, void *arg, <a class="el" href="group__m__buf.html#ga6c543ecf0004fc310faa23c6ed8b267f">M_buf_t</a> *buf, <a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> **state, char *error, size_t error_size)</td></tr>
 <tr class="separator:ga5ca8f003494aee9d708722ecf72479c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad14090e727621c22105a171ba559f4c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#gad14090e727621c22105a171ba559f4c5">M_sql_report_state_cancel</a> (<a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> *state)</td></tr>
+<tr class="separator:gad14090e727621c22105a171ba559f4c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2aef154f6ba05ef5c283693b62720f63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gaae10ff11eb7d5583afcffa6ec87c753e">M_sql_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63">M_sql_report_process_partial_json</a> (const <a class="el" href="group__m__sql__report.html#gabb3ea44dceb739bea17900689f1168e9">M_sql_report_t</a> *report, <a class="el" href="group__m__sql__stmt.html#ga4a726e8b7d1b5cffc6f92fdb3e8fb498">M_sql_stmt_t</a> *stmt, size_t max_rows, void *arg, <a class="el" href="group__m__json.html#ga7a262990e06e6100889ff7896820e41f">M_json_node_t</a> *json, <a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> **state, char *error, size_t error_size)</td></tr>
 <tr class="separator:ga2aef154f6ba05ef5c283693b62720f63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -1103,6 +1105,31 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gad14090e727621c22105a171ba559f4c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad14090e727621c22105a171ba559f4c5">&#9670;&nbsp;</a></span>M_sql_report_state_cancel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_report_state_cancel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> *&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>If for some reason a report must be aborted when using partial processing, this will clear up the memory associated with the state handle</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td><a class="el" href="group__m__sql__report.html#ga0b0888596e0fe6b0c8cbe3a17fbfb458">M_sql_report_state_t</a> * object populated from <a class="el" href="group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2">M_sql_report_process_partial()</a> or <a class="el" href="group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63">M_sql_report_process_partial_json()</a> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ga2aef154f6ba05ef5c283693b62720f63"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga2aef154f6ba05ef5c283693b62720f63">&#9670;&nbsp;</a></span>M_sql_report_process_partial_json()</h2>
 
@@ -1190,7 +1217,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jun 18 2020 12:52:04 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Jun 25 2020 15:48:51 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -29,5 +29,6 @@ var group__m__sql__report =
     [ "M_sql_report_process", "group__m__sql__report.html#gadd1e167bbf4cb627e13c37fcbc5c2edb", null ],
     [ "M_sql_report_process_json", "group__m__sql__report.html#gae4ebf3f4f5ed7e5959048075fdeaa4b5", null ],
     [ "M_sql_report_process_partial", "group__m__sql__report.html#ga5ca8f003494aee9d708722ecf72479c2", null ],
+    [ "M_sql_report_state_cancel", "group__m__sql__report.html#gad14090e727621c22105a171ba559f4c5", null ],
     [ "M_sql_report_process_partial_json", "group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63", null ]
 ];

@@ -1605,6 +1605,7 @@ var searchData=
   ['m_5fsql_5freport_5fprocess_5fpartial_5fjson',['M_sql_report_process_partial_json',['../group__m__sql__report.html#ga2aef154f6ba05ef5c283693b62720f63',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fset_5fdelims',['M_sql_report_set_delims',['../group__m__sql__report.html#gab74e893ce4166ae1324055e738aa61ae',1,'m_sql_report.h']]],
   ['m_5fsql_5freport_5fset_5ffetch_5fcb',['M_sql_report_set_fetch_cb',['../group__m__sql__report.html#ga40f0db9b5ce99177eeef90f65124f2ad',1,'m_sql_report.h']]],
+  ['m_5fsql_5freport_5fstate_5fcancel',['M_sql_report_state_cancel',['../group__m__sql__report.html#gad14090e727621c22105a171ba559f4c5',1,'m_sql_report.h']]],
   ['m_5fsql_5frollback_5fdelay_5fms',['M_sql_rollback_delay_ms',['../group__m__sql__helpers.html#ga968e3bfef73d9b44d862dc70553d6afb',1,'m_sql.h']]],
   ['m_5fsql_5fstmt_5fbind_5fbinary_5fconst',['M_sql_stmt_bind_binary_const',['../group__m__sql__stmt__bind.html#ga69d38695dad9fc5a15db82a7625c6940',1,'m_sql_stmt.h']]],
   ['m_5fsql_5fstmt_5fbind_5fbinary_5fdup',['M_sql_stmt_bind_binary_dup',['../group__m__sql__stmt__bind.html#gaf95250d766c2ba4d6075282d12fc66a6',1,'m_sql_stmt.h']]],
