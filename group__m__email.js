@@ -3,6 +3,7 @@ var group__m__email =
     [ "Email Message", "group__m__email__msssage.html", "group__m__email__msssage" ],
     [ "Email Stream Reader", "group__m__email__reader.html", "group__m__email__reader" ],
     [ "Email Simple", "group__m__email__simple.html", "group__m__email__simple" ],
+    [ "Email Address", "group__m__email__address.html", "group__m__email__address" ],
     [ "M_email_error_t", "group__m__email.html#gaa0cb1e180696b49e75975e5b46ecfa34", [
       [ "M_EMAIL_ERROR_SUCCESS", "group__m__email.html#ggaa0cb1e180696b49e75975e5b46ecfa34a4f2b8fbe99cadf0518a7407d0d68ca96", null ],
       [ "M_EMAIL_ERROR_MOREDATA", "group__m__email.html#ggaa0cb1e180696b49e75975e5b46ecfa34a62907a449139ec6a9099fd3f1ef9232e", null ],

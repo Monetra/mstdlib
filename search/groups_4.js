@@ -1,6 +1,7 @@
 var searchData=
 [
   ['email',['Email',['../group__m__email.html',1,'']]],
+  ['email_20address',['Email Address',['../group__m__email__address.html',1,'']]],
   ['email_20message',['Email Message',['../group__m__email__msssage.html',1,'']]],
   ['email_20stream_20reader',['Email Stream Reader',['../group__m__email__reader.html',1,'']]],
   ['email_20simple',['Email Simple',['../group__m__email__simple.html',1,'']]],
