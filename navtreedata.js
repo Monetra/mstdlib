@@ -1,7 +1,36 @@
 var NAVTREE =
 [
   [ "Mstdlib-1.11.0", "index.html", [
-    [ "About", "index.html", null ],
+    [ "About", "index.html", [
+      [ "Rationale/Use", "index.html#autotoc_md0", null ],
+      [ "Goals", "index.html#autotoc_md1", [
+        [ "1. Secure", "index.html#autotoc_md2", null ],
+        [ "2. Cross platform", "index.html#autotoc_md3", null ],
+        [ "3. Small", "index.html#autotoc_md4", null ]
+      ] ],
+      [ "Building", "index.html#autotoc_md5", [
+        [ "CMake", "index.html#autotoc_md6", null ],
+        [ "Dependencies", "index.html#autotoc_md7", [
+          [ "Required", "index.html#autotoc_md8", [
+            [ "C-Ares", "index.html#autotoc_md9", null ],
+            [ "OpenSSL", "index.html#autotoc_md10", null ]
+          ] ],
+          [ "Optional", "index.html#autotoc_md11", [
+            [ "SQLite", "index.html#autotoc_md12", null ],
+            [ "MySQL Client Library/MariaDB Connector C", "index.html#autotoc_md13", null ],
+            [ "PostgreSQL Client Library", "index.html#autotoc_md14", null ],
+            [ "Oracle Client Library", "index.html#autotoc_md15", null ],
+            [ "ODBC (UnixODBC, iODBC, or Windows ODBC)", "index.html#autotoc_md16", null ],
+            [ "DB2", "index.html#autotoc_md17", null ]
+          ] ]
+        ] ],
+        [ "Building docs", "index.html#autotoc_md18", null ],
+        [ "Running tests", "index.html#autotoc_md19", null ],
+        [ "Debugging tests", "index.html#autotoc_md20", null ],
+        [ "Running tests though Valgrind", "index.html#autotoc_md21", null ],
+        [ "Build Options", "index.html#autotoc_md22", null ]
+      ] ]
+    ] ],
     [ "Modules", "modules.html", "modules" ],
     [ "Data Structures", "annotated.html", [
       [ "Data Structures", "annotated.html", "annotated_dup" ],

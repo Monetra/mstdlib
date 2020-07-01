@@ -86,7 +86,8 @@ $(document).ready(function(){initNavTree('index.html','');});
 <div class="textblock"><p>mstdlib stands for "M Standard Library".</p>
 <p>It was created by Monetra Technologies LLC (fka Main Street Softworks, Inc) for use in their Monetra payment engine. It is designed to be a safe cross platform API for functionality that was commonly used in Monetra and other projects. This library was found to be so useful internally that in 2017 it was decided to release it to the public as open source. Please see the LICENSE file.</p>
 <p>To avoid trademark issues the "m" in mstdlib just stands for the letter M. It does not stand for Monetra nor any other name starting with M. Though some day we may become more clever with the meaning of M. (maybe "Mighty")?</p>
-<h1>Rationale/Use </h1>
+<h1><a class="anchor" id="autotoc_md0"></a>
+Rationale/Use</h1>
 <p>Mstdlib is designed to provide features not normally found in libc but also to be used in place of libc. Underneath mstdlib uses the system's libc when it makes sense. It is not itself a libc implementation. Though it does provide a number of additional features. Using mstdlib as if it was libc provides benefits such as NULL safety and memory zeroing. That's not to say you can't use libc functions directly, but we encourage avoiding it if at all possible.</p>
 <p>Mstdlib marks a number of libc functions as deprecated in favor of mstdlibs versions. Due to features such as NULL safety and secure implementations mstdlib's functions should be preferred. Using a libc function that has been implemented in mstdlib will cause a warning to be generated during compilation. This is to aid in finding libc function (mis)use.</p>
 <p>A number of additional functions are provided that are non-standard but often found in some common libc implementations. This ensures consistency across multiple platforms.</p>
@@ -95,9 +96,11 @@ $(document).ready(function(){initNavTree('index.html','');});
 <p>Mstdlib headers should reference the mstdlib directory. For example: </p><pre class="fragment">#include &lt;mstdlib/mstdlib.h&gt;
 #include &lt;mstdlib/mstdlib_thread.h&gt;
 </pre><p>Since threading requires the base mstdlib you only need to include <code><a class="el" href="mstdlib__thread_8h_source.html">mstdlib_thread.h</a></code>. All mstdlib functionality will be available because <code><a class="el" href="mstdlib__thread_8h_source.html">mstdlib_thread.h</a></code> itself includes <code><a class="el" href="mstdlib_8h_source.html">mstdlib.h</a></code>. That said, this behavior should not be relied on. Always include the mstdlib components you intend to use.</p>
-<h1>Goals </h1>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Goals</h1>
 <p>Provide an easy to use C library that is first and foremost secure. It should provide common functionality to make development easier and faster. It should work across multiple platforms. There shouldn't be any surprises.</p>
-<h2>1. Secure </h2>
+<h2><a class="anchor" id="autotoc_md2"></a>
+1. Secure</h2>
 <ul>
 <li>Make all functions NULL safe.</li>
 <li>Provide helper objects to prevent common vulnerabilities such as buffer overflow. For example <code>M_buf</code> and <code>M_parser</code>.</li>
@@ -109,7 +112,8 @@ $(document).ready(function(){initNavTree('index.html','');});
 <li>Consistent naming and design patterns that make an object's use and life clear. Such as create and destroy naming.</li>
 <li>Prefer code that is easy to read over clever.</li>
 </ul>
-<h2>2. Cross platform </h2>
+<h2><a class="anchor" id="autotoc_md3"></a>
+2. Cross platform</h2>
 <ul>
 <li>All features (when feasible) should work across multiple OSs.</li>
 <li>The same objects and functions should work the same on all OSs.</li>
@@ -127,13 +131,15 @@ $(document).ready(function(){initNavTree('index.html','');});
 </li>
 <li>Tested with multiple compilers and compiler versions.</li>
 </ul>
-<h2>3. Small </h2>
+<h2><a class="anchor" id="autotoc_md4"></a>
+3. Small</h2>
 <ul>
 <li>Don't try to create a library with everything including the kitchen sink. This isn't mean to be an all encompassing library like Java or Python's standard libraries. (At least this was the original idea but...)</li>
 <li>Features included must be commonly used and useful.</li>
 <li>Use separate modules that are layered in order to reduce the overall size of the library if only some features are needed.</li>
 </ul>
-<h1>Building </h1>
+<h1><a class="anchor" id="autotoc_md5"></a>
+Building</h1>
 <p>CMake is the preferred method to build and should be used whenever possible. However, CMake is not available on all supported platforms. Autotools is also supported for Unix systems. NMake Makefiles are also available for Windows. Autotools and NMake Makefiles are provided only as a fallback when CMake cannot be used. That said, Autotools and NMake Make files can lag behind being updated and there is no timeline on how long they will be supported.</p>
 <p>The following features are supported by each build system:</p>
 <table class="doxtable">
@@ -154,46 +160,63 @@ $(document).ready(function(){initNavTree('index.html','');});
 <tr>
 <td align="left">Tests </td><td align="center">Y </td><td align="center">Y </td><td align="center">N </td></tr>
 </table>
-<h2>CMake </h2>
+<h2><a class="anchor" id="autotoc_md6"></a>
+CMake</h2>
 <pre class="fragment">$ mkdir build
 $ cd build
 $ cmake -DCMAKE_BUILD_TYPE=&lt;DEBUG|RELEASE&gt; ..
 $ make
-</pre><h2>Dependencies </h2>
-<h3>Required</h3>
-<h4>C-Ares</h4>
+</pre><h2><a class="anchor" id="autotoc_md7"></a>
+Dependencies</h2>
+<h3><a class="anchor" id="autotoc_md8"></a>
+Required</h3>
+<h4><a class="anchor" id="autotoc_md9"></a>
+C-Ares</h4>
 <p>The I/O module uses c-ares for DNS resolution as part of its network support. It is recommended to simply extract the latest c-ares source into the mstdlib source tree under: </p><pre class="fragment">thirdparty/c-ares
 </pre><p>If it exists, it will be built as part of mstdlib and statically linked.</p>
 <p>Otherwise, mstdlib will attempt to search for C-Ares on the system. Use <code>-Dc_ares_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>OpenSSL</h4>
+<h4><a class="anchor" id="autotoc_md10"></a>
+OpenSSL</h4>
 <p>The TLS subsystem uses OpenSSL 1.0.1 or higher for the underlying cryptographic routines. It is expected to be installed on the system. Pass <code>-DOPENSSL_ROOT_DIR=&lt;path&gt;</code> to cmake if the location is in a non-standard path.</p>
-<h3>Optional</h3>
-<h4>SQLite</h4>
+<h3><a class="anchor" id="autotoc_md11"></a>
+Optional</h3>
+<h4><a class="anchor" id="autotoc_md12"></a>
+SQLite</h4>
 <p>SQLite is used to build the SQLite plugin for the SQL subsystem. It is recommended to download the latest SQLite Amalgamation package from sqlite.org and extract it into the mstdlib source tree under: </p><pre class="fragment">thirdparty/sqlite-amalgamation
 </pre><p>If it exists, it will be built as part of mstdlib and statically linked.</p>
 <p>Otherwise, mstdlib will attempt to search for SQLite on the system. Use <code>-DSQLITE_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>MySQL Client Library/MariaDB Connector C</h4>
+<h4><a class="anchor" id="autotoc_md13"></a>
+MySQL Client Library/MariaDB Connector C</h4>
 <p>The MySQL Client Library, or MariaDB Connector C (recommended) are used to build the MySQL plugin for the SQL subsystem. Mstdlib will attempt to search for one of these libraries on the system, use <code>-DMYSQL_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>PostgreSQL Client Library</h4>
+<h4><a class="anchor" id="autotoc_md14"></a>
+PostgreSQL Client Library</h4>
 <p>The PostgreSQL Client Library is used to build the PostgreSQL plugin for the SQL subsystem. v9.2 or higher is required. Mstdlib will attempt to search for the library on the system, use <code>-DPOSTGRESQL_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>Oracle Client Library</h4>
+<h4><a class="anchor" id="autotoc_md15"></a>
+Oracle Client Library</h4>
 <p>The Oracle Client Library is used to build the Oracle plugin for the SQL subsystem. v11.2 or higher is required. Mstdlib will attempt to search for the library on the system, use <code>-DORACLE_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>ODBC (UnixODBC, iODBC, or Windows ODBC)</h4>
+<h4><a class="anchor" id="autotoc_md16"></a>
+ODBC (UnixODBC, iODBC, or Windows ODBC)</h4>
 <p>The ODBC libraries are used to build the ODBC plugin for the SQL subsystem. Mstdlib will attempt to search for one of the available options, use <code>-DODBC_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h4>DB2</h4>
+<h4><a class="anchor" id="autotoc_md17"></a>
+DB2</h4>
 <p>The DB2 libraries are used to build the DB2 plugin for the SQL subsystem. Mstdlib will attempt to search for the library on the system, use <code>-DDB2_DIR=&lt;path&gt;</code> if installed to a non-standard location.</p>
-<h2>Building docs </h2>
+<h2><a class="anchor" id="autotoc_md18"></a>
+Building docs</h2>
 <p>Requires doxygen is installed and found. Documentation will be build automatically when the library is built.</p>
-<h2>Running tests </h2>
+<h2><a class="anchor" id="autotoc_md19"></a>
+Running tests</h2>
 <p>Requires libcheck is installed and found. </p><pre class="fragment">$ make check
 </pre><p>Logs will be in: build/test/test_name.log.</p>
-<h2>Debugging tests </h2>
+<h2><a class="anchor" id="autotoc_md20"></a>
+Debugging tests</h2>
 <pre class="fragment">$ gdb ./bin/test
 (gdb) set environment CK_FORK=no
 (gdb) run
-</pre><h2>Running tests though Valgrind </h2>
+</pre><h2><a class="anchor" id="autotoc_md21"></a>
+Running tests though Valgrind</h2>
 <p>Tests by default will be run though valgrind if it is installed on the system. Logs with valgrind output will be in: build/test/test_name-valgrind.log</p>
-<h2>Build Options </h2>
+<h2><a class="anchor" id="autotoc_md22"></a>
+Build Options</h2>
 <table class="doxtable">
 <tr>
 <th>Option </th><th>Description </th><th>Default  </th></tr>
@@ -245,7 +268,7 @@ $ make
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 1 2020 13:07:41 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Jul 1 2020 13:17:24 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

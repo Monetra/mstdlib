@@ -120,8 +120,10 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Formatted String output.</p>
 <p>%&lt;character&gt; is used to denote the data type of the function arguments. Arguments are passed after the format string. flags and other modifiers are specified between the % and conversion characters. E.g. %&lt;behavior&gt;&lt;character&gt;</p>
-<h1>Supported features</h1>
-<h2>Flags</h2>
+<h1><a class="anchor" id="autotoc_md31"></a>
+Supported features</h1>
+<h2><a class="anchor" id="autotoc_md32"></a>
+Flags</h2>
 <table class="doxtable">
 <tr>
 <th>Flag </th><th>Description  </th></tr>
@@ -136,14 +138,16 @@ Functions</h2></td></tr>
 <tr>
 <td>'0' </td><td>Pad numerics with 0. Default padding is space (' '). </td></tr>
 </table>
-<h2>Width and precision</h2>
+<h2><a class="anchor" id="autotoc_md33"></a>
+Width and precision</h2>
 <p>A decimal (.) separated value can be specified to control the width and precision of the argument. &lt;width&gt;.&lt;precision&gt;.</p>
 <p>The width is the minimum output size. Padding will be added if the output would be smaller than the width. If the output size exceeds the width, the width is ignored and the full input will be output.</p>
 <p>Precision for strings controls the length that should be output. If the value is larger than the length of the string, the string length will be used. E.g. ("%.2s", "abc") will result in "ab" for the output.</p>
 <p>Precision for floating point determines the number of decimal places to output. The default is 6. It's recommended the maximum precision specified be no large than 14 digits. Digits over 14 can have platform specific rounding differences.</p>
 <p>Width and precision are both optional. You can specify one, the other, or both. E.g. "%.2s", "%8.s".</p>
 <p>A '*' can be used instead of a decmail value and will read the size from an argument. The argument is an int. The arguments are read right to left. E.g. ("%*.*s", 4, 2, "abc") will result in "  ab".</p>
-<h2>Size modifiers</h2>
+<h2><a class="anchor" id="autotoc_md34"></a>
+Size modifiers</h2>
 <p>Specify the data size of a given argument.</p>
 <table class="doxtable">
 <tr>
@@ -163,7 +167,8 @@ Functions</h2></td></tr>
 <tr>
 <td>I32 </td><td>32 bit. </td></tr>
 </table>
-<h2>Conversion</h2>
+<h2><a class="anchor" id="autotoc_md35"></a>
+Conversion</h2>
 <p>Specifies the data type of the argument.</p>
 <table class="doxtable">
 <tr>
@@ -755,7 +760,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 1 2020 13:07:40 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Jul 1 2020 13:17:23 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

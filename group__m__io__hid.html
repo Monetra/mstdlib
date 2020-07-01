@@ -132,23 +132,19 @@ Functions</h2></td></tr>
 <tr class="separator:ga19416d1713c428e5e225778c40482003"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<h2>HID (Human Interface Device) IO functions.</h2>
 <p>Typically used with USB devices.</p>
 <p>Report IDs need to be the first byte of any data sent to a device and will be the first byte of any data received from a device. All buffer sizes report will include the extra byte for the report ID.</p>
 <p>If a device does not use report IDs 0 should be sent as the first byte of any data and will be the first byte of any read data.</p>
-<h2>Supported OS</h2>
 <ul>
 <li>Windows</li>
 <li>Linux</li>
 <li>macOS</li>
 <li>Android</li>
 </ul>
-<h2>Android Requirements</h2>
 <p>Android does not have blanket USB permissions. Access needs to be granted by the user on a per device basis. Permission granting is <em>not</em> supported by mstdlib and must be handled by the app itself. Once permissions are granted mstdlib can access the device. Device enumeration does not need permission, it is only required to open a device.</p>
 <p>The manifest must include the uses-feature for USB host. </p><pre class="fragment">&lt;uses-feature android:name="android.hardware.usb.host" /&gt;
 </pre><p>There are two methods for obtaining permissions. The Android <a href="https://developer.android.com/guide/topics/connectivity/usb/host">USB Host documentation</a> provides a detailed overview of the permission process.</p>
 <p>UsbManager.hasPermission() should be used to determine if the app can access the device or if it needs permission from the user to do so. If the manifest method is used the request method may still be necessary to implement. However, the manifest method allows the user to associate the device with the app so permission only needs to be granted once.</p>
-<h3>Manifest</h3>
 <p>The device vendor and product ids can be registered by the App though the manifest file. When the device is connected the user will be prompted if they want to open the device with the application. There is an option to always open with the given application the user can select. If they do not select a default application they will be prompted every time the device is connected. Once allowed the application can use the device.</p>
 <p>The manifest will specify an intent filter for a given activity for USB device attached. A meta-data specifying supported devices is associated with the intent which Android uses to determine if the application supports the given device. </p><pre class="fragment">&lt;activity ...&gt;
   &lt;intent-filter&gt;
@@ -162,7 +158,6 @@ Functions</h2></td></tr>
   &lt;usb-device vendor-id="1234" product-id="5678" /&gt;
 &lt;/resources&gt;
 </pre><p>The disadvantage of this method is it work off of the device being attached. If the application is running and the device is already connected the user will not be prompted.</p>
-<h3>Request Dialog</h3>
 <p>This method uses the UsbManager.requestPermission() function to display a permission request to the user to allow USB access. The application will use an intent to make the request. A broadcast receiver will need to be registered with the intent in order for the app to receive the users response to the query. If approved by the user the application can use the device.</p>
 <p>This does not grant access to USB in general. The device in question is part of the permission request. The user is only given permission for that specific device.</p>
 <p>For this method the app should use mstdlib (or direct API calls) to enumerate the currently connected devices. Then use the path (mstdlib) to pull the device out of UsbManager.getDeviceList(). This device can then be used for the permission request.</p>
@@ -775,7 +770,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 1 2020 13:07:41 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Jul 1 2020 13:17:23 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

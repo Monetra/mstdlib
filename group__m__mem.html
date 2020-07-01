@@ -159,7 +159,8 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Memory manipulation.</p>
-<h1>Hardening </h1>
+<h1><a class="anchor" id="autotoc_md36"></a>
+Hardening</h1>
 <p>To aid in hardening M_malloc wraps the system malloc and stores the length of allocated memory. M_free uses this length and zeros the memory before calling the system free. The length is prepended to the memory segment and the pointer to the memory after the size is returned. The size is then read by M_free so the full allocated memory segment can be zeroed.</p>
 <p>Zeroing memory is performed to combat memory scan attacks. It's not possible to know what data in memory is sensitive so all data is considered sensitive. Zeroing limits the amount of time data such as credit card numbers or encryption keys are available. This way data is available only as long as needed.</p>
 <p>M_malloc and M_free are not replacements for the system provided malloc and free functions. They work on top of the system functions. This is so a hardened system malloc will not have it's functionality disrupted. Further, a replacement malloc implementation (such as jemalloc) can still be used.</p>
@@ -167,16 +168,19 @@ Functions</h2></td></tr>
 <p>Memory allocated using M_malloc must never be passed directly to the system free due to the length offset prefix, the caller would not be passing the base of the block and therefore cause undefined behavior (probably a segfault).</p>
 <p>Memory allocated by malloc (not M_malloc) should never be passed to M_free. This will result in undefined behavior (probably a segfault) as well.</p>
 <p>All mstdlib functions that allocate memory use mstdlib's M_malloc. Thus any memory that needs to be freed using free that is returned by an mstdlib function must be passed to M_free.</p>
-<h1>Hardening that doesn't work </h1>
+<h1><a class="anchor" id="autotoc_md37"></a>
+Hardening that doesn't work</h1>
 <p>There are a few "hardening" features that are available on Linux and other Unix platforms that were evaluated. These were determined to not be usable.</p>
-<h2>mlock </h2>
+<h2><a class="anchor" id="autotoc_md38"></a>
+mlock</h2>
 <p>mlock prevents a memory segment from being written to on disk swap space.</p>
 <p>The issue with mlock is limits set by the OS. RLIMIT_MEMLOCK (ulimit -l) limits the amount of memory that can be locked. munlock must be used (before or after, testing showed it didn't matter) to reduce the locked memory amount. munmap should implicitly unlock the memory as well but in testing a simple free did not cause the memory to be unlocked.</p>
 <p>munlock is not enough to avoid hitting the limit. In simple / small applications or test cases, it would function fine. However, a larger application which uses more memory will fail. Once the lock limit is reached an out of memory error will be returned.</p>
 <p>On Ubuntu 14.04.2 the default RLIMIT_MEMLOCK is 64K. On some versions of Debian is was found to be 32K. This limit will quickly be reached by a non-trivial application.</p>
 <p>Configuring the system to have a larger limit or making the limit unlimited may not alleviate this issue. For example, FreeBSD allows mlock use to be restricted to the user-user only.</p>
 <p>Further, Requiring system configuration to use a general purpose library is unacceptable. Especially when the configuration is non-obvious. Also if mlock is limited to super-user only then mstdlib would be unusable as user level application.</p>
-<h2>madvise with MADV_DONTDUMP </h2>
+<h2><a class="anchor" id="autotoc_md39"></a>
+madvise with MADV_DONTDUMP</h2>
 <p>This is used to prevent marked memory from being in a core dump.</p>
 <p>On Linux madvise requires the memory to be page-aligned. If the memory is not page-aligned madvise will return a failure with errno EINVAL. Page-alignment can easily cause the application to run out of address space.</p>
 <p>For example you could use an allocation like: </p><pre class="fragment">void *ptr;
@@ -192,9 +196,11 @@ posix_memalign(&amp;ptr, sysconf(_SC_PAGESIZE), size);
 <p>Assuming One and Two are allocated next to each other. One allocates 8 bytes. Two will be aligned to the 4K boundary after One. A total of 8K of memory is reserved due to this. Only 12 bytes are actually needed but 8K is reserved. Since memory is now aligned in 4K blocks the total available memory space is greatly reduced. Not the amount of memory but the amount of allocations.</p>
 <p>On a 32bit system only ~2GB of memory is available to a process. With 4K page-alignment allocations the amount usable memory is greatly reduced. This might be okay on a 64 bit system but will still be wasteful.</p>
 <p>Also since Linux, since 3.18, has made madvise optional which severely limits its use.</p>
-<h2>Conclusion </h2>
+<h2><a class="anchor" id="autotoc_md40"></a>
+Conclusion</h2>
 <p>Neither mlock nor madvise can be used on every malloc. It may be okay to use this selectively but in a general purpose library there is no way to truly know what is sensitive. For example M_list_str and M_hash_dict duplicate the strings they are given. There is no way for them to know that a particular string needs to be securely allocated.</p>
-<h1>Additional External Security </h1>
+<h1><a class="anchor" id="autotoc_md41"></a>
+Additional External Security</h1>
 <p>One option to add additional security is to create an encrypting wrapper around a list or hashtable:</p><ul>
 <li>Use a different key for each hashtable.</li>
 <li>Limit the life of a hashtable in order to rotate the key often.</li>
@@ -1409,7 +1415,7 @@ posix_memalign(&amp;ptr, sysconf(_SC_PAGESIZE), size);
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 1 2020 13:07:40 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Wed Jul 1 2020 13:17:23 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
