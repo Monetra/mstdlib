@@ -478,6 +478,13 @@ M_API M_bool M_sql_tabledata_field_get_binary(M_sql_tabledata_field_t *field, co
  */
 M_API M_bool M_sql_tabledata_field_is_null(const M_sql_tabledata_field_t *field);
 
+/*! Determine if field is duplicated (non-const), meaning data will not survive once mutated or field is destroyed.
+ *
+ * \param[in] field Field to determine if is duplicated.
+ * \return M_TRUE if duplicated, M_FALSE if const.
+ */
+M_API M_bool M_sql_tabledata_field_is_alloc(const M_sql_tabledata_field_t *field);
+
 /*! Determine current field type.  May change if setter or another getter is called.
  *
  * \param[in] field Field to retrieve type of.
