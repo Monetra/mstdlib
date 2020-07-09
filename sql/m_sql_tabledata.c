@@ -66,10 +66,11 @@ static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
 	field->type    = M_SQL_DATA_TYPE_TEXT;
 }
 
-M_sql_tabledata_field_t *M_sql_tabledata_field_create_ext()
+M_sql_tabledata_field_t *M_sql_tabledata_field_create_ext(void)
 {
 	M_sql_tabledata_field_t *field = M_malloc_zero(sizeof(*field));
 	M_sql_tabledata_field_clear(field);
+	return field;
 }
 
 void M_sql_tabledata_field_destroy_ext(M_sql_tabledata_field_t *field)
