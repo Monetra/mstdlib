@@ -311,6 +311,22 @@ typedef struct {
 
 /* -------------------------------------------------------------------------- */
 
+/*! FOR EXTERNAL USE ONLY. Create a new #M_sql_tabledata_field_t
+ *
+ *  This is only for use outside of M_sql_tabledata_* functions.
+ *
+ * \return new allocated tabledata field
+ */
+M_API M_sql_tabledata_field_t *M_sql_tabledata_field_create_ext(void);
+
+/*! FOR EXTERNAL USE ONLY. Destroys a #M_sql_tabledata_field_t explicitly allocated by M_sql_tabledata_field_create_ext()
+ *
+ *  This is only for use outside of M_sql_tabledata_* functions.
+ *  NEVER call this on a handle provided by #M_sql_tabledata_fetch_cb, #M_sql_tabledata_verify_cb, or retrieved by M_sql_tabledata_txn_field_get()
+ *
+ * \param[in] field Field to be destroyed
+ */
+M_API void M_sql_tabledata_field_destroy_ext(M_sql_tabledata_field_t *field);
 
 /*! Set the field pointer to a boolean value.
  *  Will override existing value and deallocate any prior memory consumed if necessary
