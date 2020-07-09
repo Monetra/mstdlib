@@ -457,6 +457,24 @@ M_bool M_sql_tabledata_field_is_null(const M_sql_tabledata_field_t *field)
 	return field->is_null;
 }
 
+M_bool M_sql_tabledata_field_is_alloc(const M_sql_tabledata_field_t *field)
+{
+	if (field == NULL)
+		return M_FALSE;
+
+	if (field->type != M_SQL_DATA_TYPE_TEXT && field->type != M_SQL_DATA_TYPE_BINARY)
+		return M_FALSE;
+
+	if (field->type == M_SQL_DATA_TYPE_BINARY && field->d.bin.data_alloc)
+		return M_TRUE;
+
+	if (field->type == M_SQL_DATA_TYPE_TEXT && field->d.t.data_alloc)
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
+
 M_sql_data_type_t M_sql_tabledata_field_type(const M_sql_tabledata_field_t *field)
 {
 	if (field == NULL)
