@@ -48,6 +48,8 @@ struct M_sql_tabledata_field {
 	} d;
 };
 
+
+
 static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
 {
 	if (field == NULL)
@@ -62,6 +64,18 @@ static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
 	M_mem_set(field, 0, sizeof(*field));
 	field->is_null = M_TRUE;
 	field->type    = M_SQL_DATA_TYPE_TEXT;
+}
+
+M_sql_tabledata_field_t *M_sql_tabledata_field_create_ext()
+{
+	M_sql_tabledata_field_t *field = M_malloc_zero(sizeof(*field));
+	M_sql_tabledata_field_clear(field);
+}
+
+void M_sql_tabledata_field_destroy_ext(M_sql_tabledata_field_t *field)
+{
+	M_sql_tabledata_field_clear(field);
+	M_free(field);
 }
 
 void M_sql_tabledata_field_set_bool(M_sql_tabledata_field_t *field, M_bool val)
