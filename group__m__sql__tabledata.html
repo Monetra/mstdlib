@@ -156,6 +156,10 @@ Functions</h2></td></tr>
 <tr class="separator:gaeb61aee675d5f41b0d82dbfa86b6089d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf150623b2479731c2ac48de70059633e"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaf150623b2479731c2ac48de70059633e">M_sql_tabledata_filter_graph_cb</a> (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn, const char *field_name, <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, char *error, size_t error_len)</td></tr>
 <tr class="separator:gaf150623b2479731c2ac48de70059633e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2a73cff7d1a7f0e413d74fe41f9a80cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga2a73cff7d1a7f0e413d74fe41f9a80cf">M_sql_tabledata_field_create_ext</a> (void)</td></tr>
+<tr class="separator:ga2a73cff7d1a7f0e413d74fe41f9a80cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac19bce455ed71d04a51a1cb993f73aca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gac19bce455ed71d04a51a1cb993f73aca">M_sql_tabledata_field_destroy_ext</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="separator:gac19bce455ed71d04a51a1cb993f73aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaaef487509774842d968485f38aef9a18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gaaef487509774842d968485f38aef9a18">M_sql_tabledata_field_set_bool</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_bool val)</td></tr>
 <tr class="separator:gaaef487509774842d968485f38aef9a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabed6d61c6577a5312e3333f765513bac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gabed6d61c6577a5312e3333f765513bac">M_sql_tabledata_field_set_int16</a> (<a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field, M_int16 val)</td></tr>
@@ -767,6 +771,53 @@ validate_cb</td>
       </table>
 </div><div class="memdoc">
 <p>Implementation of M_sql_tabledata_filtertransform_cb to validate a string is graph only </p>
+
+</div>
+</div>
+<a id="ga2a73cff7d1a7f0e413d74fe41f9a80cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2a73cff7d1a7f0e413d74fe41f9a80cf">&#9670;&nbsp;</a></span>M_sql_tabledata_field_create_ext()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a>* M_sql_tabledata_field_create_ext </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>FOR EXTERNAL USE ONLY. Create a new <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a></p>
+<p>This is only for use outside of M_sql_tabledata_* functions.</p>
+<dl class="section return"><dt>Returns</dt><dd>new allocated tabledata field </dd></dl>
+
+</div>
+</div>
+<a id="gac19bce455ed71d04a51a1cb993f73aca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac19bce455ed71d04a51a1cb993f73aca">&#9670;&nbsp;</a></span>M_sql_tabledata_field_destroy_ext()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void M_sql_tabledata_field_destroy_ext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>FOR EXTERNAL USE ONLY. Destroys a <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> explicitly allocated by <a class="el" href="group__m__sql__tabledata.html#ga2a73cff7d1a7f0e413d74fe41f9a80cf">M_sql_tabledata_field_create_ext()</a></p>
+<p>This is only for use outside of M_sql_tabledata_* functions. NEVER call this on a handle provided by <a class="el" href="group__m__sql__tabledata.html#gaf31b72a8d978ae5591ff4556b2e778e9">M_sql_tabledata_fetch_cb</a>, #M_sql_tabledata_verify_cb, or retrieved by <a class="el" href="group__m__sql__tabledata.html#ga533f29b6f7f553c17214aa368a8f098f">M_sql_tabledata_txn_field_get()</a></p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">field</td><td>Field to be destroyed </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -2146,7 +2197,7 @@ validate_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Jul 1 2020 13:17:24 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Jul 9 2020 13:51:11 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

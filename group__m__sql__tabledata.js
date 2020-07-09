@@ -37,6 +37,8 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_filter_alnumsp_cb", "group__m__sql__tabledata.html#gac6042ffa16171c6a4bac6d715a832ccf", null ],
     [ "M_sql_tabledata_filter_alpha_cb", "group__m__sql__tabledata.html#gaeb61aee675d5f41b0d82dbfa86b6089d", null ],
     [ "M_sql_tabledata_filter_graph_cb", "group__m__sql__tabledata.html#gaf150623b2479731c2ac48de70059633e", null ],
+    [ "M_sql_tabledata_field_create_ext", "group__m__sql__tabledata.html#ga2a73cff7d1a7f0e413d74fe41f9a80cf", null ],
+    [ "M_sql_tabledata_field_destroy_ext", "group__m__sql__tabledata.html#gac19bce455ed71d04a51a1cb993f73aca", null ],
     [ "M_sql_tabledata_field_set_bool", "group__m__sql__tabledata.html#gaaef487509774842d968485f38aef9a18", null ],
     [ "M_sql_tabledata_field_set_int16", "group__m__sql__tabledata.html#gabed6d61c6577a5312e3333f765513bac", null ],
     [ "M_sql_tabledata_field_set_int32", "group__m__sql__tabledata.html#ga5418eb740c63d5d2a2f9057868ee9bc8", null ],
