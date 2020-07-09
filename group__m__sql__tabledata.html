@@ -196,6 +196,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga59064bfaff095b86a9eefdf8b4342e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga54cabcca80ba5e30de44359561ff7f65"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65">M_sql_tabledata_field_is_null</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
 <tr class="separator:ga54cabcca80ba5e30de44359561ff7f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae5bef640738d967635c590276635f0c3"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gae5bef640738d967635c590276635f0c3">M_sql_tabledata_field_is_alloc</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
+<tr class="separator:gae5bef640738d967635c590276635f0c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__sql__error.html#gae672a1a5ceb3af4f3a01347ffd839beb">M_sql_data_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788">M_sql_tabledata_field_type</a> (const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *field)</td></tr>
 <tr class="separator:gad4e4d21f07b2b6453de21a92ad29a788"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6b05f4d195fb36c56e2e39f649341074"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__sql__tabledata.html#ga6b05f4d195fb36c56e2e39f649341074">M_sql_tabledata_txn_get_thunk</a> (<a class="el" href="group__m__sql__tabledata.html#ga6ecefe068467cf3e5560091912ff5e16">M_sql_tabledata_txn_t</a> *txn)</td></tr>
@@ -1471,6 +1473,32 @@ validate_cb</td>
 
 </div>
 </div>
+<a id="gae5bef640738d967635c590276635f0c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae5bef640738d967635c590276635f0c3">&#9670;&nbsp;</a></span>M_sql_tabledata_field_is_alloc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_sql_tabledata_field_is_alloc </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__m__sql__tabledata.html#gab0d3ec10075e1c0e67970d7355863628">M_sql_tabledata_field_t</a> *&#160;</td>
+          <td class="paramname"><em>field</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Determine if field is duplicated (non-const), meaning data will not survive once mutated or field is destroyed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">field</td><td>Field to determine if is duplicated. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE if duplicated, M_FALSE if const. </dd></dl>
+
+</div>
+</div>
 <a id="gad4e4d21f07b2b6453de21a92ad29a788"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gad4e4d21f07b2b6453de21a92ad29a788">&#9670;&nbsp;</a></span>M_sql_tabledata_field_type()</h2>
 
@@ -2197,7 +2225,7 @@ validate_cb</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jul 9 2020 13:51:11 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Jul 9 2020 13:59:45 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -57,6 +57,7 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_field_get_text", "group__m__sql__tabledata.html#ga06bc1a3b99eb465a6f674cb99ac97234", null ],
     [ "M_sql_tabledata_field_get_binary", "group__m__sql__tabledata.html#ga59064bfaff095b86a9eefdf8b4342e12", null ],
     [ "M_sql_tabledata_field_is_null", "group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65", null ],
+    [ "M_sql_tabledata_field_is_alloc", "group__m__sql__tabledata.html#gae5bef640738d967635c590276635f0c3", null ],
     [ "M_sql_tabledata_field_type", "group__m__sql__tabledata.html#gad4e4d21f07b2b6453de21a92ad29a788", null ],
     [ "M_sql_tabledata_txn_get_thunk", "group__m__sql__tabledata.html#ga6b05f4d195fb36c56e2e39f649341074", null ],
     [ "M_sql_tabledata_txn_get_tablename", "group__m__sql__tabledata.html#gaffe2d753fa3715ec17ea12f35d06414f", null ],

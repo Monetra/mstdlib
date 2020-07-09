@@ -1693,6 +1693,7 @@ var searchData=
   ['m_5fsql_5ftabledata_5ffield_5fget_5fint32',['M_sql_tabledata_field_get_int32',['../group__m__sql__tabledata.html#ga2ed8e6333f73d91168b7ef3cbb2f7a1a',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5fget_5fint64',['M_sql_tabledata_field_get_int64',['../group__m__sql__tabledata.html#gad53599a3b6f5586a7e4f2f9ceec2c303',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5fget_5ftext',['M_sql_tabledata_field_get_text',['../group__m__sql__tabledata.html#ga06bc1a3b99eb465a6f674cb99ac97234',1,'m_sql_table.h']]],
+  ['m_5fsql_5ftabledata_5ffield_5fis_5falloc',['M_sql_tabledata_field_is_alloc',['../group__m__sql__tabledata.html#gae5bef640738d967635c590276635f0c3',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5fis_5fnull',['M_sql_tabledata_field_is_null',['../group__m__sql__tabledata.html#ga54cabcca80ba5e30de44359561ff7f65',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5fset_5fbinary_5fconst',['M_sql_tabledata_field_set_binary_const',['../group__m__sql__tabledata.html#ga32b39855377ddf8065797b2f706ffb77',1,'m_sql_table.h']]],
   ['m_5fsql_5ftabledata_5ffield_5fset_5fbinary_5fdup',['M_sql_tabledata_field_set_binary_dup',['../group__m__sql__tabledata.html#ga002d47104eb59a0d89b983e4eaddbe9e',1,'m_sql_table.h']]],
