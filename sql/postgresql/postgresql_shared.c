@@ -38,6 +38,7 @@ M_sql_error_t pgsql_resolve_error(const char *sqlstate, M_int32 errorcode)
 		{ "23",    M_SQL_ERROR_QUERY_CONSTRAINT }, /*!< Integrity Constraint Violation */
 		{ "40",    M_SQL_ERROR_QUERY_DEADLOCK   }, /*!< Transaction Rollback */
 		{ "53100", M_SQL_ERROR_QUERY_DEADLOCK   }, /*!< Disk Full */
+		{ "25P02", M_SQL_ERROR_QUERY_DEADLOCK   }, /*!< current transaction is aborted, commands ignored until end of transaction block */
 		{ "53",    M_SQL_ERROR_CONN_LOST        }, /*!< Other insufficient resources, disconnect */
 		{ "57P",   M_SQL_ERROR_CONN_LOST        }, /*!< ADMIN shutdown or similar */
 		{ NULL, M_SQL_ERROR_UNSET }
