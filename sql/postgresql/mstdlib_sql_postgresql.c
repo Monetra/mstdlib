@@ -892,7 +892,7 @@ static M_sql_driver_t M_sql_postgresql = {
 	M_SQL_DRIVER_VERSION,         /* Driver/Module subsystem version */
 	"postgresql",                 /* Short name of module */
 	"PostgreSQL driver for mstdlib",  /* Display name of module */
-	"1.0.0",                      /* Internal module version */
+	"1.0.1",                      /* Internal module version */
 
 	pgsql_cb_init,                /* Callback used for module initialization. */
 	pgsql_cb_destroy,             /* Callback used for module destruction/unloading. */
