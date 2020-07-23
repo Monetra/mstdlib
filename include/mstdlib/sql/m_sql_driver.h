@@ -379,17 +379,24 @@ typedef struct  {
 
 /*! Flags for the helper query string format rewrite function M_sql_driver_queryformat() */
 typedef enum {
-	M_SQL_DRIVER_QUERYFORMAT_NORMAL              = 0,       /*!< Normal, strips any query terminator otherwise unmodified */
-	M_SQL_DRIVER_QUERYFORMAT_TERMINATOR          = 1 << 0,  /*!< Query terminator (;) is required */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR    = 1 << 1,  /*!< Instead of using ? for each bound parameter, parameters
-	                                                             take the form of $1, $2, ... $N  (used by PostgreSQL) */
-	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON     = 1 << 2,  /*!< Instead of using ? for each bound parameter, parameters
-	                                                             take the form of :1, :2, ... :N  (used by Oracle) */
-	M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD = 1 << 3,  /*!< Multiple-value/row insertions are not sent to the server using
-	                                                             rows of bound parameters, but instead by comma-delimiting the
-	                                                             values in the insert statement.  This will rewrite an INSERT
-	                                                             statement from "INSERT INTO foo VALUES (?, ?, ?)"  into something
-	                                                             like "INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), ..., (?, ?, ?)" */
+	M_SQL_DRIVER_QUERYFORMAT_NORMAL                      = 0,      /*!< Normal, strips any query terminator otherwise unmodified */
+	M_SQL_DRIVER_QUERYFORMAT_TERMINATOR                  = 1 << 0, /*!< Query terminator (;) is required */
+	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR            = 1 << 1, /*!< Instead of using ? for each bound parameter, parameters
+	                                                                    take the form of $1, $2, ... $N  (used by PostgreSQL) */
+	M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON             = 1 << 2, /*!< Instead of using ? for each bound parameter, parameters
+	                                                                    take the form of :1, :2, ... :N  (used by Oracle) */
+	M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD         = 1 << 3, /*!< Multiple-value/row insertions are not sent to the server using
+	                                                                    rows of bound parameters, but instead by comma-delimiting the
+	                                                                    values in the insert statement.  This will rewrite an INSERT
+	                                                                    statement from "INSERT INTO foo VALUES (?, ?, ?)"  into something
+	                                                                    like "INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), ..., (?, ?, ?)" */
+	M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING = 1 << 4, /*!< Some databases may choose to abort the entire transaction on a 
+	                                                                *   conflict, but there are times we explicitly want to take action
+	                                                                *   on such a case without rolling back.  This clause will cause it to
+	                                                                *   skip the insert of that record.  PostgreSQL is known to behave this
+	                                                                *   way.  However, this means the result will not return said conflict
+	                                                                *   so we must check to see if the return count is expected, and if
+	                                                                *   not, rewrite the code to assume it is a conflict */
 } M_sql_driver_queryformat_flags_t;
 
 

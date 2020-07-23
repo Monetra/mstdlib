@@ -328,7 +328,14 @@ static size_t pgsql_num_process_rows(size_t num_rows)
 static char *pgsql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t num_params, size_t num_rows, char *error, size_t error_size)
 {
 	(void)conn;
-	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD|M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR,
+
+	/* NOTE: PostgreSQL will abort the entire transaction on a conflict, but there are times we explicitly want to take
+	 * action on such a case without rolling back.  This clause will cause it to skip the insert of that record.
+	 * However, this means the result will not return said conflict so we must check to see if the return count is
+	 * expected, and if not, rewrite the code to assume it is a conflict */
+
+
+	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD|M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR|M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING,
 	                                num_params, pgsql_num_process_rows(num_rows),
 	                                error, error_size);
 }
@@ -710,6 +717,14 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 	/* Get number of rows that are processed at once, supports
 	 * comma-delimited values for inserting multiple rows. */
 	*rows_executed = pgsql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
+
+	/* Special case for using INSERT ... ON CONFLICT DO NOTHING, if affected rows doesn't
+	 * match executed rows, there must have been a conflict, modify the error code */
+	if (err == M_SQL_ERROR_SUCCESS &&
+	    M_str_caseeq_max(M_sql_driver_stmt_get_query(stmt), "INSERT", 6) &&
+	    M_sql_stmt_result_affected_rows(stmt) != (*rows_executed)) {
+		err = M_SQL_ERROR_QUERY_CONSTRAINT;
+	}
 
 	return err;
 }
