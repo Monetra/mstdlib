@@ -163,6 +163,13 @@ char *M_sql_driver_queryformat(const char *query, M_uint32 flags, size_t num_par
 		minimized_query = M_buf_finish_str(buf, &len);
 	}
 
+	if (flags & M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING && M_str_caseeq_max(minimized_query, "INSERT", 6)) {
+		char *temp      = NULL;
+		len             = M_asprintf(&temp, "%s ON CONFLICT DO NOTHING", minimized_query);
+		M_free(minimized_query);
+		minimized_query = temp;
+	}
+
 	/* Add terminator if necessary */
 	if (flags & M_SQL_DRIVER_QUERYFORMAT_TERMINATOR) {
 		char *temp      = NULL;
