@@ -74,7 +74,8 @@ var group__m__sql__driver =
       [ "M_SQL_DRIVER_QUERYFORMAT_TERMINATOR", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a189b5e6bc47aae1482a157ac7862a1c7", null ],
       [ "M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911ab4b5df4f5a2bfc044dc53740f93de9fb", null ],
       [ "M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a716e03a542377a6419f8decdc1d7b193", null ],
-      [ "M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a80add5a46e4ae37fc1807cddcbc2afc5", null ]
+      [ "M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a80add5a46e4ae37fc1807cddcbc2afc5", null ],
+      [ "M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING", "group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a7d551e43ea3175fcba1ac320c6f966c3", null ]
     ] ],
     [ "M_sql_connstr_type_t", "group__m__sql__driver.html#gac47d3c940551d97b1f18e95cf26956e8", [
       [ "M_SQL_CONNSTR_TYPE_BOOL", "group__m__sql__driver.html#ggac47d3c940551d97b1f18e95cf26956e8a4a8b7b4b43523ffd44a1bb618cceca86", null ],

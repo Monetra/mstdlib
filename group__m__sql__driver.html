@@ -174,7 +174,9 @@ Enumerations</h2></td></tr>
 <br />
 &#160;&#160;<a class="el" href="group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a716e03a542377a6419f8decdc1d7b193">M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON</a> = 1 &lt;&lt; 2, 
 <br />
-&#160;&#160;<a class="el" href="group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a80add5a46e4ae37fc1807cddcbc2afc5">M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD</a> = 1 &lt;&lt; 3
+&#160;&#160;<a class="el" href="group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a80add5a46e4ae37fc1807cddcbc2afc5">M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD</a> = 1 &lt;&lt; 3, 
+<br />
+&#160;&#160;<a class="el" href="group__m__sql__driver.html#ggaf46c619c3bb9dfc5b9517537667ea911a7d551e43ea3175fcba1ac320c6f966c3">M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING</a> = 1 &lt;&lt; 4
 <br />
  }</td></tr>
 <tr class="separator:gaf46c619c3bb9dfc5b9517537667ea911"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -665,7 +667,7 @@ port</td>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code" href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a> <a class="code" href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a> *M_sql_get_driver_##name(<span class="keywordtype">void</span>); \</div><div class="line">    M_sql_driver_t *M_sql_get_driver_##name(<span class="keywordtype">void</span>)        \</div><div class="line">    {                                                    \</div><div class="line">        return &amp;M_sql_##name;                            \</div><div class="line">    }</div><div class="ttc" id="group__m__sql__driver_html_structM__sql__driver__t"><div class="ttname"><a href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a></div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:347</div></div>
-<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:720</div></div>
+<div class="ttc" id="group__m__sql__driver_html_ga27f8804f3b9a2b250a1c6b048a7568fc"><div class="ttname"><a href="group__m__sql__driver.html#ga27f8804f3b9a2b250a1c6b048a7568fc">M_SQL_API</a></div><div class="ttdeci">#define M_SQL_API</div><div class="ttdef"><b>Definition:</b> m_sql_driver.h:727</div></div>
 </div><!-- fragment --><p>Use in sql driver source file to create entry point </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>is the name of the module, a <a class="el" href="group__m__sql__driver.html#structM__sql__driver__t">M_sql_driver_t</a> structure must be defined named M_sql_[name] </td></tr>
@@ -1292,6 +1294,8 @@ port</td>
 <tr><td class="fieldname"><a id="ggaf46c619c3bb9dfc5b9517537667ea911a716e03a542377a6419f8decdc1d7b193"></a>M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_COLON&#160;</td><td class="fielddoc"><p>Instead of using ? for each bound parameter, parameters take the form of :1, :2, ... :N (used by Oracle) </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ggaf46c619c3bb9dfc5b9517537667ea911a80add5a46e4ae37fc1807cddcbc2afc5"></a>M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD&#160;</td><td class="fielddoc"><p>Multiple-value/row insertions are not sent to the server using rows of bound parameters, but instead by comma-delimiting the values in the insert statement. This will rewrite an INSERT statement from "INSERT INTO foo VALUES (?, ?, ?)" into something like "INSERT INTO foo VALUES (?, ?, ?), (?, ?, ?), ..., (?, ?, ?)" </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ggaf46c619c3bb9dfc5b9517537667ea911a7d551e43ea3175fcba1ac320c6f966c3"></a>M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING&#160;</td><td class="fielddoc"><p>Some databases may choose to abort the entire transaction on a conflict, but there are times we explicitly want to take action on such a case without rolling back. This clause will cause it to skip the insert of that record. PostgreSQL is known to behave this way. However, this means the result will not return said conflict so we must check to see if the return count is expected, and if not, rewrite the code to assume it is a conflict </p>
 </td></tr>
 </table>
 
@@ -2999,7 +3003,7 @@ port</td>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jul 9 2020 13:59:45 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Thu Jul 23 2020 21:12:10 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
