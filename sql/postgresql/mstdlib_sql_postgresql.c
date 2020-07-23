@@ -723,6 +723,7 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 	if (err == M_SQL_ERROR_SUCCESS &&
 	    M_str_caseeq_max(M_sql_driver_stmt_get_query(stmt), "INSERT", 6) &&
 	    M_sql_stmt_result_affected_rows(stmt) != (*rows_executed)) {
+		M_snprintf(error, error_size, "CONFLICT DETECTED ON INSERT");
 		err = M_SQL_ERROR_QUERY_CONSTRAINT;
 	}
 
