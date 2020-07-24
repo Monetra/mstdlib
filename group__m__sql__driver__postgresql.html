@@ -88,14 +88,15 @@ $(document).ready(function(){initNavTree('group__m__sql__driver__postgresql.html
 <p>Driver Connection String Options:</p><ul>
 <li>db: Required. Database Name.</li>
 <li>host: Required. This is the hostname or IP address of the server. If not using the default port of 5432, may append a ":port#" to the end of the host. For specifying multiple hosts in a pool, hosts should be comma delimited. Cannot be used with socketpath. <div class="fragment"><div class="line">host=10.40.30.2,10.50.30.2:15432  </div></div><!-- fragment --></li>
-<li>application_name: Optional. Application name to register with the server for debugging purposes. </li>
+<li>application_name: Optional. Application name to register with the server for debugging purposes.</li>
 </ul>
+<p>Minimum supported server version is v9.5.0. Earlier versions did not support 'ON CONFLICT' conflict resolution for INSERT. </p>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Thu Jul 23 2020 21:25:33 for Mstdlib-1.11.0 by
+    <li class="footer">Generated on Fri Jul 24 2020 20:48:02 for Mstdlib-1.11.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>
