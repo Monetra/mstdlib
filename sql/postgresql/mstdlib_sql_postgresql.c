@@ -285,8 +285,12 @@ static M_sql_error_t pgsql_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool
 	}
 
 	ver = PQserverVersion((*conn)->conn);
-
 	M_snprintf((*conn)->version, sizeof((*conn)->version), "%d.%d.%d", ver / 10000, (ver % 10000) / 100, ver % 100);
+	if (ver < 90500) {
+		err = M_SQL_ERROR_CONN_FAILED;
+		M_snprintf(error, error_size, "Unsupported server version (%s)", (*conn)->version);
+		goto done;
+	}
 
 done:
 	M_hash_dict_destroy(conn_opts);
