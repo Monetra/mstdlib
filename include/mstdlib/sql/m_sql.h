@@ -109,6 +109,9 @@ __BEGIN_DECLS
  *    \code  host=10.40.30.2,10.50.30.2:15432  \endcode
  *  - application_name: Optional.  Application name to register with the server for debugging
  *    purposes.
+ *
+ * Minimum supported server version is v9.5.0. Earlier versions did not support 'ON CONFLICT'
+ * conflict resolution for INSERT.
  */
 
 /*! \addtogroup m_sql_driver_oracle Oracle Driver
