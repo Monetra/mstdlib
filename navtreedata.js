@@ -1,6 +1,6 @@
 var NAVTREE =
 [
-  [ "Mstdlib-1.11.0", "index.html", [
+  [ "Mstdlib-1.13.0", "index.html", [
     [ "About", "index.html", [
       [ "Rationale/Use", "index.html#autotoc_md0", null ],
       [ "Goals", "index.html#autotoc_md1", [
