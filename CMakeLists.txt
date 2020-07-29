@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/")
 include(DefaultBuildType)
 
 project(Mstdlib
-	VERSION   1.11.0
+	VERSION   1.12.0
 	LANGUAGES C
 )
 
