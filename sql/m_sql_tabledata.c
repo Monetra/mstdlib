@@ -976,6 +976,7 @@ static M_bool M_sql_tabledata_bind(M_sql_stmt_t *stmt, M_sql_data_type_t type, M
 
 struct M_sql_tabledata_txn {
 	M_bool                         is_add;      /*!< Add vs Edit operation*/
+	M_bool                         edit_insert_not_found; /*<! If the record is not found on edit, insert it */
 	const char                    *table_name;  /*!< Table Name */
 	const M_sql_tabledata_t       *fields;      /*!< Table definition, per field */
 	size_t                         num_fields;  /*!< Number of fields in the table definition */
@@ -1040,16 +1041,16 @@ static void M_sql_tabledata_field_free_cb(void *arg)
 
 static void M_sql_tabledata_txn_reset(M_sql_tabledata_txn_t *txn)
 {
-	if (txn->curr_fields == NULL || M_hash_strvp_num_keys(txn->curr_fields) > 0) {
-		M_hash_strvp_destroy(txn->curr_fields, M_TRUE);
-		txn->curr_fields = M_hash_strvp_create(16, 75, M_HASH_STRVP_CASECMP, M_sql_tabledata_field_free_cb);
-	}
+	M_hash_strvp_destroy(txn->curr_fields, M_TRUE);
+	txn->curr_fields = NULL;
+
+	M_hash_strvp_destroy(txn->prev_fields, M_TRUE);
+	txn->prev_fields = NULL;
+
+	txn->curr_fields = M_hash_strvp_create(16, 75, M_HASH_STRVP_CASECMP, M_sql_tabledata_field_free_cb);
 
 	if (!txn->is_add) {
-		if (txn->prev_fields == NULL || M_hash_strvp_num_keys(txn->prev_fields) > 0) {
-			M_hash_strvp_destroy(txn->prev_fields, M_TRUE);
-			txn->prev_fields = M_hash_strvp_create(16, 75, M_HASH_STRVP_CASECMP, M_sql_tabledata_field_free_cb);
-		}
+		txn->prev_fields = M_hash_strvp_create(16, 75, M_HASH_STRVP_CASECMP, M_sql_tabledata_field_free_cb);
 	}
 }
 
@@ -1720,8 +1721,12 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 		goto done;
 
 	if (M_sql_stmt_result_num_rows(stmt) == 0) {
-		M_snprintf(error, error_len, "no match found");
-		err = M_SQL_ERROR_USER_FAILURE;
+		if (txn->edit_insert_not_found) {
+			err = M_SQL_ERROR_USER_BYPASS;
+		} else {
+			M_snprintf(error, error_len, "no match found");
+			err = M_SQL_ERROR_USER_FAILURE;
+		}
 		goto done;
 	}
 
@@ -1833,6 +1838,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	M_sql_tabledata_txn_t  *txn         = arg;
 	M_bool                  has_update  = M_FALSE;
 
+	txn->is_add = M_FALSE;
 	M_sql_tabledata_txn_reset(txn);
 
 	err = M_sql_tabledata_txn_fetch_current(sqltrans, txn, error, error_len);
@@ -1840,8 +1846,14 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		return err;
 
 	err = M_sql_tabledata_txn_fetch_prior(sqltrans, txn, error, error_len);
-	if (M_sql_error_is_error(err))
+	if (M_sql_error_is_error(err)) {
+		/* If the record is not found on an edit, and the flag is set to insert if not found, switch to an add operation */
+		if (err == M_SQL_ERROR_USER_BYPASS && txn->edit_insert_not_found) {
+			txn->is_add = M_TRUE;
+			return M_sql_tabledata_add_do(sqltrans, arg, error, error_len);
+		}
 		goto done;
+	}
 
 	err = M_sql_tabledata_txn_uservalidate_fields(sqltrans, txn, error, error_len);
 	if (M_sql_error_is_error(err))
@@ -2015,14 +2027,13 @@ done:
 }
 
 
-static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+static M_sql_error_t M_sql_tabledata_edit_int(M_sql_connpool_t *pool, M_sql_trans_t *sqltrans, const char *table_name, M_bool insert_not_found, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
 	M_sql_error_t          err  = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_txn_t  txn;
 
 	M_sql_tabledata_txn_create(&txn, M_FALSE, table_name, fields, num_fields, fetch_cb, notify_cb, thunk);
-
-	/* XXX: Handle notify_cb */
+	txn.edit_insert_not_found = insert_not_found;
 
 	if (pool == NULL && sqltrans == NULL) {
 		M_snprintf(error, error_len, "must specify pool or sqltrans");
@@ -2059,15 +2070,25 @@ done:
 
 M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
-	return M_sql_tabledata_edit_int(pool, NULL, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
+	return M_sql_tabledata_edit_int(pool, NULL, table_name, M_FALSE, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
 }
 
 
 M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
 {
-	return M_sql_tabledata_edit_int(NULL, sqltrans, table_name, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
+	return M_sql_tabledata_edit_int(NULL, sqltrans, table_name, M_FALSE, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
 }
 
+M_sql_error_t M_sql_tabledata_upsert(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+{
+	return M_sql_tabledata_edit_int(pool, NULL, table_name, M_TRUE, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
+}
+
+
+M_sql_error_t M_sql_tabledata_trans_upsert(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len)
+{
+	return M_sql_tabledata_edit_int(NULL, sqltrans, table_name, M_TRUE, fields, num_fields, fetch_cb, notify_cb, thunk, error, error_len);
+}
 
 M_sql_tabledata_t *M_sql_tabledata_append_virtual_list(const M_sql_tabledata_t *fields, size_t *num_fields, const char *table_column, const M_list_str_t *field_names, size_t max_len, M_sql_tabledata_flags_t flags)
 {

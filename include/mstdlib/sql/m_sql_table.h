@@ -283,7 +283,7 @@ M_API M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const c
  *  Recommended to call M_sql_tabledata_txn_field_changed() if only need to perform operations when the field has changed.
  *
  *  The field data is not provided and must be fetched via M_sql_tabledata_txn_field_get() as it is not known which variant
- *  of the data may be needed. 
+ *  of the data may be needed.
  *
  *  The field data may be manipulated if necessary.
  *
@@ -552,7 +552,7 @@ M_API M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn
 M_API M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char *field_name);
 
 
-/*! Retrieve the field definition for a field name from the current transaction. 
+/*! Retrieve the field definition for a field name from the current transaction.
  *
  * \param[in] txn        Transaction provided to callback.
  * \param[in] field_name Name of field
@@ -664,6 +664,49 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  *         M_SQL_ERROR_SUCCESS means a single row was changed.
  */
 M_API M_sql_error_t M_sql_tabledata_trans_edit(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
+
+/*!  Edit an existing row, or if not found, insert in a table based on the field definitions.  All fields should be sent.
+ *   It is valid to fetch a NULL value to explicitly set a column to NULL.  The ID(s) specified must match exactly one row
+ *   or a failure will be emitted.
+ *
+ *   Use M_sql_tabledata_trans_upsert() if already in a transaction.
+ *
+ * \param[in]     pool         Required if sqltrans not passed. The handle to the SQL pool in use.
+ * \param[in]     table_name   Name of the table
+ * \param[in]     fields       List of fields (columns) in the table.
+ * \param[in]     num_fields   Number of fields in the list
+ * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
+ * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
+ * \param[in,out] error        Buffer to hold error if any
+ * \param[in]     error_len    Size of error buffer
+ * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function.
+ *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
+ *         M_SQL_ERROR_SUCCESS means a single row was changed.
+ */
+M_API M_sql_error_t M_sql_tabledata_upsert(M_sql_connpool_t *pool, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
+
+/*!  Edit an existing row, or if not found, insert in a table based on the field definitions.  All fields should be sent.
+ *   It is valid to fetch a NULL value to explicitly set a column to NULL.  The ID(s) specified must match exactly one row
+ *   or a failure will be emitted.
+ *
+ *   Use M_sql_tabledata_upsert() if not already in a transaction.
+ *
+ * \param[in]     sqltrans     Required if pool not passed.  If run within a transaction, this must be passed.
+ * \param[in]     table_name   Name of the table
+ * \param[in]     fields       List of fields (columns) in the table.
+ * \param[in]     num_fields   Number of fields in the list
+ * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
+ * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
+ * \param[in,out] error        Buffer to hold error if any
+ * \param[in]     error_len    Size of error buffer
+ * \return one of the M_sql_error_t codes. Will return M_SQL_ERROR_USER_FAILURE on invalid usage of this function.
+ *         Will return M_SQL_ERROR_USER_SUCCESS when no updates were performed (passed in data matches on file data).
+ *         M_SQL_ERROR_SUCCESS means a single row was changed.
+ */
+M_API M_sql_error_t M_sql_tabledata_trans_upsert(M_sql_trans_t *sqltrans, const char *table_name, const M_sql_tabledata_t *fields, size_t num_fields, M_sql_tabledata_fetch_cb fetch_cb, M_sql_tabledata_notify_cb notify_cb, void *thunk, char *error, size_t error_len);
+
 
 /*! Convenience function to expand a list of tabledata fields base on an M_list_str_t list of
  *  virtual column names tied to a single table column that share the same attributes.  All
