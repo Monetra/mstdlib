@@ -70,6 +70,8 @@ var group__m__sql__tabledata =
     [ "M_sql_tabledata_trans_add", "group__m__sql__tabledata.html#ga28eee0f21156a25c12835c483d0800f5", null ],
     [ "M_sql_tabledata_edit", "group__m__sql__tabledata.html#ga9678396f17ba2a30da20acc33f9973bd", null ],
     [ "M_sql_tabledata_trans_edit", "group__m__sql__tabledata.html#ga52c40006e3dd628dc543c3b3e6e8c248", null ],
+    [ "M_sql_tabledata_upsert", "group__m__sql__tabledata.html#ga67c92b748aa21e46c5964500f471f62a", null ],
+    [ "M_sql_tabledata_trans_upsert", "group__m__sql__tabledata.html#ga88dca1244ea9b9fcc9b7d24c0d2395a7", null ],
     [ "M_sql_tabledata_append_virtual_list", "group__m__sql__tabledata.html#ga634ddd627ced8b89856a8852aff69227", null ],
     [ "M_sql_tabledata_to_table", "group__m__sql__tabledata.html#gae922e514264c2c08a7642d2b71fff455", null ]
 ];
