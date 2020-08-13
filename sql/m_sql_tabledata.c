@@ -1846,12 +1846,13 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		return err;
 
 	err = M_sql_tabledata_txn_fetch_prior(sqltrans, txn, error, error_len);
+	/* If the record is not found on an edit, and the flag is set to insert if not found, switch to an add operation */
+	if (err == M_SQL_ERROR_USER_BYPASS && txn->edit_insert_not_found) {
+		txn->is_add = M_TRUE;
+		return M_sql_tabledata_add_do(sqltrans, arg, error, error_len);
+	}
+
 	if (M_sql_error_is_error(err)) {
-		/* If the record is not found on an edit, and the flag is set to insert if not found, switch to an add operation */
-		if (err == M_SQL_ERROR_USER_BYPASS && txn->edit_insert_not_found) {
-			txn->is_add = M_TRUE;
-			return M_sql_tabledata_add_do(sqltrans, arg, error, error_len);
-		}
 		goto done;
 	}
 
