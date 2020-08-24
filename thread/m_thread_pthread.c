@@ -127,7 +127,7 @@ static M_threadid_t M_thread_pthread_self(M_thread_t **thread)
 		tid = (pid_t)syscall(__NR_gettid);
 
 	rv = (M_threadid_t)tid;
-#elif defined(_AIX)
+#elif 0 /* defined(_AIX) -- disable due to issues with running AIX binary on OS/400 PASE */
 	tid_t tid = thread_self();
 	rv = (M_threadid_t)tid;
 #else
@@ -299,11 +299,13 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		return M_FALSE;
 	}
 #elif defined(_AIX)
-	(void)thread;
-	if (bindprocessor(BINDTHREAD, (id_t)tid, (cpu_t)((processor_id == -1)?PROCESSOR_CLASS_ANY:processor_id)) != 0) {
-		M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
-		return M_FALSE;
-	}
+/* NOTE: disabled due to issues running on OS/400 PASE
+ *	(void)thread;
+ * 	if (bindprocessor(BINDTHREAD, (id_t)tid, (cpu_t)((processor_id == -1)?PROCESSOR_CLASS_ANY:processor_id)) != 0) {
+ *		M_fprintf(stderr, "bindprocessor thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
+ *		return M_FALSE;
+ *	}
+ */
 #elif defined(__ANDROID__)
 	(void)thread;
 	(void)tid;
