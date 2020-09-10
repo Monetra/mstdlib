@@ -29,8 +29,9 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_int64 JAVASCRIPT_MIN_INT = -(2^53)+1;
-static M_int64 JAVASCRIPT_MAX_INT = (2^53)-1;
+/* IEEE 754 and can only safely represent numbers between -(2^53 - 1) and 2^53 - 1. */
+static M_int64 JAVASCRIPT_MIN_INT = -9007199254740991LL;
+static M_int64 JAVASCRIPT_MAX_INT =  9007199254740991LL;
 
 static M_bool M_json_write_node(const M_json_node_t *node, M_buf_t *buf, size_t *depth, M_uint32 flags);
 
