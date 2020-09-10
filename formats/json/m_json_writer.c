@@ -29,7 +29,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* IEEE 754 and can only safely represent numbers between -(2^53 - 1) and 2^53 - 1. */
+/* JavaScript uses IEEE 754 which can only represent numbers between -(2^53 - 1) and 2^53 - 1. */
 static M_int64 JAVASCRIPT_MIN_INT = -9007199254740991LL;
 static M_int64 JAVASCRIPT_MAX_INT =  9007199254740991LL;
 
