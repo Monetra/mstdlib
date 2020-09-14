@@ -298,7 +298,7 @@ static void *M_event_impl_win32_eventthread(void *arg)
 				/* We've had a couple of very infrequent reports of what appear to be timers not delivered
 				 * (for hours) on Windows systems with UniTerm.  Adding some failsafe to wake very 10s to
 				 * see if this is the case or not. */
-				if (threaddata->idx == 0 && timeout = INFINITE) {
+				if (threaddata->idx == 0 && timeout == INFINITE) {
 					timeout = 10 * 1000;
 				}
 #endif
