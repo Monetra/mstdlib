@@ -48,7 +48,7 @@ static M_int64 s64_r;
 START_TEST(check_str_to_int64_null)
 {
 	s64_r = M_str_to_int64(NULL);
-	ck_assert_msg(s64_r == 0, "decoding of NULL failed: expected %llu, but was %llu\n", 0, s64_r);
+	ck_assert_msg(s64_r == 0, "decoding of NULL failed: expected %d, but was %llu\n", 0, s64_r);
 }
 END_TEST
 

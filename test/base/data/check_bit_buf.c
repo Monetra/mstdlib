@@ -58,8 +58,8 @@ do {\
 do {\
 	size_t len_bits  = M_bit_buf_len(BBUF);\
 	size_t len_bytes = M_bit_buf_len_bytes(BBUF);\
-	ck_assert_msg(len_bits == EXP_BITS, "len is %lld bits, expected %lld", (long long)len_bits, EXP_BITS);\
-	ck_assert_msg(len_bytes == EXP_BYTES, "len is %lld bytes, expected %lld", (long long)len_bytes, EXP_BYTES);\
+	ck_assert_msg(len_bits == EXP_BITS, "len is %lld bits, expected %lld", (long long)len_bits, (long long)EXP_BITS);\
+	ck_assert_msg(len_bytes == EXP_BYTES, "len is %lld bytes, expected %lld", (long long)len_bytes, (long long)EXP_BYTES);\
 } while (0)
 
 

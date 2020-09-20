@@ -28,9 +28,9 @@ static const size_t mem_size = sizeof(mem);
 
 START_TEST(check_malloc_NULL)
 {
-	ck_assert_msg(M_malloc(0) == NULL);
+	ck_assert(M_malloc(0) == NULL);
 	M_printf("**THIS OUT OF MEMORY ERROR IS EXPECTED**\n");
-	ck_assert_msg(M_malloc((size_t)-1) == NULL);
+	ck_assert(M_malloc((size_t)-1) == NULL);
 }
 END_TEST
 
@@ -42,7 +42,7 @@ START_TEST(check_malloc_M_mem_set)
 	mem2 = M_malloc(size);
 	M_mem_set(mem2, 1, size);
 	/* both mem areas are the same */
-	ck_assert_msg(M_mem_eq(mem1,mem2,size));
+	ck_assert(M_mem_eq(mem1,mem2,size));
 
 	/* clear out mem2 */
 	M_mem_set(mem2, 0, size);
@@ -60,7 +60,7 @@ START_TEST(check_free_allocated)
 {
 	size_t size = (size_t)_i;
 	mem1 = M_malloc(size);
-	ck_assert_msg(mem1 != NULL);
+	ck_assert(mem1 != NULL);
 	/* try to free non-null allocation */
 	M_free(mem1);
 }
@@ -76,44 +76,44 @@ END_TEST
 
 START_TEST(check_realloc_NULL)
 {
-	ck_assert_msg(M_realloc(NULL, 0) == NULL);
+	ck_assert(M_realloc(NULL, 0) == NULL);
 }
 END_TEST
 
 START_TEST(check_realloc_alloc_and_free)
 {
 	size_t size = (size_t)_i;
-	ck_assert_msg(size > 0);
+	ck_assert(size > 0);
 	mem1 = M_realloc(NULL,size);
-	ck_assert_msg(mem1 != NULL);
+	ck_assert(mem1 != NULL);
 	/* should return NULL when used as free() */
 	mem1 = M_realloc(mem1,0);
-	ck_assert_msg(mem1 == NULL);
+	ck_assert(mem1 == NULL);
 }
 END_TEST
 
 START_TEST(check_realloc_resize_growing)
 {
 	size_t size = (size_t)_i;
-	ck_assert_msg(size >= 1);
+	ck_assert(size >= 1);
 	mem1 = M_realloc(NULL,size);
-	ck_assert_msg(mem1 != NULL);
+	ck_assert(mem1 != NULL);
 	if (mem1 == NULL)
 		return;
 	M_mem_set(mem1,b0,size);
 	M_mem_set(temp,b1,size);
 	/* ensure mem1 and temp aren't the same */
-	ck_assert_msg(!M_mem_eq(mem1,temp,size));
+	ck_assert(!M_mem_eq(mem1,temp,size));
 	/* preserve the contents of mem1 in temp */
 	M_mem_copy(temp,mem1,size);
 
 	size++;
 	mem2 = M_realloc(mem1,size);
-	ck_assert_msg(mem2 != NULL);
+	ck_assert(mem2 != NULL);
 	/* ensure different pointers */
 	ck_assert(mem1 != mem2);
 	/* ensure expected content */
-	ck_assert_msg(M_mem_eq(mem2,temp,size-1));
+	ck_assert(M_mem_eq(mem2,temp,size-1));
 
 	M_free(mem2);
 }
@@ -123,16 +123,16 @@ START_TEST(check_realloc_resize_shrinking)
 {
 	size_t size = (size_t)_i;
 
-	ck_assert_msg(_i >= 2);
+	ck_assert(_i >= 2);
 	mem1 = M_realloc(NULL,size);
-	ck_assert_msg(mem1 != NULL);
+	ck_assert(mem1 != NULL);
 	if (mem1 == NULL)
 		return;
 	M_mem_set(mem1, b0, size);
 
 	M_mem_set(temp, b1, size);
 	/* ensure mem1 and temp aren't the same */
-	ck_assert_msg(!M_mem_eq(mem1,temp,size));
+	ck_assert(!M_mem_eq(mem1,temp,size));
 	/* preserve the contents of mem1 in temp */
 	M_mem_copy(temp, mem1, size);
 
@@ -140,11 +140,11 @@ START_TEST(check_realloc_resize_shrinking)
 	size--;
 
 	mem2 = M_realloc(mem1,size);
-	ck_assert_msg(mem2 != NULL);
+	ck_assert(mem2 != NULL);
 	/* ensure different pointers */
 	ck_assert(mem1 != mem2);
 	/* ensure expected content */
-	ck_assert_msg(M_mem_eq(mem2,temp,size));
+	ck_assert(M_mem_eq(mem2,temp,size));
 
 	M_free(mem2);
 }
@@ -155,7 +155,7 @@ END_TEST
 START_TEST(check_memdup_NULL)
 {
 	size_t size = (size_t)_i;
-	ck_assert_msg(M_memdup(NULL,size) == NULL);
+	ck_assert(M_memdup(NULL,size) == NULL);
 }
 END_TEST
 
@@ -163,7 +163,7 @@ START_TEST(check_memdup_contents)
 {
 	size_t size = (size_t)_i;
 	mem1 = M_memdup(mem,size);
-	ck_assert_msg(M_mem_eq(mem1,mem,size));
+	ck_assert(M_mem_eq(mem1,mem,size));
 	M_free(mem1);
 }
 END_TEST
@@ -174,7 +174,7 @@ START_TEST(check_memdup_max_NULL)
 {
 	size_t size = (size_t)_i;
 	mem1 = M_memdup_max(NULL,size,0);
-	ck_assert_msg(mem1 == NULL);
+	ck_assert(mem1 == NULL);
 }
 END_TEST
 
@@ -183,7 +183,7 @@ START_TEST(check_memdup_max_contents)
 	size_t size = (size_t)_i;
 	mem1 = M_memdup_max(mem,size,0);
 	ck_assert(mem1 != NULL);
-	ck_assert_msg(M_mem_eq(mem1,mem,size));
+	ck_assert(M_mem_eq(mem1,mem,size));
 	M_free(mem1);
 }
 END_TEST
@@ -205,7 +205,7 @@ START_TEST(check_memdup_max_contents_allocation)
 	size_t size = (size_t)_i;
 	mem1 = M_memdup_max(mem,size,size);
 	ck_assert(mem1 != NULL);
-	ck_assert_msg(M_mem_eq(mem1,mem,size));
+	ck_assert(M_mem_eq(mem1,mem,size));
 	/* try for a segfault if size wasn't fully allocated */
 	M_mem_set(mem1,0,size);
 	M_free(mem1);
@@ -216,24 +216,24 @@ END_TEST
 
 START_TEST(check_mem_chr_NULL)
 {
-	ck_assert_msg(M_mem_chr(NULL, 'a',   0) == NULL);
-	ck_assert_msg(M_mem_chr(NULL, 'a',  32) == NULL);
-	ck_assert_msg(M_mem_chr(NULL, '\0',  0) == NULL);
-	ck_assert_msg(M_mem_chr(NULL, '\0', 32) == NULL);
+	ck_assert(M_mem_chr(NULL, 'a',   0) == NULL);
+	ck_assert(M_mem_chr(NULL, 'a',  32) == NULL);
+	ck_assert(M_mem_chr(NULL, '\0',  0) == NULL);
+	ck_assert(M_mem_chr(NULL, '\0', 32) == NULL);
 }
 END_TEST
 
 START_TEST(check_mem_chr_not_found)
 {
-	ck_assert_msg(M_mem_chr("a",  'a',   0) == NULL);
-	ck_assert_msg(M_mem_chr("a",  'b',   1) == NULL);
-	ck_assert_msg(M_mem_chr("a",  '\0',  1) == NULL);
+	ck_assert(M_mem_chr("a",  'a',   0) == NULL);
+	ck_assert(M_mem_chr("a",  'b',   1) == NULL);
+	ck_assert(M_mem_chr("a",  '\0',  1) == NULL);
 }
 END_TEST
 
 START_TEST(check_mem_chr_found)
 {
-	ck_assert_msg(M_mem_chr(mem, mem[_i], mem_size) == mem+_i);
+	ck_assert(M_mem_chr(mem, mem[_i], mem_size) == mem+_i);
 }
 END_TEST
 
@@ -250,7 +250,7 @@ static void check_mem_mem(const void *haystack, size_t haystack_len, const void 
 	M_bool   result_contains;
 
 	/* ensure our check is valid */
-	if (expected_pos != NULL) ck_assert_msg(*expected_pos < haystack_len);
+	if (expected_pos != NULL) ck_assert(*expected_pos < haystack_len);
 
 	/* determine expected values */
 	expect_contains = expected_pos != NULL;
@@ -262,19 +262,19 @@ static void check_mem_mem(const void *haystack, size_t haystack_len, const void 
 	result_contains = M_mem_contains(haystack, haystack_len, needle, needle_len);
 
 	/* ensure the match condition agrees with expected */
-	ck_assert_msg(result_contains == expect_contains);
-	ck_assert_msg(result_has_mem  == expect_contains);
-	ck_assert_msg(result_has_idx  == expect_contains);
+	ck_assert(result_contains == expect_contains);
+	ck_assert(result_has_mem  == expect_contains);
+	ck_assert(result_has_idx  == expect_contains);
 
 	/* if found, ensure pointer agrees */
 	if (expect_contains) {
 		size_t expect_pos = *expected_pos;
-		ck_assert_msg(result_pos == expect_pos);
+		ck_assert(result_pos == expect_pos);
 	}
 	/* if found, ensure position agrees */
 	if (expect_contains) {
 		const void *expect_mem = (const M_uint8 *)haystack + *expected_pos;
-		ck_assert_msg(result_mem == expect_mem);
+		ck_assert(result_mem == expect_mem);
 	}
 }
 
@@ -316,8 +316,8 @@ END_TEST
 START_TEST(check_mem_mem_found)
 {
 	size_t pos = (size_t)_i;
-	ck_assert_msg(mem_size > 0);
-	ck_assert_msg(mem_size-pos > 0);
+	ck_assert(mem_size > 0);
+	ck_assert(mem_size-pos > 0);
 	mem2 = M_memdup(mem, mem_size);
 
 	check_mem_mem(mem, mem_size, mem2+pos, mem_size-pos, &pos);
@@ -331,37 +331,37 @@ END_TEST
 START_TEST(check_mem_str_empty_haystack)
 {
 	/* no haystack, haystack_len is zero, other params okay */
-	ck_assert_msg(M_mem_str(NULL, 0, str) == NULL);
+	ck_assert(M_mem_str(NULL, 0, str) == NULL);
 	/* no haystack, other params okay */
-	ck_assert_msg(M_mem_str(NULL, 1, str) == NULL);
-	ck_assert_msg(M_mem_str(NULL, 2, str) == NULL);
-	ck_assert_msg(M_mem_str(NULL, 3, str) == NULL);
+	ck_assert(M_mem_str(NULL, 1, str) == NULL);
+	ck_assert(M_mem_str(NULL, 2, str) == NULL);
+	ck_assert(M_mem_str(NULL, 3, str) == NULL);
 	/* haystack_len is zero, other params okay */
-	ck_assert_msg(M_mem_str(mem,  0, str) == NULL);
+	ck_assert(M_mem_str(mem,  0, str) == NULL);
 }
 END_TEST
 
 START_TEST(check_mem_str_empty_needle)
 {
 	/* empty string exists at the beginning of haystack */
-	ck_assert_msg(M_mem_str(mem, mem_size, NULL)  == mem);
-	ck_assert_msg(M_mem_str(mem, mem_size, NULL)  == mem);
+	ck_assert(M_mem_str(mem, mem_size, NULL)  == mem);
+	ck_assert(M_mem_str(mem, mem_size, NULL)  == mem);
 }
 END_TEST
 
 START_TEST(check_mem_str_not_found)
 {
-	ck_assert_msg(M_mem_str("0123456789", 10, "011") == NULL);
-	ck_assert_msg(M_mem_str("0123456789", 10, "321") == NULL);
+	ck_assert(M_mem_str("0123456789", 10, "011") == NULL);
+	ck_assert(M_mem_str("0123456789", 10, "321") == NULL);
 }
 END_TEST
 
 START_TEST(check_mem_str_found)
 {
 	size_t pos = (size_t)_i;
-	ck_assert_msg(pos < mem_size);
+	ck_assert(pos < mem_size);
 	test = M_mem_str(mem, mem_size, str+pos);
-	ck_assert_msg(test == mem+pos);
+	ck_assert(test == mem+pos);
 }
 END_TEST
 
@@ -369,23 +369,23 @@ END_TEST
 
 START_TEST(check_mem_copy_empty_dst)
 {
-	ck_assert_msg(M_mem_copy(NULL, NULL,        0) == NULL);
-	ck_assert_msg(M_mem_copy(NULL, NULL, mem_size) == NULL);
-	ck_assert_msg(M_mem_copy(NULL,  mem,        0) == NULL);
-	ck_assert_msg(M_mem_copy(NULL,  mem, mem_size) == NULL);
+	ck_assert(M_mem_copy(NULL, NULL,        0) == NULL);
+	ck_assert(M_mem_copy(NULL, NULL, mem_size) == NULL);
+	ck_assert(M_mem_copy(NULL,  mem,        0) == NULL);
+	ck_assert(M_mem_copy(NULL,  mem, mem_size) == NULL);
 }
 END_TEST
 
 START_TEST(check_mem_copy_empty_src)
 {
-	ck_assert_msg(mem_size > 0);
+	ck_assert(mem_size > 0);
 
 	mem1 = M_malloc(mem_size);
 	mem2 = M_memdup(mem, mem_size);
 
-	ck_assert_msg(M_mem_copy(mem1, NULL,        0) == mem1);
-	ck_assert_msg(M_mem_copy(mem1, NULL, mem_size) == mem1);
-	ck_assert_msg(M_mem_copy(mem1, mem2, mem_size) == mem1);
+	ck_assert(M_mem_copy(mem1, NULL,        0) == mem1);
+	ck_assert(M_mem_copy(mem1, NULL, mem_size) == mem1);
+	ck_assert(M_mem_copy(mem1, mem2, mem_size) == mem1);
 
 	M_free(mem1);
 	M_free(mem2);
@@ -398,14 +398,14 @@ START_TEST(check_mem_copy_success)
 	M_mem_set(mem1, 0, mem_size);
 
 	/* ensure test is valid */
-	ck_assert_msg(mem_size > 0);
+	ck_assert(mem_size > 0);
 	ck_assert(!M_mem_eq(mem1, mem, mem_size));
 
 	mem2 = M_mem_copy(mem1, mem, mem_size);
 	/* result should be identical to dest */
-	ck_assert_msg(mem1 == mem2);
+	ck_assert(mem1 == mem2);
 	/* ensure contents match */
-	ck_assert_msg(M_mem_eq(mem1, mem, mem_size));
+	ck_assert(M_mem_eq(mem1, mem, mem_size));
 
 	M_free(mem1);
 }
@@ -425,7 +425,7 @@ START_TEST(check_mem_count_size_as_count)
 	/* all bytes are b, so the count of b should equal the size
 	 */
 	while (size--) {
-		ck_assert_msg(
+		ck_assert(
 		    M_mem_count(mem1,size,b) == size
 		);
 	}
@@ -456,7 +456,7 @@ START_TEST(check_mem_count_zero_as_zero)
 {
 	size_t size = sizeof(COUNT_ZERO_AS_ZERO)-1;
 	cmem1 = (const M_uint8 *)COUNT_ZERO_AS_ZERO;
-	ck_assert_msg(M_mem_count(cmem1,size,0) == 0);
+	ck_assert(M_mem_count(cmem1,size,0) == 0);
 }
 END_TEST
 
@@ -469,8 +469,8 @@ START_TEST(check_mem_count_nonzero_as_one)
 	pos = (size_t)_i;
 	cmem1 = COUNT_NONZERO_AS_ONE;
 	size = sizeof(COUNT_NONZERO_AS_ONE)-1;
-	ck_assert_msg(pos < size); /* ensure valid index */
-	ck_assert_msg(M_mem_count(cmem1,size,cmem1[pos]) == 1);
+	ck_assert(pos < size); /* ensure valid index */
+	ck_assert(M_mem_count(cmem1,size,cmem1[pos]) == 1);
 }
 END_TEST
 
