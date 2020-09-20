@@ -43,7 +43,7 @@ static M_uint64 u64_r;
 START_TEST(check_str_to_uint64_null)
 {
 	u64_r = M_str_to_uint64(NULL);
-	ck_assert_msg(u64_r == 0, "decoding of NULL failed: expected %llu, but was %llu\n", 0, u64_r);
+	ck_assert_msg(u64_r == 0, "decoding of NULL failed: expected %d, but was %llu\n", 0, u64_r);
 }
 END_TEST
 

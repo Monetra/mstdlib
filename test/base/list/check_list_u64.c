@@ -210,14 +210,14 @@ START_TEST(check_index_of_remove)
 	ensure_len(55);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 6, "Invalid count of val (%zu), got: %zu, expected: 6", val, i);
+	ck_assert_msg(i == 6, "Invalid count of val (%llu), got: %zu, expected: 6", val, i);
 
 	i = M_list_u64_remove_val(list, val, M_LIST_U64_MATCH_VAL|M_LIST_U64_MATCH_ALL);
 	ck_assert_msg(i == 6, "Could  not remove value: %llu", val);
 	ensure_len(49);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 0, "Invalid count of val (%zu), got: %zu, expected: 0", val, i);
+	ck_assert_msg(i == 0, "Invalid count of val (%llu), got: %zu, expected: 0", val, i);
 
 	M_list_u64_destroy(list);
 	list = NULL;
@@ -233,14 +233,14 @@ START_TEST(check_index_of_remove)
 	ensure_len(55);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 6, "Invalid count of val (%zu), got: %zu, expected: 6", val, i);
+	ck_assert_msg(i == 6, "Invalid count of val (%llu), got: %zu, expected: 6", val, i);
 
 	i = M_list_u64_remove_val(list, val, M_LIST_U64_MATCH_VAL|M_LIST_U64_MATCH_ALL);
 	ck_assert_msg(i == 6, "Could  not remove value: %llu", val);
 	ensure_len(49);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 0, "Invalid count of val (%zu), got: %zu, expected: 0", val, i);
+	ck_assert_msg(i == 0, "Invalid count of val (%llu), got: %zu, expected: 0", val, i);
 
 	M_list_u64_destroy(list);
 	list = NULL;
@@ -263,17 +263,17 @@ START_TEST(check_duplicate_merge)
 
 	d2 = M_list_u64_duplicate(list);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == DUP_NUM_ENTIRES, "Dup: expected %zu, got %zu", DUP_NUM_ENTIRES, len);
+	ck_assert_msg(len == DUP_NUM_ENTIRES, "Dup: expected %d, got %zu", DUP_NUM_ENTIRES, len);
 
 	d3 = M_list_u64_duplicate(list);
 	M_list_u64_merge(&d2, d3, M_FALSE);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == DUP_NUM_ENTIRES, "Merge no dups: expected %zu, got %zu", DUP_NUM_ENTIRES, len);
-	
+	ck_assert_msg(len == DUP_NUM_ENTIRES, "Merge no dups: expected %d, got %zu", DUP_NUM_ENTIRES, len);
+
 	d4 = M_list_u64_duplicate(list);
 	M_list_u64_merge(&d2, d4, M_TRUE);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == MERGE_NUM_ENTIRES, "Merge with dups: expected %zu, got %zu", MERGE_NUM_ENTIRES, len);
+	ck_assert_msg(len == MERGE_NUM_ENTIRES, "Merge with dups: expected %d, got %zu", MERGE_NUM_ENTIRES, len);
 
 	M_list_u64_destroy(d2);
 }
@@ -388,20 +388,20 @@ START_TEST(check_queue_stack)
 	}
 	ensure_len(num_vals);
 	val = M_list_u64_take_at(list, 7);
-	ck_assert_msg(val == 3, "Queue (take_at) vals[7] is not correct, expected: %lld, got: %lld", 3, val);
+	ck_assert_msg(val == 3, "Queue (take_at) vals[7] is not correct, expected: %d, got: %lld", 3, val);
 
 	/* remove_at */
 	M_list_u64_remove_at(list, 0);
 	val = M_list_u64_at(list, 0);
-	ck_assert_msg(val == 7, "Queue (remove_at(0)) val is not correct, expected: %lld, got: %lld", 7, val);
+	ck_assert_msg(val == 7, "Queue (remove_at(0)) val is not correct, expected: %d, got: %lld", 7, val);
 	M_list_u64_remove_at(list, M_list_u64_len(list)-1);
 	val = M_list_u64_at(list, M_list_u64_len(list)-1);
-	ck_assert_msg(val == 99, "Queue (remove_at(len-1)) val is not correct, expected: %lld, got: %lld", 99, val);
+	ck_assert_msg(val == 99, "Queue (remove_at(len-1)) val is not correct, expected: %d, got: %lld", 99, val);
 
 	/* index_of */
 	ret = M_list_u64_index_of(list, 8, &idx);
 	ck_assert_msg(ret == M_TRUE, "Queue (index_of(8) could not get index of value");
-	ck_assert_msg(idx == 3, "Queue (index_of(8)) idx is not correct, expected: %zu, got: %zu", 3, idx);
+	ck_assert_msg(idx == 3, "Queue (index_of(8)) idx is not correct, expected: %d, got: %zu", 3, idx);
 
 	/* remove_duplicates */
 	M_list_u64_remove_range(list, 0, M_list_u64_len(list));
@@ -412,7 +412,7 @@ START_TEST(check_queue_stack)
 	ensure_len(num_vals-4);
 
 	M_list_u64_destroy(list);
-	
+
 
 	/* Stack. */
 	/* take_first */
@@ -447,20 +447,20 @@ START_TEST(check_queue_stack)
 	}
 	ensure_len(num_vals);
 	val = M_list_u64_take_at(list, 7);
-	ck_assert_msg(val == 22, "Stack (take_at) vals[7] is not correct, expected: %lld, got: %lld", 3, val);
+	ck_assert_msg(val == 22, "Stack (take_at) vals[7] is not correct, expected: %d, got: %lld", 3, val);
 
 	/* remove_at */
 	M_list_u64_remove_at(list, 0);
 	val = M_list_u64_at(list, 0);
-	ck_assert_msg(val == 99, "Stack (remove_at(0)) val is not correct, expected: %lld, got: %lld", 99, val);
+	ck_assert_msg(val == 99, "Stack (remove_at(0)) val is not correct, expected: %d, got: %lld", 99, val);
 	M_list_u64_remove_at(list, M_list_u64_len(list)-1);
 	val = M_list_u64_at(list, M_list_u64_len(list)-1);
-	ck_assert_msg(val == 7, "Stack (remove_at(len-1)) val is not correct, expected: %lld, got: %lld", 7, val);
+	ck_assert_msg(val == 7, "Stack (remove_at(len-1)) val is not correct, expected: %d, got: %lld", 7, val);
 
 	/* index_of */
 	ret = M_list_u64_index_of(list, 8, &idx);
 	ck_assert_msg(ret == M_TRUE, "Stack (index_of(8) could not get index of value");
-	ck_assert_msg(idx == 7, "Stack (index_of(8)) idx is not correct, expected: %zu, got: %zu", 7, idx);
+	ck_assert_msg(idx == 7, "Stack (index_of(8)) idx is not correct, expected: %d, got: %zu", 7, idx);
 
 	/* remove_duplicates */
 	M_list_u64_remove_range(list, 0, M_list_u64_len(list));
@@ -516,7 +516,7 @@ static void check_set_duplicate(const char *prefix, M_uint64 *vals, size_t num_v
 	l  = l2;
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Duplicate %s: length not correct, expected: %zu, got: %zu", num_after_vals, len);
+	ck_assert_msg(len == num_after_vals, "SET Duplicate %s: length not correct, expected: %zu, got: %zu", prefix, num_after_vals, len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);
@@ -544,7 +544,7 @@ static void check_set_merge(const char *prefix, M_uint64 *vals, size_t num_vals,
 	M_list_u64_merge(&l, l2, M_TRUE);
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Merge %s: length not correct, expected: %zu, got: %zu", num_after_vals, len);
+	ck_assert_msg(len == num_after_vals, "SET Merge %s: length not correct, expected: %zu, got: %zu", prefix, num_after_vals, len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);

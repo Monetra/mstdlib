@@ -19,9 +19,9 @@ static const char  *cstr;
 
 START_TEST(check_safe)
 {
-	ck_assert_msg(M_str_eq(M_str_safe(NULL),       ""));
-	ck_assert_msg(M_str_eq(M_str_safe(""),         ""));
-	ck_assert_msg(M_str_eq(M_str_safe("test"), "test"));
+	ck_assert(M_str_eq(M_str_safe(NULL),       ""));
+	ck_assert(M_str_eq(M_str_safe(""),         ""));
+	ck_assert(M_str_eq(M_str_safe("test"), "test"));
 }
 END_TEST
 
@@ -29,21 +29,21 @@ END_TEST
 
 START_TEST(check_len)
 {
-	ck_assert_msg(M_str_len(NULL) == 0);
-	ck_assert_msg(M_str_len("") == 0);
-	ck_assert_msg(M_str_len("a") == 1);
-	ck_assert_msg(M_str_len("aa") == 2);
-	ck_assert_msg(M_str_len("aaa") == 3);
+	ck_assert(M_str_len(NULL) == 0);
+	ck_assert(M_str_len("") == 0);
+	ck_assert(M_str_len("a") == 1);
+	ck_assert(M_str_len("aa") == 2);
+	ck_assert(M_str_len("aaa") == 3);
 }
 END_TEST
 
 START_TEST(check_len_max)
 {
-	ck_assert_msg(M_str_len(NULL) == 0);
-	ck_assert_msg(M_str_len("") == 0);
-	ck_assert_msg(M_str_len("a") == 1);
-	ck_assert_msg(M_str_len("aa") == 2);
-	ck_assert_msg(M_str_len("aaa") == 3);
+	ck_assert(M_str_len(NULL) == 0);
+	ck_assert(M_str_len("") == 0);
+	ck_assert(M_str_len("a") == 1);
+	ck_assert(M_str_len("aa") == 2);
+	ck_assert(M_str_len("aaa") == 3);
 }
 END_TEST
 
@@ -51,25 +51,25 @@ END_TEST
 
 START_TEST(check_ischarset_empty)
 {
-	ck_assert_msg(!M_str_ischarset(NULL,NULL));
-	ck_assert_msg(!M_str_ischarset("",""));
-	ck_assert_msg(!M_str_ischarset("abc",NULL));
-	ck_assert_msg(!M_str_ischarset(NULL,"abc"));
+	ck_assert(!M_str_ischarset(NULL,NULL));
+	ck_assert(!M_str_ischarset("",""));
+	ck_assert(!M_str_ischarset("abc",NULL));
+	ck_assert(!M_str_ischarset(NULL,"abc"));
 }
 END_TEST
 
 START_TEST(check_ischarset_single)
 {
-	ck_assert_msg(M_str_ischarset("a","a"));
-	ck_assert_msg(M_str_ischarset("\f","\f"));
-	ck_assert_msg(!M_str_ischarset("a","b"));
+	ck_assert(M_str_ischarset("a","a"));
+	ck_assert(M_str_ischarset("\f","\f"));
+	ck_assert(!M_str_ischarset("a","b"));
 }
 END_TEST
 
 START_TEST(check_ischarset_multi)
 {
-	ck_assert_msg(M_str_ischarset("ollyoxenfree","frolenyx"));
-	ck_assert_msg(!M_str_ischarset("ollyoxenfree","froleny"));
+	ck_assert(M_str_ischarset("ollyoxenfree","frolenyx"));
+	ck_assert(!M_str_ischarset("ollyoxenfree","froleny"));
 }
 END_TEST
 
@@ -78,28 +78,28 @@ END_TEST
 
 START_TEST(check_isnotcharset_empty)
 {
-	ck_assert_msg(M_str_isnotcharset(NULL,NULL));
-	ck_assert_msg(M_str_isnotcharset("",""));
-	ck_assert_msg(M_str_isnotcharset("abc",NULL));
-	ck_assert_msg(M_str_isnotcharset(NULL,"abc"));
+	ck_assert(M_str_isnotcharset(NULL,NULL));
+	ck_assert(M_str_isnotcharset("",""));
+	ck_assert(M_str_isnotcharset("abc",NULL));
+	ck_assert(M_str_isnotcharset(NULL,"abc"));
 }
 END_TEST
 
 START_TEST(check_isnotcharset_single)
 {
-	ck_assert_msg(!M_str_isnotcharset("a","a"));
-	ck_assert_msg(!M_str_isnotcharset("\f","\f"));
-	ck_assert_msg(M_str_isnotcharset("a","b"));
+	ck_assert(!M_str_isnotcharset("a","a"));
+	ck_assert(!M_str_isnotcharset("\f","\f"));
+	ck_assert(M_str_isnotcharset("a","b"));
 }
 END_TEST
 
 START_TEST(check_isnotcharset_multi)
 {
-	ck_assert_msg(!M_str_isnotcharset("ollyoxenfree","frolenyx"));
-	ck_assert_msg(!M_str_isnotcharset("ollyoxenfree","froleny"));
-	ck_assert_msg(M_str_isnotcharset("abcdef", "ghi"));
-	ck_assert_msg(M_str_isnotcharset("abcdef", "i"));
-	ck_assert_msg(!M_str_isnotcharset("aaabbbcccddd", "def"));
+	ck_assert(!M_str_isnotcharset("ollyoxenfree","frolenyx"));
+	ck_assert(!M_str_isnotcharset("ollyoxenfree","froleny"));
+	ck_assert(M_str_isnotcharset("abcdef", "ghi"));
+	ck_assert(M_str_isnotcharset("abcdef", "i"));
+	ck_assert(!M_str_isnotcharset("aaabbbcccddd", "def"));
 }
 END_TEST
 
@@ -108,30 +108,30 @@ END_TEST
 
 START_TEST(check_find_first_from_charset)
 {
-	ck_assert_msg(M_str_find_first_from_charset(NULL,"") == NULL);
-	ck_assert_msg(M_str_find_first_from_charset("",NULL) == NULL);
-	
+	ck_assert(M_str_find_first_from_charset(NULL,"") == NULL);
+	ck_assert(M_str_find_first_from_charset("",NULL) == NULL);
+
 	cstr = "rocky balboa.";
-	ck_assert_msg(M_str_find_first_from_charset(cstr, "xqz ")  == (cstr + 5));
-	ck_assert_msg(M_str_find_first_from_charset(cstr, "xqz y") == (cstr + 4));
-	ck_assert_msg(M_str_find_first_from_charset(cstr, "xqz r") == (cstr + 0));
-	ck_assert_msg(M_str_find_first_from_charset(cstr, "xqz.")  == (cstr + 12));
-	ck_assert_msg(M_str_find_first_from_charset(cstr, "xqz")   == NULL);
+	ck_assert(M_str_find_first_from_charset(cstr, "xqz ")  == (cstr + 5));
+	ck_assert(M_str_find_first_from_charset(cstr, "xqz y") == (cstr + 4));
+	ck_assert(M_str_find_first_from_charset(cstr, "xqz r") == (cstr + 0));
+	ck_assert(M_str_find_first_from_charset(cstr, "xqz.")  == (cstr + 12));
+	ck_assert(M_str_find_first_from_charset(cstr, "xqz")   == NULL);
 }
 END_TEST
 
 START_TEST(check_find_first_not_from_charset)
 {
-	ck_assert_msg(M_str_find_first_not_from_charset(NULL,"") == NULL);
-	ck_assert_msg(M_str_find_first_not_from_charset("",NULL) == NULL);
-	
+	ck_assert(M_str_find_first_not_from_charset(NULL,"") == NULL);
+	ck_assert(M_str_find_first_not_from_charset("",NULL) == NULL);
+
 	cstr = "aaabbb!cccQ";
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, NULL)    == (cstr));
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, "")      == (cstr));
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, "123")   == (cstr));
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, "ab")    == (cstr + 6));
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, "ab!c")  == (cstr + 10));
-	ck_assert_msg(M_str_find_first_not_from_charset(cstr, "ab!cQ") == NULL);
+	ck_assert(M_str_find_first_not_from_charset(cstr, NULL)    == (cstr));
+	ck_assert(M_str_find_first_not_from_charset(cstr, "")      == (cstr));
+	ck_assert(M_str_find_first_not_from_charset(cstr, "123")   == (cstr));
+	ck_assert(M_str_find_first_not_from_charset(cstr, "ab")    == (cstr + 6));
+	ck_assert(M_str_find_first_not_from_charset(cstr, "ab!c")  == (cstr + 10));
+	ck_assert(M_str_find_first_not_from_charset(cstr, "ab!cQ") == NULL);
 }
 END_TEST
 
@@ -141,31 +141,31 @@ END_TEST
 START_TEST(check_remove_bracketed)
 {
 	str1 = M_str_remove_bracketed("",'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed(NULL,'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed("abcdef",'<','>');
-	ck_assert_msg(M_str_eq(str1, "abcdef"));
+	ck_assert(M_str_eq(str1, "abcdef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed("ab<cd>ef",'<','>');
-	ck_assert_msg(M_str_eq(str1, "abef"));
+	ck_assert(M_str_eq(str1, "abef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed("a<bcdf<we>fdef>",'<','>');
-	ck_assert_msg(M_str_eq(str1, "a"));
+	ck_assert(M_str_eq(str1, "a"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed("<abcdf<we>fde>f",'<','>');
-	ck_assert_msg(M_str_eq(str1, "f"));
+	ck_assert(M_str_eq(str1, "f"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed("a<bc><d<e>>f",'<','>');
-	ck_assert_msg(M_str_eq(str1, "af"));
+	ck_assert(M_str_eq(str1, "af"));
 	M_free(str1);
 }
 END_TEST
@@ -173,35 +173,35 @@ END_TEST
 START_TEST(check_keep_bracketed)
 {
 	str1 = M_str_keep_bracketed(NULL,'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("",'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("<",'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("abcdef",'<','>');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("ab<cd>ef",'<','>');
-	ck_assert_msg(M_str_eq(str1, "cd"));
+	ck_assert(M_str_eq(str1, "cd"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("a<bcdf<we>fdef>",'<','>');
-	ck_assert_msg(M_str_eq(str1, "bcdf<we>fdef"));
+	ck_assert(M_str_eq(str1, "bcdf<we>fdef"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("<abcdf<we>fde>f",'<','>');
-	ck_assert_msg(M_str_eq(str1, "abcdf<we>fde"));
+	ck_assert(M_str_eq(str1, "abcdf<we>fde"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed("a<bc><d<e>>f",'<','>');
-	ck_assert_msg(M_str_eq(str1, "bcd<e>"));
+	ck_assert(M_str_eq(str1, "bcd<e>"));
 	M_free(str1);
 }
 END_TEST
@@ -209,59 +209,59 @@ END_TEST
 START_TEST(check_remove_bracketed_quoted)
 {
 	str1 = M_str_remove_bracketed_quoted("",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted(NULL,'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("<",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("\"<\"",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "\"<\""));
+	ck_assert(M_str_eq(str1, "\"<\""));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("\\\"<\\\"",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("<>",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("\"<>\"",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "\"<>\""));
+	ck_assert(M_str_eq(str1, "\"<>\""));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("abcdef",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "abcdef"));
+	ck_assert(M_str_eq(str1, "abcdef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("ab<cd>ef",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "abef"));
+	ck_assert(M_str_eq(str1, "abef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("ab\"<cd>\"ef",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "ab\"<cd>\"ef"));
+	ck_assert(M_str_eq(str1, "ab\"<cd>\"ef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("ab\\\"<cd>\\\"ef",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "ab\\\"\\\"ef"));
+	ck_assert(M_str_eq(str1, "ab\\\"\\\"ef"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("a<bcdf<we>fdef>",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "a"));
+	ck_assert(M_str_eq(str1, "a"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("<abcdf<we>fde>f",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "f"));
+	ck_assert(M_str_eq(str1, "f"));
 	M_free(str1);
-	
+
 	str1 = M_str_remove_bracketed_quoted("a<bc><d<e>>f",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "af"));
+	ck_assert(M_str_eq(str1, "af"));
 	M_free(str1);
 }
 END_TEST
@@ -269,47 +269,47 @@ END_TEST
 START_TEST(check_keep_bracketed_quoted)
 {
 	str1 = M_str_keep_bracketed_quoted(NULL,'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("<",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("\"<\"",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("abcdef",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("ab<cd>ef",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "cd"));
+	ck_assert(M_str_eq(str1, "cd"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("a\"b<cd>\"ef",'<','>','"','\\');
-	ck_assert_msg(M_str_isempty(str1));
+	ck_assert(M_str_isempty(str1));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("a<bcdf<we>fdef>",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "bcdf<we>fdef"));
+	ck_assert(M_str_eq(str1, "bcdf<we>fdef"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("a\"<bcdf>e\"f<w\\\"e>f<def>",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "w\\\"edef"));
+	ck_assert(M_str_eq(str1, "w\\\"edef"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("<abcdf<we>fde>f",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "abcdf<we>fde"));
+	ck_assert(M_str_eq(str1, "abcdf<we>fde"));
 	M_free(str1);
-	
+
 	str1 = M_str_keep_bracketed_quoted("a<bc><d<e>>f",'<','>','"','\\');
-	ck_assert_msg(M_str_eq(str1, "bcd<e>"));
+	ck_assert(M_str_eq(str1, "bcd<e>"));
 	M_free(str1);
 }
 END_TEST
@@ -319,14 +319,14 @@ END_TEST
 
 START_TEST(check_split_on_char_NULL)
 {
-	ck_assert_msg(M_str_split_on_char(NULL, ' ') == NULL);
+	ck_assert(M_str_split_on_char(NULL, ' ') == NULL);
 }
 END_TEST
 
 START_TEST(check_split_on_char_empty)
 {
 	test = M_strdup("");
-	ck_assert_msg(M_str_split_on_char(test, ' ') == test);
+	ck_assert(M_str_split_on_char(test, ' ') == test);
 	M_free(test);
 }
 END_TEST
@@ -335,7 +335,7 @@ START_TEST(check_split_on_char_empty_left_empty_right)
 {
 	test = M_strdup(" ");
 	str1 = M_str_split_on_char(test, ' ');
-	ck_assert_msg(str1 == test+1);
+	ck_assert(str1 == test+1);
 	M_free(test);
 }
 END_TEST
@@ -345,8 +345,8 @@ START_TEST(check_split_on_char_left_right)
 	test = M_strdup("foo bar");
 	str1 = test;
 	str2 = M_str_split_on_char(str1, ' ');
-	ck_assert_msg(M_str_eq(str1,"foo"));
-	ck_assert_msg(M_str_eq(str2,"bar"));
+	ck_assert(M_str_eq(str1,"foo"));
+	ck_assert(M_str_eq(str2,"bar"));
 	M_free(test);
 }
 END_TEST
@@ -356,8 +356,8 @@ START_TEST(check_split_on_char_left)
 	test = M_strdup(" foo");
 	str1 = test;
 	str2 = M_str_split_on_char(str1, ' ');
-	ck_assert_msg(M_str_eq(str1,""));
-	ck_assert_msg(M_str_eq(str2,"foo"));
+	ck_assert(M_str_eq(str1,""));
+	ck_assert(M_str_eq(str2,"foo"));
 	M_free(test);
 }
 END_TEST
@@ -367,8 +367,8 @@ START_TEST(check_split_on_char_right)
 	test = M_strdup("foo ");
 	str1 = test;
 	str2 = M_str_split_on_char(str1, ' ');
-	ck_assert_msg(M_str_eq(str1,"foo"));
-	ck_assert_msg(M_str_eq(str2,""));
+	ck_assert(M_str_eq(str1,"foo"));
+	ck_assert(M_str_eq(str2,""));
 	M_free(test);
 }
 END_TEST
@@ -378,13 +378,13 @@ END_TEST
 START_TEST(check_explode_lines)
 {
 	strs = M_str_explode_lines(3, 7, "12345 12345 1 1234567 123", M_TRUE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL) /* This is a hack to suppress false warnings in clang static analyzer */
 		return;
-	ck_assert_msg(num == 3);
-	ck_assert_msg(M_str_eq(strs[0], "12345"));
-	ck_assert_msg(M_str_eq(strs[1], "12345 1"));
-	ck_assert_msg(M_str_eq(strs[2], "1234567"));
+	ck_assert(num == 3);
+	ck_assert(M_str_eq(strs[0], "12345"));
+	ck_assert(M_str_eq(strs[1], "12345 1"));
+	ck_assert(M_str_eq(strs[2], "1234567"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -392,8 +392,8 @@ END_TEST
 START_TEST(check_explode_lines_no_truncate)
 {
 	strs = M_str_explode_lines(3, 7, "12345 12345 1 1234567 123", M_FALSE, &num);
-	ck_assert_msg(strs == NULL);
-	ck_assert_msg(num == 0);
+	ck_assert(strs == NULL);
+	ck_assert(num == 0);
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -401,31 +401,31 @@ END_TEST
 START_TEST(check_explode_lines_empty)
 {
 	strs = M_str_explode_lines(3, 10, "", M_FALSE, &num);
-	ck_assert_msg(strs == NULL);
-	ck_assert_msg(num == 0);
-	
+	ck_assert(strs == NULL);
+	ck_assert(num == 0);
+
 	strs = M_str_explode_lines(3, 10, NULL, M_FALSE, &num);
-	ck_assert_msg(strs == NULL);
-	ck_assert_msg(num == 0);
+	ck_assert(strs == NULL);
+	ck_assert(num == 0);
 }
 END_TEST
 
 START_TEST(check_explode_lines_empty_white)
 {
 	strs = M_str_explode_lines(1, 10, " \t\n\v\f\r ", M_FALSE, &num);
-	ck_assert_msg(strs == NULL);
-	ck_assert_msg(num == 0);
+	ck_assert(strs == NULL);
+	ck_assert(num == 0);
 }
 END_TEST
 
 START_TEST(check_explode_lines_small)
 {
 	strs = M_str_explode_lines(1, 7, "123 56 ", M_FALSE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 1);
-	ck_assert_msg(M_str_eq(strs[0], "123 56"));
+	ck_assert(num == 1);
+	ck_assert(M_str_eq(strs[0], "123 56"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -433,12 +433,12 @@ END_TEST
 START_TEST(check_explode_str_multi_space)
 {
 	strs = M_str_explode_lines(3, 7, "12  56  \t\n 123\t  7 \n", M_FALSE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 2);
-	ck_assert_msg(M_str_eq(strs[0], "12  56"));
-	ck_assert_msg(M_str_eq(strs[1], "123\t  7"));
+	ck_assert(num == 2);
+	ck_assert(M_str_eq(strs[0], "12  56"));
+	ck_assert(M_str_eq(strs[1], "123\t  7"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -446,13 +446,13 @@ END_TEST
 START_TEST(check_explode_lines_full)
 {
 	strs = M_str_explode_lines(3, 3, "123456789", M_TRUE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 3);
-	ck_assert_msg(M_str_eq(strs[0], "123"));
-	ck_assert_msg(M_str_eq(strs[1], "456"));
-	ck_assert_msg(M_str_eq(strs[2], "789"));
+	ck_assert(num == 3);
+	ck_assert(M_str_eq(strs[0], "123"));
+	ck_assert(M_str_eq(strs[1], "456"));
+	ck_assert(M_str_eq(strs[2], "789"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -460,13 +460,13 @@ END_TEST
 START_TEST(check_explode_lines_full_no_truncate)
 {
 	strs = M_str_explode_lines(3, 3, "123456789", M_FALSE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 3);
-	ck_assert_msg(M_str_eq(strs[0], "123"));
-	ck_assert_msg(M_str_eq(strs[1], "456"));
-	ck_assert_msg(M_str_eq(strs[2], "789"));
+	ck_assert(num == 3);
+	ck_assert(M_str_eq(strs[0], "123"));
+	ck_assert(M_str_eq(strs[1], "456"));
+	ck_assert(M_str_eq(strs[2], "789"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -474,14 +474,14 @@ END_TEST
 START_TEST(check_explode_lines_skip_full)
 {
 	strs = M_str_explode_lines(4, 3, "1 234 567890", M_FALSE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 4);
-	ck_assert_msg(M_str_eq(strs[0], "1"));
-	ck_assert_msg(M_str_eq(strs[1], "234"));
-	ck_assert_msg(M_str_eq(strs[2], "567"));
-	ck_assert_msg(M_str_eq(strs[3], "890"));
+	ck_assert(num == 4);
+	ck_assert(M_str_eq(strs[0], "1"));
+	ck_assert(M_str_eq(strs[1], "234"));
+	ck_assert(M_str_eq(strs[2], "567"));
+	ck_assert(M_str_eq(strs[3], "890"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -489,11 +489,11 @@ END_TEST
 START_TEST(check_explode_lines_skip_empty)
 {
 	strs = M_str_explode_lines(2, 3, "1                ", M_FALSE, &num);
-	ck_assert_msg(strs != NULL);
+	ck_assert(strs != NULL);
 	if (strs == NULL)
 		return;
-	ck_assert_msg(num == 1);
-	ck_assert_msg(M_str_eq(strs[0], "1"));
+	ck_assert(num == 1);
+	ck_assert(M_str_eq(strs[0], "1"));
 	M_str_explode_free(strs, num);
 }
 END_TEST
@@ -548,14 +548,14 @@ END_TEST
 
 START_TEST(check_isempty_empty)
 {
-	ck_assert_msg(M_str_isempty(NULL));
-	ck_assert_msg(M_str_isempty(""));
+	ck_assert(M_str_isempty(NULL));
+	ck_assert(M_str_isempty(""));
 }
 END_TEST
 
 START_TEST(check_isempty_nonempty)
 {
-	ck_assert_msg(!M_str_isempty("x"));
+	ck_assert(!M_str_isempty("x"));
 }
 END_TEST
 
@@ -563,34 +563,34 @@ END_TEST
 
 START_TEST(check_str_empty_needle)
 {
-	ck_assert_msg(M_str_eq(M_str_str("foo",NULL),"foo"));
-	ck_assert_msg(M_str_eq(M_str_str("foo",""  ),"foo"));
+	ck_assert(M_str_eq(M_str_str("foo",NULL),"foo"));
+	ck_assert(M_str_eq(M_str_str("foo",""  ),"foo"));
 }
 END_TEST
 
 START_TEST(check_str_empty_haystack)
 {
-	ck_assert_msg(M_str_str(NULL, "bar") == NULL);
-	ck_assert_msg(M_str_str(NULL, ""   ) == NULL);
+	ck_assert(M_str_str(NULL, "bar") == NULL);
+	ck_assert(M_str_str(NULL, ""   ) == NULL);
 }
 END_TEST
 
 START_TEST(check_str_empty_needle_and_haystack)
 {
-	ck_assert_msg(M_str_str(NULL,NULL) == NULL);
+	ck_assert(M_str_str(NULL,NULL) == NULL);
 }
 END_TEST
 
 START_TEST(check_str_notfound)
 {
-	ck_assert_msg(M_str_str("foo","bar") == NULL);
+	ck_assert(M_str_str("foo","bar") == NULL);
 }
 END_TEST
 
 START_TEST(check_str_found)
 {
 	const char *cstr1 = "foo bar";
-	ck_assert_msg(M_str_str(cstr1,"bar") == cstr1+4);
+	ck_assert(M_str_str(cstr1,"bar") == cstr1+4);
 }
 END_TEST
 
@@ -758,7 +758,7 @@ START_TEST(check_lower)
 	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#");
 	M_str_lower(str);
 
-	ck_assert_msg(M_str_eq(str, "abcd efgh!@#"));
+	ck_assert(M_str_eq(str, "abcd efgh!@#"));
 }
 END_TEST
 
@@ -769,7 +769,7 @@ START_TEST(check_upper)
 	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#");
 	M_str_upper(str);
 
-	ck_assert_msg(M_str_eq(str, "ABCD EFGH!@#"));
+	ck_assert(M_str_eq(str, "ABCD EFGH!@#"));
 }
 END_TEST
 
@@ -780,7 +780,7 @@ START_TEST(check_title)
 	M_str_cpy(str, sizeof(str), "AbCd EfGh!@#\tdo\nwhacka");
 	M_str_title(str);
 
-	ck_assert_msg(M_str_eq(str, "Abcd Efgh!@#\tDo\nWhacka"));
+	ck_assert(M_str_eq(str, "Abcd Efgh!@#\tDo\nWhacka"));
 }
 END_TEST
 
@@ -829,18 +829,18 @@ static Suite *str_suite(void)
 	tcase_add_test(tc_ischarset, check_ischarset_single);
 	tcase_add_test(tc_ischarset, check_ischarset_multi);
 	suite_add_tcase(suite, tc_ischarset);
-	
+
 	tc_isnotcharset = tcase_create("str_isnotcharset");
 	tcase_add_test(tc_isnotcharset, check_isnotcharset_empty);
 	tcase_add_test(tc_isnotcharset, check_isnotcharset_single);
 	tcase_add_test(tc_isnotcharset, check_isnotcharset_multi);
 	suite_add_tcase(suite, tc_isnotcharset);
-	
+
 	tc_find_charset = tcase_create("str_find_charset");
 	tcase_add_test(tc_find_charset, check_find_first_from_charset);
 	tcase_add_test(tc_find_charset, check_find_first_not_from_charset);
 	suite_add_tcase(suite, tc_find_charset);
-	
+
 	tc_split_on_char = tcase_create("str_split_on_char");
 	tcase_add_test(tc_split_on_char, check_split_on_char_NULL);
 	tcase_add_test(tc_split_on_char, check_split_on_char_empty);
@@ -862,7 +862,7 @@ static Suite *str_suite(void)
 	tcase_add_test(tc_explode_lines, check_explode_lines_skip_full);
 	tcase_add_test(tc_explode_lines, check_explode_lines_skip_empty);
 	suite_add_tcase(suite, tc_explode_lines);
-	
+
 	tc_implode = tcase_create("str_implode");
 	suite_add_tcase(suite, tc_implode);
 
@@ -919,7 +919,7 @@ static Suite *str_suite(void)
 	tcase_add_test(tc_bracketed, check_remove_bracketed_quoted);
 	tcase_add_test(tc_bracketed, check_keep_bracketed_quoted);
 	suite_add_tcase(suite, tc_bracketed);
-	
+
 	tc_unquote = tcase_create("str_unquote");
 	tcase_add_test(tc_unquote, check_str_unquote);
 	suite_add_tcase(suite, tc_unquote);
@@ -940,7 +940,7 @@ int main(int argc, char **argv)
 
 	(void)argc;
 	(void)argv;
-	
+
 	sr = srunner_create(str_suite());
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_str.log");
 

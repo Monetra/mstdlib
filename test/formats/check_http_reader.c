@@ -868,7 +868,7 @@ START_TEST(check_httpr9)
 
 	gval = M_list_str_at(ht->bpieces, 0);
 	eval = "Part data";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 0, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", (size_t)0, gval, eval);
 
 	gval = M_buf_peek(ht->epilouge);
 	eval = "epilouge";

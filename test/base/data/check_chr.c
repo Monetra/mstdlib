@@ -183,17 +183,17 @@ START_TEST(check_tolower)
 		c = (char)i;
 		/* tolower(upper) == lower */
 		if (M_chr_isupper(c)) {
-			ck_assert_msg(M_chr_islower(M_chr_tolower(c)));
+			ck_assert(M_chr_islower(M_chr_tolower(c)));
 
 			/* ensure lowercase is mapped to appropriate uppercase */
 			idx1 = set_index_of(ALPHA_UPPER,ALPHA_UPPER_LEN,c);
 			idx2 = set_index_of(ALPHA_LOWER,ALPHA_LOWER_LEN,M_chr_tolower(c));
-			ck_assert_msg(idx1 >= 0);
-			ck_assert_msg(idx2 >= 0);
-			ck_assert_msg(idx1 == idx2);
+			ck_assert(idx1 >= 0);
+			ck_assert(idx2 >= 0);
+			ck_assert(idx1 == idx2);
 		} else {
 			/* tolower(*) == * */
-			ck_assert_msg(c == M_chr_tolower(c));
+			ck_assert(c == M_chr_tolower(c));
 		}
 	}
 }
@@ -208,16 +208,16 @@ START_TEST(check_toupper)
 		c = (char)i;
 		if (M_chr_islower(c)) {
 			/* toupper(lower) == upper */
-			ck_assert_msg(M_chr_isupper(M_chr_toupper(c)));
+			ck_assert(M_chr_isupper(M_chr_toupper(c)));
 			/* ensure uppercase is mapped to appropriate lowercase */
 			idx1 = set_index_of(ALPHA_LOWER,ALPHA_LOWER_LEN,c);
 			idx2 = set_index_of(ALPHA_UPPER,ALPHA_UPPER_LEN,M_chr_toupper(c));
-			ck_assert_msg(idx1 >= 0);
-			ck_assert_msg(idx2 >= 0);
-			ck_assert_msg(idx1 == idx2);
+			ck_assert(idx1 >= 0);
+			ck_assert(idx2 >= 0);
+			ck_assert(idx1 == idx2);
 		} else {
 			/* toupper(*) == * */
-			ck_assert_msg(c == M_chr_toupper(c));
+			ck_assert(c == M_chr_toupper(c));
 		}
 	}
 }
@@ -231,12 +231,12 @@ START_TEST(check_digit)
 	r = M_chr_digit(c);
 
 	if (M_chr_isdigit(c)) {
-		ck_assert_msg(r >= 0);
-		ck_assert_msg(r <= 9);
+		ck_assert(r >= 0);
+		ck_assert(r <= 9);
 
-		ck_assert_msg(DIGIT[r] == c);
+		ck_assert(DIGIT[r] == c);
 	} else {
-		ck_assert_msg(M_chr_digit(c) == -1);
+		ck_assert(M_chr_digit(c) == -1);
 	}
 }
 END_TEST
@@ -247,12 +247,12 @@ START_TEST(check_xdigit)
 	r = M_chr_xdigit(c);
 
 	if (M_chr_ishex(c)) {
-		ck_assert_msg(r >= 0);
-		ck_assert_msg(r <= 0xf);
+		ck_assert(r >= 0);
+		ck_assert(r <= 0xf);
 
-		ck_assert_msg(M_chr_tolower(XDIGIT[r]) == M_chr_tolower(c));
+		ck_assert(M_chr_tolower(XDIGIT[r]) == M_chr_tolower(c));
 	} else {
-		ck_assert_msg(M_chr_xdigit(c) == -1);
+		ck_assert(M_chr_xdigit(c) == -1);
 	}
 }
 END_TEST
