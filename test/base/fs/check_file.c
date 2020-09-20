@@ -84,7 +84,7 @@ START_TEST(check_write_read)
 	M_fs_file_seek(fd, 6, M_FS_FILE_SEEK_BEGIN);
 	res = M_fs_file_read(fd, (unsigned char *)buf, sizeof(buf)-1, &rw_len, M_FS_FILE_RW_FULLBUF);
 	buf[rw_len] = '\0';
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len-6 && M_str_eq_max(TEST_DATA+6, buf, data_len-6), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, rw_len);
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len-6 && M_str_eq_max((const char *)(TEST_DATA+6), buf, data_len-6), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, rw_len);
 
 	M_fs_file_close(fd);
 

@@ -539,7 +539,7 @@ START_TEST(check_httpr2)
 	/* Headers. */
 	key = "dup_header";
 	ck_assert_msg(M_hash_dict_multi_len(ht->headers, key, &len), "No duplicate headers found");
-	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%zu", len, 3);
+	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%d", len, 3);
 	for (i=0; i<len; i++) {
 		gval = M_hash_dict_multi_get_direct(ht->headers, key, i);
 		if (i == 0) {
@@ -558,7 +558,7 @@ START_TEST(check_httpr2)
 
 	key = "list_header";
 	ck_assert_msg(M_hash_dict_multi_len(ht->headers, key, &len), "No duplicate headers found");
-	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%zu", len, 3);
+	ck_assert_msg(len == 3, "Wrong length of duplicate headers got '%zu', expected '%d", len, 3);
 	for (i=0; i<len; i++) {
 		gval = M_hash_dict_multi_get_direct(ht->headers, key, i);
 		if (i == 0) {
@@ -710,7 +710,7 @@ START_TEST(check_httpr6)
 
 	/* Chunks extensions. */
 	key = "ext1";
-	ck_assert_msg(M_hash_dict_get(ht->cextensions, key, &gval), "%s failed: Not found");
+	ck_assert_msg(M_hash_dict_get(ht->cextensions, key, &gval), "%s failed: Not found", key);
 	ck_assert_msg(gval == NULL, "%s failed: got '%s', expected NULL", key, gval);
 
 	key  = "ext2";
@@ -724,15 +724,15 @@ START_TEST(check_httpr6)
 
 	gval = M_list_str_at(ht->bpieces, 0);
 	eval = "TRACE / HTTP/1.1\r\nConnection: keep-alive\r\nHost: google.com";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 0, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", (size_t)0, gval, eval);
 
 	gval = M_list_str_at(ht->bpieces, 1);
 	eval = "\r\nContent-Type: text/html\r\n\r\n<html><body>Chunk 2</body></html>\r\n";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 1, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", (size_t)1, gval, eval);
 
 	gval = M_list_str_at(ht->bpieces, 2);
 	eval = "<html><body>Chunk 3</body></html>";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 2, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", (size_t)2, gval, eval);
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -782,7 +782,7 @@ START_TEST(check_httpr7)
 
 	gval = M_list_str_at(ht->bpieces, 0);
 	eval = "<html><body>Chunk</body></html>";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", 1, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong chunk data: got '%s', expected '%s'", (size_t)1, gval, eval);
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -830,11 +830,11 @@ START_TEST(check_httpr8)
 
 	gval = M_list_str_at(ht->bpieces, 0);
 	eval = "For Meeee";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 1, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", (size_t)1, gval, eval);
 
 	gval = M_list_str_at(ht->bpieces, 1);
 	eval = "<h1>Home page on main server</h1>";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 1, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", (size_t)1, gval, eval);
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -977,7 +977,7 @@ START_TEST(check_httpr12)
 
 	gval = M_list_str_at(ht->bpieces, 0);
 	eval = "Part data";
-	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", 0, gval, eval);
+	ck_assert_msg(M_str_eq(gval, eval), "%zu: wrong part data: got '%s', expected '%s'", (size_t)0, gval, eval);
 
 	gval = M_buf_peek(ht->epilouge);
 	eval = "ep";
