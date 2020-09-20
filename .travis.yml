@@ -17,6 +17,17 @@ addons:
       - unixodbc-dev
       - libsqlite3-dev
       - libc-ares-dev
+  homebrew:
+    packages:
+      - openssl
+      - doxygen
+      - mariadb-connector-c
+      - unixodbc
+      - libpq
+      - check
+      - c-ares
+      - sqlite
+    update: true
 
 # Add coverity certificate to system ca-certificates
 before_install:
@@ -108,7 +119,6 @@ jobs:
 install:
   - |
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite && \
       sudo mkdir -p /usr/local/bin /usr/local/libexec /usr/local/share/scan-build && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/bin/scan-build -O /usr/local/bin/scan-build && \
       sudo wget http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/libexec/ccc-analyzer -O /usr/local/libexec/ccc-analyzer && \
