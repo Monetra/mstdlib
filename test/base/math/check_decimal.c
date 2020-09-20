@@ -20,13 +20,13 @@ START_TEST(check_decimal_cmp)
 	M_decimal_from_int(&d5, 0, 0);
 	M_decimal_from_int(&d6, 2, 2);
 
-	ck_assert_msg(M_decimal_cmp(&d1, &d2) == 0);
-	ck_assert_msg(M_decimal_cmp(&d1, &d3) == 1);
-	ck_assert_msg(M_decimal_cmp(&d3, &d1) == -1);
-	ck_assert_msg(M_decimal_cmp(&d4, &d3) == -1);
-	ck_assert_msg(M_decimal_cmp(&d1, &d3) == 1);
-	ck_assert_msg(M_decimal_cmp(&d1, &d5) == 1);
-	ck_assert_msg(M_decimal_cmp(&d5, &d6) == -1);
+	ck_assert(M_decimal_cmp(&d1, &d2) == 0);
+	ck_assert(M_decimal_cmp(&d1, &d3) == 1);
+	ck_assert(M_decimal_cmp(&d3, &d1) == -1);
+	ck_assert(M_decimal_cmp(&d4, &d3) == -1);
+	ck_assert(M_decimal_cmp(&d1, &d3) == 1);
+	ck_assert(M_decimal_cmp(&d1, &d5) == 1);
+	ck_assert(M_decimal_cmp(&d5, &d6) == -1);
 }
 END_TEST
 

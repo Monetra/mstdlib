@@ -33,7 +33,7 @@ static const struct {
 	{ "%s",    NULL,          -1, -1, 0, "<NULL>"      },
 	{ "%5s",   "1",           -1, -1, 0, "    1"       },
 	{ "%-5s",  "1",           -1, -1, 0, "1    "       },
-	{ "%5s",   "123456",      -1, -1, 0, "123456"      }, 
+	{ "%5s",   "123456",      -1, -1, 0, "123456"      },
 	{ "%.5s",  "123456",      -1, -1, 0, "12345"       },
 	{ "%s",    "123456",      -1,  5, 6, "1234"        },
 	{ "%*s",   "1",            5, -1, 0, "    1"       },
@@ -297,10 +297,10 @@ START_TEST(check_snprintf_multi)
 	size_t      elen;
 	size_t      ret;
 
-	
+
 	fmt  = "%#09x %#09o abc %-4.1d, +%.13f -- %% %+020.13f";
 	expt = "0x0000149 000000052 abc 97  , +123456.7890000000043 -- % +00032.2345578801230";
-	ret = M_snprintf(buf, sizeof(buf), fmt, 329, 42, 97, 123456.789, 32.234567890123); 
+	ret = M_snprintf(buf, sizeof(buf), fmt, 329, 42, 97, 123456.789, 32.234567890123);
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
@@ -311,24 +311,24 @@ START_TEST(check_snprintf_multi)
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
-	
+
 	fmt  = "%*.s";
 	expt = "    ";
-	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc"); 
+	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
-	
+
 	fmt  = "%*.s";
 	expt = "";
-	ret = M_snprintf(buf, sizeof(buf), fmt, 0, "abc"); 
+	ret = M_snprintf(buf, sizeof(buf), fmt, 0, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
 
 	fmt  = "%*s";
 	expt = " abc";
-	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc"); 
+	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
@@ -339,7 +339,7 @@ START_TEST(check_snprintf_multi)
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
 	ck_assert_msg(elen == sizeof(buf)-1, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
-	ck_assert_msg(ret == 8000, "Return length failure, got '%llu' expected '%llu'", (llu)ret, 8000);
+	ck_assert_msg(ret == 8000, "Return length failure, got '%llu' expected '%d'", (llu)ret, 8000);
 }
 END_TEST
 
@@ -364,7 +364,7 @@ START_TEST(check_snprintf_multi_string)
 	size_t i;
 
 	for (i=0; check_snprintf_multi_string_data[i].out != NULL; i++) {
-		ret = M_snprintf(buf, sizeof(buf), "%s%s%s", check_snprintf_multi_string_data[i].prefix, check_snprintf_multi_string_data[i].str, check_snprintf_multi_string_data[i].suffix); 
+		ret = M_snprintf(buf, sizeof(buf), "%s%s%s", check_snprintf_multi_string_data[i].prefix, check_snprintf_multi_string_data[i].str, check_snprintf_multi_string_data[i].suffix);
 		ck_assert_msg(M_str_eq(buf, check_snprintf_multi_string_data[i].out), "%llu: Failed got '%s' expected '%s'", (llu)i, buf, check_snprintf_multi_string_data[i].out);
 		elen = M_str_len(buf);
 		ck_assert_msg(ret == elen, "%llu: Output length failure, got '%llu' expected '%llu'", (llu)i, (llu)ret, (llu)elen);
@@ -403,7 +403,7 @@ START_TEST(check_snprintf_alloc)
 			"7yhjklo06trf5t865fdf54rty6y+rt\t\t28uo09ujklaiujdadad32\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2",
 			"8ujklo987yhjklo9iku5hgf8e41562u58yhgfrdewq234567jhgfdsdfghjkl;984tuejfkr[56uthwnfri52uthnfdr[i145-urhqf",
 			"7yhjklo06trf5t865fdf54rty6y+rt\t\t28uo09ujklaiujdadad32\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2"
-			); 
+			);
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	ck_assert_msg(ret == elen, "Output length failure, got '%llu' expected '%llu'", (llu)ret, (llu)elen);
 	M_free(buf);
@@ -423,7 +423,7 @@ START_TEST(check_snprintf_fp)
 	M_fs_error_t   fserr;
 #ifndef _WIN32
 	int            fd;
-	const char    *fd_filename  = "check_snprintf_fp_out.txt";	
+	const char    *fd_filename  = "check_snprintf_fp_out.txt";
 	off_t          off;
 	ssize_t        cnt;
 	char          *out;

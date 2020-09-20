@@ -109,14 +109,14 @@ START_TEST(check_insert)
 	for (i=0; int_vals[i].int_key!=0; i++) {
 		ck_assert_msg(M_hash_multi_u64_get_uint(hm, int_vals[i].int_key, &int_val), "%zu: Failed to get int val for int key (%llu)", i, int_vals[i].int_key);
 		if (int_vals[i].int_key == 3) {
-			ck_assert_msg(int_val == 121, "%zu: int key (%llu) int val (%llu) != expected val (%llu)", i, int_vals[i].int_key, int_val, 121);
+			ck_assert_msg(int_val == 121, "%zu: int key (%llu) int val (%llu) != expected val (%d)", i, int_vals[i].int_key, int_val, 121);
 		} else {
 			ck_assert_msg(int_val == int_vals[i].val, "%zu: int key (%llu) int val (%llu) != expected val (%llu)", i, int_vals[i].int_key, int_val, int_vals[i].val);
 		}
 
 		ck_assert_msg(M_hash_multi_str_get_uint(hm, int_vals[i].str_key, &int_val), "%zu: Failed to get int val for str key (%s)", i, int_vals[i].str_key);
 		if (int_vals[i].int_key == 3) {
-			ck_assert_msg(int_val == 121, "%zu: str key (%s) int val (%llu) != expected val (%llu)", i, int_vals[i].str_key, int_val, 121);
+			ck_assert_msg(int_val == 121, "%zu: str key (%s) int val (%llu) != expected val (%d)", i, int_vals[i].str_key, int_val, 121);
 		} else {
 			ck_assert_msg(int_val == int_vals[i].val, "%zu: str key (%s) int val (%llu) != expected val (%llu)", i, int_vals[i].str_key, int_val, int_vals[i].val);
 		}
