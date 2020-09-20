@@ -101,7 +101,7 @@ static void *thread_mutex(void *arg)
 		M_thread_mutex_lock(sd->mutex);
 	}
 
-	ck_assert_msg(*(sd->count) == sd->expect, "count (%u) != expect (%u)", sd->count, sd->expect);
+	ck_assert_msg(*(sd->count) == sd->expect, "count (%u) != expect (%u)", *(sd->count), sd->expect);
 	M_thread_sleep(sd->usec);
 	M_atomic_inc_u32(sd->count);
 
@@ -852,7 +852,7 @@ START_TEST(check_pool)
 
 	ck_assert_msg(count == CHECK_POOL_TASK_CNT, "count (%u) != %u", count, CHECK_POOL_TASK_CNT);
 	len = M_list_u64_len(sd.seen_threads);
-	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %llu of %llu used", (llu)len, CHECK_POOL_THREAD_CNT);
+	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %llu of %llu used", (llu)len, (llu)CHECK_POOL_THREAD_CNT);
 
 	M_list_u64_destroy(sd.seen_threads);
 	M_thread_mutex_destroy(sd.mutex);
