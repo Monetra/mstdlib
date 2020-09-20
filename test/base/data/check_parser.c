@@ -182,7 +182,7 @@ START_TEST(check_parser_boundary)
 		len    = M_parser_read_str_boundary(parser, buf, sizeof(buf), boundary, boundary_data[i].eat_pat, &found);
 		ck_assert_msg(M_str_eq(buf, boundary_data[i].out_data), "%zu: Wrong data read: got '%s', expected '%s'", i, buf, boundary_data[i].out_data);
 		ck_assert_msg(len == M_str_len(boundary_data[i].out_data), "%zu: Wrong length returned: got '%zu' expected '%zu", i, len, M_str_len(boundary_data[i].out_data));
-		ck_assert_msg(found == boundary_data[i].found, "%zu: boundary found not correct; got %d expected %d", found, boundary_data[i].found);
+		ck_assert_msg(found == boundary_data[i].found, "%zu: boundary found not correct; got %d expected %d", i, found, boundary_data[i].found);
 		M_parser_destroy(parser);
 	}
 }
@@ -227,7 +227,7 @@ START_TEST(check_parser_truncate_predicate)
 		}
 
 		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
 		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
@@ -290,7 +290,7 @@ START_TEST(check_parser_truncate_until)
 		r = M_parser_truncate_until(parser, (const unsigned char *)trunc_data[i].pat, M_str_len(trunc_data[i].pat), trunc_data[i].eat);
 
 		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
 		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
@@ -335,7 +335,7 @@ START_TEST(check_parser_truncate_charset)
 		r = M_parser_truncate_charset(parser, (const unsigned char *)trunc_data[i].set, M_str_len(trunc_data[i].set));
 
 		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
 		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);

@@ -32,23 +32,23 @@ START_TEST(check_time_tm_yday)
 	/* Coming out of the loop we have normal = Jan 1 2002, leap = Dec 31 2004 */
 
 	/* Ensure yday wraps when we go into the first day of the next year. */
-	ck_assert_msg(normal == 1009861200, "Normal time (%lld) != Jan 1, 2002 05:00:00 (1009861200)", normal); 
+	ck_assert_msg(normal == 1009861200, "Normal time (%lld) != Jan 1, 2002 05:00:00 (1009861200)", normal);
 	M_mem_set(&gmt, 0, sizeof(gmt));
 	M_time_togm(normal, &gmt);
-	ck_assert_msg(gmt.yday == 0, "Normal time (%lld) yday (%lld) != expected yday (%lld)", normal, gmt.yday, 0);
+	ck_assert_msg(gmt.yday == 0, "Normal time (%lld) yday (%lld) != expected yday (%d)", normal, gmt.yday, 0);
 
 	/* For the leap year ensure we have an additional yday for the last day of year. */
-	ck_assert_msg(leap == 1104469200, "Leap time (%lld) != Dec 31, 2004 05:00:00 (1104469200)", leap); 
+	ck_assert_msg(leap == 1104469200, "Leap time (%lld) != Dec 31, 2004 05:00:00 (1104469200)", leap);
 	M_mem_set(&gmt, 0, sizeof(gmt));
 	M_time_togm(leap, &gmt);
-	ck_assert_msg(gmt.yday == 365, "Leap time (%lld) yday (%lld) != expected yday (%lld)", normal, gmt.yday, 365);
+	ck_assert_msg(gmt.yday == 365, "Leap time (%lld) yday (%lld) != expected yday (%d)", normal, gmt.yday, 365);
 
 	/* For the leap year ensure it also wraps going into the next year */
 	leap += sec_in_day;
-	ck_assert_msg(leap == 1104555600, "Leap time (%lld) != Jan 1, 2005 05:00:00 (1104555600)", leap); 
+	ck_assert_msg(leap == 1104555600, "Leap time (%lld) != Jan 1, 2005 05:00:00 (1104555600)", leap);
 	M_mem_set(&gmt, 0, sizeof(gmt));
 	M_time_togm(leap, &gmt);
-	ck_assert_msg(gmt.yday == 0, "Leap time (%lld) yday (%lld) != expected yday (%lld)", normal, gmt.yday, 0);
+	ck_assert_msg(gmt.yday == 0, "Leap time (%lld) yday (%lld) != expected yday (%d)", normal, gmt.yday, 0);
 }
 END_TEST
 
