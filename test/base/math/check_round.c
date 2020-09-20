@@ -12,16 +12,16 @@ extern Suite *round_suite(void);
 
 START_TEST(check_uint64_round_up_to_nearest_multiple)
 {
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(0,2) == 2);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(1,2) == 2);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(2,2) == 2);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(3,2) == 4);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(4,2) == 4);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(5,2) == 6);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(6,2) == 6);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(7,2) == 8);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(8,2) == 8);
-	ck_assert_msg(M_uint64_round_up_to_nearest_multiple(9,2) ==10);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(0,2) == 2);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(1,2) == 2);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(2,2) == 2);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(3,2) == 4);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(4,2) == 4);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(5,2) == 6);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(6,2) == 6);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(7,2) == 8);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(8,2) == 8);
+	ck_assert(M_uint64_round_up_to_nearest_multiple(9,2) ==10);
 }
 END_TEST
 
@@ -30,14 +30,14 @@ END_TEST
 START_TEST(check_uint32_round_up_to_power_of_two)
 {
 	M_uint32 n;
-	ck_assert_msg(M_uint32_round_up_to_power_of_two(0) == 0);
-	ck_assert_msg(M_uint32_round_up_to_power_of_two(1) == 1);
-	ck_assert_msg(M_uint32_round_up_to_power_of_two(2) == 2);
-	ck_assert_msg(M_uint32_round_up_to_power_of_two(3) == 4);
+	ck_assert(M_uint32_round_up_to_power_of_two(0) == 0);
+	ck_assert(M_uint32_round_up_to_power_of_two(1) == 1);
+	ck_assert(M_uint32_round_up_to_power_of_two(2) == 2);
+	ck_assert(M_uint32_round_up_to_power_of_two(3) == 4);
 	for (n=4; n<M_INT32_MAX; n<<=1) {
-		ck_assert_msg(M_uint32_round_up_to_power_of_two(n-1) == n);
-		ck_assert_msg(M_uint32_round_up_to_power_of_two(n)   == n);
-		ck_assert_msg(M_uint32_round_up_to_power_of_two(n+1) == (n<<1));
+		ck_assert(M_uint32_round_up_to_power_of_two(n-1) == n);
+		ck_assert(M_uint32_round_up_to_power_of_two(n)   == n);
+		ck_assert(M_uint32_round_up_to_power_of_two(n+1) == (n<<1));
 	}
 }
 END_TEST
@@ -45,21 +45,21 @@ END_TEST
 START_TEST(check_size_t_round_up_to_power_of_two)
 {
 	M_uint64 n;
-	ck_assert_msg(M_size_t_round_up_to_power_of_two(0) == 0);
-	ck_assert_msg(M_size_t_round_up_to_power_of_two(1) == 1);
-	ck_assert_msg(M_size_t_round_up_to_power_of_two(2) == 2);
-	ck_assert_msg(M_size_t_round_up_to_power_of_two(3) == 4);
+	ck_assert(M_size_t_round_up_to_power_of_two(0) == 0);
+	ck_assert(M_size_t_round_up_to_power_of_two(1) == 1);
+	ck_assert(M_size_t_round_up_to_power_of_two(2) == 2);
+	ck_assert(M_size_t_round_up_to_power_of_two(3) == 4);
 	for (n=4; n<M_INT32_MAX; n<<=1) {
-		ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n-1)) == n);
-		ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n))   == n);
-		ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n+1)) == (n<<1));
+		ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n-1)) == n);
+		ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n))   == n);
+		ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n+1)) == (n<<1));
 	}
 	/* Check for size_t that's larger than an uint32. */
 	if (sizeof(size_t) >= sizeof(M_uint64)) {
 		for (n=(size_t)M_UINT32_MAX+1; n<M_INT64_MAX; n<<=1) {
-			ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n-1)) == n);
-			ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n))   == n);
-			ck_assert_msg(M_size_t_round_up_to_power_of_two((size_t)(n+1)) == (n<<1));
+			ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n-1)) == n);
+			ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n))   == n);
+			ck_assert(M_size_t_round_up_to_power_of_two((size_t)(n+1)) == (n<<1));
 		}
 	}
 }
