@@ -213,13 +213,13 @@ static M_bool process_test(process_test_cases_t test_case)
 
 START_TEST(check_process_echo)
 {
-	ck_assert_msg(process_test(TEST_CASE_ECHO));
+	ck_assert(process_test(TEST_CASE_ECHO));
 }
 END_TEST
 
 START_TEST(check_process_timeout)
 {
-	ck_assert_msg(process_test(TEST_CASE_TIMEOUT));
+	ck_assert(process_test(TEST_CASE_TIMEOUT));
 }
 END_TEST
 
