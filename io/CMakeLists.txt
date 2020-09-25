@@ -96,9 +96,15 @@ else ()
 endif ()
 
 # XXX: Not implemented yet
-list(APPEND sources
-	m_io_usb_notimpl.c
-)
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin" AND NOT IOS AND NOT IOSSIM)
+	list(APPEND sources
+		m_io_usb_mac.c
+	)
+else ()
+	list(APPEND sources
+		m_io_usb_notimpl.c
+	)
+endif ()
 
 # JNI
 if (ANDROID)
