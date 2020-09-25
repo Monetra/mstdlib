@@ -69,6 +69,8 @@ CMakeLists.txt.user
 *.idb
 *.pdb
 
+# VIM
+*.swp
 
 # ======================
 # https://github.com/github/gitignore/blob/master/CMake.gitignore

@@ -46,6 +46,7 @@ set(sources
 	m_io_bluetooth.c
 	m_io_hid.c
 	m_io_serial.c
+	m_io_usb.c
 
 	# Event
 	m_event.c
@@ -93,6 +94,11 @@ else ()
 		)
 	endif ()
 endif ()
+
+# XXX: Not implemented yet
+list(APPEND sources
+	m_io_usb_notimpl.c
+)
 
 # JNI
 if (ANDROID)
