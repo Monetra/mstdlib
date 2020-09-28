@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -107,7 +107,7 @@ static void mysql_cb_destroy(void)
 
 
 static const char * const mysql_unix_socket_paths[] =
-{ 
+{
 	"/tmp/mysql.sock",              /* Default       */
 	"/var/mysql/mysql.sock",        /* MacOSX        */
 	"/var/lib/mysql/mysql.sock",    /* RedHat        */
@@ -586,10 +586,14 @@ static M_sql_data_type_t mysql_type_to_mtype(const MYSQL_FIELD *field, size_t *m
 			return M_SQL_DATA_TYPE_BINARY;
 
 		case MYSQL_TYPE_STRING:
-		case MYSQL_TYPE_VAR_STRING:
 		case MYSQL_TYPE_VARCHAR:
 			*max_len = field->length;
 			return M_SQL_DATA_TYPE_TEXT;
+
+		case MYSQL_TYPE_VAR_STRING:
+			/* Can either be VARBINARY or VARCHAR depending on (flags & BINARY_FLAG). Can't use the charsetnr trick as it is 63. */
+			*max_len = field->length;
+			return (field->flags & BINARY_FLAG)?M_SQL_DATA_TYPE_BINARY:M_SQL_DATA_TYPE_TEXT;
 
 		case MYSQL_TYPE_TINY:
 			return M_SQL_DATA_TYPE_BOOL;
@@ -763,7 +767,7 @@ static M_sql_error_t mysql_cb_prepare(M_sql_driver_stmt_t **driver_stmt, M_sql_c
 /* XXX: It appears STMT_ATTR_PREFETCH_ROWS may require a cursor, but that means
  * a server-side temporary table is created.  We need to check the communication
  * to see if the client buffers multiple rows at once or not */
-#if 0 
+#if 0
 	/* If there are columns, that means it is a query */
 	if (M_sql_stmt_result_num_cols(stmt)) {
 		unsigned long arg;
@@ -940,7 +944,7 @@ static M_sql_error_t mysql_cb_begin(M_sql_conn_t *conn, M_sql_isolation_t isolat
 	const char            *iso;
 	char                   query[256];
 	M_sql_error_t          err;
-	mysql_connpool_data_t *data  = mysql_get_driverpool_data(conn); 
+	mysql_connpool_data_t *data  = mysql_get_driverpool_data(conn);
 	M_sql_driver_conn_t   *dconn = M_sql_driver_conn_get_conn(conn);
 
 	if (isolation > data->max_isolation)
