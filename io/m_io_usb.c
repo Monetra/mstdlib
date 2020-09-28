@@ -64,9 +64,13 @@ size_t M_io_usb_enum_count(const M_io_usb_enum_t *usbenum)
 
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        /* Info about this enumerated device */
-                       M_uint16 d_vendor_id, M_uint16 d_product_id,
+                       M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
+					   const char *d_manufacturer, const char *d_product,
+					   size_t d_num_endpoints,
                        /* Search/Match criteria */
-                       M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids)
+                       M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial)
+					   
+
 {
 	M_io_usb_enum_device_t *device;
 
@@ -81,18 +85,29 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 	if (s_product_ids != NULL && s_num_product_ids > 0) {
 		size_t i;
 		for (i=0; i<s_num_product_ids; i++) {
-			if (s_product_ids[i] == d_product_id)
+			if (s_product_ids[i] == d_product_id) {
 				break;
+			}
 		}
 
 		/* Not found */
-		if (i == s_num_product_ids)
+		if (i == s_num_product_ids) {
 			return;
+		}
 	}
 
-	device               = M_malloc_zero(sizeof(*device));
-	device->vendor_id    = d_vendor_id;
-	device->product_id   = d_product_id;
+	/* Filter by serial number */
+	if (s_serial != NULL && !M_str_caseeq(s_serial, d_serial))
+		return;
+
+	device                = M_malloc_zero(sizeof(*device));
+	device->vendor_id     = d_vendor_id;
+	device->product_id    = d_product_id;
+	device->manufacturer  = M_strdup(d_manufacturer);
+	device->product       = M_strdup(d_product);
+	device->serial        = M_strdup(d_serial);
+	device->num_endpoints = d_num_endpoints;
+
 	M_list_insert(usbenum->devices, device);
 }
 
@@ -118,7 +133,51 @@ M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx)
 	return device->product_id;
 }
 
-M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids)
+size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return 0;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->num_endpoints;
+}
+
+const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return NULL;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->manufacturer;
+}
+
+const char *M_io_usb_enum_product(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return NULL;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->product;
+}
+
+const char *M_io_usb_enum_serial(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return NULL;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->serial;
+}
+
+M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t  *usbenum;
 	char              path[1024] = { 0 };
@@ -130,7 +189,7 @@ M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 		return M_IO_ERROR_INVALID;
 
 	/* Enumerate devices and use first match */
-	usbenum = M_io_usb_enum(vendorid, productids, num_productids);
+	usbenum = M_io_usb_enum(vendorid, productids, num_productids, serial);
 	if (usbenum == NULL)
 		return M_IO_ERROR_NOTFOUND;
 
@@ -169,10 +228,10 @@ M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 	return M_IO_ERROR_SUCCESS;
 }
 
-M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid)
+M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial)
 {
 	M_uint16 prodarr[] = { productid };
-	return M_io_usb_create_one(io_out, vendorid, prodarr, (productid > 0)?1:0);
+	return M_io_usb_create_one(io_out, vendorid, prodarr, (productid > 0)?1:0, serial);
 }
 
 M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io)

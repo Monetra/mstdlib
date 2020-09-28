@@ -29,8 +29,12 @@
 #define M_IO_USB_USB_NAME "USB"
 
 struct M_io_usb_enum_device {
-	M_uint16 vendor_id;
-	M_uint16 product_id;
+	M_uint16  vendor_id;
+	M_uint16  product_id;
+	char     *manufacturer;
+	char     *product;
+	char     *serial;
+	size_t    num_endpoints;
 };
 
 typedef struct M_io_usb_enum_device M_io_usb_enum_device_t;
@@ -41,10 +45,13 @@ struct M_io_usb_enum {
 
 M_io_usb_enum_t *M_io_usb_enum_init(void);
 
-/* XXX: Need more params for things like filtering. */
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
-                       M_uint16 d_vendor_id, M_uint16 d_product_id,
-                       M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids);
+                       /* Info about this enumerated device */
+                       M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
+					   const char *d_manufacturer, const char *d_product,
+					   size_t d_num_endpoints,
+                       /* Search/Match criteria */
+                       M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial);
 
 M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr);
 M_bool M_io_usb_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);

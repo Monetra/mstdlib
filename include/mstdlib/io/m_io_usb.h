@@ -54,15 +54,20 @@ struct M_io_usb_enum;
 typedef struct M_io_usb_enum M_io_usb_enum_t;
 
 
-M_API M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids);
+M_API M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 M_API void M_io_usb_enum_destroy(M_io_usb_enum_t *usbenum);
 M_API size_t M_io_usb_enum_count(const M_io_usb_enum_t *usbenum);
 M_API M_uint16 M_io_usb_enum_vendorid(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx);
 
+M_API size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API const char *M_io_usb_enum_product(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API const char *M_io_usb_enum_serial(const M_io_usb_enum_t *usbenum, size_t idx);
 
-M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid);
-M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids);
+
+M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial);
+M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 
 /* Device metadata */
 M_API M_uint16 M_io_usb_get_vendorid(M_io_t *io);

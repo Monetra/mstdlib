@@ -32,7 +32,53 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/usb/IOUSBLib.h>
 
-M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids)
+static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 idx, char **str)
+{
+	IOUSBDevRequest request;
+	IOReturn        result;
+	char            buffer[4086] = { 0 };
+	CFStringRef     cfstr;
+	CFIndex         len;
+
+	if (str != NULL)
+		*str = NULL;
+
+	request.bmRequestType = USBmakebmRequestType(kUSBIn, kUSBStandard, kUSBDevice);
+	request.bRequest      = kUSBRqGetDescriptor;
+	request.wValue        = (kUSBStringDesc << 8) | idx;
+	request.wIndex        = 0x409;
+	request.wLength       = sizeof(buffer);
+	request.pData         = buffer;
+
+	result = (*dev)->DeviceRequest(dev, &request);
+	if (result != kIOReturnSuccess)
+		return M_FALSE;
+
+	if (str == NULL || request.wLength <= 2)
+		return M_TRUE;
+
+	/* Now we need to parse out the actual data.
+ 	 * Byte 1 - Length of packet (same as request.wLenDone)
+	 * Byte 2 - ?
+	 * Byte 3+ - Data
+	 *
+	 * Data is a little endian UTF16 string which we need to convert to a utf-8 string.
+	 * There are a few ways we can do it but we'll use CFString method right now.
+	 * Once we have a text conversion form utf-16 to 8 in mstdlib we'll want to change
+	 * to using that instead.
+	 */
+	cfstr   = CFStringCreateWithBytes(NULL, (const UInt8 *)buffer+2, request.wLenDone-2, kCFStringEncodingUTF16LE, 0);
+	len     = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfstr), kCFStringEncodingUTF8) + 1;
+	if (len < 0)
+		return M_TRUE;
+	*str    = M_malloc_zero((size_t)len);
+	CFStringGetCString(cfstr, *str, len, kCFStringEncodingUTF8); 
+	M_str_trim(*str);
+
+	return M_TRUE;
+}
+
+M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
 	mach_port_t          master_port   = 0;
@@ -54,12 +100,17 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		goto done;
 
 	while ((usb_device = IOIteratorNext(iter))) {
-		IOCFPlugInInterface  **dev_interface = NULL;
-		IOUSBDeviceInterface **dev           = NULL;
-		SInt32                 score         = 0;
+		IOCFPlugInInterface  **dev_interface   = NULL;
+		IOUSBDeviceInterface **dev             = NULL;
+		UInt16                 d_vendor_id     = 0;
+		UInt16                 d_product_id    = 0;
+		UInt8                  d_num_endpoints = 0;
+		char                  *d_manufacturer  = NULL;
+		char                  *d_product       = NULL;
+		char                  *d_serial        = NULL;
+		SInt32                 score           = 0;
+		UInt8                  si;
 		IOReturn               result;
-		UInt16                 d_vendor_id;
-		UInt16                 d_product_id;
 
         kret = IOCreatePlugInInterfaceForService(usb_device, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &dev_interface, &score);
         IOObjectRelease(usb_device);
@@ -73,12 +124,34 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
             continue;
         }
 
-        //Check these values for confirmation
         (*dev)->GetDeviceVendor(dev, &d_vendor_id);
         (*dev)->GetDeviceProduct(dev, &d_product_id);
+		//(*dev)->GetNumEndpoints(dev, &d_num_endpoints)
 
-		M_io_usb_enum_add(usbenum, d_vendor_id, d_product_id, vendorid, productids, num_productids);
+    	if ((*dev)->USBGetManufacturerStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, &d_manufacturer);		
+		}
+    	if ((*dev)->USBGetProductStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, &d_product);		
+		}
+    	if ((*dev)->USBGetSerialNumberStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, &d_serial);		
+		}
 
+#if 0
+    IOReturn (*GetBandwidthAvailable)(void *self, UInt32 *bandwidth);
+    IOReturn (*GetEndpointProperties)(void *self, UInt8 alternateSetting, UInt8 endpointNumber, UInt8 direction, UInt8 *transferType, UInt16 *maxPacketSize, UInt8 *interval);
+#endif
+
+		M_io_usb_enum_add(usbenum,
+				d_vendor_id, d_product_id, d_serial,
+				d_manufacturer, d_product,
+				d_num_endpoints,
+				vendorid, productids, num_productids, serial);
+
+		M_free(d_manufacturer);
+		M_free(d_product);
+		M_free(d_serial);
         (*dev)->Release(dev);
 	}
 
