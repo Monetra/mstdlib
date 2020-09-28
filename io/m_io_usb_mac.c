@@ -108,6 +108,7 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		char                  *d_product       = NULL;
 		char                  *d_serial        = NULL;
 		SInt32                 score           = 0;
+		M_io_usb_speed_t       speed           = M_IO_USB_SPEED_UNKNOWN;
 		UInt8                  si;
 		IOReturn               result;
 
@@ -123,16 +124,13 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
             continue;
         }
 
-		kret = IORegistryEntryGetPath(usb_device, kIOServicePlane, path);
-		if (kret != KERN_SUCCESS) {
+		if (IORegistryEntryGetPath(usb_device, kIOServicePlane, path) != KERN_SUCCESS) {
         	(*dev)->Release(dev);
 			continue;
 		}
 
-
         (*dev)->GetDeviceVendor(dev, &d_vendor_id);
         (*dev)->GetDeviceProduct(dev, &d_product_id);
-		//(*dev)->GetNumEndpoints(dev, &d_num_endpoints)
 
     	if ((*dev)->USBGetManufacturerStringIndex(dev, &si) == kIOReturnSuccess) {
 			get_string_from_descriptor_idx(dev, si, &d_manufacturer);		
@@ -144,13 +142,37 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 			get_string_from_descriptor_idx(dev, si, &d_serial);		
 		}
 
+		if ((*dev)->GetDeviceSpeed(dev, &si) == kIOReturnSuccess) {
+			switch (si) {
+				case kUSBDeviceSpeedLow:
+					speed = M_IO_USB_SPEED_LOW;
+					break;
+				case kUSBDeviceSpeedFull:
+					speed = M_IO_USB_SPEED_FULL;
+					break;
+				case kUSBDeviceSpeedHigh:
+					speed = M_IO_USB_SPEED_HIGH;
+					break;
+				case kUSBDeviceSpeedSuper:
+					speed = M_IO_USB_SPEED_SUPER;
+					break;
+				case kUSBDeviceSpeedSuperPlus:
+					speed = M_IO_USB_SPEED_SUPERPLUS;
+					break;
+				case kUSBDeviceSpeedSuperPlusBy2:
+					speed = M_IO_USB_SPEED_SUPERPLUSX2;
+					break;
+			}
+		}
+
 #if 0
+		//(*dev)->GetNumEndpoints(dev, &d_num_endpoints)
     IOReturn (*GetBandwidthAvailable)(void *self, UInt32 *bandwidth);
     IOReturn (*GetEndpointProperties)(void *self, UInt8 alternateSetting, UInt8 endpointNumber, UInt8 direction, UInt8 *transferType, UInt16 *maxPacketSize, UInt8 *interval);
 #endif
 
 		M_io_usb_enum_add(usbenum,
-				path,
+				path, speed,
 				d_vendor_id, d_product_id, d_serial,
 				d_manufacturer, d_product,
 				d_num_endpoints,

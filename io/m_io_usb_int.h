@@ -29,12 +29,13 @@
 #define M_IO_USB_USB_NAME "USB"
 
 struct M_io_usb_enum_device {
-	M_uint16  vendor_id;
-	M_uint16  product_id;
-	char     *path;
-	char     *manufacturer;
-	char     *product;
-	char     *serial;
+	M_uint16          vendor_id;
+	M_uint16          product_id;
+	char             *path;
+	char             *manufacturer;
+	char             *product;
+	char             *serial;
+	M_io_usb_speed_t  speed;
 	size_t    num_endpoints;
 };
 
@@ -48,7 +49,7 @@ M_io_usb_enum_t *M_io_usb_enum_init(void);
 
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        /* Info about this enumerated device */
-                       const char *path,
+                       const char *path, M_io_usb_speed_t speed,
                        M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
 					   const char *d_manufacturer, const char *d_product,
 					   size_t d_num_endpoints,

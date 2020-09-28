@@ -50,6 +50,17 @@ __BEGIN_DECLS
  * @{
  */
 
+typedef enum {
+    M_IO_USB_SPEED_UNKNOWN = 0, /*!< Speed not known. */
+    M_IO_USB_SPEED_LOW,         /*!< USB 1.0, 1.5 Megabits per second (Mbps). */
+    M_IO_USB_SPEED_FULL,        /*!< USB 1.1, 12 Megabits per second (Mbps). */
+    M_IO_USB_SPEED_HIGH,        /*!< USB 2.0, 480 Megabits per second (Mbps). */
+    M_IO_USB_SPEED_SUPER,       /*!< USB 3.0 (Aka 3.1 Gen 1), 5 Gigabits per second (Gbps). */
+    M_IO_USB_SPEED_SUPERPLUS,   /*!< USB 3.1 (Aka 3.1 Gen 2), 10 Gigabits per second (Gbps). */
+    M_IO_USB_SPEED_SUPERPLUSX2, /*!< USB 3.2 (Aka 32. Gen 2x2), 20 Gigabits per second (Gbps). */
+/*    M_IO_USB_SPEED_V4 */          /*!< USB 4, 40 Gigabits per second (Gbps). */
+} M_io_usb_speed_t;
+
 struct M_io_usb_enum;
 typedef struct M_io_usb_enum M_io_usb_enum_t;
 
@@ -61,6 +72,7 @@ M_API M_uint16 M_io_usb_enum_vendorid(const M_io_usb_enum_t *usbenum, size_t idx
 M_API M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx);
 
 M_API size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API M_uint32 M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_product(const M_io_usb_enum_t *usbenum, size_t idx);
