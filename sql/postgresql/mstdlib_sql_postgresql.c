@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -662,6 +662,7 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 	M_sql_driver_stmt_t   *dstmt = M_sql_driver_stmt_get_stmt(stmt);
 	char                   psid[32];
 	M_sql_error_t          err;
+	size_t                 affected_rows = 0;
 
 	M_snprintf(psid, sizeof(psid), "ps%zu", dstmt->id);
 
@@ -689,8 +690,10 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 
 	switch (PQresultStatus(dstmt->res)) {
 		case PGRES_COMMAND_OK:
-			err = M_SQL_ERROR_SUCCESS;
-			M_sql_driver_stmt_result_set_affected_rows(stmt, (size_t)M_str_to_uint32(PQcmdTuples(dstmt->res)));
+			err           = M_SQL_ERROR_SUCCESS;
+			affected_rows = (size_t)M_str_to_uint32(PQcmdTuples(dstmt->res));
+			/* Internally this does a += since this may be split up into multiple inserts */
+			M_sql_driver_stmt_result_set_affected_rows(stmt, affected_rows);
 
 			/* Rewrite to M_SQL_ERROR_SUCCESS_ROW if there were columns defined in the result set */
 			if (PQnfields(dstmt->res)) {
@@ -726,7 +729,7 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 	 * match executed rows, there must have been a conflict, modify the error code */
 	if (err == M_SQL_ERROR_SUCCESS &&
 	    M_str_caseeq_max(M_sql_driver_stmt_get_query(stmt), "INSERT", 6) &&
-	    M_sql_stmt_result_affected_rows(stmt) != (*rows_executed)) {
+	    affected_rows != (*rows_executed)) {
 		M_snprintf(error, error_size, "CONFLICT DETECTED ON INSERT");
 		err = M_SQL_ERROR_QUERY_CONSTRAINT;
 	}
