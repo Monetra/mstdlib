@@ -69,12 +69,15 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 	 */
 	cfstr   = CFStringCreateWithBytes(NULL, (const UInt8 *)buffer+2, request.wLenDone-2, kCFStringEncodingUTF16LE, 0);
 	len     = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfstr), kCFStringEncodingUTF8) + 1;
-	if (len < 0)
+	if (len < 0) {
+		CFRelease(cfstr);
 		return M_TRUE;
+	}
 	*str    = M_malloc_zero((size_t)len);
 	CFStringGetCString(cfstr, *str, len, kCFStringEncodingUTF8); 
 	M_str_trim(*str);
 
+	CFRelease(cfstr);
 	return M_TRUE;
 }
 
