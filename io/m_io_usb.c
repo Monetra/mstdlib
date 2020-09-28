@@ -30,6 +30,10 @@
 static void M_io_usb_enum_free_device(void *arg)
 {
 	M_io_usb_enum_device_t *device = arg;
+	M_free(device->path);
+	M_free(device->manufacturer);
+	M_free(device->product);
+	M_free(device->serial);
 	M_free(device);
 }
 
@@ -64,6 +68,7 @@ size_t M_io_usb_enum_count(const M_io_usb_enum_t *usbenum)
 
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        /* Info about this enumerated device */
+                       const char *path,
                        M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
 					   const char *d_manufacturer, const char *d_product,
 					   size_t d_num_endpoints,
@@ -74,7 +79,7 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 {
 	M_io_usb_enum_device_t *device;
 
-	if (usbenum == NULL || d_vendor_id == 0)
+	if (usbenum == NULL || M_str_isempty(path) || d_vendor_id == 0)
 		return;
 
 	/* Filter by vendor id */
@@ -101,6 +106,7 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 		return;
 
 	device                = M_malloc_zero(sizeof(*device));
+	device->path          = M_strdup(path);
 	device->vendor_id     = d_vendor_id;
 	device->product_id    = d_product_id;
 	device->manufacturer  = M_strdup(d_manufacturer);
@@ -142,6 +148,17 @@ size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx)
 	if (device == NULL)
 		return 0;
 	return device->num_endpoints;
+}
+
+const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return NULL;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->path;
 }
 
 const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx)

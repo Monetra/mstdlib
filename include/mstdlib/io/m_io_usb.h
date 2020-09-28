@@ -61,6 +61,7 @@ M_API M_uint16 M_io_usb_enum_vendorid(const M_io_usb_enum_t *usbenum, size_t idx
 M_API M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx);
 
 M_API size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_product(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_serial(const M_io_usb_enum_t *usbenum, size_t idx);

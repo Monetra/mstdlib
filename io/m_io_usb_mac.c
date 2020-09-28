@@ -84,17 +84,12 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
-	mach_port_t          master_port   = 0;
 	io_registry_entry_t  entry         = 0;
 	io_iterator_t        iter          = 0;
 	io_service_t         usb_device    = 0;
 	kern_return_t        kret;
 
-	kret = IOMasterPort(MACH_PORT_NULL, &master_port);
-	if (kret != KERN_SUCCESS || master_port == 0)
-		goto done;
-
-	entry = IORegistryGetRootEntry(master_port);
+	entry = IORegistryGetRootEntry(kIOMasterPortDefault);
 	if (entry == 0)
 		goto done;
 
@@ -108,6 +103,7 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		UInt16                 d_vendor_id     = 0;
 		UInt16                 d_product_id    = 0;
 		UInt8                  d_num_endpoints = 0;
+		io_string_t            path;
 		char                  *d_manufacturer  = NULL;
 		char                  *d_product       = NULL;
 		char                  *d_serial        = NULL;
@@ -126,6 +122,13 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
         if (result != kIOReturnSuccess || dev == NULL) {
             continue;
         }
+
+		kret = IORegistryEntryGetPath(usb_device, kIOServicePlane, path);
+		if (kret != KERN_SUCCESS) {
+        	(*dev)->Release(dev);
+			continue;
+		}
+
 
         (*dev)->GetDeviceVendor(dev, &d_vendor_id);
         (*dev)->GetDeviceProduct(dev, &d_product_id);
@@ -147,6 +150,7 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 #endif
 
 		M_io_usb_enum_add(usbenum,
+				path,
 				d_vendor_id, d_product_id, d_serial,
 				d_manufacturer, d_product,
 				d_num_endpoints,
@@ -159,9 +163,6 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	}
 
 done:
-	if (master_port != 0)
-		mach_port_deallocate(mach_task_self(), master_port);
-
 	return usbenum;
 }
 
