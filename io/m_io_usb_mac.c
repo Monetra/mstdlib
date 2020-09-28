@@ -102,7 +102,6 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		IOUSBDeviceInterface **dev             = NULL;
 		UInt16                 d_vendor_id     = 0;
 		UInt16                 d_product_id    = 0;
-		UInt8                  d_num_endpoints = 0;
 		io_string_t            path;
 		char                  *d_manufacturer  = NULL;
 		char                  *d_product       = NULL;
@@ -165,17 +164,10 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 			}
 		}
 
-#if 0
-		//(*dev)->GetNumEndpoints(dev, &d_num_endpoints)
-    IOReturn (*GetBandwidthAvailable)(void *self, UInt32 *bandwidth);
-    IOReturn (*GetEndpointProperties)(void *self, UInt8 alternateSetting, UInt8 endpointNumber, UInt8 direction, UInt8 *transferType, UInt16 *maxPacketSize, UInt8 *interval);
-#endif
-
 		M_io_usb_enum_add(usbenum,
 				path, speed,
 				d_vendor_id, d_product_id, d_serial,
 				d_manufacturer, d_product,
-				d_num_endpoints,
 				vendorid, productids, num_productids, serial);
 
 		M_free(d_manufacturer);

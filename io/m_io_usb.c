@@ -71,7 +71,6 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        const char *path, M_io_usb_speed_t speed,
                        M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
 					   const char *d_manufacturer, const char *d_product,
-					   size_t d_num_endpoints,
                        /* Search/Match criteria */
                        M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial)
 					   
@@ -113,7 +112,6 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 	device->product       = M_strdup(d_product);
 	device->serial        = M_strdup(d_serial);
 	device->speed         = speed;
-	device->num_endpoints = d_num_endpoints;
 
 	M_list_insert(usbenum->devices, device);
 }
@@ -138,17 +136,6 @@ M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx)
 	if (device == NULL)
 		return 0;
 	return device->product_id;
-}
-
-size_t M_io_usb_enum_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx)
-{
-	const M_io_usb_enum_device_t *device;
-	if (usbenum == NULL)
-		return 0;
-	device = M_list_at(usbenum->devices, idx);
-	if (device == NULL)
-		return 0;
-	return device->num_endpoints;
 }
 
 M_io_usb_speed_t M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx)
