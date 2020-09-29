@@ -26,6 +26,18 @@
 #include <mstdlib/io/m_io_usb.h>
 #include "m_io_usb_int.h"
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+struct M_io_handle {
+	char      *path;
+	char       manufacturer[256];
+	char       product[256];
+	char       serial[256];
+	M_uint16   vendorid;
+	M_uint16   productid;
+};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void M_io_usb_enum_free_device(void *arg)
 {
@@ -65,16 +77,14 @@ size_t M_io_usb_enum_count(const M_io_usb_enum_t *usbenum)
 	return M_list_len(usbenum->devices);
 }
 
-
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        /* Info about this enumerated device */
-                       const char *path, M_io_usb_speed_t speed,
-                       M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
-					   const char *d_manufacturer, const char *d_product,
+                       const char *path,
+                       M_uint16 d_vendor_id, M_uint16 d_product_id,
+					   const char *d_manufacturer, const char *d_product, const char *d_serial,
+					    M_io_usb_speed_t d_speed, size_t d_curr_config,
                        /* Search/Match criteria */
                        M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial)
-					   
-
 {
 	M_io_usb_enum_device_t *device;
 
@@ -111,9 +121,21 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 	device->manufacturer  = M_strdup(d_manufacturer);
 	device->product       = M_strdup(d_product);
 	device->serial        = M_strdup(d_serial);
-	device->speed         = speed;
+	device->speed         = d_speed;
+	device->curr_config   = d_curr_config;
 
 	M_list_insert(usbenum->devices, device);
+}
+
+const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return NULL;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->path;
 }
 
 M_uint16 M_io_usb_enum_vendorid(const M_io_usb_enum_t *usbenum, size_t idx)
@@ -136,28 +158,6 @@ M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx)
 	if (device == NULL)
 		return 0;
 	return device->product_id;
-}
-
-M_io_usb_speed_t M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx)
-{
-	const M_io_usb_enum_device_t *device;
-	if (usbenum == NULL)
-		return 0;
-	device = M_list_at(usbenum->devices, idx);
-	if (device == NULL)
-		return 0;
-	return device->speed;
-}
-
-const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx)
-{
-	const M_io_usb_enum_device_t *device;
-	if (usbenum == NULL)
-		return NULL;
-	device = M_list_at(usbenum->devices, idx);
-	if (device == NULL)
-		return 0;
-	return device->path;
 }
 
 const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx)
@@ -193,6 +193,30 @@ const char *M_io_usb_enum_serial(const M_io_usb_enum_t *usbenum, size_t idx)
 	return device->serial;
 }
 
+M_io_usb_speed_t M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return 0;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->speed;
+}
+
+size_t M_io_usb_enum_current_configuration(const M_io_usb_enum_t *usbenum, size_t idx)
+{
+	const M_io_usb_enum_device_t *device;
+	if (usbenum == NULL)
+		return 0;
+	device = M_list_at(usbenum->devices, idx);
+	if (device == NULL)
+		return 0;
+	return device->curr_config;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t  *usbenum;
@@ -214,15 +238,11 @@ M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uin
 		return M_IO_ERROR_NOTFOUND;
 	}
 
-#if 0
 	M_str_cpy(path, sizeof(path), M_io_usb_enum_path(usbenum, 0));
-#endif
 	M_io_usb_enum_destroy(usbenum);
 
-#if 0
 	if (M_str_isempty(path))
 		return M_IO_ERROR_NOTFOUND;
-#endif
 
 	handle = M_io_usb_open(path, &err);
 	if (handle == NULL)
@@ -249,6 +269,8 @@ M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 produc
 	M_uint16 prodarr[] = { productid };
 	return M_io_usb_create_one(io_out, vendorid, prodarr, (productid > 0)?1:0, serial);
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io)
 {

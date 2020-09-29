@@ -430,8 +430,10 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	M_bool               uses_reportid;
 	size_t               report_len;
 
-	if (M_str_isempty(devpath))
+	if (M_str_isempty(devpath)) {
 		*ioerr = M_IO_ERROR_INVALID;
+		goto err;
+	}
 
 	entry = IORegistryEntryFromPath(kIOMasterPortDefault, devpath);
 	if (entry == MACH_PORT_NULL) {

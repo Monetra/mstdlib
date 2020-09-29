@@ -31,11 +31,14 @@
 struct M_io_usb_enum_device {
 	M_uint16          vendor_id;
 	M_uint16          product_id;
+
 	char             *path;
 	char             *manufacturer;
 	char             *product;
 	char             *serial;
+
 	M_io_usb_speed_t  speed;
+	size_t            curr_config;
 };
 
 typedef struct M_io_usb_enum_device M_io_usb_enum_device_t;
@@ -48,9 +51,10 @@ M_io_usb_enum_t *M_io_usb_enum_init(void);
 
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
                        /* Info about this enumerated device */
-                       const char *path, M_io_usb_speed_t speed,
-                       M_uint16 d_vendor_id, M_uint16 d_product_id, const char *d_serial,
-					   const char *d_manufacturer, const char *d_product,
+                       const char *path,
+                       M_uint16 d_vendor_id, M_uint16 d_product_id,
+					   const char *d_manufacturer, const char *d_product, const char *d_serial,
+					    M_io_usb_speed_t d_speed, size_t d_curr_config,
                        /* Search/Match criteria */
                        M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial);
 

@@ -68,14 +68,28 @@ typedef struct M_io_usb_enum M_io_usb_enum_t;
 M_API M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 M_API void M_io_usb_enum_destroy(M_io_usb_enum_t *usbenum);
 M_API size_t M_io_usb_enum_count(const M_io_usb_enum_t *usbenum);
+
+M_API const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx);
+
 M_API M_uint16 M_io_usb_enum_vendorid(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API M_uint16 M_io_usb_enum_productid(const M_io_usb_enum_t *usbenum, size_t idx);
 
-M_API M_uint32 M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx);
-M_API const char *M_io_usb_enum_path(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_manufacturer(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_product(const M_io_usb_enum_t *usbenum, size_t idx);
 M_API const char *M_io_usb_enum_serial(const M_io_usb_enum_t *usbenum, size_t idx);
+
+M_API M_io_usb_speed_t M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API size_t M_io_usb_enum_current_configuration(const M_io_usb_enum_t *usbenum, size_t idx);
+
+
+#if 0
+M_API size_t M_io_usb_enum_num_interface(const M_io_usb_enum_t *usbenum, size_t idx);
+M_API size_t M_io_usb_enum_interface_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx);
+M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
+M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
+M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
+M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
+#endif
 
 
 M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial);

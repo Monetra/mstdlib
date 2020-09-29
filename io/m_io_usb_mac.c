@@ -32,10 +32,12 @@
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/usb/IOUSBLib.h>
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 idx, char **str)
 {
 	IOUSBDevRequest request;
-	IOReturn        result;
+	IOReturn        ioret;
 	char            buffer[4086] = { 0 };
 	CFStringRef     cfstr;
 	CFIndex         len;
@@ -50,8 +52,8 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 	request.wLength       = sizeof(buffer);
 	request.pData         = buffer;
 
-	result = (*dev)->DeviceRequest(dev, &request);
-	if (result != kIOReturnSuccess)
+	ioret = (*dev)->DeviceRequest(dev, &request);
+	if (ioret != kIOReturnSuccess)
 		return M_FALSE;
 
 	if (str == NULL || request.wLength <= 2)
@@ -59,7 +61,7 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 
 	/* Now we need to parse out the actual data.
  	 * Byte 1 - Length of packet (same as request.wLenDone)
-	 * Byte 2 - ?
+	 * Byte 2 - Type
 	 * Byte 3+ - Data
 	 *
 	 * Data is a little endian UTF16 string which we need to convert to a utf-8 string.
@@ -81,6 +83,85 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 	return M_TRUE;
 }
 
+static void M_io_usb_dev_info(IOUSBDeviceInterface **dev,
+		M_uint16 *vendor_id, M_uint16 *product_id,
+		char **manufacturer, char **product, char **serial,
+		M_io_usb_speed_t *speed, size_t *curr_config)
+{
+	UInt8  si;
+	UInt16 u16v;
+
+	if (vendor_id != NULL) {
+		*vendor_id = 0;
+		if ((*dev)->GetDeviceVendor(dev, &u16v) == kIOReturnSuccess) {
+			*vendor_id = u16v;
+		}
+	}
+
+	if (product_id != NULL) {
+		*product_id = 0;
+		if ((*dev)->GetDeviceProduct(dev, &u16v) == kIOReturnSuccess) {
+			*product_id = u16v;
+		}
+	}
+
+	if (manufacturer != NULL) {
+		*manufacturer = NULL;
+		if ((*dev)->USBGetManufacturerStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, manufacturer);
+		}
+	}
+
+	if (product != NULL) {
+		*product = NULL;
+		if ((*dev)->USBGetProductStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, product);
+		}
+	}
+
+	if (serial != NULL) {
+		*serial = NULL;
+		if ((*dev)->USBGetSerialNumberStringIndex(dev, &si) == kIOReturnSuccess) {
+			get_string_from_descriptor_idx(dev, si, serial);
+		}
+	}
+
+	if (speed != NULL) {
+		*speed = M_IO_USB_SPEED_UNKNOWN;
+		if ((*dev)->GetDeviceSpeed(dev, &si) == kIOReturnSuccess) {
+			switch (si) {
+				case kUSBDeviceSpeedLow:
+					*speed = M_IO_USB_SPEED_LOW;
+					break;
+				case kUSBDeviceSpeedFull:
+					*speed = M_IO_USB_SPEED_FULL;
+					break;
+				case kUSBDeviceSpeedHigh:
+					*speed = M_IO_USB_SPEED_HIGH;
+					break;
+				case kUSBDeviceSpeedSuper:
+					*speed = M_IO_USB_SPEED_SUPER;
+					break;
+				case kUSBDeviceSpeedSuperPlus:
+					*speed = M_IO_USB_SPEED_SUPERPLUS;
+					break;
+				case kUSBDeviceSpeedSuperPlusBy2:
+					*speed = M_IO_USB_SPEED_SUPERPLUSX2;
+					break;
+			}
+		}
+	}
+
+	if (curr_config != NULL) {
+		*curr_config = 0;
+		if ((*dev)->GetConfiguration(dev, &si) == kIOReturnSuccess) {
+			*curr_config = si;
+		}
+	}
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
@@ -100,16 +181,16 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	while ((usb_device = IOIteratorNext(iter))) {
 		IOCFPlugInInterface  **dev_interface   = NULL;
 		IOUSBDeviceInterface **dev             = NULL;
-		UInt16                 d_vendor_id     = 0;
-		UInt16                 d_product_id    = 0;
+		M_uint16               d_vendor_id     = 0;
+		M_uint16               d_product_id    = 0;
 		io_string_t            path;
 		char                  *d_manufacturer  = NULL;
 		char                  *d_product       = NULL;
 		char                  *d_serial        = NULL;
+		M_io_usb_speed_t       d_speed         = M_IO_USB_SPEED_UNKNOWN;
+		size_t                 d_curr_config   = 0;
 		SInt32                 score           = 0;
-		M_io_usb_speed_t       speed           = M_IO_USB_SPEED_UNKNOWN;
-		UInt8                  si;
-		IOReturn               result;
+		IOReturn               ioret;
 
         kret = IOCreatePlugInInterfaceForService(usb_device, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &dev_interface, &score);
         IOObjectRelease(usb_device);
@@ -117,9 +198,9 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 			continue;
 		}
 
-        result = (*dev_interface)->QueryInterface(dev_interface, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (void *)&dev);
+        ioret = (*dev_interface)->QueryInterface(dev_interface, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (void *)&dev);
         (*dev_interface)->Release(dev_interface);
-        if (result != kIOReturnSuccess || dev == NULL) {
+        if (ioret != kIOReturnSuccess || dev == NULL) {
             continue;
         }
 
@@ -128,46 +209,16 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 			continue;
 		}
 
-        (*dev)->GetDeviceVendor(dev, &d_vendor_id);
-        (*dev)->GetDeviceProduct(dev, &d_product_id);
-
-    	if ((*dev)->USBGetManufacturerStringIndex(dev, &si) == kIOReturnSuccess) {
-			get_string_from_descriptor_idx(dev, si, &d_manufacturer);		
-		}
-    	if ((*dev)->USBGetProductStringIndex(dev, &si) == kIOReturnSuccess) {
-			get_string_from_descriptor_idx(dev, si, &d_product);		
-		}
-    	if ((*dev)->USBGetSerialNumberStringIndex(dev, &si) == kIOReturnSuccess) {
-			get_string_from_descriptor_idx(dev, si, &d_serial);		
-		}
-
-		if ((*dev)->GetDeviceSpeed(dev, &si) == kIOReturnSuccess) {
-			switch (si) {
-				case kUSBDeviceSpeedLow:
-					speed = M_IO_USB_SPEED_LOW;
-					break;
-				case kUSBDeviceSpeedFull:
-					speed = M_IO_USB_SPEED_FULL;
-					break;
-				case kUSBDeviceSpeedHigh:
-					speed = M_IO_USB_SPEED_HIGH;
-					break;
-				case kUSBDeviceSpeedSuper:
-					speed = M_IO_USB_SPEED_SUPER;
-					break;
-				case kUSBDeviceSpeedSuperPlus:
-					speed = M_IO_USB_SPEED_SUPERPLUS;
-					break;
-				case kUSBDeviceSpeedSuperPlusBy2:
-					speed = M_IO_USB_SPEED_SUPERPLUSX2;
-					break;
-			}
-		}
+		M_io_usb_dev_info(dev,
+				&d_vendor_id, &d_product_id,
+				&d_manufacturer, &d_product, &d_serial,
+				&d_speed, &d_curr_config);
 
 		M_io_usb_enum_add(usbenum,
-				path, speed,
-				d_vendor_id, d_product_id, d_serial,
-				d_manufacturer, d_product,
+				path,
+				d_vendor_id, d_product_id,
+				d_manufacturer, d_product, d_serial,
+				d_speed, d_curr_config,
 				vendorid, productids, num_productids, serial);
 
 		M_free(d_manufacturer);
@@ -180,6 +231,7 @@ done:
 	return usbenum;
 }
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 
@@ -189,6 +241,27 @@ done:
 M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 {
 	(void)devpath;
+	(void)ioerr;
+#if 0
+	M_io_handle_t       *handle;
+	io_registry_entry_t  entry  = MACH_PORT_NULL;
+	IOReturn             ioret;
+
+	if (M_str_isempty(devpath)) {
+		*ioerr = M_IO_ERROR_INVALID;
+		goto err;
+	}
+
+	entry = IORegistryEntryFromPath(kIOMasterPortDefault, devpath);
+	if (entry == MACH_PORT_NULL) {
+		*ioerr = M_IO_ERROR_NOTFOUND;
+		goto err;
+	}
+
+		M_io_usb_dev_info(dev,
+
+err:
+#endif
 	*ioerr = M_IO_ERROR_NOTIMPL;
 	return NULL;
 }
