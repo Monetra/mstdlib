@@ -61,6 +61,19 @@ typedef enum {
 /*    M_IO_USB_SPEED_V4 */          /*!< USB 4, 40 Gigabits per second (Gbps). */
 } M_io_usb_speed_t;
 
+typedef enum {
+	M_IO_USB_EP_TYPE_UNKNOWN = 0,
+	M_IO_USB_EP_TYPE_CONTROL,
+	M_IO_USB_EP_TYPE_BULK,
+	M_IO_USB_EP_TYPE_INTERRUPT
+} M_io_usb_ep_type_t;
+
+typedef enum {
+	M_IO_USB_EP_DIRECTION_UNKNOWN = 0,
+	M_IO_USB_EP_DIRECTION_IN      = 1 << 0,
+	M_IO_USB_EP_DIRECTION_OUT     = 1 << 1
+} M_io_usb_ep_direction_t;
+
 struct M_io_usb_enum;
 typedef struct M_io_usb_enum M_io_usb_enum_t;
 
@@ -82,16 +95,6 @@ M_API M_io_usb_speed_t M_io_usb_enum_speed(const M_io_usb_enum_t *usbenum, size_
 M_API size_t M_io_usb_enum_current_configuration(const M_io_usb_enum_t *usbenum, size_t idx);
 
 
-#if 0
-M_API size_t M_io_usb_enum_num_interface(const M_io_usb_enum_t *usbenum, size_t idx);
-M_API size_t M_io_usb_enum_interface_num_endpoints(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx);
-M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
-M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
-M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
-M_API size_t M_io_usb_enum_interface_endpoint_max_packet_size(const M_io_usb_enum_t *usbenum, size_t idx, size_t iface_idx, M_io_usb_ep_type_t *type, M_io_usb_ep_direction_t *direction, size_t *in, size_t *out, size_t *poll_interval);
-#endif
-
-
 M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial);
 M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 
@@ -99,18 +102,17 @@ M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const
 M_API M_uint16 M_io_usb_get_vendorid(M_io_t *io);
 M_API M_uint16 M_io_usb_get_productid(M_io_t *io);
 
-/* XXX: Need to enumerate each interface offered by the device.
- * Need to report if it's control, bulk, interrupt and provide index.
- * Also direction if it's read or write. */
+M_API size_t M_io_usb_num_interface(M_io_t *io_usb_device);
+M_API size_t M_io_usb_interface_num_endpoint(M_io_t *io_usb_device, size_t iface);
 
+M_API M_io_usb_ep_type_t M_io_usb_endpoint_type(M_io_t *io_usb_device, size_t iface, size_t ep);
+M_API M_io_usb_ep_direction_t M_io_usb_endpoint_direction(M_io_t *io_usb_device, size_t iface, size_t ep);
+M_API M_uint16 M_io_usb_endpoint_max_packet_size(M_io_t *io_usb_device, size_t iface, size_t ep);
 
-M_API M_io_error_t M_io_usb_create_control_interface(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 index);
-/* Use -1 if not read or write index is not wanted. */
-M_API M_io_error_t M_io_usb_create_bulk_interface(M_io_t **io_out, M_io_t *io_usb_device, M_int32 index_read, M_int32 index_write);
-/* Use -1 if not read or write index is not wanted. */
-M_API M_io_error_t M_io_usb_create_interrupt_interface(M_io_t **io_out, M_io_t *io_usb_device, M_int32 index_read, M_int32 index_write);
-
-/* XXX: Interface meta data accessors, such as type and indexes */
+M_API M_io_error_t M_io_usb_create_control(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_uint16 ep);
+M_API M_io_error_t M_io_usb_create_bulk(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
+M_API M_io_error_t M_io_usb_create_interrupt(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
+M_API M_io_error_t M_io_usb_create_isochronous(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
 
 /*! @} */
 

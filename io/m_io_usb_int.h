@@ -26,7 +26,11 @@
 
 #include <mstdlib/io/m_io_layer.h>
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 #define M_IO_USB_USB_NAME "USB"
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_io_usb_enum_device {
 	M_uint16          vendor_id;
@@ -47,6 +51,8 @@ struct M_io_usb_enum {
 	M_list_t *devices;
 };
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_usb_enum_t *M_io_usb_enum_init(void);
 
 void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
@@ -57,6 +63,8 @@ void M_io_usb_enum_add(M_io_usb_enum_t *usbenum,
 					    M_io_usb_speed_t d_speed, size_t d_curr_config,
                        /* Search/Match criteria */
                        M_uint16 s_vendor_id, const M_uint16 *s_product_ids, size_t s_num_product_ids, const char *s_serial);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr);
 M_bool M_io_usb_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len);
@@ -69,8 +77,8 @@ void M_io_usb_unregister_cb(M_io_layer_t *layer);
 M_bool M_io_usb_disconnect_cb(M_io_layer_t *layer);
 M_bool M_io_usb_init_cb(M_io_layer_t *layer);
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io);
 
 #endif
-
-

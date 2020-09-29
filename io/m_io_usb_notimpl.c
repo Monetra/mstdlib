@@ -113,28 +113,41 @@ M_uint16 M_io_usb_get_productid(M_io_t *io)
 	return 1;
 }
 
-M_io_error_t M_io_usb_create_control_interface(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 index)
+M_io_error_t M_io_usb_create_control(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_uint16 ep)
 {
 	(void)io_out;
 	(void)io_usb_device;
-	(void)index;
+	(void)interface;
+	(void)ep;
 	return M_IO_ERROR_NOTIMPL;
 }
 
-M_io_error_t M_io_usb_create_bulk_interface(M_io_t **io_out, M_io_t *io_usb_device, M_int32 index_read, M_int32 index_write)
+M_io_error_t M_io_usb_create_bulk(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
 {
 	(void)io_out;
 	(void)io_usb_device;
-	(void)index_read;
-	(void)index_write;
+	(void)interface;
+	(void)ep_read;
+	(void)ep_write;
 	return M_IO_ERROR_NOTIMPL;
 }
 
-M_io_error_t M_io_usb_create_interrupt_interface(M_io_t **io_out, M_io_t *io_usb_device, M_int32 index_read, M_int32 index_write)
+M_io_error_t M_io_usb_create_interrupt(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
 {
 	(void)io_out;
 	(void)io_usb_device;
-	(void)index_read;
-	(void)index_write;
+	(void)interface;
+	(void)ep_read;
+	(void)ep_write;
+	return M_IO_ERROR_NOTIMPL;
+}
+
+M_io_error_t M_io_usb_create_isochronous(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
+{
+	(void)io_out;
+	(void)io_usb_device;
+	(void)interface;
+	(void)ep_read;
+	(void)ep_write;
 	return M_IO_ERROR_NOTIMPL;
 }
