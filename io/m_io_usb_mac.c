@@ -425,12 +425,151 @@ M_bool M_io_usb_init_cb(M_io_layer_t *layer)
 
 M_uint16 M_io_usb_get_vendorid(M_io_t *io)
 {
-	(void)io;
-	return 1;
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
+
+	if (handle != NULL)
+		ret = handle->vendorid;
+
+	M_io_layer_release(layer);
+	return ret;
 }
 
 M_uint16 M_io_usb_get_productid(M_io_t *io)
 {
-	(void)io;
-	return 1;
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint16       ret    = 0;
+
+	if (handle != NULL)
+		ret = handle->productid;
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
+char *M_io_usb_get_manufacturer(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL)
+		ret = M_strdup(handle->manufacturer);
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
+char *M_io_usb_get_product(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL)
+		ret = M_strdup(handle->product);
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
+char *M_io_usb_get_serial(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	char          *ret    = NULL;
+
+	if (handle != NULL)
+		ret = M_strdup(handle->serial);
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
+size_t M_io_usb_num_interface(M_io_t *io)
+{
+	M_io_layer_t              *layer   = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t             *handle  = M_io_layer_get_handle(layer);
+	io_service_t               service = 0;
+	io_iterator_t              iter;
+	IOUSBFindInterfaceRequest  req;
+	IOReturn                   ioret;
+	size_t                     cnt     = 0;
+
+	if (handle == NULL)
+		goto done;
+
+	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
+	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
+
+	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
+	if (ioret != kIOReturnSuccess || iter == 0)
+		goto done;
+
+	while ((service = IOIteratorNext(iter))) {
+		cnt++;
+	}
+	IOObjectRelease(iter);
+
+done:
+	M_io_layer_release(layer);
+	return cnt;
+}
+
+size_t M_io_usb_interface_num_endpoint(M_io_t *io, size_t iface_num)
+{
+	M_io_layer_t              *layer   = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t             *handle  = M_io_layer_get_handle(layer);
+	io_service_t               service = 0;
+	io_iterator_t              iter;
+	IOUSBFindInterfaceRequest  req;
+	IOReturn                   ioret;
+	UInt8                      cnt     = 0;
+	size_t                     idx     = 0;
+
+	if (handle == NULL)
+		goto done;
+
+	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
+	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
+
+	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
+	if (ioret != kIOReturnSuccess || iter == 0)
+		goto done;
+
+	while ((service = IOIteratorNext(iter))) {
+		IOCFPlugInInterface     **plug  = NULL;
+		IOUSBInterfaceInterface **iface = NULL;
+		SInt32                    score = 0;
+
+		if (idx != iface_num) {
+			idx++;
+			continue;
+		}
+
+		IOCreatePlugInInterfaceForService(service, kIOUSBInterfaceUserClientTypeID, kIOCFPlugInInterfaceID, &plug, &score);
+		IOObjectRelease(service);
+		if (plug == NULL) {
+			break;
+		}
+
+		(*plug)->QueryInterface(plug, CFUUIDGetUUIDBytes(kIOUSBInterfaceInterfaceID), (LPVOID *)&iface);
+		(*plug)->Release(plug);
+		if (iface == NULL) {
+			break;
+		}
+		(*iface)->GetNumEndpoints(iface, &cnt);
+		(*iface)->Release(iface);
+	}
+	IOObjectRelease(iter);
+
+done:
+	M_io_layer_release(layer);
+	return cnt;
 }
