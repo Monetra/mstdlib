@@ -34,6 +34,23 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+struct M_io_handle {
+	IOUSBDeviceInterface **dev;
+	M_io_t                *io;
+
+	char                  *manufacturer;
+	char                  *product;
+	char                  *serial;
+	M_uint16               vendorid;
+	M_uint16               productid;
+	M_io_usb_speed_t       speed;
+	char                  *path;
+
+	M_list_t              *interfaces; /* List of interfaces, IOUSBInterfaceInterface */
+};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 idx, char **str)
 {
 	IOUSBDevRequest request;
@@ -167,7 +184,7 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
 	io_registry_entry_t  entry         = 0;
 	io_iterator_t        iter          = 0;
-	io_service_t         usb_device    = 0;
+	io_service_t         service       = 0;
 	kern_return_t        kret;
 
 	entry = IORegistryGetRootEntry(kIOMasterPortDefault);
@@ -178,8 +195,8 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 	if (kret != KERN_SUCCESS || iter == 0)
 		goto done;
 
-	while ((usb_device = IOIteratorNext(iter))) {
-		IOCFPlugInInterface  **dev_interface   = NULL;
+	while ((service = IOIteratorNext(iter))) {
+		IOCFPlugInInterface  **plug            = NULL;
 		IOUSBDeviceInterface **dev             = NULL;
 		M_uint16               d_vendor_id     = 0;
 		M_uint16               d_product_id    = 0;
@@ -192,19 +209,19 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		SInt32                 score           = 0;
 		IOReturn               ioret;
 
-        kret = IOCreatePlugInInterfaceForService(usb_device, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &dev_interface, &score);
-        IOObjectRelease(usb_device);
-		if (kret != KERN_SUCCESS || dev_interface == NULL) {
+        kret = IOCreatePlugInInterfaceForService(service, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &plug, &score);
+        IOObjectRelease(service);
+		if (kret != KERN_SUCCESS || plug == NULL) {
 			continue;
 		}
 
-        ioret = (*dev_interface)->QueryInterface(dev_interface, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (void *)&dev);
-        (*dev_interface)->Release(dev_interface);
+        ioret = (*plug)->QueryInterface(plug, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (void *)&dev);
+        (*plug)->Release(plug);
         if (ioret != kIOReturnSuccess || dev == NULL) {
             continue;
         }
 
-		if (IORegistryEntryGetPath(usb_device, kIOServicePlane, path) != KERN_SUCCESS) {
+		if (IORegistryEntryGetPath(service, kIOServicePlane, path) != KERN_SUCCESS) {
         	(*dev)->Release(dev);
 			continue;
 		}
@@ -226,6 +243,7 @@ M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, si
 		M_free(d_serial);
         (*dev)->Release(dev);
 	}
+	IOObjectRelease(iter);
 
 done:
 	return usbenum;
@@ -233,36 +251,114 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/* XXX: Read and write pipe cbs.
+ * control, and bulk/interrupt. */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 
 /* XXX */
 M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 {
-	(void)devpath;
-	(void)ioerr;
-#if 0
-	M_io_handle_t       *handle;
-	io_registry_entry_t  entry  = MACH_PORT_NULL;
-	IOReturn             ioret;
+	M_io_handle_t         *handle;
+	io_service_t           service         = 0;
+	IOCFPlugInInterface  **plug            = NULL;
+	IOUSBDeviceInterface **dev             = NULL;
+	IOReturn               ioret;
+	kern_return_t          kret;
+	M_uint16               d_vendor_id     = 0;
+	M_uint16               d_product_id    = 0;
+	char                  *d_manufacturer  = NULL;
+	char                  *d_product       = NULL;
+	char                  *d_serial        = NULL;
+	M_io_usb_speed_t       d_speed         = M_IO_USB_SPEED_UNKNOWN;
+	SInt32                 score           = 0;
 
 	if (M_str_isempty(devpath)) {
 		*ioerr = M_IO_ERROR_INVALID;
 		goto err;
 	}
 
-	entry = IORegistryEntryFromPath(kIOMasterPortDefault, devpath);
-	if (entry == MACH_PORT_NULL) {
+	service = IORegistryEntryFromPath(kIOMasterPortDefault, devpath);
+	if (service == 0) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		goto err;
 	}
 
-		M_io_usb_dev_info(dev,
+	kret = IOCreatePlugInInterfaceForService(service, kIOUSBDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &plug, &score);
+	IOObjectRelease(service);
+	if (kret != KERN_SUCCESS || plug == NULL) {
+		*ioerr = M_IO_ERROR_NOTFOUND;
+		goto err;
+	}
+
+	ioret = (*plug)->QueryInterface(plug, CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID), (void *)&dev);
+	(*plug)->Release(plug);
+	if (ioret != kIOReturnSuccess || dev == NULL) {
+		*ioerr = M_IO_ERROR_ERROR;
+		goto err;
+	}
+
+	ioret = (*dev)->USBDeviceOpen(dev);
+	if (ioret != kIOReturnSuccess) {
+		*ioerr = M_IO_ERROR_NOTCONNECTED;
+		goto err;
+	}
+
+	handle      = M_malloc_zero(sizeof(*handle));
+	handle->dev = dev;
+
+	M_io_usb_dev_info(dev,
+			&d_vendor_id, &d_product_id,
+			&d_manufacturer, &d_product, &d_serial,
+			&d_speed, NULL);
+	handle->vendorid     = d_vendor_id;
+	handle->productid    = d_product_id;
+	handle->manufacturer = d_manufacturer;
+	handle->product      = d_product;
+	handle->serial       = d_serial;
+	handle->speed        = d_speed;
+
+	handle->path         = M_strdup(devpath);
+
+
+#if 0
+	io_iterator_t iter;
+	IOUSBFindInterfaceRequest r;
+	r.bInterfaceClass = kIOUSBFindInterfaceDontCare;
+	r.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
+	r.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
+	r.bAlternateSetting = kIOUSBFindInterfaceDontCare;
+	ioret = (*dev)->CreateInterfaceIterator(dev, &r, &iter);
+	if (ioret != kIOReturnSuccess || iter == 0) {
+		M_printf("=== it cf\n");
+	}
+	while ((service = IOIteratorNext(iter))) {
+		IOUSBInterfaceInterface **iface;
+		UInt8 cnt = 0;
+
+		IOCreatePlugInInterfaceForService(service,
+				kIOUSBInterfaceUserClientTypeID,
+				kIOCFPlugInInterfaceID, &plug, &score);
+		IOObjectRelease(service);
+		(*plug)->QueryInterface(plug,
+				CFUUIDGetUUIDBytes(kIOUSBInterfaceInterfaceID),
+				(LPVOID *)&iface);
+		(*plug)->Release(plug);
+		(*iface)->USBInterfaceOpen(iface);
+		(*iface)->GetNumEndpoints(iface, &cnt);
+		M_printf("=== %u\n", cnt);
+	}
+	IOObjectRelease(iter);
+#endif
+
+	return handle;
 
 err:
-#endif
-	*ioerr = M_IO_ERROR_NOTIMPL;
+	if (dev != NULL)
+        (*dev)->Release(dev);
+
 	return NULL;
 }
 
@@ -337,43 +433,4 @@ M_uint16 M_io_usb_get_productid(M_io_t *io)
 {
 	(void)io;
 	return 1;
-}
-
-M_io_error_t M_io_usb_create_control(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_uint16 ep)
-{
-	(void)io_out;
-	(void)io_usb_device;
-	(void)interface;
-	(void)ep;
-	return M_IO_ERROR_NOTIMPL;
-}
-
-M_io_error_t M_io_usb_create_bulk(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
-{
-	(void)io_out;
-	(void)io_usb_device;
-	(void)interface;
-	(void)ep_read;
-	(void)ep_write;
-	return M_IO_ERROR_NOTIMPL;
-}
-
-M_io_error_t M_io_usb_create_interrupt(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
-{
-	(void)io_out;
-	(void)io_usb_device;
-	(void)interface;
-	(void)ep_read;
-	(void)ep_write;
-	return M_IO_ERROR_NOTIMPL;
-}
-
-M_io_error_t M_io_usb_create_isochronous(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write)
-{
-	(void)io_out;
-	(void)io_usb_device;
-	(void)interface;
-	(void)ep_read;
-	(void)ep_write;
-	return M_IO_ERROR_NOTIMPL;
 }

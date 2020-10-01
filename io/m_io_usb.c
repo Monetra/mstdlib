@@ -272,6 +272,43 @@ M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 produc
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+size_t M_io_usb_meta_get_interface(M_io_t *io_usb_device, M_io_meta_t *meta)
+{
+	(void)io_usb_device;
+	(void)meta;
+	return 0;
+}
+
+size_t M_io_usb_meta_get_endpoint(M_io_t *io_usb_device, M_io_meta_t *meta)
+{
+	(void)io_usb_device;
+	(void)meta;
+	return 0;
+}
+
+M_io_usb_ep_type_t M_io_usb_meta_get_endpoint_type(M_io_t *io_usb_device, M_io_meta_t *meta)
+{
+	(void)io_usb_device;
+	(void)meta;
+	return M_IO_USB_EP_TYPE_UNKNOWN;
+}
+
+void M_io_usb_meta_set_interface(M_io_t *io_usb_device, M_io_meta_t *meta, size_t iface)
+{
+	(void)io_usb_device;
+	(void)meta;
+	(void)iface;
+}
+
+void M_io_usb_meta_set_endpoint(M_io_t *io_usb_device, M_io_meta_t *meta, size_t ep)
+{
+	(void)io_usb_device;
+	(void)meta;
+	(void)ep;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io)
 {
 	M_io_layer_t  *layer;

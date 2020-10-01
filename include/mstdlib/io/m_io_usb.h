@@ -111,11 +111,13 @@ M_API M_io_usb_ep_type_t M_io_usb_endpoint_type(M_io_t *io_usb_device, size_t if
 M_API M_io_usb_ep_direction_t M_io_usb_endpoint_direction(M_io_t *io_usb_device, size_t iface, size_t ep);
 M_API M_uint16 M_io_usb_endpoint_max_packet_size(M_io_t *io_usb_device, size_t iface, size_t ep);
 
-/* Device communication */
-M_API M_io_error_t M_io_usb_create_control_io(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_uint16 ep);
-M_API M_io_error_t M_io_usb_create_bulk_io(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
-M_API M_io_error_t M_io_usb_create_interrupt_io(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
-M_API M_io_error_t M_io_usb_create_isochronous_io(M_io_t **io_out, M_io_t *io_usb_device, M_uint16 interface, M_int32 ep_read, M_int32 ep_write);
+/* Meta */
+M_API size_t M_io_usb_meta_get_interface(M_io_t *io_usb_device, M_io_meta_t *meta);
+M_API size_t M_io_usb_meta_get_endpoint(M_io_t *io_usb_device, M_io_meta_t *meta);
+M_API M_io_usb_ep_type_t M_io_usb_meta_get_endpoint_type(M_io_t *io_usb_device, M_io_meta_t *meta);
+
+M_API void M_io_usb_meta_set_interface(M_io_t *io_usb_device, M_io_meta_t *meta, size_t iface);
+M_API void M_io_usb_meta_set_endpoint(M_io_t *io_usb_device, M_io_meta_t *meta, size_t ep);
 
 /*! @} */
 
