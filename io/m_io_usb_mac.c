@@ -823,23 +823,6 @@ char *M_io_usb_get_serial(M_io_t *io)
 	return ret;
 }
 
-#if 0
-size_t M_io_usb_num_interface(M_io_t *io)
-{
-	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	size_t         cnt    = 0;
-
-	if (handle == NULL)
-		goto done;
-
-	cnt = M_hash_u64vp_num_keys(handle->interfaces);
-
-done:
-	M_io_layer_release(layer);
-	return cnt;
-}
-#endif
 size_t M_io_usb_num_interface(M_io_t *io)
 {
 	M_io_layer_t               *layer   = M_io_usb_get_top_usb_layer(io);
