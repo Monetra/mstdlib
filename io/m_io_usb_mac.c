@@ -292,7 +292,6 @@ static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
 	IOUSBFindInterfaceRequest   req;
 	IOReturn                    ioret;
 	size_t                      idx     = 0;
-	UInt8                       cnt     = 0;
 	M_bool                      ret     = M_TRUE;
 
 	if (handle == NULL || handle->dev == NULL)
@@ -363,11 +362,7 @@ static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
 
 	/* Now that we have the interface, let's get all the info about
  	 * the end points. */
-
-	/* -1 in loop and +1 when reading the iface because the ranage is 1 to num
- 	 * endpoints. EP 0 is special and is the device control end point. */
-	(*iface)->GetNumEndpoints(iface, &cnt);
-	for (idx=0; idx<cnt-1; idx++) {
+	for (idx=0; idx<usb_iface->num_eps; idx++) {
 		IOUSBEndpointProperties properties;
 		M_io_usb_ep_type_t      type;
 		M_io_usb_ep_direction_t direction = M_IO_USB_EP_DIRECTION_UNKNOWN;
@@ -375,6 +370,8 @@ static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
 		M_mem_set(&properties, 0, sizeof(properties));
 		properties.bVersion = kUSBEndpointPropertiesVersion3;
 
+		/* +1 when because the range is 1 to num
+		 * endpoints. EP 0 is special and is the device control end point. */
     	ioret = (*iface)->GetPipePropertiesV3(iface, (UInt8)idx+1, &properties);
 		if (ioret != kIOReturnSuccess) {
 			/* Bad end point? */
