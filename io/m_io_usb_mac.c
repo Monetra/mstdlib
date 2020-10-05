@@ -59,7 +59,8 @@ typedef struct {
 typedef struct {
 	IOUSBInterfaceInterface **iface;
 	M_hash_u64vp_t           *eps; /* key = ep num, val = M_io_usb_interface_ep_t */
-	M_hash_u64u64_t          *eps_tids; /* key = ep num, val = M_threadid_t */
+	M_hash_u64u64_t          *eps_tids_read; /* key = ep num, val = M_threadid_t */
+	M_hash_u64u64_t          *eps_tids_write; /* key = ep num, val = M_threadid_t */
 	size_t                    iface_num;
 	size_t                    num_eps;
 } M_io_usb_interface_t;
@@ -253,15 +254,16 @@ static M_io_usb_interface_t *M_io_usb_interface_create(IOUSBInterfaceInterface *
  	if (iface == NULL)
  		return NULL;
  
- 	usb_iface            = M_malloc_zero(sizeof(*usb_iface));
- 	usb_iface->iface     = iface;
- 	usb_iface->iface_num = iface_num;
+ 	usb_iface                 = M_malloc_zero(sizeof(*usb_iface));
+ 	usb_iface->iface          = iface;
+ 	usb_iface->iface_num      = iface_num;
 	(*iface)->GetNumEndpoints(iface, &cnt);
 	if (cnt > 0)
 		cnt--; /* -1 because we don't want to include the 0 control interface. */
-	usb_iface->num_eps   = cnt;
-	usb_iface->eps       = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_ep_destroy);
-	usb_iface->eps_tids  = M_hash_u64u64_create(8, 75, M_HASH_U64U64_NONE);
+	usb_iface->num_eps        = cnt;
+	usb_iface->eps            = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_ep_destroy);
+	usb_iface->eps_tids_read  = M_hash_u64u64_create(8, 75, M_HASH_U64U64_NONE);
+	usb_iface->eps_tids_write = M_hash_u64u64_create(8, 75, M_HASH_U64U64_NONE);
 
 	return usb_iface;
 }
@@ -272,7 +274,8 @@ static void M_io_usb_interface_destroy(M_io_usb_interface_t *usb_iface)
 		return;
 
 	M_hash_u64vp_destroy(usb_iface->eps, M_TRUE);
-	M_hash_u64u64_destroy(usb_iface->eps_tids);
+	M_hash_u64u64_destroy(usb_iface->eps_tids_read);
+	M_hash_u64u64_destroy(usb_iface->eps_tids_write);
 
 	M_free(usb_iface);
 }
@@ -367,13 +370,12 @@ static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
 	for (idx=0; idx<cnt-1; idx++) {
 		IOUSBEndpointProperties properties;
 		M_io_usb_ep_type_t      type;
-		M_io_usb_ep_direction_t direction;
+		M_io_usb_ep_direction_t direction = M_IO_USB_EP_DIRECTION_UNKNOWN;
 
 		M_mem_set(&properties, 0, sizeof(properties));
-		properties.bVersion        = kUSBEndpointPropertiesVersion3;
-		properties.bEndpointNumber = (UInt8)idx+1;
+		properties.bVersion = kUSBEndpointPropertiesVersion3;
 
-    	ioret = (*iface)->GetEndpointPropertiesV3(iface, &properties);
+    	ioret = (*iface)->GetPipePropertiesV3(iface, (UInt8)idx+1, &properties);
 		if (ioret != kIOReturnSuccess) {
 			/* Bad end point? */
 			continue;
@@ -397,11 +399,10 @@ static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
 				continue;
 		}
 
-		if (properties.bDirection == kUSBIn) {
-			direction = M_IO_USB_EP_DIRECTION_IN;
-		} else /* kUSBOut */ {
-			direction = M_IO_USB_EP_DIRECTION_OUT;
-		}
+		if (properties.bDirection & kUSBIn)
+			direction |= M_IO_USB_EP_DIRECTION_IN;
+		if (properties.bDirection & kUSBOut)
+			direction |= M_IO_USB_EP_DIRECTION_OUT;
 
 		ep = M_io_usb_interface_ep_create(usb_iface->iface_num, idx, type, direction, properties.bInterval, properties.wMaxPacketSize);
 		M_hash_u64vp_insert(usb_iface->eps, idx, ep);
@@ -442,8 +443,6 @@ static void *M_io_usb_bulkirpt_read_loop(void *arg)
 {
 	M_io_usb_interface_ep_info_t *info = arg;
 
-	(void)info;
-
 	/* XXX: Processing LOOP! */
 
 	/* Don't free info data. Handled elsewhere. */
@@ -454,8 +453,6 @@ static void *M_io_usb_bulkirpt_read_loop(void *arg)
 static void *M_io_usb_bulkirpt_write_loop(void *arg)
 {
 	M_io_usb_interface_ep_info_t *info = arg;
-
-	(void)info;
 
 	/* XXX: Processing LOOP! */
 
@@ -603,6 +600,8 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 
 	handle->path         = M_strdup(devpath);
 
+	handle->interfaces   = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_destroy);
+
 	return handle;
 
 err:
@@ -677,15 +676,14 @@ M_bool M_io_usb_init_cb(M_io_layer_t *layer)
 
 M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num)
 {
-	M_io_layer_t                 *layer      = M_io_usb_get_top_usb_layer(io);
-	M_io_handle_t                *handle     = M_io_layer_get_handle(layer);
+	M_io_layer_t                 *layer             = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t                *handle            = M_io_layer_get_handle(layer);
 	M_io_usb_interface_t         *usb_iface;
 	M_io_usb_interface_ep_t      *ep;
 	M_io_usb_interface_ep_info_t *info;
 	M_threadid_t                  tid;
 	M_thread_attr_t              *tattr;
-	void                         *(*tfunc)(void *);
-	M_bool                        ret        = M_TRUE;
+	M_bool                        ret               = M_TRUE;
 
 	if (!M_io_usb_open_interface(handle, iface_num)) {
 		ret = M_FALSE;
@@ -701,7 +699,7 @@ M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t e
 
 	/* Check if we've already attached. If we have, then we're going
  	 * to return success because we don't have anything that we need to do. */
-	if (M_hash_u64u64_get(usb_iface->eps_tids, ep_num, NULL))
+	if (M_hash_u64u64_get(usb_iface->eps_tids_read, ep_num, NULL) || M_hash_u64u64_get(usb_iface->eps_tids_write, ep_num, NULL))
 		goto done;
 
 	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);
@@ -724,32 +722,37 @@ M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t e
 			break;
 	}
 
-	/* setup our arg to pass to the thread with
-	 * all the data it will need. */
-	info = M_malloc_zero(sizeof(*info));
-	info->handle = handle;
-	info->ep     = ep;
-
-	switch (ep->direction) {
-		case M_IO_USB_EP_DIRECTION_IN:
-			tfunc = M_io_usb_bulkirpt_read_loop;
-			break;
-		case M_IO_USB_EP_DIRECTION_OUT:
-			tfunc = M_io_usb_bulkirpt_write_loop;
-			break;
-		case M_IO_USB_EP_DIRECTION_UNKNOWN:
-			/* Uhhh... What? */
-			M_free(info);
-			ret = M_FALSE;
-			goto done;
+	if (ep->direction == M_IO_USB_EP_DIRECTION_UNKNOWN) {
+		/* Uhhh... What? */
+		ret = M_FALSE;
+		goto done;
 	}
 
-	/* Start our loop. */
-	tattr = M_thread_attr_create();
-	M_thread_attr_set_create_joinable(tattr, M_TRUE);
-	tid   = M_thread_create(tattr, tfunc, info);
-	M_thread_attr_destroy(tattr);
-	M_hash_u64u64_insert(usb_iface->eps_tids, ep_num, tid);
+	/* Start our loops. */
+	if (ep->direction & M_IO_USB_EP_DIRECTION_IN) {
+		info         = M_malloc_zero(sizeof(*info));
+		info->handle = handle;
+		info->ep     = ep;
+
+		tattr = M_thread_attr_create();
+		M_thread_attr_set_create_joinable(tattr, M_TRUE);
+		tid   = M_thread_create(tattr, M_io_usb_bulkirpt_read_loop, info);
+		M_thread_attr_destroy(tattr);
+		M_hash_u64u64_insert(usb_iface->eps_tids_read, ep_num, tid);
+		/* Thread owns info and the thread will destroy it. */
+	}
+	if (ep->direction & M_IO_USB_EP_DIRECTION_OUT) {
+		info         = M_malloc_zero(sizeof(*info));
+		info->handle = handle;
+		info->ep     = ep;
+
+		tattr = M_thread_attr_create();
+		M_thread_attr_set_create_joinable(tattr, M_TRUE);
+		tid   = M_thread_create(tattr, M_io_usb_bulkirpt_write_loop, info);
+		M_thread_attr_destroy(tattr);
+		M_hash_u64u64_insert(usb_iface->eps_tids_write, ep_num, tid);
+		/* Thread owns info and the thread will destroy it. */
+	}
 
 done:
 	M_io_layer_release(layer);
@@ -823,6 +826,7 @@ char *M_io_usb_get_serial(M_io_t *io)
 	return ret;
 }
 
+#if 0
 size_t M_io_usb_num_interface(M_io_t *io)
 {
 	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
@@ -835,6 +839,41 @@ size_t M_io_usb_num_interface(M_io_t *io)
 	cnt = M_hash_u64vp_num_keys(handle->interfaces);
 
 done:
+	M_io_layer_release(layer);
+	return cnt;
+}
+#endif
+size_t M_io_usb_num_interface(M_io_t *io)
+{
+	M_io_layer_t               *layer   = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t              *handle  = M_io_layer_get_handle(layer);
+	size_t                      cnt     = 0;
+	IOReturn                    ioret;
+	IOUSBFindInterfaceRequest   req;
+	io_iterator_t               iter    = 0;
+	io_service_t                service = 0;
+
+	if (handle == NULL)
+		goto done;
+
+	M_mem_set(&req, 0, sizeof(req));
+	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
+	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
+
+	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
+	if (ioret != kIOReturnSuccess || iter == 0)
+		goto done;
+
+	while ((service = IOIteratorNext(iter))) {
+		IOObjectRelease(service);
+		cnt++;
+	}
+
+done:
+	if (iter != 0)
+		IOObjectRelease(iter);
 	M_io_layer_release(layer);
 	return cnt;
 }
