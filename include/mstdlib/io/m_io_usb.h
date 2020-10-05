@@ -64,6 +64,7 @@ typedef enum {
 typedef enum {
 	M_IO_USB_EP_TYPE_UNKNOWN = 0,
 	M_IO_USB_EP_TYPE_CONTROL,
+	M_IO_USB_EP_TYPE_ISOC,
 	M_IO_USB_EP_TYPE_BULK,
 	M_IO_USB_EP_TYPE_INTERRUPT
 } M_io_usb_ep_type_t;
@@ -101,7 +102,9 @@ M_API size_t M_io_usb_enum_current_configuration(const M_io_usb_enum_t *usbenum,
 M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 productid, const char *serial);
 M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 
-M_API M_bool M_io_usb_attach_interface(M_io_t *io, size_t iface_num);
+/* Will open the interface if not already open.
+ * Must be connected before this can be called. */
+M_API M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num);
 
 /* Device metadata */
 M_API M_uint16 M_io_usb_get_vendorid(M_io_t *io);
@@ -121,7 +124,7 @@ M_API size_t M_io_usb_interface_num_endpoint(M_io_t *io, size_t iface_num);
 
 M_API M_io_usb_ep_type_t M_io_usb_endpoint_type(M_io_t *io, size_t iface_num, size_t ep_num);
 M_API M_io_usb_ep_direction_t M_io_usb_endpoint_direction(M_io_t *io, size_t iface_num, size_t ep_num);
-M_API M_uint16 M_io_usb_endpoint_max_packet_size(M_io_t *io, size_t iface_num, size_t ep_num);
+M_API size_t M_io_usb_endpoint_max_packet_size(M_io_t *io, size_t iface_num, size_t ep_num);
 
 /* Meta */
 M_API size_t M_io_usb_meta_get_interface(M_io_t *io, M_io_meta_t *meta);

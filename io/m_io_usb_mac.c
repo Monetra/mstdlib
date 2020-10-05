@@ -34,6 +34,41 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/* Interfaces are lazy opened when the end points are first accessed.
+ * We open them because we can get more info about the end points that
+ * way. Having the interface open is fine. Events won't happen unless
+ * we've attached them here so we start listending. */
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+typedef struct {
+	M_bool                   run;
+	M_thread_mutex_t        *lock;
+	M_thread_cond_t         *cond;
+
+	size_t                   iface_num;
+	size_t                   ep_num;
+
+	M_io_usb_ep_type_t       type;
+	M_io_usb_ep_direction_t  direction;
+	size_t                   poll_interval; /* milliseconds */
+	size_t                   max_packet_size;
+} M_io_usb_interface_ep_t;
+
+typedef struct {
+	IOUSBInterfaceInterface **iface;
+	M_hash_u64vp_t           *eps; /* key = ep num, val = M_io_usb_interface_ep_t */
+	M_hash_u64u64_t          *eps_tids; /* key = ep num, val = M_threadid_t */
+	size_t                    iface_num;
+	size_t                    num_eps;
+} M_io_usb_interface_t;
+
+typedef struct {
+	M_io_handle_t           *handle;
+	M_io_usb_interface_ep_t *ep;
+} M_io_usb_interface_ep_info_t;
+
 struct M_io_handle {
 	IOUSBDeviceInterface **dev;
 	M_io_t                *io;
@@ -46,7 +81,9 @@ struct M_io_handle {
 	M_io_usb_speed_t       speed;
 	char                  *path;
 
-	M_list_t              *interfaces; /* List of interfaces, IOUSBInterfaceInterface */
+	M_hash_u64vp_t        *interfaces; /* key = iface num, val = M_io_usb_interface_t */
+
+	M_thread_mutex_t      *message_lock;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -179,6 +216,256 @@ static void M_io_usb_dev_info(IOUSBDeviceInterface **dev,
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_io_usb_interface_ep_t *M_io_usb_interface_ep_create(size_t iface_num, size_t ep_num, M_io_usb_ep_type_t type, M_io_usb_ep_direction_t direction, size_t poll_interval, size_t max_packet_size)
+{
+	M_io_usb_interface_ep_t *ep;
+
+	ep                  = M_malloc_zero(sizeof(*ep));
+	ep->run             = M_TRUE;
+	ep->lock            = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	ep->cond            = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	ep->iface_num       = iface_num;
+	ep->ep_num          = ep_num;
+	ep->type            = type;
+	ep->direction       = direction;
+	ep->poll_interval   = poll_interval;
+	ep->max_packet_size = max_packet_size;
+
+	return ep;
+}
+
+static void M_io_usb_interface_ep_destroy(M_io_usb_interface_ep_t *ep)
+{
+	if (ep == NULL)
+		return;
+
+	M_thread_mutex_destroy(ep->lock);
+	M_thread_cond_destroy(ep->cond);
+
+	M_free(ep);
+}
+
+static M_io_usb_interface_t *M_io_usb_interface_create(IOUSBInterfaceInterface **iface, size_t iface_num)
+{
+	M_io_usb_interface_t *usb_iface;
+	UInt8                 cnt = 0;
+ 
+ 	if (iface == NULL)
+ 		return NULL;
+ 
+ 	usb_iface            = M_malloc_zero(sizeof(*usb_iface));
+ 	usb_iface->iface     = iface;
+ 	usb_iface->iface_num = iface_num;
+	(*iface)->GetNumEndpoints(iface, &cnt);
+	if (cnt > 0)
+		cnt--; /* -1 because we don't want to include the 0 control interface. */
+	usb_iface->num_eps   = cnt;
+	usb_iface->eps       = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_ep_destroy);
+	usb_iface->eps_tids  = M_hash_u64u64_create(8, 75, M_HASH_U64U64_NONE);
+
+	return usb_iface;
+}
+
+static void M_io_usb_interface_destroy(M_io_usb_interface_t *usb_iface)
+{
+	if (usb_iface == NULL)
+		return;
+
+	M_hash_u64vp_destroy(usb_iface->eps, M_TRUE);
+	M_hash_u64u64_destroy(usb_iface->eps_tids);
+
+	M_free(usb_iface);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+static M_bool M_io_usb_open_interface(M_io_handle_t *handle, size_t iface_num)
+{
+	M_io_usb_interface_t       *usb_iface;
+	M_io_usb_interface_ep_t    *ep;
+	IOUSBInterfaceInterface   **iface   = NULL;
+	io_iterator_t               iter    = 0;
+	io_service_t                service = 0;
+	IOUSBFindInterfaceRequest   req;
+	IOReturn                    ioret;
+	size_t                      idx     = 0;
+	UInt8                       cnt     = 0;
+	M_bool                      ret     = M_TRUE;
+
+	if (handle == NULL || handle->dev == NULL)
+		return M_FALSE;
+
+	/* Check if we've already opened this interface. */
+	if (M_hash_u64vp_get(handle->interfaces, iface_num, NULL))
+		return M_TRUE;
+
+	/* Iterate our interfaces looking for the one we want. */
+	M_mem_set(&req, 0, sizeof(req));
+	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
+	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
+	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
+
+	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
+	if (ioret != kIOReturnSuccess || iter == 0) {
+		ret = M_FALSE;
+		goto done;
+	}
+
+	while ((service = IOIteratorNext(iter))) {
+		IOCFPlugInInterface **plug  = NULL;
+		SInt32                score = 0;
+
+		if (idx != iface_num) {
+			idx++;
+			continue;
+		}
+
+		/* Create the interface. */
+		IOCreatePlugInInterfaceForService(service, kIOUSBInterfaceUserClientTypeID, kIOCFPlugInInterfaceID, &plug, &score);
+		IOObjectRelease(service);
+		if (plug == NULL) {
+			ret = M_FALSE;
+			goto done;
+		}
+
+		(*plug)->QueryInterface(plug, CFUUIDGetUUIDBytes(kIOUSBInterfaceInterfaceID), (LPVOID *)&iface);
+		(*plug)->Release(plug);
+		if (iface == NULL) {
+			ret = M_FALSE;
+			goto done;
+		}
+
+		ioret = (*iface)->USBInterfaceOpen(iface);
+		if (ioret != kIOReturnSuccess) {
+			(*iface)->Release(iface);
+			ret = M_FALSE;
+			goto done;
+		}
+
+		/* We should have the interface opened at this point. */
+		break;
+	}
+
+	/* Verify we found the interface. If iface_num
+ 	 * was greater than the number of device interfaces,
+	 * we'll be here without an iface. */
+	if (iface == NULL) {
+		ret = M_FALSE;
+		goto done;
+	}
+
+	usb_iface = M_io_usb_interface_create(iface, iface_num);
+	M_hash_u64vp_insert(handle->interfaces, iface_num, usb_iface);
+
+	/* Now that we have the interface, let's get all the info about
+ 	 * the end points. */
+
+	/* -1 in loop and +1 when reading the iface because the ranage is 1 to num
+ 	 * endpoints. EP 0 is special and is the device control end point. */
+	(*iface)->GetNumEndpoints(iface, &cnt);
+	for (idx=0; idx<cnt-1; idx++) {
+		IOUSBEndpointProperties properties;
+		M_io_usb_ep_type_t      type;
+		M_io_usb_ep_direction_t direction;
+
+		M_mem_set(&properties, 0, sizeof(properties));
+		properties.bVersion        = kUSBEndpointPropertiesVersion3;
+		properties.bEndpointNumber = (UInt8)idx+1;
+
+    	ioret = (*iface)->GetEndpointPropertiesV3(iface, &properties);
+		if (ioret != kIOReturnSuccess) {
+			/* Bad end point? */
+			continue;
+		}
+
+		switch (properties.bTransferType) {
+			case kUSBControl:
+				type = M_IO_USB_EP_TYPE_CONTROL;
+				break;
+			case kUSBIsoc:
+				type = M_IO_USB_EP_TYPE_ISOC;
+				break;
+			case kUSBBulk:
+				type = M_IO_USB_EP_TYPE_BULK;
+				break;
+			case kUSBInterrupt:
+				type = M_IO_USB_EP_TYPE_INTERRUPT;
+				break;
+			case kUSBAnyType:
+				/* Bad endpoint? */
+				continue;
+		}
+
+		if (properties.bDirection == kUSBIn) {
+			direction = M_IO_USB_EP_DIRECTION_IN;
+		} else /* kUSBOut */ {
+			direction = M_IO_USB_EP_DIRECTION_OUT;
+		}
+
+		ep = M_io_usb_interface_ep_create(usb_iface->iface_num, idx, type, direction, properties.bInterval, properties.wMaxPacketSize);
+		M_hash_u64vp_insert(usb_iface->eps, idx, ep);
+	}
+
+done:
+	if (iter != 0)
+		IOObjectRelease(iter);
+	if (!ret && iface != NULL)
+		(*iface)->Release(iface);
+
+	return ret;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/* Note: macOS provides callback based functions for
+ * read and write events and it uses the macOS event
+ * loop. We're not using them right now because thread
+ * loops with the timeout versions of the functions are
+ * easier to implement. We will want to switch to the
+ * event based callbacks in the future. We'd call the
+ * wait event function within the callback to wait for
+ * more data to be avaliable.
+ *
+ * When we use the aync event basec callback functions,
+ * the AbortPipe will stop waiting and trigger the callback.
+ * We'll want to use this when we're closing the device to
+ * break out of the loop we'll be in.
+ *
+ * Breaking out is the hard part. With a thread loop we
+ * have a run variable, call set that to false, join
+ * the thread and wait for it to exit. With the callback
+ * system, we'll need some way to signal when all of the
+ * callbacks have exited.
+ */
+static void *M_io_usb_bulkirpt_read_loop(void *arg)
+{
+	M_io_usb_interface_ep_info_t *info = arg;
+
+	(void)info;
+
+	/* XXX: Processing LOOP! */
+
+	/* Don't free info data. Handled elsewhere. */
+	M_free(info);
+	return NULL;
+}
+
+static void *M_io_usb_bulkirpt_write_loop(void *arg)
+{
+	M_io_usb_interface_ep_info_t *info = arg;
+
+	(void)info;
+
+	/* XXX: Processing LOOP! */
+
+	/* Don't free info data. Handled elsewhere. */
+	M_free(info);
+	return NULL;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
@@ -251,14 +538,6 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* XXX: Read and write pipe cbs.
- * control, and bulk/interrupt. */
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-
-
-/* XXX */
 M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 {
 	M_io_handle_t         *handle;
@@ -321,37 +600,6 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 	handle->speed        = d_speed;
 
 	handle->path         = M_strdup(devpath);
-
-
-#if 0
-	io_iterator_t iter;
-	IOUSBFindInterfaceRequest r;
-	r.bInterfaceClass = kIOUSBFindInterfaceDontCare;
-	r.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
-	r.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
-	r.bAlternateSetting = kIOUSBFindInterfaceDontCare;
-	ioret = (*dev)->CreateInterfaceIterator(dev, &r, &iter);
-	if (ioret != kIOReturnSuccess || iter == 0) {
-		M_printf("=== it cf\n");
-	}
-	while ((service = IOIteratorNext(iter))) {
-		IOUSBInterfaceInterface **iface;
-		UInt8 cnt = 0;
-
-		IOCreatePlugInInterfaceForService(service,
-				kIOUSBInterfaceUserClientTypeID,
-				kIOCFPlugInInterfaceID, &plug, &score);
-		IOObjectRelease(service);
-		(*plug)->QueryInterface(plug,
-				CFUUIDGetUUIDBytes(kIOUSBInterfaceInterfaceID),
-				(LPVOID *)&iface);
-		(*plug)->Release(plug);
-		(*iface)->USBInterfaceOpen(iface);
-		(*iface)->GetNumEndpoints(iface, &cnt);
-		M_printf("=== %u\n", cnt);
-	}
-	IOObjectRelease(iter);
-#endif
 
 	return handle;
 
@@ -423,6 +671,91 @@ M_bool M_io_usb_init_cb(M_io_layer_t *layer)
 	return M_FALSE;
 }
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num)
+{
+	M_io_layer_t                 *layer      = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t                *handle     = M_io_layer_get_handle(layer);
+	M_io_usb_interface_t         *usb_iface;
+	M_io_usb_interface_ep_t      *ep;
+	M_io_usb_interface_ep_info_t *info;
+	M_threadid_t                  tid;
+	M_thread_attr_t              *tattr;
+	void                         *(*tfunc)(void *);
+	M_bool                        ret        = M_TRUE;
+
+	if (!M_io_usb_open_interface(handle, iface_num)) {
+		ret = M_FALSE;
+		goto done;
+	}
+
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);
+	if (usb_iface == NULL) {
+		/* Bad iface_num most likley. */
+		ret = M_FALSE;
+		goto done;
+	}
+
+	/* Check if we've already attached. If we have, then we're going
+ 	 * to return success because we don't have anything that we need to do. */
+	if (M_hash_u64u64_get(usb_iface->eps_tids, ep_num, NULL))
+		goto done;
+
+	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);
+	if (ep == NULL) {
+		/* Must have been an invalid ep_num or a bad ep. */
+		ret = M_FALSE;
+		goto done;
+	}
+
+	switch (ep->type) {
+		case M_IO_USB_EP_TYPE_CONTROL:
+			/* Must be used direclty with the device not an interface. */
+		case M_IO_USB_EP_TYPE_ISOC:
+		case M_IO_USB_EP_TYPE_UNKNOWN:
+			/* Not currently supported. */
+			ret = M_FALSE;
+			goto done;
+		case M_IO_USB_EP_TYPE_BULK:
+		case M_IO_USB_EP_TYPE_INTERRUPT:
+			break;
+	}
+
+	/* setup our arg to pass to the thread with
+	 * all the data it will need. */
+	info = M_malloc_zero(sizeof(*info));
+	info->handle = handle;
+	info->ep     = ep;
+
+	switch (ep->direction) {
+		case M_IO_USB_EP_DIRECTION_IN:
+			tfunc = M_io_usb_bulkirpt_read_loop;
+			break;
+		case M_IO_USB_EP_DIRECTION_OUT:
+			tfunc = M_io_usb_bulkirpt_write_loop;
+			break;
+		case M_IO_USB_EP_DIRECTION_UNKNOWN:
+			/* Uhhh... What? */
+			M_free(info);
+			ret = M_FALSE;
+			goto done;
+	}
+
+	/* Start our loop. */
+	tattr = M_thread_attr_create();
+	M_thread_attr_set_create_joinable(tattr, M_TRUE);
+	tid   = M_thread_create(tattr, tfunc, info);
+	M_thread_attr_destroy(tattr);
+	M_hash_u64u64_insert(usb_iface->eps_tids, ep_num, tid);
+
+done:
+	M_io_layer_release(layer);
+	return ret;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_uint16 M_io_usb_get_vendorid(M_io_t *io)
 {
 	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
@@ -490,30 +823,14 @@ char *M_io_usb_get_serial(M_io_t *io)
 
 size_t M_io_usb_num_interface(M_io_t *io)
 {
-	M_io_layer_t              *layer   = M_io_usb_get_top_usb_layer(io);
-	M_io_handle_t             *handle  = M_io_layer_get_handle(layer);
-	io_service_t               service = 0;
-	io_iterator_t              iter;
-	IOUSBFindInterfaceRequest  req;
-	IOReturn                   ioret;
-	size_t                     cnt     = 0;
+	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         cnt    = 0;
 
 	if (handle == NULL)
 		goto done;
 
-	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
-	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
-	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
-	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
-
-	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
-	if (ioret != kIOReturnSuccess || iter == 0)
-		goto done;
-
-	while ((service = IOIteratorNext(iter))) {
-		cnt++;
-	}
-	IOObjectRelease(iter);
+	cnt = M_hash_u64vp_num_keys(handle->interfaces);
 
 done:
 	M_io_layer_release(layer);
@@ -522,54 +839,115 @@ done:
 
 size_t M_io_usb_interface_num_endpoint(M_io_t *io, size_t iface_num)
 {
-	M_io_layer_t              *layer   = M_io_usb_get_top_usb_layer(io);
-	M_io_handle_t             *handle  = M_io_layer_get_handle(layer);
-	io_service_t               service = 0;
-	io_iterator_t              iter;
-	IOUSBFindInterfaceRequest  req;
-	IOReturn                   ioret;
-	UInt8                      cnt     = 0;
-	size_t                     idx     = 0;
+	M_io_layer_t         *layer    = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t        *handle   = M_io_layer_get_handle(layer);
+	M_io_usb_interface_t *usb_iface;
+	size_t                cnt      = 0;
 
 	if (handle == NULL)
 		goto done;
 
-	req.bInterfaceClass    = kIOUSBFindInterfaceDontCare;
-	req.bInterfaceSubClass = kIOUSBFindInterfaceDontCare;
-	req.bInterfaceProtocol = kIOUSBFindInterfaceDontCare;
-	req.bAlternateSetting  = kIOUSBFindInterfaceDontCare;
-
-	ioret = (*handle->dev)->CreateInterfaceIterator(handle->dev, &req, &iter);
-	if (ioret != kIOReturnSuccess || iter == 0)
+	/* Ensure we have the interface open so we have all the info about it. */
+	if (!M_io_usb_open_interface(handle, iface_num))
 		goto done;
 
-	while ((service = IOIteratorNext(iter))) {
-		IOCFPlugInInterface     **plug  = NULL;
-		IOUSBInterfaceInterface **iface = NULL;
-		SInt32                    score = 0;
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);
+	if (usb_iface == NULL)
+		goto done;
 
-		if (idx != iface_num) {
-			idx++;
-			continue;
-		}
-
-		IOCreatePlugInInterfaceForService(service, kIOUSBInterfaceUserClientTypeID, kIOCFPlugInInterfaceID, &plug, &score);
-		IOObjectRelease(service);
-		if (plug == NULL) {
-			break;
-		}
-
-		(*plug)->QueryInterface(plug, CFUUIDGetUUIDBytes(kIOUSBInterfaceInterfaceID), (LPVOID *)&iface);
-		(*plug)->Release(plug);
-		if (iface == NULL) {
-			break;
-		}
-		(*iface)->GetNumEndpoints(iface, &cnt);
-		(*iface)->Release(iface);
-	}
-	IOObjectRelease(iter);
+	cnt = usb_iface->num_eps;
 
 done:
 	M_io_layer_release(layer);
 	return cnt;
+}
+
+M_io_usb_ep_type_t M_io_usb_endpoint_type(M_io_t *io, size_t iface_num, size_t ep_num)
+{
+	M_io_layer_t            *layer     = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t           *handle    = M_io_layer_get_handle(layer);
+	M_io_usb_interface_t    *usb_iface;
+	M_io_usb_interface_ep_t *ep;
+	M_io_usb_ep_type_t       type      = M_IO_USB_EP_TYPE_UNKNOWN;
+
+	if (handle == NULL)
+		goto done;
+
+	/* Ensure we have the interface open so we have all the info about it. */
+	if (!M_io_usb_open_interface(handle, iface_num))
+		goto done;
+
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);
+	if (usb_iface == NULL)
+		goto done;
+
+	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);
+	if (ep == NULL)
+		goto done;
+
+	type = ep->type;
+
+done:
+	M_io_layer_release(layer);
+	return type;
+}
+
+M_io_usb_ep_direction_t M_io_usb_endpoint_direction(M_io_t *io, size_t iface_num, size_t ep_num)
+{
+	M_io_layer_t            *layer     = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t           *handle    = M_io_layer_get_handle(layer);
+	M_io_usb_interface_t    *usb_iface;
+	M_io_usb_interface_ep_t *ep;
+	M_io_usb_ep_direction_t  direction = M_IO_USB_EP_DIRECTION_UNKNOWN;
+
+	if (handle == NULL)
+		goto done;
+
+	/* Ensure we have the interface open so we have all the info about it. */
+	if (!M_io_usb_open_interface(handle, iface_num))
+		goto done;
+
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);
+	if (usb_iface == NULL)
+		goto done;
+
+	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);
+	if (ep == NULL)
+		goto done;
+
+	direction = ep->direction;
+
+done:
+	M_io_layer_release(layer);
+	return direction;
+}
+
+size_t M_io_usb_endpoint_max_packet_size(M_io_t *io, size_t iface_num, size_t ep_num)
+{
+	M_io_layer_t            *layer     = M_io_usb_get_top_usb_layer(io);
+	M_io_handle_t           *handle    = M_io_layer_get_handle(layer);
+	M_io_usb_interface_t    *usb_iface;
+	M_io_usb_interface_ep_t *ep;
+	size_t                   max       = 0;
+
+	if (handle == NULL)
+		goto done;
+
+	/* Ensure we have the interface open so we have all the info about it. */
+	if (!M_io_usb_open_interface(handle, iface_num))
+		goto done;
+
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);
+	if (usb_iface == NULL)
+		goto done;
+
+	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);
+	if (ep == NULL)
+		goto done;
+
+	max = ep->max_packet_size;
+
+done:
+	M_io_layer_release(layer);
+	return max;
 }
