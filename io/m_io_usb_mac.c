@@ -579,6 +579,8 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 		goto err;
 	}
 
+	/* XXX: This needs to be done in a thread with a
+ 	 * timeout because it's a blocking function. */
 	ioret = (*dev)->USBDeviceOpen(dev);
 	if (ioret != kIOReturnSuccess) {
 		*ioerr = M_IO_ERROR_NOTCONNECTED;
