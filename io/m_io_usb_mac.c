@@ -603,6 +603,62 @@ static M_bool M_io_usb_attach_interface_endpoint_int(M_io_handle_t *handle, size
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_io_error_t M_io_usb_write_control(M_io_handle_t *handle, const unsigned char *buf, size_t *write_len, M_hash_multi_t *mdata)
+{
+	(void)handle;
+	(void)buf;
+	(void)write_len;
+	(void)mdata;
+	return M_IO_ERROR_NOTIMPL;
+}
+
+static M_io_error_t M_io_usb_write_bulkirpt(M_io_handle_t *handle, const unsigned char *buf, size_t *write_len, M_hash_multi_t *mdata)
+{
+	M_io_usb_interface_t    *usb_iface;
+	M_io_usb_interface_ep_t *ep;
+	M_uint64                 iface_num;
+	M_uint64                 ep_num;
+
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_IFACE_NUM, &iface_num))
+		return M_IO_ERROR_INVALID;
+
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_EP_NUM, &ep_num))
+		return M_IO_ERROR_INVALID;
+
+	if (!M_io_usb_attach_interface_endpoint_int(handle, iface_num, ep_num))
+		return M_IO_ERROR_INVALID;
+
+	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);	
+	if (usb_iface == NULL)
+		return M_IO_ERROR_INVALID;
+
+	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);	
+	if (ep == NULL)
+		return M_IO_ERROR_INVALID;
+
+	M_thread_mutex_lock(ep->lock);
+
+	if (ep->in_write || M_buf_len(ep->buf) > 0) {
+		M_thread_mutex_unlock(ep->lock);
+		return M_IO_ERROR_WOULDBLOCK;
+	}
+
+	if (buf != NULL && *write_len != 0)
+		M_buf_add_bytes(ep->buf, buf, *write_len);
+
+	if (M_buf_len(ep->buf) == 0) {
+		M_thread_mutex_unlock(ep->lock);
+		return M_IO_ERROR_SUCCESS;
+	}
+
+	M_thread_cond_signal(ep->cond);
+	M_thread_mutex_unlock(ep->lock);
+	return M_IO_ERROR_SUCCESS;
+}
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_io_usb_enum_t *M_io_usb_enum(M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial)
 {
 	M_io_usb_enum_t     *usbenum       = M_io_usb_enum_init();
@@ -779,12 +835,10 @@ M_bool M_io_usb_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 M_io_error_t M_io_usb_write_cb(M_io_layer_t *layer, const unsigned char *buf, size_t *write_len, M_io_meta_t *meta)
 {
-	M_io_handle_t           *handle = M_io_layer_get_handle(layer);
-	M_io_usb_interface_t    *usb_iface;
-	M_io_usb_interface_ep_t *ep;
-	M_hash_multi_t          *mdata;
-	M_uint64                 iface_num;
-	M_uint64                 ep_num;
+	M_io_handle_t      *handle = M_io_layer_get_handle(layer);
+	M_hash_multi_t     *mdata;
+	M_io_usb_ep_type_t  ep_type;
+	M_uint64            u64v;
 
 	if (meta == NULL)
 		return M_IO_ERROR_INVALID;
@@ -793,41 +847,19 @@ M_io_error_t M_io_usb_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	if (mdata == NULL)
 		return M_IO_ERROR_INVALID;
 
-	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_IFACE_NUM, &iface_num))
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_EP_TYPE, &u64v))
 		return M_IO_ERROR_INVALID;
+	ep_type = (M_io_usb_ep_type_t)u64v;
 
-	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_EP_NUM, &ep_num))
-		return M_IO_ERROR_INVALID;
-
-	if (!M_io_usb_attach_interface_endpoint_int(handle, iface_num, ep_num))
-		return M_IO_ERROR_INVALID;
-
-	usb_iface = M_hash_u64vp_get_direct(handle->interfaces, iface_num);	
-	if (usb_iface == NULL)
-		return M_IO_ERROR_INVALID;
-
-	ep = M_hash_u64vp_get_direct(usb_iface->eps, ep_num);	
-	if (ep == NULL)
-		return M_IO_ERROR_INVALID;
-
-	M_thread_mutex_lock(ep->lock);
-
-	if (ep->in_write || M_buf_len(ep->buf) > 0) {
-		M_thread_mutex_unlock(ep->lock);
-		return M_IO_ERROR_WOULDBLOCK;
+	switch (ep_type) {
+		case M_IO_USB_EP_TYPE_CONTROL:
+			return M_io_usb_write_control(handle, buf, write_len, mdata);
+		case M_IO_USB_EP_TYPE_BULK:
+		case M_IO_USB_EP_TYPE_INTERRUPT:
+		case M_IO_USB_EP_TYPE_ISOC:
+		case M_IO_USB_EP_TYPE_UNKNOWN:
+			return M_io_usb_write_bulkirpt(handle, buf, write_len, mdata);
 	}
-
-	if (buf != NULL && *write_len != 0)
-		M_buf_add_bytes(ep->buf, buf, *write_len);
-
-	if (M_buf_len(ep->buf) == 0) {
-		M_thread_mutex_unlock(ep->lock);
-		return M_IO_ERROR_SUCCESS;
-	}
-
-	M_thread_cond_signal(ep->cond);
-	M_thread_mutex_unlock(ep->lock);
-	return M_IO_ERROR_SUCCESS;
 }
 
 M_io_error_t M_io_usb_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
