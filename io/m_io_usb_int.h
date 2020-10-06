@@ -32,6 +32,13 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef enum {
+	M_IO_USB_META_KEY_IFACE_NUM,
+	M_IO_USB_META_KEY_EP_NUM,
+	M_IO_USB_META_KEY_EP_TYPE,
+	/* XXX: Need control data. */
+} M_io_usb_meta_keys_t;
+
 struct M_io_usb_enum_device {
 	M_uint16          vendor_id;
 	M_uint16          product_id;
@@ -50,6 +57,14 @@ typedef struct M_io_usb_enum_device M_io_usb_enum_device_t;
 struct M_io_usb_enum {
 	M_list_t *devices;
 };
+
+typedef struct {
+	M_buf_t            *data;
+	M_io_usb_ep_type_t  ep_type;
+	size_t              iface;
+	size_t              ep;
+	/* XXX: control info */
+} M_io_usb_rdata_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
