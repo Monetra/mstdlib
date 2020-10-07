@@ -423,6 +423,29 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static IOReturn M_usb_check_handle_stall(IOUSBInterfaceInterface **iface, size_t ep_num, IOReturn ioret, M_bool *stall)
+{
+	M_bool mystsall;
+
+	if (stall == NULL)
+		stall = &mystsall;
+	*stall = M_FALSE;
+
+	if (ioret == kIOReturnSuccess)
+		return ioret;
+
+	if (ioret == kIOUSBPipeStalled) {
+		*stall = M_TRUE;
+	} else if ((*iface)->GetPipeStatus(iface, (UInt8)ep_num+1) == kIOUSBPipeStalled) {
+		*stall = M_TRUE;
+	}
+
+	if (*stall)
+		ioret = (*iface)->ClearPipeStall(iface, (UInt8)ep_num+1);
+
+	return ioret;
+}
+
 /* Note: macOS provides callback based functions for
  * read and write events and it uses the macOS event
  * loop. We're not using them right now because thread
@@ -451,27 +474,24 @@ static void *M_io_usb_bulkirpt_read_loop(void *arg)
 	IOReturn                      ioret;
 	M_io_error_t                  ioerr;
 	UInt32                        size;
-	M_bool                        stall;
 
 	buf = M_malloc_zero(info->ep->max_packet_size);
-	/* XXX: Processing LOOP! */
 	while (info->ep->run) {
-
 		size  = (UInt32)info->ep->max_packet_size;
 	    ioret = (*info->usb_iface->iface)->ReadPipe(info->usb_iface->iface, (UInt8)info->ep->ep_num, buf, &size);
 
-		stall = M_FALSE;
-		if (ioret != kIOReturnSuccess) {
-			if (ioret == kIOUSBPipeStalled) {
-				stall = M_TRUE;
-			} else if ((*info->usb_iface->iface)->GetPipeStatus(info->usb_iface->iface, (UInt8)info->ep->ep_num+1) == kIOUSBPipeStalled) {
-				stall = M_TRUE;
-			}
-			if (stall) {
-				ioret = (*info->usb_iface->iface)->ClearPipeStall(info->usb_iface->iface, (UInt8)info->ep->ep_num+1);
-			}
+		if (ioret == kIOReturnAborted) {
+			/* Aborted means we're closing. */
+			break;
+		} else if (ioret == kIOReturnNotOpen) {
+			/* Must have disconnected. */
+			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
+			M_io_layer_release(layer);
+			break;
 		}
-
+		ioret = M_usb_check_handle_stall(info->usb_iface->iface, info->ep->ep_num, ioret, NULL);
+		
 		ioerr = M_io_mac_ioreturn_to_err(ioret);
 		if (M_io_error_is_critical(ioerr)) {
 			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
@@ -524,18 +544,17 @@ static void *M_io_usb_bulkirpt_write_loop(void *arg)
 		len   = (UInt32)M_MIN(M_buf_len(info->ep->buf), info->ep->max_packet_size);
 		ioret = (*info->usb_iface->iface)->WritePipe(info->usb_iface->iface, (UInt8)info->ep->ep_num+1, (void *)M_buf_peek(info->ep->buf), len);
 
-		/* Check for stall and clear pipe. */
-		stall = M_FALSE;
-		if (ioret != kIOReturnSuccess) {
-			if (ioret == kIOUSBPipeStalled) {
-				stall = M_TRUE;
-			} else if ((*info->usb_iface->iface)->GetPipeStatus(info->usb_iface->iface, (UInt8)info->ep->ep_num+1) == kIOUSBPipeStalled) {
-				stall = M_TRUE;
-			}
-			if (stall) {
-				ioret = (*info->usb_iface->iface)->ClearPipeStall(info->usb_iface->iface, (UInt8)info->ep->ep_num+1);
-			}
+		if (ioret == kIOReturnAborted) {
+			/* Aborted means we're closing. */
+			break;
+		} else if (ioret == kIOReturnNotOpen) {
+			/* Must have disconnected. */
+			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
+			M_io_layer_release(layer);
+			break;
 		}
+		ioret = M_usb_check_handle_stall(info->usb_iface->iface, info->ep->ep_num, ioret, &stall);
 
 		ioerr = M_io_mac_ioreturn_to_err(ioret);
 		if (M_io_error_is_critical(ioerr)) {
@@ -858,27 +877,41 @@ err:
 
 M_bool M_io_usb_errormsg_cb(M_io_layer_t *layer, char *error, size_t err_len)
 {
-	(void)layer;
-	(void)error;
-	(void)err_len;
-	return M_FALSE;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (M_str_isempty(handle->error))
+		return M_FALSE;
+
+	M_str_cpy(error, err_len, handle->error);
+	return M_TRUE;
 }
 
 M_io_state_t M_io_usb_state_cb(M_io_layer_t *layer)
 {
-	(void)layer;
-	return M_IO_STATE_ERROR;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	if (handle->dev == NULL)
+		return M_IO_STATE_ERROR;
+	return M_IO_STATE_CONNECTED;
 }
 
 void M_io_usb_destroy_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	M_free(handle->manufacturer);
+	M_free(handle->product);
+	M_free(handle->serial);
+	M_free(handle->path);
+	M_hash_u64vp_destroy(handle->interfaces, M_TRUE);
+	M_llist_destroy(handle->read_queue, M_TRUE);
+	M_free(handle);
 }
 
 M_bool M_io_usb_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	(void)layer;
 	(void)type;
+	/* Do nothing, all events are generated as soft events. */
 	return M_FALSE;
 }
 
@@ -888,6 +921,9 @@ M_io_error_t M_io_usb_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 	M_hash_multi_t     *mdata;
 	M_io_usb_ep_type_t  ep_type;
 	M_uint64            u64v;
+
+	if (handle->dev == NULL)
+		return M_IO_ERROR_NOTCONNECTED;
 
 	if (meta == NULL)
 		return M_IO_ERROR_INVALID;
@@ -917,6 +953,9 @@ M_io_error_t M_io_usb_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 	M_hash_multi_t   *mdata;
 	M_llist_node_t   *node;
 	M_io_usb_rdata_t *rdata;
+
+	if (handle->dev == NULL)
+		return M_IO_ERROR_NOTCONNECTED;
 
 	/* Validate we have a meta object. If not we don't know what to do. */
 	if (meta == NULL)
@@ -968,7 +1007,48 @@ M_io_error_t M_io_usb_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 
 M_bool M_io_usb_disconnect_cb(M_io_layer_t *layer)
 {
-	(void)layer;
+	M_io_handle_t        *handle   = M_io_layer_get_handle(layer);
+	M_hash_u64vp_enum_t  *iface_he = NULL;
+	M_io_usb_interface_t *usb_iface;
+
+	M_hash_u64vp_enumerate(handle->interfaces, &iface_he);
+	while (M_hash_u64vp_enumerate_next(handle->interfaces, iface_he, NULL, (void **)&usb_iface)) {
+		M_hash_u64vp_enum_t     *ep_he  = NULL;
+		M_hash_u64u64_enum_t    *tid_he = NULL;
+		M_io_usb_interface_ep_t *ep;
+		M_uint64                 tid;
+
+		M_hash_u64vp_enumerate(usb_iface->eps, &ep_he);
+		while (M_hash_u64vp_enumerate_next(usb_iface->eps, ep_he, NULL, (void **)&ep)) {
+			ep->run = M_FALSE;
+
+			M_thread_mutex_lock(ep->write_lock);
+			M_thread_cond_broadcast(ep->write_cond);
+			M_thread_mutex_unlock(ep->write_lock);
+
+			(*usb_iface->iface)->AbortPipe(usb_iface->iface, (UInt8)ep->ep_num+1);
+		}
+		M_hash_u64vp_enumerate_free(ep_he);
+
+		M_hash_u64u64_enumerate(usb_iface->eps_tids_read, &tid_he);
+		while (M_hash_u64u64_enumerate_next(usb_iface->eps_tids_read, tid_he, NULL, &tid)) {
+			M_thread_join(tid, NULL);
+		}
+		M_hash_u64vp_enumerate_free(ep_he);
+
+		M_hash_u64u64_enumerate(usb_iface->eps_tids_write, &tid_he);
+		while (M_hash_u64u64_enumerate_next(usb_iface->eps_tids_read, tid_he, NULL, &tid)) {
+			M_thread_join(tid, NULL);
+		}
+		M_hash_u64vp_enumerate_free(ep_he);
+
+		(*usb_iface->iface)->USBInterfaceClose(usb_iface->iface);
+	}
+	M_hash_u64vp_enumerate_free(iface_he);
+
+	(*handle->dev)->USBDeviceClose(handle->dev);
+	handle->dev = NULL;
+
 	return M_TRUE;
 }
 
@@ -979,8 +1059,16 @@ void M_io_usb_unregister_cb(M_io_layer_t *layer)
 
 M_bool M_io_usb_init_cb(M_io_layer_t *layer)
 {
-	(void)layer;
-	return M_FALSE;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+
+	if (handle->dev == NULL)
+		return M_FALSE;
+
+	handle->io = io;
+	/* Trigger connected soft event when registered with event handle */
+	M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+	return M_TRUE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
