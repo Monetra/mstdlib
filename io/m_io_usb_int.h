@@ -59,10 +59,12 @@ struct M_io_usb_enum {
 };
 
 typedef struct {
-	M_buf_t            *data;
 	M_io_usb_ep_type_t  ep_type;
-	size_t              iface;
-	size_t              ep;
+
+	size_t              iface_num;
+	size_t              ep_num;
+
+	M_buf_t            *data;
 	/* XXX: control info */
 } M_io_usb_rdata_t;
 
@@ -95,5 +97,10 @@ M_bool M_io_usb_init_cb(M_io_layer_t *layer);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void M_io_usb_rdata_destroy(M_io_usb_rdata_t *rdata);
+M_bool M_io_usb_rdata_queue_add_read_bulkirpt(M_llist_t *queue, M_io_usb_ep_type_t type, size_t iface_num, size_t ep_num, const unsigned char *data, size_t data_len);
 
 #endif

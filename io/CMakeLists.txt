@@ -47,6 +47,7 @@ set(sources
 	m_io_hid.c
 	m_io_serial.c
 	m_io_usb.c
+	m_io_usb_rdata.c
 
 	# Event
 	m_event.c

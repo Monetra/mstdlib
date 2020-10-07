@@ -46,8 +46,8 @@
 
 typedef struct {
 	M_bool                   run;
-	M_thread_mutex_t        *lock;
-	M_thread_cond_t         *cond;
+	M_thread_mutex_t        *write_lock;
+	M_thread_cond_t         *write_cond;
 	M_bool                   in_write;
 	M_buf_t                 *buf;
 
@@ -91,7 +91,7 @@ struct M_io_handle {
 
 	M_hash_u64vp_t        *interfaces; /* key = iface num, val = M_io_usb_interface_t */
 
-	M_thread_mutex_t      *message_lock;
+	M_llist_t             *read_queue;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -230,8 +230,8 @@ static M_io_usb_interface_ep_t *M_io_usb_interface_ep_create(size_t iface_num, s
 
 	ep                  = M_malloc_zero(sizeof(*ep));
 	ep->run             = M_TRUE;
-	ep->lock            = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-	ep->cond            = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+	ep->write_lock      = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	ep->write_cond      = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
 	ep->iface_num       = iface_num;
 	ep->ep_num          = ep_num;
 	ep->type            = type;
@@ -247,8 +247,8 @@ static void M_io_usb_interface_ep_destroy(M_io_usb_interface_ep_t *ep)
 	if (ep == NULL)
 		return;
 
-	M_thread_mutex_destroy(ep->lock);
-	M_thread_cond_destroy(ep->cond);
+	M_thread_mutex_destroy(ep->write_lock);
+	M_thread_cond_destroy(ep->write_cond);
 
 	M_free(ep);
 }
@@ -446,9 +446,51 @@ done:
 static void *M_io_usb_bulkirpt_read_loop(void *arg)
 {
 	M_io_usb_interface_ep_info_t *info = arg;
+	M_io_layer_t                 *layer;
+	unsigned char                *buf;
+	IOReturn                      ioret;
+	M_io_error_t                  ioerr;
+	UInt32                        size;
+	M_bool                        stall;
 
+	buf = M_malloc_zero(info->ep->max_packet_size);
 	/* XXX: Processing LOOP! */
+	while (info->ep->run) {
 
+		size  = (UInt32)info->ep->max_packet_size;
+	    ioret = (*info->usb_iface->iface)->ReadPipe(info->usb_iface->iface, (UInt8)info->ep->ep_num, buf, &size);
+
+		stall = M_FALSE;
+		if (ioret != kIOReturnSuccess) {
+			if (ioret == kIOUSBPipeStalled) {
+				stall = M_TRUE;
+			} else if ((*info->usb_iface->iface)->GetPipeStatus(info->usb_iface->iface, (UInt8)info->ep->ep_num+1) == kIOUSBPipeStalled) {
+				stall = M_TRUE;
+			}
+			if (stall) {
+				ioret = (*info->usb_iface->iface)->ClearPipeStall(info->usb_iface->iface, (UInt8)info->ep->ep_num+1);
+			}
+		}
+
+		ioerr = M_io_mac_ioreturn_to_err(ioret);
+		if (M_io_error_is_critical(ioerr)) {
+			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
+			M_snprintf(info->handle->error, sizeof(info->handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
+			// XXX: ??? M_io_usb_close_device(info->handle);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, ioerr);
+			M_io_layer_release(layer);
+			break;
+		}
+
+		if (size > 0) {
+			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
+			M_io_usb_rdata_queue_add_read_bulkirpt(info->handle->read_queue, info->ep->type, info->ep->iface_num, info->ep->ep_num, buf, size);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+			M_io_layer_release(layer);
+		}
+	}
+
+	M_free(buf);
 	/* Don't free info data. Handled elsewhere. */
 	M_free(info);
 	return NULL;
@@ -464,20 +506,20 @@ static void *M_io_usb_bulkirpt_write_loop(void *arg)
 	M_bool                        stall;
 
 	while (info->ep->run) {
-		M_thread_mutex_lock(info->ep->lock);
+		M_thread_mutex_lock(info->ep->write_lock);
 		if (M_buf_len(info->ep->buf) == 0) {
-			M_thread_cond_wait(info->ep->cond, info->ep->lock);
+			M_thread_cond_wait(info->ep->write_cond, info->ep->write_lock);
 		}
 		if (!info->ep->run) {
-			M_thread_mutex_unlock(info->ep->lock);
+			M_thread_mutex_unlock(info->ep->write_lock);
 			break;
 		}
 		if (M_buf_len(info->ep->buf) == 0) {
-			M_thread_mutex_unlock(info->ep->lock);
+			M_thread_mutex_unlock(info->ep->write_lock);
 			continue;
 		}
 		info->ep->in_write = M_TRUE;
-		M_thread_mutex_unlock(info->ep->lock);
+		M_thread_mutex_unlock(info->ep->write_lock);
 
 		len   = (UInt32)M_MIN(M_buf_len(info->ep->buf), info->ep->max_packet_size);
 		ioret = (*info->usb_iface->iface)->WritePipe(info->usb_iface->iface, (UInt8)info->ep->ep_num+1, (void *)M_buf_peek(info->ep->buf), len);
@@ -494,12 +536,12 @@ static void *M_io_usb_bulkirpt_write_loop(void *arg)
 				ioret = (*info->usb_iface->iface)->ClearPipeStall(info->usb_iface->iface, (UInt8)info->ep->ep_num+1);
 			}
 		}
-		ioerr = M_io_mac_ioreturn_to_err(ioret);
 
+		ioerr = M_io_mac_ioreturn_to_err(ioret);
 		if (M_io_error_is_critical(ioerr)) {
-			M_thread_mutex_lock(info->ep->lock);
+			M_thread_mutex_lock(info->ep->write_lock);
 			info->ep->in_write = M_FALSE;
-			M_thread_mutex_unlock(info->ep->lock);
+			M_thread_mutex_unlock(info->ep->write_lock);
 
 			layer = M_io_layer_acquire(info->handle->io, 0, NULL);
 			M_snprintf(info->handle->error, sizeof(info->handle->error), "%s", M_io_mac_ioreturn_errormsg(ioret));
@@ -513,9 +555,9 @@ static void *M_io_usb_bulkirpt_write_loop(void *arg)
 			M_buf_drop(info->ep->buf, len);
 		}
 		if (M_buf_len(info->ep->buf) == 0) {
-			M_thread_mutex_lock(info->ep->lock);
+			M_thread_mutex_lock(info->ep->write_lock);
 			info->ep->in_write = M_FALSE;
-			M_thread_mutex_unlock(info->ep->lock);
+			M_thread_mutex_unlock(info->ep->write_lock);
 		}
 
 		if (ioerr == M_IO_ERROR_SUCCESS && M_buf_len(info->ep->buf) == 0) {
@@ -636,10 +678,10 @@ static M_io_error_t M_io_usb_write_bulkirpt(M_io_handle_t *handle, const unsigne
 	if (ep == NULL)
 		return M_IO_ERROR_INVALID;
 
-	M_thread_mutex_lock(ep->lock);
+	M_thread_mutex_lock(ep->write_lock);
 
 	if (ep->in_write || M_buf_len(ep->buf) > 0) {
-		M_thread_mutex_unlock(ep->lock);
+		M_thread_mutex_unlock(ep->write_lock);
 		return M_IO_ERROR_WOULDBLOCK;
 	}
 
@@ -647,12 +689,12 @@ static M_io_error_t M_io_usb_write_bulkirpt(M_io_handle_t *handle, const unsigne
 		M_buf_add_bytes(ep->buf, buf, *write_len);
 
 	if (M_buf_len(ep->buf) == 0) {
-		M_thread_mutex_unlock(ep->lock);
+		M_thread_mutex_unlock(ep->write_lock);
 		return M_IO_ERROR_SUCCESS;
 	}
 
-	M_thread_cond_signal(ep->cond);
-	M_thread_mutex_unlock(ep->lock);
+	M_thread_cond_signal(ep->write_cond);
+	M_thread_mutex_unlock(ep->write_lock);
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -746,6 +788,12 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 	char                  *d_serial        = NULL;
 	M_io_usb_speed_t       d_speed         = M_IO_USB_SPEED_UNKNOWN;
 	SInt32                 score           = 0;
+	struct M_llist_callbacks llcbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_llist_free_func)M_io_usb_rdata_destroy
+	};
 
 	if (M_str_isempty(devpath)) {
 		*ioerr = M_IO_ERROR_INVALID;
@@ -793,10 +841,11 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 	handle->product      = d_product;
 	handle->serial       = d_serial;
 	handle->speed        = d_speed;
-
 	handle->path         = M_strdup(devpath);
 
 	handle->interfaces   = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_destroy);
+
+	handle->read_queue   = M_llist_create(&llcbs, M_LLIST_NONE);
 
 	return handle;
 
@@ -864,11 +913,57 @@ M_io_error_t M_io_usb_write_cb(M_io_layer_t *layer, const unsigned char *buf, si
 
 M_io_error_t M_io_usb_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
 {
-	(void)layer;
-	(void)buf;
-	(void)read_len;
-	(void)meta;
-	return M_IO_ERROR_NOTIMPL;
+	M_io_handle_t    *handle = M_io_layer_get_handle(layer);
+	M_hash_multi_t   *mdata;
+	M_llist_node_t   *node;
+	M_io_usb_rdata_t *rdata;
+
+	/* Validate we have a meta object. If not we don't know what to do. */
+	if (meta == NULL)
+		return M_IO_ERROR_INVALID;
+
+	mdata = M_io_meta_get_layer_data(meta, layer);
+	if (mdata == NULL) {
+		mdata = M_hash_multi_create(M_HASH_MULTI_NONE);
+		M_io_meta_insert_layer_data(meta, layer, mdata, (void (*)(void *))M_hash_multi_destroy);
+	}
+
+	/* Get the first record in the read queue. If no
+ 	 * records we're all done. */
+	node = M_llist_first(handle->read_queue);
+	if (node == NULL)
+		return M_IO_ERROR_WOULDBLOCK;
+	rdata = M_llist_node_val(node);
+
+	/* Get the type of read the data is for. */
+	M_hash_multi_u64_insert_int(mdata, M_IO_USB_META_KEY_EP_TYPE, rdata->ep_type);
+	switch (rdata->ep_type) {
+		case M_IO_USB_EP_TYPE_BULK:
+		case M_IO_USB_EP_TYPE_INTERRUPT:
+		case M_IO_USB_EP_TYPE_ISOC:
+			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_IFACE_NUM, rdata->iface_num);
+			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_EP_NUM, rdata->ep_num);
+			break;
+		case M_IO_USB_EP_TYPE_CONTROL:
+		case M_IO_USB_EP_TYPE_UNKNOWN:
+			break;
+	}
+
+
+	if (buf != NULL && read_len != NULL) {
+		if (*read_len > M_buf_len(rdata->data)) {
+			*read_len = M_buf_len(rdata->data);
+		}
+
+		M_mem_copy(buf, M_buf_peek(rdata->data), *read_len);
+		M_buf_drop(rdata->data, *read_len);
+	}
+
+	/* If we've read everything we will drop this record. */
+	if (M_buf_len(rdata->data) == 0)
+		M_llist_remove_node(node);
+
+	return M_IO_ERROR_SUCCESS;
 }
 
 M_bool M_io_usb_disconnect_cb(M_io_layer_t *layer)
