@@ -105,7 +105,7 @@ M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const
 /* Will open the interface if not already open.
  * Must be connected before this can be called.
  * Setups up receiving read events on the end point. */
-M_API M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num);
+M_API M_bool M_io_usb_listen_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num);
 
 /* Device metadata */
 M_API M_uint16 M_io_usb_get_vendorid(M_io_t *io);

@@ -40,7 +40,7 @@
 /* Interfaces are lazy opened when the end points are first accessed.
  * We open them because we can get more info about the end points that
  * way. Having the interface open is fine. Events won't happen unless
- * we've attached them here so we start listending. */
+ * we're listening for them. */
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -741,7 +741,7 @@ static void M_io_usb_write_async_cb(void *refcon, IOReturn result, void *arg0)
 	}
 }
 
-static M_bool M_io_usb_attach_interface_endpoint_int(M_io_handle_t *handle, size_t iface_num, size_t ep_num)
+static M_bool M_io_usb_listen_interface_endpoint_int(M_io_handle_t *handle, size_t iface_num, size_t ep_num)
 {
 	M_io_usb_interface_t *usb_iface;
 	M_io_usb_ep_t        *ep;
@@ -760,7 +760,7 @@ static M_bool M_io_usb_attach_interface_endpoint_int(M_io_handle_t *handle, size
 	if (ep == NULL)
 		return M_FALSE;
 
-	/* Check if we've already attached. If we have, then we're going
+	/* Check if we've already listening. If we have, then we're going
  	 * to return success because we don't have anything that we need to do. */
 	M_thread_mutex_lock(ep->read_lock);
 	if (ep->in_read) {
@@ -1223,13 +1223,13 @@ M_bool M_io_usb_init_cb(M_io_layer_t *layer)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num)
+M_bool M_io_usb_listen_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num)
 {
 	M_io_layer_t  *layer  = M_io_usb_get_top_usb_layer(io);
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_bool         ret;
 
-	ret = M_io_usb_attach_interface_endpoint_int(handle, iface_num, ep_num);
+	ret = M_io_usb_listen_interface_endpoint_int(handle, iface_num, ep_num);
 
 	M_io_layer_release(layer);
 	return ret;
