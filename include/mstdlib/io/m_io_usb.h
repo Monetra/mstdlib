@@ -103,7 +103,8 @@ M_API M_io_error_t M_io_usb_create(M_io_t **io_out, M_uint16 vendorid, M_uint16 
 M_API M_io_error_t M_io_usb_create_one(M_io_t **io_out, M_uint16 vendorid, const M_uint16 *productids, size_t num_productids, const char *serial);
 
 /* Will open the interface if not already open.
- * Must be connected before this can be called. */
+ * Must be connected before this can be called.
+ * Setups up receiving read events on the end point. */
 M_API M_bool M_io_usb_attach_interface_endpoint(M_io_t *io, size_t iface_num, size_t ep_num);
 
 /* Device metadata */
