@@ -75,6 +75,15 @@ typedef enum {
 	M_IO_USB_EP_DIRECTION_OUT     = 1 << 1
 } M_io_usb_ep_direction_t;
 
+typedef enum {
+	M_IO_USB_META_KEY_IFACE_NUM,
+	M_IO_USB_META_KEY_EP_NUM,
+	M_IO_USB_META_KEY_EP_TYPE,
+	M_IO_USB_META_KEY_CTRL_TYPE,
+	M_IO_USB_META_KEY_CTRL_INDEX,
+	M_IO_USB_META_KEY_CTRL_VALUE
+} M_io_usb_meta_keys_t;
+
 struct M_io_usb_enum;
 typedef struct M_io_usb_enum M_io_usb_enum_t;
 

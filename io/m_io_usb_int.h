@@ -32,13 +32,6 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-typedef enum {
-	M_IO_USB_META_KEY_IFACE_NUM,
-	M_IO_USB_META_KEY_EP_NUM,
-	M_IO_USB_META_KEY_EP_TYPE,
-	/* XXX: Need control data. */
-} M_io_usb_meta_keys_t;
-
 struct M_io_usb_enum_device {
 	M_uint16          vendor_id;
 	M_uint16          product_id;
@@ -61,8 +54,14 @@ struct M_io_usb_enum {
 typedef struct {
 	M_io_usb_ep_type_t  ep_type;
 
+	/* EP */
 	size_t              iface_num;
 	size_t              ep_num;
+
+	/* Control */
+	size_t ctrl_type;
+	size_t ctrl_value;
+	size_t ctrl_index;
 
 	M_buf_t            *data;
 	/* XXX: control info */
@@ -102,5 +101,6 @@ M_io_layer_t *M_io_usb_get_top_usb_layer(M_io_t *io);
 
 void M_io_usb_rdata_destroy(M_io_usb_rdata_t *rdata);
 M_bool M_io_usb_rdata_queue_add_read_bulkirpt(M_llist_t *queue, M_io_usb_ep_type_t type, size_t iface_num, size_t ep_num, const unsigned char *data, size_t data_len);
+M_bool M_io_usb_rdata_queue_add_read_control(M_llist_t *queue, M_io_usb_ep_type_t type, size_t ctrl_type, size_t ctrl_value, size_t ctrl_index, const unsigned char *data, size_t data_len);
 
 #endif

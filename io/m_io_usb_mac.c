@@ -103,7 +103,11 @@ struct M_io_handle {
 	char                   error[256];
 
 	/* Control data. */
-	/* XXX */
+	IOUSBDevRequest        control_req;
+	M_thread_mutex_t      *control_lock;
+	M_buf_t               *control_wbuf;
+	unsigned char          control_rbuf[1024];
+	M_bool                 in_control;
 
 	/* Interfaces (lazy opening). */
 	M_hash_u64vp_t        *interfaces; /* key = iface num, val = M_io_usb_interface_t */
@@ -345,6 +349,8 @@ static void M_io_usb_signal_shutdown(M_io_handle_t *handle)
 	M_io_usb_interface_t *usb_iface;
 
 	handle->shutdown = M_TRUE;
+
+    (*handle->dev)->USBDeviceAbortPipeZero(handle->dev);
 
 	M_hash_u64vp_enumerate(handle->interfaces, &iface_he);
 	while (M_hash_u64vp_enumerate_next(handle->interfaces, iface_he, NULL, (void **)&usb_iface)) {
@@ -731,11 +737,63 @@ static void M_io_usb_write_async_cb(void *refcon, IOReturn result, void *arg0)
 		layer = M_io_layer_acquire(ep->handle->io, 0, NULL);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
-	} else if (M_buf_len(ep->write_buf) > 0) {
+	} else {
 		/* If we have more data we want to try to write it. */
 		result = (*ep->iface)->WritePipeAsync(ep->iface, (UInt8)ep->ep_num+1, (void *)M_buf_peek(ep->write_buf), (UInt32)M_MIN(M_buf_len(ep->write_buf), ep->max_packet_size), M_io_usb_write_async_cb, ep);
 		if (result != kIOReturnSuccess) {
 			M_io_usb_handle_rw_error(ep->handle, result);
+			return;
+		}
+	}
+}
+
+static void M_io_usb_control_async_cb(void *refcon, IOReturn result, void *arg0)
+{
+	M_io_handle_t *handle   = refcon;
+	UInt32         data_len = (UInt32)(uintptr_t)arg0;
+
+	/* Could have been aborted due to destroy. ep isn't good in that case. */
+	if (result == kIOReturnAborted)
+		return;
+
+	if (handle->shutdown) {
+		M_thread_mutex_lock(handle->control_lock);
+		handle->in_control = M_FALSE;
+		M_thread_mutex_unlock(handle->control_lock);
+		return;
+	}
+
+	if (handle->control_req.wLenDone > 0) {
+		/* Queue the data and issue read event. */
+		M_io_layer_t *layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_usb_rdata_queue_add_read_control(handle->read_queue, M_IO_USB_EP_TYPE_CONTROL, handle->control_req.bRequest, handle->control_req.wValue, handle->control_req.wIndex, handle->control_rbuf, handle->control_req.wLenDone);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+		M_io_layer_release(layer);
+
+		/* Clear the cached buf data in case it's sensitive. */
+		M_mem_set(handle->control_req.pData, 0, handle->control_req.wLenDone);
+	}
+
+	/* Drop any data we wrote. */
+	M_buf_drop(handle->control_wbuf, data_len);
+
+	if (M_buf_len(handle->control_wbuf) == 0) {
+		M_io_layer_t *layer;
+
+		M_thread_mutex_lock(handle->control_lock);
+		handle->in_control = M_FALSE;
+		M_thread_mutex_unlock(handle->control_lock);
+
+		layer = M_io_layer_acquire(handle->io, 0, NULL);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
+		M_io_layer_release(layer);
+	} else {
+		handle->control_req.wLength = (UInt16)M_buf_len(handle->control_wbuf);
+		handle->control_req.pData   = (void *)M_buf_peek(handle->control_wbuf);
+
+		result = (*handle->dev)->DeviceRequestAsync(handle->dev, &handle->control_req, M_io_usb_control_async_cb, handle);
+		if (result != kIOReturnSuccess) {
+			M_io_usb_handle_rw_error(handle, result);
 			return;
 		}
 	}
@@ -805,11 +863,47 @@ static M_bool M_io_usb_listen_interface_endpoint_int(M_io_handle_t *handle, size
 
 static M_io_error_t M_io_usb_write_control(M_io_handle_t *handle, const unsigned char *buf, size_t *write_len, M_hash_multi_t *mdata)
 {
-	(void)handle;
-	(void)buf;
-	(void)write_len;
-	(void)mdata;
-	return M_IO_ERROR_NOTIMPL;
+	IOReturn ioret;
+	M_uint64 index;
+	M_uint64 value;
+	M_uint64 type;
+
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_CTRL_TYPE, &type))
+		return M_IO_ERROR_INVALID;
+
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_CTRL_INDEX, &index))
+		return M_IO_ERROR_INVALID;
+
+	if (!M_hash_multi_u64_get_uint(mdata, M_IO_USB_META_KEY_CTRL_VALUE, &value))
+		return M_IO_ERROR_INVALID;
+
+	M_thread_mutex_lock(handle->control_lock);
+
+	if (handle->in_control || M_buf_len(handle->control_wbuf) > 0) {
+		M_thread_mutex_unlock(handle->control_lock);
+		return M_IO_ERROR_WOULDBLOCK;
+	}
+
+	M_buf_add_bytes(handle->control_wbuf, buf, *write_len);
+	handle->in_control = M_TRUE;
+
+	handle->control_req.bRequest = (UInt8)type;
+	handle->control_req.wValue   = (UInt8)value;
+	handle->control_req.wIndex   = (UInt16)index;
+	handle->control_req.wLength  = (UInt16)M_buf_len(handle->control_wbuf);
+	handle->control_req.pData    = (void *)M_buf_peek(handle->control_wbuf);
+
+	ioret = (*handle->dev)->DeviceRequestAsync(handle->dev, &handle->control_req, M_io_usb_control_async_cb, handle);
+	if (ioret != kIOReturnSuccess) {
+		handle->in_control = M_FALSE;
+		M_buf_truncate(handle->control_wbuf, M_buf_len(handle->control_wbuf)-*write_len);
+		*write_len = 0;
+		M_thread_mutex_unlock(handle->control_lock);
+		return M_io_mac_ioreturn_to_err(ioret);
+	}
+
+	M_thread_mutex_unlock(handle->control_lock);
+	return M_IO_ERROR_SUCCESS;
 }
 
 static M_io_error_t M_io_usb_write_bulkirpt(M_io_handle_t *handle, const unsigned char *buf, size_t *write_len, M_hash_multi_t *mdata)
@@ -852,10 +946,18 @@ static M_io_error_t M_io_usb_write_bulkirpt(M_io_handle_t *handle, const unsigne
 		return M_IO_ERROR_SUCCESS;
 	}
 
-	ioret = (*ep->iface)->WritePipeAsync(ep->iface, (UInt8)ep->ep_num+1, (void *)M_buf_peek(ep->write_buf), (UInt32)M_MIN(M_buf_len(ep->write_buf), ep->max_packet_size), M_io_usb_write_async_cb, ep);
-	if (ioret != kIOReturnSuccess)
-		return M_io_mac_ioreturn_to_err(ioret);
+	ep->in_write = M_TRUE;
 
+	ioret = (*ep->iface)->WritePipeAsync(ep->iface, (UInt8)ep->ep_num+1, (void *)M_buf_peek(ep->write_buf), (UInt32)M_MIN(M_buf_len(ep->write_buf), ep->max_packet_size), M_io_usb_write_async_cb, ep);
+	if (ioret != kIOReturnSuccess) {
+		ep->in_write = M_FALSE;
+		M_buf_truncate(ep->write_buf, M_buf_len(ep->write_buf)-*write_len);
+		*write_len = 0;
+		M_thread_mutex_unlock(ep->write_lock);
+		return M_io_mac_ioreturn_to_err(ioret);
+	}
+
+	M_thread_mutex_unlock(ep->write_lock);
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -1003,6 +1105,10 @@ M_io_handle_t *M_io_usb_open(const char *devpath, M_io_error_t *ioerr)
 	handle->speed        = d_speed;
 	handle->path         = M_strdup(devpath);
 
+	handle->control_wbuf = M_buf_create();
+	handle->control_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	handle->control_req.bmRequestType = USBmakebmRequestType(kUSBIn, kUSBStandard, kUSBDevice);
+
 	handle->interfaces   = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, (void (*)(void *))M_io_usb_interface_destroy);
 
 	handle->read_queue   = M_llist_create(&llcbs, M_LLIST_NONE);
@@ -1049,6 +1155,9 @@ void M_io_usb_destroy_cb(M_io_layer_t *layer)
 	M_free(handle->product);
 	M_free(handle->serial);
 	M_free(handle->path);
+
+	M_buf_cancel(handle->control_wbuf);
+	M_thread_mutex_destroy(handle->control_lock);
 
 	M_hash_u64vp_destroy(handle->interfaces, M_TRUE);
 
@@ -1142,6 +1251,10 @@ M_io_error_t M_io_usb_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *r
 			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_EP_NUM, rdata->ep_num);
 			break;
 		case M_IO_USB_EP_TYPE_CONTROL:
+			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_CTRL_TYPE, rdata->ctrl_type);
+			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_CTRL_VALUE, rdata->ctrl_value);
+			M_hash_multi_u64_insert_uint(mdata, M_IO_USB_META_KEY_CTRL_INDEX, rdata->ctrl_index);
+			break;
 		case M_IO_USB_EP_TYPE_UNKNOWN:
 			break;
 	}
