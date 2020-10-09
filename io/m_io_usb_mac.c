@@ -140,7 +140,7 @@ static M_bool get_string_from_descriptor_idx(IOUSBDeviceInterface **dev, UInt8 i
 	if (ioret != kIOReturnSuccess)
 		return M_FALSE;
 
-	if (str == NULL || request.wLength <= 2)
+	if (str == NULL || request.wLenDone <= 2)
 		return M_TRUE;
 
 	/* Now we need to parse out the actual data.
@@ -241,6 +241,22 @@ static void M_io_usb_dev_info(IOUSBDeviceInterface **dev,
 		if ((*dev)->GetConfiguration(dev, &si) == kIOReturnSuccess) {
 			*curr_config = si;
 		}
+	}
+}
+
+static size_t M_io_usb_control_max_size(M_io_handle_t *handle)
+{
+	switch (handle->speed) {
+		case M_IO_USB_SPEED_UNKNOWN:
+		case M_IO_USB_SPEED_LOW:
+			return 8;
+		case M_IO_USB_SPEED_FULL:
+		case M_IO_USB_SPEED_HIGH:
+			return 64;
+		case M_IO_USB_SPEED_SUPER:
+		case M_IO_USB_SPEED_SUPERPLUS:
+		case M_IO_USB_SPEED_SUPERPLUSX2:
+			return 512;
 	}
 }
 
@@ -763,15 +779,16 @@ static void M_io_usb_control_async_cb(void *refcon, IOReturn result, void *arg0)
 		return;
 	}
 
-	if (handle->control_req.wLenDone > 0) {
+	/* Actual data starts at index 3. */
+	if (handle->control_req.wLenDone > 2) {
 		/* Queue the data and issue read event. */
 		M_io_layer_t *layer = M_io_layer_acquire(handle->io, 0, NULL);
-		M_io_usb_rdata_queue_add_read_control(handle->read_queue, M_IO_USB_EP_TYPE_CONTROL, handle->control_req.bRequest, handle->control_req.wValue, handle->control_req.wIndex, handle->control_rbuf, handle->control_req.wLenDone);
+		M_io_usb_rdata_queue_add_read_control(handle->read_queue, M_IO_USB_EP_TYPE_CONTROL, handle->control_req.bRequest, handle->control_req.wValue, handle->control_req.wIndex, handle->control_rbuf+2, handle->control_req.wLenDone-2);
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 
 		/* Clear the cached buf data in case it's sensitive. */
-		M_mem_set(handle->control_req.pData, 0, handle->control_req.wLenDone);
+		M_mem_set(handle->control_rbuf, 0, handle->control_req.wLenDone);
 	}
 
 	/* Drop any data we wrote. */
@@ -788,7 +805,7 @@ static void M_io_usb_control_async_cb(void *refcon, IOReturn result, void *arg0)
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 	} else {
-		handle->control_req.wLength = (UInt16)M_buf_len(handle->control_wbuf);
+		handle->control_req.wLength = (UInt16)M_MIN(M_io_usb_control_max_size(handle), M_buf_len(handle->control_wbuf));
 		handle->control_req.pData   = (void *)M_buf_peek(handle->control_wbuf);
 
 		result = (*handle->dev)->DeviceRequestAsync(handle->dev, &handle->control_req, M_io_usb_control_async_cb, handle);
@@ -890,7 +907,7 @@ static M_io_error_t M_io_usb_write_control(M_io_handle_t *handle, const unsigned
 	handle->control_req.bRequest = (UInt8)type;
 	handle->control_req.wValue   = (UInt8)value;
 	handle->control_req.wIndex   = (UInt16)index;
-	handle->control_req.wLength  = (UInt16)M_buf_len(handle->control_wbuf);
+	handle->control_req.wLength  = (UInt16)M_MIN(M_io_usb_control_max_size(handle), M_buf_len(handle->control_wbuf));
 	handle->control_req.pData    = (void *)M_buf_peek(handle->control_wbuf);
 
 	ioret = (*handle->dev)->DeviceRequestAsync(handle->dev, &handle->control_req, M_io_usb_control_async_cb, handle);
