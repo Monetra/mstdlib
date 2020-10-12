@@ -67,7 +67,7 @@
 #define TIMER_SETEVENT 2 /*!< Uses timeSetEvent() from the Multimedia Timers for timers, Microsoft says these are deprecated. */
 #define TIMER_TIMEOUT  3 /*!< Uses the timeout parameter for WaitForMultipleObjects() for timers */
 /*! Set the desired timer method to use */
-#define TIMER_METHOD   TIMER_TIMEOUT
+#define TIMER_METHOD   TIMER_WAITABLE   /* Its possible we are seeing issues with TIMER_TIMEOUT in some instances */
 
 #if TIMER_METHOD == TIMER_SETEVENT
 #  include <mmsystem.h>
@@ -196,12 +196,6 @@ static void M_event_impl_win32_signal(M_event_data_t *data, M_EVENT_HANDLE handl
 {
 	/* Enqueue the result into the parent's event list */
 	M_list_insert(data->signalled, handle);
-
-	/* Wake up any threads waiting on events if we're changing the state */
-	if (data->state == M_EVENT_WIN32_STATE_WAITEVENT)
-		M_event_impl_win32_wakeall(data);
-
-	data->state = M_EVENT_WIN32_STATE_PREPARING;
 }
 
 
@@ -228,14 +222,17 @@ static void *M_event_impl_win32_eventthread(void *arg)
 
 					nhandles   = M_llist_len(threaddata->events) + 1;
 #if TIMER_METHOD == TIMER_WAITABLE || TIMER_METHOD == TIMER_SETEVENT
-					nhandles++;
+					if (threaddata->idx == 0)
+						nhandles++;
 #endif
 					handles    = M_malloc_zero(sizeof(*handles) * nhandles);
 					handles[0] = threaddata->wake;
 					nhandles   = 1;
 #if TIMER_METHOD == TIMER_WAITABLE || TIMER_METHOD == TIMER_SETEVENT
-					handles[1] = threaddata->parent->waittimer;
-					nhandles++;
+					if (threaddata->idx == 0) {
+						handles[1] = threaddata->parent->waittimer;
+						nhandles++;
+					}
 #endif
 					node       = M_llist_first(threaddata->events);
 					for (; node != NULL; nhandles++) {
@@ -308,6 +305,12 @@ static void *M_event_impl_win32_eventthread(void *arg)
 				retval = WaitForMultipleObjects((DWORD)nhandles, handles, FALSE, timeout);
 
 				M_thread_mutex_lock(threaddata->parent->lock);
+
+				/* Force all other threads to wake up to see if they had anything to process.  Might be wasteful, but this is windows afterall */
+				M_event_impl_win32_wakeall(data);
+				data->state = M_EVENT_WIN32_STATE_PREPARING;
+
+
 #if TIMER_METHOD == TIMER_SETEVENT
 				if (threaddata->idx == 0 && threaddata->parent->timerhandle != 0) {
 					/* See if timer event fired */
@@ -533,11 +536,6 @@ static M_bool M_event_impl_win32_wait(M_event_t *event, M_uint64 timeout_ms)
 
 	/* Signal threads if necessary and wait for them to finish */
 	M_thread_mutex_lock(data->lock);
-	if (data->state == M_EVENT_WIN32_STATE_WAITEVENT) {
-		/* This should only be true if a timeout occurred */
-		M_event_impl_win32_wakeall(data);
-		data->state = M_EVENT_WIN32_STATE_PREPARING;
-	}
 
 	while (data->num_threads_blocking) {
 		M_thread_cond_wait(data->cond, data->lock);
