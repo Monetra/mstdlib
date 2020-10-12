@@ -307,8 +307,8 @@ static void *M_event_impl_win32_eventthread(void *arg)
 				M_thread_mutex_lock(threaddata->parent->lock);
 
 				/* Force all other threads to wake up to see if they had anything to process.  Might be wasteful, but this is windows afterall */
-				M_event_impl_win32_wakeall(data);
-				data->state = M_EVENT_WIN32_STATE_PREPARING;
+				M_event_impl_win32_wakeall(threaddata->parent);
+				threaddata->parent->state = M_EVENT_WIN32_STATE_PREPARING;
 
 
 #if TIMER_METHOD == TIMER_SETEVENT
