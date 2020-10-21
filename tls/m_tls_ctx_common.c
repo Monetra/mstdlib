@@ -39,14 +39,19 @@
 #include "base/m_defs_int.h"
 #include "m_tls_ctx_common.h"
 
-/* We'll tack these on at the end of the client and server ciphers. Our cipher setting funcion
- * will parse out the TLSv1.3 only ones and non-TLSv1.3 from the string and set everything correctly. */
-#define TLS_v1_3_CIPHERS "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256"
-/* NOTE: Client still includes RC4 for now due to many servers only supporting RC4 due to
- *       lazy sysadmins that had heard of BEAST many years ago, otherwise enablement of
- *       RC4 should be the only difference. */
-#define TLS_CLIENT_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:RC4-SHA:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
-#define TLS_SERVER_CIPHERS "EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:EDH+aRSA:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA:!aNULL:!eNULL:!LOW:!3DES:!RC4:!MD5:!EXP:!PSK:!SRP:!DSS" ":" TLS_v1_3_CIPHERS
+#define TLS_v1_3_CIPHERS "TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256"
+#define TLS_v1_2_CIPHERS_STRONG "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA"
+#define TLS_v1_2_CIPHERS_MEDIUM "AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:AES128-SHA"
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
+/* Our cipher setting funcion will parse out the TLSv1.3 only ones and non-TLSv1.3 from the string and set everything correctly. */
+#  define TLS_SERVER_CIPHERS TLS_v1_3_CIPHERS ":" TLS_v1_2_CIPHERS_STRONG
+#else
+#  define OSSL_1_0_DISABLE_WEAK "!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!RC4:!SEED:!ECDSA:!ADH:!IDEA:!3DES"
+#  define TLS_SERVER_CIPHERS TLS_v1_2_CIPHERS_STRONG + ":" + OSSL_1_0_DISABLE_WEAK
+#endif
+
+#define TLS_CLIENT_CIPHERS TLS_SERVER_CIPHERS ":" TLS_v1_2_CIPHERS_MEDIUM
 
 
 SSL_CTX *M_tls_ctx_init(M_bool is_server)
@@ -91,7 +96,12 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 
 		/* Enable Forward Secrecy via ECDH */
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
-		/* Always enabled in 1.1.0+ */
+		/* Set strong order of curves/groups */
+		if (SSL_CTX_set1_groups_list(ctx, "X25519:secp521r1:secp384r1:prime256v1") != 1) {
+			SSL_CTX_free(ctx);
+			return NULL;
+		}
+
 #elif OPENSSL_VERSION_NUMBER >= 0x1000200fL
 		/* Auto is better since it will use the best curve supported by both sides */
 		SSL_CTX_set_ecdh_auto(ctx, 1);
