@@ -662,8 +662,8 @@ static M_bool M_io_proxy_protocol_process_inbound(M_io_layer_t *layer, M_io_hand
 		err     = M_io_layer_read(M_io_layer_get_io(layer), M_io_layer_get_index(layer) - 1, buf, &buf_len, NULL);
 		if (M_io_error_is_critical(err)) {
 			handle->state = M_IO_STATE_ERROR;
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, err);
 			*etype = M_EVENT_TYPE_ERROR;
+			return M_FALSE;
 		}
 		if (err == M_IO_ERROR_SUCCESS) {
 			M_parser_append(handle->parser, buf, buf_len);
@@ -683,8 +683,8 @@ static M_bool M_io_proxy_protocol_process_inbound(M_io_layer_t *layer, M_io_hand
 		*etype = M_EVENT_TYPE_CONNECTED;
 	} else if (smerr == M_STATE_MACHINE_STATUS_ERROR_STATE) {
 		handle->state = M_IO_STATE_ERROR;
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_PROTONOTSUPPORTED);
 		*etype = M_EVENT_TYPE_ERROR;
+		return M_FALSE;
 	}
 
 	return M_TRUE;
