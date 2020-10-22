@@ -185,6 +185,7 @@ static M_state_machine_status_t state_v1_protocol(void *data, M_uint64 *next)
 		M_parser_consume(handle->parser, 9);
 		return M_STATE_MACHINE_STATUS_DONE;
 	}
+	handle->local = M_FALSE;
 
 	len = M_parser_read_str_until(handle->parser, buf, sizeof(buf), " ", M_FALSE);
 	if (len == 0) {
@@ -1023,7 +1024,7 @@ M_bool M_io_proxy_protocol_relayed(M_io_t *io)
 	if (layer == NULL || handle == NULL)
 		return M_FALSE;
 
-	ret = handle->local;
+	ret = !handle->local;
 
 	M_io_layer_release(layer);
 	return ret;
