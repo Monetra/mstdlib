@@ -129,6 +129,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga800a91973aafe81a5ad3977fbc28c7ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga11f193aa2d827dcd1faf26dd20a3d2a0"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga11f193aa2d827dcd1faf26dd20a3d2a0">M_io_net_get_ipaddr</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
 <tr class="separator:ga11f193aa2d827dcd1faf26dd20a3d2a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9c00804a3f50b3cc60c4aa245b2a377c"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga9c00804a3f50b3cc60c4aa245b2a377c">M_io_net_get_server_ipaddr</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
+<tr class="separator:ga9c00804a3f50b3cc60c4aa245b2a377c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1ea4d8faa134421ebe9765d2c60e032a"><td class="memItemLeft" align="right" valign="top">unsigned short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga1ea4d8faa134421ebe9765d2c60e032a">M_io_net_get_port</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
 <tr class="separator:ga1ea4d8faa134421ebe9765d2c60e032a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9b5c7120aabf48773a689e3b17ddf33b"><td class="memItemLeft" align="right" valign="top">unsigned short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga9b5c7120aabf48773a689e3b17ddf33b">M_io_net_get_ephemeral_port</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
@@ -503,6 +505,32 @@ Server</h2>
 
 </div>
 </div>
+<a id="ga9c00804a3f50b3cc60c4aa245b2a377c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9c00804a3f50b3cc60c4aa245b2a377c">&#9670;&nbsp;</a></span>M_io_net_get_server_ipaddr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_net_get_server_ipaddr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the IP address of the server interface the end point connected to.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>io object.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>String. </dd></dl>
+
+</div>
+</div>
 <a id="ga1ea4d8faa134421ebe9765d2c60e032a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga1ea4d8faa134421ebe9765d2c60e032a">&#9670;&nbsp;</a></span>M_io_net_get_port()</h2>
 
@@ -740,7 +768,7 @@ Server</h2>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Wed Oct 21 2020 19:17:54 for Mstdlib-1.13.0 by
+    <li class="footer">Generated on Thu Oct 22 2020 20:52:26 for Mstdlib-1.13.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -15,6 +15,7 @@ var group__m__io__net =
     [ "M_io_net_get_fqdn", "group__m__io__net.html#gaa687a683e208d9a009cf728caf6f96df", null ],
     [ "M_io_net_get_host", "group__m__io__net.html#ga800a91973aafe81a5ad3977fbc28c7ca", null ],
     [ "M_io_net_get_ipaddr", "group__m__io__net.html#ga11f193aa2d827dcd1faf26dd20a3d2a0", null ],
+    [ "M_io_net_get_server_ipaddr", "group__m__io__net.html#ga9c00804a3f50b3cc60c4aa245b2a377c", null ],
     [ "M_io_net_get_port", "group__m__io__net.html#ga1ea4d8faa134421ebe9765d2c60e032a", null ],
     [ "M_io_net_get_ephemeral_port", "group__m__io__net.html#ga9b5c7120aabf48773a689e3b17ddf33b", null ],
     [ "M_io_net_get_type", "group__m__io__net.html#ga79dfed55a6ba8ccf55d1cef9fc89f8c3", null ],
