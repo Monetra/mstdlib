@@ -432,6 +432,15 @@ M_API const char *M_io_net_get_host(M_io_t *io);
 M_API const char *M_io_net_get_ipaddr(M_io_t *io);
 
 
+/*! Get the IP address of the server interface the end point connected to.
+ *
+ * \param[in] io io object.
+ *
+ * \return String.
+ */
+M_API const char *M_io_net_get_server_ipaddr(M_io_t *io);
+
+
 /*! Get the port of the connected endpoint.
  *
  * \param[in] io io object.

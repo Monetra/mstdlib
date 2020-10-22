@@ -83,6 +83,7 @@
 #include <mstdlib/io/m_io_bwshaping.h>
 #include <mstdlib/io/m_io_loopback.h>
 #include <mstdlib/io/m_io_process.h>
+#include <mstdlib/io/m_io_proxy_protocol.h>
 #include <mstdlib/io/m_io_serial.h>
 #include <mstdlib/io/m_io_hid.h>
 #include <mstdlib/io/m_io_mfi.h>
