@@ -686,6 +686,7 @@ static void M_io_net_destroy_cb(M_io_layer_t *layer)
 	/* reset_cb() ensures handle is closed */
 
 	M_free(handle->host);
+	M_free(handle->server_ipaddr);
 	M_free(handle);
 }
 
@@ -1202,9 +1203,10 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 #else
 	struct sockaddr_in      sockaddr;
 #endif
-	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
-	socklen_t               sockaddr_size = sizeof(sockaddr);
-	char                    addr[64]      = { 0 };
+	struct sockaddr        *sockaddr_ptr    = (struct sockaddr *)&sockaddr;
+	socklen_t               sockaddr_size   = sizeof(sockaddr);
+	char                    addr[64]        = { 0 };
+	char                    server_addr[64] = { 0 };
 
 	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
 
@@ -1237,16 +1239,38 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 
 	if (sockaddr_ptr->sa_family == AF_INET) {
 		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
+		struct sockaddr_in  server_in;
+		socklen_t           len         = sizeof(server_in);
+
+		M_mem_set(&server_in, 0, len);
+		getsockname(handle->data.net.sock, (struct sockaddr *)&server_in, &len);
+		M_dns_ntop(AF_INET, &server_in.sin_addr, server_addr, sizeof(server_addr));
+
 		M_dns_ntop(AF_INET, &sockaddr_in->sin_addr, addr, sizeof(addr));
 		handle->data.net.eport = sockaddr_in->sin_port;
 		handle->type           = M_IO_NET_IPV4;
 #ifdef AF_INET6
 	} else if (sockaddr_ptr->sa_family == AF_INET6) {
 		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
+		struct sockaddr_in6  server_in;
+		socklen_t            len         = sizeof(server_in);
+
+		M_mem_set(&server_in, 0, len);
+		getsockname(handle->data.net.sock, (struct sockaddr *)&server_in, &len);
+		M_dns_ntop(AF_INET6, &server_in.sin6_addr, server_addr, sizeof(server_addr));
+
 		M_dns_ntop(AF_INET6, &sockaddr_in6->sin6_addr, addr, sizeof(addr));
 		handle->data.net.eport = sockaddr_in6->sin6_port;
 		handle->type           = M_IO_NET_IPV6;
 #endif
+	}
+	if (!M_str_isempty(server_addr)) {
+		if (handle->type == M_IO_NET_IPV6 && M_str_caseeq_max(addr, "::ffff:", 7)) {
+			/* Rewrite an IPv4 connection coming in on an IPv6 listener as if it was IPv4 */
+			handle->server_ipaddr = M_strdup(server_addr + 7);
+		} else {
+			handle->server_ipaddr = M_strdup(server_addr);
+		}
 	}
 	if (!M_str_isempty(addr)) {
 		if (handle->type == M_IO_NET_IPV6 && M_str_caseeq_max(addr, "::ffff:", 7)) {
@@ -1512,6 +1536,22 @@ const char *M_io_net_get_ipaddr(M_io_t *io)
 	} else {
 		ret = handle->host;
 	}
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
+
+const char *M_io_net_get_server_ipaddr(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, "NET");
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	const char    *ret    = NULL;
+
+	if (layer == NULL || handle == NULL)
+		return NULL;
+
+	ret = handle->server_ipaddr;
 
 	M_io_layer_release(layer);
 	return ret;

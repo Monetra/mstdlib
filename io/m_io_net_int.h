@@ -83,6 +83,7 @@ struct M_io_handle_netdns {
 
 struct M_io_handle {
 	char               *host;          /*!< Hostname or IP address                           */
+	char               *server_ipaddr; /*!< IP address interface                             */
 	unsigned short      port;          /*!< Port being used                                  */
 	M_io_net_type_t     type;          /*!< Network type                                     */
 	M_io_net_state_t    state;         /*!< Current state                                    */
