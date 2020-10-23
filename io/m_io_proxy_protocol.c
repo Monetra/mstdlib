@@ -182,7 +182,7 @@ static M_state_machine_status_t state_v1_protocol(void *data, M_uint64 *next)
 		return M_STATE_MACHINE_STATUS_WAIT;
 
 	/* Check for the special case 'UNKNOWN' protocol. */
-	if (M_parser_compare_str(handle->parser, "UNKNOWN\r\n", 0 , M_FALSE)) {
+	if (M_parser_compare_str(handle->parser, "UNKNOWN\r\n", 9 , M_FALSE)) {
 		handle->local = M_TRUE;
 		M_parser_consume(handle->parser, 9);
 		return M_STATE_MACHINE_STATUS_DONE;
