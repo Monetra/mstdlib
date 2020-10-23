@@ -1,5 +1,6 @@
 var NAVTREEINDEX12 =
 {
+"group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3c4abf1e509c34965635f1022e974817":[1,6,2,0,25],
 "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3eda0e0b394b4076441ef05652921fa1":[1,6,2,0,16],
 "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea3f40d0160afa7e87a421d869c5e422fd":[1,6,2,0,11],
 "group__m__sql__error.html#ggaae10ff11eb7d5583afcffa6ec87c753ea4321145ef534b2263011566a66b8bef8":[1,6,2,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX12 =
 "group__m__sql__trace.html#gad5dd322b454db66c048701f6f006c1a6":[1,6,3,0,18],
 "group__m__sql__trace.html#gad86d53d74a90a5ecd310220ab6a6a198":[1,6,3,0,20],
 "group__m__sql__trace.html#gadb2e2bfde27cd30c5d8beb642fdb8cb4":[1,6,3,0,8],
-"group__m__sql__trace.html#gadd8d821a9067cadbdc696bf86c1c2f14":[1,6,3,0,11],
-"group__m__sql__trace.html#gae2940cffa1bfd6392ff75b6a01cc8e07":[1,6,3,0,17]
+"group__m__sql__trace.html#gadd8d821a9067cadbdc696bf86c1c2f14":[1,6,3,0,11]
 };

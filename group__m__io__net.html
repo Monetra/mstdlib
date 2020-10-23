@@ -137,6 +137,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga9b5c7120aabf48773a689e3b17ddf33b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga79dfed55a6ba8ccf55d1cef9fc89f8c3"><td class="memItemLeft" align="right" valign="top">enum <a class="el" href="group__m__io__net.html#ga84d77b37b252e30d90cc6fd2a416267e">M_io_net_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga79dfed55a6ba8ccf55d1cef9fc89f8c3">M_io_net_get_type</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
 <tr class="separator:ga79dfed55a6ba8ccf55d1cef9fc89f8c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3d9099f03e6b83e69bedc5316482cb8"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#gaf3d9099f03e6b83e69bedc5316482cb8">M_io_net_get_connect_timeout_ms</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
+<tr class="separator:gaf3d9099f03e6b83e69bedc5316482cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2432418ae7518ec1b29853ad9d6ac6f3"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#ga2432418ae7518ec1b29853ad9d6ac6f3">M_io_net_time_dns_ms</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
 <tr class="separator:ga2432418ae7518ec1b29853ad9d6ac6f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa365d2376afcc59c072f3f6d30c5df5d"><td class="memItemLeft" align="right" valign="top">M_uint64&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__net.html#gaa365d2376afcc59c072f3f6d30c5df5d">M_io_net_time_connect_ms</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
@@ -609,6 +611,33 @@ Server</h2>
 
 </div>
 </div>
+<a id="gaf3d9099f03e6b83e69bedc5316482cb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf3d9099f03e6b83e69bedc5316482cb8">&#9670;&nbsp;</a></span>M_io_net_get_connect_timeout_ms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_uint64 M_io_net_get_connect_timeout_ms </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get connection timeout</p>
+<p>This is not the amount of time connec took, this is the timeout allowe for connect to take place.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">io</td><td>io object.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Timeout in milliseconds. </dd></dl>
+
+</div>
+</div>
 <a id="ga2432418ae7518ec1b29853ad9d6ac6f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga2432418ae7518ec1b29853ad9d6ac6f3">&#9670;&nbsp;</a></span>M_io_net_time_dns_ms()</h2>
 
@@ -768,7 +797,7 @@ Server</h2>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 23 2020 13:26:38 for Mstdlib-1.13.0 by
+    <li class="footer">Generated on Fri Oct 23 2020 13:39:34 for Mstdlib-1.13.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

@@ -915,6 +915,7 @@ var searchData=
   ['m_5fio_5fmfi_5fenum_5fserialnum',['M_io_mfi_enum_serialnum',['../group__m__io__mfi.html#ga63a89a434f9b299b6bb813570deb9e75',1,'m_io_mfi.h']]],
   ['m_5fio_5fnet_5fbin_5fto_5fipaddr',['M_io_net_bin_to_ipaddr',['../group__m__io__net.html#ga9c6bb6eb74bae838ffe5d53e908874bb',1,'m_io_net.h']]],
   ['m_5fio_5fnet_5fclient_5fcreate',['M_io_net_client_create',['../group__m__io__net.html#ga9c11a4575c3389ee8d11b6f084e257bd',1,'m_io_net.h']]],
+  ['m_5fio_5fnet_5fget_5fconnect_5ftimeout_5fms',['M_io_net_get_connect_timeout_ms',['../group__m__io__net.html#gaf3d9099f03e6b83e69bedc5316482cb8',1,'m_io_net.h']]],
   ['m_5fio_5fnet_5fget_5fephemeral_5fport',['M_io_net_get_ephemeral_port',['../group__m__io__net.html#ga9b5c7120aabf48773a689e3b17ddf33b',1,'m_io_net.h']]],
   ['m_5fio_5fnet_5fget_5ffqdn',['M_io_net_get_fqdn',['../group__m__io__net.html#gaa687a683e208d9a009cf728caf6f96df',1,'m_io_net.h']]],
   ['m_5fio_5fnet_5fget_5fhost',['M_io_net_get_host',['../group__m__io__net.html#ga800a91973aafe81a5ad3977fbc28c7ca',1,'m_io_net.h']]],
