@@ -886,7 +886,7 @@ static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_OTHER:
 			handle->state = M_IO_STATE_CONNECTING;
-			timeout_ms = M_io_net_time_connect_ms(io);
+			timeout_ms = M_io_net_get_connect_timeout_ms(io);
 			if (handle->timer == NULL && timeout_ms != 0) {
 				handle->timer = M_event_timer_add(M_io_get_event(io), M_io_proxy_protocol_timeout_cb, layer);
 				M_event_timer_set_firecount(handle->timer, 1);

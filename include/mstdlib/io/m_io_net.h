@@ -468,6 +468,17 @@ M_API unsigned short M_io_net_get_ephemeral_port(M_io_t *io);
 M_API enum M_io_net_type M_io_net_get_type(M_io_t *io);
 
 
+/*! Get connection timeout
+ *
+ * This is not the amount of time connec took, this is the
+ * timeout allowe for connect to take place.
+ *
+ * \param[in] io io object.
+ *
+ * \return Timeout in milliseconds.
+ */
+M_API M_uint64 M_io_net_get_connect_timeout_ms(M_io_t *io);
+
 /*! Amount of time DNS query took
  *
  * \param[in] io io object.

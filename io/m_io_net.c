@@ -1505,6 +1505,21 @@ M_bool M_io_net_set_connect_timeout_ms(M_io_t *io, M_uint64 timeout_ms)
 	return M_TRUE;
 }
 
+M_uint64 M_io_net_get_connect_timeout_ms(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, "NET");
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_uint64       ret;
+
+	if (layer == NULL || handle == NULL)
+		return 0;
+
+	ret = handle->settings.connect_timeout_ms;
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
 const char *M_io_net_get_host(M_io_t *io)
 {
 	M_io_layer_t  *layer  = M_io_layer_acquire(io, 0, "NET");
