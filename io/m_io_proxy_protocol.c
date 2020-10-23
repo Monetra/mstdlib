@@ -50,6 +50,8 @@ struct M_io_handle {
 
 	size_t v2_dlen;
 
+	M_event_timer_t             *timer;
+
 };
 
 typedef enum {
@@ -583,6 +585,23 @@ static M_state_machine_t *create_inbound_sm(void)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static void M_io_proxy_protocol_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *comm_bogus, void *data)
+{
+	M_io_layer_t  *layer  = data;
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	(void)event;
+	(void)type;
+	(void)comm_bogus;
+
+	if (handle->state != M_IO_STATE_CONNECTING)
+		return;
+	handle->state = M_IO_STATE_ERROR;
+
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_IO_ERROR_TIMEDOUT);
+	M_event_timer_stop(handle->timer);
+}
+
 static M_bool M_io_proxy_protocol_init_cb(M_io_layer_t *layer)
 {
 	(void)layer;
@@ -680,6 +699,10 @@ static M_bool M_io_proxy_protocol_process_inbound(M_io_layer_t *layer, M_io_hand
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		if (M_parser_len(handle->parser) > 0) {
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+		}
+		if (handle->timer) {
+			M_event_timer_remove(handle->timer);
+			handle->timer = NULL;
 		}
 		*etype = M_EVENT_TYPE_CONNECTED;
 	} else if (smerr == M_STATE_MACHINE_STATUS_ERROR_STATE) {
@@ -850,6 +873,8 @@ static M_bool M_io_proxy_protocol_process_outbound(M_io_layer_t *layer, M_io_han
 static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t *etype)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	M_io_t        *io     = M_io_layer_get_io(layer);
+	M_uint64       timeout_ms;
 
 	if (handle->complete)
 		return M_FALSE;
@@ -861,6 +886,12 @@ static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_OTHER:
 			handle->state = M_IO_STATE_CONNECTING;
+			timeout_ms = M_io_net_time_connect_ms(io);
+			if (handle->timer == NULL && timeout_ms != 0) {
+				handle->timer = M_event_timer_add(M_io_get_event(io), M_io_proxy_protocol_timeout_cb, layer);
+				M_event_timer_set_firecount(handle->timer, 1);
+				M_event_timer_reset(handle->timer, timeout_ms);
+			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			handle->state = M_IO_STATE_DISCONNECTED;
@@ -912,6 +943,10 @@ static M_bool M_io_proxy_protocol_reset_cb(M_io_layer_t *layer)
 	handle->dest_port     = 0;
 	handle->net_type      = M_IO_NET_ANY;
 	handle->v2_dlen       = 0;
+	if (handle->timer) {
+		M_event_timer_remove(handle->timer);
+		handle->timer = NULL;
+	}
 
 	return M_TRUE;
 }
@@ -928,6 +963,7 @@ static void M_io_proxy_protocol_destroy_cb(M_io_layer_t *layer)
 	M_buf_cancel(handle->buf);
 	M_free(handle->source_ipaddr);
 	M_free(handle->dest_ipaddr);
+	M_event_timer_remove(handle->timer);
 
 	M_free(handle);
 }
