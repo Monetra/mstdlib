@@ -960,11 +960,13 @@ M_io_error_t M_io_proxy_protocol_inbound_add(M_io_t *io, size_t *layer_id, M_uin
 	if (io == NULL)
 		return M_IO_ERROR_INVALID;
 
-	handle            = M_malloc_zero(sizeof(*handle));
-	handle->flags     = flags;
+	handle             = M_malloc_zero(sizeof(*handle));
+	handle->flags      = flags;
 	handle->is_inbound = M_TRUE;
-	handle->parser    = M_parser_create(M_PARSER_FLAG_NONE);
-	handle->sm        = create_inbound_sm();
+	handle->parser     = M_parser_create(M_PARSER_FLAG_NONE);
+	handle->sm         = create_inbound_sm();
+	/* Local until we have a connection with proxy information. */
+	handle->local      = M_TRUE;
 
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_proxy_protocol_init_cb);
@@ -997,6 +999,8 @@ M_io_error_t M_io_proxy_protocol_outbound_add(M_io_t *io, size_t *layer_id, M_ui
 	handle->flags      = flags;
 	handle->is_inbound = M_FALSE;
 	handle->buf        = M_buf_create();
+	/* Local until proxy information is set. */
+	handle->local      = M_TRUE;
 
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_proxy_protocol_init_cb);
