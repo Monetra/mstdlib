@@ -1145,6 +1145,22 @@ M_io_net_type_t M_io_proxy_protocol_proxied_type(M_io_t *io)
 	return ret;
 }
 
+const char *M_io_proxy_protocol_get_ipaddr(M_io_t *io)
+{
+	M_io_layer_t  *layer  = M_io_proxy_protocol_get_top_proxy_protocol_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	const char    *ret;
+
+	if (layer == NULL || handle == NULL || handle->local) {
+		ret = M_io_net_get_ipaddr(io);
+	} else {
+		ret = handle->source_ipaddr;
+	}
+
+	M_io_layer_release(layer);
+	return ret;
+}
+
 M_bool M_io_proxy_protocol_set_source_endpoints(M_io_t *io, const char *source_ipaddr, const char *dest_ipaddr, M_uint16 source_port, M_uint16 dest_port)
 {
 	M_io_layer_t    *layer  = M_io_proxy_protocol_get_top_proxy_protocol_layer(io);
