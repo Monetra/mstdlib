@@ -117,6 +117,10 @@ Functions</h2></td></tr>
 <tr class="separator:gaa24ad926cb118e7260ebb5e26c8057b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4721163ab454a575722f3fd628702b71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__m__io__net.html#ga0d3c956e19a647267f818beb367de6bc">M_io_net_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__proxy__protocol.html#ga4721163ab454a575722f3fd628702b71">M_io_proxy_protocol_proxied_type</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
 <tr class="separator:ga4721163ab454a575722f3fd628702b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f11acf1e855088b6c899224c06003b8"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__proxy__protocol.html#ga5f11acf1e855088b6c899224c06003b8">M_io_proxy_protocol_get_ipaddr</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io)</td></tr>
+<tr class="separator:ga5f11acf1e855088b6c899224c06003b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5004b110af7c31ec4dbbe2b6a0961eae"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__proxy__protocol.html#ga5004b110af7c31ec4dbbe2b6a0961eae">M_io_proxy_protocol_set_connect_timeout_ms</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, M_uint64 timeout_ms)</td></tr>
+<tr class="separator:ga5004b110af7c31ec4dbbe2b6a0961eae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga263a6cac977efe462bb133a1a562a7c6"><td class="memItemLeft" align="right" valign="top">M_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__m__io__proxy__protocol.html#ga263a6cac977efe462bb133a1a562a7c6">M_io_proxy_protocol_set_source_endpoints</a> (<a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *io, const char *source_ipaddr, const char *dest_ipaddr, M_uint16 source_port, M_uint16 dest_port)</td></tr>
 <tr class="separator:ga263a6cac977efe462bb133a1a562a7c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -426,6 +430,64 @@ Using Proxy Server and Echo Server Examples</h2>
 
 </div>
 </div>
+<a id="ga5f11acf1e855088b6c899224c06003b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5f11acf1e855088b6c899224c06003b8">&#9670;&nbsp;</a></span>M_io_proxy_protocol_get_ipaddr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* M_io_proxy_protocol_get_ipaddr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the IP address of the client falling back to the network connection.</p>
+<p>When using proxy protocol this should be used instead of <code>M_io_net_get_ipaddr</code> in most instances. This can be used even when proxy protocol is not in use. This is especially useful when using an internal IP based blacklist for denying connections to a client as part of an intrusion prevention system (IPS).</p>
+<p>This function is the equivalent of checking <code>M_io_proxy_protocol_relayed</code> and then calling either <code>M_io_proxy_protocol_source_ipaddr</code> or <code>M_io_net_get_ipaddr</code> based on whether the connection is relayed.</p>
+<p>This is a conscience especially for instances where proxy protocol could be used. For example, a configuration option or when some but not all connections will use the protocol. This function allows for use in both scenerios and will always return the correct IP address for the client, whether proxied for not.</p>
+<p>param[in] io io object.</p>
+<dl class="section return"><dt>Returns</dt><dd>String </dd></dl>
+
+</div>
+</div>
+<a id="ga5004b110af7c31ec4dbbe2b6a0961eae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5004b110af7c31ec4dbbe2b6a0961eae">&#9670;&nbsp;</a></span>M_io_proxy_protocol_set_connect_timeout_ms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">M_bool M_io_proxy_protocol_set_connect_timeout_ms </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__m__io.html#ga845c131d8520206a2a7a9219d1bd1932">M_io_t</a> *&#160;</td>
+          <td class="paramname"><em>io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">M_uint64&#160;</td>
+          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set connect timeout.</p>
+<p>This is the timeout to wait for a connection to receive all proxy protocol data. This timeout applies after the net connect timeout.</p>
+<p>Proxy protocol is designed for all data to fit within a single TCP frame. Meaning, the data should not buffer between multiple events. As such the default timeout is 500 ms. This function can be used to increase that timeout for obscenely slow connections.</p>
+<p>Connect timeout applies to both inbound and outbound (receiving and writing), the proxy data.</p>
+<p>param[in] io io object. param[in] timeout_ms Timeout in milliseconds.</p>
+<dl class="section return"><dt>Returns</dt><dd>M_TRUE when proxy protocol in use. Otherwise, M_FALSE. </dd></dl>
+
+</div>
+</div>
 <a id="ga263a6cac977efe462bb133a1a562a7c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga263a6cac977efe462bb133a1a562a7c6">&#9670;&nbsp;</a></span>M_io_proxy_protocol_set_source_endpoints()</h2>
 
@@ -492,7 +554,7 @@ Using Proxy Server and Echo Server Examples</h2>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Fri Oct 23 2020 14:49:47 for Mstdlib-1.13.0 by
+    <li class="footer">Generated on Mon Oct 26 2020 15:21:18 for Mstdlib-1.13.0 by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.13 </li>
   </ul>

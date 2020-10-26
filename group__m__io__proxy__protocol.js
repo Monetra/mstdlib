@@ -13,5 +13,7 @@ var group__m__io__proxy__protocol =
     [ "M_io_proxy_protocol_source_port", "group__m__io__proxy__protocol.html#gad8431b167cf43e4f48690ab943272cab", null ],
     [ "M_io_proxy_protocol_dest_port", "group__m__io__proxy__protocol.html#gaa24ad926cb118e7260ebb5e26c8057b2", null ],
     [ "M_io_proxy_protocol_proxied_type", "group__m__io__proxy__protocol.html#ga4721163ab454a575722f3fd628702b71", null ],
+    [ "M_io_proxy_protocol_get_ipaddr", "group__m__io__proxy__protocol.html#ga5f11acf1e855088b6c899224c06003b8", null ],
+    [ "M_io_proxy_protocol_set_connect_timeout_ms", "group__m__io__proxy__protocol.html#ga5004b110af7c31ec4dbbe2b6a0961eae", null ],
     [ "M_io_proxy_protocol_set_source_endpoints", "group__m__io__proxy__protocol.html#ga263a6cac977efe462bb133a1a562a7c6", null ]
 ];
