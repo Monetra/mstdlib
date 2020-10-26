@@ -641,6 +641,29 @@ M_API M_io_net_type_t M_io_proxy_protocol_proxied_type(M_io_t *io);
 M_API const char *M_io_proxy_protocol_get_ipaddr(M_io_t *io);
 
 
+/*! Set connect timeout.
+ *
+ * This is the timeout to wait for a connection to receive
+ * all proxy protocol data. This timeout applies after the net
+ * connect timeout.
+ *
+ * Proxy protocol is designed for all data to fit within a
+ * single TCP frame. Meaning, the data should not buffer between
+ * multiple events. As such the default timeout is 500 ms. This
+ * function can be used to increase that timeout for obscenely slow
+ * connections.
+ *
+ * Connect timeout applies to both inbound and outbound (receiving
+ * and writing), the proxy data.
+ *
+ * param[in] io         io object.
+ * param[in] timeout_ms Timeout in milliseconds.
+ *
+ * \return M_TRUE when proxy protocol in use. Otherwise, M_FALSE.
+ */
+M_API M_bool M_io_proxy_protocol_set_connect_timeout_ms(M_io_t *io, M_uint64 timeout_ms);
+
+
 /*! Source and destination information that will be sent on connect.
  *
  * Only applies to outbound connections.
