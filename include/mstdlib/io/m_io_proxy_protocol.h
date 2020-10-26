@@ -618,6 +618,29 @@ M_API M_uint16 M_io_proxy_protocol_dest_port(M_io_t *io);
 M_API M_io_net_type_t M_io_proxy_protocol_proxied_type(M_io_t *io);
 
 
+/*! Get the IP address of the client falling back to the network connection.
+ *
+ * When using proxy protocol this should be used instead of `M_io_net_get_ipaddr`
+ * in most instances. This can be used even when proxy protocol is not in use.
+ * This is especially useful when using an internal IP based blacklist for denying
+ * connections to a client as part of an intrusion prevention system (IPS).
+ *
+ * This function is the equivalent of checking `M_io_proxy_protocol_relayed`
+ * and then calling either `M_io_proxy_protocol_source_ipaddr` or `M_io_net_get_ipaddr`
+ * based on whether the connection is relayed.
+ *
+ * This is a conscience especially for instances where proxy protocol could be used.
+ * For example, a configuration option or when some but not all connections will
+ * use the protocol. This function allows for use in both scenerios and will always
+ * return the correct IP address for the client, whether proxied for not.
+ *
+ * param[in] io io object.
+ *
+ * \return String
+ */
+M_API const char *M_io_proxy_protocol_get_ipaddr(M_io_t *io);
+
+
 /*! Source and destination information that will be sent on connect.
  *
  * Only applies to outbound connections.
