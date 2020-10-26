@@ -50,6 +50,7 @@ struct M_io_handle {
 
 	size_t v2_dlen;
 
+	M_uint64                     timeout_ms;
 	M_event_timer_t             *timer;
 
 };
@@ -733,10 +734,15 @@ static M_bool write_event_header_data(M_io_layer_t *layer, M_io_handle_t *handle
 	} while (err == M_IO_ERROR_SUCCESS && M_buf_len(handle->buf) > 0);
 
 	if (M_buf_len(handle->buf) == 0) {
-		handle->state = M_IO_STATE_CONNECTED;
+		handle->state    = M_IO_STATE_CONNECTED;
+		handle->complete = M_TRUE;
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		if (*etype == M_EVENT_TYPE_WRITE) {
 			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
+		}
+		if (handle->timer) {
+			M_event_timer_remove(handle->timer);
+			handle->timer = NULL;
 		}
 	}
 
@@ -874,7 +880,6 @@ static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_uint64       timeout_ms;
 
 	if (handle->complete)
 		return M_FALSE;
@@ -886,11 +891,10 @@ static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_OTHER:
 			handle->state = M_IO_STATE_CONNECTING;
-			timeout_ms = M_io_net_get_connect_timeout_ms(io);
-			if (handle->timer == NULL && timeout_ms != 0) {
+			if (handle->timer == NULL && handle->timeout_ms != 0) {
 				handle->timer = M_event_timer_add(M_io_get_event(io), M_io_proxy_protocol_timeout_cb, layer);
 				M_event_timer_set_firecount(handle->timer, 1);
-				M_event_timer_reset(handle->timer, timeout_ms);
+				M_event_timer_reset(handle->timer, handle->timeout_ms);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -1003,6 +1007,7 @@ M_io_error_t M_io_proxy_protocol_inbound_add(M_io_t *io, size_t *layer_id, M_uin
 	handle->sm         = create_inbound_sm();
 	/* Local until we have a connection with proxy information. */
 	handle->local      = M_TRUE;
+	handle->timeout_ms = 500;
 
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_proxy_protocol_init_cb);
@@ -1159,6 +1164,20 @@ const char *M_io_proxy_protocol_get_ipaddr(M_io_t *io)
 
 	M_io_layer_release(layer);
 	return ret;
+}
+
+M_bool M_io_proxy_protocol_set_connect_timeout_ms(M_io_t *io, M_uint64 timeout_ms)
+{
+	M_io_layer_t  *layer  = M_io_proxy_protocol_get_top_proxy_protocol_layer(io);
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	if (layer == NULL || handle == NULL)
+		return M_FALSE;
+
+	handle->timeout_ms = timeout_ms;
+
+	M_io_layer_release(layer);
+	return M_TRUE;
 }
 
 M_bool M_io_proxy_protocol_set_source_endpoints(M_io_t *io, const char *source_ipaddr, const char *dest_ipaddr, M_uint16 source_port, M_uint16 dest_port)
