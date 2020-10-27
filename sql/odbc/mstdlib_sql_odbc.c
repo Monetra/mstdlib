@@ -107,20 +107,22 @@ typedef void (*M_sql_driver_cb_createtable_suffix_odbc_t)(M_sql_connpool_t *pool
 
 
 typedef struct {
-	const char                               *name;                  /*!< SQL Server Name, used for matching (uses substring matching) */
-	M_bool                                    is_multival_insert_cd; /*!< Uses comma-delimited multi-value insertion */
-	M_bool                                    supports_c_sbigint;    /*!< Whether or not the database supports the SQL_C_SBIGINT datatype or not.  Will use SQL_C_NUMERIC if not. */
-	size_t                                    max_insert_records;    /*!< Maximum number of records that can be inserted at once. 0=unlimited */
-	size_t                                    max_bind_params;       /*!< Maximum number of bind params in a query. 0=unlimited */
-	size_t                                    unknown_size_ind;      /*!< Some DBs (PostgreSQL) use a length value to indicate a max or unknown size for results like 255 */
+	const char                               *name;                   /*!< SQL Server Name, used for matching (uses substring matching) */
+	M_bool                                    is_multival_insert_cd;  /*!< Uses comma-delimited multi-value insertion */
+	M_bool                                    supports_c_sbigint;     /*!< Whether or not the database supports the SQL_C_SBIGINT datatype or not.  Will use SQL_C_NUMERIC if not. */
+	M_bool                                    insert_conflict_rowcnt; /*!< If the number of rows requested doesn't match rows processed on insert, it means there was a conflict. */
+	M_bool                                    on_conflict_do_nothing; /*!< Prevent aborting the transaction if a conflict is detected on insert by appending ON CONFLICT DO NOTHING to the query */
+	size_t                                    max_insert_records;     /*!< Maximum number of records that can be inserted at once. 0=unlimited */
+	size_t                                    max_bind_params;        /*!< Maximum number of bind params in a query. 0=unlimited */
+	size_t                                    unknown_size_ind;       /*!< Some DBs (PostgreSQL) use a length value to indicate a max or unknown size for results like 255 */
 
-	M_sql_driver_cb_resolve_error_t           cb_resolve_error;      /*!< Required. Dereference server-specific error code */
-	M_sql_driver_cb_connect_runonce_t         cb_connect_runonce;    /*!< Optional. Commands to execute on connect */
-	M_sql_driver_cb_datatype_t                cb_datatype;           /*!< Required. Server-specific data types supported */
-	M_sql_driver_cb_createtable_suffix_odbc_t cb_createtable_suffix; /*!< Optional. Append CREATE TABLE suffix */
-	M_sql_driver_cb_append_updlock_t          cb_append_updlock;     /*!< Optional. Callback used to append row-level locking data */
-	M_sql_driver_cb_append_bitop_t            cb_append_bitop;       /*!< Required. Callback used to append a bit operation */
-	M_sql_driver_cb_rewrite_indexname_t       cb_rewrite_indexname;  /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
+	M_sql_driver_cb_resolve_error_t           cb_resolve_error;       /*!< Required. Dereference server-specific error code */
+	M_sql_driver_cb_connect_runonce_t         cb_connect_runonce;     /*!< Optional. Commands to execute on connect */
+	M_sql_driver_cb_datatype_t                cb_datatype;            /*!< Required. Server-specific data types supported */
+	M_sql_driver_cb_createtable_suffix_odbc_t cb_createtable_suffix;  /*!< Optional. Append CREATE TABLE suffix */
+	M_sql_driver_cb_append_updlock_t          cb_append_updlock;      /*!< Optional. Callback used to append row-level locking data */
+	M_sql_driver_cb_append_bitop_t            cb_append_bitop;        /*!< Required. Callback used to append a bit operation */
+	M_sql_driver_cb_rewrite_indexname_t       cb_rewrite_indexname;   /*!< Optional. Callback used to rewrite an index name to comply with DB requirements */
 } odbc_server_profile_t;
 
 
@@ -157,9 +159,11 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 		 * same crash as we see:
 		 * https://www.easysoft.com/support/kb/kb00808.html (Issue #2)
 		 */
-		"Microsoft SQL Server",       /* name                  */
-		M_TRUE,                       /* is_multival_insert_cd */
-		M_TRUE,                       /* SQL_C_SBIGINT         */
+		"Microsoft SQL Server",       /* name                   */
+		M_TRUE,                       /* is_multival_insert_cd  */
+		M_TRUE,                       /* SQL_C_SBIGINT          */
+		M_FALSE,                      /* insert_conflict_rowcnt */
+		M_FALSE,                      /* on_conflict_do_nothing */
 		/* Docs used to mention a limit of 1000 rows but that reference has been
 		 * removed, but here is discussion:
 		 * https://social.msdn.microsoft.com/Forums/sqlserver/en-US/bff53b3d-bf50-413f-891e-75af427394e2/limit-to-number-of-insert-statements-or-values-clauses?forum=transactsql
@@ -185,86 +189,96 @@ static const odbc_server_profile_t odbc_server_profiles[] = {
 	},
 
 	{
-		"DB2",                        /* name                  */
-		M_FALSE,                      /* is_multival_insert_cd */
-		M_TRUE,                       /* SQL_C_SBIGINT         */
-		0,                            /* max_insert_records    */
-		0,                            /* max_bind_params       */
-		0,                            /* unknown_size_ind      */
-		db2_resolve_error,            /* cb_resolve_error      */
-		NULL,                         /* cb_connect_runonce    */
-		db2_cb_datatype,              /* cb_datatype           */
-		NULL,                         /* cb_createtable_suffix */
-		db2_cb_append_updlock,        /* cb_append_updlock     */
-		db2_cb_append_bitop,          /* cb_append_bitop       */
-		NULL                          /* cb_rewrite_indexname  */
+		"DB2",                        /* name                   */
+		M_FALSE,                      /* is_multival_insert_cd  */
+		M_TRUE,                       /* SQL_C_SBIGINT          */
+		M_FALSE,                      /* insert_conflict_rowcnt */
+		M_FALSE,                      /* on_conflict_do_nothing */
+		0,                            /* max_insert_records     */
+		0,                            /* max_bind_params        */
+		0,                            /* unknown_size_ind       */
+		db2_resolve_error,            /* cb_resolve_error       */
+		NULL,                         /* cb_connect_runonce     */
+		db2_cb_datatype,              /* cb_datatype            */
+		NULL,                         /* cb_createtable_suffix  */
+		db2_cb_append_updlock,        /* cb_append_updlock      */
+		db2_cb_append_bitop,          /* cb_append_bitop        */
+		NULL                          /* cb_rewrite_indexname   */
 	},
 
 	{
-		"ORACLE",                     /* name                  */
-		M_FALSE,                      /* is_multival_insert_cd */
-		M_FALSE,                      /* SQL_C_SBIGINT         */
-		0,                            /* max_insert_records    */
-		0,                            /* max_bind_params       */
-		0,                            /* unknown_size_ind      */
-		oracle_resolve_error,         /* cb_resolve_error      */
-		oracle_cb_connect_runonce,    /* cb_connect_runonce    */
-		oracle_cb_datatype,           /* cb_datatype           */
-		NULL,                         /* cb_createtable_suffix */
-		oracle_cb_append_updlock,     /* cb_append_updlock     */
-		oracle_cb_append_bitop,       /* cb_append_bitop       */
-		oracle_cb_rewrite_indexname   /* cb_rewrite_indexname  */
+		"ORACLE",                     /* name                   */
+		M_FALSE,                      /* is_multival_insert_cd  */
+		M_FALSE,                      /* SQL_C_SBIGINT          */
+		M_FALSE,                      /* insert_conflict_rowcnt */
+		M_FALSE,                      /* on_conflict_do_nothing */
+		0,                            /* max_insert_records     */
+		0,                            /* max_bind_params        */
+		0,                            /* unknown_size_ind       */
+		oracle_resolve_error,         /* cb_resolve_error       */
+		oracle_cb_connect_runonce,    /* cb_connect_runonce     */
+		oracle_cb_datatype,           /* cb_datatype            */
+		NULL,                         /* cb_createtable_suffix  */
+		oracle_cb_append_updlock,     /* cb_append_updlock      */
+		oracle_cb_append_bitop,       /* cb_append_bitop        */
+		oracle_cb_rewrite_indexname   /* cb_rewrite_indexname   */
 	},
 
 	{
-		"MYSQL",                      /* name                  */
-		M_TRUE,                       /* is_multival_insert_cd */
-		M_TRUE,                       /* SQL_C_SBIGINT         */
-		0,                            /* max_insert_records    */
-		M_UINT16_MAX,                 /* max_bind_params       */
-		0,                            /* unknown_size_ind      */
-		mysql_resolve_error,          /* cb_resolve_error      */
-		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
-		mysql_cb_datatype,            /* cb_datatype           */
-		mysql_createtable_suffix,     /* cb_createtable_suffix */
-		mysql_cb_append_updlock,      /* cb_append_updlock     */
-		mysql_cb_append_bitop,        /* cb_append_bitop       */
-		NULL                          /* cb_rewrite_indexname  */
+		"MYSQL",                      /* name                   */
+		M_TRUE,                       /* is_multival_insert_cd  */
+		M_TRUE,                       /* SQL_C_SBIGINT          */
+		M_FALSE,                      /* insert_conflict_rowcnt */
+		M_FALSE,                      /* on_conflict_do_nothing */
+		0,                            /* max_insert_records     */
+		M_UINT16_MAX,                 /* max_bind_params        */
+		0,                            /* unknown_size_ind       */
+		mysql_resolve_error,          /* cb_resolve_error       */
+		mysql_cb_connect_runonce,     /* cb_connect_runonce     */
+		mysql_cb_datatype,            /* cb_datatype            */
+		mysql_createtable_suffix,     /* cb_createtable_suffix  */
+		mysql_cb_append_updlock,      /* cb_append_updlock      */
+		mysql_cb_append_bitop,        /* cb_append_bitop        */
+		NULL                          /* cb_rewrite_indexname   */
 	},
 
 	{
-		"MariaDB",                    /* name                  */
-		M_TRUE,                       /* is_multival_insert_cd */
-		M_TRUE,                       /* SQL_C_SBIGINT         */
-		0,                            /* max_insert_records    */
-		M_UINT16_MAX,                 /* max_bind_params       */
-		0,                            /* unknown_size_ind      */
-		mysql_resolve_error,          /* cb_resolve_error      */
-		mysql_cb_connect_runonce,     /* cb_connect_runonce    */
-		mysql_cb_datatype,            /* cb_datatype           */
-		mysql_createtable_suffix,     /* cb_createtable_suffix */
-		mysql_cb_append_updlock,      /* cb_append_updlock     */
-		mysql_cb_append_bitop,        /* cb_append_bitop       */
-		NULL                          /* cb_rewrite_indexname  */
+		"MariaDB",                    /* name                   */
+		M_TRUE,                       /* is_multival_insert_cd  */
+		M_TRUE,                       /* SQL_C_SBIGINT          */
+		M_FALSE,                      /* insert_conflict_rowcnt */
+		M_FALSE,                      /* on_conflict_do_nothing */
+		0,                            /* max_insert_records     */
+		M_UINT16_MAX,                 /* max_bind_params        */
+		0,                            /* unknown_size_ind       */
+		mysql_resolve_error,          /* cb_resolve_error       */
+		mysql_cb_connect_runonce,     /* cb_connect_runonce     */
+		mysql_cb_datatype,            /* cb_datatype            */
+		mysql_createtable_suffix,     /* cb_createtable_suffix  */
+		mysql_cb_append_updlock,      /* cb_append_updlock      */
+		mysql_cb_append_bitop,        /* cb_append_bitop        */
+		NULL                          /* cb_rewrite_indexname   */
 	},
 
 	{
-		"PostgreSQL",                 /* name                  */
-		M_TRUE,                       /* is_multival_insert_cd */
-		M_TRUE,                       /* SQL_C_SBIGINT         */
-		100,                          /* max_insert_records    */
-		0,                            /* max_bind_params       */
-		255,                          /* unknown_size_ind      */
-		pgsql_resolve_error,          /* cb_resolve_error      */
-		pgsql_cb_connect_runonce,     /* cb_connect_runonce    */
-		pgsql_cb_datatype,            /* cb_datatype           */
-		NULL,                         /* cb_createtable_suffix */
-		pgsql_cb_append_updlock,      /* cb_append_updlock     */
-		pgsql_cb_append_bitop,        /* cb_append_bitop       */
-		NULL                          /* cb_rewrite_indexname  */
+		"PostgreSQL",                 /* name                   */
+		M_TRUE,                       /* is_multival_insert_cd  */
+		M_TRUE,                       /* SQL_C_SBIGINT          */
+		M_TRUE,                       /* insert_conflict_rowcnt */
+		M_TRUE,                       /* on_conflict_do_nothing */
+		100,                          /* max_insert_records     */
+		0,                            /* max_bind_params        */
+		255,                          /* unknown_size_ind       */
+		pgsql_resolve_error,          /* cb_resolve_error       */
+		pgsql_cb_connect_runonce,     /* cb_connect_runonce     */
+		pgsql_cb_datatype,            /* cb_datatype            */
+		NULL,                         /* cb_createtable_suffix  */
+		pgsql_cb_append_updlock,      /* cb_append_updlock      */
+		pgsql_cb_append_bitop,        /* cb_append_bitop        */
+		NULL                          /* cb_rewrite_indexname   */
 	},
 
-	{ NULL, M_FALSE, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+	{ NULL, M_FALSE, M_FALSE, M_FALSE, M_FALSE, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 
 
@@ -795,6 +809,9 @@ static char *odbc_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t n
 
 	if (dconn->pool_data->profile->is_multival_insert_cd)
 		flags |= M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD;
+
+	if (dconn->pool_data->profile->on_conflict_do_nothing)
+		flags |= M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING;
 
 	return M_sql_driver_queryformat(query, flags, num_params, odbc_cb_queryrowcnt(conn, num_params, num_rows), error, error_size);
 }
@@ -1512,8 +1529,13 @@ static M_sql_error_t odbc_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, siz
 
 		/* Validate */
 		if (dstmt->bind_params_processed != *rows_executed) {
-			M_snprintf(error, error_size, "SQLExecute expected to process %zu rows, only processed %zu", *rows_executed, (size_t)dstmt->bind_params_processed);
-			err = M_SQL_ERROR_QUERY_FAILURE;
+			if (dconn->pool_data->profile->insert_conflict_rowcnt && M_str_caseeq_max(M_sql_driver_stmt_get_query(stmt), "INSERT", 6)) {
+				M_snprintf(error, error_size, "CONFLICT DETECTED ON INSERT");
+				err = M_SQL_ERROR_QUERY_CONSTRAINT;
+			} else {
+				M_snprintf(error, error_size, "SQLExecute expected to process %zu rows, only processed %zu", *rows_executed, (size_t)dstmt->bind_params_processed);
+				err = M_SQL_ERROR_QUERY_FAILURE;
+			}
 			goto done;
 		}
 
