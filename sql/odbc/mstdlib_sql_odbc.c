@@ -1717,36 +1717,53 @@ static M_sql_error_t odbc_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char 
 		}
 
 		/* Read in result data to pointers */
-		do {
-			rc = SQLGetData(dstmt->stmt, (SQLUSMALLINT)(i+1), TargetType, TargetValue, BufferLength, &StrLen);
-			if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-				char prefix[256];
-				M_snprintf(prefix, sizeof(prefix), "SQLGetData(%zu) failed", i);
-				return odbc_format_error(prefix, NULL, dstmt, rc, error, error_size);
+		while ((rc = SQLGetData(dstmt->stmt, (SQLUSMALLINT)(i+1), TargetType, TargetValue, BufferLength, &StrLen)) == SQL_SUCCESS_WITH_INFO) {
+			/* Can't be chunked data if no TEXT/BINARY pointer, lets exit for normal processing of (most likely) integer types */
+			if (data == NULL)
+				break;
+
+			/* If we have SQL_SUCCESS_WITH_INFO, we're guaranteed StrLen == BufferLength or StrLen == SQL_NO_TOTAL as
+			 * the spec says the last call returns SQL_SUCCESS, and that is when we know the remaining StrLen. So we
+			 * know for sure on binary the full buffer is filled and on text, the full buffer is filled, but also has
+			 * a trailing null terminator that isn't part of the data, so we need to subtract it off.  */
+
+			M_buf_direct_write_end(buf, (size_t)((TargetType == SQL_C_CHAR)?BufferLength-1:BufferLength)); /* Ignore Null Term on Character data */
+
+			/* StrLen might be unavailable, so lets grow by powers of 2 */
+			if (StrLen == SQL_NO_TOTAL) {
+				data_size = (size_t)((BufferLength - 1) * 2) + 1;
+			} else if (StrLen <= 0) {
+				M_snprintf(error, error_size, "SQLGetData(%zu) returned unexpected StrLen_or_IndPtr=%ld on SQL_SUCCESS_WITH_INFO", i, (long)StrLen);
+				return M_SQL_ERROR_QUERY_FAILURE;
+			} else {
+				/* Length of remaining data is known, lets just capture that and use it */
+				data_size = (size_t)StrLen + 1;
 			}
 
-			if (rc == SQL_SUCCESS_WITH_INFO && data != NULL) {
-				M_buf_direct_write_end(buf, (size_t)((TargetType == SQL_C_CHAR)?BufferLength-1:BufferLength)); /* Ignore Null Term on Character data */
+			/* Get more direct write buffer */
+			data         = M_buf_direct_write_start(buf, &data_size);
+			TargetValue  = data;
+			BufferLength = (SQLLEN)data_size;
+			StrLen       = 0;
+		}
 
-				/* StrLen might be unavailable */
-				if (StrLen == SQL_NO_TOTAL)
-					StrLen = BufferLength * 2;
+		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+			char prefix[256];
+			M_snprintf(prefix, sizeof(prefix), "SQLGetData(%zu) failed", i);
+			return odbc_format_error(prefix, NULL, dstmt, rc, error, error_size);
+		}
 
-				data_size    = (size_t)(StrLen - BufferLength + 1);
-				data         = M_buf_direct_write_start(buf, &data_size);
-				TargetValue  = data;
-				BufferLength = (SQLLEN)data_size;
-				StrLen       = 0;
-			}
-		} while(rc == SQL_SUCCESS_WITH_INFO && data != NULL);
 
-		/* Write pointers to column data */
+		/* Write out cell data */
 
 		/* Result is NULL, go to next column, don't write NULL terminator */
 		if (StrLen == SQL_NULL_DATA) {
 			if (data != NULL)
 				M_buf_direct_write_end(buf, 0);
 			continue;
+		} else if ((StrLen < 0 || StrLen > BufferLength) && data != NULL) {
+			M_snprintf(error, error_size, "SQLGetData(%zu) returned unexpected StrLen_or_IndPtr=%ld (BufferLength=%ld) on SQL_SUCCESS", i, (long)StrLen, (long)BufferLength);
+			return M_SQL_ERROR_QUERY_FAILURE;
 		}
 
 		switch (type) {
@@ -1774,6 +1791,7 @@ static M_sql_error_t odbc_cb_fetch(M_sql_conn_t *conn, M_sql_stmt_t *stmt, char 
 			case M_SQL_DATA_TYPE_BINARY:
 			case M_SQL_DATA_TYPE_TEXT:
 			default:
+				/* The StrLen returned from SQLGetData() does NOT include any trailing NULL terminator */
 				M_buf_direct_write_end(buf, (size_t)StrLen);
 				break;
 		}
