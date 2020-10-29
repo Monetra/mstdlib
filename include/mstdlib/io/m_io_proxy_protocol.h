@@ -426,7 +426,22 @@ __BEGIN_DECLS
  *                 M_io_get_error_string(io, error, sizeof(error));
  *                 M_printf("ACCEPT FAILURE: %s\n", error);
  *                 M_io_destroy(io_out);
+ *                 break;
  *             }
+ *
+ *             // If tracing, adding before the proxy protocol will output the proxy
+ *             // protocol in the trace data. Putting after will not show the proxy
+ *             // protocol data as it would have been eaten by the proxy protocol
+ *             // layer, prior to being sent to the trace layer.
+ *             //M_io_add_trace(io_out, NULL, do_trace, NULL, NULL, NULL);
+ *
+ *             ioerr = M_io_proxy_protocol_inbound_add(io_out, NULL, M_IO_PROXY_PROTOCOL_FLAG_NONE);
+ *             if (ioerr != M_IO_ERROR_SUCCESS) {
+ *                 M_printf("Could not add proxy protocol layer: %s\n", M_io_error_string(ioerr));
+ *                 M_io_destroy(io);
+ *                 break;
+ *             }
+ * 
  * 
  *             ldata = M_malloc_zero(sizeof(*ldata));
  *             ldata->el          = el;
@@ -461,17 +476,6 @@ __BEGIN_DECLS
  *     ioerr = M_io_net_server_create(&io, 8999, NULL, M_IO_NET_ANY);
  *     if (ioerr != M_IO_ERROR_SUCCESS) {
  *         M_printf("Could not start server: %s\n", M_io_error_string(ioerr));
- *         return 0;
- *     }
- *     // If tracing, adding before teh proxy protocol will output the proxy
- *      // protocol in the trace data. Putting after will not show the proxy
- *     // protocol data as it would have been eaten by the proxy protocol
- *     // layer, prior to being sent to the trace layer.
- *     //M_io_add_trace(io, NULL, do_trace, NULL, NULL, NULL);
- * 
- *     ioerr = M_io_proxy_protocol_inbound_add(io, NULL, M_IO_PROXY_PROTOCOL_FLAG_NONE);
- *     if (ioerr != M_IO_ERROR_SUCCESS) {
- *         M_printf("Could not add proxy protocol layer: %s\n", M_io_error_string(ioerr));
  *         return 0;
  *     }
  * 
@@ -523,7 +527,11 @@ typedef enum {
  * condition per the proxy protocol spec. An error event will be
  * generated instead of a connect event in this situation.
  *
- * The proxy protocol data will be parsed and available be accessible
+ * This should be added to an `io` object created by `M_io_accept`
+ * during a server `M_EVENT_TYPE_ACCEPT` event. It should not be
+ * added to the server `io` object created by `M_io_net_server_create`.
+ *
+ * The proxy protocol data will be parsed and accessible
  * though the relevant helper functions.
  *
  * \param[in]  io       io object.
