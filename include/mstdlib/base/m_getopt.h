@@ -56,6 +56,10 @@ __BEGIN_DECLS
  * For options that should _not_ have an argument use the boolean type with
  * val not required.
  *
+ * Option callbacks are only called when an option is specified. Meaning for
+ * boolean options a value of M_FALSE will only be sent if the option was
+ * explcitly used and set to false.
+ *
  * Supports auto generation of help message.
  *
  * Valid characters for options (short/long) is all ASCII printable [!-~] except:
@@ -86,7 +90,7 @@ __BEGIN_DECLS
  *
  *     static M_bool int_cb(char short_opt, const char *long_opt, M_int64 *integer, void *thunk)
  *     {
- *         M_printf("short_opt='%d', long_opt='%s', integer='%lld'\n", short_opt, long_opt, integer);
+ *         M_printf("short_opt='%d', long_opt='%s', integer='%lld'\n", short_opt, long_opt, integer!=NULL?*integer:-1);
  *     }
  *
  *     int main(int argc, char **argv) {
@@ -95,7 +99,7 @@ __BEGIN_DECLS
  *         const char *fail;
  *
  *         g = M_getopt_create(nonopt_cb);
- *         M_getopt_addinteger(g, 'i', "i1", M_TRUE, "DESCR 1", check_getopt_int_cb);
+ *         M_getopt_addinteger(g, 'i', "i1", M_TRUE, "DESCR 1", int_cb);
  *
  *         help = M_getopt_help(g);
  *         M_printf("help=\n%s\n", help);
@@ -205,7 +209,7 @@ M_API char *M_getopt_help(const M_getopt_t *g);
  *                         with hyphens. Pass NULL if not used.
  * \param[in] val_required Whether or not the option requires a value.
  * \param[in] description  Field description. Used with output putting help message.
- * \param[in] cb           Callback to call with value. -1 will be passed if no value provided
+ * \param[in] cb           Callback to call with value. NULL will be passed if no value provided
  *
  * \return M_TRUE on success, M_FALSE on failure.
  */
@@ -251,7 +255,8 @@ M_API M_bool M_getopt_addstring(M_getopt_t *g, char short_opt, const char *long_
  * \param[in] val_required Whether or not the option requires a value. If M_FALSE this is treated as a flag and will be
  *                         treated as M_TRUE in the value of the callback. If M_FALSE a value cannot be provided.
  * \param[in] description  Field description. Used with output putting help message.
- * \param[in] cb           Callback to call with value. NULL will be passed if no value provided
+ * \param[in] cb           Callback to call with value. Value will be M_TRUE if no value provided. Considered a
+ *                         flag enabling in this case.
  *
  * \return M_TRUE on success, M_FALSE on failure.
  */
