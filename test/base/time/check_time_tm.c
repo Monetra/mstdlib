@@ -52,19 +52,42 @@ START_TEST(check_time_tm_yday)
 }
 END_TEST
 
+START_TEST(check_time_n1)
+{
+	M_time_localtm_t   ltime;
+	M_time_tzs_t      *tzs;
+	const M_time_tz_t *tz;
+
+	tzs = M_time_tzs_load_zoneinfo(NULL, M_TIME_TZ_ZONE_ETC, M_TIME_TZ_ALIAS_ALL, M_TIME_TZ_LOAD_LAZY);
+	tz  = M_time_tzs_get_tz(tzs, "Etc/GMT");
+
+	M_mem_set(&ltime, 0, sizeof(ltime));
+	M_time_tolocal(-1, &ltime, tz);
+	ck_assert_msg(ltime.year == 1969, "Year (%lld) != expected year (%d)", ltime.year, 1969);
+	ck_assert_msg(ltime.year2 == 69, "Year2 (%lld) != expected year2 (%d)", ltime.year2, 69);
+
+	M_time_tzs_destroy(tzs);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *suite(void)
 {
 	Suite *suite;
-	TCase *tc_time_tm_yday;
+	TCase *tc;
 
 	suite = suite_create("time_tm");
 
-	tc_time_tm_yday = tcase_create("time_tm_yday");
-	tcase_add_unchecked_fixture(tc_time_tm_yday, NULL, NULL);
-	tcase_add_test(tc_time_tm_yday, check_time_tm_yday);
-	suite_add_tcase(suite, tc_time_tm_yday);
+	tc = tcase_create("time_tm_yday");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_tm_yday);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("time_n1");
+	tcase_add_unchecked_fixture(tc, NULL, NULL);
+	tcase_add_test(tc, check_time_n1);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
