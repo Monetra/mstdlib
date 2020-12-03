@@ -110,9 +110,6 @@ void M_time_normalize_tm(struct M_time_tm *tm)
 		
 	}
 
-	/* Ensure year2 is set properly. */
-	tm->year2 = tm->year % 100;
-
 	/* Normalize days to months */
 	while (1) {
 		/* Normalize months first */
@@ -143,6 +140,10 @@ void M_time_normalize_tm(struct M_time_tm *tm)
 	/* month and day of month is currently 0-based, increment by 1 */
 	tm->day++;
 	tm->month++;
+
+	/* Ensure year2 is set properly. Normaizing moths and days could have
+	 * changed the year. */
+	tm->year2 = tm->year % 100;
 }
 
 int M_time_days_in_month(M_int64 year, M_int64 month)
