@@ -348,7 +348,7 @@ static M_bool M_sql_connpool_add_subpool(M_sql_connpool_t *pool, M_bool is_reado
 		return M_FALSE;
 	}
 
-	conndict = M_hash_dict_deserialize(conn_str, ';', '=', '\'', '\'', M_HASH_DICT_CASECMP);
+	conndict = M_hash_dict_deserialize(conn_str, M_str_len(conn_str), ';', '=', '\'', '\'', M_HASH_DICT_CASECMP);
 	if (conndict == NULL) {
 		M_snprintf(error, error_size, "Failed to parse connection string");
 		return M_FALSE;
