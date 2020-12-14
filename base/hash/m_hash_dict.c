@@ -306,8 +306,9 @@ static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, 
 			}
 		}
 
-		if (val[i] == quote || val[i] == escape)
+		if (val[i] == quote || val[i] == escape || (!M_chr_isprint(val[i]) && flags & M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT)) {
 			return M_HASHDICT_QUOTE_TYPE_ESCAPE;
+		}
 	}
 	return quote_type;
 }
@@ -346,7 +347,12 @@ M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, 
 			for ( ; *val != '\0'; val++) {
 				if (*val == quote || *val == escape)
 					M_buf_add_byte(buf, (unsigned char)escape);
-				M_buf_add_byte(buf, (unsigned char)*val);
+
+				if (!M_chr_isprint(*val) && flags & M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT) {
+					M_bprintf(buf, "[%02X]", (unsigned int)*val);
+				} else {
+					M_buf_add_byte(buf, (unsigned char)*val);
+				}
 			}
 		} else {
 			M_buf_add_str(buf, val);
