@@ -434,7 +434,7 @@ M_hash_dict_t *M_hash_dict_deserialize(const char *str, size_t len, char delim, 
 	if (M_str_isempty(str)) {
 		return NULL;
 	}
-	kvs = M_str_explode_quoted((unsigned char)delim, str, len, (unsigned char)quote, (unsigned char)escape, 0, &num_kvs);
+	kvs = M_str_explode_quoted((unsigned char)delim, str, len, (unsigned char)quote, (unsigned char)escape, 0, &num_kvs, NULL);
 	if (kvs == NULL) {
 		goto cleanup;
 	}
