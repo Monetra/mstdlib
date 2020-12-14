@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,7 +39,7 @@ M_hash_dict_t *M_hash_dict_create(size_t size, M_uint8 fillpct, M_uint32 flags)
 		M_hash_void_strdup,
 		M_hash_void_strdup,
 		NULL,
-		M_free	
+		M_free
 	};
 
 	/* Key options. */
@@ -434,7 +434,7 @@ M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_deli
 		goto cleanup;
 	}
 
-	dict = M_hash_dict_create(16, 75, (flags & M_HASH_DICT_DESER_FLAG_CASECMP)?M_HASH_DICT_CASECMP:M_HASH_DICT_NONE);
+	dict = M_hash_dict_create(16, 75, flags);
 	for (i=0; i<num_kvs; i++) {
 		char *temp;
 		/* Skip blank lines, should really only be the last line */

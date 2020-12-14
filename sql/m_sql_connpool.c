@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -348,7 +348,7 @@ static M_bool M_sql_connpool_add_subpool(M_sql_connpool_t *pool, M_bool is_reado
 		return M_FALSE;
 	}
 
-	conndict = M_hash_dict_deserialize(conn_str, ';', '=', '\'', '\'', M_HASH_DICT_DESER_FLAG_CASECMP);
+	conndict = M_hash_dict_deserialize(conn_str, ';', '=', '\'', '\'', M_HASH_DICT_CASECMP);
 	if (conndict == NULL) {
 		M_snprintf(error, error_size, "Failed to parse connection string");
 		return M_FALSE;
@@ -997,7 +997,7 @@ void M_sql_connpool_release_conn(M_sql_conn_t *conn)
 
 	M_thread_mutex_lock(pool->lock);
 
-	is_readonly = (&pool->pool_readonly == pool_data); 
+	is_readonly = (&pool->pool_readonly == pool_data);
 
 	/* Connection is no longer used/reserved */
 	M_queue_remove(pool_data->used_conns, conn);
