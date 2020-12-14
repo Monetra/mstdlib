@@ -387,6 +387,7 @@ M_API char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim
 /*! Deserialize a string into a hashtable as per the definition.
  *
  * \param[in] str      String to deserialize
+ * \param[in] len      Length of string
  * \param[in] delim    Delimiter between key/value pairs (recommended ';')
  * \param[in] kv_delim Delimiter between the key and value (recommended '=')
  * \param[in] quote    Quote character (recommended '"')
@@ -394,7 +395,7 @@ M_API char *M_hash_dict_serialize(M_hash_dict_t *dict, char delim, char kv_delim
  * \param[in] flags    Bitmap of possible M_hash_dict_flags_t flags
  * \return Dictionary of key/value pairs, or NULL on failure to parse.
  */
-M_API M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
+M_API M_hash_dict_t *M_hash_dict_deserialize(const char *str, size_t len, char delim, char kv_delim, char quote, char escape, M_uint32 flags);
 
 
 /*! @} */

@@ -421,7 +421,7 @@ static char *M_hash_dict_fromstr_unquote(const char *str, char quote, char escap
 }
 
 
-M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
+M_hash_dict_t *M_hash_dict_deserialize(const char *str, size_t len, char delim, char kv_delim, char quote, char escape, M_uint32 flags)
 {
 	M_hash_dict_t  *dict    = NULL;
 	char          **kvs     = NULL;
@@ -434,7 +434,7 @@ M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_deli
 	if (M_str_isempty(str)) {
 		return NULL;
 	}
-	kvs = M_str_explode_str_quoted((unsigned char)delim, str, (unsigned char)quote, (unsigned char)escape, 0, &num_kvs);
+	kvs = M_str_explode_quoted((unsigned char)delim, str, len, (unsigned char)quote, (unsigned char)escape, 0, &num_kvs);
 	if (kvs == NULL) {
 		goto cleanup;
 	}
