@@ -1752,7 +1752,7 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 
 		/* Need to deserialize and add to output params */
 		if (txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL) {
-			M_hash_dict_t      *dict     = M_hash_dict_deserialize(M_sql_stmt_result_text_byname_direct(stmt, 0, txn->fields[i].table_column), '|', '=', '"', '"', M_HASH_DICT_DESER_FLAG_CASECMP);
+			M_hash_dict_t      *dict     = M_hash_dict_deserialize(M_sql_stmt_result_text_byname_direct(stmt, 0, txn->fields[i].table_column), '|', '=', '"', '"', M_HASH_DICT_CASECMP);
 			M_hash_dict_enum_t *hashenum = NULL;
 			const char         *key      = NULL;
 			const char         *val      = NULL;
