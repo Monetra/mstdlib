@@ -75,13 +75,14 @@ typedef enum {
 	M_HASH_DICT_MULTI_GETLAST  = 1 << 9,  /*!< When using get and get_direct function get the last value from the list
 	                                           when allowing multiple values. The default is to get the first value. */
 	M_HASH_DICT_MULTI_CASECMP  = 1 << 10, /*!< Value compare is case insensitive. */
-	M_HASH_DICT_STATIC_SEED    = 1 << 11  /*!< Use a static seed for hash function initialization. This greatly reduces
+	M_HASH_DICT_STATIC_SEED    = 1 << 11, /*!< Use a static seed for hash function initialization. This greatly reduces
 	                                           the security of the hashtable and removes collision attack protections.
 	                                           This should only be used as a performance optimization when creating
 	                                           millions of hashtables with static data specifically for quick look up.
 	                                           DO _NOT_ use this flag with any hashtable that could store user
 	                                           generated data! Be very careful about duplicating a hashtable that
 	                                           was created with this flag. All duplicates will use the static seed. */
+	M_HASH_DICT_DESER_TRIM_WHITESPACE = 1 << 26, /*!< During deserialization, trim whitespace. */
 } M_hash_dict_flags_t;
 
 

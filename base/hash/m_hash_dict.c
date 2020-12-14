@@ -293,6 +293,11 @@ static M_hashdict_quote_type_t M_hash_dict_serialize_quotetype(const char *val, 
 	if (val == NULL)
 		return quote_type;
 
+	/* Beginning or ending with space needs to be quoted so it isn't stripped */
+	if (M_chr_isspace(val[0]) || M_chr_isspace(val[val_len-1])) {
+		quote_type = M_HASHDICT_QUOTE_TYPE_ON;
+	}
+
 	for (i=0; i<val_len; i++) {
 		if (quote_type == M_HASHDICT_QUOTE_TYPE_OFF) {
 			if ((flags & M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS && !M_chr_isalnumsp(val[i])) ||
@@ -437,6 +442,12 @@ M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_deli
 	dict = M_hash_dict_create(16, 75, flags);
 	for (i=0; i<num_kvs; i++) {
 		char *temp;
+
+		if (flags & M_HASH_DICT_DESER_TRIM_WHITESPACE) {
+			/* Discard leading and trailing whitespace.  Trailing whitespace might be something like '\r' */
+			M_str_trim(kvs[i]);
+		}
+
 		/* Skip blank lines, should really only be the last line */
 		if (M_str_isempty(kvs[i]))
 			continue;
@@ -444,6 +455,12 @@ M_hash_dict_t *M_hash_dict_deserialize(const char *str, char delim, char kv_deli
 		kv = M_str_explode_str_quoted((unsigned char)kv_delim, kvs[i], (unsigned char)quote, (unsigned char)escape, 2, &num_kv);
 		if (kv == NULL || num_kv != 2) {
 			goto cleanup;
+		}
+
+		if (flags & M_HASH_DICT_DESER_TRIM_WHITESPACE) {
+			/* Trim whitespace from both key and value. Quotes should have been used to protect any legit leading or trailing spaces. */
+			M_str_trim(kv[0]);
+			M_str_trim(kv[1]);
 		}
 
 		/* Remove quotes */
