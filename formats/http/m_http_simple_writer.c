@@ -40,7 +40,7 @@ static char *M_http_writer_get_date(void)
 	M_mem_set(&tm, 0, sizeof(tm));
 	M_time_togm(M_time(), &tm);
 
-	if (tm.wday > 6)
+	if (tm.wday < 0 || tm.wday > 6)
 		goto err;
 	M_buf_add_str(buf, day[tm.wday]);
 	M_buf_add_str(buf, ", ");
@@ -48,7 +48,7 @@ static char *M_http_writer_get_date(void)
 	M_buf_add_int_just(buf, tm.day, 2);
 	M_buf_add_byte(buf, ' ');
 
-	if (tm.month > 12)
+	if (tm.month <= 0 || tm.month > 12)
 		goto err;
 	M_buf_add_str(buf, month[tm.month-1]);
 	M_buf_add_byte(buf, ' ');
