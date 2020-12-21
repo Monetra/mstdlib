@@ -48,9 +48,9 @@ static char *M_http_writer_get_date(void)
 	M_buf_add_int_just(buf, tm.day, 2);
 	M_buf_add_byte(buf, ' ');
 
-	if (tm.month > 11)
+	if (tm.month > 12)
 		goto err;
-	M_buf_add_str(buf, month[tm.month]);
+	M_buf_add_str(buf, month[tm.month-1]);
 	M_buf_add_byte(buf, ' ');
 
 	M_buf_add_int(buf, tm.year);
