@@ -513,7 +513,7 @@ START_TEST(check_response)
 			params[i].charset, &out_len);
 
 		/* Check if it was supposed to fail. */
-		if (params[i].out == NULL) {
+		if (params[i].out == NULL && out != NULL) {
 			ck_assert_msg(out == NULL, "%zu: output structured when expected failure.\nGot:\n'%s'\n", i, out);
 			continue;
 		}
