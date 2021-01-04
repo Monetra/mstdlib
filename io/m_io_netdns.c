@@ -517,10 +517,17 @@ static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 			M_io_destroy(handle->data.netdns.io_try[i]);
 	}
 	M_free(handle->data.netdns.io_try);
-	if (handle->data.netdns.io_dns)
+	handle->data.netdns.io_try = NULL;
+
+	if (handle->data.netdns.io_dns) {
 		M_io_destroy(handle->data.netdns.io_dns);
-	if (handle->data.netdns.io)
+		handle->data.netdns_io_dns = NULL;
+	}
+
+	if (handle->data.netdns.io) {
 		M_io_destroy(handle->data.netdns.io);
+		handle->data.netdns.io = NULL;
+	}
 
 	handle->state                     = M_IO_NET_STATE_INIT;
 	handle->hard_down                 = M_FALSE;
