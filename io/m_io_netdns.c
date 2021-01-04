@@ -521,7 +521,7 @@ static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 
 	if (handle->data.netdns.io_dns) {
 		M_io_destroy(handle->data.netdns.io_dns);
-		handle->data.netdns_io_dns = NULL;
+		handle->data.netdns.io_dns = NULL;
 	}
 
 	if (handle->data.netdns.io) {
