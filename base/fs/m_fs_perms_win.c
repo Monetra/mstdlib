@@ -450,6 +450,36 @@ M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path)
 
 M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *fd)
 {
+	char         *path;
+	size_t        len;
+	size_t        ret;
+	M_fs_error_t  err;
+
+	if (perms == NULL || fd == NULL)
+		return M_FS_ERROR_INVALID;
+
+	len  = M_fs_path_get_path_max(M_FS_SYSTEM_WINDOWS);
+	path = M_malloc_zero(len);
+
+	ret = GetFinalPathNameByHandle(fd->fd, path, len, FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+	if (ret >= len) {
+		M_free(path);
+		return M_fs_error_from_syserr(GetLastError());
+	}
+
+	err = M_fs_perms_set_perms(perms, path);
+	M_free(path);
+	return err;
+
+	/* This is the proper way to handle this by working on the FD directly.
+	 * We're not using this because the file must be opened with the WRITE_DAC
+	 * access mode which our open function does not set. It does not set this
+	 * because if you try to open a file and request WRITE_DAC but don't have
+	 * perms for writing to the ACL open will fail. This is almost guaranteed
+	 * if you're opening a file owned by someone else. So instead of doing thing
+	 * properly we do the above.
+	 */
+#if 0
 	M_fs_info_t          *info;
 	M_fs_error_t          res;
 	DWORD                 ret;
@@ -511,6 +541,7 @@ M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *f
 	LocalFree(acl);
 
 	return M_FS_ERROR_SUCCESS;
+#endif
 }
 
 M_fs_error_t M_fs_perms_can_access(const char *path, M_uint32 mode)
