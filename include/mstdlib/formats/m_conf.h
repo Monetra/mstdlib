@@ -35,8 +35,13 @@ __BEGIN_DECLS
 /*! \addtogroup m_conf CONF
  *  \ingroup m_formats
  *
- * Wrapper around mstdlib's ini module for parsing configuration files and saving
- * values.
+ * Wrapper around mstdlib's INI module for parsing configuration files and saving
+ * values. The file must be formatted as described in the INI module. This does
+ * not cover other file formats, such as JSON or XML.
+ *
+ * This module is used for reading values from a configuration file directly into
+ * the provided memory. If you want to hold the values in temporary memory for
+ * manipulation and retrieval, you should use the Settings module.
  *
  * You begin by building out all the key registrations, which specify the key to
  * parse and where to store the value. There are multiple methods to handle the
@@ -49,7 +54,7 @@ __BEGIN_DECLS
  *
  * Every registration type has a corresponding conversion callback specific to it.
  * If a callback is set with the registration, then that callback must do all the
- * work of validating, converting, and storing the value;
+ * work of validating, converting, and storing the value.
  *
  * Once all the registrations are set, you send the call to run through them all
  * at once. We made the design decision to set everything up first and then parse
