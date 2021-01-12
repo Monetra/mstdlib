@@ -317,26 +317,26 @@ static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const ch
 
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_INT8:
-			min_allowed  = reg->min_val.int8;
-			max_allowed  = reg->max_val.int8;
+			min_allowed  = reg->min_sval;
+			max_allowed  = reg->max_sval;
 			min_possible = M_INT8_MIN;
 			max_possible = M_INT8_MAX;
 			break;
 		case M_CONF_REG_TYPE_INT16:
-			min_allowed  = reg->min_val.int16;
-			max_allowed  = reg->max_val.int16;
+			min_allowed  = reg->min_sval;
+			max_allowed  = reg->max_sval;
 			min_possible = M_INT16_MIN;
 			max_possible = M_INT16_MAX;
 			break;
 		case M_CONF_REG_TYPE_INT32:
-			min_allowed  = reg->min_val.int32;
-			max_allowed  = reg->max_val.int32;
+			min_allowed  = reg->min_sval;
+			max_allowed  = reg->max_sval;
 			min_possible = M_INT32_MIN;
 			max_possible = M_INT32_MAX;
 			break;
 		case M_CONF_REG_TYPE_INT64:
-			min_allowed  = reg->min_val.int64;
-			max_allowed  = reg->max_val.int64;
+			min_allowed  = reg->min_sval;
+			max_allowed  = reg->max_sval;
 			min_possible = M_INT64_MIN;
 			max_possible = M_INT64_MAX;
 			break;
@@ -382,26 +382,26 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_UINT8:
-			min_allowed  = reg->min_val.uint8;
-			max_allowed  = reg->max_val.uint8;
+			min_allowed  = reg->min_uval;
+			max_allowed  = reg->max_uval;
 			min_possible = 0;
 			max_possible = M_UINT8_MAX;
 			break;
 		case M_CONF_REG_TYPE_UINT16:
-			min_allowed  = reg->min_val.uint16;
-			max_allowed  = reg->max_val.uint16;
+			min_allowed  = reg->min_uval;
+			max_allowed  = reg->max_uval;
 			min_possible = 0;
 			max_possible = M_UINT16_MAX;
 			break;
 		case M_CONF_REG_TYPE_UINT32:
-			min_allowed  = reg->min_val.uint32;
-			max_allowed  = reg->max_val.uint32;
+			min_allowed  = reg->min_uval;
+			max_allowed  = reg->max_uval;
 			min_possible = 0;
 			max_possible = M_UINT32_MAX;
 			break;
 		case M_CONF_REG_TYPE_UINT64:
-			min_allowed  = reg->min_val.uint64;
-			max_allowed  = reg->max_val.uint64;
+			min_allowed  = reg->min_uval;
+			max_allowed  = reg->max_uval;
 			min_possible = 0;
 			max_possible = M_UINT64_MAX;
 			break;
@@ -822,8 +822,8 @@ M_bool M_conf_register_int8(M_conf_t *conf, const char *key, M_int8 *mem, M_int8
 	reg                   = reg_create(key, M_CONF_REG_TYPE_INT8);
 	reg->mem.int8         = mem;
 	reg->default_val.int8 = default_val;
-	reg->min_val.int8     = min_val;
-	reg->max_val.int8     = max_val;
+	reg->min_sval         = min_val;
+	reg->max_sval         = max_val;
 	reg->converter.int8   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -839,8 +839,8 @@ M_bool M_conf_register_int16(M_conf_t *conf, const char *key, M_int16 *mem, M_in
 	reg                    = reg_create(key, M_CONF_REG_TYPE_INT16);
 	reg->mem.int16         = mem;
 	reg->default_val.int16 = default_val;
-	reg->min_val.int16     = min_val;
-	reg->max_val.int16     = max_val;
+	reg->min_sval          = min_val;
+	reg->max_sval          = max_val;
 	reg->converter.int16   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -856,8 +856,8 @@ M_bool M_conf_register_int32(M_conf_t *conf, const char *key, M_int32 *mem, M_in
 	reg                    = reg_create(key, M_CONF_REG_TYPE_INT32);
 	reg->mem.int32         = mem;
 	reg->default_val.int32 = default_val;
-	reg->min_val.int32     = min_val;
-	reg->max_val.int32     = max_val;
+	reg->min_sval          = min_val;
+	reg->max_sval          = max_val;
 	reg->converter.int32   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -873,8 +873,8 @@ M_bool M_conf_register_int64(M_conf_t *conf, const char *key, M_int64 *mem, M_in
 	reg                    = reg_create(key, M_CONF_REG_TYPE_INT64);
 	reg->mem.int64         = mem;
 	reg->default_val.int64 = default_val;
-	reg->min_val.int64     = min_val;
-	reg->max_val.int64     = max_val;
+	reg->min_sval          = min_val;
+	reg->max_sval          = max_val;
 	reg->converter.int64   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -890,8 +890,8 @@ M_bool M_conf_register_uint8(M_conf_t *conf, const char *key, M_uint8 *mem, M_ui
 	reg                    = reg_create(key, M_CONF_REG_TYPE_UINT8);
 	reg->mem.uint8         = mem;
 	reg->default_val.uint8 = default_val;
-	reg->min_val.uint8     = min_val;
-	reg->max_val.uint8     = max_val;
+	reg->min_uval          = min_val;
+	reg->max_uval          = max_val;
 	reg->converter.uint8   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -907,8 +907,8 @@ M_bool M_conf_register_uint16(M_conf_t *conf, const char *key, M_uint16 *mem, M_
 	reg                     = reg_create(key, M_CONF_REG_TYPE_UINT16);
 	reg->mem.uint16         = mem;
 	reg->default_val.uint16 = default_val;
-	reg->min_val.uint16     = min_val;
-	reg->max_val.uint16     = max_val;
+	reg->min_uval           = min_val;
+	reg->max_uval           = max_val;
 	reg->converter.uint16   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -924,8 +924,8 @@ M_bool M_conf_register_uint32(M_conf_t *conf, const char *key, M_uint32 *mem, M_
 	reg                     = reg_create(key, M_CONF_REG_TYPE_UINT32);
 	reg->mem.uint32         = mem;
 	reg->default_val.uint32 = default_val;
-	reg->min_val.uint32     = min_val;
-	reg->max_val.uint32     = max_val;
+	reg->min_uval           = min_val;
+	reg->max_uval           = max_val;
 	reg->converter.uint32   = converter;
 
 	return M_list_insert(conf->registrations, reg);
@@ -941,8 +941,8 @@ M_bool M_conf_register_uint64(M_conf_t *conf, const char *key, M_uint64 *mem, M_
 	reg                     = reg_create(key, M_CONF_REG_TYPE_UINT64);
 	reg->mem.uint64         = mem;
 	reg->default_val.uint64 = default_val;
-	reg->min_val.uint64     = min_val;
-	reg->max_val.uint64     = max_val;
+	reg->min_uval           = min_val;
+	reg->max_uval           = max_val;
 	reg->converter.uint64   = converter;
 
 	return M_list_insert(conf->registrations, reg);
