@@ -318,7 +318,7 @@ M_fs_error_t M_fs_perms_to_security_attributes(M_fs_perms_t *perms, PSID everyon
 {
 	char          proc_username[UNLEN+1];
 	DWORD         proc_username_len;
-	M_fs_error_t  res;
+	M_fs_error_t  res = M_FS_ERROR_GENERIC;
 
 	if (perms == NULL || acl == NULL || sa == NULL || sd == NULL) {
 		return M_FS_ERROR_INVALID;
@@ -341,14 +341,15 @@ M_fs_error_t M_fs_perms_to_security_attributes(M_fs_perms_t *perms, PSID everyon
 	res = M_fs_perms_to_dacl(perms, everyone_sid, acl, M_FALSE);
 	if (res != M_FS_ERROR_SUCCESS)
 		return res;
+
 	/* Create a security descripitor to add the perms and user and group to */
 	if (!InitializeSecurityDescriptor(sd, SECURITY_DESCRIPTOR_REVISION)) {
 		LocalFree(*acl);
-		return res;
+		return M_FS_ERROR_GENERIC;
 	}
 	if (!SetSecurityDescriptorDacl(sd, TRUE, *acl, FALSE)) {
 		LocalFree(*acl);
-		return res;
+		return M_FS_ERROR_GENERIC;
 	}
 	res = M_fs_perms_set_sd_user(perms, sd);
 	if (res != M_FS_ERROR_SUCCESS) {

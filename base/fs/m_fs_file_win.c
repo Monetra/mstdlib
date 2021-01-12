@@ -97,7 +97,7 @@ M_fs_error_t M_fs_file_open_sys(M_fs_file_t **fd, const char *path, M_uint32 mod
  		 * because the sid from the perms which is loaded into the sd is referenced
 		 * not copied. */
 		eperms = M_fs_perms_dup(perms);
-		res = M_fs_perms_to_security_attributes(eperms, everyone_sid, &acl, &sa, &sd);
+		res    = M_fs_perms_to_security_attributes(eperms, everyone_sid, &acl, &sa, &sd);
 		if (res != M_FS_ERROR_SUCCESS) {
 			M_fs_perms_destroy(eperms);
 			LocalFree(everyone_sid);
