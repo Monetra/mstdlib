@@ -50,14 +50,15 @@
 static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char **user, PSID user_sid, DWORD user_sid_len, char **group, PSID group_sid, DWORD group_sid_len)
 {
 	PSID          myuser_sid;
-	PSID          mygroup_sid;
-	DWORD         user_len   = 0;
-	DWORD         group_len  = 0;
+	PSID          mygroup_sid = NULL;
+	DWORD         user_len    = 0;
+	DWORD         group_len   = 0;
 	/* We don't care about the domin but the LookupAccountSid requires a buffer for the domain */
 	char          domain[DNLEN+1];
 	DWORD         domain_len;
 	SID_NAME_USE  sid_use;
 	BOOL          defaulted;
+	LPSTR         sstr;
 
 	if (user != NULL) {
 		*user  = NULL;
@@ -78,6 +79,14 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 		return M_fs_error_from_syserr(GetLastError());
 	}
 
+	/* Check for the S-1-5-21-<domain>-513 well known group which is a generic group (called None) that every
+ 	 * user on the system is part of. This isn't an actual group that should have perms read/set. */
+	ConvertSidToStringSid(mygroup_sid, &sstr);
+	if (M_str_eq_start(sstr, "S-1-5-21-") && M_str_eq_end(sstr, "513")) {
+		mygroup_sid = NULL;
+	}
+	LocalFree(sstr);
+
 	/* First get the lengths of the user and group so we know how much memory needs to be allocated to hold them */
 	/* Find out the length of the user name */
 	domain_len = sizeof(domain);
@@ -86,8 +95,10 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 		return M_fs_error_from_syserr(GetLastError());
 	}
 	/* Find out the length of the group name */
-	domain_len = sizeof(domain);
-	LookupAccountSid(NULL, mygroup_sid, NULL, &group_len, domain, &domain_len, &sid_use);
+	if (mygroup_sid != NULL) {
+		domain_len = sizeof(domain);
+		LookupAccountSid(NULL, mygroup_sid, NULL, &group_len, domain, &domain_len, &sid_use);
+	}
 
 	/* Allocate the memory and call the lookup function again to fill in the user and group names */
 	if (IsValidSid(myuser_sid)) {
@@ -108,7 +119,7 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 	} else {
 		return M_FS_ERROR_INVALID;
 	}
-	if (group_len != 0 && IsValidSid(mygroup_sid)) {
+	if (mygroup_sid != NULL && group_len != 0 && IsValidSid(mygroup_sid)) {
 		*group = M_malloc(sizeof(**group)*group_len);
 		domain_len = sizeof(domain);
 		if (LookupAccountSid(NULL, mygroup_sid, *group, &group_len, domain, &domain_len, &sid_use) && (sid_use == SidTypeGroup || sid_use == SidTypeWellKnownGroup)) {
