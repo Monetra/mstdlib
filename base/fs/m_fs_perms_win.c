@@ -154,7 +154,7 @@ static __inline__ M_bool M_fs_perms_to_dacl_entry(const M_bool *isdir,
 		perms |= GENERIC_READ|FILE_GENERIC_READ;
 	}
 	if (mymode & M_FS_PERMS_MODE_WRITE) {
-		perms |= GENERIC_WRITE|FILE_GENERIC_WRITE;
+		perms |= GENERIC_WRITE|FILE_GENERIC_WRITE|DELETE;
 	}
 	if (mymode & M_FS_PERMS_MODE_EXEC) {
 		perms |= GENERIC_EXECUTE|FILE_GENERIC_EXECUTE;
