@@ -14,6 +14,7 @@
  */
 
 
+#include <mstdlib/formats/m_conf.h>
 #include <mstdlib/formats/m_csv.h>
 #include <mstdlib/formats/m_email.h>
 #include <mstdlib/formats/m_ini.h>
