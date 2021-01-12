@@ -35,6 +35,8 @@ ARFLAGS   = -nologo
 RCFLAGS   = /dWIN32 /r
 
 OBJS      = \
+	conf\m_conf.obj                \
+	\
 	csv\m_csv.obj                  \
 	\
 	ini/m_ini.obj                  \
@@ -70,6 +72,9 @@ all: $(TARGET)
 
 .c.obj:
 	$(CC) -c $(CFLAGS) $<
+
+{conf\}.c{conf\}.obj:
+	$(CC) -c $(CFLAGS) /Fo$*.obj $<
 
 {csv\}.c{csv\}.obj:
 	$(CC) -c $(CFLAGS) /Fo$*.obj $<
