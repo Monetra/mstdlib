@@ -103,7 +103,7 @@ M_fs_perms_t *M_fs_perms_dup(const M_fs_perms_t *perms)
 	dup_perms->group_mode = perms->group_mode;
 	dup_perms->group_mode = perms->group_mode;
 	dup_perms->other_set  = perms->other_set;
-	dup_perms->other_type = perms->other_type;
+	dup_perms->other_mode = perms->other_mode;
 	dup_perms->other_type = perms->other_type;
 
 	dup_perms->dir_user_set   = perms->dir_user_set;
