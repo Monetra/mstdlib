@@ -82,26 +82,10 @@ typedef struct M_conf_reg_t {
 		M_bool    boolean;
 	}                                           default_val; /*!< Default value, used if ini file does not have a value for this key. */
 	char                                       *regex;       /*!< Regular expression, for string registrations only. */
-	union {
-		M_int8   int8;
-		M_int16  int16;
-		M_int32  int32;
-		M_int64  int64;
-		M_uint8  uint8;
-		M_uint16 uint16;
-		M_uint32 uint32;
-		M_uint64 uint64;
-	}                                          min_val;      /*!< Minimum allowed value, for number registrations only. */
-	union {
-		M_int8   int8;
-		M_int16  int16;
-		M_int32  int32;
-		M_int64  int64;
-		M_uint8  uint8;
-		M_uint16 uint16;
-		M_uint32 uint32;
-		M_uint64 uint64;
-	}                                           max_val;     /*!< Maximum allowed value, for number registrations only. */
+	M_int64                                     min_sval;    /*!< Minimum allowed value, for signed integer registrations only. */
+	M_int64                                     max_sval;    /*!< Maximum allowed value, for signed integer registrations only. */
+	M_uint64                                    min_uval;    /*!< Minimum allowed value, for unsigned integer registrations only. */
+	M_uint64                                    max_uval;    /*!< Maximum allowed value, for unsigned integer registrations only. */
 	union {
 		M_conf_converter_buf_t    buf;
 		M_conf_converter_strdup_t strdup;
@@ -115,7 +99,7 @@ typedef struct M_conf_reg_t {
 		M_conf_converter_uint64_t uint64;
 		M_conf_converter_bool_t   boolean;
 		M_conf_converter_custom_t custom;
-	}                                           converter;   /* Converter callback. */
+	}                                           converter;   /*!< Converter callback. */
 } M_conf_reg_t;
 
 /* Main conf object */
