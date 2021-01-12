@@ -416,6 +416,7 @@ M_fs_error_t M_fs_perms_set_perms(const M_fs_perms_t *perms, const char *path)
 
 	/* Convert the perms to a dacl. */
 	res = M_fs_perms_to_dacl(myperms, everyone_sid, &acl, isdir);
+	M_fs_perms_destroy(myperms);
 	if (res != M_FS_ERROR_SUCCESS) {
 		LocalFree(everyone_sid);
 		M_free(norm_path);
@@ -483,6 +484,7 @@ M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *f
 
 	/* Convert the perms to a dacl. */
 	res = M_fs_perms_to_dacl(myperms, everyone_sid, &acl, isdir);
+	M_fs_perms_destroy(myperms);
 	if (res != M_FS_ERROR_SUCCESS) {
 		LocalFree(everyone_sid);
 		return res;
