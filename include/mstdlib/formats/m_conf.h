@@ -444,7 +444,7 @@ M_API M_bool M_conf_register_strdup(M_conf_t *conf, const char *key, char **addr
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -464,7 +464,7 @@ M_API M_bool M_conf_register_int8(M_conf_t *conf, const char *key, M_int8 *mem, 
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -484,7 +484,7 @@ M_API M_bool M_conf_register_int16(M_conf_t *conf, const char *key, M_int16 *mem
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -504,7 +504,7 @@ M_API M_bool M_conf_register_int32(M_conf_t *conf, const char *key, M_int32 *mem
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -524,7 +524,7 @@ M_API M_bool M_conf_register_int64(M_conf_t *conf, const char *key, M_int64 *mem
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -544,7 +544,7 @@ M_API M_bool M_conf_register_uint8(M_conf_t *conf, const char *key, M_uint8 *mem
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -564,7 +564,7 @@ M_API M_bool M_conf_register_uint16(M_conf_t *conf, const char *key, M_uint16 *m
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
@@ -584,7 +584,7 @@ M_API M_bool M_conf_register_uint32(M_conf_t *conf, const char *key, M_uint32 *m
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
- * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
  *                           fail.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
