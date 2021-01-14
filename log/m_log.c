@@ -180,12 +180,21 @@ static char *get_current_time_str(const char *time_format, size_t *out_len)
 			case 's': /* Second (2-digit) */
 				M_buf_add_int_just(buf, ltime.sec, 2);
 				break;
+			case 'l': /* Millisecond (3-digit) */
+				M_buf_add_int_just(buf, tv.tv_usec / 1000, 3);
+				break;
 			case 'u': /* Microsecond (6-digit) */
 				M_buf_add_int_just(buf, tv.tv_usec, 6);
 				break;
-			case 'z': /* Timezone offset */
+			case 'z': /* Timezone offset (no colon) */
 				M_buf_add_char(buf, (ltime.gmtoff > 0)? '+' : '-');
 				M_buf_add_int_just(buf, abs_gmtoff / (60 * 60), 2);
+				M_buf_add_int_just(buf, (abs_gmtoff / 60) % 60, 2);
+				break;
+			case 'Z': /* Timezone offset (no colon) */
+				M_buf_add_char(buf, (ltime.gmtoff > 0)? '+' : '-');
+				M_buf_add_int_just(buf, abs_gmtoff / (60 * 60), 2);
+				M_buf_add_char(buf, ':');
 				M_buf_add_int_just(buf, (abs_gmtoff / 60) % 60, 2);
 				break;
 			case '%':  /* Escaped percent sign ('%%' --> '%') */
@@ -277,7 +286,7 @@ M_log_t *M_log_create(M_log_line_end_mode_t mode, M_bool flush_on_destroy, M_eve
 	log->line_end_writer_mode = line_end_to_writer_enum(mode);
 	log->flush_on_destroy     = flush_on_destroy;
 	log->line_end_str         = line_end_to_str(mode);
-	log->time_format          = M_strdup("%a %D %H:%m:%s.%u %z");
+	log->time_format          = M_strdup("%Y-%M-%DT%H:%m:%s.%l%Z");
 	log->lock                 = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	log->event                = event;
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -350,10 +350,10 @@ M_API M_log_t *M_log_create(M_log_line_end_mode_t mode, M_bool flush_on_destroy,
 
 
 /*! Destroy the logger (non-blocking).
- * 
+ *
  * Sends a message to each module requesting that it stop at the next opportunity and destroy itself,
  * then immediately destroys the logger.
- * 
+ *
  * Worker threads will try to clean themselves up gracefully, after this function returns (if the process
  * doesn't end before they have a chance to).
  *
@@ -403,7 +403,7 @@ M_API void M_log_destroy_blocking(M_log_t *log, M_uint64 timeout_ms);
 
 /*! Set timestamp format for all future log messages.
  *
- * If not set, the default timestamp format \c "%a %D %H:%m:%s.%u %z" will be used.
+ * If not set, the default timestamp format \c "%Y-%M-%DT%H:%m:%s.%l%Z" (ISO8601) will be used.
  *
  * If the given time format string is empty or invalid, an error will be returned
  * and the old time format string will be preserved.
@@ -419,10 +419,12 @@ M_API void M_log_destroy_blocking(M_log_t *log, M_uint64 timeout_ms);
  *   - %%H -- 2 digit hour
  *   - %%m -- 2 digit minute
  *   - %%s -- 2 digit second
+ *   - %%l -- 3 digit millisecond
  *   - %%u -- 6 digit microsecond
- *   - %%z -- timezone offset
+ *   - %%z -- timezone offset (without colon)
+ *   - %%Z -- timezone offset (with colon)
  *
- * For example "[%D/%a/%Y:%H:%m:%s.%u %z]" might give a prefix like:
+ * For example "[%D/%a/%Y:%H:%m:%s.%l %z]" might give a prefix like:
  *	[11/Jan/2008:09:19:11.654 -0500]
  *
  * \param[in] log logger object
