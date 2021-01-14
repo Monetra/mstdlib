@@ -282,7 +282,7 @@ static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const ch
 		ret = M_TRUE;
 		conf_log_debug(conf, "  Skipping regular expression check");
 	} else {
-		regex = M_re_compile(reg->regex, M_RE_CASECMP);
+		regex = M_re_compile(reg->regex, M_RE_NONE);
 		if (regex == NULL) {
 			M_snprintf(err_buf, err_len, "Invalid regex");
 		} else {
