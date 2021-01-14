@@ -50,6 +50,12 @@ typedef enum M_conf_reg_type_t {
 	M_CONF_REG_TYPE_CUSTOM = 1 << 11,
 } M_conf_reg_type_t;
 
+/* Validator object. */
+typedef struct M_conf_validator_wrap_t {
+	M_conf_validator_t  cb;   /*!< Validator callback. */
+	void               *data; /*!< Data to pass to the validator. */
+} M_conf_validator_wrap_t;
+
 /* Registration object. */
 typedef struct M_conf_reg_t {
 	M_conf_reg_type_t                           type;        /*!< Type of registration. */
