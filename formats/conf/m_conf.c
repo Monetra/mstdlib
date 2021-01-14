@@ -572,7 +572,7 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 		return ret;
 	}
 
-	/* If there are any validators set for this registration, let's check those now. */
+	/* If there are any validations set for this registration, let's check those now. */
 	if (!M_str_isempty(value) && !reg_validate_value(conf, reg, value, err_buf, sizeof(err_buf))) {
 		conf_log_error(conf, "Key '%s' failed validation for value '%s': %s", reg->key, value, err_buf);
 		return M_FALSE;
@@ -591,13 +591,19 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 
 M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 {
-	M_conf_t         *conf;
-	M_ini_settings_t *ini_settings;
-	M_list_str_t     *keys;
-	size_t            num_keys;
-	size_t            i;
-	const char       *key;
-	M_uint64          num;
+	M_conf_t                *conf;
+	M_ini_settings_t        *ini_settings;
+	M_list_str_t            *keys;
+	size_t                   num_keys;
+	size_t                   i;
+	const char              *key;
+	M_uint64                 num;
+	struct M_list_callbacks  validator_cbs = {
+		NULL,
+		NULL,
+		NULL,
+		M_free
+	};
 
 	if (M_str_isempty(path))
 		return NULL;
@@ -637,7 +643,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 	M_list_str_destroy(keys);
 
 	/* Create the list that we'll use for holding on to validator callbacks until we're ready to run through them. */
-	conf->validators = M_list_create(NULL, M_LIST_NONE);
+	conf->validators    = M_list_create(&validator_cbs, M_LIST_NONE);
 
 	/* Create the list that we'll iterate through for logging debug messages. */
 	conf->debug_loggers = M_list_create(NULL, M_LIST_NONE);
@@ -666,7 +672,7 @@ void M_conf_destroy(M_conf_t *conf)
 		M_free(conf->ini_path);
 		M_ini_destroy(conf->ini);
 		M_list_destroy(conf->registrations, M_FALSE);
-		M_list_destroy(conf->validators, M_FALSE);
+		M_list_destroy(conf->validators, M_TRUE);
 		M_list_destroy(conf->debug_loggers, M_FALSE);
 		M_list_destroy(conf->error_loggers, M_FALSE);
 		M_hash_stru64_destroy(conf->unused_keys);
@@ -692,11 +698,11 @@ M_bool M_conf_add_error_logger(M_conf_t *conf, M_conf_logger_t error_logger)
 
 M_bool M_conf_parse(M_conf_t *conf)
 {
-	size_t              num_items;
-	unsigned int        i;
-	M_conf_reg_t       *reg;
-	M_bool              ret = M_TRUE;
-	M_conf_validator_t  validator;
+	size_t                         num_items;
+	unsigned int                   i;
+	M_conf_reg_t                  *reg;
+	M_bool                         ret = M_TRUE;
+	const M_conf_validator_wrap_t *validator;
 
 	conf_log_debug(conf, "Beginning parse");
 
@@ -717,7 +723,7 @@ M_bool M_conf_parse(M_conf_t *conf)
 		conf_log_debug(conf, "Values parsed, running custom validators");
 	for (i=0; i<num_items; i++) {
 		validator = M_list_at(conf->validators, i);
-		if (validator != NULL && !validator()) {
+		if (validator != NULL && !(validator->cb(validator->data))) {
 			ret = M_FALSE;
 		}
 	}
@@ -978,10 +984,16 @@ M_bool M_conf_register_custom(M_conf_t *conf, const char *key, M_conf_converter_
 	return M_list_insert(conf->registrations, reg);
 }
 
-M_bool M_conf_register_validator(M_conf_t *conf, M_conf_validator_t validator)
+M_bool M_conf_register_validator(M_conf_t *conf, M_conf_validator_t validator, void *data)
 {
+	M_conf_validator_wrap_t *wrapper;
+
 	if (conf == NULL || conf->validators == NULL || validator == NULL)
 		return M_FALSE;
 
-	return M_list_insert(conf->validators, validator);
+	wrapper       = M_malloc_zero(sizeof(*wrapper));
+	wrapper->cb   = validator;
+	wrapper->data = data;
+
+	return M_list_insert(conf->validators, wrapper);
 }

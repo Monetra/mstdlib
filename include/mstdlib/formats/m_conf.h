@@ -72,7 +72,8 @@ __BEGIN_DECLS
  * Example:
  *
  * \code{.c}
- *     char     name_buf[256];
+ *     M_int8   num1;
+ *     M_uint8  num2;
  *     M_uint32 sys_flags;
  *
  *     static void log_conf_debug(const char *path, const char *msg)
@@ -125,8 +126,10 @@ __BEGIN_DECLS
  *         return M_TRUE;
  *     }
  *
- *     static M_bool validate_data(void)
+ *     static M_bool validate_data(void *data)
  *     {
+ *         char *name_buf = data;
+ *
  *         if (M_str_len(name_buf) > 128) {
  *            return M_FALSE;
  *         }
@@ -141,9 +144,8 @@ __BEGIN_DECLS
  *     M_bool parse_conf(const char *path)
  *     {
  *         M_conf_t *conf;
+ *         char      name_buf[256];
  *         char     *desc;
- *         M_int8    num1;
- *         M_uint32  num2;
  *         M_bool    active;
  *         M_bool    ret;
  *
@@ -163,7 +165,7 @@ __BEGIN_DECLS
  *         M_conf_register_bool(conf, "active", &active, M_FALSE, NULL);
  *         M_conf_register_custom(conf, "flags", handle_flags);
  *
- *         M_conf_register_validator(conf, validate_data);
+ *         M_conf_register_validator(conf, validate_data, name_buf);
  *
  *         ret = M_conf_parse(conf);
  *
@@ -316,9 +318,11 @@ typedef M_bool (*M_conf_converter_custom_t)(const char *value);
 
 /*! Callback prototype for validating arbitrary data.
  *
- * \return   M_TRUE if the validation was successful. Otherwise, M_FALSE.
+ * \param[in] data   Arbitrary data, as registered with the callback. May be NULL.
+ *
+ * \return           M_TRUE if the validation was successful. Otherwise, M_FALSE.
  */
-typedef M_bool (*M_conf_validator_t)(void);
+typedef M_bool (*M_conf_validator_t)(void *data);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -643,8 +647,13 @@ M_API M_bool M_conf_register_custom(M_conf_t *conf, const char *key, M_conf_conv
  * registered keys. This can be used, for example, if you want to validate that one key's value is greater than another
  * key's value, or if you want to print a debug statement for a certain key or keys. This can also be used to run a hook
  * after the registrations are set.
+ *
+ * \param[in] data   Reference for passing in data in the callback. May be NULL if not needed.
+ *
+ * \return           M_TRUE if the registration was successful. Otherwise, M_FALSE. Currently, this returns M_FALSE only
+ *                   if the callback is invalid.
  */
-M_API M_bool M_conf_register_validator(M_conf_t *conf, M_conf_validator_t validator);
+M_API M_bool M_conf_register_validator(M_conf_t *conf, M_conf_validator_t validator, void *data);
 
 
 /*! @} */
