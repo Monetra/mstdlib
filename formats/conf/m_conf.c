@@ -636,9 +636,10 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 		num = M_hash_stru64_get_direct(conf->unused_keys, key);
 		if (num > 0 && !allow_multiple) {
 			conf_log_error(conf, "%s is registered multiple times in %s", key, path);
-		} else {
-			M_hash_stru64_insert(conf->unused_keys, key, num + 1);
+			M_conf_destroy(conf);
+			return NULL;
 		}
+		M_hash_stru64_insert(conf->unused_keys, key, num + 1);
 	}
 	M_list_str_destroy(keys);
 
