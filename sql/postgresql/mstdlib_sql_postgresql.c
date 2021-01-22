@@ -321,11 +321,32 @@ static void pgsql_cb_disconnect(M_sql_driver_conn_t *conn)
 	M_free(conn);
 }
 
-
-static size_t pgsql_num_process_rows(size_t num_rows)
+static size_t pgsql_num_process_rows(size_t num_params_per_row, size_t num_rows)
 {
-#define PGSQL_MAX_PROCESS_ROWS 100
-	return M_MIN(num_rows, PGSQL_MAX_PROCESS_ROWS);
+	size_t       capable_rows;
+
+	/* === Config Values === */
+	const size_t max_rows        = 100;         /* Function limit, think this applies to value sets */
+	const size_t max_bind_params = M_INT16_MAX; /* different sources give values like 32767, 34464, or 65535.  Lets go on the low end */
+	/* === */
+
+	if (num_rows == 1)
+		return num_rows;
+
+	if (num_params_per_row == 0)
+		return 1;
+
+	/* Reduce to max rows */
+	if (max_rows != 0 && num_rows > max_rows)
+		num_rows = max_rows;
+
+	/* Get max rows based on total maximum parameters compared to params per row */
+	capable_rows = ((size_t)max_bind_params) / num_params_per_row;
+	if (capable_rows == 0)
+		return 1;
+
+	/* Reduce maximum rows to actual number of rows provided, if applicable */
+	return M_MIN(num_rows, capable_rows);
 }
 
 
@@ -340,7 +361,7 @@ static char *pgsql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 
 
 	return M_sql_driver_queryformat(query, M_SQL_DRIVER_QUERYFORMAT_MULITVALUEINSERT_CD|M_SQL_DRIVER_QUERYFORMAT_ENUMPARAM_DOLLAR|M_SQL_DRIVER_QUERYFORMAT_INSERT_ONCONFLICT_DONOTHING,
-	                                num_params, pgsql_num_process_rows(num_rows),
+	                                num_params, pgsql_num_process_rows(num_params, num_rows),
 	                                error, error_size);
 }
 
@@ -348,8 +369,7 @@ static char *pgsql_cb_queryformat(M_sql_conn_t *conn, const char *query, size_t 
 static size_t pgsql_cb_queryrowcnt(M_sql_conn_t *conn, size_t num_params_per_row, size_t num_rows)
 {
 	(void)conn;
-	(void)num_params_per_row;
-	return pgsql_num_process_rows(num_rows);
+	return pgsql_num_process_rows(num_params_per_row, num_rows);
 }
 
 
@@ -449,8 +469,8 @@ static Oid pgsql_datatype_to_oid(M_sql_stmt_t *stmt, size_t row, size_t col)
 
 static M_sql_error_t pgsql_bind_params(M_sql_driver_stmt_t *driver_stmt, M_sql_stmt_t *stmt, M_bool rebind, char *error, size_t error_size)
 {
-	size_t        num_rows = pgsql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
 	size_t        num_cols = M_sql_driver_stmt_bind_cnt(stmt);
+	size_t        num_rows = pgsql_num_process_rows(num_cols, M_sql_driver_stmt_bind_rows(stmt));
 	size_t        num_bind = num_rows * num_cols;
 	size_t        row;
 	size_t        i;
@@ -723,7 +743,7 @@ static M_sql_error_t pgsql_cb_execute(M_sql_conn_t *conn, M_sql_stmt_t *stmt, si
 
 	/* Get number of rows that are processed at once, supports
 	 * comma-delimited values for inserting multiple rows. */
-	*rows_executed = pgsql_num_process_rows(M_sql_driver_stmt_bind_rows(stmt));
+	*rows_executed = pgsql_num_process_rows(M_sql_driver_stmt_bind_cnt(stmt), M_sql_driver_stmt_bind_rows(stmt));
 
 	/* Special case for using INSERT ... ON CONFLICT DO NOTHING, if affected rows doesn't
 	 * match executed rows, there must have been a conflict, modify the error code */
