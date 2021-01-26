@@ -270,7 +270,7 @@ static void *M_event_impl_win32_eventthread(void *arg)
 					if (threaddata->parent->timeout_ms != M_TIMEOUT_INF && threaddata->parent->timeout_ms != 0) {
 						LARGE_INTEGER liDueTime;
 						/* Represented in 100ns intervals, negative offset means relative */
-						liDueTime.QuadPart = -1 * threaddata->parent->timeout_ms * 10000;
+						liDueTime.QuadPart = -1 * ((M_int64)threaddata->parent->timeout_ms) * 10000;
 						SetWaitableTimer(threaddata->parent->waittimer, &liDueTime, 0, NULL, NULL, 0);
 					} else {
 						CancelWaitableTimer(threaddata->parent->waittimer);
