@@ -29,6 +29,21 @@
 #include "base/time/m_time_int.h"
 #include "m_pollemu.h"
 
+static M_hashtable_t    *M_thread_win_thread_rv = NULL;
+static CRITICAL_SECTION  M_thread_win_lock;
+
+static void M_thread_win_init(void)
+{
+	M_thread_win_thread_rv = M_hashtable_create(16, 75, NULL, NULL, M_HASHTABLE_NONE, NULL);
+	InitializeCriticalSection(&M_thread_win_lock);
+}
+
+static void M_thread_win_deinit(void)
+{
+	M_hashtable_destroy(M_thread_win_thread_rv, M_TRUE);
+	DeleteCriticalSection(&M_thread_win_lock);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define SIGNAL    0
@@ -157,39 +172,6 @@ static M_bool M_thread_win_set_processor(M_thread_t *thread, M_threadid_t tid, i
 	return M_TRUE;
 }
 
-
-static M_thread_t *M_thread_win_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
-{
-	DWORD   dwThreadId;
-	HANDLE  hThread;
-
-	if (func == NULL)
-		return NULL;
-
-	hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)func, arg, 0, &dwThreadId);
-	if (hThread == NULL)
-		return NULL;
-
-	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
-		CloseHandle(hThread);
-		return (M_thread_t *)1;
-	}
-	return (M_thread_t *)hThread;
-}
-
-static M_bool M_thread_win_join(M_thread_t *thread, void **value_ptr)
-{
-	if (thread == NULL || thread == (M_thread_t *)1)
-		return M_FALSE;
-
-	if (WaitForSingleObject((HANDLE)thread, INFINITE) != WAIT_OBJECT_0)
-		return M_FALSE;
-	if (value_ptr)
-		GetExitCodeThread((HANDLE)thread, (LPDWORD)value_ptr);
-	CloseHandle((HANDLE)thread);
-	return M_TRUE;
-}
-
 static M_threadid_t M_thread_win_self(M_thread_t **thread)
 {
 	if (thread != NULL)
@@ -197,6 +179,100 @@ static M_threadid_t M_thread_win_self(M_thread_t **thread)
 
 	return (M_threadid_t)GetCurrentThreadId();
 }
+
+typedef struct {
+	void *(*func)(void *);
+	void   *arg;
+	M_bool  is_joinable;
+} M_thread_win_func_arg;
+
+static DWORD WINAPI M_thread_win_func_wrapper(void *arg)
+{
+	M_thread_win_func_arg *funcarg       = arg;
+	void                *(*func)(void *) = funcarg->func;
+	void                  *farg          = funcarg->arg;
+	M_bool                 is_joinable   = funcarg->is_joinable;
+	void                  *rv;
+	M_thread_t            *thread        = NULL;
+
+	M_free(arg);
+
+	rv = func(farg);
+
+	if (is_joinable) {
+		/* Stuff real return value into result hashtable since windows doesn't allow threads to return pointers  */
+		M_thread_win_self(&thread);
+		EnterCriticalSection(&M_thread_win_lock);
+		M_hashtable_insert(M_thread_win_thread_rv, thread, rv);
+		LeaveCriticalSection(&M_thread_win_lock);
+	}
+
+	/* We can't actually use this exit code at all */
+	return 0;
+}
+
+static M_thread_t *M_thread_win_create(const M_thread_attr_t *attr, void *(*func)(void *), void *arg)
+{
+	DWORD                  dwThreadId;
+	HANDLE                 hThread;
+	M_thread_win_func_arg *funcarg = M_malloc_zero(sizeof(*funcarg));
+	M_thread_t            *rv      = NULL;
+
+	if (func == NULL)
+		goto fail;
+
+	/* Wrap callback due to different arguments and return value for Windows */
+	funcarg->func        = func;
+	funcarg->arg         = arg;
+	funcarg->is_joinable = (attr == NULL)?M_FALSE:M_thread_attr_get_create_joinable(attr);
+
+	hThread = CreateThread(NULL, 0, M_thread_win_func_wrapper, funcarg, 0, &dwThreadId);
+	if (hThread == NULL)
+		return NULL;
+
+	if (attr != NULL && !M_thread_attr_get_create_joinable(attr)) {
+		CloseHandle(hThread);
+		rv = (M_thread_t *)1;
+	} else {
+		rv = (M_thread_t *)hThread;
+	}
+
+fail:
+	if (rv == NULL) {
+		M_free(funcarg);
+	}
+	return rv;
+}
+
+
+static M_bool M_thread_win_join(M_thread_t *thread, void **value_ptr)
+{
+	void *rv = NULL;
+
+	if (thread == NULL || thread == (M_thread_t *)1)
+		return M_FALSE;
+
+	if (WaitForSingleObject((HANDLE)thread, INFINITE) != WAIT_OBJECT_0)
+		return M_FALSE;
+
+	/* Exit codes are pointers, so we can't use this as it isn't the right size
+	 * on 64bit
+	 * if (value_ptr)
+	 *   GetExitCodeThread((HANDLE)thread, (LPDWORD)value_ptr);
+	 */
+	EnterCriticalSection(&M_thread_win_lock);
+	rv = M_hashtable_get_direct(M_thread_win_thread_rv, thread);
+	M_hashtable_remove(M_thread_win_thread_rv, thread, M_TRUE);
+	LeaveCriticalSection(&M_thread_win_lock);
+
+	CloseHandle((HANDLE)thread);
+
+	if (value_ptr != NULL)
+		*value_ptr = rv;
+
+	return M_TRUE;
+}
+
 
 static void M_thread_win_yield(M_bool force)
 {
@@ -432,8 +508,8 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 
 	M_mem_set(cbs, 0, sizeof(*cbs));
 
-	cbs->init   = NULL;
-	cbs->deinit = NULL;
+	cbs->init                 = M_thread_win_init;
+	cbs->deinit               = M_thread_win_deinit;
 	/* Thread */
 	cbs->thread_create        = M_thread_win_create;
 	cbs->thread_join          = M_thread_win_join;
