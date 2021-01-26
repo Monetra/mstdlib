@@ -29,6 +29,17 @@
 "key2=value2" "\n" \
 "key22=value22" "\n"
 
+/* Configuration file with sections that have multi-value keys. */
+#define CONF_SECTIONS_MULTI \
+"key0=value0" "\n" \
+"key0=value00" "\n" \
+"[Section1]" "\n" \
+"key1=value1" "\n" \
+"key1=value11" "\n" \
+"[Section2]" "\n" \
+"key2=value2" "\n" \
+"key2=value22" "\n"
+
 /* Configuration file for registrations. */
 #define CONF_REGISTRATIONS \
 "buf_key=buf_value" "\n" \
@@ -884,6 +895,67 @@ START_TEST(check_no_sections)
 	/* Check that this file has no sections. */
 	sections = M_conf_get_sections(conf);
 	ck_assert_msg(M_list_str_len(sections) == 0, "wrong number of sections (want 0, have %zu)", M_list_str_len(sections));
+
+	M_list_str_destroy(sections);
+	M_conf_destroy(conf);
+
+	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
+}
+END_TEST
+
+START_TEST(check_sections_no_multi)
+{
+	const char   *filename = "./tmp_conf_check_sections_no_multi.ini";
+	M_conf_t     *conf     = NULL;
+	M_list_str_t *sections = NULL;
+	size_t        i;
+	char          section[32];
+	char          key[32];
+	char          want_value[32];
+	const char   *conf_value;
+	M_list_str_t *values;
+
+	ck_assert_msg(create_ini(filename, CONF_SECTIONS_MULTI), "failed to create temporary config file");
+
+	/* Check that we can't read this file if multiple values per key is not allowed. */
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf == NULL, "multiple values in sections allowed");
+
+	/* Check that we can read this file if multiple values per key is allowed. */
+	conf = M_conf_create(filename, M_TRUE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+
+	/* Check that we get the correct number of sections. */
+	sections = M_conf_get_sections(conf);
+	ck_assert_msg(sections != NULL, "no sections found");
+	ck_assert_msg(M_list_str_len(sections) == 2, "wrong number of sections (want 2, have %zu)", M_list_str_len(sections));
+
+	/* Check that each section has the correct keys with the correct values. */
+	for (i=0; i<M_list_str_len(sections); i++) {
+		M_snprintf(section, sizeof(section), "Section%zu", i+1);
+
+		M_snprintf(key, sizeof(key), "%s/key%zu", section, i+1);
+
+		/* Check that M_conf_get_value() returns the first value for this key. */
+		M_snprintf(want_value, sizeof(want_value), "value%zu", i+1);
+		conf_value = M_conf_get_value(conf, key);
+		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong section key value (want %s, have %s)", want_value, conf_value);
+
+		/* Check that all values are retrievable for this key. */
+		values = M_conf_get_values(conf, key);
+		ck_assert_msg(M_list_str_len(values) == 2, "wrong number of values for %s (have %zu, want 2)", key, M_list_str_len(values));
+
+		/* Check that the values are correct for this key. */
+		M_snprintf(want_value, sizeof(want_value), "value%zu", i+1);
+		conf_value = M_list_str_at(values, 0);
+		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong key value 1 (want %s, have %s)", want_value, conf_value);
+
+		M_snprintf(want_value, sizeof(want_value), "value%zu%zu", i+1, i+1);
+		conf_value = M_list_str_at(values, 1);
+		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong key value 1 (want %s, have %s)", want_value, conf_value);
+
+		M_list_str_destroy(values);
+	}
 
 	M_list_str_destroy(sections);
 	M_conf_destroy(conf);
@@ -2194,6 +2266,11 @@ static Suite *M_conf_suite(void)
 	tcase_add_unchecked_fixture(check_no_sections_test, NULL, NULL);
 	tcase_add_test(check_no_sections_test, check_no_sections);
 	suite_add_tcase(suite, check_no_sections_test);
+
+	check_sections_test = tcase_create("check_sections_no_multi");
+	tcase_add_unchecked_fixture(check_sections_test, NULL, NULL);
+	tcase_add_test(check_sections_test, check_sections_no_multi);
+	suite_add_tcase(suite, check_sections_test);
 
 	check_single_value_test = tcase_create("check_single_value");
 	tcase_add_unchecked_fixture(check_single_value_test, NULL, NULL);
