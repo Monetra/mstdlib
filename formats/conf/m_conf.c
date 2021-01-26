@@ -54,7 +54,7 @@ static void conf_decrement_key(M_conf_t *conf, const char *key, M_bool set_to_ze
 }
 
 /* Build the settings we need for reading in ini files. */
-static M_ini_settings_t *conf_build_ini_settings(M_bool allow_multiple)
+static M_ini_settings_t *conf_build_ini_settings(void)
 {
 	M_ini_settings_t *ini_settings;
 
@@ -71,13 +71,9 @@ static M_ini_settings_t *conf_build_ini_settings(M_bool allow_multiple)
 	/* Probably not necessary, but we'll set just in case. */
 	M_ini_settings_set_padding(ini_settings, M_INI_PADDING_AFTER_COMMENT_CHAR);
 
-	if (allow_multiple) {
-		/* Allow one key to have multiple values. */
-		M_ini_settings_reader_set_dupkvs_handling(ini_settings, M_INI_DUPKVS_COLLECT);
-	} else {
-		/* Only the last key is honored. */
-		M_ini_settings_reader_set_dupkvs_handling(ini_settings, M_INI_DUPKVS_REMOVE_PREV);
-	}
+	/* Allow one key to have multiple values. We need to do this for all conf files so we can check whether or not
+ 	 * multiple values were set for a single key and error out if that's not allowed. */
+	M_ini_settings_reader_set_dupkvs_handling(ini_settings, M_INI_DUPKVS_COLLECT);
 
 	return ini_settings;
 }
@@ -266,7 +262,7 @@ static M_bool reg_call_converter(M_conf_reg_t *reg, const char *value)
 		case M_CONF_REG_TYPE_BOOL:
 			return reg->converter.boolean(reg->mem.boolean, value, reg->default_val.boolean);
 		case M_CONF_REG_TYPE_CUSTOM:
-			return reg->converter.custom(value);
+			return reg->converter.custom(reg->mem.custom, value);
 		default:
 			return M_FALSE;
 	}
@@ -302,15 +298,21 @@ static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const ch
 /* Validate the value as a signed integer. */
 static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const char *value, char *err_buf, size_t err_len)
 {
-	M_int64 num;
-	M_int64 min_allowed  = 0;
-	M_int64 max_allowed  = 0;
-	M_int64 min_possible = 0;
-	M_int64 max_possible = 0;
+	const char *const_tmp;
+	M_int64     num;
+	M_int64     min_allowed  = 0;
+	M_int64     max_allowed  = 0;
+	M_int64     min_possible = 0;
+	M_int64     max_possible = 0;
 
 	(void)conf;
 
-	if (!M_str_isnum(value)) {
+	/* We want to do a quick check just to make sure we have digits, but we also want to allow a negative sign.
+ 	 * M_str_isnum() only allows digits, so we'll have to skip past a leading negative sign (if there is one). */
+	const_tmp = value;
+	if (*const_tmp == '-')
+		const_tmp++;
+	if (!M_str_isnum(const_tmp)) {
 		M_snprintf(err_buf, err_len, "Not a number");
 		return M_FALSE;
 	}
@@ -549,8 +551,10 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 	M_bool      ret;
 	char        err_buf[256];
 
-	if (reg == NULL)
+	if (reg == NULL) {
+		conf_log_error(conf, "Key '%s' has bad registration", reg->key);
 		return M_FALSE;
+	}
 
 	/* Set the zero value of this registration. */
 	reg_zero(reg);
@@ -605,20 +609,22 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 		M_free
 	};
 
-	if (M_str_isempty(path))
+	if (M_str_isempty(path)) {
+		M_fprintf(stderr, "Missing path");
 		return NULL;
+	}
 
 	conf = M_malloc_zero(sizeof(*conf));
 
-	conf->allow_multiple = allow_multiple;
-	conf->ini_path       = M_strdup(path);
+	conf->ini_path = M_strdup(path);
 
 	/* Read in the config file. */
-	ini_settings = conf_build_ini_settings(allow_multiple);
+	ini_settings = conf_build_ini_settings();
 	conf->ini    = M_ini_read_file(path, ini_settings, M_TRUE, NULL, 4*1024*1024 /* 4 MB */ );
 	M_ini_settings_destroy(ini_settings);
 
 	if (conf->ini == NULL) {
+		M_fprintf(stderr, "Failed to read configuration file");
 		M_conf_destroy(conf);
 		return NULL;
 	}
@@ -633,13 +639,14 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 	conf->unused_keys = M_hash_stru64_create(num_keys * 2, 75, M_HASH_DICT_CASECMP);
 	for (i=0; i<num_keys; i++) {
 		key = M_list_str_at(keys, i);
-		num = M_hash_stru64_get_direct(conf->unused_keys, key);
-		if (num > 0 && !allow_multiple) {
-			conf_log_error(conf, "%s is registered multiple times in %s", key, path);
+		num = M_ini_kv_len(conf->ini, key);
+		if (!allow_multiple && num > 1) {
+			M_fprintf(stderr, "%s is registered multiple times in %s", key, path);
+			M_list_str_destroy(keys);
 			M_conf_destroy(conf);
 			return NULL;
 		}
-		M_hash_stru64_insert(conf->unused_keys, key, num + 1);
+		M_hash_stru64_insert(conf->unused_keys, key, num);
 	}
 	M_list_str_destroy(keys);
 
@@ -972,7 +979,7 @@ M_bool M_conf_register_bool(M_conf_t *conf, const char *key, M_bool *mem, M_bool
 	return M_list_insert(conf->registrations, reg);
 }
 
-M_bool M_conf_register_custom(M_conf_t *conf, const char *key, M_conf_converter_custom_t converter)
+M_bool M_conf_register_custom(M_conf_t *conf, const char *key, void *mem, M_conf_converter_custom_t converter)
 {
 	M_conf_reg_t *reg;
 
@@ -980,6 +987,7 @@ M_bool M_conf_register_custom(M_conf_t *conf, const char *key, M_conf_converter_
 		return M_FALSE;
 
 	reg                   = reg_create(key, M_CONF_REG_TYPE_CUSTOM);
+	reg->mem.custom       = mem;
 	reg->converter.custom = converter;
 
 	return M_list_insert(conf->registrations, reg);
