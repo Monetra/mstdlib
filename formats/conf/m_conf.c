@@ -610,7 +610,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 	};
 
 	if (M_str_isempty(path)) {
-		M_fprintf(stderr, "Missing path");
+		M_fprintf(stderr, "Missing path\n");
 		return NULL;
 	}
 
@@ -624,7 +624,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 	M_ini_settings_destroy(ini_settings);
 
 	if (conf->ini == NULL) {
-		M_fprintf(stderr, "Failed to read configuration file");
+		M_fprintf(stderr, "Failed to read configuration file\n");
 		M_conf_destroy(conf);
 		return NULL;
 	}
@@ -641,7 +641,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 		key = M_list_str_at(keys, i);
 		num = M_ini_kv_len(conf->ini, key);
 		if (!allow_multiple && num > 1) {
-			M_fprintf(stderr, "%s is registered multiple times in %s", key, path);
+			M_fprintf(stderr, "%s is registered multiple times in %s\n", key, path);
 			M_list_str_destroy(keys);
 			M_conf_destroy(conf);
 			return NULL;
