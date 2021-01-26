@@ -261,8 +261,9 @@ static M_bool M_thread_win_join(M_thread_t *thread, void **value_ptr)
 	 *   GetExitCodeThread((HANDLE)thread, (LPDWORD)value_ptr);
 	 */
 	EnterCriticalSection(&M_thread_win_lock);
-	rv = M_hashtable_get_direct(M_thread_win_thread_rv, thread);
-	M_hashtable_remove(M_thread_win_thread_rv, thread, M_TRUE);
+	if (M_hashtable_get_direct(M_thread_win_thread_rv, thread, &rv)) {
+		M_hashtable_remove(M_thread_win_thread_rv, thread, M_TRUE);
+	}
 	LeaveCriticalSection(&M_thread_win_lock);
 
 	CloseHandle((HANDLE)thread);
