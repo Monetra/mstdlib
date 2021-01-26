@@ -310,11 +310,12 @@ typedef M_bool (*M_conf_converter_bool_t)(M_bool *mem, const char *value, M_bool
 /*! Callback prototype for custom conversions. This is used for manually validating and setting a value with
  * M_conf_register_custom();
  *
+ * \param[in] mem     Memory address where the value should be stored. May be NULL if address was not registered.
  * \param[in] value   The value in the configuration file for the registered key. May be NULL.
  *
  * \return            M_TRUE if the conversion was successful. Otherwise, M_FALSE.
  */
-typedef M_bool (*M_conf_converter_custom_t)(const char *value);
+typedef M_bool (*M_conf_converter_custom_t)(void *mem, const char *value);
 
 /*! Callback prototype for validating arbitrary data.
  *
@@ -633,6 +634,7 @@ M_API M_bool M_conf_register_bool(M_conf_t *conf, const char *key, M_bool *mem, 
  *
  * \param[in]  conf        M_conf_t object to use.
  * \param[in]  key         Key to register.
+ * \param[out] mem         Memory where the value will be stored. Pass NULL if not needed.
  * \param[in]  converter   Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                         to the callback, which must do all validation/conversion. The value passed to the callback
  *                         can be NULL. This must be used.
@@ -640,7 +642,7 @@ M_API M_bool M_conf_register_bool(M_conf_t *conf, const char *key, M_bool *mem, 
  * \return                 M_TRUE if the registration was successful. Otherwise, M_FALSE. Currently, this returns
  *                         M_FALSE only if any of the arguments are invalid.
  */
-M_API M_bool M_conf_register_custom(M_conf_t *conf, const char *key, M_conf_converter_custom_t converter);
+M_API M_bool M_conf_register_custom(M_conf_t *conf, const char *key, void *mem, M_conf_converter_custom_t converter);
 
 
 /*! Register a validation callback. All registered validators are called after M_conf_parse() successfully sets the

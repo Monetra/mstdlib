@@ -72,6 +72,7 @@ typedef struct M_conf_reg_t {
 		M_uint32  *uint32;
 		M_uint64  *uint64;
 		M_bool    *boolean;
+		void      *custom;
 	}                                           mem;         /*!< Memory address where value will be stored. */
 	size_t                                      buf_len;     /*!< Size of buffer, for char [] registrations only. */
 	union {
@@ -117,7 +118,6 @@ struct M_conf_t {
 	M_list_t        *debug_loggers;  /*!< List of logging callbacks for logging debug messages. */
 	M_list_t        *error_loggers;  /*!< List of logging callbacks for logging error messages. */
 	M_hash_stru64_t *unused_keys;    /*!< Hash table for keeping count of unused keys. */
-	M_bool           allow_multiple; /*!< Whether or not multiple keys are allowed. */
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
