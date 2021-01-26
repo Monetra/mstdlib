@@ -1030,51 +1030,51 @@ START_TEST(check_invalid_registration)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that passing a bad conf object fails the registration. */
-    ck_assert_msg(!M_conf_register_buf(NULL, "key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf registered with bad conf object");
-    ck_assert_msg(!M_conf_register_strdup(NULL, "key", &mem_strdup, NULL, NULL, NULL), "strdup registered with bad conf object");
-    ck_assert_msg(!M_conf_register_int8(NULL, "key", &mem_int8, 0, 0, 100, NULL), "int8 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_int16(NULL, "key", &mem_int16, 0, 0, 100, NULL), "int16 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_int32(NULL, "key", &mem_int32, 0, 0, 100, NULL), "int32 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_int64(NULL, "key", &mem_int64, 0, 0, 100, NULL), "int64 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_uint8(NULL, "key", &mem_uint8, 0, 0, 100, NULL), "uint8 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_uint16(NULL, "key", &mem_uint16, 0, 0, 100, NULL), "uint16 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_uint32(NULL, "key", &mem_uint32, 0, 0, 100, NULL), "uint32 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_uint64(NULL, "key", &mem_uint64, 0, 0, 100, NULL), "uint64 registered with bad conf object");
-    ck_assert_msg(!M_conf_register_bool(NULL, "key", &mem_bool, M_FALSE, NULL), "bool registered with bad conf object");
-    ck_assert_msg(!M_conf_register_custom(NULL, "key", &mem_custom, custom_pass_cb), "custom registered with bad conf object");
+	ck_assert_msg(!M_conf_register_buf(NULL, "key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf registered with bad conf object");
+	ck_assert_msg(!M_conf_register_strdup(NULL, "key", &mem_strdup, NULL, NULL, NULL), "strdup registered with bad conf object");
+	ck_assert_msg(!M_conf_register_int8(NULL, "key", &mem_int8, 0, 0, 100, NULL), "int8 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_int16(NULL, "key", &mem_int16, 0, 0, 100, NULL), "int16 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_int32(NULL, "key", &mem_int32, 0, 0, 100, NULL), "int32 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_int64(NULL, "key", &mem_int64, 0, 0, 100, NULL), "int64 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_uint8(NULL, "key", &mem_uint8, 0, 0, 100, NULL), "uint8 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_uint16(NULL, "key", &mem_uint16, 0, 0, 100, NULL), "uint16 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_uint32(NULL, "key", &mem_uint32, 0, 0, 100, NULL), "uint32 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_uint64(NULL, "key", &mem_uint64, 0, 0, 100, NULL), "uint64 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_bool(NULL, "key", &mem_bool, M_FALSE, NULL), "bool registered with bad conf object");
+	ck_assert_msg(!M_conf_register_custom(NULL, "key", &mem_custom, custom_pass_cb), "custom registered with bad conf object");
 
 	/* Check that not passing a key fails the registration. */
-    ck_assert_msg(!M_conf_register_buf(conf, NULL, mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf registered without key");
-    ck_assert_msg(!M_conf_register_strdup(conf, NULL, &mem_strdup, NULL, NULL, NULL), "strdup registered without key");
-    ck_assert_msg(!M_conf_register_int8(conf, NULL, &mem_int8, 0, 0, 100, NULL), "int8 registered without key");
-    ck_assert_msg(!M_conf_register_int16(conf, NULL, &mem_int16, 0, 0, 100, NULL), "int16 registered without key");
-    ck_assert_msg(!M_conf_register_int32(conf, NULL, &mem_int32, 0, 0, 100, NULL), "int32 registered without key");
-    ck_assert_msg(!M_conf_register_int64(conf, NULL, &mem_int64, 0, 0, 100, NULL), "int64 registered without key");
-    ck_assert_msg(!M_conf_register_uint8(conf, NULL, &mem_uint8, 0, 0, 100, NULL), "uint8 registered without key");
-    ck_assert_msg(!M_conf_register_uint16(conf, NULL, &mem_uint16, 0, 0, 100, NULL), "uint16 registered without key");
-    ck_assert_msg(!M_conf_register_uint32(conf, NULL, &mem_uint32, 0, 0, 100, NULL), "uint32 registered without key");
-    ck_assert_msg(!M_conf_register_uint64(conf, NULL, &mem_uint64, 0, 0, 100, NULL), "uint64 registered without key");
-    ck_assert_msg(!M_conf_register_bool(conf, NULL, &mem_bool, M_FALSE, NULL), "bool registered without key");
-    ck_assert_msg(!M_conf_register_custom(conf, NULL, &mem_custom, custom_pass_cb), "custom registered without key");
+	ck_assert_msg(!M_conf_register_buf(conf, NULL, mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf registered without key");
+	ck_assert_msg(!M_conf_register_strdup(conf, NULL, &mem_strdup, NULL, NULL, NULL), "strdup registered without key");
+	ck_assert_msg(!M_conf_register_int8(conf, NULL, &mem_int8, 0, 0, 100, NULL), "int8 registered without key");
+	ck_assert_msg(!M_conf_register_int16(conf, NULL, &mem_int16, 0, 0, 100, NULL), "int16 registered without key");
+	ck_assert_msg(!M_conf_register_int32(conf, NULL, &mem_int32, 0, 0, 100, NULL), "int32 registered without key");
+	ck_assert_msg(!M_conf_register_int64(conf, NULL, &mem_int64, 0, 0, 100, NULL), "int64 registered without key");
+	ck_assert_msg(!M_conf_register_uint8(conf, NULL, &mem_uint8, 0, 0, 100, NULL), "uint8 registered without key");
+	ck_assert_msg(!M_conf_register_uint16(conf, NULL, &mem_uint16, 0, 0, 100, NULL), "uint16 registered without key");
+	ck_assert_msg(!M_conf_register_uint32(conf, NULL, &mem_uint32, 0, 0, 100, NULL), "uint32 registered without key");
+	ck_assert_msg(!M_conf_register_uint64(conf, NULL, &mem_uint64, 0, 0, 100, NULL), "uint64 registered without key");
+	ck_assert_msg(!M_conf_register_bool(conf, NULL, &mem_bool, M_FALSE, NULL), "bool registered without key");
+	ck_assert_msg(!M_conf_register_custom(conf, NULL, &mem_custom, custom_pass_cb), "custom registered without key");
 
 	/* Check that not passing an address fails the registration. */
-    ck_assert_msg(!M_conf_register_buf(conf, "key", NULL, sizeof(mem_buf), NULL, NULL, NULL), "buf registered without address");
-    ck_assert_msg(!M_conf_register_strdup(conf, "key", NULL, NULL, NULL, NULL), "strdup registered without address");
-    ck_assert_msg(!M_conf_register_int8(conf, "key", NULL, 0, 0, 100, NULL), "int8 registered without address");
-    ck_assert_msg(!M_conf_register_int16(conf, "key", NULL, 0, 0, 100, NULL), "int16 registered without address");
-    ck_assert_msg(!M_conf_register_int32(conf, "key", NULL, 0, 0, 100, NULL), "int32 registered without address");
-    ck_assert_msg(!M_conf_register_int64(conf, "key", NULL, 0, 0, 100, NULL), "int64 registered without address");
-    ck_assert_msg(!M_conf_register_uint8(conf, "key", NULL, 0, 0, 100, NULL), "uint8 registered without address");
-    ck_assert_msg(!M_conf_register_uint16(conf, "key", NULL, 0, 0, 100, NULL), "uint16 registered without address");
-    ck_assert_msg(!M_conf_register_uint32(conf, "key", NULL, 0, 0, 100, NULL), "uint32 registered without address");
-    ck_assert_msg(!M_conf_register_uint64(conf, "key", NULL, 0, 0, 100, NULL), "uint64 registered without address");
-    ck_assert_msg(!M_conf_register_bool(conf, "key", NULL, M_FALSE, NULL), "bool registered without address");
+	ck_assert_msg(!M_conf_register_buf(conf, "key", NULL, sizeof(mem_buf), NULL, NULL, NULL), "buf registered without address");
+	ck_assert_msg(!M_conf_register_strdup(conf, "key", NULL, NULL, NULL, NULL), "strdup registered without address");
+	ck_assert_msg(!M_conf_register_int8(conf, "key", NULL, 0, 0, 100, NULL), "int8 registered without address");
+	ck_assert_msg(!M_conf_register_int16(conf, "key", NULL, 0, 0, 100, NULL), "int16 registered without address");
+	ck_assert_msg(!M_conf_register_int32(conf, "key", NULL, 0, 0, 100, NULL), "int32 registered without address");
+	ck_assert_msg(!M_conf_register_int64(conf, "key", NULL, 0, 0, 100, NULL), "int64 registered without address");
+	ck_assert_msg(!M_conf_register_uint8(conf, "key", NULL, 0, 0, 100, NULL), "uint8 registered without address");
+	ck_assert_msg(!M_conf_register_uint16(conf, "key", NULL, 0, 0, 100, NULL), "uint16 registered without address");
+	ck_assert_msg(!M_conf_register_uint32(conf, "key", NULL, 0, 0, 100, NULL), "uint32 registered without address");
+	ck_assert_msg(!M_conf_register_uint64(conf, "key", NULL, 0, 0, 100, NULL), "uint64 registered without address");
+	ck_assert_msg(!M_conf_register_bool(conf, "key", NULL, M_FALSE, NULL), "bool registered without address");
 
 	/* Check that not passing a length fails a buffer registration. */
-    ck_assert_msg(!M_conf_register_buf(conf, "key", mem_buf, 0, NULL, NULL, NULL), "buf registered without length");
+	ck_assert_msg(!M_conf_register_buf(conf, "key", mem_buf, 0, NULL, NULL, NULL), "buf registered without length");
 
 	/* Check that not passing a callback fails a custom registration. */
-    ck_assert_msg(!M_conf_register_custom(conf, "key", &mem_custom, NULL), "custom registered without callback");
+	ck_assert_msg(!M_conf_register_custom(conf, "key", &mem_custom, NULL), "custom registered without callback");
 
 	M_conf_destroy(conf);
 
@@ -1105,60 +1105,60 @@ START_TEST(check_registration_args)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that we can register a key with no validation. */
-    ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf not registered without validation");
-    ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, NULL, NULL), "strdup not registered without validation");
-    ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL), "int8 not registered without validation");
-    ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL), "int16 not registered without validation");
-    ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL), "int32 not registered without validation");
-    ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL), "int64 not registered without validation");
-    ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL), "uint8 not registered without validation");
-    ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL), "uint16 not registered without validation");
-    ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL), "uint32 not registered without validation");
-    ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL), "uint64 not registered without validation");
-    ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, NULL), "bool not registered without validation");
+	ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL), "buf not registered without validation");
+	ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, NULL, NULL), "strdup not registered without validation");
+	ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL), "int8 not registered without validation");
+	ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL), "int16 not registered without validation");
+	ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL), "int32 not registered without validation");
+	ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL), "int64 not registered without validation");
+	ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL), "uint8 not registered without validation");
+	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL), "uint16 not registered without validation");
+	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL), "uint32 not registered without validation");
+	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL), "uint64 not registered without validation");
+	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, NULL), "bool not registered without validation");
 
 	/* Check that we can register a key with a default value. */
-    ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), "default", NULL, NULL), "buf not registered with default value");
-    ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, "default", NULL, NULL), "strdup not registered with default value");
-    ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 100, M_INT8_MIN, M_INT8_MAX, NULL), "int8 not registered with default value");
-    ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 100, M_INT16_MIN, M_INT16_MAX, NULL), "int16 not registered with default value");
-    ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 100, M_INT32_MIN, M_INT32_MAX, NULL), "int32 not registered with default value");
-    ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 100, M_INT64_MIN, M_INT64_MAX, NULL), "int64 not registered with default value");
-    ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 100, 0, M_UINT8_MAX, NULL), "uint8 not registered with default value");
-    ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 100, 0, M_UINT16_MAX, NULL), "uint16 not registered with default value");
-    ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 100, 0, M_UINT32_MAX, NULL), "uint32 not registered with default value");
-    ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 100, 0, M_UINT64_MAX, NULL), "uint64 not registered with default value");
-    ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_TRUE, NULL), "bool not registered with default value");
+	ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), "default", NULL, NULL), "buf not registered with default value");
+	ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, "default", NULL, NULL), "strdup not registered with default value");
+	ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 100, M_INT8_MIN, M_INT8_MAX, NULL), "int8 not registered with default value");
+	ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 100, M_INT16_MIN, M_INT16_MAX, NULL), "int16 not registered with default value");
+	ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 100, M_INT32_MIN, M_INT32_MAX, NULL), "int32 not registered with default value");
+	ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 100, M_INT64_MIN, M_INT64_MAX, NULL), "int64 not registered with default value");
+	ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 100, 0, M_UINT8_MAX, NULL), "uint8 not registered with default value");
+	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 100, 0, M_UINT16_MAX, NULL), "uint16 not registered with default value");
+	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 100, 0, M_UINT32_MAX, NULL), "uint32 not registered with default value");
+	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 100, 0, M_UINT64_MAX, NULL), "uint64 not registered with default value");
+	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_TRUE, NULL), "bool not registered with default value");
 
 	/* Check that we can register a key with validation. */
-    ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, "abc*", NULL), "buf not registered with validation");
-    ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, "abc*", NULL), "strdup not registered with validation");
-    ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, -100, 100, NULL), "int8 not registered with validation");
-    ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, -100, 100, NULL), "int16 not registered with validation");
-    ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, -100, 100, NULL), "int32 not registered with validation");
-    ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, -100, 100, NULL), "int64 not registered with validation");
-    ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 100, 200, NULL), "uint8 not registered with validation");
-    ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 100, 200, NULL), "uint16 not registered with validation");
-    ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 100, 200, NULL), "uint32 not registered with validation");
-    ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 100, 200, NULL), "uint64 not registered with validation");
+	ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, "abc*", NULL), "buf not registered with validation");
+	ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, "abc*", NULL), "strdup not registered with validation");
+	ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, -100, 100, NULL), "int8 not registered with validation");
+	ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, -100, 100, NULL), "int16 not registered with validation");
+	ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, -100, 100, NULL), "int32 not registered with validation");
+	ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, -100, 100, NULL), "int64 not registered with validation");
+	ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 100, 200, NULL), "uint8 not registered with validation");
+	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 100, 200, NULL), "uint16 not registered with validation");
+	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 100, 200, NULL), "uint32 not registered with validation");
+	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 100, 200, NULL), "uint64 not registered with validation");
 
 	/* Check that we can register a key with a conversion callback. */
-    ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, NULL, buf_pass_cb), "buf not registered with conversion callback");
-    ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, NULL, strdup_pass_cb), "strdup not registered with conversion callback");
-    ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, int8_pass_cb), "int8 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, int16_pass_cb), "int16 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, int32_pass_cb), "int32 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, int64_pass_cb), "int64 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 0, M_UINT8_MAX, uint8_pass_cb), "uint8 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, uint16_pass_cb), "uint16 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, uint32_pass_cb), "uint32 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, uint64_pass_cb), "uint64 not registered with conversion callback");
-    ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, bool_pass_cb), "bool not registered with conversion callback");
-    ck_assert_msg(M_conf_register_custom(conf, "key", &mem_custom, custom_pass_cb), "custom not registered with conversion callback");
+	ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, NULL, buf_pass_cb), "buf not registered with conversion callback");
+	ck_assert_msg(M_conf_register_strdup(conf, "key", &mem_strdup, NULL, NULL, strdup_pass_cb), "strdup not registered with conversion callback");
+	ck_assert_msg(M_conf_register_int8(conf, "key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, int8_pass_cb), "int8 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_int16(conf, "key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, int16_pass_cb), "int16 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_int32(conf, "key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, int32_pass_cb), "int32 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_int64(conf, "key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, int64_pass_cb), "int64 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_uint8(conf, "key", &mem_uint8, 0, 0, M_UINT8_MAX, uint8_pass_cb), "uint8 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, uint16_pass_cb), "uint16 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, uint32_pass_cb), "uint32 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, uint64_pass_cb), "uint64 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, bool_pass_cb), "bool not registered with conversion callback");
+	ck_assert_msg(M_conf_register_custom(conf, "key", &mem_custom, custom_pass_cb), "custom not registered with conversion callback");
 
 	/* Custom registrations should work both with and without an address. */
-    ck_assert_msg(M_conf_register_custom(conf, "key", &mem_custom, custom_pass_cb), "custom not registered with address");
-    ck_assert_msg(M_conf_register_custom(conf, "key", NULL, custom_pass_cb), "custom not registered without address");
+	ck_assert_msg(M_conf_register_custom(conf, "key", &mem_custom, custom_pass_cb), "custom not registered with address");
+	ck_assert_msg(M_conf_register_custom(conf, "key", NULL, custom_pass_cb), "custom not registered without address");
 
 	M_conf_destroy(conf);
 
@@ -1188,89 +1188,89 @@ START_TEST(check_straight_registration)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the registration reads the correct conf value. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for reading");
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_value"), "buf failed to get conf value");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup failed to get conf value");
-    ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
-    ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
-    ck_assert_msg(mem_int32 == -32, "int32 failed to get conf value");
-    ck_assert_msg(mem_int64 == -64, "int64 failed to get conf value");
-    ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
-    ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
-    ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
-    ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
-    ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
+	ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
+	ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
+	ck_assert_msg(mem_int32 == -32, "int32 failed to get conf value");
+	ck_assert_msg(mem_int64 == -64, "int64 failed to get conf value");
+	ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
+	ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
+	ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
+	ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
+	ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
 
 	M_free(mem_strdup);
 
 	/* Check that the registration uses the correct default value. */
-    M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), "buf_default", NULL, NULL);
-    M_conf_register_strdup(conf, "NOKEY", &mem_strdup, "str_default", NULL, NULL);
-    M_conf_register_int8(conf, "NOKEY", &mem_int8, -99, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "NOKEY", &mem_int16, -999, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "NOKEY", &mem_int32, -9999, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "NOKEY", &mem_int64, -99999, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 99, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 999, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 9999, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 99999, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "NOKEY", &mem_bool, M_TRUE, NULL);
+	M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), "buf_default", NULL, NULL);
+	M_conf_register_strdup(conf, "NOKEY", &mem_strdup, "str_default", NULL, NULL);
+	M_conf_register_int8(conf, "NOKEY", &mem_int8, -99, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "NOKEY", &mem_int16, -999, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "NOKEY", &mem_int32, -9999, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "NOKEY", &mem_int64, -99999, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 99, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 999, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 9999, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 99999, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_TRUE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for defaults");
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_default"), "buf failed to use default value");
 	ck_assert_msg(M_str_eq(mem_strdup, "str_default"), "strdup failed to use default value");
-    ck_assert_msg(mem_int8 == -99, "int8 failed to use default value");
-    ck_assert_msg(mem_int16 == -999, "int16 failed to use default value");
-    ck_assert_msg(mem_int32 == -9999, "int32 failed to use default value");
-    ck_assert_msg(mem_int64 == -99999, "int64 failed to use default value");
-    ck_assert_msg(mem_uint8 == 99, "uint8 failed to use default value");
-    ck_assert_msg(mem_uint16 == 999, "uint16 failed to use default value");
-    ck_assert_msg(mem_uint32 == 9999, "uint32 failed to use default value");
-    ck_assert_msg(mem_uint64 == 99999, "uint64 failed to use default value");
-    ck_assert_msg(mem_bool == M_TRUE, "bool failed to use default value");
+	ck_assert_msg(mem_int8 == -99, "int8 failed to use default value");
+	ck_assert_msg(mem_int16 == -999, "int16 failed to use default value");
+	ck_assert_msg(mem_int32 == -9999, "int32 failed to use default value");
+	ck_assert_msg(mem_int64 == -99999, "int64 failed to use default value");
+	ck_assert_msg(mem_uint8 == 99, "uint8 failed to use default value");
+	ck_assert_msg(mem_uint16 == 999, "uint16 failed to use default value");
+	ck_assert_msg(mem_uint32 == 9999, "uint32 failed to use default value");
+	ck_assert_msg(mem_uint64 == 99999, "uint64 failed to use default value");
+	ck_assert_msg(mem_bool == M_TRUE, "bool failed to use default value");
 
 	M_free(mem_strdup);
 
 	/* Check that memory is being correctly blanked. */
-    M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "NOKEY", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "NOKEY", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "NOKEY", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "NOKEY", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "NOKEY", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "NOKEY", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "NOKEY", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "NOKEY", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "NOKEY", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "NOKEY", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "NOKEY", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_FALSE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for blanks");
 
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
-    ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
-    ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
-    ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
-    ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
-    ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
-    ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
-    ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
-    ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
-    ck_assert_msg(mem_bool == M_FALSE, "bool was not zeroed out");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_bool == M_FALSE, "bool was not zeroed out");
 
 	M_conf_destroy(conf);
 
@@ -1298,72 +1298,72 @@ START_TEST(check_sanity)
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "buf passed validation");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", NULL);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed validation");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 passed validation");
-    ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 passed validation");
-    ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 passed validation");
-    ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, NULL);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int64 passed validation");
-    ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
+	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 passed validation");
-    ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 passed validation");
-    ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 passed validation");
-    ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 passed validation");
-    ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
@@ -1392,84 +1392,84 @@ START_TEST(check_transformation_error)
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_fail_cb);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "buf passed bad transformation callback");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_fail_cb);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed bad transformation callback");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_fail_cb);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int8 passed bad transformation callback");
-    ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_fail_cb);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int16 passed bad transformation callback");
-    ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_fail_cb);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int32 passed bad transformation callback");
-    ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_fail_cb);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int64 passed bad transformation callback");
-    ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
+	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_fail_cb);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 passed bad transformation callback");
-    ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_fail_cb);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 passed bad transformation callback");
-    ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_fail_cb);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 passed bad transformation callback");
-    ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_fail_cb);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 passed bad transformation callback");
-    ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_TRUE, bool_fail_cb);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_TRUE, bool_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "bool passed bad transformation callback");
-    ck_assert_msg(mem_bool == 0, "bool was not zeroed out");
+	ck_assert_msg(mem_bool == 0, "bool was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_custom(conf, "custom_key", &mem_custom, custom_fail_cb);
+	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "custom passed bad transformation callback");
 	M_conf_destroy(conf); conf = NULL;
 
@@ -1497,72 +1497,72 @@ START_TEST(check_transformation_override)
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", buf_pass_cb);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", buf_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "buf failed validation when transformation callback should be handling that");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", strdup_pass_cb);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", strdup_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "strdup failed validation when transformation callback should be handling that");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, int8_pass_cb);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, int8_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int8 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, int16_pass_cb);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, int16_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int16 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, int32_pass_cb);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, int32_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int32 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, int64_pass_cb);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, int64_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int64 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
+	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, uint8_pass_cb);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, uint8_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint8 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, uint16_pass_cb);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, uint16_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint16 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, uint32_pass_cb);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, uint32_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint32 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, uint64_pass_cb);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, uint64_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint64 failed validation when transformation callback should be handling that");
-    ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
@@ -1592,16 +1592,16 @@ START_TEST(check_transformation_set)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the value set in the transformation callback is honored. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_real_cb);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_real_cb);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_real_cb);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_real_cb);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_real_cb);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_real_cb);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_real_cb);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_real_cb);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_real_cb);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_real_cb);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_real_cb);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_real_cb);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_real_cb);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_real_cb);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_real_cb);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_real_cb);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_real_cb);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_real_cb);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_real_cb);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_real_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_real_cb);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
@@ -1609,15 +1609,15 @@ START_TEST(check_transformation_set)
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_transform"), "buf transformation failed");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_transform"), "strdup transformation failed");
-    ck_assert_msg(mem_int8 == -111, "int8 transformation failed");
-    ck_assert_msg(mem_int16 == -222, "int16 transformation failed");
-    ck_assert_msg(mem_int32 == -333, "int32 transformation failed");
-    ck_assert_msg(mem_int64 == -444, "int64 transformation failed");
-    ck_assert_msg(mem_uint8 == 111, "uint8 transformation failed");
-    ck_assert_msg(mem_uint16 == 222, "uint16 transformation failed");
-    ck_assert_msg(mem_uint32 == 333, "uint32 transformation failed");
-    ck_assert_msg(mem_uint64 == 444, "uint64 transformation failed");
-    ck_assert_msg(mem_custom == 999, "custom transformation failed");
+	ck_assert_msg(mem_int8 == -111, "int8 transformation failed");
+	ck_assert_msg(mem_int16 == -222, "int16 transformation failed");
+	ck_assert_msg(mem_int32 == -333, "int32 transformation failed");
+	ck_assert_msg(mem_int64 == -444, "int64 transformation failed");
+	ck_assert_msg(mem_uint8 == 111, "uint8 transformation failed");
+	ck_assert_msg(mem_uint16 == 222, "uint16 transformation failed");
+	ck_assert_msg(mem_uint32 == 333, "uint32 transformation failed");
+	ck_assert_msg(mem_uint64 == 444, "uint64 transformation failed");
+	ck_assert_msg(mem_custom == 999, "custom transformation failed");
 
 	M_free(mem_strdup);
 	M_conf_destroy(conf);
@@ -1649,16 +1649,16 @@ START_TEST(check_transformation_value)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the correct value is sent to the transformation callback. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_value_cb);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_value_cb);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_value_cb);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_value_cb);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_value_cb);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_value_cb);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_value_cb);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_value_cb);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_value_cb);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_value_cb);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_value_cb);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_value_cb);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_value_cb);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_value_cb);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_value_cb);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_value_cb);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_value_cb);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_value_cb);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_value_cb);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_value_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_value_cb);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_value_cb);
 
@@ -1666,15 +1666,15 @@ START_TEST(check_transformation_value)
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_value"), "buf transformation callback was sent wrong value");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup transformation callback was sent wrong value");
-    ck_assert_msg(mem_int8 == -8, "int8 transformation callback was sent wrong value");
-    ck_assert_msg(mem_int16 == -16, "int16 transformation callback was sent wrong value");
+	ck_assert_msg(mem_int8 == -8, "int8 transformation callback was sent wrong value");
+	ck_assert_msg(mem_int16 == -16, "int16 transformation callback was sent wrong value");
 	ck_assert_msg(mem_int32 == -32, "int32 transformation callback was sent wrong value");
-    ck_assert_msg(mem_int64 == -64, "int64 transformation callback was sent wrong value");
-    ck_assert_msg(mem_uint8 == 8, "uint8 transformation callback was sent wrong value");
-    ck_assert_msg(mem_uint16 == 16, "uint16 transformation callback was sent wrong value");
-    ck_assert_msg(mem_uint32 == 32, "uint32 transformation callback was sent wrong value");
-    ck_assert_msg(mem_uint64 == 64, "uint64 transformation callback was sent wrong value");
-    ck_assert_msg(mem_bool == M_TRUE, "bool transformation callback was sent wrong value");
+	ck_assert_msg(mem_int64 == -64, "int64 transformation callback was sent wrong value");
+	ck_assert_msg(mem_uint8 == 8, "uint8 transformation callback was sent wrong value");
+	ck_assert_msg(mem_uint16 == 16, "uint16 transformation callback was sent wrong value");
+	ck_assert_msg(mem_uint32 == 32, "uint32 transformation callback was sent wrong value");
+	ck_assert_msg(mem_uint64 == 64, "uint64 transformation callback was sent wrong value");
+	ck_assert_msg(mem_bool == M_TRUE, "bool transformation callback was sent wrong value");
 	ck_assert_msg(M_str_eq(mem_custom, "custom_value"), "custom transformation callback was sent wrong value");
 
 	M_free(mem_strdup);
@@ -1707,30 +1707,30 @@ START_TEST(check_transformation_default)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the correct default value is sent to the transformation callback. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "buf_default_value", NULL, buf_default_value_cb);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "strdup_default_value", NULL, strdup_default_value_cb);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, -123, 0, 0, int8_default_value_cb);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, -234, 0, 0, int16_default_value_cb);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, -345, 0, 0, int32_default_value_cb);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, -456, 0, 0, int64_default_value_cb);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 123, 0, 0, uint8_default_value_cb);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 234, 0, 0, uint16_default_value_cb);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 345, 0, 0, uint32_default_value_cb);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 456, 0, 0, uint64_default_value_cb);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "buf_default_value", NULL, buf_default_value_cb);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "strdup_default_value", NULL, strdup_default_value_cb);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, -123, 0, 0, int8_default_value_cb);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, -234, 0, 0, int16_default_value_cb);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, -345, 0, 0, int32_default_value_cb);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, -456, 0, 0, int64_default_value_cb);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 123, 0, 0, uint8_default_value_cb);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 234, 0, 0, uint16_default_value_cb);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 345, 0, 0, uint32_default_value_cb);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 456, 0, 0, uint64_default_value_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_default_value_cb);
 
 	ck_assert_msg(M_conf_parse(conf), "transformation callbacks failed transformation");
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_default_value"), "buf transformation callback was sent wrong default value");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_default_value"), "strdup transformation callback was sent wrong default value");
-    ck_assert_msg(mem_int8 == -123, "int8 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_int16 == -234, "int16 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_int8 == -123, "int8 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_int16 == -234, "int16 transformation callback was sent wrong default value");
 	ck_assert_msg(mem_int32 == -345, "int32 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_int64 == -456, "int64 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_uint8 == 123, "uint8 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_uint16 == 234, "uint16 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_uint32 == 345, "uint32 transformation callback was sent wrong default value");
-    ck_assert_msg(mem_uint64 == 456, "uint64 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_int64 == -456, "int64 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_uint8 == 123, "uint8 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_uint16 == 234, "uint16 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_uint32 == 345, "uint32 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_uint64 == 456, "uint64 transformation callback was sent wrong default value");
 	ck_assert_msg(mem_bool == M_FALSE, "bool transformation callback was sent wrong default value");
 
 	M_free(mem_strdup);
@@ -1763,33 +1763,33 @@ START_TEST(check_no_block_on_error)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that one error during parsing doesn't block other registrations. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, "[:digit:]+", NULL); /* This one should fail. */
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, "[:digit:]+", NULL); /* This one should fail. */
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
 	ck_assert_msg(!M_conf_parse(conf), "conf parse should have failed");
 
 	ck_assert_msg(M_str_isempty(mem_buf), "buf registration should have failed");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup was blocked");
-    ck_assert_msg(mem_int8 == -8, "int8 was blocked");
-    ck_assert_msg(mem_int16 == -16, "int16 was blocked");
-    ck_assert_msg(mem_int32 == -32, "int32 was blocked");
-    ck_assert_msg(mem_int64 == -64, "int64 was blocked");
-    ck_assert_msg(mem_uint8 == 8, "uint8 was blocked");
-    ck_assert_msg(mem_uint16 == 16, "uint16 was blocked");
-    ck_assert_msg(mem_uint32 == 32, "uint32 was blocked");
-    ck_assert_msg(mem_uint64 == 64, "uint64 was blocked");
-    ck_assert_msg(mem_bool == M_TRUE, "bool was blocked");
-    ck_assert_msg(mem_custom == 999, "custom was blocked");
+	ck_assert_msg(mem_int8 == -8, "int8 was blocked");
+	ck_assert_msg(mem_int16 == -16, "int16 was blocked");
+	ck_assert_msg(mem_int32 == -32, "int32 was blocked");
+	ck_assert_msg(mem_int64 == -64, "int64 was blocked");
+	ck_assert_msg(mem_uint8 == 8, "uint8 was blocked");
+	ck_assert_msg(mem_uint16 == 16, "uint16 was blocked");
+	ck_assert_msg(mem_uint32 == 32, "uint32 was blocked");
+	ck_assert_msg(mem_uint64 == 64, "uint64 was blocked");
+	ck_assert_msg(mem_bool == M_TRUE, "bool was blocked");
+	ck_assert_msg(mem_custom == 999, "custom was blocked");
 
 	M_free(mem_strdup);
 	M_conf_destroy(conf);
@@ -1840,59 +1840,59 @@ START_TEST(check_unused_single)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Register the first and third blocks of keys, and check that everything is ok. */
-    M_conf_register_buf(conf, "buf_key1", mem_buf_1, sizeof(mem_buf_1), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key1", &mem_strdup_1, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key1", &mem_int8_1, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key1", &mem_int16_1, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key1", &mem_int32_1, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key1", &mem_int64_1, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key1", &mem_uint8_1, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key1", &mem_uint16_1, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key1", &mem_uint32_1, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key1", &mem_uint64_1, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key1", &mem_bool_1, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key1", mem_buf_1, sizeof(mem_buf_1), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key1", &mem_strdup_1, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key1", &mem_int8_1, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key1", &mem_int16_1, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key1", &mem_int32_1, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key1", &mem_int64_1, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key1", &mem_uint8_1, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key1", &mem_uint16_1, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key1", &mem_uint32_1, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key1", &mem_uint64_1, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key1", &mem_bool_1, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key1", &mem_custom_1, custom_real_cb);
 
-    M_conf_register_buf(conf, "buf_key3", mem_buf_3, sizeof(mem_buf_3), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key3", &mem_strdup_3, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key3", &mem_int8_3, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key3", &mem_int16_3, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key3", &mem_int32_3, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key3", &mem_int64_3, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key3", &mem_uint8_3, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key3", &mem_uint16_3, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key3", &mem_uint32_3, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key3", &mem_uint64_3, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key3", &mem_bool_3, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key3", mem_buf_3, sizeof(mem_buf_3), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key3", &mem_strdup_3, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key3", &mem_int8_3, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key3", &mem_int16_3, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key3", &mem_int32_3, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key3", &mem_int64_3, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key3", &mem_uint8_3, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key3", &mem_uint16_3, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key3", &mem_uint32_3, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key3", &mem_uint64_3, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key3", &mem_bool_3, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key3", &mem_custom_3, custom_real_cb);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed");
 
 	ck_assert_msg(M_str_eq(mem_buf_1, "buf_value"), "buf (1) registration failed");
 	ck_assert_msg(M_str_eq(mem_strdup_1, "strdup_value"), "strdup (1) registration failed");
-    ck_assert_msg(mem_int8_1 == -8, "int8 (1) registration failed");
-    ck_assert_msg(mem_int16_1 == -16, "int16 (1) registration failed");
-    ck_assert_msg(mem_int32_1 == -32, "int32 (1) registration failed");
-    ck_assert_msg(mem_int64_1 == -64, "int64 (1) registration failed");
-    ck_assert_msg(mem_uint8_1 == 8, "uint8 (1) registration failed");
-    ck_assert_msg(mem_uint16_1 == 16, "uint16 (1) registration failed");
-    ck_assert_msg(mem_uint32_1 == 32, "uint32 (1) registration failed");
-    ck_assert_msg(mem_uint64_1 == 64, "uint64 (1) registration failed");
-    ck_assert_msg(mem_bool_1 == M_TRUE, "bool (1) registration failed");
-    ck_assert_msg(mem_custom_1 == 999, "custom (1) registration failed");
+	ck_assert_msg(mem_int8_1 == -8, "int8 (1) registration failed");
+	ck_assert_msg(mem_int16_1 == -16, "int16 (1) registration failed");
+	ck_assert_msg(mem_int32_1 == -32, "int32 (1) registration failed");
+	ck_assert_msg(mem_int64_1 == -64, "int64 (1) registration failed");
+	ck_assert_msg(mem_uint8_1 == 8, "uint8 (1) registration failed");
+	ck_assert_msg(mem_uint16_1 == 16, "uint16 (1) registration failed");
+	ck_assert_msg(mem_uint32_1 == 32, "uint32 (1) registration failed");
+	ck_assert_msg(mem_uint64_1 == 64, "uint64 (1) registration failed");
+	ck_assert_msg(mem_bool_1 == M_TRUE, "bool (1) registration failed");
+	ck_assert_msg(mem_custom_1 == 999, "custom (1) registration failed");
 
 	ck_assert_msg(M_str_eq(mem_buf_3, "buf_value"), "buf (3) registration failed");
 	ck_assert_msg(M_str_eq(mem_strdup_3, "strdup_value"), "strdup (3) registration failed");
-    ck_assert_msg(mem_int8_3 == -8, "int8 (3) registration failed");
-    ck_assert_msg(mem_int16_3 == -16, "int16 (3) registration failed");
-    ck_assert_msg(mem_int32_3 == -32, "int32 (3) registration failed");
-    ck_assert_msg(mem_int64_3 == -64, "int64 (3) registration failed");
-    ck_assert_msg(mem_uint8_3 == 8, "uint8 (3) registration failed");
-    ck_assert_msg(mem_uint16_3 == 16, "uint16 (3) registration failed");
-    ck_assert_msg(mem_uint32_3 == 32, "uint32 (3) registration failed");
-    ck_assert_msg(mem_uint64_3 == 64, "uint64 (3) registration failed");
-    ck_assert_msg(mem_bool_3 == M_TRUE, "bool (3) registration failed");
-    ck_assert_msg(mem_custom_3 == 999, "custom (3) registration failed");
+	ck_assert_msg(mem_int8_3 == -8, "int8 (3) registration failed");
+	ck_assert_msg(mem_int16_3 == -16, "int16 (3) registration failed");
+	ck_assert_msg(mem_int32_3 == -32, "int32 (3) registration failed");
+	ck_assert_msg(mem_int64_3 == -64, "int64 (3) registration failed");
+	ck_assert_msg(mem_uint8_3 == 8, "uint8 (3) registration failed");
+	ck_assert_msg(mem_uint16_3 == 16, "uint16 (3) registration failed");
+	ck_assert_msg(mem_uint32_3 == 32, "uint32 (3) registration failed");
+	ck_assert_msg(mem_uint64_3 == 64, "uint64 (3) registration failed");
+	ck_assert_msg(mem_bool_3 == M_TRUE, "bool (3) registration failed");
+	ck_assert_msg(mem_custom_3 == 999, "custom (3) registration failed");
 
 	/* Now that we have used up those keys, let's make sure we have the correct unused keys left. */
 	unused          = M_conf_unused_keys(conf);
@@ -1962,33 +1962,33 @@ START_TEST(check_unused_multi)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Register every key once. Then we'll make sure that what remains is correct. */
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed");
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_value"), "buf registration failed");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup registration failed");
-    ck_assert_msg(mem_int8 == -8, "int8 registration failed");
-    ck_assert_msg(mem_int16 == -16, "int16 registration failed");
-    ck_assert_msg(mem_int32 == -32, "int32 registration failed");
-    ck_assert_msg(mem_int64 == -64, "int64 registration failed");
-    ck_assert_msg(mem_uint8 == 8, "uint8 registration failed");
-    ck_assert_msg(mem_uint16 == 16, "uint16 registration failed");
-    ck_assert_msg(mem_uint32 == 32, "uint32 registration failed");
-    ck_assert_msg(mem_uint64 == 64, "uint64 registration failed");
-    ck_assert_msg(mem_bool == M_TRUE, "bool registration failed");
-    ck_assert_msg(mem_custom == 999, "custom registration failed");
+	ck_assert_msg(mem_int8 == -8, "int8 registration failed");
+	ck_assert_msg(mem_int16 == -16, "int16 registration failed");
+	ck_assert_msg(mem_int32 == -32, "int32 registration failed");
+	ck_assert_msg(mem_int64 == -64, "int64 registration failed");
+	ck_assert_msg(mem_uint8 == 8, "uint8 registration failed");
+	ck_assert_msg(mem_uint16 == 16, "uint16 registration failed");
+	ck_assert_msg(mem_uint32 == 32, "uint32 registration failed");
+	ck_assert_msg(mem_uint64 == 64, "uint64 registration failed");
+	ck_assert_msg(mem_bool == M_TRUE, "bool registration failed");
+	ck_assert_msg(mem_custom == 999, "custom registration failed");
 
 	/* Now that we have used up those keys, let's make sure we have the correct unused keys left. We're going to do
  	 * everything manually to make it easier to see. */
@@ -2041,10 +2041,10 @@ START_TEST(check_validators)
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
 
 	M_conf_register_validator(conf, validate_buf_cb, mem_buf);
 	M_conf_register_validator(conf, validate_strdup_cb, &mem_strdup);
@@ -2055,8 +2055,8 @@ START_TEST(check_validators)
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_value"), "buf failed to get conf value");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup failed to get conf value");
-    ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
-    ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
+	ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
+	ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
 
 	M_free(mem_strdup);
 	M_conf_destroy(conf); conf = NULL;
@@ -2067,9 +2067,9 @@ START_TEST(check_validators)
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 
 	M_conf_register_validator(conf, validate_int16_cb, &mem_int16);
 	M_conf_register_validator(conf, validate_uint16_cb, &mem_uint16);
@@ -2077,9 +2077,9 @@ START_TEST(check_validators)
 
 	ck_assert_msg(!M_conf_parse(conf), "conf parse succeeded");
 
-    ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
-    ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
-    ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
+	ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
+	ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
+	ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
 
 	M_conf_destroy(conf); conf = NULL;
 
@@ -2089,17 +2089,17 @@ START_TEST(check_validators)
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
-    M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-    M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
-    M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-    M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-    M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-    M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-    M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-    M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-    M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-    M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-    M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
+	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 
 	M_conf_register_validator(conf, validate_buf_cb, mem_buf);
 	M_conf_register_validator(conf, validate_strdup_cb, &mem_strdup);
@@ -2113,15 +2113,15 @@ START_TEST(check_validators)
 
 	ck_assert_msg(M_str_eq(mem_buf, "buf_value"), "buf failed to get conf value");
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup failed to get conf value");
-    ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
-    ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
-    ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
-    ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
-    ck_assert_msg(mem_int32 == -32, "int32 failed to get conf value");
-    ck_assert_msg(mem_int64 == -64, "int64 failed to get conf value");
-    ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
-    ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
-    ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
+	ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
+	ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
+	ck_assert_msg(mem_int16 == -16, "int16 failed to get conf value");
+	ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
+	ck_assert_msg(mem_int32 == -32, "int32 failed to get conf value");
+	ck_assert_msg(mem_int64 == -64, "int64 failed to get conf value");
+	ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
+	ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
+	ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
 
 	M_free(mem_strdup);
 	M_conf_destroy(conf);
