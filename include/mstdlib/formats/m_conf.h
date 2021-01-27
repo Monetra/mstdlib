@@ -73,8 +73,7 @@ __BEGIN_DECLS
  *
  * \code{.c}
  *     M_int8   num1;
- *     M_uint8  num2;
- *     M_uint32 sys_flags;
+ *     M_uint32 num2;
  *
  *     static void log_conf_debug(const char *path, const char *msg)
  *     {
@@ -106,22 +105,23 @@ __BEGIN_DECLS
  *         return M_TRUE;
  *     }
  *
- *     static M_bool handle_flags(const char *value)
+ *     static M_bool handle_flags(void *mem, const char *value)
  *     {
- *         char   **flags;
- *         size_t   num_flags;
- *         size_t   i;
+ *         M_uint64   *flags = mem;
+ *         char      **parts;
+ *         size_t      num_parts;
+ *         size_t      i;
  *
- *         sys_flags = 0;
+ *         *flags = 0;
  *
- *         flags = M_str_explode_str('|', value, &num_flags);
- *         if (flags == NULL)
+ *         parts = M_str_explode_str('|', value, &num_parts);
+ *         if (parts == NULL)
  *            return M_FALSE;
  *
- *         for (i=0; i<num_flags; i++) {
- *            sys_flags |= parse_flag(flags[i]);
+ *         for (i=0; i<num_parts; i++) {
+ *            *flags |= parse_flag(parts[i]);
  *         }
- *         M_str_explode_free(flags, num_flags);
+ *         M_str_explode_free(parts, num_parts);
  *
  *         return M_TRUE;
  *     }
@@ -134,8 +134,8 @@ __BEGIN_DECLS
  *            return M_FALSE;
  *         }
  *
- *         if (num1 > num2) {
- *            return M_FALSE;
+ *         if (num2 < num1) {
+ *        	 return M_FALSE;
  *         }
  *
  *         return M_TRUE;
@@ -147,6 +147,7 @@ __BEGIN_DECLS
  *         char      name_buf[256];
  *         char     *desc;
  *         M_bool    active;
+ *         M_uint64  flags;
  *         M_bool    ret;
  *
  *         conf = M_conf_create(path, M_FALSE);
@@ -163,7 +164,7 @@ __BEGIN_DECLS
  *         M_conf_register_int8(conf, "num1", &num1, 0, -10, 10, NULL);
  *         M_conf_register_uint32(conf, "num2", &num2, 16, 0, 0, handle_num2);
  *         M_conf_register_bool(conf, "active", &active, M_FALSE, NULL);
- *         M_conf_register_custom(conf, "flags", handle_flags);
+ *         M_conf_register_custom(conf, "flags", &flags, handle_flags);
  *
  *         M_conf_register_validator(conf, validate_data, name_buf);
  *
