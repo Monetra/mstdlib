@@ -87,6 +87,7 @@ set(slow_tests)
 #formats
 if (MSTDLIB_BUILD_FORMATS)
 	list(APPEND tests
+		formats/check_conf.c
 		formats/check_csv.c
 		#formats/check_email.c
 		#formats/check_email_reader.c

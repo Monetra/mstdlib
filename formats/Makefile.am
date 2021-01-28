@@ -5,6 +5,8 @@ AM_CPPFLAGS = $(AM_CFLAGS)
 
 libmstdlib_formats_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_formats_la_SOURCES =  \
+	conf/m_conf.c                \
+	\
 	csv/m_csv.c                  \
 	\
 	ini/m_ini.c                  \

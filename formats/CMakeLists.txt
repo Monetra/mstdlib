@@ -8,6 +8,9 @@ set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
 
 set(sources
+	# conf:
+	conf/m_conf.c
+
 	# csv:
 	csv/m_csv.c
 
