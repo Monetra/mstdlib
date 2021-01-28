@@ -242,6 +242,12 @@ M_API const char *M_ini_element_comment_get_val(const M_ini_element_t *elem);
  */
 M_API const char *M_ini_element_section_get_name(const M_ini_element_t *elem);
 
+/*! Get the comment for a section element.
+ * \param elem The element.
+ * \return The value.
+ */
+M_API const char *M_ini_element_section_get_comment(const M_ini_element_t *elem);
+
 /*! Get the key for a kv element.
  * \param elem The element.
  * \return The key.
@@ -275,6 +281,13 @@ M_API M_bool M_ini_element_comment_set_val(M_ini_element_t *elem, const char *va
  * \return True on success otherwise false.
  */
 M_API M_bool M_ini_element_section_set_name(M_ini_element_t *elem, const char *name);
+
+/*! Set the comment for a section element.
+ * \param elem The element.
+ * \param name The name to set.
+ * \return True on success otherwise false.
+ */
+M_API M_bool M_ini_element_section_set_comment(M_ini_element_t *elem, const char *comment);
 
 /*! Set the key for a kv element.
  * \param elem The element.

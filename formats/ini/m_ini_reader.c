@@ -162,7 +162,7 @@ static M_ini_element_type_t M_ini_reader_determine_type(const char *s, const M_i
 	}
 
 	len = M_str_len(s);
-	if (*s == '[' && s[len-1] == ']') {
+	if (*s == '[') {
 		return M_INI_ELEMENT_TYPE_SECTION;
 	}
 
@@ -197,20 +197,62 @@ static M_bool M_ini_reader_parse_comment(const char *line, const M_ini_settings_
  * This function does not check that the input conforms to the type. */
 static M_bool M_ini_reader_parse_section(const char *line, const M_ini_settings_t *info, M_ini_element_t *elem)
 {
-	char   *s;
-	size_t  len;
+	char          *s;
+	char          *temp;
+	size_t         len;
+	size_t         i;
+	unsigned char  comment_char = M_ini_settings_get_comment_char(info);
+	M_bool         have_name    = M_FALSE;
+	M_bool         have_comment = M_FALSE;
 
 	(void)info;
 
 	s = M_strdup(line);
 
-	/* Remove the framing ([, ]) characters. */
+	/* Remove the start framing ([) character. */
 	len = M_str_len(s);
-	M_mem_move(s, s+1, len-1);
-	s[len-2] = '\0';
-	M_str_trim(s);
+	M_mem_move(s, s+1, len);
+	s[len-1] = '\0';
+	len--;
 
-	M_ini_element_section_set_name(elem, s);
+	/* Find the end framing character (]). */
+	for (i=0; i<len; i++) {
+		/* Section name can't include the comment character. */
+		if (s[i] == comment_char) {
+			M_free(s);
+			return M_FALSE;
+		} else if (s[i] == ']') {
+			have_name = M_TRUE;
+			break;
+		}
+	}
+
+	/* Verify we actually have an end. */
+	if (!have_name) {
+		M_free(s);
+		return M_FALSE;
+	}
+
+	/* Copy off the name. */
+	temp = M_strdup_max(s, i);
+	M_str_trim(temp);
+	M_ini_element_section_set_name(elem, temp);
+	M_free(temp);
+
+	/* Look for comment. */
+	for (; i<len; i++) {
+		if (s[i] == comment_char) {
+			have_comment = M_TRUE;
+			break;
+		}
+	}
+
+	if (have_comment) {
+		temp = M_strdup(s+i+1);
+		M_str_trim(temp);
+		M_ini_element_section_set_comment(elem, temp);
+		M_free(temp);
+	}
 
 	M_free(s);
 	return M_TRUE;

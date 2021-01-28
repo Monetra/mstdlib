@@ -45,6 +45,9 @@ __BEGIN_DECLS
  *
  * Can handle multiple or single values under a single key.
  *
+ * Section names and keys cannot include the comment character. Values can, if
+ * they are quoted.
+ *
  * Supports:
  *   - Read
  *   - Write

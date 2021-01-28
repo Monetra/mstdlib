@@ -327,14 +327,30 @@ static void M_ini_writer_write_element_empty_line(const M_ini_element_t *elem, c
 
 static void M_ini_writer_write_element_section(const M_ini_element_t *elem, const char *key, const M_ini_settings_t *info, M_buf_t *buf)
 {
-	(void)elem;
+	const char      *val;
+	M_ini_padding_t  padding_flags;
 
 	if (M_str_isempty(key))
 		return;
 
+	padding_flags = M_ini_settings_get_padding(info);
+
 	M_buf_add_byte(buf, '[');
 	M_buf_add_str(buf, key);
 	M_buf_add_byte(buf, ']');
+
+	val = M_ini_element_section_get_comment(elem);
+	if (val != NULL) {
+		if (padding_flags & M_INI_PADDING_AFTER_KV_VAL) {
+			M_buf_add_byte(buf, ' ');
+		}
+		M_buf_add_byte(buf, M_ini_settings_get_comment_char(info));
+		if (padding_flags & M_INI_PADDING_AFTER_COMMENT_CHAR && (val != NULL && !M_chr_isspace(*val))) {
+			M_buf_add_byte(buf, ' ');
+		}
+		M_buf_add_str(buf, val);
+	}
+
 	M_ini_writer_write_line_ending(info, buf);
 }
 

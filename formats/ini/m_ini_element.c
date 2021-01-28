@@ -38,6 +38,7 @@ struct M_ini_element {
 		} comment;
 		struct {
 			char *name;
+			char *comment;
 		} section;
 		struct {
 			char *key;
@@ -77,6 +78,8 @@ static M_bool M_ini_element_destroy_section(M_ini_element_t *elem)
 
 	M_free(elem->data.section.name);
 	elem->data.section.name = NULL;
+	M_free(elem->data.section.comment);
+	elem->data.section.comment = NULL;
 
 	return M_TRUE;
 }
@@ -151,6 +154,13 @@ const char *M_ini_element_section_get_name(const M_ini_element_t *elem)
 	return elem->data.section.name;
 }
 
+const char *M_ini_element_section_get_comment(const M_ini_element_t *elem)
+{
+	if (elem == NULL || elem->type != M_INI_ELEMENT_TYPE_SECTION)
+		return NULL;
+	return elem->data.section.comment;
+}
+
 const char *M_ini_element_kv_get_key(const M_ini_element_t *elem)
 {
 	if (elem == NULL || elem->type != M_INI_ELEMENT_TYPE_KV)
@@ -189,6 +199,15 @@ M_bool M_ini_element_section_set_name(M_ini_element_t *elem, const char *name)
 		return M_FALSE;
 	M_free(elem->data.section.name);
 	elem->data.section.name = M_strdup(name);
+	return M_TRUE;
+}
+
+M_bool M_ini_element_section_set_comment(M_ini_element_t *elem, const char *comment)
+{
+	if (elem == NULL || elem->type != M_INI_ELEMENT_TYPE_SECTION)
+		return M_FALSE;
+	M_free(elem->data.section.comment);
+	elem->data.section.comment = M_strdup(comment);
 	return M_TRUE;
 }
 
@@ -257,6 +276,7 @@ M_ini_element_t *M_ini_element_duplicate(const M_ini_element_t *elem)
 			break;
 		case M_INI_ELEMENT_TYPE_SECTION:
 			M_ini_element_section_set_name(dup_elem, M_ini_element_section_get_name(elem));
+			M_ini_element_section_set_comment(dup_elem, M_ini_element_section_get_comment(elem));
 			break;
 		case M_INI_ELEMENT_TYPE_KV:
 			M_ini_element_kv_set_key(dup_elem, M_ini_element_kv_get_key(elem));
