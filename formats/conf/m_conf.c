@@ -552,7 +552,7 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 	char        err_buf[256];
 
 	if (reg == NULL) {
-		conf_log_error(conf, "Key '%s' has bad registration", reg->key);
+		conf_log_error(conf, "Key has bad registration");
 		return M_FALSE;
 	}
 
