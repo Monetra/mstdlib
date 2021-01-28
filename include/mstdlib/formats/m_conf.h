@@ -298,6 +298,16 @@ typedef M_bool (*M_conf_converter_uint32_t)(M_uint32 *mem, const char *value, M_
  */
 typedef M_bool (*M_conf_converter_uint64_t)(M_uint64 *mem, const char *value, M_uint64 default_val);
 
+/*! Callback prototype for manual string-to-integer conversions for size_t integers.
+ *
+ * \param[in] mem           Memory address where the value should be stored.
+ * \param[in] value         The value in the configuration file for the registered key. May be NULL.
+ * \param[in] default_val   The default value as registered for the key.
+ *
+ * \return                  M_TRUE if the conversion was successful. Otherwise, M_FALSE.
+ */
+typedef M_bool (*M_conf_converter_sizet_t)(size_t *mem, const char *value, size_t default_val);
+
 /*! Callback prototype for manual string-to-boolean conversions.
  *
  * \param[in] mem           Memory address where the value should be stored.
@@ -608,6 +618,26 @@ M_API M_bool M_conf_register_uint32(M_conf_t *conf, const char *key, M_uint32 *m
  *                           M_FALSE only if any of the arguments are invalid.
  */
 M_API M_bool M_conf_register_uint64(M_conf_t *conf, const char *key, M_uint64 *mem, M_uint64 default_val, M_uint64 min_val, M_uint64 max_val, M_conf_converter_uint64_t converter);
+
+
+/*! Register a key that will have its value stored at the provided address as a size_t integer.
+ *
+ * \param[in]  conf          M_conf_t object to use.
+ * \param[in]  key           Key to register.
+ * \param[out] mem           Memory where the value will be stored.
+ * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
+ * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
+ *                           fail.
+ * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
+ *                           to fail.
+ * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
+ *                           to the callback, which must do all validation/conversion. The value passed to the callback
+ *                           can be NULL. Pass NULL if not needed.
+ *
+ * \return                   M_TRUE if the registration was successful. Otherwise, M_FALSE. Currently, this returns
+ *                           M_FALSE only if any of the arguments are invalid.
+ */
+M_API M_bool M_conf_register_sizet(M_conf_t *conf, const char *key, size_t *mem, size_t default_val, size_t min_val, size_t max_val, M_conf_converter_sizet_t converter);
 
 
 /*! Register a key that will have its value parsed for boolean truthfulness and stored at the provided address.
