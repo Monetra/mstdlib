@@ -46,8 +46,9 @@ typedef enum M_conf_reg_type_t {
 	M_CONF_REG_TYPE_UINT16 = 1 << 7,
 	M_CONF_REG_TYPE_UINT32 = 1 << 8,
 	M_CONF_REG_TYPE_UINT64 = 1 << 9,
-	M_CONF_REG_TYPE_BOOL   = 1 << 10,
-	M_CONF_REG_TYPE_CUSTOM = 1 << 11,
+	M_CONF_REG_TYPE_SIZET  = 1 << 10,
+	M_CONF_REG_TYPE_BOOL   = 1 << 11,
+	M_CONF_REG_TYPE_CUSTOM = 1 << 12,
 } M_conf_reg_type_t;
 
 /* Validator object. */
@@ -71,6 +72,7 @@ typedef struct M_conf_reg_t {
 		M_uint16  *uint16;
 		M_uint32  *uint32;
 		M_uint64  *uint64;
+		size_t    *sizet;
 		M_bool    *boolean;
 		void      *custom;
 	}                                           mem;         /*!< Memory address where value will be stored. */
@@ -86,6 +88,7 @@ typedef struct M_conf_reg_t {
 		M_uint16  uint16;
 		M_uint32  uint32;
 		M_uint64  uint64;
+		size_t    sizet;
 		M_bool    boolean;
 	}                                           default_val; /*!< Default value, used if ini file does not have a value for this key. */
 	char                                       *regex;       /*!< Regular expression, for string registrations only. */
@@ -104,6 +107,7 @@ typedef struct M_conf_reg_t {
 		M_conf_converter_uint16_t uint16;
 		M_conf_converter_uint32_t uint32;
 		M_conf_converter_uint64_t uint64;
+		M_conf_converter_sizet_t  sizet;
 		M_conf_converter_bool_t   boolean;
 		M_conf_converter_custom_t custom;
 	}                                           converter;   /*!< Converter callback. */

@@ -192,6 +192,9 @@ static void reg_zero(M_conf_reg_t *reg)
 		case M_CONF_REG_TYPE_UINT64:
 			*(reg->mem.uint64) = 0;
 			break;
+		case M_CONF_REG_TYPE_SIZET:
+			*(reg->mem.sizet) = 0;
+			break;
 		case M_CONF_REG_TYPE_BOOL:
 			*(reg->mem.boolean) = M_FALSE;
 			break;
@@ -226,6 +229,8 @@ static M_bool reg_has_converter(M_conf_reg_t *reg)
 			return reg->converter.uint32 != NULL;
 		case M_CONF_REG_TYPE_UINT64:
 			return reg->converter.uint64 != NULL;
+		case M_CONF_REG_TYPE_SIZET:
+			return reg->converter.sizet != NULL;
 		case M_CONF_REG_TYPE_BOOL:
 			return reg->converter.boolean != NULL;
 		case M_CONF_REG_TYPE_CUSTOM:
@@ -259,6 +264,8 @@ static M_bool reg_call_converter(M_conf_reg_t *reg, const char *value)
 			return reg->converter.uint32(reg->mem.uint32, value, reg->default_val.uint32);
 		case M_CONF_REG_TYPE_UINT64:
 			return reg->converter.uint64(reg->mem.uint64, value, reg->default_val.uint64);
+		case M_CONF_REG_TYPE_SIZET:
+			return reg->converter.sizet(reg->mem.sizet, value, reg->default_val.sizet);
 		case M_CONF_REG_TYPE_BOOL:
 			return reg->converter.boolean(reg->mem.boolean, value, reg->default_val.boolean);
 		case M_CONF_REG_TYPE_CUSTOM:
@@ -409,6 +416,12 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 			min_possible = 0;
 			max_possible = M_UINT64_MAX;
 			break;
+		case M_CONF_REG_TYPE_SIZET:
+			min_allowed  = reg->min_uval;
+			max_allowed  = reg->max_uval;
+			min_possible = 0;
+			max_possible = SIZE_MAX;
+			break;
 		default:
 			return M_FALSE;
 	}
@@ -441,6 +454,7 @@ static M_bool reg_validate_value(M_conf_t *conf, M_conf_reg_t *reg, const char *
 		case M_CONF_REG_TYPE_UINT16:
 		case M_CONF_REG_TYPE_UINT32:
 		case M_CONF_REG_TYPE_UINT64:
+		case M_CONF_REG_TYPE_SIZET:
 			return reg_validate_value_uint(conf, reg, value, err_buf, err_len);
 		default:
 			return M_TRUE;
@@ -530,6 +544,14 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 				*(reg->mem.uint64) = M_str_to_uint64(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %llu", reg->key, *(reg->mem.uint64));
+			break;
+		case M_CONF_REG_TYPE_SIZET:
+			if (M_str_isempty(value)) {
+				*(reg->mem.sizet) = reg->default_val.sizet;
+			} else {
+				*(reg->mem.sizet) = (size_t)M_str_to_uint64(value);
+			}
+			conf_log_debug(conf, "  Setting %s: %llu", reg->key, *(reg->mem.sizet));
 			break;
 		case M_CONF_REG_TYPE_BOOL:
 			if (M_str_isempty(value)) {
@@ -960,6 +982,23 @@ M_bool M_conf_register_uint64(M_conf_t *conf, const char *key, M_uint64 *mem, M_
 	reg->min_uval           = min_val;
 	reg->max_uval           = max_val;
 	reg->converter.uint64   = converter;
+
+	return M_list_insert(conf->registrations, reg);
+}
+
+M_bool M_conf_register_sizet(M_conf_t *conf, const char *key, size_t *mem, size_t default_val, size_t min_val, size_t max_val, M_conf_converter_sizet_t converter)
+{
+	M_conf_reg_t *reg;
+
+	if (conf == NULL || conf->registrations == NULL || M_str_isempty(key) || mem == NULL)
+		return M_FALSE;
+
+	reg                     = reg_create(key, M_CONF_REG_TYPE_SIZET);
+	reg->mem.sizet          = mem;
+	reg->default_val.sizet  = default_val;
+	reg->min_uval           = min_val;
+	reg->max_uval           = max_val;
+	reg->converter.sizet    = converter;
 
 	return M_list_insert(conf->registrations, reg);
 }

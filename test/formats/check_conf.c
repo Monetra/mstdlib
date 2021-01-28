@@ -52,6 +52,7 @@
 "uint16_key=16" "\n" \
 "uint32_key=32" "\n" \
 "uint64_key=64" "\n" \
+"sizet_key=128" "\n" \
 "bool_key=yes" "\n" \
 "custom_key=custom_value" "\n"
 
@@ -67,6 +68,7 @@
 "uint16_key1=16" "\n" \
 "uint32_key1=32" "\n" \
 "uint64_key1=64" "\n" \
+"sizet_key1=128" "\n" \
 "bool_key1=yes" "\n" \
 "custom_key1=custom_value" "\n" \
 \
@@ -80,6 +82,7 @@
 "uint16_key2=16" "\n" \
 "uint32_key2=32" "\n" \
 "uint64_key2=64" "\n" \
+"sizet_key2=128" "\n" \
 "bool_key2=yes" "\n" \
 "custom_key2=custom_value" "\n" \
 \
@@ -93,6 +96,7 @@
 "uint16_key3=16" "\n" \
 "uint32_key3=32" "\n" \
 "uint64_key3=64" "\n" \
+"sizet_key3=128" "\n" \
 "bool_key3=yes" "\n" \
 "custom_key3=custom_value" "\n"
 
@@ -129,6 +133,7 @@
 "uint16_key=16" "\n" \
 "uint32_key=32" "\n" \
 "uint64_key=64" "\n" \
+"sizet_key=128" "\n" \
 "bool_key=yes" "\n" \
 "custom_key=custom_value" "\n"
 
@@ -257,6 +262,15 @@ static M_bool uint64_pass_cb(M_uint64 *mem, const char *value, M_uint64 default_
 	return M_TRUE;
 }
 
+static M_bool sizet_pass_cb(size_t *mem, const char *value, size_t default_val)
+{
+	(void)mem;
+	(void)value;
+	(void)default_val;
+
+	return M_TRUE;
+}
+
 static M_bool bool_pass_cb(M_bool *mem, const char *value, M_bool default_val)
 {
 	(void)mem;
@@ -357,6 +371,15 @@ static M_bool uint32_fail_cb(M_uint32 *mem, const char *value, M_uint32 default_
 }
 
 static M_bool uint64_fail_cb(M_uint64 *mem, const char *value, M_uint64 default_val)
+{
+	(void)mem;
+	(void)value;
+	(void)default_val;
+
+	return M_FALSE;
+}
+
+static M_bool sizet_fail_cb(size_t *mem, const char *value, size_t default_val)
 {
 	(void)mem;
 	(void)value;
@@ -482,6 +505,16 @@ static M_bool uint64_real_cb(M_uint64 *mem, const char *value, M_uint64 default_
 	return M_TRUE;
 }
 
+static M_bool sizet_real_cb(size_t *mem, const char *value, size_t default_val)
+{
+	(void)value;
+	(void)default_val;
+
+	*mem = 555;
+
+	return M_TRUE;
+}
+
 static M_bool bool_real_cb(M_bool *mem, const char *value, M_bool default_val)
 {
 	(void)value;
@@ -589,6 +622,15 @@ static M_bool uint64_value_cb(M_uint64 *mem, const char *value, M_uint64 default
 	(void)default_val;
 
 	*mem = M_str_to_uint64(value);
+
+	return M_TRUE;
+}
+
+static M_bool sizet_value_cb(size_t *mem, const char *value, size_t default_val)
+{
+	(void)default_val;
+
+	*mem = (size_t)M_str_to_uint64(value);
 
 	return M_TRUE;
 }
@@ -702,6 +744,15 @@ static M_bool uint64_default_value_cb(M_uint64 *mem, const char *value, M_uint64
 	return M_TRUE;
 }
 
+static M_bool sizet_default_value_cb(size_t *mem, const char *value, size_t default_val)
+{
+	(void)value;
+
+	*mem = default_val;
+
+	return M_TRUE;
+}
+
 static M_bool bool_default_value_cb(M_bool *mem, const char *value, M_bool default_val)
 {
 	(void)value;
@@ -751,6 +802,13 @@ static M_bool validate_uint16_cb(void *data)
 	M_uint16 *mem_uint16 = data;
 
 	return *mem_uint16 + 5 == 10;
+}
+
+static M_bool validate_sizet_cb(void *data)
+{
+	size_t *mem_sizet = data;
+
+	return *mem_sizet - 8 == 120;
 }
 
 static M_bool validate_bool_cb(void *data)
@@ -1093,6 +1151,7 @@ START_TEST(check_invalid_registration)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	M_int64     mem_custom;
 
@@ -1112,6 +1171,7 @@ START_TEST(check_invalid_registration)
 	ck_assert_msg(!M_conf_register_uint16(NULL, "key", &mem_uint16, 0, 0, 100, NULL), "uint16 registered with bad conf object");
 	ck_assert_msg(!M_conf_register_uint32(NULL, "key", &mem_uint32, 0, 0, 100, NULL), "uint32 registered with bad conf object");
 	ck_assert_msg(!M_conf_register_uint64(NULL, "key", &mem_uint64, 0, 0, 100, NULL), "uint64 registered with bad conf object");
+	ck_assert_msg(!M_conf_register_sizet(NULL, "key", &mem_sizet, 0, 0, 100, NULL), "sizet registered with bad conf object");
 	ck_assert_msg(!M_conf_register_bool(NULL, "key", &mem_bool, M_FALSE, NULL), "bool registered with bad conf object");
 	ck_assert_msg(!M_conf_register_custom(NULL, "key", &mem_custom, custom_pass_cb), "custom registered with bad conf object");
 
@@ -1126,6 +1186,7 @@ START_TEST(check_invalid_registration)
 	ck_assert_msg(!M_conf_register_uint16(conf, NULL, &mem_uint16, 0, 0, 100, NULL), "uint16 registered without key");
 	ck_assert_msg(!M_conf_register_uint32(conf, NULL, &mem_uint32, 0, 0, 100, NULL), "uint32 registered without key");
 	ck_assert_msg(!M_conf_register_uint64(conf, NULL, &mem_uint64, 0, 0, 100, NULL), "uint64 registered without key");
+	ck_assert_msg(!M_conf_register_sizet(conf, NULL, &mem_sizet, 0, 0, 100, NULL), "sizet registered without key");
 	ck_assert_msg(!M_conf_register_bool(conf, NULL, &mem_bool, M_FALSE, NULL), "bool registered without key");
 	ck_assert_msg(!M_conf_register_custom(conf, NULL, &mem_custom, custom_pass_cb), "custom registered without key");
 
@@ -1140,6 +1201,7 @@ START_TEST(check_invalid_registration)
 	ck_assert_msg(!M_conf_register_uint16(conf, "key", NULL, 0, 0, 100, NULL), "uint16 registered without address");
 	ck_assert_msg(!M_conf_register_uint32(conf, "key", NULL, 0, 0, 100, NULL), "uint32 registered without address");
 	ck_assert_msg(!M_conf_register_uint64(conf, "key", NULL, 0, 0, 100, NULL), "uint64 registered without address");
+	ck_assert_msg(!M_conf_register_sizet(conf, "key", NULL, 0, 0, 100, NULL), "sizet registered without address");
 	ck_assert_msg(!M_conf_register_bool(conf, "key", NULL, M_FALSE, NULL), "bool registered without address");
 
 	/* Check that not passing a length fails a buffer registration. */
@@ -1168,6 +1230,7 @@ START_TEST(check_registration_args)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	M_int64     mem_custom;
 
@@ -1187,6 +1250,7 @@ START_TEST(check_registration_args)
 	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL), "uint16 not registered without validation");
 	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL), "uint32 not registered without validation");
 	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL), "uint64 not registered without validation");
+	ck_assert_msg(M_conf_register_sizet(conf, "key", &mem_sizet, 0, 0, SIZE_MAX, NULL), "sizet not registered without validation");
 	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, NULL), "bool not registered without validation");
 
 	/* Check that we can register a key with a default value. */
@@ -1200,6 +1264,7 @@ START_TEST(check_registration_args)
 	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 100, 0, M_UINT16_MAX, NULL), "uint16 not registered with default value");
 	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 100, 0, M_UINT32_MAX, NULL), "uint32 not registered with default value");
 	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 100, 0, M_UINT64_MAX, NULL), "uint64 not registered with default value");
+	ck_assert_msg(M_conf_register_sizet(conf, "key", &mem_sizet, 100, 0, SIZE_MAX, NULL), "sizet not registered with default value");
 	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_TRUE, NULL), "bool not registered with default value");
 
 	/* Check that we can register a key with validation. */
@@ -1213,6 +1278,7 @@ START_TEST(check_registration_args)
 	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 100, 200, NULL), "uint16 not registered with validation");
 	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 100, 200, NULL), "uint32 not registered with validation");
 	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 100, 200, NULL), "uint64 not registered with validation");
+	ck_assert_msg(M_conf_register_sizet(conf, "key", &mem_sizet, 0, 100, 200, NULL), "sizet not registered with validation");
 
 	/* Check that we can register a key with a conversion callback. */
 	ck_assert_msg(M_conf_register_buf(conf, "key", mem_buf, sizeof(mem_buf), NULL, NULL, buf_pass_cb), "buf not registered with conversion callback");
@@ -1225,6 +1291,7 @@ START_TEST(check_registration_args)
 	ck_assert_msg(M_conf_register_uint16(conf, "key", &mem_uint16, 0, 0, M_UINT16_MAX, uint16_pass_cb), "uint16 not registered with conversion callback");
 	ck_assert_msg(M_conf_register_uint32(conf, "key", &mem_uint32, 0, 0, M_UINT32_MAX, uint32_pass_cb), "uint32 not registered with conversion callback");
 	ck_assert_msg(M_conf_register_uint64(conf, "key", &mem_uint64, 0, 0, M_UINT64_MAX, uint64_pass_cb), "uint64 not registered with conversion callback");
+	ck_assert_msg(M_conf_register_sizet(conf, "key", &mem_sizet, 0, 0, SIZE_MAX, sizet_pass_cb), "sizet not registered with conversion callback");
 	ck_assert_msg(M_conf_register_bool(conf, "key", &mem_bool, M_FALSE, bool_pass_cb), "bool not registered with conversion callback");
 	ck_assert_msg(M_conf_register_custom(conf, "key", &mem_custom, custom_pass_cb), "custom not registered with conversion callback");
 
@@ -1252,6 +1319,7 @@ START_TEST(check_straight_registration)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
@@ -1270,6 +1338,7 @@ START_TEST(check_straight_registration)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for reading");
@@ -1284,6 +1353,7 @@ START_TEST(check_straight_registration)
 	ck_assert_msg(mem_uint16 == 16, "uint16 failed to get conf value");
 	ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
 	ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
+	ck_assert_msg(mem_sizet == 128, "sizet failed to get conf value");
 	ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
 
 	M_free(mem_strdup);
@@ -1299,6 +1369,7 @@ START_TEST(check_straight_registration)
 	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 999, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 9999, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 99999, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "NOKEY", &mem_sizet, 999999, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_TRUE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for defaults");
@@ -1313,6 +1384,7 @@ START_TEST(check_straight_registration)
 	ck_assert_msg(mem_uint16 == 999, "uint16 failed to use default value");
 	ck_assert_msg(mem_uint32 == 9999, "uint32 failed to use default value");
 	ck_assert_msg(mem_uint64 == 99999, "uint64 failed to use default value");
+	ck_assert_msg(mem_sizet == 999999, "sizet failed to use default value");
 	ck_assert_msg(mem_bool == M_TRUE, "bool failed to use default value");
 
 	M_free(mem_strdup);
@@ -1328,6 +1400,7 @@ START_TEST(check_straight_registration)
 	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "NOKEY", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_FALSE, NULL);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for blanks");
@@ -1342,6 +1415,7 @@ START_TEST(check_straight_registration)
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
 	ck_assert_msg(mem_bool == M_FALSE, "bool was not zeroed out");
 
 	M_conf_destroy(conf);
@@ -1365,6 +1439,7 @@ START_TEST(check_sanity)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
@@ -1438,6 +1513,13 @@ START_TEST(check_sanity)
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 4, 6, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "sizet passed validation");
+	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
 }
 END_TEST
@@ -1457,6 +1539,7 @@ START_TEST(check_transformation_error)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	M_int64     mem_custom;
 
@@ -1534,6 +1617,13 @@ START_TEST(check_transformation_error)
 
 	conf = M_conf_create(filename, M_FALSE);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, 0, sizet_fail_cb);
+	ck_assert_msg(!M_conf_parse(conf), "sizet passed bad transformation callback");
+	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_TRUE, bool_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "bool passed bad transformation callback");
 	ck_assert_msg(mem_bool == 0, "bool was not zeroed out");
@@ -1564,6 +1654,7 @@ START_TEST(check_transformation_override)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
@@ -1637,6 +1728,13 @@ START_TEST(check_transformation_override)
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 4, 6, sizet_pass_cb);
+	ck_assert_msg(M_conf_parse(conf), "sizet failed validation when transformation callback should be handling that");
+	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
 }
 END_TEST
@@ -1655,6 +1753,7 @@ START_TEST(check_transformation_set)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	M_int64     mem_custom;
 
@@ -1674,6 +1773,7 @@ START_TEST(check_transformation_set)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_real_cb);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_real_cb);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_real_cb);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, 0, sizet_real_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_real_cb);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
@@ -1689,6 +1789,7 @@ START_TEST(check_transformation_set)
 	ck_assert_msg(mem_uint16 == 222, "uint16 transformation failed");
 	ck_assert_msg(mem_uint32 == 333, "uint32 transformation failed");
 	ck_assert_msg(mem_uint64 == 444, "uint64 transformation failed");
+	ck_assert_msg(mem_sizet == 555, "sizet transformation failed");
 	ck_assert_msg(mem_custom == 999, "custom transformation failed");
 
 	M_free(mem_strdup);
@@ -1712,6 +1813,7 @@ START_TEST(check_transformation_value)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	char       *mem_custom;
 
@@ -1731,6 +1833,7 @@ START_TEST(check_transformation_value)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_value_cb);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_value_cb);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_value_cb);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, 0, sizet_value_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_value_cb);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_value_cb);
 
@@ -1746,6 +1849,7 @@ START_TEST(check_transformation_value)
 	ck_assert_msg(mem_uint16 == 16, "uint16 transformation callback was sent wrong value");
 	ck_assert_msg(mem_uint32 == 32, "uint32 transformation callback was sent wrong value");
 	ck_assert_msg(mem_uint64 == 64, "uint64 transformation callback was sent wrong value");
+	ck_assert_msg(mem_sizet == 128, "sizet transformation callback was sent wrong value");
 	ck_assert_msg(mem_bool == M_TRUE, "bool transformation callback was sent wrong value");
 	ck_assert_msg(M_str_eq(mem_custom, "custom_value"), "custom transformation callback was sent wrong value");
 
@@ -1771,6 +1875,7 @@ START_TEST(check_transformation_default)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
@@ -1789,6 +1894,7 @@ START_TEST(check_transformation_default)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 234, 0, 0, uint16_default_value_cb);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 345, 0, 0, uint32_default_value_cb);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 456, 0, 0, uint64_default_value_cb);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 567, 0, 0, sizet_default_value_cb);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, bool_default_value_cb);
 
 	ck_assert_msg(M_conf_parse(conf), "transformation callbacks failed transformation");
@@ -1803,6 +1909,7 @@ START_TEST(check_transformation_default)
 	ck_assert_msg(mem_uint16 == 234, "uint16 transformation callback was sent wrong default value");
 	ck_assert_msg(mem_uint32 == 345, "uint32 transformation callback was sent wrong default value");
 	ck_assert_msg(mem_uint64 == 456, "uint64 transformation callback was sent wrong default value");
+	ck_assert_msg(mem_sizet == 567, "sizet transformation callback was sent wrong default value");
 	ck_assert_msg(mem_bool == M_FALSE, "bool transformation callback was sent wrong default value");
 
 	M_free(mem_strdup);
@@ -1826,6 +1933,7 @@ START_TEST(check_no_block_on_error)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 	M_int64     mem_custom;
 
@@ -1845,6 +1953,7 @@ START_TEST(check_no_block_on_error)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
@@ -1860,6 +1969,7 @@ START_TEST(check_no_block_on_error)
 	ck_assert_msg(mem_uint16 == 16, "uint16 was blocked");
 	ck_assert_msg(mem_uint32 == 32, "uint32 was blocked");
 	ck_assert_msg(mem_uint64 == 64, "uint64 was blocked");
+	ck_assert_msg(mem_sizet == 128, "sizet was blocked");
 	ck_assert_msg(mem_bool == M_TRUE, "bool was blocked");
 	ck_assert_msg(mem_custom == 999, "custom was blocked");
 
@@ -1886,6 +1996,7 @@ START_TEST(check_unused_single)
 	M_uint16       mem_uint16_1;
 	M_uint32       mem_uint32_1;
 	M_uint64       mem_uint64_1;
+	size_t         mem_sizet_1;
 	M_bool         mem_bool_1;
 	M_int64        mem_custom_1;
 
@@ -1899,6 +2010,7 @@ START_TEST(check_unused_single)
 	M_uint16       mem_uint16_3;
 	M_uint32       mem_uint32_3;
 	M_uint64       mem_uint64_3;
+	size_t         mem_sizet_3;
 	M_bool         mem_bool_3;
 	M_int64        mem_custom_3;
 
@@ -1922,6 +2034,7 @@ START_TEST(check_unused_single)
 	M_conf_register_uint16(conf, "uint16_key1", &mem_uint16_1, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key1", &mem_uint32_1, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key1", &mem_uint64_1, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key1", &mem_sizet_1, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key1", &mem_bool_1, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key1", &mem_custom_1, custom_real_cb);
 
@@ -1935,6 +2048,7 @@ START_TEST(check_unused_single)
 	M_conf_register_uint16(conf, "uint16_key3", &mem_uint16_3, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key3", &mem_uint32_3, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key3", &mem_uint64_3, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key3", &mem_sizet_3, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key3", &mem_bool_3, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key3", &mem_custom_3, custom_real_cb);
 
@@ -1950,6 +2064,7 @@ START_TEST(check_unused_single)
 	ck_assert_msg(mem_uint16_1 == 16, "uint16 (1) registration failed");
 	ck_assert_msg(mem_uint32_1 == 32, "uint32 (1) registration failed");
 	ck_assert_msg(mem_uint64_1 == 64, "uint64 (1) registration failed");
+	ck_assert_msg(mem_sizet_1 == 128, "sizet (1) registration failed");
 	ck_assert_msg(mem_bool_1 == M_TRUE, "bool (1) registration failed");
 	ck_assert_msg(mem_custom_1 == 999, "custom (1) registration failed");
 
@@ -1963,6 +2078,7 @@ START_TEST(check_unused_single)
 	ck_assert_msg(mem_uint16_3 == 16, "uint16 (3) registration failed");
 	ck_assert_msg(mem_uint32_3 == 32, "uint32 (3) registration failed");
 	ck_assert_msg(mem_uint64_3 == 64, "uint64 (3) registration failed");
+	ck_assert_msg(mem_sizet_3 == 128, "sizet (3) registration failed");
 	ck_assert_msg(mem_bool_3 == M_TRUE, "bool (3) registration failed");
 	ck_assert_msg(mem_custom_3 == 999, "custom (3) registration failed");
 
@@ -1979,6 +2095,7 @@ START_TEST(check_unused_single)
 	M_hash_dict_insert(expected_unused, "uint16_key2", "16");
 	M_hash_dict_insert(expected_unused, "uint32_key2", "32");
 	M_hash_dict_insert(expected_unused, "uint64_key2", "64");
+	M_hash_dict_insert(expected_unused, "sizet_key2", "128");
 	M_hash_dict_insert(expected_unused, "bool_key2", "yes");
 	M_hash_dict_insert(expected_unused, "custom_key2", "custom_value");
 
@@ -2023,6 +2140,7 @@ START_TEST(check_unused_multi)
 	M_uint16      mem_uint16;
 	M_uint32      mem_uint32;
 	M_uint64      mem_uint64;
+	size_t        mem_sizet;
 	M_bool        mem_bool;
 	M_int64       mem_custom;
 	M_list_str_t *unused;
@@ -2044,6 +2162,7 @@ START_TEST(check_unused_multi)
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_real_cb);
 
@@ -2059,6 +2178,7 @@ START_TEST(check_unused_multi)
 	ck_assert_msg(mem_uint16 == 16, "uint16 registration failed");
 	ck_assert_msg(mem_uint32 == 32, "uint32 registration failed");
 	ck_assert_msg(mem_uint64 == 64, "uint64 registration failed");
+	ck_assert_msg(mem_sizet == 128, "sizet registration failed");
 	ck_assert_msg(mem_bool == M_TRUE, "bool registration failed");
 	ck_assert_msg(mem_custom == 999, "custom registration failed");
 
@@ -2105,6 +2225,7 @@ START_TEST(check_validators)
 	M_uint16    mem_uint16;
 	M_uint32    mem_uint32;
 	M_uint64    mem_uint64;
+	size_t      mem_sizet;
 	M_bool      mem_bool;
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
@@ -2117,11 +2238,13 @@ START_TEST(check_validators)
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, NULL, NULL, NULL);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 
 	M_conf_register_validator(conf, validate_buf_cb, mem_buf);
 	M_conf_register_validator(conf, validate_strdup_cb, &mem_strdup);
 	M_conf_register_validator(conf, validate_int8_cb, &mem_int8);
 	M_conf_register_validator(conf, validate_uint8_cb, &mem_uint8);
+	M_conf_register_validator(conf, validate_sizet_cb, &mem_sizet);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed");
 
@@ -2129,6 +2252,7 @@ START_TEST(check_validators)
 	ck_assert_msg(M_str_eq(mem_strdup, "strdup_value"), "strdup failed to get conf value");
 	ck_assert_msg(mem_int8 == -8, "int8 failed to get conf value");
 	ck_assert_msg(mem_uint8 == 8, "uint8 failed to get conf value");
+	ck_assert_msg(mem_sizet == 128, "sizet failed to get conf value");
 
 	M_free(mem_strdup);
 	M_conf_destroy(conf); conf = NULL;
@@ -2171,6 +2295,7 @@ START_TEST(check_validators)
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 0, 0, SIZE_MAX, NULL);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_FALSE, NULL);
 
 	M_conf_register_validator(conf, validate_buf_cb, mem_buf);
@@ -2193,6 +2318,7 @@ START_TEST(check_validators)
 	ck_assert_msg(mem_int64 == -64, "int64 failed to get conf value");
 	ck_assert_msg(mem_uint32 == 32, "uint32 failed to get conf value");
 	ck_assert_msg(mem_uint64 == 64, "uint64 failed to get conf value");
+	ck_assert_msg(mem_sizet == 128, "sizet failed to get conf value");
 	ck_assert_msg(mem_bool == M_TRUE, "bool failed to get conf value");
 
 	M_free(mem_strdup);
