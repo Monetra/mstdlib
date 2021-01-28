@@ -229,13 +229,27 @@
 "#                              is only used on Windows.\n"
 
 #define CHECK_INI_COMMENTS2 "" \
-"#Flags:\n" \
+"#Flags:\n"
 
 #define CHECK_INI_COMMENTS3 "" \
-"# Flags:\n" \
+"# Flags:\n"
 
 #define CHECK_INI_COMMENTS4 "" \
-"#  Flags:\n" \
+"#  Flags:\n"
+
+#define CHECK_INI_COMMENTS5 "" \
+"[abc]\n" \
+"# X\n" \
+"1=2\n" \
+"3#=4\n" \
+"5=#6\n" \
+"7=8#9\n" \
+"[def]#ghi\n" \
+"Xi=7\n" \
+"# X\n"
+
+#define CHECK_INI_COMMENTS6 "" \
+"[ab # c]\n"
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -423,8 +437,20 @@ START_TEST(check_comments)
 	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%zu", errln);
 
 	out = M_ini_write(ini, info);
-	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS4), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS);
+	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS4), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS4);
 	M_free(out);
+
+	/* Check for comments in data. */
+	M_ini_settings_set_padding(info, M_INI_PADDING_NONE);
+	ini = M_ini_read(CHECK_INI_COMMENTS5, info, M_TRUE, &errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%zu", errln);
+	out = M_ini_write(ini, info);
+	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS5), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS5);
+	M_free(out);
+
+	/* Check section can't have comment. */
+	ini = M_ini_read(CHECK_INI_COMMENTS6, info, M_TRUE, &errln);
+	ck_assert_msg(ini == NULL && errln != 0, "ini comments 6 was read when it should have failed");
 
 	M_ini_settings_destroy(info);
 	M_ini_destroy(ini);
