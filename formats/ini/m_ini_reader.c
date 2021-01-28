@@ -151,8 +151,6 @@ static void M_ini_explode_lines_free(char **strs, size_t num)
 /* Determine the element time from a string. */
 static M_ini_element_type_t M_ini_reader_determine_type(const char *s, const M_ini_settings_t *info)
 {
-	size_t len;
-
 	if (s == NULL || *s == '\0') {
 		return M_INI_ELEMENT_TYPE_EMPTY_LINE;
 	}
@@ -161,7 +159,6 @@ static M_ini_element_type_t M_ini_reader_determine_type(const char *s, const M_i
 		return M_INI_ELEMENT_TYPE_COMMENT;
 	}
 
-	len = M_str_len(s);
 	if (*s == '[') {
 		return M_INI_ELEMENT_TYPE_SECTION;
 	}
