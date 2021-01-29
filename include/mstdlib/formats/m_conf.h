@@ -144,15 +144,16 @@ __BEGIN_DECLS
  *     M_bool parse_conf(const char *path)
  *     {
  *         M_conf_t *conf;
+ *         char      err_buf[256];
  *         char      name_buf[256];
  *         char     *desc;
  *         M_bool    active;
  *         M_uint64  flags;
  *         M_bool    ret;
  *
- *         conf = M_conf_create(path, M_FALSE);
+ *         conf = M_conf_create(path, M_FALSE, err_buf, sizeof(err_buf));
  *         if (conf == NULL) {
- *            M_printf("Error reading conf");
+ *            M_printf("Error reading conf: %s", err_buf);
  *            return M_FALSE;
  *         }
  *
@@ -342,10 +343,12 @@ typedef M_bool (*M_conf_validator_t)(void *data);
  *
  * \param[in] path             Path to the ini file.
  * \param[in] allow_multiple   M_TRUE to allow a single key to have multiple values. Otherwise, M_FALSE.
+ * \param[in] errbuf           Buffer to hold error message. Only populated if return is NULL.
+ * \param[in] errbuf_len       Size of buffer for holding error message.
  *
  * \return                     A newly allocated M_conf_t object, or NULL on error.
  */
-M_API M_conf_t *M_conf_create(const char *path, M_bool allow_multiple);
+M_API M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, size_t errbuf_len);
 
 
 /*! Destroy an M_conf_t object and free the memory.
