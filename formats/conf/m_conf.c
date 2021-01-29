@@ -199,8 +199,7 @@ static void reg_zero(M_conf_reg_t *reg)
 			*(reg->mem.boolean) = M_FALSE;
 			break;
 		case M_CONF_REG_TYPE_CUSTOM:
-			break;
-		default:
+		case M_CONF_REG_TYPE_NONE:
 			break;
 	}
 }
@@ -235,9 +234,11 @@ static M_bool reg_has_converter(M_conf_reg_t *reg)
 			return reg->converter.boolean != NULL;
 		case M_CONF_REG_TYPE_CUSTOM:
 			return reg->converter.custom != NULL;
-		default:
+		case M_CONF_REG_TYPE_NONE:
 			return M_FALSE;
 	}
+
+	return M_FALSE;
 }
 
 /* Call the custom callback for this registration. */
@@ -270,9 +271,11 @@ static M_bool reg_call_converter(M_conf_reg_t *reg, const char *value)
 			return reg->converter.boolean(reg->mem.boolean, value, reg->default_val.boolean);
 		case M_CONF_REG_TYPE_CUSTOM:
 			return reg->converter.custom(reg->mem.custom, value);
-		default:
+		case M_CONF_REG_TYPE_NONE:
 			return M_FALSE;
 	}
+
+	return M_FALSE;
 }
 
 /* Validate the value as a string. */
@@ -324,8 +327,6 @@ static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const ch
 		return M_FALSE;
 	}
 
-	num = M_str_to_int64(value);
-
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_INT8:
 			min_allowed  = reg->min_sval;
@@ -352,8 +353,11 @@ static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const ch
 			max_possible = M_INT64_MAX;
 			break;
 		default:
-			break;
+			M_snprintf(err_buf, err_len, "Internal error (%s)", __func__);
+			return M_FALSE;
 	}
+
+	num = M_str_to_int64(value);
 
 	if (
 		(min_allowed > min_possible && num < min_allowed) ||
@@ -389,8 +393,6 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 		return M_FALSE;
 	}
 
-	num = M_str_to_uint64(value);
-
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_UINT8:
 			min_allowed  = reg->min_uval;
@@ -423,8 +425,11 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 			max_possible = SIZE_MAX;
 			break;
 		default:
+			M_snprintf(err_buf, err_len, "Internal error (%s)", __func__);
 			return M_FALSE;
 	}
+
+	num = M_str_to_uint64(value);
 
 	if (
 		(min_allowed > min_possible && num < min_allowed) ||
@@ -456,9 +461,13 @@ static M_bool reg_validate_value(M_conf_t *conf, M_conf_reg_t *reg, const char *
 		case M_CONF_REG_TYPE_UINT64:
 		case M_CONF_REG_TYPE_SIZET:
 			return reg_validate_value_uint(conf, reg, value, err_buf, err_len);
-		default:
+		case M_CONF_REG_TYPE_BOOL:
+		case M_CONF_REG_TYPE_CUSTOM:
+		case M_CONF_REG_TYPE_NONE:
 			return M_TRUE;
 	}
+
+	return M_FALSE;
 }
 
 /* Set the value for this registration. */
@@ -561,7 +570,8 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			}
 			conf_log_debug(conf, "  Setting %s: %s", reg->key, *(reg->mem.boolean) ? "true" : "false");
 			break;
-		default:
+		case M_CONF_REG_TYPE_CUSTOM:
+		case M_CONF_REG_TYPE_NONE:
 			break;
 	}
 }
