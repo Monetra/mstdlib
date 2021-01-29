@@ -2438,12 +2438,14 @@ static Suite *M_conf_suite(void)
 	TCase *check_fail_multiple_value_test;
 	TCase *check_sections_test;
 	TCase *check_no_sections_test;
+	TCase *check_sections_no_multi_test;
 	TCase *check_single_value_test;
 	TCase *check_multiple_values_test;
 	TCase *check_invalid_registration_test;
 	TCase *check_registration_args_test;
 	TCase *check_straight_registration_test;
 	TCase *check_sanity_test;
+	TCase *check_negatives_test;
 	TCase *check_transformation_error_test;
 	TCase *check_transformation_override_test;
 	TCase *check_transformation_set_test;
@@ -2491,10 +2493,10 @@ static Suite *M_conf_suite(void)
 	tcase_add_test(check_no_sections_test, check_no_sections);
 	suite_add_tcase(suite, check_no_sections_test);
 
-	check_sections_test = tcase_create("check_sections_no_multi");
-	tcase_add_unchecked_fixture(check_sections_test, NULL, NULL);
-	tcase_add_test(check_sections_test, check_sections_no_multi);
-	suite_add_tcase(suite, check_sections_test);
+	check_sections_no_multi_test = tcase_create("check_sections_no_multi");
+	tcase_add_unchecked_fixture(check_sections_no_multi_test, NULL, NULL);
+	tcase_add_test(check_sections_no_multi_test, check_sections_no_multi);
+	suite_add_tcase(suite, check_sections_no_multi_test);
 
 	check_single_value_test = tcase_create("check_single_value");
 	tcase_add_unchecked_fixture(check_single_value_test, NULL, NULL);
@@ -2526,10 +2528,10 @@ static Suite *M_conf_suite(void)
 	tcase_add_test(check_sanity_test, check_sanity);
 	suite_add_tcase(suite, check_sanity_test);
 
-	check_sanity_test = tcase_create("check_negatives");
-	tcase_add_unchecked_fixture(check_sanity_test, NULL, NULL);
-	tcase_add_test(check_sanity_test, check_negatives);
-	suite_add_tcase(suite, check_sanity_test);
+	check_negatives_test = tcase_create("check_negatives");
+	tcase_add_unchecked_fixture(check_negatives_test, NULL, NULL);
+	tcase_add_test(check_negatives_test, check_negatives);
+	suite_add_tcase(suite, check_negatives_test);
 
 	check_transformation_error_test = tcase_create("check_transformation_error");
 	tcase_add_unchecked_fixture(check_transformation_error_test, NULL, NULL);
