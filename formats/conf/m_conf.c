@@ -646,7 +646,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, s
 		M_mem_set(errbuf, 0, errbuf_len);
 
 	if (M_str_isempty(path)) {
-		M_snprintf(errbuf, errbuf_len, "Error: Missing path");
+		M_snprintf(errbuf, errbuf_len, "Missing path");
 		return NULL;
 	}
 
@@ -660,7 +660,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, s
 	M_ini_settings_destroy(ini_settings);
 
 	if (conf->ini == NULL) {
-		M_snprintf(errbuf, errbuf_len, "Error: Failed to read line %zu of configuration file at %s", failed_line, path);
+		M_snprintf(errbuf, errbuf_len, "Failed to read line %zu of configuration file at %s", failed_line, path);
 		M_conf_destroy(conf);
 		return NULL;
 	}
@@ -677,7 +677,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, s
 		key = M_list_str_at(keys, i);
 		num = M_ini_kv_len(conf->ini, key);
 		if (!allow_multiple && num > 1) {
-			M_snprintf(errbuf, errbuf_len, "Error: %s is registered %llu times in %s", key, num, path);
+			M_snprintf(errbuf, errbuf_len, "%s is registered %llu times in %s", key, num, path);
 			M_list_str_destroy(keys);
 			M_conf_destroy(conf);
 			return NULL;
