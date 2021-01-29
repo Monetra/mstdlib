@@ -494,7 +494,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.int8) = reg->default_val.int8;
 			} else {
-				*(reg->mem.int8) = (M_int8)M_str_to_int64(value);
+				*(reg->mem.int8) = (M_int8)M_str_to_int32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int8));
 			break;
@@ -502,7 +502,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.int16) = reg->default_val.int16;
 			} else {
-				*(reg->mem.int16) = (M_int16)M_str_to_int64(value);
+				*(reg->mem.int16) = (M_int16)M_str_to_int32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int16));
 			break;
@@ -510,7 +510,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.int32) = reg->default_val.int32;
 			} else {
-				*(reg->mem.int32) = (M_int32)M_str_to_int64(value);
+				*(reg->mem.int32) = M_str_to_int32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int32));
 			break;
@@ -526,7 +526,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.uint8) = reg->default_val.uint8;
 			} else {
-				*(reg->mem.uint8) = (M_uint8)M_str_to_uint64(value);
+				*(reg->mem.uint8) = (M_uint8)M_str_to_uint32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint8));
 			break;
@@ -534,7 +534,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.uint16) = reg->default_val.uint16;
 			} else {
-				*(reg->mem.uint16) = (M_uint16)M_str_to_uint64(value);
+				*(reg->mem.uint16) = (M_uint16)M_str_to_uint32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint16));
 			break;
@@ -542,7 +542,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			if (M_str_isempty(value)) {
 				*(reg->mem.uint32) = reg->default_val.uint32;
 			} else {
-				*(reg->mem.uint32) = (M_uint32)M_str_to_uint64(value);
+				*(reg->mem.uint32) = M_str_to_uint32(value);
 			}
 			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint32));
 			break;
