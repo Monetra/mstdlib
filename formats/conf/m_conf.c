@@ -625,10 +625,11 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 
 /* --- Conf objects --- */
 
-M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
+M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, size_t errbuf_len)
 {
 	M_conf_t                *conf;
 	M_ini_settings_t        *ini_settings;
+	size_t                   failed_line   = 0;
 	M_list_str_t            *keys;
 	size_t                   num_keys;
 	size_t                   i;
@@ -641,8 +642,11 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 		M_free
 	};
 
+	if (errbuf != NULL && errbuf_len > 0)
+		M_mem_set(errbuf, 0, errbuf_len);
+
 	if (M_str_isempty(path)) {
-		M_fprintf(stderr, "Error: Missing path\n");
+		M_snprintf(errbuf, errbuf_len, "Error: Missing path");
 		return NULL;
 	}
 
@@ -652,11 +656,11 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 
 	/* Read in the config file. */
 	ini_settings = conf_build_ini_settings();
-	conf->ini    = M_ini_read_file(path, ini_settings, M_TRUE, NULL, 4*1024*1024 /* 4 MB */ );
+	conf->ini    = M_ini_read_file(path, ini_settings, M_TRUE, &failed_line, 4*1024*1024 /* 4 MB */ );
 	M_ini_settings_destroy(ini_settings);
 
 	if (conf->ini == NULL) {
-		M_fprintf(stderr, "Error: Failed to read configuration file at %s\n", path);
+		M_snprintf(errbuf, errbuf_len, "Error: Failed to read line %zu of configuration file at %s", failed_line, path);
 		M_conf_destroy(conf);
 		return NULL;
 	}
@@ -673,7 +677,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple)
 		key = M_list_str_at(keys, i);
 		num = M_ini_kv_len(conf->ini, key);
 		if (!allow_multiple && num > 1) {
-			M_fprintf(stderr, "Error: %s is registered %llu times in %s\n", key, num, path);
+			M_snprintf(errbuf, errbuf_len, "Error: %s is registered %llu times in %s", key, num, path);
 			M_list_str_destroy(keys);
 			M_conf_destroy(conf);
 			return NULL;

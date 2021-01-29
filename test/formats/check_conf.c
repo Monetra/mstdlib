@@ -853,9 +853,10 @@ static M_bool validate_bool_cb(void *data)
 START_TEST(check_missing_path)
 {
 	M_conf_t *conf = NULL;
+	char      errbuf[256];
 
 	/* Check that not passing a path returns NULL. */
-	conf = M_conf_create(NULL, M_FALSE);
+	conf = M_conf_create(NULL, M_FALSE, errbuf, sizeof(errbuf));
 	ck_assert_msg(conf == NULL, "missing path should not be allowed");
 
 	M_conf_destroy(conf);
@@ -866,10 +867,26 @@ START_TEST(check_missing_file)
 {
 	const char *filename = "./missing_conf.ini";
 	M_conf_t   *conf     = NULL;
+	char        errbuf[256];
 
 	/* Check that passing a non-existent file returns NULL. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, errbuf, sizeof(errbuf));
 	ck_assert_msg(conf == NULL, "missing file was read successfully");
+
+	M_conf_destroy(conf);
+}
+END_TEST
+
+START_TEST(check_missing_errbuf)
+{
+	const char *filename = "./tmp_conf_check_missing_errbuf.ini";
+	M_conf_t   *conf     = NULL;
+
+	ck_assert_msg(create_ini(filename, CONF_SINGLEVALUE), "failed to create temporary config file");
+
+	/* Check that not passing an error buffer is ok. */
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
+	ck_assert_msg(conf != NULL, "not allowed to not pass an error buffer");
 
 	M_conf_destroy(conf);
 }
@@ -883,7 +900,7 @@ START_TEST(check_create_single_value)
 	ck_assert_msg(create_ini(filename, CONF_SINGLEVALUE), "failed to create temporary config file");
 
 	/* Check that we can create a conf with one value per key. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	M_conf_destroy(conf);
@@ -900,7 +917,7 @@ START_TEST(check_create_multiple_values)
 	ck_assert_msg(create_ini(filename, CONF_MULTIVALUE), "failed to create temporary config file");
 
 	/* Check that we can create a conf with multiple values per key. */
-	conf = M_conf_create(filename, M_TRUE);
+	conf = M_conf_create(filename, M_TRUE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	M_conf_destroy(conf);
@@ -917,7 +934,7 @@ START_TEST(check_fail_multiple_values)
 	ck_assert_msg(create_ini(filename, CONF_MULTIVALUE), "failed to create temporary config file");
 
 	/* Check that a file with multiple values per key is invalid if multiple values per key is not allowed. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf == NULL, "multiple values allowed");
 
 	M_conf_destroy(conf);
@@ -939,7 +956,7 @@ START_TEST(check_sections)
 
 	ck_assert_msg(create_ini(filename, CONF_SECTIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that we get the correct number of sections. */
@@ -977,7 +994,7 @@ START_TEST(check_no_sections)
 
 	ck_assert_msg(create_ini(filename, CONF_SINGLEVALUE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that this file has no sections. */
@@ -1006,11 +1023,11 @@ START_TEST(check_sections_no_multi)
 	ck_assert_msg(create_ini(filename, CONF_SECTIONS_MULTI), "failed to create temporary config file");
 
 	/* Check that we can't read this file if multiple values per key is not allowed. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf == NULL, "multiple values in sections allowed");
 
 	/* Check that we can read this file if multiple values per key is allowed. */
-	conf = M_conf_create(filename, M_TRUE);
+	conf = M_conf_create(filename, M_TRUE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that we get the correct number of sections. */
@@ -1063,7 +1080,7 @@ START_TEST(check_single_value)
 
 	ck_assert_msg(create_ini(filename, CONF_SINGLEVALUE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the key has the correct value. */
@@ -1119,7 +1136,7 @@ START_TEST(check_multiple_values)
 
 	ck_assert_msg(create_ini(filename, CONF_MULTIVALUE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_TRUE);
+	conf = M_conf_create(filename, M_TRUE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that getting the value of a key with multiple values returns the first value. */
@@ -1187,7 +1204,7 @@ START_TEST(check_invalid_registration)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that passing a bad conf object fails the registration. */
@@ -1266,7 +1283,7 @@ START_TEST(check_registration_args)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that we can register a key with no validation. */
@@ -1354,7 +1371,7 @@ START_TEST(check_straight_registration)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the registration reads the correct conf value. */
@@ -1473,77 +1490,77 @@ START_TEST(check_sanity)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "buf passed validation");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed validation");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 passed validation");
 	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 passed validation");
 	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 passed validation");
 	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int64 passed validation");
 	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 passed validation");
 	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 passed validation");
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 passed validation");
 	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 passed validation");
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "sizet passed validation");
@@ -1572,28 +1589,28 @@ START_TEST(check_negatives)
 	ck_assert_msg(create_ini(filename, CONF_NEGATIVES), "failed to create temporary config file");
 
 	/* Signed integer registrations should allow negative values. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
 	ck_assert_msg(M_conf_parse(conf), "int8 not allowed to have a negative value");
 	ck_assert_msg(mem_int8 == -1, "int8 has wrong value");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
 	ck_assert_msg(M_conf_parse(conf), "int16 not allowed to have a negative value");
 	ck_assert_msg(mem_int16 == -2, "int16 has wrong value");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
 	ck_assert_msg(M_conf_parse(conf), "int32 not allowed to have a negative value");
 	ck_assert_msg(mem_int32 == -3, "int32 has wrong value");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
 	ck_assert_msg(M_conf_parse(conf), "int64 not allowed to have a negative value");
@@ -1601,35 +1618,35 @@ START_TEST(check_negatives)
 	M_conf_destroy(conf); conf = NULL;
 
 	/* Unsigned integer registrations should not allow negative values. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have a negative value");
 	ck_assert_msg(mem_uint8 == 0, "uint8 not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have a negative value");
 	ck_assert_msg(mem_uint16 == 0, "uint16 not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have a negative value");
 	ck_assert_msg(mem_uint32 == 0, "uint32 not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 allowed to have a negative value");
 	ck_assert_msg(mem_uint64 == 0, "uint64 not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, SIZE_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "sizet allowed to have a negative value");
@@ -1654,42 +1671,42 @@ START_TEST(check_under_min_possible)
 
 	ck_assert_msg(create_ini(filename, CONF_UNDER_MIN_POSSIBLE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value below what type allows");
 	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value below what type allows");
 	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value below what type allows");
 	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value below what type allows");
 	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value below what type allows");
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value below what type allows");
@@ -1714,42 +1731,42 @@ START_TEST(check_over_max_possible)
 
 	ck_assert_msg(create_ini(filename, CONF_OVER_MAX_POSSIBLE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value above what type allows");
 	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value above what type allows");
 	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value above what type allows");
 	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value above what type allows");
 	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value above what type allows");
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value above what type allows");
@@ -1781,91 +1798,91 @@ START_TEST(check_transformation_error)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", NULL, buf_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "buf passed bad transformation callback");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", NULL, strdup_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed bad transformation callback");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, 0, 0, int8_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int8 passed bad transformation callback");
 	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, 0, 0, int16_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int16 passed bad transformation callback");
 	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, 0, 0, int32_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int32 passed bad transformation callback");
 	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, 0, 0, int64_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "int64 passed bad transformation callback");
 	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 0, 0, uint8_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 passed bad transformation callback");
 	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 0, 0, uint16_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 passed bad transformation callback");
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 0, 0, uint32_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 passed bad transformation callback");
 	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 0, 0, uint64_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 passed bad transformation callback");
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, 0, sizet_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "sizet passed bad transformation callback");
 	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_bool(conf, "bool_key", &mem_bool, M_TRUE, bool_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "bool passed bad transformation callback");
 	ck_assert_msg(mem_bool == 0, "bool was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_custom(conf, "custom_key", &mem_custom, custom_fail_cb);
 	ck_assert_msg(!M_conf_parse(conf), "custom passed bad transformation callback");
@@ -1894,77 +1911,77 @@ START_TEST(check_transformation_override)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", buf_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "buf failed validation when transformation callback should be handling that");
 	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", strdup_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "strdup failed validation when transformation callback should be handling that");
 	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, int8_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int8 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, int16_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int16 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, int32_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int32 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, int64_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "int64 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, uint8_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint8 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, uint16_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint16 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, uint32_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint32 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, uint64_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "uint64 failed validation when transformation callback should be handling that");
 	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
 	M_conf_destroy(conf); conf = NULL;
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 4, 6, sizet_pass_cb);
 	ck_assert_msg(M_conf_parse(conf), "sizet failed validation when transformation callback should be handling that");
@@ -1995,7 +2012,7 @@ START_TEST(check_transformation_set)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the value set in the transformation callback is honored. */
@@ -2055,7 +2072,7 @@ START_TEST(check_transformation_value)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the correct value is sent to the transformation callback. */
@@ -2116,7 +2133,7 @@ START_TEST(check_transformation_default)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that the correct default value is sent to the transformation callback. */
@@ -2175,7 +2192,7 @@ START_TEST(check_no_block_on_error)
 
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Check that one error during parsing doesn't block other registrations. */
@@ -2256,7 +2273,7 @@ START_TEST(check_unused_single)
 
 	ck_assert_msg(create_ini(filename, CONF_UNUSED_SINGLE), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Register the first and third blocks of keys, and check that everything is ok. */
@@ -2384,7 +2401,7 @@ START_TEST(check_unused_multi)
 
 	ck_assert_msg(create_ini(filename, CONF_UNUSED_MULTI), "failed to create temporary config file");
 
-	conf = M_conf_create(filename, M_TRUE);
+	conf = M_conf_create(filename, M_TRUE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	/* Register every key once. Then we'll make sure that what remains is correct. */
@@ -2467,7 +2484,7 @@ START_TEST(check_validators)
 	ck_assert_msg(create_ini(filename, CONF_REGISTRATIONS), "failed to create temporary config file");
 
 	/* These should pass. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
@@ -2496,7 +2513,7 @@ START_TEST(check_validators)
 
 
 	/* These should fail. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
@@ -2518,7 +2535,7 @@ START_TEST(check_validators)
 
 
 	/* Even though validation fails, all values should still be set correctly. */
-	conf = M_conf_create(filename, M_FALSE);
+	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
@@ -2571,6 +2588,7 @@ static Suite *M_conf_suite(void)
 	Suite *suite;
 	TCase *check_missing_path_test;
 	TCase *check_missing_file_test;
+	TCase *check_missing_errbuf_test;
 	TCase *check_create_single_value_test;
 	TCase *check_create_multiple_value_test;
 	TCase *check_fail_multiple_value_test;
@@ -2607,6 +2625,11 @@ static Suite *M_conf_suite(void)
 	tcase_add_unchecked_fixture(check_missing_file_test, NULL, NULL);
 	tcase_add_test(check_missing_file_test, check_missing_file);
 	suite_add_tcase(suite, check_missing_file_test);
+
+	check_missing_errbuf_test = tcase_create("check_missing_errbuf");
+	tcase_add_unchecked_fixture(check_missing_errbuf_test, NULL, NULL);
+	tcase_add_test(check_missing_errbuf_test, check_missing_errbuf);
+	suite_add_tcase(suite, check_missing_errbuf_test);
 
 	check_create_single_value_test = tcase_create("check_create_single_value");
 	tcase_add_unchecked_fixture(check_create_single_value_test, NULL, NULL);
