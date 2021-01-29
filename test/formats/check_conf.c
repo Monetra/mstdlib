@@ -68,6 +68,24 @@
 "uint64_key=-8" "\n" \
 "sizet_key=-9" "\n" \
 
+/* Configuration file with values smaller than the data type can handle. */
+#define CONF_UNDER_MIN_POSSIBLE \
+"int8_key=-129" "\n" \
+"int16_key=-32769" "\n" \
+"int32_key=-2147483649" "\n" \
+"uint8_key=-1" "\n" \
+"uint16_key=-1" "\n" \
+"uint32_key=-1" "\n" \
+
+/* Configuration file with values larger than the data type can handle. */
+#define CONF_OVER_MAX_POSSIBLE \
+"int8_key=128" "\n" \
+"int16_key=32768" "\n" \
+"int32_key=2147483648" "\n" \
+"uint8_key=256" "\n" \
+"uint16_key=65536" "\n" \
+"uint32_key=4294967296" "\n" \
+
 /* Configuration file for unused keys test (single value). */
 #define CONF_UNUSED_SINGLE \
 "buf_key1=buf_value" "\n" \
@@ -1622,6 +1640,126 @@ START_TEST(check_negatives)
 }
 END_TEST
 
+START_TEST(check_under_min_possible)
+{
+	/* Check that values below each data type's minimum possible value are not allowed. */
+	const char *filename = "./tmp_conf_check_under_min_possible.ini";
+	M_conf_t   *conf     = NULL;
+	M_int8      mem_int8;
+	M_int16     mem_int16;
+	M_int32     mem_int32;
+	M_uint8     mem_uint8;
+	M_uint16    mem_uint16;
+	M_uint32    mem_uint32;
+
+	ck_assert_msg(create_ini(filename, CONF_UNDER_MIN_POSSIBLE), "failed to create temporary config file");
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value below what type allows");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value below what type allows");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value below what type allows");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value below what type allows");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value below what type allows");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value below what type allows");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
+}
+END_TEST
+
+START_TEST(check_over_max_possible)
+{
+	/* Check that values above each data type's maximum possible value are not allowed. */
+	const char *filename = "./tmp_conf_check_over_max_possible.ini";
+	M_conf_t   *conf     = NULL;
+	M_int8      mem_int8;
+	M_int16     mem_int16;
+	M_int32     mem_int32;
+	M_uint8     mem_uint8;
+	M_uint16    mem_uint16;
+	M_uint32    mem_uint32;
+
+	ck_assert_msg(create_ini(filename, CONF_OVER_MAX_POSSIBLE), "failed to create temporary config file");
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value above what type allows");
+	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value above what type allows");
+	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value above what type allows");
+	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value above what type allows");
+	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value above what type allows");
+	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	conf = M_conf_create(filename, M_FALSE);
+	ck_assert_msg(conf != NULL, "could not read %s", filename);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value above what type allows");
+	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	M_conf_destroy(conf); conf = NULL;
+
+	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
+}
+END_TEST
+
 START_TEST(check_transformation_error)
 {
 	/* Check that a transformation error causes M_conf_parse() to fail and the memory is set to the zero value. */
@@ -2446,6 +2584,8 @@ static Suite *M_conf_suite(void)
 	TCase *check_straight_registration_test;
 	TCase *check_sanity_test;
 	TCase *check_negatives_test;
+	TCase *check_under_min_possible_test;
+	TCase *check_over_max_possible_test;
 	TCase *check_transformation_error_test;
 	TCase *check_transformation_override_test;
 	TCase *check_transformation_set_test;
@@ -2532,6 +2672,16 @@ static Suite *M_conf_suite(void)
 	tcase_add_unchecked_fixture(check_negatives_test, NULL, NULL);
 	tcase_add_test(check_negatives_test, check_negatives);
 	suite_add_tcase(suite, check_negatives_test);
+
+	check_under_min_possible_test = tcase_create("check_under_min_possible");
+	tcase_add_unchecked_fixture(check_under_min_possible_test, NULL, NULL);
+	tcase_add_test(check_under_min_possible_test, check_under_min_possible);
+	suite_add_tcase(suite, check_under_min_possible_test);
+
+	check_over_max_possible_test = tcase_create("check_over_max_possible");
+	tcase_add_unchecked_fixture(check_over_max_possible_test, NULL, NULL);
+	tcase_add_test(check_over_max_possible_test, check_over_max_possible);
+	suite_add_tcase(suite, check_over_max_possible_test);
 
 	check_transformation_error_test = tcase_create("check_transformation_error");
 	tcase_add_unchecked_fixture(check_transformation_error_test, NULL, NULL);
