@@ -629,18 +629,14 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, s
 {
 	M_conf_t                *conf;
 	M_ini_settings_t        *ini_settings;
-	size_t                   failed_line   = 0;
+	size_t                   failed_line      = 0;
 	M_list_str_t            *keys;
 	size_t                   num_keys;
 	size_t                   i;
 	const char              *key;
 	M_uint64                 num;
-	struct M_list_callbacks  validator_cbs = {
-		NULL,
-		NULL,
-		NULL,
-		M_free
-	};
+	struct M_list_callbacks  registration_cbs = { NULL, NULL, NULL, (void (*)(void *))reg_destroy };
+	struct M_list_callbacks  validator_cbs    = { NULL, NULL, NULL, M_free };
 
 	if (errbuf != NULL && errbuf_len > 0)
 		M_mem_set(errbuf, 0, errbuf_len);
@@ -666,7 +662,7 @@ M_conf_t *M_conf_create(const char *path, M_bool allow_multiple, char *errbuf, s
 	}
 
 	/* Create the list that we'll use for holding on to registrations until we're ready to run through them. */
-	conf->registrations = M_list_create(NULL, M_LIST_NONE);
+	conf->registrations = M_list_create(&registration_cbs, M_LIST_NONE);
 
 	/* Create the table that we'll use for keeping track of how many times a key is used. Every time a key is used,
  	 * we'll decrement the count by one. */
@@ -715,7 +711,7 @@ void M_conf_destroy(M_conf_t *conf)
 
 		M_free(conf->ini_path);
 		M_ini_destroy(conf->ini);
-		M_list_destroy(conf->registrations, M_FALSE);
+		M_list_destroy(conf->registrations, M_TRUE);
 		M_list_destroy(conf->validators, M_TRUE);
 		M_list_destroy(conf->debug_loggers, M_FALSE);
 		M_list_destroy(conf->error_loggers, M_FALSE);
