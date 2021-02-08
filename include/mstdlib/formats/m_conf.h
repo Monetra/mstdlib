@@ -434,7 +434,8 @@ M_API M_list_str_t *M_conf_get_values(M_conf_t *conf, const char *key);
  * \param[in]  buf_len       Length of buffer.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
  * \param[in]  regex         Regular expression to check the value against. Matching is done in a case-insensitive
- *                           fashion. If the check fails, then M_conf_parse() will also fail. Pass NULL to skip check.
+ *                           fashion. If the check fails, then M_conf_parse() will also fail and the default value will
+ *                           be stored. Pass NULL to skip check.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -452,7 +453,8 @@ M_API M_bool M_conf_register_buf(M_conf_t *conf, const char *key, char *buf, siz
  * \param[out] buf           Address where the value will be stored. The caller is responsible for free'ing this memory.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
  * \param[in]  regex         Regular expression to check the value against. Matching is done in a case-insensitive
- *                           fashion. If the check fails, then M_conf_parse() will also fail. Pass NULL to skip check.
+ *                           fashion. If the check fails, then M_conf_parse() will also fail and the default value will
+ *                           be stored. Pass NULL to skip check.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -470,9 +472,9 @@ M_API M_bool M_conf_register_strdup(M_conf_t *conf, const char *key, char **addr
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -490,9 +492,9 @@ M_API M_bool M_conf_register_int8(M_conf_t *conf, const char *key, M_int8 *mem, 
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -510,9 +512,9 @@ M_API M_bool M_conf_register_int16(M_conf_t *conf, const char *key, M_int16 *mem
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -530,9 +532,9 @@ M_API M_bool M_conf_register_int32(M_conf_t *conf, const char *key, M_int32 *mem
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -550,9 +552,9 @@ M_API M_bool M_conf_register_int64(M_conf_t *conf, const char *key, M_int64 *mem
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -570,9 +572,9 @@ M_API M_bool M_conf_register_uint8(M_conf_t *conf, const char *key, M_uint8 *mem
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -590,9 +592,9 @@ M_API M_bool M_conf_register_uint16(M_conf_t *conf, const char *key, M_uint16 *m
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -610,9 +612,9 @@ M_API M_bool M_conf_register_uint32(M_conf_t *conf, const char *key, M_uint32 *m
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -630,9 +632,9 @@ M_API M_bool M_conf_register_uint64(M_conf_t *conf, const char *key, M_uint64 *m
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -650,9 +652,9 @@ M_API M_bool M_conf_register_sizet(M_conf_t *conf, const char *key, size_t *mem,
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
  * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail.
+ *                           fail and the default value to be stored.
  * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail.
+ *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -679,10 +681,10 @@ M_API M_bool M_conf_register_bool(M_conf_t *conf, const char *key, M_bool *mem, 
 M_API M_bool M_conf_register_custom(M_conf_t *conf, const char *key, void *mem, M_conf_converter_custom_t converter);
 
 
-/*! Register a validation callback. All registered validators are called after M_conf_parse() successfully sets the
- * registered keys. This can be used, for example, if you want to validate that one key's value is greater than another
- * key's value, or if you want to print a debug statement for a certain key or keys. This can also be used to run a hook
- * after the registrations are set.
+/*! Register a validation callback. All registered validators are called after M_conf_parse() sets the registered keys.
+ * This can be used, for example, if you want to validate that one key's value is greater than another key's value, or
+ * if you want to print a debug statement for a certain key or keys. This can also be used to run a hook after the
+ * registrations are set.
  *
  * \param[in] data   Reference for passing in data in the callback. May be NULL if not needed.
  *

@@ -610,7 +610,9 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 
 	/* If there are any validations set for this registration, let's check those now. */
 	if (!M_str_isempty(value) && !reg_validate_value(conf, reg, value, err_buf, sizeof(err_buf))) {
+		/* Validation failed. Set the default value and return false. */
 		conf_log_error(conf, "Key '%s' failed validation for value '%s': %s", reg->key, value, err_buf);
+		reg_set_value(conf, reg, NULL);
 		return M_FALSE;
 	}
 	conf_log_debug(conf, "  Value passed validation");

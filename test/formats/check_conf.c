@@ -1437,18 +1437,18 @@ START_TEST(check_straight_registration)
 	M_free(mem_strdup);
 
 	/* Check that memory is being correctly blanked. */
-	M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), NULL, NULL, NULL);
-	M_conf_register_strdup(conf, "NOKEY", &mem_strdup, NULL, NULL, NULL);
-	M_conf_register_int8(conf, "NOKEY", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
-	M_conf_register_int16(conf, "NOKEY", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
-	M_conf_register_int32(conf, "NOKEY", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
-	M_conf_register_int64(conf, "NOKEY", &mem_int64, 0, M_INT64_MIN, M_INT64_MAX, NULL);
-	M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
-	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
-	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
-	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
-	M_conf_register_sizet(conf, "NOKEY", &mem_sizet, 0, 0, SIZE_MAX, NULL);
-	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_FALSE, NULL);
+	M_conf_register_buf(conf, "NOKEY", mem_buf, sizeof(mem_buf), "buf_default", NULL, buf_pass_cb);
+	M_conf_register_strdup(conf, "NOKEY", &mem_strdup, "str_default", NULL, strdup_pass_cb);
+	M_conf_register_int8(conf, "NOKEY", &mem_int8, -99, M_INT8_MIN, M_INT8_MAX, int8_pass_cb);
+	M_conf_register_int16(conf, "NOKEY", &mem_int16, -999, M_INT16_MIN, M_INT16_MAX, int16_pass_cb);
+	M_conf_register_int32(conf, "NOKEY", &mem_int32, -9999, M_INT32_MIN, M_INT32_MAX, int32_pass_cb);
+	M_conf_register_int64(conf, "NOKEY", &mem_int64, -99999, M_INT64_MIN, M_INT64_MAX, int64_pass_cb);
+	M_conf_register_uint8(conf, "NOKEY", &mem_uint8, 99, 0, M_UINT8_MAX, uint8_pass_cb);
+	M_conf_register_uint16(conf, "NOKEY", &mem_uint16, 999, 0, M_UINT16_MAX, uint16_pass_cb);
+	M_conf_register_uint32(conf, "NOKEY", &mem_uint32, 9999, 0, M_UINT32_MAX, uint32_pass_cb);
+	M_conf_register_uint64(conf, "NOKEY", &mem_uint64, 99999, 0, M_UINT64_MAX, uint64_pass_cb);
+	M_conf_register_sizet(conf, "NOKEY", &mem_sizet, 999999, 0, SIZE_MAX, sizet_pass_cb);
+	M_conf_register_bool(conf, "NOKEY", &mem_bool, M_TRUE, bool_pass_cb);
 
 	ck_assert_msg(M_conf_parse(conf), "conf parse failed for blanks");
 
@@ -1473,7 +1473,7 @@ END_TEST
 
 START_TEST(check_sanity)
 {
-	/* Check that each registration fails its validation and sets the zero value (not the default value). */
+	/* Check that each registration fails its validation and sets the default value (not the zero value). */
 	const char *filename = "./tmp_conf_check_sanity.ini";
 	M_conf_t   *conf     = NULL;
 	char        mem_buf[64];
@@ -1494,77 +1494,77 @@ START_TEST(check_sanity)
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_buf(conf, "buf_key", mem_buf, sizeof(mem_buf), "default", "[:digit:]+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "buf passed validation");
-	ck_assert_msg(M_str_isempty(mem_buf), "buf was not zeroed out");
+	ck_assert_msg(M_str_eq(mem_buf, "default"), "buf was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed validation");
-	ck_assert_msg(M_str_isempty(mem_strdup), "strdup was not zeroed out");
+	ck_assert_msg(M_str_eq(mem_strdup, "default"), "strdup  was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int8(conf, "int8_key", &mem_int8, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 passed validation");
-	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 10, "int8 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int16(conf, "int16_key", &mem_int16, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 passed validation");
-	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 10, "int16 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int32(conf, "int32_key", &mem_int32, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 passed validation");
-	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 10, "int32 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_int64(conf, "int64_key", &mem_int64, 10, -2, -4, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int64 passed validation");
-	ck_assert_msg(mem_int64 == 0, "int64 was not zeroed out");
+	ck_assert_msg(mem_int64 == 10, "int64 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 passed validation");
-	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 10, "uint8 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 passed validation");
-	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 10, "uint16 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 passed validation");
-	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 10, "uint32 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 passed validation");
-	ck_assert_msg(mem_uint64 == 0, "uint64 was not zeroed out");
+	ck_assert_msg(mem_uint64 == 10, "uint64 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
 	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 4, 6, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "sizet passed validation");
-	ck_assert_msg(mem_sizet == 0, "sizet was not zeroed out");
+	ck_assert_msg(mem_sizet == 10, "sizet was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
@@ -1620,37 +1620,37 @@ START_TEST(check_negatives)
 	/* Unsigned integer registrations should not allow negative values. */
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 1, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have a negative value");
-	ck_assert_msg(mem_uint8 == 0, "uint8 not zeroed out");
+	ck_assert_msg(mem_uint8 == 1, "uint8 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 1, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have a negative value");
-	ck_assert_msg(mem_uint16 == 0, "uint16 not zeroed out");
+	ck_assert_msg(mem_uint16 == 1, "uint16 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 1, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have a negative value");
-	ck_assert_msg(mem_uint32 == 0, "uint32 not zeroed out");
+	ck_assert_msg(mem_uint32 == 1, "uint32 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 0, 0, M_UINT64_MAX, NULL);
+	M_conf_register_uint64(conf, "uint64_key", &mem_uint64, 1, 0, M_UINT64_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint64 allowed to have a negative value");
-	ck_assert_msg(mem_uint64 == 0, "uint64 not zeroed out");
+	ck_assert_msg(mem_uint64 == 1, "uint64 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 10, 0, SIZE_MAX, NULL);
+	M_conf_register_sizet(conf, "sizet_key", &mem_sizet, 1, 0, SIZE_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "sizet allowed to have a negative value");
-	ck_assert_msg(mem_sizet == 0, "sizet not zeroed out");
+	ck_assert_msg(mem_sizet == 1, "sizet was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
@@ -1673,44 +1673,44 @@ START_TEST(check_under_min_possible)
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 2, M_INT8_MIN, M_INT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value below what type allows");
-	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 2, "int8 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 2, M_INT16_MIN, M_INT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value below what type allows");
-	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 2, "int16 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 2, M_INT32_MIN, M_INT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value below what type allows");
-	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 2, "int32 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 2, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value below what type allows");
-	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 2, "uint8 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 2, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value below what type allows");
-	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 2, "uint16 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 2, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value below what type allows");
-	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 2, "uint32 was was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
@@ -1733,44 +1733,44 @@ START_TEST(check_over_max_possible)
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int8(conf, "int8_key", &mem_int8, 0, M_INT8_MIN, M_INT8_MAX, NULL);
+	M_conf_register_int8(conf, "int8_key", &mem_int8, 3, M_INT8_MIN, M_INT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int8 allowed to have value above what type allows");
-	ck_assert_msg(mem_int8 == 0, "int8 was not zeroed out");
+	ck_assert_msg(mem_int8 == 3, "int8 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int16(conf, "int16_key", &mem_int16, 0, M_INT16_MIN, M_INT16_MAX, NULL);
+	M_conf_register_int16(conf, "int16_key", &mem_int16, 3, M_INT16_MIN, M_INT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int16 allowed to have value above what type allows");
-	ck_assert_msg(mem_int16 == 0, "int16 was not zeroed out");
+	ck_assert_msg(mem_int16 == 3, "int16 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_int32(conf, "int32_key", &mem_int32, 0, M_INT32_MIN, M_INT32_MAX, NULL);
+	M_conf_register_int32(conf, "int32_key", &mem_int32, 3, M_INT32_MIN, M_INT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "int32 allowed to have value above what type allows");
-	ck_assert_msg(mem_int32 == 0, "int32 was not zeroed out");
+	ck_assert_msg(mem_int32 == 3, "int32 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 0, 0, M_UINT8_MAX, NULL);
+	M_conf_register_uint8(conf, "uint8_key", &mem_uint8, 3, 0, M_UINT8_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint8 allowed to have value above what type allows");
-	ck_assert_msg(mem_uint8 == 0, "uint8 was not zeroed out");
+	ck_assert_msg(mem_uint8 == 3, "uint8 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 0, 0, M_UINT16_MAX, NULL);
+	M_conf_register_uint16(conf, "uint16_key", &mem_uint16, 3, 0, M_UINT16_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint16 allowed to have value above what type allows");
-	ck_assert_msg(mem_uint16 == 0, "uint16 was not zeroed out");
+	ck_assert_msg(mem_uint16 == 3, "uint16 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
 	ck_assert_msg(conf != NULL, "could not read %s", filename);
-	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 0, 0, M_UINT32_MAX, NULL);
+	M_conf_register_uint32(conf, "uint32_key", &mem_uint32, 3, 0, M_UINT32_MAX, NULL);
 	ck_assert_msg(!M_conf_parse(conf), "uint32 allowed to have value above what type allows");
-	ck_assert_msg(mem_uint32 == 0, "uint32 was not zeroed out");
+	ck_assert_msg(mem_uint32 == 3, "uint32 was not set to default value");
 	M_conf_destroy(conf); conf = NULL;
 
 	ck_assert_msg(remove_ini(filename), "failed to remove temporary config file");
