@@ -450,7 +450,7 @@ M_API M_bool M_conf_register_buf(M_conf_t *conf, const char *key, char *buf, siz
  *
  * \param[in]  conf          M_conf_t object to use.
  * \param[in]  key           Key to register.
- * \param[out] buf           Address where the value will be stored. The caller is responsible for free'ing this memory.
+ * \param[out] address       Address where the value will be stored. The caller is responsible for free'ing this memory.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file. Pass NULL for no default.
  * \param[in]  regex         Regular expression to check the value against. Matching is done in a case-insensitive
  *                           fashion. If the check fails, then M_conf_parse() will also fail and the default value will
@@ -651,10 +651,6 @@ M_API M_bool M_conf_register_sizet(M_conf_t *conf, const char *key, size_t *mem,
  * \param[in]  key           Key to register.
  * \param[out] mem           Memory where the value will be stored.
  * \param[in]  default_val   Default value to store, if a value is not set in the ini file.
- * \param[in]  min_val       Minimum allowed value. A value in the ini file less than this will cause M_conf_parse() to
- *                           fail and the default value to be stored.
- * \param[in]  max_val       Maximum allowed value. A value in the ini file greater than this will cause M_conf_parse()
- *                           to fail and the default value to be stored.
  * \param[in]  converter     Callback for manual conversion. The value will be pulled out of the ini and passed directly
  *                           to the callback, which must do all validation/conversion. The value passed to the callback
  *                           can be NULL. Pass NULL if not needed.
@@ -686,10 +682,12 @@ M_API M_bool M_conf_register_custom(M_conf_t *conf, const char *key, void *mem, 
  * if you want to print a debug statement for a certain key or keys. This can also be used to run a hook after the
  * registrations are set.
  *
- * \param[in] data   Reference for passing in data in the callback. May be NULL if not needed.
+ * \param[in]  conf        M_conf_t object to use.
+ * \param[in]  validator   Callback for validating stored values.
+ * \param[in]  data        Reference for passing in data in the callback. May be NULL if not needed.
  *
- * \return           M_TRUE if the registration was successful. Otherwise, M_FALSE. Currently, this returns M_FALSE only
- *                   if the callback is invalid.
+ * \return                 M_TRUE if the registration was successful. Otherwise, M_FALSE. Currently,
+ *                         this returns M_FALSE only if the callback is invalid.
  */
 M_API M_bool M_conf_register_validator(M_conf_t *conf, M_conf_validator_t validator, void *data);
 
