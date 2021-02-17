@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2019 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,7 +48,7 @@ __BEGIN_DECLS
  * ## Supported:
  *
  * ### Syntax
- * 
+ *
  * Expression     | Description
  * ----------     | -----------
  * `.`            | any character (except newline, see DOTALL)
@@ -71,7 +71,7 @@ __BEGIN_DECLS
  * \note \ as part of \| (pipe) shown in table is for escaping and not part of syntax.
  *
  * ### Escapes
- * 
+ *
  * Expression         | Description
  * ----------         | -----------
  * C escape sequences | Any standard escape sequence that is part of C. Such as, `\n` (newline) and `\t` (tab)
@@ -89,7 +89,7 @@ __BEGIN_DECLS
  * ---------- | -----------
  * `\s`       | White space. Equivalent to `[ \t\n\r\f\v]`
  * `\S`       | Not white space. Equivalent to `[^ \t\n\r\f\v]`
- * `\d`       | Digit (number). Equivalent to `[0-9].
+ * `\d`       | Digit (number). Equivalent to `[0-9].`
  * `\D`       | Not digit Equivalent to `[^0-9]`
  * `\w`       | Word. Equivalent to `[a-zA-Z0-9_]`
  * `\W`       | Not word. Equivalent to `[^a-zA-Z0-9_]`
@@ -161,7 +161,7 @@ __BEGIN_DECLS
  * own character.
  *
  * @{
- */ 
+ */
 
 struct M_re;
 typedef struct M_re M_re_t;
@@ -236,7 +236,7 @@ M_API M_bool M_re_eq(const M_re_t *re, const char *str);
  *
  * \param[in] re  Re object.
  * \param[in] str String to evaluate.
- * 
+ *
  * \return List of M_re_match_t objects for every match found in the string.
  *         NULL if no matches found.
  */
@@ -250,7 +250,7 @@ M_API M_list_t *M_re_matches(const M_re_t *re, const char *str);
  *
  * \param[in] re  Re object.
  * \param[in] str String to evaluate.
- * 
+ *
  * \return List of matching strings for every match found in the string.
  *         NULL if no matches found.
  */

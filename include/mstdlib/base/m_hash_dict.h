@@ -120,7 +120,7 @@ M_API void M_hash_dict_destroy(M_hash_dict_t *h) M_FREE(1);
 
 /*! Insert an entry into the hashtable.
  *
- * If this is a multi-value dictionary (see M_HASH_DICT_MULTI_VALUE) and an entry already
+ * If this is a multi-value dictionary (\see M_HASH_DICT_MULTI_VALUE) and an entry already
  * exists under the given key, the new value is added onto the end of the list. Otherwise,
  * the new value replaces any previous value stored under the given key.
  *
@@ -352,7 +352,7 @@ M_API M_hash_dict_t *M_hash_dict_duplicate(const M_hash_dict_t *h) M_MALLOC;
 /*! Possible flags for M_hash_dict_serialize() */
 typedef enum {
 	M_HASH_DICT_SER_FLAG_NONE               = 0,      /*!< Default flags */
-	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE       = 1 << 0, /*!< Always quote the value even if not necesary. Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
+	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE       = 1 << 0, /*!< Always quote the value even if not necessary. Cannot be used with M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS */
 	M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS      = 1 << 1, /*!< Quote any string that contains non Alpha-numeric or single space (0x20).  Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
 	M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT = 1 << 2, /*!< Any non-printable characters should be hex-encoded as [%02X] in the resulting output string */
 } M_hash_dict_ser_flag_t;

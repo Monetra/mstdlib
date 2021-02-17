@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_serial Serial Port I/O functions
  *  \ingroup m_eventio_base
- * 
+ *
  * Serial Port I/O functions
  *
  * @{
@@ -120,21 +120,21 @@ typedef enum M_io_serial_mode M_io_serial_mode_t;
  */
 enum M_io_serial_flags {
 	M_IO_SERIAL_FLAG_NONE                   = 0,      /*!< Default, assume strict and proper behavior                */
-	M_IO_SERIAL_FLAG_IGNORE_TERMIOS_FAILURE = 1 << 0, /*!< Ignore any termios (baud, mode, flow) setting failures.   *
-	                                                   *   Some serial port emulators may intentionally fail.        */
-	M_IO_SERIAL_FLAG_NO_FLUSH_ON_CLOSE      = 1 << 1, /*!< Do not flush any pending data on close.  This may confuse *
-	                                                   *   or lock up some serial port emulators.                    */
-	M_IO_SERIAL_FLAG_NO_RESTORE_ON_CLOSE    = 1 << 2, /*!< Do not restore termios (baud, mode, flow) settings on     *
-	                                                   *   close.  It is a best practice but often does not provide  *
-	                                                   *   any real benefit.                                         */
-	M_IO_SERIAL_FLAG_ASYNC_TIMEOUT          = 1 << 3, /*!< Windows Only. For Asynchronous reads use a timeout value  *
-	                                                   *   rather than infinite as some drivers may not allow        *
-	                                                   *   canceling of async reads (such as Citrix serial           *
-	                                                   *   forwarding). Not used if BUSY_POLLING is used             */
-	M_IO_SERIAL_FLAG_BUSY_POLLING           = 1 << 4  /*!< Windows Only. Perform busy-polling in a separate thread   *
-	                                                   *   rather than using asynchronous reads.  This may work      *
-	                                                   *   around driver issues that do not properly support         *
-	                                                   *   Overlapped IO.                                            */
+	M_IO_SERIAL_FLAG_IGNORE_TERMIOS_FAILURE = 1 << 0, /*!< Ignore any termios (baud, mode, flow) setting failures.
+	                                                       Some serial port emulators may intentionally fail.        */
+	M_IO_SERIAL_FLAG_NO_FLUSH_ON_CLOSE      = 1 << 1, /*!< Do not flush any pending data on close.  This may confuse
+	                                                       or lock up some serial port emulators.                    */
+	M_IO_SERIAL_FLAG_NO_RESTORE_ON_CLOSE    = 1 << 2, /*!< Do not restore termios (baud, mode, flow) settings on
+	                                                       close.  It is a best practice but often does not provide
+	                                                       any real benefit.                                         */
+	M_IO_SERIAL_FLAG_ASYNC_TIMEOUT          = 1 << 3, /*!< Windows Only. For Asynchronous reads use a timeout value
+	                                                       rather than infinite as some drivers may not allow
+	                                                       canceling of async reads (such as Citrix serial
+	                                                       forwarding). Not used if BUSY_POLLING is used             */
+	M_IO_SERIAL_FLAG_BUSY_POLLING           = 1 << 4  /*!< Windows Only. Perform busy-polling in a separate thread
+	                                                       rather than using asynchronous reads.  This may work
+	                                                       around driver issues that do not properly support
+	                                                       Overlapped IO.                                            */
 };
 typedef enum M_io_serial_flags M_io_serial_flags_t;
 
@@ -226,7 +226,7 @@ M_API M_io_error_t M_io_serial_get_baud(M_io_t *io, M_io_serial_baud_t *baud);
 /*! Create a serial enumeration object.
  *
  * Use to determine what serial devices are connected. On some OS's this may
- * be a list of device ports and not not necessarily what's connected.
+ * be a list of device ports and not necessarily what's connected.
  *
  * \return Serial enumeration object.
  */
@@ -241,7 +241,7 @@ M_API void M_io_serial_enum_destroy(M_io_serial_enum_t *serenum);
 
 
 /*! Number of serial objects in the enumeration.
- * 
+ *
  * \param[in] serenum Serial enumeration object.
  *
  * \return Count of serial devices.

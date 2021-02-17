@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_io_bluetooth Bluetooth IO functions
  *  \ingroup m_eventio_base
- * 
+ *
  * Bluetooth IO functions.
  *
  * This is a connectivity layer and uses rfcomm. Protocols,
@@ -59,7 +59,7 @@ typedef struct M_io_bluetooth_enum M_io_bluetooth_enum_t;
  * what services are being offered. This is a
  * list of associated devices not necessarily what's actively connected.
  *
- * The enumeration is based on available services. Meaning a device may 
+ * The enumeration is based on available services. Meaning a device may
  * be listed multiple times if it exposes multiple services.
  *
  * \return Bluetooth enumeration object.
@@ -75,7 +75,7 @@ M_API void M_io_bluetooth_enum_destroy(M_io_bluetooth_enum_t *btenum);
 
 
 /*! Number of bluetooth objects in the enumeration.
- * 
+ *
  * \param[in] btenum Bluetooth enumeration object.
  *
  * \return Count of bluetooth devices.
@@ -143,7 +143,7 @@ M_API const char *M_io_bluetooth_enum_service_uuid(const M_io_bluetooth_enum_t *
  *                    is almost always 00001101-0000-1000-8000-00805f9b34fb unless the device is
  *                    providing multiple services. Such as a device that can do multiple things like
  *                    bar code scanner, and integrated printer. If not specified the generic
- *                    rfcomm generic uuid will be used.
+ *                    rfcomm uuid will be used.
  *
  * \return Result.
  */

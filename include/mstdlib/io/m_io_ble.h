@@ -65,7 +65,7 @@ __BEGIN_DECLS
  * Such as an iPhone being seen during scanning and later the owner of the phone leaving
  * the room. There are no OS level events to notify that this has happened.
  *
- * When necessary, a scan can be initiated is by trying to connect to a device.
+ * When necessary, a scan can be initiated by trying to connect to a device.
  * Opening a device requires specifying a device identifier or service UUID and if
  * not found a scan will be started internally for either the duration of the timeout
  * or until the device has been found. This can cause a delay between trying to open

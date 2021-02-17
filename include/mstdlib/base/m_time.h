@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,7 +49,7 @@ __BEGIN_DECLS
  * - Diff
  * - Elapsed
  * - Time zone
- * - string reading 
+ * - string reading
  * - string writing
  *
  *
@@ -101,7 +101,7 @@ __BEGIN_DECLS
  *     M_time_localtm_t   ltime;
  *
  *     M_mem_set(&ltime, 0, sizeof(ltime));
- *     
+ *
  *     tzs = M_time_tzs_load_zoneinfo(NULL, M_TIME_TZ_ZONE_AMERICA, M_TIME_TZ_ALIAS_OLSON_MAIN, M_TIME_TZ_LOAD_LAZY);
  *     tz  = M_time_tzs_get_tz(tzs, "America/New_York");
  *
@@ -135,7 +135,7 @@ __BEGIN_DECLS
  *         M_printf("time conversion failed\n");
  *     } else {
  *         M_printf("time conversion success\n");
- *     } 
+ *     }
  * \endcode
  *
  * Time Strings
@@ -148,7 +148,7 @@ __BEGIN_DECLS
  *
  *     M_mem_set(&ltime, 0, sizeof(ltime));
  *
- *     ts  = M_time_from_str("1998/11/31 10:02:50", NULL, M_FALSE); 
+ *     ts  = M_time_from_str("1998/11/31 10:02:50", NULL, M_FALSE);
  *     M_time_tolocal(ts, &ltime, NULL);
  *     out = M_time_to_str("%Y-%m-%d %H:%M:%S %p", &tm);
  *     M_printf("out='%s'\n", out);
@@ -397,7 +397,7 @@ M_API M_time_t M_time_fromgm(M_time_gmtm_t *tm) M_WARN_NONNULL(1);
  *
  * \param[in] start_time The start time.
  * \param[in] end_time The end time.
- * 
+ *
  * \return The number of milliseconds between the two times.
  */
 M_API M_int64 M_time_timeval_diff(const M_timeval_t *start_time, const M_timeval_t *end_time) M_WARN_NONNULL(1) M_WARN_NONNULL(2);
@@ -410,7 +410,7 @@ M_API M_int64 M_time_timeval_diff(const M_timeval_t *start_time, const M_timeval
 M_API void M_time_elapsed_start(M_timeval_t *start_tv) M_WARN_NONNULL(1);
 
 
-/*! The mount of time that has elapsed since start in milliseconds. 
+/*! The amount of time that has elapsed since start in milliseconds.
  *
  * \param[in] start_tv The time to calculate from. This should be the value from M_time_elapsed_start.
  *
@@ -944,7 +944,7 @@ M_API void M_time_tzs_destroy(M_time_tzs_t *tzs);
  * - MT: Mountain
  * - PT: Pacific
  *
- * \param[out] tzs Time zone db. 
+ * \param[out] tzs Time zone db.
  * \param[in]  zones   M_time_tz_zones_t zones. What zones from the db should be loaded.
  * \param[in]  alias_f M_time_tz_alias_t to handle alias loading.
  * \param[in]  flags   M_time_tz_load_t flags. How should the data be loaded. Specifically should lazy loading be used.
@@ -956,7 +956,7 @@ M_API void M_time_tzs_destroy(M_time_tzs_t *tzs);
 M_API M_time_load_source_t M_time_tzs_load(M_time_tzs_t **tzs, M_uint32 zones, M_uint32 alias_f, M_uint32 flags);
 
 
-/*! Load a tzs with data from a precomputed Olson/TZ/Zoneinfo db. 
+/*! Load a tzs with data from a precomputed Olson/TZ/Zoneinfo db.
  *
  * To prevent possible issues the zoneinfo path cannot be a symlink. If it is a symlink the symlink needs to
  * be resolved before passing into this function. Further, symlinks within the zoneinfo base dir cannot

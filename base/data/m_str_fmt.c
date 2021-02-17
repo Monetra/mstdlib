@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -483,7 +483,7 @@ static ssize_t M_str_fmt_add_double_just(M_str_fmt_t *data, double dval, M_str_f
 	frac_part = M_math_modf(dval, &int_part);
 
 	/* Convert the frac part into a whole number. */
-	p10       = M_str_fmt_fpow(10, (unsigned int)prec_len); 
+	p10       = M_str_fmt_fpow(10, (unsigned int)prec_len);
 	frac_part = M_math_round(frac_part * p10);
 	/* Ensure frac_part doesn't have a fractional part if there
  	 * where more digits than our precision. */
@@ -909,8 +909,8 @@ static ssize_t M_str_fmt_do_print(M_str_fmt_t *data, const char *fmt, va_list va
 
 	M_parser_init(&parser, (const unsigned char *)fmt, M_str_len(fmt), M_PARSER_FLAG_NONE);
 
-	/* We put the va_list into a struct so we can pass the struct around be
- 	 * reference.
+	/* We put the va_list into a struct so we can pass the struct around and be
+ 	 * referenced.
 	 *
 	 * va_list can be implemented in different ways and one some systems we
 	 * found we cannot pass them by reference. Even though the standard implies
@@ -1136,7 +1136,7 @@ size_t M_vasprintf(char **ret, const char *fmt, va_list ap)
 
 	buf = M_buf_create();
 	M_vbprintf(buf, fmt, ap);
-	
+
 	if (ret != NULL) {
 		*ret = M_buf_finish_str(buf, &len);
 	} else {

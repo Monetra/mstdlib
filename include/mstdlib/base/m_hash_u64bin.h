@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_hash_u64bin Hashtable - uint64/Binary
  *  \ingroup m_hashtable
- * 
+ *
  * Hashtable, meant for storing uint64 keys and binary data values.
  *
  * References to the data will always be read-only.
@@ -124,7 +124,7 @@ M_API M_bool M_hash_u64bin_insert(M_hash_u64bin_t *h, M_uint64 key, const M_uint
 /*! Remove an entry from the hashtable.
  *
  * \param[in,out] h   Hashtable being referenced.
- * \param[in]     key Key to remove from the hashtable. 
+ * \param[in]     key Key to remove from the hashtable.
  *
  * \return M_TRUE on success, or M_FALSE if key does not exist.
  */
@@ -157,11 +157,11 @@ M_API const M_uint8 *M_hash_u64bin_get_direct(const M_hash_u64bin_t *h, M_uint64
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Wether the hashtable a multi value table.
+/*! Whether the hashtable is a multi-value table.
  *
  * \param[in] h Hashtable being referenced.
  *
- * \return M_TRUE if a multi value hashtable.
+ * \return M_TRUE if a multi-value hashtable.
  */
 M_bool M_hash_u64bin_is_multi(const M_hash_u64bin_t *h);
 
@@ -169,7 +169,7 @@ M_bool M_hash_u64bin_is_multi(const M_hash_u64bin_t *h);
 /*! Get the number of values for a given key.
  *
  * \param[in]  h   Hashtable being referenced.
- * \param[in]  key Key for value to retrieve. 
+ * \param[in]  key Key for value to retrieve.
  * \param[out] len The number of values.
  *
  * \return M_TRUE if length is retrieved, M_FALSE if key does not exist.
@@ -262,7 +262,7 @@ M_API size_t M_hash_u64bin_num_keys(const M_hash_u64bin_t *h);
  * \param[in] h         Hashtable being referenced.
  * \param[out] hashenum Outputs an initialized state variable for starting an enumeration.
  *
- * \return Number of values in the hashtable. 
+ * \return Number of values in the hashtable.
  *
  * \see M_hash_u64bin_enumerate_free
  */

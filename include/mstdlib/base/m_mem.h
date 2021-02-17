@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -126,7 +126,7 @@ M_END_IGNORE_REDECLARATIONS
  * On Ubuntu 14.04.2 the default RLIMIT_MEMLOCK is 64K. On some versions of Debian is was found to be 32K.
  * This limit will quickly be reached by a non-trivial application.
  *
- * Configuring the system to have a larger limit or making the limit unlimited may not alleviate 
+ * Configuring the system to have a larger limit or making the limit unlimited may not alleviate
  * this issue. For example, FreeBSD allows mlock use to be restricted to the user-user only.
  *
  * Further, Requiring system configuration to use a general purpose library is unacceptable. Especially when the
@@ -140,7 +140,7 @@ M_END_IGNORE_REDECLARATIONS
  *
  * On Linux madvise requires the memory to be page-aligned. If the memory is not page-aligned madvise will return
  * a failure with errno EINVAL. Page-alignment can easily cause the application to run out of address space.
- * 
+ *
  * For example you could use an allocation like:
  *
  *     void *ptr;
@@ -168,7 +168,7 @@ M_END_IGNORE_REDECLARATIONS
  *
  * On a 32bit system only ~2GB of memory is available to a process. With 4K page-alignment allocations the amount
  * usable memory is greatly reduced. This might be okay on a 64 bit system but will still be wasteful.
- *  
+ *
  * Also since Linux, since 3.18, has made madvise optional which severely limits its use.
  *
  * Conclusion
@@ -194,7 +194,7 @@ M_END_IGNORE_REDECLARATIONS
  *
  * It also, reduces the concern of swap and core dumps because the data is stored encrypted. Granted the key as
  * well as the encrypted value could be stored on disk. However, it will still be difficult to determine what data
- * is the key, and what set of data the key belongs to.  
+ * is the key, and what set of data the key belongs to.
  *
  * @{
  */
@@ -226,7 +226,7 @@ M_API M_bool M_malloc_register_errorcb(M_malloc_error_cb cb);
 /*! Deregister an allocation error callback
  *
  * \param[in] cb The callback to remove.
- * 
+ *
  * \return M_TRUE if the callback was removed otherwise M_FALSE. M_FALSE means the callback is not
  *         currently registered.
  */
@@ -243,7 +243,7 @@ M_API void M_malloc_clear_errorcb(void);
  *  Retains information about the size of the allocation and must be released using M_free().
  *
  *  On failure registered error callbacks will be called and malloc will be repleted if any
- *  error callback return M_TRUE indicating malloc should be retried. If no callbacks return 
+ *  error callback return M_TRUE indicating malloc should be retried. If no callbacks return
  *  retry the application will abort. The callbacks will be run in reverse order they were registered.
  *
  * \param[in] size Number of bytes of memory to allocate.
@@ -359,7 +359,7 @@ M_API void *M_memdup_max(const void *src, size_t size, size_t min_alloc_size) M_
  *
  * \param[in,out] s The memory to set.
  * \param[in]     c The value to set.
- * \param[in]     n The length of the memory segement.
+ * \param[in]     n The length of the memory segment.
  *
  * \return A pointer to s.
  */

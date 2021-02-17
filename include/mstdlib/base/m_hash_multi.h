@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (h) 2016 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -74,7 +74,7 @@ typedef void (*M_hash_multi_free_func)(void *);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Create a new multi hashtable.
- * 
+ *
  * \param[in] flags M_hash_multi_flags_t flags for modifying behavior.
  *
  * return multi table.
@@ -150,7 +150,7 @@ M_API M_bool M_hash_multi_u64_insert_bin(M_hash_multi_t *h, M_uint64 key, const 
 /*! Insert a void pointer with an integer key.
  *
  * This will not duplicate the value. It only stores the memory address of the data.
- * The if a value exists at the given key it will be destroyed if it was inserted with a
+ * If a value exists at the given key, it will be destroyed if it was inserted with a
  * value free function.
  *
  * \param[in,out] h        Hashtable.
