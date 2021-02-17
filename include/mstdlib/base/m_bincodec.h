@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ __BEGIN_DECLS
 /*! \addtogroup m_bincodec Binary Conversion
  *  \ingroup mstdlib_base
  *
- * Text to binary and binary to text conversion. Supports conversion of 
+ * Text to binary and binary to text conversion. Supports conversion of
  * binary to or from base64 or hex.
  *
  * Example:
@@ -91,9 +91,9 @@ M_API size_t M_bincodec_encode_size(size_t inLen, size_t wrap, M_bincodec_codec_
  *
  * \param[in] in    The binary data to encode.
  * \param[in] inLen The length of the input data.
- * \param[in] codec The binary codec to use for encoding.
  * \param[in] wrap  The maximum length of a given line. Longer lines will be split with a new line. Pass 0 if
  *                  line splitting is not desired.
+ * \param[in] codec The binary codec to use for encoding.
  *
  * \return A new NULL terminated string with the encoded data. Otherwise NULL on error.
  *
@@ -108,9 +108,9 @@ M_API char *M_bincodec_encode_alloc(const M_uint8 *in, size_t inLen, size_t wrap
  * \param[in]  outLen The length of the output buffer.
  * \param[in]  in     The binary data to encode.
  * \param[in]  inLen  The length of the input data.
- * \param[in]  codec  The binary codec to use for encoding.
  * \param[in]  wrap   The maximum length of a given line. Longer lines will be split with a new line. Pass 0 if
  *                    line splitting is not desired.
+ * \param[in]  codec  The binary codec to use for encoding.
  *
  * \return The number of bytes written into the output buffer.
  */
@@ -151,6 +151,7 @@ M_API M_uint8 *M_bincodec_decode_alloc(const char *in, size_t inLen, size_t *out
  *
  *  \param[in]  in     The string data to decode.
  *  \param[in]  codec  The binary codec to use for decoding.
+ *
  *  \return A new buffer with decoded data, otherwise NULL on error.
  */
 M_API char *M_bincodec_decode_str_alloc(const char *in, M_bincodec_codec_t codec);
@@ -158,10 +159,10 @@ M_API char *M_bincodec_decode_str_alloc(const char *in, M_bincodec_codec_t codec
 
 /*! Decodes data passed into it using the specified binary codec.
  *
- * \param[in]  in     The string data to decode.
- * \param[in]  inLen  The length of the input data.
  * \param[out] out    A buffer large enought to hold the decoded data.
  * \param[in]  outLen The length of the output buffer.
+ * \param[in]  in     The string data to decode.
+ * \param[in]  inLen  The length of the input data.
  * \param[in]  codec  The binary codec to use for decoding.
  *
  * \return The number of bytes written into the output buffer, or 0 on error.
@@ -184,7 +185,7 @@ M_API size_t M_bincodec_decode(M_uint8 *out, size_t outLen, const char *in, size
  *                     line splitting is not desired.
  * \param[in] inCodec  The format the input data is encoded using.
  * \param[in] outCodec The output format to convert into.
- * 
+ *
  * \return A new NULL terminated string with the converted data. Otherwise NULL on error.
  *
  * \see M_free
@@ -201,11 +202,11 @@ M_API char *M_bincodec_convert_alloc(const char *in, size_t inLen, size_t wrap, 
  * \param[in]  outLen   The length of the output buffer.
  * \param[in]  wrap     The maximum length of a given line. Longer lines will be split with a new line. Pass 0 if
  *                      line splitting is not desired.
+ * \param[in]  outCodec The output format to convert into.
  * \param[in]  in       The data to convert.
  * \param[in]  inLen    The length of the input data.
  * \param[in]  inCodec  The format the input data is encoded using.
- * \param[in]  outCodec The output format to convert into.
- * 
+ *
  * \return The number of bytes written into the output buffer.
  */
 M_API size_t M_bincodec_convert(char *out, size_t outLen, size_t wrap, M_bincodec_codec_t outCodec, const char *in, size_t inLen, M_bincodec_codec_t inCodec);

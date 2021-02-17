@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,7 +41,7 @@ __BEGIN_DECLS
  *
  * Allows for buffered writing of string and binary data.
  * It is a safe and efficient way to append and manipulate buffered data.
- * 
+ *
  * Handles resizing of the buffer, location tracking, and has various
  * helpers to modify the data being written into the buffer.
  *
@@ -115,7 +115,7 @@ M_API void M_buf_cancel(M_buf_t *buf) M_FREE(1);
  * \param[out] out_length Data length
  *
  * \return The buffered data.
- * 
+ *
  * \see M_free
  */
 M_API unsigned char *M_buf_finish(M_buf_t *buf, size_t *out_length) M_FREE(1) M_WARN_UNUSED_RESULT M_MALLOC M_WARN_NONNULL(2);
@@ -145,7 +145,7 @@ M_API size_t M_buf_len(const M_buf_t *buf);
 
 
 /*! Return overall data allocation size for the buffer.
- * 
+ *
  * \param[in] buf Buffer.
  *
  * \return Allocation size.
@@ -231,7 +231,7 @@ M_API void M_buf_bjoin_buf(M_buf_t *dest, unsigned char sep, M_buf_t **bufs, siz
 
 /*! Join an array of strings.
  *
- * The data in the string array is appended to the destination buffer with sep placed between the data in each buffer. 
+ * The data in the string array is appended to the destination buffer with sep placed between the data in each buffer.
  *
  * \param[in,out] dest Buffer.
  * \param[in]     sep  String to insert between element in the string array.
@@ -256,7 +256,7 @@ M_API void M_buf_sjoin_buf(M_buf_t *dest, const char *sep, M_buf_t **bufs, size_
 
 /*! Join an array of strings.
  *
- * The data in the string array is appended to the destination buffer with sep placed between the data in each buffer. 
+ * The data in the string array is appended to the destination buffer with sep placed between the data in each buffer.
  *
  * \param[in,out] dest Buffer.
  * \param[in]     sep  String to insert between element in the string array.
@@ -345,16 +345,16 @@ M_API void M_buf_add_str_hex(M_buf_t *buf, const void *bytes, size_t len);
 
 
 /*! Split string into lines while keeping words intact, then append to buffer.
- * 
+ *
  * Words in this context are defined as contiguous blocks of non-whitespace characters. For each line,
  * leading and trailing whitespace will be trimmed, but internal whitespace will be left alone.
- * 
+ *
  * The given newline sequence is added at the end of each line.
- * 
+ *
  * An example use case is breaking up strings for display on small LCD screens.
- * 
+ *
  * \see M_str_explode_lines
- * 
+ *
  * \param[in,out] buf        Buffer to add output to.
  * \param[in]     str        Source string.
  * \param[in]     max_lines  Maximum number of lines to output.
@@ -567,7 +567,7 @@ M_API void M_buf_add_str_just(M_buf_t *buf, const char *str, M_str_justify_type_
 
 
 /*! Append the character decimal representation ("%llu") of an unsigned integer
- *  to a buffer, with right justification, zero padded. 
+ *  to a buffer, with right justification, zero padded.
  *
  *  Bytes on the left will be truncated from the integer if there is insufficient width.
  *
@@ -656,12 +656,12 @@ M_API M_bool M_buf_add_uintstrbcd(M_buf_t *buf, const char *s, unsigned char bas
 
 
 /*! Append an integer converted to Hex-ASCII.
- * 
+ *
  * \param[in,out] buf      Buffer.
  * \param[in]     n        Unsigned integer to append.
  * \param[in]     is_upper Should data be added uppercase.
- * \param[in]     width    Width of field, including padding.
- * 
+ * \param[in]     width    Number of hex bytes to write to buffer, including padding.
+ *
  * return M_TRUE if integer could be written for number of bytes requested. Otherwise M_FALSE.
  */
 M_API M_bool M_buf_add_uinthex(M_buf_t *buf, M_uint64 n, M_bool is_upper, size_t width);
@@ -669,11 +669,11 @@ M_API M_bool M_buf_add_uinthex(M_buf_t *buf, M_uint64 n, M_bool is_upper, size_t
 
 
 /*! Append a byte converted to Hex-ASCII.
- * 
+ *
  * \param[in,out] buf      Buffer.
  * \param[in]     byte     Byte to append.
  * \param[in]     is_upper Should data be added uppercase.
- * 
+ *
  * return M_TRUE if byte could be written. Otherwise M_FALSE.
  */
 M_API void M_buf_add_bytehex(M_buf_t *buf, unsigned char byte, M_bool is_upper);
@@ -695,7 +695,7 @@ M_API void M_buf_add_ptr(M_buf_t *buf, void *ptr);
  * Only the first two decimal digits are evaluated. Everything after is truncated.
  * The amount will be added as implied decimal. Negative symbol will be added if value is negative.
  *
- * E.g. 
+ * E.g.
  *
  *     in  -> "12.00"
  *     out -> 1200
@@ -726,7 +726,7 @@ M_API M_bool M_buf_add_money(M_buf_t *buf, const char *amount, size_t max_width)
  *
  * This function is used to ensure a properly formatted monetary value.
  *
- * E.g. 
+ * E.g.
  *
  *     in  -> "12.00"
  *     out -> 12.00
@@ -901,7 +901,7 @@ M_API M_bool M_buf_add_str_replace(M_buf_t *dest_buf, const char *src_str,
  *  This is useful for outputting delimited data like CSV.
  *
  *  If the input string is NULL, it will not output anything even if always_quoted
- *  is specified.  However, an empty string will always be output as quoted as 
+ *  is specified.  However, an empty string will always be output as quoted as
  *  that is what differentiates between an empty string an NULL.
  *
  *  \param[out] buf            Buffer to write quoted string to.

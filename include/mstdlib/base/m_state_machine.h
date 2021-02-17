@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -120,7 +120,7 @@ __BEGIN_DECLS
  *
  *         M_state_machine_destroy(sm);
  *         return 0;
- *     } 
+ *     }
  * \endcode
  *
  * @{
@@ -174,7 +174,7 @@ typedef enum {
 	M_STATE_MACHINE_STATUS_DONE,            /*!< The sequence completed successfully. */
 
 	/* State machine specific status. Only the state machine can return these. */
-	M_STATE_MACHINE_STATUS_STOP_CLEANUP,     /*< Used by cleanup state machines to stop processing further cleanup 
+	M_STATE_MACHINE_STATUS_STOP_CLEANUP,     /*< Used by cleanup state machines to stop processing further cleanup
 	                                             state machines within a state machine. */
  	/* All of these are unrecoverable errors. */
 	M_STATE_MACHINE_STATUS_ERROR_INVALID,   /*!< The state machine was called with an invalid parameter. */
@@ -205,7 +205,7 @@ typedef enum {
 
 	                                             This option disables this check and allows continuations to call
 	                                             continuations that have been called previously. */
-	M_STATE_MACHINE_SELF_CALL     = 1 << 3, /*!< Normally states cannot all themselves. This flag also
+	M_STATE_MACHINE_SELF_CALL     = 1 << 3, /*!< Normally states cannot call themselves. This flag also
 	                                             allows states to call themselves. */
 	M_STATE_MACHINE_DONE_CLEANUP  = 1 << 4, /*!< State cleanups should be called on done. */
 	M_STATE_MACHINE_ONE_CLEANUP   = 1 << 5, /*!< State cleanup should be called once no matter how many times the
@@ -261,7 +261,7 @@ typedef enum {
 											 * sndescr
 											 * sdescr
 	                                         * fdescr
-	                                         * id 
+	                                         * id
 	                                         */
 	M_STATE_MACHINE_TRACE_STATE_FINISH, /*!< State finished running.
 	                                         Will provide the following information:
@@ -270,7 +270,7 @@ typedef enum {
 											 * sndescr
 											 * sdescr
 	                                         * fdescr
-	                                         * id 
+	                                         * id
 	                                         * next_id
 	                                         * status */
 	M_STATE_MACHINE_TRACE_PRE_START,    /*!< Pre function will run before entering a sub machine.
@@ -280,7 +280,7 @@ typedef enum {
 											 * sndescr
 											 * sdescr
 	                                         * fdescr
-	                                         * id 
+	                                         * id
 	                                         */
 	M_STATE_MACHINE_TRACE_PRE_FINISH,   /*!< Pre functoin finished running.
 	                                         Will provide the following information:
@@ -289,7 +289,7 @@ typedef enum {
 											 * sndescr
 											 * sdescr
 	                                         * fdescr
-	                                         * id 
+	                                         * id
 	                                         * run_sub
 	                                         * status */
 	M_STATE_MACHINE_TRACE_POST_START,   /*!< Sub machine finished but before post function runs.

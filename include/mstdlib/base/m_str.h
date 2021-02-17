@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -157,7 +157,7 @@ M_API M_bool M_str_isempty(const char *s) M_WARN_UNUSED_RESULT;
 
 /*! Check if a string is considered true.
  *
- * A string is considered true when it equals any of the following (case intensive):
+ * A string is considered true when it equals any of the following (case insensitive):
  * - t
  * - true
  * - y
@@ -322,7 +322,7 @@ M_API M_bool M_str_ischarset(const char *str, const char *charset);
 
 
 /*! Check whether each character of a string is not in the given character set.
- * 
+ *
  * \param[in] str      string to check (NULL-terminated).
  * \param[in] charset  list of characters that are not allowed in \a str (NULL-terminated).
  * \return             M_TRUE if none of the characters in \a charset are present in \a str.
@@ -331,7 +331,7 @@ M_API M_bool M_str_isnotcharset(const char *str, const char *charset);
 
 
 /*! Check whether or not the data provided is a string.
- *   
+ *
  *  This is useful for parsing binary protocols that contain string data as a
  *  verification.  The length passed in is the size of the buffer, the last byte
  *  of the buffer must be a NULL terminator or this function will fail (This means,
@@ -515,9 +515,9 @@ M_API int M_str_casecmpsort(const char *s1, const char *s2) M_WARN_UNUSED_RESULT
 M_API int M_str_casecmpsort_max(const char *s1, const char *s2, size_t max) M_WARN_UNUSED_RESULT;
 
 
-/*! Comparison for string equality. 
+/*! Comparison for string equality.
  *
- * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks. 
+ * This implementation is constant-time meaning it should not be vulnerable to timing-based attacks.
  * Limited to first max bytes.  NULL and "" are considered equal strings.
  *
  * s1 will be evaluated to max regardless of the length of s2.
@@ -652,10 +652,10 @@ M_API M_bool M_str_eq_start(const char *s1, const char *s2);
 
 /*! Determine if a string starts with a given string in a case-insensitive manner.
  *
- * The input is slighly different than M_str_caseeq(). The input reads:
+ * The input is slightly different than M_str_caseeq(). The input reads:
  * Check that s1 starts with s2.
  *
- * s1 length is never (\see M_str_caseeq) known because evaluation will always be the length of s2.
+ * s1 length is never (see M_str_caseeq()) known because evaluation will always be the length of s2.
  *
  * \param[in] s1 NULL-terminated string, or non-terminated string that's at least as long as s2.
  *               Input string.
@@ -782,7 +782,7 @@ M_API char *M_strdup_upper(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
  * \return NULL when insufficient memory or s is NULL. Otherwise a NULL-terminated string.
  *
  * \see M_strdup
- * \see M_str_lower 
+ * \see M_str_lower
  * \see M_free
  */
 M_API char *M_strdup_lower(const char *s) M_WARN_UNUSED_RESULT M_MALLOC;
@@ -965,7 +965,7 @@ M_API char *M_strdup_unquote_max(const char *s, unsigned char quote, unsigned ch
 M_API char *M_strdup_justify(const char *src, M_str_justify_type_t justtype, unsigned char justchar, size_t justlen) M_WARN_UNUSED_RESULT M_MALLOC;
 
 
-/*! Replace a all characters matching a given character set with a string.
+/*! Replace all characters matching a given character set with a string.
  *
  * \param[in] s       NULL-terminated string.
  * \param[in] bcs     Character set.
@@ -1104,17 +1104,17 @@ M_API char *M_str_trim_max(char *s, size_t max);
 
 
 /*! Return a copy of the given string with bracketed expressions removed.
- * 
+ *
  * You must use different characters for \a open and \a close. If you pass the same
  * character for both, this function will return NULL.
- * 
+ *
  * For example, the string "abc (asd(e))?" becomes "abc ?" after calling this
  * function with '(' as the \a open bracket and ')' as the \a close bracket.
- * 
+ *
  * \see M_str_remove_bracketed_quoted
  * \see M_str_keep_bracketed
  * \see M_str_remove_quoted
- * 
+ *
  * \param[in] src    string to copy
  * \param[in] open   character that represents the start of a bracketed expression
  * \param[in] close  character that represents the end of a bracketed expression
@@ -1124,19 +1124,19 @@ M_API char *M_str_remove_bracketed(const char *src, char open, char close) M_WAR
 
 
 /*! Return a copy of the given string with bracketed expressions removed.
- * 
+ *
  * Brackets inside quoted expressions are ignored.
- * 
+ *
  * You must use different characters for \a open and \a close. If you pass the same
  * character for both, this function will return NULL.
- * 
+ *
  * For example, the string "abc (asd(e))?" becomes "abc ?" after calling this
  * function with '(' as the \a open bracket and ')' as the \a close bracket.
- * 
+ *
  * \see M_str_remove_bracketed_quoted
  * \see M_str_keep_bracketed
  * \see M_str_remove_quoted
- * 
+ *
  * \param[in] src     string to copy
  * \param[in] open    character that represents the start of a bracketed expression
  * \param[in] close   character that represents the end of a bracketed expression
@@ -1148,17 +1148,17 @@ M_API char *M_str_remove_bracketed_quoted(const char *src, char open, char close
 
 
 /*! Return a copy of the given string with everything outside bracketed expressions removed.
- * 
+ *
  * You must use different characters for \a open and \a close. If you pass the same
  * character for both, this function will return NULL.
- * 
+ *
  * For example, the string "abc (asd(e))?" becomes "asd(e)" after calling this
  * function with '(' as the \a open bracket and ')' as the \a close bracket.
- * 
+ *
  * \see M_str_keep_bracketed_quoted
  * \see M_str_remove_bracketed
  * \see M_str_keep_quoted
- * 
+ *
  * \param[in] src    string to copy
  * \param[in] open   character that represents the start of a bracketed expression
  * \param[in] close  character that represents the end of a bracketed expression
@@ -1168,19 +1168,19 @@ M_API char *M_str_keep_bracketed(const char *src, char open, char close) M_WARN_
 
 
 /*! Return a copy of the given string with everything outside bracketed expressions removed (quote aware).
- * 
+ *
  * Brackets inside quoted expressions are ignored.
- * 
+ *
  * You must use different characters for \a open and \a close. If you pass the same
  * character for both, this function will return NULL.
- * 
+ *
  * For example, the string "abc (asd(e))?" becomes "asd(e)" after calling this
  * function with '(' as the \a open bracket and ')' as the \a close bracket.
- * 
+ *
  * \see M_str_keep_bracketed
  * \see M_str_remove_bracketed
  * \see M_str_keep_quoted
- * 
+ *
  * \param[in] src     string to copy
  * \param[in] open    character that represents the start of a bracketed expression
  * \param[in] close   character that represents the end of a bracketed expression
@@ -1192,10 +1192,10 @@ M_API char *M_str_keep_bracketed_quoted(const char *src, char open, char close, 
 
 
 /*! Return a copy of the given string with quoted expressions removed.
- * 
+ *
  * Quote characters that are preceded by the escape character are not processed as
  * quotes. If you don't wish to specify an escape character, pass '\0' for that argument.
- * 
+ *
  * \param[in] src          string to copy
  * \param[in] quote_char   character that represents begin/end of a quoted section
  * \param[in] escape_char  character that can be used to escape a quote char
@@ -1205,16 +1205,16 @@ M_API char *M_str_remove_quoted(const char *src, char quote_char, char escape_ch
 
 
 /*! Return a copy of the given string with everything outside quoted expressions removed.
- * 
+ *
  * Quote characters that are preceded by the escape character are not processed as
  * quotes. If you don't wish to specify an escape character, pass '\0' for that argument.
- * 
+ *
  * Any escape character sequences ([escape][escape] or [escape][quote]) inside the quoted
  * content are replaced by the characters they represent ([escape] or [quote], respectively).
- * 
+ *
  * \param[in] src          string to copy
  * \param[in] quote_char   character that represents begin/end of a quoted section
- * \param[in] escape_char  character that can be added 
+ * \param[in] escape_char  character that can be added
  * \return                 copy of input string, containing only the contents of quoted expressions
  */
 M_API char *M_str_keep_quoted(const char *src, char quote_char, char escape_char) M_WARN_UNUSED_RESULT M_MALLOC;
@@ -1413,7 +1413,7 @@ M_API M_bool M_str_cat(char *dest, size_t dest_len, const char *src);
  * \see M_str_str
  * \see M_str_find_first_from_charset
  * \see M_str_find_first_not_from_charset
- * 
+ *
  * \param[in] s NULL-terminated string.
  * \param[in] c Character to search for.
  * \return NULL if s is NULL or c is not found. Otherwise a pointer to the first occurrence of c in s.
@@ -1424,7 +1424,7 @@ M_API char *M_str_chr(const char *s, char c) M_WARN_UNUSED_RESULT;
 /*! Find the last occurrence of c in s.
  *
  * \see M_str_chr
- * 
+ *
  * \param[in] s NULL-terminated string.
  * \param[in] c Character to search for.
  *
@@ -1434,14 +1434,14 @@ M_API char *M_str_rchr(const char *s, char c) M_WARN_UNUSED_RESULT;
 
 
 /*! Find the first occurence in \a str of any character in \a charset.
- * 
+ *
  * This is identical to C standard function strpbrk(), except that it treats NULL pointers
  * as empty strings instead of segfaulting.
- * 
+ *
  * \see M_str_find_first_not_from_charset
  * \see M_str_chr
  * \see M_str_str
- * 
+ *
  * \param[in] str     string to search in (stored as NULL-terminated C string).
  * \param[in] charset list of chars to search for (stored as NULL-terminated C string).
  * \return            pointer to first matching character from \a charset in \a str, or NULL if no matches found
@@ -1450,11 +1450,11 @@ M_API char *M_str_find_first_from_charset(const char *str, const char *charset);
 
 
 /*! Find the first occurence in \a str of any character that's not in \a charset.
- * 
+ *
  * \see M_str_find_first_from_charset
  * \see M_str_chr
  * \see M_str_str
- * 
+ *
  * \param[in] str     string to search in (stored as NULL-terminated C string).
  * \param[in] charset list of chars to skip (stored as NULL-terminated C string).
  * \return            pointer to first char in \a str that's not in \a charset, or NULL if no matches found
@@ -1467,7 +1467,7 @@ M_API char *M_str_find_first_not_from_charset(const char *str, const char *chars
  * \see M_str_chr
  * \see M_str_find_first_from_charset
  * \see M_str_find_first_not_from_charset
- * 
+ *
  * \param[in] haystack String to search.
  * \param[in] needle   String to search for in haystack.
  *
@@ -1585,7 +1585,7 @@ M_API char **M_str_explode_quoted(unsigned char delim, const char *s, size_t s_l
  *
  * \param[in]  delim Delimiter.
  * \param[in]  s     String to search.
- * \param[out] num   The size of len_array and the returned array.
+ * \param[out] num   Number of substrings in returned array.
  *
  * \return an array of num string containing all substrings.
  */
@@ -1594,17 +1594,17 @@ M_API char **M_str_explode_str(unsigned char delim, const char *s, size_t *num) 
 
 
 /*! Split a string among the given number of lines, while keeping words intact.
- * 
+ *
  * After you're done with the returned array, you must free it with M_str_explode_free().
- * 
+ *
  * Words in this context are defined as contiguous blocks of non-whitespace characters. For each line,
  * leading and trailing whitespace will be trimmed, but internal whitespace will be left alone.
- * 
+ *
  * An example use case is breaking up strings for display on small LCD screens.
- * 
+ *
  * \see M_str_explode_free
  * \see M_buf_add_str_lines
- * 
+ *
  * \param[in]  max_lines  Maximum number of lines to output.
  * \param[in]  max_chars  Maximum characters per line.
  * \param[in]  src_str     Source string.
@@ -1761,7 +1761,7 @@ M_API M_int64  M_str_to_int64(const char *s) M_WARN_UNUSED_RESULT;
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in] s NULL-terminated string.
  *
@@ -1771,7 +1771,7 @@ M_API M_uint64 M_str_to_uint64(const char *s) M_WARN_UNUSED_RESULT;
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in]  s      NULL-terminated string.
  * \param[in]  len    Maximum length of given string to parse.
@@ -1785,7 +1785,7 @@ M_API M_str_int_retval_t M_str_to_int64_ex(const char *s, size_t len, unsigned c
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in] s       NULL-terminated string.
  * \param[in] len     Maximum length of given string to parse.
@@ -1799,7 +1799,7 @@ M_API M_str_int_retval_t M_str_to_uint64_ex(const char *s, size_t len, unsigned 
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in] s       NULL-terminated string.
  * \param[in] len     Maximum length of given string to parse.
@@ -1813,7 +1813,7 @@ M_API M_str_int_retval_t M_str_to_int32_ex(const char *s, size_t len, unsigned c
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in]  s      NULL-terminated string.
  * \param[in]  len    Maximum length of given string to parse.
@@ -1827,7 +1827,7 @@ M_API M_str_int_retval_t M_str_to_uint32_ex(const char *s, size_t len, unsigned 
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in] s NULL-terminated string.
  *
@@ -1837,7 +1837,7 @@ M_API M_int32 M_str_to_int32(const char *s) M_WARN_UNUSED_RESULT;
 
 
 /*! Interpret a string as an ascii numeric. String may begin with whitespace which
- *  will be ignored, then an optional + or - sign.  
+ *  will be ignored, then an optional + or - sign.
  *
  * \param[in] s NULL-terminated string.
  *
@@ -1877,7 +1877,7 @@ enum M_str_hexdump_flags {
 	M_STR_HEXDUMP_CRLF    = 1 << 4, /*!< Use CRLF newlines (DOS style)                                              */
 	M_STR_HEXDUMP_UPPER   = 1 << 5, /*!< Output hex digits as uppercase                                             */
 	M_STR_HEXDUMP_NOSECTS = 1 << 6  /*!< Do not put additional emphasis on 8-byte segments                          */
-}; 
+};
 
 /*! Generate a hex dump format of binary data meant to be human-readable, or imported via various
   *  hex-dump conversion tools such as Text2pcap.
@@ -1888,7 +1888,7 @@ enum M_str_hexdump_flags {
   *  \param data_len       length of binary data to be dumped
   *  \return Allocated string representing the hex dump.  Must be M_free()'d by the caller.
   */
-M_API char *M_str_hexdump(int flags, size_t bytes_per_line, const char *line_prefix, const unsigned char *data, size_t data_len); 
+M_API char *M_str_hexdump(int flags, size_t bytes_per_line, const char *line_prefix, const unsigned char *data, size_t data_len);
 
 /*! @} */
 

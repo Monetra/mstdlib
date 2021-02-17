@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,7 +38,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_parser Data Parser
  *  \ingroup mstdlib_base
- * 
+ *
  * Buffer based data parser.
  *
  * Efficient parser that prevents reading past the end of the data buffer.
@@ -227,10 +227,10 @@ M_API size_t M_parser_current_column(M_parser_t *parser);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Compare parser contents to provided buffer 
+/*! Compare parser contents to provided buffer
  *
  * Does not advance.
- * 
+ *
  * \param[in] parser   Parser object.
  * \param[in] data     Data to compare.
  * \param[in] data_len Length of data to compare
@@ -240,10 +240,10 @@ M_API size_t M_parser_current_column(M_parser_t *parser);
 M_API M_bool M_parser_compare(M_parser_t *parser, const unsigned char *data, size_t data_len);
 
 
-/*! Compare parser contents to provided string.  
+/*! Compare parser contents to provided string.
  *
  * Does not advance.
- * 
+ *
  * \param[in] parser   Parser object.
  * \param[in] str      String data to compare.
  * \param[in] max_len  Maximum length of data to compare, 0 for entire string.  If 0 is
@@ -357,7 +357,7 @@ M_API M_bool M_parser_peek_bytes(M_parser_t *parser, size_t len, unsigned char *
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/*! Truncate the parse buffer at the position specified (relative to the 
+/*! Truncate the parse buffer at the position specified (relative to the
  *  current parse offset).
  *
  * \param[in,out] parser Parser object.
@@ -753,7 +753,7 @@ M_API M_bool M_parser_read_byte(M_parser_t *parser, unsigned char *byte);
 /*! Read the exact number of bytes (binary) from the current buffer and output in the user-provided buffer and advance.
  *  If there are fewer than the requested bytes available, an error will be returned.
  *
- * The data read will not be NULL terminated and the buffer provided must be at least as large as large as the
+ * The data read will not be NULL terminated and the buffer provided must be at least as large as as the
  * requested data.
  *
  * \param[in,out] parser  Parser object.
@@ -768,7 +768,7 @@ M_API M_bool M_parser_read_bytes(M_parser_t *parser, size_t len, unsigned char *
 /*! Read bytes (binary) from the current buffer and output in the user-provided buffer and advance.
  *
  * The data read will not be NULL terminated and the buffer provided must be at least as large as large as the
- * requested data.  If the length of data specified is not available, it will return the number of 
+ * requested data.  If the length of data specified is not available, it will return the number of
  * bytes actually read.
  *
  * \param[in,out] parser  Parser object.
@@ -906,7 +906,7 @@ M_API size_t M_parser_read_bytes_mark(M_parser_t *parser, unsigned char *buf, si
  * \param[in]     buf_len Length of output buffer (must be at least one byte greater than len).
  *
  * \return M_TRUE on success, or M_FALSE if not enough bytes or other error.
- * 
+ *
  * \see M_parser_read_strdup
  */
 M_API M_bool M_parser_read_str(M_parser_t *parser, size_t len, char *buf, size_t buf_len);
@@ -926,7 +926,7 @@ M_API M_bool M_parser_read_str(M_parser_t *parser, size_t len, char *buf, size_t
  * \param[in]     buf_len Length of output buffer (must be at least one byte greater than len).
  *
  * \return number of bytes read, or 0 on failure.
- * 
+ *
  * \see M_parser_read_str
  */
 M_API size_t M_parser_read_str_max(M_parser_t *parser, size_t len, char *buf, size_t buf_len);
@@ -1420,7 +1420,7 @@ M_API M_parser_t *M_parser_read_parser_boundary(M_parser_t *parser, const unsign
 
 /*! Read data from the buffer for as long as it matches one of the bytes in the given character set and advance.
  *  All data is copied into a new memory segment.
- * 
+ *
  * Put the resulting bytes in a newly allocated parser.
  *
  * \param[in,out] parser      Parser object.
@@ -1461,7 +1461,7 @@ M_API M_parser_t *M_parser_read_parser_predicate_max(M_parser_t *parser, M_parse
 
 /*! Create new parser from the buffer for as long as it matches the given predicate function and advance.
  *  All data is copied into a new memory segment.
- * 
+ *
  * Put the resulting bytes in a newly allocated parser.
  *
  * \param[in,out] parser    Parser object.
@@ -1508,7 +1508,7 @@ M_API M_parser_t *M_parser_read_parser_mark(M_parser_t *parser);
  * \return result. On success and LRC calculation failure the message will be returned in the output parser.
  *         Otherwise the output parser's contents are undefined.
  *
- *         Results M_PARSER_FRAME_ERROR_NO_STX, M_PARSER_FRAME_ERROR_NO_ETX, and M_PARSER_FRAME_ERROR_NO_LRC 
+ *         Results M_PARSER_FRAME_ERROR_NO_STX, M_PARSER_FRAME_ERROR_NO_ETX, and M_PARSER_FRAME_ERROR_NO_LRC
  *         will not advance the parser.
  */
 M_API M_PARSER_FRAME_ERROR M_parser_read_stxetxlrc_message(M_parser_t *parser, M_parser_t **out, M_uint32 lrc_frame_chars);
@@ -1617,7 +1617,7 @@ M_API M_bool M_parser_is_not_str_charset(M_parser_t *parser, size_t len, const c
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Split the data in the parser object by the delimiter specified into
- *  additional parser objects. 
+ *  additional parser objects.
  *
  *  \param[in,out] parser     Parser
  *  \param[in]     delim      The delimiter to split on
@@ -1631,7 +1631,7 @@ M_API M_parser_t **M_parser_split(M_parser_t *parser, unsigned char delim, size_
 
 
 /*! Split the data in the parser object by the pattern specified into
- *  additional parser objects. 
+ *  additional parser objects.
  *
  *  \param[in,out] parser     Parser
  * \param[in]      pat        Sequence of bytes to search for.
@@ -1646,7 +1646,7 @@ M_API M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *p
 
 
 /*! Split the data in the parser object by the pattern specified into
- *  additional parser objects. 
+ *  additional parser objects.
  *
  *  \param[in,out] parser     Parser
  * \param[in]      pat        String to search for.
