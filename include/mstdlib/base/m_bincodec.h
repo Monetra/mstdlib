@@ -104,7 +104,7 @@ M_API char *M_bincodec_encode_alloc(const M_uint8 *in, size_t inLen, size_t wrap
 
 /*! Encodes data passed into it using the specified binary codec.
  *
- * \param[out] out    A buffer large enought to hold the encoded data.
+ * \param[out] out    A buffer large enough to hold the encoded data.
  * \param[in]  outLen The length of the output buffer.
  * \param[in]  in     The binary data to encode.
  * \param[in]  inLen  The length of the input data.
