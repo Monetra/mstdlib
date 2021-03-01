@@ -362,18 +362,18 @@ M_API void M_conf_destroy(M_conf_t *conf);
 
 /*! Add a debug logger to this conf object that will be passed various debug messages while parsing the values.
  *
- * \param[in] conf     The M_conf_t object to attach this logger to.
- * \param[in] logger   The logging callback that will receive the error message.
+ * \param[in] conf           The M_conf_t object to attach this logger to.
+ * \param[in] debug_logger   The logging callback that will receive the error message.
  */
-M_API M_bool M_conf_add_debug_logger(M_conf_t *conf, M_conf_logger_t err_logger);
+M_bool M_conf_add_debug_logger(M_conf_t *conf, M_conf_logger_t debug_logger);
 
 
 /*! Add an error logger to this conf object that will be passed any errors that happen while parsing the values.
  *
- * \param[in] conf     The M_conf_t object to attach this logger to.
- * \param[in] logger   The logging callback that will receive the error message.
+ * \param[in] conf           The M_conf_t object to attach this logger to.
+ * \param[in] error_logger   The logging callback that will receive the error message.
  */
-M_API M_bool M_conf_add_error_logger(M_conf_t *conf, M_conf_logger_t err_logger);
+M_bool M_conf_add_error_logger(M_conf_t *conf, M_conf_logger_t error_logger);
 
 
 /*! Go through the key registrations and set the values at the specified locations.
