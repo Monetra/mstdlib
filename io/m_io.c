@@ -247,6 +247,38 @@ M_bool M_io_reconnect(M_io_t *io)
 }
 
 
+M_bool M_io_close(M_io_t *io)
+{
+	ssize_t            i;
+	size_t             num;
+
+	if (io == NULL)
+		return M_FALSE;
+
+	if (io->reg_event) {
+		M_io_lock(io);
+	}
+
+	/* Clean state tracking data specific to the established connection (including OS handles) */
+	num = M_list_len(io->layer);
+	for (i=(ssize_t)num - 1; i >= 0; i--) {
+		M_io_layer_t *layer = M_io_layer_at(io, (size_t)i);
+		if (layer->cb.cb_reset == NULL)
+			return M_FALSE;
+		if (!layer->cb.cb_reset(layer))
+			return M_FALSE;
+	}
+
+	io->flags = M_IO_FLAG_NONE;
+
+	if (io->reg_event) {
+		M_io_unlock(io);
+	}
+
+	return M_TRUE;
+}
+
+
 void M_io_destroy(M_io_t *comm)
 {
 	ssize_t    i;
