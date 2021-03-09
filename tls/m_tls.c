@@ -1183,7 +1183,9 @@ static M_bool M_io_tls_reset_cb(M_io_layer_t *layer)
 	 * Saving sessions will work with v1.3 due to this. Making this code fully
 	 * support v1.3 sessions.
 	 */
-	M_io_tls_save_client_session(handle, (unsigned int)M_io_net_get_port(io));
+	if (handle->ssl != NULL && state != M_TLS_STATE_INIT) {
+		M_io_tls_save_client_session(handle, (unsigned int)M_io_net_get_port(io));
+	}
 
 	if (handle->ssl != NULL) {
 		SSL_free(handle->ssl);
