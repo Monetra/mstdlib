@@ -101,6 +101,10 @@ static M_bool M_io_netdns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	if (handle->state == M_IO_NET_STATE_DISCONNECTING && *type == M_EVENT_TYPE_WRITE)
 		return M_TRUE;
 
+	/* Consume any events that should no longer be delivered after a disconnect or error */
+	if (handle->state == M_IO_NET_STATE_DISCONNECTED || handle->state == M_IO_NET_STATE_ERROR || handle->state == M_IO_NET_STATE_INIT)
+		return M_TRUE;
+
 	/* Modify internal state */
 	if (*type == M_EVENT_TYPE_DISCONNECTED)
 		handle->state = M_IO_NET_STATE_DISCONNECTED;
