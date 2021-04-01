@@ -28,6 +28,26 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "base/m_defs_int.h"
 
+const char *M_event_type_string(M_event_type_t type)
+{
+	switch (type) {
+		case M_EVENT_TYPE_CONNECTED:
+			return "CONNECTED";
+		case M_EVENT_TYPE_ACCEPT:
+			return "ACCEPT";
+		case M_EVENT_TYPE_READ:
+			return "READ";
+		case M_EVENT_TYPE_DISCONNECTED:
+			return "DISCONNECTED";
+		case M_EVENT_TYPE_ERROR:
+			return "ERROR";
+		case M_EVENT_TYPE_WRITE:
+			return "WRITE";
+		case M_EVENT_TYPE_OTHER:
+			return "OTHER";
+	}
+	return "UNKNOWN";
+}
 
 static void M_event_io_unregister(M_io_t *comm, M_bool in_destructor)
 {
@@ -854,8 +874,6 @@ static void M_event_deliver(M_event_t *event, M_io_t *io, size_t layer_id, M_eve
 	/* IO object has been removed */
 	if (!M_hashtable_get(event->u.loop.reg_ios, io, (void **)&ioev))
 		return;
-
-//M_printf("%s(): io %p layer %zu handle %d type %d\n", __FUNCTION__, io, layer_id, handle, (int)type);
 
 	num_layers = M_list_len(io->layer);
 	for (i=layer_id; i<num_layers && !consumed; i++) {

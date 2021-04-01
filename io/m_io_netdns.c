@@ -92,24 +92,31 @@ static M_bool M_io_netdns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-//M_printf("%s(): [%p] event %p io %p type %d\n", __FUNCTION__, (void *)M_thread_self(), M_io_get_event(M_io_layer_get_io(layer)), M_io_layer_get_io(layer), (int)*type);
-
 	/* We'll only really get soft events, so we're going to just use this to ignore soft events
 	 * that children shouldn't get */
 
 	/* Consume write events while disconnecting */
-	if (handle->state == M_IO_NET_STATE_DISCONNECTING && *type == M_EVENT_TYPE_WRITE)
+	if (handle->state == M_IO_NET_STATE_DISCONNECTING && *type == M_EVENT_TYPE_WRITE) {
 		return M_TRUE;
+	}
 
 	/* Consume any events that should no longer be delivered after a disconnect or error */
-	if (handle->state == M_IO_NET_STATE_DISCONNECTED || handle->state == M_IO_NET_STATE_ERROR || handle->state == M_IO_NET_STATE_INIT)
-		return M_TRUE;
+	if (handle->state == M_IO_NET_STATE_DISCONNECTED || handle->state == M_IO_NET_STATE_ERROR || handle->state == M_IO_NET_STATE_INIT) {
+		if (*type != M_EVENT_TYPE_DISCONNECTED && *type != M_EVENT_TYPE_ERROR)
+			return M_TRUE;
+		if (handle->notify_down)
+			return M_TRUE;
+	}
 
 	/* Modify internal state */
-	if (*type == M_EVENT_TYPE_DISCONNECTED)
-		handle->state = M_IO_NET_STATE_DISCONNECTED;
-	if (*type == M_EVENT_TYPE_ERROR)
-		handle->state = M_IO_NET_STATE_ERROR;
+	if (*type == M_EVENT_TYPE_DISCONNECTED) {
+		handle->state       = M_IO_NET_STATE_DISCONNECTED;
+		handle->notify_down = M_TRUE;
+	}
+	if (*type == M_EVENT_TYPE_ERROR) {
+		handle->state       = M_IO_NET_STATE_ERROR;
+		handle->notify_down = M_TRUE;
+	}
 
 	return M_FALSE;
 }
@@ -535,6 +542,7 @@ static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 
 	handle->state                     = M_IO_NET_STATE_INIT;
 	handle->hard_down                 = M_FALSE;
+	handle->notify_down               = M_FALSE;
 	handle->data.netdns.io_try_cnt    = 0;
 	handle->data.netdns.io_try_idx    = 0;
 	M_mem_set(&handle->data.netdns.query_start, 0, sizeof(handle->data.netdns.query_start));

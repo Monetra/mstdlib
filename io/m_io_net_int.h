@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -82,16 +82,16 @@ struct M_io_handle_netdns {
 };
 
 struct M_io_handle {
-	char               *host;          /*!< Hostname or IP address                           */
-	char               *server_ipaddr; /*!< IP address interface                             */
-	unsigned short      port;          /*!< Port being used                                  */
-	M_io_net_type_t     type;          /*!< Network type                                     */
-	M_io_net_state_t    state;         /*!< Current state                                    */
-	M_bool              hard_down;     /*!< If true, state was set by read/write failure     */
-	M_io_net_settings_t settings;      /*!< Settings for the connection                      */
-	M_event_timer_t    *timer;         /*!< Happy Eyeballs (DNS) or connection timer         */
-
-	M_bool              is_netdns;     /*!< Whether or not to use the DNS wrapper            */
+	char               *host;          /*!< Hostname or IP address                                    */
+	char               *server_ipaddr; /*!< IP address interface                                      */
+	unsigned short      port;          /*!< Port being used                                           */
+	M_io_net_type_t     type;          /*!< Network type                                              */
+	M_io_net_state_t    state;         /*!< Current state                                             */
+	M_bool              hard_down;     /*!< If true, state was set by read/write failure              */
+	M_io_net_settings_t settings;      /*!< Settings for the connection                               */
+	M_event_timer_t    *timer;         /*!< Happy Eyeballs (DNS) or connection timer                  */
+	M_bool              notify_down;   /*!< Whether or not a signal has been delivered to notify down */
+	M_bool              is_netdns;     /*!< Whether or not to use the DNS wrapper                     */
 	union {
 		struct M_io_handle_net    net;     /*!< used for non-dns */
 		struct M_io_handle_netdns netdns;  /*!< used for dns     */
