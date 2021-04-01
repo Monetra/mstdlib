@@ -673,6 +673,7 @@ static M_bool M_io_net_reset_cb(M_io_layer_t *layer)
 	/* Cleanup for re-init */
 	handle->state                    = M_IO_NET_STATE_INIT;
 	handle->hard_down                = M_FALSE;
+	handle->notify_down              = M_FALSE;
 	handle->data.net.last_error_sys  = 0;
 	handle->data.net.last_error      = M_IO_ERROR_SUCCESS;
 

@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2017 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ __BEGIN_DECLS
 
 /*! \addtogroup m_event Event Subsystem
  *  \ingroup m_eventio
- * 
+ *
  * Cross platform event based processing. A platform specific backend will be used
  * as the underlying event system but all events will be exposed though this interface.
  * No platform specific knowledge is needed.
@@ -44,7 +44,7 @@ __BEGIN_DECLS
  * Developers used to working with macOS event loop style of programming can use
  * this event system to use that paradigm on other platforms. In this scenario most
  * events would be triggered as OTHER. Some sort of tracking would be necessary to
- * determine why an event was triggered if the same callback is used for multiple 
+ * determine why an event was triggered if the same callback is used for multiple
  * situations.
  *
  * The event system is thread safe allowing io objects and times can be added
@@ -57,56 +57,56 @@ __BEGIN_DECLS
  *
  *
  * Example application that demonstrates read/write events, timers, and queued tasks.
- * 
+ *
  * \code{.c}
  *     #include <mstdlib/mstdlib.h>
  *     #include <mstdlib/mstdlib_io.h>
- *     
+ *
  *     typedef struct {
  *         M_buf_t    *buf;
  *         M_parser_t *parser;
  *         M_io_t     *io; // Necessary for the queued task and timer to have the correct io object.
  *     } ldata_t;
- *     
+ *
  *     static void add_queued_data(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         ldata_t *ldata = thunk;
- *     
+ *
  *         (void)el;
  *         (void)etype;
- *     
+ *
  *         M_buf_add_str(ldata->buf, "STARTING\n");
  *         M_io_write_from_buf(ldata->io, ldata->buf);
  *     }
- *     
+ *
  *     static void add_data(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         ldata_t    *ldata = thunk;
  *         static int  i     = 1;
- *     
+ *
  *         (void)el;
  *         (void)etype;
- *     
+ *
  *         M_buf_add_str(ldata->buf, "TEST ");
  *         M_buf_add_int(ldata->buf, i++);
  *         M_buf_add_byte(ldata->buf, '\n');
  *         M_io_write_from_buf(ldata->io, ldata->buf);
  *     }
- *     
+ *
  *     static void stop(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         (void)etype;
  *         (void)io;
  *         (void)thunk;
- *     
+ *
  *         M_event_done_with_disconnect(el, 0, 1000);
  *     }
- *     
+ *
  *     static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
  *     {
  *         ldata_t *ldata = thunk;
  *         char    *out;
- *     
+ *
  *         switch (etype) {
  *             case M_EVENT_TYPE_CONNECTED:
  *                 break;
@@ -129,29 +129,29 @@ __BEGIN_DECLS
  *                 break;
  *         }
  *     }
- *     
+ *
  *     int main(int argc, char *argv)
  *     {
  *         M_event_t       *el;
  *         M_io_t          *io;
  *         M_event_timer_t *timer;
  *         ldata_t          ldata;
- *     
+ *
  *         el = M_event_create(M_EVENT_FLAG_NONE);
- *     
+ *
  *         M_io_loopback_create(&io);
  *         ldata.buf    = M_buf_create();
  *         ldata.parser = M_parser_create(M_PARSER_FLAG_NONE);
  *         ldata.io     = io;
- *     
+ *
  *         M_event_add(el, io, run_cb, &ldata);
  *         M_event_queue_task(el, add_queued_data, &ldata);
- *     
+ *
  *         timer = M_event_timer_add(el, add_data, &ldata);
  *         M_event_timer_start(timer, 500);
  *         timer = M_event_timer_add(el, stop, NULL);
  *         M_event_timer_start(timer, 5000);
- *     
+ *
  *         M_event_loop(el, M_TIMEOUT_INF);
  *
  *         M_io_destroy(io);
@@ -165,7 +165,7 @@ __BEGIN_DECLS
  * @{
  */
 
-/*! Events that can be generated. 
+/*! Events that can be generated.
  *
  * Events are enumerated in priority of delivery order
  */
@@ -217,7 +217,7 @@ typedef struct M_event M_event_t;
  *                    the member of a pool.  This object may be used to add new events to the same
  *                    event thread, or M_event_get_pool() can be used to retrieve the master pool
  *                    handle for distributing events across threads.
- *  \param[in] type   The type of event that has been triggered, see M_event_type_t.  Always 
+ *  \param[in] type   The type of event that has been triggered, see M_event_type_t.  Always
  *                    M_EVENT_TYPE_OTHER for trigger, timer, and queued tasks.
  *  \param[in] io     Pointer to the M_io_t object associated with the event, or NULL for trigger,
  *                    timer, and queued tasks.
@@ -249,7 +249,7 @@ typedef enum {
 
 
 /*! Create a base event loop object.
- * 
+ *
  *  An event loop is typically run in the main process thread and will block until
  *  process termination.  IO and timer objects are enqueued into the event loop and
  *  dispatched within the event loop.  Event loops are more efficient and scalable
@@ -264,7 +264,7 @@ M_API M_event_t *M_event_create(M_uint32 flags);
 
 /*! Create a pool of M_event_t objects bound to a master pool handle to distribute load
  *  of event handling across multiple threads.
- * 
+ *
  *  One thread per CPU core will be created for handling events, up to the maximum
  *  specified during creationg of the pool.  When an object is added to the event
  *  pool handle, an internal search is performed, and the least-loaded thread will
@@ -280,7 +280,7 @@ M_API M_event_t *M_event_create(M_uint32 flags);
  *  For non co-joined objects, always ensure the event handle used is the pool by calling
  *  M_event_get_pool() otherwise load will not be distributed at all.
  *
- *  \param[in] max_threads Artificial limitation on the maximum number of threads, the 
+ *  \param[in] max_threads Artificial limitation on the maximum number of threads, the
  *                         actual number of threads will be the lesser of this value
  *                         and the number of cpu cores in the system.  Use 0 for this
  *                         value to simply use the number of cpu cores.
@@ -319,7 +319,7 @@ M_API M_event_t *M_io_get_event(M_io_t *io);
 
 
 /*! Destroy the event loop or pool object
- * 
+ *
  *  \param[in] event Pointer to event handle either returned by M_event_create(), M_event_pool_create(),
  *                   or from an M_event_callback_t.
  */
@@ -327,10 +327,10 @@ M_API void M_event_destroy(M_event_t *event);
 
 
 /*! Add an io object to the event loop handle with a registered callback to deliver events to.
- * 
+ *
  *  Adding handles to an event handle is threadsafe and can be executed either within an event
  *  callback or from a separate thread.
- * 
+ *
  *  \param[in] event    Event handle to add the event to.  If desirable to ensure this io object
  *                      is distributed across a pool, it is recommended to pass the return value
  *                      of M_event_get_pool() rather than the event handle returned by an
@@ -373,10 +373,10 @@ M_API M_event_callback_t M_event_get_io_cb(M_io_t *io, void **cb_data_out);
 
 
 /*! Remove an io object from its associated event handle.
- * 
+ *
  *  Removing handles is threadsafe and can be executed either within an event
  *  callback or from a separate thread.
- * 
+ *
  *  \param[in] io IO object.
  */
 M_API void M_event_remove(M_io_t *io);
@@ -384,7 +384,7 @@ M_API void M_event_remove(M_io_t *io);
 
 /*! Create a user-callable trigger which will call the pre-registered callback.  Useful for
  *  cross-thread completion or status update notifications.  Triggering events is threadsafe.
- * 
+ *
  *  \param[in] event    Event handle to add the event to.  If desirable to ensure this io object
  *                      is distributed across a pool, it is recommended to pass the return value
  *                      of M_event_get_pool() rather than the event handle returned by an
@@ -431,10 +431,10 @@ M_API void M_event_trigger_signal(M_event_trigger_t *trigger);
 /*! Add a timer object to the event loop specified that will call the user-supplied callback
  *  when the timer expires.  The timer is created in a stopped state and must be started before
  *  it will fire.
- * 
+ *
  *  If the timer is associated with another object (e.g. co-joined) then the same event handle
  *  as the other object should be used.
- * 
+ *
  *  \param[in] event    Event handle to add the timer to.  If the event handle is a pool object,
  *                      it will automatically distribute to an event thread.
  *  \param[in] callback User-specified callback to call when the timer expires
@@ -448,10 +448,10 @@ M_API M_event_timer_t *M_event_timer_add(M_event_t *event, M_event_callback_t ca
 
 /*! Starts the specified timer with timeout specified.  When the timeout expires, the
  *  callback associated with the timer will be executed.
- * 
+ *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
  *  \param[in] interval_ms Time in milliseconds before the timer will expire.  May only be
- *                         0 if the configured "firecount" is 1. 
+ *                         0 if the configured "firecount" is 1.
  *
  *  \return M_TRUE on success, M_FALSE on failure (such as timer already running or invalid use).
  */
@@ -469,11 +469,11 @@ M_API M_bool M_event_timer_stop(M_event_timer_t *timer);
 
 /*! Restart the timer.
  *
- *  If the timer is already stopped, will simply start it again.  If the timer 
+ *  If the timer is already stopped, will simply start it again.  If the timer
  *  has "autoremove" configured, the removal will be skipped on stop.
- * 
+ *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
- *  \param[in] interval_ms Time in milliseconds before the timer will expire.  
+ *  \param[in] interval_ms Time in milliseconds before the timer will expire.
  *                         If specified as 0, will use the same interval_ms as the
  *                         original M_event_timer_start() call (NOTE: this is different
  *                         behavior than the value of 0 for M_event_timer_start())
@@ -484,7 +484,7 @@ M_API M_bool M_event_timer_reset(M_event_timer_t *timer, M_uint64 interval_ms);
 
 
 /*! Set absolute time for first event to be fired.
- * 
+ *
  *  This will not take effect until the next call to M_event_timer_start() or M_event_timer_reset().
  *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
@@ -496,7 +496,7 @@ M_API M_bool M_event_timer_set_starttv(M_event_timer_t *timer, M_timeval_t *star
 
 
 /*! Set absolute time for when the timer will automatically stop
- * 
+ *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
  *  \param[in] end_tv      Absolute time of when to stop the timer, or NULL to clear.
  *
@@ -506,7 +506,7 @@ M_API M_bool M_event_timer_set_endtv(M_event_timer_t *timer, M_timeval_t *end_tv
 
 
 /*! Set the maximum number of times the timer should fire.  Default is unlimited.
- * 
+ *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
  *  \param[in] cnt         Maximum number of times timer should fire.  Use 0 for unlimited.
  *
@@ -517,11 +517,11 @@ M_API M_bool M_event_timer_set_firecount(M_event_timer_t *timer, size_t cnt);
 
 /*! Set the timer to automatically remove itself and free all used memory when the timer
  *  enters the stopped state.  This will happen when exceeding the fire count, exceeding
- *  the configured end_tv or explicitly calling M_event_timer_stop().  
- * 
+ *  the configured end_tv or explicitly calling M_event_timer_stop().
+ *
  *  NOTE: Be careful not to attempt to use the timer handle once it has been autoremoved
  *        as it will result in access to uninitialized memory.
- * 
+ *
  *  \param[in] timer        Timer handle returned by M_event_timer_add()
  *  \param[in] enabled      M_TRUE to enable autoremove, M_FALSE to disable autoremove.
  *
@@ -567,7 +567,7 @@ M_API M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer);
  *
  *  NOTE: Do not use with auto-destroy timers as the timer handle
  *        may not be valid if you don't already know the status.
- * 
+ *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
  *
  *  \return M_TRUE if timer is started, M_FALSE if timer is stopped.
@@ -575,7 +575,7 @@ M_API M_uint64 M_event_timer_get_remaining_ms(M_event_timer_t *timer);
 M_API M_bool M_event_timer_get_status(M_event_timer_t *timer);
 
 
-/*! Create a single-event timer.  
+/*! Create a single-event timer.
  *
  *  This is a convenience function equivalent to:
  *    M_event_timer_add(event, callback, cbdata) +
@@ -585,7 +585,7 @@ M_API M_bool M_event_timer_get_status(M_event_timer_t *timer);
  *
  *  \param[in] event       Event handle to add the timer to.  If the event handle is a pool object,
  *                         it will automatically distribute to an event thread.
- *  \param[in] interval_ms Time in milliseconds before the timer will expire. 
+ *  \param[in] interval_ms Time in milliseconds before the timer will expire.
  *  \param[in] autoremove  Whether the timer should automatically remove itself when it fires.
  *  \param[in] callback    User-specified callback to call when the timer expires
  *  \param[in] cb_data     Optional. User-specified data supplied to user-specified callback when
@@ -596,8 +596,8 @@ M_API M_bool M_event_timer_get_status(M_event_timer_t *timer);
 M_API M_event_timer_t *M_event_timer_oneshot(M_event_t *event, M_uint64 interval_ms, M_bool autoremove, M_event_callback_t callback, void *cb_data);
 
 
-/*! Remove the timer and free all memory used by the timer.  
- * 
+/*! Remove the timer and free all memory used by the timer.
+ *
  *  If the timer isn't already stopped, this will prevent the timer from firing.
  *
  *  \param[in] timer       Timer handle returned by M_event_timer_add()
@@ -622,11 +622,11 @@ M_API M_bool M_event_timer_edit_cb(M_event_timer_t *timer, M_event_callback_t ca
 
 
 /*! Queue a task to run in the same thread as the event loop.
- * 
+ *
  *  This is threadsafe to call, and convenient when wanting to avoid
  *  additional locks when operating on an object in the event loop.
  *
- *  This is currently implemented as a oneshot timer set for 0ms. 
+ *  This is currently implemented as a oneshot timer set for 0ms.
  *
  *  \param[in] event       Event handle to add task to.  Does not make sense to hand an event
  *                         pool object since the purpose is to choose the event loop to use.
@@ -666,7 +666,7 @@ typedef enum M_event_err M_event_err_t;
 
 
 /*! Start the event loop to start processing events.
- * 
+ *
  *  Events will not be delivered unless the event loop is running.  If the event
  *  handle is a pool, will spawn threads for each member of the pool except one
  *  which will run and block the thread executing this function.
@@ -682,7 +682,7 @@ M_API M_event_err_t M_event_loop(M_event_t *event, M_uint64 timeout_ms);
 
 
 /*! Exit the event loop immediately.
- * 
+ *
  *  This is safe to call from a thread other than the event loop.  Will set
  *  the M_EVENT_ERR_DONE return code for the event loop.
  *
@@ -699,7 +699,7 @@ M_API void M_event_done(M_event_t *event);
 
 
 /*! Exit the event loop immediately.
- * 
+ *
  *  This is safe to call from a thread other than the event loop.  Will set
  *  the M_EVENT_ERR_RETURN return code for the event loop, this is the only
  *  way this call differs from M_event_done().
@@ -719,7 +719,7 @@ M_API void M_event_return(M_event_t *event);
 /*! Signal all IO objects in the event loop to start their disconnect sequence
  *  and exit the event loop when all are closed, or the specified timeout
  *  has elapsed.
- * 
+ *
  *  This is safe to call from a thread other than the event loop.  Will set
  *  the M_EVENT_ERR_DONE return code for the event loop.  The only difference
  *  between this and M_event_done() is it attempts to close the IO objects
@@ -746,7 +746,7 @@ M_API void M_event_done_with_disconnect(M_event_t *event, M_uint64 timeout_befor
 
 
 /*! Get the current running status of the event loop.
- * 
+ *
  *  If an event child handle is passed instead of the pool handle, it will
  *  automatically escalate to the pool handle.
  *
@@ -785,6 +785,13 @@ M_API M_uint64 M_event_get_statistic(M_event_t *event, M_event_statistic_t type)
  *  \return count of objects.
   */
 M_API size_t M_event_num_objects(M_event_t *event);
+
+/*! Get human readable event type from M_event_type_t
+ *
+ * \param[in] type    event type
+ * \return constant human readable string
+ */
+M_API const char *M_event_type_string(M_event_type_t type);
 
 /*! @} */
 
