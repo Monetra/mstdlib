@@ -194,11 +194,17 @@ static M_bool M_io_block_regevent(M_io_t *io, M_io_block_request_t request, M_io
 M_io_error_t M_io_block_connect(M_io_t *io)
 {
 	M_io_block_data_t *data;
+	M_io_state_t       state = M_io_get_state(io);
 
-	/* XXX: How do we determine if we're already connected? */
+	if (state == M_IO_STATE_CONNECTED)
+		return M_IO_ERROR_SUCCESS;
 
-	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_CONNECT, &data))
+	if (state != M_IO_STATE_INIT)
 		return M_IO_ERROR_ERROR;
+
+	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_CONNECT, &data)) {
+		return M_IO_ERROR_ERROR;
+	}
 
 	M_event_loop(io->reg_event, M_TIMEOUT_INF);
 	return data->retval;
@@ -240,7 +246,17 @@ M_io_error_t M_io_block_read(M_io_t *io, unsigned char *buf, size_t buf_len, siz
 	if (io == NULL || buf == NULL || buf_len == 0 || len_read == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+		case M_IO_STATE_DISCONNECTING:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
 
 	err = M_io_read(io, buf, buf_len, len_read);
 	if (err != M_IO_ERROR_WOULDBLOCK)
@@ -270,7 +286,17 @@ M_io_error_t M_io_block_read_into_buf(M_io_t *io, M_buf_t *buf, M_uint64 timeout
 	if (io == NULL || buf == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+		case M_IO_STATE_DISCONNECTING:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
 
 	err = M_io_read_into_buf(io, buf);
 	if (err != M_IO_ERROR_WOULDBLOCK)
@@ -296,7 +322,17 @@ M_io_error_t M_io_block_read_into_parser(M_io_t *io, M_parser_t *parser, M_uint6
 	if (io == NULL || parser == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+		case M_IO_STATE_DISCONNECTING:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
 
 	err = M_io_read_into_parser(io, parser);
 	if (err != M_IO_ERROR_WOULDBLOCK) {
@@ -324,7 +360,16 @@ M_io_error_t M_io_block_write(M_io_t *io, const unsigned char *buf, size_t buf_l
 	if (io == NULL || buf == NULL || buf_len == 0 || len_written == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
 
 	err = M_io_write(io, buf, buf_len, len_written);
 	if (err != M_IO_ERROR_WOULDBLOCK)
@@ -354,7 +399,16 @@ M_io_error_t M_io_block_write_from_buf(M_io_t *io, M_buf_t *buf, M_uint64 timeou
 	if (io == NULL || buf == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
 
 	err = M_io_write_from_buf(io, buf);
 	if (err != M_IO_ERROR_WOULDBLOCK)
@@ -379,7 +433,17 @@ M_io_error_t M_io_block_disconnect(M_io_t *io)
 	if (io == NULL)
 		return M_IO_ERROR_INVALID;
 
-	/* XXX: How do we determine if we're connected? */
+	switch (M_io_get_state(io)) {
+		case M_IO_STATE_DISCONNECTED:
+			return M_IO_ERROR_DISCONNECT;
+		case M_IO_STATE_ERROR:
+			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_CONNECTED:
+			break;
+		default:
+			return M_IO_ERROR_WOULDBLOCK;
+	}
+
 	M_io_disconnect(io);
 
 	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_DISCONNECT, &data))
