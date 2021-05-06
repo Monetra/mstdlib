@@ -30,6 +30,21 @@
 
 /* ---- PRIVATE: helper functions ---- */
 
+static M_bool M_log_check_tag_used(M_log_t *log, M_uint64 tag)
+{
+	M_llist_node_t *node;
+
+	node = M_llist_first(log->modules);
+	while (node != NULL) {
+		M_log_module_t *mod = M_llist_node_val(node);
+		if ((mod->accepted_tags & tag) != 0) {
+			return M_TRUE;
+		}
+		node = M_llist_node_next(node);
+	}
+	return M_FALSE;
+}
+
 /* Get line ending string for the given line ending mode. */
 static const char *line_end_to_str(M_log_line_end_mode_t mode)
 {
@@ -533,6 +548,29 @@ M_log_error_t M_log_vprintf(M_log_t *log, M_uint64 tag, void *msg_thunk, const c
 	M_log_error_t  ret;
 	char          *msg;
 
+	if (log == NULL || fmt == NULL) {
+		return M_LOG_INVALID_PARAMS;
+	}
+
+	if (!M_uint64_is_power_of_two(tag)) {
+		return M_LOG_INVALID_TAG;
+	}
+
+	/* Skip formatting the string if no modules could write to this tag.
+	 *
+	 * It is possible for a tag to be accepted in this check but then disabled
+	 * when M_log_write() locks and checks again. However, this is a very rare
+	 * condition and doesn't really matter. This is an optimization to prevent
+	 * M_vasprintf from being called on the many log events for levels that might
+	 * not be enabled.
+	 */
+	M_thread_mutex_lock(log->lock);
+	if (!M_log_check_tag_used(log, tag)) {
+		M_thread_mutex_unlock(log->lock);
+		return M_LOG_SUCCESS;
+	}
+	M_thread_mutex_unlock(log->lock);
+
 	/* Expand message string for this log entry from the format string. */
 	M_vasprintf(&msg, fmt, ap);
 
@@ -554,8 +592,6 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 	const char     *name_str     = NULL;
 	size_t          name_str_len = 0;
 	const char     *line_start   = NULL;
-	M_bool          tag_used;
-
 	M_llist_t      *expired_mods = NULL;
 
 
@@ -572,20 +608,8 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 	/* If this tag is disabled for all modules, skip it. This is an optimization, worth it since this
 	 * case happens a lot.
 	 */
-	tag_used = M_FALSE;
-	node     = M_llist_first(log->modules);
-	while (node != NULL) {
-		M_log_module_t *mod = M_llist_node_val(node);
-		if ((mod->accepted_tags & tag) != 0) {
-			tag_used = M_TRUE;
-			break;
-		}
-		node = M_llist_node_next(node);
-	}
-	if (!tag_used) {
+	if (!M_log_check_tag_used(log, tag))
 		goto done;
-	}
-
 
 	/* Construct time string for this log message (log must be locked when we do this, format string can change). */
 	time_str = get_current_time_str(log->time_format, &time_str_len);
