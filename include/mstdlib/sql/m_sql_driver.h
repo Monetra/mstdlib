@@ -288,6 +288,7 @@ typedef M_sql_error_t (*M_sql_driver_cb_commit_t)(M_sql_conn_t *conn, char *erro
  *  \param[in]     type     mstdlib sql data type
  *  \param[in]     max_len  Maximum length of data type. Meaningful for Text and Binary types only,
  *                          or use 0 for maximum supported server size.
+ *  \param[in]     is_cast  Used to convert to data type for server.
  *  \return M_TRUE on success, M_FALSE on error such as misuse
  */
 typedef M_bool (*M_sql_driver_cb_datatype_t)(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_data_type_t type, size_t max_len, M_bool is_cast);
@@ -321,7 +322,6 @@ typedef void (*M_sql_driver_cb_append_updlock_t)(M_sql_connpool_t *pool, M_buf_t
  *
  *  \param[in]     pool       Pointer to connection pool object
  *  \param[in,out] query      Buffer to write sql-server-specific bitop into
- *  \param[in]     type       mstdlib sql updlock type
  *  \param[in]     op         Bitwise operation to perform.
  *  \param[in]     exp1       Left-hand side of SQL expression.
  *  \param[in]     exp2       Right-hande size of SQL expression.

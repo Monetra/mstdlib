@@ -434,7 +434,7 @@ M_API void M_hashtable_merge(M_hashtable_t **dest, M_hashtable_t *src);
  */
 M_API M_hashtable_t *M_hashtable_duplicate(const M_hashtable_t *h);
 
-/* @} */
+/*! @} */
 
 __END_DECLS
 

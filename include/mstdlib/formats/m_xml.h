@@ -698,7 +698,7 @@ M_API const M_hash_dict_t *M_xml_node_attributes(const M_xml_node_t *node);
  */
 M_API const char *M_xml_node_attribute(const M_xml_node_t *node, const char *key);
 
-/*@}*/
+/*! @} */
 
 __END_DECLS
 

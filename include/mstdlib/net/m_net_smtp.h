@@ -86,21 +86,21 @@ typedef enum {
  *                    to M_net_smtp_add_endpoint_tcp.
  * \param[in] thunk   Thunk parameter provided during create.
  */
-typedef void (*M_net_smtp_connect_cb)(const char *address, M_uint16 port, void *think);
+typedef void (*M_net_smtp_connect_cb)(const char *address, M_uint16 port, void *thunk);
 
 
 /*! Callback when a connection to a server fails.
  *
  * Only used by TCP endpoints.
  *
- * \param[in] address   Address of the server. This is the same address passed
- *                      to M_net_smtp_add_endpoint_tcp.
- * \param[in] port      Port connected to. This is the same port passed
- *                      to M_net_smtp_add_endpoint_tcp.
- * \param[in] net_error Indicates where there was a network problem of some type or
- *                      if the network operation succeeded.
- * \param[in] error     Error message.
- * \param[in] thunk     Thunk parameter provided during create.
+ * \param[in] address Address of the server. This is the same address passed
+ *                    to M_net_smtp_add_endpoint_tcp.
+ * \param[in] port    Port connected to. This is the same port passed
+ *                    to M_net_smtp_add_endpoint_tcp.
+ * \param[in] net_err Indicates where there was a network problem of some type or
+ *                    if the network operation succeeded.
+ * \param[in] error   Error message.
+ * \param[in] thunk   Thunk parameter provided during create.
  *
  * \return M_FALSE if the endpoint should be be removed from the pool. M_TRUE to allow
  *         the server to be retried later.
@@ -128,11 +128,11 @@ typedef void (*M_net_smtp_disconnect_cb)(const char *address, M_uint16 port, voi
  *
  * Only used by process endpoints.
  *
- * \param[in] command     Command executed. Same as passed to M_net_smtp_add_endpoint_process.
- * \param[in] result_code Exit code of the process.
- * \param[in] proc_stdout Output of the process.
- * \param[in] proc_errout Error output of the process.
- * \param[in] thunk       Thunk parameter provided during create.
+ * \param[in] command       Command executed. Same as passed to M_net_smtp_add_endpoint_process.
+ * \param[in] result_code   Exit code of the process.
+ * \param[in] proc_stdout   Output of the process.
+ * \param[in] proc_stderror Error output of the process.
+ * \param[in] thunk         Thunk parameter provided during create.
  *
  * \return M_FALSE if the endpoint should be be removed from the pool. M_TRUE to allow
  *         the server to be retried later.

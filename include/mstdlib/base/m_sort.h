@@ -75,7 +75,7 @@ __BEGIN_DECLS
  *
  * \return -1, 0, 1 for arg1 < arg2, arg1 == arg2, arg1 > arg2.
  */
-typedef int (*M_sort_compar_t)(const void *, const void *, void *);
+typedef int (*M_sort_compar_t)(const void *arg1, const void *arg2, void *thunk);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Binary Search */

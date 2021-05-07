@@ -322,7 +322,7 @@ M_API M_sql_tabledata_field_t *M_sql_tabledata_field_create_ext(void);
 /*! FOR EXTERNAL USE ONLY. Destroys a #M_sql_tabledata_field_t explicitly allocated by M_sql_tabledata_field_create_ext()
  *
  *  This is only for use outside of M_sql_tabledata_* functions.
- *  NEVER call this on a handle provided by #M_sql_tabledata_fetch_cb, #M_sql_tabledata_verify_cb, or retrieved by M_sql_tabledata_txn_field_get()
+ *  NEVER call this on a handle provided by #M_sql_tabledata_fetch_cb or retrieved by M_sql_tabledata_txn_field_get()
  *
  * \param[in] field Field to be destroyed
  */

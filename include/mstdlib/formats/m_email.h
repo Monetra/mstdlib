@@ -486,6 +486,8 @@ typedef M_email_error_t (*M_email_reader_multipart_data_finished_func)(void *thu
  *
  * Only called if a epilogue was present.
  *
+ * \param[in] data  Data.
+ * \param[in] len   Length of data.
  * \param[in] thunk Thunk.
  *
  * \return Result
