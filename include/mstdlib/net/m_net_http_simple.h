@@ -350,10 +350,10 @@ M_API void M_net_http_simple_set_iocreate(M_net_http_simple_t *hs, M_net_http_si
 M_API void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_t method, const char *user_agent, const char *content_type, const char *charset, const M_hash_dict_t *headers, const unsigned char *message, size_t message_len);
 
 
-/*! Send the request and wait for a response.
+/*! Start sending the request async.
  *
- * This can **only** be called once on an hs object.
- * Behavior is undefined if called multiple times.
+ * On success, the `hs` object is freed internally once the send completes
+ * and the done callback is called. It **must** not be reused.
  *
  * On failure of this call it can be called again if the error can be corrected.
  * Otherwise if this fails M_net_http_simple_cancel needs to be called to
@@ -361,9 +361,16 @@ M_API void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_
  *
  * \param[in] hs    HTTP simple network object.
  * \param[in] url   The **full** URL to send the request to. Must include http:// or https://.
- * \param[in] thunk Thunk parameter that will be passed to the done callback.
+ * \param[in] thunk Thunk parameter that will be passed to the done callback. If allocated, must
+ *                  _not_ be freed before the done callback is called. Unless this function returns
+ *                  M_FALSE which prevents the done callback from running. For example, allocating a
+ *                  thunk and freeing in the done callback. Or freeing when this returns M_FALSE.
  *
- * \return M_TRUE on success. Otherwise M_FALSE. Will not call the done callback when M_FALSE.
+ * \return M_TRUE when successfully starting the send process. `hs` will be freed internally.
+ *         Otherwise, M_FALSE if sending could not commence. Will not call the done callback when M_FALSE.
+ *         If not attempting again, allocated memory needs to be freed. An allocated `thunk` should be freed
+ *         if necessary (would have been freed in the done callback). M_net_http_simple_cancel should be
+ *         called on the `hs` object
  */
 M_API M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk) M_WARN_UNUSED_RESULT;
 
