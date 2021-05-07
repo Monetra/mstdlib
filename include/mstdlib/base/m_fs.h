@@ -35,7 +35,7 @@
 
 __BEGIN_DECLS
 
-/*! \addtogroup m_fs File System
+/*! \defgroup m_fs File System
  *  \ingroup mstdlib_base
  *
  * File sytem routines.
@@ -388,9 +388,6 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* @} */
-
-
 /*! Walk callback function prototype.
  *
  * \param[in] path  The path passed into walk.
@@ -417,6 +414,8 @@ typedef M_bool (*M_fs_dir_walk_cb_t)(const char *path, M_fs_dir_entry_t *entry, 
  * \return M_TRUE if the operation should continue. M_FALSE if the operation should be cancelled.
  */
 typedef M_bool (*M_fs_progress_cb_t)(const M_fs_progress_t *p);
+
+/*! @} */
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
