@@ -291,6 +291,12 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		return M_FALSE;
 	}
 #elif defined(__APPLE__)
+#  if defined(__arm64__)
+	/* Apple does not support changing thread affinity on Arm */
+	(void)thread;
+	(void)tid;
+	(void)processor_id;
+#  else
 	thread_port_t                 mach_thread = pthread_mach_thread_np((pthread_t)thread);
 	thread_affinity_policy_data_t policy      = { (processor_id == -1)?THREAD_AFFINITY_TAG_NULL:processor_id+1 };
 	(void)tid;
@@ -298,6 +304,7 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 		M_fprintf(stderr, "thread_policy_set thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
 		return M_FALSE;
 	}
+#  endif
 #elif defined(_AIX)
 /* NOTE: disabled due to issues running on OS/400 PASE
  *	(void)thread;
