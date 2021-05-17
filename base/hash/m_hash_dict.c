@@ -336,7 +336,11 @@ M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, 
 		M_buf_add_str(buf, key);
 
 		/* Output delim between key and value */
-		M_buf_add_byte(buf, (unsigned char)kv_delim);
+		if (flags & M_HASH_DICT_SER_FLAG_LF_TO_CRLF && kv_delim == '\n') {
+			M_buf_add_bytes(buf, "\r\n", 2);
+		} else {
+			M_buf_add_byte(buf, (unsigned char)kv_delim);
+		}
 
 		/* Output quote if necessary */
 		if (quote_type != M_HASHDICT_QUOTE_TYPE_OFF)
@@ -363,7 +367,11 @@ M_bool M_hash_dict_serialize_buf(M_hash_dict_t *dict, M_buf_t *buf, char delim, 
 			M_buf_add_byte(buf, (unsigned char)quote);
 
 		/* Output delimiter at end of each value */
-		M_buf_add_byte(buf, (unsigned char)delim);
+		if (flags & M_HASH_DICT_SER_FLAG_LF_TO_CRLF && delim == '\n') {
+			M_buf_add_bytes(buf, "\r\n", 2);
+		} else {
+			M_buf_add_byte(buf, (unsigned char)delim);
+		}
 	}
 
 	M_hash_dict_enumerate_free(hashenum);
