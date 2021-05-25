@@ -199,7 +199,7 @@ static void add_syslog_header(M_buf_t *buf, module_thunk_t *mdata, M_syslog_prio
 
 	/* WARNING: the formatting here is very strict, in accordance with RFC 3164, pages 7-10. Don't change it. */
 
-	M_bprintf(buf, "<%d>%s %2lld %02lld:%02lld:%02lld %s %.32s: ", (int)(mdata->facility | priority), month_str,
+	M_bprintf(buf, "<%d>%s %2lld %02lld:%02lld:%02lld %s %.32s: ", (int)((int)mdata->facility | (int)priority), month_str,
 		now.day, now.hour, now.min, now.sec, mdata->src_host, mdata->product);
 }
 
