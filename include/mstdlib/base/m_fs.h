@@ -1205,7 +1205,7 @@ M_API M_fs_error_t M_fs_file_read_bytes(const char *path, size_t max_read, unsig
  * \param[in]  write_len     The number of bytes from buf to write. Optional, pass 0 to use M_str_len to determine
  *                           length of a NULL terminated buffer to write.
  * \param[in]  mode          M_fs_file_mode_t mode. Only supports APPEND. Used to control appending vs overwriting.
- *                           The default it to overwrite the file.
+ *                           The default is to overwrite the file.
  * \param[out] bytes_written The number of bytes from buf written to the file. Optional, pass NULL if not needed.
  *
  * \return Result.
