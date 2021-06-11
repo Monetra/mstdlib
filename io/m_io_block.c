@@ -247,10 +247,10 @@ M_io_error_t M_io_block_read(M_io_t *io, unsigned char *buf, size_t buf_len, siz
 		return M_IO_ERROR_INVALID;
 
 	switch (M_io_get_state(io)) {
-		case M_IO_STATE_DISCONNECTED:
-			return M_IO_ERROR_DISCONNECT;
 		case M_IO_STATE_ERROR:
 			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_DISCONNECTED:
+			/* Allow reading after we think we're disconnected as there may still be OS data buffered */
 		case M_IO_STATE_CONNECTED:
 		case M_IO_STATE_DISCONNECTING:
 			break;
@@ -259,8 +259,16 @@ M_io_error_t M_io_block_read(M_io_t *io, unsigned char *buf, size_t buf_len, siz
 	}
 
 	err = M_io_read(io, buf, buf_len, len_read);
-	if (err != M_IO_ERROR_WOULDBLOCK)
+	if (err != M_IO_ERROR_WOULDBLOCK) {
+		/* Overwrite error if we allowed a read on a disconnected socket */
+		if (err != M_IO_ERROR_SUCCESS && M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+			return M_IO_ERROR_DISCONNECT;
 		return err;
+	}
+
+	/* If we read nothing, but we're disconnected, we won't register to wait for events */
+	if (M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+		return M_IO_ERROR_DISCONNECT;
 
 	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_READUCHAR, &data))
 		return M_IO_ERROR_ERROR;
@@ -287,10 +295,10 @@ M_io_error_t M_io_block_read_into_buf(M_io_t *io, M_buf_t *buf, M_uint64 timeout
 		return M_IO_ERROR_INVALID;
 
 	switch (M_io_get_state(io)) {
-		case M_IO_STATE_DISCONNECTED:
-			return M_IO_ERROR_DISCONNECT;
 		case M_IO_STATE_ERROR:
 			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_DISCONNECTED:
+			/* Allow reading after we think we're disconnected as there may still be OS data buffered */
 		case M_IO_STATE_CONNECTED:
 		case M_IO_STATE_DISCONNECTING:
 			break;
@@ -299,8 +307,16 @@ M_io_error_t M_io_block_read_into_buf(M_io_t *io, M_buf_t *buf, M_uint64 timeout
 	}
 
 	err = M_io_read_into_buf(io, buf);
-	if (err != M_IO_ERROR_WOULDBLOCK)
+	if (err != M_IO_ERROR_WOULDBLOCK) {
+		/* Overwrite error if we allowed a read on a disconnected socket */
+		if (err != M_IO_ERROR_SUCCESS && M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+			return M_IO_ERROR_DISCONNECT;
 		return err;
+	}
+
+	/* If we read nothing, but we're disconnected, we won't register to wait for events */
+	if (M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+		return M_IO_ERROR_DISCONNECT;
 
 	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_READBUF, &data))
 		return M_IO_ERROR_ERROR;
@@ -323,10 +339,10 @@ M_io_error_t M_io_block_read_into_parser(M_io_t *io, M_parser_t *parser, M_uint6
 		return M_IO_ERROR_INVALID;
 
 	switch (M_io_get_state(io)) {
-		case M_IO_STATE_DISCONNECTED:
-			return M_IO_ERROR_DISCONNECT;
 		case M_IO_STATE_ERROR:
 			return M_IO_ERROR_ERROR;
+		case M_IO_STATE_DISCONNECTED:
+			/* Allow reading after we think we're disconnected as there may still be OS data buffered */
 		case M_IO_STATE_CONNECTED:
 		case M_IO_STATE_DISCONNECTING:
 			break;
@@ -336,8 +352,15 @@ M_io_error_t M_io_block_read_into_parser(M_io_t *io, M_parser_t *parser, M_uint6
 
 	err = M_io_read_into_parser(io, parser);
 	if (err != M_IO_ERROR_WOULDBLOCK) {
+		/* Overwrite error if we allowed a read on a disconnected socket */
+		if (err != M_IO_ERROR_SUCCESS && M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+			return M_IO_ERROR_DISCONNECT;
 		return err;
 	}
+
+	/* If we read nothing, but we're disconnected, we won't register to wait for events */
+	if (M_io_get_state(io) == M_IO_STATE_DISCONNECTED)
+		return M_IO_ERROR_DISCONNECT;
 
 	if (!M_io_block_regevent(io, M_IO_SYNC_REQUEST_READPARSER, &data)) {
 		return M_IO_ERROR_ERROR;
