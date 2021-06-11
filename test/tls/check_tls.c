@@ -19,7 +19,7 @@ M_uint64 expected_connections;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
 
-#define SEND_AND_DISCONNECT_SIZE (1024 * 1024)
+#define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
 #define DEBUG 1
 
@@ -608,9 +608,13 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 			/* Fallthru */
 		case M_EVENT_TYPE_WRITE:
 			/* Write entire buffer, if empty, issue disconnect */
+			mysize = M_buf_len(wbuf);
 			M_io_write_from_buf(comm, wbuf);
+			event_debug("net sad serverconn %p wrote %zu bytes", comm, mysize - M_buf_len(wbuf));
 			if (M_buf_len(wbuf) == 0) {
-				M_io_disconnect(comm);
+				M_io_destroy(comm);
+				M_buf_cancel(wbuf);
+				wbuf = NULL;
 			}
 			break;
 
@@ -685,6 +689,8 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			orig_size = M_buf_len(rbuf);
 			M_io_read_into_buf(comm, rbuf);
 			event_debug("net sad client %p read %zu bytes", comm, M_buf_len(rbuf) - orig_size);
+			if (M_buf_len(rbuf))
+				M_thread_sleep(100000);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -696,7 +702,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_event_return(event);
 			} else {
 				if (M_buf_len(rbuf) == SEND_AND_DISCONNECT_SIZE) {
-					event_debug("net sad client received FULL data");
+					event_debug("net sad client received FULL data: %zu bytes", M_buf_len(rbuf));
 					M_event_done(event);
 				} else {
 					event_debug("net sad client received partial data: %zu of %zu bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
