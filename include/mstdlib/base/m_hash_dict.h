@@ -355,7 +355,7 @@ typedef enum {
 	M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE       = 1 << 0, /*!< Always quote the value even if not necessary. Cannot be used with M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS */
 	M_HASH_DICT_SER_FLAG_QUOTE_NON_ANS      = 1 << 1, /*!< Quote any string that contains non Alpha-numeric or single space (0x20).  Cannot be used with M_HASH_DICT_SER_FLAG_ALWAYS_QUOTE */
 	M_HASH_DICT_SER_FLAG_HEXENCODE_NONPRINT = 1 << 2, /*!< Any non-printable characters should be hex-encoded as [%02X] in the resulting output string */
-	M_HASH_DICT_SER_FLAG_LF_TO_CRLF         = 1 << 3  /*!< If a separator is specified as LF '\n', convert it to CRLF '\r\n'.  Necessary since delimiters can only be a single character. */
+	M_HASH_DICT_SER_FLAG_LF_TO_CRLF         = 1 << 3  /*!< If a separator is specified as LF '\n', convert it to CRLF `\r\n`.  Necessary since delimiters can only be a single character. */
 } M_hash_dict_ser_flag_t;
 
 
