@@ -597,8 +597,8 @@ static void M_io_proxy_protocol_timeout_cb(M_event_t *event, M_event_type_t type
 
 	if (handle->state != M_IO_STATE_CONNECTING)
 		return;
-	handle->state = M_IO_STATE_ERROR;
 
+	handle->state = M_IO_STATE_ERROR;
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_IO_ERROR_TIMEDOUT);
 	M_event_timer_stop(handle->timer);
 }
@@ -886,16 +886,17 @@ static M_bool M_io_proxy_protocol_process_cb(M_io_layer_t *layer, M_event_type_t
 
 	switch (*etype) {
 		case M_EVENT_TYPE_CONNECTED:
-		case M_EVENT_TYPE_ACCEPT:
-		case M_EVENT_TYPE_READ:
-		case M_EVENT_TYPE_WRITE:
-		case M_EVENT_TYPE_OTHER:
 			handle->state = M_IO_STATE_CONNECTING;
 			if (handle->timer == NULL && handle->timeout_ms != 0) {
 				handle->timer = M_event_timer_add(M_io_get_event(io), M_io_proxy_protocol_timeout_cb, layer);
 				M_event_timer_set_firecount(handle->timer, 1);
 				M_event_timer_reset(handle->timer, handle->timeout_ms);
 			}
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+		case M_EVENT_TYPE_WRITE:
+		case M_EVENT_TYPE_OTHER:
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			handle->state = M_IO_STATE_DISCONNECTED;
