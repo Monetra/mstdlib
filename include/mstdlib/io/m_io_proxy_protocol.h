@@ -434,14 +434,6 @@ __BEGIN_DECLS
  *             // protocol data as it would have been eaten by the proxy protocol
  *             // layer, prior to being sent to the trace layer.
  *             //M_io_add_trace(io_out, NULL, do_trace, NULL, NULL, NULL);
- *
- *             ioerr = M_io_proxy_protocol_inbound_add(io_out, NULL, M_IO_PROXY_PROTOCOL_FLAG_NONE);
- *             if (ioerr != M_IO_ERROR_SUCCESS) {
- *                 M_printf("Could not add proxy protocol layer: %s\n", M_io_error_string(ioerr));
- *                 M_io_destroy(io);
- *                 break;
- *             }
- * 
  * 
  *             ldata = M_malloc_zero(sizeof(*ldata));
  *             ldata->el          = el;
@@ -476,6 +468,13 @@ __BEGIN_DECLS
  *     ioerr = M_io_net_server_create(&io, 8999, NULL, M_IO_NET_ANY);
  *     if (ioerr != M_IO_ERROR_SUCCESS) {
  *         M_printf("Could not start server: %s\n", M_io_error_string(ioerr));
+ *         return 0;
+ *     }
+ *
+ *     ioerr = M_io_proxy_protocol_inbound_add(io_out, NULL, M_IO_PROXY_PROTOCOL_FLAG_NONE);
+ *     if (ioerr != M_IO_ERROR_SUCCESS) {
+ *         M_printf("Could not add proxy protocol layer: %s\n", M_io_error_string(ioerr));
+ *         M_io_destroy(io);
  *         return 0;
  *     }
  * 
