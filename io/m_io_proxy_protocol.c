@@ -1246,7 +1246,7 @@ M_bool M_io_proxy_protocol_set_source_endpoints(M_io_t *io, const char *source_i
 	M_free(handle->source_ipaddr);
 	M_free(handle->dest_ipaddr);
 	handle->source_ipaddr = M_strdup(source_ipaddr);
-	handle->dest_ipaddr   = M_strdup(source_ipaddr);
+	handle->dest_ipaddr   = M_strdup(dest_ipaddr);
 	handle->source_port   = source_port;
 	handle->dest_port     = dest_port;
 	handle->local         = M_FALSE;
