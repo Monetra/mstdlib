@@ -116,11 +116,11 @@ BOOL           _wopened  = NO;
 	M_io_posix_sigpipe_block(&sigpipe_state);
 	bwritten = [[_session outputStream] write:(const uint8_t *)M_buf_peek(_handle->writebuf) maxLength:M_buf_len(_handle->writebuf)];
 	M_io_posix_sigpipe_unblock(&sigpipe_state);
-	if (bwritten <= 0) {
+	if (bwritten < 0) {
 		M_snprintf(_handle->error, sizeof(_handle->error), "Write error: %s", [[[[_session outputStream] streamError] localizedDescription] UTF8String]);
 		_handle->state = M_IO_STATE_ERROR;
 		[self close];
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error ? */);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 	} else {
 		M_buf_drop(_handle->writebuf, (size_t)bwritten);
 	}
@@ -205,11 +205,12 @@ cleanup:
 
 			/* Sent disconnected or error soft event */
 			if (_handle->state == M_IO_STATE_CONNECTING || _handle->state == M_IO_STATE_CONNECTED) {
-				M_snprintf(_handle->error, sizeof(_handle->error), (eventCode == NSStreamEventErrorOccurred)?"Received NSStreamEventErrorOccurred":"Received NSStreamEventEndEncountered");
 				if (eventCode == NSStreamEventErrorOccurred) {
+					M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventErrorOccurred: %s", [[[[_session outputStream] streamError] localizedDescription] UTF8String]);
 					_handle->state = M_IO_STATE_ERROR;
 					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Can we get a better error? */);
 				} else {
+					M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventEndEncountered");
 					_handle->state = M_IO_STATE_DISCONNECTED;
 					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 				}
