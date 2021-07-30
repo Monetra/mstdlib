@@ -60,24 +60,26 @@ BOOL           _wopened  = NO;
 		/* Lock io layer */
 		layer = M_io_layer_acquire(_handle->io, 0, NULL);
 
-		if (bread <= 0) {
+		if (bread < 0) {
 			_handle->state = M_IO_STATE_ERROR;
 			M_snprintf(_handle->error, sizeof(_handle->error), "Read error: %s", [[[[_session inputStream] streamError] localizedDescription] UTF8String]);
 
 			/* Close out the EA beaus there was an error and it's
 			 * no longer in a useable state. */
 			[self close];
-			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error? */);
+			M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 
 			M_io_layer_release(layer);
 			layer = NULL;
 			return;
-		} else {
+		} else if (bread > 0) {
 			is_empty = (M_buf_len(_handle->readbuf) == 0)?M_TRUE:M_FALSE;
 			M_buf_add_bytes(_handle->readbuf, temp, (size_t)bread);
+
 			/* If _handle->readbuf was empty, send READ soft event */
-			if (is_empty && _handle->state == M_IO_STATE_CONNECTED)
+			if (is_empty && _handle->state == M_IO_STATE_CONNECTED) {
 				M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+			}
 		}
 
 		/* Unlock IO layer */
@@ -105,7 +107,7 @@ BOOL           _wopened  = NO;
 		_handle->state = M_IO_STATE_ERROR;
 
 		[self close];
-		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Is there a way to get a better error ? */);
+		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 
 		goto cleanup;
 	}
@@ -121,7 +123,7 @@ BOOL           _wopened  = NO;
 		_handle->state = M_IO_STATE_ERROR;
 		[self close];
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
-	} else {
+	} else if (bwritten > 0) {
 		M_buf_drop(_handle->writebuf, (size_t)bwritten);
 	}
 
@@ -197,6 +199,13 @@ cleanup:
 			break;
 		case NSStreamEventErrorOccurred:
 		case NSStreamEventEndEncountered:
+			/* Pull out the error message if we can */
+			if (eventCode == NSStreamEventErrorOccurred) {
+				M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventErrorOccurred: %s", [[[aStream streamError] localizedDescription] UTF8String]);
+			} else {
+				M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventEndEncountered");
+			}
+
 			/* Close self */
 			[self close];
 
@@ -206,11 +215,9 @@ cleanup:
 			/* Sent disconnected or error soft event */
 			if (_handle->state == M_IO_STATE_CONNECTING || _handle->state == M_IO_STATE_CONNECTED) {
 				if (eventCode == NSStreamEventErrorOccurred) {
-					M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventErrorOccurred: %s", [[[[_session outputStream] streamError] localizedDescription] UTF8String]);
 					_handle->state = M_IO_STATE_ERROR;
-					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR /* TODO: Can we get a better error? */);
+					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_ERROR, M_IO_ERROR_ERROR);
 				} else {
-					M_snprintf(_handle->error, sizeof(_handle->error), "Received NSStreamEventEndEncountered");
 					_handle->state = M_IO_STATE_DISCONNECTED;
 					M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 				}
