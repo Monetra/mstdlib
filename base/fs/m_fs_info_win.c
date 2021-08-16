@@ -56,7 +56,7 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 	/* We don't care about the domin but the LookupAccountSid requires a buffer for the domain */
 	char          domain[DNLEN+1];
 	DWORD         domain_len;
-	SID_NAME_USE  sid_use;
+	SID_NAME_USE  sid_use     = SidTypeUnknown;
 	BOOL          defaulted;
 	LPSTR         sstr;
 
@@ -109,8 +109,14 @@ static M_fs_error_t M_fs_info_get_file_user_group(PSECURITY_DESCRIPTOR sd, char 
 			*user = NULL;
 			return M_fs_error_from_syserr(GetLastError());
 		}
-		/* Verify it looked up the proper type */
-		if (sid_use != SidTypeUser && sid_use != SidTypeAlias && sid_use != SidTypeDeletedAccount) {
+		/* Verify it looked up the proper type.
+		 *
+		 * Well known group is included in this check as a valid type because Fat32 doesn't support
+		 * user and groups. Windows fills in some default values on this fiel system. It sets the
+		 * user sid to 'S-1-1-0' which is 'everyone' and the use to SidTypeWellKnownGroup. We don't
+		 * have a way to determine what file system the file/dir is on so we don't have a separate
+		 * Fat32 check here. */
+		if (sid_use != SidTypeUser && sid_use != SidTypeAlias && sid_use != SidTypeDeletedAccount && sid_use != SidTypeWellKnownGroup) {
 			M_free(*user);
 			*user = NULL;
 			return M_FS_ERROR_INVALID;
