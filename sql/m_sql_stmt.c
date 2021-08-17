@@ -161,12 +161,9 @@ static M_sql_error_t M_sql_stmt_fetch_int(M_sql_stmt_t *stmt, M_bool is_execute_
 	M_sql_conn_t         *conn;
 	const M_sql_driver_t *driver;
 
-	if (stmt == NULL || stmt->conn == NULL || stmt->dstmt == NULL) {
+	if (stmt == NULL) {
 		return M_SQL_ERROR_INVALID_USE;
 	}
-
-	conn   = stmt->conn;
-	driver = M_sql_conn_get_driver(conn);
 
 	/* Clear prior results if a user is calling fetch */
 	if (!is_execute_fetchall)
@@ -175,6 +172,13 @@ static M_sql_error_t M_sql_stmt_fetch_int(M_sql_stmt_t *stmt, M_bool is_execute_
 	if (stmt->last_error != M_SQL_ERROR_SUCCESS_ROW) {
 		return stmt->last_error;
 	}
+
+	if (stmt->conn == NULL || stmt->dstmt == NULL) {
+		return M_SQL_ERROR_INVALID_USE;
+	}
+
+	conn   = stmt->conn;
+	driver = M_sql_conn_get_driver(conn);
 
 	if (stmt->result == NULL || stmt->result->total_rows == 0) {
 		M_sql_trace_message_stmt(M_SQL_TRACE_FETCH_START, stmt);
