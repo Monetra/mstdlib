@@ -570,7 +570,11 @@ M_sql_error_t M_sql_stmt_fetch(M_sql_stmt_t *stmt)
 	/* Catch a connectivity or rollback error */
 	M_sql_conn_set_state_from_error(stmt->conn, err);
 
-	if (err != M_SQL_ERROR_SUCCESS_ROW) {
+	/* NOTE: we use stmt->last_error here instead of 'err' returned from M_sql_stmt_fetch_int()
+	 *       because M_sql_stmt_fetch_int() may overwrite the real internal error code if there
+	 *       may be unread rows.  But we need to key off of the real code in order to know if
+	 *       we should be cleaning up handles, and the stmt->last_error has the real code */
+	if (stmt->last_error != M_SQL_ERROR_SUCCESS_ROW && stmt->conn != NULL) {
 		M_sql_conn_t *conn = stmt->conn;
 
 		M_sql_conn_release_stmt(conn);
