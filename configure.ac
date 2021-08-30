@@ -54,19 +54,19 @@ dnl ------- LIBCHECK ---------
 check_dep_libs=""
 AX_FIND_LIBRARY([check_math],    [m],       [floor],              [], ${check_dep_libs})
 if test "$have_lib_check_math" = "yes" ; then
-  check_dep_libs="${check_dep_libs} -l${have_lib_check_math_lib}"
+  check_dep_libs="-l${have_lib_check_math_lib} ${check_dep_libs}"
 fi
 AX_FIND_LIBRARY([check_pthread], [pthread], [pthread_mutex_init], [], ${check_dep_libs})
 if test "$have_lib_check_pthread" = "yes" ; then
-  check_dep_libs="${check_dep_libs} -l${have_lib_check_pthread_lib}"
+  check_dep_libs="-l${have_lib_check_pthread_lib} ${check_dep_libs}"
 fi
 AX_FIND_LIBRARY([check_rt],      [rt],      [timer_delete],       [], ${check_dep_libs})
 if test "$have_lib_check_rt" = "yes" ; then
-  check_dep_libs="${check_dep_libs} -l${have_lib_check_rt_lib}"
+  check_dep_libs="-l${have_lib_check_rt_lib} ${check_dep_libs}"
 fi
 AX_FIND_LIBRARY([check_subunit], [subunit], [subunit_test_start], [], ${check_dep_libs})
 if test "$have_lib_check_subunit" = "yes" ; then
-  check_dep_libs="${check_dep_libs} -l${have_lib_check_subunit_lib}"
+  check_dep_libs="-l${have_lib_check_subunit_lib} ${check_dep_libs}"
 fi
 
 AX_FIND_PACKAGE(check,

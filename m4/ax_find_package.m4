@@ -122,9 +122,10 @@ AC_DEFUN([AX_FIND_PACKAGE],
 				AS_VAR_POPDEF([ax_package_ldflags])
 
 
-				eval "ax_lib_lib=`echo '${'have_lib_${ax_name}_lib'}'`"
+				eval "ax_lib_lib=\"`echo -l'${'have_lib_${ax_name}_lib'}' '${ax_extra_libs}`\""
 				AS_VAR_PUSHDEF([ax_package_libadd], [${ax_pkg_name}_LIBADD])
-				AS_VAR_SET([ax_package_libadd], [-l${ax_lib_lib} ${ax_extra_libs}])
+
+				AS_VAR_SET([ax_package_libadd], [${ax_lib_lib}])
 				m4_pushdef([AX_AC_SUBST], m4_translit([$1], [-a-z], [_A-Z])_LIBADD)
 				AC_SUBST(AX_AC_SUBST)
 				m4_popdef([AX_AC_SUBST])
