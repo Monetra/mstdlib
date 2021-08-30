@@ -90,8 +90,14 @@ TESTS += \
 		io/check_pipespeed \
 		io/check_netspeed
 
-# No HID support on MacOSX
-if !MACOSX
+# HID support only on Win32, MacOS, Linux
+if WIN32
+TESTS += io/check_hid
+endif
+if MACOS
+TESTS += io/check_hid
+endif
+if LINUX
 TESTS += io/check_hid
 endif
 
