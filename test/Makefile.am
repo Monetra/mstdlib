@@ -94,7 +94,7 @@ TESTS += \
 if WIN32
 TESTS += io/check_hid
 endif
-if MACOS
+if MACOSX
 TESTS += io/check_hid
 endif
 if LINUX
