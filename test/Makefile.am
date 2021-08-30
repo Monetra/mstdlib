@@ -1,11 +1,11 @@
 if HAVE_CHECK
 
-AM_CFLAGS   = @CHECK_CFLAGS@ -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/base -DMSTDLIB_INTERNAL=1
-AM_CPPFLAGS = $(AM_CFLAGS)
-AM_LDFLAGS  = @CHECK_LIBS@
+AM_CFLAGS   = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/base -DMSTDLIB_INTERNAL=1
+AM_CPPFLAGS = $(AM_CFLAGS) @CHECK_CPPFLAGS@
+AM_LDFLAGS  =
 AM_CFLAGS  += -DTEST
 AM_LDFLAGS += -L$(top_builddir)/base/.libs/
-LDADD       = $(top_builddir)/base/libmstdlib.la
+LDADD       = $(top_builddir)/base/libmstdlib.la @CHECK_LIBADD@
 
 ######################################################################
 

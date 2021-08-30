@@ -50,54 +50,14 @@ dnl required to build
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 dnl ------- LIBCHECK ---------
-PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES(CHECK, [check >= 0.9.4],,[AC_MSG_RESULT([not found with pkgconfig])])
-check_dirs="/usr /usr/local /usr/local/check"
-AC_ARG_WITH(check-dir,
-	AC_HELP_STRING([--with-check-dir=<dir>], [Paths to search for libcheck (default=$check_dirs)]),
-	[ check_dirs=$withval ],
-	[ ])
-
-dnl use manual way since pkgconfig didn't work
-if test "x$CHECK_LIBS" = "x" ; then
-	AC_MSG_CHECKING(for libcheck)
-	for dir in $check_dirs ; do
-		exts="so sl dylib a"
-		for ext in $exts ; do
-			if test -r "$dir/lib/libcheck.${ext}" ; then
-				CHECK_HEADER_DIR="$dir/include"
-				CHECK_LIB_DIR="$dir/lib"
-				break
-			elif test -r "$dir/lib/x86_64-linux-gnu/libcheck.${ext}" ; then
-				CHECK_HEADER_DIR="$dir/include"
-				CHECK_LIB_DIR="$dir/lib/x86_64-linux-gnu"
-				break
-			elif test -r "$dir/lib/x86-linux-gnu/libcheck.${ext}" ; then
-				CHECK_HEADER_DIR="$dir/include"
-				CHECK_LIB_DIR="$dir/lib/x86-linux-gnu"
-				break
-			elif test -r "$dir/lib64/libcheck.${ext}" ; then
-				CHECK_HEADER_DIR="$dir/include"
-				CHECK_LIB_DIR="$dir/lib64"
-				break
-			fi
-		done
-		if test "x$CHECK_LIB_DIR" != "x" ; then
-			break
-		fi
-	done
-	if test "x$CHECK_LIB_DIR" = "x" ; then
-		AC_MSG_RESULT(libcheck not found)
-	else
-		CHECK_CFLAGS="-I${CHECK_HEADER_DIR}"
-		CHECK_LIBS="-L${CHECK_LIB_DIR} -lcheck"
-		AC_MSG_RESULT($CHECK_LIB_DIR)
-	fi
-fi
-
-AM_CONDITIONAL(HAVE_CHECK, [test "x$CHECK_LIBS" != "x"])
-AC_SUBST(CHECK_CFLAGS)
-AC_SUBST(CHECK_LIBS)
+AX_FIND_PACKAGE(check,
+	[/usr/local/check /usr/local/check32 /usr/local/check64 /usr/local],
+	[check.h],
+	[suite_create],
+	[check_pic check],
+	[subunit rt],
+	[/include/check /include /],
+	[/lib/check /lib /])
 dnl --------------------------
 
 dnl fairly severe build strictness
@@ -177,7 +137,7 @@ AC_CHECK_LIB(rt, clock_gettime, [], [])
 AC_CHECK_TYPE(socklen_t, [ AC_DEFINE(HAVE_SOCKLEN_T, [], [socklen_t]) ], [ ] , [
              #include <sys/types.h>
              #include <sys/socket.h>
- ] )
+ ] )librar
 
 AC_CHECK_TYPE([struct sockaddr_storage], [ AC_DEFINE(HAVE_SOCKADDR_STORAGE, [], [struct sockaddr_storage]) ], [ ] , [
              #include <sys/socket.h>
@@ -1112,7 +1072,11 @@ AC_ARG_ENABLE(tests,
 	[ build_tests=${enableval} ],
 	[ build_tests=yes ])
 
+
 if test "${build_tests}" = "yes" ; then
+	if test "${CHECK_FOUND}" != "yes" ; then
+		AC_MSG_ERROR([libcheck not found, requried for tests])
+	fi
 	BUILD_SUBDIRS="${BUILD_SUBDIRS} test"
 fi
 
