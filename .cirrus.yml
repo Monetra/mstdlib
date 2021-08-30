@@ -38,7 +38,7 @@ task:
           ;;
         FREEBSD)
           pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake check c-ares openssl-devel
+          pkg install -y autoconf gmake cmake check c-ares
           ;;
       esac
 
@@ -47,20 +47,20 @@ task:
       case "${BUILD_TYPE}" in
         cmake)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
-          cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          cmake -E env VERBOSE=1 --build _builds && \
+          cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
         asan)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds && \
-          cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
+          cmake -E env VERBOSE=1 --build _builds && \
+          cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
           ;;
         autotools)
           ./buildconf.sh && \
           mkdir build && \
           pushd build && \
           ../configure ${CONFIG_OPTS} && \
-          make -j2 && \
+          make VERBOSE=1 -j2 && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
           export CK_VERBOSITY=verbose && \
           make check && \
@@ -68,8 +68,8 @@ task:
           ;;
         analyze)
           ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
-          travis_wait 30 ${SCAN_BUILD} cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          ${SCAN_BUILD} cmake -E env VERBOSE=1 --build _builds && \
+          cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
        esac
 
