@@ -37,11 +37,19 @@ task:
       case "${DIST}" in
         DEBIAN)
           apt-get update && \
-          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools unixodbc-dev libsqlite3-dev libc-ares-dev check
+          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev libc-ares-dev check ninja-build
+          case "${BUILD_TYPE}" in
+            asan)
+              apt-get install -y clang
+              ;;
+            analyze)
+              apt-get install -y clang clang-tools
+              ;;
+          esac
           ;;
         FREEBSD)
           pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake check c-ares
+          pkg install -y autoconf gmake cmake check c-ares ninja
           ;;
       esac
 
@@ -49,12 +57,12 @@ task:
     - |
       case "${BUILD_TYPE}" in
         cmake)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -G Ninja -H. -B_builds && \
           cmake -E env VERBOSE=1 cmake --build _builds && \
           cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
         asan)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds && \
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
           cmake -E env VERBOSE=1 cmake --build _builds && \
           cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
           ;;
@@ -70,7 +78,7 @@ task:
           popd
           ;;
         analyze)
-          ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -G Ninja -H. -B_builds && \
           ${SCAN_BUILD} cmake -E env VERBOSE=1 cmake --build _builds && \
           cmake -E env VERBOSE=1 CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
