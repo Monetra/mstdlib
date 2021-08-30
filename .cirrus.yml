@@ -49,7 +49,7 @@ task:
           ;;
         FREEBSD)
           # pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake check c-ares ninja
+          pkg install -y autoconf automake libtool gmake cmake check c-ares ninja
           ;;
       esac
 
