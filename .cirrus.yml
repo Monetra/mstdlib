@@ -34,11 +34,11 @@ task:
       case "${DIST}" in
         DEBIAN)
           apt-get update && \
-          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools unixodbc-dev libsqlite3-dev libc-ares-dev
+          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools unixodbc-dev libsqlite3-dev libc-ares-dev check
           ;;
         FREEBSD)
           pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake
+          pkg install -y autoconf gmake cmake libcheck
           ;;
       esac
 
