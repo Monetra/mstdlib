@@ -27,7 +27,7 @@ task:
         DIST: "FREEBSD"
         SCAN_BUILD: "scan-build"
       freebsd_instance:
-        image: freebsd-12-2-release-amd64
+        image_family: freebsd-13-0
 
   install_script:
     - |
@@ -38,7 +38,7 @@ task:
           ;;
         FREEBSD)
           pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake check
+          pkg install -y autoconf gmake cmake check c-ares openssl-devel
           ;;
       esac
 
