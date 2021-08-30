@@ -33,30 +33,30 @@ find_path(Check_INCLUDE_DIR
 	HINTS         "${Check_DIR}"
 	              "$ENV{Check_DIR}"
 	              "${Check_ROOT_DIR}"
-				  "${PC_LIBCHECK_INCLUDE_DIRS}"
+	              "${PC_LIBCHECK_INCLUDE_DIRS}"
 	
 	PATHS         ${Check_PATH_LOCATIONS}
 	
 	PATH_SUFFIXES include
-				  check
-				  include/check
+                  check
+                  include/check
 )
 mark_as_advanced(FORCE Check_INCLUDE_DIR)
 
 find_library(Check_LIBRARY
 	NAMES         check_pic
-				  check
+                  check
 	NAMES_PER_DIR
-	
+
 	HINTS         "${Check_DIR}"
 	              "$ENV{Check_DIR}"
 	              "${Check_ROOT_DIR}"
-				  "${PC_LIBCHECK_LIBRARY_DIRS}"
-				  
+	              "${PC_LIBCHECK_LIBRARY_DIRS}"
+
 	PATHS         ${Check_PATH_LOCATIONS}
-	
+
 	PATH_SUFFIXES lib
-				  ""
+	              ""
 )
 mark_as_advanced(FORCE Check_LIBRARY)
 
@@ -66,12 +66,12 @@ find_library(Check_SUBUNIT_LIBRARY
 	HINTS         "${Check_DIR}"
 	              "$ENV{Check_DIR}"
 	              "${Check_ROOT_DIR}"
-				  "${PC_LIBCHECK_LIBRARY_DIRS}"
-				  
+	              "${PC_LIBCHECK_LIBRARY_DIRS}"
+
 	PATHS         ${Check_PATH_LOCATIONS}
-	
+
 	PATH_SUFFIXES lib
-				  ""
+	              ""
 )
 mark_as_advanced(FORCE Check_SUBUNIT_LIBRARY)
 
@@ -82,9 +82,9 @@ if (WIN32)
 		HINTS         "${Check_DIR}"
 		              "$ENV{Check_DIR}"
 		              "${Check_ROOT_DIR}"
-		
+
 		PATH_SUFFIXES lib
-					  ""
+		              ""
 	)
 	mark_as_advanced(FORCE Check_COMPAT_LIBRARY)
 endif ()
