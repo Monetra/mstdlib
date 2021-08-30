@@ -69,13 +69,13 @@ task:
         autotools)
           ./buildconf.sh && \
           mkdir build && \
-          pushd build && \
+          cd build && \
           ../configure ${CONFIG_OPTS} && \
           ${MAKE} V=1 -j2 && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
           export CK_VERBOSITY=verbose && \
           make check && \
-          popd
+          cd ..
           ;;
         analyze)
           ${SCAN_BUILD} -v cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -G Ninja -H. -B_builds && \
