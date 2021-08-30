@@ -71,13 +71,3 @@ task:
           ;;
        esac
 
-  script:
-    - autoconf
-    # We don't perfectly track freebsd stdlib.h definitions.  This is fine when
-    # we count as a system header, but breaks otherwise, like during these
-    # tests.
-    - ./configure --with-jemalloc-prefix=ci_ ${DEBUG_CONFIG} ${PROF_CONFIG} ${UNCOMMON_CONFIG}
-    - export JFLAG=`sysctl -n kern.smp.cpus`
-    - gmake -j${JFLAG}
-    - gmake -j${JFLAG} tests
-    - gmake check
