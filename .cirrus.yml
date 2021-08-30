@@ -20,12 +20,14 @@ task:
       env:
         DIST: "DEBIAN"
         SCAN_BUILD: "scan-build"
+        MAKE: "make"
       container:
         image: debian:latest
     - name: "FreeBSD"
       env:
         DIST: "FREEBSD"
         SCAN_BUILD: "scan-build"
+        MAKE: "gmake"
       freebsd_instance:
         image_family: freebsd-13-0
 
@@ -60,7 +62,7 @@ task:
           mkdir build && \
           pushd build && \
           ../configure ${CONFIG_OPTS} && \
-          make VERBOSE=1 -j2 && \
+          ${MAKE} VERBOSE=1 -j2 && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
           export CK_VERBOSITY=verbose && \
           make check && \
