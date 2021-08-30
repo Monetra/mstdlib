@@ -439,6 +439,7 @@ START_TEST(check_comments)
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS4), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS4);
 	M_free(out);
+	M_ini_destroy(ini);
 
 	/* Check for comments in data. */
 	M_ini_settings_set_padding(info, M_INI_PADDING_NONE);
@@ -447,13 +448,14 @@ START_TEST(check_comments)
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS5), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS5);
 	M_free(out);
+	M_ini_destroy(ini);
 
 	/* Check section can't have comment. */
 	ini = M_ini_read(CHECK_INI_COMMENTS6, info, M_TRUE, &errln);
 	ck_assert_msg(ini == NULL && errln != 0, "ini comments 6 was read when it should have failed");
+	M_ini_destroy(ini);
 
 	M_ini_settings_destroy(info);
-	M_ini_destroy(ini);
 }
 END_TEST
 
