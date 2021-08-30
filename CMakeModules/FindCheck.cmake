@@ -60,6 +60,21 @@ find_library(Check_LIBRARY
 )
 mark_as_advanced(FORCE Check_LIBRARY)
 
+find_library(Check_SUBUNIT_LIBRARY
+	NAMES         subunit
+	
+	HINTS         "${Check_DIR}"
+	              "$ENV{Check_DIR}"
+	              "${Check_ROOT_DIR}"
+				  "${PC_LIBCHECK_LIBRARY_DIRS}"
+				  
+	PATHS         ${Check_PATH_LOCATIONS}
+	
+	PATH_SUFFIXES lib
+				  ""
+)
+mark_as_advanced(FORCE Check_SUBUNIT_LIBRARY)
+
 if (WIN32)
 	find_library(Check_COMPAT_LIBRARY
 		NAMES         compat
@@ -91,6 +106,16 @@ if (Check_FOUND)
 			IMPORTED_LOCATION                 "${Check_COMPAT_LIBRARY}"
 		)
 	endif ()
+
+	#   Check::subunit: this one shouldn't be used directly, it's a link dependency of Check::check on some platforms.
+	if (NOT TARGET Check::subunit AND Check_SUBUNIT_LIBRARY)
+		add_library(Check::subunit UNKNOWN IMPORTED)
+		set_target_properties(Check::subunit PROPERTIES
+			IMPORTED_LINK_INTERFACE_LANGUAGES "C"
+			IMPORTED_LOCATION                 "${Check_SUBUNIT_LIBRARY}"
+		)
+	endif ()
+
 	#   Check::check: this is the main library that should be linked against externally.
 	if (NOT TARGET Check::check AND Check_LIBRARY AND Check_INCLUDE_DIR)
 		add_library(Check::check UNKNOWN IMPORTED)
@@ -103,6 +128,12 @@ if (Check_FOUND)
 			# Tell consumers to link to Check::compat along with Check::check.
 			set_target_properties(Check::check PROPERTIES
 				INTERFACE_LINK_LIBRARIES Check::compat
+			)
+		endif ()
+		if (TARGET Check::subunit)
+			# Tell consumers to link to Check::subunit along with Check::check.
+			set_target_properties(Check::check PROPERTIES
+				INTERFACE_LINK_LIBRARIES Check::subunit
 			)
 		endif ()
 		if (CMAKE_SYSTEM_NAME MATCHES "Linux")
