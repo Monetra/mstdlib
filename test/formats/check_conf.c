@@ -1474,10 +1474,10 @@ END_TEST
 START_TEST(check_sanity)
 {
 	/* Check that each registration fails its validation and sets the default value (not the zero value). */
-	const char *filename = "./tmp_conf_check_sanity.ini";
-	M_conf_t   *conf     = NULL;
+	const char *filename   = "./tmp_conf_check_sanity.ini";
+	M_conf_t   *conf       = NULL;
 	char        mem_buf[64];
-	char       *mem_strdup;
+	char       *mem_strdup = NULL;
 	M_int8      mem_int8;
 	M_int16     mem_int16;
 	M_int32     mem_int32;
@@ -1502,6 +1502,7 @@ START_TEST(check_sanity)
 	M_conf_register_strdup(conf, "strdup_key", &mem_strdup, "default", "(A|B)+", NULL);
 	ck_assert_msg(!M_conf_parse(conf), "strdup passed validation");
 	ck_assert_msg(M_str_eq(mem_strdup, "default"), "strdup  was not set to default value");
+	M_free(mem_strdup);
 	M_conf_destroy(conf); conf = NULL;
 
 	conf = M_conf_create(filename, M_FALSE, NULL, 0);
