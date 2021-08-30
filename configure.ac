@@ -682,12 +682,22 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 			AC_DEFINE([HAVE_PTHREAD_RWLOCK_INIT], [], [pthread_rwlockattr_init exists])
 			AC_SUBST(HAVE_PTHREAD_RWLOCK_INIT)
 		fi
-		AC_CHECK_DECL(pthread_rwlockattr_setkind_np, [ pthread_rwlockattr_setkind_np="yes"], [ pthread_rwlockattr_setkind_np="no" ], [ #include <pthread.h> ])
+		AC_CHECK_DECL(pthread_rwlockattr_setkind_np, [ pthread_rwlockattr_setkind_np="yes"], [ pthread_rwlockattr_setkind_np="no" ], [
+#include <pthread.h>
+#ifdef HAVE_PTHREAD_NP_H
+#  include <pthread_np.h>
+#endif
+		])
 		if test "$pthread_rwlockattr_setkind_np" = "yes" ; then
 			AC_DEFINE([HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP], [], [pthread_rwlockattr_setkind_np exists])
 			AC_SUBST(HAVE_PTHREAD_RWLOCKATTR_SETKIND_NP)
 		fi
-		AC_CHECK_DECL(pthread_setaffinity_np, [ pthread_setaffinity_np="yes"], [ pthread_setaffinity_np="no" ], [ #include <pthread.h> ])
+		AC_CHECK_DECL(pthread_setaffinity_np, [ pthread_setaffinity_np="yes"], [ pthread_setaffinity_np="no" ], [
+#include <pthread.h>
+#ifdef HAVE_PTHREAD_NP_H
+#  include <pthread_np.h>
+#endif
+		])
 		if test "$pthread_setaffinity_np" = "yes" ; then
 			AC_DEFINE([HAVE_PTHREAD_SETAFFINITY_NP], [], [pthread_setaffinity_np exists])
 			AC_SUBST(HAVE_PTHREAD_SETAFFINITY_NP)
