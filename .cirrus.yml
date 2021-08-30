@@ -1,0 +1,84 @@
+env:
+  CIRRUS_CLONE_DEPTH: 1
+
+task:
+  matrix:
+    - name: "CMAKE"
+      env:
+        BUILD_TYPE="cmake"
+    - name: "AUTOTOOLS"
+      env:
+        BUILD_TYPE="autotools"
+    - name: "ASAN"
+      env:
+        BUILD_TYPE="asan"
+    - name: "ANALYZE"
+      env:
+        BUILD_TYPE="analyze"
+  matrix:
+    - name: "Debian"
+      env:
+        DIST="DEBIAN"
+      container:
+        image: debian:latest
+    - name: "FreeBSD"
+      env:
+        DIST="FREEBSD"
+      freebsd_instance:
+        image: freebsd-12-2-release-amd64
+
+  install_script:
+    - |
+      case "${DIST}" in
+        DEBIAN)
+          apt-get update && \
+          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools-7 unixodbc-dev libsqlite3-dev libc-ares-dev
+          ;;
+        FREEBSD)
+          pkg upgrade -y && \
+          pkg install -y autoconf gmake cmake
+          ;;
+      esac
+
+
+  script:
+    - |
+      case "${BUILD_TYPE}" in
+        cmake)
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          cmake --build _builds && \
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          ;;
+        asan)
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -H. -B_builds && \
+          cmake --build _builds && \
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
+          ;;
+        autotools)
+          ./buildconf.sh && \
+          mkdir build && \
+          pushd build && \
+          ../configure ${CONFIG_OPTS} && \
+          make -j2 && \
+          cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
+          export CK_VERBOSITY=verbose && \
+          make check && \
+          popd
+          ;;
+        analyze)
+          ${SCAN_BUILD} cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -H. -B_builds && \
+          travis_wait 30 ${SCAN_BUILD} cmake --build _builds && \
+          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          ;;
+       esac
+
+  script:
+    - autoconf
+    # We don't perfectly track freebsd stdlib.h definitions.  This is fine when
+    # we count as a system header, but breaks otherwise, like during these
+    # tests.
+    - ./configure --with-jemalloc-prefix=ci_ ${DEBUG_CONFIG} ${PROF_CONFIG} ${UNCOMMON_CONFIG}
+    - export JFLAG=`sysctl -n kern.smp.cpus`
+    - gmake -j${JFLAG}
+    - gmake -j${JFLAG} tests
+    - gmake check
