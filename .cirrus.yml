@@ -17,13 +17,9 @@ task:
         BUILD_TYPE="analyze"
   matrix:
     - name: "Debian"
-      env:
-        DIST="DEBIAN"
       container:
         image: debian:latest
     - name: "FreeBSD"
-      env:
-        DIST="FREEBSD"
       freebsd_instance:
         image: freebsd-12-2-release-amd64
 
