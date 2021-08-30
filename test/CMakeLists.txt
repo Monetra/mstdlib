@@ -132,7 +132,9 @@ if (MSTDLIB_BUILD_IO)
 		io/check_event_interactions.c
 		io/check_event_timer.c
 	)
-	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Windows"
+		OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux"
+		OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		list(APPEND tests
 			io/check_hid.c
 		)
