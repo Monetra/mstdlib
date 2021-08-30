@@ -19,11 +19,13 @@ task:
     - name: "Debian"
       env:
         DIST: "DEBIAN"
+        SCAN_BUILD: "scan-build"
       container:
         image: debian:latest
     - name: "FreeBSD"
       env:
         DIST: "FREEBSD"
+        SCAN_BUILD: "scan-build"
       freebsd_instance:
         image: freebsd-12-2-release-amd64
 
@@ -32,7 +34,7 @@ task:
       case "${DIST}" in
         DEBIAN)
           apt-get update && \
-          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools-7 unixodbc-dev libsqlite3-dev libc-ares-dev
+          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev clang-tools unixodbc-dev libsqlite3-dev libc-ares-dev
           ;;
         FREEBSD)
           pkg upgrade -y && \
