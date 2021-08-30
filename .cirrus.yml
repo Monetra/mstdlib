@@ -19,8 +19,7 @@ task:
     - name: "Debian"
       env:
         DIST: "DEBIAN"
-        LC_CTYPE: "en_US.UTF-8"
-        LC_ALL: "en_US.UTF-8"
+        LC_ALL: "C"
         SCAN_BUILD: "scan-build"
         MAKE: "make"
       container:
