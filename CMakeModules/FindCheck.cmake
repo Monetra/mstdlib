@@ -99,7 +99,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Check DEFAULT_MSG
 if (Check_FOUND)
 	# Create import libraries.
 	#   Check::compat: this one shouldn't be used directly, it's a link dependency of Check::check on some platforms.
-	if (NOT TARGET Check::compat AND Check_COMPAT_LIBRARY)
+	if (NOT TARGET Check::compat AND EXISTS "${Check_COMPAT_LIBRARY}")
 		add_library(Check::compat UNKNOWN IMPORTED)
 		set_target_properties(Check::compat PROPERTIES
 			IMPORTED_LINK_INTERFACE_LANGUAGES "C"
@@ -108,7 +108,7 @@ if (Check_FOUND)
 	endif ()
 
 	#   Check::subunit: this one shouldn't be used directly, it's a link dependency of Check::check on some platforms.
-	if (NOT TARGET Check::subunit AND Check_SUBUNIT_LIBRARY)
+	if (NOT TARGET Check::subunit AND EXISTS "${Check_SUBUNIT_LIBRARY}")
 		add_library(Check::subunit UNKNOWN IMPORTED)
 		set_target_properties(Check::subunit PROPERTIES
 			IMPORTED_LINK_INTERFACE_LANGUAGES "C"
@@ -117,7 +117,7 @@ if (Check_FOUND)
 	endif ()
 
 	#   Check::check: this is the main library that should be linked against externally.
-	if (NOT TARGET Check::check AND Check_LIBRARY AND Check_INCLUDE_DIR)
+	if (NOT TARGET Check::check AND EXISTS "${Check_LIBRARY}" AND EXISTS "${Check_INCLUDE_DIR}")
 		add_library(Check::check UNKNOWN IMPORTED)
 		set_target_properties(Check::check PROPERTIES
 			INTERFACE_INCLUDE_DIRECTORIES     "${Check_INCLUDE_DIR}"
@@ -147,10 +147,10 @@ if (Check_FOUND)
 	# TODO: remove these once everybody is updated to use import libs.
 	set(Check_INCLUDE_DIRS ${Check_INCLUDE_DIR})
 	set(Check_LIBRARIES ${Check_LIBRARY})
-	if (Check_COMPAT_LIBRARY)
+	if (EXISTS "${Check_COMPAT_LIBRARY}")
 		list(APPEND Check_LIBRARIES ${Check_COMPAT_LIBRARY})
 	endif ()
-	if (Check_SUBUNIT_LIBRARY)
+	if (EXISTS "${Check_SUBUNIT_LIBRARY}")
 		list(APPEND Check_LIBRARIES ${Check_SUBUNIT_LIBRARY})
 	endif ()
 endif ()
