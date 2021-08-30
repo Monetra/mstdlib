@@ -126,20 +126,14 @@ if (Check_FOUND)
 		)
 		if (TARGET Check::compat)
 			# Tell consumers to link to Check::compat along with Check::check.
-			set_target_properties(Check::check PROPERTIES
-				INTERFACE_LINK_LIBRARIES Check::compat
-			)
+			target_link_libraries(Check::check INTERFACE Check::compat)
 		endif ()
 		if (TARGET Check::subunit)
 			# Tell consumers to link to Check::subunit along with Check::check.
-			set_target_properties(Check::check PROPERTIES
-				INTERFACE_LINK_LIBRARIES Check::subunit
-			)
+			target_link_libraries(Check::check INTERFACE Check::subunit)
 		endif ()
 		if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-			set_target_properties(Check::check PROPERTIES
-				INTERFACE_LINK_LIBRARIES -lrt
-			)
+			target_link_libraries(Check::check INTERFACE "rt")
 		endif ()
 	endif ()
 	
@@ -152,5 +146,8 @@ if (Check_FOUND)
 	endif ()
 	if (EXISTS "${Check_SUBUNIT_LIBRARY}")
 		list(APPEND Check_LIBRARIES ${Check_SUBUNIT_LIBRARY})
+	endif ()
+	if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+		list(APPEND Check_LIBRARIES rt)
 	endif ()
 endif ()
