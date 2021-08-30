@@ -58,6 +58,9 @@ AX_FIND_PACKAGE(check,
 	[subunit rt],
 	[/include/check /include /],
 	[/lib/check /lib /])
+
+AM_CONDITIONAL([HAVE_CHECK],        [ test $CHECK_FOUND = yes ])
+
 dnl --------------------------
 
 dnl fairly severe build strictness
