@@ -38,7 +38,7 @@ task:
           ;;
         FREEBSD)
           pkg upgrade -y && \
-          pkg install -y autoconf gmake cmake libcheck
+          pkg install -y autoconf gmake cmake check
           ;;
       esac
 
