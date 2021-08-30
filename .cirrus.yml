@@ -48,7 +48,7 @@ task:
           esac
           ;;
         FREEBSD)
-          pkg upgrade -y && \
+          # pkg upgrade -y && \
           pkg install -y autoconf gmake cmake check c-ares ninja
           ;;
       esac
