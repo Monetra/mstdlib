@@ -5,21 +5,25 @@ task:
   matrix:
     - name: "CMAKE"
       env:
-        BUILD_TYPE="cmake"
+        BUILD_TYPE: "cmake"
     - name: "AUTOTOOLS"
       env:
-        BUILD_TYPE="autotools"
+        BUILD_TYPE: "autotools"
     - name: "ASAN"
       env:
-        BUILD_TYPE="asan"
+        BUILD_TYPE: "asan"
     - name: "ANALYZE"
       env:
-        BUILD_TYPE="analyze"
+        BUILD_TYPE: "analyze"
   matrix:
     - name: "Debian"
+      env:
+        DIST: "DEBIAN"
       container:
         image: debian:latest
     - name: "FreeBSD"
+      env:
+        DIST: "FREEBSD"
       freebsd_instance:
         image: freebsd-12-2-release-amd64
 
