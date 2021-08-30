@@ -40,7 +40,6 @@ task:
           ;;
       esac
 
-
   script:
     - |
       case "${BUILD_TYPE}" in
