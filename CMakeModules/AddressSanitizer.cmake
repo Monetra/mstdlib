@@ -4,7 +4,11 @@
 include(CheckCCompilerFlag)
 #include(CheckCXXCompilerFlag) #Uncommenting C++ stuff enables ASAN for Qt code, might not work right.
 
-set(asan_flags "-fsanitize=address -fno-omit-frame-pointer")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(asan_flags "-fsanitize=address,undefined,leak -fno-omit-frame-pointer -fno-sanitize-recover=all")
+else ()
+  set(asan_flags "-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all")
+endif()
 
 function(check_asan_flags)
 	set(CMAKE_REQUIRED_LIBRARIES "${asan_flags}")
