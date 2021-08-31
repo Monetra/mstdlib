@@ -49,7 +49,7 @@ task:
           ;;
         FREEBSD)
           # pkg upgrade -y && \
-          pkg install -y cmake check c-ares ninja
+          pkg install -y cmake check c-ares ninja mariadb-connector-c postgresql13-client doxygen unixODBC
           case "${BUILD_TYPE}" in
             asan|analyze)
               pkg install -y llvm
