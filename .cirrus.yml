@@ -34,7 +34,7 @@ task:
         OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
         SQLite_DIR: "/usr/local/opt/sqlite"
         PostgreSQL_DIR: "/usr/local/opt/libpq"
-        CONFIG_OPTS: "--with-openssl-dir=/usr/localopt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
+        CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
       macos_instance:
         image: big-sur-xcode
   matrix:
