@@ -70,8 +70,9 @@ endif
 
 if MSTDLIB_THREAD
 TESTS +=  \
-		thread/check_thread_coop \
 		thread/check_thread_native
+#thread/check_thread_coop \
+
 AM_LDFLAGS += -L$(top_builddir)/thread/.libs/
 LDADD += $(top_builddir)/thread/libmstdlib_thread.la
 endif
