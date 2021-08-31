@@ -31,6 +31,10 @@ task:
         DIST: "MACOS"
         SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
         MAKE: "make"
+        OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
+        SQLite_DIR: "/usr/local/opt/sqlite"
+        PostgreSQL_DIR: "/usr/local/opt/libpq"
+        CONFIG_OPTS: "--with-openssl-dir=/usr/localopt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
       macos_instance:
         image: big-sur-xcode
   matrix:
@@ -94,12 +98,12 @@ task:
     - |
       case "${BUILD_TYPE}" in
         cmake)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -G Ninja -H. -B_builds && \
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
           cmake --build _builds && \
           cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
           ;;
         asan)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
           cmake --build _builds && \
           cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
           ;;
