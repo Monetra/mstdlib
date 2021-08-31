@@ -2,6 +2,21 @@ env:
   CIRRUS_CLONE_DEPTH: 1
 
 task:
+    matrix:
+    - name: "CMAKE"
+      env:
+        BUILD_TYPE: "cmake"
+    - name: "AUTOTOOLS"
+      env:
+        BUILD_TYPE: "autotools"
+    - name: "ASAN"
+      # FreeBSD just hangs trying to run tests, think it may be trying to run leak sanitizer
+      only_if: $DIST != 'FREEBSD'
+      env:
+        BUILD_TYPE: "asan"
+    - name: "ANALYZE"
+      env:
+        BUILD_TYPE: "analyze"
   matrix:
     - name: "Debian amd64"
       env:
@@ -26,21 +41,13 @@ task:
         MAKE: "gmake"
       freebsd_instance:
         image_family: freebsd-13-0
-  matrix:
-    - name: "CMAKE"
+    - name: "MacOS"
       env:
-        BUILD_TYPE: "cmake"
-    - name: "AUTOTOOLS"
-      env:
-        BUILD_TYPE: "autotools"
-    - name: "ASAN"
-      # FreeBSD just hangs trying to run tests, think it may be trying to run leak sanitizer
-      only_if: $DIST != 'FREEBSD'
-      env:
-        BUILD_TYPE: "asan"
-    - name: "ANALYZE"
-      env:
-        BUILD_TYPE: "analyze"
+        DIST: "MACOS"
+        SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
+        MAKE: "make"
+      macos_instance:
+        image: big-sur-xcode
 
   install_script:
     - |
@@ -66,6 +73,17 @@ task:
               ;;
             autotools)
               pkg install -y autoconf automake libtool gmake
+              ;;
+          esac
+          ;;
+        MACOS)
+          brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite ninja cmake
+          case "${BUILD_TYPE}" in
+            asan|analyze)
+              brew install llvm
+              ;;
+            autotools)
+              brew install autoconf automake libtool make
               ;;
           esac
           ;;
