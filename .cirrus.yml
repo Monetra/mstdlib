@@ -77,6 +77,7 @@ task:
           esac
           ;;
         MACOS)
+          brew update && \
           brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite ninja cmake
           case "${BUILD_TYPE}" in
             asan|analyze)
