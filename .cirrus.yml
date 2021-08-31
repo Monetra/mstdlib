@@ -2,21 +2,6 @@ env:
   CIRRUS_CLONE_DEPTH: 1
 
 task:
-    matrix:
-    - name: "CMAKE"
-      env:
-        BUILD_TYPE: "cmake"
-    - name: "AUTOTOOLS"
-      env:
-        BUILD_TYPE: "autotools"
-    - name: "ASAN"
-      # FreeBSD just hangs trying to run tests, think it may be trying to run leak sanitizer
-      only_if: $DIST != 'FREEBSD'
-      env:
-        BUILD_TYPE: "asan"
-    - name: "ANALYZE"
-      env:
-        BUILD_TYPE: "analyze"
   matrix:
     - name: "Debian amd64"
       env:
@@ -48,6 +33,21 @@ task:
         MAKE: "make"
       macos_instance:
         image: big-sur-xcode
+  matrix:
+    - name: "CMAKE"
+      env:
+        BUILD_TYPE: "cmake"
+    - name: "AUTOTOOLS"
+      env:
+        BUILD_TYPE: "autotools"
+    - name: "ASAN"
+      # FreeBSD just hangs trying to run tests, think it may be trying to run leak sanitizer
+      only_if: $DIST != 'FREEBSD'
+      env:
+        BUILD_TYPE: "asan"
+    - name: "ANALYZE"
+      env:
+        BUILD_TYPE: "analyze"
 
   install_script:
     - |
