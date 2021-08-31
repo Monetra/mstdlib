@@ -104,7 +104,7 @@ if (MSTDLIB_BUILD_FORMATS)
 endif ()
 # thread
 if (MSTDLIB_BUILD_THREAD)
-	if (NOT M_ASAN)
+	if (NOT M_ASAN AND NOT MSTDLIB_BUILD_FOR_CI)
 		# The coop test yields false-positives when built with ASAN.
 		list(APPEND slow_tests
 			thread/check_thread_coop.c
