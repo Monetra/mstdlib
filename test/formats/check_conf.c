@@ -557,9 +557,9 @@ static M_bool bool_real_cb(M_bool *mem, const char *value, M_bool default_val)
 
 static M_bool custom_real_cb(void *mem, const char *value)
 {
-	(void)value;
-
 	M_int64 *custom = mem;
+
+	(void)value;
 
 	*custom = 999;
 
@@ -1113,7 +1113,7 @@ START_TEST(check_single_value)
 	key        = "key3";
 	want_value = NULL;
 	conf_value = M_conf_get_value(conf, key);
-	ck_assert_msg(M_str_eq(conf_value, want_value), "wrong %s value (want %s, have %s)", key, want_value, conf_value);
+	ck_assert_msg(M_str_eq(conf_value, want_value), "wrong %s value (want %s, have %s)", key, M_str_safe(want_value), conf_value);
 
 	values     = M_conf_get_values(conf, key);
 	ck_assert_msg(M_list_str_len(values) == 0, "values exist for %s", key);
@@ -1172,7 +1172,7 @@ START_TEST(check_multiple_values)
 	key        = "key3";
 	want_value = NULL;
 	conf_value = M_conf_get_value(conf, key);
-	ck_assert_msg(M_str_eq(conf_value, want_value), "wrong %s value (want %s, have %s)", key, want_value, conf_value);
+	ck_assert_msg(M_str_eq(conf_value, want_value), "wrong %s value (want %s, have %s)", key, M_str_safe(want_value), conf_value);
 
 	values     = M_conf_get_values(conf, key);
 	ck_assert_msg(M_list_str_len(values) == 0, "values for %s", key);
