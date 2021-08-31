@@ -39,14 +39,14 @@
 #
 #   Example:
 #
-#    AX_FIND_PACKAGE(openssl, [/usr/local/ssl /usr/local/openssl /usr/local], [ssl.h], [EVP_EncryptInit], [crypto])
+#    AX_FIND_PACKAGE(openssl, [/usr/local/ssl /usr/local/openssl /usr/local /usr/local/ssl1.1], [openssl/ssl.h], [SSL_connect], [ssl], [-lcrypto])
 #
 #    might result in shell variables being set:
 #
 #    OPENSSL_FOUND=yes
 #    OPENSSL_CPPFLAGS=-I/usr/local/ssl/include
 #    OPENSSL_LDFLAGS=-Wl,-rpath-link,/usr/local/ssl/lib -L/usr/local/ssl/lib
-#    OPENSSL_LIBADD=-lcrypto
+#    OPENSSL_LIBADD=-lssl -lcrypto
 #
 #    or if not found:
 #

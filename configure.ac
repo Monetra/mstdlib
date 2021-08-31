@@ -859,77 +859,14 @@ if test "${build_mstdlib_tls}" = "yes" ; then
 		AC_MSG_ERROR(TLS REQUIRES IO)
 	fi
 
-	if test "$INTERNAL_BUILD" = "yes" ; then
-		ssl_dirs="/usr/local/ssl-purify /usr/local/ssl /usr/local /usr"
-	else
-		ssl_dirs="/usr /usr/local /usr/local/ssl"
-	fi
-	AC_ARG_WITH(ssl-dir,
-		AC_HELP_STRING([--with-ssl-dir=<dir>], [Paths to search for openssl (default=$ssl_dirs)]),
-		[ ssl_dirs=$withval ],
-		[ ])
+	AX_FIND_PACKAGE(openssl, [/usr/local/ssl /usr/local/openssl /usr/local /usr/local/ssl1.1], [openssl/ssl.h], [SSL_connect], [ssl], [-lcrypto])
 
-	AC_MSG_CHECKING(for ssl library location)
-	ssl_dir=""
-	for dir in $ssl_dirs ; do
-		exts="so sl dylib a"
-		for ext in $exts ; do
-			if test -r "$dir/lib/libssl.${ext}" ; then
-				ssl_header_dir="$dir/include"
-				ssl_lib_dir="$dir/lib"
-				ssl_ext=$ext
-				break
-			elif test -r "$dir/lib/x86_64-linux-gnu/libssl.${ext}" ; then
-				ssl_header_dir="$dir/include"
-				ssl_lib_dir="$dir/lib/x86_64-linux-gnu"
-				ssl_ext=$ext
-				break
-			elif test -r "$dir/lib/x86-linux-gnu/libssl.${ext}" ; then
-				ssl_header_dir="$dir/include"
-				ssl_lib_dir="$dir/lib/x86-linux-gnu"
-				ssl_ext=$ext
-				break
-			elif test -r "$dir/lib64/libssl.${ext}" ; then
-				ssl_header_dir="$dir/include"
-				ssl_lib_dir="$dir/lib64"
-				ssl_ext=$ext
-				break
-			fi
-		done
-		if test "x$ssl_lib_dir" != "x" ; then
-			break
-		fi
-	done
-	if test "x$ssl_lib_dir" = "x" ; then
+	if test "x${OPENSSL_FOUND}" != "xyes" ; then
 		AC_MSG_ERROR(OpenSSL not found)
 	fi
-	AC_MSG_RESULT($ssl_lib_dir)
 
-
-	AC_ARG_ENABLE(ssl-static,
-		AS_HELP_STRING([--enable-ssl-static],
-		               [statically link against OpenSSL (default disabled)]),
-		[
-			ssl_static=$enableval
-			AC_MSG_RESULT(--enable-ssl-static specified as $enableval)
-		], [
-			AC_MSG_RESULT(--enable-ssl-static NOT SPECIFIED)
-			if test "x$ssl_ext" = "xa" ; then
-				ssl_static=yes
-			else
-				ssl_static=no
-			fi
-		])
-
-	if test "$ssl_static" = "yes" ; then
-		SSL_LIBS=""  # $ssl_lib_dir/libssl.a $ssl_lib_dir/libcrypto.a"
-	else
-		SSL_LIBS="-lssl -lcrypto"
-	fi
-
-	LDFLAGS="${LDFLAGS} -L$ssl_lib_dir"
-	CPPFLAGS="${CPPFLAGS} -I$ssl_header_dir"
-	AC_SUBST(SSL_LIBS)
+	LDFLAGS="${LDFLAGS} ${OPENSSL_LDFLAGS}"
+	CPPFLAGS="${CPPFLAGS} ${OPENSSL_CPPFLAGS}"
 
 	BUILD_SUBDIRS="${BUILD_SUBDIRS} tls"
 fi

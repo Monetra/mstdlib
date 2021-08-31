@@ -13,7 +13,7 @@ libmstdlib_tls_la_SOURCES =  \
 	m_tls_serverctx.c
 
 libmstdlib_tls_la_DEPENDENCIES = @ADD_OBJECTS@
-libmstdlib_tls_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/thread/libmstdlib_thread.la $(top_builddir)/io/libmstdlib_io.la @SSL_LIBS@
+libmstdlib_tls_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/thread/libmstdlib_thread.la $(top_builddir)/io/libmstdlib_io.la @OPENSSL_LIBADD@
 
 if MACOSX
 libmstdlib_tls_la_LDFLAGS += -framework Security
