@@ -490,7 +490,7 @@ static M_bool M_io_jni_register_funcs(void)
 		/* Locate class */
 		cls = M_io_jni_find_class(env, M_io_jni_lookups[i].class);
 		if (cls == NULL) {
-			M_io_jni_debug("Failed to %s find class %s", M_io_jni_lookups[i].is_required?"required":"optional", M_io_jni_lookups[i].class);
+			M_io_jni_debug("Failed to find %s class %s", M_io_jni_lookups[i].is_required?"required":"optional", M_io_jni_lookups[i].class);
 			if (M_io_jni_lookups[i].is_required)
 				is_error = M_TRUE;
 			continue;
