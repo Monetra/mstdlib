@@ -740,7 +740,7 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	/* Get the UsbManager. */
 	manager = get_usb_manager(env);
 	if (manager == NULL) {
-		*ioerr = M_IO_ERROR_NOSYSRESOURCES;
+		*ioerr = M_IO_ERROR_NOTIMPL;
 		goto err;
 	}
 
