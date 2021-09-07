@@ -817,7 +817,7 @@ static ssize_t M_str_fmt_handle_control(M_str_fmt_t *data, M_parser_t *parser, M
 				/* UBSan rightly points out that -1 * M_INT64_MIN is not possible to be
 				 * represented by a signed integer.  Work around that shortcoming here. */
 				if (sdval == M_INT64_MIN) {
-					udval = M_INT64_MAX + 1;
+					udval = ((M_uint64)M_INT64_MAX) + 1;
 				} else {
 					udval = (M_uint64)M_ABS(sdval);
 				}
