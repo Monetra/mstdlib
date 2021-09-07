@@ -70,7 +70,7 @@ M_int64 M_decimal_to_int(const M_decimal_t *dec, M_uint8 implied_dec)
 }
 
 
-#if defined(__clang__)
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ > 7)
 #  define M_IGNORE_SIGNED_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
 #else
 #  define M_IGNORE_SIGNED_OVERFLOW
