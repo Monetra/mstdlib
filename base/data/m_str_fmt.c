@@ -814,7 +814,15 @@ static ssize_t M_str_fmt_handle_control(M_str_fmt_t *data, M_parser_t *parser, M
 			case 'd':
 			case 'i':
 				sdval   = M_str_fmt_get_signed_integer(data_type, ap);
-				out_len = M_str_fmt_add_integer_just(data, (M_uint64)M_ABS(sdval), 10, sdval<0?M_FALSE:M_TRUE, sign_type, M_FALSE, M_FALSE, pad_char, pad_len, ljust);
+				/* UBSan rightly points out that -1 * M_INT64_MIN is not possible to be
+				 * represented by a signed integer.  Work around that shortcoming here. */
+				if (sdval == M_INT64_MIN) {
+					udval = M_INT64_MAX + 1;
+				} else {
+					udval = (M_uint64)M_ABS(sdval);
+				}
+
+				out_len = M_str_fmt_add_integer_just(data, udval, 10, sdval<0?M_FALSE:M_TRUE, sign_type, M_FALSE, M_FALSE, pad_char, pad_len, ljust);
 				goto done;
 
 			case 'o':
