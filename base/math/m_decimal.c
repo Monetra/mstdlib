@@ -462,7 +462,7 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 }
 
 
-enum M_DECIMAL_RETVAL M_decimal_subtract(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
+M_IGNORE_SIGNED_OVERFLOW enum M_DECIMAL_RETVAL M_decimal_subtract(M_decimal_t *dest, const M_decimal_t *dec1, const M_decimal_t *dec2)
 {
 	M_decimal_t           tdec1;
 	M_decimal_t           tdec2;
