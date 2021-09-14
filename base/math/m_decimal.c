@@ -367,12 +367,13 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 {
 	M_decimal_t           tdec1;
 	M_decimal_t           tdec2;
-	enum M_DECIMAL_RETVAL rv = M_DECIMAL_SUCCESS;
+	enum M_DECIMAL_RETVAL rv          = M_DECIMAL_SUCCESS;
 	enum M_DECIMAL_RETVAL preprv;
+	enum M_DECIMAL_RETVAL afterdecrv  = M_DECIMAL_SUCCESS;
 	M_int64               num;          /*!< Whole integer of integer calculation */
 	M_int64               rem;          /*!< Remainder of integer calculation     */
-	M_int64               afterdec = 0; /*!< Whole integer of integer calculation of numbers after decimal */
-	M_int64               remexp   = 0; /*!< Remainder * 10^wanteddec */
+	M_int64               afterdec    = 0; /*!< Whole integer of integer calculation of numbers after decimal */
+	M_int64               remexp      = 0; /*!< Remainder * 10^wanteddec */
 	M_uint8               wanted_dec;   /*!< Number of desired decimal places in output */
 
 	if (dest == NULL || (preprv = M_decimal_prepmath(&tdec1, &tdec2, dec1, dec2, M_FALSE)) == M_DECIMAL_INVALID)
@@ -390,14 +391,13 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 	 * results in a number with no implied decimal places.  To compensate for
 	 * this, you must mod those numbers muliply to 10^num_dec then re-divide
 	 * by the original divisor to get the decimal places you need */
-
 	num        = tdec1.num / tdec2.num;
 	rem        = tdec1.num % tdec2.num;
 
 	/* Loop until we can get the most decimal places that will fit in our
-	 * number which starts at one more than the input number of decimal
-	 * places */
-	wanted_dec = (M_uint8)(tdec1.num_dec + 1);
+	 * number . Always go for the maximum 18. */
+	wanted_dec = 18;
+
 	while (wanted_dec) {
 		M_int64 exp;
 
@@ -421,6 +421,9 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 	if (rv != M_DECIMAL_SUCCESS && rv != M_DECIMAL_TRUNCATION)
 		return rv;
 
+	if (rv == M_DECIMAL_TRUNCATION)
+		afterdecrv = M_DECIMAL_TRUNCATION;
+
 	/* Loop losing precision until we can represent the number appropriately */
 	while (wanted_dec) {
 		M_int64 exp;
@@ -432,8 +435,11 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 		if (rv == M_DECIMAL_SUCCESS)
 			break;
 
-		/* Otherwise overflow occurred and we need to lose precision */
-		M_decimal_div_int64(&afterdec, afterdec, 10, round);
+		/* Otherwise overflow occurred trying to store such a big number, so we need
+		 * to truncate.  However, if we're truncating zeros, that's fine */
+		if (M_decimal_div_int64(&afterdec, afterdec, 10, round) == M_DECIMAL_TRUNCATION)
+			afterdecrv = M_DECIMAL_TRUNCATION;
+
 		wanted_dec--;
 	}
 
@@ -443,7 +449,7 @@ enum M_DECIMAL_RETVAL M_decimal_divide(M_decimal_t *dest, const M_decimal_t *dec
 
 	dest->num_dec = wanted_dec;
 
-	if (wanted_dec != tdec1.num_dec + 1 || preprv == M_DECIMAL_TRUNCATION) {
+	if (afterdecrv == M_DECIMAL_TRUNCATION || preprv == M_DECIMAL_TRUNCATION) {
 		rv = M_DECIMAL_TRUNCATION;
 	} else {
 		rv = M_DECIMAL_SUCCESS;
