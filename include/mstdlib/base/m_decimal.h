@@ -219,8 +219,8 @@ M_API enum M_DECIMAL_RETVAL M_decimal_multiply(M_decimal_t *dest, const M_decima
 
 /*! Divide the two decimals, putting the result in dest.
  *
- * The destination and one of the sources may be the same. The number of resulting decimal places will be the same as
- * the largest input.
+ * The destination and one of the sources may be the same. The maximum number of decimal places able to be represented
+ * will be.
  *
  * \param[out] dest  New decimal with result.
  * \param[in]  dec1  First decimal (numerator).
