@@ -72,6 +72,8 @@ static const struct math_test math_tests[] = {
  	{ "2.2",        "1.1",       M_decimal_subtract,    M_DECIMAL_SUCCESS,  "1.1"   },
 	{ "2.2",        "2.2",       M_decimal_multiply,    M_DECIMAL_SUCCESS,  "4.84"  },
 	{ "1.23",       "5",         M_decimal_divide_trad, M_DECIMAL_SUCCESS,  "0.246" },
+	{ "1.23",       "7",         M_decimal_divide_trad, M_DECIMAL_TRUNCATION,  "0.1757142857142857" },
+	{ "3",          "7",         M_decimal_divide_trad, M_DECIMAL_TRUNCATION,  "0.428571428571428571" },
 	{ "1.01",       "0.001",     M_decimal_add,         M_DECIMAL_SUCCESS,  "1.011" },
 
 	/* Range */
