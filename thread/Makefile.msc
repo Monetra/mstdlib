@@ -41,6 +41,7 @@ OBJS      = \
 	m_thread.obj            \
 	m_thread_coop.obj       \
 	m_threadpool.obj        \
+	m_thread_pipeline.obj   \
 	m_thread_rwlock_emu.obj \
 	m_thread_tls.obj        \
 	m_thread_win.obj        \

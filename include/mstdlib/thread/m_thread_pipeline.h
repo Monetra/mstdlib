@@ -182,7 +182,8 @@ typedef M_bool (*M_thread_pipeline_task_cb)(M_thread_pipeline_task_t *task);
 typedef enum {
     M_THREAD_PIPELINE_RESULT_SUCCESS = 1, /*!< Task completed successfully */
     M_THREAD_PIPELINE_RESULT_FAIL    = 2, /*!< Task failed -- record error in user-defined task structure */
-    M_THREAD_PIPELINE_RESULT_ABORT   = 3  /*!< Task was forcibly aborted due to a failure of another task */
+    M_THREAD_PIPELINE_RESULT_ABORT   = 3  /*!< Task was forcibly aborted due to a failure of another task,
+                                               or M_thread_pipeline_destroy() was called before completion */
 } M_thread_pipeline_result_t;
 
 /*! User-defined, and required, callback at the completion of each task.
@@ -222,7 +223,10 @@ M_API void M_thread_pipeline_steps_destroy(M_thread_pipeline_steps_t *steps);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /*! Initialize the thread pipeline with the various steps to be performed for each task.
- *  This will spawn one thread per step.
+ *  This will spawn one thread per step and immediately start all threads.  There is no
+ *  additional function to start the pipeline other than to insert each task to be
+ *  processed.
+ *
  *  \param[in] steps     Pointer to steps to perform for each task.  The passed in pointer
  *                       is internally duplicated, so it may be destroyed immediately
  *                       after this function returns.

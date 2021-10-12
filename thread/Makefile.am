@@ -11,6 +11,7 @@ libmstdlib_thread_la_SOURCES = \
 	m_thread.c \
 	m_thread_coop.c \
 	m_threadpool.c \
+	m_thread_pipeline.c \
 	m_thread_rwlock_emu.c \
 	m_thread_tls.c
 
