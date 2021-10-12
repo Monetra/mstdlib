@@ -350,6 +350,7 @@ M_bool M_thread_pipeline_task_insert(M_thread_pipeline_t *pipeline, M_thread_pip
 
 	M_list_insert(pipeline->queue, task);
 	M_thread_cond_signal(pipeline->steps[0].cond);
+	pipeline->cnt++;
 
 fail:
 	M_thread_mutex_unlock(pipeline->lock);
