@@ -17,5 +17,6 @@
 #include <mstdlib/thread/m_popen.h>
 #include <mstdlib/thread/m_thread.h>
 #include <mstdlib/thread/m_threadpool.h>
+#include <mstdlib/thread/m_thread_pipeline.h>
 
 #endif /* __MSTDLIB_THREAD_H__ */
