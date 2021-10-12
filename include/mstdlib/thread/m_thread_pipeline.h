@@ -150,6 +150,12 @@ __BEGIN_DECLS
  * @{
  */
 
+/*! Flags for pipeline initialization */
+typedef enum {
+    M_THREAD_PIPELINE_FLAG_NONE    = 0,      /*!< No flags, normal operation */
+    M_THREAD_PIPELINE_FLAG_NOABORT = 1 << 0  /*!< Do not abort all other enqueued tasks due to a failure of another task */
+} M_thread_pipeline_flags_t;
+
 /*! Caller-defined structure to hold task data.  It is the only data element
  *  passed from thread to thread and must track its own state based on knowing
  *  how the pipeline is configured */
@@ -172,20 +178,23 @@ typedef struct M_thread_pipeline M_thread_pipeline_t;
  */
 typedef M_bool (*M_thread_pipeline_task_cb)(M_thread_pipeline_task_t *task);
 
+/*! Result codes passed to M_thread_pipeline_taskfinish_cb() */
 typedef enum {
-    M_THREAD_PIPELINE_RESULT_SUCCESS = 1,
-    M_THREAD_PIPELINE_RESULT_FAIL    = 2,
-    M_THREAD_PIPELINE_RESULT_ABORT   = 3
+    M_THREAD_PIPELINE_RESULT_SUCCESS = 1, /*!< Task completed successfully */
+    M_THREAD_PIPELINE_RESULT_FAIL    = 2, /*!< Task failed -- record error in user-defined task structure */
+    M_THREAD_PIPELINE_RESULT_ABORT   = 3  /*!< Task was forcibly aborted due to a failure of another task */
 } M_thread_pipeline_result_t;
 
 /*! User-defined, and required, callback at the completion of each task.
  *  This may be called:
  *   - Upon completion of task, whether successful or not (see result)
- *   - Upon abort due to a prior task failure
+ *   - Upon abort due to a prior task failure if the pipeline is configured
+ *     to abort all other tasks if a single task fails (default).
  *  At a minimum, this must free any memory associated with the user-defined
  *  task structure.
  *
- *  \param[in]
+ *  \param[in] task User-defined task structure
+ *  \param[in] result the result of the task, one of M_thread_pipeline_result_t.
  */
 typedef void (*M_thread_pipeline_taskfinish_cb)(M_thread_pipeline_task_t *task, M_thread_pipeline_result_t result);
 
@@ -198,11 +207,12 @@ M_API M_thread_pipeline_steps_t *M_thread_pipeline_steps_create(void);
 
 /*! Insert a step into the task pipeline
  *
- *  \param[in] steps   Initialized piipeline steps structure from M_thread_pipeline_steps_create()
+ *  \param[in] steps   Initialized pipeline steps structure from M_thread_pipeline_steps_create()
+ *  \param[in] flags   One or more pipeline flags from M_thread_pipeline_flags_t
  *  \param[in] task_cb Task to perform
  *  \return M_TRUE on success, M_FALSE on usage error.
  */
-M_API M_bool M_thread_pipeline_steps_insert(M_thread_pipeline_steps_t *steps, M_thread_pipeline_task_cb task_cb);
+M_API M_bool M_thread_pipeline_steps_insert(M_thread_pipeline_steps_t *steps, int flags, M_thread_pipeline_task_cb task_cb);
 
 /*! Destroy the task step list initialized with M_thread_pipeline_steps_create()
  *
@@ -224,11 +234,13 @@ M_API void M_thread_pipeline_steps_destroy(M_thread_pipeline_steps_t *steps);
  *                       in place.
  *  \return initialized M_thread_pipeline_t or NULL on failure (usage, thread limits)
  */
-M_API M_thread_pipeline_t *M_thread_pipeline_create(const M_thread_pipeline_steps_t *steps, M_thread_pipeline_taskfinish_cb finish_cb);
+M_API M_thread_pipeline_t *M_thread_pipeline_create(const M_thread_pipeline_steps_t *steps,  M_thread_pipeline_taskfinish_cb finish_cb);
 
-/*! Insert a task into the thread pipeline. This function will BLOCK if the first
- *  step thread is still occupied with a prior task and will resume as soon as the
- *  task is handed off to the next step/thread.
+/*! Insert a task into the thread pipeline.
+ *
+ *  This function will enqueue tasks into an internal task list indefinitely and will not block. If it
+ *  is desirable to cap the enqueued task list, please see M_thread_pipeline_wait() and M_thread_pipeline_queue_count().
+ *
  *  \param[in] pipeline Pointer to the initialized thread pipeline returned from M_thread_pipeline_create().
  *  \param[in] task     User-defined task structure describing task to be perfomed for each step.
  *                      It is the responsibility of the user to define their own private
@@ -240,10 +252,28 @@ M_API M_thread_pipeline_t *M_thread_pipeline_create(const M_thread_pipeline_step
  */
 M_API M_bool M_thread_pipeline_task_insert(M_thread_pipeline_t *pipeline, M_thread_pipeline_task_t *task);
 
-/*! Wait for all pipeline tasks/steps to complete.
- *  \param[in] pipeline Pipeline initialized with M_thread_pipeline_create()
+/*! Wait pipeline tasks/steps to complete to the task queue limit specified.
+ *  \param[in] pipeline    Pipeline initialized with M_thread_pipeline_create()
+ *  \param[in] queue_limit Will block until the queued task list is reduced to
+ *                         at least this size.  Use 0 to wait until all tasks are
+ *                         completed.
  */
-M_API void M_thread_pipeline_wait(M_thread_pipeline_t *pipeline);
+M_API void M_thread_pipeline_wait(M_thread_pipeline_t *pipeline, size_t queue_limit);
+
+
+/*! Count of queued tasks, this includes the task currently being processed if any.
+ * \param[in] pipeline Pipeline initialized with M_thread_pipeline_create()
+ * \return count of queued tasks.
+ */
+M_API size_t M_thread_pipeline_queue_count(M_thread_pipeline_t *pipeline);
+
+
+/*! Retrieve if the pipeline is in a good state.  The only time a pipeline will
+ *  not be in a good state is if a step failed.
+ *  \return M_TRUE if in a good state
+ */
+M_API M_bool M_thread_pipeline_status(M_thread_pipeline_t *pipeline);
+
 
 /*! Destroy the thread pipeline.  If there are any outstanding tasks/steps, they will be
  *  aborted and return an abort error code to their finish_cb
