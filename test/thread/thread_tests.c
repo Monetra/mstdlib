@@ -961,6 +961,104 @@ START_TEST(check_once)
 }
 END_TEST
 
+struct M_thread_pipeline_task {
+	const char *name;
+	M_uint8    *buf;
+	size_t      buf_len;
+	M_bool     *overall_rv;
+};
+
+static void plfinish_cb(M_thread_pipeline_task_t *task, M_thread_pipeline_result_t result)
+{
+	if (result != M_THREAD_PIPELINE_RESULT_SUCCESS) {
+		M_printf("task %s failed\n", task->name);
+		*(task->overall_rv) = M_FALSE;
+	} else if (M_str_len(task->name)+1 != task->buf_len || !M_mem_eq(task->name, task->buf, task->buf_len)) {
+		M_printf("task %s final name did not match\n", task->name);
+		*(task->overall_rv) = M_FALSE;
+	}
+	M_free(task->buf);
+	M_free(task);
+}
+
+static M_bool plfetch_cb(M_thread_pipeline_task_t *task)
+{
+	task->buf = M_memdup(task->name, M_str_len(task->name)+1);
+	task->buf_len = M_str_len(task->name)+1;
+
+	return M_TRUE;
+}
+
+static M_bool plencode_cb(M_thread_pipeline_task_t *task)
+{
+	M_uint8 *raw     = task->buf;
+	size_t   rawlen  = task->buf_len;
+
+	task->buf     = (unsigned char *)M_bincodec_encode_alloc(raw, rawlen, 0, M_BINCODEC_BASE64);
+	task->buf_len = M_str_len((char *)task->buf);
+	M_free(raw);
+
+	if (!task->buf)
+		return M_FALSE;
+	return M_TRUE;
+}
+
+static M_bool pldecode_cb(M_thread_pipeline_task_t *task)
+{
+	M_uint8 *b64    = task->buf;
+	size_t   b64len = task->buf_len;
+
+	task->buf_len = 0;
+	task->buf     = M_bincodec_decode_alloc((const char *)b64, b64len, &task->buf_len, M_BINCODEC_BASE64);
+
+	M_free(b64);
+
+	if (!task->buf)
+		return M_FALSE;
+	return M_TRUE;
+}
+
+
+START_TEST(check_pipeline)
+{
+	const char *tasks[] = {
+		"red",
+		"white",
+		"blue",
+		"yellow",
+		"green",
+		"brown",
+		NULL
+	};
+
+	M_bool                     rv       = M_TRUE;
+
+	M_thread_pipeline_t       *pipeline = NULL;
+	M_thread_pipeline_steps_t *steps    = NULL;
+	size_t                     i;
+
+	steps = M_thread_pipeline_steps_create();
+	M_thread_pipeline_steps_insert(steps, plfetch_cb);
+	M_thread_pipeline_steps_insert(steps, plencode_cb);
+	M_thread_pipeline_steps_insert(steps, pldecode_cb);
+
+	pipeline = M_thread_pipeline_create(steps, M_THREAD_PIPELINE_FLAG_NONE, plfinish_cb);
+	M_thread_pipeline_steps_destroy(steps);
+
+	for (i=0; tasks[i] != NULL; i++) {
+		M_thread_pipeline_task_t *task = M_malloc_zero(sizeof(*task));
+		task->name       = tasks[i];
+		task->overall_rv = &rv;
+		M_thread_pipeline_task_insert(pipeline, task);
+	}
+
+	M_thread_pipeline_wait(pipeline, 0);
+	M_thread_pipeline_destroy(pipeline);
+
+	ck_assert_msg(rv, "pipeline test failed");
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *M_thread_suite(M_thread_model_t model, const char *name)
@@ -1050,6 +1148,10 @@ static Suite *M_thread_suite(M_thread_model_t model, const char *name)
 
 	tc = tcase_create("check_once");
 	tcase_add_test(tc, check_once);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("check_pipeline");
+	tcase_add_test(tc, check_pipeline);
 	suite_add_tcase(suite, tc);
 
 	return suite;

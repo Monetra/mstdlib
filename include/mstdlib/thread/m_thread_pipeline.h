@@ -132,7 +132,7 @@ __BEGIN_DECLS
  *       M_thread_pipeline_steps_insert(steps, encrypt_cb);
  *       M_thread_pipeline_steps_insert(steps, write_cb);
  *
- *       pipeline = M_thread_pipeline_create(steps, finish_cb);
+ *       pipeline = M_thread_pipeline_create(steps, M_THREAD_PIPELINE_FLAG_NONE, finish_cb);
  *       M_thread_pipeline_steps_destroy(steps);
  *
  *       for (i=0; tasks[i] != NULL; i++) {
@@ -141,7 +141,7 @@ __BEGIN_DECLS
  *         M_thread_pipeline_task_insert(pipeline, task);
  *       }
  *
- *       M_thread_pipeline_wait(pipeline);
+ *       M_thread_pipeline_wait(pipeline, 0);
  *       M_thread_pipeline_destroy(pipeline);
  *       return 0;
  *     }

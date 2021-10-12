@@ -86,9 +86,10 @@ void M_thread_pipeline_wait(M_thread_pipeline_t *pipeline, size_t queue_limit)
 {
 	if (pipeline == NULL)
 		return;
-	while (1) {
-		M_thread_mutex_lock(pipeline->lock);
 
+	M_thread_mutex_lock(pipeline->lock);
+
+	while (1) {
 		if (pipeline->cnt <= queue_limit)
 			break;
 
@@ -182,12 +183,12 @@ static M_thread_pipeline_task_t *pipeline_fetch_task(M_thread_pipeline_step_t *s
 		task = M_list_take_first(pipeline->queue);
 	}
 
-	if (task != NULL) {
-		/* If we took a task, notify prior thread we have a slot */
-		if (step->idx != 0) {
-			M_thread_cond_signal(pipeline->steps[idx - 1].cond);
-		}
-	} else {
+	/* Notify prior step we have a slot */
+	if (step->idx != 0) {
+		M_thread_cond_signal(pipeline->steps[idx - 1].cond);
+	}
+
+	if (task == NULL) {
 		M_thread_cond_wait(step->cond, pipeline->lock);
 	}
 
@@ -228,7 +229,6 @@ static void pipeline_finish_step(M_thread_pipeline_step_t *step, M_thread_pipeli
 		pipeline_finish_task(pipeline, task, rv);
 		return;
 	}
-
 	/* send to next step in pipeline */
 	while (pipeline->steps[idx+1].task != NULL) {
 		/* Wait to be notified */
