@@ -208,11 +208,10 @@ M_API M_thread_pipeline_steps_t *M_thread_pipeline_steps_create(void);
 /*! Insert a step into the task pipeline
  *
  *  \param[in] steps   Initialized pipeline steps structure from M_thread_pipeline_steps_create()
- *  \param[in] flags   One or more pipeline flags from M_thread_pipeline_flags_t
  *  \param[in] task_cb Task to perform
  *  \return M_TRUE on success, M_FALSE on usage error.
  */
-M_API M_bool M_thread_pipeline_steps_insert(M_thread_pipeline_steps_t *steps, int flags, M_thread_pipeline_task_cb task_cb);
+M_API M_bool M_thread_pipeline_steps_insert(M_thread_pipeline_steps_t *steps, M_thread_pipeline_task_cb task_cb);
 
 /*! Destroy the task step list initialized with M_thread_pipeline_steps_create()
  *
@@ -227,6 +226,7 @@ M_API void M_thread_pipeline_steps_destroy(M_thread_pipeline_steps_t *steps);
  *  \param[in] steps     Pointer to steps to perform for each task.  The passed in pointer
  *                       is internally duplicated, so it may be destroyed immediately
  *                       after this function returns.
+ *  \param[in] flags   One or more pipeline flags from M_thread_pipeline_flags_t
  *  \param[in] finish_cb Callback to be called after each task is completed.  At a minimum,
  *                       this should free the memory assocated with the task pointer.  The
  *                       finish_cb is not called from the same thread as enqueued it so
@@ -234,7 +234,7 @@ M_API void M_thread_pipeline_steps_destroy(M_thread_pipeline_steps_t *steps);
  *                       in place.
  *  \return initialized M_thread_pipeline_t or NULL on failure (usage, thread limits)
  */
-M_API M_thread_pipeline_t *M_thread_pipeline_create(const M_thread_pipeline_steps_t *steps,  M_thread_pipeline_taskfinish_cb finish_cb);
+M_API M_thread_pipeline_t *M_thread_pipeline_create(const M_thread_pipeline_steps_t *steps, int flags, M_thread_pipeline_taskfinish_cb finish_cb);
 
 /*! Insert a task into the thread pipeline.
  *
