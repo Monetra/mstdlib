@@ -120,15 +120,18 @@ size_t M_base64_encode_size(size_t inlen, size_t wrap)
 	if (inlen == 0)
 		return 0;
 
-	ret = inlen;
-	/* Get the total size of encoded data. */
-	ret *= 4;
-	ret /= 3;
-	/* Adjust for padding */
-	ret += (inlen%3)?3-(inlen%3):0;
-	/* Calculate the \r\n's we'll need to add for wrapping. */
-	if (wrap > 0)
-		ret += (ret/wrap);
+	/* Get the total size of encoded data including padding. */
+	ret = ((4 * inlen / 3) + 3) & ~(size_t)3;
+
+	/* Calculate the \n's we'll need to add for wrapping. */
+	if (wrap > 0) {
+		if (ret % wrap) {
+			ret += (ret/wrap);
+		} else {
+			/* If it ends on a even multiple, the last newline is stripped */
+			ret += (ret/wrap) - 1;
+		}
+	}
 
 	/* Assuming null termination. */
 	return ret+1;
