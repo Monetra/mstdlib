@@ -314,7 +314,7 @@ static M_list_str_t *M_dns_happyeb_sort(M_dns_t *dns, const M_list_str_t *ipaddr
 	 * but with happy eyeballs, we then want to interleave ipv6 and ipv4 addresses,
 	 * so we need to into 2 arrays. */
 	for (i=0; i<len; i++) {
-		const char *addr = M_list_at(ipaddrs, i);
+		const char *addr = M_list_str_at(ipaddrs, i);
 		if (M_str_chr(addr,':')) {
 			ipv6list[num_ipv6++] = addr;
 		} else {
@@ -382,7 +382,7 @@ static void M_io_dns_ares_update_timeout(M_io_layer_t *layer)
 	size_t         i;
 
 	for (i=0; i<M_list_len(handle->dns->ares_channels); i++) {
-		M_dns_ares_t *achannel = M_list_at(handle->dns->ares_channels, i);
+		M_dns_ares_t *achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_at(handle->dns->ares_channels, i));
 
 		M_mem_set(&to, 0, sizeof(to));
 		to.tv_sec  = 86400;
@@ -419,7 +419,7 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	/* Iterate across all open channels.  There should be always 1 good one, then
 	 * there could be some that are pending a destroy until all queries are flushed */
 	for (i=0; i<M_list_len(handle->dns->ares_channels); i++) {
-		M_dns_ares_t *achannel = M_list_at(handle->dns->ares_channels, i);
+		M_dns_ares_t *achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_at(handle->dns->ares_channels, i));
 
 		cnt = 0;
 
@@ -677,7 +677,7 @@ static M_bool M_dns_reload_server(M_dns_t *dns, M_bool force_reload)
 	int                 err;
 	struct ares_options options;
 	size_t              num_servers;
-	M_dns_ares_t       *achannel = M_list_last(dns->ares_channels);
+	M_dns_ares_t       *achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_last(dns->ares_channels));
 
 	if (achannel && !force_reload && M_time() < achannel->load_ts + (M_time_t)dns->server_cache_timeout_s)
 		return M_TRUE;
@@ -941,7 +941,7 @@ static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M
 	/* Reload DNS settings if system cache timeout has expired */
 	M_dns_reload_server(query->dns, M_FALSE);
 
-	achannel = M_list_last(query->dns->ares_channels);
+	achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_last(query->dns->ares_channels));
 	achannel->queries_pending++;
 	query->achannel = achannel;
 	M_thread_mutex_unlock(query->dns->lock);
