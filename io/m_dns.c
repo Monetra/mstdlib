@@ -80,7 +80,7 @@ struct M_dns_cache_entry {
 	char         *hostname; /*!< Hostname being queried */
 	int           aftype;   /*!< one of AF_INET, AF_INET6, AF_UNSPEC */
 	M_time_t      ts;       /*!< Last updated time */
-	M_time_t      ttl;      /*!< TTL returned from DNS for how long to cache entry */
+	M_uint64      ttl;      /*!< TTL returned from DNS for how long to cache entry */
 
 	M_list_str_t *addrs;    /*!< List of cached results */
 };
@@ -110,11 +110,10 @@ static void M_dns_cache_purge_stale(M_dns_t *dns)
 	M_time_t             t         = M_time();
 
 	while (M_queue_foreach(dns->cache, &q_foreach, (void **)&entry)) {
-		char entrystr[256];
 		/* If we hit an entry with a non-expired cache, we can stop.
 		 * NOTE we don't rely on TTL here as we keep it in cache if we
 		 *      can't hit DNS servers for some reason to handle DNS blips */
-		if (entry->ts + dns->query_cache_max_s > t) {
+		if (entry->ts + (M_time_t)dns->query_cache_max_s > t) {
 			break;
 		}
 		/* Delete the entry */
@@ -144,7 +143,7 @@ static M_dns_cache_entry_t *M_dns_cache_insert_entry(M_dns_t *dns, const char *h
 	M_dns_cache_entry_t        *entry;
 	struct ares_addrinfo_node  *node    = ai->nodes;
 	struct ares_addrinfo_cname *cnode   = ai->cnames;
-	int                         min_ttl = dns->query_cache_max_s;
+	M_uint64                    min_ttl = dns->query_cache_max_s;
 
 	entry = M_dns_cache_get_entry(dns, hostname, aftype);
 	if (entry != NULL) {
@@ -163,25 +162,29 @@ static M_dns_cache_entry_t *M_dns_cache_insert_entry(M_dns_t *dns, const char *h
 		char str[128];
 		void *ptr = NULL;
 		switch (node->ai_family) {
-			case AF_INET:
-				ptr = &((struct sockaddr_in *)node->ai_addr)->sin_addr;
+			case AF_INET: {
+				struct sockaddr_in *sa = (struct sockaddr_in *)((void *)node->ai_addr);
+				ptr = &sa->sin_addr;
 				break;
-			case AF_INET6:
-				ptr = &((struct sockaddr_in6 *)node->ai_addr)->sin6_addr;
+			}
+			case AF_INET6: {
+				struct sockaddr_in6 *sa = (struct sockaddr_in6 *)((void *)node->ai_addr);
+				ptr = &sa->sin6_addr;
 				break;
+			}
 		}
 		if (ptr && M_dns_ntop(node->ai_family, ptr, str, sizeof(str))) {
 			M_list_str_insert(entry->addrs, str);
-			if (node->ai_ttl < min_ttl)
-				min_ttl = node->ai_ttl;
+			if (node->ai_ttl > 0 && (M_uint64)node->ai_ttl < min_ttl)
+				min_ttl = (M_uint64)node->ai_ttl;
 		}
 		node = node->ai_next;
 	}
 
 	/* Scan through cnames just to make sure we have the real min_ttl */
 	while (cnode != NULL) {
-		if (cnode->ttl < min_ttl)
-			min_ttl = cnode->ttl;
+		if (cnode->ttl > 0 && (M_uint64)cnode->ttl < min_ttl)
+			min_ttl = (M_uint64)cnode->ttl;
 	}
 
 	/* Lets just make our real minimum 1 incase something hit 0 */
@@ -282,7 +285,7 @@ static void M_dns_happyeb_purge_expired(M_dns_t *dns)
 		M_llist_node_t         *next   = M_llist_node_next(node);
 
 		/* Stop when we hit non-expired entries */
-		if (result->ts + dns->happyeyeballs_cache_max_s < t) {
+		if (result->ts + (M_time_t)dns->happyeyeballs_cache_max_s < t) {
 			break;
 		}
 
@@ -401,6 +404,9 @@ static void M_io_dns_ares_update_timeout(M_io_layer_t *layer)
 
 static void M_dns_removeevent_self_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *arg)
 {
+	(void)event;
+	(void)type;
+	(void)io;
 	M_event_remove(arg);
 }
 
@@ -433,9 +439,10 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 			M_hash_u64vp_enumerate_free(hashenum);
 
 			for (j=0; j<M_list_u64_len(fdlist); j++) {
+				ares_socket_t fd = (ares_socket_t)M_list_u64_at(fdlist, i);
 					ares_process_fd(achannel->channel,
-					                (ares_socket_t)(*type != M_EVENT_TYPE_WRITE)?M_list_u64_at(fdlist, i):ARES_SOCKET_BAD,
-					                (ares_socket_t)(*type == M_EVENT_TYPE_WRITE)?M_list_u64_at(fdlist, i):ARES_SOCKET_BAD);
+					                (*type != M_EVENT_TYPE_WRITE)?fd:ARES_SOCKET_BAD,
+					                (*type == M_EVENT_TYPE_WRITE)?fd:ARES_SOCKET_BAD);
 				cnt++;
 			}
 
@@ -538,8 +545,6 @@ static M_io_state_t M_io_dns_state_cb(M_io_layer_t *layer)
 static M_bool M_io_dns_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_event_t     *event  = M_io_get_event(io);
 
 	if (!handle->isup)
 		return M_TRUE;
@@ -590,8 +595,8 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 
 	M_EVENT_HANDLE handle = M_EVENT_INVALID_HANDLE;
 
-	if (M_hash_u64vp_get(dns->sockhandle, sock_fd, &val)) {
-		handle = (M_EVENT_HANDLE)val;
+	if (M_hash_u64vp_get(dns->sockhandle, (M_uint64)sock_fd, &val)) {
+		handle = (M_EVENT_HANDLE)((M_uintptr)val);
 	}
 
 	/* We don't know anything about this, safe to exit */
@@ -608,7 +613,7 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 #else
 		handle = sock_fd;
 #endif
-		M_hash_u64vp_insert(dns->sockhandle, sock_fd, (void *)handle);
+		M_hash_u64vp_insert(dns->sockhandle, (M_uint64)sock_fd, (void *)(M_uintptr)handle);
 		M_event_handle_modify(dns->event, M_EVENT_MODTYPE_ADD_HANDLE, dns->io, handle, sock_fd, 0, M_EVENT_CAPS_READ|M_EVENT_CAPS_WRITE);
 	}
 
@@ -685,7 +690,7 @@ static M_bool M_dns_reload_server(M_dns_t *dns, M_bool force_reload)
 	 * query to allow */
 	num_servers                = M_dns_num_servers(achannel?achannel->channel:NULL);
 	options.tries              = 2;
-	options.timeout            = (int)(dns->query_timeout_ms / (num_servers * options.tries));
+	options.timeout            = (int)(dns->query_timeout_ms / (num_servers * (size_t)options.tries));
 	options.sock_state_cb      = M_dns_ares_sock_state_cb;
 	options.sock_state_cb_data = dns;
 
@@ -844,6 +849,9 @@ typedef struct  {
 static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
 	M_dns_query_t *query    = cb_arg;
+	(void)event;
+	(void)type;
+	(void)io;
 
 	query->callback(query->ipaddrs, query->cb_data, query->result);
 
@@ -857,6 +865,8 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 {
 	M_dns_query_t       *query = arg;
 	M_dns_cache_entry_t *entry = NULL;
+
+	(void)timeouts;
 
 	switch (status) {
 		case ARES_SUCCESS:
@@ -921,6 +931,10 @@ static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M
 		0,
 		0
 	};
+
+	(void)event;
+	(void)type;
+	(void)io;
 
 	M_thread_mutex_lock(query->dns->lock);
 
@@ -1067,7 +1081,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 
 	M_thread_mutex_lock(dns->lock);
 	entry = M_dns_cache_get_entry(dns, hostname, aftype);
-	if (entry != NULL && (entry->ts + entry->ttl) > M_time()) {
+	if (entry != NULL && (entry->ts + (M_time_t)entry->ttl) > M_time()) {
 		M_list_str_t *ipaddrs = M_dns_happyeb_sort(dns, entry->addrs);
 		M_thread_mutex_unlock(dns->lock);
 
