@@ -172,7 +172,7 @@ static M_bool M_io_block_regevent(M_io_t *io, M_io_block_request_t request, M_io
 		}
 		data = io->sync_data;
 	} else {
-		event             = M_event_create(M_EVENT_FLAG_NOWAKE);
+		event             = M_event_create(M_EVENT_FLAG_NONE);
 		if (io->sync_data != NULL) {
 			data          = io->sync_data;
 		} else {

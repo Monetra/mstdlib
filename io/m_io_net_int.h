@@ -71,7 +71,6 @@ struct M_io_handle_netdns {
 	M_io_t             **io_try;         /*!< IO handles for each DNS entry                                  */
 	size_t               io_try_cnt;     /*!< Count of IO handle being attempted                             */
 	size_t               io_try_idx;     /*!< Last index used to start a connection                          */
-	M_io_t              *io_dns;         /*!< DNS lookup IO handle                                           */
 	M_io_t              *io;             /*!< Pointer to either IPv6 or IPv4 IO handle, whichever was chosen */
 	char                 error[256];     /*!< Error message if we generated it (most likely DNS)             */
 	M_timeval_t          query_start;    /*!< When query was initiated                                       */

@@ -26,14 +26,14 @@
 
 
 /*! Status of a single connection attempt */
-enum M_dns_happyeyeballs_status {
-	M_HAPPYEYEBALLS_STATUS_GOOD    = 0, /*!< Successfully connected to server                */
-	M_HAPPYEYEBALLS_STATUS_UNKNOWN = 1, /*!< Don't know, probably not attempted              */
-	M_HAPPYEYEBALLS_STATUS_SLOW    = 2, /*!< Don't know for sure its bad, but we started and
+enum M_dns_happyeb_status {
+	M_HAPPYEB_STATUS_GOOD    = 0, /*!< Successfully connected to server                */
+	M_HAPPYEB_STATUS_UNKNOWN = 1, /*!< Don't know, probably not attempted              */
+	M_HAPPYEB_STATUS_SLOW    = 2, /*!< Don't know for sure its bad, but we started and
 	                                     * a different connection finished first             */
-	M_HAPPYEYEBALLS_STATUS_BAD     = 3, /*!< Recieved a connection error                     */
+	M_HAPPYEB_STATUS_BAD     = 3, /*!< Recieved a connection error                     */
 };
-typedef enum M_dns_happyeyeballs_status M_dns_happyeyeballs_status_t;
+typedef enum M_dns_happyeb_status M_dns_happyeb_status_t;
 
 
 enum M_dns_result {
@@ -60,12 +60,10 @@ typedef void (*M_io_dns_callback_t)(const M_list_str_t *ipaddrs, void *cb_data, 
 /*! Request to resolve a DNS hostname to one or more IP addresses.  When the resolution
  *  is complete, the callback passed in will be called.  This function may call the
  *  callback immediately if the DNS result is cached.   Once the supplied callback is
- *  called, the query will be automatically cleaned up.  The returned M_io_t * handle
- *  is only available for terminating a pending request and must never be used to clean
- *  up after the supplied callback has been called */
-M_io_t *M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_uint16 port, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data);
+ *  called, the query will be automatically cleaned up.  */
+void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_uint16 port, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data);
 
-void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_uint16 port, M_dns_happyeyeballs_status_t status);
+void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_status_t status);
 
 M_bool M_dns_pton(int af, const char *src, void *dst);
 M_bool M_dns_ntop(int af, const void *src, char *addr, size_t addr_size);

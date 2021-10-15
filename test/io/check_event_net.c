@@ -269,7 +269,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 {
 	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(scalable_only?M_EVENT_FLAG_SCALABLE_ONLY:M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
-	M_dns_t           *dns   = M_dns_create();
+	M_dns_t           *dns   = M_dns_create(event);
 	size_t             i;
 	M_event_err_t      err;
 	conn_state_t      *connstate;
@@ -362,7 +362,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 
 START_TEST(check_event_net_pool)
 {
-	M_uint64 tests[] = { 1, 25, 50, /* 100, */ 0 };
+	M_uint64 tests[] = { 1, 5, 25, 50, /* 100, */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {

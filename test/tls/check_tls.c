@@ -21,7 +21,7 @@ M_thread_mutex_t *debug_lock = NULL;
 
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -77,7 +77,7 @@ static void net_check_cleanup(M_event_t *event)
 		if (netserver != NULL) {
 			M_io_destroy(netserver);
 			netserver = NULL;
-//	event_debug("%s(): ev:%p Calling M_event_done_with_disconnect", __FUNCTION__, event);
+	event_debug("%s(): ev:%p Calling M_event_done_with_disconnect", __FUNCTION__, event);
 			M_event_done_with_disconnect(event, 0, 5*1000);
 		}
 	}
@@ -351,6 +351,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	M_tls_clientctx_t  *clientctx;
 	M_list_str_t       *applist;
 	M_io_error_t        ioerr;
+	M_dns_t            *dns  = M_dns_create(event);
 	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 	const char * const hosts[] = { "localhost"
 #ifdef RANDOMIZE_HOSTS
@@ -520,7 +521,7 @@ M_printf("ServerCert: %s\n", realcert);
 	}
 	event_debug("listener added to event");
 	for (i=0; i<num_connections; i++) {
-		if (M_io_net_client_create(&netclient, NULL, hosts[i % (sizeof(hosts) / sizeof(*hosts))], port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+		if (M_io_net_client_create(&netclient, dns, hosts[i % (sizeof(hosts) / sizeof(*hosts))], port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create net client");
 			return M_EVENT_ERR_RETURN;
 		}
@@ -546,6 +547,7 @@ M_printf("ServerCert: %s\n", realcert);
 	event_debug("%zu remaining objects", M_event_num_objects(event));
 	/* Cleanup */
 
+	M_dns_destroy(dns);
 	M_event_destroy(event);
 
 	M_tls_clientctx_destroy(clientctx);
@@ -733,6 +735,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	M_tls_clientctx_t  *clientctx;
 	M_io_error_t        ioerr;
 	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_dns_t           *dns     = M_dns_create(event);
 	const char * const hosts[] = { "localhost" };
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -837,7 +840,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	}
 	event_debug("listener added to event");
 
-	if (M_io_net_client_create(&netclient, NULL, hosts[0], port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
+	if (M_io_net_client_create(&netclient, dns, hosts[0], port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net client");
 		return M_EVENT_ERR_RETURN;
 	}
@@ -862,6 +865,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	event_debug("exited loop");
 	/* Cleanup */
 
+	M_dns_destroy(dns);
 	M_event_destroy(event);
 
 	M_tls_clientctx_destroy(clientctx);

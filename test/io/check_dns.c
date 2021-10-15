@@ -150,6 +150,9 @@ end:
 	return data;
 }
 
+static M_dns_t *dns = NULL;
+
+
 static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *data)
 {
 	M_buf_t *buf = NULL;
@@ -214,6 +217,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 				M_event_return(event);
 				event_debug("net client %p ERROR", io);
 				M_io_destroy(io);
+				M_dns_destroy(dns);
 				break;
 			}
 
@@ -222,6 +226,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 			 *       little test case here. */
 			event_debug("net client %p DISCONNECTED", io);
 			M_io_destroy(io);
+			M_dns_destroy(dns);
 			break;
 		default:
 			/* Ignore */
@@ -258,9 +263,8 @@ START_TEST(check_dns)
 #ifdef USE_SSL
 	M_tls_clientctx_t *ctx       = NULL;
 #endif
-	M_dns_t           *dns;
 
-	dns = M_dns_create();
+	dns = M_dns_create(event);
 	ck_assert_msg(dns != NULL, "DNS failed to initialized");
 
 #ifdef USE_SSL
@@ -283,7 +287,6 @@ START_TEST(check_dns)
 	event_debug("entering loop");
 	ck_assert_msg(M_event_loop(event, 3000) == M_EVENT_ERR_DONE, "event loop did not complete");
 	M_event_destroy(event);
-	M_dns_destroy(dns);
 	M_library_cleanup();
 	event_debug("exited");
 }

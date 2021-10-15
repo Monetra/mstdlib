@@ -156,7 +156,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	size_t           i;
 	M_threadid_t     thread;
 	M_thread_attr_t *attr = M_thread_attr_create();
-	M_dns_t         *dns       = M_dns_create();
+	M_dns_t         *dns       = M_dns_create(NULL);
 	M_io_t          *netserver = NULL;
 	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 50000);
 	M_io_error_t     ioerr;

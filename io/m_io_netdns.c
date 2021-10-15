@@ -212,7 +212,7 @@ static void M_io_netdns_handle_connect(M_io_layer_t *layer, M_io_t *realio)
 	/* Close any older sibilings and mark them as slow */
 	for (i=0; i<idx; i++) {
 		if (handle->data.netdns.io_try[i] != NULL) {
-			M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(handle->data.netdns.io_try[i]), handle->port, M_HAPPYEYEBALLS_STATUS_SLOW);
+			M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(handle->data.netdns.io_try[i]), M_HAPPYEB_STATUS_SLOW);
 			M_io_destroy(handle->data.netdns.io_try[i]);
 			handle->data.netdns.io_try[i] = NULL;
 		}
@@ -234,7 +234,7 @@ static void M_io_netdns_handle_connect(M_io_layer_t *layer, M_io_t *realio)
 
 	/* Mark the connection as successful for happyeyeballs tracking then set our internal state and
 	 * notify the connection was successful */
-	M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(realio), handle->port, M_HAPPYEYEBALLS_STATUS_GOOD);
+	M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(realio), M_HAPPYEB_STATUS_GOOD);
 	handle->data.netdns.io           = realio;
 	handle->state                    = M_IO_NET_STATE_CONNECTED;
 	handle->data.netdns.connect_time = M_time_elapsed(&handle->data.netdns.connect_start);
@@ -265,7 +265,7 @@ static void M_io_netdns_handle_connect_error(M_io_layer_t *layer, M_io_t *realio
 	size_t         idx     = M_io_netdns_find_io(handle, realio);
 
 	/* Mark as bad for happy eyeballs tracking */
-	M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(handle->data.netdns.io_try[idx]), handle->port, M_HAPPYEYEBALLS_STATUS_BAD);
+	M_dns_happyeyeballs_update(handle->data.netdns.dns, M_io_net_get_ipaddr(handle->data.netdns.io_try[idx]), M_HAPPYEB_STATUS_BAD);
 
 	/* Start next connection to next ip in line */
 	if (!M_io_netdns_next_io_start(layer) && M_io_netdns_io_count_valid(handle) == 1) {
@@ -376,7 +376,6 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 	M_io_handle_t *handle      = M_io_layer_get_handle(layer);
 	size_t         i;
 
-	handle->data.netdns.io_dns     = NULL;
 	handle->data.netdns.query_time = M_time_elapsed(&handle->data.netdns.query_start);
 	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE) {
 		handle->state = M_IO_NET_STATE_ERROR;
@@ -438,7 +437,7 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 			handle->state              = M_IO_NET_STATE_RESOLVING;
 //M_printf("%s(): looking up %s\n", __FUNCTION__, handle->host);
 			M_time_elapsed_start(&handle->data.netdns.query_start);
-			handle->data.netdns.io_dns = M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->port, handle->type, M_io_netdns_dns_callback, layer);
+			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->port, handle->type, M_io_netdns_dns_callback, layer);
 			break;
 		case M_IO_NET_STATE_CONNECTING:
 			/* Re-bind io event handle(s) */
@@ -509,8 +508,7 @@ static void M_io_netdns_unregister_cb(M_io_layer_t *layer)
 	/* If DNS resolving, kill the DNS operation and reset state back to init */
 	if (handle->state == M_IO_NET_STATE_RESOLVING) {
 		handle->state = M_IO_NET_STATE_INIT;
-		M_io_destroy(handle->data.netdns.io_dns);
-		handle->data.netdns.io_dns = NULL;
+/* XXX: Todo */
 	}
 }
 
@@ -529,11 +527,6 @@ static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 	}
 	M_free(handle->data.netdns.io_try);
 	handle->data.netdns.io_try = NULL;
-
-	if (handle->data.netdns.io_dns) {
-		M_io_destroy(handle->data.netdns.io_dns);
-		handle->data.netdns.io_dns = NULL;
-	}
 
 	if (handle->data.netdns.io) {
 		M_io_destroy(handle->data.netdns.io);

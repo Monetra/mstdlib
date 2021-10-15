@@ -197,7 +197,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	size_t             i;
 	M_threadid_t       thread;
 	M_thread_attr_t   *attr = M_thread_attr_create();
-	M_dns_t           *dns  = M_dns_create();
+	M_dns_t           *dns  = M_dns_create(NULL);
 	char              *cert = NULL;
 	char              *key  = NULL;
 	M_io_t            *netserver = NULL;
@@ -389,7 +389,7 @@ cleanup:
 
 static M_event_err_t check_block_tls_disconresp_test(void)
 {
-	M_dns_t           *dns  = M_dns_create();
+	M_dns_t           *dns  = M_dns_create(NULL);
 	char              *cert = NULL;
 	char              *key  = NULL;
 	M_io_t            *netserver;
