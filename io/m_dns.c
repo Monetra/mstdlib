@@ -635,7 +635,7 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 		WSAEventSelect(sock_fd, handle, 0);
 		WSACloseEvent(handle);
 #endif
-		M_hash_u64vp_remove(dns->sockhandle, (M_int64)sock_fd, M_TRUE);
+		M_hash_u64vp_remove(dns->sockhandle, (M_uint64)sock_fd, M_TRUE);
 	}
 }
 
@@ -835,7 +835,6 @@ typedef struct  {
 	M_dns_t            *dns;          /*!< Handle to DNS context                         */
 	M_dns_ares_t       *achannel;     /*!< Pointer to ares_channel handling query        */
 	char               *hostname;     /*!< Requested hostname to query                   */
-	M_uint16            port;         /*!< Requested port (happy eyeballs requirement)   */
 	int                 aftype;       /*!< Requested type (AF_INET, AF_INET6, AF_UNSPEC) */
 	M_event_t          *event;        /*!< Event loop to run callback on                 */
 
@@ -1022,7 +1021,7 @@ static char *M_dns_punyhostname(const char *hostname)
 }
 
 
-void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_uint16 port, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data)
+void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data)
 {
 	char                *punyhost = NULL;
 	int                  aftype;
@@ -1100,7 +1099,6 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	query           = M_malloc_zero(sizeof(*query));
 	query->hostname = M_strdup(hostname);
 	query->dns      = dns;
-	query->port     = port;
 	query->aftype   = aftype;
 	query->event    = event;
 	query->callback = callback;

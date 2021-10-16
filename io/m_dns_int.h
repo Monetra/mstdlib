@@ -61,7 +61,7 @@ typedef void (*M_io_dns_callback_t)(const M_list_str_t *ipaddrs, void *cb_data, 
  *  is complete, the callback passed in will be called.  This function may call the
  *  callback immediately if the DNS result is cached.   Once the supplied callback is
  *  called, the query will be automatically cleaned up.  */
-void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_uint16 port, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data);
+void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data);
 
 void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_status_t status);
 

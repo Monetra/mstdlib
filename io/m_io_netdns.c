@@ -437,7 +437,7 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 			handle->state              = M_IO_NET_STATE_RESOLVING;
 //M_printf("%s(): looking up %s\n", __FUNCTION__, handle->host);
 			M_time_elapsed_start(&handle->data.netdns.query_start);
-			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->port, handle->type, M_io_netdns_dns_callback, layer);
+			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->type, M_io_netdns_dns_callback, layer);
 			break;
 		case M_IO_NET_STATE_CONNECTING:
 			/* Re-bind io event handle(s) */
