@@ -632,7 +632,8 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 	if (!readable && !writable) {
 		M_event_handle_modify(dns->event, M_EVENT_MODTYPE_DEL_HANDLE, dns->io, handle, sock_fd, 0, 0);
 #ifdef _WIN32
-		CloseHandle(handle);
+		WSAEventSelect(sock_fd, handle, 0);
+		WSACloseEvent(handle);
 #endif
 	}
 }
