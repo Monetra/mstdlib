@@ -635,6 +635,7 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 		WSAEventSelect(sock_fd, handle, 0);
 		WSACloseEvent(handle);
 #endif
+		M_hash_u64vp_remove(dns->sockhandle, (M_int64)sock_fd, M_TRUE);
 	}
 }
 
