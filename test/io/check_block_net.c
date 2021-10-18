@@ -76,7 +76,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 				event_debug("%p %s error during write", conn, is_server?"netserver":"netclient");
 				goto cleanup;
 			}
-			event_debug("%p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
+			event_debug("%p %s wrote %"PRIu64" bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
 		}
 
 		err = M_io_block_read_into_parser(conn, readparser, 20);
@@ -89,7 +89,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p %s has (%"PRIu64") \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 			/* Delay server connection count until we actually receive a message.

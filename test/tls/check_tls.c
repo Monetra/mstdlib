@@ -187,11 +187,11 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_free(msg);
 
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("net client %p wrote %zu bytes", comm, mysize);
+			event_debug("net client %p wrote %"PRIu64" bytes", comm, mysize);
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net client %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net client %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 7 && M_mem_eq(buf, (const unsigned char *)"GoodBye", 7)) {
 				event_debug("net client %p initiating close", comm);
 				M_io_disconnect(comm);
@@ -244,10 +244,10 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-				event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+				event_debug("net serverconn %p wrote %"PRIu64" bytes", comm, mysize);
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -544,7 +544,7 @@ M_printf("ServerCert: %s\n", realcert);
 
 	event_debug("entering loop");
 	err = M_event_loop(event, 10000);
-	event_debug("%zu remaining objects", M_event_num_objects(event));
+	event_debug("%"PRIu64" remaining objects", M_event_num_objects(event));
 	/* Cleanup */
 
 	M_dns_destroy(dns);
@@ -612,7 +612,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 			/* Write entire buffer, if empty, issue disconnect */
 			mysize = M_buf_len(wbuf);
 			M_io_write_from_buf(comm, wbuf);
-			event_debug("net sad serverconn %p wrote %zu bytes", comm, mysize - M_buf_len(wbuf));
+			event_debug("net sad serverconn %p wrote %"PRIu64" bytes", comm, mysize - M_buf_len(wbuf));
 			if (M_buf_len(wbuf) == 0) {
 				M_io_destroy(comm);
 				M_buf_cancel(wbuf);
@@ -622,7 +622,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -690,7 +690,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 		case M_EVENT_TYPE_READ:
 			orig_size = M_buf_len(rbuf);
 			M_io_read_into_buf(comm, rbuf);
-			event_debug("net sad client %p read %zu bytes", comm, M_buf_len(rbuf) - orig_size);
+			event_debug("net sad client %p read %"PRIu64" bytes", comm, M_buf_len(rbuf) - orig_size);
 			if (M_buf_len(rbuf))
 				M_thread_sleep(100000);
 			break;
@@ -704,10 +704,10 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_event_return(event);
 			} else {
 				if (M_buf_len(rbuf) == SEND_AND_DISCONNECT_SIZE) {
-					event_debug("net sad client received FULL data: %zu bytes", M_buf_len(rbuf));
+					event_debug("net sad client received FULL data: %"PRIu64" bytes", M_buf_len(rbuf));
 					M_event_done(event);
 				} else {
-					event_debug("net sad client received partial data: %zu of %zu bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
+					event_debug("net sad client received partial data: %"PRIu64" of %"PRIu64" bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
 					M_event_return(event);
 				}
 			}

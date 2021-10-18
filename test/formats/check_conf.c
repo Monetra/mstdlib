@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
@@ -962,19 +962,19 @@ START_TEST(check_sections)
 	/* Check that we get the correct number of sections. */
 	sections = M_conf_get_sections(conf);
 	ck_assert_msg(sections != NULL, "no sections found");
-	ck_assert_msg(M_list_str_len(sections) == 2, "wrong number of sections (want 2, have %zu)", M_list_str_len(sections));
+	ck_assert_msg(M_list_str_len(sections) == 2, "wrong number of sections (want 2, have %"PRIu64")", (M_uint64)M_list_str_len(sections));
 
 	/* Check that each section has the correct keys with the correct values. */
 	for (i=0; i<M_list_str_len(sections); i++) {
-		M_snprintf(section, sizeof(section), "Section%zu", i+1);
+		M_snprintf(section, sizeof(section), "Section%"PRIu64"", (M_uint64)i+1);
 
-		M_snprintf(key, sizeof(key), "%s/key%zu", section, i+1);
-		M_snprintf(want_value, sizeof(want_value), "value%zu", i+1);
+		M_snprintf(key, sizeof(key), "%s/key%"PRIu64"", section, (M_uint64)i+1);
+		M_snprintf(want_value, sizeof(want_value), "value%"PRIu64"", (M_uint64)i+1);
 		conf_value = M_conf_get_value(conf, key);
 		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong section key value (want %s, have %s)", want_value, conf_value);
 
-		M_snprintf(key, sizeof(key), "%s/key%zu%zu", section, i+1, i+1);
-		M_snprintf(want_value, sizeof(want_value), "value%zu%zu", i+1, i+1);
+		M_snprintf(key, sizeof(key), "%s/key%"PRIu64"%"PRIu64"", section, (M_uint64)i+1, (M_uint64)i+1);
+		M_snprintf(want_value, sizeof(want_value), "value%"PRIu64"%"PRIu64"", (M_uint64)i+1, (M_uint64)i+1);
 		conf_value = M_conf_get_value(conf, key);
 		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong section key value (want %s, have %s)", want_value, conf_value);
 	}
@@ -999,7 +999,7 @@ START_TEST(check_no_sections)
 
 	/* Check that this file has no sections. */
 	sections = M_conf_get_sections(conf);
-	ck_assert_msg(M_list_str_len(sections) == 0, "wrong number of sections (want 0, have %zu)", M_list_str_len(sections));
+	ck_assert_msg(M_list_str_len(sections) == 0, "wrong number of sections (want 0, have %"PRIu64")", (M_uint64)M_list_str_len(sections));
 
 	M_list_str_destroy(sections);
 	M_conf_destroy(conf);
@@ -1033,29 +1033,29 @@ START_TEST(check_sections_no_multi)
 	/* Check that we get the correct number of sections. */
 	sections = M_conf_get_sections(conf);
 	ck_assert_msg(sections != NULL, "no sections found");
-	ck_assert_msg(M_list_str_len(sections) == 2, "wrong number of sections (want 2, have %zu)", M_list_str_len(sections));
+	ck_assert_msg(M_list_str_len(sections) == 2, "wrong number of sections (want 2, have %"PRIu64")", (M_uint64)M_list_str_len(sections));
 
 	/* Check that each section has the correct keys with the correct values. */
 	for (i=0; i<M_list_str_len(sections); i++) {
-		M_snprintf(section, sizeof(section), "Section%zu", i+1);
+		M_snprintf(section, sizeof(section), "Section%"PRIu64"", (M_uint64)i+1);
 
-		M_snprintf(key, sizeof(key), "%s/key%zu", section, i+1);
+		M_snprintf(key, sizeof(key), "%s/key%"PRIu64"", section, (M_uint64)i+1);
 
 		/* Check that M_conf_get_value() returns the first value for this key. */
-		M_snprintf(want_value, sizeof(want_value), "value%zu", i+1);
+		M_snprintf(want_value, sizeof(want_value), "value%"PRIu64"", (M_uint64)i+1);
 		conf_value = M_conf_get_value(conf, key);
 		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong section key value (want %s, have %s)", want_value, conf_value);
 
 		/* Check that all values are retrievable for this key. */
 		values = M_conf_get_values(conf, key);
-		ck_assert_msg(M_list_str_len(values) == 2, "wrong number of values for %s (have %zu, want 2)", key, M_list_str_len(values));
+		ck_assert_msg(M_list_str_len(values) == 2, "wrong number of values for %s (have %"PRIu64", want 2)", key, (M_uint64)M_list_str_len(values));
 
 		/* Check that the values are correct for this key. */
-		M_snprintf(want_value, sizeof(want_value), "value%zu", i+1);
+		M_snprintf(want_value, sizeof(want_value), "value%"PRIu64"", (M_uint64)i+1);
 		conf_value = M_list_str_at(values, 0);
 		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong key value 1 (want %s, have %s)", want_value, conf_value);
 
-		M_snprintf(want_value, sizeof(want_value), "value%zu%zu", i+1, i+1);
+		M_snprintf(want_value, sizeof(want_value), "value%"PRIu64"%"PRIu64"", (M_uint64)i+1, (M_uint64)i+1);
 		conf_value = M_list_str_at(values, 1);
 		ck_assert_msg(M_str_eq(conf_value, want_value), "wrong key value 1 (want %s, have %s)", want_value, conf_value);
 
@@ -2354,7 +2354,7 @@ START_TEST(check_unused_single)
 	M_hash_dict_insert(expected_unused, "custom_key2", "custom_value");
 
 	ck_assert_msg(M_list_str_len(unused) == M_hash_dict_num_keys(expected_unused),
-			"mismatch in number of keys unused (expected %zu, have %zu)", M_hash_dict_num_keys(expected_unused), M_list_str_len(unused));
+			"mismatch in number of keys unused (expected %"PRIu64", have %"PRIu64")", (M_uint64)M_hash_dict_num_keys(expected_unused), (M_uint64)M_list_str_len(unused));
 
 	for (i=0; i<M_list_str_len(unused); i++) {
 		const char *key   = NULL;
@@ -2439,22 +2439,22 @@ START_TEST(check_unused_multi)
 	/* Now that we have used up those keys, let's make sure we have the correct unused keys left. We're going to do
  	 * everything manually to make it easier to see. */
 	unused = M_conf_unused_keys(conf);
-	ck_assert_msg(M_list_str_len(unused) == 15, "mismatch in number of keys unused (have %zu, want 15)", M_list_str_len(unused));
+	ck_assert_msg(M_list_str_len(unused) == 15, "mismatch in number of keys unused (have %"PRIu64", want 15)", (M_uint64)M_list_str_len(unused));
 
 	count = M_list_str_count(unused, "strdup_key", M_LIST_STR_MATCH_VAL);
-	ck_assert_msg(count == 1, "strdup count wrong (want 1, have %zu", count);
+	ck_assert_msg(count == 1, "strdup count wrong (want 1, have %"PRIu64"", (M_uint64)count);
 
 	count = M_list_str_count(unused, "int8_key", M_LIST_STR_MATCH_VAL);
-	ck_assert_msg(count == 2, "int8 count wrong (want 2, have %zu", count);
+	ck_assert_msg(count == 2, "int8 count wrong (want 2, have %"PRIu64"", (M_uint64)count);
 
 	count = M_list_str_count(unused, "int16_key", M_LIST_STR_MATCH_VAL);
-	ck_assert_msg(count == 3, "int16 count wrong (want 3, have %zu", count);
+	ck_assert_msg(count == 3, "int16 count wrong (want 3, have %"PRIu64"", (M_uint64)count);
 
 	count = M_list_str_count(unused, "int32_key", M_LIST_STR_MATCH_VAL);
-	ck_assert_msg(count == 4, "int32 count wrong (want 4, have %zu", count);
+	ck_assert_msg(count == 4, "int32 count wrong (want 4, have %"PRIu64"", (M_uint64)count);
 
 	count = M_list_str_count(unused, "int64_key", M_LIST_STR_MATCH_VAL);
-	ck_assert_msg(count == 5, "int64 count wrong (want 5, have %zu", count);
+	ck_assert_msg(count == 5, "int64 count wrong (want 5, have %"PRIu64"", (M_uint64)count);
 
 	M_list_str_destroy(unused);
 	M_free(mem_strdup);

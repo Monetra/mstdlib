@@ -88,7 +88,7 @@ static size_t event_timer_test(M_uint64 start_delay_ms, M_uint64 end_ms, M_uint6
 	M_event_timer_t   *timer;
 	size_t             events;
 
-	event_debug("start_delay_ms=%"PRIu64", end_ms=%"PRIu64", interval_ms=%"PRIu64", max_runtime_ms=%"PRIu64", fire_cnt=%zu, mode=%s, use_trigger=%s, first_event_delay_ms=%"PRIu64"",
+	event_debug("start_delay_ms=%"PRIu64", end_ms=%"PRIu64", interval_ms=%"PRIu64", max_runtime_ms=%"PRIu64", fire_cnt=%"PRIu64", mode=%s, use_trigger=%s, first_event_delay_ms=%"PRIu64"",
 	            start_delay_ms, end_ms, interval_ms, max_runtime_ms, fire_cnt,
 	            mode == M_EVENT_TIMER_MODE_RELATIVE?"RELATIVE":"MONOTONIC", use_trigger?"yes":"no", first_event_delay_ms);
 
@@ -131,7 +131,7 @@ cleanup:
 	M_free(data);
 	M_event_destroy(event);
 	M_library_cleanup();
-	event_debug("exited (%zu events)", events);
+	event_debug("exited (%"PRIu64" events)", events);
 	return events;
 }
 

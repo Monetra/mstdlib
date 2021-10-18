@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -57,8 +57,8 @@ START_TEST(check_path_norm)
 
 	for (i=0; path_norm_cases[i].path != NULL; i++) {
 		ret = M_fs_path_norm(&out, path_norm_cases[i].path, path_norm_cases[i].flags, path_norm_cases[i].system);
-		ck_assert_msg(out != NULL, "%zu: %s clean failed", i, path_norm_cases[i].path);
-		ck_assert_msg(ret == M_FS_ERROR_SUCCESS && M_str_eq(out, path_norm_cases[i].result), "%zu: Cleaned path: '%s', does not match expected path: '%s'", i, out, path_norm_cases[i].result);
+		ck_assert_msg(out != NULL, "%"PRIu64": %s clean failed", (M_uint64)i, path_norm_cases[i].path);
+		ck_assert_msg(ret == M_FS_ERROR_SUCCESS && M_str_eq(out, path_norm_cases[i].result), "%"PRIu64": Cleaned path: '%s', does not match expected path: '%s'", (M_uint64)i, out, path_norm_cases[i].result);
 		M_free(out);
 	}
 }
@@ -90,8 +90,8 @@ START_TEST(check_path_split)
 		dir  = M_fs_path_dirname(path_split_cases[i].path, M_FS_SYSTEM_UNIX);
 		name = M_fs_path_basename(path_split_cases[i].path, M_FS_SYSTEM_UNIX);
 
-//		ck_assert_msg(dir != NULL, "%zu: %s split failed", i, path_split_cases[i].path);
-		ck_assert_msg(M_str_eq(dir, path_split_cases[i].dir) && M_str_eq(name, path_split_cases[i].name), "%zu: Split path: dir='%s', name='%s', does not match expected parts: dir='%s', name='%s'", i, dir, name, path_split_cases[i].dir, path_split_cases[i].name);
+//		ck_assert_msg(dir != NULL, "%"PRIu64": %s split failed", i, path_split_cases[i].path);
+		ck_assert_msg(M_str_eq(dir, path_split_cases[i].dir) && M_str_eq(name, path_split_cases[i].name), "%"PRIu64": Split path: dir='%s', name='%s', does not match expected parts: dir='%s', name='%s'", (M_uint64)i, dir, name, path_split_cases[i].dir, path_split_cases[i].name);
 
 		M_free(dir);
 		M_free(name);

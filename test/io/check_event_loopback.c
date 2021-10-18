@@ -78,11 +78,11 @@ static void loopback_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, voi
 			M_atomic_inc_u64(&active_connections);
 			M_atomic_inc_u64(&connection_count);
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("loopback %p wrote %zu bytes", comm, mysize);
+			event_debug("loopback %p wrote %"PRIu64" bytes", comm, mysize);
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("loopback %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("loopback %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				/* Initiate Disconnect */
 				M_io_disconnect(comm);
@@ -133,7 +133,7 @@ static M_event_err_t check_event_loopback_test(M_uint64 num_connections)
 
 	for (i=0; i<num_connections; i++) {
 		if (M_io_loopback_create(&io) != M_IO_ERROR_SUCCESS) {
-			event_debug("failed to loopback %zu", i);
+			event_debug("failed to loopback %"PRIu64"", i);
 			return M_EVENT_ERR_RETURN;
 		}
 		if (!M_event_add(event, io, loopback_cb, NULL)) {

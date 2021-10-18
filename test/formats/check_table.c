@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
@@ -24,22 +24,22 @@ START_TEST(check_table_colname_sort)
 		M_table_column_insert(table, unordered[i]);
 	}
 	len = M_table_column_count(table);
-	ck_assert_msg(len == lena, "Wrong number of columns: got %zu, expected %zu", len, lena);
+	ck_assert_msg(len == lena, "Wrong number of columns: got %"PRIu64", expected %"PRIu64"", (M_uint64)len, (M_uint64)lena);
 
 	for (i=0; i<lena; i++) {
 		const_temp = M_table_column_name(table, i);
-		ck_assert_msg(M_str_caseeq(const_temp, unordered[i]), "%zu: Unordered column name does not match: got '%s', expected '%s'", i, const_temp, unordered[i]);
+		ck_assert_msg(M_str_caseeq(const_temp, unordered[i]), "%"PRIu64": Unordered column name does not match: got '%s', expected '%s'", (M_uint64)i, const_temp, unordered[i]);
 	}
 
 	M_table_column_order(table, M_sort_compar_str, NULL);
 
 	lena = sizeof(ordered)/sizeof(*ordered);
 	len  = M_table_column_count(table);
-	ck_assert_msg(len == lena, "Wrong number of columns after order, got %zu, expected %zu", len, lena);
+	ck_assert_msg(len == lena, "Wrong number of columns after order, got %"PRIu64", expected %"PRIu64"", (M_uint64)len, (M_uint64)lena);
 
 	for (i=0; i<lena; i++) {
 		const_temp = M_table_column_name(table, i);
-		ck_assert_msg(M_str_caseeq(const_temp, ordered[i]), "%zu: Ordered column name does not match: got '%s', expected '%s'", i, const_temp, ordered[i]);
+		ck_assert_msg(M_str_caseeq(const_temp, ordered[i]), "%"PRIu64": Ordered column name does not match: got '%s', expected '%s'", (M_uint64)i, const_temp, ordered[i]);
 	}
 
 	M_table_destroy(table);
@@ -63,7 +63,7 @@ START_TEST(check_table_coldata_sort)
 	M_table_column_insert_at(table, 0, "alpha");
 	lena = 2;
 	len  = M_table_column_count(table);
-	ck_assert_msg(len == lena, "Wrong number of columns: got %zu, expected %zu", len, lena);
+	ck_assert_msg(len == lena, "Wrong number of columns: got %"PRIu64", expected %"PRIu64"", (M_uint64)len, (M_uint64)lena);
 
 	lena = sizeof(unordered)/sizeof(unordered[0]);
 	for (i=0; i<lena; i++) {
@@ -73,20 +73,20 @@ START_TEST(check_table_coldata_sort)
 		M_table_cell_set_at(table, i, 1, unordered[lena-i-1]);
 	}
 	len = M_table_row_count(table);
-	ck_assert_msg(len == lena, "Wrong number of rows: got %zu, expected %zu", len, lena);
+	ck_assert_msg(len == lena, "Wrong number of rows: got %"PRIu64", expected %"PRIu64"", (M_uint64)len, (M_uint64)lena);
 
 	M_table_column_sort_data(table, "alpha", NULL, NULL, NULL, NULL);
 
 	lena = sizeof(afterorder)/sizeof(afterorder[0]);
 	for (i=0; i<lena; i++) {
 		const_temp = M_table_cell_at(table, i, 1);
-		ck_assert_msg(M_str_caseeq(const_temp, afterorder[i]), "%zu: Unordered 'beta' does not match: got '%s', expected '%s'", i, const_temp, afterorder[i]);
+		ck_assert_msg(M_str_caseeq(const_temp, afterorder[i]), "%"PRIu64": Unordered 'beta' does not match: got '%s', expected '%s'", (M_uint64)i, const_temp, afterorder[i]);
 	}
 
 	lena = sizeof(ordered)/sizeof(ordered[0]);
 	for (i=0; i<lena; i++) {
 		const_temp = M_table_cell(table, i, "alpha");
-		ck_assert_msg(M_str_caseeq(const_temp, ordered[i]), "%zu: Ordered 'alpha' does not match: got '%s', expected '%s'", i, const_temp, ordered[i]);
+		ck_assert_msg(M_str_caseeq(const_temp, ordered[i]), "%"PRIu64": Ordered 'alpha' does not match: got '%s', expected '%s'", (M_uint64)i, const_temp, ordered[i]);
 	}
 
 	M_table_destroy(table);

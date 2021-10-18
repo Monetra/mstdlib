@@ -69,7 +69,7 @@ static void M_serial_server_write(M_event_t *event, M_event_type_t type, M_io_t 
 	if (M_io_write(io, (const unsigned char *)"HelloWorld", 10, &len) != M_IO_ERROR_SUCCESS) {
 		event_debug("serial server %p failed to write");
 	} else {
-		event_debug("serial server %p wrote %zu bytes", io, len);
+		event_debug("serial server %p wrote %"PRIu64" bytes", io, len);
 	}
 }
 
@@ -97,7 +97,7 @@ static void serial_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm
 		case M_EVENT_TYPE_READ:
 			len = M_parser_len(parser);
 			M_io_read_into_parser(comm, parser);
-			event_debug("serial server %p read %zu bytes", comm, M_parser_len(parser) - len);
+			event_debug("serial server %p read %"PRIu64" bytes", comm, M_parser_len(parser) - len);
 			if (M_parser_compare_str(parser, "GoodBye", 0, M_FALSE)) {
 				/* Initiate Disconnect */
 				event_debug("serial server %p got message, disconnecting...", comm);
@@ -143,10 +143,10 @@ static void serial_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm
 		case M_EVENT_TYPE_READ:
 			len = M_parser_len(parser);
 			M_io_read_into_parser(comm, parser);
-			event_debug("serial client %p read %zu bytes", comm, M_parser_len(parser) - len);;
+			event_debug("serial client %p read %"PRIu64" bytes", comm, M_parser_len(parser) - len);;
 			if (M_parser_compare_str(parser, "HelloWorld", 0, M_FALSE))  {
 				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &len);
-				event_debug("serial client %p wrote %zu bytes", comm, len);
+				event_debug("serial client %p wrote %"PRIu64" bytes", comm, len);
 				/* Initiate Disconnect */
 				event_debug("serial client %p got message, disconnecting...", comm);
 				/* Since we just wrote goodbye, don't do the M_io_destroy until 15ms have passed! */
@@ -248,7 +248,7 @@ START_TEST(check_serial)
 	ck_assert_msg(serenum != NULL, "Serial Enumeration returned a failure");
 
 	for (i=0; i < M_io_serial_enum_count(serenum); i++) {
-		event_debug("serial port %zu: path='%s', name='%s'", i, M_io_serial_enum_path(serenum, i), M_io_serial_enum_name(serenum, i));
+		event_debug("serial port %"PRIu64": path='%s', name='%s'", i, M_io_serial_enum_path(serenum, i), M_io_serial_enum_name(serenum, i));
 	}
 	M_io_serial_enum_destroy(serenum);
 

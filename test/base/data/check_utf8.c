@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* Some tests are from
@@ -28,19 +28,19 @@ START_TEST(check_utf8_correct)
 
 	len = M_str_len(str);
 	cnt = M_utf8_cnt(str);
-	ck_assert_msg(len != cnt, "Length (%zu) should not equal count (%zu)", len, cnt);
+	ck_assert_msg(len != cnt, "Length (%"PRIu64") should not equal count (%"PRIu64")", (M_uint64)len, (M_uint64)cnt);
 	ck_assert_msg(cnt == 5, "count != 5");
 
 	buf = M_buf_create();
 	for (i=0; i<cnt; i++) {
 		res = M_utf8_get_cp(next, &cp, &next);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: get cp failed: %d", i, res);
-		ck_assert_msg(cp == cps[i], "%zu: cp failed: expected '%x', got '%x'", i, cps[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": get cp failed: %d", (M_uint64)i, res);
+		ck_assert_msg(cp == cps[i], "%"PRIu64": cp failed: expected '%x', got '%x'", (M_uint64)i, cps[i], cp);
 		M_utf8_from_cp_buf(buf, cp);
 	}
 
 	out = M_buf_finish_str(buf, &out_len);
-	ck_assert_msg(len == out_len, "Length (%zu) should equal out length (%zu)", len, out_len);
+	ck_assert_msg(len == out_len, "Length (%"PRIu64") should equal out length (%"PRIu64")", (M_uint64)len, (M_uint64)out_len);
 	ck_assert_msg(M_str_eq(out, str), "str != out: expected '%s', got '%s'", str, out);
 	ck_assert_msg(M_str_eq(out, (const char *)bytes), "bytes != out");
 
@@ -63,30 +63,30 @@ START_TEST(check_utf8_case_cp)
 
 	for (i=0; i<sizeof(upper_cp)/sizeof(*upper_cp); i++) {
 		res = M_utf8_toupper_cp(upper_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper cp to upper cp failed: %d\n", i, res);
-		ck_assert_msg(upper_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, upper_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": upper cp to upper cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(upper_cp[i] == cp, "%"PRIu64": upper cp != cp: expected %04X, got %04X", (M_uint64)i, upper_cp[i], cp);
 
 		res = M_utf8_tolower_cp(upper_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper cp to lower cp failed: %d\n", i, res);
-		ck_assert_msg(lower_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, lower_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": upper cp to lower cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(lower_cp[i] == cp, "%"PRIu64": upper cp != cp: expected %04X, got %04X", (M_uint64)i, lower_cp[i], cp);
 
 		res = M_utf8_tolower_cp(lower_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower cp to lower cp failed: %d\n", i, res);
-		ck_assert_msg(lower_cp[i] == cp, "%zu: lower cp != cp: expected %04X, got %04X", i, lower_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": lower cp to lower cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(lower_cp[i] == cp, "%"PRIu64": lower cp != cp: expected %04X, got %04X", (M_uint64)i, lower_cp[i], cp);
 
 		res = M_utf8_toupper_cp(lower_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower cp to upper cp failed: %d\n", i, res);
-		ck_assert_msg(upper_cp[i] == cp, "%zu: upper cp != cp: expected %04X, got %04X", i, upper_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": lower cp to upper cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(upper_cp[i] == cp, "%"PRIu64": upper cp != cp: expected %04X, got %04X", (M_uint64)i, upper_cp[i], cp);
 	}
 
 	for (i=0; i<sizeof(same_cp)/sizeof(*same_cp); i++) {
 		res = M_utf8_toupper_cp(same_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: same cp to upper cp failed: %d\n", i, res);
-		ck_assert_msg(same_cp[i] == cp, "%zu: same cp != to upper cp: expected %04X, got %04X", i, same_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": same cp to upper cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(same_cp[i] == cp, "%"PRIu64": same cp != to upper cp: expected %04X, got %04X", (M_uint64)i, same_cp[i], cp);
 
 		res = M_utf8_tolower_cp(same_cp[i], &cp);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: same cp to lower cp failed: %d\n", i, res);
-		ck_assert_msg(same_cp[i] == cp, "%zu: same cp != to lower cp: expected %04X, got %04X", i, same_cp[i], cp);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": same cp to lower cp failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(same_cp[i] == cp, "%"PRIu64": same cp != to lower cp: expected %04X, got %04X", (M_uint64)i, same_cp[i], cp);
 	}
 }
 END_TEST
@@ -127,23 +127,23 @@ START_TEST(check_utf8_case)
 
 	for (i=0; ts[i].upper!=NULL; i++) {
 		res = M_utf8_toupper(ts[i].upper, &out);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper to upper failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].upper), "%zu: upper to upper != out: expected '%s', got '%s'", i, ts[i].upper, out);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": upper to upper failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(M_str_eq(out, ts[i].upper), "%"PRIu64": upper to upper != out: expected '%s', got '%s'", (M_uint64)i, ts[i].upper, out);
 		M_free(out);
 
 		res = M_utf8_tolower(ts[i].upper, &out);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper to lower failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].lower), "%zu: upper to lower != out: expected '%s', got '%s'", i, ts[i].upper, out);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": upper to lower failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(M_str_eq(out, ts[i].lower), "%"PRIu64": upper to lower != out: expected '%s', got '%s'", (M_uint64)i, ts[i].upper, out);
 		M_free(out);
 
 		res = M_utf8_tolower(ts[i].lower, &out);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower to lower failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].lower), "%zu: lower to lower != out: expected '%s', got '%s'", i, ts[i].lower, out);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": lower to lower failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(M_str_eq(out, ts[i].lower), "%"PRIu64": lower to lower != out: expected '%s', got '%s'", (M_uint64)i, ts[i].lower, out);
 		M_free(out);
 
 		res = M_utf8_toupper(ts[i].lower, &out);
-		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower to upper failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].upper), "%zu: lower to upper != out: expected '%s', got '%s'", i, ts[i].lower, out);
+		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%"PRIu64": lower to upper failed: %d\n", (M_uint64)i, res);
+		ck_assert_msg(M_str_eq(out, ts[i].upper), "%"PRIu64": lower to upper != out: expected '%s', got '%s'", (M_uint64)i, ts[i].lower, out);
 		M_free(out);
 	}
 }

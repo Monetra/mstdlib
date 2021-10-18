@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_text.h>
 
@@ -54,43 +54,43 @@ static void check_with_captures(tdata_captures_t *tdata)
 		size_t        len;
 
 		re = M_re_compile(tdata[i].pattern, M_RE_NONE);
-		ck_assert_msg(re != NULL, "%zu: re compile failed: pattern '%s'", i, tdata[i].pattern);
+		ck_assert_msg(re != NULL, "%"PRIu64": re compile failed: pattern '%s'", (M_uint64)i, tdata[i].pattern);
 
 		ret = M_re_search(re, tdata[i].str, &mo);
-		ck_assert_msg(ret == M_TRUE, "%zu: re search failed: pattern '%s', str '%s'", i, tdata[i].pattern, tdata[i].str);
-		ck_assert_msg(mo != NULL, "%zu: re search success but match object missing", i);
+		ck_assert_msg(ret == M_TRUE, "%"PRIu64": re search failed: pattern '%s', str '%s'", (M_uint64)i, tdata[i].pattern, tdata[i].str);
+		ck_assert_msg(mo != NULL, "%"PRIu64": re search success but match object missing", (M_uint64)i);
 
 		if (tdata[i].len != 0) {
 			ret = M_re_match_idx(mo, 0, &offset, &len);
 
-			ck_assert_msg(ret == M_TRUE, "%zu: '%s' match 0 not present", i, tdata[i].pattern);
+			ck_assert_msg(ret == M_TRUE, "%"PRIu64": '%s' match 0 not present", (M_uint64)i, tdata[i].pattern);
 
-			ck_assert_msg(offset == tdata[i].offset, "%zu: '%s' match 0 offset incorrect: got %zu, expected %zu", i, tdata[i].pattern, offset, tdata[i].offset);
-			ck_assert_msg(len == tdata[i].len, "%zu: '%s' match 0 len incorrect: got %zu, expected %zu", i, tdata[i].pattern, len, tdata[i].len);
+			ck_assert_msg(offset == tdata[i].offset, "%"PRIu64": '%s' match 0 offset incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)offset, (M_uint64)tdata[i].offset);
+			ck_assert_msg(len == tdata[i].len, "%"PRIu64": '%s' match 0 len incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)len, (M_uint64)tdata[i].len);
 		}
 
 		if (tdata[i].mlen1 != 0) {
 			ret = M_re_match_idx(mo, 1, &offset, &len);
-			ck_assert_msg(ret == M_TRUE, "%zu: '%s' match 1 not present", i, tdata[i].pattern);
+			ck_assert_msg(ret == M_TRUE, "%"PRIu64": '%s' match 1 not present", (M_uint64)i, tdata[i].pattern);
 
-			ck_assert_msg(offset == tdata[i].moffset1, "%zu: '%s' match 1 offset incorrect: got %zu, expected %zu", i, tdata[i].pattern, offset, tdata[i].moffset1);
-			ck_assert_msg(len == tdata[i].mlen1, "%zu: '%s' match 1 len incorrect: got %zu, expected %zu", i, tdata[i].pattern, len, tdata[i].mlen1);
+			ck_assert_msg(offset == tdata[i].moffset1, "%"PRIu64": '%s' match 1 offset incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)offset, (M_uint64)tdata[i].moffset1);
+			ck_assert_msg(len == tdata[i].mlen1, "%"PRIu64": '%s' match 1 len incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)len, (M_uint64)tdata[i].mlen1);
 		}
 
 		if (tdata[i].mlen2 != 0) {
 			ret = M_re_match_idx(mo, 2, &offset, &len);
-			ck_assert_msg(ret == M_TRUE, "%zu: '%s' match 2 not present", i, tdata[i].pattern);
+			ck_assert_msg(ret == M_TRUE, "%"PRIu64": '%s' match 2 not present", (M_uint64)i, tdata[i].pattern);
 
-			ck_assert_msg(offset == tdata[i].moffset2, "%zu: '%s' match 2 offset incorrect: got %zu, expected %zu", i, tdata[i].pattern, offset, tdata[i].moffset2);
-			ck_assert_msg(len == tdata[i].mlen2, "%zu: '%s' match 2 len incorrect: got %zu, expected %zu", i, tdata[i].pattern, len, tdata[i].mlen2);
+			ck_assert_msg(offset == tdata[i].moffset2, "%"PRIu64": '%s' match 2 offset incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)offset, (M_uint64)tdata[i].moffset2);
+			ck_assert_msg(len == tdata[i].mlen2, "%"PRIu64": '%s' match 2 len incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)len, (M_uint64)tdata[i].mlen2);
 		}
 
 		if (tdata[i].mlen3 != 0) {
 			ret = M_re_match_idx(mo, 3, &offset, &len);
-			ck_assert_msg(ret == M_TRUE, "%zu: '%s' match 3 not present", i, tdata[i].pattern);
+			ck_assert_msg(ret == M_TRUE, "%"PRIu64": '%s' match 3 not present", (M_uint64)i, tdata[i].pattern);
 
-			ck_assert_msg(offset == tdata[i].moffset3, "%zu: '%s' match 3 offset incorrect: got %zu, expected %zu", i, tdata[i].pattern, offset, tdata[i].moffset3);
-			ck_assert_msg(len == tdata[i].mlen3, "%zu: '%s' match 3 len incorrect: got %zu, expected %zu", i, tdata[i].pattern, len, tdata[i].mlen3);
+			ck_assert_msg(offset == tdata[i].moffset3, "%"PRIu64": '%s' match 3 offset incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)offset, (M_uint64)tdata[i].moffset3);
+			ck_assert_msg(len == tdata[i].mlen3, "%"PRIu64": '%s' match 3 len incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)i, tdata[i].pattern, (M_uint64)len, (M_uint64)tdata[i].mlen3);
 		}
 
 		M_re_match_destroy(mo);
@@ -107,10 +107,10 @@ static void check_with_nomatch(tdata_match_t *tdata)
 		M_bool  ret;
 
 		re = M_re_compile(tdata[i].pattern, M_RE_NONE);
-		ck_assert_msg(re != NULL, "%zu: re compile failed: pattern '%s'", i, tdata[i].pattern);
+		ck_assert_msg(re != NULL, "%"PRIu64": re compile failed: pattern '%s'", (M_uint64)i, tdata[i].pattern);
 
 		ret = M_re_search(re, tdata[i].str, NULL);
-		ck_assert_msg(ret == M_FALSE, "%zu: re search succeeded when should have failed: pattern '%s'", i, tdata[i].pattern);
+		ck_assert_msg(ret == M_FALSE, "%"PRIu64": re search succeeded when should have failed: pattern '%s'", (M_uint64)i, tdata[i].pattern);
 
 		M_re_destroy(re);
 	}
@@ -124,7 +124,7 @@ static void check_with_compile(const char *res[], size_t num_res)
 		M_re_t *re = NULL;
 
 		re = M_re_compile(res[i], M_RE_NONE);
-		ck_assert_msg(re != NULL, "%zu: re compile failed: pattern '%s'", i, res[i]);
+		ck_assert_msg(re != NULL, "%"PRIu64": re compile failed: pattern '%s'", (M_uint64)i, res[i]);
 
 		M_re_destroy(re);
 	}
@@ -527,8 +527,8 @@ static void check_with_catpure_holes(const M_re_t *re, const char *str, size_t i
 	size_t        i;
 
 	ret = M_re_search(re, str, &mo);
-	ck_assert_msg(ret == M_TRUE, "%zu: re search failed", idx);
-	ck_assert_msg(mo != NULL, "%zu: re search success but match object missing", idx);
+	ck_assert_msg(ret == M_TRUE, "%"PRIu64": re search failed", (M_uint64)idx);
+	ck_assert_msg(mo != NULL, "%"PRIu64": re search success but match object missing", (M_uint64)idx);
 
 	va_start(ap, num_caps);
 	for (i=0; i<num_caps; i++) {
@@ -537,10 +537,10 @@ static void check_with_catpure_holes(const M_re_t *re, const char *str, size_t i
 		cap_len    = (size_t)va_arg(ap, int);
 
 		ret = M_re_match_idx(mo, cap_num, &offset, &len);
-		ck_assert_msg(ret == M_TRUE, "%zu: Match %zu not present", idx, cap_num);
+		ck_assert_msg(ret == M_TRUE, "%"PRIu64": Match %"PRIu64" not present", (M_uint64)idx, (M_uint64)cap_num);
 
-		ck_assert_msg(offset == cap_offset, "%zu: Match %zu offset incorrect: got %zu, expected %zu", idx, cap_num, offset, cap_offset);
-		ck_assert_msg(len == cap_len, "%zu: Match %zu len incorrect: got %zu, expected %zu", idx, cap_num, len, cap_len);
+		ck_assert_msg(offset == cap_offset, "%"PRIu64": Match %"PRIu64" offset incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)idx, (M_uint64)cap_num, (M_uint64)offset, (M_uint64)cap_offset);
+		ck_assert_msg(len == cap_len, "%"PRIu64": Match %"PRIu64" len incorrect: got %"PRIu64", expected %"PRIu64"", (M_uint64)idx, (M_uint64)cap_num, (M_uint64)len, (M_uint64)cap_len);
 	}
 	va_end(ap);
 
@@ -680,10 +680,10 @@ START_TEST(check_sub)
 
 	for (i=0; tdata[i].pattern!=NULL; i++) {
 		re = M_re_compile(tdata[i].pattern, tdata[i].flags);
-		ck_assert_msg(re != NULL, "%zu: re compile failed", i);
+		ck_assert_msg(re != NULL, "%"PRIu64": re compile failed", (M_uint64)i);
 
 		out = M_re_sub(re, tdata[i].repl, tdata[i].str);
-		ck_assert_msg(M_str_eq(out, tdata[i].out), "%zu: sub failed: expected '%s', got '%s'", i, tdata[i].out, out);
+		ck_assert_msg(M_str_eq(out, tdata[i].out), "%"PRIu64": sub failed: expected '%s', got '%s'", (M_uint64)i, tdata[i].out, out);
 
 		M_free(out);
 		M_re_destroy(re);

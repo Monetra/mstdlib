@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <check.h>
 #include <stdlib.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -623,7 +623,7 @@ START_TEST(check_str_ends)
 		} else {
 			r = M_str_caseeq_end(ends[i].s, ends[i].e);
 		}
-		ck_assert_msg(r == ends[i].r, "%zu: s='%s', e='%s', case-sensitive=%s, match=%s", i, ends[i].s, ends[i].e, ends[i].cs==M_TRUE?"YES":"NO", ends[i].r==M_TRUE?"TRUE":"FALSE");
+		ck_assert_msg(r == ends[i].r, "%"PRIu64": s='%s', e='%s', case-sensitive=%s, match=%s", (M_uint64)i, ends[i].s, ends[i].e, ends[i].cs==M_TRUE?"YES":"NO", ends[i].r==M_TRUE?"TRUE":"FALSE");
 	}
 }
 END_TEST
