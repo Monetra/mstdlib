@@ -1247,7 +1247,7 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 		struct sockaddr_in  server_in;
 		socklen_t           len         = sizeof(server_in);
 
-		M_mem_set(&server_in, 0, len);
+		M_mem_set(&server_in, 0, (size_t)len);
 		getsockname(handle->data.net.sock, (struct sockaddr *)&server_in, &len);
 		M_dns_ntop(AF_INET, &server_in.sin_addr, server_addr, sizeof(server_addr));
 
@@ -1260,7 +1260,7 @@ static M_io_error_t M_io_net_accept_cb(M_io_t *comm, M_io_layer_t *orig_layer)
 		struct sockaddr_in6  server_in;
 		socklen_t            len         = sizeof(server_in);
 
-		M_mem_set(&server_in, 0, len);
+		M_mem_set(&server_in, 0, (size_t)len);
 		getsockname(handle->data.net.sock, (struct sockaddr *)&server_in, &len);
 		M_dns_ntop(AF_INET6, &server_in.sin6_addr, server_addr, sizeof(server_addr));
 

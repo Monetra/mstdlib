@@ -89,6 +89,7 @@ static M_fs_error_t M_fs_perms_set_name(M_fs_perms_t *perms, const char *name, M
 		case SidTypeUnknown:
 		case SidTypeComputer:
 		case SidTypeLabel:
+		case SidTypeLoginSession:
 			return M_FS_ERROR_INVALID;
 		case SidTypeUser:
 		case SidTypeGroup:
@@ -461,7 +462,7 @@ M_fs_error_t M_fs_perms_set_perms_file(const M_fs_perms_t *perms, M_fs_file_t *f
 	len  = M_fs_path_get_path_max(M_FS_SYSTEM_WINDOWS);
 	path = M_malloc_zero(len);
 
-	ret = GetFinalPathNameByHandle(fd->fd, path, len, FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+	ret = GetFinalPathNameByHandle(fd->fd, path, (DWORD)len, FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
 	if (ret >= len) {
 		M_free(path);
 		return M_fs_error_from_syserr(GetLastError());
