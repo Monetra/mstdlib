@@ -97,6 +97,10 @@ static void M_dns_cache_free_cb(void *arg)
 static void M_dns_cache_remove_entry(M_dns_cache_entry_t *entry)
 {
 	char entrystr[256];
+
+	if (entry == NULL)
+		return;
+
 	/* Delete the entry */
 	M_snprintf(entrystr, sizeof(entrystr), "%d:%s", entry->aftype, entry->hostname);
 	M_hash_strvp_remove(entry->dns->cache_lookup, entrystr, M_TRUE);
