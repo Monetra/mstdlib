@@ -445,6 +445,7 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 {
 	int ival;
 	int rv;
+	struct linger so_linger;
 
 	/* Set Nagle, if enable TCP_NODELAY is 0 (off), otherwise it is 1 (on) */
 	ival = (handle->settings.nagle_enable)?0:1;
@@ -457,6 +458,26 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_NOSIGPIPE, (const void *)&ival, sizeof(ival));
 	(void)rv;
 #endif
+
+	/* We have seen windows closesocket() hang for 200ms to 1s for unknown reasons.  Setting
+	 * abortive close resolves this issue.  This should be fine as we rely on shutdown()
+	 * for closing gracefully.  Default is l_onoff=zero ... but of course ... Windows...
+	 * |---------|----------|----------------------------------------------------------------|----------------|
+	 * | l_onoff | l_linger | Type of close                                                  | Wait for close |
+	 * |=========|==========|================================================================|================|
+	 * | zero    | N/A      | Graceful close                                                 | No             |
+	 * |---------|----------|----------------------------------------------------------------|----------------|
+	 * | nonzero | zero     | Hard                                                           | No             |
+	 * |---------|----------|----------------------------------------------------------------|----------------|
+	 * | nonzero | nonzero  | Graceful if all data is sent within timeout value specified in | Yes            |
+	 * |         |          | the l_linger member.                                           |                |
+	 * |         |          | Hard if all data could not be sent within timeout value        |                |
+	 * |         |          | specified in the l_linger member.                              |                |
+	 * |---------|----------|----------------------------------------------------------------|----------------|
+	 */
+	so_linger.l_onoff  = 1;
+	so_linger.l_linger = 0;
+	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
 
 	if (handle->settings.ka_enable)
 		M_io_net_set_sockopts_keepalives(handle);
