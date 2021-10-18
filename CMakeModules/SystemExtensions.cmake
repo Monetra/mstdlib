@@ -7,6 +7,7 @@
 #  __EXTENSIONS__           - General extensions for Solaris.
 #  _POSIX_PTHREAD_SEMANTICS - Thread extensions for Solaris.
 #  _ALL_SOURCE              - Extension for AIX 3.
+#  __USE_MINGW_ANSI_STDIO   - MinGW
 # Once done set the following CFLAGS if found:
 #  _XOPEN_SOURCE=500        - Enables some additional functions.
 #  _REENTRANT               - Needed on SCO for gethostbyname_r.
@@ -26,6 +27,8 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "SunOS")
 	set(_new_flags "-std=gnu99 -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS -D__EXTENSIONS__ -D_XOPEN_SOURCE=600")
 elseif (CMAKE_SYSTEM_NAME MATCHES "AIX")
 	set(_new_flags "-D_XOPEN_SOURCE=600 -D_ALL_SOURCE")
+elseif (MINGW)
+	set(_new_flags "-D__USE_MINGW_ANSI_STDIO")
 endif ()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_new_flags}")
