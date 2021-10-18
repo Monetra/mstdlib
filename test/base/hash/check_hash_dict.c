@@ -390,7 +390,7 @@ START_TEST(check_merge)
 		ck_assert_msg(M_str_eq(M_hash_dict_get_direct(dict1, dict2_unique_keys[i]), dict2_value), "value from dict2 should clobber value from dict1");
 	}
 
-	ck_assert_msg(M_hash_dict_num_keys(dict1) == ARYLEN(dict1_unique_keys)+ARYLEN(dict2_unique_keys), "");
+	ck_assert_msg(M_hash_dict_num_keys(dict1) == ARYLEN(dict1_unique_keys)+ARYLEN(dict2_unique_keys), "num keys does not match dict1+dict2 unique key sum");
 
 	M_hash_dict_destroy(dict2);
 	M_hash_dict_destroy(dict1);
