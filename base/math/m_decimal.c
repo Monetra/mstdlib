@@ -140,7 +140,7 @@ static enum M_DECIMAL_RETVAL M_decimal_div_int64(M_int64 *out, M_int64 num, M_in
 	if (round != M_DECIMAL_ROUND_NONE) {
 		moddenom = denom/10;
 		if (moddenom) {
-			M_uint8 digit = M_ABS(num / moddenom) % 10;
+			M_uint8 digit = (M_uint8)(M_ABS(num / moddenom) % 10);
 			if (num > 0 && digit > 5) {
 				(*out)++;
 			} else if (num < 0 && digit > 5) {

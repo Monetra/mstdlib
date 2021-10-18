@@ -89,7 +89,7 @@ static M_fs_error_t M_fs_perms_set_name(M_fs_perms_t *perms, const char *name, M
 		case SidTypeUnknown:
 		case SidTypeComputer:
 		case SidTypeLabel:
-		case SidTypeLoginSession:
+		case SidTypeLogonSession:
 			return M_FS_ERROR_INVALID;
 		case SidTypeUser:
 		case SidTypeGroup:
