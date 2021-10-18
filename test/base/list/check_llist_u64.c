@@ -45,18 +45,18 @@ START_TEST(check_llist_u64_insert)
 		d           = M_llist_u64_create(check_llist_u64_generic_data[i].flags);
 
 		for (j=0; j<VALS_LEN; j++) {
-			ck_assert_msg(M_llist_u64_insert(d, generic_vals[j])!=NULL, "%s: Could not insert (%zu) value %"PRId64"", p, j, generic_vals[j]);
+			ck_assert_msg(M_llist_u64_insert(d, generic_vals[j])!=NULL, "%s: Could not insert (%lu) value %"PRId64"", p, j, generic_vals[j]);
 		}
 
 		n = M_llist_u64_first(d);
 		for (j=0; j<VALS_LEN; j++) {
-			ck_assert_msg(n !=  NULL, "%s: Premature end of list (%zu)", p, j);
+			ck_assert_msg(n !=  NULL, "%s: Premature end of list (%lu)", p, j);
 			if (n == NULL) {
 				break;
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -98,7 +98,7 @@ START_TEST(check_llist_u64_insert_before_after)
 		}
 
 		v = M_llist_u64_node_val(n);
-		ck_assert_msg(v == vals_result[i], "Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", i, v, vals_result[i]);
+		ck_assert_msg(v == vals_result[i], "Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", i, v, vals_result[i]);
 
 		n = M_llist_u64_node_next(n);
 	}
@@ -188,45 +188,45 @@ START_TEST(check_llist_u64_take_remove_count)
 		}
 
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 12, "%s: list len %zu != 12", p, len);
+		ck_assert_msg(len == 12, "%s: list len %lu != 12", p, len);
 
 		n = M_llist_u64_find(d, 7);
 		ck_assert_msg(n != NULL && M_llist_u64_take_node(n) == 7, "%s: 7 not found", p);
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 11, "%s: list len %zu != 11", p, len);
+		ck_assert_msg(len == 11, "%s: list len %lu != 11", p, len);
 
 		n = M_llist_u64_find(d, 2);
 		ck_assert_msg(n != NULL && M_llist_u64_node_val(n) == 2, "%s: 2 not found", p);
 		M_llist_u64_remove_node(n);
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 10, "%s: list len %zu != 10", p, len);
+		ck_assert_msg(len == 10, "%s: list len %lu != 10", p, len);
 
 		M_llist_u64_remove_val(d, 9, M_LLIST_U64_MATCH_VAL);
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 9, "%s: list len %zu != 9", p, len);
+		ck_assert_msg(len == 9, "%s: list len %lu != 9", p, len);
 
 		len = M_llist_u64_count(d, 3);
-		ck_assert_msg(len == 3, "%s: 3 not found %zu times != 3", p, len);
+		ck_assert_msg(len == 3, "%s: 3 not found %lu times != 3", p, len);
 
 		M_llist_u64_remove_val(d, 3, M_LLIST_U64_MATCH_ALL);
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 6, "%s: list len %zu != 6", p, len);
+		ck_assert_msg(len == 6, "%s: list len %lu != 6", p, len);
 
 		len = M_llist_u64_count(d, 3);
-		ck_assert_msg(len == 0, "%s: 3 not found %zu times != 0", p, len);
+		ck_assert_msg(len == 0, "%s: 3 not found %lu times != 0", p, len);
 
 		len = M_llist_u64_count(d, 4);
-		ck_assert_msg(len == 2, "%s: 4 not found %zu times != 2", p, len);
+		ck_assert_msg(len == 2, "%s: 4 not found %lu times != 2", p, len);
 
 		M_llist_u64_remove_duplicates(d);
 		len = M_llist_u64_len(d);
-		ck_assert_msg(len == 4, "%s: list len %zu != 4", p, len);
+		ck_assert_msg(len == 4, "%s: list len %lu != 4", p, len);
 
 		len = M_llist_u64_count(d, 4);
-		ck_assert_msg(len == 1, "%s: 4 not found %zu times != 1", p, len);
+		ck_assert_msg(len == 1, "%s: 4 not found %lu times != 1", p, len);
 
 		len = M_llist_u64_count(d, 1);
-		ck_assert_msg(len == 1, "%s: 1 not found %zu times != 1", p, len);
+		ck_assert_msg(len == 1, "%s: 1 not found %lu times != 1", p, len);
 
 		M_llist_u64_destroy(d);
 	}
@@ -261,7 +261,7 @@ START_TEST(check_llist_u64_next_prev)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -279,7 +279,7 @@ START_TEST(check_llist_u64_next_prev)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_prev(n);
 		}
@@ -324,7 +324,7 @@ START_TEST(check_llist_u64_duplicate)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -404,13 +404,13 @@ START_TEST(check_llist_u64_merge)
 				break;
 			}
 
-			ck_assert_msg(n !=  NULL, "%s: Premature end of list (%zu)", p, j);
+			ck_assert_msg(n !=  NULL, "%s: Premature end of list (%lu)", p, j);
 			if (n == NULL) {
 				break;
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%lu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -437,7 +437,7 @@ START_TEST(check_llist_u64_many)
 	}
 
 	len = M_llist_u64_len(d);
-	ck_assert_msg(num == len, "len (%zu) != num (%zu)", len, num);
+	ck_assert_msg(num == len, "len (%lu) != num (%lu)", len, num);
 
 	cnt = 1;
 	n   = M_llist_u64_first(d);
@@ -454,7 +454,7 @@ START_TEST(check_llist_u64_many)
 
 	}
 
-	ck_assert_msg(cnt == len, "cnt (%zu) != num (%zu)", cnt, num);
+	ck_assert_msg(cnt == len, "cnt (%lu) != num (%lu)", cnt, num);
 
 	M_llist_u64_destroy(d);
 }

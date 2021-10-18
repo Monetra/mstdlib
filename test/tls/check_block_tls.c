@@ -77,7 +77,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 				event_debug("%p %s error during write", conn, is_server?"netserver":"netclient");
 				goto cleanup;
 			}
-			event_debug("%p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
+			event_debug("%p %s wrote %lu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
 		}
 
 		err = M_io_block_read_into_parser(conn, readparser, 20);
@@ -90,7 +90,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p %s has (%lu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 			M_parser_truncate(readparser, 0);
@@ -361,7 +361,7 @@ static void *tls_disconresp_listener(void *arg)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p netserver has (%zu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p netserver has (%lu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		/* If we have hello world, break! */
 		if (M_parser_compare_str(readparser, "HelloWorld", 0, M_FALSE)) {
@@ -373,7 +373,7 @@ static void *tls_disconresp_listener(void *arg)
 	err = M_io_block_write(conn, (const M_uint8 *)"GoodBye", M_str_len("GoodBye"), &len_written, M_TIMEOUT_INF);
 	if (err != M_IO_ERROR_SUCCESS || len_written != M_str_len("GoodBye")) {
 		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("%p netserver failed to write %zu bytes: %d: %s", conn, M_str_len("GoodBye"), (int)err, msg);
+		event_debug("%p netserver failed to write %lu bytes: %d: %s", conn, M_str_len("GoodBye"), (int)err, msg);
 		goto cleanup;
 	}
 
@@ -481,7 +481,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	err = M_io_block_write(conn, (const M_uint8 *)"HelloWorld", M_str_len("HelloWorld"), &len_written, M_TIMEOUT_INF);
 	if (err != M_IO_ERROR_SUCCESS || len_written != M_str_len("HelloWorld")) {
 		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("%p netclient failed to write %zu bytes: %d: %s", conn, M_str_len("HelloWorld"), (int)err, msg);
+		event_debug("%p netclient failed to write %lu bytes: %d: %s", conn, M_str_len("HelloWorld"), (int)err, msg);
 		goto cleanup;
 	}
 
@@ -503,7 +503,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p netclient has (%zu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p netclient has (%lu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		/* If we have hello world, break! */
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {

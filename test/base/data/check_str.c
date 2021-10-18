@@ -623,7 +623,7 @@ START_TEST(check_str_ends)
 		} else {
 			r = M_str_caseeq_end(ends[i].s, ends[i].e);
 		}
-		ck_assert_msg(r == ends[i].r, "%zu: s='%s', e='%s', case-sensitive=%s, match=%s", i, ends[i].s, ends[i].e, ends[i].cs==M_TRUE?"YES":"NO", ends[i].r==M_TRUE?"TRUE":"FALSE");
+		ck_assert_msg(r == ends[i].r, "%lu: s='%s', e='%s', case-sensitive=%s, match=%s", i, ends[i].s, ends[i].e, ends[i].cs==M_TRUE?"YES":"NO", ends[i].r==M_TRUE?"TRUE":"FALSE");
 	}
 }
 END_TEST

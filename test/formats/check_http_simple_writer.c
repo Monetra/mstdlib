@@ -48,14 +48,14 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	/* Remove the date from the Date: (leaving the bad Date: header) value because it's auto generated and will never match. */
 	remove_date(out, out_len, M_TRUE);
 
-	ck_assert_msg(M_str_eq(out, expected), "%zu: output does not match expected.\nGot:\n'%s'\n--\nExpected\n'%s'\n", idx, out, expected);
+	ck_assert_msg(M_str_eq(out, expected), "%lu: output does not match expected.\nGot:\n'%s'\n--\nExpected\n'%s'\n", idx, out, expected);
 
 	/* Remove the Date: header line entirely because a header without a value will fail parsing. */
 	remove_date(out, out_len, M_FALSE);
 
 	/* Validate the output is readable. */
 	res = M_http_simple_read(NULL, (const unsigned char *)out, *out_len, M_HTTP_SIMPLE_READ_NONE, NULL);
-	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS || res == M_HTTP_ERROR_MOREDATA, "%zu: Could not read output", idx);
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS || res == M_HTTP_ERROR_MOREDATA, "%lu: Could not read output", idx);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -273,7 +273,7 @@ START_TEST(check_request)
 
 		/* Check if it was supposed to fail. */
 		if (params[i].out == NULL) {
-			ck_assert_msg(out == NULL, "%zu: output structured when expected failure.\nGot:\n'%s'\n", i, out);
+			ck_assert_msg(out == NULL, "%lu: output structured when expected failure.\nGot:\n'%s'\n", i, out);
 			continue;
 		}
 
@@ -514,7 +514,7 @@ START_TEST(check_response)
 
 		/* Check if it was supposed to fail. */
 		if (params[i].out == NULL && out != NULL) {
-			ck_assert_msg(out == NULL, "%zu: output structured when expected failure.\nGot:\n'%s'\n", i, out);
+			ck_assert_msg(out == NULL, "%lu: output structured when expected failure.\nGot:\n'%s'\n", i, out);
 			continue;
 		}
 

@@ -59,12 +59,12 @@ static void check_create_pow2_help(size_t size)
 		size_t e_size = M_size_t_round_up_to_power_of_two(size);
 		if (e_size > M_HASHTABLE_MAX_BUCKETS)
 			e_size = M_HASHTABLE_MAX_BUCKETS;
-		ck_assert_msg(r_size == e_size, "for %zu, expected %zu, got %zu", size, e_size, r_size);
+		ck_assert_msg(r_size == e_size, "for %lu, expected %lu, got %lu", size, e_size, r_size);
 		M_hash_dict_destroy(d);
 	} else {
 		size_t r_size = size;
 		size_t e_size = 0;
-		ck_assert_msg(r_size == e_size, "for %zu, expected %zu, got %zu", size, e_size, r_size);
+		ck_assert_msg(r_size == e_size, "for %lu, expected %lu, got %lu", size, e_size, r_size);
 	}
 }
 
@@ -151,13 +151,13 @@ static M_bool random_remove(void)
 static void ensure_num_entries(size_t e_entries)
 {
 	size_t r_entries = M_hash_dict_num_keys(dict);
-	ck_assert_msg(r_entries == e_entries, "expected %zu, got %zu", e_entries, r_entries);
+	ck_assert_msg(r_entries == e_entries, "expected %lu, got %lu", e_entries, r_entries);
 }
 
 static void ensure_size(size_t e_size)
 {
 	size_t r_size = M_hash_dict_size(dict);
-	ck_assert_msg(r_size == e_size, "expected %zu, got %zu", e_size, r_size);
+	ck_assert_msg(r_size == e_size, "expected %lu, got %lu", e_size, r_size);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -419,12 +419,12 @@ START_TEST(check_merge_different)
 
 	M_hash_dict_enumerate(dest, &he);
 	while (M_hash_dict_enumerate_next(dest, he, &key, &val)) {
-		ck_assert_msg(M_str_len(key) == 3, "Key length %zu != 3", M_str_len(key));
-		ck_assert_msg(M_str_len(val) == 3, "Value length %zu != 3", M_str_len(val));
+		ck_assert_msg(M_str_len(key) == 3, "Key length %lu != 3", M_str_len(key));
+		ck_assert_msg(M_str_len(val) == 3, "Value length %lu != 3", M_str_len(val));
 	}
 	M_hash_dict_enumerate_free(he);
 	M_hash_dict_remove(dest, "vAl");
-	ck_assert_msg(M_hash_dict_num_keys(dest) == 2, "Num keys in dest %zu != 2", M_hash_dict_num_keys(dest));
+	ck_assert_msg(M_hash_dict_num_keys(dest) == 2, "Num keys in dest %lu != 2", M_hash_dict_num_keys(dest));
 
 	M_hash_dict_destroy(src);
 	M_hash_dict_destroy(dest);
@@ -451,9 +451,9 @@ START_TEST(check_casesensitive)
 	M_hash_dict_t *d = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
 
 	for (i=0; pairs[i].key != NULL; i++)
-		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%zu: insert failed", i);
+		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%lu: insert failed", i);
 	for (i=0; pairs[i].key != NULL; i++)
-		ck_assert_msg(M_str_eq(M_hash_dict_get_direct(d, pairs[i].key), pairs[i].val), "%zu: get failed", i);
+		ck_assert_msg(M_str_eq(M_hash_dict_get_direct(d, pairs[i].key), pairs[i].val), "%lu: get failed", i);
 
 	M_hash_dict_destroy(d);
 }
@@ -485,7 +485,7 @@ START_TEST(check_multi)
 	M_hash_dict_t *d = M_hash_dict_create(8, 75, M_HASH_DICT_MULTI_VALUE|M_HASH_DICT_MULTI_SORTDESC);
 
 	for (i=0; pairs[i].key != NULL; i++)
-		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%zu: insert failed", i);
+		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%lu: insert failed", i);
 
 	ck_assert_msg(M_hash_dict_enumerate(d, &d_enum) > 0, "enumerate failed");
 	while (M_hash_dict_enumerate_next(d, d_enum, &key, &val)) {
@@ -523,7 +523,7 @@ START_TEST(check_ordered_insert)
 	};
 
 	for (i=0; pairs[i].key != NULL; i++)
-		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%zu: insert failed", i);
+		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%lu: insert failed", i);
 
 	ck_assert_msg(M_hash_dict_enumerate(d, &d_enum) > 0, "enumerate failed");
 	while (M_hash_dict_enumerate_next(d, d_enum, &key, NULL)) {
@@ -560,7 +560,7 @@ START_TEST(check_ordered_sort)
 	};
 
 	for (i=0; pairs[i].key != NULL; i++)
-		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%zu: insert failed", i);
+		ck_assert_msg(M_hash_dict_insert(d, pairs[i].key, pairs[i].val), "%lu: insert failed", i);
 
 	ck_assert_msg(M_hash_dict_enumerate(d, &d_enum) > 0, "enumerate failed");
 	while (M_hash_dict_enumerate_next(d, d_enum, &key, NULL)) {
@@ -628,7 +628,7 @@ START_TEST(check_reuse_val)
 	M_hash_dict_insert(d, key, val);
 
 	num_entries = M_hash_dict_num_keys(d);
-	ck_assert_msg(num_entries == 1, "expected 1, got %zu", num_entries);
+	ck_assert_msg(num_entries == 1, "expected 1, got %lu", num_entries);
 
 	M_hash_dict_destroy(d);
 }

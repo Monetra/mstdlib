@@ -68,11 +68,11 @@ static void check_ordered(const char *key_result, M_uint32 flags)
 
 	/* Load the data into the hashtable. */
 	for (i=0; kv_pairs[i].key != NULL; i++)
-		ck_assert_msg(M_hash_strvp_insert(d, kv_pairs[i].key, &kv_pairs), "%zu: insert failed: %s", i, kv_pairs[i].key);
+		ck_assert_msg(M_hash_strvp_insert(d, kv_pairs[i].key, &kv_pairs), "%lu: insert failed: %s", i, kv_pairs[i].key);
 
 	/* Check the data was set correctly. */
 	for (i=0; kv_pairs[i].key != 0; i++)
-		ck_assert_msg(M_hash_strvp_get_direct(d, kv_pairs[i].key) == &kv_pairs, "%zu: get failed: %s", i, kv_pairs[i].key);
+		ck_assert_msg(M_hash_strvp_get_direct(d, kv_pairs[i].key) == &kv_pairs, "%lu: get failed: %s", i, kv_pairs[i].key);
 
 	/* Enumerate the data and fill in our result data buffers. */
 	ck_assert_msg(M_hash_strvp_enumerate(d, &d_enum) > 0, "enumerate failed");

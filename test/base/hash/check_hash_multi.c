@@ -72,20 +72,20 @@ START_TEST(check_insert)
 
 	/* int */
 	for (i=0; int_vals[i].int_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_insert_uint(hm, int_vals[i].int_key, int_vals[i].val), "%zu: Failed to insert int key (%"PRIu64") with int val (%"PRIu64")", i, int_vals[i].int_key, int_vals[i].val);
-		ck_assert_msg(M_hash_multi_str_insert_uint(hm, int_vals[i].str_key, int_vals[i].val), "%zu: Failed to insert str key (%s) with int val (%"PRIu64")", i, int_vals[i].str_key, int_vals[i].val);
+		ck_assert_msg(M_hash_multi_u64_insert_uint(hm, int_vals[i].int_key, int_vals[i].val), "%lu: Failed to insert int key (%"PRIu64") with int val (%"PRIu64")", i, int_vals[i].int_key, int_vals[i].val);
+		ck_assert_msg(M_hash_multi_str_insert_uint(hm, int_vals[i].str_key, int_vals[i].val), "%lu: Failed to insert str key (%s) with int val (%"PRIu64")", i, int_vals[i].str_key, int_vals[i].val);
 	}
 
 	/* str */
 	for (i=0; str_vals[i].int_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_insert_str(hm, str_vals[i].int_key, str_vals[i].val), "%zu: Failed to insert int key (%"PRIu64") with str val (%s)", i, str_vals[i].int_key, str_vals[i].val);
-		ck_assert_msg(M_hash_multi_str_insert_str(hm, str_vals[i].str_key, str_vals[i].val), "%zu: Failed to insert str key (%s) with str val (%s)", i, str_vals[i].str_key, str_vals[i].val);
+		ck_assert_msg(M_hash_multi_u64_insert_str(hm, str_vals[i].int_key, str_vals[i].val), "%lu: Failed to insert int key (%"PRIu64") with str val (%s)", i, str_vals[i].int_key, str_vals[i].val);
+		ck_assert_msg(M_hash_multi_str_insert_str(hm, str_vals[i].str_key, str_vals[i].val), "%lu: Failed to insert str key (%s) with str val (%s)", i, str_vals[i].str_key, str_vals[i].val);
 	}
 
 	/* bin */
 	for (i=0; bin_vals[i].int_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_insert_bin(hm, bin_vals[i].int_key, (const unsigned char *)bin_vals[i].val, M_str_len(bin_vals[i].val)), "%zu: Failed to insert int key (%"PRIu64") with bin val (%s)", i, bin_vals[i].int_key, bin_vals[i].val);
-		ck_assert_msg(M_hash_multi_str_insert_bin(hm, bin_vals[i].str_key, (const unsigned char *)bin_vals[i].val, M_str_len(bin_vals[i].val)), "%zu: Failed to insert str key (%s) with bin val (%s)", i, bin_vals[i].str_key, bin_vals[i].val);
+		ck_assert_msg(M_hash_multi_u64_insert_bin(hm, bin_vals[i].int_key, (const unsigned char *)bin_vals[i].val, M_str_len(bin_vals[i].val)), "%lu: Failed to insert int key (%"PRIu64") with bin val (%s)", i, bin_vals[i].int_key, bin_vals[i].val);
+		ck_assert_msg(M_hash_multi_str_insert_bin(hm, bin_vals[i].str_key, (const unsigned char *)bin_vals[i].val, M_str_len(bin_vals[i].val)), "%lu: Failed to insert str key (%s) with bin val (%s)", i, bin_vals[i].str_key, bin_vals[i].val);
 	}
 
 	/* vp */
@@ -107,52 +107,52 @@ START_TEST(check_insert)
 
 	/* int */
 	for (i=0; int_vals[i].int_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_get_uint(hm, int_vals[i].int_key, &int_val), "%zu: Failed to get int val for int key (%"PRIu64")", i, int_vals[i].int_key);
+		ck_assert_msg(M_hash_multi_u64_get_uint(hm, int_vals[i].int_key, &int_val), "%lu: Failed to get int val for int key (%"PRIu64")", i, int_vals[i].int_key);
 		if (int_vals[i].int_key == 3) {
-			ck_assert_msg(int_val == 121, "%zu: int key (%"PRIu64") int val (%"PRIu64") != expected val (%d)", i, int_vals[i].int_key, int_val, 121);
+			ck_assert_msg(int_val == 121, "%lu: int key (%"PRIu64") int val (%"PRIu64") != expected val (%d)", i, int_vals[i].int_key, int_val, 121);
 		} else {
-			ck_assert_msg(int_val == int_vals[i].val, "%zu: int key (%"PRIu64") int val (%"PRIu64") != expected val (%"PRIu64")", i, int_vals[i].int_key, int_val, int_vals[i].val);
+			ck_assert_msg(int_val == int_vals[i].val, "%lu: int key (%"PRIu64") int val (%"PRIu64") != expected val (%"PRIu64")", i, int_vals[i].int_key, int_val, int_vals[i].val);
 		}
 
-		ck_assert_msg(M_hash_multi_str_get_uint(hm, int_vals[i].str_key, &int_val), "%zu: Failed to get int val for str key (%s)", i, int_vals[i].str_key);
+		ck_assert_msg(M_hash_multi_str_get_uint(hm, int_vals[i].str_key, &int_val), "%lu: Failed to get int val for str key (%s)", i, int_vals[i].str_key);
 		if (int_vals[i].int_key == 3) {
-			ck_assert_msg(int_val == 121, "%zu: str key (%s) int val (%"PRIu64") != expected val (%d)", i, int_vals[i].str_key, int_val, 121);
+			ck_assert_msg(int_val == 121, "%lu: str key (%s) int val (%"PRIu64") != expected val (%d)", i, int_vals[i].str_key, int_val, 121);
 		} else {
-			ck_assert_msg(int_val == int_vals[i].val, "%zu: str key (%s) int val (%"PRIu64") != expected val (%"PRIu64")", i, int_vals[i].str_key, int_val, int_vals[i].val);
+			ck_assert_msg(int_val == int_vals[i].val, "%lu: str key (%s) int val (%"PRIu64") != expected val (%"PRIu64")", i, int_vals[i].str_key, int_val, int_vals[i].val);
 		}
 	}
 
 	/* str */
 	for (i=0; str_vals[i].str_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_get_str(hm, str_vals[i].int_key, &str_val), "%zu: Failed to get str val for int key (%"PRIu64")", i, str_vals[i].int_key);
+		ck_assert_msg(M_hash_multi_u64_get_str(hm, str_vals[i].int_key, &str_val), "%lu: Failed to get str val for int key (%"PRIu64")", i, str_vals[i].int_key);
 		if (str_vals[i].int_key == 13) {
-			ck_assert_msg(M_str_eq(str_val, "data"), "%zu: int key (%"PRIu64") str val (%s) != expected val (%s)", i, str_vals[i].int_key, str_val, "data");
+			ck_assert_msg(M_str_eq(str_val, "data"), "%lu: int key (%"PRIu64") str val (%s) != expected val (%s)", i, str_vals[i].int_key, str_val, "data");
 		} else {
-			ck_assert_msg(M_str_eq(str_val, str_vals[i].val), "%zu: int key (%"PRIu64") str val (%s) != expected val (%s)", i, str_vals[i].int_key, str_val, str_vals[i].val);
+			ck_assert_msg(M_str_eq(str_val, str_vals[i].val), "%lu: int key (%"PRIu64") str val (%s) != expected val (%s)", i, str_vals[i].int_key, str_val, str_vals[i].val);
 		}
 
-		ck_assert_msg(M_hash_multi_str_get_str(hm, str_vals[i].str_key, &str_val), "%zu: Failed to get str val for str key (%s)", i, str_vals[i].str_key);
+		ck_assert_msg(M_hash_multi_str_get_str(hm, str_vals[i].str_key, &str_val), "%lu: Failed to get str val for str key (%s)", i, str_vals[i].str_key);
 		if (M_str_eq(str_vals[i].str_key, "ca")) {
-			ck_assert_msg(M_str_eq(str_val, "data"), "%zu: str key (%s) str val (%s) != expected val (%s)", i, str_vals[i].str_key, str_val, "ca");
+			ck_assert_msg(M_str_eq(str_val, "data"), "%lu: str key (%s) str val (%s) != expected val (%s)", i, str_vals[i].str_key, str_val, "ca");
 		} else {
-			ck_assert_msg(M_str_eq(str_val, str_vals[i].val), "%zu: str key (%s) str val (%s) != expected val (%s)", i, str_vals[i].str_key, str_val, str_vals[i].val);
+			ck_assert_msg(M_str_eq(str_val, str_vals[i].val), "%lu: str key (%s) str val (%s) != expected val (%s)", i, str_vals[i].str_key, str_val, str_vals[i].val);
 		}
 	}
 
 	/* bin */
 	for (i=0; bin_vals[i].int_key!=0; i++) {
-		ck_assert_msg(M_hash_multi_u64_get_bin(hm, bin_vals[i].int_key, &bin_val, &bin_len), "%zu: Failed to get bin val for int key (%"PRIu64")", i, bin_vals[i].int_key);
+		ck_assert_msg(M_hash_multi_u64_get_bin(hm, bin_vals[i].int_key, &bin_val, &bin_len), "%lu: Failed to get bin val for int key (%"PRIu64")", i, bin_vals[i].int_key);
 		if (bin_vals[i].int_key == 23) {
-			ck_assert_msg(bin_len == 4 && M_mem_eq(bin_val, "data", bin_len), "%zu: int key (%"PRIu64") bin val (%.*s) != expected val (%s)", i, bin_vals[i].int_key, (int)bin_len, bin_val, "data");
+			ck_assert_msg(bin_len == 4 && M_mem_eq(bin_val, "data", bin_len), "%lu: int key (%"PRIu64") bin val (%.*s) != expected val (%s)", i, bin_vals[i].int_key, (int)bin_len, bin_val, "data");
 		} else {
-			ck_assert_msg(bin_len == M_str_len(bin_vals[i].val) && M_mem_eq(bin_val, bin_vals[i].val, bin_len), "%zu: int key (%"PRIu64") bin val (%.*s) != expected val (%s)", i, bin_vals[i].int_key, (int)bin_len, bin_val, bin_vals[i].val);
+			ck_assert_msg(bin_len == M_str_len(bin_vals[i].val) && M_mem_eq(bin_val, bin_vals[i].val, bin_len), "%lu: int key (%"PRIu64") bin val (%.*s) != expected val (%s)", i, bin_vals[i].int_key, (int)bin_len, bin_val, bin_vals[i].val);
 		}
 
-		ck_assert_msg(M_hash_multi_str_get_bin(hm, bin_vals[i].str_key, &bin_val, &bin_len), "%zu: Failed to get bin val for str key (%s)", i, bin_vals[i].str_key);
+		ck_assert_msg(M_hash_multi_str_get_bin(hm, bin_vals[i].str_key, &bin_val, &bin_len), "%lu: Failed to get bin val for str key (%s)", i, bin_vals[i].str_key);
 		if (M_str_eq(bin_vals[i].str_key, "ya")) {
-			ck_assert_msg(bin_len == 4 && M_mem_eq(bin_val, "data", bin_len), "%zu: str key (%s) bin val (%.*s) != expected val (%s)", i, bin_vals[i].str_key, (int)bin_len, bin_val, "data");
+			ck_assert_msg(bin_len == 4 && M_mem_eq(bin_val, "data", bin_len), "%lu: str key (%s) bin val (%.*s) != expected val (%s)", i, bin_vals[i].str_key, (int)bin_len, bin_val, "data");
 		} else {
-			ck_assert_msg(bin_len == M_str_len(bin_vals[i].val) && M_mem_eq(bin_val, bin_vals[i].val, bin_len), "%zu: str key (%s) bin val (%.*s) != expected val (%s)", i, bin_vals[i].str_key, (int)bin_len, bin_val, bin_vals[i].val);
+			ck_assert_msg(bin_len == M_str_len(bin_vals[i].val) && M_mem_eq(bin_val, bin_vals[i].val, bin_len), "%lu: str key (%s) bin val (%.*s) != expected val (%s)", i, bin_vals[i].str_key, (int)bin_len, bin_val, bin_vals[i].val);
 		}
 	}
 

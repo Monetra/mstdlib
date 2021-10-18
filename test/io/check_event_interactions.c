@@ -233,7 +233,7 @@ START_TEST(check_event_stacking_start)
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%lu) expected (1)", data.count);
 }
 END_TEST
 
@@ -274,7 +274,7 @@ START_TEST(check_event_remove)
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%lu) expected (1)", data.count);
 }
 END_TEST
 #endif /* MSTDLIB_BUILD_FOR_CI */
@@ -310,7 +310,7 @@ START_TEST(check_event_stop)
 	M_thread_join(t2, NULL);
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%zu) expected (1)", data.count);
+	ck_assert_msg(data.count == 1, "Timer started by different thread fired unexpected number of times (%lu) expected (1)", data.count);
 }
 END_TEST
 
@@ -335,7 +335,7 @@ START_TEST(check_event_self)
 
 	M_thread_join(t1, NULL);
 
-	ck_assert_msg(data.count == 5, "Timer calling itself fired unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+	ck_assert_msg(data.count == 5, "Timer calling itself fired unexpected number of times (%lu) expected (%lu)", data.count, data.num);
 }
 END_TEST
 
@@ -378,7 +378,7 @@ START_TEST(check_event_many)
 	M_event_destroy(data.el1);
 	M_thread_mutex_destroy(data.mutex);
 
-	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%lu) expected (%lu)", data.count, data.num);
 }
 END_TEST
 
@@ -422,7 +422,7 @@ START_TEST(check_event_many2)
 	M_event_destroy(data.el1);
 	M_thread_mutex_destroy(data.mutex);
 
-	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%zu) expected (%zu)", data.count, data.num);
+	ck_assert_msg(data.count == data.num, "Many queued timers called event cb unexpected number of times (%lu) expected (%lu)", data.count, data.num);
 }
 END_TEST
 

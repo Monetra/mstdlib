@@ -213,7 +213,7 @@ static void *thread_tls(void *arg)
 	ck_assert_msg(M_thread_tls_setspecific(sd->key, sd->ptr) == M_TRUE, "Cold not set tls value (%s) on key %"PRIu64"", sd->ptr, sd->key);
 	M_thread_sleep(sd->usec);
 	ptr = M_thread_tls_getspecific(sd->key);
-	ck_assert_msg(ptr == sd->ptr, "Value of key (%"PRIu64"): %s != expected value: %s", sd->key, ptr, sd->ptr);
+	ck_assert_msg(ptr == sd->ptr, "Value of key (%"PRIu64"): %s != expected value: %s", sd->key, (const char *)ptr, sd->ptr);
 
 	return NULL;
 }

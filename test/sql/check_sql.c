@@ -285,7 +285,7 @@ static M_sql_error_t check_sql_trans(M_sql_trans_t *trans, void *arg, char *erro
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_prepare(INSERT 30) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 	for (i=0; i<INSERT_ROWS; i++) {
 		M_sql_stmt_bind_int32(stmt, (M_int32)(3+i));
-		M_snprintf(temp, sizeof(temp), "Row%zu", i+1);
+		M_snprintf(temp, sizeof(temp), "Row%lu", i+1);
 		M_sql_stmt_bind_text_dup(stmt, temp, 0);
 		M_sql_stmt_bind_int16(stmt, (M_int16)(i & 0xFFFF));
 		M_sql_stmt_bind_int32(stmt, (M_int32)i);
@@ -426,7 +426,7 @@ START_TEST(check_sql)
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_prepare(INSERT 2) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 	for (i=0; i<2; i++) {
 		M_sql_stmt_bind_int32(stmt, (M_int32)((3+INSERT_ROWS+i) & 0xFFFFFFFF));
-		M_snprintf(temp, sizeof(temp), "Row%zu", INSERT_ROWS+i+1);
+		M_snprintf(temp, sizeof(temp), "Row%lu", INSERT_ROWS+i+1);
 		M_sql_stmt_bind_text_dup(stmt, temp, 0);
 		M_sql_stmt_bind_int16(stmt, (M_int16)((3+INSERT_ROWS+i) & 0xFFFF));
 		M_sql_stmt_bind_int32(stmt, (M_int32)((3+INSERT_ROWS+i) & 0xFFFFFFFF));
@@ -448,7 +448,7 @@ START_TEST(check_sql)
 	M_mem_set(hugedata, 0x0D, HUGEDATA_SIZE);
 	hugedataid = (5+INSERT_ROWS);
 	M_sql_stmt_bind_int64(stmt, hugedataid);
-	M_snprintf(temp, sizeof(temp), "Row%zu", (size_t)INSERT_ROWS+5+1);
+	M_snprintf(temp, sizeof(temp), "Row%lu", (size_t)INSERT_ROWS+5+1);
 	M_sql_stmt_bind_text_dup(stmt, temp, 0);
 	M_sql_stmt_bind_int16(stmt, (M_int16)((5+INSERT_ROWS) & 0xFFFF));
 	M_sql_stmt_bind_int32(stmt, (M_int32)((5+INSERT_ROWS) & 0xFFFFFFFF));
@@ -483,7 +483,7 @@ START_TEST(check_sql)
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS_ROW, "M_sql_stmt_execute(SELECT) failed: %s: %s", M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 
 	/* Validate column count */
-	ck_assert_msg(M_sql_stmt_result_num_cols(stmt) == 8, "M_sql_stmt_result_num_cols() expected 8, got %zu", M_sql_stmt_result_num_cols(stmt));
+	ck_assert_msg(M_sql_stmt_result_num_cols(stmt) == 8, "M_sql_stmt_result_num_cols() expected 8, got %lu", M_sql_stmt_result_num_cols(stmt));
 
 	/* Validate column names */
 	ck_assert_msg(M_str_eq(M_sql_stmt_result_col_name(stmt, 0), "key"),        "col 0 name expected 'key' got '%s'",        M_sql_stmt_result_col_name(stmt, 0));
@@ -496,7 +496,7 @@ START_TEST(check_sql)
 	ck_assert_msg(M_str_eq(M_sql_stmt_result_col_name(stmt, 7), "hugebincol"), "col 7 name expected 'hugebincol' got '%s'", M_sql_stmt_result_col_name(stmt, 7));
 
 #if defined(DEBUG) && DEBUG >= 1
-	M_printf("%zu cols (", M_sql_stmt_result_num_cols(stmt));
+	M_printf("%lu cols (", M_sql_stmt_result_num_cols(stmt));
 	for (i=0; i<M_sql_stmt_result_num_cols(stmt); i++) {
 		size_t            size = 0;
 		M_sql_data_type_t type;
@@ -506,7 +506,7 @@ START_TEST(check_sql)
 			M_printf(", ");
 		M_printf("\"%s\" %s", M_sql_stmt_result_col_name(stmt, i), coltype2str(type));
 		if (type == M_SQL_DATA_TYPE_TEXT || type == M_SQL_DATA_TYPE_BINARY) {
-			M_printf("(%zu)", size);
+			M_printf("(%lu)", size);
 		}
 	}
 	M_printf(")\n");
@@ -522,8 +522,8 @@ START_TEST(check_sql)
 	ck_assert_msg(!M_str_isempty(out), "M_sql_report_process() failed to return result data");
 	csv = M_csv_parse_inplace(out, out_len, ',', '"', M_CSV_FLAG_NONE);
 	ck_assert_msg(csv != NULL, "Failed to parse CSV data");
-	ck_assert_msg(M_csv_get_numrows(csv) == M_sql_stmt_result_total_rows(stmt), "mismatch between csv rows and sql rows: %zu vs %zu", M_csv_get_numrows(csv), M_sql_stmt_result_total_rows(stmt));
-	ck_assert_msg(M_csv_get_numcols(csv) == M_sql_stmt_result_num_cols(stmt), "mismatch between csv cols and sql cols: %zu vs %zu", M_csv_get_numcols(csv), M_sql_stmt_result_num_cols(stmt));
+	ck_assert_msg(M_csv_get_numrows(csv) == M_sql_stmt_result_total_rows(stmt), "mismatch between csv rows and sql rows: %lu vs %lu", M_csv_get_numrows(csv), M_sql_stmt_result_total_rows(stmt));
+	ck_assert_msg(M_csv_get_numcols(csv) == M_sql_stmt_result_num_cols(stmt), "mismatch between csv cols and sql cols: %lu vs %lu", M_csv_get_numcols(csv), M_sql_stmt_result_num_cols(stmt));
 
 	M_csv_destroy(csv); /* Auto-free's out */
 
@@ -544,9 +544,9 @@ START_TEST(check_sql)
 	err = M_sql_stmt_result_binary_byname(stmt, 0, "hugebincol", &outbincol, &outbincol_size);
 	ck_assert_msg(err == M_SQL_ERROR_SUCCESS, "M_sql_stmt_result_binary_byname(hugebincol) failed");
 
-	ck_assert_msg(outbincol_size == HUGEDATA_SIZE, "Expected huge binary column to be %zu bytes, was %zu bytes", (size_t)HUGEDATA_SIZE, outbincol_size);
+	ck_assert_msg(outbincol_size == HUGEDATA_SIZE, "Expected huge binary column to be %lu bytes, was %lu bytes", (size_t)HUGEDATA_SIZE, outbincol_size);
 	for (i=0; i<outbincol_size; i++) {
-		ck_assert_msg(outbincol[i] == 0x0D, "Binary data index %zu (0x%02X) does not match expected value of 0x0D", i, outbincol[i]);
+		ck_assert_msg(outbincol[i] == 0x0D, "Binary data index %lu (0x%02X) does not match expected value of 0x0D", i, outbincol[i]);
 	}
 	M_sql_stmt_destroy(stmt);
 

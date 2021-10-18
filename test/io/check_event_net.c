@@ -125,12 +125,12 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_atomic_inc_u64(&client_connection_count);
 			event_debug("net client Connected (%s) [%s]:%u:%u, %s", M_io_net_get_host(comm), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), net_type(M_io_net_get_type(comm)));
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("net client %p wrote %zu bytes", comm, mysize);
+			event_debug("net client %p wrote %lu bytes", comm, mysize);
 			connstate->is_connected = M_TRUE;
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net client %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net client %p read %lu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (M_mem_eq(buf, (const unsigned char *)"GoodBye", 7)) {
 				event_debug("net client %p initiating close", comm);
 				M_io_disconnect(comm);
@@ -169,7 +169,7 @@ static void net_serverconn_write_goodbye_cb(M_event_t *event, M_event_type_t typ
 	(void)type;
 	(void)io;
 	M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-	event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
+	event_debug("net serverconn %p wrote %lu bytes", comm, mysize);
 }
 
 
@@ -189,7 +189,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %lu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				if (delay_response_ms) {
 					M_event_timer_oneshot(event, delay_response_ms, M_TRUE, net_serverconn_write_goodbye_cb, comm);

@@ -80,13 +80,13 @@ START_TEST(check_parser_bcd)
 		bytes = check_parser_bcd_data[i].bytes;
 
 		buf = M_buf_create();
-		ck_assert_msg(M_buf_add_uintbcd(buf, n, bytes), "%zu: Could not convert '%"PRIu64"' to bcd", i, n);
+		ck_assert_msg(M_buf_add_uintbcd(buf, n, bytes), "%lu: Could not convert '%"PRIu64"' to bcd", i, n);
 		out = M_buf_finish(buf, &out_len);
-		ck_assert_msg(bytes == out_len, "%zu: out_len (%zu) != bytes (%zu)", i, out_len, out_len);
+		ck_assert_msg(bytes == out_len, "%lu: out_len (%lu) != bytes (%lu)", i, out_len, out_len);
 
 		parser = M_parser_create_const(out, out_len, M_PARSER_FLAG_NONE);
-		ck_assert_msg(M_parser_read_uint_bcd(parser, bytes, &out_n), "%zu: could not read bcd from parser", i);
-		ck_assert_msg(out_n == n, "%zu: out_n (%"PRIu64") != n (%"PRIu64")", i, out_n, n);
+		ck_assert_msg(M_parser_read_uint_bcd(parser, bytes, &out_n), "%lu: could not read bcd from parser", i);
+		ck_assert_msg(out_n == n, "%lu: out_n (%"PRIu64") != n (%"PRIu64")", i, out_n, n);
 
 		M_parser_destroy(parser);
 		M_free(out);
@@ -180,9 +180,9 @@ START_TEST(check_parser_boundary)
 	for (i=0; boundary_data[i].data!=NULL; i++) {
 		parser = M_parser_create_const((const unsigned char *)boundary_data[i].data, M_str_len(boundary_data[i].data), M_PARSER_FLAG_NONE);
 		len    = M_parser_read_str_boundary(parser, buf, sizeof(buf), boundary, boundary_data[i].eat_pat, &found);
-		ck_assert_msg(M_str_eq(buf, boundary_data[i].out_data), "%zu: Wrong data read: got '%s', expected '%s'", i, buf, boundary_data[i].out_data);
-		ck_assert_msg(len == M_str_len(boundary_data[i].out_data), "%zu: Wrong length returned: got '%zu' expected '%zu", i, len, M_str_len(boundary_data[i].out_data));
-		ck_assert_msg(found == boundary_data[i].found, "%zu: boundary found not correct; got %d expected %d", i, found, boundary_data[i].found);
+		ck_assert_msg(M_str_eq(buf, boundary_data[i].out_data), "%lu: Wrong data read: got '%s', expected '%s'", i, buf, boundary_data[i].out_data);
+		ck_assert_msg(len == M_str_len(boundary_data[i].out_data), "%lu: Wrong length returned: got '%lu' expected '%lu", i, len, M_str_len(boundary_data[i].out_data));
+		ck_assert_msg(found == boundary_data[i].found, "%lu: boundary found not correct; got %d expected %d", i, found, boundary_data[i].found);
 		M_parser_destroy(parser);
 	}
 }
@@ -226,9 +226,9 @@ START_TEST(check_parser_truncate_predicate)
 			r = M_parser_truncate_predicate_max(parser, trunc_pred_func, trunc_data[i].max);
 		}
 
-		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
-		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+		ck_assert_msg(r == trunc_data[i].r, "%lu: Wrong truncated amount: got '%lu', expected '%lu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].out_data), "%lu: Wrong truncated data size: got '%lu', expected '%lu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%lu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
 	}
@@ -289,9 +289,9 @@ START_TEST(check_parser_truncate_until)
 
 		r = M_parser_truncate_until(parser, (const unsigned char *)trunc_data[i].pat, M_str_len(trunc_data[i].pat), trunc_data[i].eat);
 
-		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
-		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+		ck_assert_msg(r == trunc_data[i].r, "%lu: Wrong truncated amount: got '%lu', expected '%lu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%lu: Wrong truncated data size: got '%lu', expected '%lu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%lu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
 	}
@@ -334,9 +334,9 @@ START_TEST(check_parser_truncate_charset)
 
 		r = M_parser_truncate_charset(parser, (const unsigned char *)trunc_data[i].set, M_str_len(trunc_data[i].set));
 
-		ck_assert_msg(r == trunc_data[i].r, "%zu: Wrong truncated amount: got '%zu', expected '%zu'", i, r, trunc_data[i].r);
-		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%zu: Wrong truncated data size: got '%zu', expected '%zu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
-		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%zu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
+		ck_assert_msg(r == trunc_data[i].r, "%lu: Wrong truncated amount: got '%lu', expected '%lu'", i, r, trunc_data[i].r);
+		ck_assert_msg(M_parser_len(parser) == M_str_len(trunc_data[i].data)-trunc_data[i].r, "%lu: Wrong truncated data size: got '%lu', expected '%lu'", i, M_parser_len(parser), M_str_len(trunc_data[i].out_data));
+		ck_assert_msg(M_str_eq_max((const char *)M_parser_peek(parser), trunc_data[i].out_data, M_parser_len(parser)), "%lu: Wrong data read: got '%.*s', expected '%s'", i, (int)M_parser_len(parser), M_parser_peek(parser), trunc_data[i].out_data);
 
 		M_parser_destroy(parser);
 	}
