@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -58,7 +58,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 M_thread_mutex_unlock(debug_lock);
@@ -71,11 +71,11 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_printf("%"PRId64".%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	M_printf("%"PRId64".%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
 	M_printf("%s\n", buf);
 	M_free(buf);
@@ -92,7 +92,7 @@ static void event_debug(const char *fmt, ...)
 
 static void net_check_cleanup(M_event_t *event)
 {
-	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %"PRIu64", active_c %"PRIu64", total_s %"PRIu64", total_c %"PRIu64", expect %"PRIu64"", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
 		M_event_done(event);
 	}
@@ -284,7 +284,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	delay_response_ms         = delay_ms;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	event_debug("starting %llu connection test", num_connections);
+	event_debug("starting %"PRIu64" connection test", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
@@ -339,11 +339,11 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	}
 
 	event_debug("statistics:");
-	event_debug("\twake count     : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
-	event_debug("\tprocess time ms: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
-	event_debug("\tosevent count  : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
-	event_debug("\tsoftevent count: %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
-	event_debug("\ttimer count    : %llu", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
+	event_debug("\twake count     : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
+	event_debug("\tprocess time ms: %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
+	event_debug("\tosevent count  : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
+	event_debug("\tsoftevent count: %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
+	event_debug("\ttimer count    : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
 
 	/* Test destroying event first to make sure it can handle this */
 	M_event_destroy(event);
@@ -414,11 +414,11 @@ START_TEST(check_event_net_stat)
 	M_printf("===================\n");
 	for (i=0; tests[i].name != NULL; i++) {
 		M_printf("%s: statistics\n", tests[i].name);
-		M_printf("\twake count:      %llu\n", tests[i].stats.wake_cnt);
-		M_printf("\tosevent count:   %llu\n", tests[i].stats.osevent_cnt);
-		M_printf("\tsoftevent count: %llu\n", tests[i].stats.softevent_cnt);
-		M_printf("\ttimer count:     %llu\n", tests[i].stats.timer_cnt);
-		M_printf("\tprocess time ms: %llu\n", tests[i].stats.process_time_ms);
+		M_printf("\twake count:      %"PRIu64"\n", tests[i].stats.wake_cnt);
+		M_printf("\tosevent count:   %"PRIu64"\n", tests[i].stats.osevent_cnt);
+		M_printf("\tsoftevent count: %"PRIu64"\n", tests[i].stats.softevent_cnt);
+		M_printf("\ttimer count:     %"PRIu64"\n", tests[i].stats.timer_cnt);
+		M_printf("\tprocess time ms: %"PRIu64"\n", tests[i].stats.process_time_ms);
 	}
 }
 END_TEST

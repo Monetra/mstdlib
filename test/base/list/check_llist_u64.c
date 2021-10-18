@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -45,7 +45,7 @@ START_TEST(check_llist_u64_insert)
 		d           = M_llist_u64_create(check_llist_u64_generic_data[i].flags);
 
 		for (j=0; j<VALS_LEN; j++) {
-			ck_assert_msg(M_llist_u64_insert(d, generic_vals[j])!=NULL, "%s: Could not insert (%zu) value %lld", p, j, generic_vals[j]);
+			ck_assert_msg(M_llist_u64_insert(d, generic_vals[j])!=NULL, "%s: Could not insert (%zu) value %"PRId64"", p, j, generic_vals[j]);
 		}
 
 		n = M_llist_u64_first(d);
@@ -56,7 +56,7 @@ START_TEST(check_llist_u64_insert)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%lld, expected=%lld", p, j, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -98,7 +98,7 @@ START_TEST(check_llist_u64_insert_before_after)
 		}
 
 		v = M_llist_u64_node_val(n);
-		ck_assert_msg(v == vals_result[i], "Order mismatch (%zu), got=%lld, expected=%lld", i, v, vals_result[i]);
+		ck_assert_msg(v == vals_result[i], "Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", i, v, vals_result[i]);
 
 		n = M_llist_u64_node_next(n);
 	}
@@ -261,7 +261,7 @@ START_TEST(check_llist_u64_next_prev)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%lld, expected=%lld", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -279,7 +279,7 @@ START_TEST(check_llist_u64_next_prev)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%lld, expected=%lld", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_prev(n);
 		}
@@ -324,7 +324,7 @@ START_TEST(check_llist_u64_duplicate)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%lld, expected=%lld", p, i, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, i, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}
@@ -410,7 +410,7 @@ START_TEST(check_llist_u64_merge)
 			}
 
 			v = M_llist_u64_node_val(n);
-			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%lld, expected=%lld", p, j, v, vals_result[j]);
+			ck_assert_msg(v == vals_result[j], "%s: Order mismatch (%zu), got=%"PRId64", expected=%"PRId64"", p, j, v, vals_result[j]);
 
 			n = M_llist_u64_node_next(n);
 		}

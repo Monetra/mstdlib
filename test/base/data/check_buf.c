@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 static const char    *test_hex   = "9F33036020C8";
@@ -190,7 +190,7 @@ START_TEST(check_buf_uintbin)
 		hex        = check_buf_uintbin_data[i].hex;
 
 		buf = M_buf_create();
-		ck_assert_msg(M_buf_add_uintbin(buf, n, num, endianness), "%zu: Could not convert '%llu' to bin, with %s", i, n, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
+		ck_assert_msg(M_buf_add_uintbin(buf, n, num, endianness), "%zu: Could not convert '%"PRIu64"' to bin, with %s", i, n, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
 		out = M_buf_finish(buf, &out_len);
 
 		out_hex = M_bincodec_encode_alloc((M_uint8 *)out, out_len, 0, M_BINCODEC_HEX);
@@ -299,7 +299,7 @@ START_TEST(check_buf_uintbcd)
 		buf = M_buf_create();
 		ret = M_buf_add_uintbcd(buf, n, just);
 		if (ret == M_FALSE) {
-			ck_assert_msg(hex == NULL, "%zu: Failed to convert %llu to bcd", i, n);
+			ck_assert_msg(hex == NULL, "%zu: Failed to convert %"PRIu64" to bcd", i, n);
 			continue;
 		}
 

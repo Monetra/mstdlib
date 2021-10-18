@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -27,7 +27,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 	fflush(stdout);
@@ -50,7 +50,7 @@ static void timer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *
 		M_event_trigger_signal(evdata->trigger);
 	}
 	if (evdata->events == 0 && evdata->delay) {
-		event_debug("event emulate long event handler, delay %llu ms", evdata->delay);
+		event_debug("event emulate long event handler, delay %"PRIu64" ms", evdata->delay);
 		M_thread_sleep(evdata->delay * 1000);
 	}
 	if (!evdata->use_trigger)
@@ -88,7 +88,7 @@ static size_t event_timer_test(M_uint64 start_delay_ms, M_uint64 end_ms, M_uint6
 	M_event_timer_t   *timer;
 	size_t             events;
 
-	event_debug("start_delay_ms=%llu, end_ms=%llu, interval_ms=%llu, max_runtime_ms=%llu, fire_cnt=%zu, mode=%s, use_trigger=%s, first_event_delay_ms=%llu",
+	event_debug("start_delay_ms=%"PRIu64", end_ms=%"PRIu64", interval_ms=%"PRIu64", max_runtime_ms=%"PRIu64", fire_cnt=%zu, mode=%s, use_trigger=%s, first_event_delay_ms=%"PRIu64"",
 	            start_delay_ms, end_ms, interval_ms, max_runtime_ms, fire_cnt,
 	            mode == M_EVENT_TIMER_MODE_RELATIVE?"RELATIVE":"MONOTONIC", use_trigger?"yes":"no", first_event_delay_ms);
 

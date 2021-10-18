@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -25,7 +25,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -61,7 +61,7 @@ static const char *event_type_str(M_event_type_t type)
 
 static void loopback_check_cleanup(void)
 {
-	event_debug("active %llu, total %llu, expect %llu", active_connections, connection_count, expected_connections);
+	event_debug("active %"PRIu64", total %"PRIu64", expect %"PRIu64"", active_connections, connection_count, expected_connections);
 }
 
 static void loopback_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *data)
@@ -129,7 +129,7 @@ static M_event_err_t check_event_loopback_test(M_uint64 num_connections)
 	active_connections   = 0;
 	connection_count     = 0;
 
-	event_debug("starting %llu loopback test", num_connections);
+	event_debug("starting %"PRIu64" loopback test", num_connections);
 
 	for (i=0; i<num_connections; i++) {
 		if (M_io_loopback_create(&io) != M_IO_ERROR_SUCCESS) {

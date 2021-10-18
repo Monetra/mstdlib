@@ -1,5 +1,6 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
+#include <inttypes.h>
 
 /* Windows fix. VS2010 and newer have the stdint.h header, though libcheck doesn't realize this. */
 #if !defined(HAVE_STDINT_H) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
@@ -78,7 +79,7 @@ do {\
 #define check_len(BPARSER, EXP_BITS)\
 do {\
 	size_t len_bits  = M_bit_parser_len(BPARSER);\
-	ck_assert_msg(len_bits == EXP_BITS, "len is %lld bits, expected %lld", (long long)len_bits, (long long)EXP_BITS);\
+	ck_assert_msg(len_bits == EXP_BITS, "len is %"PRId64" bits, expected %"PRId64"", (long long)len_bits, (long long)EXP_BITS);\
 } while (0)
 
 

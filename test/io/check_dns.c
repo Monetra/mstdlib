@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -46,7 +46,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -165,7 +165,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 	event_debug("net client %p event %s triggered", io, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
-			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %llums, IPConnect: %llums) (TLS: %llums %s %s %s)",
+			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %"PRIu64"ms, IPConnect: %"PRIu64"ms) (TLS: %"PRIu64"ms %s %s %s)",
 				M_io_net_get_host(io), net_type(M_io_net_get_type(io)), M_io_net_get_ipaddr(io), M_io_net_get_port(io), M_io_net_get_ephemeral_port(io), 
 				M_io_net_time_dns_ms(io), M_io_net_time_connect_ms(io),
 				M_tls_get_negotiation_time_ms(io, M_IO_LAYER_FIND_FIRST_ID),
@@ -243,11 +243,11 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%lld.%06lld: TRACE: event %s\n", tv.tv_sec, tv.tv_usec, event_type_str(event_type));
+		M_printf("%"PRId64".%06lld: TRACE: event %s\n", tv.tv_sec, tv.tv_usec, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%lld.%06lld: TRACE: %s\n", tv.tv_sec, tv.tv_usec, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	M_printf("%"PRId64".%06lld: TRACE: %s\n", tv.tv_sec, tv.tv_usec, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
 	M_printf("%s\n", buf);
 	M_free(buf);

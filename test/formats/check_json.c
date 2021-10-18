@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
@@ -558,7 +558,7 @@ START_TEST(check_json_jsonpath_array)
 	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		val = M_json_get_int(results[0]);
-		ck_assert_msg(val == 88, "node value %lld != 88", val);
+		ck_assert_msg(val == 88, "node value %"PRId64" != 88", val);
 		M_free(results);
 	}
 
@@ -566,11 +566,11 @@ START_TEST(check_json_jsonpath_array)
 	ck_assert_msg(results != NULL && num_matches == 3, "Did not find expected match: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		val = M_json_get_int(results[0]);
-		ck_assert_msg(val == 88, "node value %lld != 88", val);
+		ck_assert_msg(val == 88, "node value %"PRId64" != 88", val);
 		val = M_json_get_int(results[1]);
-		ck_assert_msg(val == 2, "node value %lld != 2", val);
+		ck_assert_msg(val == 2, "node value %"PRId64" != 2", val);
 		val = M_json_get_int(results[2]);
-		ck_assert_msg(val == 95, "node value %lld != 95", val);
+		ck_assert_msg(val == 95, "node value %"PRId64" != 95", val);
 		M_free(results);
 	}
 
@@ -579,11 +579,11 @@ START_TEST(check_json_jsonpath_array)
 	if (results != NULL) {
 		ck_assert_msg(M_json_node_type(results[0]) == M_JSON_TYPE_ARRAY, "node is not array");
 		val = M_json_get_int(results[1]);
-		ck_assert_msg(val == 1, "node value %lld != 1", val);
+		ck_assert_msg(val == 1, "node value %"PRId64" != 1", val);
 		val = M_json_get_int(results[2]);
-		ck_assert_msg(val == 23, "node value %lld != 23", val);
+		ck_assert_msg(val == 23, "node value %"PRId64" != 23", val);
 		val = M_json_get_int(results[3]);
-		ck_assert_msg(val == 94, "node value %lld != 94", val);
+		ck_assert_msg(val == 94, "node value %"PRId64" != 94", val);
 		M_free(results);
 	}
 

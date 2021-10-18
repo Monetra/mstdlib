@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -27,7 +27,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 M_thread_mutex_unlock(debug_lock);
@@ -118,7 +118,7 @@ cleanup:
 		if (active_client_connections)
 			M_atomic_dec_u64(&active_client_connections);
 	}
-	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expected %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %"PRIu64", active_c %"PRIu64", total_s %"PRIu64", total_c %"PRIu64", expected %"PRIu64"", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 }
 
 static void *server_thread(void *arg)
@@ -168,7 +168,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	expected_connections      = num_connections;
 	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	event_debug("Test %llu connections", num_connections);
+	event_debug("Test %"PRIu64" connections", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);

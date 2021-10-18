@@ -1,6 +1,6 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
-
+#include <inttypes.h>
 /* Windows fix. VS2010 and newer have the stdint.h header, though libcheck doesn't realize this. */
 #if !defined(HAVE_STDINT_H) && (!defined(_MSC_VER) || _MSC_VER >= 1600)
 #	define HAVE_STDINT_H
@@ -58,8 +58,8 @@ do {\
 do {\
 	size_t len_bits  = M_bit_buf_len(BBUF);\
 	size_t len_bytes = M_bit_buf_len_bytes(BBUF);\
-	ck_assert_msg(len_bits == EXP_BITS, "len is %lld bits, expected %lld", (long long)len_bits, (long long)EXP_BITS);\
-	ck_assert_msg(len_bytes == EXP_BYTES, "len is %lld bytes, expected %lld", (long long)len_bytes, (long long)EXP_BYTES);\
+	ck_assert_msg(len_bits == EXP_BITS, "len is %"PRId64" bits, expected %"PRId64"", (long long)len_bits, (long long)EXP_BITS);\
+	ck_assert_msg(len_bytes == EXP_BYTES, "len is %"PRId64" bytes, expected %"PRId64"", (long long)len_bytes, (long long)EXP_BYTES);\
 } while (0)
 
 

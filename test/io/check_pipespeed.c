@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -28,7 +28,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -102,7 +102,7 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("pipe writer %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, writer_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				event_debug("pipe writer %p wrote %zu bytes (%"PRIu64" Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, writer_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
 			if (M_buf_len(data->buf) == 0) {
 				if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
@@ -116,7 +116,7 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
-			event_debug("pipe writer %p Freeing connection (%llu total bytes in %llu ms)", comm,
+			event_debug("pipe writer %p Freeing connection (%"PRIu64" total bytes in %"PRIu64" ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, writer_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, writer_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);
@@ -145,7 +145,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				event_debug("pipe reader %p read %zu bytes (%llu Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN));
+				event_debug("pipe reader %p read %zu bytes (%"PRIu64" Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN));
 				M_buf_truncate(data->buf, 0);
 			} else {
 				event_debug("pipe reader %p read returned %d", comm, (int)err);
@@ -155,10 +155,10 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
-			event_debug("pipe reader %p Freeing connection (%llu total bytes in %llu ms)", comm,
+			event_debug("pipe reader %p Freeing connection (%"PRIu64" total bytes in %"PRIu64" ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, reader_id));
 			KBps = (M_io_bwshaping_get_totalbytes(comm, reader_id, M_IO_BWSHAPING_DIRECTION_IN) / M_MAX(1, (M_io_bwshaping_get_totalms(comm, reader_id) / 1000))) / 1024;
-			M_printf("Speed: %llu.%03llu MB/s\n", KBps/1024, KBps % 1024);
+			M_printf("Speed: %"PRIu64".%03llu MB/s\n", KBps/1024, KBps % 1024);
 			M_io_destroy(comm);
 			net_data_destroy(data);
 			M_event_done(event);

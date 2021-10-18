@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/mstdlib_formats.h>
@@ -666,7 +666,7 @@ START_TEST(check_tabledata)
 	print_table(pool, "foo");
 
 	/* Edit table, but don't change any values, should return M_SQL_ERROR_USER_SUCCESS to indicate nothing changed */
-	M_snprintf(temp, sizeof(temp), "%lld", id);
+	M_snprintf(temp, sizeof(temp), "%"PRId64"", id);
 	M_hash_dict_insert(dict, "id", temp);
 	err = M_sql_tabledata_edit(pool, "foo", td, sizeof(td)/sizeof(*td), fetch_dict, NULL, dict, error, sizeof(error));
 	ck_assert_msg(err == M_SQL_ERROR_USER_SUCCESS, "M_sql_tabledata_edit(1) expected to return no rows modified, returned: %s", error);

@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -80,13 +80,13 @@ START_TEST(check_parser_bcd)
 		bytes = check_parser_bcd_data[i].bytes;
 
 		buf = M_buf_create();
-		ck_assert_msg(M_buf_add_uintbcd(buf, n, bytes), "%zu: Could not convert '%llu' to bcd", i, n);
+		ck_assert_msg(M_buf_add_uintbcd(buf, n, bytes), "%zu: Could not convert '%"PRIu64"' to bcd", i, n);
 		out = M_buf_finish(buf, &out_len);
 		ck_assert_msg(bytes == out_len, "%zu: out_len (%zu) != bytes (%zu)", i, out_len, out_len);
 
 		parser = M_parser_create_const(out, out_len, M_PARSER_FLAG_NONE);
 		ck_assert_msg(M_parser_read_uint_bcd(parser, bytes, &out_n), "%zu: could not read bcd from parser", i);
-		ck_assert_msg(out_n == n, "%zu: out_n (%llu) != n (%llu)", i, out_n, n);
+		ck_assert_msg(out_n == n, "%zu: out_n (%"PRIu64") != n (%"PRIu64")", i, out_n, n);
 
 		M_parser_destroy(parser);
 		M_free(out);

@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <check.h>
 #include <stdlib.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +43,7 @@ static M_uint64 u64_r;
 START_TEST(check_str_to_uint64_null)
 {
 	u64_r = M_str_to_uint64(NULL);
-	ck_assert_msg(u64_r == 0, "decoding of NULL failed: expected %d, but was %llu\n", 0, u64_r);
+	ck_assert_msg(u64_r == 0, "decoding of NULL failed: expected %d, but was %"PRIu64"\n", 0, u64_r);
 }
 END_TEST
 
@@ -52,7 +52,7 @@ START_TEST(check_str_to_uint64)
 	uint64_test = &tests[_i];
 
 	u64_r = M_str_to_uint64(uint64_test->string);
-	ck_assert_msg(u64_r == uint64_test->value, "decoding of \"%s\" failed: expected %llu, but was %llu\n", uint64_test->string, uint64_test->value, u64_r);
+	ck_assert_msg(u64_r == uint64_test->value, "decoding of \"%s\" failed: expected %"PRIu64", but was %"PRIu64"\n", uint64_test->string, uint64_test->value, u64_r);
 }
 END_TEST
 

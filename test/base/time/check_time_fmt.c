@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-
+#include <inttypes.h>
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -494,7 +494,7 @@ START_TEST(check_time_fmt)
 		ck_assert_msg(M_str_eq(check_fmts[i].s, out), "%zu: Expected string '%s' does not match returned '%s'", i, check_fmts[i].s, out);
 
 		ts = M_time_from_str(out, tz, M_FALSE);
-		ck_assert_msg(check_fmts[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, (M_int64)check_fmts[i].ts, ts);
+		ck_assert_msg(check_fmts[i].ts == ts, "%zu: Expected ts %"PRId64" does not match returned %"PRId64"", i, (M_int64)check_fmts[i].ts, ts);
 		M_free(out);
 
 		out = M_time_to_str("%Z", &tm);
@@ -551,7 +551,7 @@ START_TEST(check_time_fmt_custom)
 			ck_assert_msg(out != NULL && *out == '\0', "%zu: Did not fully parse data: %s", i, check_fmts_custom[i].s);
 		}
 		ts = M_time_fromlocal(&tm, tz);
-		ck_assert_msg(check_fmts_custom[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, check_fmts_custom[i].ts, ts);
+		ck_assert_msg(check_fmts_custom[i].ts == ts, "%zu: Expected ts %"PRId64" does not match returned %"PRId64"", i, check_fmts_custom[i].ts, ts);
 
 		out = M_time_to_str(check_fmts_custom[i].tostr_fmt, &tm);
 		ck_assert_msg(M_str_eq(check_fmts_custom[i].s, out), "%zu: Expected string '%s' does not match returned '%s'", i, check_fmts_custom[i].s, out);
@@ -582,7 +582,7 @@ START_TEST(check_time_fmt_utc)
 
 	for (i=0; check_fmts_utc[i].ts!=0; i++) {
 		ts = M_time_from_str(check_fmts_utc[i].s, NULL, M_FALSE);
-		ck_assert_msg(check_fmts_utc[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, (M_int64)check_fmts_utc[i].ts, ts);
+		ck_assert_msg(check_fmts_utc[i].ts == ts, "%zu: Expected ts %"PRId64" does not match returned %"PRId64"", i, (M_int64)check_fmts_utc[i].ts, ts);
 	}
 }
 END_TEST
