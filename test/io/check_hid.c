@@ -271,7 +271,7 @@ static void hid_event_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void
 		case M_EVENT_TYPE_READ:
 			len = M_parser_len(parser);
 			M_io_read_into_parser(io, parser);
-			event_debug("hid %p read %lu bytes", io, M_parser_len(parser) - len);
+			event_debug("hid %p read %zu bytes", io, M_parser_len(parser) - len);
 			if (M_parser_compare(parser, ack, sizeof(ack)))  {
 				event_debug("hid %p read ACK, discarding...", io);
 				M_parser_consume(parser, sizeof(ack));
@@ -334,7 +334,7 @@ START_TEST(check_hid)
 	ck_assert_msg(hidenum != NULL, "HID Enumeration returned a failure");
 
 	for (i=0; i < M_io_hid_enum_count(hidenum); i++) {
-		event_debug("Device %lu: path='%s', manufacturer='%s', product='%s', serial='%s', vendorid='%04x', productid='%04x'",
+		event_debug("Device %zu: path='%s', manufacturer='%s', product='%s', serial='%s', vendorid='%04x', productid='%04x'",
 				i, M_io_hid_enum_path(hidenum, i), M_io_hid_enum_manufacturer(hidenum, i),
 				M_io_hid_enum_product(hidenum, i), M_io_hid_enum_serial(hidenum, i), 
 				M_io_hid_enum_vendorid(hidenum, i), M_io_hid_enum_productid(hidenum, i));

@@ -213,11 +213,11 @@ START_TEST(check_json_valid)
 	for (i=0; check_json_valid_data[i].data!=NULL; i++) {
 		json = M_json_read(check_json_valid_data[i].data, M_str_len(check_json_valid_data[i].data), M_JSON_READER_NONE, NULL, &error, NULL, NULL);
 
-		ck_assert_msg(json != NULL, "JSON (%lu) '%s' could not be parsed: %d", i, check_json_valid_data[i].data, error);
+		ck_assert_msg(json != NULL, "JSON (%zu) '%s' could not be parsed: %d", i, check_json_valid_data[i].data, error);
 
 		if (check_json_valid_data[i].out != NULL) {
 			out = M_json_write(json, check_json_valid_data[i].writer_flags, NULL);
-			ck_assert_msg(M_str_eq(out, check_json_valid_data[i].out), "Output not as expected (%lu):\ngot='%s'\nexpected='%s'", i, out, check_json_valid_data[i].out);
+			ck_assert_msg(M_str_eq(out, check_json_valid_data[i].out), "Output not as expected (%zu):\ngot='%s'\nexpected='%s'", i, out, check_json_valid_data[i].out);
 			M_free(out);
 		}
 
@@ -293,9 +293,9 @@ START_TEST(check_json_invalid)
 
 	for (i=0; check_json_invalid_data[i].data!=NULL; i++) {
 		json = M_json_read(check_json_invalid_data[i].data, M_str_len(check_json_invalid_data[i].data), M_JSON_READER_NONE, NULL, &error, &error_line, &error_pos);
-		ck_assert_msg(json == NULL, "Invalid JSON was parsed (%lu): %s", i, check_json_invalid_data[i].data);
+		ck_assert_msg(json == NULL, "Invalid JSON was parsed (%zu): %s", i, check_json_invalid_data[i].data);
 		if (check_json_invalid_data[i].error_line != 0 && check_json_invalid_data[i].error_pos != 0)
-			ck_assert_msg(check_json_invalid_data[i].error_line == error_line && check_json_invalid_data[i].error_pos == error_pos, "Parse error (%lu) '%s' was not found at expected location. Found. %lu:%lu. Expected: %lu:%lu", i, check_json_invalid_data[i].data, error_line, error_pos, check_json_invalid_data[i].error_line, check_json_invalid_data[i].error_pos);
+			ck_assert_msg(check_json_invalid_data[i].error_line == error_line && check_json_invalid_data[i].error_pos == error_pos, "Parse error (%zu) '%s' was not found at expected location. Found. %zu:%zu. Expected: %zu:%zu", i, check_json_invalid_data[i].data, error_line, error_pos, check_json_invalid_data[i].error_line, check_json_invalid_data[i].error_pos);
 		M_json_node_destroy(json);
 	}
 }
@@ -335,14 +335,14 @@ START_TEST(check_json_reader_flags)
 	for (i=0; check_json_reader_flags_data[i].data!=NULL; i++) {
 		json = M_json_read(check_json_reader_flags_data[i].data, M_str_len(check_json_reader_flags_data[i].data), check_json_reader_flags_data[i].reader_flags, NULL, &error, &error_line, &error_pos);
 		if (check_json_reader_flags_data[i].will_error == M_TRUE) {
-			ck_assert_msg(json == NULL, "Invalid JSON was parsed (%lu): %s", i, check_json_reader_flags_data[i].data);
+			ck_assert_msg(json == NULL, "Invalid JSON was parsed (%zu): %s", i, check_json_reader_flags_data[i].data);
 			if (check_json_reader_flags_data[i].error_line != 0 && check_json_reader_flags_data[i].error_pos != 0)
-				ck_assert_msg(check_json_reader_flags_data[i].error_line == error_line && check_json_reader_flags_data[i].error_pos == error_pos, "Parse error (%lu) '%s' was not found at expected location. Found. %lu:%lu. Expected: %lu:%lu", i, check_json_reader_flags_data[i].data, error_line, error_pos, check_json_reader_flags_data[i].error_line, check_json_reader_flags_data[i].error_pos);
+				ck_assert_msg(check_json_reader_flags_data[i].error_line == error_line && check_json_reader_flags_data[i].error_pos == error_pos, "Parse error (%zu) '%s' was not found at expected location. Found. %zu:%zu. Expected: %zu:%zu", i, check_json_reader_flags_data[i].data, error_line, error_pos, check_json_reader_flags_data[i].error_line, check_json_reader_flags_data[i].error_pos);
 		} else {
-			ck_assert_msg(json != NULL, "JSON (%lu) '%s' could not be parsed: %d", i, check_json_reader_flags_data[i].data, error);
+			ck_assert_msg(json != NULL, "JSON (%zu) '%s' could not be parsed: %d", i, check_json_reader_flags_data[i].data, error);
 			if (check_json_reader_flags_data[i].out != NULL) {
 				out = M_json_write(json, M_JSON_WRITER_NUMBER_NOCOMPAT, NULL);
-				ck_assert_msg(M_str_eq(out, check_json_reader_flags_data[i].out), "Output not as expected (%lu):\ngot='%s'\nexpected='%s'", i, out, check_json_reader_flags_data[i].out);
+				ck_assert_msg(M_str_eq(out, check_json_reader_flags_data[i].out), "Output not as expected (%zu):\ngot='%s'\nexpected='%s'", i, out, check_json_reader_flags_data[i].out);
 				M_free(out);
 			}
 		}
@@ -422,19 +422,19 @@ START_TEST(check_json_jsonpath_book)
 	size_t           j;
 
 	json = M_json_read(JSONPATH_BOOKS, M_str_len(JSONPATH_BOOKS), M_JSON_READER_NONE, NULL, &error, &error_line, &error_pos);
-	ck_assert_msg(json != NULL, "JSONPath books string could not be parsed: %d, %lu:%lu", error, error_line, error_pos);
+	ck_assert_msg(json != NULL, "JSONPath books string could not be parsed: %d, %zu:%zu", error, error_line, error_pos);
 
 	for (i=0; check_json_jsonpath_book_data[i].search!=NULL; i++) {
 		results = M_json_jsonpath(json, check_json_jsonpath_book_data[i].search, &num_matches);
-		ck_assert_msg(results != NULL, "No matches found (%lu): '%s'", i, check_json_jsonpath_book_data[i].search);
-		ck_assert_msg(num_matches == check_json_jsonpath_book_data[i].num_matches, "Unexpected matches found (%lu): '%s'. Got %lu, expected %lu matches", i, check_json_jsonpath_book_data[i].search, num_matches, check_json_jsonpath_book_data[i].num_matches);
+		ck_assert_msg(results != NULL, "No matches found (%zu): '%s'", i, check_json_jsonpath_book_data[i].search);
+		ck_assert_msg(num_matches == check_json_jsonpath_book_data[i].num_matches, "Unexpected matches found (%zu): '%s'. Got %zu, expected %zu matches", i, check_json_jsonpath_book_data[i].search, num_matches, check_json_jsonpath_book_data[i].num_matches);
 
 		/* Silence clang warning using the if != NULL thoug the test won't get this far due to the ck_assert_msg for
  		 * NULL above. */
 		if (results != NULL && check_json_jsonpath_book_data[i].type != M_JSON_TYPE_UNKNOWN) {
 			for (j=0; j<num_matches; j++) {
 				type = M_json_node_type(results[j]);
-				ck_assert_msg(type == check_json_jsonpath_book_data[i].type, "Unexpected type (%lu): got %d, expected %d", i, type, check_json_jsonpath_book_data[i].type);
+				ck_assert_msg(type == check_json_jsonpath_book_data[i].type, "Unexpected type (%zu): got %d, expected %d", i, type, check_json_jsonpath_book_data[i].type);
 			}
 		}
 
@@ -513,25 +513,25 @@ START_TEST(check_json_jsonpath_str)
 	size_t          i;
 
 	json = M_json_read(JSONPATH_STR, M_str_len(JSONPATH_STR), M_JSON_READER_NONE, NULL, &error, &error_line, &error_pos);
-	ck_assert_msg(json != NULL, "JSONPath string could not be parsed: %d, %lu:%lu", error, error_line, error_pos);
+	ck_assert_msg(json != NULL, "JSONPath string could not be parsed: %d, %zu:%zu", error, error_line, error_pos);
 
 	for (i=0; check_json_jsonpath_str_data[i].search!=NULL; i++) {
 		results = M_json_jsonpath(json, check_json_jsonpath_str_data[i].search, &num_matches);
 		if (check_json_jsonpath_str_data[i].str == NULL) {
-			ck_assert_msg(results == NULL, "Matches found (%lu) when there shouldn't be: '%s'", i, check_json_jsonpath_str_data[i].search);
+			ck_assert_msg(results == NULL, "Matches found (%zu) when there shouldn't be: '%s'", i, check_json_jsonpath_str_data[i].search);
 			continue;
 		}
-		ck_assert_msg(results != NULL, "No matches found (%lu): '%s'", i, check_json_jsonpath_str_data[i].search);
-		ck_assert_msg(num_matches == 1, "Unexpected matches found (%lu): '%s': got %lu matches", i, check_json_jsonpath_str_data[i].search, num_matches);
+		ck_assert_msg(results != NULL, "No matches found (%zu): '%s'", i, check_json_jsonpath_str_data[i].search);
+		ck_assert_msg(num_matches == 1, "Unexpected matches found (%zu): '%s': got %zu matches", i, check_json_jsonpath_str_data[i].search, num_matches);
 
 		/* Silence clang warning using the if != NULL thoug the test won't get this far due to the ck_assert_msg for
  		 * NULL above. */
 		if (results != NULL) {
 			type = M_json_node_type(results[0]);
-			ck_assert_msg(type == M_JSON_TYPE_STRING, "(%lu) Search '%s' did not return string match", i, check_json_jsonpath_str_data[i].search);
+			ck_assert_msg(type == M_JSON_TYPE_STRING, "(%zu) Search '%s' did not return string match", i, check_json_jsonpath_str_data[i].search);
 			if (type == M_JSON_TYPE_STRING) {
 				str  = M_json_get_string(results[0]);
-				ck_assert_msg(M_str_eq(check_json_jsonpath_str_data[i].str, str), "(%lu) Search '%s': did not find expected node. Got '%s', expected '%s'", i, check_json_jsonpath_str_data[i].search, str, check_json_jsonpath_str_data[i].str);
+				ck_assert_msg(M_str_eq(check_json_jsonpath_str_data[i].str, str), "(%zu) Search '%s': did not find expected node. Got '%s', expected '%s'", i, check_json_jsonpath_str_data[i].search, str, check_json_jsonpath_str_data[i].str);
 			}
 		}
 
@@ -555,7 +555,7 @@ START_TEST(check_json_jsonpath_array)
 	ck_assert_msg(json != NULL, "String could not be parsed: %d", error);
 
 	results = M_json_jsonpath(json, "$[1]", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		val = M_json_get_int(results[0]);
 		ck_assert_msg(val == 88, "node value %"PRId64" != 88", val);
@@ -563,7 +563,7 @@ START_TEST(check_json_jsonpath_array)
 	}
 
 	results = M_json_jsonpath(json, "$.[1]", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 3, "Did not find expected match: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 3, "Did not find expected match: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		val = M_json_get_int(results[0]);
 		ck_assert_msg(val == 88, "node value %"PRId64" != 88", val);
@@ -575,7 +575,7 @@ START_TEST(check_json_jsonpath_array)
 	}
 
 	results = M_json_jsonpath(json, "$..[0]", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 4, "Did not find expected match: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 4, "Did not find expected match: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		ck_assert_msg(M_json_node_type(results[0]) == M_JSON_TYPE_ARRAY, "node is not array");
 		val = M_json_get_int(results[1]);
@@ -678,13 +678,13 @@ START_TEST(check_json_parent_object)
 	ck_assert_msg(json != NULL, "String could not be parsed: %d", error);
 
 	results = M_json_jsonpath(json, "$..zy", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for str node: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for str node: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL)
 		zy_node = results[0];
 	M_free(results);
 
 	results = M_json_jsonpath(json, "$..zz", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL)
 		zz_node = results[0];
 	M_free(results);
@@ -736,7 +736,7 @@ START_TEST(check_json_parent_array)
 	ck_assert_msg(json != NULL, "String could not be parsed: %d", error);
 
 	results = M_json_jsonpath(json, "$[1]", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for str node: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for str node: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 
 	if (results != NULL) {
 		str_node = results[0];
@@ -748,7 +748,7 @@ START_TEST(check_json_parent_array)
 		M_free(out);
 
 		results = M_json_jsonpath(json, "$[0]", &num_matches);
-		ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node: results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+		ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node: results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 		if (results != NULL) {
 			array_node = results[0];
 			M_free(results);
@@ -766,7 +766,7 @@ START_TEST(check_json_parent_array)
 	}
 
 	results = M_json_jsonpath(json, "$[0]", &num_matches);
-	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node (2nd search): results=%s, num_matches=%lu", results==NULL?"NULL":"NOT NULL", num_matches);
+	ck_assert_msg(results != NULL && num_matches == 1, "Did not find expected match for array node (2nd search): results=%s, num_matches=%zu", results==NULL?"NULL":"NOT NULL", num_matches);
 	if (results != NULL) {
 		array_node = results[0];
 		M_free(results);

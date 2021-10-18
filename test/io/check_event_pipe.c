@@ -97,7 +97,7 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			M_atomic_inc_u64(&active_client_connections);
 			M_atomic_inc_u64(&client_connection_count);
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("pipe writer %p wrote %lu bytes", comm, mysize);
+			event_debug("pipe writer %p wrote %zu bytes", comm, mysize);
 
 			/* Fall-thru */
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -133,7 +133,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("pipe reader %p read %lu bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("pipe reader %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				M_io_destroy(comm);
 				M_atomic_dec_u64(&active_server_connections);
@@ -188,7 +188,7 @@ static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 
 	for (i=0; i<num_connections; i++) {
 		if (M_io_pipe_create(M_IO_PIPE_NONE, &pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
-			event_debug("failed to create pipe %lu", i);
+			event_debug("failed to create pipe %zu", i);
 			return M_EVENT_ERR_RETURN;
 		}
 #if DEBUG
@@ -197,12 +197,12 @@ static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 #endif
 		if (!M_event_add(event, pipereader, pipe_reader_cb, NULL)) {
 			M_io_get_error_string(pipereader, msg, sizeof(msg));
-			event_debug("failed to add pipe reader %lu: %p: %s", i, pipereader, msg);
+			event_debug("failed to add pipe reader %zu: %p: %s", i, pipereader, msg);
 			return M_EVENT_ERR_RETURN;
 		}
 		if (!M_event_add(event, pipewriter, pipe_writer_cb, NULL)) {
 			M_io_get_error_string(pipewriter, msg, sizeof(msg));
-			event_debug("failed to add pipe writer %lu: %p: %s", i, pipewriter, msg);
+			event_debug("failed to add pipe writer %zu: %p: %s", i, pipewriter, msg);
 			return M_EVENT_ERR_RETURN;
 		}
 	}

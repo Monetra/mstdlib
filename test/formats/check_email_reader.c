@@ -101,7 +101,7 @@ static M_email_error_t multipart_header_func(const char *key, const char *val, s
 {
 	(void)thunk;
 
-	M_printf("M HEADER (%lu)\t\t    '%s' : '%s'\n", idx, key, val);
+	M_printf("M HEADER (%zu)\t\t    '%s' : '%s'\n", idx, key, val);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -109,7 +109,7 @@ static M_email_error_t multipart_header_attachment_func(const char *content_type
 {
 	(void)thunk;
 
-	M_printf("M (%lu) is ATTACHMENT:\t\t content type = '%s', transfer encoding = '%s', filename = '%s'\n", idx, content_type, transfer_encoding, filename);
+	M_printf("M (%zu) is ATTACHMENT:\t\t content type = '%s', transfer encoding = '%s', filename = '%s'\n", idx, content_type, transfer_encoding, filename);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -117,7 +117,7 @@ static M_email_error_t multipart_header_done_func(size_t idx, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M HEADER (%lu) DONE!!!\n", idx);
+	M_printf("M HEADER (%zu) DONE!!!\n", idx);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -125,7 +125,7 @@ static M_email_error_t multipart_data_func(const char *data, size_t len, size_t 
 {
 	(void)thunk;
 
-	M_printf("M BODY (%lu) = '%.*s'\n", idx, (int)len, data);
+	M_printf("M BODY (%zu) = '%.*s'\n", idx, (int)len, data);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 
@@ -133,7 +133,7 @@ static M_email_error_t multipart_data_done_func(size_t idx, void *thunk)
 {
 	(void)thunk;
 
-	M_printf("M BODY (%lu) DONE!!!\n", idx);
+	M_printf("M BODY (%zu) DONE!!!\n", idx);
 	return M_EMAIL_ERROR_SUCCESS;
 }
 

@@ -41,13 +41,13 @@ START_TEST(check_correct)
 
 	for (i=0; tests[i].raw!=NULL; i++) {
 		res = M_textcodec_encode(&out, tests[i].raw, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE);
-		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%lu: Encode result not success: got %d", i, res);
-		ck_assert_msg(M_str_caseeq(out, tests[i].enc), "%lu: Encode failed: got '%s', expected '%s'", i, out, tests[i].enc);
+		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%zu: Encode result not success: got %d", i, res);
+		ck_assert_msg(M_str_caseeq(out, tests[i].enc), "%zu: Encode failed: got '%s', expected '%s'", i, out, tests[i].enc);
 		M_free(out);
 
 		res = M_textcodec_decode(&out, tests[i].enc, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE);
-		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%lu: Decode result not success: got %d", i, res);
-		ck_assert_msg(M_str_caseeq(out, tests[i].raw), "%lu: Decode failed: got '%s', expected '%s'", i, out, tests[i].raw);
+		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%zu: Decode result not success: got %d", i, res);
+		ck_assert_msg(M_str_caseeq(out, tests[i].raw), "%zu: Decode failed: got '%s', expected '%s'", i, out, tests[i].raw);
 		M_free(out);
 	}
 }

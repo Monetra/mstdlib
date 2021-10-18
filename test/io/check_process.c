@@ -75,7 +75,7 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_READ:
 			buf = M_buf_create();
 			M_io_read_into_buf(io, buf);
-			event_debug("process %p %s read %lu bytes", io, name, M_buf_len(buf));
+			event_debug("process %p %s read %zu bytes", io, name, M_buf_len(buf));
 			M_buf_cancel(buf);
 			break;
 		case M_EVENT_TYPE_WRITE:

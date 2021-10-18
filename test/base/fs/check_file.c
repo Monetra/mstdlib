@@ -67,7 +67,7 @@ START_TEST(check_write_read)
 
 	/* Write to the file */
 	M_fs_file_write(fd, (const unsigned char *)TEST_DATA, data_len, &rw_len, M_FS_FILE_RW_FULLBUF);
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len, "Could not write some or all all data to file, wrote: %lu bytes", rw_len);
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len, "Could not write some or all all data to file, wrote: %zu bytes", rw_len);
 
 	M_fs_file_close(fd);
 
@@ -78,13 +78,13 @@ START_TEST(check_write_read)
 	/* Read the data from the file */
 	res = M_fs_file_read(fd, (unsigned char *)buf, sizeof(buf)-1, &rw_len, M_FS_FILE_RW_FULLBUF);
 	buf[rw_len] = '\0';
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %lu bytes", buf, rw_len);
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, rw_len);
 
 	/* Check that we can seek back and read part of the file */
 	M_fs_file_seek(fd, 6, M_FS_FILE_SEEK_BEGIN);
 	res = M_fs_file_read(fd, (unsigned char *)buf, sizeof(buf)-1, &rw_len, M_FS_FILE_RW_FULLBUF);
 	buf[rw_len] = '\0';
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len-6 && M_str_eq_max(&(TEST_DATA[6]), buf, data_len-6), "Could not read some or all all data to file, read: '%s' %lu bytes", buf, rw_len);
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && rw_len == data_len-6 && M_str_eq_max(&(TEST_DATA[6]), buf, data_len-6), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, rw_len);
 
 	M_fs_file_close(fd);
 
@@ -110,21 +110,21 @@ START_TEST(check_write_read_str)
 
 	/* Read the data */
 	res = M_fs_file_read_bytes(DNE_FILE_WRSTR, data_len+10, (unsigned char **)&buf, NULL);
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %lu bytes", buf, M_str_len(buf));
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, M_str_len(buf));
 	M_free(buf);
 
 	/* Append more data */
 	res = M_fs_file_write_bytes(DNE_FILE_WRSTR, (const unsigned char *)TEST_DATA, 0, M_FS_FILE_MODE_APPEND, NULL);
 	ck_assert_msg(res == M_FS_ERROR_SUCCESS, "Could not write to file");
 	res = M_fs_file_read_bytes(DNE_FILE_WRSTR, data_len*2+10, (unsigned char **)&buf, NULL);
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len*2 && M_str_eq_max(TEST_DATA""TEST_DATA, buf, data_len*2), "Could not read some or all all data to file, read: '%s' %lu bytes", buf, M_str_len(buf));
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len*2 && M_str_eq_max(TEST_DATA""TEST_DATA, buf, data_len*2), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, M_str_len(buf));
 	M_free(buf);
 
 	/* Overwrite data */
 	res = M_fs_file_write_bytes(DNE_FILE_WRSTR, (const unsigned char *)TEST_DATA, 0, 0, NULL);
 	ck_assert_msg(res == M_FS_ERROR_SUCCESS, "Could not write to file");
 	res = M_fs_file_read_bytes(DNE_FILE_WRSTR, data_len+10, (unsigned char **)&buf, NULL);
-	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %lu bytes", buf, M_str_len(buf));
+	ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "Could not read some or all all data to file, read: '%s' %zu bytes", buf, M_str_len(buf));
 	M_free(buf);
 
 	(void)M_fs_delete(DNE_FILE_WRSTR, M_FALSE, 0, M_FS_PROGRESS_NOEXTRA);
@@ -149,27 +149,27 @@ static void check_move_copy_int(const char *p1, const char *p2, M_bool move)
 
 		/* write the data */
 		res = M_fs_file_write_bytes(p1, (const unsigned char *)TEST_DATA, 0, 0, NULL);
-		ck_assert_msg(res == M_FS_ERROR_SUCCESS, "idx=%lu: Could not write to file", i);
+		ck_assert_msg(res == M_FS_ERROR_SUCCESS, "idx=%zu: Could not write to file", i);
 
 		if (move) {
 			/* Move the file */
 			M_fs_move(p1, p2, move_copy_modes[i], NULL, M_FS_PROGRESS_NOEXTRA);
 			/* Check the old file doens't exist */
-			ck_assert_msg(M_fs_perms_can_access(p1, M_FS_PERMS_MODE_NONE) != M_FS_ERROR_SUCCESS, "idx=%lu: File not deleted", i);
+			ck_assert_msg(M_fs_perms_can_access(p1, M_FS_PERMS_MODE_NONE) != M_FS_ERROR_SUCCESS, "idx=%zu: File not deleted", i);
 		} else {
 			/* Copy the file */
 			M_fs_copy(p1, p2, move_copy_modes[i], NULL, M_FS_PROGRESS_NOEXTRA);
 			/* Check the old file exist */
-			ck_assert_msg(M_fs_perms_can_access(p1, M_FS_PERMS_MODE_NONE) == M_FS_ERROR_SUCCESS, "idx=%lu: File deleted", i);
+			ck_assert_msg(M_fs_perms_can_access(p1, M_FS_PERMS_MODE_NONE) == M_FS_ERROR_SUCCESS, "idx=%zu: File deleted", i);
 		}
 
 		/* Check the new file exists */
-		ck_assert_msg(M_fs_perms_can_access(p2, M_FS_PERMS_MODE_NONE) == M_FS_ERROR_SUCCESS, "idx=%lu: File does not exist", i);
+		ck_assert_msg(M_fs_perms_can_access(p2, M_FS_PERMS_MODE_NONE) == M_FS_ERROR_SUCCESS, "idx=%zu: File does not exist", i);
 
 
 		/* Read the data */
 		res = M_fs_file_read_bytes(p2, data_len*2, (unsigned char **)&buf, NULL);
-		ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "idx=%lu: Could not read some or all all data to file, read: '%s' %lu bytes", i, buf, M_str_len(buf));
+		ck_assert_msg(res == M_FS_ERROR_SUCCESS && M_str_len(buf) == data_len && M_str_eq_max(TEST_DATA, buf, data_len), "idx=%zu: Could not read some or all all data to file, read: '%s' %zu bytes", i, buf, M_str_len(buf));
 		M_free(buf);
 
 		(void)M_fs_delete(p1, M_FALSE, 0, M_FS_PROGRESS_NOEXTRA);
