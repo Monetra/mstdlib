@@ -190,12 +190,12 @@ START_TEST(check_buf_uintbin)
 		hex        = check_buf_uintbin_data[i].hex;
 
 		buf = M_buf_create();
-		ck_assert_msg(M_buf_add_uintbin(buf, n, num, endianness), "%"PRIu64": Could not convert '%"PRIu64"' to bin, with %s", (M_uint64)i, n, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
+		ck_assert_msg(M_buf_add_uintbin(buf, n, num, endianness), "%" PRIu64 ": Could not convert '%" PRIu64 "' to bin, with %s", (M_uint64)i, n, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
 		out = M_buf_finish(buf, &out_len);
 
 		out_hex = M_bincodec_encode_alloc((M_uint8 *)out, out_len, 0, M_BINCODEC_HEX);
 		M_free(out);
-		ck_assert_msg(M_str_caseeq(out_hex, hex), "%"PRIu64": '%s' does not match expected '%s' with %s", (M_uint64)i, out_hex, hex, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
+		ck_assert_msg(M_str_caseeq(out_hex, hex), "%" PRIu64 ": '%s' does not match expected '%s' with %s", (M_uint64)i, out_hex, hex, endianness==M_ENDIAN_BIG?"BIG":"LITTLE");
 
 		M_free(out_hex);
 	}
@@ -248,12 +248,12 @@ START_TEST(check_buf_strbin)
 		hex   = check_buf_strbin_data[i].hex;
 
 		buf = M_buf_create();
-		ck_assert_msg(M_buf_add_uintstrbin(buf, in, base, bytes, M_ENDIAN_BIG), "%"PRIu64": Could not convert '%s' to bin", (M_uint64)i, in);
+		ck_assert_msg(M_buf_add_uintstrbin(buf, in, base, bytes, M_ENDIAN_BIG), "%" PRIu64 ": Could not convert '%s' to bin", (M_uint64)i, in);
 		out = M_buf_finish(buf, &out_len);
 
 		out_hex = M_bincodec_encode_alloc((M_uint8 *)out, out_len, 0, M_BINCODEC_HEX);
 		M_free(out);
-		ck_assert_msg(M_str_caseeq(out_hex, hex), "%"PRIu64": '%s' does not match expected '%s'", (M_uint64)i, out_hex, hex);
+		ck_assert_msg(M_str_caseeq(out_hex, hex), "%" PRIu64 ": '%s' does not match expected '%s'", (M_uint64)i, out_hex, hex);
 
 		M_free(out_hex);
 	}
@@ -299,7 +299,7 @@ START_TEST(check_buf_uintbcd)
 		buf = M_buf_create();
 		ret = M_buf_add_uintbcd(buf, n, just);
 		if (ret == M_FALSE) {
-			ck_assert_msg(hex == NULL, "%"PRIu64": Failed to convert %"PRIu64" to bcd", (M_uint64)i, n);
+			ck_assert_msg(hex == NULL, "%" PRIu64 ": Failed to convert %" PRIu64 " to bcd", (M_uint64)i, n);
 			continue;
 		}
 
@@ -307,7 +307,7 @@ START_TEST(check_buf_uintbcd)
 
 		out_hex = M_bincodec_encode_alloc((M_uint8 *)out, out_len, 0, M_BINCODEC_HEX);
 		M_free(out);
-		ck_assert_msg(M_str_caseeq(out_hex, hex), "%"PRIu64": '%s' does not match expected '%s'", (M_uint64)i, out_hex, hex);
+		ck_assert_msg(M_str_caseeq(out_hex, hex), "%" PRIu64 ": '%s' does not match expected '%s'", (M_uint64)i, out_hex, hex);
 
 		M_free(out_hex);
 	}

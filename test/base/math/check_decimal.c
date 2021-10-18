@@ -136,10 +136,10 @@ START_TEST(check_decimal_math)
 		rv = math_tests[i].op(&r, &d1, &d2);
 		M_decimal_to_str(&r, r_out, sizeof(r_out));
 		M_decimal_to_str(&exp, exp_out, sizeof(exp_out));
-		//M_printf("test %"PRIu64" exp %s == %s\n", i, r_out, exp_out);
-		ck_assert_msg(rv == math_tests[i].rv, "test %"PRIu64" returned %u (%s vs exp %s)", (M_uint64)i, (unsigned int)rv, r_out, exp_out);
+		//M_printf("test %" PRIu64 " exp %s == %s\n", i, r_out, exp_out);
+		ck_assert_msg(rv == math_tests[i].rv, "test %" PRIu64 " returned %u (%s vs exp %s)", (M_uint64)i, (unsigned int)rv, r_out, exp_out);
 		if (rv == M_DECIMAL_SUCCESS || rv == M_DECIMAL_TRUNCATION) {
-			ck_assert_msg(M_decimal_cmp(&r, &exp) == 0, "test %"PRIu64" expected result: %s returned %s", (M_uint64)i, exp_out, r_out);
+			ck_assert_msg(M_decimal_cmp(&r, &exp) == 0, "test %" PRIu64 " expected result: %s returned %s", (M_uint64)i, exp_out, r_out);
 		}
 	}
 }

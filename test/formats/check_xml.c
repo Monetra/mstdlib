@@ -197,13 +197,13 @@ START_TEST(check_xml_valid)
 
 	for (i=0; check_xml_valid_data[i].data!=NULL; i++) {
 		x = M_xml_read(check_xml_valid_data[i].data, M_str_len(check_xml_valid_data[i].data), check_xml_valid_data[i].in_flags, NULL, &eh, &eh_line, &eh_pos);
-		ck_assert_msg(x != NULL, "XML (%"PRIu64") could not be parsed: error=%d, line=%"PRIu64", pos=%"PRIu64"\nxml='%s'", (M_uint64)i, eh, (M_uint64)eh_line, (M_uint64)eh_pos, check_xml_valid_data[i].data);
+		ck_assert_msg(x != NULL, "XML (%" PRIu64 ") could not be parsed: error=%d, line=%" PRIu64 ", pos=%" PRIu64 "\nxml='%s'", (M_uint64)i, eh, (M_uint64)eh_line, (M_uint64)eh_pos, check_xml_valid_data[i].data);
 		if (check_xml_valid_data[i].out != NULL) {
 			out    = M_xml_write(x, check_xml_valid_data[i].out_flags, NULL);
 			buf_ok = M_xml_write_buf(buf, x, check_xml_valid_data[i].out_flags);
-			ck_assert_msg(M_str_eq(out, check_xml_valid_data[i].out), "Output not as expected (%"PRIu64"):\ngot='%s'\nexpected='%s'", (M_uint64)i, out, check_xml_valid_data[i].out);
-			ck_assert_msg(buf_ok, "Buf write failed (%"PRIu64"):\nexpected='%s'", (M_uint64)i, check_xml_valid_data[i].out);
-			ck_assert_msg(M_str_eq(M_buf_peek(buf), check_xml_valid_data[i].out), "Output not as expected (%"PRIu64"):\ngot='%s'\nexpected='%s'", (M_uint64)i, M_buf_peek(buf), check_xml_valid_data[i].out);
+			ck_assert_msg(M_str_eq(out, check_xml_valid_data[i].out), "Output not as expected (%" PRIu64 "):\ngot='%s'\nexpected='%s'", (M_uint64)i, out, check_xml_valid_data[i].out);
+			ck_assert_msg(buf_ok, "Buf write failed (%" PRIu64 "):\nexpected='%s'", (M_uint64)i, check_xml_valid_data[i].out);
+			ck_assert_msg(M_str_eq(M_buf_peek(buf), check_xml_valid_data[i].out), "Output not as expected (%" PRIu64 "):\ngot='%s'\nexpected='%s'", (M_uint64)i, M_buf_peek(buf), check_xml_valid_data[i].out);
 			M_free(out);
 			M_buf_truncate(buf, 0);
 		}
@@ -244,8 +244,8 @@ START_TEST(check_xml_invalid)
 
 	for (i=0; check_xml_invalid_data[i].data!=NULL; i++) {
 		x = M_xml_read(check_xml_invalid_data[i].data, M_str_len(check_xml_invalid_data[i].data), M_XML_READER_NONE, NULL, &eh, NULL, NULL);
-		ck_assert_msg(x == NULL, "Invalid xml (%"PRIu64") parsed successfully", (M_uint64)i);
-		ck_assert_msg(eh == check_xml_invalid_data[i].error, "Invalid xml (%"PRIu64") error incorrect. got=%d, expected=%d", (M_uint64)i, eh, check_xml_invalid_data[i].error);
+		ck_assert_msg(x == NULL, "Invalid xml (%" PRIu64 ") parsed successfully", (M_uint64)i);
+		ck_assert_msg(eh == check_xml_invalid_data[i].error, "Invalid xml (%" PRIu64 ") error incorrect. got=%d, expected=%d", (M_uint64)i, eh, check_xml_invalid_data[i].error);
 		M_xml_node_destroy(x);
 	}
 }
@@ -397,7 +397,7 @@ START_TEST(check_xml_xpath)
 
 	for (i=0; check_xml_xpath_data[i].search!=NULL; i++) {
 		results = M_xml_xpath(x, check_xml_xpath_data[i].search, M_XML_READER_NONE, &num_matches);
-		ck_assert_msg(num_matches == check_xml_xpath_data[i].num_matches, "(%"PRIu64") '%s': Number of matches does not match expected. got=%"PRIu64", expected=%"PRIu64", '%s'", (M_uint64)i, check_xml_xpath_data[i].search, (M_uint64)num_matches, (M_uint64)check_xml_xpath_data[i].num_matches, check_xml_xpath_data[i].search);
+		ck_assert_msg(num_matches == check_xml_xpath_data[i].num_matches, "(%" PRIu64 ") '%s': Number of matches does not match expected. got=%" PRIu64 ", expected=%" PRIu64 ", '%s'", (M_uint64)i, check_xml_xpath_data[i].search, (M_uint64)num_matches, (M_uint64)check_xml_xpath_data[i].num_matches, check_xml_xpath_data[i].search);
 
 		if (num_matches == 0)
 			continue;
@@ -413,18 +413,18 @@ START_TEST(check_xml_xpath)
 						continue;
 					}
 					has_text = M_TRUE;
-					ck_assert_msg(M_str_eq(M_xml_node_text(n2), check_xml_xpath_data[i].match_text_val), "(%"PRIu64") '%s': node text does not match expected value. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, M_xml_node_text(n2), check_xml_xpath_data[i].match_text_val);
+					ck_assert_msg(M_str_eq(M_xml_node_text(n2), check_xml_xpath_data[i].match_text_val), "(%" PRIu64 ") '%s': node text does not match expected value. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, M_xml_node_text(n2), check_xml_xpath_data[i].match_text_val);
 				}
 			} else if (M_xml_node_type(n1) == M_XML_NODE_TYPE_TEXT) {
 				has_text = M_TRUE;
-				ck_assert_msg(M_str_eq(M_xml_node_text(n1), check_xml_xpath_data[i].match_text_val), "(%"PRIu64") '%s': node text does not match expected value. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, M_xml_node_text(n1), check_xml_xpath_data[i].match_text_val);
+				ck_assert_msg(M_str_eq(M_xml_node_text(n1), check_xml_xpath_data[i].match_text_val), "(%" PRIu64 ") '%s': node text does not match expected value. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, M_xml_node_text(n1), check_xml_xpath_data[i].match_text_val);
 			}
-			ck_assert_msg(has_text, "(%"PRIu64") '%s': Node does not contain any text nodes", (M_uint64)i, check_xml_xpath_data[i].search);
+			ck_assert_msg(has_text, "(%" PRIu64 ") '%s': Node does not contain any text nodes", (M_uint64)i, check_xml_xpath_data[i].search);
 		}
 		if (check_xml_xpath_data[i].match_attr_key != NULL) {
 			const_temp = M_xml_node_attribute(n1, check_xml_xpath_data[i].match_attr_key);
-			ck_assert_msg(const_temp != NULL, "(%"PRIu64") '%s': Node does not contain expected attribute '%s'", (M_uint64)i, check_xml_xpath_data[i].search, check_xml_xpath_data[i].match_attr_key);
-			ck_assert_msg(M_str_eq(const_temp, check_xml_xpath_data[i].match_attr_val), "(%"PRIu64") '%s': Attribute value does not match. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, const_temp, check_xml_xpath_data[i].match_attr_val);
+			ck_assert_msg(const_temp != NULL, "(%" PRIu64 ") '%s': Node does not contain expected attribute '%s'", (M_uint64)i, check_xml_xpath_data[i].search, check_xml_xpath_data[i].match_attr_key);
+			ck_assert_msg(M_str_eq(const_temp, check_xml_xpath_data[i].match_attr_val), "(%" PRIu64 ") '%s': Attribute value does not match. got='%s', expected='%s'", (M_uint64)i, check_xml_xpath_data[i].search, const_temp, check_xml_xpath_data[i].match_attr_val);
 		}
 
 		M_free(results);
@@ -456,7 +456,7 @@ START_TEST(check_xml_xpath_text_first)
 
 	for (i=0; check_xml_xpath_text_first_data[i].search!=NULL; i++) {
 		const_temp = M_xml_xpath_text_first(x, check_xml_xpath_text_first_data[i].search);
-		ck_assert_msg(M_str_eq(const_temp, check_xml_xpath_text_first_data[i].expected), "(%"PRIu64") Text does not match. got='%s', expected='%s'", (M_uint64)i, const_temp, check_xml_xpath_text_first_data[i].expected);
+		ck_assert_msg(M_str_eq(const_temp, check_xml_xpath_text_first_data[i].expected), "(%" PRIu64 ") Text does not match. got='%s', expected='%s'", (M_uint64)i, const_temp, check_xml_xpath_text_first_data[i].expected);
 	}
 
 	M_xml_node_destroy(x);

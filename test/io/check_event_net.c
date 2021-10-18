@@ -58,7 +58,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 M_thread_mutex_unlock(debug_lock);
@@ -71,11 +71,11 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%"PRId64".%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_printf("%" PRId64 ".%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%"PRId64".%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	M_printf("%" PRId64 ".%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
 	M_printf("%s\n", buf);
 	M_free(buf);
@@ -92,7 +92,7 @@ static void event_debug(const char *fmt, ...)
 
 static void net_check_cleanup(M_event_t *event)
 {
-	event_debug("active_s %"PRIu64", active_c %"PRIu64", total_s %"PRIu64", total_c %"PRIu64", expect %"PRIu64"", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %" PRIu64 ", active_c %" PRIu64 ", total_s %" PRIu64 ", total_c %" PRIu64 ", expect %" PRIu64 "", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
 		M_event_done(event);
 	}
@@ -125,12 +125,12 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_atomic_inc_u64(&client_connection_count);
 			event_debug("net client Connected (%s) [%s]:%u:%u, %s", M_io_net_get_host(comm), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), net_type(M_io_net_get_type(comm)));
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("net client %p wrote %"PRIu64" bytes", comm, mysize);
+			event_debug("net client %p wrote %" PRIu64 " bytes", comm, mysize);
 			connstate->is_connected = M_TRUE;
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net client %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net client %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (M_mem_eq(buf, (const unsigned char *)"GoodBye", 7)) {
 				event_debug("net client %p initiating close", comm);
 				M_io_disconnect(comm);
@@ -169,7 +169,7 @@ static void net_serverconn_write_goodbye_cb(M_event_t *event, M_event_type_t typ
 	(void)type;
 	(void)io;
 	M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-	event_debug("net serverconn %p wrote %"PRIu64" bytes", comm, mysize);
+	event_debug("net serverconn %p wrote %" PRIu64 " bytes", comm, mysize);
 }
 
 
@@ -189,7 +189,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %"PRIu64" bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				if (delay_response_ms) {
 					M_event_timer_oneshot(event, delay_response_ms, M_TRUE, net_serverconn_write_goodbye_cb, comm);
@@ -284,7 +284,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	delay_response_ms         = delay_ms;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	event_debug("starting %"PRIu64" connection test", num_connections);
+	event_debug("starting %" PRIu64 " connection test", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
@@ -339,11 +339,11 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	}
 
 	event_debug("statistics:");
-	event_debug("\twake count     : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
-	event_debug("\tprocess time ms: %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
-	event_debug("\tosevent count  : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
-	event_debug("\tsoftevent count: %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
-	event_debug("\ttimer count    : %"PRIu64"", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
+	event_debug("\twake count     : %" PRIu64 "", M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT));
+	event_debug("\tprocess time ms: %" PRIu64 "", M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS));
+	event_debug("\tosevent count  : %" PRIu64 "", M_event_get_statistic(event, M_EVENT_STATISTIC_OSEVENT_COUNT));
+	event_debug("\tsoftevent count: %" PRIu64 "", M_event_get_statistic(event, M_EVENT_STATISTIC_SOFTEVENT_COUNT));
+	event_debug("\ttimer count    : %" PRIu64 "", M_event_get_statistic(event, M_EVENT_STATISTIC_TIMER_COUNT));
 
 	/* Test destroying event first to make sure it can handle this */
 	M_event_destroy(event);
@@ -414,11 +414,11 @@ START_TEST(check_event_net_stat)
 	M_printf("===================\n");
 	for (i=0; tests[i].name != NULL; i++) {
 		M_printf("%s: statistics\n", tests[i].name);
-		M_printf("\twake count:      %"PRIu64"\n", tests[i].stats.wake_cnt);
-		M_printf("\tosevent count:   %"PRIu64"\n", tests[i].stats.osevent_cnt);
-		M_printf("\tsoftevent count: %"PRIu64"\n", tests[i].stats.softevent_cnt);
-		M_printf("\ttimer count:     %"PRIu64"\n", tests[i].stats.timer_cnt);
-		M_printf("\tprocess time ms: %"PRIu64"\n", tests[i].stats.process_time_ms);
+		M_printf("\twake count:      %" PRIu64 "\n", tests[i].stats.wake_cnt);
+		M_printf("\tosevent count:   %" PRIu64 "\n", tests[i].stats.osevent_cnt);
+		M_printf("\tsoftevent count: %" PRIu64 "\n", tests[i].stats.softevent_cnt);
+		M_printf("\ttimer count:     %" PRIu64 "\n", tests[i].stats.timer_cnt);
+		M_printf("\tprocess time ms: %" PRIu64 "\n", tests[i].stats.process_time_ms);
 	}
 }
 END_TEST

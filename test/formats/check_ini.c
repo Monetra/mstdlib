@@ -377,7 +377,7 @@ START_TEST(check_colon)
 	M_ini_settings_set_escape_char(info, '"');
 
 	ini = M_ini_read(CHECK_INI_COLON, info, M_TRUE, &errln);
-	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%"PRIu64"", (M_uint64)errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%" PRIu64 "", (M_uint64)errln);
 
 	const_temp = M_ini_kv_get_direct(ini, key1, 0);
 	ck_assert_msg(M_str_eq(const_temp, val1), "val ('%s') != '%s'", val1, const_temp);
@@ -401,7 +401,7 @@ START_TEST(check_comments)
 
 	/* Preserve spaces */
 	ini = M_ini_read(CHECK_INI_COMMENTS, info, M_TRUE, &errln);
-	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%"PRIu64"", (M_uint64)errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%" PRIu64 "", (M_uint64)errln);
 
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS);
@@ -418,7 +418,7 @@ START_TEST(check_comments)
 	M_ini_settings_set_padding(info, M_INI_PADDING_NONE);
 
 	ini = M_ini_read(CHECK_INI_COMMENTS2, info, M_TRUE, &errln);
-	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%"PRIu64"", (M_uint64)errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%" PRIu64 "", (M_uint64)errln);
 
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS2), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS);
@@ -434,7 +434,7 @@ START_TEST(check_comments)
 	/* Check padding with space already present. */
 	M_ini_settings_set_padding(info, M_INI_PADDING_AFTER_COMMENT_CHAR);
 	ini = M_ini_read(CHECK_INI_COMMENTS4, info, M_TRUE, &errln);
-	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%"PRIu64"", (M_uint64)errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%" PRIu64 "", (M_uint64)errln);
 
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS4), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS4);
@@ -444,7 +444,7 @@ START_TEST(check_comments)
 	/* Check for comments in data. */
 	M_ini_settings_set_padding(info, M_INI_PADDING_NONE);
 	ini = M_ini_read(CHECK_INI_COMMENTS5, info, M_TRUE, &errln);
-	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%"PRIu64"", (M_uint64)errln);
+	ck_assert_msg(ini != NULL && errln == 0, "ini could not be read, errln=%" PRIu64 "", (M_uint64)errln);
 	out = M_ini_write(ini, info);
 	ck_assert_msg(M_str_eq(out, CHECK_INI_COMMENTS5), "ini does not match. got:\n'''\n%s\n'''\n\n, expected:\n'''\n%s\n'''", out, CHECK_INI_COMMENTS5);
 	M_free(out);

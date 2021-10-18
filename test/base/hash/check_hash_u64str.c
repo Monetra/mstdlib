@@ -40,11 +40,11 @@ static void check_ordered(const char *key_result, const char *val_result, M_uint
 
 	/* Load the data into the hashtable. */
 	for (i=0; kv_pairs[i].key != 0; i++)
-		ck_assert_msg(M_hash_u64str_insert(d, kv_pairs[i].key, kv_pairs[i].val), "%"PRIu64": insert failed", (M_uint64)i);
+		ck_assert_msg(M_hash_u64str_insert(d, kv_pairs[i].key, kv_pairs[i].val), "%" PRIu64 ": insert failed", (M_uint64)i);
 
 	/* Check the data was set correctly. */
 	for (i=0; kv_pairs[i].key != 0; i++)
-		ck_assert_msg(M_str_eq(M_hash_u64str_get_direct(d, kv_pairs[i].key), kv_pairs[i].val), "%"PRIu64": get failed", (M_uint64)i);
+		ck_assert_msg(M_str_eq(M_hash_u64str_get_direct(d, kv_pairs[i].key), kv_pairs[i].val), "%" PRIu64 ": get failed", (M_uint64)i);
 
 	/* Enumerate the data and fill in our result data buffers. */
 	ck_assert_msg(M_hash_u64str_enumerate(d, &d_enum) > 0, "enumerate failed");

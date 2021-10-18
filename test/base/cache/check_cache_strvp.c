@@ -18,12 +18,12 @@ START_TEST(check_hotness)
 	M_cache_strvp_insert(cache, "key1", M_strdup("val1"));
 	M_cache_strvp_insert(cache, "key2", M_strdup("val2"));
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 2, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 2);
+	ck_assert_msg(size == 2, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 2);
 
 	M_cache_strvp_insert(cache, "key3", M_strdup("val3"));
 	M_cache_strvp_insert(cache, "key4", M_strdup("val4"));
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 4, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 4);
+	ck_assert_msg(size == 4, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 4);
 
 	val = M_cache_strvp_get_direct(cache, "KEY1");
 	ck_assert_msg(M_str_eq(val, "val1"), "key1 expected '%s' got '%s'", "val1", val);
@@ -44,7 +44,7 @@ START_TEST(check_hotness)
 	ck_assert_msg(M_str_eq(val, "val5"), "key5 expected '%s' got '%s'", "val5", val);
 
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 4, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 4);
+	ck_assert_msg(size == 4, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 4);
 
 	M_cache_strvp_destroy(cache);
 }
@@ -58,9 +58,9 @@ START_TEST(check_change_size_shrink)
 
 	cache = M_cache_strvp_create(4, M_CACHE_STRVP_CASECMP, M_free);
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 0, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 0);
+	ck_assert_msg(size == 0, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 0);
 	size = M_cache_strvp_max_size(cache);
-	ck_assert_msg(size == 4, "Cache max size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 4);
+	ck_assert_msg(size == 4, "Cache max size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 4);
 
 	M_cache_strvp_insert(cache, "key1", M_strdup("val1"));
 	M_cache_strvp_insert(cache, "key2", M_strdup("val2"));
@@ -70,13 +70,13 @@ START_TEST(check_change_size_shrink)
 	M_cache_strvp_insert(cache, "key6", M_strdup("val6"));
 
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 4, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 4);
+	ck_assert_msg(size == 4, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 4);
 	size = M_cache_strvp_max_size(cache);
-	ck_assert_msg(size == 4, "Cache max size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 4);
+	ck_assert_msg(size == 4, "Cache max size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 4);
 
 	M_cache_strvp_set_max_size(cache, 2);
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 2, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 2);
+	ck_assert_msg(size == 2, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 2);
 
 	val = M_cache_strvp_get_direct(cache, "key1");
 	ck_assert_msg(val == NULL, "key1 should not have been found got '%s'", val);
@@ -106,7 +106,7 @@ START_TEST(check_change_size_shrink)
 	ck_assert_msg(val == NULL, "key6 should not have been found got '%s'", val);
 
 	size  = M_cache_strvp_size(cache);
-	ck_assert_msg(size == 2, "Cache size invalid, got '%"PRIu64"' expected '%d'", (M_uint64)size, 2);
+	ck_assert_msg(size == 2, "Cache size invalid, got '%" PRIu64 "' expected '%d'", (M_uint64)size, 2);
 
 	M_cache_strvp_destroy(cache);
 }

@@ -62,14 +62,14 @@ START_TEST(check_snprintf_string)
 			ret = M_snprintf(buf, buf_size, check_snprintf_string_data[i].fmt, check_snprintf_string_data[i].str);
 		}
 
-		ck_assert_msg(M_str_eq(buf, check_snprintf_string_data[i].out), "%"PRIu64": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_string_data[i].fmt, buf, check_snprintf_string_data[i].out);
+		ck_assert_msg(M_str_eq(buf, check_snprintf_string_data[i].out), "%" PRIu64 ": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_string_data[i].fmt, buf, check_snprintf_string_data[i].out);
 
 		if (check_snprintf_string_data[i].elen != 0) {
 			elen = check_snprintf_string_data[i].elen;
 		} else {
 			elen = M_str_len(buf);
 		}
-		ck_assert_msg(ret == elen, "%"PRIu64": Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)i, (llu)ret, (llu)elen);
+		ck_assert_msg(ret == elen, "%" PRIu64 ": Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)i, (llu)ret, (llu)elen);
 	}
 }
 END_TEST
@@ -115,14 +115,14 @@ START_TEST(check_snprintf_uint64)
 
 		ret = M_snprintf(buf, buf_size, check_snprintf_uint64_data[i].fmt, check_snprintf_uint64_data[i].val);
 
-		ck_assert_msg(M_str_eq(buf, check_snprintf_uint64_data[i].out), "%"PRIu64": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_uint64_data[i].fmt, buf, check_snprintf_uint64_data[i].out);
+		ck_assert_msg(M_str_eq(buf, check_snprintf_uint64_data[i].out), "%" PRIu64 ": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_uint64_data[i].fmt, buf, check_snprintf_uint64_data[i].out);
 
 		if (check_snprintf_uint64_data[i].elen != 0) {
 			elen = check_snprintf_uint64_data[i].elen;
 		} else {
 			elen = M_str_len(buf);
 		}
-		ck_assert_msg(ret == elen, "%"PRIu64": Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)i, (llu)ret, (llu)elen);
+		ck_assert_msg(ret == elen, "%" PRIu64 ": Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)i, (llu)ret, (llu)elen);
 	}
 }
 END_TEST
@@ -177,14 +177,14 @@ START_TEST(check_snprintf_int)
 
 		ret = M_snprintf(buf, buf_size, check_snprintf_int_data[i].fmt, check_snprintf_int_data[i].val);
 
-		ck_assert_msg(M_str_eq(buf, check_snprintf_int_data[i].out), "%"PRIu64": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_int_data[i].fmt, buf, check_snprintf_int_data[i].out);
+		ck_assert_msg(M_str_eq(buf, check_snprintf_int_data[i].out), "%" PRIu64 ": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_int_data[i].fmt, buf, check_snprintf_int_data[i].out);
 
 		if (check_snprintf_int_data[i].elen != 0) {
 			elen = check_snprintf_int_data[i].elen;
 		} else {
 			elen = M_str_len(buf);
 		}
-		ck_assert_msg(ret == elen, "%"PRIu64": Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)i, (llu)ret, (llu)elen);
+		ck_assert_msg(ret == elen, "%" PRIu64 ": Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)i, (llu)ret, (llu)elen);
 	}
 }
 END_TEST
@@ -231,10 +231,10 @@ START_TEST(check_snprintf_float)
 
 		ret = M_snprintf(buf, buf_size, check_snprintf_float_data[i].fmt, check_snprintf_float_data[i].val);
 
-		ck_assert_msg(M_str_eq(buf, check_snprintf_float_data[i].out), "%"PRIu64": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_float_data[i].fmt, buf, check_snprintf_float_data[i].out);
+		ck_assert_msg(M_str_eq(buf, check_snprintf_float_data[i].out), "%" PRIu64 ": Failed (%s), got '%s' expected '%s'", (llu)i, check_snprintf_float_data[i].fmt, buf, check_snprintf_float_data[i].out);
 
 		elen = M_str_len(buf);
-		ck_assert_msg(ret == elen, "%"PRIu64": Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)i, (llu)ret, (llu)elen);
+		ck_assert_msg(ret == elen, "%" PRIu64 ": Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)i, (llu)ret, (llu)elen);
 	}
 }
 END_TEST
@@ -248,7 +248,7 @@ static void run_snprtinf_other_generic(const char *in, const char *out)
 	ret = M_snprintf(buf, sizeof(buf), in);
 	ck_assert_msg(M_str_eq(buf, out), "Failed: (%s) got '%s' expected '%s'", in, buf, out);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 }
 
 START_TEST(check_snprintf_other)
@@ -274,19 +274,19 @@ START_TEST(check_snprintf_null_buf)
 
 	ret  = M_snprintf(NULL, 0, NULL);
 	elen = 0;
-	ck_assert_msg(ret == elen, "NULL len 0: Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "NULL len 0: Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	ret  = M_snprintf(NULL, 4, NULL);
 	elen = 0;
-	ck_assert_msg(ret == elen, "NULL len 4: Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "NULL len 4: Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	ret  = M_snprintf(NULL, 0, "ABC");
 	elen = 3;
-	ck_assert_msg(ret == elen, "Static text: Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Static text: Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	ret  = M_snprintf(NULL, 0, "a %s, %02d", "xyz", 2);
 	elen = 9;
-	ck_assert_msg(ret == elen, "Static text: Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Static text: Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 }
 END_TEST
 
@@ -304,43 +304,43 @@ START_TEST(check_snprintf_multi)
 	ret = M_snprintf(buf, sizeof(buf), fmt, 329, 42, 97, 123456.789, 32.234567890123);
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	fmt  = "% 09s, %0 9s, %-#x";
 	expt = "        3,         2, 0x3806";
 	ret = M_snprintf(buf, sizeof(buf), fmt, "3", "2", 14342);
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	fmt  = "%*.s";
 	expt = "    ";
 	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	fmt  = "%*.s";
 	expt = "";
 	ret = M_snprintf(buf, sizeof(buf), fmt, 0, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	fmt  = "%*s";
 	expt = " abc";
 	ret = M_snprintf(buf, sizeof(buf), fmt, 4, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 
 	fmt  = "%*.*s";
 	expt = "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ";
 	ret = M_snprintf(buf, sizeof(buf), fmt, 8000, 3, "abc");
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
 	elen = M_str_len(buf);
-	ck_assert_msg(elen == sizeof(buf)-1, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
-	ck_assert_msg(ret == 8000, "Return length failure, got '%"PRIu64"' expected '%d'", (llu)ret, 8000);
+	ck_assert_msg(elen == sizeof(buf)-1, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == 8000, "Return length failure, got '%" PRIu64 "' expected '%d'", (llu)ret, 8000);
 }
 END_TEST
 
@@ -366,9 +366,9 @@ START_TEST(check_snprintf_multi_string)
 
 	for (i=0; check_snprintf_multi_string_data[i].out != NULL; i++) {
 		ret = M_snprintf(buf, sizeof(buf), "%s%s%s", check_snprintf_multi_string_data[i].prefix, check_snprintf_multi_string_data[i].str, check_snprintf_multi_string_data[i].suffix);
-		ck_assert_msg(M_str_eq(buf, check_snprintf_multi_string_data[i].out), "%"PRIu64": Failed got '%s' expected '%s'", (llu)i, buf, check_snprintf_multi_string_data[i].out);
+		ck_assert_msg(M_str_eq(buf, check_snprintf_multi_string_data[i].out), "%" PRIu64 ": Failed got '%s' expected '%s'", (llu)i, buf, check_snprintf_multi_string_data[i].out);
 		elen = M_str_len(buf);
-		ck_assert_msg(ret == elen, "%"PRIu64": Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)i, (llu)ret, (llu)elen);
+		ck_assert_msg(ret == elen, "%" PRIu64 ": Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)i, (llu)ret, (llu)elen);
 	}
 }
 END_TEST
@@ -406,7 +406,7 @@ START_TEST(check_snprintf_alloc)
 			"7yhjklo06trf5t865fdf54rty6y+rt\t\t28uo09ujklaiujdadad32\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2\t2"
 			);
 	ck_assert_msg(M_str_eq(buf, expt), "Failed (%s), got '%s' expected '%s'", fmt, buf, expt);
-	ck_assert_msg(ret == elen, "Output length failure, got '%"PRIu64"' expected '%"PRIu64"'", (llu)ret, (llu)elen);
+	ck_assert_msg(ret == elen, "Output length failure, got '%" PRIu64 "' expected '%" PRIu64 "'", (llu)ret, (llu)elen);
 	M_free(buf);
 }
 END_TEST
@@ -454,7 +454,7 @@ START_TEST(check_snprintf_fp)
 	ck_assert_msg(r != -1, "fd failed to write part 2");
 	lseek(fd, 0, SEEK_SET);
 	off = lseek(fd, 0, SEEK_END);
-	ck_assert_msg(off == fds_size, "fd file size does not match expected, got '%"PRId64"' expected '%"PRId64"'", (lld)off, (lld)fds_size);
+	ck_assert_msg(off == fds_size, "fd file size does not match expected, got '%" PRId64 "' expected '%" PRId64 "'", (lld)off, (lld)fds_size);
 
 	lseek(fd, 0, SEEK_SET);
 	out = M_malloc_zero((size_t)fds_size+1);
@@ -485,7 +485,7 @@ START_TEST(check_snprintf_fp)
 
 	fserr = M_fs_file_read_bytes(mfd_filename, 0, &buf, (size_t *)&r);
 	ck_assert_msg(fserr == M_FS_ERROR_SUCCESS, "mfd could not read file");
-	ck_assert_msg((int)r == fds_size, "mfd file size does not match expected, got '%"PRId64"' expected '%d'", (lld)r, fds_size);
+	ck_assert_msg((int)r == fds_size, "mfd file size does not match expected, got '%" PRId64 "' expected '%d'", (lld)r, fds_size);
 	ck_assert_msg(M_mem_eq(buf, output, (size_t)r), "mfd file data does not match expected");
 
 	M_free(buf);

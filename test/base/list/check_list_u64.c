@@ -52,14 +52,14 @@ static M_uint64 random_insert(void)
 static void ensure_len(size_t e_entries)
 {
 	size_t r_entries = M_list_u64_len(list);
-	ck_assert_msg(r_entries == e_entries, "expected %"PRIu64", got %"PRIu64"", (M_uint64)e_entries, (M_uint64)r_entries);
+	ck_assert_msg(r_entries == e_entries, "expected %" PRIu64 ", got %" PRIu64 "", (M_uint64)e_entries, (M_uint64)r_entries);
 }
 
 static void ensure_val(size_t idx, M_uint64 val)
 {
 	M_uint64 myval;
 	myval = M_list_u64_at(list, idx);
-	ck_assert_msg(myval == val, "value %"PRIu64" does not match expected value %"PRIu64"", (M_uint64)myval, (M_uint64)val);
+	ck_assert_msg(myval == val, "value %" PRIu64 " does not match expected value %" PRIu64 "", (M_uint64)myval, (M_uint64)val);
 }
 
 static void ensure_order(void)
@@ -147,7 +147,7 @@ START_TEST(check_bulk_insert_order)
 	M_list_u64_insert(list, ORDER_TWO);
 	val1 = M_list_u64_at(list, 0);
 	val2 = M_list_u64_at(list, 1);
-	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val1 > val2, "Bulk insertion not overriding insertion sort, val1: %"PRIu64", val2: %"PRIu64"", val1, val2);
+	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val1 > val2, "Bulk insertion not overriding insertion sort, val1: %" PRIu64 ", val2: %" PRIu64 "", val1, val2);
 
 	/* Add some random values */
 	srand(1);
@@ -178,13 +178,13 @@ START_TEST(check_index_of_remove)
 	}
 
 	res = M_list_u64_index_of(list, val, &idx);
-	ck_assert_msg(res && idx == val, "Index of did not find value at proper index: %"PRIu64". Index is: %"PRIu64"", (M_uint64)val, (M_uint64)idx);
+	ck_assert_msg(res && idx == val, "Index of did not find value at proper index: %" PRIu64 ". Index is: %" PRIu64 "", (M_uint64)val, (M_uint64)idx);
 
 	i = M_list_u64_remove_val(list, val, M_LIST_U64_MATCH_VAL);
-	ck_assert_msg(i == 1, "Could  not remove value: %"PRIu64"", val);
+	ck_assert_msg(i == 1, "Could  not remove value: %" PRIu64 "", val);
 
 	res = M_list_u64_index_of(list, val, &idx);
-	ck_assert_msg(!res, "Found value: %"PRIu64" that was removed", val);
+	ck_assert_msg(!res, "Found value: %" PRIu64 " that was removed", val);
 
 	ensure_len(49);
 
@@ -210,14 +210,14 @@ START_TEST(check_index_of_remove)
 	ensure_len(55);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 6, "Invalid count of val (%"PRIu64"), got: %"PRIu64", expected: 6", (M_uint64)val, (M_uint64)i);
+	ck_assert_msg(i == 6, "Invalid count of val (%" PRIu64 "), got: %" PRIu64 ", expected: 6", (M_uint64)val, (M_uint64)i);
 
 	i = M_list_u64_remove_val(list, val, M_LIST_U64_MATCH_VAL|M_LIST_U64_MATCH_ALL);
-	ck_assert_msg(i == 6, "Could  not remove value: %"PRIu64"", val);
+	ck_assert_msg(i == 6, "Could  not remove value: %" PRIu64 "", val);
 	ensure_len(49);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 0, "Invalid count of val (%"PRIu64"), got: %"PRIu64", expected: 0", (M_uint64)val, (M_uint64)i);
+	ck_assert_msg(i == 0, "Invalid count of val (%" PRIu64 "), got: %" PRIu64 ", expected: 0", (M_uint64)val, (M_uint64)i);
 
 	M_list_u64_destroy(list);
 	list = NULL;
@@ -233,14 +233,14 @@ START_TEST(check_index_of_remove)
 	ensure_len(55);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 6, "Invalid count of val (%"PRIu64"), got: %"PRIu64", expected: 6", (M_uint64)val, (M_uint64)i);
+	ck_assert_msg(i == 6, "Invalid count of val (%" PRIu64 "), got: %" PRIu64 ", expected: 6", (M_uint64)val, (M_uint64)i);
 
 	i = M_list_u64_remove_val(list, val, M_LIST_U64_MATCH_VAL|M_LIST_U64_MATCH_ALL);
-	ck_assert_msg(i == 6, "Could  not remove value: %"PRIu64"", val);
+	ck_assert_msg(i == 6, "Could  not remove value: %" PRIu64 "", val);
 	ensure_len(49);
 
 	i = M_list_u64_count(list, val);
-	ck_assert_msg(i == 0, "Invalid count of val (%"PRIu64"), got: %"PRIu64", expected: 0", (M_uint64)val, (M_uint64)i);
+	ck_assert_msg(i == 0, "Invalid count of val (%" PRIu64 "), got: %" PRIu64 ", expected: 0", (M_uint64)val, (M_uint64)i);
 
 	M_list_u64_destroy(list);
 	list = NULL;
@@ -263,17 +263,17 @@ START_TEST(check_duplicate_merge)
 
 	d2 = M_list_u64_duplicate(list);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == DUP_NUM_ENTIRES, "Dup: expected %d, got %"PRIu64"", DUP_NUM_ENTIRES, (M_uint64)len);
+	ck_assert_msg(len == DUP_NUM_ENTIRES, "Dup: expected %d, got %" PRIu64 "", DUP_NUM_ENTIRES, (M_uint64)len);
 
 	d3 = M_list_u64_duplicate(list);
 	M_list_u64_merge(&d2, d3, M_FALSE);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == DUP_NUM_ENTIRES, "Merge no dups: expected %d, got %"PRIu64"", DUP_NUM_ENTIRES, (M_uint64)len);
+	ck_assert_msg(len == DUP_NUM_ENTIRES, "Merge no dups: expected %d, got %" PRIu64 "", DUP_NUM_ENTIRES, (M_uint64)len);
 
 	d4 = M_list_u64_duplicate(list);
 	M_list_u64_merge(&d2, d4, M_TRUE);
 	len = M_list_u64_len(d2);
-	ck_assert_msg(len == MERGE_NUM_ENTIRES, "Merge with dups: expected %d, got %"PRIu64"", MERGE_NUM_ENTIRES, (M_uint64)len);
+	ck_assert_msg(len == MERGE_NUM_ENTIRES, "Merge with dups: expected %d, got %" PRIu64 "", MERGE_NUM_ENTIRES, (M_uint64)len);
 
 	M_list_u64_destroy(d2);
 }
@@ -311,7 +311,7 @@ START_TEST(check_change_sorting)
 	val1 = M_list_u64_at(list, 0);
 	val2 = M_list_u64_at(list, 1);
 	val3 = M_list_u64_at(list, 3);
-	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val3 != ORDER_THREE || val1 > val2 || val2 < val3, "insertion not unsorted, val1: %"PRIu64", val2: %"PRIu64", val3: %"PRIu64"", val1, val2, val3);
+	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val3 != ORDER_THREE || val1 > val2 || val2 < val3, "insertion not unsorted, val1: %" PRIu64 ", val2: %" PRIu64 ", val3: %" PRIu64 "", val1, val2, val3);
 
 	/* Add some random values. */
 	srand(1);
@@ -340,7 +340,7 @@ START_TEST(check_change_sorting)
 	val1 = M_list_u64_at(list, M_list_u64_len(list)-3);
 	val2 = M_list_u64_at(list, M_list_u64_len(list)-2);
 	val3 = M_list_u64_at(list, M_list_u64_len(list)-1);
-	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val3 != ORDER_THREE || val1 > val2 || val2 < val3, "insertion not unsorted, val1: %"PRIu64", val2: %"PRIu64", val3: %"PRIu64"", val1, val2, val3);
+	ck_assert_msg(val1 != ORDER_ONE || val2 != ORDER_TWO || val3 != ORDER_THREE || val1 > val2 || val2 < val3, "insertion not unsorted, val1: %" PRIu64 ", val2: %" PRIu64 ", val3: %" PRIu64 "", val1, val2, val3);
 }
 END_TEST
 
@@ -364,7 +364,7 @@ START_TEST(check_queue_stack)
 	ensure_len(num_vals);
 	for (i=0; i<num_vals; i++) {
 		val = M_list_u64_take_first(list);
-		ck_assert_msg(val == vals[i], "Queue (take_first) vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", (M_uint64)i, vals[i], val);
+		ck_assert_msg(val == vals[i], "Queue (take_first) vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", (M_uint64)i, vals[i], val);
 	}
 	M_list_u64_destroy(list);
 
@@ -377,7 +377,7 @@ START_TEST(check_queue_stack)
 	for (i=0; i<num_vals; i++) {
 		idx = num_vals-i-1;
 		val = M_list_u64_take_last(list);
-		ck_assert_msg(val == vals[idx], "Queue (take_last) vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", (M_uint64)idx, vals[idx], val);
+		ck_assert_msg(val == vals[idx], "Queue (take_last) vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", (M_uint64)idx, vals[idx], val);
 	}
 	M_list_u64_destroy(list);
 
@@ -388,20 +388,20 @@ START_TEST(check_queue_stack)
 	}
 	ensure_len(num_vals);
 	val = M_list_u64_take_at(list, 7);
-	ck_assert_msg(val == 3, "Queue (take_at) vals[7] is not correct, expected: %d, got: %"PRId64"", 3, val);
+	ck_assert_msg(val == 3, "Queue (take_at) vals[7] is not correct, expected: %d, got: %" PRId64 "", 3, val);
 
 	/* remove_at */
 	M_list_u64_remove_at(list, 0);
 	val = M_list_u64_at(list, 0);
-	ck_assert_msg(val == 7, "Queue (remove_at(0)) val is not correct, expected: %d, got: %"PRId64"", 7, val);
+	ck_assert_msg(val == 7, "Queue (remove_at(0)) val is not correct, expected: %d, got: %" PRId64 "", 7, val);
 	M_list_u64_remove_at(list, M_list_u64_len(list)-1);
 	val = M_list_u64_at(list, M_list_u64_len(list)-1);
-	ck_assert_msg(val == 99, "Queue (remove_at(len-1)) val is not correct, expected: %d, got: %"PRId64"", 99, val);
+	ck_assert_msg(val == 99, "Queue (remove_at(len-1)) val is not correct, expected: %d, got: %" PRId64 "", 99, val);
 
 	/* index_of */
 	ret = M_list_u64_index_of(list, 8, &idx);
 	ck_assert_msg(ret == M_TRUE, "Queue (index_of(8) could not get index of value");
-	ck_assert_msg(idx == 3, "Queue (index_of(8)) idx is not correct, expected: %d, got: %"PRIu64"", 3, (M_uint64)idx);
+	ck_assert_msg(idx == 3, "Queue (index_of(8)) idx is not correct, expected: %d, got: %" PRIu64 "", 3, (M_uint64)idx);
 
 	/* remove_duplicates */
 	M_list_u64_remove_range(list, 0, M_list_u64_len(list));
@@ -424,7 +424,7 @@ START_TEST(check_queue_stack)
 	for (i=0; i<num_vals; i++) {
 		idx = num_vals-1-i;
 		val = M_list_u64_take_first(list);
-		ck_assert_msg(val == vals[idx], "Stack (take_first) vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", (M_uint64)idx, vals[idx], val);
+		ck_assert_msg(val == vals[idx], "Stack (take_first) vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", (M_uint64)idx, vals[idx], val);
 	}
 	M_list_u64_destroy(list);
 
@@ -436,7 +436,7 @@ START_TEST(check_queue_stack)
 	ensure_len(num_vals);
 	for (i=0; i<num_vals; i++) {
 		val = M_list_u64_take_last(list);
-		ck_assert_msg(val == vals[i], "Stack (take_last) vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", (M_uint64)i, vals[i], val);
+		ck_assert_msg(val == vals[i], "Stack (take_last) vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", (M_uint64)i, vals[i], val);
 	}
 	M_list_u64_destroy(list);
 
@@ -447,20 +447,20 @@ START_TEST(check_queue_stack)
 	}
 	ensure_len(num_vals);
 	val = M_list_u64_take_at(list, 7);
-	ck_assert_msg(val == 22, "Stack (take_at) vals[7] is not correct, expected: %d, got: %"PRId64"", 3, val);
+	ck_assert_msg(val == 22, "Stack (take_at) vals[7] is not correct, expected: %d, got: %" PRId64 "", 3, val);
 
 	/* remove_at */
 	M_list_u64_remove_at(list, 0);
 	val = M_list_u64_at(list, 0);
-	ck_assert_msg(val == 99, "Stack (remove_at(0)) val is not correct, expected: %d, got: %"PRId64"", 99, val);
+	ck_assert_msg(val == 99, "Stack (remove_at(0)) val is not correct, expected: %d, got: %" PRId64 "", 99, val);
 	M_list_u64_remove_at(list, M_list_u64_len(list)-1);
 	val = M_list_u64_at(list, M_list_u64_len(list)-1);
-	ck_assert_msg(val == 7, "Stack (remove_at(len-1)) val is not correct, expected: %d, got: %"PRId64"", 7, val);
+	ck_assert_msg(val == 7, "Stack (remove_at(len-1)) val is not correct, expected: %d, got: %" PRId64 "", 7, val);
 
 	/* index_of */
 	ret = M_list_u64_index_of(list, 8, &idx);
 	ck_assert_msg(ret == M_TRUE, "Stack (index_of(8) could not get index of value");
-	ck_assert_msg(idx == 7, "Stack (index_of(8)) idx is not correct, expected: %d, got: %"PRIu64"", 7, (M_uint64)idx);
+	ck_assert_msg(idx == 7, "Stack (index_of(8)) idx is not correct, expected: %d, got: %" PRIu64 "", 7, (M_uint64)idx);
 
 	/* remove_duplicates */
 	M_list_u64_remove_range(list, 0, M_list_u64_len(list));
@@ -488,11 +488,11 @@ static void check_set_insert(const char *prefix, M_uint64 *vals, size_t num_vals
 	}
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Insert %s: length not correct, expected: %"PRIu64", got: %"PRIu64"", prefix, (M_uint64)num_after_vals, (M_uint64)len);
+	ck_assert_msg(len == num_after_vals, "SET Insert %s: length not correct, expected: %" PRIu64 ", got: %" PRIu64 "", prefix, (M_uint64)num_after_vals, (M_uint64)len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);
-		ck_assert_msg(val == after_vals[i], "SET Insert %s: after_vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", prefix, (M_uint64)i, (M_uint64)after_vals[i], (M_uint64)val);
+		ck_assert_msg(val == after_vals[i], "SET Insert %s: after_vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", prefix, (M_uint64)i, (M_uint64)after_vals[i], (M_uint64)val);
 	}
 
 	M_list_u64_destroy(l);
@@ -516,11 +516,11 @@ static void check_set_duplicate(const char *prefix, M_uint64 *vals, size_t num_v
 	l  = l2;
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Duplicate %s: length not correct, expected: %"PRIu64", got: %"PRIu64"", prefix, (M_uint64)num_after_vals, (M_uint64)len);
+	ck_assert_msg(len == num_after_vals, "SET Duplicate %s: length not correct, expected: %" PRIu64 ", got: %" PRIu64 "", prefix, (M_uint64)num_after_vals, (M_uint64)len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);
-		ck_assert_msg(val == after_vals[i], "SET Duplicate %s: after_vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", prefix, (M_uint64)i, after_vals[i], val);
+		ck_assert_msg(val == after_vals[i], "SET Duplicate %s: after_vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", prefix, (M_uint64)i, after_vals[i], val);
 	}
 
 	M_list_u64_destroy(l);
@@ -544,11 +544,11 @@ static void check_set_merge(const char *prefix, M_uint64 *vals, size_t num_vals,
 	M_list_u64_merge(&l, l2, M_TRUE);
 
 	len = M_list_u64_len(l);
-	ck_assert_msg(len == num_after_vals, "SET Merge %s: length not correct, expected: %"PRIu64", got: %"PRIu64"", prefix, (M_uint64)num_after_vals, (M_uint64)len);
+	ck_assert_msg(len == num_after_vals, "SET Merge %s: length not correct, expected: %" PRIu64 ", got: %" PRIu64 "", prefix, (M_uint64)num_after_vals, (M_uint64)len);
 
 	for (i=0; i<num_after_vals; i++) {
 		val = M_list_u64_at(l, i);
-		ck_assert_msg(val == after_vals[i], "SET Merge %s: after_vals[%"PRIu64"] is not correct, expected: %"PRId64", got: %"PRId64"", prefix, (M_uint64)i, after_vals[i], val);
+		ck_assert_msg(val == after_vals[i], "SET Merge %s: after_vals[%" PRIu64 "] is not correct, expected: %" PRId64 ", got: %" PRId64 "", prefix, (M_uint64)i, after_vals[i], val);
 	}
 
 	M_list_u64_destroy(l);

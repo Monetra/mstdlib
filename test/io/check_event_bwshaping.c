@@ -26,7 +26,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%"PRId64".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -100,7 +100,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %"PRIu64" bytes (%"PRIu64" Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				event_debug("net client %p wrote %" PRIu64 " bytes (%" PRIu64 " Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
 			if (M_buf_len(data->buf) == 0) {
 				if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
@@ -119,7 +119,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_get_error_string(comm, error, sizeof(error));
 				event_debug("net client %p ERROR %s", comm, error);
 			}
-			event_debug("net client %p Freeing connection (%"PRIu64" total bytes in %"PRIu64" ms)", comm,
+			event_debug("net client %p Freeing connection (%" PRIu64 " total bytes in %" PRIu64 " ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);
@@ -147,7 +147,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				event_debug("net serverconn %p read %"PRIu64" bytes (%"PRIu64" Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
+				event_debug("net serverconn %p read %" PRIu64 " bytes (%" PRIu64 " Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
 				M_buf_truncate(data->buf, 0);
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
@@ -162,7 +162,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_io_get_error_string(comm, error, sizeof(error));
 				event_debug("net serverconn %p ERROR %s", comm, error);
 			}
-			event_debug("net serverconn %p Freeing connection (%"PRIu64" total bytes in %"PRIu64" ms)", comm,
+			event_debug("net serverconn %p Freeing connection (%" PRIu64 " total bytes in %" PRIu64 " ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);

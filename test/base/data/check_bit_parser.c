@@ -79,7 +79,7 @@ do {\
 #define check_len(BPARSER, EXP_BITS)\
 do {\
 	size_t len_bits  = M_bit_parser_len(BPARSER);\
-	ck_assert_msg(len_bits == EXP_BITS, "len is %"PRId64" bits, expected %"PRId64"", (long long)len_bits, (long long)EXP_BITS);\
+	ck_assert_msg(len_bits == EXP_BITS, "len is %" PRId64 " bits, expected %" PRId64 "", (long long)len_bits, (long long)EXP_BITS);\
 } while (0)
 
 

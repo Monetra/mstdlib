@@ -206,14 +206,14 @@ static void *thread_tls(void *arg)
 	void       *ptr;
 
 	if (sd->ptr == NULL) {
-		ck_assert_msg(M_thread_tls_setspecific(sd->key, sd->ptr) == M_FALSE, "Set tls value on invalid key %"PRIu64"", sd->key);
+		ck_assert_msg(M_thread_tls_setspecific(sd->key, sd->ptr) == M_FALSE, "Set tls value on invalid key %" PRIu64 "", sd->key);
 		return NULL;
 	}
 
-	ck_assert_msg(M_thread_tls_setspecific(sd->key, sd->ptr) == M_TRUE, "Cold not set tls value (%s) on key %"PRIu64"", sd->ptr, sd->key);
+	ck_assert_msg(M_thread_tls_setspecific(sd->key, sd->ptr) == M_TRUE, "Cold not set tls value (%s) on key %" PRIu64 "", sd->ptr, sd->key);
 	M_thread_sleep(sd->usec);
 	ptr = M_thread_tls_getspecific(sd->key);
-	ck_assert_msg(ptr == sd->ptr, "Value of key (%"PRIu64"): %s != expected value: %s", sd->key, (const char *)ptr, sd->ptr);
+	ck_assert_msg(ptr == sd->ptr, "Value of key (%" PRIu64 "): %s != expected value: %s", sd->key, (const char *)ptr, sd->ptr);
 
 	return NULL;
 }
@@ -318,7 +318,7 @@ START_TEST(check_sleeper)
 	 * 100, threads may not have fully exited. */
 	M_thread_sleep(15000);
 
-	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %"PRIu64"", (llu)M_thread_count());
+	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %" PRIu64 "", (llu)M_thread_count());
 }
 END_TEST
 
@@ -852,7 +852,7 @@ START_TEST(check_pool)
 
 	ck_assert_msg(count == CHECK_POOL_TASK_CNT, "count (%u) != %u", count, CHECK_POOL_TASK_CNT);
 	len = M_list_u64_len(sd.seen_threads);
-	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %"PRIu64" of %"PRIu64" used", (llu)len, (llu)CHECK_POOL_THREAD_CNT);
+	ck_assert_msg(len == CHECK_POOL_THREAD_CNT, "Pool did not use all threads: %" PRIu64 " of %" PRIu64 " used", (llu)len, (llu)CHECK_POOL_THREAD_CNT);
 
 	M_list_u64_destroy(sd.seen_threads);
 	M_thread_mutex_destroy(sd.mutex);
@@ -882,7 +882,7 @@ START_TEST(check_innerd)
 	}
 	M_thread_sleep(5000000);
 
-	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %"PRIu64"", (llu)M_thread_count());
+	ck_assert_msg(M_thread_count() == 0, "Threads still reported as running: %" PRIu64 "", (llu)M_thread_count());
 }
 END_TEST
 
