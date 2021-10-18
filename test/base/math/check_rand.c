@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -38,7 +38,7 @@ START_TEST(check_rand_10)
 	}
 
 	for (i=0; i<len; i++) {
-		ck_assert_msg(seconds[i] == rand_10_firsts[i], "test %" PRIu64 " got %" PRIu64 " expect %" PRIu64 "", (M_uint64)i, seconds[i], rand_10_firsts[i]);
+		ck_assert_msg(seconds[i] == rand_10_firsts[i], "test %zu got %llu expect %llu", i, seconds[i], rand_10_firsts[i]);
 	}
 
 	M_free(seconds);
@@ -67,7 +67,7 @@ START_TEST(check_rand_rand)
  	 * as the same vale as the 10_firsts seed. However, it's unlikely the internal seed
 	 * generator will generate a seen that small. If it does it should be considered a bug. */
 	for (i=0; i<len; i++) {
-		ck_assert_msg(seconds[i] != rand_10_firsts[i], "test %" PRIu64 " got %" PRIu64 " expect anything else", (M_uint64)i, seconds[i]);
+		ck_assert_msg(seconds[i] != rand_10_firsts[i], "test %zu got %llu expect anything else", i, seconds[i]);
 	}
 
 	M_free(seconds);

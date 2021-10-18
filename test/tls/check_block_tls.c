@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -28,7 +28,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 	fflush(stdout);
@@ -77,7 +77,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 				event_debug("%p %s error during write", conn, is_server?"netserver":"netclient");
 				goto cleanup;
 			}
-			event_debug("%p %s wrote %" PRIu64 " bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
+			event_debug("%p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
 		}
 
 		err = M_io_block_read_into_parser(conn, readparser, 20);
@@ -90,7 +90,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p %s has (%" PRIu64 ") \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 			M_parser_truncate(readparser, 0);
@@ -115,7 +115,7 @@ cleanup:
 		if (active_client_connections)
 			M_atomic_dec_u64(&active_client_connections);
 	}
-	event_debug("active_s %" PRIu64 ", active_c %" PRIu64 ", total_s %" PRIu64 ", total_c %" PRIu64 ", expected %" PRIu64 "", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expected %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 }
 
 static void *server_thread(void *arg)
@@ -250,7 +250,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_free(key);
 	M_free(cert);
 
-	event_debug("Test %" PRIu64 " connections", num_connections);
+	event_debug("Test %llu connections", num_connections);
 
 	while ((err = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
@@ -361,7 +361,7 @@ static void *tls_disconresp_listener(void *arg)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p netserver has (%" PRIu64 ") \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p netserver has (%zu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		/* If we have hello world, break! */
 		if (M_parser_compare_str(readparser, "HelloWorld", 0, M_FALSE)) {
@@ -373,7 +373,7 @@ static void *tls_disconresp_listener(void *arg)
 	err = M_io_block_write(conn, (const M_uint8 *)"GoodBye", M_str_len("GoodBye"), &len_written, M_TIMEOUT_INF);
 	if (err != M_IO_ERROR_SUCCESS || len_written != M_str_len("GoodBye")) {
 		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("%p netserver failed to write %" PRIu64 " bytes: %d: %s", conn, M_str_len("GoodBye"), (int)err, msg);
+		event_debug("%p netserver failed to write %zu bytes: %d: %s", conn, M_str_len("GoodBye"), (int)err, msg);
 		goto cleanup;
 	}
 
@@ -481,7 +481,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	err = M_io_block_write(conn, (const M_uint8 *)"HelloWorld", M_str_len("HelloWorld"), &len_written, M_TIMEOUT_INF);
 	if (err != M_IO_ERROR_SUCCESS || len_written != M_str_len("HelloWorld")) {
 		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("%p netclient failed to write %" PRIu64 " bytes: %d: %s", conn, M_str_len("HelloWorld"), (int)err, msg);
+		event_debug("%p netclient failed to write %zu bytes: %d: %s", conn, M_str_len("HelloWorld"), (int)err, msg);
 		goto cleanup;
 	}
 
@@ -503,7 +503,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 			goto cleanup;
 		}
 		if (M_parser_len(readparser)) {
-			event_debug("%p netclient has (%" PRIu64 ") \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			event_debug("%p netclient has (%zu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
 		/* If we have hello world, break! */
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {

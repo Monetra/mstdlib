@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -21,7 +21,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -75,7 +75,7 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_READ:
 			buf = M_buf_create();
 			M_io_read_into_buf(io, buf);
-			event_debug("process %p %s read %" PRIu64 " bytes", io, name, M_buf_len(buf));
+			event_debug("process %p %s read %zu bytes", io, name, M_buf_len(buf));
 			M_buf_cancel(buf);
 			break;
 		case M_EVENT_TYPE_WRITE:

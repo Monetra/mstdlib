@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -48,7 +48,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
 }
@@ -59,11 +59,11 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%" PRId64 ".%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%" PRId64 ".%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
 	M_printf("%s\n", buf);
 	M_free(buf);
@@ -78,7 +78,7 @@ static void event_debug(const char *fmt, ...)
 
 static void pipe_check_cleanup(M_event_t *event)
 {
-	event_debug("active_s %" PRIu64 ", active_c %" PRIu64 ", total_s %" PRIu64 ", total_c %" PRIu64 ", expect %" PRIu64 "", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
 		M_event_done(event);
 	}
@@ -97,7 +97,7 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			M_atomic_inc_u64(&active_client_connections);
 			M_atomic_inc_u64(&client_connection_count);
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("pipe writer %p wrote %" PRIu64 " bytes", comm, mysize);
+			event_debug("pipe writer %p wrote %zu bytes", comm, mysize);
 
 			/* Fall-thru */
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -133,7 +133,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("pipe reader %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("pipe reader %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				M_io_destroy(comm);
 				M_atomic_dec_u64(&active_server_connections);
@@ -184,11 +184,11 @@ static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 	client_connection_count   = 0;
 	server_connection_count   = 0;
 
-	event_debug("starting %" PRIu64 " pipe test", num_connections);
+	event_debug("starting %llu pipe test", num_connections);
 
 	for (i=0; i<num_connections; i++) {
 		if (M_io_pipe_create(M_IO_PIPE_NONE, &pipereader, &pipewriter) != M_IO_ERROR_SUCCESS) {
-			event_debug("failed to create pipe %" PRIu64 "", i);
+			event_debug("failed to create pipe %zu", i);
 			return M_EVENT_ERR_RETURN;
 		}
 #if DEBUG
@@ -197,12 +197,12 @@ static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 #endif
 		if (!M_event_add(event, pipereader, pipe_reader_cb, NULL)) {
 			M_io_get_error_string(pipereader, msg, sizeof(msg));
-			event_debug("failed to add pipe reader %" PRIu64 ": %p: %s", i, pipereader, msg);
+			event_debug("failed to add pipe reader %zu: %p: %s", i, pipereader, msg);
 			return M_EVENT_ERR_RETURN;
 		}
 		if (!M_event_add(event, pipewriter, pipe_writer_cb, NULL)) {
 			M_io_get_error_string(pipewriter, msg, sizeof(msg));
-			event_debug("failed to add pipe writer %" PRIu64 ": %p: %s", i, pipewriter, msg);
+			event_debug("failed to add pipe writer %zu: %p: %s", i, pipewriter, msg);
 			return M_EVENT_ERR_RETURN;
 		}
 	}

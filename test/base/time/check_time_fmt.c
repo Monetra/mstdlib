@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -491,15 +491,15 @@ START_TEST(check_time_fmt)
 		M_time_tolocal(check_fmts[i].ts, &tm, tz);
 
 		out = M_time_to_str(check_fmts[i].tostr_fmt, &tm);
-		ck_assert_msg(M_str_eq(check_fmts[i].s, out), "%" PRIu64 ": Expected string '%s' does not match returned '%s'", (M_uint64)i, check_fmts[i].s, out);
+		ck_assert_msg(M_str_eq(check_fmts[i].s, out), "%zu: Expected string '%s' does not match returned '%s'", i, check_fmts[i].s, out);
 
 		ts = M_time_from_str(out, tz, M_FALSE);
-		ck_assert_msg(check_fmts[i].ts == ts, "%" PRIu64 ": Expected ts %" PRId64 " does not match returned %" PRId64 "", (M_uint64)i, (M_int64)check_fmts[i].ts, ts);
+		ck_assert_msg(check_fmts[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, (M_int64)check_fmts[i].ts, ts);
 		M_free(out);
 
 		out = M_time_to_str("%Z", &tm);
-		ck_assert_msg(M_str_eq(check_fmts[i].abbr, out), "%" PRIu64 ": Expected abbr '%s' does not match returned '%s'", (M_uint64)i, check_fmts[i].abbr, out);
-		ck_assert_msg(M_str_eq(out, tm.abbr), "%" PRIu64 ": Expected abbr '%s' does not match tm.abbr '%s'", (M_uint64)i, out, tm.abbr);
+		ck_assert_msg(M_str_eq(check_fmts[i].abbr, out), "%zu: Expected abbr '%s' does not match returned '%s'", i, check_fmts[i].abbr, out);
+		ck_assert_msg(M_str_eq(out, tm.abbr), "%zu: Expected abbr '%s' does not match tm.abbr '%s'", i, out, tm.abbr);
 		M_free(out);
 	}
 
@@ -545,16 +545,16 @@ START_TEST(check_time_fmt_custom)
 		out = M_time_parsefmt(check_fmts_custom[i].s, check_fmts_custom[i].tostr_fmt, &tm);
 
 		if (check_fmts_custom[i].fail) {
-			ck_assert_msg(out == NULL, "%" PRIu64 ": Parse succeeded when it should have failed", (M_uint64)i);
+			ck_assert_msg(out == NULL, "%zu: Parse succeeded when it should have failed", i);
 			continue;
 		} else {
-			ck_assert_msg(out != NULL && *out == '\0', "%" PRIu64 ": Did not fully parse data: %s", (M_uint64)i, check_fmts_custom[i].s);
+			ck_assert_msg(out != NULL && *out == '\0', "%zu: Did not fully parse data: %s", i, check_fmts_custom[i].s);
 		}
 		ts = M_time_fromlocal(&tm, tz);
-		ck_assert_msg(check_fmts_custom[i].ts == ts, "%" PRIu64 ": Expected ts %" PRId64 " does not match returned %" PRId64 "", (M_uint64)i, check_fmts_custom[i].ts, ts);
+		ck_assert_msg(check_fmts_custom[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, check_fmts_custom[i].ts, ts);
 
 		out = M_time_to_str(check_fmts_custom[i].tostr_fmt, &tm);
-		ck_assert_msg(M_str_eq(check_fmts_custom[i].s, out), "%" PRIu64 ": Expected string '%s' does not match returned '%s'", (M_uint64)i, check_fmts_custom[i].s, out);
+		ck_assert_msg(M_str_eq(check_fmts_custom[i].s, out), "%zu: Expected string '%s' does not match returned '%s'", i, check_fmts_custom[i].s, out);
 		M_free(out);
 	}
 
@@ -582,7 +582,7 @@ START_TEST(check_time_fmt_utc)
 
 	for (i=0; check_fmts_utc[i].ts!=0; i++) {
 		ts = M_time_from_str(check_fmts_utc[i].s, NULL, M_FALSE);
-		ck_assert_msg(check_fmts_utc[i].ts == ts, "%" PRIu64 ": Expected ts %" PRId64 " does not match returned %" PRId64 "", (M_uint64)i, (M_int64)check_fmts_utc[i].ts, ts);
+		ck_assert_msg(check_fmts_utc[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, (M_int64)check_fmts_utc[i].ts, ts);
 	}
 }
 END_TEST

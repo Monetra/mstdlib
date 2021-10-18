@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_text.h>
 
@@ -41,13 +41,13 @@ START_TEST(check_correct)
 
 	for (i=0; tests[i].raw!=NULL; i++) {
 		res = M_textcodec_encode(&out, tests[i].raw, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE);
-		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%" PRIu64 ": Encode result not success: got %d", (M_uint64)i, res);
-		ck_assert_msg(M_str_caseeq(out, tests[i].enc), "%" PRIu64 ": Encode failed: got '%s', expected '%s'", (M_uint64)i, out, tests[i].enc);
+		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%zu: Encode result not success: got %d", i, res);
+		ck_assert_msg(M_str_caseeq(out, tests[i].enc), "%zu: Encode failed: got '%s', expected '%s'", i, out, tests[i].enc);
 		M_free(out);
 
 		res = M_textcodec_decode(&out, tests[i].enc, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE);
-		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%" PRIu64 ": Decode result not success: got %d", (M_uint64)i, res);
-		ck_assert_msg(M_str_caseeq(out, tests[i].raw), "%" PRIu64 ": Decode failed: got '%s', expected '%s'", (M_uint64)i, out, tests[i].raw);
+		ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "%zu: Decode result not success: got %d", i, res);
+		ck_assert_msg(M_str_caseeq(out, tests[i].raw), "%zu: Decode failed: got '%s', expected '%s'", i, out, tests[i].raw);
 		M_free(out);
 	}
 }

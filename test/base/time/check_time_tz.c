@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 
 typedef unsigned long long llu;
@@ -102,7 +102,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 
 	/* Check adjustment. */
 	if (tz_check->gmtoff != ltime.gmtoff) {
-		M_snprintf(err, err_len, "Expected offset %" PRId64 " does not match offset %" PRId64 "", (lld)tz_check->gmtoff, (lld)ltime.gmtoff);
+		M_snprintf(err, err_len, "Expected offset %lld does not match offset %lld", (lld)tz_check->gmtoff, (lld)ltime.gmtoff);
 		return M_FALSE;
 	}
 
@@ -126,7 +126,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 		tz_check->lmin  != ltime.min   ||
 		tz_check->lsec  != ltime.sec)
 	{
-		M_snprintf(err, err_len, "Expected date/time y=%" PRId64 " m=%" PRId64 " d=%" PRId64 " %" PRId64 ":%" PRId64 ":%" PRId64 " does not match y=%" PRId64 " m=%" PRId64 " d=%" PRId64 " %" PRId64 ":%" PRId64 ":%" PRId64 "", 
+		M_snprintf(err, err_len, "Expected date/time y=%lld m=%lld d=%lld %lld:%lld:%lld does not match y=%lld m=%lld d=%lld %lld:%lld:%lld", 
 			tz_check->lyear, tz_check->lmon, tz_check->lday, tz_check->lhour, tz_check->lmin, tz_check->lsec,
 			ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec);
 		return M_FALSE;
@@ -136,7 +136,7 @@ static M_bool check_time_tz_int(const check_tz_time_t *tz_check, const M_time_tz
 	timestamp = M_time_fromlocal(&ltime, tz);
 
 	if (((M_time_t)tz_check->utc) != timestamp) {
-		M_snprintf(err, err_len, "Expected UTC time %" PRId64 " does not match calculated time of %" PRId64 "", (lld)tz_check->utc, (lld)timestamp);
+		M_snprintf(err, err_len, "Expected UTC time %lld does not match calculated time of %lld", (lld)tz_check->utc, (lld)timestamp);
 		return M_FALSE;
 	}
 
@@ -150,7 +150,7 @@ static void check_tz_run_checks(const M_time_tz_t *tz, const char *prefix, const
 
 	for (i=0; tz_checks[i].utc != 0; i++) {
 		if (!check_time_tz_int(&tz_checks[i], tz, err, sizeof(err))) {
-			ck_abort_msg("%s check %" PRIu64 " failed: %s", prefix, (llu)i, err);
+			ck_abort_msg("%s check %llu failed: %s", prefix, (llu)i, err);
 		}
 	}
 }
@@ -211,13 +211,13 @@ START_TEST(check_time_tz_sys_convert)
 		M_mem_set(&ltime, 0, sizeof(ltime));
 		M_time_tolocal(check_tz_times_ny[i].utc, &ltime, NULL);
 		t = M_time_fromlocal(&ltime, NULL);
-		ck_assert_msg(((M_time_t)check_tz_times_ny[i].utc) == t, "%" PRIu64 ": expected=%" PRId64 ", got=%" PRId64 "", (llu)i, (lld)check_tz_times_ny[i].utc, (lld)t);
+		ck_assert_msg(((M_time_t)check_tz_times_ny[i].utc) == t, "%llu: expected=%lld, got=%lld", (llu)i, (lld)check_tz_times_ny[i].utc, (lld)t);
 	}
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 	M_time_tolocal(0, &ltime, NULL);
 	t = M_time_fromlocal(&ltime, NULL);
-	ck_assert_msg(0 == t, "expected=0, got=%" PRId64 "", (lld)t);
+	ck_assert_msg(0 == t, "expected=0, got=%lld", (lld)t);
 }
 END_TEST
 

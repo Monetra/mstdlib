@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -34,10 +34,10 @@ START_TEST(check_bincodec_encode_alloc)
 	for (i=0; check_bincodec_encode_data[i].data!=NULL; i++) {
 		in  = check_bincodec_encode_data[i].data;
 		out = M_bincodec_encode_alloc((const M_uint8 *)in, M_str_len(in), check_bincodec_encode_data[i].wrap, check_bincodec_encode_data[i].codec);
-		ck_assert_msg(out != NULL, "%" PRIu64 ": Could not encode", (M_uint64)i);
+		ck_assert_msg(out != NULL, "%zu: Could not encode", i);
 		if (out == NULL)
 			continue;
-		ck_assert_msg(M_str_eq(out, check_bincodec_encode_data[i].out), "%" PRIu64 ": got='%s', expected='%s'", (M_uint64)i, out, check_bincodec_encode_data[i].out);
+		ck_assert_msg(M_str_eq(out, check_bincodec_encode_data[i].out), "%zu: got='%s', expected='%s'", i, out, check_bincodec_encode_data[i].out);
 		M_free(out);
 	}
 }
@@ -56,9 +56,9 @@ START_TEST(check_bincodec_encode)
 		out_len    = M_bincodec_encode_size(M_str_len(in), check_bincodec_encode_data[i].wrap, check_bincodec_encode_data[i].codec);
 		out        = M_malloc(out_len+1);
 		encode_len = M_bincodec_encode(out, out_len, (const M_uint8 *)in, M_str_len(in), check_bincodec_encode_data[i].wrap, check_bincodec_encode_data[i].codec);
-		ck_assert_msg(encode_len != 0 && encode_len <= out_len, "%" PRIu64 ": Could not encode", (M_uint64)i);
+		ck_assert_msg(encode_len != 0 && encode_len <= out_len, "%zu: Could not encode", i);
 		out[encode_len] = '\0';
-		ck_assert_msg(M_str_eq(out, check_bincodec_encode_data[i].out), "%" PRIu64 ": got='%s', expected='%s'", (M_uint64)i, out, check_bincodec_encode_data[i].out);
+		ck_assert_msg(M_str_eq(out, check_bincodec_encode_data[i].out), "%zu: got='%s', expected='%s'", i, out, check_bincodec_encode_data[i].out);
 		M_free(out);
 	}
 }
@@ -88,8 +88,8 @@ START_TEST(check_bincodec_decode)
 	for (i=0; check_bincodec_decode_data[i].data!=NULL; i++) {
 		in  = check_bincodec_decode_data[i].data;
 		out = (char *)M_bincodec_decode_alloc(in, M_str_len(in), &out_len, check_bincodec_decode_data[i].codec);
-		ck_assert_msg(out != NULL, "%" PRIu64 ": Could not decode", (M_uint64)i);
-		ck_assert_msg(M_str_eq(out, check_bincodec_decode_data[i].out), "%" PRIu64 ": got='%s', expected='%s'", (M_uint64)i, out, check_bincodec_decode_data[i].out);
+		ck_assert_msg(out != NULL, "%zu: Could not decode", i);
+		ck_assert_msg(M_str_eq(out, check_bincodec_decode_data[i].out), "%zu: got='%s', expected='%s'", i, out, check_bincodec_decode_data[i].out);
 		M_free(out);
 	}
 }

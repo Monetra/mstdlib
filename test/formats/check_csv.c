@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
@@ -131,7 +131,7 @@ START_TEST(check_parse_add_headers)
 				M_buf_add_uint(buf, j + 1);
 				exp = M_buf_peek(buf);
 			}
-			ck_assert_msg(M_str_eq(val, exp), "(%" PRIu64 ",%" PRIu64 ") '%s' does not match expected value '%s'", (M_uint64)i, (M_uint64)j, val, exp);
+			ck_assert_msg(M_str_eq(val, exp), "(%zu,%zu) '%s' does not match expected value '%s'", i, j, val, exp);
 		}
 	}
 

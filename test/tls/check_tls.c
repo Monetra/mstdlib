@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -34,7 +34,7 @@ static void event_debug(const char *fmt, ...)
 
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
-	M_snprintf(buf, sizeof(buf), "%" PRId64 ".%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
+	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 M_thread_mutex_unlock(debug_lock);
@@ -72,7 +72,7 @@ static const char *event_type_str(M_event_type_t type)
 
 static void net_check_cleanup(M_event_t *event)
 {
-	event_debug("active_s %" PRIu64 ", active_c %" PRIu64 ", total_s %" PRIu64 ", total_c %" PRIu64 ", expect %" PRIu64 "", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
 		if (netserver != NULL) {
 			M_io_destroy(netserver);
@@ -174,7 +174,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_client_connections);
 			M_atomic_inc_u64(&client_connection_count);
-			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %" PRIu64 "ms, IPConnect: %" PRIu64 "ms) (TLS: %" PRIu64 "ms %s %s %s)",
+			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %llums, IPConnect: %llums) (TLS: %llums %s %s %s)",
 				M_io_net_get_host(comm), net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_io_net_time_dns_ms(comm), M_io_net_time_connect_ms(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
@@ -187,11 +187,11 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_free(msg);
 
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
-			event_debug("net client %p wrote %" PRIu64 " bytes", comm, mysize);
+			event_debug("net client %p wrote %zu bytes", comm, mysize);
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net client %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net client %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 7 && M_mem_eq(buf, (const unsigned char *)"GoodBye", 7)) {
 				event_debug("net client %p initiating close", comm);
 				M_io_disconnect(comm);
@@ -235,7 +235,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_server_connections);
 			M_atomic_inc_u64(&server_connection_count);
-			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %" PRIu64 "ms %s %s %s)",
+			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %llums %s %s %s)",
 				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
 				tls_protocol_name(M_tls_get_protocol(comm, M_IO_LAYER_FIND_FIRST_ID)),
@@ -244,10 +244,10 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			break;
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			if (mysize == 10 && M_mem_eq(buf, (const unsigned char *)"HelloWorld", 10)) {
 				M_io_write(comm, (const unsigned char *)"GoodBye", 7, &mysize);
-				event_debug("net serverconn %p wrote %" PRIu64 " bytes", comm, mysize);
+				event_debug("net serverconn %p wrote %zu bytes", comm, mysize);
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -281,14 +281,14 @@ static void trace_ssl(void *cb_arg, M_io_trace_type_t type, M_event_type_t event
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
 M_thread_mutex_lock(debug_lock);
-		M_printf("%" PRId64 ".%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 M_thread_mutex_unlock(debug_lock);
 		return;
 	}
 
 	if (DEBUG > 2) {
 M_thread_mutex_lock(debug_lock);
-		M_printf("%" PRId64 ".%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+		M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 		buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len);
 		M_printf("%s\n", buf);
 M_thread_mutex_unlock(debug_lock);
@@ -492,7 +492,7 @@ M_printf("ServerCert: %s\n", realcert);
 	M_free(realkey);
 	M_free(realcert);
 
-	event_debug("starting %" PRIu64 " connection test", num_connections);
+	event_debug("starting %llu connection test", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
@@ -544,7 +544,7 @@ M_printf("ServerCert: %s\n", realcert);
 
 	event_debug("entering loop");
 	err = M_event_loop(event, 10000);
-	event_debug("%" PRIu64 " remaining objects", M_event_num_objects(event));
+	event_debug("%zu remaining objects", M_event_num_objects(event));
 	/* Cleanup */
 
 	M_dns_destroy(dns);
@@ -594,7 +594,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 	event_debug("net serverconn %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
-			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %" PRIu64 "ms %s %s %s)",
+			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %llums %s %s %s)",
 				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
 				tls_protocol_name(M_tls_get_protocol(comm, M_IO_LAYER_FIND_FIRST_ID)),
@@ -612,7 +612,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 			/* Write entire buffer, if empty, issue disconnect */
 			mysize = M_buf_len(wbuf);
 			M_io_write_from_buf(comm, wbuf);
-			event_debug("net sad serverconn %p wrote %" PRIu64 " bytes", comm, mysize - M_buf_len(wbuf));
+			event_debug("net sad serverconn %p wrote %zu bytes", comm, mysize - M_buf_len(wbuf));
 			if (M_buf_len(wbuf) == 0) {
 				M_io_destroy(comm);
 				M_buf_cancel(wbuf);
@@ -622,7 +622,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 
 		case M_EVENT_TYPE_READ:
 			M_io_read(comm, buf, sizeof(buf), &mysize);
-			event_debug("net serverconn %p read %" PRIu64 " bytes: %.*s", comm, mysize, (int)mysize, buf);
+			event_debug("net serverconn %p read %zu bytes: %.*s", comm, mysize, (int)mysize, buf);
 			break;
 
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -674,7 +674,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	event_debug("net sad client %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
-			event_debug("net sad client Connected %s [%s]:%u:%u, (TLS: %" PRIu64 "ms %s %s %s)",
+			event_debug("net sad client Connected %s [%s]:%u:%u, (TLS: %llums %s %s %s)",
 				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
 				tls_protocol_name(M_tls_get_protocol(comm, M_IO_LAYER_FIND_FIRST_ID)),
@@ -690,7 +690,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 		case M_EVENT_TYPE_READ:
 			orig_size = M_buf_len(rbuf);
 			M_io_read_into_buf(comm, rbuf);
-			event_debug("net sad client %p read %" PRIu64 " bytes", comm, M_buf_len(rbuf) - orig_size);
+			event_debug("net sad client %p read %zu bytes", comm, M_buf_len(rbuf) - orig_size);
 			if (M_buf_len(rbuf))
 				M_thread_sleep(100000);
 			break;
@@ -704,10 +704,10 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_event_return(event);
 			} else {
 				if (M_buf_len(rbuf) == SEND_AND_DISCONNECT_SIZE) {
-					event_debug("net sad client received FULL data: %" PRIu64 " bytes", M_buf_len(rbuf));
+					event_debug("net sad client received FULL data: %zu bytes", M_buf_len(rbuf));
 					M_event_done(event);
 				} else {
-					event_debug("net sad client received partial data: %" PRIu64 " of %" PRIu64 " bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
+					event_debug("net sad client received partial data: %zu of %zu bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
 					M_event_return(event);
 				}
 			}

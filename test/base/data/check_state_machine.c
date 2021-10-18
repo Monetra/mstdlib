@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
-#include <inttypes.h>
+
 #include <mstdlib/mstdlib.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -595,11 +595,11 @@ START_TEST(check_sm_descr)
 	M_free(descr_m);
 
 	ck_assert_msg(M_state_machine_active_state(sm, &id), "Could not get active state for sm");
-	ck_assert_msg(id == 2, "State machine sm state got: '%" PRIu64 "', expected: '2'", id);
+	ck_assert_msg(id == 2, "State machine sm state got: '%llu', expected: '2'", id);
 
 	sub = M_state_machine_active_sub(sm, M_TRUE);
 	ck_assert_msg(M_state_machine_active_state(sub, &id), "Could not get active state for cm2");
-	ck_assert_msg(id == 5, "State machine cm2 state got: '%" PRIu64 "', expected: '5'", id);
+	ck_assert_msg(id == 5, "State machine cm2 state got: '%llu', expected: '5'", id);
 
 	ck_assert_msg(d == 9999, "State machine cleanup did not run properly d != 9999, d == %d\n", d);
 
