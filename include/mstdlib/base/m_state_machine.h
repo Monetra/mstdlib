@@ -67,7 +67,7 @@ __BEGIN_DECLS
  * with. A final cleanup on success could be handled as a final state but should be handled outside of
  * the state machine entirely. Such as being handled as part of cleaning up the void pointer of state data.
  *
- * Example:
+ * ## Example
  *
  * \code{.c}
  *     typedef enum {
@@ -121,6 +121,432 @@ __BEGIN_DECLS
  *         M_state_machine_destroy(sm);
  *         return 0;
  *     }
+ * \endcode
+ *
+ *
+ *
+ * ## Interleaved Example
+ *
+ * \code{.c}
+ * #include <mstdlib/mstdlib.h>
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * 
+ * typedef struct {
+ *     size_t cnt;
+ *     size_t a1_wait_cnt;
+ *     size_t a2_wait_cnt;
+ *     size_t a3_wait_cnt;
+ *     size_t b1_wait_cnt;
+ *     size_t b2_wait_cnt;
+ *     size_t b3_wait_cnt;
+ *     size_t b5_wait_cnt;
+ *     size_t c1_wait_cnt;
+ *     size_t c2_wait_cnt;
+ *     size_t c3_wait_cnt;
+ * } data_obj_t;
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * 
+ * void trace(M_state_machine_trace_t trace, M_uint64 mndescr, const char *mdescr, M_uint64 sndescr, const char *sdescr, const char *fdescr, M_uint64 id, M_state_machine_status_t status, M_bool run_sub, M_uint64 next_id, void *thunk)
+ * {
+ *     if (trace == M_STATE_MACHINE_TRACE_STATE_START)
+ *         M_printf("STATE: %s\n", fdescr);
+ * 
+ *     if (trace == M_STATE_MACHINE_TRACE_STATE_FINISH && status == M_STATE_MACHINE_STATUS_WAIT)
+ *         M_printf("STATE: %s - WAIT\n", fdescr);
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * // CSM
+ * 
+ * typedef enum {
+ *     STATE_CL = 1
+ * } state_cl_b_t;
+ * 
+ * static M_state_machine_status_t state_csm(void *data, M_state_machine_cleanup_reason_t reason, M_uint64 *next)
+ * {
+ *     (void)data;
+ *     (void)reason;
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_cleanup_t *create_csm(void)
+ * {
+ *     M_state_machine_cleanup_t *csm;
+ * 
+ *     csm = M_state_machine_cleanup_create(0, "CSM", M_STATE_MACHINE_LINEAR_END);
+ * 
+ *     M_state_machine_cleanup_insert_state(csm, STATE_CL, 0, "CL1", state_csm, NULL, NULL);
+ * 
+ *     return csm;
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * // SM A
+ * 
+ * typedef enum {
+ *     STATE_A1 = 1,
+ *     STATE_A2,
+ *     STATE_A3
+ * } states_a_t;
+ * 
+ * static M_state_machine_status_t state_a1(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->a1_wait_cnt < 4) {
+ *         obj->a1_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->a1_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_a2(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->a2_wait_cnt < 3) {
+ *         obj->a2_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->a2_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_a3(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->a3_wait_cnt < 2) {
+ *         obj->a3_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->a3_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_t *create_sm_a(void)
+ * {
+ *     M_state_machine_t *sm;
+ *  
+ *     sm = M_state_machine_create(0, "SM A", M_STATE_MACHINE_LINEAR_END);
+ *  
+ *     M_state_machine_insert_state(sm, STATE_A1, 0, "A1", state_a1, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_A2, 0, "A2", state_a2, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_A3, 0, "A3", state_a3, NULL, NULL);
+ *  
+ *     return sm;
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * // SM B
+ * 
+ * typedef enum {
+ *     STATE_B1 = 1,
+ *     STATE_B2,
+ *     STATE_B3,
+ *     STATE_B4,
+ *     STATE_B5,
+ *     STATE_B6
+ * } states_b_t;
+ * 
+ * static M_state_machine_status_t state_b1(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->b1_wait_cnt < 2) {
+ *         obj->b1_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->b1_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_b2(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->b2_wait_cnt < 3) {
+ *         obj->b2_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->b2_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_b3(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->b3_wait_cnt < 4) {
+ *         obj->b3_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->b3_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_b4(void *data, M_uint64 *next)
+ * {
+ *     (void)data;
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_b5(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->b5_wait_cnt < 5) {
+ *         obj->b5_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->b5_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_b6(void *data, M_uint64 *next)
+ * {
+ *     (void)data;
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_t *create_sm_b(void)
+ * {
+ *     M_state_machine_t         *sm;
+ *     M_state_machine_cleanup_t *csm;
+ *  
+ *     sm = M_state_machine_create(0, "SM B", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_DONE_CLEANUP);
+ *  
+ *     csm = create_csm();
+ *     M_state_machine_insert_state(sm, STATE_B1, 0, "B1", state_b1, csm, NULL);
+ *     M_state_machine_insert_state(sm, STATE_B1, 0, "B1", state_b1, NULL, NULL);
+ *     M_state_machine_cleanup_destroy(csm);
+ *     M_state_machine_insert_state(sm, STATE_B2, 0, "B2", state_b2, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_B3, 0, "B3", state_b3, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_B4, 0, "B4", state_b4, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_B5, 0, "B5", state_b5, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_B6, 0, "B6", state_b6, NULL, NULL);
+ *  
+ *     return sm;
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * // SM C
+ * 
+ * typedef enum {
+ *     STATE_C1 = 1,
+ *     STATE_C2,
+ *     STATE_C3
+ * } states_c_t;
+ * 
+ * static M_state_machine_status_t state_c1(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->c1_wait_cnt < 4) {
+ *         obj->c1_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->c1_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_c2(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->c2_wait_cnt < 0) {
+ *         obj->c2_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->c2_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_c3(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->c3_wait_cnt < 1) {
+ *         obj->c3_wait_cnt++;
+ *         return M_STATE_MACHINE_STATUS_WAIT;
+ *     }
+ *     obj->c3_wait_cnt = 0;
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_t *create_sm_c(void)
+ * {
+ *     M_state_machine_t         *sm;
+ *     M_state_machine_cleanup_t *csm;
+ *  
+ *     sm = M_state_machine_create(0, "SM C", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_DONE_CLEANUP);
+ *  
+ *     csm = create_csm();
+ *     M_state_machine_insert_state(sm, STATE_C1, 0, "C1", state_c1, csm, NULL);
+ *     M_state_machine_cleanup_destroy(csm);
+ *     M_state_machine_insert_state(sm, STATE_C2, 0, "C2", state_c2, NULL, NULL);
+ *     M_state_machine_insert_state(sm, STATE_C3, 0, "C3", state_c3, NULL, NULL);
+ *  
+ *     return sm;
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * // SM MAIN
+ * 
+ * typedef enum {
+ *     STATE_MA = 1,
+ *     STATE_MB, // Interleaved state.
+ *     STATE_MC
+ * } states_m_t;
+ * 
+ * static M_state_machine_status_t state_ma(void *data, M_uint64 *next)
+ * {
+ *     M_printf("Calling func: %s\n", __func__);
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_bool inter_pre(void *data, M_state_machine_status_t *status, M_uint64 *next)
+ * {
+ *     (void)data;
+ *     (void)status;
+ *     (void)next;
+ *     M_printf("Calling func: %s\n", __func__);
+ *     return M_TRUE;
+ * }
+ * 
+ * static M_state_machine_status_t inter_post(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+ * {
+ *     (void)data;
+ *     (void)next;
+ * 
+ *     M_printf("Calling func: %s with sub status %u\n", __func__, sub_status);
+ * 
+ *     if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+ *         return sub_status;
+ * 
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_status_t state_mc(void *data, M_uint64 *next)
+ * {
+ *     data_obj_t *obj = data;
+ * 
+ *     M_printf("Calling func: %s\n", __func__);
+ * 
+ *     if (obj->cnt < 3) {
+ *         *next = STATE_MA;
+ * 
+ *         obj->cnt++;
+ *         M_printf("Going back to main cnt: %zu\n", obj->cnt);
+ *     }
+ *     return M_STATE_MACHINE_STATUS_NEXT;
+ * }
+ * 
+ * static M_state_machine_t *create_sm_m(void)
+ * {
+ *     M_state_machine_t *sm;
+ *     M_state_machine_t *subm;
+ *  
+ *     sm = M_state_machine_create(0, "SM M", M_STATE_MACHINE_LINEAR_END|M_STATE_MACHINE_INTERNOABORT);
+ *  
+ *     M_state_machine_insert_state(sm, STATE_MA, 0, "SA", state_ma, NULL, NULL);
+ * 
+ *     M_state_machine_insert_state_interleaved(sm, STATE_MB, 0, "SIB", inter_pre, inter_post, NULL, NULL);
+ *     subm = create_sm_a();
+ *     M_state_machine_insert_sub_state_machine_interleaved(sm, STATE_MB, subm);
+ *     M_state_machine_destroy(subm);
+ *     subm = create_sm_b();
+ *     M_state_machine_insert_sub_state_machine_interleaved(sm, STATE_MB, subm);
+ *     M_state_machine_destroy(subm);
+ *     subm = create_sm_c();
+ *     M_state_machine_insert_sub_state_machine_interleaved(sm, STATE_MB, subm);
+ *     M_state_machine_destroy(subm);
+ * 
+ *     M_state_machine_insert_state(sm, STATE_MC, 0, "SC", state_mc, NULL, NULL);
+ *  
+ *     return sm;
+ * }
+ * 
+ * // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * 
+ * int main(int argc, char **argv)
+ * {
+ *     M_state_machine_t        *sm;
+ *     data_obj_t               *obj;
+ *     M_state_machine_status_t  status;
+ * 
+ *     sm  = create_sm_m();
+ *     obj = M_malloc_zero(sizeof(*obj));
+ *     M_state_machine_enable_trace(sm, trace, NULL);
+ *  
+ *     do {
+ *         status = M_state_machine_run(sm, obj);
+ *     } while (status == M_STATE_MACHINE_STATUS_WAIT);
+ *  
+ *     if (status != M_STATE_MACHINE_STATUS_DONE) {
+ *         M_printf("state machine failure\n");
+ *     } else {
+ *         M_printf("state machine success\n");
+ *     }
+ *  
+ *     M_state_machine_destroy(sm);
+ *     M_free(obj);
+ *     return 0;
+ * }
  * \endcode
  *
  * @{
@@ -219,10 +645,17 @@ typedef enum {
 	                                             state machine. The linear / linear hybrid functionality will be
 	                                             disabled. This option cannot be used in conjunction with linear_end.
 	                                             The linear_end flag will be ignored if this flag is set. */
-	M_STATE_MACHINE_LINEAR_END    = 1 << 7  /*!< Normally a state machine is done when the done status is returned
+	M_STATE_MACHINE_LINEAR_END    = 1 << 7, /*!< Normally a state machine is done when the done status is returned
 	                                             by a state. This allows the state machine to be considered done if
 	                                             a state does not specify a transition, it returns next or continue
 	                                             and the current state is the last state in the ordered state list. */
+	M_STATE_MACHINE_INTERNOABORT  = 1 << 8  /*!< Interleaved sub state machines should continue processing until done
+	                                             even when another sub state machine errors. Prevents aborting other
+	                                             interleaved sub state machines from aborting. An error will still
+	                                             be returned as the result of the interleaved state (sent to the post
+	                                             callback) but only after all sub state machines have finished. If
+	                                             multiple sub state machines failed, the error status for the first
+	                                             added will be used. */
 } M_state_machine_flags_t;
 
 
@@ -525,6 +958,63 @@ M_API M_bool M_state_machine_insert_state(M_state_machine_t *m, M_uint64 id, M_u
  * \return M_TRUE if the sub state machine was added. Otherwise M_FALSE.
  */
 M_API M_bool M_state_machine_insert_sub_state_machine(M_state_machine_t *m, M_uint64 id, M_uint64 ndescr, const char *descr, const M_state_machine_t *subm, M_state_machine_pre_cb pre, M_state_machine_post_cb post, M_state_machine_cleanup_t *cleanup, M_list_u64_t *next_ids);
+
+
+/*! Add add a state to run interleaved sub state machines.
+ *
+ * An interleaved state will have one or more sub state machines added to it.
+ * The sub state machines will be run interleaved as one returns wait the next
+ * will be started until it returns wait and so forth. Sub state machines process
+ * in a non liner order and do not match state counts between one another.
+ *
+ * A single state machine that never returns wait will fully run before any others
+ * are. Interleaving relies on wait states. Typically, this is used for near concurrent
+ * processing for operations that may require waiting on external resources. For example,
+ * a system that receives, processes and sends data. A example flow: read -> process ->
+ * Interleave write and read -> process... This allows the read buffer to be filled while
+ * the write buffer is emptying. With a large amount of data read and write operations
+ * may need to wait for OS level network buffers.
+ *
+ * States are run interleaved and _not_ concurrently. They are run on the same
+ * thread. Locking of thunk resources is not necessary since only one state,
+ * regardless of sub state machine, will be running at any given time.
+ *
+ * All running sub state machines will stop if an error is returned by any sub state machine.
+ * Unless the `M_STATE_MACHINE_INTERNOABORT` flag is set which will alter this behavior.
+ *
+ * \param[in,out] m        The state machine.
+ * \param[in]     id       The id associated with this interleaved state. Must be unique.
+ *                         All interleaved sub state machines will attach to this id.
+ * \param[in]     ndescr   A numeric description of the state. Can be 0.
+ * \param[in]     descr    A textual description of the state. Can be NULL.
+ * \param[in]     pre      A function to call before the sub state machines are started. Can be NULL.
+ * \param[in]     post     A function to call after the sub state machines are finished. Can be NULL.
+ *                         Called when the last sub state machine is finished or they are aborted due to error.
+ *                         Will have an `M_STATE_MACHINE_STATUS_ERROR_*` if any of the sub state machines return
+ *                         an error status. If all sub state machines ran successfully will return
+ *                         `M_STATE_MACHINE_STATUS_DONE`. It is up to the caller to store information in the
+ *                         `thunk` argument passed to run if information about which (possibly multiple) sub
+ *                         state machines failed.
+ * \param[in]     cleanup  The cleanup state machine to call. Can be NULL if no cleanup is necessary for this state.
+ * \param[in]     next_ids A list of valid transitions for this state. Can be NULL to denote all states are
+ *                         valid transitions. If not NULL the state machine takes ownership of next_ids.
+ *
+ * \return M_TRUE if the interleaved state was added. Otherwise M_FALSE.
+ */
+M_API M_bool M_state_machine_insert_state_interleaved(M_state_machine_t *m, M_uint64 id, M_uint64 ndescr, const char *descr, M_state_machine_pre_cb pre, M_state_machine_post_cb post, M_state_machine_cleanup_t *cleanup, M_list_u64_t *next_ids);
+
+
+/*! Add a state machine as a state to the state machine for interleaved processing.
+ *
+ * The state machine will duplicate the sub state machine and keep a copy.
+ *
+ * \param[in,out] m    The state machine.
+ * \param[in]     id   The id for the interleaved state as specified by `M_state_machine_insert_state_interleaved`.
+ * \param[in]     subm The state machine that should be called from this one. Cannot be NULL.
+ *
+ * \return M_TRUE if the sub state machine was added. Otherwise M_FALSE.
+ */
+M_API M_bool M_state_machine_insert_sub_state_machine_interleaved(M_state_machine_t *m, M_uint64 id, const M_state_machine_t *subm);
 
 
 /*! Remove a state from the state machine.

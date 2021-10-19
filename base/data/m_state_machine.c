@@ -28,34 +28,48 @@
 typedef enum {
 	M_STATE_MACHINE_TYPE_UNKNOWN = 0,
 	M_STATE_MACHINE_TYPE_SM,
-	M_STATE_MACHINE_TYPE_CLEANUP
+	M_STATE_MACHINE_TYPE_CLEANUP,
+	M_STATE_MACHINE_TYPE_INTERSTATE /* Only used for outputting trace information and this value is never stored in an object. */
 } M_state_machine_type_t;
 
 typedef enum {
 	M_STATE_MACHINE_STATE_TYPE_UNKNOWN = 0,
 	M_STATE_MACHINE_STATE_TYPE_FUNC,
 	M_STATE_MACHINE_STATE_TYPE_CLEANUP,
-	M_STATE_MACHINE_STATE_TYPE_SUBM
+	M_STATE_MACHINE_STATE_TYPE_SUBM,
+	M_STATE_MACHINE_STATE_TYPE_INTERLEAVED
 } M_state_machine_state_type_t;
 
 typedef struct {
-	M_state_machine_state_type_t        type;     /*!< Type of state. */
-	M_uint64                            ndescr;   /*!< Numeric description of the state. */
-	char                               *descr;    /*!< Textual description of the state. */
-	M_list_u64_t                       *next_ids; /*!< Valid ids the state can transition to. NULL means any state. */
-	M_state_machine_cleanup_t          *cleanup;  /*!< Cleanup state machine. */
+	M_state_machine_t        *subm;       /*!< Sub state machine to run. */
+	M_state_machine_status_t  status;
+} M_state_machine_interleaved_sub_t;
+
+typedef struct {
+	M_state_machine_state_type_t        type;       /*!< Type of state. */
+	M_uint64                            ndescr;     /*!< Numeric description of the state. */
+	char                               *descr;      /*!< Textual description of the state. */
+	M_list_u64_t                       *next_ids;   /*!< Valid ids the state can transition to. NULL means any state. */
+	M_state_machine_cleanup_t          *cleanup;    /*!< Cleanup state machine. */
 	union {
 		struct {
-			M_state_machine_state_cb    func;     /*!< The function that is the state. */
+			M_state_machine_state_cb    func;       /*!< The function that is the state. */
 		} func;
 		struct {
-			M_state_machine_cleanup_cb  func;     /*!< The function that is the state for a cleanup sm. */
+			M_state_machine_cleanup_cb  func;       /*!< The function that is the state for a cleanup sm. */
 		} cleanup;
 		struct {
-			M_state_machine_t          *subm;     /*!< Sub state machine to run. */
-			M_state_machine_pre_cb      pre;      /*!< Pre function to run before running the sub state machine. */
-			M_state_machine_post_cb     post;     /*!< Post function to run after running the sub state machine. */
+			M_state_machine_t          *subm;       /*!< Sub state machine to run. */
+			M_state_machine_pre_cb      pre;        /*!< Pre function to run before running the sub state machine. */
+			M_state_machine_post_cb     post;       /*!< Post function to run after running the sub state machine. */
 		} sub;
+		struct {
+			M_list_t                   *subs;       /*!< List of M_state_machine_interleaved_sub_t. */
+			M_state_machine_pre_cb      pre;        /*!< Pre function to run before running the interleaved sub state machines. */
+			M_state_machine_post_cb     post;       /*!< Post function to run after running the interleaved sub state machines. */
+			M_bool                      running;
+			size_t                      idx;        /*!< Inded in subs of the currently running subm. Used for tracing. */
+		} interleaved;
 	} d;
 } M_state_machine_state_t;
 
@@ -100,7 +114,7 @@ static M_state_machine_state_t *M_state_machine_state_create(M_state_machine_sta
 {
 	M_state_machine_state_t *s;
 
-	if (type != M_STATE_MACHINE_STATE_TYPE_FUNC && type != M_STATE_MACHINE_STATE_TYPE_CLEANUP && type != M_STATE_MACHINE_STATE_TYPE_SUBM)
+	if (type != M_STATE_MACHINE_STATE_TYPE_FUNC && type != M_STATE_MACHINE_STATE_TYPE_CLEANUP && type != M_STATE_MACHINE_STATE_TYPE_SUBM && type != M_STATE_MACHINE_STATE_TYPE_INTERLEAVED)
 		return NULL;
 
 	s           = M_malloc(sizeof(*s));
@@ -151,6 +165,35 @@ static M_state_machine_state_t *M_state_machine_state_create_subm(M_uint64 ndesc
 	return s;
 }
 
+static void M_state_machine_interleaved_sub_destroy(M_state_machine_interleaved_sub_t *ilsub)
+{
+	if (ilsub == NULL)
+		return;
+	M_state_machine_destroy(ilsub->subm);
+	M_free(ilsub);
+}
+
+static M_state_machine_state_t *M_state_machine_state_create_interleaved(M_uint64 ndescr, const char *descr, M_state_machine_pre_cb pre, M_state_machine_post_cb post, M_state_machine_cleanup_t *cleanup, M_list_u64_t *next_ids)
+{
+	M_state_machine_state_t *s;
+	struct M_list_callbacks  lcbs = {
+		NULL,
+		NULL,
+		NULL,
+		(M_list_free_func)M_state_machine_interleaved_sub_destroy
+	};
+
+	s             = M_state_machine_state_create(M_STATE_MACHINE_STATE_TYPE_INTERLEAVED, ndescr, descr, cleanup, next_ids);
+	if (s == NULL)
+		return NULL;
+	s->d.interleaved.subs = M_list_create(&lcbs, M_LIST_NONE);
+	s->d.interleaved.pre  = pre;
+	s->d.interleaved.post = post;
+	s->d.interleaved.idx  = 0;
+
+	return s;
+}
+
 static void M_state_machine_state_destory(M_state_machine_state_t *s)
 {
 	if (s == NULL)
@@ -173,10 +216,14 @@ static void M_state_machine_state_destory(M_state_machine_state_t *s)
 			s->d.cleanup.func = NULL;
 			break;
 		case M_STATE_MACHINE_STATE_TYPE_SUBM:
-			s->d.sub.pre  = NULL;
-			s->d.sub.post = NULL;
 			M_state_machine_destroy(s->d.sub.subm);
 			s->d.sub.subm = NULL;
+			s->d.sub.pre  = NULL;
+			s->d.sub.post = NULL;
+			break;
+		case M_STATE_MACHINE_STATE_TYPE_INTERLEAVED:
+			M_list_destroy(s->d.interleaved.subs, M_TRUE);
+			s->d.interleaved.subs = NULL;
 			break;
 	}
 
@@ -363,6 +410,10 @@ static void M_state_machine_descr_append(M_buf_t *buf, const char *descr, M_stat
 		case M_STATE_MACHINE_TYPE_CLEANUP:
 			M_buf_add_str(buf, "[CM] ");
 			break;
+		case M_STATE_MACHINE_TYPE_INTERSTATE:
+			/* Interleaved state. */
+			M_buf_add_str(buf, "[SI] ");
+			break;
 		case M_STATE_MACHINE_TYPE_UNKNOWN:
 			/* Must be a state. */
 			M_buf_add_str(buf, "[S] ");
@@ -388,6 +439,8 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 	size_t                    idx;
 	M_bool                    run_sub;
 	M_state_machine_status_t  status;
+	size_t                    len;
+	size_t                    i;
 
 	if (current == NULL)
 		return M_STATE_MACHINE_STATUS_ERROR_INVALID;
@@ -423,15 +476,31 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		}
 		state = vp;
 
-		/* Run thourght cleanup instead of the states if a cleanup reason was set. This indicates there
+		/* Run through cleanup instead of the states if a cleanup reason was set. This indicates there
  		 * was an error (or done) and cleanup should be run. */
 		if (current->cleanup_reason != M_STATE_MACHINE_CLEANUP_REASON_NONE) {
 			/* Clean up running sub state machines before this one. We want to go all the way down
  			 * and cleanup on the way back up. */
-			if (state != NULL && state->type == M_STATE_MACHINE_STATE_TYPE_SUBM && state->d.sub.subm->running) {
-				status = M_state_machine_run_machine(master, state->d.sub.subm, data);
-				if (status == M_STATE_MACHINE_STATUS_WAIT) {
-					return status;
+			if (state != NULL) {
+				if (state->type == M_STATE_MACHINE_STATE_TYPE_SUBM && state->d.sub.subm->running) {
+					status = M_state_machine_run_machine(master, state->d.sub.subm, data);
+					if (status == M_STATE_MACHINE_STATUS_WAIT) {
+						return status;
+					}
+				} else if (state->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED && state->d.interleaved.running) {
+					len = M_list_len(state->d.interleaved.subs);
+					for (i=0; i<len; i++) {
+						M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(state->d.interleaved.subs, i));
+						state->d.interleaved.idx = i;
+						if (ilsub->subm->running) {
+							ilsub->status = M_state_machine_run_machine(master, ilsub->subm, data);
+							status        = ilsub->status;
+							if (status == M_STATE_MACHINE_STATUS_WAIT) {
+								return status;
+							}
+						}
+					}
+					state->d.interleaved.running = M_FALSE;
 				}
 			}
 
@@ -478,8 +547,9 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 				 * will only be added once the state completes (not if it returns wait)
 				 * but this might never be done because of sub states underneath but this
 				 * still needs to run. */
-				if (!state->d.sub.subm->running)
+				if (!state->d.sub.subm->running) {
 					M_list_u64_insert(current->cleanup_ids, current->current_id);
+				}
 
 				/* Run the sub state machine */
 				status = M_state_machine_run_machine(master, state->d.sub.subm, data);
@@ -495,6 +565,94 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
  						 * Only the sub state machine is done. */
 						status = M_STATE_MACHINE_STATUS_NEXT;
 					}
+				}
+			}
+		} else if (state->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED) {
+			run_sub = M_TRUE;
+			/* Call pre if it was set and we haven't called it already. We could have already called it if we
+ 			 * received a wait from the sub state machine and are calling into it again. */
+			if (state->d.interleaved.pre != NULL && !state->d.interleaved.running) {
+				status = M_STATE_MACHINE_STATUS_CONTINUE;
+				M_state_machine_call_trace(M_STATE_MACHINE_TRACE_PRE_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
+				run_sub = state->d.interleaved.pre(data, &status, &next_id);
+				M_state_machine_call_trace(M_STATE_MACHINE_TRACE_PRE_FINISH, master, current, status, run_sub, next_id);
+			}
+			/* The sub state machine may not run based on the result of pre. */
+			if (run_sub) {
+				/* We're all done unless we have something return wait later. */
+				M_bool all_done = M_TRUE;
+				/* This sub will run so add the cleanup id to the list.
+ 				 * We don't do it later when we deal with states because those
+				 * will only be added once the state completes (not if it returns wait)
+				 * but this might never be done because of sub states underneath but this
+				 * still needs to run. */
+				if (!state->d.interleaved.running) {
+					M_list_u64_insert(current->cleanup_ids, current->current_id);
+				}
+				/* Mark the state as running so we know whether we need to call pre again. */
+				state->d.interleaved.running = M_TRUE;
+				/* Go through each of the subs in the list and run them. */
+				len    = M_list_len(state->d.interleaved.subs);
+				status = M_STATE_MACHINE_STATUS_NEXT;
+				for (i=0; i<len; i++) {
+					M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(state->d.interleaved.subs, i));
+					/* Don't run anything that's already finished. */
+					if (ilsub->status != M_STATE_MACHINE_STATUS_NONE && ilsub->status != M_STATE_MACHINE_STATUS_WAIT) {
+						continue;
+					}
+					/* Update the idx because this might be the last machine run if we
+ 					 * stop for wait. This is so the trace cb knows what is actually running. */
+					state->d.interleaved.idx = i;
+					/* Run the sub state machine */
+					status                   = M_state_machine_run_machine(master, ilsub->subm, data);
+					/* Store the status so we know if we should run later. */
+					ilsub->status            = status;
+					/* If something is in a wait state, we're not done. */
+					if (status == M_STATE_MACHINE_STATUS_WAIT) {
+						all_done = M_FALSE;
+					}
+					if (!(current->flags & M_STATE_MACHINE_INTERNOABORT)) {
+						/* We're done if we hit an error. */
+						if (status != M_STATE_MACHINE_STATUS_WAIT && status != M_STATE_MACHINE_STATUS_DONE) {
+							all_done = M_TRUE;
+							break;
+						}
+					}
+				}
+				if (all_done) {
+					/* Reset ourself. */
+					state->d.interleaved.running = M_FALSE;
+					state->d.interleaved.idx     = 0;
+					len = M_list_len(state->d.interleaved.subs);
+					for (i=0; i<len; i++) {
+						M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(state->d.interleaved.subs, i));
+						/* Set the status if there was an error and we're not aborting as soon as we hit one. */
+						if (status == M_STATE_MACHINE_STATUS_DONE && current->flags & M_STATE_MACHINE_INTERNOABORT) {
+							if (ilsub->status != M_STATE_MACHINE_STATUS_DONE) {
+								status = ilsub->status;
+							}
+						}
+						/* Clear the sub status for the next time we need to run. */
+						ilsub->status = M_STATE_MACHINE_STATUS_NONE;
+					}
+					/* If we get a wait we want to forward that up and our next call will be back into the
+					 * sub state machine. */
+					if (current->cleanup_reason == M_STATE_MACHINE_CLEANUP_REASON_NONE) {
+						if (state->d.interleaved.post != NULL) {
+							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
+							status = state->d.interleaved.post(data, status, &next_id);
+							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_FINISH, master, current, status, M_FALSE, next_id);
+						} else if (status == M_STATE_MACHINE_STATUS_DONE) {
+							/* Change STATUS_DONE to STATUS_NEXT so we don't stop this state machine.
+							 * Only the sub state machine is done. */
+							status = M_STATE_MACHINE_STATUS_NEXT;
+						}
+					}
+				} else if (status == M_STATE_MACHINE_STATUS_DONE) {
+					/* Not all done with every sm. We can be here if we got a mix of wait and or done
+ 					 * status from the sms. Something is waiting so we want to convert this to a wait
+					 * so we can come back in the next pass and finish. */
+					status = M_STATE_MACHINE_STATUS_WAIT;
 				}
 			}
 		} else {
@@ -532,8 +690,9 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		}
 
 		/* State ran so it should cleanup if necessary. */
-		if (state->type != M_STATE_MACHINE_STATE_TYPE_SUBM && status != M_STATE_MACHINE_STATUS_WAIT)
+		if (state->type != M_STATE_MACHINE_STATE_TYPE_SUBM && state->type != M_STATE_MACHINE_STATE_TYPE_INTERLEAVED && status != M_STATE_MACHINE_STATUS_WAIT) {
 			M_list_u64_insert(current->cleanup_ids, current->current_id);
+		}
 
 		switch (status) {
 			case M_STATE_MACHINE_STATUS_NEXT:
@@ -734,6 +893,47 @@ M_bool M_state_machine_insert_sub_state_machine(M_state_machine_t *m, M_uint64 i
 	return M_TRUE;
 }
 
+M_bool M_state_machine_insert_state_interleaved(M_state_machine_t *m, M_uint64 id, M_uint64 ndescr, const char *descr, M_state_machine_pre_cb pre, M_state_machine_post_cb post, M_state_machine_cleanup_t *cleanup, M_list_u64_t *next_ids)
+{
+	M_state_machine_state_t *s;
+
+	if (m == NULL || id == 0 || M_state_machine_has_state(m, id))
+		return M_FALSE;
+
+	s = M_state_machine_state_create_interleaved(ndescr, descr, pre, post, cleanup, next_ids);
+	if (s == NULL)
+		return M_FALSE;
+	M_hash_u64vp_insert(m->states, id, s);
+	M_list_u64_insert(m->state_ids, id);
+
+	return M_TRUE;
+}
+
+M_bool M_state_machine_insert_sub_state_machine_interleaved(M_state_machine_t *m, M_uint64 id, const M_state_machine_t *subm)
+{
+	M_state_machine_interleaved_sub_t *ilsub;
+	M_state_machine_state_t           *s;
+	void                              *vp;
+
+	if (m == NULL || id == 0 || !M_state_machine_has_state(m, id))
+		return M_FALSE;
+
+	if (!M_hash_u64vp_get(m->states, id, &vp))
+		return M_FALSE;
+	s = vp;
+
+	if (s->type != M_STATE_MACHINE_STATE_TYPE_INTERLEAVED)
+		return M_FALSE;
+
+	ilsub         = M_malloc_zero(sizeof(*ilsub));
+	ilsub->subm   = M_state_machine_duplicate(subm);
+	ilsub->status = M_STATE_MACHINE_STATUS_NONE;
+
+	M_list_insert(s->d.interleaved.subs, ilsub);
+
+	return M_TRUE;
+}
+
 M_bool M_state_machine_remove_state(M_state_machine_t *m, M_uint64 id)
 {
 	if (m == NULL || !M_hash_u64vp_remove(m->states, id, M_TRUE))
@@ -838,6 +1038,18 @@ void M_state_machine_reset(M_state_machine_t *m, M_state_machine_cleanup_reason_
 	s = vp;
 	if (s != NULL && s->type == M_STATE_MACHINE_STATE_TYPE_SUBM && s->d.sub.subm->running) {
 		M_state_machine_reset(s->d.sub.subm, reason);
+	} else if (s != NULL && s->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED) {
+		size_t len = M_list_len(s->d.interleaved.subs);
+		size_t i;
+		for (i=0; i<len; i++) {
+			M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(s->d.interleaved.subs, i));
+			M_state_machine_reset(ilsub->subm, reason);
+			ilsub->status = M_STATE_MACHINE_STATUS_NONE;
+		}
+		s->d.interleaved.running = M_FALSE;
+		s->d.interleaved.idx     = 0;
+		/* Reset any clean up sms associated. */
+		M_state_machine_reset((M_state_machine_t *)s->cleanup, reason);
 	} else {
 		/* We're at the last state to run. When we run
  		 * the cancel it will go into the clean up ids
@@ -941,6 +1153,19 @@ const M_state_machine_t *M_state_machine_active_sub(const M_state_machine_t *m, 
 		}
 	}
 
+	if (s->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED) {
+		const M_state_machine_interleaved_sub_t *ilsub = M_list_at(s->d.interleaved.subs, s->d.interleaved.idx);
+		if (ilsub->subm->running) {
+			if (recurse) {
+				m = M_state_machine_active_sub(ilsub->subm, recurse);
+				if (m != NULL) {
+					return m;
+				}
+			}
+			return ilsub->subm;
+		}
+	}
+
 	if (m->current_cleanup_id != 0) {
 		if (!M_hash_u64vp_get(m->states, m->current_cleanup_id, &vp))
 			return NULL;
@@ -1004,6 +1229,15 @@ static void M_state_machine_active_state_descr_int(const M_state_machine_t *m, M
 		M_state_machine_active_state_descr_int(s->d.sub.subm, recurse, ndescr, descr);
 		return;
 	}
+
+	if (s->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED && recurse) {
+		const M_state_machine_interleaved_sub_t *ilsub = M_list_at(s->d.interleaved.subs, s->d.interleaved.idx);
+		if (ilsub->subm->running) {
+			M_state_machine_active_state_descr_int(ilsub->subm, recurse, ndescr, descr);
+			return;
+		}
+	}
+
 	*ndescr = s->ndescr;
 	*descr  = s->descr;
 }
@@ -1046,12 +1280,16 @@ char *M_state_machine_descr_full(const M_state_machine_t *m, M_bool show_id)
 		if (mt != NULL && mt->type == M_STATE_MACHINE_TYPE_CLEANUP && m->current_cleanup_id != 0) {
 			s = (M_state_machine_state_t *)M_hash_u64vp_get_direct(m->states, m->current_cleanup_id);
 			if (s != NULL) {
-				M_state_machine_descr_append(buf, s->descr, M_STATE_MACHINE_TYPE_UNKNOWN, show_id?m->current_cleanup_id:0);
+				M_state_machine_descr_append(buf, s->descr,
+						s->type==M_STATE_MACHINE_STATE_TYPE_INTERLEAVED?M_STATE_MACHINE_TYPE_INTERSTATE:M_STATE_MACHINE_TYPE_UNKNOWN,
+						show_id?m->current_cleanup_id:0);
 			} else {
 				M_buf_add_str(buf, "<?>");
 			}
 		} else {
-			M_state_machine_descr_append(buf, s->descr, M_STATE_MACHINE_TYPE_UNKNOWN, show_id?m->current_id:0);
+			M_state_machine_descr_append(buf, s->descr, 
+					s->type==M_STATE_MACHINE_STATE_TYPE_INTERLEAVED?M_STATE_MACHINE_TYPE_INTERSTATE:M_STATE_MACHINE_TYPE_UNKNOWN,
+					show_id?m->current_id:0);
 		}
 		M_buf_add_str(buf, " -> ");
 
@@ -1070,7 +1308,9 @@ M_state_machine_t *M_state_machine_duplicate(const M_state_machine_t *m)
 	M_state_machine_state_t *state;
 	M_uint64                 id;
 	size_t                   len;
+	size_t                   lenj;
 	size_t                   i;
+	size_t                   j;
 	M_bool                   ret = M_FALSE;
 
 	if (m == NULL)
@@ -1105,6 +1345,17 @@ M_state_machine_t *M_state_machine_duplicate(const M_state_machine_t *m)
 				break;
 			case M_STATE_MACHINE_STATE_TYPE_SUBM:
 				ret = M_state_machine_insert_sub_state_machine(dup, id, state->ndescr, state->descr, state->d.sub.subm, state->d.sub.pre, state->d.sub.post, state->cleanup, M_list_u64_duplicate(state->next_ids));
+				break;
+			case M_STATE_MACHINE_STATE_TYPE_INTERLEAVED:
+				ret = M_state_machine_insert_state_interleaved(dup, id, state->ndescr, state->descr, state->d.interleaved.pre, state->d.interleaved.post, state->cleanup, M_list_u64_duplicate(state->next_ids));
+				if (!ret) {
+					break;
+				}
+				lenj = M_list_len(state->d.interleaved.subs);
+				for (j=0; j<len; j++) {
+					const M_state_machine_interleaved_sub_t *ilsub = M_list_at(state->d.interleaved.subs, j);
+					ret = M_state_machine_insert_sub_state_machine_interleaved(dup, id, ilsub->subm);
+				}
 				break;
 		}
 
