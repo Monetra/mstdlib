@@ -21,7 +21,7 @@ M_thread_mutex_t *debug_lock = NULL;
 
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -609,12 +609,14 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 
 			/* Fallthru */
 		case M_EVENT_TYPE_WRITE:
+			if (wbuf == NULL)
+				break;
 			/* Write entire buffer, if empty, issue disconnect */
 			mysize = M_buf_len(wbuf);
 			M_io_write_from_buf(comm, wbuf);
-			event_debug("net sad serverconn %p wrote %zu bytes", comm, mysize - M_buf_len(wbuf));
+			event_debug("net sad serverconn %p wrote %zu bytes (%zu bytes left)", comm, mysize - M_buf_len(wbuf), M_buf_len(wbuf));
 			if (M_buf_len(wbuf) == 0) {
-				M_io_destroy(comm);
+				M_io_disconnect(comm);
 				M_buf_cancel(wbuf);
 				wbuf = NULL;
 			}
