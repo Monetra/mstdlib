@@ -825,7 +825,7 @@ if test "${build_mstdlib_io}" = "yes" ; then
 		AC_CONFIG_SUBDIRS([thirdparty/c-ares])
 		BUILD_SUBDIRS="${BUILD_SUBDIRS} thirdparty/c-ares"
 		C_ARES_CPPFLAGS='-I$(top_srcdir)/thirdparty/c-ares/include -I$(top_builddir)/thirdparty/c-ares/include'
-		C_ARES_LIBADD='$(top_builddir)/thirdparty/c-ares/libcares.la'
+		C_ARES_LIBADD='$(top_builddir)/thirdparty/c-ares/src/lib/libcares.la'
 		C_ARES_LDFLAGS=""
 		AC_SUBST(C_ARES_CPPFLAGS)
 		AC_SUBST(C_ARES_LIBADD)
