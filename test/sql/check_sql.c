@@ -6,7 +6,7 @@
 #include <mstdlib/mstdlib_sql.h>
 #include <mstdlib/mstdlib_formats.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define INSERT_ROWS 10000
 
 static const char *coltype2str(M_sql_data_type_t type)

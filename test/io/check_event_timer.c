@@ -14,7 +14,7 @@ typedef struct event_data {
 	size_t             events;
 } event_data_t;
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
