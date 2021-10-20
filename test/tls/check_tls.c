@@ -590,8 +590,7 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 	unsigned char   buf[1024];
 	size_t          mysize;
 	static M_buf_t *wbuf  = NULL;
-	size_t          i;
-
+	unsigned char  *dwbuf = NULL;
 	(void)event;
 	(void)data;
 
@@ -605,11 +604,12 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 				M_tls_get_cipher(comm, M_IO_LAYER_FIND_FIRST_ID),
 				M_tls_get_sessionreused(comm, M_IO_LAYER_FIND_FIRST_ID)?"session reused":"session not reused");
 
-			/* Populate send buffer */
-			wbuf = M_buf_create();
-			for (i=0; i<SEND_AND_DISCONNECT_SIZE; i++) {
-				M_buf_add_byte(wbuf, '0');
-			}
+			/* Populate send buffer (as efficiently as possible otherwise valgrind might puke) */
+			wbuf   = M_buf_create();
+			mysize = SEND_AND_DISCONNECT_SIZE;
+			dwbuf  = M_buf_direct_write_start(wbuf, &mysize);
+			M_mem_set(dwbuf, '0', SEND_AND_DISCONNECT_SIZE);
+			M_buf_direct_write_end(wbuf, SEND_AND_DISCONNECT_SIZE);
 
 			/* Fallthru */
 		case M_EVENT_TYPE_WRITE:
@@ -711,7 +711,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			} else {
 				if (M_buf_len(rbuf) == SEND_AND_DISCONNECT_SIZE) {
 					event_debug("net sad client received FULL data: %zu bytes", M_buf_len(rbuf));
-					M_event_done(event);
+					M_event_done_with_disconnect(event, 0, 1000);
 				} else {
 					event_debug("net sad client received partial data: %zu of %zu bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
 					M_event_return(event);
@@ -871,6 +871,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	event_debug("exited loop");
 	/* Cleanup */
 
+	M_io_destroy(netserver);
 	M_dns_destroy(dns);
 	M_event_destroy(event);
 
@@ -906,7 +907,7 @@ static Suite *tls_suite(void)
 	suite_add_tcase(suite, tc);
 
 	tc = tcase_create("tls send and disconnect");
-	tcase_set_timeout(tc, 10);
+	tcase_set_timeout(tc, 30);
 	tcase_add_test(tc, check_tls_sendanddisconnect);
 	suite_add_tcase(suite, tc);
 
