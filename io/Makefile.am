@@ -57,8 +57,13 @@ if LINUX
 libmstdlib_io_la_SOURCES +=     \
 	m_io_hid_linux.c
 else
+if MACOSX
+libmstdlib_io_la_SOURCES +=     \
+	m_io_hid_mac.c
+else
 libmstdlib_io_la_SOURCES +=     \
 	m_io_hid_notimpl.c
+endif
 endif
 
 if MACOSX
