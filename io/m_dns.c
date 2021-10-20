@@ -769,6 +769,7 @@ M_bool M_dns_destroy(M_dns_t *dns)
 		M_event_done(dns->event);
 		M_thread_join(dns->threadid, &rv);
 		dns->threadid = 0;
+		M_event_destroy(dns->event);
 	}
 
 	M_queue_destroy(dns->cache);
