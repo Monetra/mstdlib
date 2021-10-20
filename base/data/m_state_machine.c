@@ -1352,7 +1352,7 @@ M_state_machine_t *M_state_machine_duplicate(const M_state_machine_t *m)
 					break;
 				}
 				lenj = M_list_len(state->d.interleaved.subs);
-				for (j=0; j<len; j++) {
+				for (j=0; j<lenj; j++) {
 					const M_state_machine_interleaved_sub_t *ilsub = M_list_at(state->d.interleaved.subs, j);
 					ret = M_state_machine_insert_sub_state_machine_interleaved(dup, id, ilsub->subm);
 				}
