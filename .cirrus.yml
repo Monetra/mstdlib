@@ -144,7 +144,7 @@ task:
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_USE_VALGRIND=ON -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
           cmake --build _builds && \
           export LD_LIBRARY_PATH=`pwd`/_builds/lib:$LD_LIBRARY_PATH && \
-          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
+          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 CK_FORK=no ctest -VV
           ;;
        esac
 
