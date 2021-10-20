@@ -103,4 +103,5 @@
 #cmakedefine VA_LIST_IS_ARRAY_TYPE
 #cmakedefine VA_LIST_IS_POINTER_TYPE
 
+#cmakedefine MSTDLIB_USE_VALGRIND
 #define MSTDLIB_INTERNAL

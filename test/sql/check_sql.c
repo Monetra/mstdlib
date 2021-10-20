@@ -9,6 +9,7 @@
 #define DEBUG 0
 #define INSERT_ROWS 10000
 
+#if defined(DEBUG) && DEBUG >= 1
 static const char *coltype2str(M_sql_data_type_t type)
 {
 	switch (type) {
@@ -29,6 +30,7 @@ static const char *coltype2str(M_sql_data_type_t type)
 	}
 	return "WTF";
 }
+#endif
 
 static const char *sql_trace_type(M_sql_trace_t event_type)
 {

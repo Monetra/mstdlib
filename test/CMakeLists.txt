@@ -229,8 +229,9 @@ foreach (test_src ${tests})
 			NAME    ${test_prog}_memcheck
 			COMMAND Valgrind::valgrind "--leak-check=full"
 									   "--show-reachable=yes"
+									   "--trace-children=yes"
+									   "--num-callers=24"
 									   "--suppressions=${PROJECT_SOURCE_DIR}/valgrind/check.suppressions"
-									   "--log-file=${PROJECT_BINARY_DIR}/test/${test_prog}-valgrind.log"
 									   $<TARGET_FILE:${test_prog}> "from_ctest"
 		)
 	else ()

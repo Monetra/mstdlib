@@ -21,7 +21,7 @@ M_thread_mutex_t *debug_lock = NULL;
 
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -36,7 +36,7 @@ static void event_debug(const char *fmt, ...)
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
-	M_vprintf(buf, ap);
+	M_vdprintf(2, buf, ap);
 M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
@@ -435,7 +435,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	}
 	M_tls_x509_destroy(x509);
 //M_printf("PrivateKey: %s\n", key);
-M_printf("ServerCert: %s\n", realcert);
+	event_debug("ServerCert: %s\n", realcert);
 
 	applist = M_list_str_create(M_LIST_STR_NONE);
 	M_list_str_insert(applist, "badapp");
@@ -543,7 +543,11 @@ M_printf("ServerCert: %s\n", realcert);
 	event_debug("added client connections to event loop");
 
 	event_debug("entering loop");
+#ifdef MSTDLIB_USE_VALGRIND
+	err = M_event_loop(event, 20000);
+#else
 	err = M_event_loop(event, 10000);
+#endif
 	event_debug("%zu remaining objects", M_event_num_objects(event));
 	/* Cleanup */
 
