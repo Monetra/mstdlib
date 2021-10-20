@@ -89,7 +89,10 @@ static M_fs_error_t M_fs_perms_set_name(M_fs_perms_t *perms, const char *name, M
 		case SidTypeUnknown:
 		case SidTypeComputer:
 		case SidTypeLabel:
+		/* Added with Windows 10 SDK. MinGW-w64 added this around the GCC 9 era */
+#if !defined(__GNUC__) || __GNUC__ >= 9
 		case SidTypeLogonSession:
+#endif
 			return M_FS_ERROR_INVALID;
 		case SidTypeUser:
 		case SidTypeGroup:

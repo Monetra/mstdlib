@@ -34,7 +34,7 @@ M_bool got_response = M_FALSE;
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #define DEBUG 0
 
-#if defined(DEBUG) && DEBUG
+#if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
 
 
