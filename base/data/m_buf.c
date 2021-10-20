@@ -126,7 +126,7 @@ size_t M_buf_alloc_size(const M_buf_t *buf)
 
 const char *M_buf_peek(const M_buf_t *buf)
 {
-	if (buf == NULL)
+	if (buf == NULL || buf->data == NULL)
 		return NULL;
 
 	return ((char *)buf->data) + buf->data_consumed;

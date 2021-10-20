@@ -466,13 +466,17 @@ M_bool M_parser_append(M_parser_t *parser, const unsigned char *data, size_t len
 	if (parser == NULL || parser->data_const != NULL)
 		return M_FALSE;
 
-	if (data == NULL) {
+	if (data == NULL || len == 0) {
 		if (len != 0)
 			return M_FALSE;
 		return M_TRUE; /* Ok, we let them append nothing */
 	}
 
 	M_parser_ensure_space(parser, len);
+
+	/* Silence UBSAN, shouldn't be possible */
+	if (parser->data == NULL)
+		return M_FALSE;
 
 	/* Copy new data on to the end of the buffer */
 	M_mem_copy(M_CAST_OFF_CONST(unsigned char *, parser->data) + parser->data_len, data, len);
