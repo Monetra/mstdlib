@@ -58,7 +58,7 @@ task:
       case "${DIST}" in
         DEBIAN)
           apt-get update && \
-          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev libc-ares-dev check ninja-build
+          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget unzip
           case "${BUILD_TYPE}" in
             asan)
               apt-get install -y clang
@@ -70,7 +70,7 @@ task:
           ;;
         FREEBSD)
           # pkg upgrade -y && \
-          pkg install -y cmake check c-ares ninja mariadb-connector-c postgresql13-client unixODBC
+          pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip
           case "${BUILD_TYPE}" in
             asan|analyze)
               pkg install -y llvm
@@ -82,7 +82,7 @@ task:
           ;;
         MACOS)
           brew update && \
-          brew install openssl doxygen mariadb-connector-c unixodbc libpq check c-ares sqlite ninja cmake
+          brew install openssl doxygen mariadb-connector-c unixodbc libpq check ninja cmake git wget unzip
           case "${BUILD_TYPE}" in
             asan|analyze)
               brew install llvm
@@ -95,6 +95,11 @@ task:
       esac
 
   script:
+    - |
+      mkdir -p thirdparty thirdparty/sqlite-amalgamation
+      git clone https://github.com/c-ares/c-ares.git thirdparty/c-ares
+      wget https://sqlite.org/2021/sqlite-amalgamation-3360000.zip -O thirdparty/sqlite-amalgamation.zip
+      unzip -j thirdparty/sqlite-amalgamation.zip -d thirdparty/sqlite-amalgamation
     - |
       case "${BUILD_TYPE}" in
         cmake)
