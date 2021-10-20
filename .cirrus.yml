@@ -13,7 +13,7 @@ task:
         image: debian:latest
     - name: "Debian arm64"
       env:
-        DIST: "DEBIAN"
+        DIST: "DEBIAN-ARM"
         LC_ALL: "C"
         SCAN_BUILD: "scan-build"
         MAKE: "make"
@@ -53,11 +53,15 @@ task:
       env:
         BUILD_TYPE: "analyze"
         CC: "clang"
+    - name: "VALGRIND"
+      only_if: $DIST == 'DEBIAN'
+      env:
+        BUILD_TYPE: "valgrind"
 
   install_script:
     - |
       case "${DIST}" in
-        DEBIAN)
+        DEBIAN*)
           apt-get update && \
           apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget unzip
           case "${BUILD_TYPE}" in
@@ -66,6 +70,9 @@ task:
               ;;
             analyze)
               apt-get install -y clang clang-tools
+              ;;
+            valgrind)
+              apt-get install -y valgrind
               ;;
           esac
           ;;
@@ -130,6 +137,12 @@ task:
         analyze)
           ${SCAN_BUILD} -v cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -G Ninja -H. -B_builds && \
           ${SCAN_BUILD} -v cmake --build _builds && \
+          export LD_LIBRARY_PATH=`pwd`/_builds/lib:$LD_LIBRARY_PATH && \
+          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
+          ;;
+        valgrind)
+          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_USE_VALGRIND=ON -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
+          cmake --build _builds && \
           export LD_LIBRARY_PATH=`pwd`/_builds/lib:$LD_LIBRARY_PATH && \
           cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
           ;;
