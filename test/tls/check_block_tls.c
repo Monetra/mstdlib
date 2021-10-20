@@ -377,7 +377,7 @@ static void *tls_disconresp_listener(void *arg)
 		goto cleanup;
 	}
 
-	//M_io_block_disconnect(conn);
+	M_io_block_disconnect(conn);
 
 cleanup:
 	M_io_destroy(conn);
@@ -505,7 +505,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 		if (M_parser_len(readparser)) {
 			event_debug("%p netclient has (%zu) \"%.*s\"", conn, M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 		}
-		/* If we have hello world, break! */
+		/* If we have GoodBye, break! */
 		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 			event_debug("%p netclient read GoodBye!", conn);
 			has_goodbye = M_TRUE;
