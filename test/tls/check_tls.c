@@ -23,7 +23,7 @@ M_thread_mutex_t *debug_lock = NULL;
 
 #define DEBUG 0
 
-#if defined(DEBUG) && DEBUG
+#if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
 
 static void event_debug(const char *fmt, ...)

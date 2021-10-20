@@ -243,13 +243,13 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%lld.%06lld: TRACE: event %s\n", tv.tv_sec, tv.tv_usec, event_type_str(event_type));
+		event_debug("%lld.%06lld: TRACE: event %s", tv.tv_sec, tv.tv_usec, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%lld.%06lld: TRACE: %s\n", tv.tv_sec, tv.tv_usec, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	event_debug("%lld.%06lld: TRACE: %s", tv.tv_sec, tv.tv_usec, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
-	M_printf("%s\n", buf);
+	event_debug("%s", buf);
 	M_free(buf);
 }
 
