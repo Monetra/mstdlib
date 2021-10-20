@@ -71,7 +71,8 @@ test_script:
   - netsh advfirewall firewall add rule name="Test Script Inbound Port 1234" dir=in action=allow protocol=TCP localport=1234
   - cd C:\projects\build-mstdlib\test
   - set CTEST_OUTPUT_ON_FAILURE=1
-  - ps: ctest | tee -FilePath "all_tests.log"
+  - set CK_VERBOSITY=verbose
+  - ps: ctest -VV | tee -FilePath "all_tests.log"
   
 on_finish:
   - cd C:\projects\build-mstdlib\test

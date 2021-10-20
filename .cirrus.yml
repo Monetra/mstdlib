@@ -100,12 +100,12 @@ task:
         cmake)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
           cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
           ;;
         asan)
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
           cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose CK_FORK=no CK_LOG_FILE_NAME=- cmake --build _builds --target check
+          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
           ;;
         autotools)
           ./buildconf.sh && \
@@ -121,7 +121,7 @@ task:
         analyze)
           ${SCAN_BUILD} -v cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DSQLite_DIR="$SQLite_DIR" -G Ninja -H. -B_builds && \
           ${SCAN_BUILD} -v cmake --build _builds && \
-          cmake -E env CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose cmake --build _builds --target check
+          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=1 ctest -VV
           ;;
        esac
 
