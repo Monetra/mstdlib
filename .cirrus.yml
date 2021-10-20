@@ -48,9 +48,11 @@ task:
       only_if: $DIST != 'FREEBSD'
       env:
         BUILD_TYPE: "asan"
+        CC: "clang"
     - name: "ANALYZE"
       env:
         BUILD_TYPE: "analyze"
+        CC: "clang"
 
   install_script:
     - |
