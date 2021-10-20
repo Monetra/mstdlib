@@ -12,7 +12,7 @@ M_uint64 active_connections;
 M_uint64 expected_connections;
 M_uint64 connection_count;
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>

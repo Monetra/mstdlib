@@ -14,7 +14,7 @@ M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
 
-#define DEBUG 1
+#define DEBUG 0
 
 static const char *event_type_str(M_event_type_t type)
 {
