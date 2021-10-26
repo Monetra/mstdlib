@@ -821,7 +821,7 @@ if test "${build_mstdlib_io}" = "yes" ; then
 	dnl chain build if thirdparty/c-ares exists, otherwise search for it
 	if test -d "${srcdir}/thirdparty/c-ares" ; then
 		dnl Tell c-ares to only build static if chain building
-		ac_configure_args="${ac_configure_args} --disable-shared --enable-static --with-pic"
+		ac_configure_args="${ac_configure_args} --disable-shared --enable-static --disable-tests --with-pic"
 		AC_CONFIG_SUBDIRS([thirdparty/c-ares])
 		BUILD_SUBDIRS="${BUILD_SUBDIRS} thirdparty/c-ares"
 		C_ARES_CPPFLAGS='-I$(top_srcdir)/thirdparty/c-ares/include -I$(top_builddir)/thirdparty/c-ares/include'
