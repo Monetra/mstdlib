@@ -4,7 +4,7 @@ AM_CFLAGS   = -I$(top_srcdir) -I$(top_srcdir)/include -I$(top_srcdir)/base -DMST
 AM_CPPFLAGS = $(AM_CFLAGS) @CHECK_CPPFLAGS@
 AM_LDFLAGS  =
 AM_CFLAGS  += -DTEST
-AM_LDFLAGS += -L$(top_builddir)/base/.libs/
+AM_LDFLAGS += -L$(top_builddir)/base/.libs/ @CHECK_LDFLAGS@
 LDADD       = $(top_builddir)/base/libmstdlib.la @CHECK_LIBADD@
 
 ######################################################################
