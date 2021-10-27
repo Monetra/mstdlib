@@ -129,7 +129,7 @@ static void M_event_impl_poll_process(M_event_t *event)
 	/* Process events */
 	for (i=0; i<event->u.loop.impl_data->num_fds; i++) {
 		M_bool stop_writing = M_FALSE;
-		if (eventcheck_tls->u.loop.impl_data->fds[i].revents) {
+		if (event->u.loop.impl_data->fds[i].revents) {
 			M_event_evhandle_t     *member  = NULL;
 			if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->fds[i].fd, (void **)&member))
 				continue;
