@@ -66,6 +66,7 @@ static const char *event_type_str(M_event_type_t type)
 struct net_data {
 	M_buf_t    *buf;
 	M_timeval_t starttv;
+	M_bool      is_disconnecting;
 };
 typedef struct net_data net_data_t;
 
@@ -100,6 +101,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 			/* Fall-thru */
 		case M_EVENT_TYPE_WRITE:
+			if (data->is_disconnecting)
+				break;
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
@@ -109,6 +112,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 					event_debug("net client %p initiating disconnect", comm);
 					M_io_disconnect(comm);
+					data->is_disconnecting = M_TRUE;
 					break;
 				}
 				/* Refill */
