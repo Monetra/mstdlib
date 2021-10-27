@@ -129,16 +129,13 @@ static void M_event_impl_poll_process(M_event_t *event)
 	/* Process events */
 	for (i=0; i<event->u.loop.impl_data->num_fds; i++) {
 		M_bool stop_writing = M_FALSE;
-		if (event->u.loop.impl_data->fds[i].revents) {
+		if (eventcheck_tls->u.loop.impl_data->fds[i].revents) {
 			M_event_evhandle_t     *member  = NULL;
 			if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->fds[i].fd, (void **)&member))
 				continue;
-M_dprintf(1, "%s(): events %d io:%p\n", __FUNCTION__, (int)event->u.loop.impl_data->fds[i].revents, member->io);
 
 			/* Read */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLPRI|POLLIN)) {
-M_dprintf(1, "%s(): read io:%p\n", __FUNCTION__, member->io);
-
 				if (member->caps & M_EVENT_CAPS_READ) {
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 					cnt++;
@@ -148,7 +145,6 @@ M_dprintf(1, "%s(): read io:%p\n", __FUNCTION__, member->io);
 			/* Error */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLERR|POLLNVAL)) {
 				stop_writing = M_TRUE;
-M_dprintf(1, "%s(): Error io:%p\n", __FUNCTION__, member->io);
 
 				/* NOTE: always deliver READ event first on an error to make sure any
 				 *       possible pending data is flushed. */
@@ -175,7 +171,6 @@ M_dprintf(1, "%s(): Error io:%p\n", __FUNCTION__, member->io);
 			    )) {
 				stop_writing = M_TRUE;
 
-M_dprintf(1, "%s(): Disconnect io:%p\n", __FUNCTION__, member->io);
 				/* NOTE: always deliver READ event first on a disconnect to make sure any
 				 *       possible pending data is flushed. */
 				if (member->waittype & M_EVENT_WAIT_READ) {
@@ -195,7 +190,6 @@ M_dprintf(1, "%s(): Disconnect io:%p\n", __FUNCTION__, member->io);
 
 			/* Write */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLOUT|POLLWRBAND) && !stop_writing) {
-M_dprintf(1, "%s(): write io:%p\n", __FUNCTION__, member->io);
 				M_event_deliver_io(event, member->io, M_EVENT_TYPE_WRITE);
 				cnt++;
 			}
