@@ -130,6 +130,7 @@ task:
           ${MAKE} V=1 -j2 && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
           export CK_VERBOSITY=verbose && \
+          export VERBOSE=1 && \
           export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH && \
           make check && \
           cd ..
