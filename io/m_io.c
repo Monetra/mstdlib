@@ -370,6 +370,10 @@ void M_io_disconnect(M_io_t *comm)
 	if (cont && comm->reg_event) {
 		M_io_user_softevent_add(comm, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
 	}
+
+	/* If there is a queued write softevent, dequeue it */
+	M_io_user_softevent_del(comm, M_EVENT_TYPE_WRITE);
+
 	M_io_unlock(comm);
 }
 
