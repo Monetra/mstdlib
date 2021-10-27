@@ -163,36 +163,6 @@ static void *thread_cond(void *arg)
 	return NULL;
 }
 
-typedef struct {
-	M_thread_rwlock_t *rwlock;
-	M_uint32          *count;
-	unsigned long      usec;
-	M_uint32           expect;
-} rwlock_data_t;
-
-static void *thread_rwlock_read(void *arg)
-{
-	rwlock_data_t *sd = (rwlock_data_t *)arg;
-
-	M_thread_rwlock_lock(sd->rwlock, M_THREAD_RWLOCK_TYPE_READ);
-	ck_assert_msg(*sd->count == sd->expect, "count (%u) != expect (%u)", *sd->count, sd->expect);
-	M_thread_sleep(sd->usec);
-	M_thread_rwlock_unlock(sd->rwlock);
-
-	return NULL;
-}
-
-static void *thread_rwlock_write(void *arg)
-{
-	rwlock_data_t *sd = (rwlock_data_t *)arg;
-
-	M_thread_rwlock_lock(sd->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	M_atomic_inc_u32(sd->count);
-	M_thread_sleep(sd->usec);
-	M_thread_rwlock_unlock(sd->rwlock);
-
-	return NULL;
-}
 
 typedef struct {
 	unsigned long       usec;
@@ -699,6 +669,39 @@ START_TEST(check_cond_signal)
 }
 END_TEST
 
+
+typedef struct {
+	size_t             id;
+	M_thread_rwlock_t *rwlock;
+	M_uint32          *count;
+	unsigned long      usec;
+	M_uint32           expect;
+} rwlock_data_t;
+
+static void *thread_rwlock_read(void *arg)
+{
+	rwlock_data_t *sd = (rwlock_data_t *)arg;
+
+	M_thread_rwlock_lock(sd->rwlock, M_THREAD_RWLOCK_TYPE_READ);
+	ck_assert_msg(*sd->count == sd->expect, "%zu: count (%u) != expect (%u)", sd->id, *sd->count, sd->expect);
+	M_thread_sleep(sd->usec);
+	M_thread_rwlock_unlock(sd->rwlock);
+
+	return NULL;
+}
+
+static void *thread_rwlock_write(void *arg)
+{
+	rwlock_data_t *sd = (rwlock_data_t *)arg;
+
+	M_thread_rwlock_lock(sd->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_atomic_inc_u32(sd->count);
+	M_thread_sleep(sd->usec);
+	M_thread_rwlock_unlock(sd->rwlock);
+
+	return NULL;
+}
+
 START_TEST(check_rwlock)
 {
 	M_threadid_t       thread1;
@@ -709,24 +712,28 @@ START_TEST(check_rwlock)
 	M_thread_attr_t   *tattr;
 	M_uint32           count  = 1;
 	rwlock_data_t      sd1    = {
-		NULL,
-		&count,
-		30,
 		1,
-	};
-	rwlock_data_t      sd2    = {
-		NULL,
-		&count,
-		30,
-		1,
-	};
-	rwlock_data_t      sd3    = {
 		NULL,
 		&count,
 		20000,
+		1,
+	};
+	rwlock_data_t      sd2    = {
+		2,
+		NULL,
+		&count,
+		20000,
+		1,
+	};
+	rwlock_data_t      sd3    = {
+		3,
+		NULL,
+		&count,
+		100000,
 		0,
 	};
 	rwlock_data_t      sd4    = {
+		4,
 		NULL,
 		&count,
 		0,
@@ -745,9 +752,9 @@ START_TEST(check_rwlock)
 	thread1 = M_thread_create(tattr, thread_rwlock_read, &sd1);
 	M_thread_sleep(10);
 	thread2 = M_thread_create(tattr, thread_rwlock_read, &sd2);
-	M_thread_sleep(10000);
+	M_thread_sleep(20000);
 	thread3 = M_thread_create(tattr, thread_rwlock_write, &sd3);
-	M_thread_sleep(10000);
+	M_thread_sleep(200000);
 	thread4 = M_thread_create(tattr, thread_rwlock_read, &sd4);
 
 	/* Wait for all threads to finish. */
