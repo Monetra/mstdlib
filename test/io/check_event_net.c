@@ -434,10 +434,13 @@ static Suite *event_net_suite(void)
 
 	tc    = tcase_create("event_net_pool");
 	tcase_add_test(tc, check_event_net_pool);
+	tcase_set_timeout(tc, 20);
 	suite_add_tcase(suite, tc);
 
 	tc    = tcase_create("event_net_stat");
 	tcase_add_test(tc, check_event_net_stat);
+	tcase_set_timeout(tc, 20);
+
 	suite_add_tcase(suite, tc);
 
 	return suite;
