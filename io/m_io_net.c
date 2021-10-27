@@ -1133,14 +1133,11 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	/* Tell the remote end we want to shutdown */
 #ifdef _WIN32
 	/* If unable to close gracefully, go ahead and say we're disconnected */
-	if (shutdown(handle->data.net.sock, SD_BOTH) == SOCKET_ERROR)
+	if (shutdown(handle->data.net.sock, SD_SEND) == SOCKET_ERROR)
 		return M_TRUE;
 #else
-#  ifndef SHUT_RDWR
-#    define SHUT_RDWR 2 /* SCO 5 */
-#  endif
 	/* If unable to close gracefully, go ahead and say we're disconnected */
-	if (shutdown(handle->data.net.sock, SHUT_RDWR) != 0)
+	if (shutdown(handle->data.net.sock, SHUT_WR) != 0)
 		return M_TRUE;
 #endif
 	/* Make sure we re-activate waiting on a read event if it is not active as that is the only

@@ -274,7 +274,7 @@ static M_bool check_netspeed_test(void)
 
 	event_debug("added client connections to event loop");
 
-	err = M_event_loop(event, 10000);
+	err = M_event_loop(event, 20000);
 
 	event_debug("event loop exited");
 
