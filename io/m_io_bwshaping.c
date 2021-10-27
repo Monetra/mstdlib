@@ -121,6 +121,7 @@ struct M_io_handle {
 	/* Record if last write operation was throttled and therefore needs to set a timer */
 	M_bool                    out_waiting;
 
+	M_bool                    is_disconnecting;
 	M_event_timer_t          *timer;
 };
 
@@ -372,6 +373,10 @@ static M_uint64 M_io_bwshaping_timeout_direction(M_io_handle_t *handle, M_io_bws
 
 		bw_nextms = M_io_bwshaping_bwtrack_next_ms(handle->in_bw, handle->settings.in_Bps, handle->settings.in_period_s, handle->settings.in_sample_frequency_ms, handle->settings.in_mode);
 	} else {
+		/* Can't write if disconnecting */
+		if (handle->is_disconnecting)
+			return M_TIMEOUT_INF;
+
 		/* Not configured, so don't use timeouts */
 		if (handle->settings.out_Bps == 0 && handle->settings.out_latency_ms == 0)
 			return M_TIMEOUT_INF;
@@ -460,7 +465,7 @@ static void M_io_bwshaping_timer_cb(M_event_t *event, M_event_type_t type, M_io_
 	}
 
 	to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
-	if (to_ms == 0) {
+	if (to_ms == 0 && !handle->is_disconnecting) {
 		M_io_layer_softevent_add(layer, M_TRUE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
 		num_wait--;
 	}
@@ -656,6 +661,9 @@ static M_bool M_io_bwshaping_process_cb(M_io_layer_t *layer, M_event_type_t *typ
 			return retval;
 
 		case M_EVENT_TYPE_WRITE:
+			if (handle->is_disconnecting)
+				return M_TRUE; /* Consume, don't relay */
+
 			/* See if we can read, if not, consume event and reset timer */
 			to_ms = M_io_bwshaping_timeout_direction(handle, M_IO_BWSHAPING_DIRECTION_OUT);
 			if (to_ms == 0) {
@@ -726,6 +734,17 @@ static void M_io_bwshaping_destroy_cb(M_io_layer_t *layer)
 }
 
 
+static M_bool M_io_bwshaping_disconnect_cb(M_io_layer_t *layer)
+{
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
+	handle->is_disconnecting = M_TRUE;
+
+	/* Pass to next layer */
+	return M_TRUE;
+}
+
+
 M_io_error_t M_io_add_bwshaping(M_io_t *io, size_t *layer_idx)
 {
 	M_io_handle_t    *handle;
@@ -760,6 +779,7 @@ M_io_error_t M_io_add_bwshaping(M_io_t *io, size_t *layer_idx)
 	M_io_callbacks_reg_write(callbacks, M_io_bwshaping_write_cb);
 	M_io_callbacks_reg_processevent(callbacks, M_io_bwshaping_process_cb);
 	M_io_callbacks_reg_unregister(callbacks, M_io_bwshaping_unregister_cb);
+	M_io_callbacks_reg_disconnect(callbacks, M_io_bwshaping_disconnect_cb);
 	M_io_callbacks_reg_reset(callbacks, M_io_bwshaping_reset_cb);
 	M_io_callbacks_reg_destroy(callbacks, M_io_bwshaping_destroy_cb);
 	layer = M_io_layer_add(io, M_IO_BWSHAPING_NAME, handle, callbacks);
