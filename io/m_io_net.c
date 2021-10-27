@@ -285,18 +285,39 @@ static void M_io_net_readwrite_err(M_io_t *comm, M_io_layer_t *layer, M_bool is_
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_event_t     *event  = M_io_get_event(comm);
 
-	if (err == M_IO_ERROR_WOULDBLOCK || (err == M_IO_ERROR_SUCCESS && request_len >= out_len)) { /* If we requested more than we got, then we need more! (that said, for historic reasons we are using >=, shouldn't hurt, but not sure if it is right) */
-		/* Start waiting on more READ (or WRITE) events */
-		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, is_read?M_EVENT_WAIT_READ:M_EVENT_WAIT_WRITE, 0);
-	} else if (err == M_IO_ERROR_SUCCESS) {
-		/* Stop waiting on READ (or WRITE) events */
-		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, is_read?M_EVENT_WAIT_READ:M_EVENT_WAIT_WRITE, 0);
-	} else {
+	if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
 		/* Error condition, Stop waiting on all events */
 		M_io_net_handle_close(comm, handle);
 		handle->state     = (err == M_IO_ERROR_DISCONNECT)?M_IO_NET_STATE_DISCONNECTED:M_IO_NET_STATE_ERROR;
 		handle->hard_down = M_TRUE;
+		return;
 	}
+
+	if (err == M_IO_ERROR_WOULDBLOCK) {
+		/* Must wait on respectiv read or write event */
+		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, is_read?M_EVENT_WAIT_READ:M_EVENT_WAIT_WRITE, 0);
+		return;
+	}
+
+	/* Success case here */
+
+	/* If we read something, go ahead and allow us to be signaled again.  This works around some issues
+	 * where the socket is closed but bytes are still buffered, if we don't listen for
+	 * reads, we never get the disconnect event. Normally we'd only want to re-enable reads if
+	 * we got a partial read. */
+	if (is_read && out_len) {
+		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, 0);
+		return;
+	}
+
+	/* If we got a partial write, we've got to wait to be signaled again */
+	if (!is_read && request_len > out_len) {
+		M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
+		return;
+	}
+
+	/* Otherwise, disable waiting on events */
+	M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, is_read?M_EVENT_WAIT_READ:M_EVENT_WAIT_WRITE, 0);
 }
 
 

@@ -132,9 +132,12 @@ static void M_event_impl_poll_process(M_event_t *event)
 			M_event_evhandle_t     *member  = NULL;
 			if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->fds[i].fd, (void **)&member))
 				continue;
+M_dprintf(1, "%s(): events %d io:%p\n", __FUNCTION__, (int)event->u.loop.impl_data->fds[i].revents, member->io);
 
 			/* Read */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLPRI|POLLIN)) {
+M_dprintf(1, "%s(): read io:%p\n", __FUNCTION__, member->io);
+
 				if (member->caps & M_EVENT_CAPS_READ) {
 					M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 					cnt++;
@@ -143,6 +146,8 @@ static void M_event_impl_poll_process(M_event_t *event)
 
 			/* Error */
 			if (event->u.loop.impl_data->fds[i].revents & (POLLERR|POLLNVAL)) {
+M_dprintf(1, "%s(): Error io:%p\n", __FUNCTION__, member->io);
+
 				/* NOTE: always deliver READ event first on an error to make sure any
 				 *       possible pending data is flushed. */
 				if (member->waittype & M_EVENT_WAIT_READ) {
@@ -166,6 +171,7 @@ static void M_event_impl_poll_process(M_event_t *event)
 			      | POLLRDHUP
 #endif
 			    )) {
+M_dprintf(1, "%s(): Disconnect io:%p\n", __FUNCTION__, member->io);
 				/* NOTE: always deliver READ event first on a disconnect to make sure any
 				 *       possible pending data is flushed. */
 				if (member->waittype & M_EVENT_WAIT_READ) {
