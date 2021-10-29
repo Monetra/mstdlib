@@ -151,7 +151,7 @@ typedef void (*M_dns_ghbn_callback_t)(const M_list_str_t *ipaddrs, void *cb_data
  *  \param[in] callback Callback to call on completion
  *  \param[in] cb_data  User data handle passed to callback on completion
  */
-void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data);
+M_API void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data);
 
 /*! Notify the DNS subsystem of any updates to connection status on a given
  *  IP address.  This will cause future results of M_dns_gethostbyname() to be
@@ -160,7 +160,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
  *  \param[in] ipaddr  String form of IP address
  *  \param[in] status  Status of connection attempt.
  */
-void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_status_t status);
+M_API void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_status_t status);
 
 
 /*! Convert the string form ip address of the given address family to its binary form.
@@ -170,7 +170,7 @@ void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_
  *  \param[out] dst  Buffer of adequate size to hold AF_INET (32bits) or AF_INET6 (128bits) result
  *  \return M_TRUE on success, M_FALSE on conversion failure
  */
-M_bool M_dns_pton(int af, const char *src, void *dst);
+M_API M_bool M_dns_pton(int af, const char *src, void *dst);
 
 /*! Convert the binary form of ip address of the given address family to its string form.
  *  \param[in]  af        Address family of AF_INET or AF_INET6
@@ -179,7 +179,7 @@ M_bool M_dns_pton(int af, const char *src, void *dst);
  *  \param[in]  addr_size Size of destination buffer
  *  \return M_TRUE on success, M_FALSE on conversion failure.
  */
-M_bool M_dns_ntop(int af, const void *src, char *addr, size_t addr_size);
+M_API M_bool M_dns_ntop(int af, const void *src, char *addr, size_t addr_size);
 
 /*! @} */
 
