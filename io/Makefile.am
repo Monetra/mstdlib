@@ -59,7 +59,8 @@ libmstdlib_io_la_SOURCES +=     \
 else
 if MACOSX
 libmstdlib_io_la_SOURCES +=     \
-	m_io_hid_mac.c
+	m_io_hid_mac.c          \
+        m_io_mac_runlooper.c
 else
 libmstdlib_io_la_SOURCES +=     \
 	m_io_hid_notimpl.c
