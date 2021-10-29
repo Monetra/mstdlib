@@ -146,8 +146,8 @@ static M_dns_cache_entry_t *M_dns_cache_insert_entry(M_dns_t *dns, const char *h
 {
 	char                        entrystr[256];
 	M_dns_cache_entry_t        *entry;
-	struct ares_addrinfo_node  *node    = ai->nodes;
-	struct ares_addrinfo_cname *cnode   = ai->cnames;
+	struct ares_addrinfo_node  *node    = NULL;
+	struct ares_addrinfo_cname *cnode   = NULL;
 	M_uint64                    min_ttl = dns->query_cache_max_s;
 
 	entry = M_dns_cache_get_entry(dns, hostname, aftype);
@@ -163,7 +163,7 @@ static M_dns_cache_entry_t *M_dns_cache_insert_entry(M_dns_t *dns, const char *h
 	entry->addrs      = M_list_str_create(M_LIST_STR_NONE);
 	entry->ts         = M_time();
 
-	while (node != NULL) {
+	for (node = ai->nodes; node != NULL; node = node->ai_next) {
 		char str[128];
 		void *ptr = NULL;
 		switch (node->ai_family) {
@@ -183,11 +183,10 @@ static M_dns_cache_entry_t *M_dns_cache_insert_entry(M_dns_t *dns, const char *h
 			if (node->ai_ttl > 0 && (M_uint64)node->ai_ttl < min_ttl)
 				min_ttl = (M_uint64)node->ai_ttl;
 		}
-		node = node->ai_next;
 	}
 
 	/* Scan through cnames just to make sure we have the real min_ttl */
-	while (cnode != NULL) {
+	for (cnode = ai->cnames; cnode != NULL; cnode = cnode->next) {
 		if (cnode->ttl > 0 && (M_uint64)cnode->ttl < min_ttl)
 			min_ttl = (M_uint64)cnode->ttl;
 	}
@@ -274,8 +273,10 @@ void M_dns_happyeyeballs_update(M_dns_t *dns, const char *ipaddr, M_dns_happyeb_
 static M_dns_happyeb_status_t M_dns_happyeb_fetch_status(M_dns_t *dns, const char *addr)
 {
 	M_dns_happyeb_result_t *result = M_hash_strvp_get_direct(dns->happyeb, addr);
-	if (result)
+	if (result) {
 		return result->hestatus;
+	}
+
 	return M_HAPPYEB_STATUS_UNKNOWN;
 }
 
@@ -290,10 +291,9 @@ static void M_dns_happyeb_purge_expired(M_dns_t *dns)
 		M_llist_node_t         *next   = M_llist_node_next(node);
 
 		/* Stop when we hit non-expired entries */
-		if (result->ts + (M_time_t)dns->happyeyeballs_cache_max_s < t) {
+		if (result->ts + (M_time_t)dns->happyeyeballs_cache_max_s > t) {
 			break;
 		}
-
 		M_hash_strvp_remove(dns->happyeb, result->addr, M_TRUE);
 		node = next;
 	}
@@ -444,7 +444,7 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 			M_hash_u64vp_enumerate_free(hashenum);
 
 			for (j=0; j<M_list_u64_len(fdlist); j++) {
-				ares_socket_t fd = (ares_socket_t)M_list_u64_at(fdlist, i);
+				ares_socket_t fd = (ares_socket_t)M_list_u64_at(fdlist, j);
 					ares_process_fd(achannel->channel,
 					                (*type != M_EVENT_TYPE_WRITE)?fd:ARES_SOCKET_BAD,
 					                (*type == M_EVENT_TYPE_WRITE)?fd:ARES_SOCKET_BAD);
@@ -645,18 +645,6 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 }
 
 
-static void M_dns_destroy_ares_channel(M_dns_ares_t *achannel)
-{
-	achannel->destroy_pending = M_TRUE;
-
-	if (achannel->queries_pending)
-		return;
-
-	ares_destroy(achannel->channel);
-	achannel->channel = NULL;
-	M_list_remove_val(achannel->dns->ares_channels, achannel, M_LIST_MATCH_PTR);
-}
-
 static size_t M_dns_num_servers(ares_channel channel)
 {
 	size_t                 num_servers = 0;
@@ -684,7 +672,9 @@ static M_bool M_dns_reload_server(M_dns_t *dns, M_bool force_reload)
 	int                 err;
 	struct ares_options options;
 	size_t              num_servers;
+	M_bool              purged_old;
 	M_dns_ares_t       *achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_last(dns->ares_channels));
+	size_t              i;
 
 	if (achannel && !force_reload && M_time() < achannel->load_ts + (M_time_t)dns->server_cache_timeout_s)
 		return M_TRUE;
@@ -710,7 +700,7 @@ M_printf("ares_init_options failed (%d): %s\n", err, ares_strerror(err));
 
 	/* Mark other channel as destroy */
 	if (achannel != NULL) {
-		M_dns_destroy_ares_channel(achannel);
+		achannel->destroy_pending = M_TRUE;
 	}
 
 	achannel          = M_malloc_zero(sizeof(*achannel));
@@ -718,6 +708,21 @@ M_printf("ares_init_options failed (%d): %s\n", err, ares_strerror(err));
 	achannel->channel = channel;
 	achannel->dns     = dns;
 	M_list_insert(dns->ares_channels, achannel);
+
+	/* Purge any now unused ares channels */
+	purged_old = M_TRUE;
+	while (purged_old) {
+		purged_old = M_FALSE;
+		for (i=0; i<M_list_len(dns->ares_channels); i++) {
+			achannel = M_CAST_OFF_CONST(M_dns_ares_t *, M_list_at(dns->ares_channels, i));
+			if (achannel->destroy_pending && achannel->queries_pending == 0) {
+				M_list_remove_at(dns->ares_channels, i);
+				purged_old = M_TRUE;
+				/* Have to break out on purge, and retry as the index is now different */
+				break;
+			}
+		}
+	}
 
 	return M_TRUE;
 }
@@ -919,9 +924,6 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 
 	/* If there is a destroy pending and we were the last query result, destroy! */
 	query->achannel->queries_pending--;
-	if (query->achannel->destroy_pending && query->achannel->queries_pending == 0) {
-		M_dns_destroy_ares_channel(query->achannel);
-	}
 
 	M_thread_mutex_unlock(query->dns->lock);
 
@@ -956,6 +958,7 @@ static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M
 	achannel->queries_pending++;
 	query->achannel = achannel;
 	M_thread_mutex_unlock(query->dns->lock);
+
 	ares_getaddrinfo(achannel->channel, query->hostname, NULL, &hints, ares_addrinfo_cb, query);
 }
 
@@ -1070,7 +1073,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	}
 
 	/* We need to do a real DNS lookup, so we'd better have what we need */
-	if (dns == NULL || event == NULL) {
+	if (dns == NULL) {
 		callback(NULL, cb_data, M_DNS_RESULT_INVALID);
 		return;
 	}

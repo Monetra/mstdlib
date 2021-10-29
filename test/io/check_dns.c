@@ -32,7 +32,7 @@
 M_bool got_response = M_FALSE;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -47,7 +47,7 @@ static void event_debug(const char *fmt, ...)
 	M_time_gettimeofday(&tv);
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
-	M_vprintf(buf, ap);
+	M_vdprintf(1, buf, ap);
 	va_end(ap);
 }
 #else
@@ -294,16 +294,95 @@ END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static volatile M_uint32 queries = 0;
+
+static void ghbn_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t result)
+{
+	M_uint32 num_left;
+	const char *addr;
+	ck_assert_msg(result == M_DNS_RESULT_SUCCESS, "Expected successful DNS query for %s, got %d", (const char *)cb_data, (int)result);
+	ck_assert_msg(M_list_str_len(ipaddrs) > 0, "Expected DNS query for %s to return ip addresses", (const char *)cb_data);
+
+	num_left = M_atomic_dec_u32(&queries) - 1;
+	addr     = M_list_str_at(ipaddrs, M_rand_range(NULL, 0, M_list_str_len(ipaddrs)));
+	event_debug("result for %s returned %zu ip addresses. marking %s as heb GOOD. %u queries remaining", (const char *)cb_data, M_list_str_len(ipaddrs), addr, num_left);
+
+	M_dns_happyeyeballs_update(dns, addr, M_HAPPYEB_STATUS_GOOD);
+}
+
+static void ghbn_cache_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t result)
+{
+	M_uint32 num_left;
+	ck_assert_msg(result == M_DNS_RESULT_SUCCESS_CACHE, "Expected successful cached DNS query for %s, got %d", (const char *)cb_data, (int)result);
+	ck_assert_msg(M_list_str_len(ipaddrs) > 0, "Expected DNS query for %s to return ip addresses", (const char *)cb_data);
+
+	num_left = M_atomic_dec_u32(&queries) - 1;
+	event_debug("result for %s returned %zu ip addresses. first ip is %s. %u queries remaining", (const char *)cb_data, M_list_str_len(ipaddrs), M_list_str_at(ipaddrs, 0), num_left);
+}
+
+
+
+START_TEST(check_dns_reload)
+{
+	const char * const hosts[]        = {
+		"google.com",       "www.google.com",
+		"microsoft.com",    "www.microsoft.com",
+		"facebook.com",     "www.facebook.com",
+		"amazon.com",       "www.amazon.com",
+		"apple.com",        "www.apple.com",
+		"linkedin.com",     "www.linkedin.com",
+		"ibm.com",          "www.ibm.com",
+		"cloudflare.com",   "www.cloudflare.com",
+		NULL
+	};
+	size_t             i;
+
+	dns = M_dns_create(NULL);
+
+	for (i=0; hosts[i] != NULL; i++) {
+		M_atomic_inc_u32(&queries);
+		event_debug("query: %s", hosts[i]);
+		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cb, M_CAST_OFF_CONST(void *, hosts[i]));
+
+		/* Force reload of server by changing the config */
+		M_dns_set_query_timeout(dns, 5000 - (i+1));
+	}
+
+	while (queries)
+		M_thread_sleep(20);
+
+	event_debug("query cached results");
+
+	/* This should get cached results now */
+	for (i=0; hosts[i] != NULL; i++) {
+		M_atomic_inc_u32(&queries);
+		event_debug("query: %s", hosts[i]);
+		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cache_cb, M_CAST_OFF_CONST(void *, hosts[i]));
+	}
+
+	event_debug("all queries done");
+	M_thread_sleep(200);
+
+	M_dns_destroy(dns);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 static Suite *dns_suite(void)
 {
 	Suite *suite;
-	TCase *tc_dns;
+	TCase *tc;
 
 	suite = suite_create("dns");
 
-	tc_dns = tcase_create("dns");
-	tcase_add_test(tc_dns, check_dns);
-	suite_add_tcase(suite, tc_dns);
+	tc = tcase_create("dns_reload");
+	tcase_add_test(tc, check_dns_reload);
+	tcase_set_timeout(tc, 60);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("dns");
+	tcase_add_test(tc, check_dns);
+	suite_add_tcase(suite, tc);
 
 	return suite;
 }
