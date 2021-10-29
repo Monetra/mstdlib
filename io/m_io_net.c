@@ -47,7 +47,6 @@
 #ifndef _WIN32
 #  include <unistd.h>
 #endif
-#include "m_dns_int.h"
 #include "m_io_net_int.h"
 
 #ifndef HAVE_SOCKLEN_T

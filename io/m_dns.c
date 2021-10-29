@@ -27,7 +27,6 @@
 #include <mstdlib/mstdlib_text.h>
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
-#include "m_dns_int.h"
 #include "ares.h"
 #ifndef _WIN32
 #  include <netdb.h>
@@ -47,6 +46,8 @@ typedef struct {
 } M_dns_ares_t;
 
 struct M_dns {
+	M_bool                isup;
+
 	M_thread_mutex_t     *lock;              /*!< Concurrency lock */
 	M_bool                destroy_pending;   /*!< Whether or not entire DNS subsystem is terminating */
 	M_event_t            *event;             /*!< Registered event object */
@@ -69,7 +70,6 @@ struct M_dns {
 };
 
 struct M_io_handle {
-	M_bool           isup;
 	M_dns_t         *dns;
 	M_io_t          *io;
 	M_event_timer_t *timer;
@@ -466,7 +466,7 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	M_io_dns_ares_update_timeout(layer);
 
 	/* Allow a real disconnect to passthru */
-	if (*type == M_EVENT_TYPE_DISCONNECTED && !handle->isup) {
+	if (*type == M_EVENT_TYPE_DISCONNECTED && !handle->dns->isup) {
 
 		M_thread_mutex_lock(handle->dns->lock);
 
@@ -541,7 +541,7 @@ static M_bool M_io_dns_init_cb(M_io_layer_t *layer)
 static M_io_state_t M_io_dns_state_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	if (!handle->isup)
+	if (!handle->dns->isup)
 		return M_IO_STATE_DISCONNECTED;
 	return M_IO_STATE_CONNECTED;
 }
@@ -551,11 +551,11 @@ static M_bool M_io_dns_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
-	if (!handle->isup)
+	if (!handle->dns->isup)
 		return M_TRUE;
 
 	/* Set down */
-	handle->isup = M_FALSE;
+	handle->dns->isup = M_FALSE;
 
 	/* Signal disconnect */
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_DISCONNECTED, M_IO_ERROR_DISCONNECT);
@@ -572,9 +572,9 @@ static M_io_t *M_io_dns_create(M_dns_t *dns, M_event_t *event)
 	if (dns == NULL)
 		return NULL;
 
-	handle           = M_malloc_zero(sizeof(*handle));
-	handle->dns      = dns;
-	handle->isup     = M_TRUE;
+	handle            = M_malloc_zero(sizeof(*handle));
+	handle->dns       = dns;
+	handle->dns->isup = M_TRUE;
 
 	io        = M_io_init(M_IO_TYPE_STREAM);
 	callbacks = M_io_callbacks_create();
@@ -838,18 +838,18 @@ M_dns_t *M_dns_create(M_event_t *event)
 
 
 typedef struct  {
-	M_dns_t            *dns;          /*!< Handle to DNS context                         */
-	M_dns_ares_t       *achannel;     /*!< Pointer to ares_channel handling query        */
-	char               *hostname;     /*!< Requested hostname to query                   */
-	int                 aftype;       /*!< Requested type (AF_INET, AF_INET6, AF_UNSPEC) */
-	M_event_t          *event;        /*!< Event loop to run callback on                 */
+	M_dns_t              *dns;          /*!< Handle to DNS context                         */
+	M_dns_ares_t         *achannel;     /*!< Pointer to ares_channel handling query        */
+	char                 *hostname;     /*!< Requested hostname to query                   */
+	int                   aftype;       /*!< Requested type (AF_INET, AF_INET6, AF_UNSPEC) */
+	M_event_t            *event;        /*!< Event loop to run callback on                 */
 
-	M_io_dns_callback_t callback;     /*!< User-provided callback                        */
-	void               *cb_data;      /*!< User-provided callback data                   */
+	M_dns_ghbn_callback_t callback;     /*!< User-provided callback                        */
+	void                 *cb_data;      /*!< User-provided callback data                   */
 
 	/* Result Data */
-	M_list_str_t       *ipaddrs;      /*!< List of ip addresses returned */
-	M_dns_result_t      result;       /*!< Ending result code */
+	M_list_str_t         *ipaddrs;      /*!< List of ip addresses returned */
+	M_dns_result_t        result;       /*!< Ending result code */
 } M_dns_query_t;
 
 
@@ -925,7 +925,11 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 
 	M_thread_mutex_unlock(query->dns->lock);
 
-	M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
+	if (query->event) {
+		M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
+	} else {
+		M_dns_gethostbyname_result_cb(NULL, M_EVENT_TYPE_OTHER, NULL, query);
+	}
 }
 
 static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
@@ -1027,7 +1031,7 @@ static char *M_dns_punyhostname(const char *hostname)
 }
 
 
-void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_io_dns_callback_t callback, void *cb_data)
+void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data)
 {
 	char                *punyhost = NULL;
 	int                  aftype;
@@ -1087,6 +1091,14 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	aftype = type == M_IO_NET_IPV4?AF_INET:(type == M_IO_NET_IPV6?AF_INET6:AF_UNSPEC);
 
 	M_thread_mutex_lock(dns->lock);
+
+	if (!dns->isup) {
+		M_thread_mutex_unlock(dns->lock);
+		M_free(punyhost);
+		callback(NULL, cb_data, M_DNS_RESULT_INVALID);
+		return;
+	}
+
 	entry = M_dns_cache_get_entry(dns, hostname, aftype);
 	if (entry != NULL && (entry->ts + (M_time_t)entry->ttl) > M_time()) {
 		M_list_str_t *ipaddrs = M_dns_happyeb_sort(dns, entry->addrs);
@@ -1099,8 +1111,6 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	}
 
 	M_thread_mutex_unlock(dns->lock);
-
-	/* XXX: Reference count dns */
 
 	query           = M_malloc_zero(sizeof(*query));
 	query->hostname = M_strdup(hostname);
@@ -1118,6 +1128,8 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 
 M_bool M_dns_set_query_timeout(M_dns_t *dns, M_uint64 timeout_ms)
 {
+	M_bool queue_reload = M_FALSE;
+
 	if (dns == NULL)
 		return M_FALSE;
 
@@ -1125,17 +1137,24 @@ M_bool M_dns_set_query_timeout(M_dns_t *dns, M_uint64 timeout_ms)
 		timeout_ms = 5000;
 
 	M_thread_mutex_lock(dns->lock);
-
-	dns->query_timeout_ms = timeout_ms;
-	M_event_queue_task(dns->event, M_dns_reload_server_cb, dns);
-
+	if (dns->isup && dns->query_timeout_ms != timeout_ms) {
+		dns->query_timeout_ms = timeout_ms;
+		queue_reload          = M_TRUE;
+	}
 	M_thread_mutex_unlock(dns->lock);
+
+	if (queue_reload)
+		M_event_queue_task(dns->event, M_dns_reload_server_cb, dns);
+
+
 	return M_TRUE;
 }
 
 
 M_bool M_dns_set_cache_timeout(M_dns_t *dns, M_uint64 max_timeout_s)
 {
+	M_bool queue_reload = M_FALSE;
+
 	if (dns == NULL)
 		return M_FALSE;
 
@@ -1143,11 +1162,15 @@ M_bool M_dns_set_cache_timeout(M_dns_t *dns, M_uint64 max_timeout_s)
 		max_timeout_s = 3600; /* 1 hr */
 
 	M_thread_mutex_lock(dns->lock);
-
-	dns->query_cache_max_s = max_timeout_s;
-	M_event_queue_task(dns->event, M_dns_reload_server_cb, dns);
-
+	if (dns->isup && dns->query_cache_max_s != max_timeout_s) {
+		dns->query_cache_max_s = max_timeout_s;
+		queue_reload           = M_TRUE;
+	}
 	M_thread_mutex_unlock(dns->lock);
+
+	if (queue_reload)
+		M_event_queue_task(dns->event, M_dns_reload_server_cb, dns);
+
 	return M_TRUE;
 }
 

@@ -28,7 +28,6 @@
 #include <mstdlib/base/m_types.h>
 #include <mstdlib/io/m_io.h>
 #include <mstdlib/io/m_event.h>
-#include <mstdlib/io/m_dns.h>
 
 __BEGIN_DECLS
 
@@ -339,6 +338,8 @@ enum M_io_net_type {
 	M_IO_NET_IPV6 = 3  /*!< ipv6 only           */
 };
 typedef enum M_io_net_type M_io_net_type_t;
+
+#include <mstdlib/io/m_dns.h>
 
 /*! Create a server listener net object.
  *

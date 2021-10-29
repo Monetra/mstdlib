@@ -73,8 +73,8 @@
  */
 
 #include <mstdlib/io/m_io.h>
-#include <mstdlib/io/m_dns.h>
 #include <mstdlib/io/m_io_net.h>
+#include <mstdlib/io/m_dns.h>
 #include <mstdlib/io/m_io_pipe.h>
 #include <mstdlib/io/m_event.h>
 #include <mstdlib/io/m_io_ble.h>

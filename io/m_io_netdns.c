@@ -27,7 +27,6 @@
 #include "m_event_int.h"
 #include "base/m_defs_int.h"
 #include "m_io_net_int.h"
-#include "m_dns_int.h"
 #include "m_io_int.h"
 
 static M_io_error_t M_io_netdns_read_cb(M_io_layer_t *layer, unsigned char *buf, size_t *read_len, M_io_meta_t *meta)
