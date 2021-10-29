@@ -16,7 +16,7 @@ M_uint64 runtime_ms;
 #ifdef DEBUG
 #  undef DEBUG
 #endif
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>

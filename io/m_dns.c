@@ -648,16 +648,17 @@ static void M_dns_ares_sock_state_cb(void *arg, ares_socket_t sock_fd, int reada
 static size_t M_dns_num_servers(ares_channel channel)
 {
 	size_t                 num_servers = 0;
+	struct ares_addr_node *servers     = NULL;
 	struct ares_addr_node *node        = NULL;
 
 	if (channel == NULL)
 		return 3;
 
-	ares_get_servers(channel, &node);
-	while (node != NULL) {
+	ares_get_servers(channel, &servers);
+	for (node = servers; node != NULL; node = node->next) {
 		num_servers++;
-		node=node->next;
 	}
+	ares_free_data(servers);
 
 	if (num_servers == 0)
 		num_servers = 3;
