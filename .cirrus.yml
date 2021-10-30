@@ -44,8 +44,8 @@ task:
       env:
         BUILD_TYPE: "autotools"
     - name: "ASAN"
-      # FreeBSD just hangs trying to run tests, think it may be trying to run leak sanitizer
-      only_if: $DIST != 'FREEBSD'
+      # Only run on x64 debian, anything else is unstable
+      only_if: $DIST == 'DEBIAN'
       env:
         BUILD_TYPE: "asan"
         CC: "clang"
