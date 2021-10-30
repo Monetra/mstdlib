@@ -365,6 +365,7 @@ START_TEST(check_dns_reload)
 
 	M_dns_destroy(dns);
 }
+END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
