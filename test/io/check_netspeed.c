@@ -130,6 +130,9 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT) / 1024, M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);
+			event_debug("net client %zu event objects", M_event_num_objects(event));
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -177,9 +180,10 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			KBps = (M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN) / M_MAX(1, (M_io_bwshaping_get_totalms(comm, server_id) / 1000))) / 1024;
 			M_printf("Speed: %llu.%03llu MB/s\n", KBps/1024, KBps % 1024);
 			M_io_destroy(comm);
-			M_io_destroy(netserver);
-			M_event_done(event);
 			net_data_destroy(data);
+			event_debug("net serverconn %zu event objects", M_event_num_objects(event));
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -195,11 +199,13 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	event_debug("net server %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_ACCEPT:
-			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
-				event_debug("Accepted new connection");
-				M_event_add(event, newcomm, net_serverconn_cb, net_data_create());
+			if (M_io_accept(&newcomm, comm) != M_IO_ERROR_SUCCESS)
+				break;
 
-			}
+			event_debug("Accepted new connection");
+			M_event_add(event, newcomm, net_serverconn_cb, net_data_create());
+			/* We aren't listening for any new connections, destroy listener */
+			M_io_destroy(comm);
 			break;
 		default:
 			/* Ignore */
@@ -226,7 +232,7 @@ static const char *event_err_msg(M_event_err_t err)
 static M_bool check_netspeed_test(void)
 {
 	M_event_t         *event = M_event_pool_create(0);
-	//M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
+	//M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *netclient;
 	M_event_err_t      err;
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
@@ -274,14 +280,13 @@ static M_bool check_netspeed_test(void)
 
 	event_debug("added client connections to event loop");
 
-	err = M_event_loop(event, 20000);
+	err = M_event_loop(event, 10000);
 
-	event_debug("event loop exited");
+	event_debug("event loop exited (%zu objects)", M_event_num_objects(event));
 
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 
 	/* Cleanup */
-	//M_io_destroy(netserver);
 	M_event_destroy(event);
 	M_library_cleanup();
 	event_debug("exited");
