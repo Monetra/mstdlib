@@ -83,7 +83,7 @@ static void trigger_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void
 static size_t event_timer_test(M_uint64 start_delay_ms, M_uint64 end_ms, M_uint64 interval_ms, M_uint64 max_runtime_ms,
                                size_t fire_cnt, M_event_timer_mode_t mode, M_bool use_trigger, M_uint64 first_event_delay_ms)
 {
-	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY|M_EVENT_FLAG_NOWAKE);
+	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	event_data_t      *data  = M_malloc_zero(sizeof(*data));
 	M_event_timer_t   *timer;
 	size_t             events;

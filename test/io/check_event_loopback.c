@@ -120,7 +120,7 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_event_err_t check_event_loopback_test(M_uint64 num_connections)
 {
-	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY|M_EVENT_FLAG_NOWAKE);
+	M_event_t         *event = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *io;
 	size_t             i;
 	M_event_err_t      err;

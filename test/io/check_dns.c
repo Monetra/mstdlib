@@ -258,7 +258,7 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 START_TEST(check_dns)
 {
-	M_event_t         *event     = M_event_create(M_EVENT_FLAG_EXITONEMPTY|M_EVENT_FLAG_NOWAKE);
+	M_event_t         *event     = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t            *netclient = NULL;
 #ifdef USE_SSL
 	M_tls_clientctx_t *ctx       = NULL;
