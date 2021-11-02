@@ -119,9 +119,9 @@ endif ()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SQLite Amalgamation
 file(REMOVE_RECURSE "${srcdir}/thirdparty/sqlite-amalgamation")
-set(sqlite_name sqlite-amalgamation-3290000)
+set(sqlite_name sqlite-amalgamation-3360000)
 message("Downloading and extracting ${sqlite_name}.zip into ${src_dir}/thirdparty/sqlite-amalgamation ...")
-file(DOWNLOAD https://sqlite.org/2019/${sqlite_name}.zip
+file(DOWNLOAD https://sqlite.org/2021/${sqlite_name}.zip
 	"${srcdir}/thirdparty/${sqlite_name}.zip"
 	INACTIVITY_TIMEOUT 5
 	TIMEOUT 40
