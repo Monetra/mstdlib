@@ -141,3 +141,4 @@ if (NOT res EQUAL 0)
 	message(FATAL_ERROR "Failed to extract sqlite amalgamation from zip file.")
 endif ()
 file(RENAME "${srcdir}/thirdparty/${sqlite_name}" "${srcdir}/thirdparty/sqlite-amalgamation")
+
