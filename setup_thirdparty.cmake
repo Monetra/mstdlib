@@ -125,7 +125,7 @@ file(DOWNLOAD https://sqlite.org/2021/${sqlite_name}.zip
 	"${srcdir}/thirdparty/${sqlite_name}.zip"
 	INACTIVITY_TIMEOUT 5
 	TIMEOUT 40
-	EXPECTED_HASH SHA1=a0eba79e5d1627946aead47e100a8a6f9f6fafff
+	EXPECTED_HASH SHA1=0c049c365896b71b6e291c9a262d2d0fbce7b4e6
 	STATUS res
 )
 if (NOT res MATCHES "^0;")
