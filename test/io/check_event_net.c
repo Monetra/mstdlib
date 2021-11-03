@@ -147,16 +147,14 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_get_error_string(comm, error, sizeof(error));
 				M_printf("net client %p ERROR - %s\n", comm, error);
 			}
-			if (connstate->is_connected) {
-				M_atomic_dec_u64(&active_client_connections);
-			} else {
-				event_debug("***WARN***: net client %p error or disconnect before connect", comm);
-			}
+			ck_assert_msg(connstate->is_connected, "net client %p error or disconnect before connect", comm);
+
+			M_atomic_dec_u64(&active_client_connections);
 			event_debug("net client %p Freeing connection", comm);
 			M_free(connstate);
 			M_io_destroy(comm);
 			net_output_stats(event);
-			if (M_event_num_objects(event) == 0)
+			if (M_event_num_objects(event) == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
 				M_event_done(event);
 			break;
 		default:
@@ -214,17 +212,12 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
 			event_debug("net serverconn %p Freeing connection", comm);
-			if (connstate->is_connected) {
-				M_atomic_dec_u64(&active_server_connections);
-			} else {
-				event_debug("***WARN***: net serverconn %p error or disconnect before connect", comm);
-				/* Critical error */
-				M_event_return(event);
-			}
+			ck_assert_msg(connstate->is_connected, "net serverconn %p error or disconnect before connect", comm);
+			M_atomic_dec_u64(&active_server_connections);
 			M_io_destroy(comm);
 			M_free(connstate);
 			net_output_stats(event);
-			if (M_event_num_objects(event) == 0)
+			if (M_event_num_objects(event) == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
 				M_event_done(event);
 			break;
 		default:
@@ -276,6 +269,7 @@ typedef struct {
 	M_uint64 osevent_cnt;
 	M_uint64 softevent_cnt;
 	M_uint64 timer_cnt;
+	M_uint64 runtime_ms;
 } stats_t;
 
 static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool, M_bool scalable_only, stats_t *stats)
@@ -387,50 +381,57 @@ START_TEST(check_event_net_stat)
 {
 	M_event_err_t err;
 	size_t        i;
+	size_t        cnt;
+	stats_t      *stats;
 
-#define STATS_INIT { 0, 0, 0, 0, 0 }
 	struct {
 		const char *name;
 		M_uint64    num_conns;
 		M_uint64    delay_response_ms;
 		M_bool      scalable_only;
-		stats_t     stats;
 	} tests[] = {
-		{ "small 1 conn no delay   ", 1,   0, M_FALSE, STATS_INIT },
-		{ "small 1 conn 15ms delay ", 1,  15, M_FALSE, STATS_INIT },
-		{ "small 1 conn 300ms delay", 1, 300, M_FALSE, STATS_INIT },
-		{ "large 1 conn no delay   ", 1,   0, M_TRUE,  STATS_INIT },
-		{ "large 1 conn 15ms delay ", 1,  15, M_TRUE,  STATS_INIT },
-		{ "large 1 conn 300ms delay", 1, 300, M_TRUE,  STATS_INIT },
-		{ "small 2 conn no delay   ", 2,   0, M_FALSE, STATS_INIT },
-		{ "small 2 conn 15ms delay ", 2,  15, M_FALSE, STATS_INIT },
-		{ "small 2 conn 300ms delay", 2, 300, M_FALSE, STATS_INIT },
-		{ "large 2 conn no delay   ", 2,   0, M_TRUE,  STATS_INIT },
-		{ "large 2 conn 15ms delay ", 2,  15, M_TRUE,  STATS_INIT },
-		{ "large 2 conn 300ms delay", 2, 300, M_TRUE,  STATS_INIT },
-		{ "small 5 conn no delay   ", 5,   0, M_FALSE, STATS_INIT },
-		{ "small 5 conn 15ms delay ", 5,  15, M_FALSE, STATS_INIT },
-		{ "small 5 conn 300ms delay", 5, 300, M_FALSE, STATS_INIT },
-		{ "large 5 conn no delay   ", 5,   0, M_TRUE,  STATS_INIT },
-		{ "large 5 conn 15ms delay ", 5,  15, M_TRUE,  STATS_INIT },
-		{ "large 5 conn 300ms delay", 5, 300, M_TRUE,  STATS_INIT },
-		{ NULL, 0, 0, M_FALSE, STATS_INIT }
+		{ "small 1 conn no delay   ", 1,   0, M_FALSE },
+		{ "small 1 conn 15ms delay ", 1,  15, M_FALSE },
+		{ "small 1 conn 300ms delay", 1, 300, M_FALSE },
+		{ "large 1 conn no delay   ", 1,   0, M_TRUE  },
+		{ "large 1 conn 15ms delay ", 1,  15, M_TRUE  },
+		{ "large 1 conn 300ms delay", 1, 300, M_TRUE  },
+		{ "small 2 conn no delay   ", 2,   0, M_FALSE },
+		{ "small 2 conn 15ms delay ", 2,  15, M_FALSE },
+		{ "small 2 conn 300ms delay", 2, 300, M_FALSE },
+		{ "large 2 conn no delay   ", 2,   0, M_TRUE  },
+		{ "large 2 conn 15ms delay ", 2,  15, M_TRUE  },
+		{ "large 2 conn 300ms delay", 2, 300, M_TRUE  },
+		{ "small 5 conn no delay   ", 5,   0, M_FALSE },
+		{ "small 5 conn 15ms delay ", 5,  15, M_FALSE },
+		{ "small 5 conn 300ms delay", 5, 300, M_FALSE },
+		{ "large 5 conn no delay   ", 5,   0, M_TRUE  },
+		{ "large 5 conn 15ms delay ", 5,  15, M_TRUE  },
+		{ "large 5 conn 300ms delay", 5, 300, M_TRUE  },
 	};
 
-	for (i=0; tests[i].name != NULL; i++) {
-		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].scalable_only, &tests[i].stats);
+	cnt   = sizeof(tests) / sizeof(*tests);
+	stats = M_malloc_zero(cnt * sizeof(*stats));
+
+	for (i=0; i < cnt; i++) {
+		M_timeval_t starttv;
+		M_time_elapsed_start(&starttv);
+		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].scalable_only, &stats[i]);
 		ck_assert_msg(err == M_EVENT_ERR_DONE, "%s expected M_EVENT_ERR_DONE got %s", tests[i].name, event_err_msg(err));
+		stats[i].runtime_ms = M_time_elapsed(&starttv);
 	}
 
 	M_printf("===================\n");
-	for (i=0; tests[i].name != NULL; i++) {
+	for (i=0; i < cnt; i++) {
 		M_printf("%s: statistics\n", tests[i].name);
-		M_printf("\twake count:      %llu\n", tests[i].stats.wake_cnt);
-		M_printf("\tosevent count:   %llu\n", tests[i].stats.osevent_cnt);
-		M_printf("\tsoftevent count: %llu\n", tests[i].stats.softevent_cnt);
-		M_printf("\ttimer count:     %llu\n", tests[i].stats.timer_cnt);
-		M_printf("\tprocess time ms: %llu\n", tests[i].stats.process_time_ms);
+		M_printf("\twake count:      %llu\n", stats[i].wake_cnt);
+		M_printf("\tosevent count:   %llu\n", stats[i].osevent_cnt);
+		M_printf("\tsoftevent count: %llu\n", stats[i].softevent_cnt);
+		M_printf("\ttimer count:     %llu\n", stats[i].timer_cnt);
+		M_printf("\tprocess time ms: %llu\n", stats[i].process_time_ms);
+		M_printf("\truntime ms:      %llu\n", stats[i].runtime_ms);
 	}
+	M_free(stats);
 }
 END_TEST
 
