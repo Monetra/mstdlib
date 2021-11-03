@@ -18,7 +18,7 @@ M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_io_t  *netserver;
 M_thread_mutex_t *debug_lock = NULL;
-
+M_dns_t           *dns = NULL;
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
 #define DEBUG 0
@@ -351,7 +351,6 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	M_tls_clientctx_t  *clientctx;
 	M_list_str_t       *applist;
 	M_io_error_t        ioerr;
-	M_dns_t            *dns  = M_dns_create(event);
 	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 	const char * const hosts[] = { "localhost"
 #ifdef RANDOMIZE_HOSTS
@@ -365,6 +364,8 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	client_connection_count   = 0;
 	server_connection_count   = 0;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+
+	dns  = M_dns_create(event);
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -643,6 +644,8 @@ static void net_serverconn_sad_cb(M_event_t *event, M_event_type_t type, M_io_t 
 			}
 			event_debug("net serverconn %p Freeing connection", comm);
 			M_io_destroy(comm);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -657,9 +660,11 @@ static void net_server_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	event_debug("net server %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_ACCEPT:
-			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
+			if (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
 				M_event_add(M_event_get_pool(event), newcomm, net_serverconn_sad_cb, NULL);
+				event_debug("stopping listener, no longer needed");
+				M_io_destroy(comm);
 			}
 			break;
 		default:
@@ -687,6 +692,8 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_tls_get_cipher(comm, M_IO_LAYER_FIND_FIRST_ID),
 				M_tls_get_sessionreused(comm, M_IO_LAYER_FIND_FIRST_ID)?"session reused":"session not reused");
 			rbuf = M_buf_create();
+			/* No longer need dns */
+			M_dns_destroy(dns); dns = NULL;
 			break;
 
 		case M_EVENT_TYPE_WRITE:
@@ -711,7 +718,6 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			} else {
 				if (M_buf_len(rbuf) == SEND_AND_DISCONNECT_SIZE) {
 					event_debug("net sad client received FULL data: %zu bytes", M_buf_len(rbuf));
-					M_event_done_with_disconnect(event, 0, 1000);
 				} else {
 					event_debug("net sad client received partial data: %zu of %zu bytes", M_buf_len(rbuf), (size_t)SEND_AND_DISCONNECT_SIZE);
 					M_event_return(event);
@@ -721,6 +727,8 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			rbuf = NULL;
 			event_debug("net sad client %p Freeing connection", comm);
 			M_io_destroy(comm);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -741,9 +749,10 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	M_tls_clientctx_t  *clientctx;
 	M_io_error_t        ioerr;
 	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
-	M_dns_t           *dns     = M_dns_create(event);
 	const char * const hosts[] = { "localhost" };
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+
+	dns     = M_dns_create(event);
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -871,8 +880,6 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	event_debug("exited loop");
 	/* Cleanup */
 
-	M_io_destroy(netserver);
-	M_dns_destroy(dns);
 	M_event_destroy(event);
 
 	M_tls_clientctx_destroy(clientctx);
