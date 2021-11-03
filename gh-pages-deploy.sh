@@ -25,7 +25,7 @@ cp -Rpv ${PAGES_DIR}/* gh-pages-deploy/
 
 echo "Pushing new content to ${ORIGIN_URL}:${TARGET_BRANCH}"
 cd gh-pages-deploy
-git config user.name "Travis CI" || exit 1
+git config user.name "CI Deploy" || exit 1
 git config user.email "${COMMIT_AUTHOR_EMAIL}" || exit 1
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
