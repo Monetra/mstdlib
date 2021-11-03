@@ -23,7 +23,7 @@ rm -rf gh-pages-deploy/**/*
 echo "Copying pages content to root"
 cp -Rpv ${PAGES_DIR}/* gh-pages-deploy/
 
-echo "Pushing new content to ${ORIGIN_URL}:${TARGET_BRANCH}"
+echo "Pushing new content to ${ORIGIN_URL}:${TARGET_BRANCH} for CI Deploy ${COMMIT_AUTHOR_EMAIL}"
 cd gh-pages-deploy
 git config user.name "CI Deploy" || exit 1
 git config user.email "${COMMIT_AUTHOR_EMAIL}" || exit 1
@@ -34,9 +34,15 @@ if git diff --quiet; then
     exit 0
 fi
 
+echo "Updating working tree..."
 git add -A .
+
+echo "Saving working tree..."
 git commit -m "Deploy to GitHub Pages: ${CURRENT_COMMIT}"
-git push --quiet "${ORIGIN_URL_WITH_CREDENTIALS}" ${TARGET_BRANCH} > /dev/null 2>&1
+
+echo "Pushing to remote..."
+git push "${ORIGIN_URL_WITH_CREDENTIALS}" ${TARGET_BRANCH}
+
 cd ..
 
 echo "Deployed successfully."
