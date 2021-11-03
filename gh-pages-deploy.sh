@@ -10,7 +10,7 @@ echo "Target: ${TARGET_BRANCH} branch"
 
 CURRENT_COMMIT=`git rev-parse HEAD`
 ORIGIN_URL=`git config --get remote.origin.url`
-ORIGIN_URL_WITH_CREDENTIALS=${ORIGIN_URL/\/\/github.com/\/\/$GITHUB_TOKEN@github.com}
+ORIGIN_URL_WITH_CREDENTIALS=${ORIGIN_URL/\/\/github.com/\/\/$GITHUB_USER:$GITHUB_TOKEN@github.com}
 
 # Clone the existing gh-pages for this repo into gh-pages-deploy/
 # Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
