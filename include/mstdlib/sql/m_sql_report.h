@@ -107,7 +107,7 @@ M_API void M_sql_report_destroy(M_sql_report_t *report);
  * \param[in] row_delim         Delimiter to use between rows, default is a new line (\\r\\n - CRLF). NULL to not change.
  * \param[in] row_delim_size    Number of characters used in row delimiter.  Max size 8.
  * \param[in] field_encaps      Encapsulation character to use for field data that may
- *                              contain the field_delim or row_delim, default is a double quote ("). NULL to not change.
+ *                              contain the field_delim or row_delim, default is a double quote. NULL to not change.
  * \param[in] field_encaps_size Number of characters used in field encapsulation. Max size 8.
  * \param[in] field_escape      Escape character to use if the field contains the encapsulation char,
  *                              default is the same as the encapsulation, a double quote ("), as this is

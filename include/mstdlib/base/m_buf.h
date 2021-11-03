@@ -904,17 +904,15 @@ M_API M_bool M_buf_add_str_replace(M_buf_t *dest_buf, const char *src_str,
  *  is specified.  However, an empty string will always be output as quoted as
  *  that is what differentiates between an empty string an NULL.
  *
- *  \param[out] buf            Buffer to write quoted string to.
- *  \param[in]  quote_char     Quote character to use (often a double quote: ")
- *  \param[in]  escape_char    Escape character to use if either an embedded quote
- *                             is found or another escape character.  For CSV this
- *                             is often the same value as the quote character as
- *                             per RFC4180.
- *  \param[in] quote_req_chars NULL-terminated list of characters that would force
- *                             quoting the string.  Often ",\\r\\n" are used.
- *  \param[in] always_quote    If set to M_TRUE, will always quote the output, M_FALSE
- *                             it will decide based on quote_req_chars.
- *  \param[in] src             Data to be quoted/escaped and appended to the buffer
+ *  \param[out] buf             Buffer to write quoted string to.
+ *  \param[in]  quote_char      Quote character to use (often a double quote)
+ *  \param[in]  escape_char     Escape character to use if either an embedded quote is found or another escape character.
+ *                              For CSV this is often the same value as the quote character as per RFC4180.
+ *  \param[in]  quote_req_chars NULL-terminated list of characters that would force
+ *                              quoting the string.  Often ",\\r\\n" are used.
+ *  \param[in]  always_quote    If set to M_TRUE, will always quote the output, M_FALSE
+ *                              it will decide based on quote_req_chars.
+ *  \param[in]  src             Data to be quoted/escaped and appended to the buffer
  */
 M_API void M_buf_add_str_quoted(M_buf_t *buf, char quote_char, char escape_char, const char *quote_req_chars, M_bool always_quote, const char *src);
 
