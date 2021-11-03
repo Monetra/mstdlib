@@ -149,6 +149,7 @@ task:
           cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose ctest -VV
           ;;
         autotools)
+          cd build && \
           cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
           export CK_VERBOSITY=verbose && \
           export VERBOSE=1 && \
