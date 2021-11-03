@@ -9,13 +9,17 @@ echo "Starting deployment"
 echo "Target: ${TARGET_BRANCH} branch"
 
 CURRENT_COMMIT=`git rev-parse HEAD`
+
+echo "Local git configuration:"
+git config --list --show-origin
+
 ORIGIN_URL=`git config --get remote.origin.url`
 ORIGIN_URL_WITH_CREDENTIALS=${ORIGIN_URL/\/\/github.com/\/\/$GITHUB_USER:$GITHUB_TOKEN@github.com}
 
 # Clone the existing gh-pages for this repo into gh-pages-deploy/
 # Create a new empty branch if gh-pages doesn't exist yet (should only happen on first deply)
 echo "Checking out ${TARGET_BRANCH} branch"
-git clone -b ${TARGET_BRANCH} --single-branch --depth=1 ${ORIGIN_URL} gh-pages-deploy
+git clone -b ${TARGET_BRANCH} --single-branch --depth=1 "${ORIGIN_URL_WITH_CREDENTIALS}" gh-pages-deploy
 
 echo "Removing old static content"
 rm -rf gh-pages-deploy/**/*
@@ -27,6 +31,7 @@ echo "Pushing new content to ${ORIGIN_URL}:${TARGET_BRANCH} for CI Deploy ${COMM
 cd gh-pages-deploy
 git config user.name "CI Deploy" || exit 1
 git config user.email "${COMMIT_AUTHOR_EMAIL}" || exit 1
+git remote set-url origin "${ORIGIN_URL_WITH_CREDENTIALS}"
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if git diff --quiet; then
@@ -40,8 +45,8 @@ git add -A .
 echo "Saving working tree..."
 git commit -m "Deploy to GitHub Pages: ${CURRENT_COMMIT}"
 
-echo "Pushing to remote..."
-git push "${ORIGIN_URL_WITH_CREDENTIALS}" ${TARGET_BRANCH}
+echo "Pushing to remote as ${GITHUB_USER}..."
+git push
 
 cd ..
 
