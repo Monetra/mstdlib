@@ -16,6 +16,7 @@ M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_uint64 delay_response_ms;
 M_io_t  *netserver;
+M_dns_t *dns;
 M_thread_mutex_t *debug_lock = NULL;
 
 struct conn_state {
@@ -90,12 +91,9 @@ static void event_debug(const char *fmt, ...)
 
 
 
-static void net_check_cleanup(M_event_t *event)
+static void net_output_stats(M_event_t *event)
 {
-	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
-	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
-		M_event_done(event);
-	}
+	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu, objects %zu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections, M_event_num_objects(event));
 }
 
 static const char *net_type(enum M_io_net_type type)
@@ -117,12 +115,17 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	size_t        mysize;
 	char          error[256];
 	conn_state_t *connstate = data;
+	size_t        num;
 
 	event_debug("net client %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_client_connections);
-			M_atomic_inc_u64(&client_connection_count);
+			num = M_atomic_inc_u64(&client_connection_count) + 1;
+			if (num == expected_connections) {
+				event_debug("net client freeing dns handle, no longer needed");
+				M_dns_destroy(dns); dns = NULL;
+			}
 			event_debug("net client Connected (%s) [%s]:%u:%u, %s", M_io_net_get_host(comm), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), net_type(M_io_net_get_type(comm)));
 			M_io_write(comm, (const unsigned char *)"HelloWorld", 10, &mysize);
 			event_debug("net client %p wrote %zu bytes", comm, mysize);
@@ -152,7 +155,9 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			event_debug("net client %p Freeing connection", comm);
 			M_free(connstate);
 			M_io_destroy(comm);
-			net_check_cleanup(event);
+			net_output_stats(event);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -178,12 +183,18 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	unsigned char buf[1024];
 	size_t        mysize;
 	conn_state_t *connstate = data;
+	size_t        num;
 
 	event_debug("net serverconn %p (%p) event %s triggered", comm, event, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_server_connections);
-			M_atomic_inc_u64(&server_connection_count);
+			num = M_atomic_inc_u64(&server_connection_count) + 1;
+			if (num == expected_connections) {
+				/* Kill listener */
+				event_debug("net serverconn expected reached, killing listener");
+				M_io_destroy(netserver); netserver = NULL;
+			}
 			connstate->is_connected = M_TRUE;
 			event_debug("net serverconn Connected [%s]:%u:%u, %s", M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm), net_type(M_io_net_get_type(comm)));
 			break;
@@ -212,7 +223,9 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			}
 			M_io_destroy(comm);
 			M_free(connstate);
-			net_check_cleanup(event);
+			net_output_stats(event);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -269,7 +282,6 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 {
 	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(scalable_only?M_EVENT_FLAG_SCALABLE_ONLY:M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
-	M_dns_t           *dns   = M_dns_create(event);
 	size_t             i;
 	M_event_err_t      err;
 	conn_state_t      *connstate;
@@ -283,7 +295,9 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	server_connection_count   = 0;
 	delay_response_ms         = delay_ms;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	dns                       = M_dns_create(event);
 
+	net_output_stats(event);
 	event_debug("starting %llu connection test", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
@@ -305,6 +319,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 		return M_EVENT_ERR_RETURN;
 	}
 	event_debug("listener added to event");
+	net_output_stats(event);
 	for (i=0; i<num_connections; i++) {
 		if (M_io_net_client_create(&netclient, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 			event_debug("failed to create net client");
@@ -327,9 +342,6 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 
 	/* Cleanup */
 
-	/* Then clean up last io object */
-	M_io_destroy(netserver);
-
 	if (stats != NULL) {
 		stats->wake_cnt        = M_event_get_statistic(event, M_EVENT_STATISTIC_WAKE_COUNT);
 		stats->process_time_ms = M_event_get_statistic(event, M_EVENT_STATISTIC_PROCESS_TIME_MS);
@@ -348,7 +360,6 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	/* Test destroying event first to make sure it can handle this */
 	M_event_destroy(event);
 
-	M_dns_destroy(dns);
 	event_debug("exited");
 
 	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;

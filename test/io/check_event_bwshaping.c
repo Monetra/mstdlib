@@ -123,6 +123,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -166,7 +168,8 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
 			M_io_destroy(comm);
 			net_data_destroy(data);
-			M_event_done(event);
+			if (M_event_num_objects(event) == 0)
+				M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -182,9 +185,11 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	event_debug("net server %p event %s triggered", comm, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_ACCEPT:
-			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
+			if (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
 				M_event_add(event, newcomm, net_serverconn_cb, net_data_create());
+				event_debug("stopping listener, no longer needed");
+				M_io_destroy(comm);
 			}
 			break;
 		default:
@@ -277,7 +282,6 @@ static M_bool check_event_bwshaping_test(void)
 	err = M_event_loop(event, 10000);
 
 	/* Cleanup */
-	M_io_destroy(netserver);
 	M_event_destroy(event);
 	M_library_cleanup();
 	event_debug("exited");
