@@ -2,15 +2,20 @@
 set -e # Exit with nonzero exit code if anything fails
 
 SOURCE_BRANCH="master"
-TARGET_BRANCH="gh-pages"
+TARGET_BRANCH="main"
 PAGES_DIR="_builds/docs/html"
+ORIGIN_URL="https://github.com/Monetra/Monetra.github.io.git"
+PROJECT_DIR=mstdlib
+
 # GITHUB_TOKEN - set as private variable
+
 echo "Starting deployment"
-echo "Target: ${TARGET_BRANCH} branch"
+
+
+echo "Target: ${TARGET_BRANCH} branch of ${ORIGIN_URL}"
 
 CURRENT_COMMIT=`git rev-parse HEAD`
 
-ORIGIN_URL=`git config --get remote.origin.url`
 ORIGIN_URL_WITH_CREDENTIALS=`echo ${ORIGIN_URL} | sed -e "s|https://.*github\.com/|https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/|"`
 
 # Clone the existing gh-pages for this repo into gh-pages-deploy/
@@ -19,10 +24,10 @@ echo "Checking out ${TARGET_BRANCH} branch"
 git clone -b ${TARGET_BRANCH} --single-branch --depth=1 "${ORIGIN_URL}" gh-pages-deploy
 
 echo "Removing old static content"
-rm -rf gh-pages-deploy/**/*
+rm -rf gh-pages-deploy/${PROJECT_DIR}/**/*
 
 echo "Copying pages content to root"
-cp -Rpv ${PAGES_DIR}/* gh-pages-deploy/
+cp -Rpv ${PAGES_DIR}/* gh-pages-deploy/${PROJECT_DIR}/
 
 echo "Pushing new content to ${ORIGIN_URL}:${TARGET_BRANCH} for CI Deploy ${COMMIT_AUTHOR_EMAIL}"
 cd gh-pages-deploy
