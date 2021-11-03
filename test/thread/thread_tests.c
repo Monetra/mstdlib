@@ -472,6 +472,7 @@ static void *thread_spinlock(void *arg)
 		M_thread_spinlock_lock(&data->spinlock);
 		/* Read, Modify, Write -- do as separate ops! */
 		myvar = data->total;
+		M_thread_sleep(20); /* Ensure contention! */
 		myvar += 1;
 		data->total = myvar;
 		M_thread_spinlock_unlock(&data->spinlock);
@@ -487,7 +488,7 @@ START_TEST(check_spinlock)
 	M_threadid_t      thread[SPINLOCK_THREAD_COUNT];
 	M_spinlock_data_t data = {
 		0,     /* Number of threads started */
-		100,   /* Number of times a thread should increment the counter */
+		10,    /* Number of times a thread should increment the counter */
 		0,     /* Current counter */
 		M_THREAD_SPINLOCK_STATIC_INITIALIZER,
 		M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE),
