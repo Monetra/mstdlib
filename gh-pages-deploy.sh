@@ -47,7 +47,7 @@ echo "Saving working tree..."
 git commit -m "Deploy to GitHub Pages: ${CURRENT_COMMIT}"
 
 echo "Pushing to remote as ${GITHUB_USER}..."
-git push --quiet "${ORIGIN_URL_WITH_CREDENTIALS}" ${TARGET_BRANCH} > /dev/null 2>&1
+git push "${ORIGIN_URL_WITH_CREDENTIALS}" ${TARGET_BRANCH}
 
 cd ..
 
