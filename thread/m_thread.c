@@ -376,7 +376,12 @@ static void M_thread_spinlock_lock_int(M_thread_spinlock_t *spinlock, M_bool ato
 			}
 
 			/* Back off based on slot, cap at 13 -- 8ms sleep */
-			diff = myqueue - current;
+			if (myqueue > current) {
+				/* Handle wrap */
+				diff = (M_UINT32_MAX - myqueue) + current;
+			} else {
+				diff = myqueue - current;
+			}
 			if (diff > 13)
 				diff = 13;
 
@@ -403,7 +408,7 @@ static void M_thread_spinlock_unlock_int(M_thread_spinlock_t *spinlock, M_bool a
 	/* Since only the holder of the lock can ever increment the current
 	 * counter, this should be safe */
 	spinlock->threadid = 0;
-	spinlock->current++;
+	M_atomic_inc_u32(&spinlock->current);
 }
 
 

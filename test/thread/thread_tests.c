@@ -122,7 +122,7 @@ static void *thread_scheder(void *arg)
 	size_t    i;
 
 	/* This is really because this test case sets thread priority and processor, so this may exit quickly */
-	M_thread_sleep(50);
+	M_thread_sleep(50000);
 
 	for (i=0; i<5; i++) {
 		M_atomic_inc_u32(count);
@@ -472,7 +472,7 @@ static void *thread_spinlock(void *arg)
 		M_thread_spinlock_lock(&data->spinlock);
 		/* Read, Modify, Write -- do as separate ops! */
 		myvar = data->total;
-		M_thread_sleep(20); /* Ensure contention! */
+		M_thread_sleep(20000); /* Ensure contention! */
 		myvar += 1;
 		data->total = myvar;
 		M_thread_spinlock_unlock(&data->spinlock);

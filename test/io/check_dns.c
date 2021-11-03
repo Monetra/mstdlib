@@ -349,7 +349,7 @@ START_TEST(check_dns_reload)
 	}
 
 	while (queries)
-		M_thread_sleep(20);
+		M_thread_sleep(20000);
 
 	event_debug("query cached results");
 
@@ -361,7 +361,7 @@ START_TEST(check_dns_reload)
 	}
 
 	event_debug("all queries done");
-	M_thread_sleep(200);
+	M_thread_sleep(200000);
 
 	M_dns_destroy(dns);
 }
