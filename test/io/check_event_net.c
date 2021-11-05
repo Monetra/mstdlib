@@ -154,7 +154,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_free(connstate);
 			M_io_destroy(comm);
 			net_output_stats(event);
-			if (M_event_num_objects(event) == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
+			if (M_event_num_objects(event) == 0 && active_client_connections == 0 && active_server_connections == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
 				M_event_done(event);
 			break;
 		default:
@@ -217,7 +217,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_io_destroy(comm);
 			M_free(connstate);
 			net_output_stats(event);
-			if (M_event_num_objects(event) == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
+			if (M_event_num_objects(event) == 0 && active_client_connections == 0 && active_server_connections == 0 && client_connection_count == expected_connections && server_connection_count == expected_connections)
 				M_event_done(event);
 			break;
 		default:
@@ -333,7 +333,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 
 	event_debug("entering loop");
 	err = M_event_loop(event, 2000);
-
+	net_output_stats(event);
 	/* Cleanup */
 
 	if (stats != NULL) {
