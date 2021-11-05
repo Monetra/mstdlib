@@ -286,7 +286,7 @@ static void trace_ssl(void *cb_arg, M_io_trace_type_t type, M_event_type_t event
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
 M_thread_mutex_lock(debug_lock);
-		M_dprintf(,1 "%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_dprintf(1, "%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 M_thread_mutex_unlock(debug_lock);
 		return;
 	}
