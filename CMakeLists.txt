@@ -328,6 +328,7 @@ if (MSTDLIB_BUILD_THREAD)
 		endif ()
 	endif ()
 	check_include_files(atomic.h HAVE_ATOMIC_H)
+	check_include_files(stdatomic.h HAVE_STDATOMIC_H)
 endif ()
 
 

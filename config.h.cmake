@@ -72,6 +72,7 @@
 #cmakedefine HAVE_EXECINFO_H
 
 #cmakedefine HAVE_ATOMIC_H
+#cmakedefine HAVE_STDATOMIC_H
 #cmakedefine HAVE_PTHREAD
 #cmakedefine HAVE_PTHREAD_H
 #cmakedefine HAVE_PTHREAD_NP_H

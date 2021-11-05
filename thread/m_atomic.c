@@ -35,15 +35,28 @@
 #define ATOMIC_OP_SPINLOCK    8  /* Emulation via spinlock           */
 #define ATOMIC_OP_CAS32       9  /* Emulation via CAS32              */
 #define ATOMIC_OP_CAS64       10 /* Emulation via CAS64              */
+#define ATOMIC_OP_STDATOMIC   11 /* stdatomic from C11               */
 
-
-/* Defines that should will get created:
+/* Defines that will get created:
  * ATOMIC_CAS32 - Compare and Set atomic operation method
+ * ATOMIC_CAS64 - Compare and Set atomic operation method
  * ATOMIC_INC32 - 32bit Integer increment operation method
  * ATOMIC_INC64 - 64bit Integer increment operation method
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#if defined(HAVE_STDATOMIC_H)
+/* Our use of stdatomic isn't totally proper, we basically do like
+ * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4013.html
+ * At some point, I guess we should introduce our own atomic type so we can
+ * be more compliant. */
+#  include <stdatomic.h>
+#  define ATOMIC_CAS32 ATOMIC_OP_STDATOMIC
+#  define ATOMIC_CAS64 ATOMIC_OP_STDATOMIC
+#  define ATOMIC_INC32 ATOMIC_OP_STDATOMIC
+#  define ATOMIC_INC64 ATOMIC_OP_STDATOMIC
+#endif
 
 #if defined(__sun__) && defined(HAVE_ATOMIC_H)
 #  if !defined(ATOMIC_CAS32) || !defined(ATOMIC_CAS64) || !defined(ATOMIC_INC32) || !defined(ATOMIC_INC64)
@@ -356,6 +369,8 @@ M_bool M_atomic_cas32(volatile M_uint32 *ptr, M_uint32 expected, M_uint32 newval
 	return __sync_bool_compare_and_swap(ptr, expected, newval)?M_TRUE:M_FALSE;
 #elif ATOMIC_CAS32 == ATOMIC_OP_ASM
 	return M_atomic_cas32_asm(ptr, expected, newval)?M_TRUE:M_FALSE;
+#elif ATOMIC_CAS32 == ATOMIC_OP_STDATOMIC
+	return atomic_compare_exchange_strong_explicit((_Atomic M_uint32 *)ptr, &expected, newval, memory_order_relaxed, memory_order_relaxed)?M_TRUE:M_FALSE;
 #else
 #  error missing cas32 implementation
 #endif
@@ -516,6 +531,8 @@ M_bool M_atomic_cas64(volatile M_uint64 *ptr, M_uint64 expected, M_uint64 newval
 	}
 	M_atomic_spin_unlock();
 	return (val == expected)?M_TRUE:M_FALSE;
+#elif ATOMIC_CAS64 == ATOMIC_OP_STDATOMIC
+	return atomic_compare_exchange_strong_explicit((_Atomic M_uint64 *)ptr, &expected, newval, memory_order_relaxed, memory_order_relaxed)?M_TRUE:M_FALSE;
 #else
 #  error missing cas64 implementation
 #endif
@@ -642,6 +659,8 @@ M_uint32 M_atomic_add_u32(volatile M_uint32 *ptr, M_uint32 val)
 	M_atomic_spin_unlock();
 
 	return oldval;
+#elif ATOMIC_INC32 == ATOMIC_OP_STDATOMIC
+	return atomic_fetch_add_explicit((_Atomic M_uint32 *)ptr, val, memory_order_relaxed);
 #else
 #  error unhandled M_atomic_add_u32
 #endif
@@ -691,6 +710,8 @@ M_uint64 M_atomic_add_u64(volatile M_uint64 *ptr, M_uint64 val)
 	M_atomic_spin_unlock();
 
 	return oldval;
+#elif ATOMIC_INC64 == ATOMIC_OP_STDATOMIC
+	return atomic_fetch_add_explicit((_Atomic M_uint64 *)ptr, val, memory_order_relaxed);
 #else
 #  error unhandled M_atomic_add_u64
 #endif
@@ -723,6 +744,8 @@ M_uint32 M_atomic_sub_u32(volatile M_uint32 *ptr, M_uint32 val)
 {
 #if ATOMIC_INC32 == ATOMIC_OP_GCC_BUILTIN
 	return __sync_fetch_and_sub(ptr, val);
+#elif ATOMIC_INC32 == ATOMIC_OP_STDATOMIC
+	return atomic_fetch_sub_explicit((_Atomic M_uint32 *)ptr, val, memory_order_relaxed);
 #else
 	/* No other implemention provides an explicit subtraction */
 	return M_atomic_add_u32(ptr, (M_uint32)((M_int32)val * -1));
@@ -736,6 +759,8 @@ M_uint64 M_atomic_sub_u64(volatile M_uint64 *ptr, M_uint64 val)
 {
 #if ATOMIC_INC64 == ATOMIC_OP_GCC_BUILTIN
 	return __sync_fetch_and_sub(ptr, val);
+#elif ATOMIC_INC64 == ATOMIC_OP_STDATOMIC
+	return atomic_fetch_sub_explicit((_Atomic M_uint64 *)ptr, val, memory_order_relaxed);
 #else
 	/* No other implemention provides an explicit subtraction */
 	return M_atomic_add_u64(ptr, (M_uint64)((M_int64)val * -1));

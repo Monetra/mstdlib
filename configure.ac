@@ -647,6 +647,7 @@ if test "${build_mstdlib_thread}" = "yes" ; then
 	AC_CHECK_HEADER(pthread.h, [ have_pthreads="yes" ], [ have_pthreads="no" ])
 	AC_CHECK_HEADERS([pthread_np.h])
 	AC_CHECK_HEADERS([atomic.h])
+	AC_CHECK_HEADERS([stdatomic.h])
 
 	if test "$have_pthreads" = "yes" -a "$have_sco5" = "no" ; then
 		AC_DEFINE([HAVE_PTHREAD], [], [Build with pthreads support])
