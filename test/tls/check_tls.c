@@ -72,16 +72,10 @@ static const char *event_type_str(M_event_type_t type)
 
 static void net_check_cleanup(M_event_t *event)
 {
-	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
-	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections) {
-		if (netserver != NULL) {
-			M_io_destroy(netserver);
-			netserver = NULL;
-	event_debug("%s(): ev:%p Calling M_event_done_with_disconnect", __FUNCTION__, event);
-			M_event_done_with_disconnect(event, 0, 5*1000);
-		}
+	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expect %llu, num_objects: %zu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections, M_event_num_objects(event));
+	if (active_server_connections == 0 && active_client_connections == 0 && server_connection_count == expected_connections && client_connection_count == expected_connections && M_event_num_objects(event) == 0) {
+		M_event_done(event);
 	}
-//	event_debug("%s(): ev:%p RETURN", __FUNCTION__, event);
 }
 
 static const char *net_type(enum M_io_net_type type)
@@ -166,6 +160,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	unsigned char buf[1024];
 	size_t        mysize;
 	char          *msg;
+	size_t         num;
 
 	(void)data;
 
@@ -173,7 +168,11 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_client_connections);
-			M_atomic_inc_u64(&client_connection_count);
+			num = M_atomic_inc_u64(&client_connection_count) + 1;
+			if (num == expected_connections) {
+				M_dns_destroy(dns); dns = NULL;
+				event_debug("net client, destroying dns, no longer needed");
+			}
 			event_debug("net client Connected to %s %s [%s]:%u:%u (DNS: %llums, IPConnect: %llums) (TLS: %llums %s %s %s)",
 				M_io_net_get_host(comm), net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_io_net_time_dns_ms(comm), M_io_net_time_connect_ms(comm),
@@ -226,6 +225,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 {
 	unsigned char buf[1024];
 	size_t        mysize;
+	size_t        num;
 
 	(void)event;
 	(void)data;
@@ -234,7 +234,12 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			M_atomic_inc_u64(&active_server_connections);
-			M_atomic_inc_u64(&server_connection_count);
+			num = M_atomic_inc_u64(&server_connection_count) + 1;
+			if (num == expected_connections) {
+				M_io_destroy(netserver);
+				netserver = NULL;
+				event_debug("net serverconn shutting down listener");
+			}
 			event_debug("net serverconn Connected %s [%s]:%u:%u, (TLS: %llums %s %s %s)",
 				net_type(M_io_net_get_type(comm)), M_io_net_get_ipaddr(comm), M_io_net_get_port(comm), M_io_net_get_ephemeral_port(comm),
 				M_tls_get_negotiation_time_ms(comm, M_IO_LAYER_FIND_FIRST_ID),
@@ -281,16 +286,16 @@ static void trace_ssl(void *cb_arg, M_io_trace_type_t type, M_event_type_t event
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
 M_thread_mutex_lock(debug_lock);
-		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_dprintf(,1 "%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 M_thread_mutex_unlock(debug_lock);
 		return;
 	}
 
 	if (DEBUG > 2) {
 M_thread_mutex_lock(debug_lock);
-		M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+		M_dprintf(1, "%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 		buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len);
-		M_printf("%s\n", buf);
+		M_dprintf(1, "%s\n", buf);
 M_thread_mutex_unlock(debug_lock);
 		M_free(buf);
 	}
@@ -552,7 +557,6 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	event_debug("%zu remaining objects", M_event_num_objects(event));
 	/* Cleanup */
 
-	M_dns_destroy(dns);
 	M_event_destroy(event);
 
 	M_tls_clientctx_destroy(clientctx);
