@@ -32,7 +32,7 @@
 M_bool got_response = M_FALSE;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -177,6 +177,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 			event_debug("net client %p certificate info - %s", io, msg);
 			M_free(msg);
 
+			event_debug("dns subsystem no longer needed, cleaning up");
+			M_dns_destroy(dns); dns = NULL;
 			buf = M_buf_create();
 #if 0
 			M_buf_add_str(buf, "<MonetraTrans><Trans identifier='1'><username>test_retail:public</username><password>publ1ct3st</password><action>chkpwd</action></Trans></MonetraTrans>");
@@ -217,7 +219,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 				M_event_return(event);
 				event_debug("net client %p ERROR", io);
 				M_io_destroy(io);
-				M_dns_destroy(dns);
 				break;
 			}
 
@@ -226,7 +227,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *io, voi
 			 *       little test case here. */
 			event_debug("net client %p DISCONNECTED", io);
 			M_io_destroy(io);
-			M_dns_destroy(dns);
+
 			break;
 		default:
 			/* Ignore */
