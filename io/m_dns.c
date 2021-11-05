@@ -421,6 +421,8 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	size_t          cnt    = 0;
 	size_t          i;
 
+
+	M_thread_mutex_lock(handle->dns->lock);
 	/* Iterate across all open channels.  There should be always 1 good one, then
 	 * there could be some that are pending a destroy until all queries are flushed */
 	for (i=0; i<M_list_len(handle->dns->ares_channels); i++) {
@@ -461,6 +463,7 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		}
 
 	}
+	M_thread_mutex_unlock(handle->dns->lock);
 
 	/* Re-evaluate timer from ares_timeout() */
 	M_io_dns_ares_update_timeout(layer);
@@ -477,6 +480,7 @@ static M_bool M_io_dns_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		/* Destroy any timers */
 		M_event_timer_remove(handle->timer);
 		handle->timer = NULL;
+
 		M_thread_mutex_unlock(handle->dns->lock);
 
 		/* Remove self from event processing, but can't do it from own callback */
@@ -760,23 +764,27 @@ M_bool M_dns_destroy(M_dns_t *dns)
 {
 	if (dns == NULL)
 		return M_FALSE;
+
+	/* We need to wrap this in a lock as we may be using a private eventloop,
+	 * so we can't have these conflict */
+	M_thread_mutex_lock(dns->lock);
 	M_list_destroy(dns->ares_channels, M_TRUE);
 	dns->ares_channels = NULL;
-
-	M_io_destroy(dns->io);
-	dns->io = NULL;
-
-	M_hash_u64vp_destroy(dns->sockhandle, M_TRUE);
-	dns->sockhandle = NULL;
+	M_thread_mutex_unlock(dns->lock);
 
 	/* Private eventloop, lets kill it */
 	if (dns->threadid) {
 		void *rv = NULL;
-		M_event_done(dns->event);
+
+		/* Attempt to kill gracefully */
+		M_event_done_with_disconnect(dns->event, 0, 100);
 		M_thread_join(dns->threadid, &rv);
 		dns->threadid = 0;
 		M_event_destroy(dns->event);
 	}
+
+	M_io_destroy(dns->io);
+	dns->io = NULL;
 
 	M_queue_destroy(dns->cache);
 	M_hash_strvp_destroy(dns->cache_lookup, M_TRUE);
@@ -785,6 +793,9 @@ M_bool M_dns_destroy(M_dns_t *dns)
 	 *       hashtable destroy will detach the entry from the expire list */
 	M_hash_strvp_destroy(dns->happyeb, M_TRUE);
 	M_llist_destroy(dns->happyeb_aginglist, M_TRUE);
+
+	M_hash_u64vp_destroy(dns->sockhandle, M_TRUE);
+	dns->sockhandle = NULL;
 
 	M_thread_mutex_destroy(dns->lock);
 	dns->lock = NULL;
