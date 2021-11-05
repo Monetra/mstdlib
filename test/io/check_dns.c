@@ -286,7 +286,9 @@ START_TEST(check_dns)
 	ck_assert_msg(M_event_add(event, netclient, net_client_cb, NULL), "failed to add net client to event");
 
 	event_debug("entering loop");
-	ck_assert_msg(M_event_loop(event, 3000) == M_EVENT_ERR_DONE, "event loop did not complete");
+	ck_assert_msg(M_event_loop(event, 8000) == M_EVENT_ERR_DONE, "event loop did not complete");
+	event_debug("loop exited");
+
 	M_event_destroy(event);
 	M_library_cleanup();
 	event_debug("exited");
