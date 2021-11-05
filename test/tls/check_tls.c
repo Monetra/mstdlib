@@ -21,7 +21,7 @@ M_thread_mutex_t *debug_lock = NULL;
 M_dns_t           *dns = NULL;
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 32) + 5)
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
