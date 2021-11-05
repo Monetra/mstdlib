@@ -46,7 +46,7 @@ static const char *event_type_str(M_event_type_t type)
 }
 
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
