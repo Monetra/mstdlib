@@ -61,7 +61,7 @@ static void event_debug(const char *fmt, ...)
 	va_start(ap, fmt);
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 M_thread_mutex_lock(debug_lock);
-	M_vprintf(buf, ap);
+	M_vdprintf(1, buf, ap);
 M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
 }
@@ -72,13 +72,13 @@ static void trace(void *cb_arg, M_io_trace_type_t type, M_event_type_t event_typ
 
 	M_time_gettimeofday(&tv);
 	if (type == M_IO_TRACE_TYPE_EVENT) {
-		M_printf("%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
+		M_dprintf(1, "%lld.%06lld: TRACE %p: event %s\n", tv.tv_sec, tv.tv_usec, cb_arg, event_type_str(event_type));
 		return;
 	}
 
-	M_printf("%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
+	M_dprintf(1, "%lld.%06lld: TRACE %p: %s\n", tv.tv_sec, tv.tv_usec, cb_arg, (type == M_IO_TRACE_TYPE_READ)?"READ":"WRITE");
 	buf = M_str_hexdump(M_STR_HEXDUMP_DECLEN, 0, NULL, data, data_len); 
-	M_printf("%s\n", buf);
+	M_dprintf(1, "%s\n", buf);
 	M_free(buf);
 }
 #else
