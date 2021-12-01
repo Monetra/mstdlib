@@ -245,9 +245,10 @@ typedef enum {
  *  stored within the database.  This can also reject the data and return an error if it does
  *  not meet the requirements.
  *
- *  This callback is called only when new user data is provided.  For instance, on an edit operation,
- *  this callback will NOT be called if the user did not supply the field as the only data we have
- *  is the data from the database which is already sanitized.
+ *  This callback is called only when new user data is provided.  It will not be called if a field isn't
+ *  passed in.  For instance, on an edit operation, this callback will NOT be called if the user did not
+ *  supply the field as the only data we have is the data from the database which is already sanitized.
+ *  This also goes for an add operation, if not provided by the user, this callback is NOT called.
  *
  *  \param[in]     txn        Transaction data.  May be used to retrieve other useful information that may be needed for proper validation.
  *  \param[in]     field_name Name of field
@@ -279,13 +280,14 @@ M_API M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const c
 
 /*! A callback to perform intensive validation of the data field, which may require performing additional SQL queries.
  *
- *  This callback is always called for the field, regardless of if it has changed (unless on edit and field is non-editable).
+ *  This callback is always called for the field, regardless of if it has changed.  This includes on add even if a field
+ *  isn't specified as it may be required to validate if maybe the field really should have been provided.
  *  Recommended to call M_sql_tabledata_txn_field_changed() if only need to perform operations when the field has changed.
  *
  *  The field data is not provided and must be fetched via M_sql_tabledata_txn_field_get() as it is not known which variant
  *  of the data may be needed.
  *
- *  The field data may be manipulated if necessary.
+ *  The field data may be manipulated or transformed by this callback if desired.
  *
  *  \param[in]     sqltrans   SQL transaction to use for any external queries needed.
  *  \param[in]     txn        Transaction data.  May be used to retrieve other useful information that may be needed for proper validation.
