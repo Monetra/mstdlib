@@ -20,6 +20,7 @@
 #include <mstdlib/base/m_bincodec.h>
 #include <mstdlib/base/m_bit_buf.h>
 #include <mstdlib/base/m_bit_parser.h>
+#include <mstdlib/base/m_bitlist.h>
 #include <mstdlib/base/m_buf.h>
 #include <mstdlib/base/m_cache.h>
 #include <mstdlib/base/m_cache_strvp.h>

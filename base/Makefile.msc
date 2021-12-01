@@ -44,6 +44,9 @@ OBJS      = \
 	cache\m_cache_strvp.obj      \
 	\
 	data\m_bin.obj               \
+	data\m_bit_buf.obj           \
+	data\m_bit_parser.obj        \
+	data\m_bitlist.obj           \
 	data\m_buf.obj               \
 	data\m_chr.obj               \
 	data\m_getopt.obj            \

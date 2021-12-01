@@ -23,6 +23,7 @@ set(sources
 	data/m_bin.c
 	data/m_bit_buf.c
 	data/m_bit_parser.c
+	data/m_bitlist.c
 	data/m_buf.c
 	data/m_chr.c
 	data/m_getopt.c
