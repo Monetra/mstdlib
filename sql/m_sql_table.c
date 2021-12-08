@@ -318,6 +318,8 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 	char                  state[256];
 	const M_sql_driver_t *driver = M_sql_connpool_get_driver(pool);
 
+	M_mem_set(error, 0, error_size);
+
 	if (pool == NULL || table == NULL) {
 		M_snprintf(error, error_size, "NULL function parameters provided");
 		return M_SQL_ERROR_INVALID_USE;
@@ -367,6 +369,7 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 		M_buf_add_str(query, "\" ");
 
 		if (!driver->cb_datatype(pool, query, col->datatype, col->max_len, M_FALSE)) {
+			M_snprintf(error, error_size, "column %s unable to convert datatype", col->name);
 			err = M_SQL_ERROR_INVALID_USE;
 			goto done;
 		}
@@ -462,7 +465,7 @@ M_sql_error_t M_sql_table_execute(M_sql_connpool_t *pool, M_sql_table_t *table, 
 
 
 done:
-	if (err != M_SQL_ERROR_SUCCESS) {
+	if (err != M_SQL_ERROR_SUCCESS && M_str_isempty(error)) {
 		M_snprintf(error, error_size, "%s: %s: %s", state, M_sql_error_string(err), M_sql_stmt_get_error_string(stmt));
 	}
 	M_sql_stmt_destroy(stmt);
