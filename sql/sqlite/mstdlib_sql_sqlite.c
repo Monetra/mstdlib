@@ -716,6 +716,19 @@ fail:
 	return err;
 }
 
+void sqlite_createtable_suffix(M_sql_connpool_t *pool, M_hash_dict_t *settings, M_buf_t *query)
+{
+	const char *const_temp;
+	(void) pool;
+
+	/* Prefer strict data type conversions.  Error if it can't be done.  Added in 3.37.0.
+	 * Otherwise in an integer column, if you pass xyz it will store xyz instead of erroring
+	 * which would mean someone developing against sqlite might not realize every other
+	 * database will break */
+	if (SQLITE_VERSION_NUMBER >= 3037000)
+		M_buf_add_str(query, " STRICT");
+}
+
 
 static M_sql_data_type_t sqlite_type_to_mtype(int type, const char *decltype, size_t *type_size)
 {
@@ -1074,7 +1087,7 @@ static M_sql_driver_t M_sql_sqlite = {
 	sqlite_cb_rollback,           /* Callback used to rollback a transaction */
 	sqlite_cb_commit,             /* Callback used to commit a transaction */
 	sqlite_cb_datatype,           /* Callback used to convert to data type for server */
-	NULL,                         /* Callback used to append additional data to the Create Table query string */
+	sqlite_createtable_suffix,    /* Callback used to append additional data to the Create Table query string */
 	NULL,                         /* Callback used to append row-level locking data */
 	sqlite_cb_append_bitop,       /* Callback used to append a bit operation */
 	NULL,                         /* Callback used to rewrite an index name to comply with DB requirements */
