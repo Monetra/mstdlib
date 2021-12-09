@@ -716,9 +716,8 @@ fail:
 	return err;
 }
 
-void sqlite_createtable_suffix(M_sql_connpool_t *pool, M_hash_dict_t *settings, M_buf_t *query)
+static void sqlite_createtable_suffix(M_sql_connpool_t *pool, M_buf_t *query)
 {
-	const char *const_temp;
 	(void) pool;
 
 	/* Prefer strict data type conversions.  Error if it can't be done.  Added in 3.37.0.
@@ -779,7 +778,13 @@ static void sqlite_fetch_result_metadata(M_sql_driver_conn_t *conn, M_sql_driver
 	size_t i;
 
 	if (!col_cnt) {
+#if SQLITE_VERSION_NUMBER >= 3037000
+		/* sqlite3_changes64() for large changesets.  Unlikely to happen with sqlite, but
+		 * better to use this function always if available */
+		M_sql_driver_stmt_result_set_affected_rows(stmt, (size_t)sqlite3_changes64(conn->conn));
+#else
 		M_sql_driver_stmt_result_set_affected_rows(stmt, (size_t)sqlite3_changes(conn->conn));
+#endif
 		return;
 	}
 
@@ -1067,7 +1072,7 @@ static M_sql_driver_t M_sql_sqlite = {
 	M_SQL_DRIVER_VERSION,         /* Driver/Module subsystem version */
 	"sqlite",                     /* Short name of module */
 	"SQLite driver for mstdlib",  /* Display name of module */
-	"1.0.0",                      /* Internal module version */
+	"1.0.1",                      /* Internal module version */
 
 	sqlite_cb_init,               /* Callback used for module initialization. */
 	sqlite_cb_destroy,            /* Callback used for module destruction/unloading. */
