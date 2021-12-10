@@ -737,9 +737,9 @@ static M_sql_data_type_t sqlite_type_to_mtype(int type, const char *decltype, si
 		return M_SQL_DATA_TYPE_BOOL;
 	} else if (M_str_caseeq(decltype, "SMALLINT")) {
 		return M_SQL_DATA_TYPE_INT16;
-	} else if (M_str_caseeq(decltype, "INTEGER")) {
+	} else if (M_str_caseeq(decltype, "INT")) {
 		return M_SQL_DATA_TYPE_INT32;
-	} else if (M_str_caseeq(decltype, "BIGINT")) {
+	} else if (M_str_caseeq(decltype, "INTEGER") || M_str_caseeq(decltype, "BIGINT")) {
 		return M_SQL_DATA_TYPE_INT64;
 	} else if (M_str_caseeq(decltype, "BLOB")) {
 		return M_SQL_DATA_TYPE_BINARY;
@@ -1021,37 +1021,19 @@ static M_bool sqlite_cb_datatype(M_sql_connpool_t *pool, M_buf_t *buf, M_sql_dat
 	 *       a 32 character limit as you'd expect. */
 	(void)pool;
 	(void)is_cast;
-
+	(void)max_len; /* can't be honored by sqlite */
 	switch (type) {
 		case M_SQL_DATA_TYPE_BOOL:
-			M_buf_add_str(buf, "TINYINT");
-			return M_TRUE;
 		case M_SQL_DATA_TYPE_INT16:
-			M_buf_add_str(buf, "SMALLINT");
-			return M_TRUE;
 		case M_SQL_DATA_TYPE_INT32:
+		case M_SQL_DATA_TYPE_INT64:
 			M_buf_add_str(buf, "INTEGER");
 			return M_TRUE;
-		case M_SQL_DATA_TYPE_INT64:
-			M_buf_add_str(buf, "BIGINT");
-			return M_TRUE;
 		case M_SQL_DATA_TYPE_TEXT:
-			if (max_len == 0 || max_len > 16 * 1024) {
-				M_buf_add_str(buf, "TEXT");
-			} else {
-				M_buf_add_str(buf, "VARCHAR(");
-				M_buf_add_uint(buf, max_len);
-				M_buf_add_str(buf, ")");
-			}
+			M_buf_add_str(buf, "TEXT");
 			return M_TRUE;
 		case M_SQL_DATA_TYPE_BINARY:
-			if (max_len == 0 || max_len > 16 * 1024) {
-				M_buf_add_str(buf, "BLOB");
-			} else {
-				M_buf_add_str(buf, "BLOB(");
-				M_buf_add_uint(buf, max_len);
-				M_buf_add_str(buf, ")");
-			}
+			M_buf_add_str(buf, "BLOB");
 			return M_TRUE;
 		/* These data types don't really exist */
 		case M_SQL_DATA_TYPE_UNKNOWN:
