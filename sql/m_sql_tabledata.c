@@ -769,7 +769,7 @@ static M_sql_error_t M_sql_tabledata_fetch(M_sql_tabledata_txn_t *txn, M_sql_tab
 		char myerror[256] = { 0 };
 
 		if (!fielddef->filter_cb(txn, fielddef->field_name, field, myerror, sizeof(myerror))) {
-			M_snprintf(error, error_len, "field %s: %s", fielddef->field_name, myerror);
+			M_snprintf(error, error_len, "field %s filter: %s", fielddef->field_name, myerror);
 			return M_SQL_ERROR_USER_FAILURE;
 		}
 	}
@@ -1300,7 +1300,7 @@ static M_bool M_sql_tabledata_txn_sanitycheck_fields(M_sql_tabledata_txn_t *txn,
 
 		/* Run stock validator - after all user supplied callbacks for filter and validate */
 		if (!M_sql_tabledata_field_validate(field, &txn->fields[i], M_sql_tabledata_txn_is_add(txn), myerror, sizeof(myerror))) {
-			M_snprintf(error, error_len, "field %s: %s", txn->fields[i].field_name, myerror);
+			M_snprintf(error, error_len, "field %s validator: %s", txn->fields[i].field_name, myerror);
 			return M_FALSE;
 		}
 	}
