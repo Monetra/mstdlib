@@ -115,6 +115,7 @@ M_bool M_bitlist_parse(M_uint64 *out, M_bitlist_flags_t flags, const M_bitlist_t
                     goto done;
                 }
                 (*out) |= list[j].id;
+		break;
             }
         }
         if (list[j].name == NULL && !(flags & M_BITLIST_FLAG_IGNORE_UNKNOWN)) {
