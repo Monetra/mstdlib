@@ -433,7 +433,11 @@ M_io_handle_t *M_io_hid_open(const char *devpath, M_io_error_t *ioerr)
 	if (M_str_isempty(devpath))
 		*ioerr = M_IO_ERROR_INVALID;
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
 	entry = IORegistryEntryFromPath(kIOMasterPortDefault, devpath);
+#else
+	entry = IORegistryEntryFromPath(kIOMainPortDefault, devpath);
+#endif
 	if (entry == MACH_PORT_NULL) {
 		*ioerr = M_IO_ERROR_NOTFOUND;
 		goto err;

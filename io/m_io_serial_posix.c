@@ -638,7 +638,11 @@ static kern_return_t FindSerialPorts(io_iterator_t *matchingServices)
 	mach_port_t            masterPort;
 	CFMutableDictionaryRef classesToMatch;
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
 	kernResult     = IOMasterPort(MACH_PORT_NULL, &masterPort);
+#else
+	kernResult     = IOMainPort(MACH_PORT_NULL, &masterPort);
+#endif
 	if (kernResult != KERN_SUCCESS)
 		return kernResult;
 
