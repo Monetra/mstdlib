@@ -45,8 +45,13 @@
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+#if defined(_AIX) && defined(__GNUC__) && defined(_ARCH_PPC32)
+#  define AIX_GCC_32 1
+#endif
 
-#if defined(HAVE_STDATOMIC_H)
+/* Though stdatomic exists on aix, and works for the xlc compiler, when using gcc,
+ * it only works for 64bit and not 32bit */
+#if defined(HAVE_STDATOMIC_H) && !defined(AIX_GCC_32)
 /* Our use of stdatomic isn't totally proper, we basically do like
  * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4013.html
  * At some point, I guess we should introduce our own atomic type so we can
