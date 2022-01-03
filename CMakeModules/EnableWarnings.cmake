@@ -146,6 +146,15 @@ elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
 	list(APPEND _flags_C   ${_flags})
 	list(APPEND _flags_CXX ${_flags})
 
+elseif (MAKE_C_COMPILER_ID MATCHES "XL")
+	set (_flags
+		-qwarn64
+		-qformat=all
+		-qflag=i:i
+	)
+	list(APPEND _flags_C   ${_flags})
+	list(APPEND _flags_CXX ${_flags})
+
 else ()
 	# If we're compiling with GCC / Clang / MinGW (or anything else besides Visual Studio or Intel):
 	# C Flags:
@@ -185,12 +194,19 @@ else ()
 		-Wvla
 		-Wwrite-strings
 
+		# On Windows MinGW I think implicit fallthrough enabled by -Wextra must not default to 3
+		-Wimplicit-fallthrough=3
+
 		# Treat implicit variable typing and implicit function declarations as errors.
 		-Werror=implicit-int
 		-Werror=implicit-function-declaration
 
 		# Make MacOSX honor -mmacosx-version-min
 		-Werror=partial-availability
+
+		# Some clang versions might warn if an argument like "-I/path/to/headers" is unused,
+		# silence these.
+		-Qunused-arguments
 	)
 
 	# C++ flags:
@@ -209,6 +225,10 @@ else ()
 
 		# Turn off unused parameter warnings with C++ (they happen often in C++ and Qt).
 		-Wno-unused-parameter
+
+		# Some clang versions might warn if an argument like "-I/path/to/headers" is unused,
+		# silence these.
+		-Qunused-arguments
 	)
 
 	# Note: when cross-compiling to Windows from Cygwin, the Qt Mingw packages have a bunch of
