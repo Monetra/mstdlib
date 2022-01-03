@@ -132,7 +132,7 @@ if (MSVC)
 	list(APPEND _flags_C   ${_flags})
 	list(APPEND _flags_CXX ${_flags})
 
-elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
+elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
 	# Intel's compiler warning flags are more like Visual Studio than GCC, though the numbers aren't the same.
 	set(_flags
 		# Use warning level 3, quite wordy.
@@ -146,7 +146,7 @@ elseif (MAKE_C_COMPILER_ID MATCHES "Intel")
 	list(APPEND _flags_C   ${_flags})
 	list(APPEND _flags_CXX ${_flags})
 
-elseif (MAKE_C_COMPILER_ID MATCHES "XL")
+elseif (CMAKE_C_COMPILER_ID MATCHES "XL")
 	set (_flags
 		-qwarn64
 		-qformat=all
