@@ -104,6 +104,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	Mstdlib::thread
 	Mstdlib::base
 	SQLite::sqlite
+	${CMAKE_THREAD_LIBS_INIT}
 )
 
 # Link to main SQL module, if both mstdlib and sql are built shared, or if both are built statically.
