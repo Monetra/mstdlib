@@ -45,7 +45,7 @@
  */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if defined(_AIX) && defined(__GNUC__) && defined(_ARCH_PPC32)
+#if defined(_AIX) && defined(__GNUC__) && !defined(_ARCH_PPC64)
 #  define AIX_GCC_32 1
 #endif
 
