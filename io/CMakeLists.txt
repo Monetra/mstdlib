@@ -192,7 +192,7 @@ endif ()
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::thread
 	        Mstdlib::text
-	PRIVATE Mstdlib::config c-ares::cares
+	PRIVATE Mstdlib::config c-ares::cares ${CMAKE_THREAD_LIBS_INIT}
 )
 
 # Link extra system libraries.
