@@ -878,6 +878,23 @@ START_TEST(check_sm_pause)
 }
 END_TEST
 
+START_TEST(check_sm_empty)
+{
+	M_state_machine_t        *sm;
+	M_state_machine_status_t status;
+
+	sm     = M_state_machine_create(0, NULL, M_STATE_MACHINE_LINEAR_END);
+	status = M_state_machine_run(sm, NULL);
+	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure (LINEAR_END), %d", status);
+	M_state_machine_destroy(sm);
+
+	sm     = M_state_machine_create(0, NULL, M_STATE_MACHINE_NONE);
+	status = M_state_machine_run(sm, NULL);
+	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure (NONE), %d", status);
+	M_state_machine_destroy(sm);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_state_machine_suite(void)
@@ -898,6 +915,7 @@ Suite *M_state_machine_suite(void)
 	TCase *tc_sm_pre;
 	TCase *tc_sm_post;
 	TCase *tc_sm_pause;
+	TCase *tc_sm_empty;
 
 	suite = suite_create("state_machine");
 
@@ -975,6 +993,11 @@ Suite *M_state_machine_suite(void)
 	tcase_add_unchecked_fixture(tc_sm_pause, NULL, NULL);
 	tcase_add_test(tc_sm_pause, check_sm_pause);
 	suite_add_tcase(suite, tc_sm_pause);
+
+	tc_sm_empty = tcase_create("sm_empty");
+	tcase_add_unchecked_fixture(tc_sm_empty, NULL, NULL);
+	tcase_add_test(tc_sm_empty, check_sm_empty);
+	suite_add_tcase(suite, tc_sm_empty);
 
 	return suite;
 }
