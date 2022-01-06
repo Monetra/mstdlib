@@ -362,6 +362,7 @@ static M_state_machine_status_t M_state_machine_run_cleanup(M_state_machine_t *m
 			case M_STATE_MACHINE_STATUS_NEXT:
 			case M_STATE_MACHINE_STATUS_PREV:
 			case M_STATE_MACHINE_STATUS_CONTINUE:
+			case M_STATE_MACHINE_STATUS_PAUSE:
 			case M_STATE_MACHINE_STATUS_WAIT:
 				/* Put the id back so when this is called again this cleanup
  				 * machine will run. */
@@ -683,6 +684,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 				case M_STATE_MACHINE_STATUS_NEXT:
 				case M_STATE_MACHINE_STATUS_PREV:
 				case M_STATE_MACHINE_STATUS_CONTINUE:
+				case M_STATE_MACHINE_STATUS_PAUSE:
 				case M_STATE_MACHINE_STATUS_WAIT:
 				case M_STATE_MACHINE_STATUS_DONE:
 					break;
@@ -697,6 +699,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		switch (status) {
 			case M_STATE_MACHINE_STATUS_NEXT:
 			case M_STATE_MACHINE_STATUS_CONTINUE:
+			case M_STATE_MACHINE_STATUS_PAUSE:
 				/* Check that we have a valid transition. */
 				if (next_id == 0) {
 					/* Explicit next is required or we're not allowing linear done. */
@@ -740,6 +743,11 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 					continue;
 				}
 				current->current_id = next_id;
+
+				/* If we're pausing we need to stop running and let the caller know. */
+				if (status == M_STATE_MACHINE_STATUS_PAUSE) {
+					return status;
+				}
 			break;
 
 			case M_STATE_MACHINE_STATUS_PREV:

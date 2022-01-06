@@ -305,6 +305,29 @@ static M_state_machine_status_t state_post_forward_status(void *data, M_state_ma
 	(*d)++;
 	return sub_status;
 }
+
+static M_state_machine_status_t state_pause(void *data, M_uint64 *next)
+{
+	int *d;
+
+	(void)next;
+
+	d = data;
+	(*d)++;
+	return M_STATE_MACHINE_STATUS_PAUSE;
+}
+
+static M_state_machine_status_t state_pause2(void *data, M_uint64 *next)
+{
+	int *d;
+
+	(void)next;
+
+	d = data;
+	(*d) += 2;
+	return M_STATE_MACHINE_STATUS_PAUSE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_sm_linear)
@@ -830,6 +853,31 @@ START_TEST(check_sm_post)
 }
 END_TEST
 
+START_TEST(check_sm_pause)
+{
+	M_state_machine_t        *sm;
+	M_state_machine_status_t status;
+	int                      d = 0;
+	int                      e = 0;
+
+	sm = M_state_machine_create(0, NULL, M_STATE_MACHINE_LINEAR_END);
+	M_state_machine_insert_state(sm, STATE_A, 0, NULL, state_pause, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_B, 0, NULL, state_pause2, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_C, 0, NULL, state_pause, NULL, NULL);
+
+	do {
+		status = M_state_machine_run(sm, (void *)&d);
+		e++;
+	} while (status == M_STATE_MACHINE_STATUS_PAUSE);
+
+	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure, %d", status);
+	ck_assert_msg(d == 4, "State machine did not run properly d != 4, d == %d\n", d);
+	ck_assert_msg(e == 3, "State machine did not run properly e != 3, e == %d\n", e);
+
+	M_state_machine_destroy(sm);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 Suite *M_state_machine_suite(void)
@@ -849,6 +897,7 @@ Suite *M_state_machine_suite(void)
 	TCase *tc_sm_subs_error;
 	TCase *tc_sm_pre;
 	TCase *tc_sm_post;
+	TCase *tc_sm_pause;
 
 	suite = suite_create("state_machine");
 
@@ -921,6 +970,11 @@ Suite *M_state_machine_suite(void)
 	tcase_add_unchecked_fixture(tc_sm_post, NULL, NULL);
 	tcase_add_test(tc_sm_post, check_sm_post);
 	suite_add_tcase(suite, tc_sm_post);
+
+	tc_sm_pause = tcase_create("sm_pause");
+	tcase_add_unchecked_fixture(tc_sm_pause, NULL, NULL);
+	tcase_add_test(tc_sm_pause, check_sm_pause);
+	suite_add_tcase(suite, tc_sm_pause);
 
 	return suite;
 }

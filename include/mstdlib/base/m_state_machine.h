@@ -566,7 +566,7 @@ typedef enum {
 	/* State specific status. Only states can return these. */
 	M_STATE_MACHINE_STATUS_NONE = 0,        /*!< Invalid status. */
 	M_STATE_MACHINE_STATUS_NEXT,            /*!< Success continue to the next state.
-	                                             The state was run and should be recored as well as cleanup added
+	                                             The state was run and should be recorded as well as cleanup added
 	                                             to the cleanup list. */
 	M_STATE_MACHINE_STATUS_PREV,            /*!< A recoverable error occurred. Go to the last successful (non-continue)
 	                                             state.
@@ -596,7 +596,15 @@ typedef enum {
 	                                             The state is responsible for error reporting though the void data
 	                                             pointer passed to the state function. */
 	M_STATE_MACHINE_STATUS_WAIT,            /*!< The state is processing in a non-blocking fashion. More calls to run
-	                                             are required to continue the operation. */
+	                                             are required to continue the operation. The state that returned
+	                                             WAIT will be called when the state machine is run. */
+	M_STATE_MACHINE_STATUS_PAUSE,           /*!< The state is processing in a non-blocking fashion. More calls to run
+	                                             are required to continue the operation. The next state (set
+	                                             explicit or implicitly) will be run when the state machine is run.
+	                                             An error will be returned by run instead of pause if continuing
+	                                             would cause an error. In the same way as with the state returning
+	                                             next. If there is no state to continue to run will return done if
+	                                             doing so is not an error. Such as if linear end flag is set. */
 	M_STATE_MACHINE_STATUS_DONE,            /*!< The sequence completed successfully. */
 
 	/* State machine specific status. Only the state machine can return these. */
