@@ -203,6 +203,13 @@ M_API int M_uint64_count_digits(M_uint64 num);
  */
 M_API M_uint8 M_uint8_popcount(M_uint8 x);
 
+/*! Count number of set bits in a 64bit integer.
+ *
+ * \param[in] num value to count bits in
+ * \return        number of set (1) bits in \a num
+ */
+M_API M_uint8 M_uint64_popcount(M_uint64 num);
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

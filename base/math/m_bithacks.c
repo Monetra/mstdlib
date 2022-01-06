@@ -181,3 +181,15 @@ M_uint8 M_uint8_popcount(M_uint8 x)
 	};
 	return lookup[x];
 }
+
+M_uint8 M_uint64_popcount(M_uint64 num)
+{
+	M_uint8 count = 0;
+	/* Brian Kernighan's algorithm. Iterates once for each bit that is set, vs the
+	 * more naive approach which would iterate for each bit in the integer regardless
+	 * of if it is set or not */
+	for (count = 0; num != 0; count++) {
+		num &= num - 1; /* clear the least significant bit set */
+	}
+	return count;
+}
