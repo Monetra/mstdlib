@@ -988,7 +988,8 @@ char *M_time_parsefmt(const char *s, const char *fmt, M_time_localtm_t *tm)
 						x -= 100;
 					}
 				}
-				tm->year = x;
+				tm->year  = x;
+				tm->year2 = x % 100;
 				break;
 			case 'P':
 			case 'p':
