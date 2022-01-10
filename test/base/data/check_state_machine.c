@@ -448,7 +448,7 @@ START_TEST(check_sm_reset)
 
 
 	/* sm3 STATE_F throws wait
- 	 * reset
+	 * reset
 	 * cleanup sm3 STATE_G
 	 * cleanup sm3 STATE_A
 	 * cleanup sm2 STATE_B
@@ -856,14 +856,28 @@ END_TEST
 START_TEST(check_sm_pause)
 {
 	M_state_machine_t        *sm;
+	M_state_machine_t        *subm;
 	M_state_machine_status_t status;
 	int                      d = 0;
 	int                      e = 0;
 
-	sm = M_state_machine_create(0, NULL, M_STATE_MACHINE_LINEAR_END);
-	M_state_machine_insert_state(sm, STATE_A, 0, NULL, state_pause, NULL, NULL);
-	M_state_machine_insert_state(sm, STATE_B, 0, NULL, state_pause2, NULL, NULL);
-	M_state_machine_insert_state(sm, STATE_C, 0, NULL, state_pause, NULL, NULL);
+	sm = M_state_machine_create(0, "SM TOP", M_STATE_MACHINE_LINEAR_END);
+	M_state_machine_insert_state(sm, STATE_A, 0, "TOP A", state_pause, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_B, 0, "TOP B", state_pause2, NULL, NULL);
+
+	subm = M_state_machine_create(0, "SUB 1", M_STATE_MACHINE_LINEAR_END);
+	M_state_machine_insert_state(subm, STATE_B, 0, "SUB 1 B", state_pause2, NULL, NULL); /* A and B are out of order as part of the test. */
+	M_state_machine_insert_state(subm, STATE_A, 0, "SUB 1 A", state_a, NULL, NULL); /* Returning a next not a pause. */
+	M_state_machine_insert_state(subm, STATE_C, 0, "SUB 1 C", state_pause, NULL, NULL);
+	M_state_machine_insert_sub_state_machine(sm, STATE_C, 3, "TOP C: Add subm", subm, NULL, NULL, NULL, NULL);
+	M_state_machine_destroy(subm);
+
+	M_state_machine_insert_state(sm, STATE_D, 0, "TOP D", state_pause, NULL, NULL);
+	M_state_machine_insert_state(sm, STATE_E, 0, "TOP E", state_pause2, NULL, NULL);
+
+#if 0
+	M_state_machine_enable_trace(sm, sm_tracer, NULL);
+#endif
 
 	do {
 		status = M_state_machine_run(sm, (void *)&d);
@@ -871,8 +885,13 @@ START_TEST(check_sm_pause)
 	} while (status == M_STATE_MACHINE_STATUS_PAUSE);
 
 	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure, %d", status);
-	ck_assert_msg(d == 4, "State machine did not run properly d != 4, d == %d\n", d);
-	ck_assert_msg(e == 3, "State machine did not run properly e != 3, e == %d\n", e);
+	ck_assert_msg(d == 10, "State machine did not run properly d != 10, d == %d\n", d);
+	/* 7 states totals. 6 returns pause and 1 returns next.  5 total runs of
+	 * the run function because the last state return a pause which gets
+	 * converted to a done internally because it's the last state and we have
+	 * nothing after to move to. Linear end means last state that returns next
+	 * or pause should be changed to done. */
+	ck_assert_msg(e == 5, "State machine did not run properly e != 5, e == %d\n", e);
 
 	M_state_machine_destroy(sm);
 }

@@ -365,7 +365,7 @@ static M_state_machine_status_t M_state_machine_run_cleanup(M_state_machine_t *m
 			case M_STATE_MACHINE_STATUS_PAUSE:
 			case M_STATE_MACHINE_STATUS_WAIT:
 				/* Put the id back so when this is called again this cleanup
- 				 * machine will run. */
+				 * machine will run. */
 				M_list_u64_insert(current->cleanup_ids, id);
 				return status;
 			case M_STATE_MACHINE_STATUS_DONE:
@@ -462,12 +462,20 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		current->current_id     = M_list_u64_at(current->state_ids, 0);
 		current->cleanup_reason = M_STATE_MACHINE_CLEANUP_REASON_NONE;
 		/* We don't reset the pcleanup_reason because it's set before
- 		 * the cleanup state machine starts. */
+		 * the cleanup state machine starts. */
 		current->return_status  = M_STATE_MACHINE_STATUS_NONE;
 	}
 	current->running = M_TRUE;
 
+	/* Run through as many states as we can advance. If we keep getting next
+	 * or continue we keep going onto the next state in this loop. We'll
+	 * break out if we get something that errors or pauses operation. */
 	while (1) {
+		/* Track if a sub state machine caused the pause status. We need to
+		 * be sure we don't advance this state machine when we see the pause
+		 * status. We still need to propagate up the status. */
+		M_bool sub_pause = M_FALSE;
+
 		/* Get the state for the current id. */
 		vp = NULL;
 		if (!M_hash_u64vp_get(current->states, current->current_id, &vp)) {
@@ -478,14 +486,14 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		state = vp;
 
 		/* Run through cleanup instead of the states if a cleanup reason was set. This indicates there
- 		 * was an error (or done) and cleanup should be run. */
+		 * was an error (or done) and cleanup should be run. */
 		if (current->cleanup_reason != M_STATE_MACHINE_CLEANUP_REASON_NONE) {
 			/* Clean up running sub state machines before this one. We want to go all the way down
- 			 * and cleanup on the way back up. */
+			 * and cleanup on the way back up. */
 			if (state != NULL) {
 				if (state->type == M_STATE_MACHINE_STATE_TYPE_SUBM && state->d.sub.subm->running) {
 					status = M_state_machine_run_machine(master, state->d.sub.subm, data);
-					if (status == M_STATE_MACHINE_STATUS_WAIT) {
+					if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
 						return status;
 					}
 				} else if (state->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED && state->d.interleaved.running) {
@@ -496,7 +504,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 						if (ilsub->subm->running) {
 							ilsub->status = M_state_machine_run_machine(master, ilsub->subm, data);
 							status        = ilsub->status;
-							if (status == M_STATE_MACHINE_STATUS_WAIT) {
+							if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
 								return status;
 							}
 						}
@@ -506,8 +514,9 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 			}
 
 			status = M_state_machine_run_cleanup(master, current, data);
-			if (status == M_STATE_MACHINE_STATUS_WAIT)
+			if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
 				return status;
+			}
 			M_state_machine_clear_cleanup_ids(current);
 			current->running = M_FALSE;
 			return current->return_status;
@@ -516,7 +525,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		/* Determine which id is next in the linear order of states. */
 		next_id = 0;
 		/* We only use the linear next auto filling if the state machine doesn't require
- 		 * an explicit transition to be set by the current state. */
+		 * an explicit transition to be set by the current state. */
 		if (!(current->flags & M_STATE_MACHINE_EXPLICIT_NEXT)) {
 			if (!M_list_u64_index_of(current->state_ids, current->current_id, &idx)) {
 				/* Id does not exist in our list of ids so we can't figure out what's next. */
@@ -534,7 +543,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 		if (state->type == M_STATE_MACHINE_STATE_TYPE_SUBM) {
 			run_sub = M_TRUE;
 			/* Call pre if it was set and we haven't called it already. We could have already called it if we
- 			 * received a wait from the sub state machine and are calling into it again. */
+			 * received a wait from the sub state machine and are calling into it again. */
 			if (state->d.sub.pre != NULL && !state->d.sub.subm->running) {
 				status = M_STATE_MACHINE_STATUS_CONTINUE;
 				M_state_machine_call_trace(M_STATE_MACHINE_TRACE_PRE_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
@@ -544,7 +553,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 			/* The sub state machine may not run based on the result of pre. */
 			if (run_sub) {
 				/* This sub will run so add the cleanup id to the list.
- 				 * We don't do it later when we deal with states because those
+				 * We don't do it later when we deal with states because those
 				 * will only be added once the state completes (not if it returns wait)
 				 * but this might never be done because of sub states underneath but this
 				 * still needs to run. */
@@ -554,24 +563,34 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 
 				/* Run the sub state machine */
 				status = M_state_machine_run_machine(master, state->d.sub.subm, data);
-				/* If we get a wait we want to forward that up and our next call will be back into the
- 				 * sub state machine. */
-				if (current->cleanup_reason == M_STATE_MACHINE_CLEANUP_REASON_NONE && status != M_STATE_MACHINE_STATUS_WAIT) {
+				/* If we get a wait or a pause we want to forward that up and our next call will be back into the
+				 * sub state machine. Otherwise, if we're not a cleanup call our post function (if one is set). */
+				if (current->cleanup_reason == M_STATE_MACHINE_CLEANUP_REASON_NONE && status != M_STATE_MACHINE_STATUS_WAIT && status != M_STATE_MACHINE_STATUS_PAUSE) {
 					if (state->d.sub.post != NULL) {
 						M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
 						status = state->d.sub.post(data, status, &next_id);
+						/* Returning a wait or pause from post is invalid because the sub has already finished. We
+						 * can't wait or pause on it to do more work. Convert to next instead of an error.
+						 * We're not converting done to next because the post function is from the sm not the
+						 * sub. The post function is allowed to end the sm.*/
+						if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
+							status = M_STATE_MACHINE_STATUS_NEXT;
+						}
 						M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_FINISH, master, current, status, M_FALSE, next_id);
 					} else if (status == M_STATE_MACHINE_STATUS_DONE) {
 						/* Change STATUS_DONE to STATUS_NEXT so we don't stop this state machine.
- 						 * Only the sub state machine is done. */
+						 * Only the sub state machine is done. */
 						status = M_STATE_MACHINE_STATUS_NEXT;
 					}
 				}
 			}
+			if (status == M_STATE_MACHINE_STATUS_PAUSE) {
+				sub_pause = M_TRUE;
+			}
 		} else if (state->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED) {
 			run_sub = M_TRUE;
 			/* Call pre if it was set and we haven't called it already. We could have already called it if we
- 			 * received a wait from the sub state machine and are calling into it again. */
+			 * received a wait from the sub state machine and are calling into it again. */
 			if (state->d.interleaved.pre != NULL && !state->d.interleaved.running) {
 				status = M_STATE_MACHINE_STATUS_CONTINUE;
 				M_state_machine_call_trace(M_STATE_MACHINE_TRACE_PRE_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
@@ -580,10 +599,10 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 			}
 			/* The sub state machine may not run based on the result of pre. */
 			if (run_sub) {
-				/* We're all done unless we have something return wait later. */
+				/* We're all done unless we have something return wait or pause later. */
 				M_bool all_done = M_TRUE;
 				/* This sub will run so add the cleanup id to the list.
- 				 * We don't do it later when we deal with states because those
+				 * We don't do it later when we deal with states because those
 				 * will only be added once the state completes (not if it returns wait)
 				 * but this might never be done because of sub states underneath but this
 				 * still needs to run. */
@@ -598,23 +617,24 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 				for (i=0; i<len; i++) {
 					M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(state->d.interleaved.subs, i));
 					/* Don't run anything that's already finished. */
-					if (ilsub->status != M_STATE_MACHINE_STATUS_NONE && ilsub->status != M_STATE_MACHINE_STATUS_WAIT) {
+					if (ilsub->status != M_STATE_MACHINE_STATUS_NONE && ilsub->status != M_STATE_MACHINE_STATUS_WAIT && ilsub->status != M_STATE_MACHINE_STATUS_PAUSE) {
+						/* Must be done or error if we're here. None of which can run. */
 						continue;
 					}
 					/* Update the idx because this might be the last machine run if we
- 					 * stop for wait. This is so the trace cb knows what is actually running. */
+					 * stop for wait. This is so the trace cb knows what is actually running. */
 					state->d.interleaved.idx = i;
 					/* Run the sub state machine */
 					status                   = M_state_machine_run_machine(master, ilsub->subm, data);
 					/* Store the status so we know if we should run later. */
 					ilsub->status            = status;
-					/* If something is in a wait state, we're not done. */
-					if (status == M_STATE_MACHINE_STATUS_WAIT) {
+					/* If something is in a wait or pause state, we're not done. */
+					if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
 						all_done = M_FALSE;
 					}
 					if (!(current->flags & M_STATE_MACHINE_INTERNOABORT)) {
 						/* We're done if we hit an error. */
-						if (status != M_STATE_MACHINE_STATUS_WAIT && status != M_STATE_MACHINE_STATUS_DONE) {
+						if (status != M_STATE_MACHINE_STATUS_DONE && status != M_STATE_MACHINE_STATUS_WAIT && status != M_STATE_MACHINE_STATUS_PAUSE) {
 							all_done = M_TRUE;
 							break;
 						}
@@ -625,9 +645,18 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 					state->d.interleaved.running = M_FALSE;
 					state->d.interleaved.idx     = 0;
 					len = M_list_len(state->d.interleaved.subs);
+					/* reset the status to done if we're not aborting on first error.
+					 * If everything ran properly everything will be done. If we had
+					 * an error we want to be sure we're going to return the first error. */
+					if (current->flags & M_STATE_MACHINE_INTERNOABORT) {
+						status = M_STATE_MACHINE_STATUS_DONE;
+					}
 					for (i=0; i<len; i++) {
 						M_state_machine_interleaved_sub_t *ilsub = M_CAST_OFF_CONST(M_state_machine_interleaved_sub_t *, M_list_at(state->d.interleaved.subs, i));
-						/* Set the status if there was an error and we're not aborting as soon as we hit one. */
+						/* Set the status if there was an error and we're not aborting as soon as we hit one. The
+						 * last state could have returned done but an earlier state could have erred. If we're
+						 * not aborting the status could currently be set to done but we want to return one of
+						 * the error statuses if we had an error. */
 						if (status == M_STATE_MACHINE_STATUS_DONE && current->flags & M_STATE_MACHINE_INTERNOABORT) {
 							if (ilsub->status != M_STATE_MACHINE_STATUS_DONE) {
 								status = ilsub->status;
@@ -636,12 +665,18 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 						/* Clear the sub status for the next time we need to run. */
 						ilsub->status = M_STATE_MACHINE_STATUS_NONE;
 					}
-					/* If we get a wait we want to forward that up and our next call will be back into the
-					 * sub state machine. */
+					/* Run our post function (if set) if we're not a clean up. */
 					if (current->cleanup_reason == M_STATE_MACHINE_CLEANUP_REASON_NONE) {
 						if (state->d.interleaved.post != NULL) {
 							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
 							status = state->d.interleaved.post(data, status, &next_id);
+							/* Returning a wait or pause from post is invalid because the sub has already finished. We
+							 * can't wait or pause on it to do more work. Convert to next instead of an error.
+							 * We're not converting done to next because the post function is from the sm not the
+							 * sub. The post function is allowed to end the sm.*/
+							if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
+								status = M_STATE_MACHINE_STATUS_NEXT;
+							}
 							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_FINISH, master, current, status, M_FALSE, next_id);
 						} else if (status == M_STATE_MACHINE_STATUS_DONE) {
 							/* Change STATUS_DONE to STATUS_NEXT so we don't stop this state machine.
@@ -649,16 +684,16 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 							status = M_STATE_MACHINE_STATUS_NEXT;
 						}
 					}
-				} else if (status == M_STATE_MACHINE_STATUS_DONE) {
-					/* Not all done with every sm. We can be here if we got a mix of wait and or done
- 					 * status from the sms. Something is waiting so we want to convert this to a wait
-					 * so we can come back in the next pass and finish. */
+				} else {
+					/* Not all done with every sm. Something is waiting or paused. We want to convert this to a wait
+					 * so we can come back in the next pass to continue any that haven't finished. Interleaved uses
+					 * wait as the return status so we'll go back into this sm state that runs the subs. */
 					status = M_STATE_MACHINE_STATUS_WAIT;
 				}
 			}
 		} else {
 			/* If a cleanup reason was passed (not set on the state machine) this means we are in a cleanup state
- 			 * machine so call the appropate function. */
+			 * machine so call the appropriate function. */
 			M_state_machine_call_trace(M_STATE_MACHINE_TRACE_STATE_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
 			if (current->type == M_STATE_MACHINE_TYPE_SM) {
 				status = state->d.func.func(data, &next_id);
@@ -700,6 +735,13 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 			case M_STATE_MACHINE_STATUS_NEXT:
 			case M_STATE_MACHINE_STATUS_CONTINUE:
 			case M_STATE_MACHINE_STATUS_PAUSE:
+				/* If a sub was what paused we don't want to advance this (parent) sm.
+				 * We need the sub to run again and it is the one that's advancing. */
+				if (sub_pause && status == M_STATE_MACHINE_STATUS_PAUSE) {
+					M_state_machine_clear_continuations(current);
+					return status;
+				}
+
 				/* Check that we have a valid transition. */
 				if (next_id == 0) {
 					/* Explicit next is required or we're not allowing linear done. */
@@ -744,7 +786,9 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 				}
 				current->current_id = next_id;
 
-				/* If we're pausing we need to stop running and let the caller know. */
+				/* If we're pausing we need to stop running and let the caller know. We still advance to
+ 				 * the next state (which we've already taken care of) unless it was a pause from a sub
+				 * which was also already handled. */
 				if (status == M_STATE_MACHINE_STATUS_PAUSE) {
 					return status;
 				}
@@ -1060,7 +1104,7 @@ void M_state_machine_reset(M_state_machine_t *m, M_state_machine_cleanup_reason_
 		M_state_machine_reset((M_state_machine_t *)s->cleanup, reason);
 	} else {
 		/* We're at the last state to run. When we run
- 		 * the cancel it will go into the clean up ids
+		 * the cancel it will go into the clean up ids
 		 * and run the cleanup associated with the state.
 		 *
 		 * If that state has a cleanup sm we need to cancel
