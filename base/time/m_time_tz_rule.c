@@ -273,7 +273,7 @@ static M_time_t M_time_tz_rule_adjust_fromlocal(const void *data, const M_time_l
 
 	rtz = (const M_time_tz_rule_t *)data;
 	M_time_tz_rule_get_offset(rtz, ltime, &offset, NULL);
-	
+
 	return offset * -1;
 }
 

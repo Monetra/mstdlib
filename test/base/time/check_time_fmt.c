@@ -519,6 +519,7 @@ static struct {
 	{ 1361534353, "EST5EDT", "%Y/%m/%d %I:%M:%S%z %p",  "EST", "2013/02/22 06:59:13-0500 am", M_FALSE },
 	{ 1361534353, "EST5EDT", "%Y/%m/%d %H:%M:%S%z %p",  "EST", "2013/02/22 06:59:13-0500 am", M_FALSE },
 	{ 1361577553, "EST5EDT", "%Y/%m/%d %H:%M:%S%z %p",  "EST", "2013/02/22 18:59:13-0500 pm", M_FALSE },
+	{ 1641790800, "EST5EDT", "%m%d%y",                  "EST", "011022",                      M_FALSE },
 	{ 1361577553, "EST5EDT", "%Y/%m/%d %H:%M:%S%z %p",  "EST", "2013/02/22 18:59:13-0500 am", M_TRUE  },
 	{ 0, NULL, NULL, NULL, NULL, M_FALSE }
 };
@@ -539,7 +540,7 @@ START_TEST(check_time_fmt_custom)
 
 	for (i=0; check_fmts_custom[i].ts!=0; i++) {
 		M_mem_set(&tm, 0, sizeof(tm));
-		tz = M_time_tzs_get_tz(tzs, check_fmts[i].zone);
+		tz = M_time_tzs_get_tz(tzs, check_fmts_custom[i].zone);
 
 		/* Don't free out. I points to a place in the input string. */
 		out = M_time_parsefmt(check_fmts_custom[i].s, check_fmts_custom[i].tostr_fmt, &tm);
@@ -550,6 +551,7 @@ START_TEST(check_time_fmt_custom)
 		} else {
 			ck_assert_msg(out != NULL && *out == '\0', "%zu: Did not fully parse data: %s", i, check_fmts_custom[i].s);
 		}
+
 		ts = M_time_fromlocal(&tm, tz);
 		ck_assert_msg(check_fmts_custom[i].ts == ts, "%zu: Expected ts %lld does not match returned %lld", i, check_fmts_custom[i].ts, ts);
 
