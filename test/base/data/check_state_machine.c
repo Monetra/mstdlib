@@ -328,6 +328,15 @@ static M_state_machine_status_t state_pause2(void *data, M_uint64 *next)
 	return M_STATE_MACHINE_STATUS_PAUSE;
 }
 
+static M_state_machine_status_t state_sub_pause_post(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	(void)data;
+	(void)next;
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return sub_status;
+	return M_STATE_MACHINE_STATUS_PAUSE;
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 START_TEST(check_sm_linear)
@@ -869,7 +878,7 @@ START_TEST(check_sm_pause)
 	M_state_machine_insert_state(subm, STATE_B, 0, "SUB 1 B", state_pause2, NULL, NULL); /* A and B are out of order as part of the test. */
 	M_state_machine_insert_state(subm, STATE_A, 0, "SUB 1 A", state_a, NULL, NULL); /* Returning a next not a pause. */
 	M_state_machine_insert_state(subm, STATE_C, 0, "SUB 1 C", state_pause, NULL, NULL);
-	M_state_machine_insert_sub_state_machine(sm, STATE_C, 3, "TOP C: Add subm", subm, NULL, NULL, NULL, NULL);
+	M_state_machine_insert_sub_state_machine(sm, STATE_C, 3, "TOP C: Add subm", subm, NULL, state_sub_pause_post, NULL, NULL);
 	M_state_machine_destroy(subm);
 
 	M_state_machine_insert_state(sm, STATE_D, 0, "TOP D", state_pause, NULL, NULL);
@@ -886,12 +895,17 @@ START_TEST(check_sm_pause)
 
 	ck_assert_msg(status == M_STATE_MACHINE_STATUS_DONE, "State machine failure, %d", status);
 	ck_assert_msg(d == 10, "State machine did not run properly d != 10, d == %d\n", d);
-	/* 7 states totals. 6 returns pause and 1 returns next.  5 total runs of
-	 * the run function because the last state return a pause which gets
-	 * converted to a done internally because it's the last state and we have
-	 * nothing after to move to. Linear end means last state that returns next
-	 * or pause should be changed to done. */
-	ck_assert_msg(e == 5, "State machine did not run properly e != 5, e == %d\n", e);
+	/* There are 7 states total. 6 returns pause and 1 returns next. Of the 6 that return
+ 	 * pause the last state's pause return is converted to a done internally due to linear
+	 * end not having another state to go to. So it's considered done. This gives us 5 states
+	 * that will return pause.
+	 *
+	 * There is 1 post function that returns pause coming out of the sub state
+	 * machine. This pauses after the state machine runs and advances to the
+	 * next state in the parent state machine. Giving us an additional pause.
+	 *
+	 * 5 states returning pause + 1 post returning pause = 6 totals calls to the run function. */
+	ck_assert_msg(e == 6, "State machine did not run properly e != 6, e == %d\n", e);
 
 	M_state_machine_destroy(sm);
 }

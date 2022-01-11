@@ -541,6 +541,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 
 		/* Run the state. */
 		if (state->type == M_STATE_MACHINE_STATE_TYPE_SUBM) {
+			M_bool done_called = M_FALSE;
 			run_sub = M_TRUE;
 			/* Call pre if it was set and we haven't called it already. We could have already called it if we
 			 * received a wait from the sub state machine and are calling into it again. */
@@ -569,14 +570,16 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 					if (state->d.sub.post != NULL) {
 						M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
 						status = state->d.sub.post(data, status, &next_id);
-						/* Returning a wait or pause from post is invalid because the sub has already finished. We
-						 * can't wait or pause on it to do more work. Convert to next instead of an error.
+						/* Returning a wait from post is invalid because the sub has already finished. We
+						 * can't wait on it to do more work. Convert to next instead of an error.
+						 * We don't guess intent by converting to a pause which might be what was intended.
 						 * We're not converting done to next because the post function is from the sm not the
 						 * sub. The post function is allowed to end the sm.*/
-						if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
+						if (status == M_STATE_MACHINE_STATUS_WAIT) {
 							status = M_STATE_MACHINE_STATUS_NEXT;
 						}
 						M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_FINISH, master, current, status, M_FALSE, next_id);
+						done_called = M_TRUE;
 					} else if (status == M_STATE_MACHINE_STATUS_DONE) {
 						/* Change STATUS_DONE to STATUS_NEXT so we don't stop this state machine.
 						 * Only the sub state machine is done. */
@@ -584,7 +587,9 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 					}
 				}
 			}
-			if (status == M_STATE_MACHINE_STATUS_PAUSE) {
+			/* If the post callback returns pause it's not the sub state machine that's returning pause. It's this
+			 * parent state machine because post is called by the parent. */
+			if (!done_called && status == M_STATE_MACHINE_STATUS_PAUSE) {
 				sub_pause = M_TRUE;
 			}
 		} else if (state->type == M_STATE_MACHINE_STATE_TYPE_INTERLEAVED) {
@@ -670,11 +675,12 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 						if (state->d.interleaved.post != NULL) {
 							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_START, master, current, M_STATE_MACHINE_STATUS_NONE, M_FALSE, 0);
 							status = state->d.interleaved.post(data, status, &next_id);
-							/* Returning a wait or pause from post is invalid because the sub has already finished. We
-							 * can't wait or pause on it to do more work. Convert to next instead of an error.
+							/* Returning a wait from post is invalid because the sub has already finished. We
+							 * can't wait on it to do more work. Convert to next instead of an error.
+							 * We don't guess intent by converting to a pause which might be what was intended.
 							 * We're not converting done to next because the post function is from the sm not the
 							 * sub. The post function is allowed to end the sm.*/
-							if (status == M_STATE_MACHINE_STATUS_WAIT || status == M_STATE_MACHINE_STATUS_PAUSE) {
+							if (status == M_STATE_MACHINE_STATUS_WAIT) {
 								status = M_STATE_MACHINE_STATUS_NEXT;
 							}
 							M_state_machine_call_trace(M_STATE_MACHINE_TRACE_POST_FINISH, master, current, status, M_FALSE, next_id);
@@ -787,7 +793,7 @@ static M_state_machine_status_t M_state_machine_run_states(M_state_machine_t *ma
 				current->current_id = next_id;
 
 				/* If we're pausing we need to stop running and let the caller know. We still advance to
- 				 * the next state (which we've already taken care of) unless it was a pause from a sub
+				 * the next state (which we've already taken care of) unless it was a pause from a sub
 				 * which was also already handled. */
 				if (status == M_STATE_MACHINE_STATUS_PAUSE) {
 					return status;
