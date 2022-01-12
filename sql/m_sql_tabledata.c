@@ -550,9 +550,10 @@ M_bool M_sql_tabledata_filter_int2dec_cb(M_sql_tabledata_txn_t *txn, const char 
 	(void)txn;
 	(void)field_name;
 
+	/* blank is fine */
 	if (!M_sql_tabledata_field_get_text(field, &const_temp) || M_str_isempty(const_temp)) {
-		M_snprintf(error, error_len, "not provided");
-		return M_FALSE;
+		M_sql_tabledata_field_set_null(field);
+		return M_TRUE;
 	}
 
 	if (M_decimal_from_str(const_temp, M_str_len(const_temp), &dec, NULL) != M_DECIMAL_SUCCESS) {
@@ -578,9 +579,10 @@ M_bool M_sql_tabledata_filter_int5dec_cb(M_sql_tabledata_txn_t *txn, const char 
 	(void)txn;
 	(void)field_name;
 
+	/* blank is fine */
 	if (!M_sql_tabledata_field_get_text(field, &const_temp) || M_str_isempty(const_temp)) {
-		M_snprintf(error, error_len, "not provided");
-		return M_FALSE;
+		M_sql_tabledata_field_set_null(field);
+		return M_TRUE;
 	}
 
 	if (M_decimal_from_str(const_temp, M_str_len(const_temp), &dec, NULL) != M_DECIMAL_SUCCESS) {
