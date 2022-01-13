@@ -290,6 +290,7 @@ char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
 
 		if (coldata->isnull) {
 			M_buf_add_str(buf, "NULL");
+			continue;
 		}
 
 		switch (coldata->type) {
