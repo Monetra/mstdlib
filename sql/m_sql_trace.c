@@ -249,7 +249,7 @@ const char *M_sql_trace_get_query_prepared(const M_sql_trace_data_t *data)
 }
 
 
-const char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
+char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
 {
 	M_buf_t    *buf   = M_buf_create();
 	const char *query = NULL;

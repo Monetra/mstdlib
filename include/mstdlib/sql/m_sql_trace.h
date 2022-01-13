@@ -301,9 +301,9 @@ M_API const char *M_sql_trace_get_query_prepared(const M_sql_trace_data_t *data)
  *    - #M_SQL_TRACE_STALL_TRANS_LONG (possibly)
  *
  *  \param[in] data Trace Data structure passed to trace callback
- *  \return Rewritten user-supplied query.
+ *  \return Rewritten query. Must be M_free()'d by caller.
  */
-M_API const char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data);
+M_API char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data);
 
 /*! Retrieve the number of request columns bound to the query
  *
