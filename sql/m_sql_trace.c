@@ -289,10 +289,9 @@ char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
 		}
 
 		if (coldata->isnull) {
-			M_buf_add_str(buf, " NULL ");
+			M_buf_add_str(buf, "NULL");
 		}
 
-		M_buf_add_byte(buf, ' ');
 		switch (coldata->type) {
 			case M_SQL_DATA_TYPE_BOOL:
 				M_buf_add_str(buf, coldata->v.b?"true":"false");
@@ -318,7 +317,6 @@ char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
 				M_buf_add_str(buf, "????");
 				break;
 		}
-		M_buf_add_byte(buf, ' ');
 	}
 
 	out = M_buf_finish_str(buf, NULL);
