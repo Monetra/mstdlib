@@ -288,6 +288,22 @@ M_API const char *M_sql_trace_get_query_user(const M_sql_trace_data_t *data);
  */
 M_API const char *M_sql_trace_get_query_prepared(const M_sql_trace_data_t *data);
 
+/*! Retrieve a fake formatted string with substituted data instead of seeing
+ *  prepared statement place holders.  This can be useful for debugging but is
+ *  quite heavy.
+ *
+ * Only available on:
+ *    - #M_SQL_TRACE_EXECUTE_FINISH
+ *    - #M_SQL_TRACE_FETCH_START
+ *    - #M_SQL_TRACE_FETCH_FINISH
+ *    - #M_SQL_TRACE_TRANFAIL
+ *    - #M_SQL_TRACE_STALL_QUERY
+ *    - #M_SQL_TRACE_STALL_TRANS_LONG (possibly)
+ *
+ *  \param[in] data Trace Data structure passed to trace callback
+ *  \return Rewritten user-supplied query.
+ */
+M_API const char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data);
 
 /*! Retrieve the number of request columns bound to the query
  *

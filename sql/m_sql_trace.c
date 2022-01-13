@@ -249,6 +249,85 @@ const char *M_sql_trace_get_query_prepared(const M_sql_trace_data_t *data)
 }
 
 
+const char *M_sql_trace_get_query_formatted(const M_sql_trace_data_t *data)
+{
+	M_buf_t    *buf   = M_buf_create();
+	const char *query = NULL;
+	char       *out   = NULL;
+	size_t      i;
+	size_t      len;
+	size_t      col   = 0;
+	size_t      row   = 0;
+
+	if (data == NULL || data->stmt == NULL)
+		goto done;
+
+	query = M_sql_driver_stmt_get_query(data->stmt);
+	len   = M_str_len(query);
+
+	for (i=0; i<len; i++) {
+		M_sql_stmt_bind_col_t *coldata = NULL;
+
+		if (query[i] != '?') {
+			M_buf_add_byte(buf, (M_uint8)query[i]);
+			continue;
+		}
+
+		if (row < data->stmt->bind_row_cnt) {
+			coldata = &data->stmt->bind_rows[row].cols[col++];
+		}
+
+		/* Increment to next row if necessary */
+		if (row < data->stmt->bind_row_cnt && col >= data->stmt->bind_rows[row].col_cnt) {
+			row++;
+			col=0;
+		}
+
+		if (coldata == NULL) {
+			M_buf_add_str(buf, "<exceed params>");
+			continue;
+		}
+
+		if (coldata->isnull) {
+			M_buf_add_str(buf, "NULL");
+		}
+
+		switch (coldata->type) {
+			case M_SQL_DATA_TYPE_BOOL:
+				M_buf_add_str(buf, coldata->v.b?"true":"false");
+				break;
+			case M_SQL_DATA_TYPE_INT16:
+				M_buf_add_int(buf, coldata->v.i16);
+				break;
+			case M_SQL_DATA_TYPE_INT32:
+				M_buf_add_int(buf, coldata->v.i32);
+				break;
+			case M_SQL_DATA_TYPE_INT64:
+				M_buf_add_int(buf, coldata->v.i64);
+				break;
+			case M_SQL_DATA_TYPE_TEXT:
+				M_buf_add_byte(buf, '\'');
+				M_buf_add_str(buf, coldata->v.text.data);
+				M_buf_add_byte(buf, '\'');
+				break;
+			case M_SQL_DATA_TYPE_BINARY:
+				M_bprintf(buf, "<BIN:%zu>", coldata->v.binary.len);
+				break;
+			default:
+				M_buf_add_str(buf, "????");
+				break;
+		}
+	}
+
+	out = M_buf_finish_str(buf, NULL);
+	buf = NULL;
+
+done:
+	M_buf_cancel(buf);
+	return out;
+}
+
+
 size_t M_sql_trace_get_bind_cols(const M_sql_trace_data_t *data)
 {
 	if (data == NULL || data->stmt == NULL)
