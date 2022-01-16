@@ -29,108 +29,180 @@
 
 M_bool M_bitlist_list(char **out, M_bitlist_flags_t flags, const M_bitlist_t *list, M_uint64 bits, unsigned char delim, char *error, size_t error_len)
 {
-    M_bool   rv = M_FALSE;
-    size_t   i;
-    M_buf_t *buf;
-    if (out == NULL || list == NULL || delim == 0) {
-        M_snprintf(error, error_len, "invalid use");
-        return M_FALSE;
-    }
+	M_bool   rv = M_FALSE;
+	size_t   i;
+	M_buf_t *buf;
+	if (out == NULL || list == NULL || delim == 0) {
+		M_snprintf(error, error_len, "invalid use");
+		return M_FALSE;
+	}
 
-    buf = M_buf_create();
+	buf = M_buf_create();
 
-    for (i=0; list[i].name != NULL; i++) {
-        if (!(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) && list[i].id != 0 &&
-            !M_uint64_is_power_of_two(list[i].id)) {
-            M_snprintf(error, error_len, "'%s' is not a power of 2", list[i].name);
-            goto done;
-        }
 
-        if ((bits & list[i].id) == list[i].id) {
-            if (M_buf_len(buf))
-                M_buf_add_byte(buf, delim);
-            M_buf_add_str(buf, list[i].name);
+	for (i=0; list[i].name != NULL; i++) {
+		if (!(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) && list[i].id != 0 &&
+			!M_uint64_is_power_of_two(list[i].id)) {
+			M_snprintf(error, error_len, "'%s' is not a power of 2", list[i].name);
+			goto done;
+		}
 
-            /* Remove consumed bits */
-            bits &= ~list[i].id;
-        }
-    }
+		if ((bits & list[i].id) == list[i].id) {
+			if (M_buf_len(buf))
+				M_buf_add_byte(buf, delim);
+			M_buf_add_str(buf, list[i].name);
 
-    if (!(flags & M_BITLIST_FLAG_IGNORE_UNKNOWN) && bits) {
-        M_snprintf(error, error_len, "unknown remaining bits 0x%0llX", bits);
-        goto done;
-    }
+			/* Remove consumed bits */
+			bits &= ~list[i].id;
+		}
+	}
 
-    rv = M_TRUE;
+
+	if (!(flags & M_BITLIST_FLAG_IGNORE_UNKNOWN) && bits) {
+		M_snprintf(error, error_len, "unknown remaining bits 0x%0llX", bits);
+		goto done;
+	}
+
+	rv = M_TRUE;
 
 done:
-    if (rv) {
-        *out = M_buf_finish_str(buf, NULL);
-    } else {
-        M_buf_cancel(buf);
-    }
+	if (rv) {
+		*out = M_buf_finish_str(buf, NULL);
+	} else {
+		M_buf_cancel(buf);
+	}
 
-    return rv;
+	return rv;
 }
+
+static M_bool M_bitlist_parse_int(M_uint64 *out, M_bitlist_flags_t flags, const M_bitlist_t *list, M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len)
+{
+	char **elems	 = NULL;
+	size_t num_elems = 0;
+	M_bool rv		= M_FALSE;
+	size_t i;
+
+	if (out == NULL || (list == NULL && hash_toint == NULL) || (list != NULL && hash_toint != NULL) || delim == 0) {
+		M_snprintf(error, error_len, "invalid use");
+		return M_FALSE;
+	}
+
+	*out = 0;
+
+	elems = M_str_explode_str(delim, data, &num_elems);
+	for (i=0; i<num_elems; i++) {
+		M_bool   found = M_FALSE;
+		M_uint64 id    = 0;
+
+		/* Trim whitespace */
+		if (!(flags & M_BITLIST_FLAG_DONT_TRIM_WHITESPACE)) {
+			M_str_trim(elems[i]);
+		}
+
+		/* Ignore empty strings */
+		if (M_str_isempty(elems[i])) {
+			continue;
+		}
+
+		if (list) {
+			size_t j;
+
+			for (j=0; list[j].name != NULL; j++) {
+				if (flags & M_BITLIST_FLAG_CASE_SENSITIVE) {
+					found = M_str_eq(list[j].name, elems[i]);
+				} else {
+					found = M_str_caseeq(list[j].name, elems[i]);
+				}
+				if (found) {
+					id = list[j].id;
+					break;
+				}
+			}
+		} else {
+			found = M_hash_stru64_get(hash_toint, elems[i], &id);
+		}
+
+		if (!found && !(flags & M_BITLIST_FLAG_IGNORE_UNKNOWN)) {
+			M_snprintf(error, error_len, "unrecognized value '%s'", elems[i]);
+			goto done;
+		}
+		if (found && !(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) && !M_uint64_is_power_of_two(id)) {
+			M_snprintf(error, error_len, "'%s' is not a power of 2", elems[i]);
+			goto done;
+		}
+		(*out) |= i;
+	}
+
+	rv	= M_TRUE;
+done:
+
+	if (!rv)
+		*out = 0;
+
+	M_str_explode_free(elems, num_elems);
+	return rv;
+}
+
+
+M_bool M_bitlist_tohash(M_hash_stru64_t **hash_toint, M_hash_u64str_t **hash_tostr, M_bitlist_flags_t flags, const M_bitlist_t *list, char *error, size_t error_len)
+{
+	M_bool           rv    = M_FALSE;
+	M_hash_stru64_t *toint = M_hash_stru64_create(16, 75, (flags & M_BITLIST_FLAG_CASE_SENSITIVE)?M_HASH_STRU64_NONE:M_HASH_STRU64_CASECMP);
+	M_hash_u64str_t *tostr = M_hash_u64str_create(16, 75, M_HASH_STRU64_NONE);
+	size_t           i;
+
+	if (hash_toint == NULL || hash_tostr == NULL || list == NULL) {
+		M_snprintf(error, error_len, "invalid use");
+		goto done;
+	}
+
+	*hash_toint = NULL;
+	*hash_tostr = NULL;
+
+	for (i=0; list[i].name != NULL; i++) {
+		if (M_hash_stru64_get(toint, list[i].name, NULL)) {
+			M_snprintf(error, error_len, "duplicate key name %s", list[i].name);
+			goto done;
+		}
+
+		if (M_hash_u64str_get(tostr, list[i].id, NULL)) {
+			if (flags & M_BITLIST_FLAG_IGNORE_DUPLICATE_ID)
+				continue;
+			M_snprintf(error, error_len, "duplicate key id %lld", list[i].id);
+			goto done;
+		}
+
+		if (list[i].id != 0 && !(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) &&
+			!M_uint64_is_power_of_two(list[i].id)) {
+			M_snprintf(error, error_len, "'%s' is not a power of 2", list[i].name);
+			goto done;
+		}
+
+		/* All good, insert into both hashtables */
+		M_hash_stru64_insert(toint, list[i].name, list[i].id);
+		M_hash_u64str_insert(tostr, list[i].id, list[i].name);
+	}
+
+	*hash_toint = toint;
+	*hash_tostr = tostr;
+	toint       = NULL;
+	tostr       = NULL;
+	rv          = M_TRUE;
+
+done:
+	M_hash_stru64_destroy(toint);
+	M_hash_u64str_destroy(tostr);
+	return rv;
+}
+
 
 M_bool M_bitlist_parse(M_uint64 *out, M_bitlist_flags_t flags, const M_bitlist_t *list, const char *data, unsigned char delim, char *error, size_t error_len)
 {
-    char **elems     = NULL;
-    size_t num_elems = 0;
-    M_bool rv        = M_FALSE;
-    size_t i;
-    size_t j;
+	return M_bitlist_parse_int(out, flags, list, NULL, data, delim, error, error_len);
+}
 
-    if (out == NULL || list == NULL || delim == 0) {
-        M_snprintf(error, error_len, "invalid use");
-        return M_FALSE;
-    }
-
-    *out = 0;
-
-    elems = M_str_explode_str(delim, data, &num_elems);
-    for (i=0; i<num_elems; i++) {
-        /* Trim whitespace */
-        if (!(flags & M_BITLIST_FLAG_DONT_TRIM_WHITESPACE)) {
-            M_str_trim(elems[i]);
-        }
-
-        /* Ignore empty strings */
-        if (M_str_isempty(elems[i])) {
-            continue;
-        }
-
-        for (j=0; list[j].name != NULL; j++) {
-            M_bool match;
-
-            if (flags & M_BITLIST_FLAG_CASE_SENSITIVE) {
-                match = M_str_eq(list[j].name, elems[i]);
-            } else {
-                match = M_str_caseeq(list[j].name, elems[i]);
-            }
-            if (match) {
-                if (list[j].id != 0 && !(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) &&
-                    !M_uint64_is_power_of_two(list[j].id)) {
-                    M_snprintf(error, error_len, "'%s' is not a power of 2", list[j].name);
-                    goto done;
-                }
-                (*out) |= list[j].id;
-		break;
-            }
-        }
-        if (list[j].name == NULL && !(flags & M_BITLIST_FLAG_IGNORE_UNKNOWN)) {
-            M_snprintf(error, error_len, "unrecognized value '%s'", elems[i]);
-            goto done;
-        }
-    }
-
-    rv    = M_TRUE;
-done:
-
-    if (!rv)
-        *out = 0;
-
-    M_str_explode_free(elems, num_elems);
-    return rv;
+M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len)
+{
+	return M_bitlist_parse_int(out, flags, NULL, hash_toint, data, delim, error, error_len);
 }
 
