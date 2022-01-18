@@ -43,11 +43,25 @@ struct M_sql_tabledata_field {
 		struct {
 			const unsigned char *data;       /*!< Pointer to use */
 			unsigned char       *data_alloc; /*!< NULL if const, otherwise allocated pointer */
-			size_t      len;                 /*!< Length of binary data */
+			size_t               len;        /*!< Length of binary data */
 		} bin;           /*!< Binary */
 	} d;
 };
 
+static M_sql_tabledata_field_t *M_sql_tabledata_field_duplicate(const M_sql_tabledata_field_t *field)
+{
+	M_sql_tabledata_field_t *out = M_malloc(sizeof(*out));
+	M_mem_copy(out, field, sizeof(*out));
+
+	if (field->type == M_SQL_DATA_TYPE_TEXT && field->d.t.data_alloc) {
+		out->d.t.data_alloc   = M_strdup(field->d.t.data_alloc);
+		out->d.t.data         = out->d.t.data_alloc;
+	} else if (field->type == M_SQL_DATA_TYPE_BINARY && field->d.bin.data_alloc) {
+		out->d.bin.data_alloc = M_memdup(field->d.bin.data_alloc, field->d.bin.len);
+		out->d.bin.data       = out->d.bin.data_alloc;
+	}
+	return out;
+}
 
 
 static void M_sql_tabledata_field_clear(M_sql_tabledata_field_t *field)
@@ -1200,6 +1214,8 @@ M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *tx
 	/* Merged is always the current on add */
 	if (txn->is_add && fselect == M_SQL_TABLEDATA_TXN_FIELD_MERGED)
 		fselect = M_SQL_TABLEDATA_TXN_FIELD_CURRENT;
+	if (txn->is_add && fselect == M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE)
+		fselect = M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY;
 
 	/* Not possible to get prior on add */
 	if (txn->is_add && fselect == M_SQL_TABLEDATA_TXN_FIELD_PRIOR)
@@ -1210,27 +1226,43 @@ M_sql_tabledata_field_t *M_sql_tabledata_txn_field_get(M_sql_tabledata_txn_t *tx
 			field = M_hash_strvp_get_direct(txn->prev_fields, field_name);
 			break;
 
-		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT:
-		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW:
+		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY:
 			field = M_hash_strvp_get_direct(txn->curr_fields, field_name);
+			break;
+
+		case M_SQL_TABLEDATA_TXN_FIELD_CURRENT:
+			field = M_hash_strvp_get_direct(txn->curr_fields, field_name);
+			if (field == NULL && M_sql_tabledata_txn_fetch_fielddef(txn, field_name) != NULL) {
+				/* Create new emtpy entry */
+				field = M_malloc_zero(sizeof(*field));
+				M_sql_tabledata_field_set_null(field);
+				M_hash_strvp_insert(txn->curr_fields, field_name, field);
+			}
 			break;
 
 		case M_SQL_TABLEDATA_TXN_FIELD_MERGED:
 			field = M_hash_strvp_get_direct(txn->curr_fields, field_name);
 			if (field == NULL) {
 				field = M_hash_strvp_get_direct(txn->prev_fields, field_name);
+				if (field != NULL) {
+					/* Duplicate into own entry, might be edited */
+					field = M_sql_tabledata_field_duplicate(field);
+					M_hash_strvp_insert(txn->curr_fields, field_name, field);
+				} else if (M_sql_tabledata_txn_fetch_fielddef(txn, field_name) != NULL) {
+					/* Create new emtpy entry */
+					field = M_malloc_zero(sizeof(*field));
+					M_sql_tabledata_field_set_null(field);
+					M_hash_strvp_insert(txn->curr_fields, field_name, field);
+				}
 			}
 			break;
-	}
 
-	/* Create a new NULL field */
-	if (fselect == M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW &&
-	    field == NULL &&
-	    M_sql_tabledata_txn_fetch_fielddef(txn, field_name) != NULL
-	) {
-		field = M_malloc_zero(sizeof(*field));
-		M_sql_tabledata_field_set_null(field);
-		M_hash_strvp_insert(txn->curr_fields, field_name, field);
+		case M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE:
+			field = M_hash_strvp_get_direct(txn->curr_fields, field_name);
+			if (field == NULL) {
+				field = M_hash_strvp_get_direct(txn->prev_fields, field_name);
+			}
+			break;
 	}
 
 	return field;
@@ -1242,7 +1274,7 @@ M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char 
 	M_sql_tabledata_field_t    *prior_field;
 	M_sql_tabledata_field_t    *curr_field;
 
-	curr_field  = M_sql_tabledata_txn_field_get(txn, field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+	curr_field  = M_sql_tabledata_txn_field_get(txn, field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY);
 
 	/* If the current field wasn't specified, no change */
 	if (curr_field == NULL)
@@ -1277,7 +1309,7 @@ static M_bool M_sql_tabledata_txn_sanitycheck_fields(M_sql_tabledata_txn_t *txn,
 		if (M_str_isempty(txn->fields[i].field_name))
 			continue;
 
-		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED);
+		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE);
 
 		if (txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_NOTNULL) {
 			if (field == NULL || M_sql_tabledata_field_is_null(field)) {
@@ -1331,7 +1363,7 @@ static M_sql_error_t M_sql_tabledata_txn_virtual_get(M_sql_tabledata_field_t *ou
 			field_updated = M_TRUE;
 		}
 
-		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED);
+		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE);
 
 		/* A blank/null field here is the same as not existing */
 		if (field == NULL || M_sql_tabledata_field_is_null(field))
@@ -1451,7 +1483,7 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 
 		/* Skip if field blank and not a virtual column which always gets emitted */
 		if (!(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_VIRTUAL)) {
-			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY);
 			if (field == NULL || M_sql_tabledata_field_is_null(field))
 				continue;
 		}
@@ -1506,7 +1538,7 @@ static M_sql_error_t M_sql_tabledata_add_do_int(M_sql_trans_t *sqltrans, void *a
 
 			/* Virtual columns should actually bind NULL, so no skipping */
 		} else {
-			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY);
 			if (field == NULL || M_sql_tabledata_field_is_null(field))
 				continue;
 		}
@@ -1683,7 +1715,7 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 		if (!(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY);
 		if (field == NULL || M_sql_tabledata_field_is_null(field)) {
 			if (txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID_REQUIRED) {
 				M_snprintf(error, error_len, "required field %s not specified", txn->fields[i].field_name);
@@ -1918,7 +1950,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		} else if (!M_sql_tabledata_txn_field_changed(txn, txn->fields[i].field_name)) {
 			continue;
 		} else {
-			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED);
+			field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE);
 		}
 
 		if (has_col)
@@ -1967,7 +1999,7 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 		if (!(txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_ID))
 			continue;
 
-		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT);
+		field = M_sql_tabledata_txn_field_get(txn, txn->fields[i].field_name, M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY);
 		if (field == NULL)
 			continue;
 

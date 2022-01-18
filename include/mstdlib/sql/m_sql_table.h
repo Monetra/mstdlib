@@ -528,10 +528,11 @@ M_API M_bool M_sql_tabledata_txn_is_add(M_sql_tabledata_txn_t *txn);
 
 /*! When fetching a field from a transaction, the manner in which to fetch */
 typedef enum {
-	M_SQL_TABLEDATA_TXN_FIELD_MERGED         = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value. On add, equivalent to M_SQL_TABLEDATA_TXN_FIELD_CURRENT. */
-	M_SQL_TABLEDATA_TXN_FIELD_PRIOR          = 2, /*!< Grab the prior value of the field. On add, this is always NULL. */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT        = 3, /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
-	M_SQL_TABLEDATA_TXN_FIELD_CURRENT_OR_NEW = 4, /*!< Grab the current specified value of the field.  If not found, create a new NULL field and return it for modification (field_name specified must be valid) */
+	M_SQL_TABLEDATA_TXN_FIELD_MERGED              = 1, /*!< Grab the current specified value of the field, if not found, grab the prior value. On add, equivalent to M_SQL_TABLEDATA_TXN_FIELD_CURRENT. */
+    M_SQL_TABLEDATA_TXN_FIELD_MERGED_NODUPLICATE  = 2, /*!< Grab the current specified value of the field, if not found, grab the prior value and duplicate it as the current value for editing. */
+	M_SQL_TABLEDATA_TXN_FIELD_PRIOR               = 3, /*!< Grab the prior value of the field. On add, this is always NULL. */
+	M_SQL_TABLEDATA_TXN_FIELD_CURRENT_READONLY    = 4, /*!< Grab the current specified value of the field.  May not exist on edit if value is unchanged. */
+	M_SQL_TABLEDATA_TXN_FIELD_CURRENT             = 5, /*!< Grab the current specified value of the field.  If not found, create a new NULL field and return it for modification (field_name specified must be valid) */
 } M_sql_tabledata_txn_field_select_t;
 
 
