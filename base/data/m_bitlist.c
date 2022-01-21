@@ -130,7 +130,9 @@ static M_bool M_bitlist_parse_int(M_uint64 *out, M_bitlist_flags_t flags, const 
 			M_snprintf(error, error_len, "'%s' is not a power of 2", elems[i]);
 			goto done;
 		}
-		(*out) |= id;
+
+		if (found)
+			(*out) |= id;
 	}
 
 	rv	= M_TRUE;
