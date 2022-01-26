@@ -603,14 +603,14 @@ static M_sql_error_t odbc_cb_connect(M_sql_driver_conn_t **conn, M_sql_connpool_
 	password = M_sql_driver_pool_get_password(pool);
 
 	dsn      = M_buf_create();
-	M_bprintf(dsn, "DSN=%s;", data->dsns[host_idx]);
+	M_bprintf(dsn, "DSN={%s};", data->dsns[host_idx]);
 
 	if (!M_str_isempty(username)) {
-		M_bprintf(dsn, "UID=%s;", username);
+		M_bprintf(dsn, "UID={%s};", username);
 	}
 
 	if (!M_str_isempty(password)) {
-		M_bprintf(dsn, "PWD=%s;", password);
+		M_bprintf(dsn, "PWD={%s};", password);
 	}
 
 	connstr = M_buf_finish_str(dsn, NULL);
