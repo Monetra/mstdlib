@@ -68,6 +68,9 @@ M_bool M_bitlist_list(char **out, M_bitlist_flags_t flags, const M_bitlist_t *li
 done:
 	if (rv) {
 		*out = M_buf_finish_str(buf, NULL);
+		/* If empty, might be NULL, transform to empty string as NULL could mean error to a user */
+		if (*out == NULL)
+			*out = M_malloc_zero(1);
 	} else {
 		M_buf_cancel(buf);
 	}
