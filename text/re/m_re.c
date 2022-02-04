@@ -101,7 +101,7 @@ M_bool M_re_search(const M_re_t *re, const char *str, M_re_match_t **match)
 	if (match != NULL) {
 		*match = M_re_match_create();
 		for (i=0; i<num_pmatch; i++) {
-			if ((pmatch[i].rm_so == 0 && pmatch[i]. rm_eo == 0) || pmatch[i].rm_so == -1 || pmatch[i].rm_eo == -1) {
+			if ((pmatch[i].rm_so == 0 && pmatch[i].rm_eo == 0) || pmatch[i].rm_so == -1 || pmatch[i].rm_eo == -1) {
 				continue;
 			}
 			M_re_match_insert(*match, i, (size_t)pmatch[i].rm_so, (size_t)(pmatch[i].rm_eo - pmatch[i].rm_so));

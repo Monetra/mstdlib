@@ -673,6 +673,17 @@ START_TEST(check_sub)
 		{ "(?i)[^a-c]", M_RE_NONE, "", "a b C d e f g", "abC" },
 		{ "(?i)[^a-b]", M_RE_NONE, "", "a b C d e f g", "ab" },
 		{ "[^0-9]", M_RE_NONE, "", "12 / 27", "1227" },
+		{ "[^0-9]+", M_RE_NONE, "", "12 / 27", "1227" },
+#if 0
+		/* Will fail to sub.
+		 * Works with Python. Does not macOS POSIX regex.h
+		 * Does not macOS POSIX tre.h.
+		 * M_re is based on tre and I believe macOS is too.
+		 * So failing is expected. This is a somewhat ambiguous
+		 * expression.
+		 */
+		{ "[^0-9]*", M_RE_NONE, "", "12 / 27", "1227" },
+#endif
 		{ NULL, 0, NULL, NULL, NULL }
 	};
 	char   *out;
@@ -684,7 +695,7 @@ START_TEST(check_sub)
 		ck_assert_msg(re != NULL, "%zu: re compile failed", i);
 
 		out = M_re_sub(re, tdata[i].repl, tdata[i].str);
-		ck_assert_msg(M_str_eq(out, tdata[i].out), "%zu: sub failed: expected '%s', got '%s'", i, tdata[i].out, out);
+		ck_assert_msg(M_str_eq(out, tdata[i].out), "%zu: sub failed: pat '%s', expected '%s', got '%s'", i, tdata[i].pattern, tdata[i].out, out);
 
 		M_free(out);
 		M_re_destroy(re);
