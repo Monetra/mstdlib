@@ -672,6 +672,7 @@ START_TEST(check_sub)
 		{ "(?i)[^abc]", M_RE_NONE, "", "a b C d e f g", "abC" },
 		{ "(?i)[^a-c]", M_RE_NONE, "", "a b C d e f g", "abC" },
 		{ "(?i)[^a-b]", M_RE_NONE, "", "a b C d e f g", "ab" },
+		{ "[^0-9]", M_RE_NONE, "", "12 / 27", "1227" },
 		{ NULL, 0, NULL, NULL, NULL }
 	};
 	char   *out;
