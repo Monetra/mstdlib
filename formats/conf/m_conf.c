@@ -627,11 +627,13 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
  	 * default value (if set). */
 	reg_set_value(conf, reg, debugbuf, value);
 
+	ret = M_TRUE;
+
 done:
 	if (M_buf_len(debugbuf))
 		conf_log_debug(conf, "%s", M_buf_peek(debugbuf));
 	M_buf_cancel(debugbuf);
-	return M_TRUE;
+	return ret;
 }
 
 
