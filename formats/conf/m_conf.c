@@ -279,14 +279,16 @@ static M_bool reg_call_converter(M_conf_reg_t *reg, const char *value)
 }
 
 /* Validate the value as a string. */
-static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const char *value, char *err_buf, size_t err_len)
+static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const char *value, M_buf_t *debugbuf, char *err_buf, size_t err_len)
 {
 	M_bool  ret = M_FALSE;
 	M_re_t *regex;
 
+	(void)conf;
+
 	if (M_str_isempty(reg->regex)) {
 		ret = M_TRUE;
-		conf_log_debug(conf, "  Skipping regular expression check");
+		M_buf_add_str(debugbuf, ": Skipping regular expression check");
 	} else {
 		regex = M_re_compile(reg->regex, M_RE_NONE);
 		if (regex == NULL) {
@@ -294,7 +296,7 @@ static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const ch
 		} else {
 			ret = M_re_eq(regex, value);
 			if (ret) {
-				conf_log_debug(conf, "  Passed regex check");
+				M_buf_add_str(debugbuf, ": Passed regex check");
 			} else {
 				M_snprintf(err_buf, err_len, "Regex check failed");
 			}
@@ -306,7 +308,7 @@ static M_bool reg_validate_value_str(M_conf_t *conf, M_conf_reg_t *reg, const ch
 }
 
 /* Validate the value as a signed integer. */
-static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const char *value, char *err_buf, size_t err_len)
+static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const char *value, M_buf_t *debugbuf, char *err_buf, size_t err_len)
 {
 	const char *const_tmp;
 	M_int64     num;
@@ -316,6 +318,7 @@ static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const ch
 	M_int64     max_possible = 0;
 
 	(void)conf;
+	(void)debugbuf;
 
 	/* We want to do a quick check just to make sure we have digits, but we also want to allow a negative sign.
  	 * M_str_isnum() only allows digits, so we'll have to skip past a leading negative sign (if there is one). */
@@ -372,7 +375,7 @@ static M_bool reg_validate_value_int(M_conf_t *conf, M_conf_reg_t *reg, const ch
 }
 
 /* Validate the value as an unsigned integer. */
-static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const char *value, char *err_buf, size_t err_len)
+static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const char *value, M_buf_t *debugbuf, char *err_buf, size_t err_len)
 {
 	M_uint64 num;
 	M_uint64 min_allowed  = 0;
@@ -381,6 +384,7 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 	M_uint64 max_possible = 0;
 
 	(void)conf;
+	(void)debugbuf;
 
 	if (!M_str_isnum(value)) {
 		M_snprintf(err_buf, err_len, "Not a number");
@@ -444,23 +448,23 @@ static M_bool reg_validate_value_uint(M_conf_t *conf, M_conf_reg_t *reg, const c
 }
 
 /* Run through any validators set for this registration. */
-static M_bool reg_validate_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value, char *err_buf, size_t err_len)
+static M_bool reg_validate_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value, M_buf_t *debugbuf, char *err_buf, size_t err_len)
 {
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_BUF:
 		case M_CONF_REG_TYPE_STRDUP:
-			return reg_validate_value_str(conf, reg, value, err_buf, err_len);
+			return reg_validate_value_str(conf, reg, value, debugbuf, err_buf, err_len);
 		case M_CONF_REG_TYPE_INT8:
 		case M_CONF_REG_TYPE_INT16:
 		case M_CONF_REG_TYPE_INT32:
 		case M_CONF_REG_TYPE_INT64:
-			return reg_validate_value_int(conf, reg, value, err_buf, err_len);
+			return reg_validate_value_int(conf, reg, value, debugbuf, err_buf, err_len);
 		case M_CONF_REG_TYPE_UINT8:
 		case M_CONF_REG_TYPE_UINT16:
 		case M_CONF_REG_TYPE_UINT32:
 		case M_CONF_REG_TYPE_UINT64:
 		case M_CONF_REG_TYPE_SIZET:
-			return reg_validate_value_uint(conf, reg, value, err_buf, err_len);
+			return reg_validate_value_uint(conf, reg, value, debugbuf, err_buf, err_len);
 		case M_CONF_REG_TYPE_BOOL:
 		case M_CONF_REG_TYPE_CUSTOM:
 		case M_CONF_REG_TYPE_NONE:
@@ -471,8 +475,9 @@ static M_bool reg_validate_value(M_conf_t *conf, M_conf_reg_t *reg, const char *
 }
 
 /* Set the value for this registration. */
-static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
+static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, M_buf_t *debugbuf, const char *value)
 {
+	(void)conf;
 	switch (reg->type) {
 		case M_CONF_REG_TYPE_BUF:
 			if (M_str_isempty(value)) {
@@ -480,7 +485,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				M_str_cpy(reg->mem.buf, reg->buf_len, value);
 			}
-			conf_log_debug(conf, "  Setting %s: %s", reg->key, reg->mem.buf);
+			M_bprintf(debugbuf, ": final value: '%s'", reg->mem.buf);
 			break;
 		case M_CONF_REG_TYPE_STRDUP:
 			if (M_str_isempty(value)) {
@@ -488,7 +493,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.strdup) = M_strdup(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %s", reg->key, *(reg->mem.strdup));
+			M_bprintf(debugbuf, ": final value: '%s'", *(reg->mem.strdup));
 			break;
 		case M_CONF_REG_TYPE_INT8:
 			if (M_str_isempty(value)) {
@@ -496,7 +501,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.int8) = (M_int8)M_str_to_int32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int8));
+			M_bprintf(debugbuf, ": final value: '%d'", *(reg->mem.int8));
 			break;
 		case M_CONF_REG_TYPE_INT16:
 			if (M_str_isempty(value)) {
@@ -504,7 +509,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.int16) = (M_int16)M_str_to_int32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int16));
+			M_bprintf(debugbuf, ": final value: '%d'", *(reg->mem.int16));
 			break;
 		case M_CONF_REG_TYPE_INT32:
 			if (M_str_isempty(value)) {
@@ -512,7 +517,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.int32) = M_str_to_int32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %d", reg->key, *(reg->mem.int32));
+			M_bprintf(debugbuf, ": final value: '%d'", *(reg->mem.int32));
 			break;
 		case M_CONF_REG_TYPE_INT64:
 			if (M_str_isempty(value)) {
@@ -520,7 +525,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.int64) = M_str_to_int64(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %lld", reg->key, *(reg->mem.int64));
+			M_bprintf(debugbuf, ": final value: '%lld'", *(reg->mem.int64));
 			break;
 		case M_CONF_REG_TYPE_UINT8:
 			if (M_str_isempty(value)) {
@@ -528,7 +533,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.uint8) = (M_uint8)M_str_to_uint32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint8));
+			M_bprintf(debugbuf, ": final value: '%u'", *(reg->mem.uint8));
 			break;
 		case M_CONF_REG_TYPE_UINT16:
 			if (M_str_isempty(value)) {
@@ -536,7 +541,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.uint16) = (M_uint16)M_str_to_uint32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint16));
+			M_bprintf(debugbuf, ": final value: '%u'", *(reg->mem.uint16));
 			break;
 		case M_CONF_REG_TYPE_UINT32:
 			if (M_str_isempty(value)) {
@@ -544,7 +549,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.uint32) = M_str_to_uint32(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %u", reg->key, *(reg->mem.uint32));
+			M_bprintf(debugbuf, ": final value: '%u'", *(reg->mem.uint32));
 			break;
 		case M_CONF_REG_TYPE_UINT64:
 			if (M_str_isempty(value)) {
@@ -552,7 +557,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.uint64) = M_str_to_uint64(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %llu", reg->key, *(reg->mem.uint64));
+			M_bprintf(debugbuf, ": final value: '%llu'", *(reg->mem.uint64));
 			break;
 		case M_CONF_REG_TYPE_SIZET:
 			if (M_str_isempty(value)) {
@@ -560,7 +565,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.sizet) = (size_t)M_str_to_uint64(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %llu", reg->key, *(reg->mem.sizet));
+			M_bprintf(debugbuf, ": final value: '%zu'", *(reg->mem.sizet));
 			break;
 		case M_CONF_REG_TYPE_BOOL:
 			if (M_str_isempty(value)) {
@@ -568,7 +573,7 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 			} else {
 				*(reg->mem.boolean) = M_str_istrue(value);
 			}
-			conf_log_debug(conf, "  Setting %s: %s", reg->key, *(reg->mem.boolean) ? "true" : "false");
+			M_bprintf(debugbuf, ": final value: '%s'", *(reg->mem.boolean) ? "true" : "false");
 			break;
 		case M_CONF_REG_TYPE_CUSTOM:
 		case M_CONF_REG_TYPE_NONE:
@@ -580,12 +585,13 @@ static void reg_set_value(M_conf_t *conf, M_conf_reg_t *reg, const char *value)
 static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 {
 	const char *value;
-	M_bool      ret;
+	M_bool      ret      = M_FALSE;
 	char        err_buf[256];
+	M_buf_t    *debugbuf = M_buf_create();
 
 	if (reg == NULL) {
 		conf_log_error(conf, "Key has bad registration");
-		return M_FALSE;
+		goto done;
 	}
 
 	/* Set the zero value of this registration. */
@@ -593,34 +599,38 @@ static M_bool reg_handle(M_conf_t *conf, M_conf_reg_t *reg)
 
 	/* Get the value for this registration's key. */
 	value = M_conf_get_value(conf, reg->key);
-	conf_log_debug(conf, "Parsing key: %s", reg->key);
-	conf_log_debug(conf, "  Value in config file: %s", value);
+	M_bprintf(debugbuf, "key %s: config value: '%s'", reg->key, value);
 
 	/* If this registration has a custom callback set, then we want to let that do all the work for validating and
  	 * setting the value. M_CONF_REG_TYPE_CUSTOM registrations always have a converter callback set. */
 	if (reg_has_converter(reg)) {
 		ret = reg_call_converter(reg, value);
 		if (ret) {
-			conf_log_debug(conf, "  Value manually set");
+			M_buf_add_str(debugbuf, ": Value manually set");
 		} else {
 			conf_log_error(conf, "Key '%s' failed manual conversion for value '%s'", reg->key, value);
 		}
-		return ret;
+		goto done;
 	}
 
 	/* If there are any validations set for this registration, let's check those now. */
-	if (!M_str_isempty(value) && !reg_validate_value(conf, reg, value, err_buf, sizeof(err_buf))) {
+	if (!M_str_isempty(value) && !reg_validate_value(conf, reg, value, debugbuf, err_buf, sizeof(err_buf))) {
 		/* Validation failed. Set the default value and return false. */
 		conf_log_error(conf, "Key '%s' failed validation for value '%s': %s", reg->key, value, err_buf);
-		reg_set_value(conf, reg, NULL);
-		return M_FALSE;
+		reg_set_value(conf, reg, debugbuf, NULL);
+		ret = M_FALSE;
+		goto done;
 	}
-	conf_log_debug(conf, "  Value passed validation");
+	M_buf_add_str(debugbuf, ": Value passed validation");
 
 	/* If we're here, then we can go ahead and set the value. If there is no value for this key, then we'll use the
  	 * default value (if set). */
-	reg_set_value(conf, reg, value);
+	reg_set_value(conf, reg, debugbuf, value);
 
+done:
+	if (M_buf_len(debugbuf))
+		conf_log_debug(conf, "%s", M_buf_peek(debugbuf));
+	M_buf_cancel(debugbuf);
 	return M_TRUE;
 }
 
