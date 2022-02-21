@@ -44,19 +44,7 @@ static void M_thread_win_deinit(void)
 	DeleteCriticalSection(&M_thread_win_lock);
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define SIGNAL    0
-#define BROADCAST 1
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-struct M_thread_cond {
-	HANDLE           events[2];
-	HANDLE           gate;
-	CRITICAL_SECTION mutex;
-	int              waiters;
-	int              event;
-};
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -354,6 +342,78 @@ static M_bool M_thread_win_mutex_unlock(M_thread_mutex_t *mutex)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#if _WIN32_WINNT >= 0x0600 /* Vista */
+
+struct M_thread_cond {
+	CONDITION_VARIABLE cond;
+};
+
+static M_thread_cond_t *M_thread_win_cond_create(M_uint32 attr)
+{
+	M_thread_cond_t *cond = M_malloc_zero(sizeof(*cond));
+	(void)attr;
+	InitializeConditionVariable(&cond->cond);
+	return cond;
+}
+
+static void M_thread_win_cond_destroy(M_thread_cond_t *cond)
+{
+	if (!cond)
+		return;
+	/* NOTE: doesn't appear there is any necessary deinitialization for condition variables */
+	M_free(cond);
+}
+
+static M_bool M_thread_win_cond_timedwait(M_thread_cond_t *cond, M_thread_mutex_t *mutex, const M_timeval_t *abstime)
+{
+	DWORD dwMilliseconds = 0;
+
+	if (!cond || !mutex)
+		return M_FALSE;
+
+	if (abstime == NULL) {
+		dwMilliseconds = INFINITE;
+	} else {
+		dwMilliseconds = win32_abstime2msoffset(abstime);
+	}
+
+	return SleepConditionVariableCS(&cond->cond, (LPCRITICAL_SECTION)mutex, dwMilliseconds);
+}
+
+static M_bool M_thread_win_cond_wait(M_thread_cond_t *cond, M_thread_mutex_t *mutex)
+{
+	return M_thread_win_cond_timedwait(cond, mutex, NULL);
+}
+
+static void M_thread_win_cond_broadcast(M_thread_cond_t *cond)
+{
+	if (!cond)
+		return;
+	WakeAllConditionVariable(&cond->cond);
+}
+
+static void M_thread_win_cond_signal(M_thread_cond_t *cond)
+{
+	if (!cond)
+		return;
+	WakeConditionVariable(&cond->cond);
+}
+
+#else
+
+#  define SIGNAL    0
+#  define BROADCAST 1
+
+struct M_thread_cond {
+	HANDLE           events[2];
+	HANDLE           gate;
+	CRITICAL_SECTION mutex;
+	int              waiters;
+	int              event;
+};
+
+
+/* Pre-Vista implementation of conditionals */
 static M_thread_cond_t *M_thread_win_cond_create(M_uint32 attr)
 {
 	M_thread_cond_t *cond;
@@ -498,7 +558,7 @@ static void M_thread_win_cond_signal(M_thread_cond_t *cond)
 	}
 	LeaveCriticalSection(&cond->mutex);
 }
-
+#endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
