@@ -373,9 +373,9 @@ M_log_error_t M_log_module_add_syslog(M_log_t *log, const char *product, M_syslo
 	M_async_writer_start(mdata->writer);
 
 	/* Add the module to the log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_llist_insert(log->modules, mod);
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -394,10 +394,10 @@ M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_module_t 
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
@@ -416,7 +416,7 @@ M_log_error_t M_log_module_syslog_set_tag_priority(M_log_t *log, M_log_module_t 
 		tags = tags & ~((M_uint64)1 << tag_idx);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }

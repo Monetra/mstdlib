@@ -690,9 +690,9 @@ M_log_error_t M_log_module_add_file(M_log_t *log, const char *log_file_path, siz
 	M_async_writer_start(mod->module_thunk);
 
 	/* Add the module to the log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_llist_insert(log->modules, mod);
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -710,17 +710,17 @@ M_log_error_t M_log_module_file_rotate(M_log_t *log, M_log_module_t *module)
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
 	writer = module->module_thunk;
 	M_async_writer_set_command(writer, M_LOG_CMD_FILE_ROTATE, M_TRUE);
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }

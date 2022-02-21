@@ -299,7 +299,7 @@ M_log_t *M_log_create(M_log_line_end_mode_t mode, M_bool flush_on_destroy, M_eve
 	log->flush_on_destroy     = flush_on_destroy;
 	log->line_end_str         = line_end_to_str(mode);
 	log->time_format          = M_strdup("%Y-%M-%DT%H:%m:%s.%l%Z");
-	log->lock                 = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	log->rwlock               = M_thread_rwlock_create();
 	log->event                = event;
 
 	return log;
@@ -314,7 +314,7 @@ void M_log_destroy(M_log_t *log)
 
 	M_llist_destroy(log->modules, M_TRUE); /* calls log_module_destroy() on each module */
 	M_free(log->time_format);
-	M_thread_mutex_destroy(log->lock);
+	M_thread_rwlock_destroy(log->rwlock);
 	M_hash_u64str_destroy(log->tag_to_name);
 	M_hash_multi_destroy(log->name_to_tag);
 
@@ -336,7 +336,7 @@ void M_log_destroy_blocking(M_log_t *log, M_uint64 timeout_ms)
 
 	M_time_elapsed_start(&t);
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	/* Destroy each log module's thunk (blocking, if possible). */
 	node = M_llist_first(log->modules);
@@ -363,7 +363,7 @@ void M_log_destroy_blocking(M_log_t *log, M_uint64 timeout_ms)
 		node = M_llist_node_next(node);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	/* Destroy the log and all modules, after we've already launched a destroy on each module's thunk. */
 	M_log_destroy(log);
@@ -389,12 +389,12 @@ M_log_error_t M_log_set_time_format(M_log_t *log, const char *fmt)
 	M_free(test_str);
 
 	/* Copy new time format to log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	M_free(log->time_format);
 	log->time_format = M_strdup(fmt);
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -413,7 +413,7 @@ M_log_error_t M_log_set_tag_name(M_log_t *log, M_uint64 tag, const char *name)
 		return M_LOG_INVALID_TAG;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (log->tag_to_name == NULL) {
 		log->tag_to_name = M_hash_u64str_create(16, 75, M_HASH_U64STR_NONE);
@@ -424,6 +424,7 @@ M_log_error_t M_log_set_tag_name(M_log_t *log, M_uint64 tag, const char *name)
 
 	/* Check to see if new name has already been assigned to another tag. */
 	if (M_hash_multi_str_get_uint(log->name_to_tag, name, &other_tag) && other_tag != tag) {
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_DUPLICATE_TAG_NAME;
 	}
 
@@ -468,7 +469,7 @@ M_log_error_t M_log_set_tag_name(M_log_t *log, M_uint64 tag, const char *name)
 		}
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -482,13 +483,13 @@ const char *M_log_get_tag_name(M_log_t *log, M_uint64 tag)
 		return NULL;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	if (!M_hash_u64str_get(log->tag_to_name, tag, &ret)) {
 		ret = NULL;
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return ret;
 }
@@ -502,13 +503,13 @@ M_uint64 M_log_get_tag(M_log_t *log, const char *name)
 		return 0;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	if (!M_hash_multi_str_get_uint(log->name_to_tag, name, &ret)) {
 		ret = 0;
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return ret;
 }
@@ -520,11 +521,11 @@ M_log_error_t M_log_set_tag_names_padded(M_log_t *log, M_bool padded)
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	log->pad_names = padded;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -564,12 +565,12 @@ M_log_error_t M_log_vprintf(M_log_t *log, M_uint64 tag, void *msg_thunk, const c
 	 * M_vasprintf from being called on the many log events for levels that might
 	 * not be enabled.
 	 */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 	if (!M_log_check_tag_used(log, tag)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_SUCCESS;
 	}
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	/* Expand message string for this log entry from the format string. */
 	M_vasprintf(&msg, fmt, ap);
@@ -603,7 +604,7 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 		return M_LOG_INVALID_TAG;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	/* If this tag is disabled for all modules, skip it. This is an optimization, worth it since this
 	 * case happens a lot.
@@ -704,14 +705,14 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 	} /* END loop over lines */
 
 done:
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	M_buf_cancel(buf);
 	M_free(time_str);
 
 	/* Clean up any expired modules. */
 	if (has_expired_mods) {
-		M_thread_mutex_lock(log->lock);
+		M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 		node = M_llist_first(log->modules);
 		while (node != NULL) {
@@ -732,7 +733,7 @@ done:
 				log_module_destroy(mod);
 			}
 		}
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 	}
 
 	return ret;
@@ -778,7 +779,7 @@ void M_log_reopen_all(M_log_t *log)
 {
 	M_llist_node_t *node = NULL;
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	node = M_llist_first(log->modules);
 	while (node != NULL) {
@@ -791,7 +792,7 @@ void M_log_reopen_all(M_log_t *log)
 		node = M_llist_node_next(node);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 }
 
 
@@ -799,7 +800,7 @@ void M_log_suspend(M_log_t *log)
 {
 	M_llist_node_t *node = NULL;
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	node = M_llist_first(log->modules);
 	while (node != NULL) {
@@ -815,7 +816,7 @@ void M_log_suspend(M_log_t *log)
 	log->event     = NULL;
 	log->suspended = M_TRUE;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 }
 
 
@@ -823,10 +824,10 @@ void M_log_resume(M_log_t *log, M_event_t *event)
 {
 	M_llist_node_t *node = NULL;
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!log->suspended) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return;
 	}
 
@@ -844,7 +845,7 @@ void M_log_resume(M_log_t *log, M_event_t *event)
 	log->event     = event;
 	log->suspended = M_FALSE;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 }
 
 
@@ -855,15 +856,14 @@ M_list_t *M_log_all_modules(M_log_t *log)
 
 	ret = M_list_create(NULL, M_LIST_NONE);
 
-	M_thread_mutex_lock(log->lock);
-
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 	node = M_llist_first(log->modules);
 	while (node != NULL) {
 		M_list_insert(ret, M_llist_node_val(node));
 		node = M_llist_node_next(node);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return ret;
 }

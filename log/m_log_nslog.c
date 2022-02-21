@@ -183,9 +183,9 @@ M_log_error_t M_log_module_add_nslog(M_log_t *log, size_t max_queue_bytes, M_log
 	M_async_writer_start(writer);
 
 	/* Add the module to the log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_llist_insert(log->modules, mod);
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }

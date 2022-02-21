@@ -58,11 +58,11 @@ M_bool M_log_module_present(M_log_t *log, M_log_module_t *module)
 		return M_FALSE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	ret = module_present_locked(log, module);
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return ret;
 }
@@ -76,16 +76,16 @@ M_log_module_type_t M_log_module_type(M_log_t *log, M_log_module_t *module)
 		return M_LOG_MODULE_NULL;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NULL;
 	}
 
 	type = module->type;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return type;
 }
 
@@ -96,16 +96,16 @@ M_log_error_t M_log_module_set_accepted_tags(M_log_t *log, M_log_module_t *modul
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
 	module->accepted_tags = tags;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -116,16 +116,16 @@ M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t *modul
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_READ);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
 	*out_tags = module->accepted_tags;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -136,7 +136,7 @@ M_log_error_t M_log_set_prefix(M_log_t *log, M_log_prefix_cb prefix_cb,
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	log->prefix_cb               = prefix_cb;
 	if (log->prefix_thunk && prefix_thunk != log->prefix_thunk) {
@@ -146,7 +146,7 @@ M_log_error_t M_log_set_prefix(M_log_t *log, M_log_prefix_cb prefix_cb,
 	log->prefix_thunk            = prefix_thunk;
 	log->destroy_prefix_thunk_cb = thunk_destroy_cb;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -169,10 +169,10 @@ M_log_error_t M_log_module_set_filter(M_log_t *log, M_log_module_t *module, M_lo
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
@@ -180,7 +180,7 @@ M_log_error_t M_log_module_set_filter(M_log_t *log, M_log_module_t *module, M_lo
 	module->filter_thunk            = filter_thunk;
 	module->destroy_filter_thunk_cb = thunk_destroy_cb;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -193,10 +193,10 @@ M_log_error_t M_log_module_reopen(M_log_t *log, M_log_module_t *module)
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
@@ -204,7 +204,7 @@ M_log_error_t M_log_module_reopen(M_log_t *log, M_log_module_t *module)
 		ret = module->module_reopen_cb(module);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return ret;
 }
 
@@ -215,11 +215,11 @@ M_log_error_t M_log_module_remove(M_log_t *log, M_log_module_t *module)
 		return M_LOG_INVALID_PARAMS;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	module_remove_locked(log, module);
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }

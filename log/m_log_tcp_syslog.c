@@ -634,9 +634,9 @@ M_log_error_t M_log_module_add_tcp_syslog(M_log_t *log, const char *product, M_s
 	}
 
 	/* Add the module to the log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_llist_insert(log->modules, mod);
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -654,23 +654,23 @@ M_log_error_t M_log_module_tcp_syslog_set_connect_timeout_ms(M_log_t *log, M_log
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
 	mdata = module->module_thunk;
 
 	if (!M_io_net_set_connect_timeout_ms(mdata->io, timeout_ms)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_GENERIC_FAIL;
 	}
 
 	mdata->connect_timeout_ms = timeout_ms;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -688,24 +688,24 @@ M_log_error_t M_log_module_tcp_syslog_set_keepalives(M_log_t *log, M_log_module_
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
 	mdata = module->module_thunk;
 
 	if (!M_io_net_set_keepalives(mdata->io, idle_time_s, retry_time_s, retry_count)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_GENERIC_FAIL;
 	}
 	mdata->keepalive_idle_time_s  = idle_time_s;
 	mdata->keepalive_retry_time_s = retry_time_s;
 	mdata->keepalive_retry_count  = retry_count;
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 	return M_LOG_SUCCESS;
 }
 
@@ -723,10 +723,10 @@ M_log_error_t M_log_module_tcp_syslog_set_tag_priority(M_log_t *log, M_log_modul
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
+		M_thread_rwlock_unlock(log->rwlock);
 		return M_LOG_MODULE_NOT_FOUND;
 	}
 
@@ -745,7 +745,7 @@ M_log_error_t M_log_module_tcp_syslog_set_tag_priority(M_log_t *log, M_log_modul
 		tags = tags & ~((M_uint64)1 << tag_idx);
 	}
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }

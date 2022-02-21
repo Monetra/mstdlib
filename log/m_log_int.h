@@ -100,7 +100,7 @@ struct M_log {
 	char                           *time_format;          /* Will get passed to M_time_to_str(). */
 	M_hash_u64str_t                *tag_to_name;
 	M_hash_multi_t                 *name_to_tag;
-	M_thread_mutex_t               *lock;                 /* Lock for list of modules, and per-module settings. */
+	M_thread_rwlock_t              *rwlock;               /* Lock for list of modules, and per-module settings. */
 	size_t                          max_name_width;       /* Keeps track of length of longest loaded tag name. */
 	M_bool                          pad_names;            /* If true, tag names will be padded out to constant width. */
 	M_event_t                      *event;                /* Event loop to use for event-based modules. */

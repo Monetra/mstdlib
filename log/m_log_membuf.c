@@ -153,9 +153,9 @@ M_log_error_t M_log_module_add_membuf(M_log_t *log, size_t buf_size, M_uint64 bu
 	}
 
 	/* Add the module to the log. */
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_llist_insert(log->modules, mod);
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
@@ -175,7 +175,7 @@ M_log_error_t M_log_module_take_membuf(M_log_t *log, M_log_module_t *module, M_b
 		return M_LOG_WRONG_MODULE;
 	}
 
-	M_thread_mutex_lock(log->lock);
+	M_thread_rwlock_lock(log->rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
 	if (out_buf != NULL) {
 		module_thunk_t *mdata = module->module_thunk;
@@ -190,7 +190,7 @@ M_log_error_t M_log_module_take_membuf(M_log_t *log, M_log_module_t *module, M_b
 
 	module_remove_locked(log, module);
 
-	M_thread_mutex_unlock(log->lock);
+	M_thread_rwlock_unlock(log->rwlock);
 
 	return M_LOG_SUCCESS;
 }
