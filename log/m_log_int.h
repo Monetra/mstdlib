@@ -122,7 +122,6 @@ struct M_log_module {
 
 	/* Module specific stuff. */
 	M_log_module_type_t              type;
-	M_bool                           allow_tag_padding;
 	M_bool                           flush_on_destroy;
 	void                            *module_thunk;
 	M_log_check_cb                   module_check_cb;

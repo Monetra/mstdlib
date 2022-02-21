@@ -184,7 +184,6 @@ M_log_error_t M_log_module_add_stream(M_log_t *log, M_stream_type_t type, size_t
 	mod                                   = M_malloc_zero(sizeof(*mod));
 	mod->type                             = M_LOG_MODULE_STREAM;
 	mod->flush_on_destroy                 = log->flush_on_destroy;
-	mod->allow_tag_padding                = M_TRUE;
 	mod->module_thunk                     = M_async_writer_create(max_queue_bytes, writer_write_cb, iostream, NULL,
 		NULL, log->line_end_writer_mode);
 	mod->module_write_cb                  = log_write_cb;

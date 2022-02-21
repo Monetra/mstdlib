@@ -141,7 +141,6 @@ M_log_error_t M_log_module_add_membuf(M_log_t *log, size_t buf_size, M_uint64 bu
 	mod                          = M_malloc_zero(sizeof(*mod));
 	mod->type                    = M_LOG_MODULE_MEMBUF;
 	mod->flush_on_destroy        = log->flush_on_destroy;
-	mod->allow_tag_padding       = M_TRUE;
 	mod->module_thunk            = mdata;
 	mod->module_write_cb         = log_write_cb;
 	mod->module_check_cb         = log_check_cb;

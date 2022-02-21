@@ -673,7 +673,6 @@ M_log_error_t M_log_module_add_file(M_log_t *log, const char *log_file_path, siz
 	mod                                   = M_malloc_zero(sizeof(*mod));
 	mod->type                             = M_LOG_MODULE_FILE;
 	mod->flush_on_destroy                 = log->flush_on_destroy;
-	mod->allow_tag_padding                = M_TRUE;
 	mod->module_thunk                     = writer;
 	mod->module_write_cb                  = log_write_cb;
 	mod->module_reopen_cb                 = log_reopen_cb;

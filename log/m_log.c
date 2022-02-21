@@ -682,7 +682,7 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 				M_buf_add_str(buf, " [");
 				M_buf_add_bytes(buf, name_str, name_str_len);
 				M_buf_add_str(buf, "]");
-				if (log->pad_names && mod->allow_tag_padding && name_str_len < log->max_name_width) {
+				if (log->pad_names && name_str_len < log->max_name_width) {
 					M_buf_add_fill(buf, ' ', log->max_name_width - name_str_len);
 				}
 			}
