@@ -399,6 +399,58 @@ static void M_thread_win_cond_signal(M_thread_cond_t *cond)
 	WakeConditionVariable(&cond->cond);
 }
 
+
+struct M_thread_rwlock {
+	SRWLOCK rwlock;
+	M_bool  locked_exclusive;
+};
+
+M_thread_rwlock_t *M_thread_win_rwlock_create(void)
+{
+	M_thread_rwlock_t *rwlock;
+
+	rwlock = M_malloc_zero(sizeof(*rwlock));
+	InitializeSRWLock(&rwlock->rwlock);
+	return rwlock;
+};
+
+void M_thread_win_rwlock_destroy(M_thread_rwlock_t *rwlock)
+{
+	if (!rwlock)
+		return;
+	/* NOTE: no destroy mechanism for rwlocks */
+	M_free(rwlock);
+}
+
+M_bool M_thread_win_rwlock_lock(M_thread_rwlock_t *rwlock, M_thread_rwlock_type_t type)
+{
+	if (rwlock == NULL)
+		return M_FALSE;
+
+	if (type == M_THREAD_RWLOCK_TYPE_READ) {
+		AcquireSRWLockExclusive(&rwlock->rwlock);
+		rwlock->locked_exclusive = M_FALSE;
+	} else {
+		AcquireSRWLockShared(&rwlock->rwlock);
+		rwlock->locked_exclusive = M_TRUE;
+	}
+
+	return M_TRUE;
+}
+
+M_bool M_thread_win_rwlock_unlock(M_thread_rwlock_t *rwlock)
+{
+	if (!rwlock)
+		return M_FALSE;
+
+	if (rwlock->locked_exclusive) {
+		ReleaseSRWLockExclusive(&rwlock->rwlock);
+	} else {
+		ReleaseSRWLockShared(&rwlock->rwlock);
+	}
+	return M_TRUE;
+}
+
 #else
 
 #  define SIGNAL    0
@@ -596,8 +648,15 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 	cbs->cond_broadcast = M_thread_win_cond_broadcast;
 	cbs->cond_signal    = M_thread_win_cond_signal;
 	/* Read Write Lock */
+#if _WIN32_WINNT >= 0x0600 /* Vista */
+	cbs->rwlock_create  = M_thread_win_rwlock_create;
+	cbs->rwlock_destroy = M_thread_win_rwlock_destroy;
+	cbs->rwlock_lock    = M_thread_win_rwlock_lock;
+	cbs->rwlock_unlock  = M_thread_win_rwlock_unlock;
+#else
 	cbs->rwlock_create  = M_thread_rwlock_emu_create;
 	cbs->rwlock_destroy = M_thread_rwlock_emu_destroy;
 	cbs->rwlock_lock    = M_thread_rwlock_emu_lock;
 	cbs->rwlock_unlock  = M_thread_rwlock_emu_unlock;
+#endif
 }
