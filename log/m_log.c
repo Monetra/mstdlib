@@ -633,6 +633,36 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 		line_end = M_str_find_first_from_charset(line_start, "\r\n");
 		line_len = (line_end == NULL)? M_str_len(line_start) : (size_t)(line_end - line_start);
 
+		/* Clear out old contents of buffer. */
+		M_buf_truncate(buf, 0);
+
+		/* Time string. */
+		M_buf_add_bytes(buf, time_str, time_str_len);
+
+		/* Tag name. */
+		if (name_str_len > 0) {
+			M_buf_add_str(buf, " [");
+			M_buf_add_bytes(buf, name_str, name_str_len);
+			M_buf_add_str(buf, "]");
+			if (log->pad_names && name_str_len < log->max_name_width) {
+				M_buf_add_fill(buf, ' ', log->max_name_width - name_str_len);
+			}
+		}
+
+		/* Prefix */
+		if (log->prefix_cb == NULL) {
+			M_buf_add_str(buf, ": ");
+		} else {
+			log->prefix_cb(buf, tag, log->prefix_thunk, msg_thunk);
+		}
+
+		/* Current line of message. */
+		M_buf_add_bytes(buf, line_start, line_len);
+		buf_trim_end(buf);
+
+		/* Line ending. */
+		M_buf_add_str(buf, log->line_end_str);
+
 		/* Loop over every running module, output current line to it. */
 		node = M_llist_first(log->modules);
 		while (node != NULL) {
@@ -670,36 +700,6 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 			if (mod->filter_cb != NULL && !mod->filter_cb(tag, mod->filter_thunk, msg_thunk)) {
 				continue;
 			}
-
-			/* Clear out old contents of buffer. */
-			M_buf_truncate(buf, 0);
-
-			/* Time string. */
-			M_buf_add_bytes(buf, time_str, time_str_len);
-
-			/* Tag name. */
-			if (name_str_len > 0) {
-				M_buf_add_str(buf, " [");
-				M_buf_add_bytes(buf, name_str, name_str_len);
-				M_buf_add_str(buf, "]");
-				if (log->pad_names && name_str_len < log->max_name_width) {
-					M_buf_add_fill(buf, ' ', log->max_name_width - name_str_len);
-				}
-			}
-
-			/* Prefix */
-			if (log->prefix_cb == NULL) {
-				M_buf_add_str(buf, ": ");
-			} else {
-				log->prefix_cb(buf, tag, log->prefix_thunk, msg_thunk);
-			}
-
-			/* Current line of message. */
-			M_buf_add_bytes(buf, line_start, line_len);
-			buf_trim_end(buf);
-
-			/* Line ending. */
-			M_buf_add_str(buf, log->line_end_str);
 
 			/* Ask module to write the message. Module is allowed to modify buffer contents, but it can't destroy the
 			 * buffer object itself.
