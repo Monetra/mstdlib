@@ -109,9 +109,6 @@ static void log_module_destroy(void *modptr)
 		return;
 	}
 
-	if (mod->destroy_prefix_thunk_cb != NULL && mod->prefix_thunk != NULL) {
-		mod->destroy_prefix_thunk_cb(mod->prefix_thunk);
-	}
 	if (mod->destroy_filter_thunk_cb != NULL && mod->filter_thunk != NULL) {
 		mod->destroy_filter_thunk_cb(mod->filter_thunk);
 	}
@@ -320,6 +317,9 @@ void M_log_destroy(M_log_t *log)
 	M_thread_mutex_destroy(log->lock);
 	M_hash_u64str_destroy(log->tag_to_name);
 	M_hash_multi_destroy(log->name_to_tag);
+
+	if (log->prefix_thunk && log->destroy_prefix_thunk_cb)
+		log->destroy_prefix_thunk_cb(log->prefix_thunk);
 
 	M_free(log);
 }
@@ -688,10 +688,10 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 			}
 
 			/* Prefix */
-			if (mod->prefix_cb == NULL) {
+			if (log->prefix_cb == NULL) {
 				M_buf_add_str(buf, ": ");
 			} else {
-				mod->prefix_cb(buf, tag, mod->prefix_thunk, msg_thunk);
+				log->prefix_cb(buf, tag, log->prefix_thunk, msg_thunk);
 			}
 
 			/* Current line of message. */

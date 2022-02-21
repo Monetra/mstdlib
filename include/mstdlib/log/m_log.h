@@ -149,9 +149,9 @@ typedef struct M_log_module M_log_module_t;
  * May be called simultaneously from multiple threads. If the content of prefix_thunk may be modified after
  * it's passed to a module, you should include your own locks inside the thunk and use them inside the callback.
  *
- * \see M_log_module_set_prefix()
+ * \see M_log_set_prefix()
  *
- * \param[in] prefix_thunk thunk passed to M_log_module_set_prefix()
+ * \param[in] prefix_thunk thunk passed to M_log_set_prefix()
  * \param[in] msg_thunk    thunk passed to M_printf() or M_vprintf()
  * \param[in] msg_buf      message buffer (append prefix to this)
  * \param[in] tag          tag of message we're prefixing
@@ -686,12 +686,10 @@ M_API M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t 
 
 /*! Associate a prefix callback with the given module handle.
  *
- * The prefix callback allows the user to add a string between the timestamp and the body of the log message.
- * If no prefix callback is provided, the default prefix of ": " will be used.  See \link M_log_prefix_cb \endlink
- * for more details.
+ * This exists only for legacy compatibility.  Do Not use.  It does not associate with a module.
  *
- * \see M_log_prefix_cb
- * \see M_log_set_time_format
+ * \see M_log_set_prefix
+ *
  *
  * \param[in] log              logger object
  * \param[in] module           handle of module to operate on
@@ -703,6 +701,24 @@ M_API M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t 
 M_API M_log_error_t M_log_module_set_prefix(M_log_t *log, M_log_module_t *module, M_log_prefix_cb prefix_cb,
 	void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb);
 
+
+/* Associate a prefix callback with the log system.
+ *
+ * The prefix callback allows the user to add a string between the timestamp and the body of the log message.
+ * If no prefix callback is provided, the default prefix of ": " will be used.  See \link M_log_prefix_cb \endlink
+ * for more details.
+ *
+ * \see M_log_prefix_cb
+ * \see M_log_set_time_format
+ *
+ * \param[in] log              logger object
+ * \param[in] prefix_cb        prefix callback (function pointer)
+ * \param[in] prefix_thunk     any state used by prefix callback
+ * \param[in] thunk_destroy_cb function to call when destroying the prefix thunk
+ * \return                     error code
+ */
+M_API M_log_error_t M_log_set_prefix(M_log_t *log, M_log_prefix_cb prefix_cb,
+    void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb);
 
 /*! Associate a filter callback with the given module handle.
  *

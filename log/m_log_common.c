@@ -129,27 +129,36 @@ M_log_error_t M_log_module_get_accepted_tags(M_log_t *log, M_log_module_t *modul
 	return M_LOG_SUCCESS;
 }
 
-
-M_log_error_t M_log_module_set_prefix(M_log_t *log, M_log_module_t *module, M_log_prefix_cb prefix_cb,
+M_log_error_t M_log_set_prefix(M_log_t *log, M_log_prefix_cb prefix_cb,
 	void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb)
 {
-	if (log == NULL || module == NULL) {
+	if (log == NULL) {
 		return M_LOG_INVALID_PARAMS;
 	}
 
 	M_thread_mutex_lock(log->lock);
 
-	if (!module_present_locked(log, module)) {
-		M_thread_mutex_unlock(log->lock);
-		return M_LOG_MODULE_NOT_FOUND;
+	log->prefix_cb               = prefix_cb;
+	if (log->prefix_thunk && prefix_thunk != log->prefix_thunk) {
+		if (log->destroy_prefix_thunk_cb)
+			log->destroy_prefix_thunk_cb(log->prefix_thunk);
 	}
-
-	module->prefix_cb               = prefix_cb;
-	module->prefix_thunk            = prefix_thunk;
-	module->destroy_prefix_thunk_cb = thunk_destroy_cb;
+	log->prefix_thunk            = prefix_thunk;
+	log->destroy_prefix_thunk_cb = thunk_destroy_cb;
 
 	M_thread_mutex_unlock(log->lock);
 	return M_LOG_SUCCESS;
+}
+
+
+M_log_error_t M_log_module_set_prefix(M_log_t *log, M_log_module_t *module, M_log_prefix_cb prefix_cb,
+	void *prefix_thunk, M_log_destroy_cb thunk_destroy_cb)
+{
+	if (module == NULL) {
+		return M_LOG_INVALID_PARAMS;
+	}
+
+	return M_log_set_prefix(log, prefix_cb, prefix_thunk, thunk_destroy_cb);
 }
 
 

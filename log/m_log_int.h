@@ -107,15 +107,15 @@ struct M_log {
 	M_bool                          pad_names;            /* If true, tag names will be padded out to constant width. */
 	M_event_t                      *event;                /* Event loop to use for event-based modules. */
 	M_bool                          suspended;
+
+	M_log_prefix_cb                 prefix_cb;
+	void                           *prefix_thunk;
+	M_log_destroy_cb                destroy_prefix_thunk_cb;
 } /* M_log_t */;
 
 
 struct M_log_module {
 	/* General module options (set by general option calls). */
-	M_log_prefix_cb   prefix_cb;
-	void             *prefix_thunk;
-	M_log_destroy_cb  destroy_prefix_thunk_cb;
-
 	M_log_filter_cb   filter_cb;
 	void             *filter_thunk;
 	M_log_destroy_cb  destroy_filter_thunk_cb;
