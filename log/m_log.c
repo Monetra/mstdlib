@@ -584,15 +584,15 @@ M_log_error_t M_log_vprintf(M_log_t *log, M_uint64 tag, void *msg_thunk, const c
 
 M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const char *msg)
 {
-	M_log_error_t   ret          = M_LOG_SUCCESS;
-	M_llist_node_t *node         = NULL;
-	M_buf_t        *buf          = NULL;
-	char           *time_str     = NULL;
-	size_t          time_str_len = 0;
-	const char     *name_str     = NULL;
-	size_t          name_str_len = 0;
-	const char     *line_start   = NULL;
-	M_llist_t      *expired_mods = NULL;
+	M_log_error_t   ret              = M_LOG_SUCCESS;
+	M_llist_node_t *node             = NULL;
+	M_buf_t        *buf              = NULL;
+	char           *time_str         = NULL;
+	size_t          time_str_len     = 0;
+	const char     *name_str         = NULL;
+	size_t          name_str_len     = 0;
+	const char     *line_start       = NULL;
+	M_bool          has_expired_mods = M_FALSE;
 
 
 	if (log == NULL || msg == NULL) {
@@ -682,17 +682,9 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 				continue;
 			}
 
-			/* If module has become invalid, remove from list of nodes and skip it. */
+			/* If module has become invalid, skip it */
 			if (mod->module_check_cb != NULL && !mod->module_check_cb(mod)) {
-				/* Remove fom log without deleting module, add module to list of expired modules. */
-				mod = M_llist_take_node(curr);
-
-				/* Add removed module to list of expired modules. */
-				if (expired_mods == NULL) {
-					expired_mods = M_llist_create(NULL, M_LLIST_NONE);
-				}
-				M_llist_insert(expired_mods, mod);
-
+				has_expired_mods = M_TRUE;
 				continue;
 			}
 
@@ -718,20 +710,29 @@ done:
 	M_free(time_str);
 
 	/* Clean up any expired modules. */
-	if (expired_mods != NULL) {
-		node = M_llist_first(expired_mods);
-		while (node != NULL) {
-			M_log_module_t *mod = M_llist_node_val(node);
-			/* Call the expire callback. */
-			if (mod != NULL && mod->module_expire_cb != NULL) {
-				mod->module_expire_cb(mod, mod->module_expire_thunk);
-			}
-			/* Destroy the module. */
-			log_module_destroy(mod);
+	if (has_expired_mods) {
+		M_thread_mutex_lock(log->lock);
 
-			node = M_llist_node_next(node);
+		node = M_llist_first(log->modules);
+		while (node != NULL) {
+			M_llist_node_t *curr;
+			M_log_module_t *mod;
+
+			curr = node;
+			mod  = M_llist_node_val(curr);
+			node = M_llist_node_next(curr);
+
+			if (mod->module_check_cb != NULL && !mod->module_check_cb(mod)) {
+				/* Remove fom log without deleting module, add module to list of expired modules. */
+				mod = M_llist_take_node(curr);
+				if (mod != NULL && mod->module_expire_cb != NULL) {
+					mod->module_expire_cb(mod, mod->module_expire_thunk);
+				}
+				/* Destroy the module. */
+				log_module_destroy(mod);
+			}
 		}
-		M_llist_destroy(expired_mods, M_FALSE);
+		M_thread_mutex_unlock(log->lock);
 	}
 
 	return ret;
