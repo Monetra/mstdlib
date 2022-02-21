@@ -46,10 +46,8 @@
 typedef M_bool (*M_log_check_cb)(M_log_module_t *mod);
 
 
-/* Module-specific callback to accept a filtered and prefixed message.
- *   Note: accept as M_buf, to allow module to add suffix to the message, if needed.
- */
-typedef void (*M_log_write_cb)(M_log_module_t *mod, M_buf_t *buf, M_uint64 tag);
+/* Module-specific callback to accept a filtered and prefixed message. */
+typedef void (*M_log_write_cb)(M_log_module_t *mod, const char *msg, M_uint64 tag);
 
 
 /* Module-specific callback that asks the module to reopen any internal resources (file stream, tcp connection, etc.) */

@@ -357,7 +357,7 @@ static void timer_reconnect_cb(M_event_t *event, M_event_type_t type, M_io_t *io
 
 /* ---- PRIVATE: callbacks for log module object. ---- */
 
-static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
+static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
 	module_thunk_t *mdata;
 	M_buf_t        *buf;
@@ -370,7 +370,7 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 
 	buf   = M_buf_create();
 
-	add_framed_message(buf, M_buf_peek(msg), mdata, mdata->tag_to_priority[M_uint64_log2(tag)]);
+	add_framed_message(buf, msg, mdata, mdata->tag_to_priority[M_uint64_log2(tag)]);
 
 	/* Add message to output queue. */
 

@@ -121,7 +121,7 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 
 /* ---- PRIVATE: callbacks for log module object. ---- */
 
-static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
+static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
 	module_thunk_t           *mdata;
 	M_android_log_priority_t  priority;
@@ -136,7 +136,7 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 	priority = mdata->tag_to_priority[M_uint64_log2(tag)];
 	M_buf_add_char(msg, priority_to_char(priority));
 
-	M_async_writer_write(mdata->writer, M_buf_peek(msg));
+	M_async_writer_write(mdata->writer, msg);
 }
 
 

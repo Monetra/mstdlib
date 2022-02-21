@@ -64,7 +64,7 @@ static M_bool writer_write_cb(char *msg, M_uint64 cmd, void *thunk)
 
 /* ---- PRIVATE: callbacks for log module object. ---- */
 
-static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
+static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
 	M_async_writer_t *writer;
 
@@ -76,7 +76,7 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 
 	writer = mod->module_thunk;
 
-	M_async_writer_write(writer, M_buf_peek(msg));
+	M_async_writer_write(writer, msg);
 }
 
 

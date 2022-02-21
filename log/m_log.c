@@ -704,7 +704,7 @@ M_log_error_t M_log_write(M_log_t *log, M_uint64 tag, void *msg_thunk, const cha
 			/* Ask module to write the message. Module is allowed to modify buffer contents, but it can't destroy the
 			 * buffer object itself.
 			 */
-			mod->module_write_cb(mod, buf, tag);
+			mod->module_write_cb(mod, M_buf_peek(buf), tag);
 		} /* END loop over modules */
 
 		/* Get start of next line for next iteration of loop (or NULL, if no more lines). */

@@ -159,7 +159,7 @@ static void writer_destroy_cb(void *thunk)
 
 /* ---- PRIVATE: callbacks for log module object. ---- */
 
-static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
+static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
 	module_thunk_t      *mdata;
 	M_syslog_priority_t  priority;
@@ -173,7 +173,7 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 
 	/* Copy message bytes to buf, expand tabs during transfer. */
 	buf = M_buf_create();
-	M_buf_add_str_replace(buf, M_buf_peek(msg), "\t", M_SYSLOG_TAB_REPLACE);
+	M_buf_add_str_replace(buf, msg, "\t", M_SYSLOG_TAB_REPLACE);
 
 	/* Truncate if message greater than syslog limit. Make sure we still end with the line ending sequence. */
 	if (M_buf_len(buf) > M_SYSLOG_MAX_CHARS) {

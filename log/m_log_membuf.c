@@ -51,10 +51,10 @@ static module_thunk_t *thunk_create(size_t max_size, M_uint64 max_time_ms)
 }
 
 
-static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
+static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 {
 	module_thunk_t *mdata;
-	size_t          msg_len = M_buf_len(msg);
+	size_t          msg_len = M_str_len(msg);
 
 	(void)tag;
 
@@ -74,7 +74,7 @@ static void log_write_cb(M_log_module_t *mod, M_buf_t *msg, M_uint64 tag)
 		return;
 	}
 
-	M_buf_add_bytes(mdata->buf, M_buf_peek(msg), msg_len);
+	M_buf_add_bytes(mdata->buf, msg, msg_len);
 }
 
 
