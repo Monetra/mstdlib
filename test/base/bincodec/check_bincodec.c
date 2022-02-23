@@ -22,6 +22,12 @@ static struct {
 	{ "abcdefghijklmnopqrstuvwxyz", "YWJj\nZGVm\nZ2hp\namts\nbW5v\ncHFy\nc3R1\ndnd4\neXo=",                         M_BINCODEC_BASE64, 4 },
 	{ "abcd",                       "61626364",                                                                     M_BINCODEC_HEX,    8 },
 	{ "abcd",                       "YWJjZA==",                                                                     M_BINCODEC_BASE64, 8 },
+	{ "f",                          "MY======",                                                                     M_BINCODEC_BASE32, 8 },
+	{ "fo",                         "MZXQ====",                                                                     M_BINCODEC_BASE32, 8 },
+	{ "foo",                        "MZXW6===",                                                                     M_BINCODEC_BASE32, 8 },
+	{ "foob",                       "MZXW6YQ=",                                                                     M_BINCODEC_BASE32, 8 },
+	{ "fooba",                      "MZXW6YTB",                                                                     M_BINCODEC_BASE32, 8 },
+	{ "foobar",                     "MZXW6YTB\nOI======",                                                           M_BINCODEC_BASE32, 8 },
 	{ NULL, NULL, 0, 0 }
 };
 
@@ -75,6 +81,12 @@ static struct {
 	{ "YWJj\nZGVm\nZ2hp\namts\nbW5v\ncHFy\nc3R1\ndnd4\neXo=",                         "abcdefghijklmnopqrstuvwxyz", M_BINCODEC_BASE64 },
 	{ "61626364",                                                                     "abcd",                       M_BINCODEC_HEX    },
 	{ "YWJjZA==",                                                                     "abcd",                       M_BINCODEC_BASE64 },
+	{ "MY======",                                                                     "f",                          M_BINCODEC_BASE32 },
+	{ "MZXQ====",                                                                     "fo",                         M_BINCODEC_BASE32 },
+	{ "MZXW6===",                                                                     "foo",                        M_BINCODEC_BASE32 },
+	{ "MZXW6YQ=",                                                                     "foob",                       M_BINCODEC_BASE32 },
+	{ "MZXW6YTB",                                                                     "fooba",                      M_BINCODEC_BASE32 },
+	{ "MZXW6YTB\nOI======",                                                           "foobar",                     M_BINCODEC_BASE32 },
 	{ NULL, NULL, 0 }
 };
 

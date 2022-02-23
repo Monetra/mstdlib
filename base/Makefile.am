@@ -6,6 +6,7 @@ AM_CPPFLAGS = $(AM_CFLAGS)
 libmstdlib_la_LDFLAGS = -export-dynamic -version-info @LIBTOOL_VERSION@
 libmstdlib_la_SOURCES =                \
 	\
+	bincodec/m_base32.c                \
 	bincodec/m_base64.c                \
 	bincodec/m_bincodec.c              \
 	bincodec/m_bincodec_conv.c         \

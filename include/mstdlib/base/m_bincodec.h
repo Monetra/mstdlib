@@ -65,9 +65,10 @@ __BEGIN_DECLS
 
 /*! Binary conversion types. */
 typedef enum {
-	M_BINCODEC_BASE64,     /*!< Base64 encoding. */
-	M_BINCODEC_HEX,        /*!< Hex encoding. */
-	M_BINCODEC_BASE64ORHEX /*!< Auto detected between base64 and hex encoding. */
+	M_BINCODEC_BASE64,      /*!< Base64 encoding. */
+	M_BINCODEC_HEX,         /*!< Hex encoding. */
+	M_BINCODEC_BASE64ORHEX, /*!< Auto detected between base64 and hex encoding. */
+	M_BINCODEC_BASE32       /*!< Base32 encoding */
 } M_bincodec_codec_t;
 
 

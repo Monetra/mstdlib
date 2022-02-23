@@ -10,6 +10,7 @@ set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
 set(sources
 	# bincodec:
+	bincodec/m_base32.c
 	bincodec/m_base64.c
 	bincodec/m_bincodec.c
 	bincodec/m_bincodec_conv.c

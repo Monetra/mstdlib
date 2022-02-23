@@ -35,6 +35,7 @@ ARFLAGS   = -nologo
 RCFLAGS   = /dWIN32 /r
 
 OBJS      = \
+	bincodec\m_base32.obj        \
 	bincodec\m_base64.obj        \
 	bincodec\m_bincodec.obj      \
 	bincodec\m_bincodec_conv.obj \

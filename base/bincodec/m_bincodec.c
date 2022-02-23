@@ -24,6 +24,7 @@
 #include "m_config.h"
 
 #include <mstdlib/mstdlib.h>
+#include "bincodec/m_base32.h"
 #include "bincodec/m_base64.h"
 #include "bincodec/m_hex.h"
 #include "bincodec/m_bincodec_conv.h"
@@ -34,6 +35,8 @@ size_t M_bincodec_decode_size(size_t inLen, M_bincodec_codec_t codec)
 		case M_BINCODEC_BASE64:
 		case M_BINCODEC_BASE64ORHEX:
 			return M_base64_decode_size(inLen);
+		case M_BINCODEC_BASE32:
+			return M_base32_decode_size(inLen);
 		case M_BINCODEC_HEX:
 			return inLen/2;
 	}
@@ -50,6 +53,8 @@ size_t M_bincodec_encode_size(size_t inLen, size_t wrap, M_bincodec_codec_t code
 		case M_BINCODEC_HEX:
 		case M_BINCODEC_BASE64ORHEX:
 			return M_hex_target_size(inLen, wrap);
+		case M_BINCODEC_BASE32:
+			return M_base32_encode_size(inLen, wrap);
 	}
 
 	return 0;
@@ -89,6 +94,8 @@ size_t M_bincodec_encode(char *out, size_t outLen, const M_uint8 *in, size_t inL
 	switch (codec) {
 		case M_BINCODEC_BASE64:
 			return M_base64_encode(out, outLen, in, inLen, wrap);
+		case M_BINCODEC_BASE32:
+			return M_base32_encode(out, outLen, in, inLen, wrap);
 		case M_BINCODEC_HEX:
 			return M_hex_encode(in, inLen, out, outLen, wrap);
 		case M_BINCODEC_BASE64ORHEX:
@@ -155,6 +162,8 @@ size_t M_bincodec_decode(M_uint8 *out, size_t outLen, const char *in, size_t inL
 	switch (codec) {
 		case M_BINCODEC_BASE64:
 			return M_base64_decode(out, outLen, in, inLen);
+		case M_BINCODEC_BASE32:
+			return M_base32_decode(out, outLen, in, inLen);
 		case M_BINCODEC_HEX:
 			return M_hex_decode(in, inLen, out, outLen);
 		case M_BINCODEC_BASE64ORHEX:
