@@ -1282,8 +1282,8 @@ M_bool M_sql_tabledata_txn_field_changed(M_sql_tabledata_txn_t *txn, const char 
 
 	prior_field = M_sql_tabledata_txn_field_get(txn, field_name, M_SQL_TABLEDATA_TXN_FIELD_PRIOR);
 
-	/* If didn't exist previously, but does exist now, its a change. */
-	if (prior_field == NULL)
+	/* If didn't exist previously, but does exist now (and is not null), its a change. */
+	if (prior_field == NULL && !M_sql_tabledata_field_is_null(curr_field))
 		return M_TRUE;
 
 	/* If its the same, its not changed */
