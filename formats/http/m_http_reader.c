@@ -353,7 +353,7 @@ static M_http_error_t M_http_read_header_process(M_http_reader_t *httpr, const c
 /* status-line = HTTP-version SP status-code SP reason-phrase CRLF */
 static M_http_error_t M_http_read_start_line_response(M_http_reader_t *httpr, M_parser_t **parts, size_t num_parts)
 {
-	char             *reason;
+	char             *reason  = NULL;
 	M_uint64          code    = 0;
 	M_http_version_t  version = M_HTTP_VERSION_UNKNOWN;
 	M_http_error_t    res     = M_HTTP_ERROR_SUCCESS;
@@ -370,10 +370,10 @@ static M_http_error_t M_http_read_start_line_response(M_http_reader_t *httpr, M_
 	if (!M_parser_read_uint(parts[1], M_PARSER_INTEGER_ASCII, 0, 10, &code))
 		return M_HTTP_ERROR_STARTLINE_MALFORMED;
 
-	/* Part 3: Reason phrase */
-	if (M_parser_len(parts[2]) == 0)
-		return M_HTTP_ERROR_STARTLINE_MALFORMED;
-	reason = M_parser_read_strdup(parts[2], M_parser_len(parts[2]));
+	/* Part 3: Reason phrase
+	 *   "a possibly empty textual phrase describing the status code" */
+	if (M_parser_len(parts[2]) != 0)
+		reason = M_parser_read_strdup(parts[2], M_parser_len(parts[2]));
 
 	/* Send along the data. */
 	res = httpr->cbs.start_func(M_HTTP_MESSAGE_TYPE_RESPONSE, version, M_HTTP_METHOD_UNKNOWN, NULL, (M_uint32)code, reason, httpr->thunk);
