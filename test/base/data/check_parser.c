@@ -105,8 +105,8 @@ START_TEST(check_parser_split)
 	parser = M_parser_create_const((const unsigned char *)split_text, M_str_len(split_text), M_PARSER_FLAG_NONE);
 	M_parser_mark(parser);
 
-	parts  = M_parser_split_str_pat(parser, "\r\n", 0, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
-	ck_assert_msg(parts != NULL && num_parts == 4, "Split 1 failed");
+	parts  = M_parser_split_str_pat(parser, "\r\n", 0, M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST, &num_parts);
+	ck_assert_msg(parts != NULL && num_parts == 5, "Split 1 failed");
 	if (parts == NULL) { /* Silence false-positive static analyzer warning */
 		return;
 	}
@@ -127,7 +127,7 @@ START_TEST(check_parser_split)
 
 	M_parser_mark_rewind(parser);
 	parts  = M_parser_split_str_pat(parser, "\r\n", 2, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
-	ck_assert_msg(parts != NULL && num_parts == 2, "Split 2 failed");
+	ck_assert_msg(parts != NULL && num_parts == 2, "Split 2 failed, %zu returned", num_parts);
 	if (parts == NULL) { /* Silence false-positive static analyzer warning */
 		return;
 	}
