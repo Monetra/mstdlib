@@ -53,7 +53,8 @@ size_t M_base32_encode_size(size_t len, size_t wrap)
 
 size_t M_base32_decode_size(size_t len)
 {
-	return ((len * 5) / 8);
+	/* divide first is safe because the length is always a multiple of 8 */
+	return ((len / 8) * 5);
 }
 
 static const char M_base32_charset[]     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
