@@ -153,6 +153,22 @@ M_API M_bool M_bitlist_tohash(M_hash_stru64_t **hash_toint, M_hash_u64str_t **ha
  * \return M_TRUE on success, M_FALSE on failure */
 M_API M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, M_hash_stru64_t *hash_toint, const char *data, unsigned char delim, char *error, size_t error_len);
 
+/*! Extract a single name from a bitlist that exactly matches the passed in id.
+ *
+ * \param[in] list Array passed in defining all bits to human-readable name
+ * \param[in] id   ID to match
+ * \return NULL if not found, otherwise pointer to name in bitlist
+ */
+M_API const char *M_bitlist_single_tostr(const M_bitlist_t *list, M_uint64 id);
+
+/*! Extract a single id from a bitlist that exactly matches the passed in name.
+ *
+ * \param[in] list  Array passed in defining all bits to human-readable name
+ * \param[in] name  name to match
+ * \return 0 if not found, otherwise id of name in bitlist
+ */
+M_API M_uint64 M_bitlist_single_toint(const M_bitlist_t *list, const char *name);
+
 
 /*! @} */
 

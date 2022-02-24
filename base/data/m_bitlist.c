@@ -211,3 +211,26 @@ M_bool M_bitlist_hash_parse(M_uint64 *out, M_bitlist_flags_t flags, M_hash_stru6
 	return M_bitlist_parse_int(out, flags, NULL, hash_toint, data, delim, error, error_len);
 }
 
+const char *M_bitlist_single_tostr(const M_bitlist_t *list, M_uint64 id)
+{
+	size_t i;
+
+	for (i=0; list[i].name != NULL; i++) {
+		if (list[i].id == id)
+			return list[i].name;
+	}
+
+	return NULL;
+}
+
+M_uint64 M_bitlist_single_toint(const M_bitlist_t *list, const char *name)
+{
+	size_t i;
+
+	for (i=0; list[i].name != NULL; i++) {
+		if (M_str_caseeq(list[i].name, name))
+			return list[i].id;
+	}
+
+	return 0;
+}
