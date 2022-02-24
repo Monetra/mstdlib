@@ -33,6 +33,20 @@ do {\
 	"\r\n"
 #define ok_no_data_result M_HTTP_ERROR_SUCCESS
 
+#define ok_no_data_no_reason "HTTP/1.1 200 \r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
+	"Date:\r\n" \
+	"\r\n"
+#define ok_no_data_no_reason_result M_HTTP_ERROR_SUCCESS
+
+#define ok_no_data_bad_reason "HTTP/1.1 200\r\n" \
+	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
+	"Date:\r\n" \
+	"\r\n"
+#define ok_no_data_bad_reason_result M_HTTP_ERROR_STARTLINE_MALFORMED
+
 #define ok_more_data "HTTP/1.1 200 OK\r\n" \
 	"Date: Mon, 7 May 2018 01:02:03 GMT\r\n" \
 	"Content-Length: 44\r\n" \
@@ -51,9 +65,11 @@ START_TEST(check_read)
 		const char     *data;
 		M_http_error_t  res;
 	} tests[] = {
-		{ ok_data, ok_data_result           },
-		{ ok_no_data, ok_no_data_result     },
-		{ ok_more_data, ok_more_data_result },
+		{ ok_data,               ok_data_result               },
+		{ ok_no_data,            ok_no_data_result            },
+		{ ok_no_data_no_reason,  ok_no_data_no_reason_result  },
+		{ ok_no_data_bad_reason, ok_no_data_bad_reason_result },
+		{ ok_more_data,          ok_more_data_result          },
 		{ NULL, 0 }
 	};
 

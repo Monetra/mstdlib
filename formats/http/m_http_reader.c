@@ -456,7 +456,7 @@ static M_http_error_t M_http_read_start_line(M_http_reader_t *httpr, M_parser_t 
 		goto done;
 	}
 
-	parts = M_parser_split(msg, ' ', 3, M_PARSER_SPLIT_FLAG_NONE, &num_parts);
+	parts = M_parser_split(msg, ' ', 3, M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST, &num_parts);
 	if (parts == NULL || num_parts != 3) {
 		res = M_HTTP_ERROR_STARTLINE_MALFORMED;
 		goto done;
