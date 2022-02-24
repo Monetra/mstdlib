@@ -507,13 +507,13 @@ static M_bool M_sql_tabledata_field_eq(const M_sql_tabledata_field_t *field1, M_
 	const char          *t;
 	size_t               len;
 
-	if (M_sql_tabledata_field_is_null(field1)) {
-		if (M_sql_tabledata_field_is_null(field2))
+	if (M_sql_tabledata_field_is_null(field1) || field1 == NULL) {
+		if (M_sql_tabledata_field_is_null(field2) || field2 == NULL)
 			return M_TRUE;
 		return M_FALSE;
 	}
 
-	if (M_sql_tabledata_field_is_null(field2))
+	if (M_sql_tabledata_field_is_null(field2) || field2 == NULL)
 		return M_FALSE;
 
 	switch (M_sql_tabledata_field_type(field1)) {
