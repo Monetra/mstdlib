@@ -1746,8 +1746,9 @@ M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, si
 	if (cnt == 1 && flags & M_PARSER_SPLIT_FLAG_NODELIM_ERROR)
 		return NULL;
 
-	parsers = M_malloc_zero(cnt * sizeof(*parsers));
-	cnt     = 0;
+	parsers        = M_malloc_zero(cnt * sizeof(*parsers));
+	cnt            = 1;
+	parsers[cnt-1] = M_parser_create(parser->flags);
 
 	while (M_parser_len(parser)) {
 		size_t curr_col;
@@ -1759,7 +1760,7 @@ M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, si
 		curr_col  = parser->curr_col;
 		curr_line = parser->curr_line;
 
-		if (maxcnt != 0 && cnt == maxcnt - 1) {
+		if (maxcnt != 0 && cnt == maxcnt) {
 			/* At the max count, everything goes into this last entry */
 			M_parser_consume(parser, parser->data_len);
 		} else {
@@ -1777,18 +1778,28 @@ M_parser_t **M_parser_split_pat(M_parser_t *parser, const unsigned char *pat, si
 		if (trim_delimiter && ptrlen)
 			ptrlen -= pat_len;
 
-		parsers[cnt] = M_parser_create(parser->flags);
-		M_parser_append(parsers[cnt], ptr, ptrlen);
+		M_parser_append(parsers[cnt-1], ptr, ptrlen);
 
 		/* Silence clang, this should not be possible */
-		if (parsers[cnt] != NULL) {
+		if (parsers[cnt-1] != NULL) {
 			/* Preserve col/line numbers in children*/
-			parsers[cnt]->curr_col  = curr_col;
-			parsers[cnt]->curr_line = curr_line;
+			parsers[cnt-1]->curr_col  = curr_col;
+			parsers[cnt-1]->curr_line = curr_line;
 		}
 
 		M_parser_mark_clear_int(parser, M_PARSER_MARKED_INT);
-		cnt++;
+
+		if (trim_delimiter && (maxcnt == 0 || cnt != maxcnt)) {
+			cnt++;
+			parsers[cnt-1] = M_parser_create(parser->flags);
+		}
+	}
+
+	/* Default behavior is to trim off the last section if it is empty */
+	if (!(flags & M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST) && M_parser_len(parsers[cnt-1]) == 0) {
+		M_parser_destroy(parsers[cnt-1]);
+		parsers[cnt-1] = NULL;
+		cnt--;
 	}
 
 	*num_output = cnt;

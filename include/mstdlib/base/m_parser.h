@@ -79,8 +79,9 @@ enum M_PARSER_INTEGER_TYPE {
 
 /*! Splitting flags. */
 typedef enum {
-	M_PARSER_SPLIT_FLAG_NONE          = 0,      /*!< No flags, standard behavior */
-	M_PARSER_SPLIT_FLAG_NODELIM_ERROR = 1 << 0  /*!< Return an error if the specified delimiter is not found, otherwise all the data is put in a single parser object */
+	M_PARSER_SPLIT_FLAG_NONE           = 0,      /*!< No flags, standard behavior */
+	M_PARSER_SPLIT_FLAG_NODELIM_ERROR  = 1 << 0, /*!< Return an error if the specified delimiter is not found, otherwise all the data is put in a single parser object */
+	M_PARSER_SPLIT_FLAG_DONT_TRIM_LAST = 1 << 1, /*!< Don't trim the last section if it is empty.  The default is to not return it as a section */
 } M_PARSER_SPLIT_FLAGS;
 
 /*! Framing characters. */
