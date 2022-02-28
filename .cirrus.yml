@@ -160,6 +160,6 @@ task:
    
   deploy_script:
     - |
-      if [ "${BUILD_TYPE}" == "cmake" -a "${DIST}" = "DEBIAN" ] ; then
+      if [ "${BUILD_TYPE}" == "cmake" -a "${DIST}" = "DEBIAN" -a "${BRANCH}" = "master" ] ; then
         ./gh-pages-deploy.sh
       fi
