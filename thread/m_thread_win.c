@@ -342,8 +342,7 @@ static M_bool M_thread_win_mutex_unlock(M_thread_mutex_t *mutex)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if 0
-//#if _WIN32_WINNT >= 0x0600 /* Vista */
+#if _WIN32_WINNT >= 0x0600 /* Vista */
 
 struct M_thread_cond {
 	CONDITION_VARIABLE cond;
@@ -429,10 +428,10 @@ M_bool M_thread_win_rwlock_lock(M_thread_rwlock_t *rwlock, M_thread_rwlock_type_
 		return M_FALSE;
 
 	if (type == M_THREAD_RWLOCK_TYPE_READ) {
-		AcquireSRWLockExclusive(&rwlock->rwlock);
+		AcquireSRWLockShared(&rwlock->rwlock);
 		rwlock->locked_exclusive = M_FALSE;
 	} else {
-		AcquireSRWLockShared(&rwlock->rwlock);
+		AcquireSRWLockExclusive(&rwlock->rwlock);
 		rwlock->locked_exclusive = M_TRUE;
 	}
 
@@ -649,8 +648,7 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 	cbs->cond_broadcast = M_thread_win_cond_broadcast;
 	cbs->cond_signal    = M_thread_win_cond_signal;
 	/* Read Write Lock */
-#if 0
-//#if _WIN32_WINNT >= 0x0600 /* Vista */
+#if _WIN32_WINNT >= 0x0600 /* Vista */
 	cbs->rwlock_create  = M_thread_win_rwlock_create;
 	cbs->rwlock_destroy = M_thread_win_rwlock_destroy;
 	cbs->rwlock_lock    = M_thread_win_rwlock_lock;
