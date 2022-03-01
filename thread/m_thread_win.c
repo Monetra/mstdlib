@@ -342,7 +342,8 @@ static M_bool M_thread_win_mutex_unlock(M_thread_mutex_t *mutex)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if _WIN32_WINNT >= 0x0600 /* Vista */
+#if 0
+//#if _WIN32_WINNT >= 0x0600 /* Vista */
 
 struct M_thread_cond {
 	CONDITION_VARIABLE cond;
@@ -648,7 +649,8 @@ void M_thread_win_register(M_thread_model_callbacks_t *cbs)
 	cbs->cond_broadcast = M_thread_win_cond_broadcast;
 	cbs->cond_signal    = M_thread_win_cond_signal;
 	/* Read Write Lock */
-#if _WIN32_WINNT >= 0x0600 /* Vista */
+#if 0
+//#if _WIN32_WINNT >= 0x0600 /* Vista */
 	cbs->rwlock_create  = M_thread_win_rwlock_create;
 	cbs->rwlock_destroy = M_thread_win_rwlock_destroy;
 	cbs->rwlock_lock    = M_thread_win_rwlock_lock;
