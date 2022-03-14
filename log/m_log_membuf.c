@@ -29,10 +29,11 @@
 
 /* Thunk for m_log write callback. */
 typedef struct {
-	M_buf_t     *buf;
-	size_t       max_size;    /* maximum size to store, after we pass this no new messages are added to the buf. */
-	M_uint64     max_time_ms; /* amount of elapsed time allowed before membuf is purged. */
-	M_timeval_t  create_time; /* time at which membuf was created. */
+	M_buf_t          *buf;
+	size_t            max_size;    /* maximum size to store, after we pass this no new messages are added to the buf. */
+	M_uint64          max_time_ms; /* amount of elapsed time allowed before membuf is purged. */
+	M_timeval_t       create_time; /* time at which membuf was created. */
+	M_thread_mutex_t *lock;        /* Only a global read lock is held when writing, we need an exclusive lock on our own object */
 } module_thunk_t;
 
 
@@ -43,6 +44,7 @@ static module_thunk_t *thunk_create(size_t max_size, M_uint64 max_time_ms)
 	thunk->buf         = M_buf_create();
 	thunk->max_size    = max_size;
 	thunk->max_time_ms = max_time_ms;
+	thunk->lock        = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	/* Use M_time_elapsed_start instead of M_time_gettimeofday, so that we use the monotonic clock (if available). */
 	M_time_elapsed_start(&thunk->create_time);
@@ -64,17 +66,19 @@ static void log_write_cb(M_log_module_t *mod, const char *msg, M_uint64 tag)
 
 	mdata = mod->module_thunk;
 
-	/* If buffer is full, return without adding the message.
+	M_thread_mutex_lock(mdata->lock);
+
+	if (M_buf_len(mdata->buf) > mdata->max_size) {
+	/* If buffer is full, don't add the message.
 	 *
 	 * Note that we're intentionally allowing the max_size to be exceeded by
 	 * a single message, instead of truncating it. We figure a no-truncation
 	 * guarantee is more useful than a strict membuf size limit.
 	 */
-	if (M_buf_len(mdata->buf) > mdata->max_size) {
-		return;
+	} else {
+		M_buf_add_bytes(mdata->buf, msg, msg_len);
 	}
-
-	M_buf_add_bytes(mdata->buf, msg, msg_len);
+	M_thread_mutex_unlock(mdata->lock);
 }
 
 
@@ -109,6 +113,7 @@ static void log_destroy_cb(void *ptr, M_bool flush)
 		return;
 	}
 
+	M_thread_mutex_destroy(thunk->lock);
 	M_buf_cancel(thunk->buf);
 	M_free(thunk);
 }
