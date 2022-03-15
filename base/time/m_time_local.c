@@ -49,10 +49,15 @@ M_bool M_time_gettimeofday(M_timeval_t *tv)
 	M_mem_set(tv, 0, sizeof(*tv));
 	M_mem_set(&systime, 0, sizeof(systime));
 
+#  if _WIN32_WINNT >= 0x0602 /* Windows 8 */
 	/* NOTE: Windows8/Server2012 introduced GetSystemTimePreciseAsFileTime() which is a
-	 * more accurate version of the same thing.  At some point we should switch to
-	 * that when we no longer care about legacy systems */
+	 * more accurate version of the same thing.  When the default build target changes, it will
+	 * automatically be used.  */
+	GetSystemTimePreciseAsFileTime(&systime);
+#  else
 	GetSystemTimeAsFileTime(&systime);
+#  endif
+
 	M_time_timeval_from_filetime(&systime, tv);
 
 	return M_TRUE;
