@@ -1188,6 +1188,8 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_current(M_sql_trans_t *sqltrans, 
 			if (txn->is_add || txn->fields[i].flags & M_SQL_TABLEDATA_FLAG_EDITABLE) {
 				M_sql_tabledata_field_set_int64(field, M_time());
 				M_hash_strvp_insert(txn->curr_fields, txn->fields[i].field_name, field);
+			} else {
+				M_sql_tabledata_field_free_cb(field);
 			}
 			continue;
 		}
