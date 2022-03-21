@@ -1693,6 +1693,11 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 		if (M_hash_dict_get(seen_cols, txn->fields[i].table_column, NULL)) {
 			continue;
 		}
+
+		/* For things meant to be referenced externally but not internally updated, won't have a field name, don't fetch */
+		if (M_str_isempty(txn->fields[i].field_name))
+			continue;
+
 		M_hash_dict_insert(seen_cols, txn->fields[i].table_column, NULL);
 
 		if (has_col) {
@@ -1783,6 +1788,11 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 		if (M_hash_dict_get(seen_cols, txn->fields[i].table_column, NULL)) {
 			continue;
 		}
+
+		/* For things meant to be referenced externally but not internally updated, won't have a field name, don't fetch */
+		if (M_str_isempty(txn->fields[i].field_name))
+			continue;
+
 		M_hash_dict_insert(seen_cols, txn->fields[i].table_column, NULL);
 
 		/* Need to deserialize and add to output params */
