@@ -1778,7 +1778,6 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 
 	/* Map data */
 	for (i=0; i<txn->num_fields; i++) {
-		M_sql_tabledata_field_t *myfield = NULL;
 
 		/* Skip columns we already have (multiple virtual fields) */
 		if (M_hash_dict_get(seen_cols, txn->fields[i].table_column, NULL)) {
@@ -1796,7 +1795,7 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 
 			M_hash_dict_enumerate(dict, &hashenum);
 			while (M_hash_dict_enumerate_next(dict, hashenum, &key, &val)) {
-				myfield = M_malloc_zero(sizeof(*myfield));
+				M_sql_tabledata_field_t *myfield = M_malloc_zero(sizeof(*myfield));
 				M_sql_tabledata_field_set_text_dup(myfield, val);
 				M_hash_strvp_insert(txn->prev_fields, key, myfield);
 				myfield = NULL;
@@ -1804,12 +1803,9 @@ static M_sql_error_t M_sql_tabledata_txn_fetch_prior(M_sql_trans_t *sqltrans, M_
 			M_hash_dict_enumerate_free(hashenum);
 			M_hash_dict_destroy(dict);
 		} else {
-			myfield = M_malloc_zero(sizeof(*myfield));
-			M_sql_tabledata_field_clear(myfield);
+			M_sql_tabledata_field_t *myfield = M_sql_tabledata_field_create_ext();
 
-			if (M_sql_stmt_result_isnull_byname_direct(stmt, 0, txn->fields[i].table_column)) {
-				M_sql_tabledata_field_set_null(myfield);
-			} else {
+			if (!M_sql_stmt_result_isnull_byname_direct(stmt, 0, txn->fields[i].table_column)) {
 				switch (M_sql_stmt_result_col_type_byname(stmt, txn->fields[i].table_column, NULL)) {
 					case M_SQL_DATA_TYPE_BOOL:
 						M_sql_tabledata_field_set_bool(myfield, M_sql_stmt_result_bool_byname_direct(stmt, 0, txn->fields[i].table_column));
