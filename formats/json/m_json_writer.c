@@ -84,7 +84,8 @@ static M_bool M_json_write_node_object(const M_json_node_t *node, M_buf_t *buf, 
 		if (flags & (M_JSON_WRITER_PRETTYPRINT_SPACE|M_JSON_WRITER_PRETTYPRINT_TAB))
 			M_buf_add_byte(buf, ' ');
 
-		M_json_write_node((const M_json_node_t *)value, buf, depth, flags);
+		if (!M_json_write_node((const M_json_node_t *)value, buf, depth, flags))
+			return M_FALSE;
 
 		len--;
 		if (len > 0) {
@@ -116,7 +117,9 @@ static M_bool M_json_write_node_array(const M_json_node_t *node, M_buf_t *buf, s
 	len = M_json_array_len(node);
 	for (i=0; i<len; i++) {
 		M_json_write_depth(buf, depth, flags);
-		M_json_write_node(M_json_array_at(node, i), buf, depth, flags);
+		if (!M_json_write_node(M_json_array_at(node, i), buf, depth, flags)) {
+			return M_FALSE;
+		}
 		if (i != len-1) {
 			M_buf_add_byte(buf, ',');
 		}
