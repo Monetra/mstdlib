@@ -180,11 +180,9 @@ static M_bool M_json_write_node_string(const M_json_node_t *node, M_buf_t *buf, 
 			default:
 				if ((unsigned char)c < 32) {
 					/* Control character. */
-					if (flags & M_JSON_WRITER_REPLACE_BAD_CHARS) {
-						M_buf_add_byte(buf, '?');
-					} else {
-						return M_FALSE;
-					}
+					M_buf_add_str(buf, "\\u");
+					M_snprintf(uchr, sizeof(uchr), "%04X", c);
+					M_buf_add_str(buf, uchr);
 				} else if ((unsigned char)c > 127) {
 					if (M_utf8_get_cp(node->data.json_string+i, &cp, &p) != M_UTF8_ERROR_SUCCESS) {
 						if (flags & M_JSON_WRITER_REPLACE_BAD_CHARS) {
