@@ -27,6 +27,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
+#include "ossl3_compat.h"
 #include "base/m_defs_int.h"
 
 struct M_tls_x509 {
@@ -38,30 +39,14 @@ struct M_tls_x509 {
 char *M_tls_rsa_generate_key(size_t bits)
 {
 	EVP_PKEY *pkey = NULL;
-	RSA      *rsa  = NULL;
 	BIO      *bio  = NULL;
 	size_t    buf_size;
 	char     *buf  = NULL;
-	BIGNUM   *bne  = NULL;
 
 	M_tls_init(M_TLS_INIT_NORMAL);
 
-	bne = BN_new();
-	if (BN_set_word(bne, RSA_F4) != 1)
-		goto end;
-
-	pkey = EVP_PKEY_new();
+	pkey = EVP_RSA_gen(bits);
 	if (pkey == NULL)
-		goto end;
-
-	rsa = RSA_new();
-	if (rsa == NULL)
-		goto end;
-
-	if (RSA_generate_key_ex(rsa, (int)bits, bne, NULL) != 1)
-		goto end;
-
-	if (!EVP_PKEY_set1_RSA(pkey, rsa))
 		goto end;
 
 	bio = BIO_new(BIO_s_mem());
@@ -83,12 +68,6 @@ char *M_tls_rsa_generate_key(size_t bits)
 	}
 
 end:
-	if (bne != NULL)
-		BN_free(bne);
-
-	if (rsa != NULL)
-		RSA_free(rsa);
-
 	if (pkey != NULL)
 		EVP_PKEY_free(pkey);
 

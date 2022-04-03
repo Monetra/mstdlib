@@ -17,6 +17,7 @@ set(sources
 	m_tls_ctx_common.c
 	m_tls_hostvalidate.c
 	m_tls_serverctx.c
+	ossl3_compat.c
 )
 
 # Build the library.
