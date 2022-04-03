@@ -798,9 +798,9 @@ void M_tls_x509_destroy(M_tls_x509_t *x509)
 
 unsigned char *M_tls_dhparam_generate(size_t bits, size_t *out_len)
 {
-	DH            *dh       = NULL;
+	EVP_PKEY_CTX  *ctx      = NULL;
+	EVP_PKEY      *pkey     = NULL;
 	BIO           *bio      = NULL;
-	int            dhcodes  = 0;
 	size_t         buf_size = 0;
 	unsigned char *buf      = NULL;
 
@@ -809,23 +809,27 @@ unsigned char *M_tls_dhparam_generate(size_t bits, size_t *out_len)
 	if (out_len == NULL)
 		return NULL;
 
-	dh = DH_new();
-
-	if (dh == NULL)
-		return NULL;
-
-	if (!DH_generate_parameters_ex(dh, (int)bits, 2 /* 2 or 5 only */, NULL) ||
-	    DH_check(dh, &dhcodes) != 1 || 
-	    dhcodes != 0
-	    ) {
+	ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_DH, NULL);
+	if (ctx == NULL)
 		goto end;
-	}
+
+	if (EVP_PKEY_paramgen_init(ctx) <= 0)
+		goto end;
+
+	if (EVP_PKEY_CTX_set_dh_paramgen_prime_len(ctx, (int)bits) <= 0)
+		goto end;
+
+	if (EVP_PKEY_CTX_set_dh_paramgen_generator(ctx, 2) <= 0)
+		goto end;
+
+	if (EVP_PKEY_paramgen(ctx, &pkey) <= 0)
+		goto end;
 
 	bio = BIO_new(BIO_s_mem());
 	if (bio == NULL)
 		goto end;
 
-	if (!PEM_write_bio_DHparams(bio, dh))
+	if (EVP_PKEY_print_params(bio, pkey, 0, NULL) <= 0)
 		goto end;
 
 	buf_size = (size_t)BIO_ctrl_pending(bio);
@@ -842,8 +846,11 @@ unsigned char *M_tls_dhparam_generate(size_t bits, size_t *out_len)
 	*out_len = buf_size;
 
 end:
-	if (dh)
-		DH_free(dh);
+	if (ctx)
+		EVP_PKEY_CTX_free(ctx);
+
+	if (pkey)
+		EVP_PKEY_free(pkey);
 
 	if (bio)
 		BIO_free(bio);
