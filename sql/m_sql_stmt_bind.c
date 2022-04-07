@@ -51,6 +51,32 @@ void M_sql_stmt_bind_clear(M_sql_stmt_t *stmt)
 }
 
 
+void M_sql_stmt_bind_clear_row(M_sql_stmt_t *stmt)
+{
+	size_t row;
+	size_t i;
+
+	if (stmt == NULL)
+		return;
+
+	if (stmt->bind_row_cnt == 0)
+		return;
+
+	row = stmt->bind_row_cnt - 1;
+
+	for (i=0; i<stmt->bind_rows[row].col_cnt; i++) {
+		M_sql_stmt_bind_col_t *col = &stmt->bind_rows[row].cols[i];
+		if (col->type == M_SQL_DATA_TYPE_TEXT && !col->v.text.is_const)
+			M_free(col->v.text.data);
+		if (col->type == M_SQL_DATA_TYPE_BINARY && !col->v.binary.is_const)
+			M_free(col->v.binary.data);
+	}
+	M_free(stmt->bind_rows[row].cols);
+	stmt->bind_rows[row].cols    = NULL;
+	stmt->bind_rows[row].col_cnt = 0;
+}
+
+
 void M_sql_stmt_bind_new_row(M_sql_stmt_t *stmt)
 {
 	if (stmt == NULL)

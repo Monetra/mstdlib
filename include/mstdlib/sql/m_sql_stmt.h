@@ -266,11 +266,19 @@ M_API const char *M_sql_stmt_get_error_string(M_sql_stmt_t *stmt);
  * @{
  */
 
-/*! Clear bound parameters from a prepared statement object.
+/*! Clear all bound parameters from a prepared statement object.
  *
  * \param[in] stmt Initialized #M_sql_stmt_t object
  */
 M_API void M_sql_stmt_bind_clear(M_sql_stmt_t *stmt);
+
+/*! Clear current row bound parameters for prepared statement object.
+ *  This can be used if the caller wants to cancel the current row parameters
+ *  due to an internal condition.
+ *
+ *  \param[in] stmt Initialized #M_sql_stmt_t object
+ */
+M_API void M_sql_stmt_bind_clear_row(M_sql_stmt_t *stmt);
 
 /*! Increment to next row for statement binding.
  *
