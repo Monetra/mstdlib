@@ -98,7 +98,7 @@ char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_bool w
 {
 	M_buf_t    *buf;
 	const char *const_temp;
-	char        quoted_chars[4] = { 0 };
+	const char  quoted_chars[] = { delim, quote, '\r', '\n', '\0' };
 	size_t      numcols;
 	size_t      numrows;
 	size_t      i;
@@ -111,9 +111,6 @@ char *M_table_write_csv(const M_table_t *table, char delim, char quote, M_bool w
 
 	numrows = M_table_row_count(table);
 	numcols = M_table_column_count(table);
-
-	quoted_chars[0] = delim;
-	quoted_chars[1] = quote;
 
 	if (write_header) {
 		for (i=0; i<numcols; i++) {
