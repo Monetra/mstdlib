@@ -150,6 +150,7 @@ START_TEST(check_decimal_math)
 		ck_assert_msg(rv == math_tests[i].rv, "test %zu returned %u (%s vs exp %s)", i, (unsigned int)rv, r_out, exp_out);
 		if (rv == M_DECIMAL_SUCCESS || rv == M_DECIMAL_TRUNCATION) {
 			ck_assert_msg(M_decimal_cmp(&r, &exp) == 0, "test %zu expected result: %s returned %s", i, exp_out, r_out);
+			ck_assert_msg(M_str_eq(math_tests[i].r, r_out), "test %zu expected string %s returned %s", i, math_tests[i].r, r_out);
 		}
 	}
 }

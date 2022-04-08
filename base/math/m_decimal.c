@@ -563,31 +563,72 @@ M_int8 M_decimal_cmp(const M_decimal_t *dec1, const M_decimal_t *dec2)
 }
 
 
+static M_uint64 M_decimal_abs(M_int64 num)
+{
+	/* Special case */
+	if (num == M_INT64_MIN) {
+		return ((M_uint64)M_INT64_MAX)+1;
+	}
+
+	return num<0?(M_uint64)(num * -1):(M_uint64)num;
+}
+
+
 enum M_DECIMAL_RETVAL M_decimal_to_str(const M_decimal_t *dec, char *buf, size_t buf_len)
 {
-	char   *dec_pos;
-	char    fmt[10];
-	size_t  str_len = 0;
+	char    *ptr           = buf;
+	size_t   ptr_len       = buf_len;
+	size_t   num_digits    = 0;
+	M_uint64 num           = 0;
+	size_t   required_size = 0;
+	size_t   rv;
 
-	if (dec == NULL)
+	if (dec == NULL || buf == NULL || buf_len < 2)
 		return M_DECIMAL_INVALID;
 
-	/* Output long value to data, make sure its at least decimals+1 bytes */
-	M_snprintf(fmt, sizeof(fmt), "%%0%dlld", dec->num_dec+1);
+	num        = M_decimal_abs(dec->num);
+	num_digits = (size_t)M_uint64_count_digits(num);
 
-	str_len = M_snprintf(buf, buf_len, fmt, dec->num);
+	/* Do sanity checks up front */
+	required_size = num_digits + 1 /* Null term */;
+	if (dec->num_dec)
+		required_size++; /* decimal itself */
+	if (dec->num < 0)
+		required_size++; /* negative sign */
+	if (dec->num_dec >= num_digits)
+		required_size++; /* leading zero */
+	if (dec->num_dec > num_digits)
+		required_size += dec->num_dec - num_digits; /* leading zeros after decimal */
 
-	if (str_len + 1 >= buf_len) {
-		M_mem_set(buf, 0, buf_len);
+	if (required_size > buf_len)
 		return M_DECIMAL_INVALID;
+
+
+	/* Output negative sign */
+	if (dec->num < 0) {
+		*ptr++ = '-';
+		ptr_len--;
 	}
 
-	/* Move and place decimal */
-	if (dec->num_dec) {
-		dec_pos = buf + (str_len - dec->num_dec);
-		M_mem_move(dec_pos+1, dec_pos, (size_t)dec->num_dec+1); /* decimals + NULL terminator */
-		*dec_pos = '.';
+	/* Output digits before decimal */
+	if (dec->num_dec >= num_digits) {
+		rv       = M_snprintf(ptr, ptr_len, "0");
+	} else {
+		rv       = M_snprintf(ptr, ptr_len, "%llu", num / M_uint64_exp(10, dec->num_dec));
 	}
+	ptr     += rv;
+	ptr_len -= rv;
+
+	if (!dec->num_dec) {
+		return M_DECIMAL_SUCCESS;
+	}
+
+	/* Output decimal */
+	*ptr++ = '.';
+	ptr_len--;
+
+	/* Output digits after decimal */
+	M_snprintf(ptr, ptr_len, "%0*llu", (int)dec->num_dec, num % M_uint64_exp(10, dec->num_dec));
 
 	return M_DECIMAL_SUCCESS;
 }
