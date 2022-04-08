@@ -599,12 +599,13 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 	enum M_DECIMAL_RETVAL  rv          = M_DECIMAL_SUCCESS;
 	M_int64                num         = 0;
 	M_int64                afterdec    = 0;
-	const char            *ptr         = NULL;
+	const char            *ptr         = string;
 	size_t                 num_read    = 0;
 	size_t                 len_left    = 0;
 	const char            *end         = NULL;
 	const char            *temp        = NULL;
 	size_t                 num_digits;
+	M_bool                 is_neg      = M_FALSE;
 
 	if (string == NULL || len == 0 || val == NULL)
 		return M_DECIMAL_INVALID;
@@ -613,6 +614,12 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 		*endptr = NULL;
 
 	M_decimal_create(val);
+
+	/* Handle a case of -0.123, where "-0" will be read before decimal but we
+	 * need to apply it after */
+	if (*string == '-') {
+		is_neg = M_TRUE;
+	}
 
 	/* Read characters before the decimal */
 	if (*string == '.') {
@@ -661,7 +668,7 @@ enum M_DECIMAL_RETVAL M_decimal_from_str(const char *string, size_t len, M_decim
 			return M_DECIMAL_INVALID;
 
 		/* But make negative if before decimal was */
-		if (num < 0)
+		if (is_neg || num < 0)
 			afterdec *= -1;
 	} else {
 		end = ptr;

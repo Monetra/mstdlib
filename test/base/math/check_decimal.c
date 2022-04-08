@@ -101,6 +101,9 @@ static const struct math_test math_tests[] = {
 	{ "1.00e2",                  "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "100"                  },
 	{ "1.00e-2",                 "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "0.01"                 },
 
+	/* Reading negative 0 */
+	{ "-0.123",                  "0",        M_decimal_add,      M_DECIMAL_SUCCESS,    "-0.123"               },
+
 	/* Rounding */
 	{ "1.2344",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "1.234" },
 	{ "1.2345",    "3", M_decimal_transform_trad, M_DECIMAL_TRUNCATION, "1.235" },
@@ -132,9 +135,16 @@ START_TEST(check_decimal_math)
 		M_decimal_from_str(math_tests[i].d1, M_str_len(math_tests[i].d1), &d1, NULL);
 		M_decimal_from_str(math_tests[i].d2, M_str_len(math_tests[i].d2), &d2, NULL);
 		M_decimal_from_str(math_tests[i].r, M_str_len(math_tests[i].r), &exp, NULL);
-
 		rv = math_tests[i].op(&r, &d1, &d2);
+
 		M_decimal_to_str(&r, r_out, sizeof(r_out));
+#if 0
+		M_dprintf(2, "%zu: d1 (%s->%lld:%lld), d2 (%s->%lld:%lld), exp (%s->%lld:%lld)\n", i,
+			math_tests[i].d1, d1.num, (M_int64)d1.num_dec,
+			math_tests[i].d2, d2.num, (M_int64)d2.num_dec,
+			math_tests[i].r, exp.num, (M_int64)exp.num_dec
+		);
+#endif
 		M_decimal_to_str(&exp, exp_out, sizeof(exp_out));
 		//M_printf("test %zu exp %s == %s\n", i, r_out, exp_out);
 		ck_assert_msg(rv == math_tests[i].rv, "test %zu returned %u (%s vs exp %s)", i, (unsigned int)rv, r_out, exp_out);
