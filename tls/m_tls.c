@@ -34,6 +34,7 @@
 #  include <openssl/engine.h>
 #endif
 #include <openssl/conf.h>
+#include "ossl3_compat.h"
 #include "base/m_defs_int.h"
 #include "m_tls_clientctx_int.h"
 #include "m_tls_serverctx_int.h"
@@ -1342,8 +1343,10 @@ static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 	handle->ssl         = SSL_new(handle->serverctx->ctx);
 
 	/* If DHE negotiation is enabled, set it up now */
-	if (handle->serverctx->dh)
-		SSL_set_tmp_dh(handle->ssl, handle->serverctx->dh);
+	if (handle->serverctx->dh) {
+		EVP_PKEY_up_ref(handle->serverctx->dh);
+		SSL_set0_tmp_dh_pkey(handle->ssl, handle->serverctx->dh);
+	}
 
 	/* Set the layer as the 'thunk' data for the custom bio */
 	handle->bio_glue    = M_tls_bio_new(layer);

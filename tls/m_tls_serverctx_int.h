@@ -35,7 +35,7 @@ struct M_tls_serverctx {
 	X509               *x509;                   /*!< OpenSSL < 1.0.2 doesn't allow retrieval of certs from a CTX, cache */
 #endif
 	SSL_CTX            *ctx;                    /*!< OpenSSL ctx                                                        */
-	DH                 *dh;                     /*!< DH parameters to use for forward secrecy                           */
+	EVP_PKEY           *dh;                     /*!< DH parameters to use for forward secrecy                           */
 	size_t              ref_cnt;                /*!< Reference count to prevent destroy of CTX while connections active */
 	M_uint64            negotiation_timeout_ms; /*!< Amount of time negotiation can take                                */
 	M_bool              sessions_enabled;       /*!< Whether or not to enable session resumption support                */

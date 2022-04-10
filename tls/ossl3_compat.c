@@ -46,5 +46,16 @@ end:
 	return pkey;
 }
 
+int SSL_set0_tmp_dh_pkey(SSL *ssl, EVP_PKEY *dhpkey)
+{
+	DH *dhtemp = EVP_PKEY_get0_DH(dhpkey);
+	if (ssl == NULL || dhtemp == NULL)
+		return 0;
+
+	SSL_set_tmp_dh(ssl, dhtemp);
+	/* downref by using free as SSL_set_tmp_dh() duplicates internally */
+	EVP_PKEY_free(dhpkey);
+	return 1;
+}
 
 #endif

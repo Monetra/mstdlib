@@ -5,11 +5,12 @@
 #include <openssl/x509v3.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x3000000fL
 
 EVP_PKEY *EVP_RSA_gen(size_t bits);
-
+int SSL_set0_tmp_dh_pkey(SSL *ssl, EVP_PKEY *dhpkey);
 
 #endif
 
