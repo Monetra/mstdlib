@@ -328,6 +328,9 @@ M_bool M_utf8_isprint_cp(M_uint32 cp)
 	if (M_sort_binary_search(&M_utf8_table_So, M_utf8_table_So_len, sizeof(*M_utf8_table_So), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
 		return M_TRUE;
 
+	if (M_utf8_isunihan_cp(cp))
+		return M_TRUE;
+
 	return M_FALSE;
 }
 
@@ -339,4 +342,62 @@ M_bool M_utf8_isprint_chr(const char *str, const char **next)
 M_bool M_utf8_isprint(const char *str)
 {
 	return is_x(str, M_utf8_isprint_cp);
+}
+
+M_bool M_utf8_isunihan_cp(M_uint32 cp)
+{
+	/* CJK Unified Ideographs Extension A */
+	if (cp >= 0x3400 && cp <= 0x4DBF)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs */
+	if (cp >= 0x4E00 && cp <= 0x9FFF)
+		return M_TRUE;
+
+	/* CJK Compatibility Ideographs */
+	if (cp >= 0xF900 && cp <= 0xFA6D)
+		return M_TRUE;
+
+	if (cp >= 0xFA70 && cp <= 0xFAD9)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension B */
+	if (cp >= 0x20000 && cp <= 0x2A6DF)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension C */
+	if (cp >= 0x2A700 && cp <= 0x2B738)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension D */
+	if (cp >= 0x2B740 && cp <= 0x2B81D)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension E */
+	if (cp >= 0x2B820 && cp <= 0x2CEA1)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension F */
+	if (cp >= 0x2CEB0 && cp <= 0x2EBE0)
+		return M_TRUE;
+
+	/* CJK Compatibility Supplement */
+	if (cp >= 0x2F800 && cp <= 0x2FA1D)
+		return M_TRUE;
+
+	/* CJK Unified Ideographs Extension G */
+	if (cp >= 0x30000 && cp <= 0x3134A)
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
+M_bool M_utf8_isunihan_chr(const char *str, const char **next)
+{
+	return is_x_chr(str, next, M_utf8_isunihan_cp);
+}
+
+M_bool M_utf8_isunihan(const char *str)
+{
+	return is_x(str, M_utf8_isunihan_cp);
 }
