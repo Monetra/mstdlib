@@ -111,6 +111,9 @@ static M_textcodec_error_t M_textcodec_encode_int(M_textcodec_buffer_t *buf, con
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
 
+	if (codec == M_TEXTCODEC_UTF8)
+		return M_textcodec_utf8_to_utf8(buf, in, ehandler, M_TRUE);
+
 	/* Validate input is utf-8. */
 	if (!M_utf8_is_valid(in, NULL) && ehandler == M_TEXTCODEC_EHANDLER_FAIL)
 		return M_TEXTCODEC_ERROR_BADINPUT;
@@ -199,12 +202,13 @@ static M_textcodec_error_t M_textcodec_decode_int(M_textcodec_buffer_t *buf, con
 	if (M_str_isempty(in))
 		return M_TEXTCODEC_ERROR_SUCCESS;
 
+	if (codec == M_TEXTCODEC_UTF8)
+		return M_textcodec_utf8_to_utf8(buf, in, ehandler, M_FALSE);
+
 	switch (codec) {
 		case M_TEXTCODEC_UNKNOWN:
-			break;
 		case M_TEXTCODEC_UTF8:
-			M_textcodec_buffer_add_str(buf, in);
-			return M_TEXTCODEC_ERROR_SUCCESS;
+			break;
 		case M_TEXTCODEC_ASCII:
 			return M_textcodec_decode_ascii(buf, in, ehandler);
 		case M_TEXTCODEC_CP037:

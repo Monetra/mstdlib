@@ -160,6 +160,7 @@ if(MSTDLIB_BUILD_TEXT)
 	list(APPEND tests
 		text/check_puny.c
 		text/check_re.c
+		text/check_codec_utf8.c
 		text/check_verify.c
 	)
 endif()

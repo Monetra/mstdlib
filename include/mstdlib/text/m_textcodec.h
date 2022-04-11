@@ -80,6 +80,13 @@ __BEGIN_DECLS
  * PUNYCODE         | punycode                          | puny
  * QUOTED_PRINTABLE | puoted-printable                  | qp
  *
+ * If validating UTF-8 strings, use M_utf8_is_valid().
+ *
+ * UTF-8 to UTF-8 conversion for decode and encode is supported and intended to be used with
+ * the replace error handler. Specifically when dealing with UTF-8 strings that are known to be
+ * or could be invalid and need to be "sanitized" for continued use. The difference between
+ * encode and decode with UTF-8 to UTF-8 is the replacement character.
+ *
  * @{
  */ 
 

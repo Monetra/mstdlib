@@ -64,7 +64,8 @@ typedef enum {
 /*! Check if a given string is valid utf-8 encoded.
  *
  * \param[in]  str    utf-8 string.
- * \param[out] endptr On error, will be set to the character that caused the failure.
+ * \param[out] endptr On success, will be set to the NULL terminator.
+ *                    On error, will be set to the character that caused the failure.
  *
  * \return M_TRUE if str is a valid utf-8 sequence. Otherwise, M_FALSE.
  */

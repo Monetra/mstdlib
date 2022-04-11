@@ -23,8 +23,6 @@
 
 #include "textcodec/m_textcodec_int.h"
 
-static const char CP_REPLACE = '?';
-
 /* The static mappings are put into a hashtable to aid with lookup. For all but very
  * short strings the lookup will be faster when creating the hashtable than looping
  * through the static mapping for every characters.
@@ -80,7 +78,7 @@ M_textcodec_error_t M_textcodec_encode_cp_map(M_textcodec_buffer_t *buf, const c
 					res = M_TEXTCODEC_ERROR_FAIL;
 					break;
 				case M_TEXTCODEC_EHANDLER_REPLACE:
-					M_textcodec_buffer_add_byte(buf, (M_uint8)CP_REPLACE);
+					M_textcodec_buffer_add_byte(buf, M_CP_REPLACE);
 					res = M_TEXTCODEC_ERROR_SUCCESS_EHANDLER;
 					break;
 				case M_TEXTCODEC_EHANDLER_IGNORE:

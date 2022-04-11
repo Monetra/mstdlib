@@ -50,6 +50,7 @@ typedef struct {
 	const char    *descr;
 } M_textcodec_cp_map_t;
 
+#define M_CP_REPLACE     '?'
 #define M_UTF8_REPLACE "\xFF\xFD"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -58,6 +59,10 @@ M_bool M_textcodec_buffer_add_byte(M_textcodec_buffer_t *buf, unsigned char b);
 M_bool M_textcodec_buffer_add_bytes(M_textcodec_buffer_t *buf, const unsigned char *bs, size_t len);
 M_bool M_textcodec_buffer_add_str(M_textcodec_buffer_t *buf, const char *s);
 size_t M_textcodec_buffer_len(M_textcodec_buffer_t *buf);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_textcodec_error_t M_textcodec_utf8_to_utf8(M_textcodec_buffer_t *buf, const char *in, M_textcodec_ehandler_t ehandler, M_bool is_encode);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
