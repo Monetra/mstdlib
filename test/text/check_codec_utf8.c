@@ -75,6 +75,23 @@ START_TEST(check_ereplace)
 	M_free(out);
 }
 
+START_TEST(check_control)
+{
+	const char          *in  = "\x1Căѣ𝔠\x1Dծềſģȟ";
+	char                *out = NULL;
+	M_textcodec_error_t  res;
+
+	res = M_textcodec_encode(&out, in, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_UTF8);
+	ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "Encode: Failed to read valid input");
+	ck_assert_msg(M_str_eq(in, out), "Encode: Input does not match output");
+	M_free(out);
+
+	res = M_textcodec_decode(&out, in, M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_UTF8);
+	ck_assert_msg(res == M_TEXTCODEC_ERROR_SUCCESS, "Decode: Failed to read valid input");
+	ck_assert_msg(M_str_eq(in, out), "Decode: Input does not match output");
+	M_free(out);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *test_suite(void)
@@ -98,6 +115,10 @@ static Suite *test_suite(void)
 
 	tc = tcase_create("eignore");
 	tcase_add_test(tc, check_eignore);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("control");
+	tcase_add_test(tc, check_control);
 	suite_add_tcase(suite, tc);
 
 	return suite;
