@@ -60,21 +60,28 @@ __BEGIN_DECLS
  * Example:
  *
  * \code{.c}
- *     M_xml_node_t *xml;
- *     const char   *data = "<r><tag1>abc</tag1><tag2>123</tag2><tag3>xyz</tag3></r>";
- *     char         *out;
+ * #include <mstdlib/mstdlib.h>
+ * #include <mstdlib/mstdlib_formats.h>
  *
- *     xml = M_xml_read(data, M_str_len(data), M_XML_READER_NONE, NULL, NULL, NULL);
- *     if (xml == NULL) {
- *         M_printf("xml parse error\n");
- *         return M_FALSE;
- *     }
+ * int main(int argc, char** argv)
+ * {
+ * 	M_xml_node_t *xml;
+ * 	const char   *data = "<r><tag1>abc</tag1><tag2>123</tag2><tag3>xyz</tag3></r>";
+ * 	char         *out;
  *
- *     M_xml_create_element_with_text("AbCd", "blah blah blah", 0, xml);
+ * 	xml = M_xml_read(data, M_str_len(data), M_XML_READER_NONE, NULL, NULL, NULL, NULL);
+ * 	if (xml == NULL) {
+ * 		M_printf("xml parse error\n");
+ * 		return M_FALSE;
+ * 	}
  *
- *     out = M_xml_write(xml, M_XML_WRITER_LOWER_TAGS|M_XML_WRITER_LOWER_ATTRS|M_XML_WRITER_PRETTYPRINT_SPACE, NULL);
- *     M_printf("out=\n%s\n", out);
- *     M_free(out);
+ * 	M_xml_create_element_with_text("AbCd", "blah blah blah", 0, xml);
+ *
+ * 	out = M_xml_write(xml, M_XML_WRITER_LOWER_TAGS|M_XML_WRITER_LOWER_ATTRS|M_XML_WRITER_PRETTYPRINT_SPACE, NULL);
+ * 	M_printf("out=\n%s\n", out);
+ * 	M_free(out);
+ * 	return 0;
+ * }
  * \endcode
  *
  * @{
