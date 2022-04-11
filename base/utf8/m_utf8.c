@@ -78,11 +78,14 @@ static M_bool M_utf8_validate_int(const char *str, const char **endptr, size_t *
 		return 0;
 
 	while (res == M_UTF8_ERROR_SUCCESS && *str != '\0') {
+		const char *next = NULL;
+
 		if (endptr != NULL) {
 			*endptr = str;
 		}
 
-		res = M_utf8_get_cp(str, NULL, &str);
+		res = M_utf8_get_cp(str, NULL, &next);
+		str = next;
 
 		if (len != NULL) {
 			(*len)++;

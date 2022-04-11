@@ -62,15 +62,17 @@ static M_bool is_x_chr(const char *str, const char **next, M_bool(*cp_func)(M_ui
 
 static M_bool is_x(const char *str, M_bool(*cp_func)(M_uint32 cp))
 {
-	M_uint32    cp;
-	const char *next;
+	M_uint32 cp;
 
 	if (M_str_isempty(str))
 		return M_FALSE;
 
 	do {
+		const char *next = NULL;
+
 		if (M_utf8_get_cp(str, &cp, &next) != M_UTF8_ERROR_SUCCESS)
 			return M_FALSE;
+		str = next;
 
 		if (!M_utf8_is_valid_cp(cp))
 			return M_FALSE;
@@ -78,7 +80,7 @@ static M_bool is_x(const char *str, M_bool(*cp_func)(M_uint32 cp))
 		if (!cp_func(cp)) {
 			return M_FALSE;
 		}
-	} while (*next != '\0');
+	} while (*str != '\0');
 
 	return M_TRUE;
 }
