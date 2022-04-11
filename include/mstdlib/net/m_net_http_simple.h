@@ -85,7 +85,7 @@ __BEGIN_DECLS
  *     size_t               len;
  *
  *     if (net_error != M_NET_ERROR_SUCCESS) {
- *         M_printf("Ner Error: %s: %s\n", M_net_errcode_to_str(net_error), error);
+ *         M_printf("Net Error: %s: %s\n", M_net_errcode_to_str(net_error), error);
  *         M_event_done(el);
  *         return;
  *     }
@@ -165,7 +165,7 @@ __BEGIN_DECLS
  *     M_tls_clientctx_t   *ctx;
  *
  *     el  = M_event_create(M_EVENT_FLAG_NONE);
- *     dns = M_dns_create();
+ *     dns = M_dns_create(el);
  *
  *     ctx = M_tls_clientctx_create();
  *     M_tls_clientctx_set_default_trust(ctx);
