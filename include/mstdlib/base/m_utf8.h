@@ -585,6 +585,41 @@ M_API M_bool M_utf8_ispunct_chr(const char *str, const char **next);
  */
 M_API M_bool M_utf8_ispunct(const char *str);
 
+
+/*! Checks if a utf-8 a printable codepoint.
+ *
+ * Defined as tables L, M, N, P, S and ASCII space
+ *
+ * \param[in] cp Code point.
+ *
+ * \return M_TRUE if printable. Otherwise M_FALSE.
+ */
+M_API M_bool M_utf8_isprint_cp(M_uint32 cp);
+
+
+/*! Checks if a utf-8 sequence is printable.
+ *
+ * Defined as tables L, M, N, P, S and ASCII space
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return M_TRUE if printable. Otherwise M_FALSE.
+ */
+M_API M_bool M_utf8_isprint_chr(const char *str, const char **next);
+
+
+/*! Checks if a utf-8 string is printable.
+ *
+ * Defined as tables L, M, N, P, S and ASCII space
+ *
+ * \param[in] str utf-8 string.
+ *
+ * \return M_TRUE if printable. Otherwise M_FALSE.
+ */
+M_API M_bool M_utf8_isprint(const char *str);
+
 /*! @} */
 
 /*! @} */

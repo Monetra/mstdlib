@@ -285,3 +285,56 @@ M_bool M_utf8_ispunct(const char *str)
 {
 	return is_x(str, M_utf8_ispunct_cp);
 }
+
+M_bool M_utf8_isprint_cp(M_uint32 cp)
+{
+	if (!M_utf8_is_valid_cp(cp))
+		return M_FALSE;
+
+	/* Optimize for ASCII range because it's most common. */
+	if ((cp >= '!' && cp < 0x7f) || ( cp >= '\t' && cp <= '\r') /* \t, \n, \v, \f, \r */ || cp == ' ')
+		return M_TRUE;
+	
+	/* L, N */
+	if (M_utf8_isalnum_cp(cp))
+		return M_TRUE;
+
+	/* P */
+	if (M_utf8_ispunct_cp(cp))
+		return M_TRUE;
+
+	/* M */
+	if (M_sort_binary_search(&M_utf8_table_Mc, M_utf8_table_Mc_len, sizeof(*M_utf8_table_Mc), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	if (M_sort_binary_search(&M_utf8_table_Me, M_utf8_table_Me_len, sizeof(*M_utf8_table_Me), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	if (M_sort_binary_search(&M_utf8_table_Mn, M_utf8_table_Mn_len, sizeof(*M_utf8_table_Mn), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	/* S */
+	if (M_sort_binary_search(&M_utf8_table_Sc, M_utf8_table_Sc_len, sizeof(*M_utf8_table_Sc), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	if (M_sort_binary_search(&M_utf8_table_Sk, M_utf8_table_Sk_len, sizeof(*M_utf8_table_Sk), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	if (M_sort_binary_search(&M_utf8_table_Sm, M_utf8_table_Sm_len, sizeof(*M_utf8_table_Sm), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	if (M_sort_binary_search(&M_utf8_table_So, M_utf8_table_So_len, sizeof(*M_utf8_table_So), &cp, M_FALSE, M_utf8_compar_cp, NULL, NULL))
+		return M_TRUE;
+
+	return M_FALSE;
+}
+
+M_bool M_utf8_isprint_chr(const char *str, const char **next)
+{
+	return is_x_chr(str, next, M_utf8_isprint_cp);
+}
+
+M_bool M_utf8_isprint(const char *str)
+{
+	return is_x(str, M_utf8_isprint_cp);
+}
