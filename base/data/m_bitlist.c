@@ -165,16 +165,20 @@ M_bool M_bitlist_tohash(M_hash_stru64_t **hash_toint, M_hash_u64str_t **hash_tos
 	*hash_tostr = NULL;
 
 	for (i=0; list[i].name != NULL; i++) {
+		M_bool is_duplicate = M_FALSE;
+
 		if (M_hash_stru64_get(toint, list[i].name, NULL)) {
 			M_snprintf(error, error_len, "duplicate key name %s", list[i].name);
 			goto done;
 		}
 
 		if (M_hash_u64str_get(tostr, list[i].id, NULL)) {
-			if (flags & M_BITLIST_FLAG_IGNORE_DUPLICATE_ID)
-				continue;
-			M_snprintf(error, error_len, "duplicate key id %lld", list[i].id);
-			goto done;
+			if (flags & M_BITLIST_FLAG_IGNORE_DUPLICATE_ID) {
+				is_duplicate = M_TRUE;
+			} else {
+				M_snprintf(error, error_len, "duplicate key id %lld", list[i].id);
+				goto done;
+			}
 		}
 
 		if (list[i].id != 0 && !(flags & M_BITLIST_FLAG_DONT_REQUIRE_POWEROF2) &&
@@ -185,7 +189,10 @@ M_bool M_bitlist_tohash(M_hash_stru64_t **hash_toint, M_hash_u64str_t **hash_tos
 
 		/* All good, insert into both hashtables */
 		M_hash_stru64_insert(toint, list[i].name, list[i].id);
-		M_hash_u64str_insert(tostr, list[i].id, list[i].name);
+
+		/* Don't insert the same id again, first id wins */
+		if (!is_duplicate)
+			M_hash_u64str_insert(tostr, list[i].id, list[i].name);
 	}
 
 	*hash_toint = toint;
