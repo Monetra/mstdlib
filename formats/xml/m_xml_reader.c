@@ -699,6 +699,14 @@ static M_bool M_xml_doc_has_element(M_xml_node_t *doc)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static void M_xml_read_error_line(const char* data, size_t error_pos, size_t* error_line) {
+	*error_line = 0;
+	for (size_t i = 0; i < error_pos; i++) {
+		if (data[i] == '\n') { (*error_line)++; }
+	}
+	return;
+}
+
 M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size_t *processed_len, M_xml_error_t *error, size_t *error_line, size_t *error_pos)
 {
 	M_xml_node_t  *doc;
@@ -745,6 +753,7 @@ M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size
 				/* Multiple roots are invalid... */
 				*error = M_XML_ERROR_EXPECTED_END;
 				*error_pos = i;
+				M_xml_read_error_line(data, *error_pos, error_line);
 				M_xml_node_destroy(doc);
 				return NULL;
 			}
@@ -755,6 +764,7 @@ M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size
 			retval = M_xml_read_tag(&curr_level, data+i, data_len-i, flags, error);
 			if (retval == 0) {
 				*error_pos = i;
+				M_xml_read_error_line(data, *error_pos, error_line);
 				M_xml_node_destroy(doc);
 				return NULL;
 			}
@@ -773,6 +783,7 @@ M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size
 	if (curr_level != doc) {
 		*error     = M_XML_ERROR_MISSING_CLOSE_TAG;
 		*error_pos = i;
+		M_xml_read_error_line(data, *error_pos, error_line);
 		M_xml_node_destroy(doc);
 		return NULL;
 	}
@@ -780,6 +791,7 @@ M_xml_node_t *M_xml_read(const char *data, size_t data_len, M_uint32 flags, size
 	if (!M_xml_doc_has_element(doc)) {
 		*error     = M_XML_ERROR_NO_ELEMENTS;
 		*error_pos = i;
+		M_xml_read_error_line(data, *error_pos, error_line);
 		M_xml_node_destroy(doc);
 		return NULL;
 	}
