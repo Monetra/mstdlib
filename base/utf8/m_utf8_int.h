@@ -133,6 +133,9 @@ extern const size_t M_utf8_table_uptolow_len;
 extern const M_utf8_cp_map_t M_utf8_table_lowtoup[];
 extern const size_t M_utf8_table_lowtoup_len;
 
+extern const M_utf8_cp_map_t M_utf8_table_title[];
+extern const size_t M_utf8_table_title_len;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #endif /* __M_UTS8_INT_H__ */

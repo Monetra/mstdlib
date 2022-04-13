@@ -211,21 +211,16 @@ M_API M_utf8_error_t M_utf8_chr_at(const char *str, char *buf, size_t buf_size, 
 /*! \addtogroup m_utf8_case Case Folding
  *  \ingroup m_utf8
  *
- * One-to-one case mappings.
+ * The case folding as defined by the official UTF-8 mapping is utalized.
+ * UTF-8 does not have a one to one mapping for case folding. Multiple codes
+ * can fold to the same code point. Coversion to upper, then to lower, then
+ * back to upper can result in a different upper case string than the original
+ * input.
  *
- * This is intended for programmatic comparison only. It is
- * not intended for display. Locale specific handling is not
- * supported.
- *
- * Does not account for:
- * - One to many mapping
- * - Many to many mapping
- * - Equivalents. Such as, the German Eszett and ss
- *
- * One to many mappings use the lowest code point that
- * matches. For example, 0x004B (capital K) maps to 0x006B (lower k).
- * 0x212A (kelvin sign) also maps to 0x006B. The lowest code points
- * are 0x0048 and 0x006B so those are used for the one to one case fold.
+ * For example, 0x004B (capital K) maps to 0x006B (lower k).
+ * 0x212A (kelvin sign) also maps to 0x006B. 0x006B maps to
+ * 0x004B. So converting 0x212A to lower then back to upper
+ * will output 0x004B.
  *
  * \note
  * Not all characters have a case equivalent. These characters
@@ -350,6 +345,65 @@ M_API M_utf8_error_t M_utf8_tolower(const char *str, char **out);
  * \return Result.
  */
 M_API M_utf8_error_t M_utf8_tolower_buf(const char *str, M_buf_t *buf);
+
+
+/*! Convert a code point to the equivalent title case code point.
+ *
+ * \param[in]  cp       Code point to convert.
+ * \param[out] title_cp Equivalent title case code point. Or cp if
+ *                      there is no equivalent.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_totitle_cp(M_uint32 cp, M_uint32 *title_cp);
+
+
+/*! Read a utf-8 sequence converting to title case.
+ *
+ * Output is _not_ NULL terminated.
+ *
+ * \param[in]  str      utf-8 string.
+ * \param[in]  buf      Buffer to put utf-8 sequence. Can be NULL.
+ * \param[in]  buf_size Size of the buffer.
+ * \param[out] len      Length of the sequence that was put into buffer.
+ * \param[out] next     Start of next character. Will point to NULL terminator
+ *                      if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_totitle_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next);
+
+
+/*! Read a utf-8 sequence into an M_buf_t converting to title case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put title case utf-8 sequence.
+ * \param[out] next Start of next character. Will point to NULL terminator
+ *                  if last character.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_totitle_chr_buf(const char *str, M_buf_t *buf, const char **next);
+
+
+/*! Convert a utf-8 string to an title case equivalent string.
+ *
+ * \param[in]   str  utf-8 string.
+ * \param[out]  out  Lower case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_totitle(const char *str, char **out);
+
+
+/*! Read a utf-8 string into an M_buf_t converting to title case.
+ *
+ * \param[in]  str  utf-8 string.
+ * \param[in]  buf  Buffer to put title case utf-8 string.
+ *
+ * \return Result.
+ */
+M_API M_utf8_error_t M_utf8_totitle_buf(const char *str, M_buf_t *buf);
 
 /*! @} */
 

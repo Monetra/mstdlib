@@ -91,9 +91,64 @@ START_TEST(check_utf8_case_cp)
 }
 END_TEST
 
+static void check_utf8_case_error_msg_add_cps(M_buf_t *buf, const char *str)
+{
+	const char     *next;
+	M_utf8_error_t err;
+
+	if (M_str_isempty(str))
+		return;
+
+	do {
+		M_uint32 cp = 0;
+
+		err = M_utf8_get_cp(str, &cp, &next);
+		str = next;
+		if (err == M_UTF8_ERROR_SUCCESS) {
+			M_buf_add_str(buf, "U+");
+			M_buf_add_uint_just(buf, cp, 4);
+			M_buf_add_byte(buf, ' ');
+		}
+	} while (err == M_UTF8_ERROR_SUCCESS && *next != '\0');
+
+	M_buf_truncate(buf, M_buf_len(buf)-1);
+}
+
+static char *check_utf8_case_error_msg(size_t idx, const char *conversion, const char *input, const char *expected, const char *got)
+{
+	M_buf_t *buf;
+
+	buf = M_buf_create();
+	M_buf_add_uint(buf, idx);
+	M_buf_add_str(buf, ": ");
+
+	M_buf_add_str(buf, conversion);
+
+	M_buf_add_str(buf, ": input: '");
+	M_buf_add_str(buf, input);
+	M_buf_add_str(buf, "' (");
+	check_utf8_case_error_msg_add_cps(buf, input);
+	M_buf_add_str(buf, "), ");
+
+	M_buf_add_str(buf, "expected: '");
+	M_buf_add_str(buf, expected);
+	M_buf_add_str(buf, "' (");
+	check_utf8_case_error_msg_add_cps(buf, expected);
+	M_buf_add_str(buf, "), ");
+
+	M_buf_add_str(buf, "got: '");
+	M_buf_add_str(buf, got);
+	M_buf_add_str(buf, "' (");
+	check_utf8_case_error_msg_add_cps(buf, got);
+	M_buf_add_str(buf, ")");
+
+	return M_buf_finish_str(buf, NULL);
+}
+
 START_TEST(check_utf8_case)
 {
 	char *out;
+	char *msg;
 	struct {
 		const char *upper;
 		const char *lower;
@@ -111,7 +166,7 @@ START_TEST(check_utf8_case)
 		{ "123",
 			"123" },
 		/* German. */
-		{ "ẞÄÖÜ",
+		{ "ßÄÖÜ",
 			"ßäöü" },
 		/* Western European. */
 		{ "ÀÂÈÉÊËÎÏÔÙÛÜŸÇŒ",
@@ -128,22 +183,34 @@ START_TEST(check_utf8_case)
 	for (i=0; ts[i].upper!=NULL; i++) {
 		res = M_utf8_toupper(ts[i].upper, &out);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper to upper failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].upper), "%zu: upper to upper != out: expected '%s', got '%s'", i, ts[i].upper, out);
+		if (!M_str_eq(out, ts[i].upper)) {
+			msg = check_utf8_case_error_msg(i, "upper to upper", ts[i].upper, ts[i].upper, out);
+			ck_abort_msg("%s", msg);
+		}
 		M_free(out);
 
 		res = M_utf8_tolower(ts[i].upper, &out);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: upper to lower failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].lower), "%zu: upper to lower != out: expected '%s', got '%s'", i, ts[i].upper, out);
+		if (!M_str_eq(out, ts[i].lower)) {
+			msg = check_utf8_case_error_msg(i, "upper to lower", ts[i].upper, ts[i].lower, out);
+			ck_abort_msg("%s", msg);
+		}
 		M_free(out);
 
 		res = M_utf8_tolower(ts[i].lower, &out);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower to lower failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].lower), "%zu: lower to lower != out: expected '%s', got '%s'", i, ts[i].lower, out);
+		if (!M_str_eq(out, ts[i].lower)) {
+			msg = check_utf8_case_error_msg(i, "lower to lower", ts[i].lower, ts[i].lower, out);
+			ck_abort_msg("%s", msg);
+		}
 		M_free(out);
 
 		res = M_utf8_toupper(ts[i].lower, &out);
 		ck_assert_msg(res == M_UTF8_ERROR_SUCCESS, "%zu: lower to upper failed: %d\n", i, res);
-		ck_assert_msg(M_str_eq(out, ts[i].upper), "%zu: lower to upper != out: expected '%s', got '%s'", i, ts[i].lower, out);
+		if (!M_str_eq(out, ts[i].upper)) {
+			msg = check_utf8_case_error_msg(i, "lower to upper", ts[i].lower, ts[i].upper, out);
+			ck_abort_msg("%s", msg);
+		}
 		M_free(out);
 	}
 }

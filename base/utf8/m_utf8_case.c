@@ -274,3 +274,121 @@ M_utf8_error_t M_utf8_tolower_buf(const char *str, M_buf_t *buf)
 
 	return M_UTF8_ERROR_SUCCESS;
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+M_utf8_error_t M_utf8_totitle_cp(M_uint32 cp, M_uint32 *title_cp)
+{
+	M_utf8_cp_map_t tmap = { cp, 0 };
+	size_t          idx = 0;
+
+	if (title_cp == NULL)
+		return M_UTF8_ERROR_INVALID_PARAM;
+	*title_cp = cp;
+
+	if (!M_utf8_is_valid_cp(cp))
+		return M_UTF8_ERROR_BAD_CODE_POINT;
+
+	/* Not found means it's a title or not one that maps to an upper. */
+	if (!M_sort_binary_search(M_utf8_table_uptolow, M_utf8_table_uptolow_len, sizeof(*M_utf8_table_uptolow), &tmap, M_FALSE, M_utf8_compar_cp_map, NULL, &idx))
+		return M_UTF8_ERROR_SUCCESS;
+
+	*title_cp = M_utf8_table_uptolow[idx].cp2;
+	return M_UTF8_ERROR_SUCCESS;
+}
+
+M_utf8_error_t M_utf8_totitle_chr(const char *str, char *buf, size_t buf_size, size_t *len, const char **next)
+{
+	M_uint32        cp       = 0;
+	M_uint32        title_cp = 0;
+	M_utf8_error_t  res;
+
+	res = M_utf8_get_cp(str, &cp, next);
+	if (res != M_UTF8_ERROR_SUCCESS)
+		return res;
+
+	if (buf == NULL || buf_size == 0)
+		return M_UTF8_ERROR_SUCCESS;
+
+	res = M_utf8_totitle_cp(cp, &title_cp);
+	if (res != M_UTF8_ERROR_SUCCESS)
+		return res;
+
+	return M_utf8_from_cp(buf, buf_size, len, title_cp);
+}
+
+M_utf8_error_t M_utf8_totitle_chr_buf(const char *str, M_buf_t *buf, const char **next)
+{
+	char           mybuf[8] = { 0 };
+	size_t         len;
+	M_utf8_error_t res;
+
+	res = M_utf8_totitle_chr(str, mybuf, sizeof(mybuf), &len, next);
+	if (res == M_UTF8_ERROR_SUCCESS)
+		M_buf_add_bytes(buf, mybuf, len);
+
+	return res;
+}
+
+M_utf8_error_t M_utf8_totitle(const char *str, char **out)
+{
+	M_buf_t        *buf;
+	M_utf8_error_t  res;
+
+	if (out == NULL)
+		return M_UTF8_ERROR_INVALID_PARAM;
+
+	if (M_str_isempty(str)) {
+		*out = M_strdup("");
+		return M_UTF8_ERROR_SUCCESS;
+	}
+
+	buf = M_buf_create();
+	res = M_utf8_totitle_buf(str, buf);
+	if (res != M_UTF8_ERROR_SUCCESS) {
+		M_buf_cancel(buf);
+		return res;
+	}
+
+	*out = M_buf_finish_str(buf, NULL);
+	return M_UTF8_ERROR_SUCCESS;
+}
+
+M_utf8_error_t M_utf8_totitle_buf(const char *str, M_buf_t *buf)
+{
+	const char     *p;
+	M_uint32        cp;
+	M_uint32        title_cp;
+	size_t          start;
+	M_utf8_error_t  res;
+
+	if (buf == NULL)
+		return M_UTF8_ERROR_INVALID_PARAM;
+
+	if (M_str_isempty(str))
+		return M_UTF8_ERROR_SUCCESS;
+
+	start = M_buf_len(buf);
+	do {
+		res = M_utf8_get_cp(str, &cp, &p);
+		if (res != M_UTF8_ERROR_SUCCESS)
+			break;
+
+		res = M_utf8_totitle_cp(cp, &title_cp);
+		if (res != M_UTF8_ERROR_SUCCESS)
+			break;
+
+		res = M_utf8_from_cp_buf(buf, title_cp);
+		if (res != M_UTF8_ERROR_SUCCESS)
+			break;
+
+		str = p;
+	} while (str != NULL && *str != '\0');
+
+	if (res != M_UTF8_ERROR_SUCCESS) {
+		M_buf_truncate(buf, start);
+		return res;
+	}
+
+	return M_UTF8_ERROR_SUCCESS;
+}
