@@ -584,7 +584,8 @@ typedef M_bool (*M_sql_tabledata_fetch_cb)(M_sql_tabledata_field_t *out, const c
  * \param[in]     txn       Tabledata transaction pointer to grab field data
  * \param[in,out] error     Buffer to hold error if any
  * \param[in]     error_len Size of error buffer
- * \return one fo the M_sql_error_t codes. Use M_SQL_ERROR_USER_SUCCESS and M_SQL_ERROR_USER_FAIL for non-SQL success/fail.
+ * \return one of the M_sql_error_t codes. Use M_SQL_ERROR_USER_SUCCESS if nothing changed, and M_SQL_ERROR_SUCCESS if this
+ *         callback caused a change. Otherwise one of the error codes.
  */
 typedef M_sql_error_t (*M_sql_tabledata_notify_cb)(M_sql_trans_t *sqltrans, M_sql_tabledata_txn_t *txn, char *error, size_t error_len);
 

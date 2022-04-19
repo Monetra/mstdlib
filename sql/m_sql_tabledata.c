@@ -1596,6 +1596,10 @@ done:
 		err = txn->notify_cb(sqltrans, txn, error, error_len);
 		if (M_sql_error_is_error(err))
 			rv = err;
+		/* If the notify returned ERROR_SUCCESS instead of ERROR_USER_SUCCESS, update rv so we
+		 * know something changed. */
+		if (err == M_SQL_ERROR_SUCCESS && rv == M_SQL_ERROR_USER_SUCCESS)
+			rv = err;
 	}
 
 	return rv;
