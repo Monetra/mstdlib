@@ -2062,7 +2062,7 @@ done:
 	 * on notify even if no fields have been updated (ERROR_SUCCESS vs ERROR_USER_SUCCESS),
 	 * However if somehow USER_BYPASS is returned, won't call callback even though not an
 	 * error condition. */
-	if ((rv == M_SQL_ERROR_SUCCESS || rv == M_SQL_ERROR_USER_SUCCESS) && txn->notify_cb) {
+	if ((err == M_SQL_ERROR_SUCCESS || err == M_SQL_ERROR_USER_SUCCESS) && txn->notify_cb) {
 		M_sql_error_t rv = txn->notify_cb(sqltrans, txn, error, error_len);
 		if (M_sql_error_is_error(rv))
 			err = rv;
