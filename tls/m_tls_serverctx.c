@@ -33,6 +33,7 @@
 #include <openssl/err.h>
 #if OPENSSL_VERSION_NUMBER >= 0x3000000fL
 #  include <openssl/core_names.h>
+#  include <openssl/param_build.h>
 #endif
 #include "base/m_defs_int.h"
 #include "m_tls_serverctx_int.h"
@@ -97,11 +98,16 @@ end:
 #else
 	EVP_PKEY_CTX *ctx       = EVP_PKEY_CTX_new_id(EVP_PKEY_DH, NULL);
 	EVP_PKEY     *dh        = NULL;
+#  if 0
+	/* This doesn't work for some reason, have to go through param builder */
 	OSSL_PARAM    params[3] = {
 		OSSL_PARAM_BN(OSSL_PKEY_PARAM_FFC_P, p, BN_num_bytes(p)),
 		OSSL_PARAM_BN(OSSL_PKEY_PARAM_FFC_G, g, BN_num_bytes(g)),
 		OSSL_PARAM_END
 	};
+#  endif
+	OSSL_PARAM_BLD *param_bld = NULL;
+	OSSL_PARAM     *params    = NULL;
 
 	if (ctx == NULL)
 		goto end;
@@ -109,10 +115,23 @@ end:
 	if (EVP_PKEY_fromdata_init(ctx) <= 0)
 		goto end;
 
+	param_bld = OSSL_PARAM_BLD_new();
+	if (!OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_FFC_P, p))
+		goto end;
+
+	if (!OSSL_PARAM_BLD_push_BN(param_bld, OSSL_PKEY_PARAM_FFC_G, g))
+		goto end;
+
+	params = OSSL_PARAM_BLD_to_param(param_bld);
+	if (params == NULL)
+		goto end;
+
 	if (EVP_PKEY_fromdata(ctx, &dh, EVP_PKEY_KEYPAIR, params) <= 0)
 		goto end;
 
 end:
+	OSSL_PARAM_BLD_free(param_bld);
+	OSSL_PARAM_free(params);
 	EVP_PKEY_CTX_free(ctx);
 	return dh;
 #endif
