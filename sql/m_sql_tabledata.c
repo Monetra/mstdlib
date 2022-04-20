@@ -1588,18 +1588,9 @@ done:
 		M_sql_stmt_destroy(stmt);
 	}
 
-	/* Call notify-callback on a success condition.  Its possible something else is registered
-	 * on notify even if no fields have been updated (ERROR_SUCCESS vs ERROR_USER_SUCCESS),
-	 * However if somehow USER_BYPASS is returned, won't call callback even though not an
-	 * error condition. */
-	if ((rv == M_SQL_ERROR_SUCCESS || rv == M_SQL_ERROR_USER_SUCCESS) && txn->notify_cb) {
-		err = txn->notify_cb(sqltrans, txn, error, error_len);
-		if (M_sql_error_is_error(err))
-			rv = err;
-		/* If the notify returned ERROR_SUCCESS instead of ERROR_USER_SUCCESS, update rv so we
-		 * know something changed. */
-		if (err == M_SQL_ERROR_SUCCESS && rv == M_SQL_ERROR_USER_SUCCESS)
-			rv = err;
+	/* Call notify callback */
+	if (!M_sql_error_is_error(rv) && txn->notify_cb) {
+		rv = txn->notify_cb(sqltrans, txn, error, error_len);
 	}
 
 	return rv;
@@ -2067,11 +2058,18 @@ done:
 		M_sql_stmt_destroy(stmt);
 	}
 
-	/* Call notify-callback as fields have been updated (but not if USER_SUCCESS or failure) */
-	if (err == M_SQL_ERROR_SUCCESS && txn->notify_cb) {
-		M_sql_error_t myerr = txn->notify_cb(sqltrans, txn, error, error_len);
-		if (M_sql_error_is_error(myerr))
-			err = myerr;
+	/* Call notify-callback on a success condition.  Its possible something else is registered
+	 * on notify even if no fields have been updated (ERROR_SUCCESS vs ERROR_USER_SUCCESS),
+	 * However if somehow USER_BYPASS is returned, won't call callback even though not an
+	 * error condition. */
+	if ((rv == M_SQL_ERROR_SUCCESS || rv == M_SQL_ERROR_USER_SUCCESS) && txn->notify_cb) {
+		M_sql_error_t rv = txn->notify_cb(sqltrans, txn, error, error_len);
+		if (M_sql_error_is_error(rv))
+			err = rv;
+		/* If the notify returned ERROR_SUCCESS instead of ERROR_USER_SUCCESS, update err so we
+		 * know something changed. */
+		if (rv == M_SQL_ERROR_SUCCESS && err == M_SQL_ERROR_USER_SUCCESS)
+			err = rv;
 	}
 
 	return err;

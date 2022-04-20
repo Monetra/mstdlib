@@ -579,6 +579,7 @@ typedef M_bool (*M_sql_tabledata_fetch_cb)(M_sql_tabledata_field_t *out, const c
 /*! Callback that is called at completion of an add/edit.  Both the prior and new field data are available for the entire
  * table. It may be necessary to do cross-table modifications based on a change, so this facilitates that ability.  If
  * making linked changes, you must use the passed in sqltrans parameter to ensure it is treated as a single atomic operation.
+ * On edit, this registered callback will be called on any successful condition, including no changed fields.
  *
  * \param[in]     sqltrans  SQL Transaction for chaining atomic actions
  * \param[in]     txn       Tabledata transaction pointer to grab field data
@@ -638,7 +639,7 @@ M_API M_sql_error_t M_sql_tabledata_trans_add(M_sql_trans_t *sqltrans, const cha
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
- * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Even if no data changed)
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
@@ -659,7 +660,7 @@ M_API M_sql_error_t M_sql_tabledata_edit(M_sql_connpool_t *pool, const char *tab
  * \param[in]     fields       List of fields (columns) in the table.
  * \param[in]     num_fields   Number of fields in the list
  * \param[in]     fetch_cb     Callback to be called to fetch each field/column.
- * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Only if data changed)
+ * \param[in]     notify_cb    Optional. Callback to be called to be notified on successful completion. (Even if no data changed)
  * \param[in]     thunk        Thunk parameter for custom state tracking, will be passed to fetch_cb.
  * \param[in,out] error        Buffer to hold error if any
  * \param[in]     error_len    Size of error buffer
