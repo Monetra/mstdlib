@@ -429,7 +429,7 @@ const char *M_http_simple_read_content_type(const M_http_simple_read_t *simple)
 M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *simple)
 {
 	char *val;
-	char *charset;
+	const unsigned char *charset;
 	M_parser_t *parser = NULL;
 
 	if (simple == NULL)
@@ -439,12 +439,14 @@ M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *simple)
 		return simple->http->codec;
 
 	val = M_http_header(simple->http, "content-type");
-	parser = M_parser_create_const((const unsigned char*)val, M_str_len(val), M_PARSER_FLAG_NONE);
-	if (M_parser_consume_until(parser, "charset=", 8, M_TRUE) != 0) {
-		charset = M_parser_peek(parser);
-		simple->http->codec = M_textcodec_codec_from_str(charset);
+	if (!M_str_isempty(val)) {
+		parser = M_parser_create_const((const unsigned char*)val, M_str_len(val), M_PARSER_FLAG_NONE);
+		if (M_parser_consume_until(parser, (const unsigned char*)"charset=", 8, M_TRUE) != 0) {
+			charset = M_parser_peek(parser);
+			simple->http->codec = M_textcodec_codec_from_str((const char*)charset);
+		}
+		M_parser_destroy(parser);
 	}
-	M_parser_destroy(parser);
 	M_free(val);
 
 	return simple->http->codec;
