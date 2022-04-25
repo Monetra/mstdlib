@@ -40,7 +40,7 @@ typedef struct {
 	"Content-Length: 44\r\n" \
 	"Connection: close\r\n"\
 	"Content-Type: text/html\r\n" \
- 	"\r\n"  \
+	"\r\n"  \
 	"<html><body><h1>It works!</h1></body></html>"
 
 /* No Content length. Duplicate header. Header list. */
@@ -51,7 +51,7 @@ typedef struct {
 	"dup_header: b\r\n" \
 	"dup_header: c\r\n" \
 	"list_header: 1, 2, 3\r\n" \
- 	"\r\n" \
+	"\r\n" \
 	"<html><body><h1>It works!</h1></body></html>"
 
 /* 1.0 GET request. */
@@ -181,6 +181,16 @@ typedef struct {
 	"Part data\r\n" \
 	"-----------------------------7d41b838504d8--\r\n" \
 	"ep"
+
+/* charset provided. */
+#define http13_data "HTTP/1.1 200 OK\r\n" \
+	"Date: Mon, 7 May 2018 01:02:03 GMT\r\n" \
+	"Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content\r\n" \
+	"Content-Length: 44\r\n" \
+	"Connection: close\r\n"\
+	"Content-Type: text/html; charset=ISO-8859-1\r\n" \
+	"\r\n"  \
+	"<html><body><h1>It works!</h1></body></html>"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -988,6 +998,65 @@ START_TEST(check_httpr12)
 }
 END_TEST
 
+START_TEST(check_httpr13)
+{
+	M_http_reader_t *hr;
+	httpr_test_t    *ht;
+	M_http_error_t   res;
+	size_t           len_read;
+	const char      *key;
+	const char      *gval;
+	const char      *eval;
+	const char      *body = "<html><body><h1>It works!</h1></body></html>";
+
+	ht  = httpr_test_create();
+	hr  = gen_reader(ht);
+	res = M_http_reader_read(hr, (const unsigned char *)http13_data, M_str_len(http13_data), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
+	ck_assert_msg(len_read == M_str_len(http13_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http13_data));
+
+	/* Start. */
+	ck_assert_msg(ht->type == M_HTTP_MESSAGE_TYPE_RESPONSE, "Wrong type: got '%d', expected '%d'", ht->type, M_HTTP_MESSAGE_TYPE_RESPONSE);
+	ck_assert_msg(ht->version == M_HTTP_VERSION_1_1, "Wrong version: got '%d', expected '%d'", ht->version, M_HTTP_VERSION_1_1);
+	ck_assert_msg(ht->code == 200, "Wrong code: got '%u', expected '%u'", ht->code, 200);
+	ck_assert_msg(M_str_eq(ht->reason, "OK"), "Wrong reason: got '%s', expected '%s'", ht->reason, "OK");
+
+	/* Headers. */
+	key  = "Date";
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "Mon, 7 May 2018 01:02:03 GMT";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* Data is a special case and should not split on ',' since it's part of the value and not a list. */
+	key  = "Date";
+	gval = M_hash_dict_get_direct(ht->headers, key);
+	eval = "Mon, 7 May 2018 01:02:03 GMT";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed (did split): got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Content-Length";
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "44";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Connection";
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "close";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	key  = "Content-Type";
+	gval = M_hash_dict_get_direct(ht->headers_full, key);
+	eval = "text/html; charset=ISO-8859-1";
+	ck_assert_msg(M_str_eq(gval, eval), "%s failed: got '%s', expected '%s'", key, gval, eval);
+
+	/* Body. */
+	ck_assert_msg(M_str_eq(M_buf_peek(ht->body), body), "Body failed: got '%s', expected '%s'", M_buf_peek(ht->body), body);
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
+}
+END_TEST
+
 START_TEST(check_header_format)
 {
 	M_http_reader_t *hr;
@@ -1111,6 +1180,7 @@ int main(void)
 	add_test(suite, check_httpr10);
 	add_test(suite, check_httpr11);
 	add_test(suite, check_httpr12);
+	add_test(suite, check_httpr13);
 	add_test(suite, check_header_format);
 	add_test(suite, check_query_string);
 

@@ -195,6 +195,7 @@ static void M_http_update_ctype(M_http_t *http)
 
 	for (i=0; i<num_parts; i++) {
 		char **bparts;
+		char  *trim;
 		size_t num_bparts = 0;
 
 		bparts = M_str_explode_str('=', parts[i], &num_bparts);
@@ -203,10 +204,13 @@ static void M_http_update_ctype(M_http_t *http)
 			continue;
 		}
 
-		if (!M_str_caseeq(bparts[0], "charset")) {
+		trim = M_strdup_trim(bparts[0]);
+		if (!M_str_caseeq(trim, "charset")) {
+			M_free(trim);
 			M_str_explode_free(bparts, num_bparts);
 			continue;
 		}
+		M_free(trim);
 
 		http->charset = M_strdup_trim(bparts[1]);
 		http->codec   = M_textcodec_codec_from_str(http->charset);

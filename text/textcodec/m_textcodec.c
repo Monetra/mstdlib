@@ -664,7 +664,7 @@ const char *M_textcodec_codec_to_str(M_textcodec_codec_t codec)
 		case M_TEXTCODEC_UNKNOWN:
 			break;
 		case M_TEXTCODEC_UTF8:
-			return "utf8";
+			return "utf-8";
 		case M_TEXTCODEC_ASCII:
 			return "ascii";
 		case M_TEXTCODEC_CP037:

@@ -22,7 +22,7 @@ do {\
 	"Content-Length: 44\r\n" \
 	"Connection: close\r\n"\
 	"Content-Type: text/html\r\n" \
- 	"\r\n"  \
+	"\r\n"  \
 	"<html><body><h1>It works!</h1></body></html>"
 #define ok_data_result M_HTTP_ERROR_SUCCESS
 
@@ -52,9 +52,18 @@ do {\
 	"Content-Length: 44\r\n" \
 	"Connection: close\r\n"\
 	"Content-Type: text/html\r\n" \
- 	"\r\n"  \
+	"\r\n"  \
 	"<html><b"
 #define ok_more_data_result M_HTTP_ERROR_MOREDATA
+
+#define charset_data "HTTP/1.1 200 OK\r\n" \
+	"Date: Mon, 7 May 2018 01:02:03 GMT\r\n" \
+	"Content-Length: 44\r\n" \
+	"Connection: close\r\n"\
+	"Content-Type: text/html; charset=ISO-8859-1\r\n" \
+	"\r\n"  \
+	"<html><body><h1>It\xA0works!</h1></body></html>"
+#define charset_data_result M_HTTP_ERROR_SUCCESS
 
 START_TEST(check_read)
 {
@@ -70,6 +79,7 @@ START_TEST(check_read)
 		{ ok_no_data_no_reason,  ok_no_data_no_reason_result  },
 		{ ok_no_data_bad_reason, ok_no_data_bad_reason_result },
 		{ ok_more_data,          ok_more_data_result          },
+		{ charset_data,          charset_data_result          },
 		{ NULL, 0 }
 	};
 
@@ -80,6 +90,27 @@ START_TEST(check_read)
 
 		M_http_simple_read_destroy(http);
 	}
+}
+END_TEST
+
+START_TEST(check_body_decode)
+{
+	M_http_simple_read_t *http;
+	size_t                len;
+
+	M_http_simple_read(&http, (const unsigned char *)charset_data, M_str_len(charset_data), M_HTTP_SIMPLE_READ_NONE, NULL);
+	ck_assert_msg(M_http_simple_read_codec(http) == M_TEXTCODEC_UTF8, "Body codec is not utf-8 encoded, found (%d) '%s'", M_http_simple_read_codec(http), M_textcodec_codec_to_str(M_http_simple_read_codec(http)));
+	ck_assert_msg(M_str_caseeq(M_http_simple_read_charset(http), "utf-8"), "Body char set is not to utf-8, found '%s'", M_http_simple_read_charset(http));
+	ck_assert_msg(M_str_caseeq((const char *)M_http_simple_read_body(http, &len), "<html><body><h1>It\xC2\xA0works!</h1></body></html>"), "Body does match body");
+	ck_assert_msg(len == 45, "len is '45' but should be '%zu'", len);
+	M_http_simple_read_destroy(http);
+
+	M_http_simple_read(&http, (const unsigned char *)charset_data, M_str_len(charset_data), M_HTTP_SIMPLE_READ_NODECODE_BODY, NULL);
+	ck_assert_msg(M_http_simple_read_codec(http) == M_TEXTCODEC_ISO8859_1, "No decode body codec is not utf-8 encoded, found (%d) '%s'", M_http_simple_read_codec(http), M_textcodec_codec_to_str(M_http_simple_read_codec(http)));
+	ck_assert_msg(M_str_caseeq(M_http_simple_read_charset(http), "ISO-8859-1"), "No decode body char set is not set to ISO-8859-1, found '%s'", M_http_simple_read_charset(http));
+	ck_assert_msg(M_str_caseeq((const char *)M_http_simple_read_body(http, &len), "<html><body><h1>It\xA0works!</h1></body></html>"), "no decode body does match body");
+	ck_assert_msg(len == 44, "len is '44' but should be '%zu'", len);
+	M_http_simple_read_destroy(http);
 }
 END_TEST
 
@@ -94,6 +125,7 @@ int main(void)
 	suite = suite_create("http_simple_reader");
 
 	add_test(suite, check_read);
+	add_test(suite, check_body_decode);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_http_simple_reader.log");
