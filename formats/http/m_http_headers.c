@@ -180,6 +180,8 @@ static void M_http_update_ctype(M_http_t *http)
 
 	M_free(http->content_type);
 	http->content_type = M_strdup_trim(value);
+	if (M_str_caseeq(http->content_type, "application/x-www-form-urlencoded"))
+		http->body_is_form_data = M_TRUE;
 
 	M_free(http->charset);
 	http->charset = NULL;

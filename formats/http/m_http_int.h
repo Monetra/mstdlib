@@ -69,6 +69,7 @@ struct M_http {
 	char                  *content_type;
 	char                  *charset;
 	M_textcodec_codec_t    codec;
+	M_bool                 body_is_form_data;
 	M_list_str_t          *set_cookies;
 	M_hash_strvp_t        *trailers;
 

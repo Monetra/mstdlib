@@ -214,8 +214,6 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	 *       We're ignoring this and assuming anything without a charset set
 	 *       is binary data. Otherwise, we'd have to detect binary vs text data. */
 	M_textcodec_error_t  terr;
-	M_bool               update_clen  = M_FALSE;
-	M_bool               is_form_data = M_FALSE;
 
 	if (simple == NULL)
 		return M_HTTP_ERROR_INVALIDUSE;
@@ -227,34 +225,32 @@ static M_http_error_t M_http_simple_read_decode_body(M_http_simple_read_t *simpl
 	if (M_str_isempty(simple->http->content_type) && simple->http->codec == M_TEXTCODEC_UNKNOWN)
 		return M_HTTP_ERROR_SUCCESS;
 
-	if (M_str_caseeq(simple->http->content_type, "application/x-www-form-urlencoded"))
-		is_form_data = M_TRUE;
-
 	/* Decode form data if we have it. */
-	if (is_form_data)
+	if (simple->http->body_is_form_data) {
 		simple->body_form_data = M_http_parse_form_data_string(M_buf_peek(simple->http->body), simple->http->codec);
+		return M_HTTP_ERROR_SUCCESS;
+	}
 
 	/* Decode the data to utf-8 if we can. */
-	if (!is_form_data && simple->http->codec != M_TEXTCODEC_UNKNOWN && simple->http->codec != M_TEXTCODEC_UTF8) {
-		dec  = NULL;
-		terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, simple->http->codec);
-		M_buf_truncate(simple->http->body, 0);
-		M_buf_add_str(simple->http->body, dec);
+	if (simple->http->codec == M_TEXTCODEC_UNKNOWN || simple->http->codec == M_TEXTCODEC_UTF8)
+		return M_HTTP_ERROR_SUCCESS;
+
+	dec  = NULL;
+	terr = M_textcodec_decode(&dec, M_buf_peek(simple->http->body), M_TEXTCODEC_EHANDLER_REPLACE, simple->http->codec);
+	if (terr != M_TEXTCODEC_ERROR_SUCCESS && terr != M_TEXTCODEC_ERROR_SUCCESS_EHANDLER) {
 		M_free(dec);
-
-		if (terr != M_TEXTCODEC_ERROR_SUCCESS && terr != M_TEXTCODEC_ERROR_SUCCESS_EHANDLER) {
-			return M_HTTP_ERROR_TEXTCODEC_FAILURE;
-		}
-
-		M_http_update_charset(simple->http, M_TEXTCODEC_UTF8);
-		update_clen = M_TRUE;
+		return M_HTTP_ERROR_TEXTCODEC_FAILURE;
 	}
+
+	M_buf_truncate(simple->http->body, 0);
+	M_buf_add_str(simple->http->body, dec);
+	M_free(dec);
+
+	M_http_update_charset(simple->http, M_TEXTCODEC_UTF8);
 
 	/* We've decoded the data so we need to update the content length. */
-	if (update_clen) {
-		M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
-		M_http_set_header(simple->http, "content-length", tempa);
-	}
+	M_snprintf(tempa, sizeof(tempa), "%zu", M_buf_len(simple->http->body));
+	M_http_set_header(simple->http, "content-length", tempa);
 
 	return M_HTTP_ERROR_SUCCESS;
 }
@@ -395,6 +391,13 @@ const M_list_str_t *M_http_simple_read_get_set_cookie(const M_http_simple_read_t
 	if (simple == NULL)
 		return NULL;
 	return M_http_get_set_cookie(simple->http);
+}
+
+M_bool M_http_simple_read_is_body_form_data(const M_http_simple_read_t *simple)
+{
+	if (simple == NULL)
+		return M_FALSE;
+	return simple->http->body_is_form_data;
 }
 
 const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple, size_t *len)

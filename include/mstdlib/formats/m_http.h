@@ -744,7 +744,7 @@ M_API M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned c
 /*! \addtogroup m_http_simple HTTP Simple
  *  \ingroup m_http
  *
- * Buffered reader and writer.
+ * Simple parsing and structuring of http data.
  *
  * @{
  */
@@ -753,8 +753,30 @@ M_API M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned c
  *  \ingroup m_http_simple
  *
  * Reads a full HTTP message. Useful for small messages.
- * Alls all data is contained within on object for
+ * All data is contained within on object for
  * easy processing.
+ *
+ * Will attempt to decode body data based on the detected charset
+ * unless M_HTTP_SIMPLE_READ_NODECODE_BODY is set.
+ * 
+ * Use M_http_simple_read_is_body_form_data() to determine
+ * which accessors to use. M_http_simple_read_codec will
+ * dictated the current encoding of the body data. If
+ * form encoded this is the encoding of the key value pairs
+ * not the raw body data. If not form data this is the encoding
+ * of the body data. M_http_simple_read_is_body will always return
+ * body data. If from encoded the data will still be form encoded.
+ *
+ * Codec will be set to the codec of the body data. Unless form
+ * encoded, in which case it is the codec for the key value pairs
+ * from M_http_simple_read_is_body_form_data().
+ *
+ * If the encoding could not be detected or is not supported the codec will be
+ * unknown. Use M_http_simple_read_charset() to determine the charset of the
+ * data.
+ *
+ * Charset and codec will only be read from the Content-Type header. Content
+ * type and encoding set in an HTML tag is not supported.
  *
  * @{
  */
@@ -765,7 +787,7 @@ typedef struct M_http_simple_read M_http_simple_read_t;
 
 typedef enum {
 	M_HTTP_SIMPLE_READ_NONE = 0,
-	M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (form detected charset). */
+	M_HTTP_SIMPLE_READ_NODECODE_BODY,  /*!< Do not attempt to decode the body data (from detected charset). */
 	M_HTTP_SIMPLE_READ_LEN_REQUIRED,   /*!< Require content-length, cannot be chunked data. */
 	M_HTTP_SIMPLE_READ_FAIL_EXTENSION, /*!< Fail if chunked extensions are specified. Otherwise, Ignore. */
 	M_HTTP_SIMPLE_READ_FAIL_TRAILERS   /*!< Fail if trailers sent. Otherwise, they are ignored. */
@@ -1090,12 +1112,26 @@ M_API char *M_http_simple_read_header(const M_http_simple_read_t *simple, const 
 M_API const M_list_str_t *M_http_simple_read_get_set_cookie(const M_http_simple_read_t *simple);
 
 
+/*! Whether the decoded body data is form encoded and can be accessed using
+ * M_http_simple_read_body_form_data(). If the text codec is set, the codec
+ * represents the codec of the form data key value pairs. While M_http_simple_read_body()
+ * will still be encoded as form data.
+ *
+ * \param[in]  simple Parsed HTTP message.
+ *
+ * \return Bytes from body of message.
+ */
+M_API M_bool M_http_simple_read_is_body_form_data(const M_http_simple_read_t *simple);
+
+
 /*! Return the body of the parsed message (if any).
  *
  * If the body is application/x-www-form-urlencoded this will return
- * the raw body and it will not be decoded. Even if decoding the
- * body content is enabled. The decoded data can be accessed as a
- * dict of key value pairs.
+ * the raw form data encoded body. Form data decodes to key value pairs
+ * so accessing the data will need to be used through M_http_simple_read_body_form_data().
+ *
+ * When not form encoded.  The body data will be in be represented by the codec
+ * from M_http_simple_read_codec().
  *
  * \see M_http_simple_read_body_form_data()
  *
@@ -1107,10 +1143,11 @@ M_API const M_list_str_t *M_http_simple_read_get_set_cookie(const M_http_simple_
 M_API const unsigned char *M_http_simple_read_body(const M_http_simple_read_t *simple, size_t *len);
 
 
-/*! Return the body of the parsed message (if any).
+/*! Return the body of the parsed message (if any) if it was form data encoded.
  *
  * This will only be filled when the content-type is application/x-www-form-urlencoded 
- * and there is key value pair body data.
+ * and there is key value pair body data. The data within the key value pairs will have
+ * be represented by the codec from M_http_simple_read_codec().
  *
  * \param[in]  simple Parsed HTTP message.
  *
@@ -1123,7 +1160,10 @@ M_API const M_hash_dict_t *M_http_simple_read_body_form_data(const M_http_simple
  *
  * May be empty if the content type was not set. Or if it was
  * application/x-www-form-urlencoded and the body was auto decoded.
- * It's not known what the content type when this encoding is used.
+ *
+ * application/x-www-form-urlencoded does not allows allow the encoding
+ * to be known. Preventing auto deciding from taking place. Leaving this
+ * as application/x-www-form-urlencoded and the codec as unknown.
  *
  * \param[in] simple Parsed HTTP message.
  *
@@ -1134,9 +1174,12 @@ M_API const char *M_http_simple_read_content_type(const M_http_simple_read_t *si
 
 /*! Get the codec of the data.
  *
- * Codec is detected by charset. May be unkown if charset was not present
+ * Codec is detected by charset from the Content-Type header. May be unknown if charset was not present
  * or if the charset is not supported by mstdlib's text encoding functionality.
- * If body decoding takes place and the data can be decoded this will be utf-8.
+ *
+ * If body decoding takes place and the data will have been be decoded to utf-8.
+ * The codec will have been updated to utf-8 and the content length will have been
+ * updated to match the new body length.
  *
  * \param[in] simple Parsed HTTP message.
  *
@@ -1149,11 +1192,11 @@ M_API M_textcodec_codec_t M_http_simple_read_codec(const M_http_simple_read_t *s
 
 /*! Get the text charset of the data.
  *
- * May be empty if charset was not present.
- * If the data encoded codec is unknown this can be used to determine if
- * it was not present or if the encoding is a type not supported by
- * mstdlib's text codec. If not suppored it is up to the caller to
- * handle decoding.
+ * The charater set as defined in the Content-Type header. This should correspond to
+ * codec returned by M_http_simple_read_codec. However, if codec is unknown due to not
+ * being supported by mstdlib's text codec, this is the charset used by the data.
+ * Body decoding will not take place if codec is unknown. It is up to the application
+ * to determine how to decoded the body data in this situation.
  *
  * \param[in] simple Parsed HTTP message.
  *
