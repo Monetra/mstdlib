@@ -11,6 +11,7 @@ include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 set(sources
 	m_net.c
 	m_net_http_simple.c
+	m_net_smtp.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")
