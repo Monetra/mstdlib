@@ -89,7 +89,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example.com\r\n" \
 	"User-Agent: simple-writer\r\n" \
 	"Content-Length: 0\r\n" \
-	"Content-Type: text/plain; charset=utf8\r\n" \
+	"Content-Type: text/plain; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -106,7 +106,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example2.com:443\r\n" \
 	"User-Agent: swriter\r\n" \
 	"Content-Length: 49\r\n" \
-	"Content-Type: application/json; charset=utf8\r\n" \
+	"Content-Type: application/json; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"[ 4, 'float', { key: 'v1', key2: 1, key3: inf } ]"
@@ -248,11 +248,11 @@ START_TEST(check_request)
 	} params[] = {
 		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        req_data_req1,  NULL,                                                 req_data_rsp1  },
 		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        NULL,           "",                                                   req_data_rsp2  },
-		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        NULL,           "utf8",                                               req_data_rsp3  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "text/plain",                        NULL,           "utf-8",                                              req_data_rsp3  },
 		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", NULL,                                "",             NULL,                                                 req_data_rsp4  },
 		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", "",                                  "",             M_textcodec_codec_to_str(M_TEXTCODEC_UTF8),           req_data_rsp3  },
-		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", NULL,                                "",             "utf8",                                               req_data_rsp3  },
-		{ M_HTTP_METHOD_POST,    "example2.com",               443,  "/",                        "swriter",       "application/json",                  req_data_req5,  "utf8",                                               req_data_rsp5  },
+		{ M_HTTP_METHOD_GET,     "example.com",                0,    "/cgi/bin/blah",            "simple-writer", NULL,                                "",             "utf-8",                                              req_data_rsp3  },
+		{ M_HTTP_METHOD_POST,    "example2.com",               443,  "/",                        "swriter",       "application/json",                  req_data_req5,  "utf-8",                                              req_data_rsp5  },
 		{ M_HTTP_METHOD_PUT,     "example.com",                443,  "/",                        "swriter",       "",                                  NULL,           "",                                                   req_data_rsp6  },
 		{ M_HTTP_METHOD_DELETE,  "e.com",                      7000, NULL,                       NULL,            "application/x-www-form-urlencoded", req_data_req7,  M_textcodec_codec_to_str(M_TEXTCODEC_PERCENT_FORM),   req_data_rsp7  },
 		{ M_HTTP_METHOD_DELETE,  "e.com",                      7000, "",                         NULL,            "application/xml",                   req_data_req8,  M_textcodec_codec_to_str(M_TEXTCODEC_PERCENT_URL),    req_data_rsp8  },
@@ -475,13 +475,13 @@ END_TEST
 
 #define rsp_data_rsp3 "HTTP/1.1 400 Bad Request\r\n" \
 	"Content-Length: 0\r\n" \
-	"Content-Type: text/plain; charset=utf8\r\n" \
+	"Content-Type: text/plain; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define rsp_data_rsp4 "HTTP/1.1 600 Generic\r\n" \
 	"Content-Length: 49\r\n" \
-	"Content-Type: text/plain; charset=utf8\r\n" \
+	"Content-Type: text/plain; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n" \
 	"[ 4, 'float', { key: 'v1', key2: 1, key3: inf } ]"
@@ -499,10 +499,10 @@ START_TEST(check_response)
 		const char *charset;
 		const char *out;
 	} params[] = {
-		{ 200, NULL,  "application/json", req_data_req1, NULL,   rsp_data_rsp1 },
-		{ 201, "OMG", NULL,               NULL,          "",     rsp_data_rsp2 },
-		{ 400, NULL,  "text/plain",       NULL,          "utf8", rsp_data_rsp3 },
-		{ 600, NULL,  NULL,               req_data_req5, "utf8", rsp_data_rsp4 },
+		{ 200, NULL,  "application/json", req_data_req1, NULL,    rsp_data_rsp1 },
+		{ 201, "OMG", NULL,               NULL,          "",      rsp_data_rsp2 },
+		{ 400, NULL,  "text/plain",       NULL,          "utf-8", rsp_data_rsp3 },
+		{ 600, NULL,  NULL,               req_data_req5, "utf-8", rsp_data_rsp4 },
 		{  0, NULL, NULL, NULL, NULL, NULL }
 	};
 
