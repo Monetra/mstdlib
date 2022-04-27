@@ -22,7 +22,6 @@
  */
 
 #include "m_net_int.h"
-#include <mstdlib/net/m_net_smtp.h> /* For M_net_smtp_callbacks */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -33,6 +32,7 @@ struct M_net_smtp {
 	M_list_t                          *proc_endpoints;
 	M_list_t                          *tcp_endpoints;
 	size_t                             number_of_endpoints;
+	M_list_t                          *endpoint_threadpools;
 	M_net_smtp_status_t                status;
 	M_dns_t                           *tcp_dns;
 	M_tls_clientctx_t                 *tcp_tls_ctx;
@@ -40,30 +40,40 @@ struct M_net_smtp {
 	M_uint64                           tcp_stall_ms;
 	M_uint64                           tcp_idle_ms;
 	M_net_smtp_load_balance_t          load_balance_mode;
+	size_t                             round_robin_idx;
 	size_t                             number_of_attempts;
 	M_list_str_t                      *internal_queue;
 	M_bool                             is_external_queue_enabled;
+	M_bool                             is_external_queue_pending;
 	char *                           (*external_queue_get_cb)(void);
 };
 
+
 typedef struct {
-	size_t         idx;
-	char          *command;
-	M_list_str_t  *args;
-	M_hash_dict_t *env;
-	M_uint64       timeout_ms;
-	size_t         max_processes;
+	size_t                 idx;
+	char                  *command;
+	M_list_str_t          *args;
+	M_hash_dict_t         *env;
+	M_uint64               timeout_ms;
+	size_t                 max_processes;
 } proc_endpoint_t;
 
 typedef struct {
-	size_t      idx;
-	char       *address;
-	M_uint16    port;
-	M_bool      connect_tls;
-	char       *username;
-	char       *password;
-	size_t      max_conns;
+	size_t                 idx;
+	char                  *address;
+	M_uint16               port;
+	M_bool                 connect_tls;
+	char                  *username;
+	char                  *password;
+	size_t                 max_conns;
 } tcp_endpoint_t;
+
+typedef struct {
+	const proc_endpoint_t *proc_endpoint;
+	const tcp_endpoint_t  *tcp_endpoint;
+	M_threadpool_t        *threadpool;
+	M_threadpool_parent_t *threadpool_parent;
+} endpoint_threadpool_t;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -142,11 +152,149 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 	sp->status = M_NET_SMTP_STATUS_STOPPED;
 }
 
+static M_bool is_pending(M_net_smtp_t *sp)
+{
+	if (sp->is_external_queue_enabled) {
+		return sp->is_external_queue_pending;
+	}
+	return (M_list_str_len(sp->internal_queue) > 0);
+}
+
+typedef struct {
+	char                  *msg;
+	const proc_endpoint_t *proc_endpoint;
+	const tcp_endpoint_t  *tcp_endpoint;
+} task_arg_t;
+
+static void task_finished(void * arg)
+{
+	M_free(arg);
+}
+
+static task_arg_t * task_arg_alloc(char *msg, const proc_endpoint_t *proc_ep, const tcp_endpoint_t *tcp_ep)
+{
+	task_arg_t *arg = M_malloc_zero(sizeof(*arg));
+	arg->msg = msg;
+	arg->proc_endpoint = proc_ep;
+	arg->tcp_endpoint = tcp_ep;
+	return arg;
+}
+
+static void task(void *thunk)
+{
+	task_arg_t *arg = thunk;
+	M_printf("task(%s)\n", arg->msg);
+}
+
+static M_bool dispatch_queue_task_failover(M_net_smtp_t *sp, char *msg)
+{
+	const endpoint_threadpool_t *eptp = NULL;
+	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+		eptp = M_list_at(sp->endpoint_threadpools, i);
+		size_t available = M_threadpool_available_slots(eptp->threadpool);
+		if (available > 0) {
+			task_arg_t *arg = task_arg_alloc(msg, eptp->proc_endpoint, eptp->tcp_endpoint);
+			M_threadpool_dispatch_notify(eptp->threadpool_parent, task, (void**)&arg, 1, &task_finished);
+			return M_TRUE;
+		}
+	}
+	return M_FALSE;
+}
+
+static M_bool dispatch_queue_task_roundrobin(M_net_smtp_t *sp, char *msg)
+{
+	size_t                       idx       = sp->round_robin_idx;
+	const endpoint_threadpool_t *eptp      = NULL;
+	size_t                       available = 0;
+
+	eptp = M_list_at(sp->endpoint_threadpools, idx);
+	available = M_threadpool_available_slots(eptp->threadpool);
+	if (available > 0) {
+		task_arg_t *arg = task_arg_alloc(msg, eptp->proc_endpoint, eptp->tcp_endpoint);
+		M_threadpool_dispatch_notify(eptp->threadpool_parent, task, (void**)&arg, 1, &task_finished);
+		sp->round_robin_idx = (idx + 1) % sp->number_of_endpoints;
+		return M_TRUE;
+	}
+	return M_FALSE;
+}
+
+static M_bool dispatch_queue_task(M_net_smtp_t *sp, char *msg)
+{
+	switch (sp->load_balance_mode) {
+		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
+			return dispatch_queue_task_failover(sp, msg);
+			break;
+		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
+			return dispatch_queue_task_roundrobin(sp, msg);
+			break;
+	}
+	return M_FALSE;
+}
+
+static void dispatch_queue(M_net_smtp_t *sp)
+{
+	char* msg;
+	if (sp->is_external_queue_enabled) {
+		do {
+			msg = sp->external_queue_get_cb();
+			if (msg == NULL) {
+				sp->is_external_queue_pending = M_FALSE;
+				break;
+			}
+		} while(dispatch_queue_task(sp, msg));
+		return;
+	}
+	do {
+		msg = M_list_str_take_first(sp->internal_queue);
+		if (msg == NULL) {
+			break;
+		}
+	} while(dispatch_queue_task(sp, msg));
+}
+
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 {
+	size_t                 proc_i   = 0;
+	size_t                 tcp_i    = 0;
+	const proc_endpoint_t *proc_ep  = NULL;
+	const tcp_endpoint_t  *tcp_ep   = NULL;
+	endpoint_threadpool_t *eptp     = NULL;
+
 	if (sp == NULL || sp->status != M_NET_SMTP_STATUS_STOPPED)
 		return M_FALSE;
-	sp->status = M_NET_SMTP_STATUS_IDLE;
+
+	proc_ep = M_list_at(sp->proc_endpoints, proc_i);
+	tcp_ep = M_list_at(sp->tcp_endpoints, tcp_i);
+	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+		if (proc_ep != NULL && proc_ep->idx == i) {
+			M_uint64 idle_time_ms = proc_ep->timeout_ms == 0 ? 1000 : 3 * proc_ep->timeout_ms;
+			eptp = M_malloc_zero(sizeof(*eptp));
+			eptp->proc_endpoint = proc_ep;
+			eptp->threadpool = M_threadpool_create(0, proc_ep->max_processes, idle_time_ms, proc_ep->max_processes + 1);
+			eptp->threadpool_parent = M_threadpool_parent_create(eptp->threadpool);
+			M_list_insert(sp->endpoint_threadpools, eptp);
+			proc_i++;
+			proc_ep = M_list_at(sp->proc_endpoints, proc_i);
+			continue;
+		}
+		if (tcp_ep != NULL && tcp_ep->idx == i) {
+			M_uint64 idle_time_ms = 1000;
+			eptp = M_malloc_zero(sizeof(*eptp));
+			eptp->tcp_endpoint = tcp_ep;
+			eptp->threadpool = M_threadpool_create(0, tcp_ep->max_conns, idle_time_ms, tcp_ep->max_conns + 1);
+			eptp->threadpool_parent = M_threadpool_parent_create(eptp->threadpool);
+			M_list_insert(sp->endpoint_threadpools, eptp);
+			tcp_i++;
+			tcp_ep = M_list_at(sp->tcp_endpoints, tcp_i);
+		}
+	}
+
+	if (is_pending(sp)) {
+		sp->status = M_NET_SMTP_STATUS_PROCESSING;
+		dispatch_queue(sp);
+	} else {
+		sp->status = M_NET_SMTP_STATUS_IDLE;
+	}
 	return M_TRUE;
 }
 
@@ -319,5 +467,6 @@ M_bool M_net_smtp_use_external_queue(M_net_smtp_t *sp, char *(*get_cb)(void))
 
 void M_net_smtp_external_queue_have_messages(M_net_smtp_t *sp)
 {
+	sp->is_external_queue_pending = M_TRUE;
 	sp->status = M_NET_SMTP_STATUS_PROCESSING;
 }

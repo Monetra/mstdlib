@@ -4,12 +4,38 @@
 #include <mstdlib/net/m_net_smtp.h>
 
 typedef struct {
-	M_bool    is_bailout;
-	M_bool    is_debug;
-	char      errmsg[256];
-	M_list_t *endpoints;
-	M_event_t*el;
+	M_bool      is_bailout;
+	M_bool      is_debug;
+	char        errmsg[256];
+	M_list_t   *endpoints;
+	M_event_t  *el;
+	M_int64     num_to_generate;
+	char       *to_address;
 } prag_t;
+
+static M_email_t * generate_email(size_t idx, const char *to_address)
+{
+	M_email_t *e;
+	char msg[256];
+	M_time_tzs_t      *tzs;
+	const M_time_tz_t *tz;
+	M_time_t           ts;
+	M_time_localtm_t   ltime;
+
+	M_mem_set(&ltime, 0, sizeof(ltime));
+	ts = M_time();
+	tzs = M_time_tzs_load_zoneinfo(NULL, M_TIME_TZ_ZONE_AMERICA, M_TIME_TZ_ALIAS_OLSON_MAIN, M_TIME_TZ_LOAD_LAZY);
+	tz  = M_time_tzs_get_tz(tzs, "America/New_York");
+	M_time_tolocal(ts, &ltime, tz);
+
+	e = M_email_create();
+	M_email_set_from(e, "Monetra Testing", "smtp_cli", "no-reply+smtp-test@monetra.com");
+	M_email_to_append(e, NULL, NULL, to_address);
+	M_email_set_subject(e, "smtp_cli testing");
+	M_snprintf(msg, sizeof(msg), "%04lld%02lld%02lld:%02lld%02lld%02lld, %zu\n", ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec, idx);
+	M_email_part_append(e, msg, M_str_len(msg), NULL, NULL);
+	return e;
+}
 
 static void connect_cb(const char *address, M_uint16 port, void *thunk)
 {
@@ -147,6 +173,15 @@ int run(prag_t *prag)
 		}
 	}
 
+	for (size_t i = 0; i < prag->num_to_generate; i++) {
+		M_email_t *e   = generate_email(i, prag->to_address);
+		M_net_smtp_queue_smtp(sp, e);
+		M_email_destroy(e);
+	}
+
+	M_net_smtp_resume(sp);
+
+	M_event_loop(args->el, M_TIMEOUT_INF);
 
 done:
 	M_net_smtp_destroy(sp);
@@ -205,6 +240,7 @@ M_bool getopt_nonopt_cb(size_t idx, const char *option, void *thunk)
 	prag_t         *prag          = thunk;
 
 	option_len = M_str_len(option);
+	M_printf("json: %s\n", option);
 	json = M_json_read(option, option_len, M_JSON_READER_NONE, &processed_len, &error, &error_line, &error_pos);
 	if (json == NULL) {
 		M_snprintf(prag->errmsg, sizeof(prag->errmsg), "%s:%d: M_json_read(%s): %s @(%zu,%zu)", __FILE__, __LINE__, option, M_json_errcode_to_str(error), error_line, error_pos);
@@ -224,7 +260,20 @@ M_bool getopt_nonopt_cb(size_t idx, const char *option, void *thunk)
 }
 
 /* Also: getopt_{integer,decimal,string}_cb(,,{M_int64*,M_decimal_t*,const char*},) */
-M_bool getopt_boolean_cb(char short_opt, const char *long_opt, M_bool boolean, void *thunk) {
+M_bool getopt_integer_cb(char short_opt, const char *long_opt, M_int64 *num, void *thunk)
+{
+	prag_t *prag = thunk;
+	switch (short_opt) {
+		case 'g':
+			prag->num_to_generate = *num;
+			return M_TRUE;
+			break;
+	}
+	return M_FALSE;
+}
+
+M_bool getopt_boolean_cb(char short_opt, const char *long_opt, M_bool boolean, void *thunk)
+{
 	prag_t *prag = thunk;
 	switch (short_opt) {
 		case 'h':
@@ -258,11 +307,14 @@ int main(int argc, const char * const *argv)
 	int              rc           = 0;
 	M_getopt_error_t getopt_error = M_GETOPT_ERROR_SUCCESS;
 
+	prag.to_address = M_malloc_zero(128);
+	M_snprintf(prag.to_address, 128, "%s@localhost", getenv("USER"));
 	prag.endpoints = M_list_create(NULL, M_LIST_NONE);
 	getopt = M_getopt_create(getopt_nonopt_cb);
 
 	M_getopt_addboolean(getopt, 'h', "help", M_FALSE, "Print help", getopt_boolean_cb);
 	M_getopt_addboolean(getopt, 'd', "debug", M_FALSE, "Debug printing", getopt_boolean_cb);
+	M_getopt_addinteger(getopt, 'g', "generate", M_TRUE, "Number of messages to generate", getopt_integer_cb);
 	/* Also: M_getopt_add{integer,decimal,string}() */
 	getopt_error = M_getopt_parse(getopt, argv, argc, &fail, &prag);
 	if (getopt_error != M_GETOPT_ERROR_SUCCESS || M_list_len(prag.endpoints) == 0) {
@@ -273,7 +325,7 @@ int main(int argc, const char * const *argv)
 		}
 		help = M_getopt_help(getopt);
 		M_printf("usage: %s [OPTION]...ENDPOINT(s)\n", argv[0]);
-		M_printf("Endpoint:\n\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [], \\\"env\\\": {}, \\\"timeout_ms\\\": 0, \\\"max_processes\\\": 1 }\"\n");
+		M_printf("Endpoint:\n\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 0, \\\"max_processes\\\": 1 }\"\n");
 		M_printf("Options:\n%s\n", help);
 		destroy_prag(&prag);
 		M_getopt_destroy(getopt);
