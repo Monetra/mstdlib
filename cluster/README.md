@@ -10,7 +10,7 @@ Though this implementation doesn't strictly conform to the above, it attempts
 to in spirit along with some real world modifications to better handle
 potentially hostile environments.
 
-## Overview
+# Overview
 
 The cluster system relies on a single elected Leader in order to make
 modifications.  Each client modification request sends the log entry to the
@@ -20,7 +20,9 @@ of nodes have acknowledged the entry), the response is sent to the client.
 
 Every member of the cluster is always attached to every other member of the
 cluster (star topology) and each node will be required to handle heartbeat
-messages.
+messages.  TCP/IP (with TLS) will be used as transport, this transport ensures
+that messages are always delivered in order without gaps which reduces some
+complexity as opposed to RAFT.
 
 All clients of the system must be cluster members in either the Leader or
 Follower state as the peer connections are used for all messaging.
@@ -36,7 +38,7 @@ authenticated servers is reached.  A new node can join the cluster and sync
 all data from the cluster as long as it can reach the Leader.
 
 
-## Plug-in Callback System
+# Plug-in Callback System
 
 The plugin system is best described using an example.
 
@@ -79,37 +81,37 @@ about, otherwise the node will be forced to zero out its data set and redownload
 it in its entirety from the new leader.
 
 
-## System Configuration
+# System Configuration
 
-- [R] Cluster Name     - Name of the cluster to use when joining other nodes
+- [R] ClusterName      - Name of the cluster to use when joining other nodes
                          (failure if mismatch)
 - [R] SharedSecret     - Shared Secret for cluster authentication.  Will be
                          authenticated using HMAC using a peer-provided nonce to
                          prevent replay attacks
-- [R] Server List      - List of servers (with port) to attempt to connect to as
+- [R] ServerList       - List of servers (with port) to attempt to connect to as
                          part of the cluster (does not have to be complete, but
                          should be).  Must all be from the same address class
                          (ipv4 vs ipv6)
 - [R] Flags            - VOTE_ONLY (can only vote, does not actually receive
                          logs, essentially arbitrator mode), TLS_NOVERIFY_PEER
                          (don't verify the peer certificate)
-- [R] Maximum RTT      - Maximum RTT response time in ms from any node before
+- [R] MaximumRTT       - Maximum RTT response time in ms from any node before
                          evicting the node in an error state. This should be
                          at least 10x the average round trip time to handle
                          any packet rerouting due to interface issues.
-- [R] Maximum Log Size - Maximum size in bytes of the recorded log payloads.
+- [R] MaximumLogSize   - Maximum size in bytes of the recorded log payloads.
                          Will purge the oldest entries until it reaches the
                          desired cumulative size.  This affects syncing after a
                          detached member rejoins the cluster, if older logs
                          have been purged, will require a full data
                          serialization and transfer.
 - [R] Port             - Port to listen on
-- [O] Node IP Address  - IP Address of local machine to use to connect to peers.
+- [O] NodeIPAddress    - IP Address of local machine to use to connect to peers.
                          Must be of the same address class as the Server List.
                          If not provided, will choose a non-localhost and
                          non-link-local ip address at random.
 
-## Node State
+# Node State
 
 - State         - enum:
   - INIT:     Initializing - may not be connected to any nodes, this is the
@@ -143,7 +145,7 @@ it in its entirety from the new leader.
                           receives a RequestVote
 
 
-### Servers List
+## Servers List
 
 The list of servers maintained in the node state contains these data elements:
 
@@ -163,9 +165,11 @@ The list of servers maintained in the node state contains these data elements:
                            follower, or voter state.
 - HeartbeatTimer - timer - Timer to send heartbeat messages which fire off every
                            2x AvgLatencyMs in node state.
+- Nonce          - bin32 - Nonce value sent to peer, used during authentication
+                           with remote
 
 
-### Calculated Node Variables
+## Calculated Node Variables
 
 - AvgLatencyMs -      Received during Vote for leader from proposed leader.  If
                       proposing, perform MAX(SUM(Servers[n].Latency)) and use
@@ -177,4 +181,98 @@ The list of servers maintained in the node state contains these data elements:
 - FaultTimeoutMs -    25x AvgLatencyMs or Configured Maximum RTT, whichever is
                       less.  If a reply to a message takes longer than this, the
                       node is put into an Error state and disconnected.
+
+# Protocol Requests
+
+## Base Message Format
+
+Requests and responses share the same basic message format.  Numeric values are
+sent in Big Endian (Network Byte Order):
+`[MagicValue 4B][Version 1B][RequestType 2B][Code 2B][Length 4B][PayLoad ...length]`
+- MagicValue: `MCLU`
+- Version: `0x1`
+- RequestType: 16bit Big Endian integer representing the Request Type or
+  Response Type as defined in the Request Types section.
+- Code: Always 0 on requests, otherwise a Response Code
+- Length: 32bit Big Endian integer representing the length of the payload (not
+  inclusive of the length itself or any preceding fields)
+- Payload: Custom payload per request type
+
+## Response Codes
+
+Possible response codes:
+- `OK` (0x00): Good Response
+- `BAD_REQUEST` (0x01): Could not parse request, malformed.
+- `UNKNOWN_CLUSTER` (0x05): Cluster name is not recognized
+- `BAD_NODE_ID` (0x06): Self-identified node ID of peer does not match
+  connection address.
+- `AUTH_FAILED` (0x07): HMAC verification failed
+
+
+## Request Types
+
+### AuthNonce
+
+When a remote peer connects to the current node, BOTH nodes will immediately
+send out an AuthNonce packet to the remote node to start mutual authentication.
+
+RequestType: `0x01`
+Response: `0x81`
+
+#### Request Format
+`[Len 1B][ClusterName][Len 1B][NodeId][Len 1B][Nonce]`
+- ClusterName: System-wide configuration name of cluster
+- NodeID: What node identifies itself as.  Either an IPv4 address or IPv6 with
+  port in string form. E.g. `192.168.1.1:5555` or `[2620:2A::35]:5555`
+- Nonce: Random 32byte (256bit) value used for HMAC authentication
+
+#### Response
+
+Contains no payload.  Can return one of these codes:
+- `OK`
+- `BAD_REQUEST`
+- `UNKNOWN_CLUSTER`
+- `BAD_NODE_ID`
+
+All return values other than `OK` must result in an immediate disconnect.
+
+### Authenticate
+
+After receiving a Nonce from the remote, the next message must be a follow-up
+containing the actual authentication packet.
+
+#### Request Format
+`[Len 1B][HMAC Auth]`
+- HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
+  and the System Configured `SharedSecret` as the key.
+
+#### Response
+
+Contains no payload.  Can return one of these codes:
+- `OK`
+- `BAD_REQUEST`
+- `AUTH_FAILED`
+
+All return values other than `OK` must result in an immediate disconnect.
+
+
+### HeartBeat
+
+RequestType: `0x03`
+Response: `0x83`
+
+### RequestVote
+
+RequestType: `0x04`
+Response: `0x84`
+
+### AppendEntries
+
+RequestType: `0x05`
+Response: `0x85`
+
+### ClientRequest
+
+RequestType: `0x0A`
+Response: `0x8A`
 
