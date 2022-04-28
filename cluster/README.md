@@ -132,9 +132,12 @@ it in its entirety from the new leader.
               finished (peer is disconnected), if the node exists in
               the global system configuration, it will go into the INIT state,
               otherwise will be removed from the server list completely.
-- Term          - u64  - Last known node term, 0 if not set
+- Term          - u64  - Current node term, 0 if not set.  This may be
+                         greater than the newest Log entry's term during
+                         elections.
 - LogID         - u64  - Last known log id, 0 if not set
-- Log[]         - list - Committed Log Entries
+- Log[]         - list - Committed Log Entries containing Term, LogID, and
+                         Payload.
 - AvgLatencyMs  - u64  - The average latency in ms for the cluster
 - ClusterID     - u64  - Unique cluster state id when a new cluster is brought
                          online.  This prevents 2 detached clusters using the
@@ -147,7 +150,7 @@ it in its entirety from the new leader.
                           receives a RequestVote
 
 
-## Servers List
+## Nodes List
 
 The list of servers maintained in the node state contains these data elements:
 
@@ -160,7 +163,7 @@ The list of servers maintained in the node state contains these data elements:
 - LastMsgTimer   - et    - Elapste Time since last message. Monotonic tracking
                            of last message time to detect lagged nodes and
                            heartbeats.
-- Latency[]      - u64[] - Circular Array of last 1024 response latencies in ms
+- Latency[]      - u64[] - Circular Array of last 4096 response latencies in ms
 - Term           - u64   - Last known term of node
 - LogID          - u64   - Last known LogID of node
 - ConnectedPeers - u16   - Known number of connected peers that are in a leader,
@@ -215,7 +218,15 @@ Possible response codes:
   perform full sync.
 - `OUT_OF_SYNC` (0x08): Node is out of sync, impossible Term/Log.  Must perform
   full sync.
+- `TOO_OLD` (0x09): Returned for RequestVote stating the reason the node isn't
+  being voted for is it is out of date.
+- `ALREAD_VOTED` (0x0A): Returned for RequestVote stating this node has already
+  voted for another node.
 
+## Latency Tracking
+
+All Request Types sent to a remote node will insert a latency entry upon
+the received response.
 
 ## Request Types
 
@@ -302,15 +313,21 @@ RequestType: `0x03`
 Response: `0x83`
 
 #### Request Format
-`[Term 8B][LogID 8B]`
-- Term: 64bit Last committed term that exists on this node, or 0 if none
+`[Term 8B][LogID 8B][Type 1B]`
+- Term: 64bit Last committed term that exists on this node, or 0 if none.  This
+  is NOT the Node's current term counter which may be different.
 - LogId: 64bit Last committed log id that exists on this node, or 0 if none
+- Type:
+   - `MEMBER` (0x01): Full cluster member
+   - `VOTER` (0x02): Voter member only
 
 #### Response Format
 `[Term 8B][LogID 8B][Len 4B][PayLoad][Len 4B][NodeList]`
+- Term: Last committed Term ID
+- LogID: Last committed Log ID
 - PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
   if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
-  or `MORE_DATA`
+  or `MORE_DATA`.  Not sent for type `Voter`
 - NodeList: Comma delimited list of nodes known to the server that are
   participating in quorum.  Only returned on the `OK` response packet.
 
@@ -331,6 +348,7 @@ Can return one of these codes:
 - On `MORE_DATA`, process payload data and retry request with zero Term and
   LogID
 - On `OK`, process payload data (if any).  Record Term and LogID in Node State.
+  Transition to `FOLLOWER` state.
 
 ##### Respondor Validations/Procedure
 - On bad parse, disconnect
@@ -350,8 +368,42 @@ Response: `0x83`
 
 ### RequestVote
 
+Request vote for oneself to become the leader.  Only called upon an Election
+Timer timeout.  Requesting node may be in the Leader, Follower, or Join state.
+The only time the Join state will call this request is when there are no nodes
+in the Leader or Follower state, but there are a Quorum number of connected
+nodes based on the server configuration.
+
+This request will be sent to all members of the cluster that are in `Leader` or
+`Follower` state (or if *all* members are in `Join` it will be sent to those
+as well).  Record self as `VotedFor` in state before sending and increment
+the internally tracked current Term.
+
 RequestType: `0x04`
 Response: `0x84`
+
+#### Request Format
+`[Term 8B][LogID 8B]`
+- Term: Last Committed term number as known to node (not current term counter)
+- LogID: Current LogID as known to node
+
+#### Response Format
+No Payload. Can return one of these codes:
+- `OK`
+- `TOO_OLD`
+- `ALREADY_VOTED`
+
+
+##### Requestor Validations/Procedure
+- On `OK`, increment the positive vote counter, others increment negative
+  vote counter.
+- If the positive vote counter reaches quorum, transition to `LEADER`, append a
+  NoOp log entry with the current Term which will notify all other nodes
+  of the new leadership.
+- If the negative vote counter reaches quorum, wait for next election or
+  notification of another node winning.
+
+#### Response Format
 
 ### AppendEntries
 
