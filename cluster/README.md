@@ -139,10 +139,10 @@ it in its entirety from the new leader.
 - ClusterID     - u64  - Unique cluster state id when a new cluster is brought
                          online.  This prevents 2 detached clusters using the
                          same nodes and configuration from trying to merge.
-- Servers[]     - list - Linked List of tracked server objects containing the
+- Nodes[]       - list - Linked List of tracked node objects containing the
                          peer node ip address, port, state, statistics and so
                          on.
-- VotedFor      - ptr   - Points to the server voted in the current term if any
+- VotedFor      - ptr   - Points to the node voted in the current term if any
 - ElectionTimer - timer - Timer to try start a new election.  Reset if node
                           receives a RequestVote
 
@@ -242,8 +242,11 @@ Contains no payload.  Can return one of these codes:
 - `UNKNOWN_CLUSTER`
 - `BAD_NODE_ID`
 
-##### Validations/Procedure
-All return values other than `OK` must result in an immediate disconnect.
+##### Requestor Validations/Procedure
+- If receive a code other than `OK`, disconnect. If known node, set to `INIT`
+  state otherwise remove.
+- If `OK` move to `Authenticate`
+
 
 ### Authenticate
 
@@ -272,7 +275,7 @@ Can return one of these codes:
 - `BAD_REQUEST`
 - `AUTH_FAILED`
 
-##### Validations/Procedure
+##### Requestor Validations/Procedure
 - All return values other than `OK` must result in an immediate disconnect.
 - If `ClusterID` was returned, and we already know the `ClusterID` and it
   doesn't match:
@@ -284,6 +287,12 @@ Can return one of these codes:
     - Plug-in Data
   - If in `LEADER`, `FOLLOWER`, or `VOTER` state, ignore.
 - If current node state is `INIT`, transition to `JOIN` state.
+
+##### Respondor Validations/Procedure
+- Validate HMAC, if invalid, return `AUTH_FAILED` and disconnect node.  If the
+  node is a configured node, move to `INIT` state otherwise delete node entry.
+- If Valid, return `OK`, and if ClusterID and LeaderAddress are known, send.
+
 
 ### Join
 
@@ -298,10 +307,12 @@ Response: `0x83`
 - LogId: 64bit Last committed log id that exists on this node, or 0 if none
 
 #### Response Format
-`[Term 8B][LogID 8B][Len 4B][PayLoad][Len 4B][ServerList]`
+`[Term 8B][LogID 8B][Len 4B][PayLoad][Len 4B][NodeList]`
 - PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
   if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
-- ServerList:
+  or `MORE_DATA`
+- NodeList: Comma delimited list of nodes known to the server that are
+  participating in quorum.  Only returned on the `OK` response packet.
 
 Can return one of these codes:
 - `OK`
@@ -311,14 +322,26 @@ Can return one of these codes:
 - `OUT_OF_SYNC`
 - `NOT_LEADER`
 
-##### Validations/Procedure
+##### Requestor Validations/Procedure
 - On return code of `BAD_REQUEST` or `INSUFFICIENT_LOGS`, set `Term` and `LogID`
   to zero and retry Join request.
 - On `NOT_LEADER`, unset known leader, wait for notification of new leader, once
   notified, try again.
 - On `BAD_REQUEST` disconnect
-- On `MORE_DATA`, process payload data
-- On `OK`, process payload data (if any)
+- On `MORE_DATA`, process payload data and retry request with zero Term and
+  LogID
+- On `OK`, process payload data (if any).  Record Term and LogID in Node State.
+
+##### Respondor Validations/Procedure
+- On bad parse, disconnect
+- If Term and LogID can be played from current log entries, return `OK` and then
+  send AppendEntries containing all missing log entries.
+- If Term and LogID are 0, then serialize data and send (possibly chunked), use
+  `MORE_DATA` return code if chunked, except on last block which will return
+  `OK`.  Send AppendEntries for **all** logs on Leader.
+- If Term > currentTerm, return `OUT_OF_SYNC`
+- If LogID < oldest log, return `INSUFFICIENT_LOGS`
+- If Log[LogID].Term != Term, return `OUT_OF_SYNC`
 
 ### HeartBeat
 
