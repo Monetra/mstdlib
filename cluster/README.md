@@ -132,10 +132,13 @@ it in its entirety from the new leader.
               finished (peer is disconnected), if the node exists in
               the global system configuration, it will go into the INIT state,
               otherwise will be removed from the server list completely.
-- Term          - u64  - Current node term, 0 if not set.  This may be
+- currentTerm   - u64  - Current node term, 0 if not set.  This may be
                          greater than the newest Log entry's term during
                          elections.
-- LogID         - u64  - Last known log id, 0 if not set
+- LogID         - u64  - Last committed Log ID.  This is only needed during
+                         joining where serialized data may have been received,
+                         but not the log entries, so this is necessary to know
+                         when to skip applying logs.
 - Log[]         - list - Committed Log Entries containing Term, LogID, and
                          Payload.
 - AvgLatencyMs  - u64  - The average latency in ms for the cluster
@@ -291,8 +294,7 @@ Can return one of these codes:
 - If `ClusterID` was returned, and we already know the `ClusterID` and it
   doesn't match:
   - If in `INIT` state, clear Node State Variables:
-    - Term
-    - LogID
+    - currentTerm
     - Log[]
     - ClusterID
     - Plug-in Data
@@ -313,17 +315,17 @@ RequestType: `0x03`
 Response: `0x83`
 
 #### Request Format
-`[Term 8B][LogID 8B][Type 1B]`
-- Term: 64bit Last committed term that exists on this node, or 0 if none.  This
-  is NOT the Node's current term counter which may be different.
-- LogId: 64bit Last committed log id that exists on this node, or 0 if none
+`[LogTerm 8B][LogID 8B][Type 1B]`
+- LogTerm: 64bit Last committed term that exists on this node, or 0 if none.
+  This is NOT the Node's currentTerm counter which may be different.
+- LogID: 64bit Last committed log id that exists on this node, or 0 if none
 - Type:
    - `MEMBER` (0x01): Full cluster member
    - `VOTER` (0x02): Voter member only
 
 #### Response Format
-`[Term 8B][LogID 8B][Len 4B][PayLoad][Len 4B][NodeList]`
-- Term: Last committed Term ID
+`[LogTerm 8B][LogID 8B][Len 4B][PayLoad][Len 4B][NodeList]`
+- LogTerm: Last committed Term ID
 - LogID: Last committed Log ID
 - PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
   if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
@@ -371,8 +373,8 @@ Response: `0x83`
 Request vote for oneself to become the leader.  Only called upon an Election
 Timer timeout.  Requesting node may be in the Leader, Follower, or Join state.
 The only time the Join state will call this request is when there are no nodes
-in the Leader or Follower state, but there are a Quorum number of connected
-nodes based on the server configuration.
+in the Leader or Follower state, but there is a Quorum of connected nodes based
+on the server configuration.
 
 This request will be sent to all members of the cluster that are in `Leader` or
 `Follower` state (or if *all* members are in `Join` it will be sent to those
@@ -383,8 +385,9 @@ RequestType: `0x04`
 Response: `0x84`
 
 #### Request Format
-`[Term 8B][LogID 8B]`
-- Term: Last Committed term number as known to node (not current term counter)
+`[currentTerm 8B][LogTerm 8B][LogID 8B]`
+- currentTerm: Current term requesting votes for
+- LogTerm: Last Committed term number as known to node
 - LogID: Current LogID as known to node
 
 #### Response Format
@@ -403,7 +406,13 @@ No Payload. Can return one of these codes:
 - If the negative vote counter reaches quorum, wait for next election or
   notification of another node winning.
 
-#### Response Format
+##### Responder Validations/Procedure
+- if `LogTerm` is less than our recorded log term, or `LogID` is less than
+  our recorded log id, return `TOO_OLD`
+- if packet currentTerm is less than our Node's current term, return
+  `ALREADY_VOTED`
+- Otherwise set our currentTerm to the one received and return `OK`
+
 
 ### AppendEntries
 
@@ -413,12 +422,15 @@ RequestType: `0x05`
 Response: `0x85`
 
 #### Request Format
-`[Term 8B][LogID 8B][Type 2B][Len 4B][Data]`
-- Term: Term of log entry
+`[LogTerm 8B][LogID 8B][Type 2B][Len 4B][Data]`
+- LogTerm: Term of log entry
 - LogID: ID of log entry
-- Type: `Log` (0x01), `AddNode` (0x02), `RemoveNode` (0x03)
-- Data: For `Log`, payload data for plugin (possibly empty indicating NoOp),
-  Otherwise node to add or remove from cluster.
+- Type: `Log` (0x01), `AddNode` (0x02), `RemoveNode` (0x03), `NewTerm` (0x04)
+- Data:
+  - `Log`: payload data for plugin (possibly empty indicating NoOp)
+  - `AddNode`:  NodeID format of node being added
+  - `RemoveNode`: NodeID format of node being removed
+  - `NewTerm`: AvgLatencyMs as 64bit Integer
 
 #### Response Format
 
