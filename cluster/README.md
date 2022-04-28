@@ -19,7 +19,7 @@ entry to all connected follower nodes.  When a Quorum has been reached (> 50%
 of nodes have acknowledged the entry), the response is sent to the client.
 
 Every member of the cluster is always attached to every other member of the
-cluster (star topology) and each node will be required to handle heartbeat
+cluster (full mesh topology) and each node will be required to handle heartbeat
 messages.  TCP/IP (with TLS) will be used as transport, this transport ensures
 that messages are always delivered in order without gaps which reduces some
 complexity as opposed to RAFT.
@@ -116,10 +116,12 @@ it in its entirety from the new leader.
 - State         - enum:
   - INIT:     Initializing - may not be connected to any nodes, this is the
               initial state.  When tracking servers, this state does not count
-              toward quorum.
-  - LEADER:   Primary Node.  Responsible for processing all requests.
+              toward quorum (and obviously won't receive logs).
+  - JOIN:     Node is trying to join the cluster.  When tracking servers, this
+              state does not count toward quorum and does not receive logs.
   - FOLLOWER: Not the primary node, just receiving logs from leader to apply and
               can participate in voting.
+  - LEADER:   Primary Node.  Responsible for processing all requests.
   - VOTER:    Does not receive logs, only participates in voting (arbitration
               mode)
   - ERROR:    Node is in an error state (e.g. maximum latency, non-leader
@@ -234,6 +236,7 @@ Contains no payload.  Can return one of these codes:
 - `UNKNOWN_CLUSTER`
 - `BAD_NODE_ID`
 
+##### Validations/Procedure
 All return values other than `OK` must result in an immediate disconnect.
 
 ### Authenticate
@@ -247,13 +250,31 @@ containing the actual authentication packet.
   and the System Configured `SharedSecret` as the key.
 
 #### Response
+`[Len 1B][ClusterID][Len 1B][LeaderAddress]`
+- ClusterID - Unique 64bit (Big Endian) cluster id that is randomly generated
+  when the cluster is first initialized to ensure any nodes attempting to
+  rejoin that may have been detached are joining the same cluster.  Omitted
+  if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
+- LeaderAddress - String representing leader ip address, same form as NodeID.
+  Omitted if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
 
-Contains no payload.  Can return one of these codes:
+Can return one of these codes:
 - `OK`
 - `BAD_REQUEST`
 - `AUTH_FAILED`
 
-All return values other than `OK` must result in an immediate disconnect.
+##### Validations/Procedure
+- All return values other than `OK` must result in an immediate disconnect.
+- If `ClusterID` was returned, and we already know the `ClusterID` and it
+  doesn't match:
+  - If in `INIT` state, clear Node State Variables:
+    - Term
+    - LogID
+    - Log[]
+    - ClusterID
+    - Plug-in Data
+  - If in `LEADER`, `FOLLOWER`, or `VOTER` state, ignore.
+- If current node state is `INIT`, transition to `JOIN` state.
 
 
 ### HeartBeat
