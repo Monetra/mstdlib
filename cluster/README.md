@@ -204,11 +204,17 @@ sent in Big Endian (Network Byte Order):
 
 Possible response codes:
 - `OK` (0x00): Good Response
-- `BAD_REQUEST` (0x01): Could not parse request, malformed.
-- `UNKNOWN_CLUSTER` (0x05): Cluster name is not recognized
-- `BAD_NODE_ID` (0x06): Self-identified node ID of peer does not match
+- `MORE_DATA` (0x01): Repeat last request, more data is available.
+- `BAD_REQUEST` (0x02): Could not parse request, malformed.
+- `UNKNOWN_CLUSTER` (0x03): Cluster name is not recognized
+- `BAD_NODE_ID` (0x04): Self-identified node ID of peer does not match
   connection address.
-- `AUTH_FAILED` (0x07): HMAC verification failed
+- `AUTH_FAILED` (0x05): HMAC verification failed
+- `NOT_LEADER` (0x06): A message that can only be directed to a leader was sent.
+- `INSUFFICIENT_LOGS` (0x07): Insufficient logs contained on node to sync, must
+  perform full sync.
+- `OUT_OF_SYNC` (0x08): Node is out of sync, impossible Term/Log.  Must perform
+  full sync.
 
 
 ## Request Types
@@ -241,20 +247,23 @@ All return values other than `OK` must result in an immediate disconnect.
 
 ### Authenticate
 
+RequestType: `0x02`
+Response: `0x82`
+
 After receiving a Nonce from the remote, the next message must be a follow-up
 containing the actual authentication packet.
 
 #### Request Format
-`[Len 1B][HMAC Auth]`
+`[HMAC Auth]`
 - HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
   and the System Configured `SharedSecret` as the key.
 
 #### Response
-`[Len 1B][ClusterID][Len 1B][LeaderAddress]`
+`[ClusterID 8B][Len 1B][LeaderAddress]`
 - ClusterID - Unique 64bit (Big Endian) cluster id that is randomly generated
   when the cluster is first initialized to ensure any nodes attempting to
-  rejoin that may have been detached are joining the same cluster.  Omitted
-  if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
+  rejoin that may have been detached are joining the same cluster.  0 if isn't
+  in `LEADER`, `FOLLOWER`, or `VOTER` state.
 - LeaderAddress - String representing leader ip address, same form as NodeID.
   Omitted if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
 
@@ -276,6 +285,40 @@ Can return one of these codes:
   - If in `LEADER`, `FOLLOWER`, or `VOTER` state, ignore.
 - If current node state is `INIT`, transition to `JOIN` state.
 
+### Join
+
+Join or re-join the cluster. Sent only to Leader node.
+
+RequestType: `0x03`
+Response: `0x83`
+
+#### Request Format
+`[Term 8B][LogID 8B]`
+- Term: 64bit Last committed term that exists on this node, or 0 if none
+- LogId: 64bit Last committed log id that exists on this node, or 0 if none
+
+#### Response Format
+`[Term 8B][LogID 8B][Len 4B][PayLoad][Len 4B][ServerList]`
+- PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
+  if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
+- ServerList:
+
+Can return one of these codes:
+- `OK`
+- `MORE_DATA`
+- `BAD_REQUEST`
+- `INSUFFICIENT_LOGS`
+- `OUT_OF_SYNC`
+- `NOT_LEADER`
+
+##### Validations/Procedure
+- On return code of `BAD_REQUEST` or `INSUFFICIENT_LOGS`, set `Term` and `LogID`
+  to zero and retry Join request.
+- On `NOT_LEADER`, unset known leader, wait for notification of new leader, once
+  notified, try again.
+- On `BAD_REQUEST` disconnect
+- On `MORE_DATA`, process payload data
+- On `OK`, process payload data (if any)
 
 ### HeartBeat
 
@@ -289,8 +332,21 @@ Response: `0x84`
 
 ### AppendEntries
 
+Append a log entry to all follower nodes.  Only performed by the Leader.
+
 RequestType: `0x05`
 Response: `0x85`
+
+#### Request Format
+`[Term 8B][LogID 8B][Type 2B][Len 4B][Data]`
+- Term: Term of log entry
+- LogID: ID of log entry
+- Type: `Log` (0x01), `AddNode` (0x02), `RemoveNode` (0x03)
+- Data: For `Log`, payload data for plugin (possibly empty indicating NoOp),
+  Otherwise node to add or remove from cluster.
+
+#### Response Format
+
 
 ### ClientRequest
 
