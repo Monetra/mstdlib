@@ -23,6 +23,7 @@
 
 #include "m_net_int.h"
 #include <mstdlib/base/m_defs.h> /* M_CAST_OFF_CONST */
+#include "smtp/flow.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -70,21 +71,11 @@ typedef struct {
 } tcp_endpoint_t;
 
 typedef struct {
-	M_io_t            *io;
-	M_state_machine_t *state_machine;
-	char              *msg;
-
-	/* Only used for proc endpoints */
-	M_io_t            *io_stdin;
-	M_io_t            *io_stdout;
-	M_io_t            *io_stderr;
-} endpoint_slot_t;
-
-typedef struct {
 	const proc_endpoint_t *proc_endpoint;
 	const tcp_endpoint_t  *tcp_endpoint;
 	size_t                 slot_count;
 	size_t                 slot_available;
+	M_bool                 is_alive;
 	endpoint_slot_t        slots[];
 } endpoint_manager_t;
 
@@ -168,6 +159,7 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->proc_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->tcp_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
+	sp->endpoint_managers = M_list_create(NULL, M_LIST_NONE);
 
 	return sp;
 }
@@ -199,6 +191,8 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		destroy_tcp_endpoint(M_list_at(sp->tcp_endpoints, i));
 	}
 	M_list_destroy(sp->tcp_endpoints, M_TRUE);
+	/* endpoint manager should free it self once it finishes processing */
+	M_list_destroy(sp->endpoint_managers, M_FALSE);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
 	M_free(sp);
 }
@@ -214,88 +208,62 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-typedef enum {
-	SM_PROC_WAIT = 1,
-	SM_PROC_WRITING,
-	SM_PROC_WRITE_DONE,
-	SM_PROC_ERROR,
-} sm_proc_states_t;
-
-static M_state_machine_status_t sm_proc_wait(void *data, M_uint64 *next)
+static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	endpoint_slot_t *slot = data;
-	(void)next;
+	M_net_smtp_t             *sp        = cb_arg;
+	const endpoint_manager_t *const_epm = NULL;
+	endpoint_manager_t       *epm       = NULL;
+	M_bool                    is_alive  = M_FALSE;
 
-	M_printf("sm_proc_wait: { %p, %p, %s, %p, %p, %p }\n", slot->io, slot->state_machine, slot->msg, slot->io_stdin, slot->io_stdout, slot->io_stderr);
+	/* Internal event, don't need these */
+	(void)type;
+	(void)io;
 
-	return M_STATE_MACHINE_STATUS_NEXT;
+	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+		const_epm = M_list_at(sp->endpoint_managers, i);
+		epm = M_CAST_OFF_CONST(endpoint_manager_t *, const_epm);
+		if (epm->is_alive) {
+			M_bool is_endpoint_alive = M_FALSE;
+			for (size_t j = 0; j < epm->slot_count; j++) {
+				if (epm->slots[j].is_alive) {
+					is_endpoint_alive = M_TRUE;
+					break;
+				}
+			}
+			if (is_endpoint_alive == M_FALSE) {
+				epm->is_alive = M_FALSE;
+			} else {
+				is_alive = M_TRUE;
+			}
+		}
+	}
+	if (is_alive == M_FALSE) {
+		/* everything is dead.. call it a day. */
+		for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+			epm = M_list_take_first(sp->endpoint_managers);
+			M_free(epm);
+		}
+		M_event_done(event);
+	}
 }
 
-static M_state_machine_status_t sm_proc_writing(void *data, M_uint64 *next)
-{
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
-static M_state_machine_status_t sm_proc_write_done(void *data, M_uint64 *next)
-{
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
-static M_state_machine_status_t sm_proc_error(void *data, M_uint64 *next)
-{
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
-static M_state_machine_t * build_proc_state_machine()
-{
-	M_state_machine_t *m;
-	m = M_state_machine_create(0, "SMTP-process-endpoint-slot", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, SM_PROC_WAIT, 0, NULL, sm_proc_wait, NULL, NULL);
-	M_state_machine_insert_state(m, SM_PROC_WRITING, 0, NULL, sm_proc_writing, NULL, NULL);
-	M_state_machine_insert_state(m, SM_PROC_WRITE_DONE, 0, NULL, sm_proc_write_done, NULL, NULL);
-	M_state_machine_insert_state(m, SM_PROC_ERROR, 0, NULL, sm_proc_error, NULL, NULL);
-	return m;
-}
-
-static void proc_io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	endpoint_slot_t *slot = thunk;
-	M_printf("proc_io_callback(%p,%d,%p,%p)\n", el, etype, io, thunk);
-	M_printf("{ io: %p, state_machine: %p, msg: %s, io_stdin: %p, io_stdout: %p, io_stderr: %p }\n", slot->io, slot->state_machine, slot->msg, slot->io_stdin, slot->io_stdout, slot->io_stderr);
+	slot->event = el;
+	slot->event_type = etype;
+	slot->event_io = io; /* for process it could be io_std{in,out,err} or io (proc) */
+	M_state_machine_run(slot->state_machine, slot);
+	if (slot->is_alive == M_FALSE) {
+		/* died on this event */
+		M_event_queue_task(el, reap_endpoints, slot->sp);
+	}
 }
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-typedef enum {
-	SM_TCP_ERROR = 1,
-} sm_tcp_states_t;
-
-static M_state_machine_status_t sm_tcp_error(void *data, M_uint64 *next)
-{
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_ERROR_STATE;
-}
-
-static M_state_machine_t * build_tcp_state_machine()
-{
-	M_state_machine_t *m;
-	m = M_state_machine_create(0, "SMTP-tcp-endpoint-slot", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, SM_TCP_ERROR, 0, NULL, sm_tcp_error, NULL, NULL);
-	return m;
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, const tcp_endpoint_t *tcp_ep,
 		endpoint_slot_t *slot)
 {
+	slot->sp = sp;
 	M_printf("bootstrap_slot()\n");
 	if (proc_ep != NULL) {
 		M_io_process_create(
@@ -308,8 +276,11 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 			&slot->io_stdout,
 			&slot->io_stderr
 		);
-		slot->state_machine = build_proc_state_machine();
-		M_event_add(sp->el, slot->io, proc_io_callback, slot);
+		slot->state_machine = smtp_flow_process();
+		M_event_add(sp->el, slot->io, io_callback, slot);
+		M_event_add(sp->el, slot->io_stdin, io_callback, slot);
+		M_event_add(sp->el, slot->io_stdout, io_callback, slot);
+		M_event_add(sp->el, slot->io_stderr, io_callback, slot);
 	} else {
 		/* tcp_ip != NULL */
 		M_io_net_client_create(
@@ -319,7 +290,8 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 			tcp_ep->port,
 			M_IO_NET_ANY
 		);
-		slot->state_machine = build_tcp_state_machine();
+		slot->state_machine = smtp_flow_tcp();
+		M_event_add(sp->el, slot->io, io_callback, slot);
 	}
 }
 
@@ -333,8 +305,9 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_e
 			slot->msg = msg;
 			if (slot->io == NULL) {
 				bootstrap_slot(sp, epm->proc_endpoint, epm->tcp_endpoint, slot);
+				slot->is_alive = M_TRUE;
+				epm->is_alive = M_TRUE;
 			}
-			M_state_machine_run(epm->slots[i].state_machine, slot);
 			epm->slot_available--;
 			return;
 		}
@@ -411,6 +384,8 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 		sp->number_of_processing_messages++;
 	}
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 {

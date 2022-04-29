@@ -112,12 +112,45 @@ static void reschedule_cb(const char *msg, M_uint64 wait_sec, void *thunk)
 	return;
 }
 
+static M_list_str_t *json_array_to_list_str(M_json_node_t *node)
+{
+	M_list_str_t *list = M_list_str_create(M_LIST_STR_NONE);
+	for (size_t i = 0; i < M_json_array_len(node); i++) {
+		M_list_str_insert(list, M_json_array_at_string(node, i));
+	}
+	return list;
+}
+
+static M_hash_dict_t *json_object_to_hash_dict(M_json_node_t *node)
+{
+	M_hash_dict_t *h;
+	M_list_str_t  *keys;
+	keys = M_json_object_keys(node);
+	for (size_t i = 0; i < M_list_str_len(keys); i++) {
+		const char *key = M_list_str_at(keys, i);
+		const char *value = M_json_object_value_string(node, key);
+		M_hash_dict_insert(h, key, value);
+	}
+	M_list_str_destroy(keys);
+	return h;
+}
+
 static M_bool add_proc_endpoint(const char *command, M_net_smtp_t *sp, prag_t *prag, const M_json_node_t *endpoint)
 {
-	M_list_str_t * args          = NULL;
+	M_list_str_t  *args          = NULL;
 	M_hash_dict_t *env           = NULL;
-	M_uint64       timeout_ms    = 0;
-	size_t         max_processes = 1;
+	M_json_node_t *args_node     = M_json_object_value(endpoint, "args");
+	M_json_node_t *env_node      = M_json_object_value(endpoint, "env");
+	M_uint64       timeout_ms    = M_json_object_value_int(endpoint, "timeout_ms");
+	size_t         max_processes = M_json_object_value_int(endpoint, "max_processes");
+
+	if (M_json_node_type(args_node) == M_JSON_TYPE_ARRAY) {
+		args = json_array_to_list_str(args_node);
+	}
+
+	if (M_json_node_type(env_node) == M_JSON_TYPE_OBJECT) {
+		env = json_object_to_hash_dict(env_node);
+	}
 
 	if (!M_net_smtp_add_endpoint_process(sp, command, args, env, timeout_ms, max_processes)) {
 
@@ -330,7 +363,7 @@ int main(int argc, const char * const *argv)
 		}
 		help = M_getopt_help(getopt);
 		M_printf("usage: %s [OPTION]...ENDPOINT(s)\n", argv[0]);
-		M_printf("Endpoint:\n\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 0, \\\"max_processes\\\": 1 }\"\n");
+		M_printf("Endpoint:\n\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
 		M_printf("Options:\n%s\n", help);
 		destroy_prag(&prag);
 		M_getopt_destroy(getopt);

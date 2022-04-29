@@ -12,9 +12,12 @@ set(sources
 	m_net.c
 	m_net_http_simple.c
 	m_net_smtp.c
+	smtp/flow_process.c
+	smtp/flow_tcp.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")
+set_source_files_properties(m_net_smtp.c PROPERTIES COMPILE_DEFINITIONS NET_SMTP_VERSION="${MSTDLIB_VERSION_STRING}")
 
 # Build the library.
 if (MSTDLIB_STATIC)
