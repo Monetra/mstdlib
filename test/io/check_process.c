@@ -8,7 +8,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -71,6 +71,17 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 			if (M_str_caseeq(name, "process")) {
 				event_debug("process %p %s created with pid %d", io, name, M_io_process_get_pid(io));
 			}
+			if (M_str_caseeq(name, "stdin(cat)")) {
+				size_t       written;
+				M_io_error_t io_error;
+				const char   str[] = "hello world!";
+				io_error = M_io_write(io, (const unsigned char *)str, sizeof(str), &written);
+				if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
+					event_debug("failed to write to stdin");
+					return;
+				}
+				M_io_disconnect(io);
+			}
 			break;
 		case M_EVENT_TYPE_READ:
 			buf = M_buf_create();
@@ -126,7 +137,8 @@ static void process_trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_
 
 typedef enum {
 	TEST_CASE_ECHO    = 1,
-	TEST_CASE_TIMEOUT = 2
+	TEST_CASE_TIMEOUT = 2,
+	TEST_CASE_CAT     = 3,
 } process_test_cases_t;
 
 static M_bool process_test(process_test_cases_t test_case)
@@ -139,6 +151,15 @@ static M_bool process_test(process_test_cases_t test_case)
 	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
 
 	switch (test_case) {
+		case TEST_CASE_CAT:
+#ifdef _WIN32
+			command = "cmd.exe";
+			M_list_str_insert(args, "/c");
+			M_list_str_insert(args, "type");
+#else
+			command = "cat";
+#endif
+			break;
 		case TEST_CASE_ECHO:
 #ifdef _WIN32
 			command = "cmd.exe";
@@ -163,7 +184,7 @@ static M_bool process_test(process_test_cases_t test_case)
 			break;
 	}
 
-	event_debug("starting process test case %d", test_case);
+	event_debug("**** starting process test case %d", test_case);
 	proc_stdin  = NULL;
 	proc_stdout = NULL;
 	proc_stderr = NULL;
@@ -182,7 +203,7 @@ static M_bool process_test(process_test_cases_t test_case)
 		event_debug("failed to add process io handle");
 		return M_FALSE;
 	}
-	if (!M_event_add(event, proc_stdin, process_cb, (void *)"stdin")) {
+	if (!M_event_add(event, proc_stdin, process_cb, (void *)((test_case == TEST_CASE_CAT)?"stdin(cat)":"stdin"))) {
 		event_debug("failed to add stdin io handle");
 		return M_FALSE;
 	}
@@ -223,6 +244,12 @@ START_TEST(check_process_timeout)
 }
 END_TEST
 
+START_TEST(check_process_cat)
+{
+	ck_assert(process_test(TEST_CASE_CAT));
+}
+END_TEST
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -236,6 +263,7 @@ static Suite *process_suite(void)
 	tc = tcase_create("process");
 	tcase_add_test(tc, check_process_echo);
 	tcase_add_test(tc, check_process_timeout);
+	tcase_add_test(tc, check_process_cat);
 	suite_add_tcase(suite, tc);
 
 
