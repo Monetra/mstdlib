@@ -40,7 +40,8 @@ all data from the cluster as long as it can reach the Leader.
 
 # Plug-in Callback System
 
-The plugin system is best described using an example.
+The plugin system is used to interpret the Log messages that get replicated
+across the cluster.  This may best be described using an example.
 
 A common implementation of a plugin might consist of common actions such as:
 
@@ -54,12 +55,12 @@ entire request is rejected and no replication attempt is made.
 
 The plugin may also choose to rewrite the log entry. For instance, the other
 nodes have no need to perform an action on ReadKey, so a NoOp log entry might be
-output instead.  Though, a NoOp entry is still replicated to provide
-consistency guarantees (which may be invalidated if the current Leader isn't
-really the Leader any more). Similarly, log entires like InsertKey,
-CompareAndSetKey, IncrementKey, and DecrementKey might all be rewritten to a
-simplified InsertOrReplaceKey as an optimization to prevent the Follower nodes
-from needing to do additional work.
+output instead.  A NoOp entry is still replicated to provide consistency
+guarantees (which may be invalidated if the current Leader isn't really the
+Leader any more). Similarly, log entires like InsertKey, CompareAndSetKey,
+IncrementKey, and DecrementKey might all be rewritten to a simplified
+InsertOrReplaceKey as an optimization to prevent the Follower nodes from needing
+to do additional work.
 
 If the validation step of the plugin fails for Follower receiving the replicated
 log, the node will immediately go into an Error state and notify all connected
@@ -67,7 +68,8 @@ peers. This most likely means the node is corrupt.
 
 In addition to the above log insertion/interpretation, the plug-in system must
 also support serialization and deserialization of the data (regardless if
-stored on disk or in memory) for bringing new nodes online.
+stored on disk or in memory) for bringing new nodes online.  For large datasets
+it is strongly recommended to implement chunking of the data.
 
 An optional callback can also be called to rollback log entries.  Most
 implementations probably won't have this ability.  This would only be called
@@ -167,12 +169,13 @@ The list of servers maintained in the node state contains these data elements:
                            of last message time to detect lagged nodes and
                            heartbeats.
 - Latency[]      - u64[] - Circular Array of last 4096 response latencies in ms
-- Term           - u64   - Last known term of node
-- LogID          - u64   - Last known LogID of node
+- Term           - u64   - Leader Only. Last known term of node
+- LogID          - u64   - Leader Only. Last known LogID of node
 - ConnectedPeers - u16   - Known number of connected peers that are in a leader,
                            follower, or voter state.
 - HeartbeatTimer - timer - Timer to send heartbeat messages which fire off every
-                           2x AvgLatencyMs in node state.
+                           4x AvgLatencyMs (or 20ms, whichever is greater) in
+                           node state Leader, Follower, Join, or Voter.
 - Nonce          - bin32 - Nonce value sent to peer, used during authentication
                            with remote
 
@@ -217,14 +220,18 @@ Possible response codes:
   connection address.
 - `AUTH_FAILED` (0x05): HMAC verification failed
 - `NOT_LEADER` (0x06): A message that can only be directed to a leader was sent.
-- `INSUFFICIENT_LOGS` (0x07): Insufficient logs contained on node to sync, must
+- `ONLY_FROM_LEADER`: (0x07): A message was received that can only come from the
+  leader but you are not the leader.
+- `INSUFFICIENT_LOGS` (0x08): Insufficient logs contained on node to sync, must
   perform full sync.
-- `OUT_OF_SYNC` (0x08): Node is out of sync, impossible Term/Log.  Must perform
+- `OUT_OF_SYNC` (0x09): Node is out of sync, impossible Term/Log.  Must perform
   full sync.
-- `TOO_OLD` (0x09): Returned for RequestVote stating the reason the node isn't
+- `TOO_OLD` (0x0A): Returned for RequestVote stating the reason the node isn't
   being voted for is it is out of date.
-- `ALREAD_VOTED` (0x0A): Returned for RequestVote stating this node has already
+- `ALREAD_VOTED` (0x0B): Returned for RequestVote stating this node has already
   voted for another node.
+- `CANT_APPLY` (0x0C): Log cannot be applied due to validation failure.  This
+  is a critical Follower error.
 
 ## Latency Tracking
 
@@ -259,8 +266,14 @@ Contains no payload.  Can return one of these codes:
 ##### Requestor Validations/Procedure
 - If receive a code other than `OK`, disconnect. If known node, set to `INIT`
   state otherwise remove.
-- If `OK` move to `Authenticate`
+- If `OK`, done with flow.
 
+##### Receiver Validations/Procedure
+- If the `ClusterName` sent in the payload does not match, return
+  `UNKNOWN_CLUSTER`
+- If the `NodeID` in the Payload does not match the source ip address, return
+  `BAD_NODE_ID`
+- Otherwise , move to `Authenticate`
 
 ### Authenticate
 
@@ -276,11 +289,14 @@ containing the actual authentication packet.
   and the System Configured `SharedSecret` as the key.
 
 #### Response
-`[ClusterID 8B][Len 1B][LeaderAddress]`
+`[ClusterID 8B][AvgLatencyMs 8B][Len 1B][LeaderAddress]`
 - ClusterID - Unique 64bit (Big Endian) cluster id that is randomly generated
   when the cluster is first initialized to ensure any nodes attempting to
   rejoin that may have been detached are joining the same cluster.  0 if isn't
   in `LEADER`, `FOLLOWER`, or `VOTER` state.
+- AvgLatencyMs - As known by peer at this point.  Even though it may not be
+  the leader, it provides a hint so that the Joiner can start participating
+  in Heartbeats.
 - LeaderAddress - String representing leader ip address, same form as NodeID.
   Omitted if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
 
@@ -324,9 +340,11 @@ Response: `0x83`
    - `VOTER` (0x02): Voter member only
 
 #### Response Format
-`[LogTerm 8B][LogID 8B][Len 4B][PayLoad][Len 4B][NodeList]`
+`[LogTerm 8B][LogID 8B][AvgLatencyMs 8B][Len 4B][PayLoad][Len 4B][NodeList]`
 - LogTerm: Last committed Term ID
 - LogID: Last committed Log ID
+- AvgLatencyMs: The current average latency honored by nodes, used to calculate
+  heartbeat timers, fault timers, and election timers.
 - PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
   if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
   or `MORE_DATA`.  Not sent for type `Voter`
@@ -365,8 +383,40 @@ Can return one of these codes:
 
 ### HeartBeat
 
-RequestType: `0x03`
-Response: `0x83`
+A heartbeat packet is queued to be sent to every node at a rate of 4x
+AvgLatency or 20ms, whichever is greater.  This does mean that 2 heartbeats will
+occur during this interval as each node will initiate a heartbeat to the other
+in order to measure latency. Any node in the state of `Leader`, `Follower`,
+`Voter`, or `Join` must participate in Heartbeats.
+
+RequestType: `0x04`
+Response: `0x84`
+
+#### Request Format
+There is no payload for the request
+
+#### Response Format
+`[knownPeerCnt 4B][joinedPeerCnt 4B][activePeerCnt 4B][state 2B]`
+- knownPeerCnt: Total number of known nodes that could participate in the
+  cluster.
+- joinedPeerCnt: Total number of nodes that are supposed to be participating
+  in the cluster for quorum (but may not be due to faults).  A node that has
+  gracefully disconnected is in the knownPeerCnt but not in the joinedPeerCnt.
+- activePeerCnt: Number of nodes actively responding (not in an error or
+  disconnected state)
+- state: advertised state from the node
+
+Can return one of these codes:
+- `OK`
+
+##### Requestor Validations/Procedure
+- Maintain heartbeat timer to enqueue another heartbeat.  Do not send more than
+  1 heartbeat at a time, wait to receive a heartbeat before starting the timer
+  to send the next.
+
+##### Responder Validations/Procedure
+- Collect metadata and respond, there are no necessary validations
+
 
 ### RequestVote
 
@@ -381,8 +431,8 @@ This request will be sent to all members of the cluster that are in `Leader` or
 as well).  Record self as `VotedFor` in state before sending and increment
 the internally tracked current Term.
 
-RequestType: `0x04`
-Response: `0x84`
+RequestType: `0x05`
+Response: `0x85`
 
 #### Request Format
 `[currentTerm 8B][LogTerm 8B][LogID 8B]`
@@ -418,11 +468,12 @@ No Payload. Can return one of these codes:
 
 Append a log entry to all follower nodes.  Only performed by the Leader.
 
-RequestType: `0x05`
-Response: `0x85`
+RequestType: `0x06`
+Response: `0x86`
 
 #### Request Format
-`[LogTerm 8B][LogID 8B][Type 2B][Len 4B][Data]`
+`[Cnt 4B]...[LogTerm 8B][LogID 8B][Type 2B][Len 4B][Data]...` (repeats for each entry)
+- Cnt: Number of log entries to apply
 - LogTerm: Term of log entry
 - LogID: ID of log entry
 - Type: `Log` (0x01), `AddNode` (0x02), `RemoveNode` (0x03), `NewTerm` (0x04)
@@ -434,6 +485,10 @@ Response: `0x85`
 
 #### Response Format
 
+No response. Can return one of these codes:
+- `OK`
+- `ONLY_FROM_LEADER`
+- `CANT_APPLY`
 
 ### ClientRequest
 
