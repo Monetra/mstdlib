@@ -155,6 +155,9 @@ it in its entirety from the new leader.
 - VotedFor      - ptr   - Points to the node voted in the current term if any
 - ElectionTimer - timer - Timer to try start a new election.  Reset if node
                           receives a RequestVote
+- Flags         - bits  - Flags about the connection, for instance we need
+                          `AUTHENTICATED_PEER`, and `AUTHENTICATED_SELF` to make
+                          sure a node is allowed to transition to join.
 
 
 ## Nodes List
@@ -253,31 +256,35 @@ RequestType: `0x01`
 Response: `0x81`
 
 #### Request Format
-`[Len 1B][ClusterName][Len 1B][NodeId][Len 1B][Nonce]`
+
+`[Len 1B][ClusterName][Len 1B][NodeId]`
 - ClusterName: System-wide configuration name of cluster
 - NodeID: What node identifies itself as.  Either an IPv4 address or IPv6 with
   port in string form. E.g. `192.168.1.1:5555` or `[2620:2A::35]:5555`
-- Nonce: Random 32byte (256bit) value used for HMAC authentication
+
 
 #### Response
 
-Contains no payload.  Can return one of these codes:
+`[Len 1B][Nonce]`
+- Nonce: Random 32byte (256bit) value used for HMAC authentication
+
+Can return one of these codes:
 - `OK`
 - `BAD_REQUEST`
 - `UNKNOWN_CLUSTER`
 - `BAD_NODE_ID`
 
 ##### Requestor Validations/Procedure
-- If receive a code other than `OK`, disconnect. If known node, set to `INIT`
+- If receive a code other than `OK`, disconnect. Set self to `INIT`
   state otherwise remove.
-- If `OK`, done with flow.
+- If `OK`, proceed to Authenticate
 
 ##### Receiver Validations/Procedure
 - If the `ClusterName` sent in the payload does not match, return
-  `UNKNOWN_CLUSTER`
+  `UNKNOWN_CLUSTER` and disconnect
 - If the `NodeID` in the Payload does not match the source ip address, return
-  `BAD_NODE_ID`
-- Otherwise , move to `Authenticate`
+  `BAD_NODE_ID` and disconnect
+- Otherwise generate `Nonce` and return `OK`
 
 ### Authenticate
 
@@ -320,11 +327,13 @@ Can return one of these codes:
     - Plug-in Data
   - If in `LEADER`, `FOLLOWER`, or `VOTER` state, ignore.
 - If current node state is `INIT`, transition to `JOIN` state.
+- Set `AUTHENTICATED_SELF` flag on Node connection
 
 ##### Respondor Validations/Procedure
 - Validate HMAC, if invalid, return `AUTH_FAILED` and disconnect node.  If the
   node is a configured node, move to `INIT` state otherwise delete node entry.
 - If Valid, return `OK`, and if ClusterID and LeaderAddress are known, send.
+  Set `AUTHENTICATED_PEER` flag on Node connection.
 
 
 ### Join
@@ -569,6 +578,34 @@ Response: `0x8A`
 - LogTerm: Term this record was committed in
 - LogID: The ID of the record
 - Data: any custom response data from the plugin
+
+##### Requestor Validations/Procedure
+
+##### Responder Validations/Procedure
+
+
+# Flows
+
+## Startup
+
+- Read Configuration
+- Create Node List from Configuration
+- Listen on Configured port for inbound connections
+- Trigger NodeConnection flow and set a timer to trigger the flow periodically
+  Random between (1-3s) to prevent nodes from establishing connections
+  simultaneously.
+
+## Node Connection
+
+- Cycle across all nodes in the INIT or ERROR state that don't have established
+  connections and start establishing a connection on each and wait for an
+  Outbound connection event.
+
+## Outbound Connection Established
+
+- Start authentication flow by sending AuthNonce
+
+## Inbound Connection Established
 
 
 
