@@ -175,13 +175,19 @@ int run(prag_t *prag)
 
 	for (size_t i = 0; i < prag->num_to_generate; i++) {
 		M_email_t *e   = generate_email(i, prag->to_address);
-		M_net_smtp_queue_smtp(sp, e);
+		if (!M_net_smtp_queue_smtp(sp, e)) {
+			M_printf("M_net_smtp_queue_smtp(): Error\n");
+			goto done;
+		}
 		M_email_destroy(e);
 	}
 
-	M_net_smtp_resume(sp);
+	if (!M_net_smtp_resume(sp)) {
+		M_printf("M_net_smtp_resume(): Error");
+		goto done;
+	}
 
-	M_event_loop(args->el, M_TIMEOUT_INF);
+	M_event_loop(prag->el, M_TIMEOUT_INF);
 
 done:
 	M_net_smtp_destroy(sp);
@@ -240,7 +246,6 @@ M_bool getopt_nonopt_cb(size_t idx, const char *option, void *thunk)
 	prag_t         *prag          = thunk;
 
 	option_len = M_str_len(option);
-	M_printf("json: %s\n", option);
 	json = M_json_read(option, option_len, M_JSON_READER_NONE, &processed_len, &error, &error_line, &error_pos);
 	if (json == NULL) {
 		M_snprintf(prag->errmsg, sizeof(prag->errmsg), "%s:%d: M_json_read(%s): %s @(%zu,%zu)", __FILE__, __LINE__, option, M_json_errcode_to_str(error), error_line, error_pos);
