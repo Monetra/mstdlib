@@ -53,6 +53,13 @@ which can fail (For instance, CompareAndSet may fail if the required value
 doesn't match the current value).  If the validation by the plugin fails, the
 entire request is rejected and no replication attempt is made.
 
+One action might seem unnecessary, ReadKey, but if you need to guarantee you
+are reading fresh data, it may be necessary to route this to the Leader rather
+than reading potentially very stale cache from the current node.  Some plugins
+may still choose to have a stale read capability, but should at least do some
+due diligence on the cluster state (such as is the node still actively
+connected to a leader).
+
 The plugin may also choose to rewrite the log entry. For instance, the other
 nodes have no need to perform an action on ReadKey, so a NoOp log entry might be
 output instead.  A NoOp entry is still replicated to provide consistency
@@ -129,11 +136,6 @@ it in its entirety from the new leader.
   - ERROR:    Node is in an error state (e.g. maximum latency, non-leader
               sending log entries), evicted from cluster.  Still counts toward
               quorum as it is expected to reconnect and re-sync.
-  - FINISH:   Node is in the process of detaching from the cluster
-              (e.g. reboot).  For tracking connected peers, once this step is
-              finished (peer is disconnected), if the node exists in
-              the global system configuration, it will go into the INIT state,
-              otherwise will be removed from the server list completely.
 - currentTerm   - u64  - Current node term, 0 if not set.  This may be
                          greater than the newest Log entry's term during
                          elections.
@@ -199,9 +201,11 @@ The list of servers maintained in the node state contains these data elements:
 
 Requests and responses share the same basic message format.  Numeric values are
 sent in Big Endian (Network Byte Order):
-`[MagicValue 4B][Version 1B][RequestType 2B][Code 2B][Length 4B][PayLoad ...length]`
+`[MagicValue 4B][Version 1B][Sequence 8B][RequestType 2B][Code 2B][Length 4B][PayLoad ...length]`
 - MagicValue: `MCLU`
 - Version: `0x1`
+- Sequence: Incremental sequence number for each peer to peer request to match
+  requests to responses.
 - RequestType: 16bit Big Endian integer representing the Request Type or
   Response Type as defined in the Request Types section.
 - Code: Always 0 on requests, otherwise a Response Code
@@ -372,14 +376,20 @@ Can return one of these codes:
 
 ##### Respondor Validations/Procedure
 - On bad parse, disconnect
-- If Term and LogID can be played from current log entries, return `OK` and then
-  send AppendEntries containing all missing log entries.
-- If Term and LogID are 0, then serialize data and send (possibly chunked), use
-  `MORE_DATA` return code if chunked, except on last block which will return
-  `OK`.  Send AppendEntries for **all** logs on Leader.
 - If Term > currentTerm, return `OUT_OF_SYNC`
 - If LogID < oldest log, return `INSUFFICIENT_LOGS`
 - If Log[LogID].Term != Term, return `OUT_OF_SYNC`
+- If LogTerm and LogID can be played from current log entries, this is `OK`
+- If LogTerm and LogID are 0, then serialize data and send (possibly chunked),
+  use `MORE_DATA` return code if chunked, except on last block which will return
+  `OK`.
+- If returning `OK`, send AppendEntries with AddNode to the other nodes and wait
+  for quorum before sending response to client (if we don't get quorum then we
+  must no longer be the leader and will return `NOT_LEADER`).
+- If LogTerm and LogID are non-zero, send the gap in the logs to the node via
+  AppendEntries, otherwise send **all** logs and node will store those logs for
+  future syncing.
+
 
 ### HeartBeat
 
@@ -461,15 +471,47 @@ No Payload. Can return one of these codes:
   our recorded log id, return `TOO_OLD`
 - if packet currentTerm is less than our Node's current term, return
   `ALREADY_VOTED`
-- Otherwise set our currentTerm to the one received and return `OK`
+- Otherwise set our currentTerm to the one received and return `OK`, but do
+  NOT set a new leader, wait for an `AppendEntries` with >= currentTerm to
+  set the new leader.
+
+
+### Finish
+
+This request will be sent from a node performing a graceful shutdown to the
+Leader to detach from the cluster.  The effect of detaching from the cluster
+will reduce the total number of nodes participating in Quorum.
+
+RequestType: `0x06`
+Response: `0x86`
+
+#### Request Format
+There is no request format.
+
+#### Response Format
+There is no response format.
+Can return one of these codes:
+- `OK`
+- `NOT_LEADER`
+
+##### Requestor Validations/Procedure
+- Continue replying to all messages until an `OK` is returned, do not change
+  own state.
+- If receive `NOT_LEADER`, wait until a new leader is advertised, and retry.
+- If receive `OK`, terminate all connections to peers and clean up
+
+##### Responder Validations/Procedure
+- If not leader, return `NOT_LEADER`
+- Send `AppendEntries` with `RemoveNode` to all `Followers`, wait on Quorum,
+  then return `OK`.  If `Quorum` not acheived, return `NOT_LEADER`
 
 
 ### AppendEntries
 
 Append a log entry to all follower nodes.  Only performed by the Leader.
 
-RequestType: `0x06`
-Response: `0x86`
+RequestType: `0x07`
+Response: `0x87`
 
 #### Request Format
 `[Cnt 4B]...[LogTerm 8B][LogID 8B][Type 2B][Len 4B][Data]...` (repeats for each entry)
@@ -490,8 +532,43 @@ No response. Can return one of these codes:
 - `ONLY_FROM_LEADER`
 - `CANT_APPLY`
 
+##### Requestor Validations/Procedure
+- Triggered based on a new node coming online, an old node gracefully
+  terminating, a new Term, or a new client request to be replicated.
+
+##### Responder Validations/Procedure
+- If `Type` is not `NewTerm` and request didn't come from the current
+  Leader, return `ONLY_FROM_LEADER`.
+- If `Type` is `NewTerm` and `LogTerm` is less than `currentTerm`, or `LogID`
+  less than the last known log id return `CANT_APPLY` and disconnect from
+  cluster and reconnect.
+- Process each log entry sequentially, they are in increasing order if there
+  are more than one, and update internal log and term counters.  If the
+  plugin callback fails, return `CANT_APPLY`, then disconnect from the cluster
+  as this is a critical failure, and reconnect.
+
+
 ### ClientRequest
+
+This is a request from a client to the Leader node.  The request will come over
+a channel from a Follower, or directly initiated if the requesting node is the
+Leader.  Client requests will not receive a successful response until quorum is
+reached on the AppendEntries relayed from the Leader to the followers, or an
+error has occurred.
 
 RequestType: `0x0A`
 Response: `0x8A`
+
+#### Request Format
+
+`[Len 4B][Data]`
+- Data: The payload for the plugin to process
+
+#### Response Format
+`[LogTerm 8B][LogID 8B][Len 4B][Data]`
+- LogTerm: Term this record was committed in
+- LogID: The ID of the record
+- Data: any custom response data from the plugin
+
+
 
