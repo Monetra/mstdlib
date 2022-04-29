@@ -126,7 +126,8 @@ static void process_trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_
 
 typedef enum {
 	TEST_CASE_ECHO    = 1,
-	TEST_CASE_TIMEOUT = 2
+	TEST_CASE_TIMEOUT = 2,
+	TEST_CASE_CAT     = 3,
 } process_test_cases_t;
 
 static M_bool process_test(process_test_cases_t test_case)
@@ -139,6 +140,15 @@ static M_bool process_test(process_test_cases_t test_case)
 	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
 
 	switch (test_case) {
+		case TEST_CASE_CAT:
+#ifdef _WIN32
+			command = "cmd.exe";
+			M_list_str_insert(args, "/c");
+			M_list_str_insert(args, "type");
+#else
+			command = "cat";
+#endif
+			break;
 		case TEST_CASE_ECHO:
 #ifdef _WIN32
 			command = "cmd.exe";
@@ -195,6 +205,21 @@ static M_bool process_test(process_test_cases_t test_case)
 		return M_FALSE;
 	}
 
+	if (test_case == TEST_CASE_CAT) {
+		size_t       written;
+		M_io_error_t io_error;
+		const char * str = "hello world!";
+		io_error = M_io_write(proc_stdin, (const unsigned char*)str, 13, &written);
+		if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
+			event_debug("failed to write to stdin");
+			return M_FALSE;
+		}
+		if (!M_io_close(proc_stdin)) {
+			event_debug("failed to close stdin");
+			return M_FALSE;
+		}
+	}
+
 	event_debug("entering loop");
 	if (M_event_loop(event, 5000) != M_EVENT_ERR_DONE) {
 		event_debug("event loop did not return done");
@@ -223,6 +248,12 @@ START_TEST(check_process_timeout)
 }
 END_TEST
 
+START_TEST(check_process_cat)
+{
+	ck_assert(process_test(TEST_CASE_CAT));
+}
+END_TEST
+
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -236,6 +267,7 @@ static Suite *process_suite(void)
 	tc = tcase_create("process");
 	tcase_add_test(tc, check_process_echo);
 	tcase_add_test(tc, check_process_timeout);
+	tcase_add_test(tc, check_process_cat);
 	suite_add_tcase(suite, tc);
 
 
