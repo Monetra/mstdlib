@@ -8,7 +8,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -70,6 +70,17 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_CONNECTED:
 			if (M_str_caseeq(name, "process")) {
 				event_debug("process %p %s created with pid %d", io, name, M_io_process_get_pid(io));
+			}
+			if (M_str_caseeq(name, "stdin(cat)")) {
+				size_t       written;
+				M_io_error_t io_error;
+				const char   str[] = "hello world!";
+				io_error = M_io_write(io, (const unsigned char *)str, sizeof(str), &written);
+				if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
+					event_debug("failed to write to stdin");
+					return;
+				}
+				M_io_disconnect(io);
 			}
 			break;
 		case M_EVENT_TYPE_READ:
@@ -173,7 +184,7 @@ static M_bool process_test(process_test_cases_t test_case)
 			break;
 	}
 
-	event_debug("starting process test case %d", test_case);
+	event_debug("**** starting process test case %d", test_case);
 	proc_stdin  = NULL;
 	proc_stdout = NULL;
 	proc_stderr = NULL;
@@ -192,7 +203,7 @@ static M_bool process_test(process_test_cases_t test_case)
 		event_debug("failed to add process io handle");
 		return M_FALSE;
 	}
-	if (!M_event_add(event, proc_stdin, process_cb, (void *)"stdin")) {
+	if (!M_event_add(event, proc_stdin, process_cb, (void *)((test_case == TEST_CASE_CAT)?"stdin(cat)":"stdin"))) {
 		event_debug("failed to add stdin io handle");
 		return M_FALSE;
 	}
