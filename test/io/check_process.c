@@ -8,6 +8,40 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+typedef enum {
+	TEST_CASE_ECHO    = 0,
+	TEST_CASE_TIMEOUT = 1,
+	TEST_CASE_CAT     = 2,
+} process_test_cases_t;
+
+static const char * const process_test_names[] = { "echo", "timeout", "cat" };
+
+typedef struct {
+	process_test_cases_t test;
+	M_io_t              *io_stdin;
+	M_io_t              *io_stdout;
+	M_io_t              *io_stderr;
+	M_io_t              *io_proc;
+} process_state_t;
+
+static const char *process_name(process_test_cases_t test)
+{
+	return process_test_names[test];
+}
+
+static const char *process_io_name(const process_state_t *state, const M_io_t *io)
+{
+	if (io == state->io_stdin)
+		return "stdin";
+	if (io == state->io_stdout)
+		return "stdout";
+	if (io == state->io_stderr)
+		return "stderr";
+	if (io == state->io_proc)
+		return "process";
+	return "unknown";
+}
+
 #define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
@@ -53,25 +87,23 @@ static const char *event_type_str(M_event_type_t type)
 	return "UNKNOWN";
 }
 
-/* We need proc_stdin as global as we cannot rely on receiving a disconnect event
- * when the process exits.  So we should close this endpoint when the process exits */
-static M_io_t            *proc_stdin  = NULL;
+
+
 
 static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *data)
 {
-	char          error[256];
-	M_buf_t      *buf;
-	const char   *name = data;
-	(void)event;
-	(void)data;
+	char             error[256];
+	M_buf_t         *buf;
+	process_state_t *state = data;
 
-	event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
+	(void)event;
+
+	event_debug("process %p %s %s event %s triggered", io, process_name(state->test), process_io_name(state, io), event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
-			if (M_str_caseeq(name, "process")) {
-				event_debug("process %p %s created with pid %d", io, name, M_io_process_get_pid(io));
-			}
-			if (M_str_caseeq(name, "stdin(cat)")) {
+			event_debug("process %p %s %s created with pid %d", io, process_name(state->test), process_io_name(state, io), M_io_process_get_pid(io));
+
+			if (state->test == TEST_CASE_CAT && io == state->io_stdin) {
 				size_t       written;
 				M_io_error_t io_error;
 				const char   str[] = "hello world!";
@@ -86,7 +118,7 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_READ:
 			buf = M_buf_create();
 			M_io_read_into_buf(io, buf);
-			event_debug("process %p %s read %zu bytes", io, name, M_buf_len(buf));
+			event_debug("process %p %s %s read %zu bytes", io, process_name(state->test), process_io_name(state, io), M_buf_len(buf));
 			M_buf_cancel(buf);
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -94,21 +126,30 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
 			M_io_get_error_string(io, error, sizeof(error));
-			if (M_str_caseeq(name, "process")) {
+
+			if (io == state->io_proc) {
 				int return_code = 0;
 				M_io_process_get_result_code(io, &return_code);
-				event_debug("process %p %s ended with return code (%d), cleaning up: %s", io, name, return_code, error);
-				if (proc_stdin)
-					M_io_destroy(proc_stdin);
-				proc_stdin = NULL;
-			} else {
-				event_debug("process %p %s ended, cleaning up: %s", io, name, error);
-				/* On Linux/Mac we will be notified of stdin being disconnected, so mark as cleaned up already */
-				if (io == proc_stdin)
-					proc_stdin = NULL;
-			}
-			M_io_destroy(io);
+				event_debug("process %p %s %s ended with return code (%d), cleaning up: %s", io, process_name(state->test), process_io_name(state, io), return_code, error);
+				M_io_destroy(io);
 
+				/* Forcibly close stdin */
+				if (state->io_stdin)
+					M_io_destroy(state->io_stdin);
+				state->io_stdin = NULL;
+				break;
+			}
+
+
+			event_debug("process %p %s %s closed, cleaning up: %s", io, process_name(state->test), process_io_name(state, io), error);
+			/* On Linux/Mac we will be notified of stdin being disconnected, so mark as cleaned up already */
+			if (io == state->io_stdin)
+				state->io_stdin = NULL;
+			if (io == state->io_stdout)
+				state->io_stdout = NULL;
+			if (io == state->io_stderr)
+				state->io_stderr = NULL;
+			M_io_destroy(io);
 			break;
 		default:
 			/* Ignore */
@@ -135,20 +176,14 @@ static void process_trace_cb(void *cb_arg, M_io_trace_type_t type, M_event_type_
 	M_free(temp);
 }
 
-typedef enum {
-	TEST_CASE_ECHO    = 1,
-	TEST_CASE_TIMEOUT = 2,
-	TEST_CASE_CAT     = 3,
-} process_test_cases_t;
+
 
 static M_bool process_test(process_test_cases_t test_case)
 {
 	M_event_t         *event   = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
-	M_io_t            *proc        = NULL;
-	M_io_t            *proc_stdout = NULL;
-	M_io_t            *proc_stderr = NULL;
 	const char        *command;
 	M_list_str_t      *args    = M_list_str_create(M_LIST_STR_NONE);
+	process_state_t    state;
 
 	switch (test_case) {
 		case TEST_CASE_CAT:
@@ -184,34 +219,33 @@ static M_bool process_test(process_test_cases_t test_case)
 			break;
 	}
 
-	event_debug("**** starting process test case %d", test_case);
-	proc_stdin  = NULL;
-	proc_stdout = NULL;
-	proc_stderr = NULL;
-	if (M_io_process_create(command, args, NULL, 2000, &proc, &proc_stdin, &proc_stdout, &proc_stderr) != M_IO_ERROR_SUCCESS) {
+	event_debug("**** starting process test case %d: %s", test_case, process_name(test_case));
+	M_mem_set(&state, 0, sizeof(state));
+	state.test = test_case;
+	if (M_io_process_create(command, args, NULL, 2000, &state.io_proc, &state.io_stdin, &state.io_stdout, &state.io_stderr) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create process %s", command);
 		return M_FALSE;
 	}
 	M_list_str_destroy(args);
 
-	M_io_add_trace(proc,        NULL, process_trace_cb, (void *)"process", NULL, NULL);
-	M_io_add_trace(proc_stdin,  NULL, process_trace_cb, (void *)"stdin",   NULL, NULL);
-	M_io_add_trace(proc_stdout, NULL, process_trace_cb, (void *)"stdout",  NULL, NULL);
-	M_io_add_trace(proc_stderr, NULL, process_trace_cb, (void *)"stderr",  NULL, NULL);
+	M_io_add_trace(state.io_proc,   NULL, process_trace_cb, (void *)"process", NULL, NULL);
+	M_io_add_trace(state.io_stdin,  NULL, process_trace_cb, (void *)"stdin",   NULL, NULL);
+	M_io_add_trace(state.io_stdout, NULL, process_trace_cb, (void *)"stdout",  NULL, NULL);
+	M_io_add_trace(state.io_stderr, NULL, process_trace_cb, (void *)"stderr",  NULL, NULL);
 
-	if (!M_event_add(event, proc, process_cb, (void *)"process")) {
+	if (!M_event_add(event, state.io_proc, process_cb, &state)) {
 		event_debug("failed to add process io handle");
 		return M_FALSE;
 	}
-	if (!M_event_add(event, proc_stdin, process_cb, (void *)((test_case == TEST_CASE_CAT)?"stdin(cat)":"stdin"))) {
+	if (!M_event_add(event, state.io_stdin, process_cb, &state)) {
 		event_debug("failed to add stdin io handle");
 		return M_FALSE;
 	}
-	if (!M_event_add(event, proc_stdout, process_cb, (void *)"stdout")) {
+	if (!M_event_add(event, state.io_stdout, process_cb, &state)) {
 		event_debug("failed to add stdout io handle");
 		return M_FALSE;
 	}
-	if (!M_event_add(event, proc_stderr, process_cb, (void *)"stderr")) {
+	if (!M_event_add(event, state.io_stderr, process_cb, &state)) {
 		event_debug("failed to add stderr io handle");
 		return M_FALSE;
 	}
