@@ -37,6 +37,13 @@ typedef struct {
 	M_io_t            *event_io;
 	M_bool             is_alive;
 	M_net_smtp_t      *sp;
+	const void        *endpoint;
+	M_bool             is_failure;
+	int                result_code;
+	char               proc_stdout[128];
+	size_t             proc_stdout_len;
+	char               proc_stderror[128];
+	size_t             proc_stderror_len;
 
 	/* Only used for proc endpoints */
 	M_io_t            *io_stdin;

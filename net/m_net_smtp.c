@@ -243,6 +243,8 @@ static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, vo
 			epm = M_list_take_first(sp->endpoint_managers);
 			M_free(epm);
 		}
+		sp->status = M_NET_SMTP_STATUS_STOPPED;
+		sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
 		M_event_done(event);
 	}
 }
@@ -256,6 +258,16 @@ static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 	M_state_machine_run(slot->state_machine, slot);
 	if (slot->is_alive == M_FALSE) {
 		/* died on this event */
+		if (slot->is_failure) {
+			M_printf("FAILURE!\n");
+			slot->sp->cbs.process_fail_cb(
+				((proc_endpoint_t*)slot->endpoint)->command,
+				slot->result_code,
+				slot->proc_stdout,
+				slot->proc_stderror,
+				slot->sp->thunk
+			);
+		}
 		M_event_queue_task(el, reap_endpoints, slot->sp);
 	}
 }
@@ -281,6 +293,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		M_event_add(sp->el, slot->io_stdin, io_callback, slot);
 		M_event_add(sp->el, slot->io_stdout, io_callback, slot);
 		M_event_add(sp->el, slot->io_stderr, io_callback, slot);
+		slot->endpoint = proc_ep;
 	} else {
 		/* tcp_ip != NULL */
 		M_io_net_client_create(
@@ -292,6 +305,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		);
 		slot->state_machine = smtp_flow_tcp();
 		M_event_add(sp->el, slot->io, io_callback, slot);
+		slot->endpoint = tcp_ep;
 	}
 }
 
@@ -395,8 +409,15 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 	const tcp_endpoint_t  *tcp_ep   = NULL;
 	endpoint_manager_t    *epm      = NULL;
 
-	if (sp == NULL || sp->status != M_NET_SMTP_STATUS_STOPPED)
+	if (sp == NULL)
 		return M_FALSE;
+
+	if (sp->status != M_NET_SMTP_STATUS_STOPPED) {
+		if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
+			sp->cbs.processing_halted_cb(M_TRUE, sp->thunk);
+		}
+		return M_FALSE;
+	}
 
 	proc_ep = M_list_at(sp->proc_endpoints, proc_i);
 	tcp_ep = M_list_at(sp->tcp_endpoints, tcp_i);

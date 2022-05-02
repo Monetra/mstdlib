@@ -128,23 +128,50 @@ static void destroy_io(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 	}
 }
 
+static void read(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
+{
+	char            *buf       = NULL;
+	size_t           remaining = 0;
+	size_t           len       = 0;
+
+	if (io_type == IO_STDERR) {
+		buf = &slot->proc_stderror[slot->proc_stderror_len];
+		remaining = sizeof(slot->proc_stderror) - slot->proc_stderror_len;
+	} else if (io_type == IO_STDOUT) {
+		buf = &slot->proc_stdout[slot->proc_stdout_len];
+		remaining = sizeof(slot->proc_stdout) - slot->proc_stdout_len;
+	} else {
+		/* Unhandled */
+		return;
+	}
+
+	M_io_read(io, buf, remaining - 1, &len);
+	buf[len] = '\0';
+
+	if (io_type == IO_STDERR) {
+		slot->proc_stderror_len += len;
+	} else if (io_type == IO_STDOUT) {
+		slot->proc_stdout_len += len;
+	}
+}
+
 static M_state_machine_status_t startup(void *data, M_uint64 *next)
 {
 	endpoint_slot_t *slot    = data;
 	io_types_t       io_type = which_io(slot);
 	M_io_t          *io      = slot->event_io;
-	unsigned char    buf[256];
-	size_t           len;
 	(void)next;
 
 	switch(slot->event_type) {
 		case M_EVENT_TYPE_READ:
-			M_io_read(io, buf, sizeof(buf) - 1, &len);
-			buf[len] = '\0';
-			M_printf("%s: %s\n", io_type_str(io_type), buf);
+			read(slot, io_type, io);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			M_printf("Disconnected: %s\n", io_type_str(io_type));
+			slot->is_failure = M_TRUE; /* Disconnect should happen in WRITE_DONE */
+			if (io_type == IO_PROC) {
+				M_io_process_get_result_code(io, &slot->result_code);
+			}
 			destroy_io(slot, io_type, io);
 			break;
 		default:
