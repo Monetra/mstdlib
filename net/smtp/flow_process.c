@@ -145,7 +145,7 @@ static void read(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 		return;
 	}
 
-	M_io_read(io, buf, remaining - 1, &len);
+	M_io_read(io, (unsigned char *)buf, remaining - 1, &len);
 	buf[len] = '\0';
 
 	if (io_type == IO_STDERR) {

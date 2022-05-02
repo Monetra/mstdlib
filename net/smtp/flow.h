@@ -28,7 +28,13 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_net.h>
 
+typedef enum {
+	PROCESS_ENDPOINT = 1,
+	TCP_ENDPOINT,
+} endpoint_type_t;
+
 typedef struct {
+	endpoint_type_t    endpoint_type;
 	M_io_t            *io;
 	M_state_machine_t *state_machine;
 	char              *msg;
@@ -38,8 +44,10 @@ typedef struct {
 	M_bool             is_alive;
 	M_net_smtp_t      *sp;
 	const void        *endpoint;
+	size_t             number_of_tries;
 	M_bool             is_failure;
 	int                result_code;
+	char               errmsg[128];
 	char               proc_stdout[128];
 	size_t             proc_stdout_len;
 	char               proc_stderror[128];

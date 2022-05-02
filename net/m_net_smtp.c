@@ -36,6 +36,7 @@ struct M_net_smtp {
 	size_t                             number_of_endpoints;
 	M_list_t                          *endpoint_managers;
 	M_net_smtp_status_t                status;
+	size_t                             retry_default_ms;
 	M_dns_t                           *tcp_dns;
 	M_tls_clientctx_t                 *tcp_tls_ctx;
 	M_uint64                           tcp_connect_ms;
@@ -50,6 +51,12 @@ struct M_net_smtp {
 	M_bool                             is_external_queue_pending;
 	char *                           (*external_queue_get_cb)(void);
 };
+
+typedef struct {
+	char         *msg;
+	size_t        number_of_tries;
+	M_net_smtp_t *sp;
+} reschedule_event_t;
 
 typedef struct {
 	size_t                 idx;
@@ -156,6 +163,8 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->thunk = thunk;
 	sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
 
+	sp->retry_default_ms = 300000; /* 5 min */
+
 	sp->proc_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->tcp_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
@@ -249,6 +258,36 @@ static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, vo
 	}
 }
 
+static void reschedule_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)io;
+	(void)etype;
+	reschedule_event_t retry_event;
+	M_mem_move(&retry_event, thunk, sizeof(retry_event));
+	M_free(thunk);
+}
+
+static void reschedule(M_event_t *el, endpoint_slot_t *slot)
+{
+	reschedule_event_t *retry_event = NULL;
+	M_hash_dict_t      *headers     = NULL;
+	M_bool              can_requeue = M_TRUE;
+
+	if (slot->number_of_tries >= slot->sp->number_of_attempts) {
+		can_requeue = M_FALSE;
+	}
+	if (slot->sp->cbs.send_failed_cb(headers, slot->errmsg, slot->number_of_tries, can_requeue, slot->sp->thunk) &&
+			can_requeue) {
+		retry_event = M_malloc_zero(sizeof(*retry_event));
+		retry_event->sp = slot->sp;
+		retry_event->msg = slot->msg;
+		retry_event->number_of_tries = slot->number_of_tries;
+		M_event_timer_oneshot(el, slot->sp->retry_default_ms, M_TRUE, reschedule_cb, retry_event);
+	}
+	slot->msg = NULL;
+}
+
 static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	endpoint_slot_t *slot = thunk;
@@ -259,14 +298,21 @@ static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 	if (slot->is_alive == M_FALSE) {
 		/* died on this event */
 		if (slot->is_failure) {
-			M_printf("FAILURE!\n");
-			slot->sp->cbs.process_fail_cb(
-				((proc_endpoint_t*)slot->endpoint)->command,
-				slot->result_code,
-				slot->proc_stdout,
-				slot->proc_stderror,
-				slot->sp->thunk
-			);
+			if (slot->endpoint_type == PROCESS_ENDPOINT) {
+				slot->sp->cbs.process_fail_cb(
+					((proc_endpoint_t*)slot->endpoint)->command,
+					slot->result_code,
+					slot->proc_stdout,
+					slot->proc_stderror,
+					slot->sp->thunk
+				);
+				M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "Process failure.");
+			}
+			slot->number_of_tries++;
+			reschedule(el, slot);
+		} else {
+			M_free(slot->msg);
+			slot->msg = NULL;
 		}
 		M_event_queue_task(el, reap_endpoints, slot->sp);
 	}
@@ -278,6 +324,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 	slot->sp = sp;
 	M_printf("bootstrap_slot()\n");
 	if (proc_ep != NULL) {
+		slot->endpoint_type = PROCESS_ENDPOINT;
 		M_io_process_create(
 			proc_ep->command,
 			proc_ep->args,
@@ -296,6 +343,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		slot->endpoint = proc_ep;
 	} else {
 		/* tcp_ip != NULL */
+		slot->endpoint_type = TCP_ENDPOINT;
 		M_io_net_client_create(
 			&slot->io,
 			sp->tcp_dns,
@@ -309,7 +357,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 	}
 }
 
-static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_epm, char *msg)
+static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_epm, char *msg, size_t num_tries)
 {
 	endpoint_manager_t *epm  = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
 	endpoint_slot_t    *slot = NULL;
@@ -317,6 +365,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_e
 		slot = &epm->slots[i];
 		if (slot->msg == NULL) {
 			slot->msg = msg;
+			slot->number_of_tries = num_tries;
 			if (slot->io == NULL) {
 				bootstrap_slot(sp, epm->proc_endpoint, epm->tcp_endpoint, slot);
 				slot->is_alive = M_TRUE;
@@ -328,33 +377,33 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_e
 	}
 }
 
-static void slate_msg_failover(M_net_smtp_t *sp, char *msg)
+static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries)
 {
 	const endpoint_manager_t *epm = NULL;
 	for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
 		epm = M_list_at(sp->endpoint_managers, i);
 		if (epm->slot_available > 0) {
-			slate_msg_insert(sp, epm, msg);
+			slate_msg_insert(sp, epm, msg, num_tries);
 		}
 	}
 }
 
-static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg)
+static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries)
 {
 	const endpoint_manager_t *epm = NULL;
 	epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
-	slate_msg_insert(sp, epm, msg);
+	slate_msg_insert(sp, epm, msg, num_tries);
 	sp->round_robin_idx = (sp->round_robin_idx + 1) % sp->number_of_endpoints;
 }
 
-static void slate_msg(M_net_smtp_t *sp, char *msg)
+static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 {
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
-			slate_msg_failover(sp, msg);
+			slate_msg_failover(sp, msg, num_tries);
 			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
-			slate_msg_round_robin(sp, msg);
+			slate_msg_round_robin(sp, msg, num_tries);
 			break;
 	}
 	return;
@@ -374,7 +423,7 @@ static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t
 		msg = M_list_str_take_first(sp->internal_queue);
 		if (msg == NULL)
 			return;
-		slate_msg(sp, msg);
+		slate_msg(sp, msg, 0);
 		sp->number_of_processing_messages++;
 	}
 }
@@ -394,7 +443,7 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 		if (msg == NULL)
 			return;
 
-		slate_msg(sp, msg);
+		slate_msg(sp, msg, 0);
 		sp->number_of_processing_messages++;
 	}
 }
