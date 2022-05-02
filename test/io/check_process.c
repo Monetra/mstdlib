@@ -68,11 +68,7 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 	(void)event;
 	(void)data;
 
-	if (io != NULL) {
-		event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
-	} else {
-		event_debug("process %p event %s triggered (cat-delay)", io, event_type_str(type));
-	}
+	event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			if (M_str_caseeq(name, "process")) {
@@ -233,7 +229,7 @@ static M_bool process_test(process_test_cases_t test_case)
 
 	event_debug("entering loop");
 	if (test_case == TEST_CASE_CAT) {
-		M_event_timer_oneshot(event, 1000, M_TRUE, process_cb, proc_stdin);
+		M_event_timer_oneshot(event, 1000, M_TRUE, process_cb, (void*)"stdin(cat)");
 	}
 	if (M_event_loop(event, 5000) != M_EVENT_ERR_DONE) {
 		event_debug("event loop did not return done");
