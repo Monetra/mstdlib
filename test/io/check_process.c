@@ -57,6 +57,9 @@ static const char *event_type_str(M_event_type_t type)
  * when the process exits.  So we should close this endpoint when the process exits */
 static M_io_t            *proc_stdin  = NULL;
 
+/* Flags an error when trying to write to cat */
+static M_bool             delay_cat_error_flag = M_FALSE;
+
 static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *data)
 {
 	char          error[256];
@@ -65,22 +68,15 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 	(void)event;
 	(void)data;
 
-	event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
+	if (io != NULL) {
+		event_debug("process %p %s event %s triggered", io, name, event_type_str(type));
+	} else {
+		event_debug("process %p event %s triggered (cat-delay)", io, event_type_str(type));
+	}
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			if (M_str_caseeq(name, "process")) {
 				event_debug("process %p %s created with pid %d", io, name, M_io_process_get_pid(io));
-			}
-			if (M_str_caseeq(name, "stdin(cat)")) {
-				size_t       written;
-				M_io_error_t io_error;
-				const char   str[] = "hello world!";
-				io_error = M_io_write(io, (const unsigned char *)str, sizeof(str), &written);
-				if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
-					event_debug("failed to write to stdin");
-					return;
-				}
-				M_io_disconnect(io);
 			}
 			break;
 		case M_EVENT_TYPE_READ:
@@ -90,6 +86,25 @@ static void process_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *
 			M_buf_cancel(buf);
 			break;
 		case M_EVENT_TYPE_WRITE:
+			break;
+		case M_EVENT_TYPE_OTHER:
+			if (proc_stdin != NULL) {
+				size_t       written;
+				M_io_error_t io_error;
+				const char   str[] = "hello world!";
+				io = proc_stdin;
+				event_debug("(delay-cat) about to write");
+				io_error = M_io_write(io, (const unsigned char *)str, sizeof(str), &written);
+				event_debug("(delay-cat) write done");
+				if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
+					event_debug("failed to write to stdin");
+					return;
+				}
+				M_io_disconnect(io);
+			} else {
+				event_debug("Attempt to write to stdin, but it has been closed!");
+				delay_cat_error_flag = M_TRUE;
+			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
@@ -216,27 +231,19 @@ static M_bool process_test(process_test_cases_t test_case)
 		return M_FALSE;
 	}
 
-	if (test_case == TEST_CASE_CAT) {
-		size_t       written;
-		M_io_error_t io_error;
-		const char * str = "hello world!";
-		io_error = M_io_write(proc_stdin, (const unsigned char*)str, 13, &written);
-		if (io_error != M_IO_ERROR_SUCCESS || written == 0) {
-			event_debug("failed to write to stdin");
-			return M_FALSE;
-		}
-		if (!M_io_close(proc_stdin)) {
-			event_debug("failed to close stdin");
-			return M_FALSE;
-		}
-	}
-
 	event_debug("entering loop");
+	if (test_case == TEST_CASE_CAT) {
+		M_event_timer_oneshot(event, 1000, M_TRUE, process_cb, proc_stdin);
+	}
 	if (M_event_loop(event, 5000) != M_EVENT_ERR_DONE) {
 		event_debug("event loop did not return done");
 		return M_FALSE;
 	}
 	event_debug("loop ended");
+
+	if (delay_cat_error_flag) {
+		return M_FALSE;
+	}
 
 	/* Cleanup */
 	M_event_destroy(event);
