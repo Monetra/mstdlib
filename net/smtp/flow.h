@@ -35,17 +35,21 @@ typedef enum {
 
 typedef struct {
 	endpoint_type_t    endpoint_type;
+	M_bool             is_io_connected;
 	M_io_t            *io;
 	M_state_machine_t *state_machine;
 	char              *msg;
+	size_t             msg_pos;
+	size_t             msg_len;
 	M_event_t         *event;
 	M_event_type_t     event_type;
 	M_io_t            *event_io;
 	M_bool             is_alive;
 	M_net_smtp_t      *sp;
-	const void        *endpoint;
+	const void        *endpoint_manager;
 	size_t             number_of_tries;
 	M_bool             is_failure;
+	M_bool             is_queue_task;
 	int                result_code;
 	char               errmsg[128];
 	char               proc_stdout[128];
@@ -54,6 +58,9 @@ typedef struct {
 	size_t             proc_stderror_len;
 
 	/* Only used for proc endpoints */
+	M_bool             is_io_stdin_connected;
+	M_bool             is_io_stdout_connected;
+	M_bool             is_io_stderr_connected;
 	M_io_t            *io_stdin;
 	M_io_t            *io_stdout;
 	M_io_t            *io_stderr;

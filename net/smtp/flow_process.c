@@ -25,18 +25,43 @@
 
 typedef enum {
 	STARTUP = 1,
-	IDLE,
 	WRITING,
 	WRITE_DONE,
-	ERROR,
 } state_ids;
 
 typedef enum {
 	IO_PROC,
 	IO_STDOUT,
 	IO_STDIN,
-	IO_STDERR
+	IO_STDERR,
+	IO_NULL,
 } io_types_t;
+
+static M_bool connect_io(endpoint_slot_t *slot, io_types_t io_type)
+{
+	switch (io_type) {
+		case IO_PROC:
+			slot->is_io_connected = M_TRUE;
+			break;
+		case IO_STDOUT:
+			slot->is_io_stdout_connected = M_TRUE;
+			break;
+		case IO_STDIN:
+			slot->is_io_stdin_connected = M_TRUE;
+			break;
+		case IO_STDERR:
+			slot->is_io_stderr_connected = M_TRUE;
+			break;
+		case IO_NULL:
+			break;
+	}
+	return (
+		slot->is_io_connected        &&
+		slot->is_io_stderr_connected &&
+		slot->is_io_stdout_connected &&
+		slot->is_io_stdin_connected
+	);
+}
 
 static io_types_t which_io(endpoint_slot_t *slot)
 {
@@ -46,8 +71,10 @@ static io_types_t which_io(endpoint_slot_t *slot)
 		return IO_STDOUT;
 	if (slot->event_io == slot->io_stdin)
 		return IO_STDIN;
+	if (slot->event_io == slot->io_stderr)
+		return IO_STDERR;
 
-	return IO_STDERR;
+	return IO_NULL;
 }
 
 static const char *io_type_str(io_types_t io_type)
@@ -64,6 +91,9 @@ static const char *io_type_str(io_types_t io_type)
 			break;
 		case IO_STDERR:
 			return "IO_STDERR";
+			break;
+		case IO_NULL:
+			return "IO_NULL";
 			break;
 	}
 	return "";
@@ -106,24 +136,27 @@ static void destroy_io(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 {
 	switch (io_type) {
 		case IO_STDOUT:
+			slot->is_io_stdout_connected = M_FALSE;
 			slot->io_stdout = NULL;
 			break;
 		case IO_STDIN:
+			slot->is_io_stdin_connected = M_FALSE;
 			slot->io_stdin = NULL;
 			break;
 		case IO_STDERR:
+			slot->is_io_stderr_connected = M_FALSE;
 			slot->io_stderr = NULL;
 			break;
 		case IO_PROC:
+			slot->is_io_connected = M_FALSE;
 			slot->io = NULL;
+			break;
+		case IO_NULL:
 			break;
 	}
 	M_io_destroy(io);
 	if (slot->io == NULL && slot->io_stderr == NULL && slot->io_stdout == NULL && slot->io_stdin == NULL) {
-		if (slot->msg) {
-			M_free(slot->msg);
-			slot->msg = NULL;
-		}
+		M_printf("stdout: %s, stderr: %s\n", slot->proc_stdout, slot->proc_stderror);
 		slot->is_alive = M_FALSE;
 	}
 }
@@ -155,24 +188,44 @@ static void read(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 	}
 }
 
+static void terminate_with_failure(endpoint_slot_t *slot, M_io_t *io, io_types_t io_type, M_bool is_failure)
+{
+	if (is_failure) {
+		slot->is_failure = M_TRUE;
+		if (io_type == IO_PROC) {
+			M_io_process_get_result_code(io, &slot->result_code);
+		}
+	}
+	destroy_io(slot, io_type, io);
+}
+
 static M_state_machine_status_t startup(void *data, M_uint64 *next)
 {
 	endpoint_slot_t *slot    = data;
 	io_types_t       io_type = which_io(slot);
 	M_io_t          *io      = slot->event_io;
-	(void)next;
+
+	M_printf("startup()\n");
+	debug_print(slot);
 
 	switch(slot->event_type) {
 		case M_EVENT_TYPE_READ:
 			read(slot, io_type, io);
 			break;
-		case M_EVENT_TYPE_DISCONNECTED:
-			M_printf("Disconnected: %s\n", io_type_str(io_type));
-			slot->is_failure = M_TRUE; /* Disconnect should happen in WRITE_DONE */
-			if (io_type == IO_PROC) {
-				M_io_process_get_result_code(io, &slot->result_code);
+		case M_EVENT_TYPE_CONNECTED:
+			if (connect_io(slot, io_type)) {
+				*next = WRITING;
+				slot->msg_pos = 0;
+				slot->msg_len = M_str_len(slot->msg);
+				/* emulate queue task event */
+				slot->event_type = M_EVENT_TYPE_OTHER;
+				slot->event_io = NULL;
+				return M_STATE_MACHINE_STATUS_NEXT;
 			}
-			destroy_io(slot, io_type, io);
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+		case M_EVENT_TYPE_ERROR:
+			terminate_with_failure(slot, io, io_type, M_TRUE);
 			break;
 		default:
 			debug_print(slot);
@@ -181,38 +234,74 @@ static M_state_machine_status_t startup(void *data, M_uint64 *next)
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t idle(void *data, M_uint64 *next)
-{
-	endpoint_slot_t *slot = data;
-	(void)next;
-
-	M_printf("idle: ");
-	debug_print(slot);
-
-	//M_printf("%s:%d: %s(): { %p, %p, %s, %p, %p, %p }\n", __FILE__, __LINE__, __FUNCTION__, slot->io, slot->state_machine, slot->msg, slot->io_stdin, slot->io_stdout, slot->io_stderr);
-
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
 static M_state_machine_status_t writing(void *data, M_uint64 *next)
 {
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
+	endpoint_slot_t *slot       = data;
+	M_io_t          *io         = slot->event_io;
+	io_types_t       io_type    = which_io(slot);
+	size_t           remaining  = 0;
+	M_io_error_t     io_errcode = M_IO_ERROR_SUCCESS;
+	const char      *buf        = NULL;
+	size_t           len;
+
+	M_printf("writing(): is_queue_task %d: ", slot->is_queue_task);
+
+	switch(slot->event_type) {
+		case M_EVENT_TYPE_READ:
+			read(slot, io_type, io);
+			break;
+		case M_EVENT_TYPE_OTHER:
+			/* self triggered event */
+			buf = &slot->msg[slot->msg_pos];
+			remaining = slot->msg_len - slot->msg_pos;
+			io_errcode = M_io_write(slot->io_stdin, (const unsigned char*)buf, remaining, &len);
+			if (io_errcode != M_IO_ERROR_SUCCESS) {
+				M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "M_io_write: %s", M_io_error_string(io_errcode));
+				terminate_with_failure(slot, slot->io, IO_PROC, M_TRUE);
+				return M_STATE_MACHINE_STATUS_WAIT;
+			}
+			slot->msg_pos += len;
+			if (slot->msg_pos == slot->msg_len) {
+				*next = WRITE_DONE;
+				return M_STATE_MACHINE_STATUS_NEXT;
+			}
+			slot->is_queue_task = M_TRUE;
+			break;
+		default:
+			debug_print(slot);
+			terminate_with_failure(slot, io, io_type, M_TRUE);
+			break;
+	}
+
+	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
 static M_state_machine_status_t write_done(void *data, M_uint64 *next)
 {
-	(void)data;
+	endpoint_slot_t     *slot       = data;
+	M_io_t              *io         = slot->event_io;
+	io_types_t           io_type    = which_io(slot);
 	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
 
-static M_state_machine_status_t error(void *data, M_uint64 *next)
-{
-	(void)data;
-	(void)next;
-	return M_STATE_MACHINE_STATUS_NEXT;
+	M_printf("write_done(): is_queue_task %d: ", slot->is_queue_task);
+	debug_print(slot);
+
+	switch(slot->event_type) {
+		case M_EVENT_TYPE_READ:
+			read(slot, io_type, io);
+			break;
+		case M_EVENT_TYPE_OTHER:
+			terminate_with_failure(slot, slot->io_stdin, IO_STDIN, M_FALSE);
+			break;
+		default:
+			terminate_with_failure(slot, io, io_type, M_FALSE);
+			if (slot->io == NULL && slot->io_stderr == NULL && slot->io_stdout == NULL && slot->io_stdin == NULL) {
+				return M_STATE_MACHINE_STATUS_DONE;
+			}
+			break;
+	}
+
+	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
 M_state_machine_t * smtp_flow_process()
@@ -220,9 +309,7 @@ M_state_machine_t * smtp_flow_process()
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "SMTP-flow-process", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STARTUP, 0, NULL, startup, NULL, NULL);
-	M_state_machine_insert_state(m, IDLE, 0, NULL, idle, NULL, NULL);
 	M_state_machine_insert_state(m, WRITING, 0, NULL, writing, NULL, NULL);
 	M_state_machine_insert_state(m, WRITE_DONE, 0, NULL, write_done, NULL, NULL);
-	M_state_machine_insert_state(m, ERROR, 0, NULL, error, NULL, NULL);
 	return m;
 }

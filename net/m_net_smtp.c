@@ -83,6 +83,7 @@ typedef struct {
 	size_t                 slot_count;
 	size_t                 slot_available;
 	M_bool                 is_alive;
+	M_bool                 is_failure;
 	endpoint_slot_t        slots[];
 } endpoint_manager_t;
 
@@ -217,6 +218,7 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+#if 0
 static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
 	M_net_smtp_t             *sp        = cb_arg;
@@ -257,6 +259,7 @@ static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, vo
 		M_event_done(event);
 	}
 }
+#endif
 
 static void reschedule_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
@@ -288,6 +291,8 @@ static void reschedule(M_event_t *el, endpoint_slot_t *slot)
 	slot->msg = NULL;
 }
 
+static void process_queue_queue(M_net_smtp_t *sp); /* protoype for forward declartion */
+
 static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	endpoint_slot_t *slot = thunk;
@@ -295,12 +300,18 @@ static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 	slot->event_type = etype;
 	slot->event_io = io; /* for process it could be io_std{in,out,err} or io (proc) */
 	M_state_machine_run(slot->state_machine, slot);
+	if (slot->is_queue_task) {
+		M_event_queue_task(el, io_callback, thunk);
+		slot->is_queue_task = M_FALSE;
+	}
 	if (slot->is_alive == M_FALSE) {
+		endpoint_manager_t *epm = (endpoint_manager_t*)slot->endpoint_manager;
 		/* died on this event */
 		if (slot->is_failure) {
+			epm->is_failure = M_TRUE; /* mark endpoint as failure */
 			if (slot->endpoint_type == PROCESS_ENDPOINT) {
 				slot->sp->cbs.process_fail_cb(
-					((proc_endpoint_t*)slot->endpoint)->command,
+					epm->proc_endpoint->command,
 					slot->result_code,
 					slot->proc_stdout,
 					slot->proc_stderror,
@@ -313,8 +324,9 @@ static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 		} else {
 			M_free(slot->msg);
 			slot->msg = NULL;
+			epm->slot_available++;
+			process_queue_queue(slot->sp);
 		}
-		M_event_queue_task(el, reap_endpoints, slot->sp);
 	}
 }
 
@@ -322,7 +334,6 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		endpoint_slot_t *slot)
 {
 	slot->sp = sp;
-	M_printf("bootstrap_slot()\n");
 	if (proc_ep != NULL) {
 		slot->endpoint_type = PROCESS_ENDPOINT;
 		M_io_process_create(
@@ -340,7 +351,6 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		M_event_add(sp->el, slot->io_stdin, io_callback, slot);
 		M_event_add(sp->el, slot->io_stdout, io_callback, slot);
 		M_event_add(sp->el, slot->io_stderr, io_callback, slot);
-		slot->endpoint = proc_ep;
 	} else {
 		/* tcp_ip != NULL */
 		slot->endpoint_type = TCP_ENDPOINT;
@@ -353,7 +363,6 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		);
 		slot->state_machine = smtp_flow_tcp();
 		M_event_add(sp->el, slot->io, io_callback, slot);
-		slot->endpoint = tcp_ep;
 	}
 }
 
@@ -363,6 +372,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_e
 	endpoint_slot_t    *slot = NULL;
 	for (size_t i = 0; i < epm->slot_count; i++) {
 		slot = &epm->slots[i];
+		slot->endpoint_manager = epm;
 		if (slot->msg == NULL) {
 			slot->msg = msg;
 			slot->number_of_tries = num_tries;
@@ -448,6 +458,15 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 	}
 }
 
+static void process_queue_queue(M_net_smtp_t *sp)
+{
+	M_printf("process_queue_queue()\n");
+	if (sp->is_external_queue_enabled) {
+		M_event_queue_task(sp->el, process_external_queue, sp);
+	} else {
+		M_event_queue_task(sp->el, process_internal_queue, sp);
+	}
+}
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)
@@ -497,11 +516,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 
 	if (is_pending(sp)) {
 		sp->status = M_NET_SMTP_STATUS_PROCESSING;
-		if (sp->is_external_queue_enabled) {
-			M_event_queue_task(sp->el, process_external_queue, sp);
-		} else {
-			M_event_queue_task(sp->el, process_internal_queue, sp);
-		}
+		process_queue_queue(sp);
 	} else {
 		sp->status = M_NET_SMTP_STATUS_IDLE;
 	}
