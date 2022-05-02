@@ -202,13 +202,22 @@ M_io_error_t M_io_pipe_create(M_uint32 flags, M_io_t **reader, M_io_t **writer)
 
 	if (flags & M_IO_PIPE_INHERIT_READ) {
 		M_io_posix_fd_set_closeonexec(pipefds[0], M_FALSE);
+	} else {
+		/* If not setting up for inheritance, set up for non-blocking.
+		 * This is especially important that we don't set non-blocking if
+		 * handing over stdin to a process as that process may not expect
+		 * a non-blocking socket. */
+		if (!M_io_setnonblock(pipefds[0])) {
+			return M_IO_ERROR_ERROR;
+		}
 	}
 	if (flags & M_IO_PIPE_INHERIT_WRITE) {
 		M_io_posix_fd_set_closeonexec(pipefds[1], M_FALSE);
-	}
-
-	if (!M_io_setnonblock(pipefds[0]) || !M_io_setnonblock(pipefds[1])) {
-		return M_IO_ERROR_ERROR;
+	} else {
+		/* If not setting up for inheritance, set up for non-blocking */
+		if (!M_io_setnonblock(pipefds[1])) {
+			return M_IO_ERROR_ERROR;
+		}
 	}
 
 	rhandle         = M_malloc_zero(sizeof(*rhandle));
