@@ -13,6 +13,7 @@ typedef struct {
 	M_int64     num_to_generate;
 	const char *to_address;
 	char       *to_address_default;
+	M_dns_t    *dns;
 } prag_t;
 
 static M_email_t * generate_email(size_t idx, const char *to_address)
@@ -137,6 +138,30 @@ static M_hash_dict_t *json_object_to_hash_dict(M_json_node_t *node)
 	return h;
 }
 
+static M_bool add_tcp_endpoint(const char *address, M_net_smtp_t *sp, prag_t *prag, const M_json_node_t *endpoint)
+{
+	M_uint16      port           = M_json_object_value_int(endpoint, "port");
+	M_bool        connect_tls    = M_json_object_value_bool(endpoint, "connect_tls");
+	const char   *username       = M_json_object_value_string(endpoint, "username");
+	const char   *password       = M_json_object_value_string(endpoint, "password");
+	M_uint64      max_conns      = M_json_object_value_int(endpoint, "max_conns");
+
+	if (prag->dns == NULL) {
+		M_tls_clientctx_t *ctx = M_tls_clientctx_create();
+		M_tls_clientctx_set_default_trust(ctx);
+		prag->dns = M_dns_create(prag->el);
+		M_net_smtp_setup_tcp(sp, prag->dns, ctx);
+		M_tls_clientctx_destroy(ctx);
+	}
+
+	if (!M_net_smtp_add_endpoint_tcp(sp, address, port, connect_tls, username, password, max_conns)) {
+
+		M_printf("%s:%d: M_net_smtp_add_endpoint_tcp(<%s>) failed\n", __FILE__, __LINE__, address);
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
 static M_bool add_proc_endpoint(const char *command, M_net_smtp_t *sp, prag_t *prag, const M_json_node_t *endpoint)
 {
 	M_list_str_t  *args          = NULL;
@@ -165,8 +190,12 @@ static M_bool add_proc_endpoint(const char *command, M_net_smtp_t *sp, prag_t *p
 static M_bool add_endpoint(M_net_smtp_t *sp, prag_t *prag, const M_json_node_t *endpoint)
 {
 	const char* proc = M_json_object_value_string(endpoint, "proc");
+	const char* tcp = M_json_object_value_string(endpoint, "tcp");
 	if (proc != NULL) {
 		return add_proc_endpoint(proc, sp, prag, endpoint);
+	}
+	if (tcp != NULL) {
+		return add_tcp_endpoint(tcp, sp, prag, endpoint);
 	}
 	M_snprintf(prag->errmsg, sizeof(prag->errmsg), "%s:%d: unsupported endpoint", __FILE__, __LINE__);
 	return M_FALSE;
@@ -272,8 +301,27 @@ static M_bool validate_endpoint_json(M_json_node_t *endpoint, prag_t *prag)
 			return M_FALSE;
 		}
 	} else {
-		M_snprintf(prag->errmsg, sizeof(prag->errmsg), "%s:%d: TCP unsupported", __FILE__, __LINE__);
-		return M_FALSE;
+		M_json_node_t *port              = M_json_object_value(endpoint, "port");
+		M_json_node_t *connect_tls       = M_json_object_value(endpoint, "connect_tls");
+		M_json_node_t *username          = M_json_object_value(endpoint, "username");
+		M_json_node_t *password          = M_json_object_value(endpoint, "password");
+		M_json_node_t *max_conns         = M_json_object_value(endpoint, "max_conns");
+		M_json_type_t tcp_type           = M_json_node_type(tcp);
+		M_json_type_t port_type          = M_json_node_type(port);
+		M_json_type_t connect_tls_type   = M_json_node_type(connect_tls);
+		M_json_type_t username_type      = M_json_node_type(username);
+		M_json_type_t password_type      = M_json_node_type(password);
+		M_json_type_t max_conns_type     = M_json_node_type(max_conns);
+
+		if ((tcp_type         != M_JSON_TYPE_STRING)  ||
+		    (port_type        != M_JSON_TYPE_INTEGER) ||
+		    (connect_tls_type != M_JSON_TYPE_BOOL)    ||
+		    (username_type    != M_JSON_TYPE_STRING)  ||
+		    (password_type    != M_JSON_TYPE_STRING)  ||
+		    (max_conns_type   != M_JSON_TYPE_INTEGER)) {
+			M_snprintf(prag->errmsg, sizeof(prag->errmsg), "%s:%d: json for tcp needs to be { tcp: \"\", port: 25, connect_tls: false, username: \"\", password: \"\", max_conns: 1  }", __FILE__, __LINE__);
+			return M_FALSE;
+		}
 	}
 
 	return M_TRUE;
@@ -364,6 +412,7 @@ static void destroy_prag(prag_t *prag)
 	}
 	M_list_destroy(prag->endpoints, M_FALSE);
 	M_free(prag->to_address_default);
+	M_dns_destroy(prag->dns);
 }
 
 int main(int argc, const char * const *argv)
@@ -395,7 +444,9 @@ int main(int argc, const char * const *argv)
 		}
 		help = M_getopt_help(getopt);
 		M_printf("usage: %s [OPTION]...ENDPOINT(s)\n", argv[0]);
-		M_printf("Endpoint:\n\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\", \\\"-i\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
+		M_printf("Endpoint:\n");
+		M_printf("\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\", \\\"-i\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
+		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 25, \\\"connect_tls\\\": false, \\\"username\\\": \\\"%s\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
 		M_printf("Options:\n%s\n", help);
 		destroy_prag(&prag);
 		M_getopt_destroy(getopt);

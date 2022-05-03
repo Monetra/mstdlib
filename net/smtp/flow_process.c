@@ -156,7 +156,7 @@ static void destroy_io(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 	}
 	M_io_destroy(io);
 	if (slot->io == NULL && slot->io_stderr == NULL && slot->io_stdout == NULL && slot->io_stdin == NULL) {
-		M_printf("stdout: %s, stderr: %s\n", slot->proc_stdout, slot->proc_stderror);
+		M_printf("stdout: %s, stderr: %s\n", slot->out_str, slot->proc_stderror);
 		slot->is_alive = M_FALSE;
 	}
 }
@@ -171,8 +171,8 @@ static void read(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 		buf = &slot->proc_stderror[slot->proc_stderror_len];
 		remaining = sizeof(slot->proc_stderror) - slot->proc_stderror_len;
 	} else if (io_type == IO_STDOUT) {
-		buf = &slot->proc_stdout[slot->proc_stdout_len];
-		remaining = sizeof(slot->proc_stdout) - slot->proc_stdout_len;
+		buf = &slot->out_str[slot->out_str_len];
+		remaining = sizeof(slot->out_str) - slot->out_str_len;
 	} else {
 		/* Unhandled */
 		return;
@@ -184,7 +184,7 @@ static void read(endpoint_slot_t *slot, io_types_t io_type, M_io_t *io)
 	if (io_type == IO_STDERR) {
 		slot->proc_stderror_len += len;
 	} else if (io_type == IO_STDOUT) {
-		slot->proc_stdout_len += len;
+		slot->out_str_len += len;
 	}
 }
 

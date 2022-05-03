@@ -41,6 +41,10 @@ typedef struct {
 	char              *msg;
 	size_t             msg_pos;
 	size_t             msg_len;
+	size_t             email_position;
+	M_email_t         *email;
+	char              *email_body;
+	M_hash_dict_t     *email_hash_dict;
 	M_event_t         *event;
 	M_event_type_t     event_type;
 	M_io_t            *event_io;
@@ -52,8 +56,8 @@ typedef struct {
 	M_bool             is_queue_task;
 	int                result_code;
 	char               errmsg[128];
-	char               proc_stdout[128];
-	size_t             proc_stdout_len;
+	char               out_str[128];
+	size_t             out_str_len;
 	char               proc_stderror[128];
 	size_t             proc_stderror_len;
 

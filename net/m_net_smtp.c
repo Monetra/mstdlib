@@ -313,7 +313,7 @@ static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *t
 				slot->sp->cbs.process_fail_cb(
 					epm->proc_endpoint->command,
 					slot->result_code,
-					slot->proc_stdout,
+					slot->out_str,
 					slot->proc_stderror,
 					slot->sp->thunk
 				);
@@ -571,7 +571,10 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (sp == NULL || !is_stopped(sp) || max_conns == 0)
 		return M_FALSE;
 
-	if (sp->tcp_dns == NULL || sp->tcp_tls_ctx == NULL)
+	if (sp->tcp_dns == NULL)
+		return M_FALSE;
+
+	if (connect_tls && sp->tcp_tls_ctx == NULL)
 		return M_FALSE;
 
 	ep = M_malloc_zero(sizeof(*ep));
