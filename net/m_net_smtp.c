@@ -46,6 +46,7 @@ struct M_net_smtp {
 	size_t                             round_robin_idx;
 	size_t                             number_of_attempts;
 	size_t                             number_of_processing_messages;
+	M_list_t                          *retry_queue;
 	M_list_str_t                      *internal_queue;
 	M_bool                             is_external_queue_enabled;
 	M_bool                             is_external_queue_pending;
@@ -56,7 +57,7 @@ typedef struct {
 	char         *msg;
 	size_t        number_of_tries;
 	M_net_smtp_t *sp;
-} reschedule_event_t;
+} retry_msg_t;
 
 typedef struct {
 	size_t                 idx;
@@ -94,7 +95,7 @@ static M_bool is_stopped(M_net_smtp_t *sp)
 	return (
 		sp->status == M_NET_SMTP_STATUS_NOENDPOINTS ||
 		sp->status == M_NET_SMTP_STATUS_STOPPED
-		);
+	);
 }
 
 static M_bool is_running(M_net_smtp_t *sp)
@@ -107,6 +108,9 @@ static M_bool is_running(M_net_smtp_t *sp)
 
 static M_bool is_pending(M_net_smtp_t *sp)
 {
+	if (M_list_len(sp->retry_queue) > 0)
+		return M_TRUE;
+
 	if (sp->is_external_queue_enabled) {
 		return sp->is_external_queue_pending;
 	}
@@ -170,6 +174,7 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->tcp_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
 	sp->endpoint_managers = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_queue = M_list_create(NULL, M_LIST_NONE);
 
 	return sp;
 }
@@ -201,6 +206,7 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		destroy_tcp_endpoint(M_list_at(sp->tcp_endpoints, i));
 	}
 	M_list_destroy(sp->tcp_endpoints, M_TRUE);
+	M_list_destroy(sp->retry_queue, M_TRUE);
 	/* endpoint manager should free it self once it finishes processing */
 	M_list_destroy(sp->endpoint_managers, M_FALSE);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
@@ -213,120 +219,334 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 		return;
 
 	sp->status = M_NET_SMTP_STATUS_STOPPING;
-	sp->status = M_NET_SMTP_STATUS_STOPPED;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-#if 0
-static void reap_endpoints(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
-{
-	M_net_smtp_t             *sp        = cb_arg;
-	const endpoint_manager_t *const_epm = NULL;
-	endpoint_manager_t       *epm       = NULL;
-	M_bool                    is_alive  = M_FALSE;
-
-	/* Internal event, don't need these */
-	(void)type;
-	(void)io;
-
-	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
-		const_epm = M_list_at(sp->endpoint_managers, i);
-		epm = M_CAST_OFF_CONST(endpoint_manager_t *, const_epm);
-		if (epm->is_alive) {
-			M_bool is_endpoint_alive = M_FALSE;
-			for (size_t j = 0; j < epm->slot_count; j++) {
-				if (epm->slots[j].is_alive) {
-					is_endpoint_alive = M_TRUE;
-					break;
-				}
-			}
-			if (is_endpoint_alive == M_FALSE) {
-				epm->is_alive = M_FALSE;
-			} else {
-				is_alive = M_TRUE;
-			}
-		}
-	}
-	if (is_alive == M_FALSE) {
-		/* everything is dead.. call it a day. */
-		for (size_t i = 0; i < sp->number_of_endpoints; i++) {
-			epm = M_list_take_first(sp->endpoint_managers);
-			M_free(epm);
-		}
-		sp->status = M_NET_SMTP_STATUS_STOPPED;
-		sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
-		M_event_done(event);
-	}
-}
-#endif
+static void process_queue_queue(M_net_smtp_t *sp); /* protoype for forward declartion */
 
 static void reschedule_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
+	M_net_smtp_t *sp;
 	(void)el;
 	(void)io;
 	(void)etype;
-	reschedule_event_t retry_event;
-	M_mem_move(&retry_event, thunk, sizeof(retry_event));
-	M_free(thunk);
+
+	retry_msg_t *retry = thunk;
+	sp = retry->sp;
+	M_list_insert(sp->retry_queue, retry);
+	process_queue_queue(sp);
 }
 
 static void reschedule(M_event_t *el, endpoint_slot_t *slot)
 {
-	reschedule_event_t *retry_event = NULL;
-	M_hash_dict_t      *headers     = NULL;
-	M_bool              can_requeue = M_TRUE;
+	retry_msg_t   *retry       = NULL;
+	M_hash_dict_t *headers     = NULL;
+	M_bool         can_requeue = M_TRUE;
 
 	if (slot->number_of_tries >= slot->sp->number_of_attempts) {
 		can_requeue = M_FALSE;
 	}
 	if (slot->sp->cbs.send_failed_cb(headers, slot->errmsg, slot->number_of_tries, can_requeue, slot->sp->thunk) &&
 			can_requeue) {
-		retry_event = M_malloc_zero(sizeof(*retry_event));
-		retry_event->sp = slot->sp;
-		retry_event->msg = slot->msg;
-		retry_event->number_of_tries = slot->number_of_tries;
-		M_event_timer_oneshot(el, slot->sp->retry_default_ms, M_TRUE, reschedule_cb, retry_event);
+		retry = M_malloc_zero(sizeof(*retry));
+		retry->sp = slot->sp;
+		retry->msg = M_strdup(slot->msg);
+		retry->number_of_tries = slot->number_of_tries;
+		M_event_timer_oneshot(el, slot->sp->retry_default_ms, M_TRUE, reschedule_cb, retry);
 	}
-	slot->msg = NULL;
 }
 
-static void process_queue_queue(M_net_smtp_t *sp); /* protoype for forward declartion */
 
-static void io_callback(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+static M_bool run_state_machine(endpoint_slot_t *slot)
+{
+	M_state_machine_status_t result;
+	size_t                   len;
+
+	result = M_state_machine_run(slot->state_machine, slot);
+	if (result == M_STATE_MACHINE_STATUS_WAIT || result == M_STATE_MACHINE_STATUS_DONE) {
+		return M_TRUE;
+	}
+
+	len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): bad state machine result %d",
+			__FILE__, __LINE__, __FUNCTION__, result);
+	slot->errmsg[len] = '\0';
+	return M_FALSE;
+}
+
+static void destroy_slot(M_event_t *el, endpoint_slot_t *slot)
+{
+	endpoint_manager_t *epm = (endpoint_manager_t*)slot->endpoint_manager;
+	size_t len;
+
+	M_buf_cancel(slot->out_buf);
+	slot->out_buf = NULL;
+	M_parser_destroy(slot->in_parser);
+	slot->in_parser = NULL;
+	if (slot->is_failure) {
+		if (slot->endpoint_type == PROCESS_ENDPOINT) {
+			char *stdout_str = M_buf_finish_str(slot->out_buf, NULL);
+			slot->sp->cbs.process_fail_cb(
+				epm->proc_endpoint->command,
+				slot->result_code,
+				stdout_str,
+				slot->errmsg,
+				slot->sp->thunk
+			);
+			M_free(stdout_str);
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "Process failure.");
+			slot->errmsg[len] = '\0';
+		}
+		slot->number_of_tries++;
+		reschedule(el, slot);
+	}
+	M_free(slot->msg);
+	slot->msg = NULL;
+	epm->slot_available++;
+	process_queue_queue(slot->sp);
+}
+
+static M_bool proc_write_buf(endpoint_slot_t *slot)
+{
+	M_io_error_t io_error;
+	size_t       len;
+
+	M_printf("M_buf_len(%p): %zu\n", slot->out_buf, M_buf_len(slot->out_buf));
+	io_error = M_io_write_from_buf(slot->io_stdin, slot->out_buf);
+	if (io_error != M_IO_ERROR_SUCCESS) {
+		len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): M_io_write_from_buf(): %s",
+				__FILE__, __LINE__, __FUNCTION__, M_io_error_string(io_error));
+		slot->errmsg[len] = '\0';
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+static void proc_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	endpoint_slot_t *slot = thunk;
-	slot->event = el;
-	slot->event_type = etype;
-	slot->event_io = io; /* for process it could be io_std{in,out,err} or io (proc) */
-	M_state_machine_run(slot->state_machine, slot);
-	if (slot->is_queue_task) {
-		M_event_queue_task(el, io_callback, thunk);
-		slot->is_queue_task = M_FALSE;
+	size_t           len;
+	(void)el;
+
+	switch(etype) {
+		case M_EVENT_TYPE_CONNECTED:
+			slot->connection_mask |= CONNECTION_MASK_IO_STDERR;
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+			M_io_read(io, (unsigned char *)slot->errmsg, sizeof(slot->errmsg) - 1, &len);
+			slot->errmsg[len] = '\0';
+			M_printf("%s", slot->errmsg);
+			goto err;
+		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_WRITE:
+		case M_EVENT_TYPE_OTHER:
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
+					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
+			slot->errmsg[len] = '\0';
+			goto err;
+			break;
 	}
-	if (slot->is_alive == M_FALSE) {
-		endpoint_manager_t *epm = (endpoint_manager_t*)slot->endpoint_manager;
-		/* died on this event */
-		if (slot->is_failure) {
-			epm->is_failure = M_TRUE; /* mark endpoint as failure */
-			if (slot->endpoint_type == PROCESS_ENDPOINT) {
-				slot->sp->cbs.process_fail_cb(
-					epm->proc_endpoint->command,
-					slot->result_code,
-					slot->out_str,
-					slot->proc_stderror,
-					slot->sp->thunk
-				);
-				M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "Process failure.");
+
+	if (!run_state_machine(slot))
+		goto err;
+
+	if (!proc_write_buf(slot)) {
+		goto err;
+	}
+
+	return;
+err:
+	slot->is_failure = M_TRUE;
+destroy:
+	M_io_destroy(io);
+	slot->io_stderr = NULL;
+	slot->connection_mask &= ~CONNECTION_MASK_IO_STDERR;
+	if (slot->connection_mask == CONNECTION_MASK_NONE) {
+		destroy_slot(el, slot);
+	}
+}
+
+static void proc_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	endpoint_slot_t *slot = thunk;
+	size_t           len;
+	(void)el;
+
+	switch(etype) {
+		case M_EVENT_TYPE_CONNECTED:
+			slot->connection_mask |= CONNECTION_MASK_IO_STDOUT;
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_WRITE:
+		case M_EVENT_TYPE_OTHER:
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
+					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
+			slot->errmsg[len] = '\0';
+			goto err;
+			break;
+	}
+
+	if (!run_state_machine(slot))
+		goto err;
+
+	if (!proc_write_buf(slot)) {
+		goto err;
+	}
+
+	return;
+err:
+	slot->is_failure = M_TRUE;
+destroy:
+	M_io_destroy(io);
+	slot->io_stdout = NULL;
+	slot->connection_mask &= ~CONNECTION_MASK_IO_STDOUT;
+	if (slot->connection_mask == CONNECTION_MASK_NONE) {
+		destroy_slot(el, slot);
+	}
+}
+
+static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	endpoint_slot_t *slot = thunk;
+	size_t           len;
+	(void)el;
+
+	M_printf("%s\n", M_event_type_string(etype));
+
+	switch(etype) {
+		case M_EVENT_TYPE_CONNECTED:
+			slot->connection_mask |= CONNECTION_MASK_IO_STDIN;
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
+			break;
+		case M_EVENT_TYPE_WRITE:
+			if (M_buf_len(slot->out_buf) == 0) {
+				goto destroy;
 			}
-			slot->number_of_tries++;
-			reschedule(el, slot);
-		} else {
-			M_free(slot->msg);
-			slot->msg = NULL;
-			epm->slot_available++;
-			process_queue_queue(slot->sp);
-		}
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_OTHER:
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
+					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
+			slot->errmsg[len] = '\0';
+			goto err;
+			break;
+	}
+
+	if (!run_state_machine(slot))
+		goto err;
+
+	if (!proc_write_buf(slot)) {
+		goto err;
+	}
+
+	return;
+err:
+	slot->is_failure = M_TRUE;
+destroy:
+	M_io_destroy(io);
+	slot->io_stdin = NULL;
+	slot->connection_mask &= ~CONNECTION_MASK_IO_STDIN;
+	if (slot->connection_mask == CONNECTION_MASK_NONE) {
+		destroy_slot(el, slot);
+	}
+}
+
+static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	endpoint_slot_t *slot = thunk;
+	size_t           len;
+	(void)el;
+
+	switch(etype) {
+		case M_EVENT_TYPE_CONNECTED:
+			slot->connection_mask |= CONNECTION_MASK_IO;
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_WRITE:
+		case M_EVENT_TYPE_OTHER:
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
+					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
+			slot->errmsg[len] = '\0';
+			goto err;
+			break;
+	}
+
+	if (!run_state_machine(slot))
+		goto err;
+
+	if (!proc_write_buf(slot)) {
+		goto err;
+	}
+
+	return;
+err:
+	slot->is_failure = M_TRUE;
+destroy:
+	M_io_destroy(io);
+	slot->io = NULL;
+	slot->connection_mask &= ~CONNECTION_MASK_IO;
+	if (slot->connection_mask == CONNECTION_MASK_NONE) {
+		destroy_slot(el, slot);
+	}
+}
+
+static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	endpoint_slot_t *slot = thunk;
+	size_t           len;
+	(void)el;
+
+	switch(etype) {
+		case M_EVENT_TYPE_CONNECTED:
+			slot->connection_mask |= CONNECTION_MASK_IO;
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_READ:
+		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_WRITE:
+		case M_EVENT_TYPE_OTHER:
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
+					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
+			slot->errmsg[len] = '\0';
+			goto err;
+			return;
+	}
+
+	if (!run_state_machine(slot))
+		goto err;
+
+	if (!proc_write_buf(slot)) {
+		goto err;
+	}
+
+	return;
+err:
+	slot->is_failure = M_TRUE;
+destroy:
+	M_io_destroy(io);
+	slot->io = NULL;
+	slot->connection_mask &= ~CONNECTION_MASK_IO;
+	if (slot->connection_mask == CONNECTION_MASK_NONE) {
+		destroy_slot(el, slot);
 	}
 }
 
@@ -334,6 +554,8 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		endpoint_slot_t *slot)
 {
 	slot->sp = sp;
+	slot->out_buf = M_buf_create();
+	slot->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
 	if (proc_ep != NULL) {
 		slot->endpoint_type = PROCESS_ENDPOINT;
 		M_io_process_create(
@@ -347,10 +569,10 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 			&slot->io_stderr
 		);
 		slot->state_machine = smtp_flow_process();
-		M_event_add(sp->el, slot->io, io_callback, slot);
-		M_event_add(sp->el, slot->io_stdin, io_callback, slot);
-		M_event_add(sp->el, slot->io_stdout, io_callback, slot);
-		M_event_add(sp->el, slot->io_stderr, io_callback, slot);
+		M_event_add(sp->el, slot->io, proc_io_cb, slot);
+		M_event_add(sp->el, slot->io_stdin, proc_io_stdin_cb, slot);
+		M_event_add(sp->el, slot->io_stdout, proc_io_stdout_cb, slot);
+		M_event_add(sp->el, slot->io_stderr, proc_io_stderr_cb, slot);
 	} else {
 		/* tcp_ip != NULL */
 		slot->endpoint_type = TCP_ENDPOINT;
@@ -362,7 +584,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 			M_IO_NET_ANY
 		);
 		slot->state_machine = smtp_flow_tcp();
-		M_event_add(sp->el, slot->io, io_callback, slot);
+		M_event_add(sp->el, slot->io, tcp_io_cb, slot);
 	}
 }
 
@@ -419,6 +641,26 @@ static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 	return;
 }
 
+static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_net_smtp_t  *sp          = cb_arg;
+	retry_msg_t   *retry       = NULL;
+
+	/* This is an internally sent event; don't need these: */
+	(void)event;
+	(void)io;
+	(void)type;
+
+	if (is_available(sp)) {
+		retry = M_list_take_first(sp->retry_queue);
+		if (retry == NULL)
+			return;
+		slate_msg(sp, retry->msg, retry->number_of_tries);
+		sp->number_of_processing_messages++;
+		M_free(retry);
+	}
+}
+
 static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
 	M_net_smtp_t *sp  = cb_arg;
@@ -458,13 +700,59 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 	}
 }
 
+static M_bool idle_check_endpoint(const endpoint_manager_t *epm)
+{
+	const endpoint_slot_t *slot = NULL;
+	for (size_t i = 0; i < epm->slot_count; i++) {
+		slot = &epm->slots[i];
+		if (slot->msg != NULL) {
+			return M_FALSE;
+		}
+	}
+	return M_TRUE;
+}
+
+static M_bool idle_check(M_net_smtp_t *sp)
+{
+	const endpoint_manager_t *epm = NULL;
+	for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
+		epm = M_list_at(sp->endpoint_managers, i);
+		if (idle_check_endpoint(epm) == M_FALSE) {
+			return M_FALSE;
+		}
+	}
+	return M_TRUE;
+}
+
+static void stop(M_net_smtp_t *sp)
+{
+	const endpoint_manager_t *const_epm = NULL;
+	endpoint_manager_t       *epm       = NULL;
+	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+		const_epm = M_list_take_first(sp->endpoint_managers);
+		epm = M_CAST_OFF_CONST(endpoint_manager_t*, const_epm);
+		M_free(epm);
+	}
+	sp->status = M_NET_SMTP_STATUS_STOPPED;
+	sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
+}
+
 static void process_queue_queue(M_net_smtp_t *sp)
 {
-	M_printf("process_queue_queue()\n");
-	if (sp->is_external_queue_enabled) {
-		M_event_queue_task(sp->el, process_external_queue, sp);
-	} else {
-		M_event_queue_task(sp->el, process_internal_queue, sp);
+	if (is_running(sp) && is_pending(sp)) {
+		if (M_list_len(sp->retry_queue) > 0) {
+			M_event_queue_task(sp->el, process_retry_queue, sp);
+		} else if (sp->is_external_queue_enabled) {
+			M_event_queue_task(sp->el, process_external_queue, sp);
+		} else {
+			M_event_queue_task(sp->el, process_internal_queue, sp);
+		}
+	} else if (idle_check(sp)) {
+		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
+			stop(sp);
+		} else {
+			sp->status = M_NET_SMTP_STATUS_IDLE;
+		}
 	}
 }
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -514,12 +802,8 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		}
 	}
 
-	if (is_pending(sp)) {
-		sp->status = M_NET_SMTP_STATUS_PROCESSING;
-		process_queue_queue(sp);
-	} else {
-		sp->status = M_NET_SMTP_STATUS_IDLE;
-	}
+	sp->status = M_NET_SMTP_STATUS_PROCESSING;
+	process_queue_queue(sp);
 	return M_TRUE;
 }
 
