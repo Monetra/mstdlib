@@ -309,7 +309,6 @@ static M_bool proc_write_buf(endpoint_slot_t *slot)
 	M_io_error_t io_error;
 	size_t       len;
 
-	M_printf("M_buf_len(%p): %zu\n", slot->out_buf, M_buf_len(slot->out_buf));
 	io_error = M_io_write_from_buf(slot->io_stdin, slot->out_buf);
 	if (io_error != M_IO_ERROR_SUCCESS) {
 		len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): M_io_write_from_buf(): %s",
@@ -508,8 +507,9 @@ destroy:
 
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	endpoint_slot_t *slot = thunk;
+	endpoint_slot_t *slot     = thunk;
 	size_t           len;
+	M_io_error_t     io_error;
 	(void)el;
 
 	switch(etype) {
@@ -519,10 +519,19 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		case M_EVENT_TYPE_DISCONNECTED:
 			goto destroy;
 			break;
-		case M_EVENT_TYPE_ACCEPT:
 		case M_EVENT_TYPE_READ:
-		case M_EVENT_TYPE_ERROR:
+			io_error = M_io_read_into_parser(io, slot->in_parser);
+			if (io_error != M_IO_ERROR_SUCCESS) {
+			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): M_io_read_into_parser: %s",
+					__FILE__, __LINE__, __FUNCTION__, M_io_error_string(io_error));
+			slot->errmsg[len] = '\0';
+			goto err;
+			}
+			break;
 		case M_EVENT_TYPE_WRITE:
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_ERROR:
 		case M_EVENT_TYPE_OTHER:
 			len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): Unexpected event %s",
 					__FILE__, __LINE__, __FUNCTION__, M_event_type_string(etype));
@@ -534,7 +543,11 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	if (!run_state_machine(slot))
 		goto err;
 
-	if (!proc_write_buf(slot)) {
+	io_error = M_io_write_from_buf(io, slot->out_buf);
+	if (io_error != M_IO_ERROR_SUCCESS) {
+		len = M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "%s:%d: %s(): M_io_write_from_buf(): %s",
+				__FILE__, __LINE__, __FUNCTION__, M_io_error_string(io_error));
+		slot->errmsg[len] = '\0';
 		goto err;
 	}
 
