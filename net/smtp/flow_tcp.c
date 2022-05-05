@@ -32,20 +32,28 @@ typedef enum {
 	DISCONNECTING,
 } state_id;
 
+static size_t rcpt_count(M_email_t *email)
+{
+	return M_email_to_len(email) + M_email_cc_len(email) + M_email_bcc_len(email);
+}
+
 static M_bool sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
-	M_email_error_t  email_err;
+	endpoint_slot_t *slot = data;
 	(void)status;
 	(void)next;
 
-	slot->msg_len = M_str_len(slot->msg);
-	email_err = M_email_simple_read(&slot->email, slot->msg, slot->msg_len, M_EMAIL_SIMPLE_READ_NONE, NULL);
-	if (email_err != M_EMAIL_ERROR_SUCCESS) {
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg) - 1, "M_email_simple_read(): %d", email_err);
+	slot->rcpt_i = 0;
+	slot->email = M_email_create();
+	if (NULL == slot->email) {
 		return M_FALSE;
 	}
-
+	if (!M_email_set_headers(slot->email, slot->headers)) {
+		M_email_destroy(slot->email);
+		slot->email = NULL;
+		return M_FALSE;
+	}
+	slot->rcpt_n = rcpt_count(slot->email);
 	return M_TRUE;
 }
 
@@ -54,6 +62,7 @@ static M_state_machine_status_t sendmsg_post_cb(void *data, M_state_machine_stat
 	endpoint_slot_t *slot       = data;
 	(void)sub_status;
 	(void)next;
+
 	M_email_destroy(slot->email);
 	slot->email = NULL;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -120,8 +129,7 @@ M_state_machine_t * smtp_flow_tcp()
 	M_state_machine_insert_state(m, CONNECTING, 0, NULL, connecting, NULL, NULL);
 	M_state_machine_insert_state(m, OPENING_ACK, 0, NULL, opening_ack, NULL, NULL);
 	sendmsg_m = smtp_flow_tcp_sendmsg();
-	M_state_machine_insert_sub_state_machine(m, SENDMSG, 0, NULL, sendmsg_m,
-			sendmsg_pre_cb, sendmsg_post_cb, NULL, NULL);
+	M_state_machine_insert_sub_state_machine(m, SENDMSG, 0, NULL, sendmsg_m, sendmsg_pre_cb, sendmsg_post_cb, NULL, NULL);
 	M_state_machine_destroy(sendmsg_m);
 	M_state_machine_insert_state(m, QUIT, 0, NULL, quit, NULL, NULL);
 	M_state_machine_insert_state(m, QUIT_ACK, 0, NULL, quit_ack, NULL, NULL);

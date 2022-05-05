@@ -24,7 +24,7 @@
 #include "flow.h"
 
 typedef enum {
-	MAIL_FROM,
+	MAIL_FROM = 1,
 	MAIL_FROM_ACK,
 	RCPT_TO,
 	RCPT_TO_ACK,
@@ -34,14 +34,40 @@ typedef enum {
 	DATA_STOP_ACK,
 } state_id;
 
+static M_bool rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
+{
+	size_t idx_offset = 0;
+	size_t len;
+	len = M_email_to_len(e);
+	if ((idx - idx_offset) < len) {
+		return M_email_to(e, idx - idx_offset, group, name, address);
+	}
+	idx_offset += len;
+
+	len = M_email_cc_len(e);
+	if ((idx - idx_offset) < len) {
+		return M_email_cc(e, idx - idx_offset, group, name, address);
+	}
+	idx_offset += len;
+
+	len = M_email_bcc_len(e);
+	if ((idx - idx_offset) < len) {
+		return M_email_bcc(e, idx - idx_offset, group, name, address);
+	}
+
+	return M_FALSE;
+}
+
 static M_state_machine_status_t mail_from(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
-	const char      *group;
-	const char      *name;
-	const char      *address;
+	endpoint_slot_t *slot = data;
+	const char *group;
+	const char *name;
+	const char *address;
 
-	M_email_from(slot->email, &group, &name, &address);
+	if (!M_email_from(slot->email, &group, &name, &address)) {
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	}
 	M_bprintf(slot->out_buf, "MAIL FROM:<%s>\r\n", address);
 	*next = MAIL_FROM_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -49,7 +75,7 @@ static M_state_machine_status_t mail_from(void *data, M_uint64 *next)
 
 static M_state_machine_status_t mail_from_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		*next = RCPT_TO;
@@ -60,12 +86,14 @@ static M_state_machine_status_t mail_from_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t rcpt_to(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
-	const char      *group;
-	const char      *name;
-	const char      *address;
+	endpoint_slot_t *slot = data;
+	const char *group;
+	const char *name;
+	const char *address;
 
-	M_email_to(slot->email, slot->email_position, &group, &name, &address);
+	if (!rcpt_at(slot->email, slot->rcpt_i, &group, &name, &address)) {
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
+	}
 	M_bprintf(slot->out_buf, "RCPT TO:<%s>\r\n", address);
 
 	*next = RCPT_TO_ACK;
@@ -77,8 +105,8 @@ static M_state_machine_status_t rcpt_to_ack(void *data, M_uint64 *next)
 	endpoint_slot_t *slot       = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		slot->email_position++;
-		if (slot->email_position < M_email_to_len(slot->email)) {
+		slot->rcpt_i++;
+		if (slot->rcpt_i < slot->rcpt_n) {
 			*next = RCPT_TO;
 		} else {
 			*next = DATA_START;

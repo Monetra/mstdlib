@@ -40,21 +40,19 @@ typedef enum {
 #define CONNECTION_MASK_IO_STDERR (1u << 3u)
 
 typedef struct {
+	M_net_smtp_t      *sp;
 	endpoint_type_t    endpoint_type;
+	M_state_machine_t *state_machine;
 	M_bool             is_alive;
 	unsigned int       connection_mask;
 	M_io_t            *io;
-	M_state_machine_t *state_machine;
 	char              *msg;
-	size_t             msg_pos;
-	size_t             msg_len;
-	size_t             email_position;
+	M_hash_dict_t     *headers;
 	M_email_t         *email;
-	char              *email_body;
-	M_hash_dict_t     *email_hash_dict;
-	M_net_smtp_t      *sp;
-	const void        *endpoint_manager;
+	size_t             rcpt_n;
+	size_t             rcpt_i;
 	size_t             number_of_tries;
+	const void        *endpoint_manager;
 	M_bool             is_failure;
 	int                result_code;
 	char               errmsg[128];

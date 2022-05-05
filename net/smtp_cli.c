@@ -10,6 +10,7 @@ typedef struct {
 	char        errmsg[256];
 	M_list_t   *endpoints;
 	M_event_t  *el;
+	M_int64     num_sent;
 	M_int64     num_to_generate;
 	const char *to_address;
 	char       *to_address_default;
@@ -89,6 +90,10 @@ static M_uint64 processing_halted_cb(M_bool no_endpoint, void *thunk)
 static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 {
 	prag_t *prag = thunk;
+	prag->num_sent++;
+	if (prag->num_sent == prag->num_to_generate) {
+		M_event_done(prag->el);
+	}
 	if (prag->is_debug) {
 		M_printf("%s:%d: %s(%p, %p)\n", __FILE__, __LINE__, __FUNCTION__, headers, thunk);
 	}
@@ -238,7 +243,7 @@ int run(prag_t *prag)
 	}
 
 	for (size_t i = 0; i < prag->num_to_generate; i++) {
-		M_email_t *e   = generate_email(i, prag->to_address);
+		M_email_t *e = generate_email(i, prag->to_address);
 		if (prag->is_show_only) {
 			char *msg = M_email_simple_write(e);
 			M_printf("%s", msg);
