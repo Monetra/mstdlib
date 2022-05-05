@@ -23,6 +23,7 @@
 
 #include "m_net_int.h"
 #include <mstdlib/base/m_defs.h> /* M_CAST_OFF_CONST */
+#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 #include "smtp/flow.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -258,7 +259,7 @@ static void reschedule(const endpoint_slot_t *slot)
 	}
 
 	if (NULL != send_failed_cb) {
-		if (is_reqeue) {
+		if (is_requeue) {
 			is_requeue = send_failed_cb(slot->headers, slot->errmsg, num_tries, M_TRUE, slot->sp->thunk);
 		} else {
 			send_failed_cb(slot->headers, slot->errmsg, num_tries, M_FALSE, slot->sp->thunk);
@@ -302,7 +303,7 @@ static void failure_process(endpoint_slot_t *slot, const endpoint_manager_t *epm
 	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Process failure: %d", slot->result_code);
 }
 
-static void destroy_slot(M_event_t *el, endpoint_slot_t *slot)
+static void destroy_slot(endpoint_slot_t *slot)
 {
 	endpoint_manager_t *epm     = (endpoint_manager_t*)slot->endpoint_manager;
 	M_net_smtp_sent_cb  sent_cb = slot->sp->cbs.sent_cb;
@@ -398,10 +399,12 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	if (!run_state_machine(slot))
 		goto err;
 
-	io_error = M_io_write_from_buf(slot->io_stdin, slot->out_buf);
-	if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
-		goto err;
+	if (M_buf_len(slot->out_buf) > 0) {
+		io_error = M_io_write_from_buf(slot->io_stdin, slot->out_buf);
+		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
+			goto err;
+		}
 	}
 
 	return;
@@ -418,7 +421,7 @@ destroy:
 		M_io_destroy(io);
 		slot->connection_mask &= ~connection_mask;
 		if (slot->connection_mask == CONNECTION_MASK_NONE) {
-			destroy_slot(el, slot);
+			destroy_slot(slot);
 		}
 	}
 	*slot_io = NULL;
@@ -450,6 +453,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	M_net_smtp_t             *sp            = slot->sp;
 	M_net_smtp_connect_cb     connect_cb    = sp->cbs.connect_cb;
 	M_net_smtp_disconnect_cb  disconnect_cb = sp->cbs.disconnect_cb;
+	const endpoint_manager_t *epm           = slot->endpoint_manager;
 
 	M_io_error_t     io_error;
 	(void)el;
@@ -458,13 +462,11 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		case M_EVENT_TYPE_CONNECTED:
 			slot->connection_mask |= CONNECTION_MASK_IO;
 			if (connect_cb != NULL) {
-				const endpoint_manager_t *epm = slot->endpoint_manager;
 				connect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			if (disconnect_cb != NULL) {
-				const endpoint_manager_t *epm = slot->endpoint_manager;
 				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 			}
 			goto destroy;
@@ -489,22 +491,37 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	if (!run_state_machine(slot))
 		goto err;
 
-	io_error = M_io_write_from_buf(io, slot->out_buf);
-	if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
-		goto err;
+	if (slot->tls_state == TLS_READY) {
+		size_t        layer_id;
+		M_io_layer_t *layer;
+		M_io_tls_client_add(io, slot->sp->tcp_tls_ctx, NULL, &layer_id);
+		layer = M_io_layer_acquire(io, layer_id, NULL);
+		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
+		M_io_layer_release(layer);
+		slot->tls_state = TLS_CONNECTED;
+		return; /* short circuit out */
+	}
+
+	if (M_buf_len(slot->out_buf) > 0) {
+		io_error = M_io_write_from_buf(io, slot->out_buf);
+		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
+			goto err;
+		}
 	}
 
 	return;
 err:
 	slot->is_failure = M_TRUE;
 destroy:
-	M_io_destroy(io);
-	slot->io = NULL;
-	slot->connection_mask &= ~CONNECTION_MASK_IO;
-	if (slot->connection_mask == CONNECTION_MASK_NONE) {
-		destroy_slot(el, slot);
+	if (slot->io != NULL) {
+		M_io_destroy(io);
+		slot->connection_mask &= ~CONNECTION_MASK_IO;
+		if (slot->connection_mask == CONNECTION_MASK_NONE) {
+			destroy_slot(slot);
+		}
 	}
+	slot->io = NULL;
 }
 
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, endpoint_slot_t *slot)
@@ -536,6 +553,7 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep,
 
 	slot->endpoint_type = TCP_ENDPOINT;
 	slot->state_machine = smtp_flow_tcp();
+	slot->tls_state = tcp_ep->connect_tls ? TLS_START : TLS_NONE;
 	io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, tcp_ep->address, tcp_ep->port, M_IO_NET_ANY);
 	if (io_error == M_IO_ERROR_SUCCESS) {
 		M_event_add(sp->el, slot->io, tcp_io_cb, slot);
@@ -568,7 +586,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 		is_success = M_FALSE;
 	}
 	if (!is_success) {
-		destroy_slot(sp->el, slot);
+		destroy_slot(slot);
 	}
 }
 

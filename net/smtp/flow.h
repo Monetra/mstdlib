@@ -33,6 +33,13 @@ typedef enum {
 	TCP_ENDPOINT,
 } endpoint_type_t;
 
+typedef enum {
+	TLS_NONE,
+	TLS_START,
+	TLS_READY,
+	TLS_CONNECTED,
+} tls_state_t;
+
 #define CONNECTION_MASK_NONE      (0u)
 #define CONNECTION_MASK_IO        (1u << 0u)
 #define CONNECTION_MASK_IO_STDIN  (1u << 1u)
@@ -53,6 +60,7 @@ typedef struct {
 	size_t             rcpt_i;
 	size_t             number_of_tries;
 	const void        *endpoint_manager;
+	tls_state_t        tls_state;
 	M_bool             is_failure;
 	int                result_code;
 	char               errmsg[128];
@@ -66,6 +74,7 @@ typedef struct {
 } endpoint_slot_t;
 
 M_state_machine_t *smtp_flow_process(void);
+M_state_machine_t *smtp_flow_tcp_starttls(void);
 M_state_machine_t *smtp_flow_tcp_sendmsg(void);
 M_state_machine_t *smtp_flow_tcp(void);
 

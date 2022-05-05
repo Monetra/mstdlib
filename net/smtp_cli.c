@@ -154,6 +154,7 @@ static M_bool add_tcp_endpoint(const char *address, M_net_smtp_t *sp, prag_t *pr
 	if (prag->dns == NULL) {
 		M_tls_clientctx_t *ctx = M_tls_clientctx_create();
 		M_tls_clientctx_set_default_trust(ctx);
+		M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
 		prag->dns = M_dns_create(prag->el);
 		M_net_smtp_setup_tcp(sp, prag->dns, ctx);
 		M_tls_clientctx_destroy(ctx);

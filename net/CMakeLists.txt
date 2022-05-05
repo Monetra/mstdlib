@@ -15,6 +15,7 @@ set(sources
 	smtp/flow_process.c
 	smtp/flow_tcp.c
 	smtp/flow_tcp_sendmsg.c
+	smtp/flow_tcp_starttls.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")

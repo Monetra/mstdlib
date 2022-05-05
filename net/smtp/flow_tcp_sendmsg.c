@@ -37,7 +37,8 @@ typedef enum {
 static M_bool rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
 {
 	size_t idx_offset = 0;
-	size_t len;
+	size_t len        = 0;
+
 	len = M_email_to_len(e);
 	if ((idx - idx_offset) < len) {
 		return M_email_to(e, idx - idx_offset, group, name, address);
@@ -60,10 +61,10 @@ static M_bool rcpt_at(M_email_t *e, size_t idx, const char **group, const char *
 
 static M_state_machine_status_t mail_from(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
-	const char *group;
-	const char *name;
-	const char *address;
+	endpoint_slot_t *slot    = data;
+	const char      *group   = NULL;
+	const char      *name    = NULL;
+	const char      *address = NULL;
 
 	if (!M_email_from(slot->email, &group, &name, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -86,10 +87,10 @@ static M_state_machine_status_t mail_from_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t rcpt_to(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
-	const char *group;
-	const char *name;
-	const char *address;
+	endpoint_slot_t *slot    = data;
+	const char      *group   = NULL;
+	const char      *name    = NULL;
+	const char      *address = NULL;
 
 	if (!rcpt_at(slot->email, slot->rcpt_i, &group, &name, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -102,7 +103,7 @@ static M_state_machine_status_t rcpt_to(void *data, M_uint64 *next)
 
 static M_state_machine_status_t rcpt_to_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		slot->rcpt_i++;
@@ -118,7 +119,7 @@ static M_state_machine_status_t rcpt_to_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t data_start(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 
 	M_bprintf(slot->out_buf, "DATA\r\n");
 
@@ -128,7 +129,7 @@ static M_state_machine_status_t data_start(void *data, M_uint64 *next)
 
 static M_state_machine_status_t data_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		*next = DATA_PAYLOAD_AND_STOP;
@@ -139,7 +140,7 @@ static M_state_machine_status_t data_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t data_payload_and_stop(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 
 	M_buf_add_str(slot->out_buf, slot->msg);
 	M_bprintf(slot->out_buf, "\r\n.\r\n");
@@ -150,7 +151,7 @@ static M_state_machine_status_t data_payload_and_stop(void *data, M_uint64 *next
 
 static M_state_machine_status_t data_stop_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	endpoint_slot_t *slot = data;
 	(void)next;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
