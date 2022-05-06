@@ -25,6 +25,7 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 	const M_time_tz_t *tz;
 	M_time_t           ts;
 	M_time_localtm_t   ltime;
+	M_hash_dict_t     *headers;
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 	ts = M_time();
@@ -37,7 +38,11 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 	M_email_to_append(e, NULL, NULL, to_address);
 	M_email_set_subject(e, "smtp_cli testing");
 	M_snprintf(msg, sizeof(msg), "%04lld%02lld%02lld:%02lld%02lld%02lld, %zu\n", ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec, idx);
-	M_email_part_append(e, msg, M_str_len(msg), NULL, NULL);
+	headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
+	M_hash_dict_insert(headers, "Content-Type", "text/plain; charset=\"utf-8\"");
+	M_hash_dict_insert(headers, "Content-Transfer-Encoding", "7bit");
+	M_email_part_append(e, msg, M_str_len(msg), headers, NULL);
+	M_hash_dict_destroy(headers);
 	return e;
 }
 
