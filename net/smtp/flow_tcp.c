@@ -24,23 +24,23 @@
 #include "flow.h"
 
 typedef enum {
-	CONNECTING = 1,
-	OPENING_ACK,
-	STARTTLS,
-	SENDMSG,
-	QUIT,
-	QUIT_ACK,
-	DISCONNECTING,
-} state_id;
+	STATE_CONNECTING = 1,
+	STATE_OPENING_ACK,
+	STATE_STARTTLS,
+	STATE_SENDMSG,
+	STATE_QUIT,
+	STATE_QUIT_ACK,
+	STATE_DISCONNECTING,
+} m_state_ids;
 
-static size_t rcpt_count(M_email_t *email)
+static size_t M_rcpt_count(M_email_t *email)
 {
 	return M_email_to_len(email) + M_email_cc_len(email) + M_email_bcc_len(email);
 }
 
-static M_bool sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
+static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 	(void)status;
 	(void)next;
 
@@ -54,13 +54,13 @@ static M_bool sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uin
 		slot->email = NULL;
 		return M_FALSE;
 	}
-	slot->rcpt_n = rcpt_count(slot->email);
+	slot->rcpt_n = M_rcpt_count(slot->email);
 	return M_TRUE;
 }
 
-static M_state_machine_status_t sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	M_net_smtp_endpoint_slot_t *slot       = data;
 	(void)sub_status;
 
 	M_email_destroy(slot->email);
@@ -69,40 +69,45 @@ static M_state_machine_status_t sendmsg_post_cb(void *data, M_state_machine_stat
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	*next = QUIT;
+	*next = STATE_QUIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t starttls_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+static M_state_machine_status_t M_starttls_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	(void)data;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	*next = SENDMSG;
+	*next = STATE_SENDMSG;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t connecting(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot      = data;
+	M_net_smtp_endpoint_slot_t *slot      = data;
 
-	if ((slot->connection_mask & CONNECTION_MASK_IO) != 0u) {
-		*next = OPENING_ACK;
+	if ((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
+		*next = STATE_OPENING_ACK;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t opening_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_opening_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot       = data;
+	M_net_smtp_endpoint_slot_t *slot       = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		switch(slot->tls_state) {
-			case TLS_NONE:  *next = SENDMSG;  break;
-			case TLS_START: *next = STARTTLS; break;
+			case M_NET_SMTP_TLS_NONE:
+			case M_NET_SMTP_TLS_CONNECTED:
+				*next = STATE_SENDMSG;
+				break;
+			case M_NET_SMTP_TLS_STARTTLS:
+				*next = STATE_STARTTLS;
+				break;
 			default:
 				return M_STATE_MACHINE_STATUS_ERROR_STATE;
 		}
@@ -111,57 +116,59 @@ static M_state_machine_status_t opening_ack(void *data, M_uint64 *next)
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t quit(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	M_bprintf(slot->out_buf, "QUIT\r\n");
-	*next = QUIT_ACK;
+	*next = STATE_QUIT_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t quit_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = DISCONNECTING;
+		*next = STATE_DISCONNECTING;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t disconnecting(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot      = data;
+	M_net_smtp_endpoint_slot_t *slot      = data;
 	(void)next;
 
-	if ((slot->connection_mask & CONNECTION_MASK_IO) != 0u) {
+	if ((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 
-M_state_machine_t * smtp_flow_tcp()
+M_state_machine_t * M_net_smtp_flow_tcp()
 {
 	M_state_machine_t *m          = NULL;
 	M_state_machine_t *sendmsg_m  = NULL;
 	M_state_machine_t *starttls_m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, CONNECTING, 0, NULL, connecting, NULL, NULL);
-	M_state_machine_insert_state(m, OPENING_ACK, 0, NULL, opening_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_OPENING_ACK, 0, NULL, M_state_opening_ack, NULL, NULL);
 
-	starttls_m = smtp_flow_tcp_starttls();
-	M_state_machine_insert_sub_state_machine(m, STARTTLS, 0, NULL, starttls_m, NULL, starttls_post_cb, NULL, NULL);
+	starttls_m = M_net_smtp_flow_tcp_starttls();
+	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, starttls_m,
+			NULL, M_starttls_post_cb, NULL, NULL);
 	M_state_machine_destroy(starttls_m);
 
-	sendmsg_m = smtp_flow_tcp_sendmsg();
-	M_state_machine_insert_sub_state_machine(m, SENDMSG, 0, NULL, sendmsg_m, sendmsg_pre_cb, sendmsg_post_cb, NULL, NULL);
+	sendmsg_m = M_net_smtp_flow_tcp_sendmsg();
+	M_state_machine_insert_sub_state_machine(m, STATE_SENDMSG, 0, NULL, sendmsg_m,
+			M_sendmsg_pre_cb, M_sendmsg_post_cb, NULL, NULL);
 	M_state_machine_destroy(sendmsg_m);
 
-	M_state_machine_insert_state(m, QUIT, 0, NULL, quit, NULL, NULL);
-	M_state_machine_insert_state(m, QUIT_ACK, 0, NULL, quit_ack, NULL, NULL);
-	M_state_machine_insert_state(m, DISCONNECTING, 0, NULL, disconnecting, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
 	return m;
 }

@@ -24,58 +24,58 @@
 #include "flow.h"
 
 typedef enum {
-	CONNECTING = 1,
-	WRITE,
-	DISCONNECTING,
-} state_ids;
+	STATE_CONNECTING = 1,
+	STATE_WRITE,
+	STATE_DISCONNECTING,
+} m_state_ids;
 
-static M_state_machine_status_t connecting(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 	if (
-		((slot->connection_mask & CONNECTION_MASK_IO)        != 0u) &&
-		((slot->connection_mask & CONNECTION_MASK_IO_STDIN)  != 0u) &&
-		((slot->connection_mask & CONNECTION_MASK_IO_STDOUT) != 0u) &&
-		((slot->connection_mask & CONNECTION_MASK_IO_STDERR) != 0u)
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) &&
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) &&
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) &&
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
 	) {
-		*next = WRITE;
+		*next = STATE_WRITE;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t write(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_write(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	M_buf_add_str(slot->out_buf, slot->msg);
 
-	*next = DISCONNECTING;
+	*next = STATE_DISCONNECTING;
 	return M_STATE_MACHINE_STATUS_NEXT;
 
 }
 
-static M_state_machine_status_t disconnecting(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 	(void)next;
 	if (
-		((slot->connection_mask & CONNECTION_MASK_IO)        != 0u) ||
-		((slot->connection_mask & CONNECTION_MASK_IO_STDIN)  != 0u) ||
-		((slot->connection_mask & CONNECTION_MASK_IO_STDOUT) != 0u) ||
-		((slot->connection_mask & CONNECTION_MASK_IO_STDERR) != 0u)
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) ||
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) ||
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) ||
+		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
 	) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 
-M_state_machine_t * smtp_flow_process()
+M_state_machine_t * M_net_smtp_flow_process()
 {
 	M_state_machine_t *m;
-	m = M_state_machine_create(0, "SMTP-flow-process", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, CONNECTING, 0, NULL, connecting, NULL, NULL);
-	M_state_machine_insert_state(m, WRITE, 0, NULL, write, NULL, NULL);
-	M_state_machine_insert_state(m, DISCONNECTING, 0, NULL, disconnecting, NULL, NULL);
+	m = M_state_machine_create(0, "M-net-smtp-flow-process", M_STATE_MACHINE_NONE);
+	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_WRITE, 0, NULL, M_state_write, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
 	return m;
 }

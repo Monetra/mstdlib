@@ -24,17 +24,17 @@
 #include "flow.h"
 
 typedef enum {
-	MAIL_FROM = 1,
-	MAIL_FROM_ACK,
-	RCPT_TO,
-	RCPT_TO_ACK,
-	DATA_START, /* DATA is overloaded */
-	DATA_ACK,
-	DATA_PAYLOAD_AND_STOP,
-	DATA_STOP_ACK,
+	STATE_MAIL_FROM = 1,
+	STATE_MAIL_FROM_ACK,
+	STATE_RCPT_TO,
+	STATE_RCPT_TO_ACK,
+	STATE_DATA,
+	STATE_DATA_ACK,
+	STATE_DATA_PAYLOAD_AND_STOP,
+	STATE_DATA_STOP_ACK,
 } state_id;
 
-static M_bool rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
+static M_bool M_rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
 {
 	size_t idx_offset = 0;
 	size_t len        = 0;
@@ -59,99 +59,99 @@ static M_bool rcpt_at(M_email_t *e, size_t idx, const char **group, const char *
 	return M_FALSE;
 }
 
-static M_state_machine_status_t mail_from(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot    = data;
-	const char      *group   = NULL;
-	const char      *name    = NULL;
-	const char      *address = NULL;
+	M_net_smtp_endpoint_slot_t *slot    = data;
+	const char                 *group   = NULL;
+	const char                 *name    = NULL;
+	const char                 *address = NULL;
 
 	if (!M_email_from(slot->email, &group, &name, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	M_bprintf(slot->out_buf, "MAIL FROM:<%s>\r\n", address);
-	*next = MAIL_FROM_ACK;
+	*next = STATE_MAIL_FROM_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t mail_from_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_mail_from_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = RCPT_TO;
+		*next = STATE_RCPT_TO;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t rcpt_to(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot    = data;
+	M_net_smtp_endpoint_slot_t *slot    = data;
 	const char      *group   = NULL;
 	const char      *name    = NULL;
 	const char      *address = NULL;
 
-	if (!rcpt_at(slot->email, slot->rcpt_i, &group, &name, &address)) {
+	if (!M_rcpt_at(slot->email, slot->rcpt_i, &group, &name, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	M_bprintf(slot->out_buf, "RCPT TO:<%s>\r\n", address);
 
-	*next = RCPT_TO_ACK;
+	*next = STATE_RCPT_TO_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t rcpt_to_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_rcpt_to_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		slot->rcpt_i++;
 		if (slot->rcpt_i < slot->rcpt_n) {
-			*next = RCPT_TO;
+			*next = STATE_RCPT_TO;
 		} else {
-			*next = DATA_START;
+			*next = STATE_DATA;
 		}
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t data_start(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	M_bprintf(slot->out_buf, "DATA\r\n");
 
-	*next = DATA_ACK;
+	*next = STATE_DATA_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t data_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_data_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = DATA_PAYLOAD_AND_STOP;
+		*next = STATE_DATA_PAYLOAD_AND_STOP;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t data_payload_and_stop(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	M_buf_add_str(slot->out_buf, slot->msg);
 	M_bprintf(slot->out_buf, "\r\n.\r\n");
 
-	*next = DATA_STOP_ACK;
+	*next = STATE_DATA_STOP_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t data_stop_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_state_data_stop_ack(void *data, M_uint64 *next)
 {
-	endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 	(void)next;
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
@@ -161,17 +161,17 @@ static M_state_machine_status_t data_stop_ack(void *data, M_uint64 *next)
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-M_state_machine_t * smtp_flow_tcp_sendmsg()
+M_state_machine_t * M_net_smtp_flow_tcp_sendmsg()
 {
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, MAIL_FROM, 0, NULL, mail_from, NULL, NULL);
-	M_state_machine_insert_state(m, MAIL_FROM_ACK, 0, NULL, mail_from_ack, NULL, NULL);
-	M_state_machine_insert_state(m, RCPT_TO, 0, NULL, rcpt_to, NULL, NULL);
-	M_state_machine_insert_state(m, RCPT_TO_ACK, 0, NULL, rcpt_to_ack, NULL, NULL);
-	M_state_machine_insert_state(m, DATA_START, 0, NULL, data_start, NULL, NULL);
-	M_state_machine_insert_state(m, DATA_ACK, 0, NULL, data_ack, NULL, NULL);
-	M_state_machine_insert_state(m, DATA_PAYLOAD_AND_STOP, 0, NULL, data_payload_and_stop, NULL, NULL);
-	M_state_machine_insert_state(m, DATA_STOP_ACK, 0, NULL, data_stop_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_MAIL_FROM, 0, NULL, M_state_mail_from, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_MAIL_FROM_ACK, 0, NULL, M_state_mail_from_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_RCPT_TO, 0, NULL, M_state_rcpt_to, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_RCPT_TO_ACK, 0, NULL, M_state_rcpt_to_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DATA, 0, NULL, M_state_data, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DATA_ACK, 0, NULL, M_state_data_ack, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, NULL, M_state_data_payload_and_stop, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_DATA_STOP_ACK, 0, NULL, M_state_data_stop_ack, NULL, NULL);
 	return m;
 }

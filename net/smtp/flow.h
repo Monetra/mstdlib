@@ -29,53 +29,56 @@
 #include <mstdlib/mstdlib_net.h>
 
 typedef enum {
-	PROCESS_ENDPOINT = 1,
-	TCP_ENDPOINT,
-} endpoint_type_t;
+	M_NET_SMTP_EPTYPE_PROCESS = 1,
+	M_NET_SMTP_EPTYPE_TCP
+} M_net_smtp_endpoint_type_t;
 
 typedef enum {
-	TLS_NONE,
-	TLS_START,
-	TLS_READY,
-	TLS_CONNECTED,
-} tls_state_t;
+	M_NET_SMTP_TLS_NONE,
+	M_NET_SMTP_TLS_IMPLICIT,
+	M_NET_SMTP_TLS_STARTTLS,
+	M_NET_SMTP_TLS_STARTTLS_READY,
+	M_NET_SMTP_TLS_STARTTLS_ADDED,
+	M_NET_SMTP_TLS_CONNECTED,
+} M_net_smtp_tls_state_t;
 
-#define CONNECTION_MASK_NONE      (0u)
-#define CONNECTION_MASK_IO        (1u << 0u)
-#define CONNECTION_MASK_IO_STDIN  (1u << 1u)
-#define CONNECTION_MASK_IO_STDOUT (1u << 2u)
-#define CONNECTION_MASK_IO_STDERR (1u << 3u)
+#define M_NET_SMTP_CONNECTION_MASK_NONE      (0u)
+#define M_NET_SMTP_CONNECTION_MASK_IO        (1u << 0u)
+#define M_NET_SMTP_CONNECTION_MASK_IO_STDIN  (1u << 1u)
+#define M_NET_SMTP_CONNECTION_MASK_IO_STDOUT (1u << 2u)
+#define M_NET_SMTP_CONNECTION_MASK_IO_STDERR (1u << 3u)
 
 typedef struct {
-	M_net_smtp_t      *sp;
-	endpoint_type_t    endpoint_type;
-	M_state_machine_t *state_machine;
-	M_bool             is_alive;
-	unsigned int       connection_mask;
-	M_io_t            *io;
-	char              *msg;
-	M_hash_dict_t     *headers;
-	M_email_t         *email;
-	size_t             rcpt_n;
-	size_t             rcpt_i;
-	size_t             number_of_tries;
-	const void        *endpoint_manager;
-	tls_state_t        tls_state;
-	M_bool             is_failure;
-	int                result_code;
-	char               errmsg[128];
-	M_buf_t           *out_buf;
-	M_parser_t        *in_parser;
+	M_net_smtp_t               *sp;
+	M_net_smtp_endpoint_type_t  endpoint_type;
+	M_state_machine_t          *state_machine;
+	M_bool                      is_alive;
+	unsigned int                connection_mask;
+	M_io_t                     *io;
+	char                       *msg;
+	M_hash_dict_t              *headers;
+	M_email_t                  *email;
+	size_t                      tls_ctx_layer_idx;
+	size_t                      rcpt_n;
+	size_t                      rcpt_i;
+	size_t                      number_of_tries;
+	const void                 *endpoint_manager;
+	M_net_smtp_tls_state_t      tls_state;
+	M_bool                      is_failure;
+	int                         result_code;
+	char                        errmsg[128];
+	M_buf_t                    *out_buf;
+	M_parser_t                 *in_parser;
 
 	/* Only used for proc endpoints */
-	M_io_t            *io_stdin;
-	M_io_t            *io_stdout;
-	M_io_t            *io_stderr;
-} endpoint_slot_t;
+	M_io_t                     *io_stdin;
+	M_io_t                     *io_stdout;
+	M_io_t                     *io_stderr;
+} M_net_smtp_endpoint_slot_t;
 
-M_state_machine_t *smtp_flow_process(void);
-M_state_machine_t *smtp_flow_tcp_starttls(void);
-M_state_machine_t *smtp_flow_tcp_sendmsg(void);
-M_state_machine_t *smtp_flow_tcp(void);
+M_state_machine_t *M_net_smtp_flow_process(void);
+M_state_machine_t *M_net_smtp_flow_tcp_starttls(void);
+M_state_machine_t *M_net_smtp_flow_tcp_sendmsg(void);
+M_state_machine_t *M_net_smtp_flow_tcp(void);
 
 #endif

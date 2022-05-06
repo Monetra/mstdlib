@@ -453,6 +453,7 @@ int main(int argc, const char * const *argv)
 		M_printf("Endpoint:\n");
 		M_printf("\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\", \\\"-i\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
 		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 25, \\\"connect_tls\\\": false, \\\"username\\\": \\\"%s\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
+		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 587, \\\"connect_tls\\\": true, \\\"username\\\": \\\"%s\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
 		M_printf("Options:\n%s\n", help);
 		destroy_prag(&prag);
 		M_getopt_destroy(getopt);
