@@ -58,6 +58,7 @@ typedef struct {
 	char                       *msg;
 	M_hash_dict_t              *headers;
 	M_email_t                  *email;
+	char                       *auth_str_base64;
 	size_t                      tls_ctx_layer_idx;
 	size_t                      rcpt_n;
 	size_t                      rcpt_i;
@@ -79,6 +80,8 @@ typedef struct {
 M_state_machine_t *M_net_smtp_flow_process(void);
 M_state_machine_t *M_net_smtp_flow_tcp_starttls(void);
 M_state_machine_t *M_net_smtp_flow_tcp_sendmsg(void);
+M_state_machine_t *M_net_smtp_flow_tcp_auth(void);
+M_state_machine_t *M_net_smtp_flow_tcp_ehlo(void);
 M_state_machine_t *M_net_smtp_flow_tcp(void);
 
 #endif

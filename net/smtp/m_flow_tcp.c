@@ -21,12 +21,14 @@
  * THE SOFTWARE.
  */
 
-#include "flow.h"
+#include "m_flow.h"
 
 typedef enum {
 	STATE_CONNECTING = 1,
 	STATE_OPENING_ACK,
 	STATE_STARTTLS,
+	STATE_EHLO,
+	STATE_AUTH,
 	STATE_SENDMSG,
 	STATE_QUIT,
 	STATE_QUIT_ACK,
@@ -58,10 +60,40 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 	return M_TRUE;
 }
 
+static M_state_machine_status_t M_starttls_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	(void)data;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		return sub_status;
+
+	*next = STATE_EHLO;
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	(void)data;
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		return sub_status;
+	*next = STATE_AUTH;
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t M_auth_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	(void)data;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		return sub_status;
+
+	*next = STATE_SENDMSG;
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
 static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot       = data;
-	(void)sub_status;
 
 	M_email_destroy(slot->email);
 	slot->email = NULL;
@@ -70,17 +102,6 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 		return sub_status;
 
 	*next = STATE_QUIT;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
-static M_state_machine_status_t M_starttls_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
-{
-	(void)data;
-
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
-
-	*next = STATE_SENDMSG;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
@@ -103,7 +124,7 @@ static M_state_machine_status_t M_state_opening_ack(void *data, M_uint64 *next)
 		switch(slot->tls_state) {
 			case M_NET_SMTP_TLS_NONE:
 			case M_NET_SMTP_TLS_CONNECTED:
-				*next = STATE_SENDMSG;
+				*next = STATE_EHLO;
 				break;
 			case M_NET_SMTP_TLS_STARTTLS:
 				*next = STATE_STARTTLS;
@@ -150,22 +171,31 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 M_state_machine_t * M_net_smtp_flow_tcp()
 {
 	M_state_machine_t *m          = NULL;
-	M_state_machine_t *sendmsg_m  = NULL;
-	M_state_machine_t *starttls_m = NULL;
+	M_state_machine_t *sub_m  = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_OPENING_ACK, 0, NULL, M_state_opening_ack, NULL, NULL);
 
-	starttls_m = M_net_smtp_flow_tcp_starttls();
-	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, starttls_m,
+	sub_m = M_net_smtp_flow_tcp_starttls();
+	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, sub_m,
 			NULL, M_starttls_post_cb, NULL, NULL);
-	M_state_machine_destroy(starttls_m);
+	M_state_machine_destroy(sub_m);
 
-	sendmsg_m = M_net_smtp_flow_tcp_sendmsg();
-	M_state_machine_insert_sub_state_machine(m, STATE_SENDMSG, 0, NULL, sendmsg_m,
+	sub_m = M_net_smtp_flow_tcp_ehlo();
+	M_state_machine_insert_sub_state_machine(m, STATE_EHLO, 0, NULL, sub_m,
+			NULL, M_ehlo_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
+	sub_m = M_net_smtp_flow_tcp_auth();
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH, 0, NULL, sub_m,
+			NULL, M_auth_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
+	sub_m = M_net_smtp_flow_tcp_sendmsg();
+	M_state_machine_insert_sub_state_machine(m, STATE_SENDMSG, 0, NULL, sub_m,
 			M_sendmsg_pre_cb, M_sendmsg_post_cb, NULL, NULL);
-	M_state_machine_destroy(sendmsg_m);
+	M_state_machine_destroy(sub_m);
 
 	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);

@@ -12,10 +12,12 @@ set(sources
 	m_net.c
 	m_net_http_simple.c
 	m_net_smtp.c
-	smtp/flow_process.c
-	smtp/flow_tcp.c
-	smtp/flow_tcp_sendmsg.c
-	smtp/flow_tcp_starttls.c
+	smtp/m_flow_process.c
+	smtp/m_flow_tcp.c
+	smtp/m_flow_tcp_sendmsg.c
+	smtp/m_flow_tcp_starttls.c
+	smtp/m_flow_tcp_auth.c
+	smtp/m_flow_tcp_ehlo.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")

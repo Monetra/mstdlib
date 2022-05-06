@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "flow.h"
+#include "m_flow.h"
 
 typedef enum {
 	STATE_CONNECTING = 1,

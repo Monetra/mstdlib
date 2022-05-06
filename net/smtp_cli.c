@@ -12,7 +12,7 @@ typedef struct {
 	M_event_t  *el;
 	M_int64     num_sent;
 	M_int64     num_to_generate;
-	const char *to_address;
+	char       *to_address;
 	char       *to_address_default;
 	M_dns_t    *dns;
 } prag_t;
@@ -33,7 +33,7 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 	M_time_tolocal(ts, &ltime, tz);
 
 	e = M_email_create();
-	M_email_set_from(e, "Monetra Testing", "smtp_cli", "no-reply+smtp-test@monetra.com");
+	M_email_set_from(e, NULL, "smtp_cli", "no-reply+smtp-test@monetra.com");
 	M_email_to_append(e, NULL, NULL, to_address);
 	M_email_set_subject(e, "smtp_cli testing");
 	M_snprintf(msg, sizeof(msg), "%04lld%02lld%02lld:%02lld%02lld%02lld, %zu\n", ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec, idx);
@@ -154,7 +154,7 @@ static M_bool add_tcp_endpoint(const char *address, M_net_smtp_t *sp, prag_t *pr
 	if (prag->dns == NULL) {
 		M_tls_clientctx_t *ctx = M_tls_clientctx_create();
 		M_tls_clientctx_set_default_trust(ctx);
-		M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+		//M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
 		prag->dns = M_dns_create(prag->el);
 		M_net_smtp_setup_tcp(sp, prag->dns, ctx);
 		M_tls_clientctx_destroy(ctx);
@@ -369,7 +369,7 @@ M_bool getopt_string_cb(char short_opt, const char *long_opt, const char *value,
 	prag_t *prag = thunk;
 	switch(short_opt) {
 		case 't':
-			prag->to_address = value;
+			prag->to_address = M_strdup(value);
 			return M_TRUE;
 			break;
 	}
@@ -417,6 +417,9 @@ static void destroy_prag(prag_t *prag)
 		M_json_node_destroy(json);
 	}
 	M_list_destroy(prag->endpoints, M_FALSE);
+	if (prag->to_address != prag->to_address_default) {
+		M_free(prag->to_address);
+	}
 	M_free(prag->to_address_default);
 	M_dns_destroy(prag->dns);
 }
@@ -452,8 +455,8 @@ int main(int argc, const char * const *argv)
 		M_printf("usage: %s [OPTION]...ENDPOINT(s)\n", argv[0]);
 		M_printf("Endpoint:\n");
 		M_printf("\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\", \\\"-i\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
-		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 25, \\\"connect_tls\\\": false, \\\"username\\\": \\\"%s\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
-		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 587, \\\"connect_tls\\\": true, \\\"username\\\": \\\"%s\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
+		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 25, \\\"connect_tls\\\": false, \\\"username\\\": \\\"%s@localhost\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
+		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 587, \\\"connect_tls\\\": true, \\\"username\\\": \\\"%s@localhost\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
 		M_printf("Options:\n%s\n", help);
 		destroy_prag(&prag);
 		M_getopt_destroy(getopt);
