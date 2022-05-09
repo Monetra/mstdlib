@@ -70,6 +70,7 @@ typedef struct {
 	char                        errmsg[128];
 	M_buf_t                    *out_buf;
 	M_parser_t                 *in_parser;
+	M_event_timer_t            *event_timer;
 
 	/* Only used for proc endpoints */
 	M_io_t                     *io_stdin;

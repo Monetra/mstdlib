@@ -46,7 +46,7 @@ struct M_net_smtp {
 	M_net_smtp_load_balance_t          load_balance_mode;
 	size_t                             round_robin_idx;
 	size_t                             max_number_of_attempts;
-	size_t                             number_of_delayed_messages;
+	M_list_t                          *delay_msg_timers;
 	M_list_t                          *retry_queue;
 	M_list_str_t                      *internal_queue;
 	M_bool                             is_external_queue_enabled;
@@ -55,10 +55,11 @@ struct M_net_smtp {
 };
 
 typedef struct {
-	M_net_smtp_t  *sp;
-	char          *msg;
-	M_hash_dict_t *headers;
-	size_t         number_of_tries;
+	M_net_smtp_t    *sp;
+	char            *msg;
+	M_hash_dict_t   *headers;
+	size_t           number_of_tries;
+	M_event_timer_t *event_timer;
 } retry_msg_t;
 
 typedef struct {
@@ -177,13 +178,20 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->thunk = thunk;
 	sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
 
-	sp->retry_default_ms = 300000; /* 5 min */
 
 	sp->proc_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->tcp_endpoints = M_list_create(NULL, M_LIST_NONE);
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
 	sp->endpoint_managers = M_list_create(NULL, M_LIST_NONE);
 	sp->retry_queue = M_list_create(NULL, M_LIST_NONE);
+	sp->delay_msg_timers = M_list_create(NULL, M_LIST_NONE);
+
+	/* defaults */
+	sp->max_number_of_attempts = 3; /* default */
+	sp->retry_default_ms = 300000; /* 5 min */
+	sp->tcp_connect_ms = 5000;
+	sp->tcp_stall_ms = 5000;
+	sp->tcp_idle_ms = 0;
 
 	return sp;
 }
@@ -216,6 +224,11 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		destroy_tcp_endpoint(M_list_at(sp->tcp_endpoints, i));
 	}
 	M_list_destroy(sp->tcp_endpoints, M_TRUE);
+	while (M_list_len(sp->delay_msg_timers) > 0) {
+		M_event_timer_t *timer = M_list_take_first(sp->delay_msg_timers);
+		M_event_timer_remove(timer);
+	}
+	M_list_destroy(sp->delay_msg_timers, M_TRUE);
 	M_list_destroy(sp->retry_queue, M_TRUE);
 	M_list_str_destroy(sp->internal_queue);
 	/* endpoint manager should free it self once it finishes processing */
@@ -240,7 +253,14 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	(void)io;
 	(void)etype;
 
-	sp->number_of_delayed_messages--;
+	for (size_t i = 0; i < M_list_len(sp->delay_msg_timers); i++) {
+		if (retry->event_timer == M_list_at(sp->delay_msg_timers, i)) {
+			M_list_remove_at(sp->delay_msg_timers, i);
+			retry->event_timer = NULL;
+			break;
+		}
+	}
+
 	M_list_insert(sp->retry_queue, retry);
 	process_queue_queue(sp);
 }
@@ -280,8 +300,9 @@ static void reschedule(const M_net_smtp_endpoint_slot_t *slot)
 		retry->msg = M_strdup(slot->msg);
 		retry->number_of_tries = slot->number_of_tries + 1;
 		retry->headers = M_hash_dict_duplicate(slot->headers);
-		slot->sp->number_of_delayed_messages++;
-		M_event_timer_oneshot(slot->sp->el, slot->sp->retry_default_ms, M_TRUE, reschedule_event_cb, retry);
+		retry->event_timer = M_event_timer_oneshot(slot->sp->el, slot->sp->retry_default_ms, M_TRUE,
+				reschedule_event_cb, retry);
+		M_list_insert(slot->sp->delay_msg_timers, retry->event_timer);
 	}
 }
 
@@ -326,6 +347,7 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	endpoint_manager_t *epm     = (endpoint_manager_t*)slot->endpoint_manager;
 	M_net_smtp_sent_cb  sent_cb = slot->sp->cbs.sent_cb;
 
+	M_event_timer_remove(slot->event_timer);
 	M_buf_cancel(slot->out_buf);
 	slot->out_buf = NULL;
 	M_parser_destroy(slot->in_parser);
@@ -359,6 +381,9 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	size_t                      len;
 	M_bool                      is_done;
 	(void)el;
+
+	if (slot->sp->status == M_NET_SMTP_STATUS_STOPPING)
+		goto err;
 
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
@@ -507,6 +532,9 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 	(void)el;
 
+	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
+		goto err;
+
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
 
@@ -522,6 +550,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				if (connect_cb != NULL) {
 					connect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 				}
+				M_event_timer_reset(slot->event_timer, sp->tcp_stall_ms);
 			}
 
 			if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || slot->tls_state == M_NET_SMTP_TLS_IMPLICIT) {
@@ -564,6 +593,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 					goto err;
 				}
 				M_event_add(sp->el, slot->io, tcp_io_cb, slot);
+				M_event_timer_reset(slot->event_timer, sp->tcp_connect_ms);
 				return;
 			}
 			if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || slot->tls_state == M_NET_SMTP_TLS_CONNECTED) {
@@ -612,8 +642,8 @@ destroy:
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			destroy_slot(slot);
 		}
+		slot->io = NULL;
 	}
-	slot->io = NULL;
 }
 
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, M_net_smtp_endpoint_slot_t *slot)
@@ -642,6 +672,7 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep,
 	M_io_error_t               io_error        = M_IO_ERROR_SUCCESS;
 	M_bool                     is_success      = M_TRUE;
 
+	slot->event_timer = M_event_timer_add(sp->el, tcp_io_cb, slot);
 	slot->auth_str_base64 = tcp_ep->auth_str_base64;
 	slot->endpoint_type = M_NET_SMTP_EPTYPE_TCP;
 	slot->state_machine = M_net_smtp_flow_tcp();
@@ -653,6 +684,7 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep,
 	}
 	if (io_error == M_IO_ERROR_SUCCESS) {
 		M_event_add(sp->el, slot->io, tcp_io_cb, slot);
+		M_event_timer_start(slot->event_timer, sp->tcp_connect_ms);
 	} else {
 		is_success = M_FALSE;
 	}
@@ -986,30 +1018,23 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (connect_tls && sp->tcp_tls_ctx == NULL)
 		return M_FALSE;
 
-	ep = M_malloc_zero(sizeof(*ep));
-	if (ep == NULL)
-		return M_FALSE;
+	if (!(ep = M_malloc_zero(sizeof(*ep)))) { return M_FALSE; }
 	ep->idx = sp->number_of_endpoints;
 	ep->address = M_strdup(address);
 	ep->port = port;
 	ep->connect_tls = connect_tls;
-	ep->username = M_strdup(username);
-	if (ep->username == NULL)
-		goto fail_alloc;
-	ep->password = M_strdup(password);
-	if (ep->password == NULL)
-		goto fail_alloc;
-	ep->auth_str_base64 = create_auth_str_base64(username, password);
-	if (ep->auth_str_base64 == NULL)
-		goto fail_alloc;
+	if (!(ep->username        = M_strdup(username)))                         { goto fail; }
+	if (!(ep->password        = M_strdup(password)))                         { goto fail; }
+	if (!(ep->auth_str_base64 = create_auth_str_base64(username, password))) { goto fail; }
 	ep->max_conns = max_conns;
 	M_list_insert(sp->tcp_endpoints, ep);
 	sp->number_of_endpoints++;
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
+
 	return M_TRUE;
-fail_alloc:
+fail:
 	M_free(ep);
 	return M_FALSE;
 }
@@ -1112,7 +1137,7 @@ M_bool M_net_smtp_queue_message(M_net_smtp_t *sp, const char *msg)
 
 M_bool M_net_smtp_use_external_queue(M_net_smtp_t *sp, char *(*get_cb)(void))
 {
-	if (sp == NULL || get_cb == NULL || is_pending(sp) || sp->number_of_delayed_messages > 0)
+	if (sp == NULL || get_cb == NULL || is_pending(sp) || M_list_len(sp->delay_msg_timers) > 0)
 		return M_FALSE;
 
 	sp->is_external_queue_enabled = M_TRUE;
