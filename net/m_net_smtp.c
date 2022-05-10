@@ -160,6 +160,36 @@ static M_bool is_available(M_net_smtp_t *sp)
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* NOP callbacks */
+static void nop_connect_cb(const char *a, M_uint16 b, void *c) { (void)a; (void)b; (void)c; }
+static void nop_disconnect_cb(const char *a, M_uint16 b, void *c) { (void)a; (void)b; (void)c; }
+static void nop_sent_cb(const M_hash_dict_t *a, void *b) { (void)a; (void)b; }
+static void nop_reschedule_cb(const char *a, M_uint64 b, void *c) { (void)a; (void)b; (void)c; }
+static M_bool nop_connect_fail_cb(const char *a, M_uint16 b, M_net_error_t c, const char *d, void *e)
+{
+	(void)a; (void)b; (void)c; (void)d; (void)e;
+	return M_FALSE; /* Default is stop on tcp connection failure */
+}
+static M_bool nop_process_fail_cb(const char *a, int b, const char *c, const char *d, void *e)
+{
+	(void)a; (void)b; (void)c; (void)d; (void)e;
+	return M_FALSE; /* Default is stop on process failure */
+}
+static M_uint64 nop_processing_halted_cb(M_bool a, void *b)
+{
+	(void)a; (void)b;
+	return 0; /* Default is to stop on total failure */
+}
+static M_bool nop_send_failed_cb(const M_hash_dict_t *a, const char *b, size_t c, M_bool d, void *e)
+{
+	(void)a; (void)b; (void)c; (void)d; (void)e;
+	return M_TRUE; /* Default is to retry msg */
+}
+static M_bool nop_iocreate_cb(M_io_t *a, char *b, size_t c, void *d)
+{
+	(void)a; (void)b; (void)c; (void)d;
+	return M_TRUE; /* The goal "nothing" was achieved! */
+}
 
 M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks *cbs, void *thunk)
 {
@@ -171,9 +201,15 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp = M_malloc_zero(sizeof(*sp));
 	sp->el = el;
 
-	if (cbs != NULL) {
-		M_mem_move(&sp->cbs, cbs, sizeof(sp->cbs));
-	}
+	sp->cbs.connect_cb           = cbs->connect_cb           ? cbs->connect_cb           : nop_connect_cb;
+	sp->cbs.connect_fail_cb      = cbs->connect_fail_cb      ? cbs->connect_fail_cb      : nop_connect_fail_cb;
+	sp->cbs.disconnect_cb        = cbs->disconnect_cb        ? cbs->disconnect_cb        : nop_disconnect_cb;
+	sp->cbs.process_fail_cb      = cbs->process_fail_cb      ? cbs->process_fail_cb      : nop_process_fail_cb;
+	sp->cbs.processing_halted_cb = cbs->processing_halted_cb ? cbs->processing_halted_cb : nop_processing_halted_cb;
+	sp->cbs.sent_cb              = cbs->sent_cb              ? cbs->sent_cb              : nop_sent_cb;
+	sp->cbs.send_failed_cb       = cbs->send_failed_cb       ? cbs->send_failed_cb       : nop_send_failed_cb;
+	sp->cbs.reschedule_cb        = cbs->reschedule_cb        ? cbs->reschedule_cb        : nop_reschedule_cb;
+	sp->cbs.iocreate_cb          = cbs->iocreate_cb          ? cbs->iocreate_cb          : nop_iocreate_cb;
 
 	sp->thunk = thunk;
 	sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
@@ -281,17 +317,13 @@ static void reschedule(const M_net_smtp_endpoint_slot_t *slot)
 	if (slot->sp->is_external_queue_enabled) {
 		num_tries = 0;
 		is_requeue = M_FALSE;
-		if (reschedule_cb != NULL) {
-			reschedule_cb(slot->msg, slot->sp->retry_default_ms, slot->sp->thunk);
-		}
+		reschedule_cb(slot->msg, slot->sp->retry_default_ms, slot->sp->thunk);
 	}
 
-	if (send_failed_cb != NULL) {
-		if (is_requeue) {
-			is_requeue = send_failed_cb(slot->headers, slot->errmsg, num_tries, M_TRUE, slot->sp->thunk);
-		} else {
-			send_failed_cb(slot->headers, slot->errmsg, num_tries, M_FALSE, slot->sp->thunk);
-		}
+	if (is_requeue) {
+		is_requeue = send_failed_cb(slot->headers, slot->errmsg, num_tries, M_TRUE, slot->sp->thunk);
+	} else {
+		send_failed_cb(slot->headers, slot->errmsg, num_tries, M_FALSE, slot->sp->thunk);
 	}
 
 	if (is_requeue) {
@@ -334,11 +366,9 @@ static void failure_process(M_net_smtp_endpoint_slot_t *slot, const endpoint_man
 	M_net_smtp_process_fail_cb  process_fail_cb = slot->sp->cbs.process_fail_cb;
 	char                       *stdout_str      = NULL;
 
-	if (process_fail_cb != NULL) {
-		stdout_str = M_buf_finish_str(slot->out_buf, NULL);
-		process_fail_cb(epm->proc_endpoint->command, slot->result_code, stdout_str, slot->errmsg, slot->sp->thunk);
-		M_free(stdout_str);
-	}
+	stdout_str = M_buf_finish_str(slot->out_buf, NULL);
+	process_fail_cb(epm->proc_endpoint->command, slot->result_code, stdout_str, slot->errmsg, slot->sp->thunk);
+	M_free(stdout_str);
 	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Process failure: %d", slot->result_code);
 }
 
@@ -360,9 +390,7 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 		}
 		reschedule(slot);
 	} else {
-		if (sent_cb != NULL) {
-			sent_cb(slot->headers, slot->sp->thunk);
-		}
+		sent_cb(slot->headers, slot->sp->thunk);
 	}
 	M_free(slot->msg);
 	slot->msg = NULL;
@@ -383,7 +411,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	(void)el;
 
 	if (slot->sp->status == M_NET_SMTP_STATUS_STOPPING)
-		goto err;
+		goto destroy;
 
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
@@ -400,10 +428,10 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 				}
 				if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 					M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Read failure: %s", M_io_error_string(io_error));
-					goto err;
+					goto destroy;
 				}
 				slot->errmsg[len] = '\0';
-				goto err;
+				goto destroy;
 			}
 			if (connection_mask == M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) {
 				io_error = M_io_read_into_parser(io, slot->in_parser);
@@ -413,10 +441,10 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 				if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 					M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Read failure: %s", M_io_error_string(io_error));
 				}
-				goto err; /* shouldn't receive anything on stdout */
+				goto destroy; /* shouldn't receive anything on stdout */
 			}
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
-			goto err;
+			goto destroy;
 			break;
 		case M_EVENT_TYPE_WRITE:
 			if (connection_mask == M_NET_SMTP_CONNECTION_MASK_IO_STDIN) {
@@ -425,7 +453,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 				}
 			} else {
 				M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
-				goto err;
+				goto destroy;
 			}
 			break;
 		case M_EVENT_TYPE_ERROR:
@@ -436,27 +464,26 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 		case M_EVENT_TYPE_ACCEPT:
 		case M_EVENT_TYPE_OTHER:
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
-			goto err;
+			goto destroy;
 			break;
 	}
 
-	if (!run_state_machine(slot, &is_done))
-		goto err;
-
-	if (is_done)
+	if (!run_state_machine(slot, &is_done) || is_done)
 		goto destroy;
 
 	if (M_buf_len(slot->out_buf) > 0) {
 		io_error = M_io_write_from_buf(slot->io_stdin, slot->out_buf);
 		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
-			goto err;
+			goto destroy;
+		}
+		if (M_buf_len(slot->out_buf) == 0) {
+			/* Success */
+			slot->is_failure = M_FALSE;
 		}
 	}
 
 	return;
-err:
-	slot->is_failure = M_TRUE;
 destroy:
 	switch (connection_mask) {
 		case M_NET_SMTP_CONNECTION_MASK_IO:        slot_io = &slot->io;        break;
@@ -498,24 +525,20 @@ static void tls_connect_fail(M_net_smtp_endpoint_slot_t *slot, M_io_t *io)
 {
 	M_net_smtp_t              *sp              = slot->sp;
 	const endpoint_manager_t  *const_epm       = slot->endpoint_manager;
-	endpoint_manager_t        *epm             = NULL;
 	M_net_smtp_connect_fail_cb connect_fail_cb = sp->cbs.connect_fail_cb;
 	M_bool                     is_removed      = M_FALSE;
-	M_net_error_t              net_err         = M_NET_ERROR_SUCCESS;
 
-	if (connect_fail_cb != NULL) {
-		net_err = M_net_io_error_to_net_error(M_io_get_error(io));
-		is_removed = connect_fail_cb(
-			const_epm->tcp_endpoint->address,
-			const_epm->tcp_endpoint->port,
-			net_err,
-			slot->errmsg,
-			sp->thunk);
+	is_removed = connect_fail_cb(
+		const_epm->tcp_endpoint->address,
+		const_epm->tcp_endpoint->port,
+		M_net_io_error_to_net_error(M_io_get_error(io)),
+		slot->errmsg,
+		sp->thunk
+	);
 
-		if (is_removed) {
-			epm = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
-			epm->is_removed = M_TRUE;
-		}
+	if (is_removed) {
+		endpoint_manager_t *epm = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
+		epm->is_removed = M_TRUE;
 	}
 }
 
@@ -533,7 +556,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	(void)el;
 
 	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
-		goto err;
+		goto destroy;
 
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
@@ -541,15 +564,11 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 				/* STARTTLS has 2 CONNECTED events, only want to cb() once. */
 				slot->connection_mask |= M_NET_SMTP_CONNECTION_MASK_IO;
-				if (iocreate_cb != NULL) {
-					/* Sending iocreate here ensures we trace on the right one. */
-						if (!iocreate_cb(io, slot->errmsg, sizeof(slot->errmsg), sp->thunk)) {
-							goto err;
-						}
+				/* Sending iocreate here ensures we trace on the right one. */
+				if (!iocreate_cb(io, slot->errmsg, sizeof(slot->errmsg), sp->thunk)) {
+					goto destroy;
 				}
-				if (connect_cb != NULL) {
-					connect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
-				}
+				connect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 				M_event_timer_reset(slot->event_timer, sp->tcp_stall_ms);
 			}
 
@@ -560,9 +579,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
-			if (disconnect_cb != NULL) {
-				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
-			}
+			disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_READ:
@@ -571,12 +588,14 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			if (io_error == M_IO_ERROR_WOULDBLOCK)
 				return;
 
-			if (io_error == M_IO_ERROR_DISCONNECT)
-				break;
+			if (io_error == M_IO_ERROR_DISCONNECT) {
+				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+				goto destroy;
+			}
 
 			if (io_error != M_IO_ERROR_SUCCESS) {
 				M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Read failure: %s", M_io_error_string(io_error));
-				goto err;
+				goto destroy;
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -590,7 +609,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				M_io_destroy(io);
 				io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, tcp_ep->address, tcp_ep->port, M_IO_NET_ANY);
 				if (io_error != M_IO_ERROR_SUCCESS) {
-					goto err;
+					goto destroy;
 				}
 				M_event_add(sp->el, slot->io, tcp_io_cb, slot);
 				M_event_timer_reset(slot->event_timer, sp->tcp_connect_ms);
@@ -599,18 +618,15 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || slot->tls_state == M_NET_SMTP_TLS_CONNECTED) {
 				M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
 				tls_connect_fail(slot, io);
-				goto err;
+				goto destroy;
 			}
 		case M_EVENT_TYPE_OTHER:
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
-			goto err;
+			goto destroy;
 			return;
 	}
 
-	if (!run_state_machine(slot, &is_done))
-		goto err;
-
-	if (is_done)
+	if (!run_state_machine(slot, &is_done) || is_done)
 		goto destroy;
 
 	if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_READY) {
@@ -628,13 +644,11 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		io_error = M_io_write_from_buf(io, slot->out_buf);
 		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
-			goto err;
+			goto destroy;
 		}
 	}
 
 	return;
-err:
-	slot->is_failure = M_TRUE;
 destroy:
 	if (slot->io != NULL) {
 		M_io_destroy(io);
@@ -700,6 +714,7 @@ static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, con
 	slot->sp = sp;
 	slot->out_buf = M_buf_create();
 	slot->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
+	slot->is_failure = M_TRUE; /* will be unmarked as failure on success */
 	e_error = M_email_simple_split_header_body(slot->msg, &slot->headers, NULL);
 	if (e_error == M_EMAIL_ERROR_SUCCESS && slot->out_buf != NULL && slot->in_parser != NULL) {
 		if (proc_ep != NULL) {
@@ -866,9 +881,7 @@ static void stop(M_net_smtp_t *sp)
 		M_free(epm);
 	}
 	sp->status = M_NET_SMTP_STATUS_STOPPED;
-	if (sp->cbs.processing_halted_cb != NULL) {
-		sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
-	}
+	sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
 }
 
 static void process_queue_queue(M_net_smtp_t *sp)
@@ -904,9 +917,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 
 	if (sp->status != M_NET_SMTP_STATUS_STOPPED) {
 		if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
-			if (sp->cbs.processing_halted_cb != NULL) {
-				sp->cbs.processing_halted_cb(M_TRUE, sp->thunk);
-			}
+			sp->cbs.processing_halted_cb(M_TRUE, sp->thunk);
 		}
 		return M_FALSE;
 	}

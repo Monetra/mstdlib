@@ -101,6 +101,8 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
+	slot->is_failure = M_FALSE; /* Success */
+
 	*next = STATE_QUIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }

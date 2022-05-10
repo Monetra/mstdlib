@@ -61,7 +61,7 @@ static const char *event_type_str(M_event_type_t type)
 typedef enum {
 	NO_ENDPOINTS = 1,
 	EMU_SENDMSG,
-	EMU_INSTANT_DISCONNECT,
+	EMU_ACCEPT_DISCONNECT,
 } test_id_t;
 
 
@@ -108,19 +108,23 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			M_io_read_into_parser(io, emu->in_parser);
 			break;
 		case M_EVENT_TYPE_CONNECTED:
-			if (emu->test_id == EMU_INSTANT_DISCONNECT) {
-				M_io_destroy(io);
-				return;
-			}
 			str = M_list_str_at(emu->json_values, 0);
 			M_buf_add_str(emu->out_buf, str);
 			break;
-		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_DISCONNECTED:
+			M_io_destroy(io);
+			break;
+		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_ERROR:
 		case M_EVENT_TYPE_OTHER:
 			break;
 		case M_EVENT_TYPE_ACCEPT:
+			if (emu->test_id == EMU_ACCEPT_DISCONNECT) {
+				M_io_accept(&io_out, io);
+				event_debug("smtp emulator M_io_disconnect(%p)", io_out);
+				M_io_disconnect(io_out);
+				return;
+			}
 			ioerr = M_io_accept(&io_out, io);
 			if (ioerr == M_IO_ERROR_WOULDBLOCK)
 				return;
@@ -138,6 +142,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		ending = eol;
 	}
 	if ((line = M_parser_read_strdup_until(emu->in_parser, ending, M_TRUE)) != NULL) {
+		event_debug("smtp emulator %p READ %d bytes", io, M_str_len(line));
 		if (emu->is_data_mode) {
 			M_buf_add_str(emu->out_buf, M_list_str_at(emu->json_values, 1));
 			emu->is_data_mode = M_FALSE;
@@ -160,10 +165,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	}
 
 	if (M_buf_len(emu->out_buf) > 0) {
+		size_t len = M_buf_len(emu->out_buf);
 		M_io_write_from_buf(io, emu->out_buf);
+		event_debug("smtp emulator %p WRITE %d bytes", io, len - M_buf_len(emu->out_buf));
 	} else {
 		if (emu->is_QUIT) {
-			M_io_destroy(io);
+			M_io_disconnect(io);
 		}
 	}
 
@@ -272,7 +279,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 {
 	args_t *args = thunk;
 	M_printf("send_failed_cb(%p, \"%s\", %zu, %s, %p)\n", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
-	if (args->test_id == EMU_INSTANT_DISCONNECT) {
+	if (args->test_id == EMU_ACCEPT_DISCONNECT) {
 		args->is_success = M_TRUE;
 		M_event_done(args->el);
 	}
@@ -281,7 +288,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-START_TEST(emu_instant_disconnect)
+START_TEST(emu_accept_disconnect)
 {
 	struct M_net_smtp_callbacks cbs  = {
 		.connect_cb           = NULL,
@@ -297,12 +304,12 @@ START_TEST(emu_instant_disconnect)
 
 	args_t args = {
 		.is_success = M_FALSE,
-		.test_id = EMU_INSTANT_DISCONNECT,
+		.test_id = EMU_ACCEPT_DISCONNECT,
 		.el = NULL,
 	};
 
 	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, EMU_INSTANT_DISCONNECT);
+	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, EMU_ACCEPT_DISCONNECT);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
 	M_email_t       *e   = generate_email(1, "anybody@localhost");
@@ -424,8 +431,8 @@ static Suite *smtp_suite(void)
 	tcase_set_timeout(tc, 300);
 	suite_add_tcase(suite, tc);
 
-	tc = tcase_create("emu-instant-disconnect");
-	tcase_add_test(tc, emu_instant_disconnect);
+	tc = tcase_create("emu-accept-disconnect");
+	tcase_add_test(tc, emu_accept_disconnect);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 
