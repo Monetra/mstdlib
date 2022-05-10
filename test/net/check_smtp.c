@@ -63,6 +63,7 @@ typedef enum {
 	EMU_SENDMSG,
 	EMU_ACCEPT_DISCONNECT,
 	IOCREATE_RETURN_FALSE,
+	NO_SERVER,
 } test_id_t;
 
 
@@ -285,6 +286,12 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 	args_t *args = thunk;
 	event_debug("M_net_smtp_connect_fail_cb(\"%s\", %u, %s, \"%s\", %p)", address, port,
 			M_net_errcode_to_str(net_err), error, thunk);
+	if (args->test_id == NO_SERVER) {
+		if (args->is_connect_fail_cb_called) {
+			/* Second Time */
+			return M_TRUE; /* Remove endpoint */
+		}
+	}
 	args->is_connect_fail_cb_called = M_TRUE;
 	return M_FALSE; /* Should TCP endpoint be removed? */
 }
@@ -310,6 +317,9 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args_t *args = thunk;
 	event_debug("M_net_smtp_processing_halted_cb(%s, %p)", no_endpoints ? "M_TRUE" : "M_FALSE", thunk);
 	args->is_processing_halted_cb_called = M_TRUE;
+	if (args->test_id == NO_SERVER) {
+		M_event_done(args->el);
+	}
 	if (args->test_id == NO_ENDPOINTS) {
 		args->is_success = (no_endpoints == M_TRUE);
 	}
@@ -363,6 +373,57 @@ static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(no_server)
+{
+	struct M_net_smtp_callbacks cbs  = {
+		.connect_cb           = connect_cb,
+		.connect_fail_cb      = connect_fail_cb,
+		.disconnect_cb        = disconnect_cb,
+		.process_fail_cb      = process_fail_cb,
+		.processing_halted_cb = processing_halted_cb,
+		.sent_cb              = sent_cb,
+		.send_failed_cb       = send_failed_cb,
+		.reschedule_cb        = reschedule_cb,
+		.iocreate_cb          = iocreate_cb,
+	};
+
+	args_t args = {
+		.is_connect_cb_called           = M_FALSE,
+		.is_connect_fail_cb_called      = M_FALSE,
+		.is_disconnect_cb_called        = M_FALSE,
+		.is_process_fail_cb_called      = M_FALSE,
+		.is_processing_halted_cb_called = M_FALSE,
+		.is_sent_cb_called              = M_FALSE,
+		.is_send_failed_cb_called       = M_FALSE,
+		.is_reschedule_cb_called        = M_FALSE,
+		.is_iocreate_cb_called          = M_FALSE,
+		.test_id                        = NO_SERVER,
+		.el                             = NULL,
+	};
+
+	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
+	M_dns_t         *dns = M_dns_create(el);
+	M_email_t       *e   = generate_email(1, "anybody@localhost");
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", TESTPORT, M_FALSE, "user", "pass", 1);
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
+	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
 
 START_TEST(iocreate_return_false)
 {
@@ -545,7 +606,7 @@ START_TEST(check_no_endpoints)
 	M_event_t *el = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t *sp = M_net_smtp_create(el, &cbs, &args);
 	ck_assert_msg(M_net_smtp_resume(sp) == M_FALSE, "should fail with no endpoints");
-	ck_assert_msg(args.is_success, "should trigger process_halted_cb with no endpoints");
+	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 }
@@ -576,6 +637,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("iocreate_return_false");
 	tcase_add_test(tc, iocreate_return_false);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("no server");
+	tcase_add_test(tc, no_server);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 

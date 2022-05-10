@@ -94,7 +94,9 @@ typedef struct {
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-static void process_queue_queue(M_net_smtp_t *sp); /* forward declaration */
+/* forward declarations */
+static void process_queue_queue(M_net_smtp_t *sp);
+static void stop(M_net_smtp_t *sp);
 
 static M_bool is_stopped(M_net_smtp_t *sp)
 {
@@ -530,7 +532,7 @@ static void proc_io_proc_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 	return proc_io_cb(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO);
 }
 
-static void tls_connect_fail(M_net_smtp_endpoint_slot_t *slot, M_io_t *io)
+static void connect_fail(M_net_smtp_endpoint_slot_t *slot, M_io_t *io)
 {
 	M_net_smtp_t              *sp              = slot->sp;
 	const endpoint_manager_t  *const_epm       = slot->endpoint_manager;
@@ -546,8 +548,19 @@ static void tls_connect_fail(M_net_smtp_endpoint_slot_t *slot, M_io_t *io)
 	);
 
 	if (is_removed) {
+		M_bool is_all_endpoints_removed = M_TRUE;
 		endpoint_manager_t *epm = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
 		epm->is_removed = M_TRUE;
+		for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+			const_epm = M_list_at(sp->endpoint_managers, i);
+			if (const_epm->is_removed == M_FALSE) {
+				is_all_endpoints_removed = M_FALSE;
+				break;
+			}
+		}
+		if (is_all_endpoints_removed) {
+			stop(sp);
+		}
 	}
 }
 
@@ -628,11 +641,11 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				M_event_timer_reset(slot->event_timer, sp->tcp_connect_ms);
 				return;
 			}
-			if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || slot->tls_state == M_NET_SMTP_TLS_CONNECTED) {
-				M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
-				tls_connect_fail(slot, io);
-				goto destroy;
-			}
+			M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
+			connect_fail(slot, io);
+			slot->is_backout = M_TRUE;
+			goto destroy;
+
 		case M_EVENT_TYPE_OTHER:
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
