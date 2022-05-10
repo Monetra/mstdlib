@@ -62,6 +62,7 @@ typedef enum {
 	NO_ENDPOINTS = 1,
 	EMU_SENDMSG,
 	EMU_ACCEPT_DISCONNECT,
+	IOCREATE_RETURN_FALSE,
 } test_id_t;
 
 
@@ -112,7 +113,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			M_buf_add_str(emu->out_buf, str);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
+			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 			M_io_destroy(io);
+			if (io == emu->io) {
+				emu->io = NULL;
+			}
+			return;
 			break;
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_ERROR:
@@ -121,14 +127,15 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		case M_EVENT_TYPE_ACCEPT:
 			if (emu->test_id == EMU_ACCEPT_DISCONNECT) {
 				M_io_accept(&io_out, io);
-				event_debug("smtp emulator M_io_disconnect(%p)", io_out);
-				M_io_disconnect(io_out);
+				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io_out);
+				M_io_destroy(io_out);
 				return;
 			}
 			ioerr = M_io_accept(&io_out, io);
 			if (ioerr == M_IO_ERROR_WOULDBLOCK)
 				return;
 			if (emu->io != NULL) {
+				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, emu->io);
 				M_io_destroy(emu->io);
 			}
 			emu->io = io_out;
@@ -170,7 +177,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		event_debug("smtp emulator %p WRITE %d bytes", io, len - M_buf_len(emu->out_buf));
 	} else {
 		if (emu->is_QUIT) {
-			M_io_disconnect(io);
+			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
+			M_io_destroy(io);
+			return;
 		}
 	}
 
@@ -221,6 +230,15 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 typedef struct {
 	M_bool     is_success;
+	M_bool     is_connect_cb_called;
+	M_bool     is_connect_fail_cb_called;
+	M_bool     is_disconnect_cb_called;
+	M_bool     is_process_fail_cb_called;
+	M_bool     is_processing_halted_cb_called;
+	M_bool     is_sent_cb_called;
+	M_bool     is_send_failed_cb_called;
+	M_bool     is_reschedule_cb_called;
+	M_bool     is_iocreate_cb_called;
 	test_id_t  test_id;
 	M_event_t *el;
 } args_t;
@@ -254,9 +272,44 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 	return e;
 }
 
+static void connect_cb(const char *address, M_uint16 port, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_connect_cb(\"%s\", %u, %p)", address, port, thunk);
+	args->is_connect_cb_called = M_TRUE;
+}
+
+static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t net_err,
+		const char *error, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_connect_fail_cb(\"%s\", %u, %s, \"%s\", %p)", address, port,
+			M_net_errcode_to_str(net_err), error, thunk);
+	args->is_connect_fail_cb_called = M_TRUE;
+	return M_FALSE; /* Should TCP endpoint be removed? */
+}
+
+static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_disconnect_cb(\"%s\", %u, %p)", address, port, thunk);
+	args->is_disconnect_cb_called = M_TRUE;
+}
+
+static M_bool process_fail_cb(const char *command, int result_code, const char *proc_stdout,
+		const char *proc_stderr, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
+	args->is_process_fail_cb_called = M_TRUE;
+	return M_FALSE; /* Should process endpoint be removed? */
+}
+
 static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 {
 	args_t *args = thunk;
+	event_debug("M_net_smtp_processing_halted_cb(%s, %p)", no_endpoints ? "M_TRUE" : "M_FALSE", thunk);
+	args->is_processing_halted_cb_called = M_TRUE;
 	if (args->test_id == NO_ENDPOINTS) {
 		args->is_success = (no_endpoints == M_TRUE);
 	}
@@ -266,10 +319,9 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 {
 	args_t *args = thunk;
-	(void)headers;
-	M_printf("sent_cb()\n");
+	event_debug("M_net_smtp_sent_cb(%p, %p)", headers, thunk);
+	args->is_sent_cb_called = M_TRUE;
 	if (args->test_id == EMU_SENDMSG) {
-		args->is_success = M_TRUE;
 		M_event_done(args->el);
 	}
 }
@@ -278,15 +330,96 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_bool can_requeue, void *thunk)
 {
 	args_t *args = thunk;
-	M_printf("send_failed_cb(%p, \"%s\", %zu, %s, %p)\n", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
+	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)\n", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
+	args->is_send_failed_cb_called = M_TRUE;
 	if (args->test_id == EMU_ACCEPT_DISCONNECT) {
-		args->is_success = M_TRUE;
 		M_event_done(args->el);
 	}
-	return M_FALSE;
+	return M_FALSE; /* should msg be requeued? */
 }
 
+static void reschedule_cb(const char *msg, M_uint64 wait_sec, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_reschedule_cb(\"%s\", %zu, %p)", msg, wait_sec, thunk);
+	args->is_reschedule_cb_called = M_TRUE;
+}
+
+static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
+{
+	args_t *args = thunk;
+	event_debug("M_net_smtp_iocreate_cb(%p, %p, %zu, %p)\n", io, error, errlen, thunk);
+	if (args->test_id == IOCREATE_RETURN_FALSE) {
+		if (args->is_iocreate_cb_called) {
+			/* called once before */
+			M_event_done(args->el);
+		}
+		args->is_iocreate_cb_called = M_TRUE;
+		return M_FALSE;
+	}
+	args->is_iocreate_cb_called = M_TRUE;
+	return M_TRUE;
+}
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+START_TEST(iocreate_return_false)
+{
+	struct M_net_smtp_callbacks cbs  = {
+		.connect_cb           = connect_cb,
+		.connect_fail_cb      = connect_fail_cb,
+		.disconnect_cb        = disconnect_cb,
+		.process_fail_cb      = process_fail_cb,
+		.processing_halted_cb = processing_halted_cb,
+		.sent_cb              = sent_cb,
+		.send_failed_cb       = send_failed_cb,
+		.reschedule_cb        = reschedule_cb,
+		.iocreate_cb          = iocreate_cb,
+	};
+
+	args_t args = {
+		.is_connect_cb_called           = M_FALSE,
+		.is_connect_fail_cb_called      = M_FALSE,
+		.is_disconnect_cb_called        = M_FALSE,
+		.is_process_fail_cb_called      = M_FALSE,
+		.is_processing_halted_cb_called = M_FALSE,
+		.is_sent_cb_called              = M_FALSE,
+		.is_send_failed_cb_called       = M_FALSE,
+		.is_reschedule_cb_called        = M_FALSE,
+		.is_iocreate_cb_called          = M_FALSE,
+		.test_id                        = IOCREATE_RETURN_FALSE,
+		.el                             = NULL,
+	};
+
+	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, args.test_id);
+	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
+	M_dns_t         *dns = M_dns_create(el);
+	M_email_t       *e   = generate_email(1, "anybody@localhost");
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", TESTPORT, M_FALSE, "user", "pass", 1);
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.is_iocreate_cb_called == M_TRUE, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called == M_FALSE, "shouldn't have called send_failed_cb");
+	ck_assert_msg(args.is_disconnect_cb_called == M_FALSE, "shouldn't have called disconnect_cb");
+	ck_assert_msg(args.is_sent_cb_called == M_FALSE, "shouldn't have called send_failed_cb");
+	ck_assert_msg(args.is_send_failed_cb_called == M_FALSE, "shouldn't have called send_failed_cb");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+}
+END_TEST
 
 START_TEST(emu_accept_disconnect)
 {
@@ -303,13 +436,13 @@ START_TEST(emu_accept_disconnect)
 	};
 
 	args_t args = {
-		.is_success = M_FALSE,
+		.is_send_failed_cb_called = M_FALSE,
 		.test_id = EMU_ACCEPT_DISCONNECT,
 		.el = NULL,
 	};
 
 	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, EMU_ACCEPT_DISCONNECT);
+	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
 	M_email_t       *e   = generate_email(1, "anybody@localhost");
@@ -323,7 +456,7 @@ START_TEST(emu_accept_disconnect)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.is_success, "should have called sent_failed_cb");
+	ck_assert_msg(args.is_send_failed_cb_called, "should have called send_failed_cb");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 
 	M_email_destroy(e);
@@ -337,7 +470,7 @@ END_TEST
 START_TEST(emu_sendmsg)
 {
 	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = NULL,
+		.connect_cb           = connect_cb,
 		.connect_fail_cb      = NULL,
 		.disconnect_cb        = NULL,
 		.process_fail_cb      = NULL,
@@ -345,17 +478,20 @@ START_TEST(emu_sendmsg)
 		.sent_cb              = sent_cb,
 		.send_failed_cb       = NULL,
 		.reschedule_cb        = NULL,
-		.iocreate_cb          = NULL,
+		.iocreate_cb          = iocreate_cb,
 	};
 
 	args_t args = {
-		.is_success = M_FALSE,
-		.test_id = EMU_SENDMSG,
-		.el = NULL,
+		.is_success             = M_FALSE,
+		.is_iocreate_cb_called  = M_FALSE,
+		.is_sent_cb_called      = M_FALSE,
+		.is_connect_cb_called   = M_FALSE,
+		.test_id                = EMU_SENDMSG,
+		.el                     = NULL,
 	};
 
 	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, EMU_SENDMSG);
+	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
 	M_email_t       *e   = generate_email(1, "anybody@localhost");
@@ -373,7 +509,9 @@ START_TEST(emu_sendmsg)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.is_success, "should have called sent_msg");
+	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
+	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 
 	M_email_destroy(e);
@@ -428,12 +566,17 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("emu-sendmsg");
 	tcase_add_test(tc, emu_sendmsg);
-	tcase_set_timeout(tc, 300);
+	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
 	tc = tcase_create("emu-accept-disconnect");
 	tcase_add_test(tc, emu_accept_disconnect);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("iocreate_return_false");
+	tcase_add_test(tc, iocreate_return_false);
+	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
 	return suite;

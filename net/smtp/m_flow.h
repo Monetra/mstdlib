@@ -66,6 +66,7 @@ typedef struct {
 	const void                 *endpoint_manager;
 	M_net_smtp_tls_state_t      tls_state;
 	M_bool                      is_failure;
+	M_bool                      is_backout;
 	int                         result_code;
 	char                        errmsg[128];
 	M_buf_t                    *out_buf;

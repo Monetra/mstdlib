@@ -304,23 +304,28 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 static void reschedule(const M_net_smtp_endpoint_slot_t *slot)
 {
 	retry_msg_t               *retry          = NULL;
-	M_bool                     is_requeue     = M_TRUE;
+	M_bool                     is_requeue     = M_FALSE;
 	M_net_smtp_send_failed_cb  send_failed_cb = slot->sp->cbs.send_failed_cb;
 	M_net_smtp_reschedule_cb   reschedule_cb  = slot->sp->cbs.reschedule_cb;
 	size_t                     num_tries;
 
-	num_tries = slot->number_of_tries + 1;
-	if (num_tries >= slot->sp->max_number_of_attempts) {
-		is_requeue = M_FALSE;
-	}
-
 	if (slot->sp->is_external_queue_enabled) {
-		num_tries = 0;
-		is_requeue = M_FALSE;
 		reschedule_cb(slot->msg, slot->sp->retry_default_ms, slot->sp->thunk);
+		if (slot->is_backout == M_FALSE) {
+			/* send never started, so it didn't really fail */
+			send_failed_cb(slot->headers, slot->errmsg, 0, M_FALSE, slot->sp->thunk);
+		}
+		return;
 	}
 
-	if (is_requeue) {
+	if (slot->is_backout) {
+		M_list_str_insert(slot->sp->internal_queue, slot->msg);
+		return;
+	}
+
+	num_tries = slot->number_of_tries + 1;
+
+	if (num_tries < slot->sp->max_number_of_attempts) {
 		is_requeue = send_failed_cb(slot->headers, slot->errmsg, num_tries, M_TRUE, slot->sp->thunk);
 	} else {
 		send_failed_cb(slot->headers, slot->errmsg, num_tries, M_FALSE, slot->sp->thunk);
@@ -330,7 +335,7 @@ static void reschedule(const M_net_smtp_endpoint_slot_t *slot)
 		retry = M_malloc_zero(sizeof(*retry));
 		retry->sp = slot->sp;
 		retry->msg = M_strdup(slot->msg);
-		retry->number_of_tries = slot->number_of_tries + 1;
+		retry->number_of_tries = num_tries;
 		retry->headers = M_hash_dict_duplicate(slot->headers);
 		retry->event_timer = M_event_timer_oneshot(slot->sp->el, slot->sp->retry_default_ms, M_TRUE,
 				reschedule_event_cb, retry);
@@ -384,13 +389,17 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	slot->in_parser = NULL;
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
-	if (slot->is_failure) {
-		if (slot->endpoint_type == M_NET_SMTP_EPTYPE_PROCESS) {
-			failure_process(slot, epm);
-		}
+	if (slot->is_backout) {
 		reschedule(slot);
 	} else {
-		sent_cb(slot->headers, slot->sp->thunk);
+		if (slot->is_failure) {
+			if (slot->endpoint_type == M_NET_SMTP_EPTYPE_PROCESS) {
+				failure_process(slot, epm);
+			}
+			reschedule(slot);
+		} else {
+			sent_cb(slot->headers, slot->sp->thunk);
+		}
 	}
 	M_free(slot->msg);
 	slot->msg = NULL;
@@ -552,7 +561,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	M_net_smtp_iocreate_cb      iocreate_cb     = sp->cbs.iocreate_cb;
 	M_io_error_t                io_error        = M_IO_ERROR_SUCCESS;
 	M_bool                      is_done         = M_FALSE;
-
 	(void)el;
 
 	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
@@ -566,6 +574,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				slot->connection_mask |= M_NET_SMTP_CONNECTION_MASK_IO;
 				/* Sending iocreate here ensures we trace on the right one. */
 				if (!iocreate_cb(io, slot->errmsg, sizeof(slot->errmsg), sp->thunk)) {
+					slot->is_backout = M_TRUE;
 					goto destroy;
 				}
 				connect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
@@ -579,7 +588,9 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
-			disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+			if (slot->is_backout == M_FALSE) {
+				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+			}
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_READ:
@@ -589,7 +600,9 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				return;
 
 			if (io_error == M_IO_ERROR_DISCONNECT) {
-				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+				if (slot->is_backout == M_FALSE) {
+					disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+				}
 				goto destroy;
 			}
 
