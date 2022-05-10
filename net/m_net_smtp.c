@@ -628,6 +628,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			break;
 		case M_EVENT_TYPE_ACCEPT:
 		case M_EVENT_TYPE_ERROR:
+		case M_EVENT_TYPE_OTHER:
 			if (slot->tls_state == M_NET_SMTP_TLS_IMPLICIT && slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 				/* Implict TLS failed.  Follwup with with STARTTLS */
 				const tcp_endpoint_t *tcp_ep = epm->tcp_endpoint;
@@ -644,10 +645,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
 			connect_fail(slot, io);
 			slot->is_backout = M_TRUE;
-			goto destroy;
-
-		case M_EVENT_TYPE_OTHER:
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			return;
 	}

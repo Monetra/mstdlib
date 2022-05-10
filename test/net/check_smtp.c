@@ -64,6 +64,7 @@ typedef enum {
 	EMU_ACCEPT_DISCONNECT,
 	IOCREATE_RETURN_FALSE,
 	NO_SERVER,
+	TLS_UNSUPPORTING_SERVER,
 } test_id_t;
 
 
@@ -107,7 +108,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 	switch(etype) {
 		case M_EVENT_TYPE_READ:
-			M_io_read_into_parser(io, emu->in_parser);
+			ioerr = M_io_read_into_parser(io, emu->in_parser);
+			if (ioerr == M_IO_ERROR_DISCONNECT) {
+				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
+				M_io_destroy(io);
+				return;
+			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
 			str = M_list_str_at(emu->json_values, 0);
@@ -150,7 +156,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		ending = eol;
 	}
 	if ((line = M_parser_read_strdup_until(emu->in_parser, ending, M_TRUE)) != NULL) {
-		event_debug("smtp emulator %p READ %d bytes", io, M_str_len(line));
+		M_bool is_no_match;
+		event_debug("smtp emulator %p READ %d bytes \"%s\"", io, M_str_len(line), line);
 		if (emu->is_data_mode) {
 			M_buf_add_str(emu->out_buf, M_list_str_at(emu->json_values, 1));
 			emu->is_data_mode = M_FALSE;
@@ -161,12 +168,17 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			if (M_str_eq(line, "QUIT\r\n")) {
 				emu->is_QUIT = M_TRUE;
 			}
+			is_no_match = M_TRUE;
 			for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
 				const M_re_t *re = M_list_at(emu->regexs, i);
 				if (M_re_eq(re, line)) {
+					is_no_match = M_FALSE;
 					M_buf_add_str(emu->out_buf, M_list_str_at(emu->json_values, i));
 					break;
 				}
+			}
+			if (is_no_match) {
+				M_buf_add_str(emu->out_buf, "502 \r\n");
 			}
 		}
 		M_free(line);
@@ -174,7 +186,16 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 	if (M_buf_len(emu->out_buf) > 0) {
 		size_t len = M_buf_len(emu->out_buf);
-		M_io_write_from_buf(io, emu->out_buf);
+		event_debug("%s:%d: emu->out_buf: \"%s\"", __FILE__, __LINE__, M_buf_peek(emu->out_buf));
+		ioerr = M_io_write_from_buf(io, emu->out_buf);
+		if (ioerr == M_IO_ERROR_DISCONNECT) {
+			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
+			M_io_destroy(io);
+			if (io == emu->io) {
+				emu->io = NULL;
+			}
+			return;
+		}
 		event_debug("smtp emulator %p WRITE %d bytes", io, len - M_buf_len(emu->out_buf));
 	} else {
 		if (emu->is_QUIT) {
@@ -286,7 +307,7 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 	args_t *args = thunk;
 	event_debug("M_net_smtp_connect_fail_cb(\"%s\", %u, %s, \"%s\", %p)", address, port,
 			M_net_errcode_to_str(net_err), error, thunk);
-	if (args->test_id == NO_SERVER) {
+	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		if (args->is_connect_fail_cb_called) {
 			/* Second Time */
 			return M_TRUE; /* Remove endpoint */
@@ -317,7 +338,7 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args_t *args = thunk;
 	event_debug("M_net_smtp_processing_halted_cb(%s, %p)", no_endpoints ? "M_TRUE" : "M_FALSE", thunk);
 	args->is_processing_halted_cb_called = M_TRUE;
-	if (args->test_id == NO_SERVER) {
+	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == NO_ENDPOINTS) {
@@ -362,9 +383,11 @@ static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 	if (args->test_id == IOCREATE_RETURN_FALSE) {
 		if (args->is_iocreate_cb_called) {
 			/* called once before */
+			event_debug("M_event_done(%p)\n", args->el);
 			M_event_done(args->el);
 		}
 		args->is_iocreate_cb_called = M_TRUE;
+		event_debug("M_net_smtp_iocreate_cb(): return M_FALSE");
 		return M_FALSE;
 	}
 	args->is_iocreate_cb_called = M_TRUE;
@@ -373,6 +396,65 @@ static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+START_TEST(tls_unsupporting_server)
+{
+	struct M_net_smtp_callbacks cbs  = {
+		.connect_cb           = connect_cb,
+		.connect_fail_cb      = connect_fail_cb,
+		.disconnect_cb        = disconnect_cb,
+		.process_fail_cb      = process_fail_cb,
+		.processing_halted_cb = processing_halted_cb,
+		.sent_cb              = sent_cb,
+		.send_failed_cb       = send_failed_cb,
+		.reschedule_cb        = reschedule_cb,
+		.iocreate_cb          = iocreate_cb,
+	};
+
+	args_t args = {
+		.is_connect_cb_called           = M_FALSE,
+		.is_connect_fail_cb_called      = M_FALSE,
+		.is_disconnect_cb_called        = M_FALSE,
+		.is_process_fail_cb_called      = M_FALSE,
+		.is_processing_halted_cb_called = M_FALSE,
+		.is_sent_cb_called              = M_FALSE,
+		.is_send_failed_cb_called       = M_FALSE,
+		.is_reschedule_cb_called        = M_FALSE,
+		.is_iocreate_cb_called          = M_FALSE,
+		.test_id                        = TLS_UNSUPPORTING_SERVER,
+		.el                             = NULL,
+	};
+
+	M_event_t         *el  = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", TESTPORT, args.test_id);
+	M_net_smtp_t      *sp  = M_net_smtp_create(el, &cbs, &args);
+	M_dns_t           *dns = M_dns_create(el);
+	M_email_t         *e   = generate_email(1, "anybody@localhost");
+	M_tls_clientctx_t *ctx = M_tls_clientctx_create();
+
+		M_tls_clientctx_set_default_trust(ctx);
+		M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
+		M_tls_clientctx_destroy(ctx);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", TESTPORT, M_TRUE, "user", "pass", 1);
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, 100000);
+
+	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
+	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
+
+	smtp_emulator_destroy(emu);
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
+
 START_TEST(no_server)
 {
 	struct M_net_smtp_callbacks cbs  = {
@@ -643,6 +725,11 @@ static Suite *smtp_suite(void)
 	tc = tcase_create("no server");
 	tcase_add_test(tc, no_server);
 	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("tls unsupporting server");
+	tcase_add_test(tc, tls_unsupporting_server);
+	tcase_set_timeout(tc, 100);
 	suite_add_tcase(suite, tc);
 
 	return suite;
