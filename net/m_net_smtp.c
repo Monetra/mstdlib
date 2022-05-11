@@ -78,7 +78,9 @@ typedef struct {
 	M_bool                 connect_tls;
 	char                  *username;
 	char                  *password;
-	char                  *auth_str_base64;
+	char                  *str_auth_plain_base64;
+	char                  *str_auth_login_username_base64;
+	char                  *str_auth_login_password_base64;
 	size_t                 max_conns;
 } tcp_endpoint_t;
 
@@ -246,7 +248,9 @@ static void destroy_tcp_endpoint(const tcp_endpoint_t *ep)
 	M_free(ep->address);
 	M_free(ep->username);
 	M_free(ep->password);
-	M_free(ep->auth_str_base64);
+	M_free(ep->str_auth_plain_base64);
+	M_free(ep->str_auth_login_username_base64);
+	M_free(ep->str_auth_login_password_base64);
 }
 
 void M_net_smtp_destroy(M_net_smtp_t *sp)
@@ -722,7 +726,9 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep,
 
 	slot->event_timer = M_event_timer_add(sp->el, tcp_io_cb, slot);
 	slot->address = tcp_ep->address;
-	slot->auth_str_base64 = tcp_ep->auth_str_base64;
+	slot->str_auth_plain_base64 = tcp_ep->str_auth_plain_base64;
+	slot->str_auth_login_username_base64 = tcp_ep->str_auth_login_username_base64;
+	slot->str_auth_login_password_base64 = tcp_ep->str_auth_login_password_base64;
 	slot->endpoint_type = M_NET_SMTP_EPTYPE_TCP;
 	slot->state_machine = M_net_smtp_flow_tcp();
 	slot->email = M_email_create();
@@ -1031,7 +1037,7 @@ void M_net_smtp_setup_tcp_timeouts(M_net_smtp_t *sp, M_uint64 connect_ms, M_uint
 	sp->tcp_idle_ms    = idle_ms;
 }
 
-static char * create_auth_str_base64(const char *username, const char *password)
+static char * create_str_auth_plain_base64(const char *username, const char *password)
 {
 	char           *auth_str        = NULL;
 	char           *auth_str_base64 = NULL;
@@ -1075,22 +1081,39 @@ M_bool M_net_smtp_add_endpoint_tcp(
 		return M_FALSE;
 
 	if (!(ep = M_malloc_zero(sizeof(*ep)))) { return M_FALSE; }
+	if (!(ep->address = M_strdup(address))) { goto fail1; }
+	if (!(ep->username = M_strdup(username))) { goto fail2; }
+	if (!(ep->password = M_strdup(password))) { goto fail3; }
+	if (!(ep->str_auth_plain_base64 = create_str_auth_plain_base64(username, password))) { goto fail4; }
+	if (!(ep->str_auth_login_username_base64 =
+		M_bincodec_encode_alloc((const unsigned char*)username, M_str_len(username), 0, M_BINCODEC_BASE64))) { goto fail5; }
+	if (!(ep->str_auth_login_password_base64 =
+		M_bincodec_encode_alloc((const unsigned char*)password, M_str_len(password), 0, M_BINCODEC_BASE64))) { goto fail6; }
+
 	ep->idx = sp->number_of_endpoints;
-	ep->address = M_strdup(address);
 	ep->port = port;
 	ep->connect_tls = connect_tls;
-	if (!(ep->username        = M_strdup(username)))                         { goto fail; }
-	if (!(ep->password        = M_strdup(password)))                         { goto fail; }
-	if (!(ep->auth_str_base64 = create_auth_str_base64(username, password))) { goto fail; }
 	ep->max_conns = max_conns;
-	M_list_insert(sp->tcp_endpoints, ep);
+	if (!M_list_insert(sp->tcp_endpoints, ep)) {
+		goto fail6;
+	}
 	sp->number_of_endpoints++;
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
 
 	return M_TRUE;
-fail:
+fail6:
+	M_free(ep->str_auth_login_password_base64);
+fail5:
+	M_free(ep->str_auth_login_username_base64);
+fail4:
+	M_free(ep->password);
+fail3:
+	M_free(ep->username);
+fail2:
+	M_free(ep->address);
+fail1:
 	M_free(ep);
 	return M_FALSE;
 }

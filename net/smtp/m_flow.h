@@ -70,7 +70,10 @@ typedef struct {
 	M_list_str_t               *smtp_response;
 	M_net_smtp_authtype_t       smtp_authtype;
 	M_bool                      is_starttls_capable;
-	char                       *auth_str_base64;
+	const char                 *str_auth_plain_base64;
+	const char                 *str_auth_login_username_base64;
+	const char                 *str_auth_login_password_base64;
+	size_t                      auth_login_response_count;
 	char                       *ehlo_domain;
 	size_t                      tls_ctx_layer_idx;
 	size_t                      rcpt_n;
