@@ -18,6 +18,7 @@ set(sources
 	smtp/m_flow_tcp_starttls.c
 	smtp/m_flow_tcp_auth.c
 	smtp/m_flow_tcp_ehlo.c
+	smtp/m_flow_tcp_smtp_response.c
 )
 
 set_source_files_properties(m_net_http_simple.c PROPERTIES COMPILE_DEFINITIONS NET_HTTP_VERSION="${MSTDLIB_VERSION_STRING}")

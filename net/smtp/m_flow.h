@@ -42,6 +42,13 @@ typedef enum {
 	M_NET_SMTP_TLS_CONNECTED,
 } M_net_smtp_tls_state_t;
 
+typedef enum {
+	M_NET_SMTP_AUTHTYPE_NONE,
+	M_NET_SMTP_AUTHTYPE_LOGIN,
+	M_NET_SMTP_AUTHTYPE_PLAIN,
+	M_NET_SMTP_AUTHTYPE_CRAM_MD5,
+} M_net_smtp_authtype_t;
+
 #define M_NET_SMTP_CONNECTION_MASK_NONE      (0u)
 #define M_NET_SMTP_CONNECTION_MASK_IO        (1u << 0u)
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDIN  (1u << 1u)
@@ -58,7 +65,13 @@ typedef struct {
 	char                       *msg;
 	M_hash_dict_t              *headers;
 	M_email_t                  *email;
+	const char                 *address;
+	M_int16                     smtp_response_code;
+	M_list_str_t               *smtp_response;
+	M_net_smtp_authtype_t       smtp_authtype;
+	M_bool                      is_starttls_capable;
 	char                       *auth_str_base64;
+	char                       *ehlo_domain;
 	size_t                      tls_ctx_layer_idx;
 	size_t                      rcpt_n;
 	size_t                      rcpt_i;
@@ -67,6 +80,8 @@ typedef struct {
 	M_net_smtp_tls_state_t      tls_state;
 	M_bool                      is_failure;
 	M_bool                      is_backout;
+	M_bool                      is_connect_fail;
+	M_net_error_t               net_error;
 	int                         result_code;
 	char                        errmsg[128];
 	M_buf_t                    *out_buf;
@@ -80,6 +95,7 @@ typedef struct {
 } M_net_smtp_endpoint_slot_t;
 
 M_state_machine_t *M_net_smtp_flow_process(void);
+M_state_machine_t *M_net_smtp_flow_tcp_smtp_response(void);
 M_state_machine_t *M_net_smtp_flow_tcp_starttls(void);
 M_state_machine_t *M_net_smtp_flow_tcp_sendmsg(void);
 M_state_machine_t *M_net_smtp_flow_tcp_auth(void);

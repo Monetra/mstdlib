@@ -114,8 +114,14 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				M_io_destroy(io);
 				return;
 			}
+			if (M_parser_len(emu->in_parser) > 0) {
+				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(emu->in_parser),
+						M_parser_len(emu->in_parser), (const char *)M_parser_peek(emu->in_parser));
+			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
+			M_parser_consume(emu->in_parser, M_parser_len(emu->in_parser));
+			M_buf_truncate(emu->out_buf, M_buf_len(emu->out_buf));
 			str = M_list_str_at(emu->json_values, 0);
 			M_buf_add_str(emu->out_buf, str);
 			break;
@@ -442,7 +448,7 @@ START_TEST(tls_unsupporting_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 100000);
+	M_event_loop(el, 1000);
 
 	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
 	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
@@ -729,7 +735,7 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("tls unsupporting server");
 	tcase_add_test(tc, tls_unsupporting_server);
-	tcase_set_timeout(tc, 100);
+	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
 	return suite;

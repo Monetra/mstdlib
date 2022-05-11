@@ -25,47 +25,92 @@
 
 typedef enum {
 	STATE_EHLO = 1,
-	STATE_EHLO_ACK1,
-	STATE_EHLO_ACK2,
+	STATE_EHLO_RESPONSE,
 } m_state_ids;
 
 static M_state_machine_status_t M_state_ehlo(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_bprintf(slot->out_buf, "EHLO there\r\n");
-	*next = STATE_EHLO_ACK1;
+	M_bprintf(slot->out_buf, "EHLO %s\r\n", slot->ehlo_domain);
+	*next = STATE_EHLO_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_state_ehlo_ack1(void *data, M_uint64 *next)
+static M_bool M_ehlo_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"250 ", 4, M_TRUE)) {
-		*next = STATE_EHLO_ACK2;
-		return M_STATE_MACHINE_STATUS_NEXT;
-	}
-	return M_STATE_MACHINE_STATUS_WAIT;
-}
-
-static M_state_machine_status_t M_state_ehlo_ack2(void *data, M_uint64 *next)
-{
-	M_net_smtp_endpoint_slot_t *slot = data;
+	(void)status;
 	(void)next;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		return M_STATE_MACHINE_STATUS_DONE;
+	slot->smtp_response = M_list_str_create(M_LIST_STR_NONE);
+	slot->smtp_response_code = 0;
+	return M_TRUE;
+}
+
+static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_machine_status_t sub_status,
+		M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	(void)next;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 250) {
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 EHLO response code, got: %d",
+				slot->smtp_response_code);
+		goto done;
 	}
-	return M_STATE_MACHINE_STATUS_WAIT;
+
+	slot->is_starttls_capable = M_FALSE;
+	slot->smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
+	for (size_t i = 0; i < M_list_str_len(slot->smtp_response); i++) {
+		const char *ehlo_line = M_list_str_at(slot->smtp_response, i);
+		if (M_str_casecmpsort_max("STARTTLS", &ehlo_line[4], 8) == 0) {
+			slot->is_starttls_capable = M_TRUE;
+			continue;
+		}
+		if (M_str_casecmpsort_max("AUTH ", &ehlo_line[4], 5) == 0) {
+			do {
+				if (M_str_casestr(ehlo_line, "CRAM-MD5") != NULL) {
+					slot->smtp_authtype = M_NET_SMTP_AUTHTYPE_CRAM_MD5;
+					break;
+				}
+				if (M_str_casestr(ehlo_line, "PLAIN") != NULL) {
+					slot->smtp_authtype = M_NET_SMTP_AUTHTYPE_PLAIN;
+					break;
+				}
+				if (M_str_casestr(ehlo_line, "LOGIN") != NULL) {
+					slot->smtp_authtype = M_NET_SMTP_AUTHTYPE_LOGIN;
+					break;
+				}
+			} while(0);
+			continue;
+		}
+	}
+	machine_status = M_STATE_MACHINE_STATUS_DONE;
+
+done:
+	M_list_str_destroy(slot->smtp_response);
+	slot->smtp_response = NULL;
+	slot->smtp_response_code = 0;
+	return machine_status;
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_ehlo()
 {
-	M_state_machine_t *m;
-	m = M_state_machine_create(0, "SMTP-flow-tcp-auth", M_STATE_MACHINE_NONE);
+	M_state_machine_t *m      = NULL;
+	M_state_machine_t *sub_m  = NULL;
+
+	m = M_state_machine_create(0, "SMTP-flow-tcp-ehlo", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_EHLO, 0, NULL, M_state_ehlo, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_EHLO_ACK1, 0, NULL, M_state_ehlo_ack1, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_EHLO_ACK2, 0, NULL, M_state_ehlo_ack2, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_EHLO_RESPONSE, 0, NULL, sub_m,
+			M_ehlo_response_pre_cb, M_ehlo_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
 	return m;
 }

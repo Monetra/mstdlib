@@ -25,7 +25,7 @@
 
 typedef enum {
 	STATE_CONNECTING = 1,
-	STATE_OPENING_ACK,
+	STATE_OPENING_RESPONSE,
 	STATE_STARTTLS,
 	STATE_EHLO,
 	STATE_AUTH,
@@ -47,15 +47,6 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 	(void)next;
 
 	slot->rcpt_i = 0;
-	slot->email = M_email_create();
-	if (NULL == slot->email) {
-		return M_FALSE;
-	}
-	if (!M_email_set_headers(slot->email, slot->headers)) {
-		M_email_destroy(slot->email);
-		slot->email = NULL;
-		return M_FALSE;
-	}
 	slot->rcpt_n = M_rcpt_count(slot->email);
 	return M_TRUE;
 }
@@ -68,15 +59,6 @@ static M_state_machine_status_t M_starttls_post_cb(void *data, M_state_machine_s
 		return sub_status;
 
 	*next = STATE_EHLO;
-	return M_STATE_MACHINE_STATUS_NEXT;
-}
-
-static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
-{
-	(void)data;
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
-	*next = STATE_AUTH;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
@@ -95,9 +77,6 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 {
 	M_net_smtp_endpoint_slot_t *slot       = data;
 
-	M_email_destroy(slot->email);
-	slot->email = NULL;
-
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
@@ -112,31 +91,104 @@ static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 	M_net_smtp_endpoint_slot_t *slot      = data;
 
 	if ((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
-		*next = STATE_OPENING_ACK;
+		*next = STATE_OPENING_RESPONSE;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
-static M_state_machine_status_t M_state_opening_ack(void *data, M_uint64 *next)
+static M_bool M_opening_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot       = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
+	(void)status;
+	(void)next;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		switch(slot->tls_state) {
-			case M_NET_SMTP_TLS_NONE:
-			case M_NET_SMTP_TLS_CONNECTED:
-				*next = STATE_EHLO;
-				break;
-			case M_NET_SMTP_TLS_STARTTLS:
+	slot->smtp_response = M_list_str_create(M_LIST_STR_NONE);
+	slot->smtp_response_code = 0;
+	return M_TRUE;
+}
+
+static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_machine_status_t sub_status,
+		M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 220) {
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %s",
+				M_list_str_at(slot->smtp_response, 0));
+		goto done;
+	}
+
+	if (!M_str_caseeq(slot->address, "localhost")) {
+		const char *first_line = M_list_str_at(slot->smtp_response, 0);
+		if (M_str_casecmpsort_max(slot->address, &first_line[4], M_str_len(slot->address)) != 0) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->address, &first_line[4]);
+			goto done;
+		}
+	}
+	*next = STATE_EHLO;
+	machine_status = M_STATE_MACHINE_STATUS_NEXT;
+
+done:
+	M_list_str_destroy(slot->smtp_response);
+	slot->smtp_response = NULL;
+	slot->smtp_response_code = 0;
+	return machine_status;
+}
+
+static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+	const char                 *address = NULL;
+	(void)status;
+	(void)next;
+
+	if (!M_email_from(slot->email, NULL, NULL, &address)) {
+		return M_FALSE;
+	}
+
+	slot->ehlo_domain = M_strdup(&M_str_chr(address, '@')[1]);
+	return M_TRUE;
+}
+
+static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+
+	M_free(slot->ehlo_domain);
+	slot->ehlo_domain = NULL;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		return sub_status;
+
+	switch(slot->tls_state) {
+		case M_NET_SMTP_TLS_NONE:
+		case M_NET_SMTP_TLS_CONNECTED:
+			*next = STATE_AUTH;
+			break;
+		case M_NET_SMTP_TLS_STARTTLS:
+			if (slot->is_starttls_capable) {
 				*next = STATE_STARTTLS;
 				break;
-			default:
-				return M_STATE_MACHINE_STATUS_ERROR_STATE;
-		}
-		return M_STATE_MACHINE_STATUS_NEXT;
+			}
+			/* Classify as connect failure so endpoint can get removed */
+			slot->is_connect_fail = M_TRUE;
+			slot->net_error = M_NET_ERROR_NOTPERM;
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Server does not support STARTTLS");
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+			break;
+		case M_NET_SMTP_TLS_IMPLICIT:
+		case M_NET_SMTP_TLS_STARTTLS_READY:
+		case M_NET_SMTP_TLS_STARTTLS_ADDED:
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Invalid TLS state.");
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
+			break;
 	}
-	return M_STATE_MACHINE_STATUS_WAIT;
+	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
@@ -151,6 +203,9 @@ static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
+
+/* Although RFC 5321 calls for a 221 reply, if they don't send one we need to move on,
+	* regardless of how upset John Klensin may get. */
 
 	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		*next = STATE_DISCONNECTING;
@@ -170,14 +225,19 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_state_machine_t * M_net_smtp_flow_tcp()
 {
-	M_state_machine_t *m          = NULL;
+	M_state_machine_t *m      = NULL;
 	M_state_machine_t *sub_m  = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_OPENING_ACK, 0, NULL, M_state_opening_ack, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_OPENING_RESPONSE, 0, NULL, sub_m,
+			M_opening_response_pre_cb, M_opening_response_post_cb, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_starttls();
 	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, sub_m,
@@ -186,7 +246,7 @@ M_state_machine_t * M_net_smtp_flow_tcp()
 
 	sub_m = M_net_smtp_flow_tcp_ehlo();
 	M_state_machine_insert_sub_state_machine(m, STATE_EHLO, 0, NULL, sub_m,
-			NULL, M_ehlo_post_cb, NULL, NULL);
+			M_ehlo_pre_cb, M_ehlo_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_auth();
@@ -200,7 +260,9 @@ M_state_machine_t * M_net_smtp_flow_tcp()
 	M_state_machine_destroy(sub_m);
 
 	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
+
 	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);
+
 	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
 	return m;
 }
