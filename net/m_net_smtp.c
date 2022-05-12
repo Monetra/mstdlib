@@ -569,6 +569,13 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 				break;
 			}
 		}
+		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) {
+			const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
+			while (const_epm->is_removed) {
+				sp->round_robin_idx = (sp->round_robin_idx + 1) % sp->number_of_endpoints;
+				const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
+			}
+		}
 		if (is_all_endpoints_removed) {
 			stop(sp);
 		}
@@ -612,9 +619,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
-			if (slot->is_backout == M_FALSE) {
-				disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
-			}
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_READ:
@@ -624,9 +628,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				return;
 
 			if (io_error == M_IO_ERROR_DISCONNECT) {
-				if (slot->is_backout == M_FALSE) {
-					disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
-				}
 				goto destroy;
 			}
 
@@ -653,8 +654,20 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				M_event_timer_reset(slot->event_timer, sp->tcp_connect_ms);
 				return;
 			}
-			M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
-			slot->net_error = M_net_io_error_to_net_error(M_io_get_error(io));
+			do {
+				if (etype == M_EVENT_TYPE_OTHER) {
+					if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
+						slot->net_error = M_NET_ERROR_TIMEOUT;
+						M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Connection timeout");
+						break;
+					}
+					slot->net_error = M_NET_ERROR_TIMEOUT_STALL;
+					M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Stall timeout");
+					break;
+				}
+				M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
+				slot->net_error = M_net_io_error_to_net_error(M_io_get_error(io));
+			} while(0);
 			connect_fail(slot);
 			slot->is_backout = M_TRUE;
 			goto destroy;
@@ -683,6 +696,9 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 	if (M_buf_len(slot->out_buf) > 0) {
 		io_error = M_io_write_from_buf(io, slot->out_buf);
+		if (io_error == M_IO_ERROR_DISCONNECT) {
+			goto destroy;
+		}
 		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Write failed: %s", M_io_error_string(io_error));
 			goto destroy;
@@ -696,6 +712,9 @@ destroy:
 		slot->connection_mask &= ~M_NET_SMTP_CONNECTION_MASK_IO;
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			destroy_slot(slot);
+		}
+		if (slot->is_backout == M_FALSE) {
+			disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
 		}
 		slot->io = NULL;
 	}
@@ -850,24 +869,6 @@ static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 	return;
 }
 
-static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
-{
-	M_net_smtp_t  *sp          = cb_arg;
-	retry_msg_t   *retry       = NULL;
-
-	/* This is an internally sent event; don't need these: */
-	(void)event;
-	(void)io;
-	(void)type;
-
-	if (is_available(sp)) {
-		retry = M_list_take_first(sp->retry_queue);
-		if (retry == NULL)
-			return;
-		slate_msg(sp, retry->msg, retry->number_of_tries);
-		M_free(retry);
-	}
-}
 
 static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
@@ -879,7 +880,7 @@ static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t
 	(void)io;
 	(void)type;
 
-	if (is_available(sp)) {
+	while (is_available(sp)) {
 		msg = M_list_str_take_first(sp->internal_queue);
 		if (msg == NULL)
 			return;
@@ -897,12 +898,36 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 	(void)io;
 	(void)type;
 
-	if (is_available(sp)) {
+	while (is_available(sp)) {
 		msg = sp->external_queue_get_cb();
 		if (msg == NULL)
 			return;
 
 		slate_msg(sp, msg, 0);
+	}
+}
+
+static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+{
+	M_net_smtp_t  *sp          = cb_arg;
+	retry_msg_t   *retry       = NULL;
+
+	/* This is an internally sent event; don't need these: */
+	(void)event;
+	(void)io;
+	(void)type;
+
+	while (is_available(sp)) {
+		retry = M_list_take_first(sp->retry_queue);
+		if (retry == NULL) {
+			if (sp->is_external_queue_enabled) {
+				process_external_queue(event, type, io, cb_arg);
+			} else {
+				process_internal_queue(event, type, io, cb_arg);
+			}
+		}
+		slate_msg(sp, retry->msg, retry->number_of_tries);
+		M_free(retry);
 	}
 }
 
