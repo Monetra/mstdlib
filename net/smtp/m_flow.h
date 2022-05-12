@@ -66,10 +66,15 @@ typedef struct {
 	M_hash_dict_t              *headers;
 	M_email_t                  *email;
 	const char                 *address;
+	size_t                      str_len_address;
 	M_int16                     smtp_response_code;
 	M_list_str_t               *smtp_response;
 	M_net_smtp_authtype_t       smtp_authtype;
 	M_bool                      is_starttls_capable;
+	const char                 *username;
+	size_t                      str_len_username;
+	const char                 *password;
+	size_t                      str_len_password;
 	const char                 *str_auth_plain_base64;
 	const char                 *str_auth_login_username_base64;
 	const char                 *str_auth_login_password_base64;
@@ -96,6 +101,10 @@ typedef struct {
 	M_io_t                     *io_stdout;
 	M_io_t                     *io_stderr;
 } M_net_smtp_endpoint_slot_t;
+
+M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next);
+M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(
+		void *data, M_state_machine_status_t sub_status, M_uint64 *next);
 
 M_state_machine_t *M_net_smtp_flow_process(void);
 M_state_machine_t *M_net_smtp_flow_tcp_smtp_response(void);

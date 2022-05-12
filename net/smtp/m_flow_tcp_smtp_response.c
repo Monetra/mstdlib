@@ -107,6 +107,28 @@ done:
 
 }
 
+M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+	(void)status;
+	(void)next;
+
+	slot->smtp_response = M_list_str_create(M_LIST_STR_NONE);
+	slot->smtp_response_code = 0;
+	return M_TRUE;
+}
+
+M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(void *data, M_state_machine_status_t sub_status,
+		M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+	(void)next;
+	M_list_str_destroy(slot->smtp_response);
+	slot->smtp_response = NULL;
+	slot->smtp_response_code = 0;
+	return sub_status;
+}
+
 M_state_machine_t * M_net_smtp_flow_tcp_smtp_response()
 {
 	M_state_machine_t *m;

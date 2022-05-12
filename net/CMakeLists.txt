@@ -8,6 +8,8 @@ set(PROJECT_SOVERSION ${MSTDLIB_SOVERSION_STRING})
 
 include(InstallDepLibs) # Provides copy_deplibs() and install_deplibs()
 
+find_package(OpenSSL REQUIRED)
+
 set(sources
 	m_net.c
 	m_net_http_simple.c
@@ -50,8 +52,15 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::formats
 	        Mstdlib::io
 	        Mstdlib::tls
-	PRIVATE Mstdlib::config
+	PRIVATE OpenSSL::Crypto Mstdlib::config
 )
+
+# Link extra system libraries.
+if (WIN32 OR MINGW)
+	target_link_libraries(${PROJECT_NAME}
+		PRIVATE Ws2_32.lib Crypt32.lib
+	)
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	find_library(SECURITY NAMES Security)
@@ -82,6 +91,14 @@ convert_mingw_implibs_to_vs(mstdlib_net)
 # Installation rules.
 if (MSTDLIB_INSTALL_LIBS)
 	install(TARGETS ${PROJECT_NAME} EXPORT Mstdlib ${lib_dest})
+
+	# If we're not being chain-built, install OpenSSL as dep libs.
+	if (CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR)
+		install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
+			OpenSSL::Crypto
+		)
+	endif ()
+
 endif ()
 
 
