@@ -76,6 +76,9 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 		!(line[2] >= '0' && line[2] <= '9') ||
 		!(line[3] == '-' || line[3] == ' ' || line[3] == '\r')
 	) {
+		/* Classify as connect failure so endpoint can get removed */
+		slot->is_connect_fail = M_TRUE;
+		slot->net_error = M_NET_ERROR_PROTOFORMAT;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Ill-formed SMTP response: %s", line);
 		goto done;
 	}
@@ -85,6 +88,9 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 		slot->smtp_response_code = response_code;
 	} else {
 		if (slot->smtp_response_code != response_code) {
+			/* Classify as connect failure so endpoint can get removed */
+			slot->is_connect_fail = M_TRUE;
+			slot->net_error = M_NET_ERROR_PROTOFORMAT;
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Mismatched SMTP response code: %d != %s",
 					slot->smtp_response_code, line);
 			goto done;

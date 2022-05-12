@@ -25,13 +25,13 @@
 
 typedef enum {
 	STATE_MAIL_FROM = 1,
-	STATE_MAIL_FROM_ACK,
+	STATE_MAIL_FROM_RESPONSE,
 	STATE_RCPT_TO,
-	STATE_RCPT_TO_ACK,
+	STATE_RCPT_TO_RESPONSE,
 	STATE_DATA,
-	STATE_DATA_ACK,
+	STATE_DATA_RESPONSE,
 	STATE_DATA_PAYLOAD_AND_STOP,
-	STATE_DATA_STOP_ACK,
+	STATE_DATA_STOP_RESPONSE,
 } state_id;
 
 static M_bool M_rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
@@ -62,59 +62,76 @@ static M_bool M_rcpt_at(M_email_t *e, size_t idx, const char **group, const char
 static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot    = data;
-	const char                 *group   = NULL;
-	const char                 *name    = NULL;
 	const char                 *address = NULL;
 
-	if (!M_email_from(slot->email, &group, &name, &address)) {
+	if (!M_email_from(slot->email, NULL, NULL, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	M_bprintf(slot->out_buf, "MAIL FROM:<%s>\r\n", address);
-	*next = STATE_MAIL_FROM_ACK;
+	*next = STATE_MAIL_FROM_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_state_mail_from_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = STATE_RCPT_TO;
-		return M_STATE_MACHINE_STATUS_NEXT;
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 250) {
+		const char *line = M_list_str_last(slot->smtp_response);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 mail-from response, got: %s", line);
+		goto done;
 	}
-	return M_STATE_MACHINE_STATUS_WAIT;
+	*next = STATE_RCPT_TO;
+	machine_status = M_STATE_MACHINE_STATUS_NEXT;
+
+done:
+	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot    = data;
-	const char      *group   = NULL;
-	const char      *name    = NULL;
-	const char      *address = NULL;
+	const char                 *address = NULL;
 
-	if (!M_rcpt_at(slot->email, slot->rcpt_i, &group, &name, &address)) {
+	if (!M_rcpt_at(slot->email, slot->rcpt_i, NULL, NULL, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	M_bprintf(slot->out_buf, "RCPT TO:<%s>\r\n", address);
 
-	*next = STATE_RCPT_TO_ACK;
+	*next = STATE_RCPT_TO_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_state_rcpt_to_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		slot->rcpt_i++;
-		if (slot->rcpt_i < slot->rcpt_n) {
-			*next = STATE_RCPT_TO;
-		} else {
-			*next = STATE_DATA;
-		}
-		return M_STATE_MACHINE_STATUS_NEXT;
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 250) {
+		const char *line = M_list_str_last(slot->smtp_response);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 rcpt-to response, got: %s", line);
+		goto done;
 	}
-	return M_STATE_MACHINE_STATUS_WAIT;
+
+	slot->rcpt_i++;
+	if (slot->rcpt_i < slot->rcpt_n) {
+		*next = STATE_RCPT_TO;
+	} else {
+		*next = STATE_DATA;
+	}
+		machine_status = M_STATE_MACHINE_STATUS_NEXT;
+
+done:
+	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
@@ -123,55 +140,98 @@ static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 
 	M_bprintf(slot->out_buf, "DATA\r\n");
 
-	*next = STATE_DATA_ACK;
+	*next = STATE_DATA_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_state_data_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_data_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = STATE_DATA_PAYLOAD_AND_STOP;
-		return M_STATE_MACHINE_STATUS_NEXT;
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 354) {
+		const char *line = M_list_str_last(slot->smtp_response);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 354 data response, got: %s", line);
+		goto done;
 	}
-	return M_STATE_MACHINE_STATUS_WAIT;
+
+	*next = STATE_DATA_PAYLOAD_AND_STOP;
+	machine_status = M_STATE_MACHINE_STATUS_NEXT;
+
+done:
+	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_buf_add_str(slot->out_buf, slot->msg);
-	M_bprintf(slot->out_buf, "\r\n.\r\n");
+	M_bprintf(slot->out_buf, "%s\r\n.\r\n", slot->msg);
 
-	*next = STATE_DATA_STOP_ACK;
+	*next = STATE_DATA_STOP_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_state_data_stop_ack(void *data, M_uint64 *next)
+static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot           = data;
+	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		return M_STATE_MACHINE_STATUS_DONE;
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (slot->smtp_response_code != 250) {
+		const char *line = M_list_str_last(slot->smtp_response);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %s", line);
+		goto done;
 	}
 
-	return M_STATE_MACHINE_STATUS_WAIT;
+	machine_status = M_STATE_MACHINE_STATUS_DONE;
+
+done:
+	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_sendmsg()
 {
-	M_state_machine_t *m;
+	M_state_machine_t *m     = NULL;
+	M_state_machine_t *sub_m = NULL;
+
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
+
 	M_state_machine_insert_state(m, STATE_MAIL_FROM, 0, NULL, M_state_mail_from, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_MAIL_FROM_ACK, 0, NULL, M_state_mail_from_ack, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_MAIL_FROM_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_mail_from_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
 	M_state_machine_insert_state(m, STATE_RCPT_TO, 0, NULL, M_state_rcpt_to, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_RCPT_TO_ACK, 0, NULL, M_state_rcpt_to_ack, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_RCPT_TO_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_rcpt_to_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
 	M_state_machine_insert_state(m, STATE_DATA, 0, NULL, M_state_data, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_DATA_ACK, 0, NULL, M_state_data_ack, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_DATA_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_data_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
 	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, NULL, M_state_data_payload_and_stop, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_DATA_STOP_ACK, 0, NULL, M_state_data_stop_ack, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_DATA_STOP_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_data_stop_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
 	return m;
 }
