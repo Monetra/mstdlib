@@ -1,7 +1,3 @@
-env:
-  CIRRUS_CLONE_DEPTH: 1
-  COVERITY_EMAIL: ENCRYPTED[b5c0701345dba2e40e6db6b16d3c6ecfdc1b4bc758e122b0d42931cad334bea4f13d3c3e91e776e04490420346bba757]
-  COVERITY_SCAN_TOKEN: ENCRYPTED[c80d807eab99d4c4555d53725d89c69800312469e03c2c001dd3ae8c9b5b9db6464dd9da136f44676b461fe9e9d26f3a]
 
 install_coverity: &install_coverity
 #    env:
@@ -30,6 +26,12 @@ submit_to_coverity_scan: &submit_to_coverity_scan
                  -F description="Cirrus CI build"
                  -F email="${COVERITY_EMAIL}"
                  "https://scan.coverity.com/builds"
+
+env:
+  CIRRUS_CLONE_DEPTH: 1
+  COVERITY_EMAIL: ENCRYPTED[b5c0701345dba2e40e6db6b16d3c6ecfdc1b4bc758e122b0d42931cad334bea4f13d3c3e91e776e04490420346bba757]
+  COVERITY_SCAN_TOKEN: ENCRYPTED[c80d807eab99d4c4555d53725d89c69800312469e03c2c001dd3ae8c9b5b9db6464dd9da136f44676b461fe9e9d26f3a]
+
 
 task:
   matrix:
