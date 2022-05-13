@@ -1,6 +1,35 @@
 env:
   CIRRUS_CLONE_DEPTH: 1
-  
+  COVERITY_EMAIL: ENCRYPTED[b5c0701345dba2e40e6db6b16d3c6ecfdc1b4bc758e122b0d42931cad334bea4f13d3c3e91e776e04490420346bba757]
+  COVERITY_SCAN_TOKEN: ENCRYPTED[c80d807eab99d4c4555d53725d89c69800312469e03c2c001dd3ae8c9b5b9db6464dd9da136f44676b461fe9e9d26f3a]
+
+install_coverity: &install_coverity
+  only_if: $BUILD_TYPE == 'coverity'
+  env:
+    COV_ARC: "$CIRRUS_WORKING_DIR/cov-analysis-$COV_PLATFORM.tgz"
+    COV_DIR: "$CIRRUS_WORKING_DIR/coverity-scan-analysis"
+    PATH: "$PATH:$CIRRUS_WORKING_DIR/cov-analysis/bin"
+  install_coverity_script:
+    - test ! -d "${COV_DIR}" &&
+      mkdir -p "${COV_DIR}" &&
+      curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+                 -F token="${COVERITY_SCAN_TOKEN}"
+                 -o "${COV_ARC}"
+                 "https://scan.coverity.com/download/cxx/${COV_PLATFORM}" &&
+      tar -xzf "${COV_ARC}" -C "${COV_DIR}"
+    - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
+
+submit_to_coverity_scan: &submit_to_coverity_scan
+  only_if: $BUILD_TYPE == 'coverity'
+  submit_to_coverity_scan_script:
+    - tar -czf analysis-results.tgz cov-int
+    - curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+                 -F token="${COVERITY_SCAN_TOKEN}"
+                 -F file=@analysis-results.tgz
+                 -F version="$(git rev-parse --short HEAD)"
+                 -F description="Cirrus CI build"
+                 -F email="${COVERITY_EMAIL}"
+                 "https://scan.coverity.com/builds"
 
 task:
   matrix:
@@ -10,6 +39,8 @@ task:
         LC_ALL: "C"
         SCAN_BUILD: "scan-build"
         MAKE: "make"
+        COV_COMPTYPE: gcc
+        COV_PLATFORM: linux64
       container:
         image: debian:latest
     - name: "Debian arm64"
@@ -61,8 +92,13 @@ task:
         BUILD_TYPE: "valgrind"
         CK_TIMEOUT_MULTIPLIER: 3
         CK_FORK: "no"
+    - name: "COVERITY"
+      only_if: $DIST == 'DEBIAN' && $BRANCH == 'coverity_scan'
+      env:
+        BUILD_TYPE: "coverity"
 
   os_deps_install_script:
+    - << : *install_coverity
     - |
       case "${DIST}" in
         DEBIAN*)
@@ -110,7 +146,7 @@ task:
     - |
       mkdir -p thirdparty thirdparty/sqlite-amalgamation
       git clone --depth=1 https://github.com/c-ares/c-ares.git thirdparty/c-ares
-      wget https://sqlite.org/2021/sqlite-amalgamation-3370000.zip -O thirdparty/sqlite-amalgamation.zip
+      wget https://sqlite.org/2022/sqlite-amalgamation-3380500.zip -O thirdparty/sqlite-amalgamation.zip
       unzip -j thirdparty/sqlite-amalgamation.zip -d thirdparty/sqlite-amalgamation
 
   build_script:
@@ -139,6 +175,14 @@ task:
           cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_USE_VALGRIND=ON -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
           cmake --build _builds
           ;;
+        coverity)
+          ./buildconf.sh && \
+          mkdir build && \
+          cd build && \
+          ../configure ${CONFIG_OPTS} && \
+          cov-configure --comptype ${COV_COMPTYPE} --compiler ${CC} --template && \
+          cov-build --dir cov-int make
+          ;;
        esac
 
   test_script:
@@ -157,8 +201,9 @@ task:
           make check
           ;;
        esac
-   
+
   deploy_script:
+    - << : &submit_to_coverity_scan
     - |
       if [ "${BUILD_TYPE}" == "cmake" -a "${DIST}" = "DEBIAN" -a "${BRANCH}" = "master" ] ; then
         ./gh-pages-deploy.sh
