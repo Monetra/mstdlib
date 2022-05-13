@@ -24,17 +24,21 @@ cmake_test: &cmake_test
     - cd _builds/test && ctest -VV
 
 asan_build: &asan_build
-  asan_debian_deps_script:
-    only_if: $DIST == 'DEBIAN' || $DIST == 'DEBIAN-ARM'
-    - apt-get install -y clang clang-tools
-  asan_freebsd_deps_script:
-    only_if: $DIST == 'FREEBSD'
-    - pkg install -y llvm
-  asan_macos_deps_script:
-    only_if: $DIST == 'MACOS'
-    - brew install llvm
+  asan_deps_script:
+    - |
+      case "${CIRRUS_OS}" in
+        linux)
+          apt-get install -y clang clang-tools
+          ;;
+        freebsd)
+          pkg install -y llvm
+          ;;
+        macos)
+          brew install llvm
+          ;;
+      esac
   asan_build_script:
-    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -DM_ASAN=TRUE -G Ninja -H. -B_builds &&
       cmake --build _builds
 
 coverity_install: &coverity_install
