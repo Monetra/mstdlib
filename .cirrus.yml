@@ -70,15 +70,15 @@ task:
   name: "Debian x64 - cmake"
   container:
     image: debian:latest
-  << : &debian_x64_template
-  << : &fetch_thirdparty
-  << : &cmake_build
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
 
 task:
   name: "Debian arm64 - cmake"
   arm_container:
     image: debian:latest
-  << : &debian_arm64_template
-  << : &fetch_thirdparty
-  << : &cmake_build
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
 
