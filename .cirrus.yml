@@ -116,13 +116,12 @@ coverity_install: &coverity_install
     COV_DIR: "$CIRRUS_WORKING_DIR/coverity-scan-analysis"
     PATH: "$PATH:$CIRRUS_WORKING_DIR/cov-analysis/bin"
   coverity_install_script:
-    - test ! -d "${COV_DIR}" &&
-      mkdir -p "${COV_DIR}" &&
-      curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
-                 -F token="${COVERITY_SCAN_TOKEN}"
-                 -o "${COV_ARC}"
-                 "https://scan.coverity.com/download/cxx/${COV_PLATFORM}" &&
-      tar -xzf "${COV_ARC}" -C "${COV_DIR}"
+    - mkdir -p "${COV_DIR}"
+    - curl -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+           -F token="${COVERITY_SCAN_TOKEN}"
+           -o "${COV_ARC}"
+           "https://scan.coverity.com/download/cxx/${COV_PLATFORM}"
+    - tar -zxvpf "${COV_ARC}" -C "${COV_DIR}"
     - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
 
 coverity_build: &coverity_build
