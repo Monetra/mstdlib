@@ -40,7 +40,7 @@ autotools_test: &autotools_test
     LD_LIBRARY_PATH: "$CIRRUS_WORKING_DIR/build/lib:$LD_LIBRARY_PATH"
     VERBOSE: "1"
     CK_VERBOSITY: "verbose"
-  cmake_test_script:
+  autotools_test_script:
     - cd build &&
       cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ &&
       make check
