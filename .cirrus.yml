@@ -23,6 +23,20 @@ cmake_test: &cmake_test
   cmake_test_script:
     - cd _builds/test && ctest -VV
 
+asan_build: &asan_build
+  asan_debian_deps_script:
+    only_if: $DIST == 'DEBIAN' || $DIST == 'DEBIAN-ARM'
+    - apt-get install -y clang clang-tools
+  asan_freebsd_deps_script:
+    only_if: $DIST == 'FREEBSD'
+    - pkg install -y llvm
+  asan_macos_deps_script:
+    only_if: $DIST == 'MACOS'
+    - brew install llvm
+  asan_build_script:
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
+      cmake --build _builds
+
 coverity_install: &coverity_install
   env:
     COV_ARC: "$CIRRUS_WORKING_DIR/cov-analysis-$COV_PLATFORM.tgz"
@@ -111,6 +125,15 @@ task:
   << : *cmake_test
 
 task:
+  name: "Debian x64 - ASAN"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *asan_build
+  << : *cmake_test
+
+task:
   name: "Debian arm64 - cmake"
   arm_container:
     image: debian:latest
@@ -120,10 +143,19 @@ task:
   << : *cmake_test
 
 task:
+  name: "Debian arm64 - ASAN"
+  arm_container:
+    image: debian:latest
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *asan_build
+  << : *cmake_test
+
+task:
   name: "FreeBSD x64 - cmake"
   freebsd_instance:
     image_family: freebsd-13-0
-  << : *debian_arm64_template
+  << : *freebsd_template
   << : *fetch_thirdparty
   << : *cmake_build
   << : *cmake_test
