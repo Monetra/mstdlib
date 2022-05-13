@@ -145,7 +145,7 @@ coverity_submit: &coverity_submit
 
 
 deploy_docs: &deploy_docs
-  only_if: ${BRANCH} = 'master'
+  only_if: ${BRANCH} == 'master'
   deploy_docs_script:
     - ./gh-pages-deploy.sh
 
