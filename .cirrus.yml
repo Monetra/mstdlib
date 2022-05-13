@@ -121,7 +121,7 @@ coverity_install: &coverity_install
            -F token="${COVERITY_SCAN_TOKEN}"
            -o "${COV_ARC}"
            "https://scan.coverity.com/download/cxx/${COV_PLATFORM}"
-    - tar -zxvpf "${COV_ARC}" -C "${COV_DIR}"
+    - tar -zvpf "${COV_ARC}" -C "${COV_DIR}"
     - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
 
 coverity_build: &coverity_build
@@ -245,6 +245,8 @@ task:
   only_if: $BRANCH == 'coverity_scan'
   container:
     image: debian:latest
+  env:
+    CC: "gcc"
   << : *debian_x64_template
   << : *fetch_thirdparty
   << : *coverity_install
