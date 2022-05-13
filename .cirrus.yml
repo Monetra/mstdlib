@@ -117,7 +117,7 @@ coverity_install: &coverity_install
     PATH: "$PATH:$CIRRUS_WORKING_DIR/cov-analysis/bin"
   coverity_install_script:
     - mkdir -p "${COV_DIR}"
-    - curl -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+    - curl -F project="Monetra/mstdlib"
            -F token="${COVERITY_SCAN_TOKEN}"
            -o "${COV_ARC}"
            "https://scan.coverity.com/download/cxx/${COV_PLATFORM}"
@@ -134,7 +134,7 @@ coverity_build: &coverity_build
 coverity_submit: &coverity_submit
   coverity_submit_script:
     - tar -czf analysis-results.tgz cov-int
-    - curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+    - curl -s -S -F project="Monetra/mstdlib"
                  -F token="${COVERITY_SCAN_TOKEN}"
                  -F file=@analysis-results.tgz
                  -F version="$(git rev-parse --short HEAD)"
@@ -165,13 +165,12 @@ debian_x64_template: &debian_x64_template
   << : *debian_template
   env:
     DIST: "DEBIAN"
-    COV_PLATFORM: linux-x64
+    COV_PLATFORM: linux64
 
 debian_arm64_template: &debian_arm64_template
   << : *debian_template
   env:
     DIST: "DEBIAN-ARM"
-    COV_PLATFORM: linux-arm64
 
 freebsd_template: &freebsd_template
   env:
