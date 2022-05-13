@@ -48,7 +48,7 @@ static M_state_machine_status_t M_state_write(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_buf_add_str(slot->out_buf, slot->msg);
+	M_bprintf(slot->out_buf, "%s\r\n.\r\n", slot->msg);
 
 	*next = STATE_DISCONNECTING;
 	return M_STATE_MACHINE_STATUS_NEXT;

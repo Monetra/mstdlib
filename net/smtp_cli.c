@@ -460,7 +460,7 @@ int main(int argc, const char * const *argv)
 		help = M_getopt_help(getopt);
 		M_printf("usage: %s [OPTION]...ENDPOINT(s)\n", argv[0]);
 		M_printf("Endpoint:\n");
-		M_printf("\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\", \\\"-i\\\" ], \\\"env\\\": {}, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
+		M_printf("\"{ \\\"proc\\\": \\\"sendmail\\\", \\\"args\\\": [ \\\"-t\\\" ], \\\"env\\\": null, \\\"timeout_ms\\\": 5000, \\\"max_processes\\\": 1 }\"\n");
 		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 25, \\\"connect_tls\\\": false, \\\"username\\\": \\\"%s@localhost\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
 		M_printf("\"{ \\\"tcp\\\": \\\"localhost\\\", \\\"port\\\": 587, \\\"connect_tls\\\": true, \\\"username\\\": \\\"%s@localhost\\\", \\\"password\\\": \\\"<secret>\\\", \\\"max_conns\\\": 1 }\"\n", getenv("USER"));
 		M_printf("Options:\n%s\n", help);

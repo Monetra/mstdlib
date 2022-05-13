@@ -1221,7 +1221,11 @@ M_bool M_net_smtp_add_endpoint_process(
 	if (!(ep = M_malloc_zero(sizeof(*ep)))) { return M_FALSE; }
 	if (!(ep->command = M_strdup(command))) { goto fail1; }
 	if (!(ep->args = M_list_str_duplicate(args))) { goto fail2; }
-	if (!(ep->env = M_hash_dict_duplicate(env))) { goto fail3; }
+	if (env == NULL) {
+		ep->env = NULL;
+	} else {
+		if (!(ep->env = M_hash_dict_duplicate(env))) { goto fail3; }
+	}
 	ep->timeout_ms = timeout_ms;
 	ep->max_processes = max_processes;
 	if (!M_list_insert(sp->proc_endpoints, ep)) { goto fail4; }

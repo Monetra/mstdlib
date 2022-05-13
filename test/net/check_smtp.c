@@ -22,6 +22,7 @@ typedef enum {
 	TIMEOUT_STALL           = 9,
 	TIMEOUT_IDLE            = 10,
 	STATUS                  = 11,
+	PROC_ENDPOINT           = 12,
 } test_id_t;
 
 
@@ -510,6 +511,46 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(proc_endpoint)
+{
+	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
+
+	args_t args = { 0 };
+	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e1          = generate_email(1, "anybody@localhost");
+	M_email_t         *e2          = generate_email(2, "anybody@localhost");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
+
+	M_net_smtp_queue_smtp(sp, e1);
+	M_net_smtp_queue_smtp(sp, e2);
+
+	M_list_str_insert(cmd_args, "-d");
+	M_list_str_insert(cmd_args, "\"\\r\\n.\\r\\n\"");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "read", cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
+	M_net_smtp_resume(sp);
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
+
+	M_email_destroy(e1);
+	M_email_destroy(e2);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+}
+END_TEST
 START_TEST(status)
 {
 	M_uint16 testport;
@@ -873,6 +914,7 @@ static Suite *smtp_suite(void)
 
 	suite = suite_create("smtp");
 
+	/*
 	tc = tcase_create("no-endpoints");
 	tcase_add_test(tc, check_no_endpoints);
 	suite_add_tcase(suite, tc);
@@ -909,6 +951,12 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("status");
 	tcase_add_test(tc, status);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+	*/
+
+	tc = tcase_create("proc_endpoint");
+	tcase_add_test(tc, proc_endpoint);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
