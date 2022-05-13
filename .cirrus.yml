@@ -29,7 +29,7 @@ autotools_build: &autotools_build
   env:
     BUILD_TYPE: "autotools"
   autotools_build_script:
-    - ./buildconf.sh &&
+    - autoreconf -fi &&
       mkdir build &&
       cd build &&
       ../configure ${CONFIG_OPTS} &&
@@ -126,8 +126,8 @@ coverity_install: &coverity_install
 
 coverity_build: &coverity_build
   coverity_build_script:
-    - ./buildconf.sh
-    - ./configure ${CONFIG_OPTS}
+    - autoreconf -fi
+    - ./configure ${CONFIG_OPTS} --disable-tests
     - cov-configure --comptype ${COV_COMPTYPE} --compiler ${CC} --template
     - cov-build --dir cov-int ${MAKE}
 
