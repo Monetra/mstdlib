@@ -51,8 +51,6 @@ debian_x64_template: &debian_x64_template
     MAKE: "make"
     COV_COMPTYPE: gcc
     COV_PLATFORM: linux-x64
-  container:
-    image: debian:latest
   osdeps_install_script:
     - apt-get update &&
       apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget unzip
@@ -63,20 +61,23 @@ debian_arm64_template: &debian_arm64_template
     LC_ALL: "C"
     SCAN_BUILD: "scan-build"
     MAKE: "make"
-  arm_container:
-    image: debian:latest
+
   osdeps_install_script:
     - apt-get update &&
       apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget unzip
 
 task:
   name: "Debian x64 - cmake"
+  container:
+    image: debian:latest
   << : &debian_x64_template
   << : &fetch_thirdparty
   << : &cmake_build
 
 task:
   name: "Debian arm64 - cmake"
+  arm_container:
+    image: debian:latest
   << : &debian_arm64_template
   << : &fetch_thirdparty
   << : &cmake_build
