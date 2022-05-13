@@ -205,6 +205,7 @@ task:
   << : *fetch_thirdparty
   << : *cmake_build
   << : *cmake_test
+  << : *deploy_docs
 
 task:
   name: "Debian x64 - AutoTools"
