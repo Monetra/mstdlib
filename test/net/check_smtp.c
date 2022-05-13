@@ -21,6 +21,7 @@ typedef enum {
 	TIMEOUT_CONNECT         = 8,
 	TIMEOUT_STALL           = 9,
 	TIMEOUT_IDLE            = 10,
+	STATUS                  = 11,
 } test_id_t;
 
 
@@ -86,26 +87,32 @@ typedef struct {
 	M_list_t      *regexs;
 	M_event_t     *el;
 	M_io_t        *io_listen;
-	M_io_t        *io;
-	M_io_t        *io2;
-	M_io_t        *io3;
-	M_buf_t       *out_buf;
-	M_parser_t    *in_parser;
-	M_bool         is_data_mode;
-	M_bool         is_QUIT;
 	test_id_t      test_id;
+	M_io_t        *stall_io;
+	struct {
+		M_io_t     *io;
+		M_buf_t    *out_buf;
+		M_parser_t *in_parser;
+		M_bool      is_data_mode;
+		M_bool      is_QUIT;
+	} conn[16];
 } smtp_emulator_t;
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	smtp_emulator_t *emu     = thunk;
-	M_io_t          *io_out  = NULL;
-	char            *line    = NULL;
-	const char      *eol     = "\r\n";
-	const char      *eodata  = "\r\n.\r\n";
-	const char      *ending  = NULL;
-	const char      *str     = NULL;
+	smtp_emulator_t *emu          = thunk;
+	char            *line         = NULL;
+	const char      *eol          = "\r\n";
+	const char      *eodata       = "\r\n.\r\n";
+	const char      *ending       = NULL;
+	const char      *str          = NULL;
+	M_parser_t      *in_parser    = NULL;
+	M_buf_t         *out_buf      = NULL;
+	M_io_t         **emu_io       = NULL;
+	M_bool          *is_data_mode = NULL;
+	M_bool          *is_QUIT      = NULL;
 	M_io_error_t     ioerr;
 	(void)el;
 
@@ -114,31 +121,69 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 	event_debug("smtp emulator:%d io:%p event %s triggered", emu->test_id, io, event_type_str(etype));
 
+	if (etype == M_EVENT_TYPE_ACCEPT) {
+		size_t i;
+		if (emu->test_id == EMU_ACCEPT_DISCONNECT) {
+			M_io_t *io_out = NULL;
+			ioerr = M_io_accept(&io_out, io);
+			if (ioerr == M_IO_ERROR_WOULDBLOCK) { return; }
+			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io_out);
+			M_io_destroy(io_out);
+			return;
+		}
+		for (i = 0; i < ARRAY_LEN(emu->conn); i++) {
+			if (emu->conn[i].io == NULL) { break; }
+		}
+		if (i == ARRAY_LEN(emu->conn)) {
+			M_printf("Emulator ran out of connections!");
+			exit(1);
+		}
+		ioerr = M_io_accept(&emu->conn[i].io, io);
+		if (ioerr == M_IO_ERROR_WOULDBLOCK) {
+			emu->conn[i].io = NULL;
+			return;
+		}
+		if (emu->test_id == TIMEOUT_STALL) {
+			emu->stall_io = emu->conn[i].io;
+		}
+		M_event_add(emu->el, emu->conn[i].io, smtp_emulator_io_cb, emu);
+		return;
+	}
+
+	for (size_t i = 0; i < ARRAY_LEN(emu->conn); i++) {
+		if (emu->conn[i].io == io) {
+			emu_io = &emu->conn[i].io;
+			in_parser = emu->conn[i].in_parser;
+			out_buf = emu->conn[i].out_buf;
+			is_QUIT = &emu->conn[i].is_QUIT;
+			is_data_mode = &emu->conn[i].is_data_mode;
+		}
+	}
+
 	switch(etype) {
 		case M_EVENT_TYPE_READ:
-			ioerr = M_io_read_into_parser(io, emu->in_parser);
+			ioerr = M_io_read_into_parser(io, in_parser);
 			if (ioerr == M_IO_ERROR_DISCONNECT) {
 				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 				M_io_destroy(io);
+				*emu_io = NULL;
 				return;
 			}
-			if (M_parser_len(emu->in_parser) > 0) {
-				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(emu->in_parser),
-						M_parser_len(emu->in_parser), (const char *)M_parser_peek(emu->in_parser));
+			if (M_parser_len(in_parser) > 0) {
+				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(in_parser),
+						M_parser_len(in_parser), (const char *)M_parser_peek(in_parser));
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
-			M_parser_consume(emu->in_parser, M_parser_len(emu->in_parser));
-			M_buf_truncate(emu->out_buf, M_buf_len(emu->out_buf));
+			M_parser_consume(in_parser, M_parser_len(in_parser));
+			M_buf_truncate(out_buf, M_buf_len(out_buf));
 			str = M_list_str_at(emu->json_values, 0);
-			M_buf_add_str(emu->out_buf, str);
+			M_buf_add_str(out_buf, str);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 			M_io_destroy(io);
-			if (io == emu->io) {
-				emu->io = NULL;
-			}
+			*emu_io = NULL;
 			return;
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -149,99 +194,71 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		case M_EVENT_TYPE_OTHER:
 			break;
 		case M_EVENT_TYPE_ACCEPT:
-			if (emu->test_id == EMU_ACCEPT_DISCONNECT) {
-				M_io_accept(&io_out, io);
-				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io_out);
-				M_io_destroy(io_out);
-				return;
-			}
-			ioerr = M_io_accept(&io_out, io);
-			if (ioerr == M_IO_ERROR_WOULDBLOCK)
-				return;
-			if (emu->test_id == TIMEOUT_IDLE) {
-				if (emu->io2 == NULL) {
-					emu->io2 = io_out;
-				} else {
-					emu->io3 = io_out;
-				}
-				M_event_add(emu->el, io_out, smtp_emulator_io_cb, emu);
-				return;
-			}
-			if (emu->io != NULL) {
-				event_debug("%s:%d: smtp emulator M_io_destroy(%p), test_id: %d", __FILE__, __LINE__, emu->io, emu->test_id);
-				M_io_destroy(emu->io);
-			}
-			emu->io = io_out;
-			M_event_add(emu->el, emu->io, smtp_emulator_io_cb, emu);
-			return;
+			return; /* Already handled */
 	}
 
-	if (emu->is_data_mode) {
+	if (*is_data_mode) {
 		ending = eodata;
 	} else {
 		ending = eol;
 	}
-	if ((line = M_parser_read_strdup_until(emu->in_parser, ending, M_TRUE)) != NULL) {
+	if ((line = M_parser_read_strdup_until(in_parser, ending, M_TRUE)) != NULL) {
 		M_bool is_no_match;
 		event_debug("smtp emulator %p READ %d bytes \"%s\"", io, M_str_len(line), line);
-		if (emu->is_data_mode) {
-			M_buf_add_str(emu->out_buf, M_list_str_at(emu->json_values, 1));
-			emu->is_data_mode = M_FALSE;
+		if (*is_data_mode) {
+			M_buf_add_str(out_buf, M_list_str_at(emu->json_values, 1));
+			*is_data_mode = M_FALSE;
 		} else {
 			if (M_str_eq(line, "DATA\r\n")) {
-				emu->is_data_mode = M_TRUE;
+				*is_data_mode = M_TRUE;
 			}
 			if (M_str_eq(line, "QUIT\r\n")) {
-				emu->is_QUIT = M_TRUE;
+				*is_QUIT = M_TRUE;
 			}
 			is_no_match = M_TRUE;
 			for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
 				const M_re_t *re = M_list_at(emu->regexs, i);
 				if (M_re_eq(re, line)) {
 					is_no_match = M_FALSE;
-					M_buf_add_str(emu->out_buf, M_list_str_at(emu->json_values, i));
+					M_buf_add_str(out_buf, M_list_str_at(emu->json_values, i));
 					break;
 				}
 			}
 			if (is_no_match) {
-				M_buf_add_str(emu->out_buf, "502 \r\n");
+				M_buf_add_str(out_buf, "502 \r\n");
 			}
 		}
 		M_free(line);
 	}
 
-	if (M_buf_len(emu->out_buf) > 0) {
-		size_t len = M_buf_len(emu->out_buf);
-		event_debug("%s:%d: emu->out_buf: \"%s\"", __FILE__, __LINE__, M_buf_peek(emu->out_buf));
+	if (M_buf_len(out_buf) > 0) {
+		size_t len = M_buf_len(out_buf);
+		event_debug("%s:%d: emu->out_buf: \"%s\"", __FILE__, __LINE__, M_buf_peek(out_buf));
 		if (emu->test_id == TIMEOUT_STALL) {
 			char byte;
 			size_t n;
-			byte = M_buf_peek(emu->out_buf)[0];
-			M_buf_drop(emu->out_buf, 1);
-			io = emu->io;
-			ioerr = M_io_write(io, (const unsigned char *)&byte, 1, &n);
+			byte = M_buf_peek(out_buf)[0];
+			M_buf_drop(out_buf, 1);
+			ioerr = M_io_write(emu->stall_io, (const unsigned char *)&byte, 1, &n);
 			if (ioerr != M_IO_ERROR_DISCONNECT && n != 1) {
 				M_event_timer_oneshot(el, 30, M_TRUE, smtp_emulator_io_cb, thunk);
 			}
 			event_debug("smtp emulator io:%p WRITE %d bytes", io, n);
 			return;
-		} else {
-			ioerr = M_io_write_from_buf(io, emu->out_buf);
 		}
+		ioerr = M_io_write_from_buf(io, out_buf);
 		if (ioerr == M_IO_ERROR_DISCONNECT) {
 			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 			M_io_destroy(io);
-			if (io == emu->io) {
-				emu->io = NULL;
-			}
+			*emu_io = NULL;
 			return;
 		}
-		event_debug("smtp emulator io:%p WRITE %d bytes", io, len - M_buf_len(emu->out_buf));
+		event_debug("smtp emulator io:%p WRITE %d bytes", io, len - M_buf_len(out_buf));
 	} else {
-		if (emu->is_QUIT) {
+		if (*is_QUIT) {
 			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 			M_io_destroy(io);
-			emu->is_QUIT = M_FALSE;
+			*is_QUIT = M_FALSE;
 			return;
 		}
 	}
@@ -258,8 +275,6 @@ static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type
 	emu->el = el;
 	emu->test_id = test_id;
 	emu->tls_type = tls_type;
-	emu->out_buf = M_buf_create();
-	emu->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
 	emu->json = M_json_object_value(check_smtp_json, json_name);
 	emu->json_keys = M_json_object_keys(emu->json);
 	emu->json_values = M_list_str_create(M_LIST_NONE);
@@ -279,6 +294,14 @@ static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type
 	emu->port = port;
 	*testport = port;
 	M_event_add(emu->el, emu->io_listen, smtp_emulator_io_cb, emu);
+
+	for (size_t i = 0; i < ARRAY_LEN(emu->conn); i++) {
+		emu->conn[i].io           = NULL;
+		emu->conn[i].out_buf      = M_buf_create();
+		emu->conn[i].in_parser    = M_parser_create(M_PARSER_FLAG_NONE);
+		emu->conn[i].is_data_mode = M_FALSE;
+		emu->conn[i].is_QUIT      = M_FALSE;
+	}
 	return emu;
 }
 
@@ -298,27 +321,28 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 typedef struct {
-	M_bool     is_success;
-	M_bool     is_connect_cb_called;
-	M_bool     is_connect_fail_cb_called;
-	M_bool     is_disconnect_cb_called;
-	M_bool     is_process_fail_cb_called;
-	M_bool     is_processing_halted_cb_called;
-	M_bool     is_sent_cb_called;
-	M_bool     is_send_failed_cb_called;
-	M_bool     is_reschedule_cb_called;
-	M_bool     is_iocreate_cb_called;
-	M_uint64   connect_cb_call_count;
-	M_uint64   connect_fail_cb_call_count;
-	M_uint64   disconnect_cb_call_count;
-	M_uint64   process_fail_cb_call_count;
-	M_uint64   processing_halted_cb_call_count;
-	M_uint64   sent_cb_call_count;
-	M_uint64   send_failed_cb_call_count;
-	M_uint64   reschedule_cb_call_count;
-	M_uint64   iocreate_cb_call_count;
-	test_id_t  test_id;
-	M_event_t *el;
+	M_bool        is_success;
+	M_bool        is_connect_cb_called;
+	M_bool        is_connect_fail_cb_called;
+	M_bool        is_disconnect_cb_called;
+	M_bool        is_process_fail_cb_called;
+	M_bool        is_processing_halted_cb_called;
+	M_bool        is_sent_cb_called;
+	M_bool        is_send_failed_cb_called;
+	M_bool        is_reschedule_cb_called;
+	M_bool        is_iocreate_cb_called;
+	M_uint64      connect_cb_call_count;
+	M_uint64      connect_fail_cb_call_count;
+	M_uint64      disconnect_cb_call_count;
+	M_uint64      process_fail_cb_call_count;
+	M_uint64      processing_halted_cb_call_count;
+	M_uint64      sent_cb_call_count;
+	M_uint64      send_failed_cb_call_count;
+	M_uint64      reschedule_cb_call_count;
+	M_uint64      iocreate_cb_call_count;
+	test_id_t     test_id;
+	M_event_t    *el;
+	M_net_smtp_t *sp;
 } args_t;
 
 static M_email_t * generate_email(size_t idx, const char *to_address)
@@ -423,6 +447,16 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	if (args->test_id == EMU_SENDMSG) {
 		M_event_done(args->el);
 	}
+
+	if (args->test_id == STATUS) {
+		if (args->sent_cb_call_count == 1) {
+			M_net_smtp_pause(args->sp);
+			args->is_success = (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING);
+		}
+		if (args->sent_cb_call_count == 2) {
+			M_event_done(args->el);
+		}
+	}
 }
 
 static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, size_t attempt_num,
@@ -476,6 +510,48 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(status)
+{
+	M_uint16 testport;
+
+	args_t args = { 0 };
+	args.test_id = STATUS;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t           *dns         = M_dns_create(el);
+	M_email_t         *e1          = generate_email(1, "anybody@localhost");
+	M_email_t         *e2          = generate_email(2, "anybody@localhost");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
+
+	M_net_smtp_queue_smtp(sp, e1);
+	M_net_smtp_queue_smtp(sp, e2);
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 2);
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
+	M_net_smtp_resume(sp);
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
+
+	smtp_emulator_destroy(emu);
+	M_email_destroy(e1);
+	M_email_destroy(e2);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
+
 START_TEST(timeouts)
 {
 	M_uint16 testport1;
@@ -828,6 +904,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("timeouts");
 	tcase_add_test(tc, timeouts);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("status");
+	tcase_add_test(tc, status);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 

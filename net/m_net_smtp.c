@@ -34,7 +34,6 @@ struct M_net_smtp {
 	void                              *thunk;
 	M_list_t                          *proc_endpoints;
 	M_list_t                          *tcp_endpoints;
-	size_t                             number_of_endpoints;
 	M_list_t                          *endpoint_managers;
 	M_net_smtp_status_t                status;
 	size_t                             retry_default_ms;
@@ -63,7 +62,6 @@ typedef struct {
 } retry_msg_t;
 
 typedef struct {
-	size_t                 idx;
 	char                  *command;
 	M_list_str_t          *args;
 	M_hash_dict_t         *env;
@@ -72,7 +70,6 @@ typedef struct {
 } proc_endpoint_t;
 
 typedef struct {
-	size_t                 idx;
 	char                  *address;
 	M_uint16               port;
 	M_bool                 connect_tls;
@@ -258,26 +255,32 @@ static void destroy_tcp_endpoint(const tcp_endpoint_t *ep)
 
 void M_net_smtp_destroy(M_net_smtp_t *sp)
 {
+	endpoint_manager_t *epm     = NULL;
+	proc_endpoint_t    *proc_ep = NULL;
+	tcp_endpoint_t     *tcp_ep  = NULL;
+	M_event_timer_t    *timer   = NULL;
+
 	if (sp == NULL)
 		return;
 
-	for (size_t i = 0; i < M_list_len(sp->proc_endpoints); i++) {
-		destroy_proc_endpoint(M_list_at(sp->proc_endpoints, i));
+	while ((proc_ep = M_list_take_last(sp->proc_endpoints)) != NULL) {
+		destroy_proc_endpoint(proc_ep);
 	}
 	M_list_destroy(sp->proc_endpoints, M_TRUE);
-	for (size_t i = 0; i < M_list_len(sp->tcp_endpoints); i++) {
-		destroy_tcp_endpoint(M_list_at(sp->tcp_endpoints, i));
+	while ((tcp_ep = M_list_take_last(sp->tcp_endpoints)) != NULL) {
+		destroy_tcp_endpoint(tcp_ep);
 	}
 	M_list_destroy(sp->tcp_endpoints, M_TRUE);
-	while (M_list_len(sp->delay_msg_timers) > 0) {
-		M_event_timer_t *timer = M_list_take_first(sp->delay_msg_timers);
+	while ((timer = M_list_take_last(sp->delay_msg_timers)) != NULL) {
 		M_event_timer_remove(timer);
 	}
 	M_list_destroy(sp->delay_msg_timers, M_TRUE);
 	M_list_destroy(sp->retry_queue, M_TRUE);
 	M_list_str_destroy(sp->internal_queue);
-	/* endpoint manager should free it self once it finishes processing */
-	M_list_destroy(sp->endpoint_managers, M_FALSE);
+	while ((epm = M_list_take_last(sp->endpoint_managers)) != NULL) {
+		M_free(epm);
+	}
+	M_list_destroy(sp->endpoint_managers, M_TRUE);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
 	M_free(sp);
 }
@@ -570,7 +573,7 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 		M_bool is_all_endpoints_removed = M_TRUE;
 		endpoint_manager_t *epm = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
 		epm->is_removed = M_TRUE;
-		for (size_t i = 0; i < sp->number_of_endpoints; i++) {
+		for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
 			const_epm = M_list_at(sp->endpoint_managers, i);
 			if (const_epm->is_removed == M_FALSE) {
 				is_all_endpoints_removed = M_FALSE;
@@ -580,7 +583,7 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) {
 			const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
 			while (const_epm->is_removed) {
-				sp->round_robin_idx = (sp->round_robin_idx + 1) % sp->number_of_endpoints;
+				sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoint_managers);
 				const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
 			}
 		}
@@ -600,9 +603,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	M_io_error_t                io_error        = M_IO_ERROR_SUCCESS;
 	M_bool                      is_done         = M_FALSE;
 	(void)el;
-
-	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
-		goto destroy;
 
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
@@ -688,6 +688,9 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			goto backout;
 			return;
 	}
+
+	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
+		slot->is_QUIT_enabled = M_TRUE;
 
 	if (!run_state_machine(slot, &is_done) || is_done) {
 		if (slot->is_connect_fail) {
@@ -888,7 +891,7 @@ static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries,
 	epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
 	slate_msg_insert(sp, epm, msg, num_tries, headers);
 	do {
-		sp->round_robin_idx = (sp->round_robin_idx + 1) % sp->number_of_endpoints;
+		sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoint_managers);
 		epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
 	} while(epm->is_removed);
 }
@@ -1002,13 +1005,6 @@ static M_bool idle_check(M_net_smtp_t *sp)
 
 static void stop(M_net_smtp_t *sp)
 {
-	const endpoint_manager_t *const_epm = NULL;
-	endpoint_manager_t       *epm       = NULL;
-	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
-		const_epm = M_list_take_first(sp->endpoint_managers);
-		epm = M_CAST_OFF_CONST(endpoint_manager_t*, const_epm);
-		M_free(epm);
-	}
 	sp->status = M_NET_SMTP_STATUS_STOPPED;
 	sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
 }
@@ -1035,52 +1031,27 @@ static void process_queue_queue(M_net_smtp_t *sp)
 
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 {
-	size_t                 proc_i   = 0;
-	size_t                 tcp_i    = 0;
-	const proc_endpoint_t *proc_ep  = NULL;
-	const tcp_endpoint_t  *tcp_ep   = NULL;
-	endpoint_manager_t    *epm      = NULL;
-
 	if (sp == NULL)
 		return M_FALSE;
 
-	if (sp->status != M_NET_SMTP_STATUS_STOPPED) {
-		if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
+	switch (sp->status) {
+		case M_NET_SMTP_STATUS_NOENDPOINTS:
 			sp->cbs.processing_halted_cb(M_TRUE, sp->thunk);
-		}
-		return M_FALSE;
+			return M_FALSE;
+			break;
+		case M_NET_SMTP_STATUS_PROCESSING:
+		case M_NET_SMTP_STATUS_IDLE:
+			return M_TRUE;
+			break;
+		case M_NET_SMTP_STATUS_STOPPING:
+			/* Actually, we're not stopping */
+		case M_NET_SMTP_STATUS_STOPPED:
+			sp->status = M_NET_SMTP_STATUS_PROCESSING;
+			process_queue_queue(sp);
+			return M_TRUE;
+			break;
 	}
-
-	proc_ep = M_list_at(sp->proc_endpoints, proc_i);
-	tcp_ep = M_list_at(sp->tcp_endpoints, tcp_i);
-	for (size_t i = 0; i < sp->number_of_endpoints; i++) {
-		if (proc_ep != NULL && proc_ep->idx == i) {
-			size_t slot_count = proc_ep->max_processes;
-			epm = M_malloc_zero(sizeof(*epm) + sizeof(epm->slots[0]) * slot_count);
-			epm->proc_endpoint = proc_ep;
-			epm->slot_count = slot_count;
-			epm->slot_available = slot_count;
-			M_list_insert(sp->endpoint_managers, epm);
-			proc_i++;
-			proc_ep = M_list_at(sp->proc_endpoints, proc_i);
-			continue;
-		}
-		if (tcp_ep != NULL && tcp_ep->idx == i) {
-			size_t slot_count = tcp_ep->max_conns;
-			epm = M_malloc_zero(sizeof(*epm) + sizeof(epm->slots[0]) * slot_count);
-			epm->tcp_endpoint = tcp_ep;
-			epm->slot_count = slot_count;
-			epm->slot_available = slot_count;
-			M_list_insert(sp->endpoint_managers, epm);
-			tcp_i++;
-			tcp_ep = M_list_at(sp->tcp_endpoints, tcp_i);
-			continue;
-		}
-	}
-
-	sp->status = M_NET_SMTP_STATUS_PROCESSING;
-	process_queue_queue(sp);
-	return M_TRUE;
+	return M_FALSE; /* ? */
 }
 
 M_net_smtp_status_t M_net_smtp_status(const M_net_smtp_t *sp)
@@ -1134,6 +1105,22 @@ static char * create_str_auth_plain_base64(const char *username, size_t username
 	return auth_str_base64;
 }
 
+static endpoint_manager_t *create_tcp_endpoint_manager(tcp_endpoint_t *tcp_ep)
+{
+	endpoint_manager_t *epm;
+	size_t              slot_count;
+
+	if (tcp_ep == NULL)
+		return NULL;
+
+	slot_count = tcp_ep->max_conns;
+	if (!(epm = M_malloc_zero(sizeof(*epm) + sizeof(epm->slots[0]) * slot_count))) { return NULL; }
+	epm->tcp_endpoint = tcp_ep;
+	epm->slot_count = slot_count;
+	epm->slot_available = slot_count;
+	return epm;
+}
+
 M_bool M_net_smtp_add_endpoint_tcp(
 	M_net_smtp_t *sp,
 	const char   *address,
@@ -1144,9 +1131,10 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	size_t        max_conns
 )
 {
-	tcp_endpoint_t *ep = NULL;
+	tcp_endpoint_t     *ep  = NULL;
+	endpoint_manager_t *epm = NULL;
 
-	if (sp == NULL || !is_stopped(sp) || max_conns == 0)
+	if (sp == NULL || max_conns == 0)
 		return M_FALSE;
 
 	if (sp->tcp_dns == NULL)
@@ -1168,19 +1156,22 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (!(ep->str_auth_login_password_base64 =
 		M_bincodec_encode_alloc((const unsigned char*)password, ep->str_len_password, 0, M_BINCODEC_BASE64))) { goto fail6; }
 
-	ep->idx = sp->number_of_endpoints;
 	ep->port = port;
 	ep->connect_tls = connect_tls;
 	ep->max_conns = max_conns;
-	if (!M_list_insert(sp->tcp_endpoints, ep)) {
-		goto fail6;
-	}
-	sp->number_of_endpoints++;
+	if (!M_list_insert(sp->tcp_endpoints, ep)) { goto fail6; }
+	if (!(epm = create_tcp_endpoint_manager(ep))) { goto fail7; }
+	if (!M_list_insert(sp->endpoint_managers, epm)) { goto fail8; }
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
+	M_net_smtp_resume(sp);
 
 	return M_TRUE;
+fail8:
+	M_free(epm);
+fail7:
+	M_list_take_last(sp->tcp_endpoints);
 fail6:
 	M_free(ep->str_auth_login_password_base64);
 fail5:
@@ -1196,6 +1187,22 @@ fail1:
 	return M_FALSE;
 }
 
+static endpoint_manager_t * create_endpoint_manager_proc(proc_endpoint_t *proc_ep)
+{
+	size_t              slot_count;
+	endpoint_manager_t *epm        = NULL;
+
+	if (proc_ep == NULL)
+		return NULL;
+
+	slot_count = proc_ep->max_processes;
+	if (!(epm = M_malloc_zero(sizeof(*epm) + sizeof(epm->slots[0]) * slot_count))) { return NULL; }
+	epm->proc_endpoint = proc_ep;
+	epm->slot_count = slot_count;
+	epm->slot_available = slot_count;
+	return epm;
+}
+
 M_bool M_net_smtp_add_endpoint_process(
 	M_net_smtp_t        *sp,
 	const char          *command,
@@ -1205,24 +1212,30 @@ M_bool M_net_smtp_add_endpoint_process(
 	size_t               max_processes
 )
 {
-	proc_endpoint_t *ep = NULL;
+	proc_endpoint_t    *ep  = NULL;
+	endpoint_manager_t *epm = NULL;
 
-	if (sp == NULL || !is_stopped(sp) || max_processes == 0)
+	if (sp == NULL || max_processes == 0)
 		return M_FALSE;
 
 	if (!(ep = M_malloc_zero(sizeof(*ep)))) { return M_FALSE; }
 	if (!(ep->command = M_strdup(command))) { goto fail1; }
 	if (!(ep->args = M_list_str_duplicate(args))) { goto fail2; }
 	if (!(ep->env = M_hash_dict_duplicate(env))) { goto fail3; }
-	ep->idx = sp->number_of_endpoints;
 	ep->timeout_ms = timeout_ms;
 	ep->max_processes = max_processes;
 	if (!M_list_insert(sp->proc_endpoints, ep)) { goto fail4; }
-	sp->number_of_endpoints++;
+	if (!(epm = create_endpoint_manager_proc(ep))) { goto fail5; }
+	if (!M_list_insert(sp->endpoint_managers, epm)) { goto fail6; }
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
+	M_net_smtp_resume(sp);
 	return M_TRUE;
+fail6:
+	M_free(epm);
+fail5:
+	M_list_take_last(sp->proc_endpoints);
 fail4:
 	M_hash_dict_destroy(ep->env);
 fail3:
@@ -1279,7 +1292,7 @@ M_bool M_net_smtp_queue_smtp(M_net_smtp_t *sp, const M_email_t *e)
 	if (sp == NULL || sp->is_external_queue_enabled) 
 		return M_FALSE;
 
-	msg = M_email_simple_write(e);
+	if (!(msg = M_email_simple_write(e))) { return M_FALSE; }
 	is_success = M_net_smtp_queue_message(sp, msg);
 	M_free(msg);
 
