@@ -12,7 +12,7 @@ fetch_thirdparty: &fetch_thirdparty
 
 cmake_build: &cmake_build
   cmake_build_script:
-    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds &&
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja -H. -B_builds &&
       cmake --build _builds
 
 cmake_test: &cmake_test
@@ -80,6 +80,27 @@ debian_arm64_template: &debian_arm64_template
     DIST: "DEBIAN-ARM"
     COV_PLATFORM: linux-arm64
 
+freebsd_template: &freebsd_template
+  env:
+    DIST: "FREEBSD"
+    SCAN_BUILD: "scan-build"
+    MAKE: "gmake"
+  osdeps_install_script:
+    - pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip autoconf automake libtool gmake
+
+macos_template: &macos_template
+  env:
+    DIST: "MACOS"
+    SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
+    MAKE: "make"
+    OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
+    PostgreSQL_DIR: "/usr/local/opt/libpq"
+    CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
+    CMAKE_OPTS: "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR -DPostgreSQL_DIR=$PostgreSQL_DIR"
+  osdeps_install_script:
+    - brew update &&
+      brew install openssl doxygen mariadb-connector-c unixodbc libpq check ninja cmake git wget unzip autoconf automake libtool make
+
 task:
   name: "Debian x64 - cmake"
   container:
@@ -94,6 +115,24 @@ task:
   arm_container:
     image: debian:latest
   << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+
+task:
+  name: "FreeBSD x64 - cmake"
+  freebsd_instance:
+    image_family: freebsd-13-0
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+
+task:
+  name: "MacOS - cmake"
+  macos_instance:
+    image: big-sur-xcode
+  << : *macos_template
   << : *fetch_thirdparty
   << : *cmake_build
   << : *cmake_test
