@@ -15,33 +15,33 @@ cmake_build: &cmake_build
     - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds &&
       cmake --build _builds
 
-install_coverity: &install_coverity
-    env:
-      COV_ARC: "$CIRRUS_WORKING_DIR/cov-analysis-$COV_PLATFORM.tgz"
-      COV_DIR: "$CIRRUS_WORKING_DIR/coverity-scan-analysis"
+#install_coverity: &install_coverity
+#    env:
+#      COV_ARC: "$CIRRUS_WORKING_DIR/cov-analysis-$COV_PLATFORM.tgz"
+#      COV_DIR: "$CIRRUS_WORKING_DIR/coverity-scan-analysis"
 #      PATH: "$PATH:$CIRRUS_WORKING_DIR/cov-analysis/bin"
-  only_if: $BUILD_TYPE == 'coverity'
-  install_coverity_script:
-    - test ! -d "${COV_DIR}" &&
-      mkdir -p "${COV_DIR}" &&
-      curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
-                 -F token="${COVERITY_SCAN_TOKEN}"
-                 -o "${COV_ARC}"
-                 "https://scan.coverity.com/download/cxx/${COV_PLATFORM}" &&
-      tar -xzf "${COV_ARC}" -C "${COV_DIR}"
-    - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
+#  only_if: $BUILD_TYPE == 'coverity'
+#  install_coverity_script:
+#    - test ! -d "${COV_DIR}" &&
+#      mkdir -p "${COV_DIR}" &&
+#      curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+#                 -F token="${COVERITY_SCAN_TOKEN}"
+#                 -o "${COV_ARC}"
+#                 "https://scan.coverity.com/download/cxx/${COV_PLATFORM}" &&
+#      tar -xzf "${COV_ARC}" -C "${COV_DIR}"
+#    - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
 
-submit_to_coverity_scan: &submit_to_coverity_scan
-  only_if: $BUILD_TYPE == 'coverity'
-  submit_to_coverity_scan_script:
-    - tar -czf analysis-results.tgz cov-int
-    - curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
-                 -F token="${COVERITY_SCAN_TOKEN}"
-                 -F file=@analysis-results.tgz
-                 -F version="$(git rev-parse --short HEAD)"
-                 -F description="Cirrus CI build"
-                 -F email="${COVERITY_EMAIL}"
-                 "https://scan.coverity.com/builds"
+#submit_to_coverity_scan: &submit_to_coverity_scan
+#  only_if: $BUILD_TYPE == 'coverity'
+#  submit_to_coverity_scan_script:
+#    - tar -czf analysis-results.tgz cov-int
+#    - curl -s -S -F project="${CIRRUS_REPO_OWNER}/${CIRRUS_REPO_NAME}"
+#                 -F token="${COVERITY_SCAN_TOKEN}"
+#                 -F file=@analysis-results.tgz
+#                 -F version="$(git rev-parse --short HEAD)"
+#                 -F description="Cirrus CI build"
+#                 -F email="${COVERITY_EMAIL}"
+#                 "https://scan.coverity.com/builds"
 
 debian_x64_template: &debian_x64_template
   env:
