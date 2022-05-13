@@ -914,7 +914,6 @@ static Suite *smtp_suite(void)
 
 	suite = suite_create("smtp");
 
-	/*
 	tc = tcase_create("no-endpoints");
 	tcase_add_test(tc, check_no_endpoints);
 	suite_add_tcase(suite, tc);
@@ -953,7 +952,6 @@ static Suite *smtp_suite(void)
 	tcase_add_test(tc, status);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
-	*/
 
 	tc = tcase_create("proc_endpoint");
 	tcase_add_test(tc, proc_endpoint);
