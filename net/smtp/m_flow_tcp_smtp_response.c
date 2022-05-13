@@ -138,7 +138,7 @@ M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(void *data, M
 M_state_machine_t * M_net_smtp_flow_tcp_smtp_response()
 {
 	M_state_machine_t *m;
-	m = M_state_machine_create(0, "SMTP-flow-tcp-smtp-response", M_STATE_MACHINE_NONE);
+	m = M_state_machine_create(0, "SMTP-flow-tcp-smtp-response", M_STATE_MACHINE_CONTINUE_LOOP | M_STATE_MACHINE_SELF_CALL);
 	M_state_machine_insert_state(m, STATE_READ_LINE, 0, NULL, M_state_read_line, NULL, NULL);
 	return m;
 }

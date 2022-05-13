@@ -89,6 +89,7 @@ typedef struct {
 	M_bool                      is_failure;
 	M_bool                      is_backout;
 	M_bool                      is_connect_fail;
+	M_bool                      is_QUIT_enabled;
 	M_net_error_t               net_error;
 	int                         result_code;
 	char                        errmsg[128];

@@ -30,6 +30,7 @@ typedef enum {
 	STATE_STARTTLS,
 	STATE_AUTH,
 	STATE_SENDMSG,
+	STATE_WAIT_FOR_NEXT_MSG,
 	STATE_QUIT,
 	STATE_QUIT_ACK,
 	STATE_DISCONNECTING,
@@ -51,23 +52,24 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 {
 	M_net_smtp_endpoint_slot_t *slot           = data;
 	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	const char                 *line           = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
 	if (slot->smtp_response_code != 220) {
-		const char *line = M_list_str_last(slot->smtp_response);
 		/* Classify as connect failure so endpoint can get removed */
 		slot->is_connect_fail = M_TRUE;
 		slot->net_error = M_NET_ERROR_PROTOFORMAT;
+		line = M_list_str_last(slot->smtp_response);
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %s", line);
 		goto done;
 	}
 
 	if (!M_str_caseeq(slot->address, "localhost")) {
-		const char *first_line = M_list_str_at(slot->smtp_response, 0);
-		if (M_str_casecmpsort_max(slot->address, &first_line[4], slot->str_len_address) != 0) {
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->address, &first_line[4]);
+		line = M_list_str_first(slot->smtp_response);
+		if (M_str_casecmpsort_max(slot->address, &line[4], slot->str_len_address) != 0) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->address, &line[4]);
 			goto done;
 		}
 	}
@@ -87,6 +89,7 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 	(void)next;
 
 	if (!M_email_from(slot->email, NULL, NULL, &address)) {
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to parse \"From:\": %s", slot->msg);
 		return M_FALSE;
 	}
 
@@ -96,6 +99,7 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 		(domain = &domain[1]) == NULL                  ||
 		(slot->ehlo_domain = M_strdup(domain)) == NULL
 	) {
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to parse domain from: %s\n", domain);
 		return M_FALSE;
 	}
 
@@ -173,15 +177,33 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 
 static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot       = data;
+	M_net_smtp_endpoint_slot_t *slot = data;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
 	slot->is_failure = M_FALSE; /* Success */
 
-	*next = STATE_QUIT;
+	if (slot->is_QUIT_enabled) {
+		*next = STATE_QUIT;
+	} else {
+		*next = STATE_WAIT_FOR_NEXT_MSG;
+	}
 	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+	if (slot->is_QUIT_enabled) {
+		*next = STATE_QUIT;
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
+	if (slot->is_failure == M_TRUE) {
+		*next = STATE_SENDMSG;
+		return M_STATE_MACHINE_STATUS_NEXT;
+	}
+	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
 static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
@@ -253,10 +275,9 @@ M_state_machine_t * M_net_smtp_flow_tcp()
 			M_sendmsg_pre_cb, M_sendmsg_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
+	M_state_machine_insert_state(m, STATE_WAIT_FOR_NEXT_MSG, 0, NULL, M_state_wait_for_next_msg, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
-
 	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);
-
 	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
 	return m;
 }

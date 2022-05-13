@@ -310,48 +310,48 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	process_queue_queue(sp);
 }
 
-static void reschedule(const M_net_smtp_endpoint_slot_t *slot)
+static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *headers, M_bool is_backout, size_t num_tries, const char* errmsg)
 {
 	retry_msg_t               *retry          = NULL;
 	M_bool                     is_requeue     = M_FALSE;
-	M_net_smtp_send_failed_cb  send_failed_cb = slot->sp->cbs.send_failed_cb;
-	M_net_smtp_reschedule_cb   reschedule_cb  = slot->sp->cbs.reschedule_cb;
-	size_t                     num_tries;
+	M_net_smtp_send_failed_cb  send_failed_cb = sp->cbs.send_failed_cb;
+	M_net_smtp_reschedule_cb   reschedule_cb  = sp->cbs.reschedule_cb;
 
-	if (slot->sp->is_external_queue_enabled) {
-		reschedule_cb(slot->msg, slot->sp->retry_default_ms, slot->sp->thunk);
-		if (slot->is_backout == M_FALSE) {
-			/* send never started, so it didn't really fail */
-			send_failed_cb(slot->headers, slot->errmsg, 0, M_FALSE, slot->sp->thunk);
-		}
+	if (sp->is_external_queue_enabled) {
+		reschedule_cb(msg, sp->retry_default_ms, sp->thunk);
+		if (is_backout)
+			return;
+		send_failed_cb(headers, errmsg, 0, M_FALSE, sp->thunk);
 		return;
 	}
 
-	if (slot->is_backout) {
-		M_list_str_insert(slot->sp->internal_queue, slot->msg);
+	if (is_backout) {
+		M_list_str_insert(sp->internal_queue, msg);
 		return;
 	}
 
-	num_tries = slot->number_of_tries + 1;
-
-	if (num_tries < slot->sp->max_number_of_attempts) {
-		is_requeue = send_failed_cb(slot->headers, slot->errmsg, num_tries, M_TRUE, slot->sp->thunk);
+	if (num_tries < sp->max_number_of_attempts) {
+		is_requeue = send_failed_cb(headers, errmsg, num_tries, M_TRUE, sp->thunk);
 	} else {
-		send_failed_cb(slot->headers, slot->errmsg, num_tries, M_FALSE, slot->sp->thunk);
+		send_failed_cb(headers, errmsg, num_tries, M_FALSE, sp->thunk);
 	}
 
 	if (is_requeue) {
 		retry = M_malloc_zero(sizeof(*retry));
-		retry->sp = slot->sp;
-		retry->msg = M_strdup(slot->msg);
+		retry->sp = sp;
+		retry->msg = M_strdup(msg);
 		retry->number_of_tries = num_tries;
-		retry->headers = M_hash_dict_duplicate(slot->headers);
-		retry->event_timer = M_event_timer_oneshot(slot->sp->el, slot->sp->retry_default_ms, M_TRUE,
+		retry->headers = M_hash_dict_duplicate(headers);
+		retry->event_timer = M_event_timer_oneshot(sp->el, sp->retry_default_ms, M_TRUE,
 				reschedule_event_cb, retry);
-		M_list_insert(slot->sp->delay_msg_timers, retry->event_timer);
+		M_list_insert(sp->delay_msg_timers, retry->event_timer);
 	}
 }
 
+static void reschedule_slot(const M_net_smtp_endpoint_slot_t *slot)
+{
+	reschedule_msg(slot->sp, slot->msg, slot->headers, slot->is_backout, slot->number_of_tries + 1, slot->errmsg);
+}
 
 static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_done)
 {
@@ -388,32 +388,28 @@ static void failure_process(M_net_smtp_endpoint_slot_t *slot, const endpoint_man
 	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Process failure: %d", slot->result_code);
 }
 
-static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
+static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
 	endpoint_manager_t *epm     = (endpoint_manager_t*)slot->endpoint_manager;
 	M_net_smtp_sent_cb  sent_cb = slot->sp->cbs.sent_cb;
 
-	M_event_timer_remove(slot->event_timer);
-	M_buf_cancel(slot->out_buf);
-	slot->out_buf = NULL;
-	M_parser_destroy(slot->in_parser);
-	slot->in_parser = NULL;
-	M_state_machine_destroy(slot->state_machine);
-	slot->state_machine = NULL;
-	M_email_destroy(slot->email);
-	slot->email = NULL;
+	if (slot->msg == NULL)
+		return;
+
 	if (slot->is_backout) {
-		reschedule(slot);
+		reschedule_slot(slot);
 	} else {
 		if (slot->is_failure) {
 			if (slot->endpoint_type == M_NET_SMTP_EPTYPE_PROCESS) {
 				failure_process(slot, epm);
 			}
-			reschedule(slot);
+			reschedule_slot(slot);
 		} else {
 			sent_cb(slot->headers, slot->sp->thunk);
 		}
 	}
+	M_email_destroy(slot->email);
+	slot->email = NULL;
 	M_free(slot->msg);
 	slot->msg = NULL;
 	M_hash_dict_destroy(slot->headers);
@@ -422,6 +418,18 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	process_queue_queue(slot->sp);
 }
 
+static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
+{
+	clean_slot(slot);
+	M_event_timer_remove(slot->event_timer);
+	M_buf_cancel(slot->out_buf);
+	slot->out_buf = NULL;
+	M_parser_destroy(slot->in_parser);
+	slot->in_parser = NULL;
+	M_state_machine_destroy(slot->state_machine);
+	slot->state_machine = NULL;
+	slot->is_alive = M_FALSE;
+}
 
 static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
@@ -588,7 +596,6 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	M_net_smtp_t               *sp              = slot->sp;
 	const endpoint_manager_t   *epm             = slot->endpoint_manager;
 	M_net_smtp_connect_cb       connect_cb      = sp->cbs.connect_cb;
-	M_net_smtp_disconnect_cb    disconnect_cb   = sp->cbs.disconnect_cb;
 	M_net_smtp_iocreate_cb      iocreate_cb     = sp->cbs.iocreate_cb;
 	M_io_error_t                io_error        = M_IO_ERROR_SUCCESS;
 	M_bool                      is_done         = M_FALSE;
@@ -639,8 +646,18 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		case M_EVENT_TYPE_WRITE:
 			break;
 		case M_EVENT_TYPE_ACCEPT:
-		case M_EVENT_TYPE_ERROR:
+			/* should be impossible */
+			slot->net_error = M_NET_ERROR_PROTONOTSUPPORTED;
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unsupported ACCEPT event");
+			goto backout;
+			break;
 		case M_EVENT_TYPE_OTHER:
+			if (slot->is_failure == M_FALSE) {
+				/* Idle timeout */
+				slot->is_QUIT_enabled = M_TRUE;
+				break;
+			}
+		case M_EVENT_TYPE_ERROR:
 			if (slot->tls_state == M_NET_SMTP_TLS_IMPLICIT && slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 				/* Implict TLS failed.  Follwup with with STARTTLS */
 				const tcp_endpoint_t *tcp_ep = epm->tcp_endpoint;
@@ -668,20 +685,22 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				M_io_get_error_string(io, slot->errmsg, sizeof(slot->errmsg));
 				slot->net_error = M_net_io_error_to_net_error(M_io_get_error(io));
 			} while(0);
-			connect_fail(slot);
-			slot->is_backout = M_TRUE;
-			goto destroy;
+			goto backout;
 			return;
 	}
 
 	if (!run_state_machine(slot, &is_done) || is_done) {
 		if (slot->is_connect_fail) {
-			connect_fail(slot);
-			slot->is_backout = M_TRUE;
+			goto backout;
 		}
 		goto destroy;
 	}
 
+	if (slot->is_failure == M_FALSE && slot->msg != NULL) {
+		/* successfully sent message. get ready to accept another. */
+		clean_slot(slot);
+		M_event_timer_reset(slot->event_timer, sp->tcp_idle_ms);
+	}
 
 	if (slot->tls_state == M_NET_SMTP_TLS_STARTTLS_READY) {
 		size_t        layer_id;
@@ -711,13 +730,20 @@ destroy:
 		M_io_destroy(io);
 		slot->connection_mask &= ~M_NET_SMTP_CONNECTION_MASK_IO;
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
+			M_bool is_backout = slot->is_backout;
 			destroy_slot(slot);
-		}
-		if (slot->is_backout == M_FALSE) {
-			disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+			if (is_backout == M_FALSE) {
+				sp->cbs.disconnect_cb(epm->tcp_endpoint->address, epm->tcp_endpoint->port, sp->thunk);
+			}
 		}
 		slot->io = NULL;
 	}
+	return;
+backout:
+	connect_fail(slot);
+	slot->is_backout = M_TRUE;
+	goto destroy;
+
 }
 
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, M_net_smtp_endpoint_slot_t *slot)
@@ -744,9 +770,19 @@ static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_
 static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep, M_net_smtp_endpoint_slot_t *slot)
 {
 	M_io_error_t               io_error        = M_IO_ERROR_SUCCESS;
-	M_bool                     is_success      = M_TRUE;
 
-	slot->event_timer = M_event_timer_add(sp->el, tcp_io_cb, slot);
+	io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, tcp_ep->address, tcp_ep->port, M_IO_NET_ANY);
+	if (io_error != M_IO_ERROR_SUCCESS) { goto fail; }
+	if (!M_event_add(sp->el, slot->io, tcp_io_cb, slot)) { goto fail1; }
+	if (tcp_ep->connect_tls) {
+		io_error = M_io_tls_client_add(slot->io, slot->sp->tcp_tls_ctx, NULL, &slot->tls_ctx_layer_idx);
+		if (io_error != M_IO_ERROR_SUCCESS) { goto fail1; }
+		slot->tls_state = M_NET_SMTP_TLS_IMPLICIT;
+	}
+	if (!(slot->event_timer = M_event_timer_add(sp->el, tcp_io_cb, slot))) { goto fail1; }
+	if (!M_event_timer_start(slot->event_timer, sp->tcp_connect_ms)) { goto fail2; }
+	if (!(slot->state_machine = M_net_smtp_flow_tcp())) { goto fail2; }
+
 	slot->address = tcp_ep->address;
 	slot->username = tcp_ep->username;
 	slot->password = tcp_ep->password;
@@ -757,80 +793,81 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep,
 	slot->str_auth_login_username_base64 = tcp_ep->str_auth_login_username_base64;
 	slot->str_auth_login_password_base64 = tcp_ep->str_auth_login_password_base64;
 	slot->endpoint_type = M_NET_SMTP_EPTYPE_TCP;
-	slot->state_machine = M_net_smtp_flow_tcp();
-	slot->email = M_email_create();
-	if (NULL == slot->email) {
-		return M_FALSE;
-	}
-	if (!M_email_set_headers(slot->email, slot->headers)) {
-		M_email_destroy(slot->email);
-		slot->email = NULL;
-		return M_FALSE;
-	}
-	io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, tcp_ep->address, tcp_ep->port, M_IO_NET_ANY);
-	if (tcp_ep->connect_tls) {
-		/* Try implicit TLS. STARTTLS followup on failure. */
-		slot->tls_state = M_NET_SMTP_TLS_IMPLICIT;
-		M_io_tls_client_add(slot->io, slot->sp->tcp_tls_ctx, NULL, &slot->tls_ctx_layer_idx);
-	}
-	if (io_error == M_IO_ERROR_SUCCESS) {
-		M_event_add(sp->el, slot->io, tcp_io_cb, slot);
-		M_event_timer_start(slot->event_timer, sp->tcp_connect_ms);
-	} else {
-		is_success = M_FALSE;
-	}
-	return is_success;
+	return M_TRUE;
+fail2:
+	M_event_timer_remove(slot->event_timer);
+fail1:
+	M_io_destroy(slot->io);
+fail:
+	return M_FALSE;
 }
 
 static void bootstrap_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, const tcp_endpoint_t *tcp_ep,
 		M_net_smtp_endpoint_slot_t *slot)
 {
-	M_bool          is_success = M_TRUE;
-	M_email_error_t e_error    = M_EMAIL_ERROR_SUCCESS;
-
 	slot->sp = sp;
-	M_mem_set(slot->errmsg, 0, sizeof(slot->errmsg));
-	slot->out_buf = M_buf_create();
-	slot->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
-	slot->is_failure = M_TRUE; /* will be unmarked as failure on success */
-	e_error = M_email_simple_split_header_body(slot->msg, &slot->headers, NULL);
-	if (e_error == M_EMAIL_ERROR_SUCCESS && slot->out_buf != NULL && slot->in_parser != NULL) {
-		if (proc_ep != NULL) {
-			is_success = bootstrap_proc_slot(sp, proc_ep, slot);
-		} else {
-			is_success = bootstrap_tcp_slot(sp, tcp_ep, slot);
-		}
+	if (!(slot->out_buf = M_buf_create())) { goto fail; }
+	if (!(slot->in_parser = M_parser_create(M_PARSER_FLAG_NONE))) { goto fail1; }
+	if (proc_ep != NULL) {
+		if (!bootstrap_proc_slot(sp, proc_ep, slot)) { goto fail2; }
 	} else {
-		is_success = M_FALSE;
+		if (!bootstrap_tcp_slot(sp, tcp_ep, slot)) { goto fail2; }
 	}
-	if (!is_success) {
-		destroy_slot(slot);
-	}
+	slot->is_alive = M_TRUE;
+	return;
+fail2:
+	M_parser_destroy(slot->in_parser);
+fail1:
+	M_buf_cancel(slot->out_buf);
+fail:
+	slot->is_alive = M_FALSE;
+	return;
 }
 
-static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_epm, char *msg, size_t num_tries)
+static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_manager_t *const_epm, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	endpoint_manager_t            *epm  = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
-	M_net_smtp_endpoint_slot_t    *slot = NULL;
+	endpoint_manager_t         *epm          = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
+	M_net_smtp_endpoint_slot_t *slot         = NULL;
+	M_email_t                  *e            = M_email_create();
+	M_bool                      is_bootstrap = M_FALSE;
+
+	if (e == NULL) { goto fail; }
+	if (!M_email_set_headers(e, headers)) { goto fail1; }
 
 	for (size_t i = 0; i < epm->slot_count; i++) {
 		slot = &epm->slots[i];
 		slot->endpoint_manager = epm;
 		if (slot->msg == NULL) {
-			slot->msg = msg;
-			slot->number_of_tries = num_tries;
 			if (slot->io == NULL) {
 				bootstrap_slot(sp, epm->proc_endpoint, epm->tcp_endpoint, slot);
-				slot->is_alive = M_TRUE;
-				epm->is_alive = M_TRUE;
+				is_bootstrap = M_TRUE;
 			}
-			epm->slot_available--;
-			return;
+			if (slot->is_alive) {
+				epm->is_alive = M_TRUE;
+				slot->msg = msg;
+				slot->number_of_tries = num_tries;
+				slot->headers = headers;
+				slot->is_failure = M_TRUE; /* will be unmarked as failure on success */
+				slot->is_QUIT_enabled = (sp->tcp_idle_ms == 0);
+				M_mem_set(slot->errmsg, 0, sizeof(slot->errmsg));
+				slot->email = e;
+				if (!is_bootstrap) {
+					tcp_io_cb(slot->sp->el, M_EVENT_TYPE_WRITE, slot->io, slot);
+				}
+				epm->slot_available--;
+				return;
+			}
 		}
 	}
+fail1:
+	M_email_destroy(e);
+fail:
+	reschedule_msg(sp, msg, headers, M_TRUE, num_tries, "Internal failure");
+	M_free(msg);
+	M_hash_dict_destroy(headers);
 }
 
-static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries)
+static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
 	const endpoint_manager_t *epm = NULL;
 	for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
@@ -840,16 +877,16 @@ static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries)
 			continue;
 
 		if (epm->slot_available > 0) {
-			slate_msg_insert(sp, epm, msg, num_tries);
+			slate_msg_insert(sp, epm, msg, num_tries, headers);
 		}
 	}
 }
 
-static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries)
+static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
 	const endpoint_manager_t *epm = NULL;
 	epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
-	slate_msg_insert(sp, epm, msg, num_tries);
+	slate_msg_insert(sp, epm, msg, num_tries, headers);
 	do {
 		sp->round_robin_idx = (sp->round_robin_idx + 1) % sp->number_of_endpoints;
 		epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
@@ -858,12 +895,19 @@ static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries)
 
 static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 {
+	M_email_error_t e_error = M_EMAIL_ERROR_SUCCESS;
+	M_hash_dict_t  *headers = NULL;
+		e_error = M_email_simple_split_header_body(msg, &headers, NULL);
+		if (e_error != M_EMAIL_ERROR_SUCCESS) {
+			sp->cbs.send_failed_cb(headers, msg, 0, M_FALSE, sp->thunk);
+			return;
+		}
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
-			slate_msg_failover(sp, msg, num_tries);
+			slate_msg_failover(sp, msg, num_tries, headers);
 			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
-			slate_msg_round_robin(sp, msg, num_tries);
+			slate_msg_round_robin(sp, msg, num_tries, headers);
 			break;
 	}
 	return;
@@ -925,6 +969,7 @@ static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *i
 			} else {
 				process_internal_queue(event, type, io, cb_arg);
 			}
+			return;
 		}
 		slate_msg(sp, retry->msg, retry->number_of_tries);
 		M_free(retry);

@@ -239,6 +239,7 @@ int run(prag_t *prag)
 
 	prag->el  = M_event_create(M_EVENT_FLAG_NONE);
 	sp = M_net_smtp_create(prag->el, &cbs, prag);
+	M_net_smtp_setup_tcp_timeouts(sp, 300000, 300000, 300000);
 
 	for (size_t i = 0; i < M_list_len(prag->endpoints); i++) {
 		if (!add_endpoint(sp, prag, M_list_at(prag->endpoints, i))) {
