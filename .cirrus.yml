@@ -18,8 +18,10 @@ cmake_build: &cmake_build
 cmake_test: &cmake_test
   env:
     LD_LIBRARY_PATH: "$CIRRUS_WORKING_DIR/_builds/lib:$LD_LIBRARY_PATH"
+    CTEST_OUTPUT_ON_FAILURE: "1"
+    CK_VERBOSITY: "verbose"
   cmake_test_script:
-    - cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose ctest -VV
+    - cd _builds/test && ctest -VV
 
 #install_coverity: &install_coverity
 #    env:
@@ -68,6 +70,7 @@ debian_x64_template: &debian_x64_template
     COV_PLATFORM: linux-x64
 
 debian_arm64_template: &debian_arm64_template
+  << : *debian_template
   env:
     DIST: "DEBIAN-ARM"
     COV_PLATFORM: linux-arm64
