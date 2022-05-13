@@ -316,6 +316,14 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 	M_list_str_destroy(emu->json_values);
 	M_list_str_destroy(emu->json_keys);
 	M_io_destroy(emu->io_listen);
+	for (size_t i = 0; i < ARRAY_LEN(emu->conn); i++) {
+		M_buf_cancel(emu->conn[i].out_buf);
+		M_parser_destroy(emu->conn[i].in_parser);
+		M_io_destroy(emu->conn[i].io);
+		emu->conn[i].io = NULL;
+		emu->conn[i].out_buf = NULL;
+		emu->conn[i].in_parser = NULL;
+	}
 	M_free(emu);
 }
 
