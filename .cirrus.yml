@@ -143,6 +143,13 @@ coverity_submit: &coverity_submit
                  -F email="${COVERITY_EMAIL}"
                  "https://scan.coverity.com/builds"
 
+
+deploy_docs: &deploy_docs
+  only_if: ${BRANCH} = 'master'
+  deploy_docs_script:
+    - ./gh-pages-deploy.sh
+
+
 debian_template: &debian_template
   env:
     DIST: "DEBIAN"
