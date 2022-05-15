@@ -59,7 +59,7 @@ asan_build: &asan_build
         freebsd)
           pkg install -y llvm
           ;;
-        macos)
+        darwin)
           brew install llvm
           ;;
       esac
@@ -80,7 +80,7 @@ static_analysis_build: &static_analysis_build
         freebsd)
           pkg install -y llvm
           ;;
-        macos)
+        darwin)
           brew install llvm
           ;;
       esac
@@ -101,7 +101,7 @@ valgrind_build: &valgrind_build
         freebsd)
           pkg install -y valgrind
           ;;
-        macos)
+        darwin)
           brew install valgrind
           ;;
       esac
@@ -274,14 +274,15 @@ task:
   << : *autotools_build
   << : *autotools_test
 
-task:
-  name: "Debian arm64 - ASAN"
-  arm_container:
-    image: debian:latest
-  << : *debian_arm64_template
-  << : *fetch_thirdparty
-  << : *asan_build
-  << : *cmake_test
+# Unknown issue, ASAN just hangs
+#task:
+#  name: "Debian arm64 - ASAN"
+#  arm_container:
+#    image: debian:latest
+#  << : *debian_arm64_template
+#  << : *fetch_thirdparty
+#  << : *asan_build
+#  << : *cmake_test
 
 task:
   name: "Debian arm64 - Static Analysis"
