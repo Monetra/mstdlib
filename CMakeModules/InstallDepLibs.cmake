@@ -485,8 +485,11 @@ function(install_system_deplibs lib_dest runtime_dest)
 	# If we're compiling on AIX or Solaris with GCC instead of the default system compiler, make sure to
 	# include GCC runtime libraries (libgcc_s, and libssp for stack protector).
 	if ((CMAKE_SYSTEM_NAME MATCHES "AIX" OR CMAKE_SYSTEM_NAME MATCHES "SunOS") AND CMAKE_C_COMPILER_ID MATCHES "GNU")
+		# Ask the compiler for the path to libgcc
+		EXEC_PROGRAM ("${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} -print-libgcc-file-name" OUTPUT_VARIABLE LIBGCC_PATH)
+		# Extract the directory from the path
 		get_filename_component(search_dir "${CMAKE_C_COMPILER}" DIRECTORY)
-		string(REGEX REPLACE "(/)*bin(/)*.*$" "" search_dir "${search_dir}")
+
 		if (CMAKE_SYSTEM_NAME MATCHES "AIX")
 			set(ext .a)
 		else ()
@@ -507,6 +510,15 @@ function(install_system_deplibs lib_dest runtime_dest)
 		)
 		if (LIBSSP)
 			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBSSP}")
+		endif ()
+
+		# Not sure why, maybe its stdatomic, but libstdc++ is being brought in even there is no C++ code
+		find_library(LIBSTDCPP
+			NAMES libstdc++${ext}
+			PATHS "${search_dir}"
+		)
+		if (LIBSTDCPP)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${LIBSTDCPP}")
 		endif ()
 	endif ()
 
