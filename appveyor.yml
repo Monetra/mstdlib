@@ -45,6 +45,7 @@ install:
   - 7z x ninja.zip > nul
   - set PATH=C:\projects\ninja;%PATH%
   - ninja --version
+  - dir C:\mingw-w64
 
 before_build:
   # Setup build environment for the selected compiler (not all compilers need to do anything here).
