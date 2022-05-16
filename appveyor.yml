@@ -55,7 +55,7 @@ before_build:
   - tree "C:\OpenSSL-v30-Win64" /a /f
   - dir "C:\mingw-w64"
   - dir "C:\Program Files"
-  - dir "C:\Program Files(32)"
+  - dir "C:\Program Files (x86)"
   - if "%COMPILER%" == "MSVC" call "%MSVC_SETUP_PATH%" %MSVC_SETUP_ARG%
 
 build_script:
