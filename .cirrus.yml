@@ -126,10 +126,9 @@ coverity_install: &coverity_install
 
 coverity_build: &coverity_build
   coverity_build_script:
-    - autoreconf -fi
-    - ./configure ${CONFIG_OPTS} --disable-tests
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja .
     - cov-configure --comptype ${COV_COMPTYPE} --compiler ${CC} --template
-    - cov-build --dir cov-int ${MAKE}
+    - cov-build --dir cov-int ninja
 
 coverity_submit: &coverity_submit
   coverity_submit_script:

@@ -22,18 +22,15 @@ environment:
     - COMPILER: MSVC
       MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
       MSVC_SETUP_ARG: x86
-      OPENSSL_PATH: C:\OpenSSL-v111-Win32\
 
     # MSVC 2015, 64-bit x86
     - COMPILER: MSVC
       MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
       MSVC_SETUP_ARG: x64
-      OPENSSL_PATH: C:\OpenSSL-v111-Win64\
 
 
     # MinGW, 32-bit x86
     - COMPILER: MINGW
-      OPENSSL_PATH: C:\OpenSSL-v111-Win32\
       PATH: C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin;%PATH%
 #      PATH: C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;%PATH%
 #      PATH: C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
@@ -64,7 +61,6 @@ build_script:
     -DCMAKE_BUILD_TYPE=%configuration%
     -DCMAKE_INSTALL_PREFIX=C:\projects\build-mstdlib\test_install
     -DMSTDLIB_BUILD_FOR_CI=TRUE
-    -DOPENSSL_ROOT_DIR=%OPENSSL_PATH%
     %CMAKE_EXTRA_OPTIONS% %APPVEYOR_BUILD_FOLDER%
   - ninja install
  
