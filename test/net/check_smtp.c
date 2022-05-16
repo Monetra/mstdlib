@@ -7,8 +7,9 @@
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
 
-/* global so we parse only once */
+/* globals */
 M_json_node_t *check_smtp_json = NULL;
+char          *test_address = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -23,6 +24,7 @@ typedef enum {
 	TIMEOUT_IDLE            = 10,
 	STATUS                  = 11,
 	PROC_ENDPOINT           = 12,
+	DOT_MSG                 = 13,
 } test_id_t;
 
 
@@ -259,6 +261,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		if (*is_QUIT) {
 			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
 			M_io_destroy(io);
+			*emu_io = NULL;
 			*is_QUIT = M_FALSE;
 			return;
 		}
@@ -354,15 +357,33 @@ typedef struct {
 	M_net_smtp_t *sp;
 } args_t;
 
+static M_email_t * generate_email_with_text(const char *to_address, const char *text)
+{
+	M_email_t     *e;
+	M_hash_dict_t *headers;
+
+
+	e = M_email_create();
+	M_email_set_from(e, NULL, "smtp_cli", "no-reply+smtp-test@monetra.com");
+	M_email_to_append(e, NULL, NULL, to_address);
+	M_email_set_subject(e, "smtp_cli testing");
+	headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
+	M_hash_dict_insert(headers, "Content-Type", "text/plain; charset=\"utf-8\"");
+	M_hash_dict_insert(headers, "Content-Transfer-Encoding", "7bit");
+	if (text != NULL) {
+		M_email_part_append(e, text, M_str_len(text), headers, NULL);
+	}
+	M_hash_dict_destroy(headers);
+	return e;
+}
+
 static M_email_t * generate_email(size_t idx, const char *to_address)
 {
-	M_email_t *e;
-	char msg[256];
 	M_time_tzs_t      *tzs;
 	const M_time_tz_t *tz;
 	M_time_t           ts;
 	M_time_localtm_t   ltime;
-	M_hash_dict_t     *headers;
+	char msg[256];
 
 	M_mem_set(&ltime, 0, sizeof(ltime));
 	ts = M_time();
@@ -370,17 +391,9 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 	tz  = M_time_tzs_get_tz(tzs, "America/New_York");
 	M_time_tolocal(ts, &ltime, tz);
 
-	e = M_email_create();
-	M_email_set_from(e, NULL, "smtp_cli", "no-reply+smtp-test@monetra.com");
-	M_email_to_append(e, NULL, NULL, to_address);
-	M_email_set_subject(e, "smtp_cli testing");
 	M_snprintf(msg, sizeof(msg), "%04lld%02lld%02lld:%02lld%02lld%02lld, %zu\n", ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec, idx);
-	headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
-	M_hash_dict_insert(headers, "Content-Type", "text/plain; charset=\"utf-8\"");
-	M_hash_dict_insert(headers, "Content-Transfer-Encoding", "7bit");
-	M_email_part_append(e, msg, M_str_len(msg), headers, NULL);
-	M_hash_dict_destroy(headers);
-	return e;
+
+	return generate_email_with_text(to_address, msg);
 }
 
 static void connect_cb(const char *address, M_uint16 port, void *thunk)
@@ -429,6 +442,13 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
+
+	if (args->test_id == DOT_MSG) {
+		if (args->sent_cb_call_count == 3 && args->process_fail_cb_call_count == 1) {
+			M_event_done(args->el);
+		}
+	}
+
 	return M_FALSE; /* Should process endpoint be removed? */
 }
 
@@ -455,6 +475,12 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args->sent_cb_call_count++;
 	if (args->test_id == EMU_SENDMSG) {
 		M_event_done(args->el);
+	}
+
+	if (args->test_id == DOT_MSG) {
+		if (args->sent_cb_call_count == 3 && args->process_fail_cb_call_count == 1) {
+			M_event_done(args->el);
+		}
 	}
 
 	if (args->test_id == STATUS) {
@@ -519,6 +545,60 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(dot_msg)
+{
+	M_uint16       testport;
+	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
+
+	args_t args = { 0 };
+	args.test_id = DOT_MSG;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	M_dns_t           *dns         = M_dns_create(el);
+	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 10);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1), "Couldn't add TCP endpoint");
+
+	M_list_str_insert(cmd_args, "-t");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "sendmail", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+
+	M_list_str_insert(cmd_args, "-i");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "sendmail", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+
+
+	M_net_smtp_pause(sp);
+
+	ck_assert_msg(M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN), "Set load balance should succeed");
+
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_net_smtp_resume(sp);
+
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+	M_printf("returned");
+
+	ck_assert_msg(args.sent_cb_call_count == 3, "3 Messages should have sent");
+	ck_assert_msg(args.connect_fail_cb_call_count == 0, "should not have had a connect fail");
+	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have 1 process fail");
+
+	smtp_emulator_destroy(emu);
+	M_dns_destroy(dns);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+}
+
 START_TEST(proc_endpoint)
 {
 	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
@@ -528,8 +608,8 @@ START_TEST(proc_endpoint)
 
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_email_t         *e1          = generate_email(1, "anybody@localhost");
-	M_email_t         *e2          = generate_email(2, "anybody@localhost");
+	M_email_t         *e1          = generate_email(1, test_address);
+	M_email_t         *e2          = generate_email(2, test_address);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -570,8 +650,8 @@ START_TEST(status)
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, "anybody@localhost");
-	M_email_t         *e2          = generate_email(2, "anybody@localhost");
+	M_email_t         *e1          = generate_email(1, test_address);
+	M_email_t         *e2          = generate_email(2, test_address);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -616,9 +696,9 @@ START_TEST(timeouts)
 	smtp_emulator_t   *emu_idle    = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport3, TIMEOUT_IDLE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, "anybody@localhost");
-	M_email_t         *e2          = generate_email(2, "anybody@localhost");
-	M_email_t         *e3          = generate_email(3, "anybody@localhost");
+	M_email_t         *e1          = generate_email(1, test_address);
+	M_email_t         *e2          = generate_email(2, test_address);
+	M_email_t         *e3          = generate_email(3, test_address);
 
 	M_printf("TIMEOUT_CONNECT server on port %u\n", testport1);
 	M_printf("TIMEOUT_STALL server on port %u\n", testport2);
@@ -677,7 +757,7 @@ START_TEST(tls_unsupporting_server)
 	smtp_emulator_t   *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t      *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t           *dns = M_dns_create(el);
-	M_email_t         *e   = generate_email(1, "anybody@localhost");
+	M_email_t         *e   = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx = M_tls_clientctx_create();
 
 	M_tls_clientctx_set_default_trust(ctx);
@@ -726,7 +806,7 @@ START_TEST(no_server)
 	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, "anybody@localhost");
+	M_email_t       *e   = generate_email(1, test_address);
 
 	smtp_emulator_destroy(emu); /* just needed an open port */
 
@@ -772,7 +852,7 @@ START_TEST(iocreate_return_false)
 	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, "anybody@localhost");
+	M_email_t       *e   = generate_email(1, test_address);
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
@@ -823,7 +903,7 @@ START_TEST(emu_accept_disconnect)
 	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, "anybody@localhost");
+	M_email_t       *e   = generate_email(1, test_address);
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
@@ -856,7 +936,7 @@ START_TEST(emu_sendmsg)
 	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t    *sp  = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, "anybody@localhost");
+	M_email_t       *e   = generate_email(1, test_address);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
 
@@ -966,16 +1046,29 @@ static Suite *smtp_suite(void)
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
+	tc = tcase_create("dot msg");
+	tcase_add_test(tc, dot_msg);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
 	return suite;
 }
 
 int main(int argc, char **argv)
 {
-	SRunner *sr;
-	int      nf;
+	SRunner    *sr;
+	int         nf;
+	size_t      len;
+	char *dirname;
+	const char *env_USER;
 
 	(void)argc;
 	(void)argv;
+
+	env_USER = getenv("USER");
+	len = M_str_len(env_USER) + M_str_len("@localhost");
+	test_address = M_malloc_zero(len + 1);
+	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
 
 	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
 
@@ -987,6 +1080,7 @@ int main(int argc, char **argv)
 	srunner_free(sr);
 
 	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

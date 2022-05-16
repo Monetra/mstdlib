@@ -168,9 +168,20 @@ done:
 
 static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
+	const char* ending;
+	char* false_stop;
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_bprintf(slot->out_buf, "%s\r\n.\r\n", slot->msg);
+	ending = slot->msg;
+
+	while ((false_stop = M_str_str(ending, "\r\n.")) != NULL) {
+		false_stop[2] = '\0';
+		M_bprintf(slot->out_buf, "%s..", ending);
+		false_stop[2] = '.';
+		ending = &false_stop[3];
+	}
+
+	M_bprintf(slot->out_buf, "%s\r\n.\r\n", ending);
 
 	*next = STATE_DATA_STOP_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
