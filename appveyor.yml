@@ -30,10 +30,10 @@ environment:
       MSVC_SETUP_ARG: x64
       CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-v30-Win64
 
-    # MinGW, 32-bit x86
+    # MinGW, 64-bit x86
     - COMPILER: MINGW
-      PATH: C:\mingw-w64\i686-8.1.0-posix-dwarf-rt_v6-rev0;%PATH%
-      CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-v30-Win32
+      PATH: C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0;%PATH%
+      CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-v30-Win64
 
 install:
   # Rename sh.exe as sh.exe in PATH interferes with MinGW.
