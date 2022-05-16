@@ -546,6 +546,11 @@ static M_bool M_xml_read_tag_process(M_xml_node_t **node, const char *data, size
 			 * where we'll change the node pointer */
 			if (info->type == M_XML_TAG_ELEMENT_START) {
 				*node = new_node;
+			} else if (*node == NULL) {
+				/* Error, parent was set to NULL, bad use */
+				*error = M_XML_ERROR_GENERIC;
+				M_xml_node_destroy(new_node);
+				return M_FALSE;
 			}
 			break;
 
