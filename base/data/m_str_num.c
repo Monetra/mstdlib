@@ -359,9 +359,11 @@ M_str_int_retval_t M_str_to_int32_ex(const char *s, size_t len, unsigned char ba
 
 M_int32 M_str_to_int32(const char *s)
 {
-	M_int32 val = 0;
+	M_int32            val = 0;
 
-	M_str_to_int32_ex(s, M_str_len(s), 10, &val, NULL);
+	if (M_str_to_int32_ex(s, M_str_len(s), 10, &val, NULL) == M_STR_INT_INVALID)
+		return 0;
+
 	return val;
 }
 
@@ -370,7 +372,8 @@ M_uint32 M_str_to_uint32(const char *s)
 {
 	M_uint32 val = 0;
 
-	M_str_to_uint32_ex(s, M_str_len(s), 10, &val, NULL);
+	if (M_str_to_uint32_ex(s, M_str_len(s), 10, &val, NULL) == M_STR_INT_INVALID)
+		return 0;
 	return val;
 }
 
@@ -379,7 +382,8 @@ M_uint64 M_str_to_uint64(const char *s)
 {
 	M_uint64 val = 0;
 
-	M_str_to_uint64_ex(s, M_str_len(s), 10, &val, NULL);
+	if (M_str_to_uint64_ex(s, M_str_len(s), 10, &val, NULL) == M_STR_INT_INVALID)
+		return 0;
 	return val;
 }
 
@@ -388,7 +392,8 @@ M_int64 M_str_to_int64(const char *s)
 {
 	M_int64 val = 0;
 
-	M_str_to_int64_ex(s, M_str_len(s), 10, &val, NULL);
+	if (M_str_to_int64_ex(s, M_str_len(s), 10, &val, NULL) == M_STR_INT_INVALID)
+		return 0;
 	return val;
 }
 

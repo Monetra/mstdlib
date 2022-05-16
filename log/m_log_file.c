@@ -106,9 +106,12 @@ static M_fs_error_t open_head_logfile(writer_thunk_t *wdata, M_bool is_rotate)
 		/* If we aren't creating a new file after a rotate, we want to try and get the creation time and size from
 		 * the filesystem, in case we just opened an existing file.
 		 */
-		M_fs_info_t *info;
+		M_fs_info_t *info = NULL;
 
-		M_fs_info(&info, wdata->log_file_path, M_FS_PATH_INFO_FLAGS_BASIC);
+		err = M_fs_info(&info, wdata->log_file_path, M_FS_PATH_INFO_FLAGS_BASIC);
+		if (err != M_FS_ERROR_SUCCESS)
+			return err;
+
 		wdata->log_file_create_time = M_fs_info_get_btime(info);
 		wdata->log_file_size        = M_fs_info_get_size(info);
 
@@ -270,7 +273,7 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 		const char *name;
 		M_parser_t *parser;
 		M_uint64    log_num = 0;
-		char       *old_path;
+		char       *old_path = NULL;
 
 		name   = M_llist_str_node_val(node);
 		parser = M_parser_create_const((const unsigned char *)name, M_str_len(name), M_PARSER_FLAG_NONE);
@@ -279,7 +282,10 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 
 		/* Parse log number out of input filename, then increment it. */
 		M_parser_consume(parser, min_len);
-		M_parser_read_uint(parser, M_PARSER_INTEGER_ASCII, 0, 10, &log_num);
+		if (!M_parser_read_uint(parser, M_PARSER_INTEGER_ASCII, 0, 10, &log_num)) {
+			/* skip non-numeric entries */
+			goto skip;
+		}
 		log_num++;
 
 		/* NOTE: log numbers start at 1, not 0. */
@@ -299,6 +305,7 @@ static void writer_thunk_rotate_log_files(writer_thunk_t *wdata)
 			M_fs_delete(old_path, M_FALSE, NULL, M_FS_PROGRESS_NOEXTRA);
 		}
 
+skip:
 		M_free(old_path);
 		M_parser_destroy(parser);
 		node = M_llist_str_node_next(node);

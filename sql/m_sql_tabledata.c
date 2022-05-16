@@ -1874,7 +1874,6 @@ static M_sql_error_t M_sql_tabledata_edit_do(M_sql_trans_t *sqltrans, void *arg,
 	M_sql_stmt_t           *stmt        = NULL;
 	size_t                  i;
 	M_bool                  has_col     = M_FALSE;
-	M_hash_strvp_t         *prev_fields = NULL;
 	M_sql_error_t           err         = M_SQL_ERROR_USER_FAILURE;
 	M_sql_tabledata_txn_t  *txn         = arg;
 	M_bool                  has_update  = M_FALSE;
@@ -2049,8 +2048,6 @@ done:
 		M_buf_cancel(request);
 	if (seen_cols)
 		M_hash_dict_destroy(seen_cols);
-	if (prev_fields)
-		M_hash_strvp_destroy(prev_fields, M_TRUE);
 	if (stmt != NULL) {
 		if (M_sql_error_is_error(err) && err != M_SQL_ERROR_USER_FAILURE) {
 			M_snprintf(error, error_len, "%s", M_sql_stmt_get_error_string(stmt));

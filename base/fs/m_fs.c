@@ -305,7 +305,7 @@ M_fs_error_t M_fs_move(const char *path_old, const char *path_new, M_uint32 mode
 	char            *norm_path_old;
 	char            *norm_path_new;
 	char            *resolve_path;
-	M_fs_info_t     *info;
+	M_fs_info_t     *info          = NULL;
 	M_fs_progress_t *progress      = NULL;
 	M_uint64         entry_size;
 	M_fs_error_t     res;
@@ -353,6 +353,7 @@ M_fs_error_t M_fs_move(const char *path_old, const char *path_new, M_uint32 mode
 	 * rename to move the file but there isn't much we can do in this case. copy will delete and the file so this
 	 * situation won't cause an error. */
 	if (!M_fs_check_overwrite_allowed(norm_path_old, norm_path_new, mode)) {
+		M_fs_info_destroy(info);
 		M_fs_progress_destroy(progress);
 		M_free(norm_path_new);
 		M_free(norm_path_old);
@@ -487,6 +488,7 @@ M_fs_error_t M_fs_copy(const char *path_old, const char *path_new, M_uint32 mode
 	 * rename to move the file but there isn't much we can do in this case. copy will delete and the file so this
 	 * situation won't cause an error. */
 	if (!M_fs_check_overwrite_allowed(norm_path_old, norm_path_new, mode)) {
+		M_fs_info_destroy(info);
 		M_fs_progress_destroy(progress);
 		M_free(norm_path_new);
 		M_free(norm_path_old);

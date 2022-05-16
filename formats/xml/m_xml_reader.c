@@ -532,10 +532,12 @@ static M_bool M_xml_read_tag_process(M_xml_node_t **node, const char *data, size
 			if (info->type == M_XML_TAG_DECLARATION) {
 				if (!M_xml_node_set_tag_data(new_node, data)) {
 					*error = M_XML_ERROR_GENERIC;
+					M_xml_node_destroy(new_node);
 					return M_FALSE;
 				}
 			} else {
 				if (!M_xml_read_tag_attributes(new_node, data, data_len, flags, error)) {
+					M_xml_node_destroy(new_node);
 					return M_FALSE;
 				}
 			}

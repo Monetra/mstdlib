@@ -586,6 +586,7 @@ static void M_time_tz_olson_load_zone(M_time_tzs_t *tzs, const char *path, const
 		if (M_fs_dir_entry_get_type(entry) == M_FS_TYPE_SYMLINK) {
 			resolved_name = M_fs_dir_entry_get_resolved_name(entry);
 			if (resolved_name == NULL || *resolved_name == '\0') {
+				M_free(olson_name);
 				M_free(name);
 				continue;
 			}
@@ -596,6 +597,7 @@ static void M_time_tz_olson_load_zone(M_time_tzs_t *tzs, const char *path, const
 			res = M_fs_path_norm(&real_name, dreal_name, M_FS_PATH_NORM_ABSOLUTE|M_FS_PATH_NORM_RESALL, M_FS_SYSTEM_AUTO);
 			M_free(dreal_name);
 			if (res != M_FS_ERROR_SUCCESS) {
+				M_free(olson_name);
 				M_free(name);
 				continue;
 			}
@@ -631,7 +633,8 @@ static void M_time_tz_olson_load_zone(M_time_tzs_t *tzs, const char *path, const
 
 		/* Add zone. */
 		if (flags & M_TIME_TZ_LOAD_LAZY) {
-			M_time_tzs_add_tz(tzs, NULL, real_name);
+			if (!M_time_tzs_add_tz(tzs, NULL, real_name))
+				continue;
 		} else {
 			/* Check if the tz was already loaded. If we're not doing lazy loading the lazy function won't be
  			 * set so we can safely load this ourselves here. */

@@ -497,7 +497,8 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	 */
 	so_linger.l_onoff  = 1;
 	so_linger.l_linger = 0;
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
+	(void)rv; /* silence coverity */
 
 	if (handle->settings.ka_enable)
 		M_io_net_set_sockopts_keepalives(handle);
@@ -788,6 +789,7 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	int                enable = 1;
 	const char        *bindip = handle->host;
 	int                type   = SOCK_STREAM;
+	int                rv;
 
 	/* If the bind address was set to NULL, that means to listen on all interfaces.  Lets
 	 * set it appropriately based on the type of connection requested. */
@@ -856,10 +858,12 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 
 
 	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
+	(void)rv; /* silence coverity */
 #ifdef SO_EXCLUSIVEADDRUSE
 	/* Windows, prevent 'stealing' of bound ports, why would this be allowed by default? */
-	setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
+	(void)rv; /* silence coverity */
 #endif
 
 #ifdef AF_INET6
@@ -881,7 +885,8 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		} else {
 			enable = 0; /* Dual socket IPv6 + IPv4 */
 		}
-		setsockopt(handle->data.net.sock, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&enable, sizeof(enable));
+		rv = setsockopt(handle->data.net.sock, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&enable, sizeof(enable));
+		(void)rv; /* silence coverity */
 #  endif
 	}
 #endif
