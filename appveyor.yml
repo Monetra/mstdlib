@@ -1,4 +1,4 @@
-image: Visual Studio 2015
+image: Visual Studio 2022
 
 # Github/Bitbucket only: get source code for one particular commit as zip archive, instead of git clone'ing.
 shallow_clone: true
@@ -18,20 +18,22 @@ configuration:
 #     CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-Win32
 environment:
   matrix:
-    # MSVC 2015, 32-bit x86
+    # MSVC 2022, 32-bit x86
     - COMPILER: MSVC
-      MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
+      MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 17.1\VC\vcvarsall.bat
       MSVC_SETUP_ARG: x86
+      CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-v30-Win32
 
-    # MSVC 2015, 64-bit x86
+    # MSVC 2022, 64-bit x86
     - COMPILER: MSVC
-      MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
+      MSVC_SETUP_PATH: C:\Program Files (x86)\Microsoft Visual Studio 17.1\VC\vcvarsall.bat
       MSVC_SETUP_ARG: x64
+      CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-v30-Win64
 
 
-    # MinGW, 32-bit x86
-    - COMPILER: MINGW
-      PATH: C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin;%PATH%
+#    # MinGW, 32-bit x86
+#    - COMPILER: MINGW
+#      PATH: C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0\mingw32\bin;%PATH%
 #      PATH: C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1\mingw32\bin;%PATH%
 #      PATH: C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
 
@@ -50,10 +52,11 @@ before_build:
   # Setup build environment for the selected compiler (not all compilers need to do anything here).
   #  -- Visual Studio --
   - if "%COMPILER%" == "MSVC" call "%MSVC_SETUP_PATH%" %MSVC_SETUP_ARG%
-  - dir "C:\OpenSSL-Win64"
   - tree "C:\OpenSSL-Win64" /a /f
-  - dir "C:\OpenSSL-v111-Win64"
   - tree "C:\OpenSSL-v111-Win64" /a /f
+  - tree "C:\OpenSSL-v30-Win64" /a /f
+  - tree "C:\mingw-w64" /a /f
+  - dir "C:\Program Files"
 
 build_script:
   # Make build-mstdlib directory. Download c-ares, sqlite amalgamation and libcheck. Build and install libcheck.
