@@ -633,8 +633,12 @@ static void M_time_tz_olson_load_zone(M_time_tzs_t *tzs, const char *path, const
 
 		/* Add zone. */
 		if (flags & M_TIME_TZ_LOAD_LAZY) {
-			if (!M_time_tzs_add_tz(tzs, NULL, real_name))
+			if (!M_time_tzs_add_tz(tzs, NULL, real_name)) {
+				M_free(real_name);
+				M_free(olson_name);
+				M_free(name);
 				continue;
+			}
 		} else {
 			/* Check if the tz was already loaded. If we're not doing lazy loading the lazy function won't be
  			 * set so we can safely load this ourselves here. */
@@ -643,6 +647,9 @@ static void M_time_tz_olson_load_zone(M_time_tzs_t *tzs, const char *path, const
 				tz = M_time_tz_olson_load_tzfile(real_name);
 				if (tz != NULL && !M_time_tzs_add_tz(tzs, tz, real_name)) {
 					M_time_tz_destroy(tz);
+					M_free(real_name);
+					M_free(olson_name);
+					M_free(name);
 					continue;
 				}
 			}
