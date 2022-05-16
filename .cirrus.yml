@@ -1,165 +1,352 @@
 env:
   CIRRUS_CLONE_DEPTH: 1
-  
+  COVERITY_EMAIL: ENCRYPTED[b5c0701345dba2e40e6db6b16d3c6ecfdc1b4bc758e122b0d42931cad334bea4f13d3c3e91e776e04490420346bba757]
+  COVERITY_SCAN_TOKEN: ENCRYPTED[c80d807eab99d4c4555d53725d89c69800312469e03c2c001dd3ae8c9b5b9db6464dd9da136f44676b461fe9e9d26f3a]
 
-task:
-  matrix:
-    - name: "Debian amd64"
-      env:
-        DIST: "DEBIAN"
-        LC_ALL: "C"
-        SCAN_BUILD: "scan-build"
-        MAKE: "make"
-      container:
-        image: debian:latest
-    - name: "Debian arm64"
-      env:
-        DIST: "DEBIAN-ARM"
-        LC_ALL: "C"
-        SCAN_BUILD: "scan-build"
-        MAKE: "make"
-      arm_container:
-        image: debian:latest
-    - name: "FreeBSD amd64"
-      env:
-        DIST: "FREEBSD"
-        SCAN_BUILD: "scan-build"
-        MAKE: "gmake"
-      freebsd_instance:
-        image_family: freebsd-13-0
-    - name: "MacOS"
-      env:
-        DIST: "MACOS"
-        SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
-        MAKE: "make"
-        OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
-        PostgreSQL_DIR: "/usr/local/opt/libpq"
-        CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
-      macos_instance:
-        image: big-sur-xcode
-  matrix:
-    - name: "CMAKE"
-      env:
-        BUILD_TYPE: "cmake"
-    - name: "AUTOTOOLS"
-      env:
-        BUILD_TYPE: "autotools"
-    - name: "ASAN"
-      # Only run on x64 debian, anything else is unstable
-      only_if: $DIST == 'DEBIAN'
-      env:
-        BUILD_TYPE: "asan"
-        CC: "clang"
-        CK_TIMEOUT_MULTIPLIER: "2"
-    - name: "ANALYZE"
-      env:
-        BUILD_TYPE: "analyze"
-        CC: "clang"
-    - name: "VALGRIND"
-      only_if: $DIST == 'DEBIAN'
-      env:
-        BUILD_TYPE: "valgrind"
-        CK_TIMEOUT_MULTIPLIER: 3
-        CK_FORK: "no"
-
-  os_deps_install_script:
-    - |
-      case "${DIST}" in
-        DEBIAN*)
-          apt-get update && \
-          apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget unzip
-          case "${BUILD_TYPE}" in
-            asan)
-              apt-get install -y clang
-              ;;
-            analyze)
-              apt-get install -y clang clang-tools
-              ;;
-            valgrind)
-              apt-get install -y valgrind
-              ;;
-          esac
-          ;;
-        FREEBSD)
-          # pkg upgrade -y && \
-          pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip
-          case "${BUILD_TYPE}" in
-            asan|analyze)
-              pkg install -y llvm
-              ;;
-            autotools)
-              pkg install -y autoconf automake libtool gmake
-              ;;
-          esac
-          ;;
-        MACOS)
-          brew update && \
-          brew install openssl doxygen mariadb-connector-c unixodbc libpq check ninja cmake git wget unzip
-          case "${BUILD_TYPE}" in
-            asan|analyze)
-              brew install llvm
-              ;;
-            autotools)
-              brew install autoconf automake libtool make
-              ;;
-          esac
-          ;;
-      esac
-
-  fetch_vendor_src_script:
-    - |
-      mkdir -p thirdparty thirdparty/sqlite-amalgamation
-      git clone --depth=1 https://github.com/c-ares/c-ares.git thirdparty/c-ares
-      wget https://sqlite.org/2021/sqlite-amalgamation-3370000.zip -O thirdparty/sqlite-amalgamation.zip
+fetch_thirdparty: &fetch_thirdparty
+  fetch_thirdparty_script:
+    - mkdir -p thirdparty thirdparty/sqlite-amalgamation &&
+      git clone --depth=1 https://github.com/c-ares/c-ares.git thirdparty/c-ares &&
+      wget https://sqlite.org/2022/sqlite-amalgamation-3380500.zip -O thirdparty/sqlite-amalgamation.zip &&
       unzip -j thirdparty/sqlite-amalgamation.zip -d thirdparty/sqlite-amalgamation
 
-  build_script:
-    - |
-      case "${BUILD_TYPE}" in
-        cmake)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
-          cmake --build _builds
-          ;;
-        asan)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -DM_ASAN=TRUE -G Ninja -H. -B_builds && \
-          cmake --build _builds
-          ;;
-        autotools)
-          ./buildconf.sh && \
-          mkdir build && \
-          cd build && \
-          ../configure ${CONFIG_OPTS} && \
-          ${MAKE} V=1 -j2
-          ;;
-        analyze)
-          ${SCAN_BUILD} -v cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -G Ninja -H. -B_builds && \
-          ${SCAN_BUILD} -v cmake --build _builds
-          ;;
-        valgrind)
-          cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_USE_VALGRIND=ON -DMSTDLIB_BUILD_FOR_CI=TRUE -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR" -DPostgreSQL_DIR="$PostgreSQL_DIR" -G Ninja -H. -B_builds && \
-          cmake --build _builds
-          ;;
-       esac
+cmake_build: &cmake_build
+  env:
+    BUILD_TYPE: "cmake"
+  cmake_build_script:
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja -H. -B_builds &&
+      cmake --build _builds
 
-  test_script:
+cmake_test: &cmake_test
+  env:
+    LD_LIBRARY_PATH: "$CIRRUS_WORKING_DIR/_builds/lib:$LD_LIBRARY_PATH"
+    CTEST_OUTPUT_ON_FAILURE: "1"
+    CK_VERBOSITY: "verbose"
+  cmake_test_script:
+    - cd _builds/test && ctest -VV
+
+autotools_build: &autotools_build
+  env:
+    BUILD_TYPE: "autotools"
+  autotools_build_script:
+    - autoreconf -fi &&
+      mkdir build &&
+      cd build &&
+      ../configure ${CONFIG_OPTS} &&
+      ${MAKE} V=1 -j2
+
+autotools_test: &autotools_test
+  env:
+    LD_LIBRARY_PATH: "$CIRRUS_WORKING_DIR/build/lib:$LD_LIBRARY_PATH"
+    VERBOSE: "1"
+    CK_VERBOSITY: "verbose"
+  autotools_test_script:
+    - cd build &&
+      cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ &&
+      make check
+
+asan_build: &asan_build
+  env:
+    BUILD_TYPE: "asan"
+    CC: "clang"
+    CK_TIMEOUT_MULTIPLIER: "2"
+  asan_deps_script:
     - |
-      case "${BUILD_TYPE}" in
-        cmake|analyze|asan|valgrind)
-          export LD_LIBRARY_PATH=`pwd`/_builds/lib:$LD_LIBRARY_PATH && \
-          cd _builds/test && CTEST_OUTPUT_ON_FAILURE=1 CK_VERBOSITY=verbose ctest -VV
+      case "${CIRRUS_OS}" in
+        linux)
+          apt-get install -y clang clang-tools
           ;;
-        autotools)
-          cd build && \
-          cp sql/sqlite/.libs/mstdlib_sql_sqlite.so sql/.libs/ && \
-          export CK_VERBOSITY=verbose && \
-          export VERBOSE=1 && \
-          export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH && \
-          make check
+        freebsd)
+          pkg install -y llvm
           ;;
-       esac
-   
-  deploy_script:
+        darwin)
+          brew install llvm
+          ;;
+      esac
+  asan_build_script:
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DM_ASAN=TRUE -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja -H. -B_builds &&
+      cmake --build _builds
+
+static_analysis_build: &static_analysis_build
+  env:
+    BUILD_TYPE: "analyze"
+    CC: "clang"
+  static_analysis_deps_script:
     - |
-      if [ "${BUILD_TYPE}" == "cmake" -a "${DIST}" = "DEBIAN" -a "${BRANCH}" = "master" ] ; then
-        ./gh-pages-deploy.sh
-      fi
+      case "${CIRRUS_OS}" in
+        linux)
+          apt-get install -y clang clang-tools
+          ;;
+        freebsd)
+          pkg install -y llvm
+          ;;
+        darwin)
+          brew install llvm
+          ;;
+      esac
+  static_analysis_build_script:
+    - ${SCAN_BUILD} -v cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja -H. -B_builds &&
+      ${SCAN_BUILD} -v cmake --build _builds
+
+valgrind_build: &valgrind_build
+  env:
+    BUILD_TYPE: "valgrind"
+    CK_TIMEOUT_MULTIPLIER: "3"
+  valgrind_deps_script:
+    - |
+      case "${CIRRUS_OS}" in
+        linux)
+          apt-get install -y valgrind
+          ;;
+        freebsd)
+          pkg install -y valgrind
+          ;;
+        darwin)
+          brew install valgrind
+          ;;
+      esac
+  valgrind_build_script:
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_USE_VALGRIND=ON -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja -H. -B_builds &&
+      cmake --build _builds
+
+
+coverity_install: &coverity_install
+  env:
+    COV_ARC: "$CIRRUS_WORKING_DIR/cov-analysis-$COV_PLATFORM.tgz"
+    COV_DIR: "$CIRRUS_WORKING_DIR/coverity-scan-analysis"
+    PATH: "$PATH:$CIRRUS_WORKING_DIR/cov-analysis/bin"
+  coverity_install_script:
+    - mkdir -p "${COV_DIR}"
+    - curl -F project="Monetra/mstdlib"
+           -F token="${COVERITY_SCAN_TOKEN}"
+           -o "${COV_ARC}"
+           "https://scan.coverity.com/download/cxx/${COV_PLATFORM}"
+    - tar -zxpf "${COV_ARC}" -C "${COV_DIR}"
+    - ln -s $(find "${COV_DIR}" -type d -name "cov-analysis*") cov-analysis
+
+coverity_build: &coverity_build
+  coverity_build_script:
+    - cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DMSTDLIB_BUILD_FOR_CI=TRUE ${CMAKE_OPTS} -G Ninja .
+    - cov-configure --comptype ${COV_COMPTYPE} --compiler ${CC} --template
+    - cov-build --dir cov-int ninja
+
+coverity_submit: &coverity_submit
+  coverity_submit_script:
+    - tar -czf analysis-results.tgz cov-int
+    - curl -s -S -F project="Monetra/mstdlib"
+                 -F token="${COVERITY_SCAN_TOKEN}"
+                 -F file=@analysis-results.tgz
+                 -F version="$(git rev-parse --short HEAD)"
+                 -F description="Cirrus CI build"
+                 -F email="${COVERITY_EMAIL}"
+                 "https://scan.coverity.com/builds"
+
+
+deploy_docs: &deploy_docs
+  only_if: ${BRANCH} == 'master'
+  deploy_docs_script:
+    - ./gh-pages-deploy.sh
+
+
+debian_template: &debian_template
+  env:
+    DIST: "DEBIAN"
+    LC_ALL: "C"
+    SCAN_BUILD: "scan-build"
+    MAKE: "make"
+    COV_COMPTYPE: gcc
+    COV_PLATFORM: linux-x64
+  osdeps_install_script:
+    - apt-get update &&
+      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip
+
+debian_x64_template: &debian_x64_template
+  << : *debian_template
+  env:
+    DIST: "DEBIAN"
+    COV_PLATFORM: linux64
+
+debian_arm64_template: &debian_arm64_template
+  << : *debian_template
+  env:
+    DIST: "DEBIAN-ARM"
+
+freebsd_template: &freebsd_template
+  env:
+    DIST: "FREEBSD"
+    SCAN_BUILD: "scan-build"
+    MAKE: "gmake"
+  osdeps_install_script:
+    - pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip autoconf automake libtool gmake
+
+macos_template: &macos_template
+  env:
+    DIST: "MACOS"
+    SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
+    MAKE: "make"
+    OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
+    PostgreSQL_DIR: "/usr/local/opt/libpq"
+    CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
+    CMAKE_OPTS: "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR -DPostgreSQL_DIR=$PostgreSQL_DIR"
+  osdeps_install_script:
+    - brew update &&
+      brew install openssl doxygen mariadb-connector-c unixodbc libpq check ninja cmake git wget unzip autoconf automake libtool make
+
+# ----- DEBIAN x64 -----
+
+task:
+  name: "Debian x64 - CMake"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+  << : *deploy_docs
+
+task:
+  name: "Debian x64 - AutoTools"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *autotools_build
+  << : *autotools_test
+
+task:
+  name: "Debian x64 - ASAN"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *asan_build
+  << : *cmake_test
+
+task:
+  name: "Debian x64 - Static Analysis"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *static_analysis_build
+
+task:
+  name: "Debian x64 - Valgrind"
+  container:
+    image: debian:latest
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *valgrind_build
+  << : *cmake_test
+
+task:
+  name: "Debian x64 - coverity"
+  only_if: $BRANCH == 'coverity_scan'
+  container:
+    image: debian:latest
+  env:
+    CC: "gcc"
+  << : *debian_x64_template
+  << : *fetch_thirdparty
+  << : *coverity_install
+  << : *coverity_build
+  << : *coverity_submit
+
+
+# ----- DEBIAN arm64 -----
+
+task:
+  name: "Debian arm64 - CMake"
+  arm_container:
+    image: debian:latest
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+
+task:
+  name: "Debian arm64 - AutoTools"
+  arm_container:
+    image: debian:latest
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *autotools_build
+  << : *autotools_test
+
+# Unknown issue, ASAN just hangs
+#task:
+#  name: "Debian arm64 - ASAN"
+#  arm_container:
+#    image: debian:latest
+#  << : *debian_arm64_template
+#  << : *fetch_thirdparty
+#  << : *asan_build
+#  << : *cmake_test
+
+task:
+  name: "Debian arm64 - Static Analysis"
+  arm_container:
+    image: debian:latest
+  << : *debian_arm64_template
+  << : *fetch_thirdparty
+  << : *static_analysis_build
+
+
+# ----- FreeBSD x64 -----
+
+task:
+  name: "FreeBSD x64 - CMake"
+  freebsd_instance:
+    image_family: freebsd-13-0
+  << : *freebsd_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+
+task:
+  name: "FreeBSD x64 - AutoTools"
+  freebsd_instance:
+    image_family: freebsd-13-0
+  << : *freebsd_template
+  << : *fetch_thirdparty
+  << : *autotools_build
+  << : *autotools_test
+
+task:
+  name: "FreeBSD x64 - Static Analysis"
+  freebsd_instance:
+    image_family: freebsd-13-0
+  << : *freebsd_template
+  << : *fetch_thirdparty
+  << : *static_analysis_build
+
+
+# ----- MacOS -----
+
+task:
+  name: "MacOS - CMake"
+  macos_instance:
+    image: big-sur-xcode
+  << : *macos_template
+  << : *fetch_thirdparty
+  << : *cmake_build
+  << : *cmake_test
+
+task:
+  name: "MacOS - AutoTools"
+  macos_instance:
+    image: big-sur-xcode
+  << : *macos_template
+  << : *fetch_thirdparty
+  << : *autotools_build
+  << : *autotools_test
+
+task:
+  name: "MacOS - Static Analysis"
+  macos_instance:
+    image: big-sur-xcode
+  << : *macos_template
+  << : *fetch_thirdparty
+  << : *static_analysis_build
+
+
