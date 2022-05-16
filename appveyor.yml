@@ -51,12 +51,11 @@ install:
 before_build:
   # Setup build environment for the selected compiler (not all compilers need to do anything here).
   #  -- Visual Studio --
-  - tree "C:\OpenSSL-Win64" /a /f
   - tree "C:\OpenSSL-v111-Win64" /a /f
   - tree "C:\OpenSSL-v30-Win64" /a /f
-  - tree "C:\mingw-w64" /a /f
+  - dir "C:\mingw-w64"
   - dir "C:\Program Files"
-  - dir "C:\Program Files (32)"
+  - dir "C:\Program Files(32)"
   - if "%COMPILER%" == "MSVC" call "%MSVC_SETUP_PATH%" %MSVC_SETUP_ARG%
 
 build_script:
