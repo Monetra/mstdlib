@@ -331,6 +331,7 @@ START_TEST(check_process_cat)
 {
 	ck_assert(process_test(TEST_CASE_CAT));
 }
+END_TEST
 
 START_TEST(check_process_cat_delay)
 {

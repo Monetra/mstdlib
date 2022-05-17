@@ -23,6 +23,7 @@ START_TEST(check_valid)
 	ck_assert_msg(M_str_eq(in, out), "Decode: Input does not match output");
 	M_free(out);
 }
+END_TEST
 
 START_TEST(check_efail)
 {
@@ -38,6 +39,7 @@ START_TEST(check_efail)
 	ck_assert_msg(res == M_TEXTCODEC_ERROR_FAIL, "Decode: Valid input, should be treated as invalid");
 	M_free(out);
 }
+END_TEST
 
 START_TEST(check_eignore)
 {
@@ -55,6 +57,7 @@ START_TEST(check_eignore)
 	ck_assert_msg(M_str_eq(in, out), "Decode: Input does not match output");
 	M_free(out);
 }
+END_TEST
 
 START_TEST(check_ereplace)
 {
@@ -74,6 +77,7 @@ START_TEST(check_ereplace)
 	ck_assert_msg(M_str_eq(dec, out), "Decode: in '%s': dec '%s', does not match out '%s'", in, dec, out);
 	M_free(out);
 }
+END_TEST
 
 START_TEST(check_control)
 {
@@ -91,6 +95,7 @@ START_TEST(check_control)
 	ck_assert_msg(M_str_eq(in, out), "Decode: Input does not match output");
 	M_free(out);
 }
+END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

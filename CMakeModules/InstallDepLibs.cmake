@@ -55,7 +55,7 @@ mark_as_advanced(FORCE DLLTOOL READELF)
 
 
 # Helper function for _install_deplibs_internal: try to find .dll using path of an import lib (VS or MinGW).
-function(get_dll_from_implib out_dll path)
+function(get_dll_from_implib out_dll path version)
 	# Get directory containing import lib, and try to guess root dir of install.
 	get_filename_component(imp_dir "${path}" DIRECTORY)
 	string(REGEX REPLACE "/[/0-9x_-]*lib[/0-9x_-]*(/.*|$)" "" root_dir "${imp_dir}")
@@ -98,13 +98,28 @@ function(get_dll_from_implib out_dll path)
 		if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 			string(REGEX REPLACE "64M[dDtT]+$" "" alt_name "${libname}")
 			list(APPEND alt_names ${alt_name})
+			list(APPEND alt_names ${alt_name}-x64)
+			if (version)
+				list(APPEND alt_names ${alt_name}-${version}-x64)
+			endif ()
+
 			string(REGEX REPLACE "64M[dDtT]+$" "" alt_name "${nolibname}")
 			list(APPEND alt_names ${alt_name})
+			list(APPEND alt_names ${alt_name}-x64)
+			if (version)
+				list(APPEND alt_names ${alt_name}-${version}-x64)
+			endif ()
 		else ()
 			string(REGEX REPLACE "32M[dDtT]+$" "" alt_name "${libname}")
 			list(APPEND alt_names ${alt_name})
+			if (version)
+				list(APPEND alt_names ${alt_name}-${version})
+			endif ()
 			string(REGEX REPLACE "32M[dDtT]+$" "" alt_name "${nolibname}")
 			list(APPEND alt_names ${alt_name})
+			if (version)
+				list(APPEND alt_names ${alt_name}-${version})
+			endif ()
 		endif ()
 		string(REGEX REPLACE "M[dDtT]+$" "" alt_name "${libname}")
 		list(APPEND alt_names ${alt_name})
@@ -264,8 +279,8 @@ endfunction()
 
 
 # Helper function for install_deplibs and copy_deplibs.
-# _install_deplibs_internal([lib dest] [runtime dest] [flag to turn file copy on/off] [flag to turn file install on/off] [... lib files or import targets ...]
-function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_install)
+# _install_deplibs_internal([lib dest] [runtime dest] [component] [version] [flag to turn file copy on/off] [flag to turn file install on/off] [... lib files or import targets ...]
+function(_install_deplibs_internal lib_dest runtime_dest component version do_copy do_install)
 	if ((NOT do_copy) AND (NOT do_install))
 		return()
 	endif ()
@@ -307,7 +322,7 @@ function(_install_deplibs_internal lib_dest runtime_dest component do_copy do_in
 
 		# If on Windows, try to replace import libraries with DLL's. Throws fatal error if it can't do it.
 		if (WIN32 AND (${path} MATCHES "\.lib$" OR ${path} MATCHES "\.a$"))
-			get_dll_from_implib(path "${path}")
+			get_dll_from_implib(path "${path}" "${version}")
 		endif ()
 
 		# Resolve any symlinks in path to get actual physical name. If relative, evaluate relative to current binary dir.
@@ -407,9 +422,34 @@ function(install_deplibs lib_dest runtime_dest)
 	endif ()
 
 	# Call internal helper
-	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" "${component}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${libs})
+	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" "${component}" FALSE ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${libs})
 endfunction()
 
+# install_deplibs_versioned([lib dest] [runtime dest] [version] [... lib files or import targets ...]
+function(install_deplibs_versioned lib_dest runtime_dest version)
+	# Handle default values for variables that control DLL copying.
+	if (NOT DEFINED INSTALL_DEPLIBS_COPY_DLL)
+		set(INSTALL_DEPLIBS_COPY_DLL TRUE)
+	endif ()
+
+	set(libs ${ARGN})
+	if (NOT libs)
+		return()
+	endif ()
+
+	# See if the user passed an optional "COMPONENT [component name]" to the install command.
+	# If they did, remove those entries from the 'libs' list and add them to the 'component' list.
+	set(component)
+	list(FIND libs COMPONENT idx)
+	if (idx GREATER -1)
+		math(EXPR idx_next "${idx} + 1")
+		list(GET libs ${idx} ${idx_next} component)
+		list(REMOVE_AT libs ${idx} ${idx_next})
+	endif ()
+
+	# Call internal helper
+	_install_deplibs_internal("${lib_dest}" "${runtime_dest}" "${component}" "${version}" ${INSTALL_DEPLIBS_COPY_DLL} TRUE ${libs})
+endfunction()
 
 # get_fixup_lib_dirs(outlistname [... lib files or import targets ...])
 function(get_fixup_lib_dirs outlistname)
