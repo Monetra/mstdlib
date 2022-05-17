@@ -29,6 +29,7 @@ typedef enum {
 	PROC_ENDPOINT           = 12,
 	DOT_MSG                 = 13,
 	PROC_NOT_FOUND          = 14,
+	HALT_RESTART            = 15,
 } test_id_t;
 
 
@@ -469,6 +470,9 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	if (args->test_id == NO_ENDPOINTS) {
 		args->is_success = (no_endpoints == M_TRUE);
 	}
+	if (args->test_id == HALT_RESTART) {
+		return 10; /* restart in 10ms */
+	}
 	return 0;
 }
 
@@ -479,6 +483,10 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
 	if (args->test_id == EMU_SENDMSG) {
+		M_event_done(args->el);
+	}
+
+	if (args->test_id == HALT_RESTART) {
 		M_event_done(args->el);
 	}
 
@@ -555,6 +563,37 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(halt_restart)
+{
+	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
+
+	args_t args = { 0 };
+	args.test_id = HALT_RESTART;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e           = generate_email(1, test_address);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_net_smtp_pause(sp);
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
+	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have processing halted from pause()");
+
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+}
+END_TEST
+
 START_TEST(proc_not_found)
 {
 	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
@@ -582,6 +621,7 @@ START_TEST(proc_not_found)
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
 }
+END_TEST
 START_TEST(dot_msg)
 {
 	M_uint16       testport;
@@ -635,7 +675,7 @@ START_TEST(dot_msg)
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
 }
-
+END_TEST
 START_TEST(proc_endpoint)
 {
 	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
@@ -1088,6 +1128,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("proc_not_found");
 	tcase_add_test(tc, proc_not_found);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("halt restart");
+	tcase_add_test(tc, halt_restart);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 

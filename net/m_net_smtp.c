@@ -280,7 +280,11 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 	if (sp == NULL || !is_running(sp))
 		return;
 
-	sp->status = M_NET_SMTP_STATUS_STOPPING;
+	if (sp->status == M_NET_SMTP_STATUS_IDLE) {
+		processing_halted(sp);
+	} else {
+		sp->status = M_NET_SMTP_STATUS_STOPPING;
+	}
 }
 
 static M_bool remove_timer(M_net_smtp_t *sp, M_event_timer_t *timer)
