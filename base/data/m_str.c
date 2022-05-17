@@ -85,71 +85,45 @@ static char M_ct_tolower(char c)
 
 static M_bool M_str_eq_max_int(const char *s1, const char *s2, volatile size_t max, M_bool case_insensitive)
 {
-	/* NOTE: Constant-time implementation!
-	 *
-	 * This will always scan until the end of s1 (or max if set). The only
-	 * timing knowledge that should be gained from this function is the length
-	 * of s1 which is the user known input. This isn't an issue because they
-	 * already know the length of the data they're providing.
-	 *
-	 *
-	 * Compilers can optimize for true branch in if..else statements so else is
-	 * never used. Ternary's count as if..else. Sames goes for && and ||
-	 * because those can stop evaluation early.
-	 *
-	 * All set operations are balanced. Dummy vars are used to ensure there is
-	 * always the same number of set operations and the same type.
-	 *
-	 * volatile is used to prevent compilers from optimizing certain variables.
-	 * For example, dummy vars that are set but never used.
+	/* NOTE: Constant time comparison.  Will leak the length, however that is nearly
+	 * impossible to NOT leak due to things like CPU cache and branch prediction.
+	 * The double HMAC comparision could be used if leaking length is critical:
+	 * https://paragonie.com/blog/2015/11/preventing-timing-attacks-on-string-comparison-with-double-hmac-strategy
 	 */
-	char                 result = 0;
-	size_t               i      = 0;
-	volatile size_t      j      = 0;
-	volatile size_t      k      = 0;
-	M_bool               ret;
-	volatile const char *sc     = NULL;
+	char   result = 0;
+	size_t i      = 0;
 
-	/* Set the input to an empty string if it's NULL.
-	 * This allows us to treat NULL as an empty string. */
+	/* Make NULL == empty string */
 	if (s1 == NULL)
 		s1 = "";
-	if (s1 != NULL)
-		sc = "";
 	if (s2 == NULL)
 		s2 = "";
-	if (s2 != NULL)
-		sc = "";
-	(void)sc;
 
-	/* Constant time comparison.  We scan the entire string to prevent timing attacks.
-	 * We don't want to do strlen()'s first that will leak info
-	 * so we have a check for when we reach '\0'. */
-	for (i=0; i<max; i++) {
-		if (case_insensitive) {
-			result |= (char)(M_ct_tolower(s1[i]) ^ M_ct_tolower(s2[j]));
+	if (case_insensitive) {
+		for (i=0; i<max && s1[i] != '\0' && s2[i] != '\0'; i++) {
+			result |= (char)(M_ct_tolower(s1[i]) ^ M_ct_tolower(s2[i]));
 		}
-		if (!case_insensitive) {
-			result |= (char)(s1[i] ^ s2[j]);
+	} else {
+		for (i=0; i<max && s1[i] != '\0' && s2[i] != '\0'; i++) {
+			result |= (char)(s1[i] ^ s2[i]);
 		}
-
-		if (s1[i] == '\0')
-			break;
-
-		if (s2[j] != '\0')
-			j++;
-		if (s2[j] == '\0')
-			k++;
 	}
 
-	/* Normally you'd see: 'return result == 0'
-	 * but we want to force M_TRUE and M_FALSE so we are
-	 * 100% sure the true and false values match the defines. */
-	if (result == 0)
-		ret = M_TRUE;
+	/* Even if we broke out early, its not a match */
 	if (result != 0)
-		ret = M_FALSE;
-	return ret;
+		return M_FALSE;
+
+	/* Check to see if we broke out due to a length mismatch */
+	if (i != max &&
+	    (
+	      (s1[i] == '\0' && s2[i] != '\0') ||
+	      (s1[i] != '\0' && s2[i] == '\0')
+	    )
+	   ) {
+		return M_FALSE;
+	}
+
+	return M_TRUE;
 }
 
 static M_bool M_str_eq_end_int(const char *s1, const char *s2, M_bool case_insensitive)

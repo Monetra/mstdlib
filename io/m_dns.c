@@ -1029,6 +1029,7 @@ static char *M_dns_punyhostname(const char *hostname)
 		/* Encode. */
 		if (M_textcodec_encode_buf(buf, parts[i], M_TEXTCODEC_EHANDLER_FAIL, M_TEXTCODEC_PUNYCODE) != M_TEXTCODEC_ERROR_SUCCESS) {
 			M_buf_cancel(buf);
+			M_list_str_destroy(l);
 			M_str_explode_free(parts, num_parts);
 			return NULL;
 		}

@@ -190,6 +190,7 @@ static void M_http_update_ctype(M_http_t *http)
 	parts = M_str_explode_str(';', modifiers, &num_parts);
 	if (parts == NULL || num_parts == 0) {
 		M_free(value);
+		M_str_explode_free(parts, num_parts);
 		return;
 	}
 

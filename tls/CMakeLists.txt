@@ -86,7 +86,9 @@ if (MSTDLIB_INSTALL_LIBS)
 
 	# If we're not being chain-built, install OpenSSL as dep libs.
 	if (CMAKE_SOURCE_DIR STREQUAL Mstdlib_SOURCE_DIR)
-		install_deplibs(${MSTDLIB_INSTALL_LOCATION_LIBS} bin
+		string(REPLACE "." ";" OPENSSL_VERSION_ARRAY ${OPENSSL_VERSION})
+		list(GET OPENSSL_VERSION_ARRAY 0 OPENSSL_VERSION_MAJOR)
+		install_deplibs_versioned(${MSTDLIB_INSTALL_LOCATION_LIBS} bin ${OPENSSL_VERSION_MAJOR}
 			OpenSSL::SSL
 			OpenSSL::Crypto
 		)

@@ -675,6 +675,7 @@ static M_sql_error_t M_sql_report_process_partial_int(const M_sql_report_t *repo
 				if (cberr == M_SQL_REPORT_ERROR) {
 					M_snprintf(error, error_size, "row %zu, col (%zu) %s callback failed", (*state)->rowidx, j, (*state)->cols[j].name);
 					err = M_SQL_ERROR_INVALID_USE;
+					M_json_node_destroy(json_row);
 					goto done;
 				} else if (cberr == M_SQL_REPORT_SKIP_ROW) {
 					if (buf) {

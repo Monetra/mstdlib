@@ -130,8 +130,10 @@ static M_bool M_http_header_split_value_and_modifiers(const char *full_value, ch
 
 	/* Split on ; to look for modifiers. */
 	parts = M_str_explode_str(';', full_value, &num_parts);
-	if (parts == NULL || num_parts == 0)
+	if (parts == NULL || num_parts == 0) {
+		M_str_explode_free(parts, num_parts);
 		return M_FALSE;
+	}
 
 	/* Value is always the first element. */
 	*value = M_strdup_trim(parts[0]);
@@ -301,6 +303,7 @@ M_list_str_t *M_http_split_header_vals(const char *key, const char *header_value
 
 		if (parts == NULL || num_parts == 0) {
 			M_list_str_destroy(split_header);
+			M_str_explode_free(parts, num_parts);
 			return NULL;
 		}
 

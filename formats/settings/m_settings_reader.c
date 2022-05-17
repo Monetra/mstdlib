@@ -211,9 +211,11 @@ static M_bool M_settings_read_json_node(const M_json_node_t *node, const char *g
 				ret     = M_settings_read_json_node(M_json_object_value(node, key), s_group, dict);
 				M_free(s_group);
 				if (!ret) {
+					M_list_str_destroy(keys);
 					return M_FALSE;
 				}
 			}
+			M_list_str_destroy(keys);
 			break;
 		default:
 			val = M_json_get_value_dup(node);
