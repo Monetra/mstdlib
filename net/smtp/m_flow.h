@@ -85,6 +85,7 @@ typedef struct {
 	size_t                      rcpt_i;
 	size_t                      number_of_tries;
 	const void                 *endpoint_manager;
+	const void                 *endpoint;
 	const char                 *next_write_chunk;
 	M_net_smtp_tls_state_t      tls_state;
 	M_bool                      is_failure;
