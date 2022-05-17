@@ -93,7 +93,6 @@ static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_buf_add_byte(slot->out_buf, 0); /* EOF */
 	slot->is_failure = M_FALSE;
 
 	*next = STATE_DISCONNECTING;

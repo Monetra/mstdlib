@@ -26,6 +26,8 @@
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 #include "smtp/m_flow.h"
 
+#define MUST(x,label) if (!(x)) { goto label; }
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_net_smtp {
@@ -97,7 +99,7 @@ typedef struct {
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* forward declarations */
 static void process_queue_queue(M_net_smtp_t *sp);
-static void stop(M_net_smtp_t *sp);
+static void processing_halted(M_net_smtp_t *sp);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 
 static M_bool is_running(M_net_smtp_t *sp)
@@ -337,6 +339,7 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 		retry->msg = M_strdup(msg);
 		retry->number_of_tries = num_tries;
 		retry->headers = M_hash_dict_duplicate(headers);
+		M_printf("retry in %zu ms\n", sp->retry_default_ms);
 		retry->event_timer = M_event_timer_oneshot(sp->el, sp->retry_default_ms, M_TRUE,
 				reschedule_event_cb, retry);
 		M_list_insert(sp->delay_msg_timers, retry->event_timer);
@@ -372,37 +375,61 @@ static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_don
 	return M_FALSE;
 }
 
-static void failure_process(M_net_smtp_endpoint_slot_t *slot, const endpoint_manager_t *epm)
+static void remove_endpoint(M_net_smtp_t *sp, endpoint_manager_t *epm)
 {
-	M_net_smtp_process_fail_cb  process_fail_cb = slot->sp->cbs.process_fail_cb;
-	char                       *stdout_str      = NULL;
+	M_bool                    is_all_endpoints_removed = M_TRUE;
+	const endpoint_manager_t *const_epm                = NULL;
 
-	stdout_str = M_buf_finish_str(slot->out_buf, NULL);
-	slot->out_buf = NULL;
-	process_fail_cb(epm->proc_endpoint->command, slot->result_code, stdout_str, slot->errmsg, slot->sp->thunk);
-	M_free(stdout_str);
-	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Process failure: %d", slot->result_code);
+		epm->is_removed = M_TRUE;
+	for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
+		const_epm = M_list_at(sp->endpoint_managers, i);
+		if (const_epm->is_removed == M_FALSE) {
+			is_all_endpoints_removed = M_FALSE;
+			break;
+		}
+	}
+
+	if (is_all_endpoints_removed) {
+		processing_halted(sp);
+		return;
+	}
+
+	if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) {
+		const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
+		while (const_epm->is_removed) {
+			sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoint_managers);
+			const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
+		}
+	}
+
+}
+
+static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_str)
+{
+	const endpoint_manager_t *const_epm = (endpoint_manager_t *)slot->endpoint_manager;
+
+	if (slot->sp->cbs.process_fail_cb(
+		const_epm->proc_endpoint->command,
+		slot->result_code,
+		stdout_str,
+		slot->errmsg,
+		slot->sp->thunk)
+	) {
+		remove_endpoint(slot->sp, M_CAST_OFF_CONST(endpoint_manager_t*, const_epm));
+	}
 }
 
 static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	endpoint_manager_t *epm     = (endpoint_manager_t*)slot->endpoint_manager;
-	M_net_smtp_sent_cb  sent_cb = slot->sp->cbs.sent_cb;
+	endpoint_manager_t *epm = (endpoint_manager_t*)slot->endpoint_manager;
 
 	if (slot->msg == NULL)
 		return;
 
-	if (slot->is_backout) {
+	if (slot->is_backout || slot->is_failure) {
 		reschedule_slot(slot);
 	} else {
-		if (slot->is_failure) {
-			if (slot->endpoint_type == M_NET_SMTP_EPTYPE_PROCESS) {
-				failure_process(slot, epm);
-			}
-			reschedule_slot(slot);
-		} else {
-			sent_cb(slot->headers, slot->sp->thunk);
-		}
+		slot->sp->cbs.sent_cb(slot->headers, slot->sp->thunk);
 	}
 	M_email_destroy(slot->email);
 	slot->email = NULL;
@@ -451,9 +478,13 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 					}
 				}
 				if (slot->result_code != 0) {
+					char *stdout_str = M_buf_finish_str(slot->out_buf, NULL);
+					slot->out_buf = NULL;
+					process_fail(slot, stdout_str);
+					M_free(stdout_str);
 					slot->is_failure = M_TRUE;
 					if (slot->errmsg[0] == 0) {
-						M_snprintf(slot->errmsg, sizeof(slot->errmsg), "%d: Bad result code", slot->result_code);
+						M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Bad result code %d", slot->result_code);
 					}
 				}
 			}
@@ -497,7 +528,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 				}
 				if (slot->is_failure) {
 					/* Give process a chance to parse and react to input */
-					slot->event_timer = M_event_timer_oneshot(slot->sp->el, 50, M_TRUE, proc_io_stdin_cb, slot);
+					slot->event_timer = M_event_timer_oneshot(slot->sp->el, 100, M_TRUE, proc_io_stdin_cb, slot);
 				} else {
 					slot->event_timer = NULL;
 				}
@@ -564,43 +595,22 @@ static void proc_io_proc_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 	return proc_io_cb(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO);
 }
 
+
 static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 {
 	M_net_smtp_t              *sp              = slot->sp;
 	const endpoint_manager_t  *const_epm       = slot->endpoint_manager;
-	M_net_smtp_connect_fail_cb connect_fail_cb = sp->cbs.connect_fail_cb;
-	M_bool                     is_removed      = M_FALSE;
 
-	is_removed = connect_fail_cb(
+	if (sp->cbs.connect_fail_cb(
 		const_epm->tcp_endpoint->address,
 		const_epm->tcp_endpoint->port,
 		slot->net_error,
 		slot->errmsg,
 		sp->thunk
-	);
-
-	if (is_removed) {
-		M_bool is_all_endpoints_removed = M_TRUE;
-		endpoint_manager_t *epm = M_CAST_OFF_CONST(endpoint_manager_t *,const_epm);
-		epm->is_removed = M_TRUE;
-		for (size_t i = 0; i < M_list_len(sp->endpoint_managers); i++) {
-			const_epm = M_list_at(sp->endpoint_managers, i);
-			if (const_epm->is_removed == M_FALSE) {
-				is_all_endpoints_removed = M_FALSE;
-				break;
-			}
-		}
-		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) {
-			const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
-			while (const_epm->is_removed) {
-				sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoint_managers);
-				const_epm = M_list_at(sp->endpoint_managers, sp->round_robin_idx);
-			}
-		}
-		if (is_all_endpoints_removed) {
-			stop(sp);
-		}
+	)) {
+		remove_endpoint(sp, M_CAST_OFF_CONST(endpoint_manager_t *, const_epm));
 	}
+
 }
 
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -759,25 +769,31 @@ backout:
 
 }
 
+
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const proc_endpoint_t *proc_ep, M_net_smtp_endpoint_slot_t *slot)
 {
-	M_bool                     is_success  = M_TRUE;
-	M_io_error_t               io_error    = M_IO_ERROR_SUCCESS;
+	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
 
 	slot->endpoint_type = M_NET_SMTP_EPTYPE_PROCESS;
+	MUST(slot->state_machine = M_net_smtp_flow_process(), fail);
 	io_error = M_io_process_create(proc_ep->command, proc_ep->args, proc_ep->env, proc_ep->timeout_ms, &slot->io,
 			&slot->io_stdin, &slot->io_stdout, &slot->io_stderr);
-	slot->state_machine = M_net_smtp_flow_process();
-	if (io_error == M_IO_ERROR_SUCCESS) {
-		M_event_add(sp->el, slot->io, proc_io_proc_cb, slot);
-		M_event_add(sp->el, slot->io_stdin, proc_io_stdin_cb, slot);
-		M_event_add(sp->el, slot->io_stdout, proc_io_stdout_cb, slot);
-		M_event_add(sp->el, slot->io_stderr, proc_io_stderr_cb, slot);
-	} else {
-		is_success = M_FALSE;
+	if (io_error != M_IO_ERROR_SUCCESS) {
+		slot->result_code = (int)io_error;
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "%s", M_io_error_string(io_error));
+		process_fail(slot, "");
+		goto fail1;
 	}
-
-	return is_success;
+	MUST(M_event_add(sp->el, slot->io       , proc_io_proc_cb  , slot), fail1);
+	MUST(M_event_add(sp->el, slot->io_stdin , proc_io_stdin_cb , slot), fail1);
+	MUST(M_event_add(sp->el, slot->io_stdout, proc_io_stdout_cb, slot), fail1);
+	MUST(M_event_add(sp->el, slot->io_stderr, proc_io_stderr_cb, slot), fail1);
+	return M_TRUE;
+fail1:
+	M_state_machine_destroy(slot->state_machine);
+	slot->state_machine = NULL;
+fail:
+	return M_FALSE;
 }
 
 static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const tcp_endpoint_t *tcp_ep, M_net_smtp_endpoint_slot_t *slot)
@@ -1015,7 +1031,7 @@ static M_bool idle_check(M_net_smtp_t *sp)
 	return M_TRUE;
 }
 
-static void stop(M_net_smtp_t *sp)
+static void processing_halted(M_net_smtp_t *sp)
 {
 	sp->status = M_NET_SMTP_STATUS_STOPPED;
 	sp->cbs.processing_halted_cb(M_FALSE, sp->thunk);
@@ -1033,7 +1049,7 @@ static void process_queue_queue(M_net_smtp_t *sp)
 		}
 	} else if (idle_check(sp)) {
 		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
-			stop(sp);
+			processing_halted(sp);
 		} else {
 			sp->status = M_NET_SMTP_STATUS_IDLE;
 		}
@@ -1230,24 +1246,26 @@ M_bool M_net_smtp_add_endpoint_process(
 	if (sp == NULL || max_processes == 0)
 		return M_FALSE;
 
-	if (!(ep = M_malloc_zero(sizeof(*ep)))) { return M_FALSE; }
-	if (!(ep->command = M_strdup(command))) { goto fail1; }
-	if (!(ep->args = M_list_str_duplicate(args))) { goto fail2; }
-	if (env == NULL) {
-		ep->env = NULL;
-	} else {
-		if (!(ep->env = M_hash_dict_duplicate(env))) { goto fail3; }
+	MUST(ep           = M_malloc_zero(sizeof(*ep))      , fail);
+	MUST(ep->command  = M_strdup(command)               , fail1);
+	MUST(ep->args     = M_list_str_duplicate(args)      , fail2);
+	if (env != NULL) {
+	MUST(ep->env      = M_hash_dict_duplicate(env)      , fail3);
 	}
-	ep->timeout_ms = timeout_ms;
+	ep->timeout_ms    = timeout_ms;
 	ep->max_processes = max_processes;
-	if (!M_list_insert(sp->proc_endpoints, ep)) { goto fail4; }
-	if (!(epm = create_endpoint_manager_proc(ep))) { goto fail5; }
-	if (!M_list_insert(sp->endpoint_managers, epm)) { goto fail6; }
+	MUST(M_list_insert(sp->proc_endpoints, ep)          , fail4);
+	MUST(epm          = create_endpoint_manager_proc(ep), fail5);
+	MUST(M_list_insert(sp->endpoint_managers, epm)      , fail6);
+
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
 	}
+
 	M_net_smtp_resume(sp);
+
 	return M_TRUE;
+
 fail6:
 	M_free(epm);
 fail5:
@@ -1260,6 +1278,7 @@ fail2:
 	M_free(ep->command);
 fail1:
 	M_free(ep);
+fail:
 	return M_FALSE;
 }
 

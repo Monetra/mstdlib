@@ -168,6 +168,7 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
+		net/sendmail_emu.c
 	)
 endif()
 

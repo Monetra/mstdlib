@@ -7,9 +7,12 @@
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
 
+#define DEBUG 1
+
 /* globals */
 M_json_node_t *check_smtp_json = NULL;
-char          *test_address = NULL;
+char          *test_address    = NULL;
+char          *sendmail_emu    = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -25,14 +28,12 @@ typedef enum {
 	STATUS                  = 11,
 	PROC_ENDPOINT           = 12,
 	DOT_MSG                 = 13,
+	PROC_NOT_FOUND          = 14,
 } test_id_t;
 
 
-#define DEBUG 1
-
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
-
 
 static void event_debug(const char *fmt, ...)
 {
@@ -173,8 +174,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				return;
 			}
 			if (M_parser_len(in_parser) > 0) {
+#if DEBUG == 2
 				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(in_parser),
 						M_parser_len(in_parser), (const char *)M_parser_peek(in_parser));
+#endif
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
@@ -207,7 +210,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	}
 	if ((line = M_parser_read_strdup_until(in_parser, ending, M_TRUE)) != NULL) {
 		M_bool is_no_match;
+#if DEBUG == 2
 		event_debug("smtp emulator %p READ %d bytes \"%s\"", io, M_str_len(line), line);
+#endif
 		if (*is_data_mode) {
 			M_buf_add_str(out_buf, M_list_str_at(emu->json_values, 1));
 			*is_data_mode = M_FALSE;
@@ -236,7 +241,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 	if (M_buf_len(out_buf) > 0) {
 		size_t len = M_buf_len(out_buf);
+#if DEBUG == 2
 		event_debug("%s:%d: emu->out_buf: \"%s\"", __FILE__, __LINE__, M_buf_peek(out_buf));
+#endif
 		if (emu->test_id == TIMEOUT_STALL) {
 			char byte;
 			size_t n;
@@ -442,14 +449,12 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
-
-	if (args->test_id == DOT_MSG) {
-		if (args->sent_cb_call_count == 3 && args->process_fail_cb_call_count == 1) {
-			M_event_done(args->el);
-		}
+	if (args->test_id == PROC_NOT_FOUND) {
+		M_event_done(args->el);
 	}
 
-	return M_FALSE; /* Should process endpoint be removed? */
+
+	return M_TRUE; /* Should process endpoint be removed? */
 }
 
 static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
@@ -478,7 +483,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == DOT_MSG) {
-		if (args->sent_cb_call_count == 3 && args->process_fail_cb_call_count == 1) {
+		if (args->sent_cb_call_count == 3 && args->send_failed_cb_call_count == 1) {
 			M_event_done(args->el);
 		}
 	}
@@ -498,11 +503,16 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_bool can_requeue, void *thunk)
 {
 	args_t *args = thunk;
-	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)\n", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
+	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
 	if (args->test_id == EMU_ACCEPT_DISCONNECT) {
 		M_event_done(args->el);
+	}
+	if (args->test_id == DOT_MSG) {
+		if (args->sent_cb_call_count == 3 && args->send_failed_cb_call_count == 1) {
+			M_event_done(args->el);
+		}
 	}
 	return M_FALSE; /* should msg be requeued? */
 }
@@ -518,7 +528,7 @@ static void reschedule_cb(const char *msg, M_uint64 wait_sec, void *thunk)
 static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 {
 	args_t *args = thunk;
-	event_debug("M_net_smtp_iocreate_cb(%p, %p, %zu, %p)\n", io, error, errlen, thunk);
+	event_debug("M_net_smtp_iocreate_cb(%p, %p, %zu, %p)", io, error, errlen, thunk);
 	args->is_iocreate_cb_called = M_TRUE;
 	args->iocreate_cb_call_count++;
 	if (args->test_id == IOCREATE_RETURN_FALSE) {
@@ -545,6 +555,33 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(proc_not_found)
+{
+	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
+
+	args_t args = { 0 };
+	args.test_id = PROC_NOT_FOUND;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e           = generate_email(1, test_address);
+
+	M_net_smtp_queue_smtp(sp, e);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "proc_not_found", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have had a process fail");
+
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+}
 START_TEST(dot_msg)
 {
 	M_uint16       testport;
@@ -564,10 +601,10 @@ START_TEST(dot_msg)
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1), "Couldn't add TCP endpoint");
 
 	M_list_str_insert(cmd_args, "-t");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "sendmail", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 	M_list_str_insert(cmd_args, "-i");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "sendmail", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 
 	M_net_smtp_pause(sp);
@@ -585,11 +622,11 @@ START_TEST(dot_msg)
 	args.sp = sp;
 
 	M_event_loop(el, 1000);
-	M_printf("returned");
 
+	M_printf("Sent %llu messages\n", args.sent_cb_call_count);
 	ck_assert_msg(args.sent_cb_call_count == 3, "3 Messages should have sent");
 	ck_assert_msg(args.connect_fail_cb_call_count == 0, "should not have had a connect fail");
-	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have 1 process fail");
+	ck_assert_msg(args.process_fail_cb_call_count == 0, "should not have had a process fail");
 
 	smtp_emulator_destroy(emu);
 	M_dns_destroy(dns);
@@ -616,9 +653,7 @@ START_TEST(proc_endpoint)
 	M_net_smtp_queue_smtp(sp, e1);
 	M_net_smtp_queue_smtp(sp, e2);
 
-	M_list_str_insert(cmd_args, "-d");
-	M_list_str_insert(cmd_args, "\"\\r\\n.\\r\\n\"");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "read", cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
 
@@ -1051,6 +1086,11 @@ static Suite *smtp_suite(void)
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
+	tc = tcase_create("proc_not_found");
+	tcase_add_test(tc, proc_not_found);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
 	return suite;
 }
 
@@ -1059,7 +1099,7 @@ int main(int argc, char **argv)
 	SRunner    *sr;
 	int         nf;
 	size_t      len;
-	char *dirname;
+	char       *dirname;
 	const char *env_USER;
 
 	(void)argc;
@@ -1069,6 +1109,12 @@ int main(int argc, char **argv)
 	len = M_str_len(env_USER) + M_str_len("@localhost");
 	test_address = M_malloc_zero(len + 1);
 	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
+
+	dirname = M_fs_path_dirname(argv[0], M_FS_SYSTEM_AUTO);
+	len = M_str_len(dirname) + M_str_len("/sendmail_emu");
+	sendmail_emu = M_malloc_zero(len + 1);
+	M_snprintf(sendmail_emu, len + 1, "%s/sendmail_emu", dirname);
+	M_free(dirname);
 
 	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
 
@@ -1081,6 +1127,7 @@ int main(int argc, char **argv)
 
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
+	M_free(sendmail_emu);
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
