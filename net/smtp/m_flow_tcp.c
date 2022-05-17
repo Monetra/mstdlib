@@ -57,19 +57,19 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->smtp_response_code != 220) {
+	if (slot->tcp.smtp_response_code != 220) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_PROTOFORMAT;
-		line = M_list_str_last(slot->smtp_response);
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
+		line = M_list_str_last(slot->tcp.smtp_response);
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %s", line);
 		goto done;
 	}
 
-	if (!M_str_caseeq(slot->address, "localhost")) {
-		line = M_list_str_first(slot->smtp_response);
-		if (M_str_casecmpsort_max(slot->address, &line[4], slot->str_len_address) != 0) {
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->address, &line[4]);
+	if (!M_str_caseeq(slot->tcp.address, "localhost")) {
+		line = M_list_str_first(slot->tcp.smtp_response);
+		if (M_str_casecmpsort_max(slot->tcp.address, &line[4], slot->tcp.address_len) != 0) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->tcp.address, &line[4]);
 			goto done;
 		}
 	}
@@ -97,7 +97,7 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 		address == NULL                                ||
 		(domain = M_str_chr(address, '@')) == NULL     ||
 		(domain = &domain[1]) == NULL                  ||
-		(slot->ehlo_domain = M_strdup(domain)) == NULL
+		(slot->tcp.ehlo_domain = M_strdup(domain)) == NULL
 	) {
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to parse domain from: %s\n", domain);
 		return M_FALSE;
@@ -110,25 +110,25 @@ static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_statu
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_free(slot->ehlo_domain);
-	slot->ehlo_domain = NULL;
+	M_free(slot->tcp.ehlo_domain);
+	slot->tcp.ehlo_domain = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	switch(slot->tls_state) {
+	switch(slot->tcp.tls_state) {
 		case M_NET_SMTP_TLS_NONE:
 		case M_NET_SMTP_TLS_CONNECTED:
 			*next = STATE_AUTH;
 			break;
 		case M_NET_SMTP_TLS_STARTTLS:
-			if (slot->is_starttls_capable) {
+			if (slot->tcp.is_starttls_capable) {
 				*next = STATE_STARTTLS;
 				break;
 			}
 			/* Classify as connect failure so endpoint can get removed */
-			slot->is_connect_fail = M_TRUE;
-			slot->net_error = M_NET_ERROR_NOTPERM;
+			slot->tcp.is_connect_fail = M_TRUE;
+			slot->tcp.net_error = M_NET_ERROR_NOTPERM;
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Server does not support STARTTLS");
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
 			break;
@@ -170,8 +170,8 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 	(void)status;
 	(void)next;
 
-	slot->rcpt_i = 0;
-	slot->rcpt_n = M_email_to_len(slot->email) + M_email_cc_len(slot->email) + M_email_bcc_len(slot->email);
+	slot->tcp.rcpt_i = 0;
+	slot->tcp.rcpt_n = M_email_to_len(slot->email) + M_email_cc_len(slot->email) + M_email_bcc_len(slot->email);
 	return M_TRUE;
 }
 
@@ -184,7 +184,7 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 
 	slot->is_failure = M_FALSE; /* Success */
 
-	if (slot->is_QUIT_enabled) {
+	if (slot->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
 	} else {
 		*next = STATE_WAIT_FOR_NEXT_MSG;
@@ -195,7 +195,7 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	if (slot->is_QUIT_enabled) {
+	if (slot->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}

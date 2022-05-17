@@ -77,27 +77,27 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 		!(line[3] == '-' || line[3] == ' ' || line[3] == '\r')
 	) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_PROTOFORMAT;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Ill-formed SMTP response: %s", line);
 		goto done;
 	}
 
 	response_code = 100 * (line[0] - '0') + 10 * (line[1] - '0') + (line[2] - '0');
-	if (slot->smtp_response_code == 0) {
-		slot->smtp_response_code = response_code;
+	if (slot->tcp.smtp_response_code == 0) {
+		slot->tcp.smtp_response_code = response_code;
 	} else {
-		if (slot->smtp_response_code != response_code) {
+		if (slot->tcp.smtp_response_code != response_code) {
 			/* Classify as connect failure so endpoint can get removed */
-			slot->is_connect_fail = M_TRUE;
-			slot->net_error = M_NET_ERROR_PROTOFORMAT;
+			slot->tcp.is_connect_fail = M_TRUE;
+			slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Mismatched SMTP response code: %d != %s",
-					slot->smtp_response_code, line);
+					slot->tcp.smtp_response_code, line);
 			goto done;
 		}
 	}
 
-	M_list_str_insert(slot->smtp_response, line);
+	M_list_str_insert(slot->tcp.smtp_response, line);
 
 	if (line[3] == '-') {
 		*next = STATE_READ_LINE;
@@ -119,8 +119,8 @@ M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_stat
 	(void)status;
 	(void)next;
 
-	slot->smtp_response = M_list_str_create(M_LIST_STR_NONE);
-	slot->smtp_response_code = 0;
+	slot->tcp.smtp_response = M_list_str_create(M_LIST_STR_NONE);
+	slot->tcp.smtp_response_code = 0;
 	return M_TRUE;
 }
 
@@ -129,9 +129,9 @@ M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(void *data, M
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 	(void)next;
-	M_list_str_destroy(slot->smtp_response);
-	slot->smtp_response = NULL;
-	slot->smtp_response_code = 0;
+	M_list_str_destroy(slot->tcp.smtp_response);
+	slot->tcp.smtp_response = NULL;
+	slot->tcp.smtp_response_code = 0;
 	return sub_status;
 }
 

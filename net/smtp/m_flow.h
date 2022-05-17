@@ -56,53 +56,56 @@ typedef enum {
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDERR (1u << 3u)
 
 typedef struct {
+	M_bool                      is_alive;
+	M_bool                      is_failure;
+	M_bool                      is_backout;
 	M_net_smtp_t               *sp;
 	M_net_smtp_endpoint_type_t  endpoint_type;
 	M_state_machine_t          *state_machine;
-	M_bool                      is_alive;
 	unsigned int                connection_mask;
-	M_io_t                     *io;
 	char                       *msg;
+	M_io_t                     *io;
 	M_hash_dict_t              *headers;
 	M_email_t                  *email;
-	const char                 *address;
-	size_t                      str_len_address;
-	M_int16                     smtp_response_code;
-	M_list_str_t               *smtp_response;
-	M_net_smtp_authtype_t       smtp_authtype;
-	M_bool                      is_starttls_capable;
-	const char                 *username;
-	size_t                      str_len_username;
-	const char                 *password;
-	size_t                      str_len_password;
-	const char                 *str_auth_plain_base64;
-	const char                 *str_auth_login_username_base64;
-	const char                 *str_auth_login_password_base64;
-	size_t                      auth_login_response_count;
-	char                       *ehlo_domain;
-	size_t                      tls_ctx_layer_idx;
-	size_t                      rcpt_n;
-	size_t                      rcpt_i;
 	size_t                      number_of_tries;
-	const void                 *endpoint_manager;
 	const void                 *endpoint;
-	const char                 *next_write_chunk;
-	M_net_smtp_tls_state_t      tls_state;
-	M_bool                      is_failure;
-	M_bool                      is_backout;
-	M_bool                      is_connect_fail;
-	M_bool                      is_QUIT_enabled;
-	M_net_error_t               net_error;
-	int                         result_code;
-	char                        errmsg[128];
 	M_buf_t                    *out_buf;
 	M_parser_t                 *in_parser;
 	M_event_timer_t            *event_timer;
-
-	/* Only used for proc endpoints */
-	M_io_t                     *io_stdin;
-	M_io_t                     *io_stdout;
-	M_io_t                     *io_stderr;
+	char                        errmsg[128];
+	union {
+		struct {
+			M_bool                  is_starttls_capable;
+			M_bool                  is_connect_fail;
+			M_bool                  is_QUIT_enabled;
+			M_net_smtp_tls_state_t  tls_state;
+			M_net_error_t           net_error;
+			const char             *address;
+			const char             *username;
+			const char             *password;
+			const char             *auth_plain;
+			const char             *auth_login_user;
+			const char             *auth_login_pass;
+			size_t                  address_len;
+			size_t                  username_len;
+			size_t                  password_len;
+			M_int16                 smtp_response_code;
+			M_list_str_t           *smtp_response;
+			M_net_smtp_authtype_t   smtp_authtype;
+			size_t                  auth_login_response_count;
+			char                   *ehlo_domain;
+			size_t                  tls_ctx_layer_idx;
+			size_t                  rcpt_n;
+			size_t                  rcpt_i;
+		} tcp;
+		struct {
+			M_io_t                 *io_stdin;
+			M_io_t                 *io_stdout;
+			M_io_t                 *io_stderr;
+			int                     result_code;
+			const char             *next_write_chunk;
+		} process;
+	};
 } M_net_smtp_endpoint_slot_t;
 
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next);

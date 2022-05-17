@@ -41,7 +41,7 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	switch (slot->smtp_authtype) {
+	switch (slot->tcp.smtp_authtype) {
 		case M_NET_SMTP_AUTHTYPE_PLAIN:
 			*next = STATE_AUTH_PLAIN;
 			return M_STATE_MACHINE_STATUS_NEXT;
@@ -60,8 +60,8 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 	}
 
 	/* Classify as connect failure so endpoint can get removed */
-	slot->is_connect_fail = M_TRUE;
-	slot->net_error = M_NET_ERROR_AUTHENTICATION;
+	slot->tcp.is_connect_fail = M_TRUE;
+	slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Something weird happened");
 	return M_STATE_MACHINE_STATUS_ERROR_STATE;
 }
@@ -69,7 +69,7 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "AUTH PLAIN %s\r\n", slot->str_auth_plain_base64);
+	M_bprintf(slot->out_buf, "AUTH PLAIN %s\r\n", slot->tcp.auth_plain);
 	*next = STATE_AUTH_PLAIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -84,12 +84,12 @@ static M_state_machine_status_t M_auth_plain_response_post_cb(void *data, M_stat
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->smtp_response_code != 235) {
+	if (slot->tcp.smtp_response_code != 235) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 235 auth response, got: %s",
-				M_list_str_last(slot->smtp_response));
+				M_list_str_last(slot->tcp.smtp_response));
 		goto done;
 	}
 
@@ -103,7 +103,7 @@ static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 	M_bprintf(slot->out_buf, "AUTH LOGIN\r\n");
-	slot->auth_login_response_count = 0;
+	slot->tcp.auth_login_response_count = 0;
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -111,7 +111,7 @@ static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "%s\r\n", slot->str_auth_login_username_base64);
+	M_bprintf(slot->out_buf, "%s\r\n", slot->tcp.auth_login_user);
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -119,7 +119,7 @@ static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64
 static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "%s\r\n", slot->str_auth_login_password_base64);
+	M_bprintf(slot->out_buf, "%s\r\n", slot->tcp.auth_login_pass);
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -135,26 +135,26 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	line = M_list_str_last(slot->smtp_response);
+	line = M_list_str_last(slot->tcp.smtp_response);
 
-	slot->auth_login_response_count++;
-	if (slot->auth_login_response_count < 3 && slot->smtp_response_code != 334) {
+	slot->tcp.auth_login_response_count++;
+	if (slot->tcp.auth_login_response_count < 3 && slot->tcp.smtp_response_code != 334) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 334 auth response, got: %s", line);
 		goto done;
 	}
 
-	if (slot->auth_login_response_count == 3 && slot->smtp_response_code != 235) {
+	if (slot->tcp.auth_login_response_count == 3 && slot->tcp.smtp_response_code != 235) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 235 auth response, got: %s", line);
 		goto done;
 	}
 
-	if (slot->auth_login_response_count == 3) {
+	if (slot->tcp.auth_login_response_count == 3) {
 		machine_status = M_STATE_MACHINE_STATUS_DONE;
 		goto done;
 	}
@@ -202,18 +202,18 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	line = M_list_str_last(slot->smtp_response);
-	if (slot->smtp_response_code != 334) {
+	line = M_list_str_last(slot->tcp.smtp_response);
+	if (slot->tcp.smtp_response_code != 334) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 334 auth response, got: %s", line);
 		goto done;
 	}
 
 	if (M_bincodec_decode(buf, sizeof(buf)-1, &line[4], M_str_len(&line[4]), M_BINCODEC_BASE64) <= 0) {
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to decode salt: %s", line);
 		goto done;
 	}
@@ -221,7 +221,7 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 	uint = sizeof(d);
 	HMAC(
 		EVP_md5(),
-		slot->password, (int)slot->str_len_password,
+		slot->tcp.password, (int)slot->tcp.password_len,
 		buf, M_str_len((const char *)buf), /* buf contains salt */
 		d, &uint
 	);
@@ -229,7 +229,7 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 	len = M_snprintf(
 		(char *)buf, sizeof(buf),
 		"%s %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		slot->username,
+		slot->tcp.username,
 		d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]
 	);
 
@@ -257,12 +257,12 @@ static M_state_machine_status_t M_auth_cram_md5_final_response_post_cb(void *dat
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->smtp_response_code != 235) {
+	if (slot->tcp.smtp_response_code != 235) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->is_connect_fail = M_TRUE;
-		slot->net_error = M_NET_ERROR_AUTHENTICATION;
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 235 auth response, got: %s",
-				M_list_str_last(slot->smtp_response));
+				M_list_str_last(slot->tcp.smtp_response));
 		goto done;
 	}
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
