@@ -702,6 +702,25 @@ M_bool M_sql_tabledata_filter_graph_cb(M_sql_tabledata_txn_t *txn, const char *f
 	return M_TRUE;
 }
 
+static M_bool M_utf8_isprint_sep(const char *data)
+{
+	if (data == NULL)
+		return M_FALSE;
+
+	while (*data != '\0') {
+		const char *next =  NULL;
+		if (*data >= 0x1C && *data <= 0x1F) {
+			data++;
+		} else if (M_utf8_isprint_chr(data, &next)) {
+			data = next;
+		} else {
+			return M_FALSE;
+		}
+	}
+
+	return M_TRUE;
+}
+
 static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, const M_sql_tabledata_t *fielddef, M_bool is_add, char *error, size_t error_len)
 {
 	/* On add, verify field is not null if flag is set */
@@ -744,9 +763,16 @@ static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, con
 				M_snprintf(error, error_len, "cannot be represented as text");
 				return M_FALSE;
 			}
-			if (!M_str_isprint(const_temp)) {
-				M_snprintf(error, error_len, "not printable");
-				return M_FALSE;
+			if (fielddef->flags & M_SQL_TABLEDATA_FLAG_ALLOW_NONPRINT_SEP) {
+				if (!M_utf8_isprint_sep(const_temp)) {
+					M_snprintf(error, error_len, "not printable w/sep");
+					return M_FALSE;
+				}
+			} else {
+				if (!M_utf8_isprint(const_temp)) {
+					M_snprintf(error, error_len, "not printable");
+					return M_FALSE;
+				}
 			}
 			break;
 		}
