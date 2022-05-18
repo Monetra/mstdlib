@@ -89,7 +89,7 @@ typedef struct {
 			size_t                  address_len;
 			size_t                  username_len;
 			size_t                  password_len;
-			M_int16                 smtp_response_code;
+			M_uint64                smtp_response_code;
 			M_list_str_t           *smtp_response;
 			M_net_smtp_authtype_t   smtp_authtype;
 			size_t                  auth_login_response_count;
@@ -107,7 +107,7 @@ typedef struct {
 	};
 } M_net_smtp_endpoint_slot_t;
 
-M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next);
+M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next);
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
 		void *data, M_state_machine_status_t sub_status, M_uint64 *next);
 

@@ -273,7 +273,7 @@ M_state_machine_t * M_net_smtp_flow_tcp()
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_OPENING_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_opening_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_opening_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_starttls();

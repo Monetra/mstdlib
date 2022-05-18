@@ -73,7 +73,7 @@ static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	next_chunk = &next_chunk[5];
-	chunk_len = next_chunk - slot->process.next_write_chunk;
+	chunk_len = (size_t)(next_chunk - slot->process.next_write_chunk);
 	M_buf_add_str_max(slot->out_buf, slot->process.next_write_chunk, chunk_len);
 	slot->process.next_write_chunk = next_chunk;
 	*next = STATE_WRITE_CHUNK_WAIT;

@@ -30,14 +30,17 @@ typedef enum {
 static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot           = data;
+	unsigned char               byte           = 0;
+	M_uint64                    response_code  = 0;
 	char                       *line           = NULL;
-	M_int16                     response_code  = 0;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	line = M_parser_read_strdup_until(slot->in_parser, "\r\n", M_TRUE);
-
-	if (line == NULL)
+	M_parser_mark(slot->in_parser);
+	if (!M_parser_consume_str_until(slot->in_parser, "\r\n", M_TRUE)) {
+		M_parser_mark_clear(slot->in_parser);
 		return M_STATE_MACHINE_STATUS_WAIT;
+	}
+	M_parser_mark_rewind(slot->in_parser);
+	M_parser_mark(slot->in_parser);
 
 /* RFC 5321 p47
  * Greeting       = ( "220 " (Domain / address-literal)
@@ -70,50 +73,35 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 
 
 	if (
-		M_str_len(line) < 5                 ||
-		!(line[0] >= '2' && line[0] <= '5') ||
-		!(line[1] >= '0' && line[1] <= '5') ||
-		!(line[2] >= '0' && line[2] <= '9') ||
-		!(line[3] == '-' || line[3] == ' ' || line[3] == '\r')
+		M_parser_len(slot->in_parser) < 5                                                   ||
+		!M_parser_read_uint(slot->in_parser, M_PARSER_INTEGER_ASCII, 3, 10, &response_code) ||
+		!(response_code >= 200 && response_code <= 559)                                     ||
+		!M_parser_peek_byte(slot->in_parser, &byte)                                         ||
+		!M_str_chr(" -\r", (char)byte)                                                      ||
+		(slot->tcp.smtp_response_code != 0 && slot->tcp.smtp_response_code != response_code)
 	) {
+		M_parser_mark_clear(slot->in_parser);
 		/* Classify as connect failure so endpoint can get removed */
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Ill-formed SMTP response: %s", line);
-		goto done;
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Ill-formed SMTP response");
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
-
-	response_code = 100 * (line[0] - '0') + 10 * (line[1] - '0') + (line[2] - '0');
-	if (slot->tcp.smtp_response_code == 0) {
-		slot->tcp.smtp_response_code = response_code;
-	} else {
-		if (slot->tcp.smtp_response_code != response_code) {
-			/* Classify as connect failure so endpoint can get removed */
-			slot->tcp.is_connect_fail = M_TRUE;
-			slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Mismatched SMTP response code: %d != %s",
-					slot->tcp.smtp_response_code, line);
-			goto done;
-		}
-	}
-
+	slot->tcp.smtp_response_code = response_code;
+	M_parser_mark_rewind(slot->in_parser);
+	line = M_parser_read_strdup_until(slot->in_parser, "\r\n", 2);
 	M_list_str_insert(slot->tcp.smtp_response, line);
+	M_free(line);
 
-	if (line[3] == '-') {
+	if (byte == '-') {
 		*next = STATE_READ_LINE;
-		machine_status = M_STATE_MACHINE_STATUS_NEXT;
-		goto done;
+		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 
-	machine_status = M_STATE_MACHINE_STATUS_DONE;
-
-done:
-	M_free(line);
-	return machine_status;
-
+	return M_STATE_MACHINE_STATUS_DONE;
 }
 
-M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
+M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 	(void)status;

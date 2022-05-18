@@ -51,7 +51,7 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 		/* Classify as connect failure so endpoint can get removed */
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 EHLO response code, got: %d",
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 EHLO response code, got: %llu",
 				slot->tcp.smtp_response_code);
 		goto done;
 	}
@@ -101,7 +101,7 @@ M_state_machine_t * M_net_smtp_flow_tcp_ehlo()
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_EHLO_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_ehlo_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_ehlo_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	return m;

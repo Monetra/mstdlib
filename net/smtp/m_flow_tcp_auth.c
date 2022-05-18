@@ -289,7 +289,7 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth()
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_PLAIN_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_auth_plain_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_plain_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	M_state_machine_insert_state(m, STATE_AUTH_LOGIN, 0, NULL, M_state_auth_login, NULL, NULL);
@@ -297,19 +297,19 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth()
 	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_PASSWORD, 0, NULL, M_state_auth_login_password, NULL, NULL);
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_LOGIN_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_auth_login_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_login_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	M_state_machine_insert_state(m, STATE_AUTH_CRAM_MD5, 0, NULL, M_state_auth_cram_md5, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_SALT_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_auth_cram_md5_salt_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_cram_md5_salt_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb, M_auth_cram_md5_final_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_cram_md5_final_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	return m;
