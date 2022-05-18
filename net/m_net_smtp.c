@@ -153,6 +153,24 @@ static M_bool is_available(M_net_smtp_t *sp)
 	return M_FALSE;
 }
 
+static void destroy_endpoint(endpoint_t *ep)
+{
+	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
+		M_free(ep->process.command);
+		M_list_str_destroy(ep->process.args);
+		M_hash_dict_destroy(ep->process.env);
+	} else {
+		/* TCP endpoint */
+		M_free(ep->tcp.address);
+		M_free(ep->tcp.username);
+		M_free(ep->tcp.password);
+		M_free(ep->tcp.auth_plain);
+		M_free(ep->tcp.auth_login_user);
+		M_free(ep->tcp.auth_login_pass);
+	}
+	M_free(ep);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* NOP callbacks */
 static void nop_connect_cb(const char *a, M_uint16 b, void *c) { (void)a; (void)b; (void)c; }
@@ -232,21 +250,7 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		return;
 
 	while ((ep = M_list_take_last(sp->endpoints)) != NULL) {
-		if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
-			M_free(ep->process.command);
-			M_list_str_destroy(ep->process.args);
-			M_hash_dict_destroy(ep->process.env);
-			continue;
-		} else {
-			/* TCP endpoint */
-			M_free(ep->tcp.address);
-			M_free(ep->tcp.username);
-			M_free(ep->tcp.password);
-			M_free(ep->tcp.auth_plain);
-			M_free(ep->tcp.auth_login_user);
-			M_free(ep->tcp.auth_login_pass);
-		}
-		M_free(ep);
+		destroy_endpoint(ep);
 	}
 	M_list_destroy(sp->endpoints, M_TRUE);
 	while ((timer = M_list_take_last(sp->timers)) != NULL) {
@@ -379,7 +383,11 @@ static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
 	}
 
 	if (is_all_endpoints_removed) {
-		processing_halted(sp);
+		M_net_smtp_pause(sp);
+		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
+			/* need to check if idle then process_halted() */
+			process_queue_queue(sp);
+		}
 		return;
 	}
 
@@ -408,7 +416,7 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 	}
 }
 
-static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
+static void clean_slot_no_process_queue_queue(M_net_smtp_endpoint_slot_t *slot)
 {
 	endpoint_t *ep = M_CAST_OFF_CONST(endpoint_t*, slot->endpoint);
 
@@ -427,12 +435,19 @@ static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_hash_dict_destroy(slot->headers);
 	slot->headers = NULL;
 	ep->slot_available++;
+}
+
+static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
+{
+	clean_slot_no_process_queue_queue(slot);
 	process_queue_queue(slot->sp);
 }
 
 static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	clean_slot(slot);
+	M_net_smtp_t *sp = slot->sp;
+
+	clean_slot_no_process_queue_queue(slot);
 	M_event_timer_remove(slot->event_timer);
 	slot->event_timer = NULL;
 	M_buf_cancel(slot->out_buf);
@@ -442,6 +457,8 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
 	slot->is_alive = M_FALSE;
+
+	process_queue_queue(sp);
 }
 
 static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
@@ -759,6 +776,7 @@ backout:
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
 	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
+	slot->endpoint_type = M_NET_SMTP_EPTYPE_PROCESS;
 
 	io_error = M_io_process_create(
 		ep->process.command,
@@ -781,13 +799,14 @@ static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_
 	M_event_add(sp->el, slot->process.io_stdin , proc_io_stdin_cb , slot);
 	M_event_add(sp->el, slot->process.io_stdout, proc_io_stdout_cb, slot);
 	M_event_add(sp->el, slot->process.io_stderr, proc_io_stderr_cb, slot);
-	slot->endpoint_type = M_NET_SMTP_EPTYPE_PROCESS;
 	return M_TRUE;
 }
 
 static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
-	M_io_error_t               io_error        = M_IO_ERROR_SUCCESS;
+	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
+
+	slot->endpoint_type = M_NET_SMTP_EPTYPE_TCP;
 
 	io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
 
@@ -809,7 +828,6 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_s
 	slot->event_timer          = M_event_timer_add(sp->el, tcp_io_cb, slot);
 	slot->state_machine        = M_net_smtp_flow_tcp();
 
-	slot->endpoint_type        = M_NET_SMTP_EPTYPE_TCP;
 	slot->tcp.address          = ep->tcp.address;
 	slot->tcp.username         = ep->tcp.username;
 	slot->tcp.password         = ep->tcp.password;
@@ -827,7 +845,7 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_s
 
 static void bootstrap_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
-	slot->sp          = sp; /* needs to be set first in case of sp->cbs.process_fail() */
+	slot->sp          = sp; /* need to be set first in case of sp->cbs.process_fail() */
 	M_bool is_success = M_TRUE;
 
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
@@ -1040,13 +1058,30 @@ static void restart_processing_cb(M_event_t *el, M_event_type_t etype, M_io_t *i
 	M_net_smtp_resume(sp);
 }
 
+static void prune_removed_endpoints(M_net_smtp_t *sp)
+{
+	for (size_t i = M_list_len(sp->endpoints); i > 0; i--) {
+		const endpoint_t *ep = M_list_at(sp->endpoints, i - 1);
+		if (ep->is_removed) {
+			destroy_endpoint(M_list_take_at(sp->endpoints, i - 1));
+		}
+	}
+}
+
 static void processing_halted(M_net_smtp_t *sp)
 {
-	M_bool          is_no_endpoints = sp->status == M_NET_SMTP_STATUS_NOENDPOINTS;
+	M_bool          is_no_endpoints;
 	M_uint64        delay_ms;
 
-	if (sp->status != M_NET_SMTP_STATUS_NOENDPOINTS)
+	prune_removed_endpoints(sp);
+
+	if (M_list_len(sp->endpoints) == 0) {
+		sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
+		is_no_endpoints = M_TRUE;
+	} else {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
+		is_no_endpoints = M_FALSE;
+	}
 
 	delay_ms = sp->cbs.processing_halted_cb(is_no_endpoints, sp->thunk);
 	if (delay_ms == 0 || is_no_endpoints)
@@ -1054,7 +1089,6 @@ static void processing_halted(M_net_smtp_t *sp)
 
 	sp->restart_processing_timer = M_event_timer_oneshot(sp->el, delay_ms, M_TRUE, restart_processing_cb, sp);
 	M_list_insert(sp->timers, sp->restart_processing_timer);
-
 }
 
 static void process_queue_queue(M_net_smtp_t *sp)
@@ -1072,6 +1106,7 @@ static void process_queue_queue(M_net_smtp_t *sp)
 			processing_halted(sp);
 		} else {
 			sp->status = M_NET_SMTP_STATUS_IDLE;
+			prune_removed_endpoints(sp);
 		}
 	}
 }

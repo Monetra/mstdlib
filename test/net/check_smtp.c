@@ -450,10 +450,6 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
-	if (args->test_id == PROC_NOT_FOUND) {
-		M_event_done(args->el);
-	}
-
 
 	return M_TRUE; /* Should process endpoint be removed? */
 }
@@ -472,6 +468,11 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	}
 	if (args->test_id == HALT_RESTART) {
 		return 10; /* restart in 10ms */
+	}
+
+	if (args->test_id == PROC_NOT_FOUND) {
+		args->is_success = no_endpoints;
+		M_event_done(args->el);
 	}
 	return 0;
 }
@@ -613,6 +614,8 @@ START_TEST(proc_not_found)
 	M_event_loop(el, 1000);
 
 	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have had a process fail");
+	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have halted processing");
+	ck_assert_msg(args.is_success, "should have NOENDPOINTS set in processing_halted_cb");
 
 	M_email_destroy(e);
 	M_net_smtp_destroy(sp);
@@ -858,24 +861,12 @@ START_TEST(no_server)
 {
 	M_uint16 testport;
 
-	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = connect_cb,
-		.connect_fail_cb      = connect_fail_cb,
-		.disconnect_cb        = disconnect_cb,
-		.process_fail_cb      = process_fail_cb,
-		.processing_halted_cb = processing_halted_cb,
-		.sent_cb              = sent_cb,
-		.send_failed_cb       = send_failed_cb,
-		.reschedule_cb        = reschedule_cb,
-		.iocreate_cb          = iocreate_cb,
-	};
-
 	args_t args = { 0 };
 	args.test_id = NO_SERVER;
 
 	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
+	M_net_smtp_t    *sp  = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns = M_dns_create(el);
 	M_email_t       *e   = generate_email(1, test_address);
 
