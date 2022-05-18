@@ -34,31 +34,6 @@ typedef enum {
 	STATE_DATA_STOP_RESPONSE,
 } state_id;
 
-static M_bool M_rcpt_at(M_email_t *e, size_t idx, const char **group, const char **name, const char **address)
-{
-	size_t idx_offset = 0;
-	size_t len        = 0;
-
-	len = M_email_to_len(e);
-	if ((idx - idx_offset) < len) {
-		return M_email_to(e, idx - idx_offset, group, name, address);
-	}
-	idx_offset += len;
-
-	len = M_email_cc_len(e);
-	if ((idx - idx_offset) < len) {
-		return M_email_cc(e, idx - idx_offset, group, name, address);
-	}
-	idx_offset += len;
-
-	len = M_email_bcc_len(e);
-	if ((idx - idx_offset) < len) {
-		return M_email_bcc(e, idx - idx_offset, group, name, address);
-	}
-
-	return M_FALSE;
-}
-
 static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot    = data;
@@ -67,7 +42,9 @@ static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 	if (!M_email_from(slot->email, NULL, NULL, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
-	M_bprintf(slot->out_buf, "MAIL FROM:<%s>\r\n", address);
+	M_buf_add_str(slot->out_buf, "MAIL FROM:<");
+	M_buf_add_str(slot->out_buf, address);
+	M_buf_add_str(slot->out_buf, ">\r\n");
 	*next = STATE_MAIL_FROM_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -90,18 +67,23 @@ static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
 	machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot    = data;
-	const char                 *address = NULL;
+	char                 *address = NULL;
 
-	if (!M_rcpt_at(slot->email, slot->tcp.rcpt_i, NULL, NULL, &address)) {
+	address = M_list_str_take_last(slot->tcp.rcpt_to);
+	if (address == NULL)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
-	}
-	M_bprintf(slot->out_buf, "RCPT TO:<%s>\r\n", address);
+
+	M_buf_add_str(slot->out_buf, "RCPT TO:<");
+	M_buf_add_str(slot->out_buf, address);
+	M_buf_add_str(slot->out_buf, ">\r\n");
+
+	M_free(address);
 
 	*next = STATE_RCPT_TO_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -122,8 +104,7 @@ static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		goto done;
 	}
 
-	slot->tcp.rcpt_i++;
-	if (slot->tcp.rcpt_i < slot->tcp.rcpt_n) {
+	if (M_list_str_len(slot->tcp.rcpt_to) > 0) {
 		*next = STATE_RCPT_TO;
 	} else {
 		*next = STATE_DATA;
@@ -131,14 +112,14 @@ static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_bprintf(slot->out_buf, "DATA\r\n");
+	M_buf_add_str(slot->out_buf, "DATA\r\n");
 
 	*next = STATE_DATA_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -163,25 +144,30 @@ static M_state_machine_status_t M_data_response_post_cb(void *data,
 	machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
-	const char* ending;
-	char* false_stop;
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot   = data;
+	M_parser_t                 *parser = NULL;
 
-	ending = slot->msg;
+	parser = M_parser_create_const((unsigned char *)slot->msg, M_str_len(slot->msg), M_PARSER_FLAG_NONE);
+	M_parser_mark(parser);
 
-	while ((false_stop = M_str_str(ending, "\r\n.")) != NULL) {
-		false_stop[2] = '\0';
-		M_bprintf(slot->out_buf, "%s..", ending);
-		false_stop[2] = '.';
-		ending = &false_stop[3];
+	while (M_parser_consume_until(parser, (unsigned char *)"\r\n.", 3, M_FALSE)) {
+		M_parser_read_buf_mark(parser, slot->out_buf);
+		M_buf_add_str(slot->out_buf, "\r\n..");
+		M_parser_consume(parser, 3);
+		M_parser_mark(parser);
 	}
 
-	M_bprintf(slot->out_buf, "%s\r\n.\r\n", ending);
+	M_parser_consume(parser, M_parser_len(parser));
+	M_parser_read_buf_mark(parser, slot->out_buf);
+
+	M_buf_add_str(slot->out_buf, "\r\n.\r\n");
+
+	M_parser_destroy(parser);
 
 	*next = STATE_DATA_STOP_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -206,7 +192,7 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_sendmsg()

@@ -60,7 +60,7 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_starttls()

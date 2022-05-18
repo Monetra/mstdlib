@@ -124,7 +124,7 @@ M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_stat
 	return M_TRUE;
 }
 
-M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(void *data, M_state_machine_status_t sub_status,
+M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;

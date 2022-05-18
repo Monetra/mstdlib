@@ -95,8 +95,7 @@ typedef struct {
 			size_t                  auth_login_response_count;
 			char                   *ehlo_domain;
 			size_t                  tls_ctx_layer_idx;
-			size_t                  rcpt_n;
-			size_t                  rcpt_i;
+			M_list_str_t           *rcpt_to;
 		} tcp;
 		struct {
 			M_io_t                 *io_stdin;
@@ -109,7 +108,7 @@ typedef struct {
 } M_net_smtp_endpoint_slot_t;
 
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next);
-M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb(
+M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
 		void *data, M_state_machine_status_t sub_status, M_uint64 *next);
 
 M_state_machine_t *M_net_smtp_flow_process(void);

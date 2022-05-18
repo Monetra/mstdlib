@@ -77,7 +77,7 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
@@ -167,17 +167,38 @@ static M_state_machine_status_t M_auth_post_cb(void *data, M_state_machine_statu
 static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
+	const char *group;
+	const char *name;
+	const char *address;
 	(void)status;
 	(void)next;
 
-	slot->tcp.rcpt_i = 0;
-	slot->tcp.rcpt_n = M_email_to_len(slot->email) + M_email_cc_len(slot->email) + M_email_bcc_len(slot->email);
+	slot->tcp.rcpt_to = M_list_str_create(M_LIST_STR_NONE);
+
+	for (size_t i = 0; i < M_email_to_len(slot->email); i++) {
+		M_email_to(slot->email, i, &group, &name, &address);
+		M_list_str_insert(slot->tcp.rcpt_to, address);
+	}
+
+	for (size_t i = 0; i < M_email_cc_len(slot->email); i++) {
+		M_email_cc(slot->email, i, &group, &name, &address);
+		M_list_str_insert(slot->tcp.rcpt_to, address);
+	}
+
+	for (size_t i = 0; i < M_email_bcc_len(slot->email); i++) {
+		M_email_bcc(slot->email, i, &group, &name, &address);
+		M_list_str_insert(slot->tcp.rcpt_to, address);
+	}
+
 	return M_TRUE;
 }
 
 static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
+
+	M_list_str_destroy(slot->tcp.rcpt_to);
+	slot->tcp.rcpt_to = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
@@ -210,7 +231,7 @@ static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 
-	M_bprintf(slot->out_buf, "QUIT\r\n");
+	M_buf_add_str(slot->out_buf, "QUIT\r\n");
 	*next = STATE_QUIT_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }

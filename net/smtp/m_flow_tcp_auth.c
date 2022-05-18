@@ -69,7 +69,9 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "AUTH PLAIN %s\r\n", slot->tcp.auth_plain);
+	M_buf_add_str(slot->out_buf, "AUTH PLAIN ");
+	M_buf_add_str(slot->out_buf, slot->tcp.auth_plain);
+	M_buf_add_str(slot->out_buf, "\r\n");
 	*next = STATE_AUTH_PLAIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -96,13 +98,13 @@ static M_state_machine_status_t M_auth_plain_response_post_cb(void *data, M_stat
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "AUTH LOGIN\r\n");
+	M_buf_add_str(slot->out_buf, "AUTH LOGIN\r\n");
 	slot->tcp.auth_login_response_count = 0;
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -111,7 +113,8 @@ static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "%s\r\n", slot->tcp.auth_login_user);
+	M_buf_add_str(slot->out_buf, slot->tcp.auth_login_user);
+	M_buf_add_str(slot->out_buf, "\r\n");
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -119,7 +122,8 @@ static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64
 static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "%s\r\n", slot->tcp.auth_login_pass);
+	M_buf_add_str(slot->out_buf, slot->tcp.auth_login_pass);
+	M_buf_add_str(slot->out_buf, "\r\n");
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -176,13 +180,13 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unknown auth-login request: %s", line);
 	machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_state_auth_cram_md5(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
-	M_bprintf(slot->out_buf, "AUTH CRAM-MD5\r\n");
+	M_buf_add_str(slot->out_buf, "AUTH CRAM-MD5\r\n");
 	*next = STATE_AUTH_CRAM_MD5_SALT_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -237,14 +241,15 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Allocation failed");
 		goto done;
 	}
-	M_bprintf(slot->out_buf, "%s\r\n", challenge);
+	M_buf_add_str(slot->out_buf, challenge);
+	M_buf_add_str(slot->out_buf, "\r\n");
 	M_free(challenge);
 
 	*next = STATE_AUTH_CRAM_MD5_FINAL_RESPONSE;
 	machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 static M_state_machine_status_t M_auth_cram_md5_final_response_post_cb(void *data,
@@ -268,7 +273,7 @@ static M_state_machine_status_t M_auth_cram_md5_final_response_post_cb(void *dat
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb(data, machine_status, NULL);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

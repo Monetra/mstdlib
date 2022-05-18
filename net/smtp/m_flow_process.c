@@ -62,17 +62,19 @@ static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 {
 	const char                 *next_chunk = NULL;
 	M_net_smtp_endpoint_slot_t *slot       = data;
+	size_t                      chunk_len  = 0;
 
 	/* This is used to detect if the command quits early.
 		* sendmail will if -i isn't specified */
 	next_chunk = M_str_str(slot->process.next_write_chunk, "\r\n.\r\n");
 	if (next_chunk == NULL) {
-		M_bprintf(slot->out_buf, "%s", slot->process.next_write_chunk);
+		M_buf_add_str(slot->out_buf, slot->process.next_write_chunk);
 		*next = STATE_WRITE_FINISH;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	next_chunk = &next_chunk[5];
-	M_bprintf(slot->out_buf, "%.*s", (int)(next_chunk - slot->process.next_write_chunk), slot->process.next_write_chunk);
+	chunk_len = next_chunk - slot->process.next_write_chunk;
+	M_buf_add_str_max(slot->out_buf, slot->process.next_write_chunk, chunk_len);
 	slot->process.next_write_chunk = next_chunk;
 	*next = STATE_WRITE_CHUNK_WAIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
