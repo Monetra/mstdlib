@@ -605,6 +605,8 @@ START_TEST(external_queue)
 	M_email_destroy(e);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_list_str_destroy(test_external_queue);
+	test_external_queue = NULL;
 }
 END_TEST
 
