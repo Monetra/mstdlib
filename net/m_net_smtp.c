@@ -98,6 +98,7 @@ typedef struct {
 static void process_queue_queue(M_net_smtp_t *sp);
 static void processing_halted(M_net_smtp_t *sp);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static int  process_external_queue_num(M_net_smtp_t *sp);
 
 static M_bool is_running(M_net_smtp_t *sp)
 {
@@ -445,7 +446,13 @@ static void clean_slot_no_process_queue_queue(M_net_smtp_endpoint_slot_t *slot)
 static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
 	clean_slot_no_process_queue_queue(slot);
-	process_queue_queue(slot->sp);
+	if (!slot->sp->is_external_queue_enabled) {
+		process_queue_queue(slot->sp);
+		return;
+	}
+	/* eager eval external queue to determine IDLE */
+	if (process_external_queue_num(slot->sp) == 0)
+		process_queue_queue(slot->sp);
 }
 
 static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
@@ -462,8 +469,13 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
 	slot->is_alive = M_FALSE;
-
-	process_queue_queue(sp);
+	if (!slot->sp->is_external_queue_enabled) {
+		process_queue_queue(slot->sp);
+		return;
+	}
+	/* eager eval external queue to determine IDLE */
+	if (process_external_queue_num(slot->sp) == 0)
+		process_queue_queue(sp);
 }
 
 static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
@@ -982,29 +994,37 @@ static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t
 	}
 }
 
+static int process_external_queue_num(M_net_smtp_t *sp)
+{
+	char *msg = NULL;
+	int   n   = 0;
+
+	while (is_available(sp)) {
+		msg = sp->external_queue_get_cb();
+		if (msg == NULL) {
+			sp->is_external_queue_pending = M_FALSE;
+			return n;
+		}
+
+		slate_msg(sp, msg, 0);
+		n++;
+	}
+	return n;
+}
+
 static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	M_net_smtp_t *sp  = cb_arg;
-	char         *msg = NULL;
-
-	/* This is an internally sent event; don't need these: */
 	(void)event;
 	(void)io;
 	(void)type;
 
-	while (is_available(sp)) {
-		msg = sp->external_queue_get_cb();
-		if (msg == NULL)
-			return;
-
-		slate_msg(sp, msg, 0);
-	}
+	process_external_queue_num(cb_arg);
 }
 
 static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	M_net_smtp_t  *sp          = cb_arg;
-	retry_msg_t   *retry       = NULL;
+	M_net_smtp_t *sp    = cb_arg;
+	retry_msg_t  *retry = NULL;
 
 	/* This is an internally sent event; don't need these: */
 	(void)event;

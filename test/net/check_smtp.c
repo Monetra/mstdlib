@@ -10,9 +10,10 @@
 #define DEBUG 1
 
 /* globals */
-M_json_node_t *check_smtp_json = NULL;
-char          *test_address    = NULL;
-char          *sendmail_emu    = NULL;
+M_json_node_t *check_smtp_json      = NULL;
+char          *test_address         = NULL;
+char          *sendmail_emu         = NULL;
+M_list_str_t  *test_external_queue  = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -30,6 +31,7 @@ typedef enum {
 	DOT_MSG                 = 13,
 	PROC_NOT_FOUND          = 14,
 	HALT_RESTART            = 15,
+	EXTERNAL_QUEUE          = 16,
 } test_id_t;
 
 
@@ -487,6 +489,10 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_event_done(args->el);
 	}
 
+	if (args->test_id == EXTERNAL_QUEUE) {
+		M_event_done(args->el);
+	}
+
 	if (args->test_id == HALT_RESTART) {
 		M_event_done(args->el);
 	}
@@ -561,7 +567,47 @@ struct M_net_smtp_callbacks test_cbs  = {
 	.iocreate_cb          = iocreate_cb,
 };
 
+
+static char * test_external_queue_get_cb()
+{
+	return M_list_str_take_first(test_external_queue);
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(external_queue)
+{
+	args_t args = { 0 };
+	args.test_id = EXTERNAL_QUEUE;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e           = generate_email(1, test_address);
+	char              *msg         = M_email_simple_write(e);
+
+	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
+	M_net_smtp_use_external_queue(sp, test_external_queue_get_cb);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_list_str_insert(test_external_queue, msg);
+	M_net_smtp_external_queue_have_messages(sp);
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
+	M_printf("M_net_smtp_status: %d\n", M_net_smtp_status(sp));
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
+
+	M_free(msg);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
+
 START_TEST(halt_restart)
 {
 	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
@@ -1120,6 +1166,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("halt restart");
 	tcase_add_test(tc, halt_restart);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("external queue");
+	tcase_add_test(tc, external_queue);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
