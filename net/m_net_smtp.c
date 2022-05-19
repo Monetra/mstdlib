@@ -125,21 +125,30 @@ static M_bool is_available_failover(M_net_smtp_t *sp)
 	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
 		ep = M_list_at(sp->endpoints, i);
 
-		if (ep->is_removed)
-			continue;
+		if (!ep->is_removed)
+			break;
 
-		if (ep->slot_available > 0) {
-			return M_TRUE;
-		}
+		ep = NULL;
 	}
-	return M_FALSE;
+
+	return ep != NULL && ep->slot_available > 0;
 }
 
 static M_bool is_available_round_robin(M_net_smtp_t *sp)
 {
-	const endpoint_t *ep = NULL;
-	ep = M_list_at(sp->endpoints, sp->round_robin_idx);
-	return (ep->slot_available > 0);
+	size_t            len = M_list_len(sp->endpoints);
+	const endpoint_t *ep  = NULL;
+
+	for (size_t i = 0; i < len; i++) {
+		size_t idx = (sp->round_robin_idx + i) % len;
+		ep = M_list_at(sp->endpoints, idx);
+		if (ep->is_removed)
+			continue;
+		if (ep->slot_available > 0)
+			return M_TRUE;
+	}
+
+	return M_FALSE;
 }
 
 static M_bool is_available(M_net_smtp_t *sp)
@@ -374,6 +383,21 @@ static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_don
 	return M_FALSE;
 }
 
+static void round_robin_skip_removed(M_net_smtp_t *sp)
+{
+	size_t            len = M_list_len(sp->endpoints);;
+	const endpoint_t *ep;
+	size_t            idx;
+	for (size_t i = 0; i < len; i++) {
+		idx = (sp->round_robin_idx + i) % len;
+		ep = M_list_at(sp->endpoints, idx);
+		if (!ep->is_removed) {
+			sp->round_robin_idx = idx;
+			return;
+		}
+	}
+}
+
 static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
 {
 	M_bool            is_all_endpoints_removed = M_TRUE;
@@ -398,13 +422,23 @@ static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
 	}
 
 	if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) {
-		const_ep = M_list_at(sp->endpoints, sp->round_robin_idx);
-		while (const_ep->is_removed) {
-			sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoints);
-			const_ep = M_list_at(sp->endpoints, sp->round_robin_idx);
-		}
+		round_robin_skip_removed(sp);
 	}
 
+}
+
+static void rotate_endpoints(M_net_smtp_t *sp)
+{
+	endpoint_t *ep;
+
+	if (sp->load_balance_mode != M_NET_SMTP_LOAD_BALANCE_FAILOVER)
+		return;
+
+	if (M_list_len(sp->endpoints) <= 1)
+		return;
+
+	ep = M_list_take_first(sp->endpoints);
+	M_list_insert(sp->endpoints, ep);
 }
 
 static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_str)
@@ -419,6 +453,9 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 		slot->sp->thunk)
 	) {
 		remove_endpoint(slot->sp, M_CAST_OFF_CONST(endpoint_t*, const_ep));
+	} else {
+		/* Had a failure, but they want to keep the endpoint. */
+		rotate_endpoints(slot->sp);
 	}
 }
 
@@ -631,8 +668,10 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 		sp->thunk
 	)) {
 		remove_endpoint(sp, M_CAST_OFF_CONST(endpoint_t *, const_ep));
+	} else {
+		/* Had a failure, but they want to keep the endpoint. */
+		rotate_endpoints(sp);
 	}
-
 }
 
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -935,24 +974,41 @@ static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_
 	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
 		ep = M_list_at(sp->endpoints, i);
 
-		if (ep->is_removed)
-			continue;
+		if (!ep->is_removed)
+			break;
 
-		if (ep->slot_available > 0) {
-			slate_msg_insert(sp, ep, msg, num_tries, headers);
-		}
+		ep = NULL;
+	}
+
+	if (ep && ep->slot_available > 0) {
+		slate_msg_insert(sp, ep, msg, num_tries, headers);
 	}
 }
 
 static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	const endpoint_t *ep = NULL;
-	ep = M_list_at(sp->endpoints, sp->round_robin_idx);
-	slate_msg_insert(sp, ep, msg, num_tries, headers);
-	do {
-		sp->round_robin_idx = (sp->round_robin_idx + 1) % M_list_len(sp->endpoints);
-		ep = M_list_at(sp->endpoints, sp->round_robin_idx);
-	} while(ep->is_removed);
+	const endpoint_t *ep  = NULL;
+	size_t            idx = 0;
+	size_t            len = M_list_len(sp->endpoints);
+
+	for (size_t i = 0; i < len; i++) {
+		idx = (sp->round_robin_idx + i) % len;
+		ep = M_list_at(sp->endpoints, idx);
+		if (ep->is_removed) {
+			ep = NULL;
+			continue;
+		}
+		if (ep->slot_available > 0)
+			break;
+	}
+
+	if (ep) {
+		slate_msg_insert(sp, ep, msg, num_tries, headers);
+		if (idx == sp->round_robin_idx) {
+			sp->round_robin_idx = (idx + 1) % len;
+			round_robin_skip_removed(sp);
+		}
+	}
 }
 
 static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
