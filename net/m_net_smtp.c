@@ -102,52 +102,37 @@ static int  process_external_queue_num(M_net_smtp_t *sp);
 
 static M_bool is_running(M_net_smtp_t *sp)
 {
-	return (
-		sp->status == M_NET_SMTP_STATUS_PROCESSING ||
-		sp->status == M_NET_SMTP_STATUS_IDLE
-	);
+	return sp->status == M_NET_SMTP_STATUS_PROCESSING || sp->status == M_NET_SMTP_STATUS_IDLE;
 }
 
 static M_bool is_pending(M_net_smtp_t *sp)
 {
-	if (M_list_len(sp->retry_queue) > 0)
-		return M_TRUE;
-
-	if (sp->is_external_queue_enabled) {
+	if (sp->is_external_queue_enabled)
 		return sp->is_external_queue_pending;
-	}
-	return (M_list_str_len(sp->internal_queue) > 0);
+
+	return M_list_len(sp->retry_queue) > 0 || M_list_str_len(sp->internal_queue) > 0;
 }
 
 static M_bool is_available_failover(M_net_smtp_t *sp)
 {
-	const endpoint_t *ep = NULL;
 	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
-		ep = M_list_at(sp->endpoints, i);
-
+		const endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed)
-			break;
-
-		ep = NULL;
+			return ep->slot_available > 0;
 	}
-
-	return ep != NULL && ep->slot_available > 0;
+	return M_FALSE;
 }
 
 static M_bool is_available_round_robin(M_net_smtp_t *sp)
 {
-	size_t            len = M_list_len(sp->endpoints);
-	const endpoint_t *ep  = NULL;
+	size_t len = M_list_len(sp->endpoints);
 
 	for (size_t i = 0; i < len; i++) {
-		size_t idx = (sp->round_robin_idx + i) % len;
-		ep = M_list_at(sp->endpoints, idx);
-		if (ep->is_removed)
-			continue;
-		if (ep->slot_available > 0)
+		size_t            idx = (sp->round_robin_idx + i) % len;
+		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
+		if (!ep->is_removed && ep->slot_available > 0)
 			return M_TRUE;
 	}
-
 	return M_FALSE;
 }
 
@@ -213,6 +198,8 @@ static M_bool nop_iocreate_cb(M_io_t *a, char *b, size_t c, void *d)
 	(void)a; (void)b; (void)c; (void)d;
 	return M_TRUE; /* Goal was achieved! */
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks *cbs, void *thunk)
 {
@@ -309,7 +296,8 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 	M_list_remove_val(sp->retry_timeout_queue, retry, M_LIST_MATCH_PTR);
 	M_list_insert(sp->retry_queue, retry);
-	process_queue_queue(sp);
+	if (sp->status == M_NET_SMTP_STATUS_IDLE)
+		process_queue_queue(sp);
 }
 
 static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *headers, M_bool is_backout, size_t num_tries, const char* errmsg)
@@ -331,7 +319,18 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 	}
 
 	if (is_backout) {
-		M_list_str_insert(sp->internal_queue, msg);
+		if (num_tries == 1) {
+			M_list_str_insert(sp->internal_queue, msg);
+		} else {
+			/* need to keep track of num_tries */
+			retry = M_malloc_zero(sizeof(*retry));
+			retry->sp = sp;
+			retry->msg = M_strdup(msg);
+			retry->number_of_tries = num_tries - 1;
+			retry->headers = M_hash_dict_duplicate(headers);
+			retry->event_timer = NULL;
+			M_list_insert(sp->retry_queue, retry);
+		}
 		return;
 	}
 
@@ -385,16 +384,15 @@ static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_don
 
 static void round_robin_skip_removed(M_net_smtp_t *sp)
 {
-	size_t            len = M_list_len(sp->endpoints);;
-	const endpoint_t *ep;
-	size_t            idx;
+	size_t len = M_list_len(sp->endpoints);
+
 	for (size_t i = 0; i < len; i++) {
-		idx = (sp->round_robin_idx + i) % len;
-		ep = M_list_at(sp->endpoints, idx);
-		if (!ep->is_removed) {
-			sp->round_robin_idx = idx;
-			return;
-		}
+		size_t            idx = (sp->round_robin_idx + i) % len;
+		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
+		if (ep->is_removed)
+			continue;
+		sp->round_robin_idx = idx;
+		break;
 	}
 }
 
@@ -970,43 +968,31 @@ fail:
 
 static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	const endpoint_t *ep = NULL;
 	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
-		ep = M_list_at(sp->endpoints, i);
-
-		if (!ep->is_removed)
+		const endpoint_t *ep = M_list_at(sp->endpoints, i);
+		if (!ep->is_removed) {
+			if (ep->slot_available > 0)
+				slate_msg_insert(sp, ep, msg, num_tries, headers);
 			break;
-
-		ep = NULL;
-	}
-
-	if (ep && ep->slot_available > 0) {
-		slate_msg_insert(sp, ep, msg, num_tries, headers);
+		}
 	}
 }
 
 static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	const endpoint_t *ep  = NULL;
-	size_t            idx = 0;
-	size_t            len = M_list_len(sp->endpoints);
+	size_t len = M_list_len(sp->endpoints);
 
 	for (size_t i = 0; i < len; i++) {
-		idx = (sp->round_robin_idx + i) % len;
-		ep = M_list_at(sp->endpoints, idx);
-		if (ep->is_removed) {
-			ep = NULL;
-			continue;
-		}
-		if (ep->slot_available > 0)
-			break;
-	}
+		size_t            idx = (sp->round_robin_idx + i) % len;
+		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 
-	if (ep) {
-		slate_msg_insert(sp, ep, msg, num_tries, headers);
-		if (idx == sp->round_robin_idx) {
-			sp->round_robin_idx = (idx + 1) % len;
-			round_robin_skip_removed(sp);
+		if (!ep->is_removed && ep->slot_available > 0) {
+			slate_msg_insert(sp, ep, msg, num_tries, headers);
+			if (idx == sp->round_robin_idx) {
+				sp->round_robin_idx = (idx + 1) % len;
+				round_robin_skip_removed(sp);
+			}
+			return;
 		}
 	}
 }
@@ -1016,7 +1002,9 @@ static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 	M_hash_dict_t   *headers = NULL;
 
 	if (M_email_simple_split_header_body(msg, &headers, NULL) != M_EMAIL_ERROR_SUCCESS) {
-		sp->cbs.send_failed_cb(headers, msg, 0, M_FALSE, sp->thunk);
+		M_bool is_retrying = M_FALSE;
+		num_tries = sp->is_external_queue_enabled ? 0 : 1;
+		sp->cbs.send_failed_cb(headers, msg, num_tries, is_retrying, sp->thunk);
 		return;
 	}
 
@@ -1032,31 +1020,12 @@ static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 }
 
 
-static void process_internal_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
-{
-	M_net_smtp_t *sp  = cb_arg;
-	char         *msg = NULL;
-
-	/* This is an internally sent event; don't need these: */
-	(void)event;
-	(void)io;
-	(void)type;
-
-	while (is_available(sp)) {
-		msg = M_list_str_take_first(sp->internal_queue);
-		if (msg == NULL)
-			return;
-		slate_msg(sp, msg, 0);
-	}
-}
-
 static int process_external_queue_num(M_net_smtp_t *sp)
 {
-	char *msg = NULL;
-	int   n   = 0;
+	int n = 0;
 
 	while (is_available(sp)) {
-		msg = sp->external_queue_get_cb();
+		char *msg = sp->external_queue_get_cb();
 		if (msg == NULL) {
 			sp->is_external_queue_pending = M_FALSE;
 			return n;
@@ -1077,51 +1046,45 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 	process_external_queue_num(cb_arg);
 }
 
-static void process_retry_queue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
+static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
 	M_net_smtp_t *sp    = cb_arg;
-	retry_msg_t  *retry = NULL;
 
-	/* This is an internally sent event; don't need these: */
 	(void)event;
 	(void)io;
 	(void)type;
 
 	while (is_available(sp)) {
-		retry = M_list_take_first(sp->retry_queue);
-		if (retry == NULL) {
-			if (sp->is_external_queue_enabled) {
-				process_external_queue(event, type, io, cb_arg);
-			} else {
-				process_internal_queue(event, type, io, cb_arg);
-			}
-			return;
+		retry_msg_t *retry = M_list_take_first(sp->retry_queue);
+		char        *msg   = NULL;
+		if (retry != NULL) {
+			slate_msg(sp, retry->msg, retry->number_of_tries);
+			M_free(retry);
+			continue;
 		}
-		slate_msg(sp, retry->msg, retry->number_of_tries);
-		M_free(retry);
+		msg = M_list_str_take_first(sp->internal_queue);
+		if (msg != NULL) {
+			slate_msg(sp, msg, 0);
+			continue;
+		}
+		break;
 	}
 }
 
 static M_bool idle_check_endpoint(const endpoint_t *ep)
 {
-	const M_net_smtp_endpoint_slot_t *slot = NULL;
 	for (size_t i = 0; i < ep->slot_count; i++) {
-		slot = &ep->slots[i];
-		if (slot->msg != NULL) {
+		if (ep->slots[i].msg != NULL)
 			return M_FALSE;
-		}
 	}
 	return M_TRUE;
 }
 
 static M_bool idle_check(M_net_smtp_t *sp)
 {
-	const endpoint_t *ep = NULL;
 	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
-		ep = M_list_at(sp->endpoints, i);
-		if (idle_check_endpoint(ep) == M_FALSE) {
+		if (idle_check_endpoint(M_list_at(sp->endpoints, i)) == M_FALSE)
 			return M_FALSE;
-		}
 	}
 	return M_TRUE;
 }
@@ -1175,12 +1138,11 @@ static void processing_halted(M_net_smtp_t *sp)
 static void process_queue_queue(M_net_smtp_t *sp)
 {
 	if (is_running(sp) && is_pending(sp)) {
-		if (M_list_len(sp->retry_queue) > 0) {
-			M_event_queue_task(sp->el, process_retry_queue, sp);
-		} else if (sp->is_external_queue_enabled) {
+		sp->status = M_NET_SMTP_STATUS_PROCESSING;
+		if (sp->is_external_queue_enabled) {
 			M_event_queue_task(sp->el, process_external_queue, sp);
 		} else {
-			M_event_queue_task(sp->el, process_internal_queue, sp);
+			M_event_queue_task(sp->el, process_internal_queues, sp);
 		}
 	} else if (idle_check(sp)) {
 		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
@@ -1441,10 +1403,9 @@ M_bool M_net_smtp_queue_message(M_net_smtp_t *sp, const char *msg)
 	if (!M_list_str_insert(sp->internal_queue, msg))
 		return M_FALSE;
 
-	if (sp->status == M_NET_SMTP_STATUS_IDLE) {
-		sp->status = M_NET_SMTP_STATUS_PROCESSING;
-		M_event_queue_task(sp->el, process_internal_queue, sp);
-	}
+	if (sp->status == M_NET_SMTP_STATUS_IDLE)
+		process_queue_queue(sp);
+
 	return M_TRUE;
 }
 
@@ -1464,8 +1425,6 @@ M_bool M_net_smtp_use_external_queue(M_net_smtp_t *sp, char *(*get_cb)(void))
 void M_net_smtp_external_queue_have_messages(M_net_smtp_t *sp)
 {
 	sp->is_external_queue_pending = M_TRUE;
-	if (sp->status == M_NET_SMTP_STATUS_IDLE) {
-		sp->status = M_NET_SMTP_STATUS_PROCESSING;
-		M_event_queue_task(sp->el, process_external_queue, sp);
-	}
+	if (sp->status == M_NET_SMTP_STATUS_IDLE)
+		process_queue_queue(sp);
 }
