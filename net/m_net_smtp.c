@@ -478,9 +478,8 @@ static void clean_slot_no_process_queue_queue(M_net_smtp_endpoint_slot_t *slot)
 	ep->slot_available++;
 }
 
-static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
+static void continue_processing_after_slot_finish(M_net_smtp_endpoint_slot_t *slot)
 {
-	clean_slot_no_process_queue_queue(slot);
 	if (!slot->sp->is_external_queue_enabled) {
 		process_queue_queue(slot->sp);
 		return;
@@ -490,10 +489,14 @@ static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 		process_queue_queue(slot->sp);
 }
 
+static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
+{
+	clean_slot_no_process_queue_queue(slot);
+	continue_processing_after_slot_finish(slot);
+}
+
 static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	M_net_smtp_t *sp = slot->sp;
-
 	clean_slot_no_process_queue_queue(slot);
 	M_event_timer_remove(slot->event_timer);
 	slot->event_timer = NULL;
@@ -504,13 +507,7 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
 	slot->is_alive = M_FALSE;
-	if (!slot->sp->is_external_queue_enabled) {
-		process_queue_queue(slot->sp);
-		return;
-	}
-	/* eager eval external queue to determine IDLE */
-	if (process_external_queue_num(slot->sp) == 0)
-		process_queue_queue(sp);
+	continue_processing_after_slot_finish(slot);
 }
 
 static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
@@ -1005,6 +1002,7 @@ static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
 		M_bool is_retrying = M_FALSE;
 		num_tries = sp->is_external_queue_enabled ? 0 : 1;
 		sp->cbs.send_failed_cb(headers, msg, num_tries, is_retrying, sp->thunk);
+		process_queue_queue(sp); /* Check for IDLE */
 		return;
 	}
 

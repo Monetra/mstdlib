@@ -32,6 +32,7 @@ typedef enum {
 	PROC_NOT_FOUND          = 14,
 	HALT_RESTART            = 15,
 	EXTERNAL_QUEUE          = 16,
+	JUNK_MSG                = 17,
 } test_id_t;
 
 
@@ -527,6 +528,10 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	if (args->test_id == DOT_MSG) {
 		M_event_done(args->el);
 	}
+	if (args->test_id == JUNK_MSG) {
+		args->is_success = (can_requeue == M_FALSE);
+		M_event_done(args->el);
+	}
 	return M_FALSE; /* should msg be requeued? */
 }
 
@@ -574,6 +579,30 @@ static char * test_external_queue_get_cb()
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(junk_msg)
+{
+	args_t args = { 0 };
+	args.test_id = JUNK_MSG;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+
+	M_net_smtp_queue_message(sp, "junk");
+
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.send_failed_cb_call_count == 1, "should have failed to sent 1 message");
+	ck_assert_msg(args.is_success, "shouldn't allow retry");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
+
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
 START_TEST(external_queue)
 {
 	args_t args = { 0 };
@@ -1173,6 +1202,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("external queue");
 	tcase_add_test(tc, external_queue);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("junk msg");
+	tcase_add_test(tc, junk_msg);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
