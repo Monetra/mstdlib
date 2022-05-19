@@ -45,6 +45,7 @@ struct M_net_smtp {
 	size_t                             max_number_of_attempts;
 	M_list_t                          *timers;
 	M_list_t                          *retry_queue;
+	M_list_t                          *retry_timeout_queue;
 	M_list_str_t                      *internal_queue;
 	M_bool                             is_external_queue_enabled;
 	M_bool                             is_external_queue_pending;
@@ -210,11 +211,12 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	if (el == NULL)
 		return NULL;
 
-	sp                 = M_malloc_zero(sizeof(*sp));
-	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
-	sp->endpoints      = M_list_create(NULL, M_LIST_NONE);
-	sp->retry_queue    = M_list_create(NULL, M_LIST_NONE);
-	sp->timers         = M_list_create(NULL, M_LIST_NONE);
+	sp                      = M_malloc_zero(sizeof(*sp));
+	sp->internal_queue      = M_list_str_create(M_LIST_STR_NONE);
+	sp->endpoints           = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_queue         = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_timeout_queue = M_list_create(NULL, M_LIST_NONE);
+	sp->timers              = M_list_create(NULL, M_LIST_NONE);
 
 #define ASSIGN_CB(x) sp->cbs.x = cbs->x ? cbs->x : nop_##x;
 	ASSIGN_CB(connect_cb);
@@ -245,6 +247,7 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 {
 	endpoint_t      *ep    = NULL;
 	M_event_timer_t *timer = NULL;
+	retry_msg_t     *retry = NULL;
 
 	if (sp == NULL)
 		return;
@@ -257,7 +260,15 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		M_event_timer_remove(timer);
 	}
 	M_list_destroy(sp->timers, M_TRUE);
+	while (
+		(retry = M_list_take_last(sp->retry_queue))         != NULL ||
+		(retry = M_list_take_last(sp->retry_timeout_queue)) != NULL
+	) {
+		M_free(retry->msg);
+		M_free(retry);
+	}
 	M_list_destroy(sp->retry_queue, M_TRUE);
+	M_list_destroy(sp->retry_timeout_queue, M_TRUE);
 	M_list_str_destroy(sp->internal_queue);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
 	M_free(sp);
@@ -275,17 +286,6 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 	}
 }
 
-static M_bool remove_timer(M_net_smtp_t *sp, M_event_timer_t *timer)
-{
-	for (size_t i = 0; i < M_list_len(sp->timers); i++) {
-		if (timer == M_list_at(sp->timers, i)) {
-			M_list_remove_at(sp->timers, i);
-			return M_TRUE;
-		}
-	}
-	return M_FALSE;
-}
-
 static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	retry_msg_t  *retry = thunk;
@@ -294,9 +294,10 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	(void)io;
 	(void)etype;
 
-	remove_timer(sp, retry->event_timer);
+	M_list_remove_val(sp->timers, retry->event_timer, M_LIST_MATCH_PTR);
 	retry->event_timer = NULL;
 
+	M_list_remove_val(sp->retry_timeout_queue, retry, M_LIST_MATCH_PTR);
 	M_list_insert(sp->retry_queue, retry);
 	process_queue_queue(sp);
 }
@@ -309,9 +310,12 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 	M_net_smtp_reschedule_cb   reschedule_cb  = sp->cbs.reschedule_cb;
 
 	if (sp->is_external_queue_enabled) {
-		reschedule_cb(msg, sp->retry_default_ms, sp->thunk);
-		if (is_backout)
+		if (is_backout) {
+			/* Can retry immediately - the failure was with the endpoint */
+			reschedule_cb(msg, 0, sp->thunk);
 			return;
+		}
+		reschedule_cb(msg, sp->retry_default_ms, sp->thunk);
 		send_failed_cb(headers, errmsg, 0, M_FALSE, sp->thunk);
 		return;
 	}
@@ -335,6 +339,7 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 		retry->headers = M_hash_dict_duplicate(headers);
 		retry->event_timer = M_event_timer_oneshot(sp->el, sp->retry_default_ms, M_TRUE,
 				reschedule_event_cb, retry);
+		M_list_insert(sp->retry_timeout_queue, retry);
 		M_list_insert(sp->timers, retry->event_timer);
 	}
 }
@@ -1052,7 +1057,7 @@ static void restart_processing_cb(M_event_t *el, M_event_type_t etype, M_io_t *i
 	(void)etype;
 	(void)io;
 
-	remove_timer(sp, sp->restart_processing_timer);
+	M_list_remove_val(sp->timers, sp->restart_processing_timer, M_LIST_MATCH_PTR);
 	sp->restart_processing_timer = NULL;
 
 	M_net_smtp_resume(sp);
@@ -1213,6 +1218,9 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (connect_tls && sp->tcp_tls_ctx == NULL)
 		return M_FALSE;
 
+	if (port == 0)
+		port = 25;
+
 	total_size = sizeof(*ep) + sizeof(ep->slots[0]) * max_conns;
 
 	ep                      = M_malloc_zero(total_size);
@@ -1256,15 +1264,18 @@ M_bool M_net_smtp_add_endpoint_process(
 	endpoint_t *ep         = NULL;
 	size_t      total_size;
 
-	if (sp == NULL || max_processes == 0)
+	if (sp == NULL || command == NULL)
 		return M_FALSE;
+
+	if (max_processes == 0)
+		max_processes = 1;
 
 	total_size = sizeof(*ep) + sizeof(ep->slots[0]) * max_processes;
 
 	ep                        = M_malloc_zero(total_size);
 	ep->process.command       = M_strdup(command);
 	ep->process.args          = M_list_str_duplicate(args);
-	ep->process.env           = env ? M_hash_dict_duplicate(env) : NULL;
+	ep->process.env           = M_hash_dict_duplicate(env);
 	ep->type                  = M_NET_SMTP_EPTYPE_PROCESS;
 	ep->slot_count            = max_processes;
 	ep->slot_available        = max_processes;
@@ -1302,6 +1313,7 @@ M_list_str_t *M_net_smtp_dump_queue(M_net_smtp_t *sp)
 {
 	M_list_str_t *list;
 	char         *msg;
+	retry_msg_t  *retry;
 
 	if (sp == NULL)
 		return NULL;
@@ -1310,12 +1322,23 @@ M_list_str_t *M_net_smtp_dump_queue(M_net_smtp_t *sp)
 		list = M_list_str_create(M_LIST_STR_NONE);
 		while ((msg = sp->external_queue_get_cb()) != NULL) {
 			M_list_str_insert(list, msg);
+			M_free(msg);
 		}
 		return list;
 	}
 
 	list = sp->internal_queue;
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
+
+	while (
+		(retry = M_list_take_first(sp->retry_queue))         != NULL ||
+		(retry = M_list_take_first(sp->retry_timeout_queue)) != NULL
+	) {
+		M_list_str_insert(list, retry->msg);
+		M_free(retry->msg);
+		M_free(retry);
+	}
+
 	return list;
 }
 
@@ -1351,10 +1374,10 @@ M_bool M_net_smtp_queue_message(M_net_smtp_t *sp, const char *msg)
 
 M_bool M_net_smtp_use_external_queue(M_net_smtp_t *sp, char *(*get_cb)(void))
 {
-	if (sp == NULL || get_cb == NULL || is_pending(sp) || M_list_len(sp->timers) > 1)
+	if (sp == NULL || get_cb == NULL)
 		return M_FALSE;
 
-	if (M_list_len(sp->timers) == 1 && sp->restart_processing_timer == NULL)
+	if (is_pending(sp) || M_list_len(sp->retry_timeout_queue) != 0)
 		return M_FALSE;
 
 	sp->is_external_queue_enabled = M_TRUE;
