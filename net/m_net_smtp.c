@@ -315,7 +315,7 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 			reschedule_cb(msg, 0, sp->thunk);
 			return;
 		}
-		reschedule_cb(msg, sp->retry_default_ms, sp->thunk);
+		reschedule_cb(msg, (sp->retry_default_ms / 1000), sp->thunk); /* reschedule_cb arg is wait_sec */
 		send_failed_cb(headers, errmsg, 0, M_FALSE, sp->thunk);
 		return;
 	}
