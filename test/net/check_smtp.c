@@ -33,6 +33,7 @@ typedef enum {
 	HALT_RESTART            = 15,
 	EXTERNAL_QUEUE          = 16,
 	JUNK_MSG                = 17,
+	DUMP_QUEUE              = 18,
 } test_id_t;
 
 
@@ -579,6 +580,32 @@ static char * test_external_queue_get_cb()
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+START_TEST(dump_queue)
+{
+	args_t args = { 0 };
+	args.test_id = DUMP_QUEUE;
+
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_list_str_t      *list        = NULL;
+
+	M_net_smtp_queue_message(sp, "junk");
+	list = M_net_smtp_dump_queue(sp);
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 10);
+
+	ck_assert_msg(args.sent_cb_call_count == 0, "shouldn't have sent anything");
+	ck_assert_msg(args.send_failed_cb_call_count == 0, "shouldn't have sent anything");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
+
+	M_list_str_destroy(list);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+}
+END_TEST
 START_TEST(junk_msg)
 {
 	args_t args = { 0 };
@@ -1207,6 +1234,11 @@ static Suite *smtp_suite(void)
 
 	tc = tcase_create("junk msg");
 	tcase_add_test(tc, junk_msg);
+	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+
+	tc = tcase_create("dump queue");
+	tcase_add_test(tc, dump_queue);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 
