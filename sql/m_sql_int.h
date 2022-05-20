@@ -143,10 +143,10 @@ M_sql_stmt_t *M_sql_connpool_get_groupinsert(M_sql_connpool_t *pool, const char 
  */
 void M_sql_connpool_set_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt);
 
-/*! Remove the statement handle from the pool as it is about to be execute.
- *  \note the statement handle MUST be LOCKED on entry, it will be returned LOCKED.
+/*! Close out the group stmt.  Neither the pool nor group stmt lock are allowed to be held prior to calling this.
+ *  Upon return, no locks will be held.
  */
-void M_sql_connpool_remove_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt);
+void M_sql_connpool_close_groupinsert(M_sql_connpool_t *pool, M_sql_stmt_t *stmt);
 
 /* ----- Statement Info ------ */
 
