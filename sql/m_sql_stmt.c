@@ -404,9 +404,11 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 
 	/* If doing a group insert, handle this scenario */
 	if (stmt->group_lock) {
-		/* Caught attempted re-run of stmt */
+		/* Caught attempted re-run of stmt.  There is no way we are holding a lock here. */
 		if (stmt->group_state != M_SQL_GROUPINSERT_NEW)
 			return M_SQL_ERROR_INVALID_USE;
+
+		/* We are guaranteed to have the group_lock held here */
 
 		/* If the group_cnt is not 1 when we get here, we're a subsequent
 		 * thread, so we just need to wait on a signal from a conditional
@@ -452,11 +454,8 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 
 			/* We have acquired a connection, time to close off the ability to
 			 * add more rows */
-			if (stmt->group_lock && stmt->group_state == M_SQL_GROUPINSERT_NEW) {
-				M_thread_mutex_lock(stmt->group_lock);
-				M_sql_connpool_remove_groupinsert(pool, stmt->query_user, stmt);
-				stmt->group_state = M_SQL_GROUPINSERT_PENDING;
-				/* Statement handle is still locked */
+			if (stmt->group_lock) {
+				M_sql_connpool_close_groupinsert(pool, stmt);
 			}
 
 		} else {
@@ -528,7 +527,12 @@ done:
 	/* Group insert, time to let the other waiters know they can process the
 	 * result */
 	if (stmt->group_lock) {
-		/* We're still holding a lock */
+		/* If there was some fatal error early on, its possible the group insert
+		 * didn't get closed out.  Close it out now */
+		M_sql_connpool_close_groupinsert(pool, stmt);
+
+		/* Signal threads to read the result */
+		M_thread_mutex_lock(stmt->group_lock);
 		stmt->group_state = M_SQL_GROUPINSERT_FINISHED;
 		M_thread_cond_broadcast(stmt->group_cond);
 		M_thread_mutex_unlock(stmt->group_lock);
