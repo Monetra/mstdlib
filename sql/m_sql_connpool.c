@@ -1519,22 +1519,25 @@ void M_sql_connpool_set_groupinsert(M_sql_connpool_t *pool, const char *query, M
 }
 
 
-
-void M_sql_connpool_remove_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt)
+void M_sql_connpool_close_groupinsert(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 {
-	if (pool == NULL || M_str_isempty(query) || stmt == NULL)
+	if (pool == NULL || stmt == NULL)
 		return;
 
-	/* Lock order is pool->stmt, so we must unlock the statement to lock the pool before
-	 * we can remove the entry */
-	M_thread_mutex_unlock(stmt->group_lock);
-
+	/* Require lock order is pool->lock, stmt->group_lock */
 	M_thread_mutex_lock(pool->lock);
-	M_hash_strvp_remove(pool->group_insert, query, M_TRUE);
-
-	/* Re-lock the statement handle so we can execute */
 	M_thread_mutex_lock(stmt->group_lock);
 
-	/* Release the pool lock since we always wanted the lock order to be pool->stmt */
+	/* Must be a retry, no need to do anything */
+	if (stmt->group_state != M_SQL_GROUPINSERT_NEW) {
+		goto done;
+	}
+
+	stmt->group_state = M_SQL_GROUPINSERT_PENDING;
+	M_hash_strvp_remove(pool->group_insert, stmt->query_user, M_TRUE);
+
+done:
+	M_thread_mutex_unlock(stmt->group_lock);
 	M_thread_mutex_unlock(pool->lock);
 }
+
