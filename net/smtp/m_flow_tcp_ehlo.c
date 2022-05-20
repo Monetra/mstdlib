@@ -37,11 +37,38 @@ static M_state_machine_status_t M_state_ehlo(void *data, M_uint64 *next)
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
+static void determine_auth_method(const char *line, M_net_smtp_endpoint_slot_t *slot)
+{
+	char   **methods;
+	size_t  *method_lens;
+	size_t  n;
+	size_t  i;
+	size_t  j;
+	size_t  found_priority = 0;
+
+	methods = M_str_explode(' ', line, M_str_len(line), &n, &method_lens);
+	for (i = 0; i < n; i++) {
+		/* Only need to look for higher priority methods */
+		for (j = found_priority + 1; j < M_net_smtp_auth_search_len; j++) {
+			if (M_str_eq(methods[i], M_net_smtp_auth_search[j].str)) {
+				slot->tcp.smtp_authtype = M_net_smtp_auth_search[j].type;
+				found_priority = j;
+				break;
+			}
+		}
+		if (found_priority + 1 == M_net_smtp_auth_search_len)
+			break; /* The best */
+	}
+	M_str_explode_free(methods, n);
+	M_free(method_lens);
+}
+
 static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot           = data;
 	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	size_t                      i;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
@@ -58,37 +85,22 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 
 	slot->tcp.is_starttls_capable = M_FALSE;
 	slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
-	for (size_t i = 0; i < M_list_str_len(slot->tcp.smtp_response); i++) {
+	for (i = 0; i < M_list_str_len(slot->tcp.smtp_response); i++) {
 		const char *ehlo_line = M_list_str_at(slot->tcp.smtp_response, i);
-		if (M_str_casecmpsort_max("STARTTLS", &ehlo_line[4], 8) == 0) {
+		if (M_str_caseeq_max("STARTTLS", ehlo_line, 8)) {
 			slot->tcp.is_starttls_capable = M_TRUE;
 			continue;
 		}
-		if (M_str_casecmpsort_max("AUTH ", &ehlo_line[4], 5) == 0) {
-			do {
-				if (M_str_casestr(ehlo_line, "CRAM-MD5") != NULL) {
-					slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_CRAM_MD5;
-					break;
-				}
-				if (M_str_casestr(ehlo_line, "PLAIN") != NULL) {
-					slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_PLAIN;
-					break;
-				}
-				if (M_str_casestr(ehlo_line, "LOGIN") != NULL) {
-					slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_LOGIN;
-					break;
-				}
-			} while(0);
+		if (M_str_caseeq_max("AUTH ", ehlo_line, 5) == 0) {
+			/* "AUTH " not "AUTH=" */
+			determine_auth_method(ehlo_line, slot);
 			continue;
 		}
 	}
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
-	M_list_str_destroy(slot->tcp.smtp_response);
-	slot->tcp.smtp_response = NULL;
-	slot->tcp.smtp_response_code = 0;
-	return machine_status;
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_ehlo()

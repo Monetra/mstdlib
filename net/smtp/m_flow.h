@@ -49,6 +49,21 @@ typedef enum {
 	M_NET_SMTP_AUTHTYPE_CRAM_MD5,
 } M_net_smtp_authtype_t;
 
+typedef struct {
+	const char            *str;
+	M_net_smtp_authtype_t  type;
+	size_t                 priority;
+} M_net_smtp_auth_search_t;
+
+static const M_net_smtp_auth_search_t M_net_smtp_auth_search[] =
+{
+	{ .priority = 0, .str = "NONE" ,    .type = M_NET_SMTP_AUTHTYPE_NONE     },
+	{ .priority = 1, .str = "LOGIN",    .type = M_NET_SMTP_AUTHTYPE_LOGIN    },
+	{ .priority = 2, .str = "PLAIN",    .type = M_NET_SMTP_AUTHTYPE_PLAIN    },
+	{ .priority = 3, .str = "CRAM-MD5", .type = M_NET_SMTP_AUTHTYPE_CRAM_MD5 },
+};
+static const size_t M_net_smtp_auth_search_len = sizeof(M_net_smtp_auth_search) / sizeof(M_net_smtp_auth_search[0]);
+
 #define M_NET_SMTP_CONNECTION_MASK_NONE      (0u)
 #define M_NET_SMTP_CONNECTION_MASK_IO        (1u << 0u)
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDIN  (1u << 1u)

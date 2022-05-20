@@ -62,14 +62,15 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
 		line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %llu: %s",
+				slot->tcp.smtp_response_code, line);
 		goto done;
 	}
 
 	if (!M_str_caseeq(slot->tcp.address, "localhost")) {
 		line = M_list_str_first(slot->tcp.smtp_response);
-		if (M_str_casecmpsort_max(slot->tcp.address, &line[4], slot->tcp.address_len) != 0) {
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->tcp.address, &line[4]);
+		if (!M_str_caseeq_max(slot->tcp.address, line, slot->tcp.address_len)) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->tcp.address, line);
 			goto done;
 		}
 	}
@@ -170,22 +171,23 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 	const char *group;
 	const char *name;
 	const char *address;
+	size_t      i;
 	(void)status;
 	(void)next;
 
 	slot->tcp.rcpt_to = M_list_str_create(M_LIST_STR_NONE);
 
-	for (size_t i = 0; i < M_email_to_len(slot->email); i++) {
+	for (i = 0; i < M_email_to_len(slot->email); i++) {
 		M_email_to(slot->email, i, &group, &name, &address);
 		M_list_str_insert(slot->tcp.rcpt_to, address);
 	}
 
-	for (size_t i = 0; i < M_email_cc_len(slot->email); i++) {
+	for (i = 0; i < M_email_cc_len(slot->email); i++) {
 		M_email_cc(slot->email, i, &group, &name, &address);
 		M_list_str_insert(slot->tcp.rcpt_to, address);
 	}
 
-	for (size_t i = 0; i < M_email_bcc_len(slot->email); i++) {
+	for (i = 0; i < M_email_bcc_len(slot->email); i++) {
 		M_email_bcc(slot->email, i, &group, &name, &address);
 		M_list_str_insert(slot->tcp.rcpt_to, address);
 	}
@@ -215,6 +217,14 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 
 static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *next)
 {
+
+	/* Initially entering this state slot->is_failure will be false (it succeeded) from the previous
+		* state.  Any state machine errors will cause the state machine to error out and the connection will
+		* be closed and restarted.  An idle timeout can cause the is_QUIT_enabled to be set after first entering
+		* this state.  Once the slot has had the old message cleaned out and a new message inserted it will set
+		* the is_failure state to TRUE.  Messages are assumed to be failures until they prove success.
+		*/
+
 	M_net_smtp_endpoint_slot_t *slot = data;
 	if (slot->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;

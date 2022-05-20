@@ -60,7 +60,8 @@ static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
 
 	if (slot->tcp.smtp_response_code != 250) {
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 mail-from response, got: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 mail-from response, got: %llu: %s",
+				slot->tcp.smtp_response_code, line);
 		goto done;
 	}
 	*next = STATE_RCPT_TO;
@@ -100,7 +101,8 @@ static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 
 	if (slot->tcp.smtp_response_code != 250) {
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 rcpt-to response, got: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 rcpt-to response, got: %llu: %s",
+				slot->tcp.smtp_response_code, line);
 		goto done;
 	}
 
@@ -136,7 +138,8 @@ static M_state_machine_status_t M_data_response_post_cb(void *data,
 
 	if (slot->tcp.smtp_response_code != 354) {
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 354 data response, got: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 354 data response, got: %llu: %s",
+				slot->tcp.smtp_response_code, line);
 		goto done;
 	}
 
@@ -185,7 +188,8 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 
 	if (slot->tcp.smtp_response_code != 250) {
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %llu: %s",
+				slot->tcp.smtp_response_code, line);
 		goto done;
 	}
 

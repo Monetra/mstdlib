@@ -115,7 +115,8 @@ static M_bool is_pending(M_net_smtp_t *sp)
 
 static M_bool is_available_failover(M_net_smtp_t *sp)
 {
-	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
+	size_t i;
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		const endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed)
 			return ep->slot_available > 0;
@@ -125,9 +126,10 @@ static M_bool is_available_failover(M_net_smtp_t *sp)
 
 static M_bool is_available_round_robin(M_net_smtp_t *sp)
 {
+	size_t i;
 	size_t len = M_list_len(sp->endpoints);
 
-	for (size_t i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		size_t            idx = (sp->round_robin_idx + i) % len;
 		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 		if (!ep->is_removed && ep->slot_available > 0)
@@ -385,9 +387,10 @@ static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_don
 
 static void round_robin_skip_removed(M_net_smtp_t *sp)
 {
+	size_t i;
 	size_t len = M_list_len(sp->endpoints);
 
-	for (size_t i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		size_t            idx = (sp->round_robin_idx + i) % len;
 		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 		if (ep->is_removed)
@@ -399,11 +402,12 @@ static void round_robin_skip_removed(M_net_smtp_t *sp)
 
 static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
 {
+	size_t            i;
 	M_bool            is_all_endpoints_removed = M_TRUE;
 	const endpoint_t *const_ep                 = NULL;
 
 	ep->is_removed = M_TRUE;
-	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		const_ep = M_list_at(sp->endpoints, i);
 		if (const_ep->is_removed == M_FALSE) {
 			is_all_endpoints_removed = M_FALSE;
@@ -926,13 +930,14 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 	M_net_smtp_endpoint_slot_t *slot         = NULL;
 	M_email_t                  *e            = NULL;
 	M_bool                      is_bootstrap = M_FALSE;
+	size_t                      i;
 
 	e = M_email_create();
 
 	if (!M_email_set_headers(e, headers))
 		goto fail;
 
-	for (size_t i = 0; i < ep->slot_count; i++) {
+	for (i = 0; i < ep->slot_count; i++) {
 		slot = &ep->slots[i];
 		slot->endpoint = ep;
 		if (slot->msg == NULL) {
@@ -971,7 +976,8 @@ fail:
 
 static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
+	size_t i;
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		const endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed) {
 			if (ep->slot_available > 0)
@@ -983,9 +989,10 @@ static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_
 
 static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
+	size_t i;
 	size_t len = M_list_len(sp->endpoints);
 
-	for (size_t i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		size_t            idx = (sp->round_robin_idx + i) % len;
 		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 
@@ -1077,7 +1084,8 @@ static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_
 
 static M_bool idle_check_endpoint(const endpoint_t *ep)
 {
-	for (size_t i = 0; i < ep->slot_count; i++) {
+	size_t i;
+	for (i = 0; i < ep->slot_count; i++) {
 		if (ep->slots[i].msg != NULL)
 			return M_FALSE;
 	}
@@ -1086,7 +1094,8 @@ static M_bool idle_check_endpoint(const endpoint_t *ep)
 
 static M_bool idle_check(M_net_smtp_t *sp)
 {
-	for (size_t i = 0; i < M_list_len(sp->endpoints); i++) {
+	size_t i;
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		if (idle_check_endpoint(M_list_at(sp->endpoints, i)) == M_FALSE)
 			return M_FALSE;
 	}
@@ -1106,7 +1115,8 @@ static void restart_processing_cb(M_event_t *el, M_event_type_t etype, M_io_t *i
 
 static void prune_removed_endpoints(M_net_smtp_t *sp)
 {
-	for (size_t i = M_list_len(sp->endpoints); i > 0; i--) {
+	size_t i;
+	for (i = M_list_len(sp->endpoints); i > 0; i--) {
 		const endpoint_t *ep = M_list_at(sp->endpoints, i - 1);
 		if (ep->is_removed) {
 			destroy_endpoint(M_list_take_at(sp->endpoints, i - 1));

@@ -51,8 +51,8 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 		/* Classify as connect failure so endpoint can get removed */
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 auth response, got: %s",
-				M_list_str_last(slot->tcp.smtp_response));
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 auth response, got: %llu: %s",
+				slot->tcp.smtp_response_code, M_list_str_last(slot->tcp.smtp_response));
 		goto done;
 	}
 
