@@ -1485,56 +1485,79 @@ M_uint64 M_sql_rollback_delay_ms(M_sql_connpool_t *pool)
 }
 
 
-M_sql_stmt_t *M_sql_connpool_get_groupinsert(M_sql_connpool_t *pool, const char *query)
+M_sql_stmt_t *M_sql_stmt_groupinsert_prepare(M_sql_connpool_t *pool, const char *query)
 {
 	M_sql_stmt_t *stmt;
 
 	if (pool == NULL || M_str_isempty(query))
 		return NULL;
 
+	/* Hold the pool lock for as short a duration as possible.  Do NOT attempt
+	 * to hold both the pool lock and stmt->group_lock at the same time! */
 	M_thread_mutex_lock(pool->lock);
 	stmt = M_hash_strvp_get_direct(pool->group_insert, query);
 	if (stmt == NULL) {
-		/* Hold lock on pool and return */
-		return NULL;
-	}
+		stmt              = M_sql_stmt_create();
+		M_sql_stmt_prepare(stmt, query);
 
-	/* Get statement handle lock before releasing pool lock */
-	M_thread_mutex_lock(stmt->group_lock);
+		/* Must be initialized after calling prepare() */
+		stmt->group_lock     = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		stmt->group_cnt      = 1;
+		stmt->group_cnt_exec = 0;
+		stmt->group_state    = M_SQL_GROUPINSERT_NEW;
+		stmt->group_cond     = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
+
+		M_hash_strvp_insert(pool->group_insert, query, stmt);
+	} else {
+		stmt->group_cnt++; /* Yes, group_cnt is only protected by the pool! So any time we check this we must lock
+		                    * the pool lock, but if we need the group lock, that must be locked FIRST */
+	}
 	M_thread_mutex_unlock(pool->lock);
+
+	/* It is now safe to grab the group lock.  It will be released upon a call
+	 * to M_sql_stmt_execute() */
+	M_thread_mutex_lock(stmt->group_lock);
+	/* We even call the new row even if this is brand new as someone might have
+	 * gained the lock before us even though we might have been the ones that
+	 * added the group statement! */
+	M_sql_stmt_bind_new_row(stmt);
+
 	return stmt;
 }
 
 
-void M_sql_connpool_set_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt)
+void M_sql_connpool_close_groupinsert(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 {
-	if (pool == NULL || M_str_isempty(query) || stmt == NULL)
+	if (pool == NULL || stmt == NULL)
 		return;
 
-	/* Pool is locked on entry, no need to relock */
-	M_hash_strvp_insert(pool->group_insert, query, stmt);
-
-	/* Unlock pool handle as that is what the docs say to do for this function */
-	M_thread_mutex_unlock(pool->lock);
-}
-
-
-
-void M_sql_connpool_remove_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt)
-{
-	if (pool == NULL || M_str_isempty(query) || stmt == NULL)
-		return;
-
-	/* Lock order is pool->stmt, so we must unlock the statement to lock the pool before
-	 * we can remove the entry */
-	M_thread_mutex_unlock(stmt->group_lock);
-
-	M_thread_mutex_lock(pool->lock);
-	M_hash_strvp_remove(pool->group_insert, query, M_TRUE);
-
-	/* Re-lock the statement handle so we can execute */
+	/* Require lock order is stmt->group_lock, pool->lock (to prevent any pool lock stalls).
+	 * We guarantee any pool locks are short duration, but a group lock may not be so it is
+	 * more likely to be contended. */
 	M_thread_mutex_lock(stmt->group_lock);
+	M_thread_mutex_lock(pool->lock);
 
-	/* Release the pool lock since we always wanted the lock order to be pool->stmt */
+	/* Must be a retry, no need to do anything */
+	if (stmt->group_state != M_SQL_GROUPINSERT_NEW) {
+		goto done;
+	}
+
+	stmt->group_state = M_SQL_GROUPINSERT_PENDING;
+	M_hash_strvp_remove(pool->group_insert, stmt->query_user, M_TRUE);
+
+	/* Catch condition where someone grabbed our pointer from the pool but
+	 * hasn't yet added their entries to the group.  This is a tight loop with
+	 * the thread just giving up their scheduling. */
+	while (stmt->group_cnt != stmt->group_cnt_exec) {
+		M_thread_mutex_unlock(pool->lock);
+		M_thread_mutex_unlock(stmt->group_lock);
+		M_thread_yield(M_TRUE);
+		M_thread_mutex_lock(stmt->group_lock);
+		M_thread_mutex_lock(pool->lock);
+	}
+
+done:
 	M_thread_mutex_unlock(pool->lock);
+	M_thread_mutex_unlock(stmt->group_lock);
 }
+

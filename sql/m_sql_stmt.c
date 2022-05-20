@@ -404,14 +404,17 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 
 	/* If doing a group insert, handle this scenario */
 	if (stmt->group_lock) {
-		/* Caught attempted re-run of stmt */
-		if (stmt->group_state != M_SQL_GROUPINSERT_NEW)
+		/* Caught attempted re-run of stmt.  There is no way we are holding a lock here. */
+		if (stmt->group_state == M_SQL_GROUPINSERT_FINISHED)
 			return M_SQL_ERROR_INVALID_USE;
 
-		/* If the group_cnt is not 1 when we get here, we're a subsequent
+		/* We are guaranteed to have the group_lock held here */
+		stmt->group_cnt_exec++;
+
+		/* If the group_cnt_exec is not 1 when we get here, we're a subsequent
 		 * thread, so we just need to wait on a signal from a conditional
 		 * and return the result. */
-		if (stmt->group_cnt != 1) {
+		if (stmt->group_cnt_exec != 1) {
 			/* Loop in case of spurious wake-up */
 			while (stmt->group_state != M_SQL_GROUPINSERT_FINISHED) {
 				M_thread_cond_wait(stmt->group_cond, stmt->group_lock);
@@ -452,11 +455,8 @@ M_sql_error_t M_sql_stmt_execute(M_sql_connpool_t *pool, M_sql_stmt_t *stmt)
 
 			/* We have acquired a connection, time to close off the ability to
 			 * add more rows */
-			if (stmt->group_lock && stmt->group_state == M_SQL_GROUPINSERT_NEW) {
-				M_thread_mutex_lock(stmt->group_lock);
-				M_sql_connpool_remove_groupinsert(pool, stmt->query_user, stmt);
-				stmt->group_state = M_SQL_GROUPINSERT_PENDING;
-				/* Statement handle is still locked */
+			if (stmt->group_lock) {
+				M_sql_connpool_close_groupinsert(pool, stmt);
 			}
 
 		} else {
@@ -528,7 +528,12 @@ done:
 	/* Group insert, time to let the other waiters know they can process the
 	 * result */
 	if (stmt->group_lock) {
-		/* We're still holding a lock */
+		/* If there was some fatal error early on, its possible the group insert
+		 * didn't get closed out.  Close it out now */
+		M_sql_connpool_close_groupinsert(pool, stmt);
+
+		/* Signal threads to read the result */
+		M_thread_mutex_lock(stmt->group_lock);
 		stmt->group_state = M_SQL_GROUPINSERT_FINISHED;
 		M_thread_cond_broadcast(stmt->group_cond);
 		M_thread_mutex_unlock(stmt->group_lock);
@@ -645,46 +650,6 @@ M_sql_conn_t *M_sql_stmt_get_conn(M_sql_stmt_t *stmt)
 	if (stmt == NULL)
 		return NULL;
 	return stmt->conn;
-}
-
-
-M_sql_stmt_t *M_sql_stmt_groupinsert_prepare(M_sql_connpool_t *pool, const char *query)
-{
-	M_sql_stmt_t *stmt;
-
-	if (pool == NULL || M_str_isempty(query))
-		return NULL;
-
-	stmt = M_sql_connpool_get_groupinsert(pool, query);
-
-	/* If no statement was found, pool handle is returned locked, so we need
-	 * to quickly create a new statement handle and insert it */
-	if (stmt == NULL) {
-		stmt             = M_sql_stmt_create();
-		M_sql_stmt_prepare(stmt, query);
-
-		/* Must be initialized after calling prepare() */
-		stmt->group_lock  = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-		stmt->group_cnt   = 0;
-		stmt->group_state = M_SQL_GROUPINSERT_NEW;
-		stmt->group_cond  = M_thread_cond_create(M_THREAD_CONDATTR_NONE);
-
-		/* Docs say stmt handle should be locked on entry */
-		M_thread_mutex_lock(stmt->group_lock);
-
-		/* This will release the pool lock on exit */
-		M_sql_connpool_set_groupinsert(pool, query, stmt);
-	}
-
-	/* Statement handle is locked here, either by M_sql_connpool_get_groupinsert()
-	 * or during creation.  Lets make sure we add a new bind row and bump up our
-	 * reference count.  We even call the new row even if this is brand new as
-	 * someone might have gained the lock before M_sql_connpool_set_groupinsert()
-	 * returns and have added a row */
-	stmt->group_cnt++;
-	M_sql_stmt_bind_new_row(stmt);
-
-	return stmt;
 }
 
 
