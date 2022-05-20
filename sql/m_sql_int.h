@@ -131,17 +131,6 @@ void M_sql_trace_message_trans(M_sql_trace_t type, M_sql_trans_t *trans, M_sql_e
 void M_sql_trace_message_stmt(M_sql_trace_t type, M_sql_stmt_t *stmt);
 M_sql_trace_cb_t M_sql_connpool_get_cb(M_sql_connpool_t *pool, void **cb_arg);
 
-/*! Retrieve open statement handle from the pool for the same query to append more rows.
- *  \note returns LOCKED statement handle if one was found, otherwise returns LOCKED
- *        pool handle.
- */
-M_sql_stmt_t *M_sql_connpool_get_groupinsert(M_sql_connpool_t *pool, const char *query);
-
-/*! Insert statement handle for query.
- *  \note pool handle MUST be LOCKED on entry, it will be returned UNLOCKED. Statement
- *        handle should be LOCKED on entry, will be returned as LOCKED.
- */
-void M_sql_connpool_set_groupinsert(M_sql_connpool_t *pool, const char *query, M_sql_stmt_t *stmt);
 
 /*! Close out the group stmt.  Neither the pool nor group stmt lock are allowed to be held prior to calling this.
  *  Upon return, no locks will be held.
@@ -253,11 +242,14 @@ struct M_sql_stmt {
 	M_sql_trans_t       *trans;    /*!< SQL transaction handle */
 
 	/* Group Insert handling */
-	M_thread_mutex_t    *group_lock;  /*!< Mutex only initialized for M_sql_stmt_groupinsert_prepare() */
-	size_t               group_cnt;   /*!< Number of reference counts on statement handle */
-	M_sql_groupinsert_t  group_state; /*!< Boolean indicating if group operation is done.  Useful to detect a
-	                                   *   spurious wakeup from M_thread_cond_wait() */
-	M_thread_cond_t     *group_cond;  /*!< Group conditional used to let other callers know a result is available */
+	M_thread_mutex_t    *group_lock;     /*!< Mutex only initialized for M_sql_stmt_groupinsert_prepare().
+	                                      *   This lock must be locked prior to the pool if also need a pool lock! */
+	size_t               group_cnt;      /*!< Number of reference counts on statement handle */
+	size_t               group_cnt_exec; /*!< Number of shared callers have finished their required executing step
+	                                          (must be == group_cnt before continuing) */
+	M_sql_groupinsert_t  group_state;    /*!< Boolean indicating if group operation is done.  Useful to detect a
+	                                      *   spurious wakeup from M_thread_cond_wait() */
+	M_thread_cond_t     *group_cond;     /*!< Group conditional used to let other callers know a result is available */
 };
 
 
