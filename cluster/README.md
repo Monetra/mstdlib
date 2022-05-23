@@ -146,7 +146,7 @@ it in its entirety from the new leader.
                          but not the log entries, so this is necessary to know
                          when to skip applying logs.
 - Log[]         - list - Committed Log Entries containing Term, LogID, and
-                         Payload.
+                         Payload.  Stored only in memory currently.
 - AvgLatencyMs  - u64  - The average latency in ms for the cluster
 - ClusterID     - u64  - Unique cluster state id when a new cluster is brought
                          online.  This prevents 2 detached clusters using the
@@ -216,19 +216,44 @@ The list of servers maintained in the node state contains these data elements:
 
 Requests and responses share the same basic message format.  Numeric values are
 sent in Big Endian (Network Byte Order):
-`[MagicValue 4B][Version 1B][Sequence 8B][RequestType 2B][Code 2B][Length 4B][PayLoad ...length]`
+`[MagicValue 4B][Version 1B][ReqResp 1B][Sequence 8B][Length 4B][Tag 2AN][TagType 1B][TagLength 4B][TagData][...]`
 - MagicValue: `MCLU`
-- Version: `0x1`
+- Version: `0x01`
+- ReqResp: `0x00` for requests, `0x01` for responses.
 - Sequence: Incremental sequence number for each peer to peer request to match
   requests to responses.
-- RequestType: 16bit Big Endian integer representing the Request Type or
-  Response Type as defined in the Request Types section.
-- Code: Always 0 on requests, otherwise a Response Code
 - Length: 32bit Big Endian integer representing the length of the payload (not
   inclusive of the length itself or any preceding fields)
-- Payload: Custom payload per request type
+- Tag: 2byte alpha-numeric tag name for data specific to request.  There is no
+  defined limit for the number of tags (other than the number of combinations of
+  alpha-numeric values).
+- TagType: 1 byte tag type. 1=Text, 2=Int8, 3=Int16, 4=Int32, 5=Int64, 6=Binary
+- TagLength: 4 byte tag data length (32bit big endian integer)
+- TagData: Data associated with tag.
 
-## Response Codes
+## Latency Tracking
+
+All Request Types sent to a remote node will insert a latency entry upon
+the received response.
+
+
+### Tags
+
+#### RT - Request Type - Int16
+Required on **all** requests *and* responses.
+
+Specific request types:
+- 0x0001: AuthNonce
+- 0x0002: Authenticate
+- 0x0003: Join
+- 0x0004: Heartbeat
+- 0x0005: RequestVote
+- 0x0006: Finish
+- 0x0007: AppendEntries
+- 0x0100: ClientRequest
+
+#### RC - Response Code - Int16
+Required on all responses.
 
 Possible response codes:
 - `OK` (0x00): Good Response
@@ -247,38 +272,99 @@ Possible response codes:
   full sync.
 - `TOO_OLD` (0x0A): Returned for RequestVote stating the reason the node isn't
   being voted for is it is out of date.
-- `ALREAD_VOTED` (0x0B): Returned for RequestVote stating this node has already
+- `ALREADY_VOTED` (0x0B): Returned for RequestVote stating this node has already
   voted for another node.
 - `CANT_APPLY` (0x0C): Log cannot be applied due to validation failure.  This
   is a critical Follower error.
 
-## Latency Tracking
+#### CN - ClusterName - AN
+Name of the cluster.  Used as a sanity check to ensure the cluster being
+connected to matches the current known cluster.
 
-All Request Types sent to a remote node will insert a latency entry upon
-the received response.
+#### NI - Node ID - IPv4/IPv6 Address plus Port
+What node identifies itself as.  Either an IPv4 address or IPv6 with port in
+string form. E.g. `192.168.1.1:5555` or `[2620:2A::35]:5555`
 
-## Request Types
+#### NO - Nonce - B
+Random 32byte (256bit) value used for HMAC authentication
+
+#### CI - Cluster ID - Int64
+Unique 64bit (Big Endian) cluster id that is randomly generated when the cluster
+is first initialized to ensure any nodes attempting to rejoin that may have been
+detached are joining the same cluster.
+
+#### AU - HmacAuthentication - B
+HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
+and the System Configured `SharedSecret` as the key.
+
+#### AL - AverageLatencyMs - Int64
+Average Latency in milliseconds as known by peer.  If a Leader or Follower in
+an existing cluster, this is the cluster-wide known value as determined by the
+current leader.  Otherwise this is a best effort guess by the peer based on
+other connections.  This is needed for a newly connected node to participate in
+heartbeats.
+
+This value is also used to calculate fault and election timers.
+
+#### LA - LeaderAddress - IPv4/IPv6 Address plus Port
+String representing leader ip address, same form as NodeID.  Only peers that are
+in the `LEADER`, `FOLLOWER`, or `VOTER` state may respond with this.
+
+#### NT - NodeType - Int8
+Configured Node Type
+
+Possible Values:
+ - 0x01: Member - full cluster member
+ - 0x02: Voter - voter-only (quorum participant, but does not receive logs)
+
+#### LT - LogTerm - Int64
+Last committed term that exists on this node. This is **not** the Node's
+currentTerm counter which may be different.
+
+#### LI - LogID - Int64
+Last committed log id that exists on the node.
+
+#### NL - NodeList - List of IPv4/IPv6 Address plus Port member list
+Comma delimited list of nodes known to the server that are articipating in
+quorum. Each node is in NodeID format.
+
+#### SP - SerializedPluginData - Binary
+Plugin-specific serialized plugin data.  May be complete serialized data or
+partial depending on implementation.  If partial, additional follow-up requests
+will be made to complete sync.
+
+#### CP - CountKnownPeers - Int16
+Total number of known nodes that could participate in the cluster.
+
+#### CJ - CountJoinedPeers - Int16
+Total number of nodes that are supposed to be participating in the cluster for
+quorum (but may not be due to faults).  A node that has gracefully disconnected
+is in the CountKnownPeers but not CountJoinedPeers.
+
+#### CA - CountActivePeers - Int16
+Number of nodes actively responding (not in an error or disconnected state)
+
+#### ST - NodeState - Int8
+State of the node:
+ - 0x01: INIT
+ - 0x02: JOIN
+ - 0x03: FOLLOWER
+ - 0x04: LEADER
+ - 0x05: VOTER
+ - 0x06: ERROR
+
+## Message Descriptions
 
 ### AuthNonce
 
 When a remote peer connects to the current node, BOTH nodes will immediately
 send out an AuthNonce packet to the remote node to start mutual authentication.
+The request will identify the current node to the peer and the response will
+contain the Nonce to use for the Authenticate step.
 
-RequestType: `0x01`
-Response: `0x81`
+Required Request Tags: `RT`, `CN`, `NI`
 
-#### Request Format
-
-`[Len 1B][ClusterName][Len 1B][NodeId]`
-- ClusterName: System-wide configuration name of cluster
-- NodeID: What node identifies itself as.  Either an IPv4 address or IPv6 with
-  port in string form. E.g. `192.168.1.1:5555` or `[2620:2A::35]:5555`
-
-
-#### Response
-
-`[Len 1B][Nonce]`
-- Nonce: Random 32byte (256bit) value used for HMAC authentication
+Required Response Tags: `RT`, `RC`, `NO`
 
 Can return one of these codes:
 - `OK`
@@ -286,42 +372,28 @@ Can return one of these codes:
 - `UNKNOWN_CLUSTER`
 - `BAD_NODE_ID`
 
-##### Requestor Validations/Procedure
+#### Requestor Validations/Procedure
 - If receive a code other than `OK`, disconnect. Set self to `INIT`
   state otherwise remove.
 - If `OK`, proceed to Authenticate
 
-##### Receiver Validations/Procedure
-- If the `ClusterName` sent in the payload does not match, return
+#### Receiver Validations/Procedure
+- If the Cluster Name sent in the payload does not match, return
   `UNKNOWN_CLUSTER` and disconnect
-- If the `NodeID` in the Payload does not match the source ip address, return
+- If the Node ID in the Payload does not match the source ip address, return
   `BAD_NODE_ID` and disconnect
 - Otherwise generate `Nonce` and return `OK`
 
 ### Authenticate
 
-RequestType: `0x02`
-Response: `0x82`
-
 After receiving a Nonce from the remote, the next message must be a follow-up
 containing the actual authentication packet.
 
-#### Request Format
-`[HMAC Auth]`
-- HMAC Auth: The HMAC-SHA256 result when using the received `Nonce` as the data
-  and the System Configured `SharedSecret` as the key.
+Required Request Tags: `RT`, `AU`
 
-#### Response
-`[ClusterID 8B][AvgLatencyMs 8B][Len 1B][LeaderAddress]`
-- ClusterID - Unique 64bit (Big Endian) cluster id that is randomly generated
-  when the cluster is first initialized to ensure any nodes attempting to
-  rejoin that may have been detached are joining the same cluster.  0 if isn't
-  in `LEADER`, `FOLLOWER`, or `VOTER` state.
-- AvgLatencyMs - As known by peer at this point.  Even though it may not be
-  the leader, it provides a hint so that the Joiner can start participating
-  in Heartbeats.
-- LeaderAddress - String representing leader ip address, same form as NodeID.
-  Omitted if peer isn't in `LEADER`, `FOLLOWER`, or `VOTER` state.
+Required Response Tags: `RT`, `RC`
+
+Optional Response Tags: `CI`, `AL`, `LA`
 
 Can return one of these codes:
 - `OK`
@@ -352,29 +424,17 @@ Can return one of these codes:
 
 Join or re-join the cluster. Sent only to Leader node.
 
-RequestType: `0x03`
-Response: `0x83`
+Required Request Tags: `RT`, `NT`
 
-#### Request Format
-`[LogTerm 8B][LogID 8B][Type 1B]`
-- LogTerm: 64bit Last committed term that exists on this node, or 0 if none.
-  This is NOT the Node's currentTerm counter which may be different.
-- LogID: 64bit Last committed log id that exists on this node, or 0 if none
-- Type:
-   - `MEMBER` (0x01): Full cluster member
-   - `VOTER` (0x02): Voter member only
+Optional Request Tags: `LT`, `LI`
 
-#### Response Format
-`[LogTerm 8B][LogID 8B][AvgLatencyMs 8B][Len 4B][PayLoad][Len 4B][NodeList]`
-- LogTerm: Last committed Term ID
-- LogID: Last committed Log ID
-- AvgLatencyMs: The current average latency honored by nodes, used to calculate
-  heartbeat timers, fault timers, and election timers.
-- PayLoad: Optional. Serialized plug-in data to inject into node.  Only sent
-  if requestor had passed a Term and Log ID of 0 and the Return Code is `OK`
-  or `MORE_DATA`.  Not sent for type `Voter`
-- NodeList: Comma delimited list of nodes known to the server that are
-  participating in quorum.  Only returned on the `OK` response packet.
+Required Response Tags: `RT`,`LT`,`LI`,`AL`,`NL`
+
+Optional Response Tags: `SP`
+
+SerializedPluginData is only sent in the response if the joining node did not
+LogTerm or LogID and the NodeType is Member.  This data is used to bring the
+node into sync.
 
 Can return one of these codes:
 - `OK`
@@ -385,19 +445,19 @@ Can return one of these codes:
 - `NOT_LEADER`
 
 ##### Requestor Validations/Procedure
-- On return code of `BAD_REQUEST` or `INSUFFICIENT_LOGS`, set `Term` and `LogID`
-  to zero and retry Join request.
+- On return code of `BAD_REQUEST` or `INSUFFICIENT_LOGS`, set `LogTerm` and
+  `LogID` to zero and retry Join request.
 - On `NOT_LEADER`, unset known leader, wait for notification of new leader, once
   notified, try again.
 - On `BAD_REQUEST` disconnect
-- On `MORE_DATA`, process payload data and retry request with zero Term and
+- On `MORE_DATA`, process payload data and retry request with zero LogTerm and
   LogID
-- On `OK`, process payload data (if any).  Record Term and LogID in Node State.
+- On `OK`, process payload data (if any).  Record LogTerm and LogID in Node State.
   Transition to `FOLLOWER` state.
 
 ##### Respondor Validations/Procedure
 - On bad parse, disconnect
-- If Term > currentTerm, return `OUT_OF_SYNC`
+- If LogTerm > currentTerm, return `OUT_OF_SYNC`
 - If LogID < oldest log, return `INSUFFICIENT_LOGS`
 - If Log[LogID].Term != Term, return `OUT_OF_SYNC`
 - If LogTerm and LogID can be played from current log entries, this is `OK`
@@ -409,7 +469,7 @@ Can return one of these codes:
   must no longer be the leader and will return `NOT_LEADER`).
 - If LogTerm and LogID are non-zero, send the gap in the logs to the node via
   AppendEntries, otherwise send **all** logs and node will store those logs for
-  future syncing.
+  future syncing (not used for applying as SerializedPluginData did this).
 
 
 ### HeartBeat
@@ -420,22 +480,9 @@ occur during this interval as each node will initiate a heartbeat to the other
 in order to measure latency. Any node in the state of `Leader`, `Follower`,
 `Voter`, or `Join` must participate in Heartbeats.
 
-RequestType: `0x04`
-Response: `0x84`
+Required Request Tags: `RT`
 
-#### Request Format
-There is no payload for the request
-
-#### Response Format
-`[knownPeerCnt 4B][joinedPeerCnt 4B][activePeerCnt 4B][state 2B]`
-- knownPeerCnt: Total number of known nodes that could participate in the
-  cluster.
-- joinedPeerCnt: Total number of nodes that are supposed to be participating
-  in the cluster for quorum (but may not be due to faults).  A node that has
-  gracefully disconnected is in the knownPeerCnt but not in the joinedPeerCnt.
-- activePeerCnt: Number of nodes actively responding (not in an error or
-  disconnected state)
-- state: advertised state from the node
+Required Response Tags: `RT`,`CP`,`CJ`,`CA`,`ST`
 
 Can return one of these codes:
 - `OK`
