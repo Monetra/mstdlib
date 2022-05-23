@@ -100,6 +100,7 @@ static void process_queue_queue(M_net_smtp_t *sp);
 static void processing_halted(M_net_smtp_t *sp);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 static int  process_external_queue_num(M_net_smtp_t *sp);
+static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 
 static M_bool is_running(M_net_smtp_t *sp)
 {
@@ -160,6 +161,7 @@ static M_bool is_available(M_net_smtp_t *sp)
 
 static void destroy_endpoint(endpoint_t *ep)
 {
+	size_t i;
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
 		M_free(ep->process.command);
 		M_list_str_destroy(ep->process.args);
@@ -172,6 +174,9 @@ static void destroy_endpoint(endpoint_t *ep)
 		M_free(ep->tcp.auth_plain);
 		M_free(ep->tcp.auth_login_user);
 		M_free(ep->tcp.auth_login_pass);
+	}
+	for (i = 0; i < ep->slot_count; i++) {
+		M_thread_mutex_destroy(ep->slots[i].lock);
 	}
 	M_free(ep);
 }
@@ -473,7 +478,7 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 	}
 }
 
-static void clean_slot_no_process_queue_queue(M_net_smtp_endpoint_slot_t *slot)
+static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
 	endpoint_t *ep = M_CAST_OFF_CONST(endpoint_t*, slot->endpoint);
 
@@ -505,20 +510,9 @@ static void continue_processing_after_finish(M_net_smtp_t *sp)
 		process_queue_queue(sp);
 }
 
-static void continue_processing_after_slot_finish(M_net_smtp_endpoint_slot_t *slot)
-{
-	continue_processing_after_finish(slot->sp);
-}
-
-static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
-{
-	clean_slot_no_process_queue_queue(slot);
-	continue_processing_after_slot_finish(slot);
-}
-
 static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	clean_slot_no_process_queue_queue(slot);
+	clean_slot(slot);
 	M_event_timer_remove(slot->event_timer);
 	slot->event_timer = NULL;
 	M_buf_cancel(slot->out_buf);
@@ -528,10 +522,13 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
 	slot->is_alive = M_FALSE;
-	continue_processing_after_slot_finish(slot);
 }
 
-static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
+/* Return value is whether to run continue processing another
+	* message.  process_queue_queue() can potentially destroy
+	* the endpoint + slots + slot locks, which will seg fault the unlock
+	* wrapped around this function. */
+static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
 	M_net_smtp_endpoint_slot_t *slot     = thunk;
 	M_io_error_t                io_error = M_IO_ERROR_SUCCESS;
@@ -611,7 +608,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 			if (slot->is_failure == M_FALSE) {
 				M_io_disconnect(io);
 			}
-			return;
+			return M_FALSE;
 			break;
 		case M_EVENT_TYPE_ERROR:
 		case M_EVENT_TYPE_ACCEPT:
@@ -632,7 +629,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 		M_io_layer_release(layer);
 	}
 
-	return;
+	return M_FALSE;
 destroy:
 	switch (connection_mask) {
 		case M_NET_SMTP_CONNECTION_MASK_IO:        slot_io = &slot->io;                break;
@@ -642,12 +639,26 @@ destroy:
 	}
 	if (*slot_io != NULL) {
 		M_io_destroy(io);
+		*slot_io = NULL;
 		slot->connection_mask &= ~connection_mask;
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			destroy_slot(slot);
+			return M_TRUE;
 		}
 	}
-	*slot_io = NULL;
+	return M_FALSE;
+}
+
+static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
+{
+	M_net_smtp_endpoint_slot_t *slot                   = thunk;
+	M_net_smtp_t               *sp                     = slot->sp;
+	M_bool                      is_continue_processing = M_FALSE;
+	M_thread_mutex_lock(slot->lock);
+	is_continue_processing = proc_io_cb_sub(el, etype, io, thunk, connection_mask);
+	M_thread_mutex_unlock(slot->lock);
+	if (is_continue_processing)
+		continue_processing_after_finish(sp);
 }
 
 static void proc_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -690,7 +701,11 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 	}
 }
 
-static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+/* Return value is whether to run continue processing another
+	* message.  process_queue_queue() can potentially destroy
+	* the endpoint + slots + slot locks, which will seg fault the unlock
+	* wrapped around this function. */
+static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_endpoint_slot_t *slot            = thunk;
 	M_net_smtp_t               *sp              = slot->sp;
@@ -718,7 +733,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 
 			if (slot->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || slot->tcp.tls_state == M_NET_SMTP_TLS_IMPLICIT) {
 				slot->tcp.tls_state = M_NET_SMTP_TLS_CONNECTED;
-				return;
+				return M_FALSE;
 			}
 
 			break;
@@ -729,7 +744,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			io_error = M_io_read_into_parser(io, slot->in_parser);
 
 			if (io_error == M_IO_ERROR_WOULDBLOCK)
-				return;
+				return M_FALSE;
 
 			if (io_error == M_IO_ERROR_DISCONNECT) {
 				goto destroy;
@@ -766,7 +781,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				}
 				M_event_add(sp->el, slot->io, tcp_io_cb, slot);
 				M_event_timer_reset(slot->event_timer, sp->tcp_connect_ms);
-				return;
+				return M_FALSE;
 			}
 			do {
 				if (etype == M_EVENT_TYPE_OTHER) {
@@ -783,7 +798,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 				slot->tcp.net_error = M_net_io_error_to_net_error(M_io_get_error(io));
 			} while(0);
 			goto backout;
-			return;
+			return M_FALSE;
 	}
 
 	if (sp->status == M_NET_SMTP_STATUS_STOPPING)
@@ -800,6 +815,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		/* successfully sent message. get ready to accept another. */
 		clean_slot(slot);
 		M_event_timer_reset(slot->event_timer, sp->tcp_idle_ms);
+		return M_TRUE;
 	}
 
 	if (slot->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_READY) {
@@ -810,7 +826,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 		slot->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_ADDED;
-		return; /* short circuit out */
+		return M_FALSE; /* short circuit out */
 	}
 
 	if (M_buf_len(slot->out_buf) > 0) {
@@ -824,7 +840,10 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		}
 	}
 
-	return;
+	return M_FALSE;
+backout:
+	connect_fail(slot);
+	slot->is_backout = M_TRUE;
 destroy:
 	if (slot->io != NULL) {
 		M_io_destroy(io);
@@ -837,12 +856,21 @@ destroy:
 			}
 		}
 		slot->io = NULL;
+		return M_TRUE;
 	}
-	return;
-backout:
-	connect_fail(slot);
-	slot->is_backout = M_TRUE;
-	goto destroy;
+	return M_FALSE;
+}
+
+static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	M_net_smtp_endpoint_slot_t *slot                   = thunk;
+	M_net_smtp_t               *sp                     = slot->sp;
+	M_bool                      is_continue_processing = M_FALSE;
+	M_thread_mutex_lock(slot->lock);
+	is_continue_processing = tcp_io_cb_sub(el, etype, io, thunk);
+	M_thread_mutex_unlock(slot->lock);
+	if (is_continue_processing)
+		continue_processing_after_finish(sp);
 }
 
 static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
@@ -941,6 +969,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 	M_net_smtp_endpoint_slot_t *slot         = NULL;
 	M_email_t                  *e            = NULL;
 	M_bool                      is_bootstrap = M_FALSE;
+	M_bool                      is_done      = M_FALSE;
 	size_t                      i;
 
 	e = M_email_create();
@@ -951,6 +980,8 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 	for (i = 0; i < ep->slot_count; i++) {
 		slot = &ep->slots[i];
 		slot->endpoint = ep;
+		if (!M_thread_mutex_trylock(slot->lock))
+			continue;
 		if (slot->msg == NULL) {
 			if (slot->io == NULL) {
 				bootstrap_slot(sp, ep, slot);
@@ -967,13 +998,17 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 				if (slot->endpoint_type == M_NET_SMTP_EPTYPE_TCP) {
 					slot->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
 					if (!is_bootstrap) {
-						tcp_io_cb(slot->sp->el, M_EVENT_TYPE_WRITE, slot->io, slot);
+						/* Use sub because we already have a lock */
+						tcp_io_cb_sub(slot->sp->el, M_EVENT_TYPE_WRITE, slot->io, slot);
 					}
 				}
 				ep->slot_available--;
-				return;
+				is_done = M_TRUE;
 			}
 		}
+		M_thread_mutex_unlock(slot->lock);
+		if (is_done)
+			return;
 	}
 
 	/* failed to bootstrap */
@@ -1139,17 +1174,23 @@ static void prune_removed_endpoints(M_net_smtp_t *sp)
 
 static void processing_halted(M_net_smtp_t *sp)
 {
-	M_bool          is_no_endpoints;
-	M_uint64        delay_ms;
+	M_bool            is_no_endpoints = M_TRUE;
+	const endpoint_t *ep = NULL;
+	M_uint64          delay_ms;
+	size_t            i;
 
-	prune_removed_endpoints(sp);
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+		ep = M_list_at(sp->endpoints, i);
+		if (!ep->is_removed) {
+			is_no_endpoints = M_FALSE;
+			break;
+		}
+	}
 
-	if (M_list_len(sp->endpoints) == 0) {
+	if (is_no_endpoints) {
 		sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
-		is_no_endpoints = M_TRUE;
 	} else {
 		sp->status = M_NET_SMTP_STATUS_STOPPED;
-		is_no_endpoints = M_FALSE;
 	}
 
 	delay_ms = sp->cbs.processing_halted_cb(is_no_endpoints, sp->thunk);
@@ -1196,6 +1237,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		case M_NET_SMTP_STATUS_STOPPING:
 			/* Actually, we're not stopping */
 		case M_NET_SMTP_STATUS_STOPPED:
+			prune_removed_endpoints(sp); /* Prune any removed endpoints before starting again */
 			sp->status = M_NET_SMTP_STATUS_PROCESSING;
 			process_queue_queue(sp);
 			return M_TRUE;
@@ -1273,6 +1315,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	endpoint_t *ep         = NULL;
 	char       *auth_plain = NULL;
 	size_t      total_size = 0;
+	size_t      i;
 
 	if (sp == NULL || max_conns == 0 || address == NULL || username == NULL || password == NULL || sp->tcp_dns == NULL)
 		return M_FALSE;
@@ -1304,6 +1347,11 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	ep->tcp.connect_tls     = connect_tls;
 	ep->tcp.max_conns       = max_conns;
 
+	for (i = 0; i < ep->slot_count; i++) {
+		ep->slots[i].endpoint = ep;
+		ep->slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	}
+
 	M_list_insert(sp->endpoints, ep);
 
 	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
@@ -1325,6 +1373,7 @@ M_bool M_net_smtp_add_endpoint_process(
 {
 	endpoint_t *ep         = NULL;
 	size_t      total_size;
+	size_t      i;
 
 	if (sp == NULL || command == NULL)
 		return M_FALSE;
@@ -1343,6 +1392,11 @@ M_bool M_net_smtp_add_endpoint_process(
 	ep->slot_available        = max_processes;
 	ep->process.timeout_ms    = timeout_ms;
 	ep->process.max_processes = max_processes;
+
+	for (i = 0; i < ep->slot_count; i++) {
+		ep->slots[i].endpoint = ep;
+		ep->slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	}
 
 	M_list_insert(sp->endpoints, ep);
 

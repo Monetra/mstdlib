@@ -78,6 +78,7 @@ typedef struct {
 	M_net_smtp_endpoint_type_t  endpoint_type;
 	M_state_machine_t          *state_machine;
 	unsigned int                connection_mask;
+	M_thread_mutex_t           *lock;
 	char                       *msg;
 	M_io_t                     *io;
 	M_hash_dict_t              *headers;

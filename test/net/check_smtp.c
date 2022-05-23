@@ -7,7 +7,7 @@
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
 
-#define DEBUG 1
+#define DEBUG 2
 
 /* globals */
 M_json_node_t *check_smtp_json          = NULL;
@@ -36,9 +36,10 @@ typedef enum {
 	JUNK_MSG                = 17,
 	DUMP_QUEUE              = 18,
 	MULTITHREAD_INSERT      = 19,
+	MULTITHREAD_RETRY       = 20,
 } test_id_t;
 
-#define TESTONLY 19
+#define TESTONLY 0
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -487,15 +488,14 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 {
 	args_t *args = thunk;
-	event_debug("M_net_smtp_sent_cb(%p, %p)", headers, thunk);
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
+	event_debug("M_net_smtp_sent_cb(%p, %p): %llu", headers, thunk, args->sent_cb_call_count);
 	if (args->test_id == EMU_SENDMSG) {
 		M_event_done(args->el);
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT) {
-		M_printf("sent_cb(): %zu\n", args->sent_cb_call_count);
 		if (args->sent_cb_call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
@@ -608,7 +608,7 @@ START_TEST(multithread_insert)
 	args_t args = { 0 };
 	args.test_id = MULTITHREAD_INSERT;
 
-	M_event_t             *el        = M_event_create(M_EVENT_FLAG_NONE);
+	M_event_t             *el        = M_event_pool_create(0);
 	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);
@@ -723,7 +723,6 @@ START_TEST(external_queue)
 	M_event_loop(el, 1000);
 
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
-	M_printf("M_net_smtp_status: %d\n", M_net_smtp_status(sp));
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
 	M_free(msg);
@@ -1360,7 +1359,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 19
 	tc = tcase_create("multithread insert");
 	tcase_add_test(tc, multithread_insert);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
 #endif
 
