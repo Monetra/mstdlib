@@ -104,17 +104,19 @@ it in its entirety from the new leader.
 - [R] Flags            - VOTE_ONLY (can only vote, does not actually receive
                          logs, essentially arbitrator mode), TLS_NOVERIFY_PEER
                          (don't verify the peer certificate)
-- [R] MaximumRTT       - Maximum RTT response time in ms from any node before
+- [O] MaximumRTT       - Maximum RTT response time in ms from any node before
                          evicting the node in an error state. This should be
                          at least 10x the average round trip time to handle
-                         any packet rerouting due to interface issues.
-- [R] MaximumLogSize   - Maximum size in bytes of the recorded log payloads.
+                         any packet rerouting due to interface issues. Defaults
+                         to 3000ms (3s).
+- [O] MaximumLogSize   - Maximum size in bytes of the recorded log payloads.
                          Will purge the oldest entries until it reaches the
                          desired cumulative size.  This affects syncing after a
                          detached member rejoins the cluster, if older logs
                          have been purged, will require a full data
-                         serialization and transfer.
-- [R] Port             - Port to listen on
+                         serialization and transfer.  Logs are currently kept
+                         in memory only.  Defaults to 10,000,000 (10MB).
+- [O] Port             - TCP Port to listen on. Defaults to 7150.
 - [O] NodeIPAddress    - IP Address of local machine to use to connect to peers.
                          Must be of the same address class as the Server List.
                          If not provided, will choose a non-localhost and
@@ -170,10 +172,19 @@ The list of servers maintained in the node state contains these data elements:
                            specific to the peer.
 - ConnectTimer   - et    - Elapsed Time since connect. Monotonic tracking of how
                            long this node has been connected.
-- LastMsgTimer   - et    - Elapste Time since last message. Monotonic tracking
+- LastMsgTimer   - et    - Elapsed Time since last message. Monotonic tracking
                            of last message time to detect lagged nodes and
                            heartbeats.
-- Latency[]      - u64[] - Circular Array of last 4096 response latencies in ms
+- LatencyTotal   - u64   - Sum of all latencies recorded up to the maximum of
+                           4096.  If LatencyCnt == 4096, will subtract
+                           (LatencyTotal / 4096) before adding the latest
+                           recorded latency.  Otherwise we'd need to maintain
+                           an array.  This method should also 'soften' the
+                           impact of temporary spikes in latency.  In the
+                           future, it may make sense to dynamically set the
+                           LatencyCntMax to some period which average latency
+                           covers some predefined time period like 60s.
+- LatencyCnt     - u16   - Count of latencies recorded up to 4096.
 - Term           - u64   - Leader Only. Last known term of node
 - LogID          - u64   - Leader Only. Last known LogID of node
 - ConnectedPeers - u16   - Known number of connected peers that are in a leader,
@@ -187,8 +198,9 @@ The list of servers maintained in the node state contains these data elements:
 
 ## Calculated Node Variables
 
+- NodeLatencyMs -     LatencyTotal / LatencyCnt
 - AvgLatencyMs -      Received during Vote for leader from proposed leader.  If
-                      proposing, perform MAX(SUM(Servers[n].Latency)) and use
+                      proposing, perform MAX(Servers[n].Latency) and use
                       that value (minimum 1).
 - ElectionTimeoutMs - Base value is 10 x AvgLatencyMs with a minimum value of
                       100ms.  An existing leader node will use this value as its
