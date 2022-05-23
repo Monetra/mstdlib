@@ -47,6 +47,7 @@ struct M_net_smtp {
 	M_list_t                          *retry_queue;
 	M_list_t                          *retry_timeout_queue;
 	M_list_str_t                      *internal_queue;
+	M_thread_rwlock_t                 *internal_queue_rwlock;
 	M_bool                             is_external_queue_enabled;
 	M_bool                             is_external_queue_pending;
 	M_event_timer_t                   *restart_processing_timer;
@@ -107,10 +108,16 @@ static M_bool is_running(M_net_smtp_t *sp)
 
 static M_bool is_pending(M_net_smtp_t *sp)
 {
+	M_bool is_pending_internal;
+
 	if (sp->is_external_queue_enabled)
 		return sp->is_external_queue_pending;
 
-	return M_list_len(sp->retry_queue) > 0 || M_list_str_len(sp->internal_queue) > 0;
+	M_thread_rwlock_lock(sp->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_READ);
+	is_pending_internal = M_list_str_len(sp->internal_queue) > 0;
+	M_thread_rwlock_unlock(sp->internal_queue_rwlock);
+
+	return M_list_len(sp->retry_queue) > 0 || is_pending_internal;
 }
 
 static M_bool is_available_failover(M_net_smtp_t *sp)
@@ -210,12 +217,13 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	if (el == NULL)
 		return NULL;
 
-	sp                      = M_malloc_zero(sizeof(*sp));
-	sp->internal_queue      = M_list_str_create(M_LIST_STR_NONE);
-	sp->endpoints           = M_list_create(NULL, M_LIST_NONE);
-	sp->retry_queue         = M_list_create(NULL, M_LIST_NONE);
-	sp->retry_timeout_queue = M_list_create(NULL, M_LIST_NONE);
-	sp->retry_timers        = M_list_create(NULL, M_LIST_NONE);
+	sp                        = M_malloc_zero(sizeof(*sp));
+	sp->internal_queue        = M_list_str_create(M_LIST_STR_NONE);
+	sp->internal_queue_rwlock = M_thread_rwlock_create();
+	sp->endpoints             = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_queue           = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_timeout_queue   = M_list_create(NULL, M_LIST_NONE);
+	sp->retry_timers          = M_list_create(NULL, M_LIST_NONE);
 
 #define ASSIGN_CB(x) sp->cbs.x = cbs->x ? cbs->x : nop_##x;
 	ASSIGN_CB(connect_cb);
@@ -270,6 +278,7 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 	M_list_destroy(sp->retry_queue, M_TRUE);
 	M_list_destroy(sp->retry_timeout_queue, M_TRUE);
 	M_list_str_destroy(sp->internal_queue);
+	M_thread_rwlock_destroy(sp->internal_queue_rwlock);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
 	M_free(sp);
 }
@@ -323,7 +332,9 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 
 	if (is_backout) {
 		if (num_tries == 1) {
+			M_thread_rwlock_lock(sp->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 			M_list_str_insert(sp->internal_queue, msg);
+			M_thread_rwlock_unlock(sp->internal_queue_rwlock);
 		} else {
 			/* need to keep track of num_tries */
 			retry = M_malloc_zero(sizeof(*retry));
@@ -1073,7 +1084,9 @@ static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_
 			M_free(retry);
 			continue;
 		}
+		M_thread_rwlock_lock(sp->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 		msg = M_list_str_take_first(sp->internal_queue);
+		M_thread_rwlock_unlock(sp->internal_queue_rwlock);
 		if (msg != NULL) {
 			slate_msg(sp, msg, 0);
 			continue;
@@ -1378,7 +1391,9 @@ M_list_str_t *M_net_smtp_dump_queue(M_net_smtp_t *sp)
 	}
 
 	list = sp->internal_queue;
+	M_thread_rwlock_lock(sp->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	sp->internal_queue = M_list_str_create(M_LIST_STR_NONE);
+	M_thread_rwlock_unlock(sp->internal_queue_rwlock);
 
 	while (
 		(retry = M_list_take_first(sp->retry_queue))         != NULL ||
@@ -1413,10 +1428,15 @@ M_bool M_net_smtp_queue_smtp(M_net_smtp_t *sp, const M_email_t *e)
 
 M_bool M_net_smtp_queue_message(M_net_smtp_t *sp, const char *msg)
 {
+	M_bool is_success;
 	if (sp == NULL || sp->is_external_queue_enabled)
 		return M_FALSE;
 
-	if (!M_list_str_insert(sp->internal_queue, msg))
+	M_thread_rwlock_lock(sp->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	is_success = M_list_str_insert(sp->internal_queue, msg);
+	M_thread_rwlock_unlock(sp->internal_queue_rwlock);
+
+	if (!is_success)
 		return M_FALSE;
 
 	if (sp->status == M_NET_SMTP_STATUS_IDLE)

@@ -10,10 +10,11 @@
 #define DEBUG 1
 
 /* globals */
-M_json_node_t *check_smtp_json      = NULL;
-char          *test_address         = NULL;
-char          *sendmail_emu         = NULL;
-M_list_str_t  *test_external_queue  = NULL;
+M_json_node_t *check_smtp_json          = NULL;
+char          *test_address             = NULL;
+char          *sendmail_emu             = NULL;
+M_list_str_t  *test_external_queue      = NULL;
+const size_t   multithread_insert_count = 1000;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -34,8 +35,10 @@ typedef enum {
 	EXTERNAL_QUEUE          = 16,
 	JUNK_MSG                = 17,
 	DUMP_QUEUE              = 18,
+	MULTITHREAD_INSERT      = 19,
 } test_id_t;
 
+#define TESTONLY 19
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -491,6 +494,13 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_event_done(args->el);
 	}
 
+	if (args->test_id == MULTITHREAD_INSERT) {
+		M_printf("sent_cb(): %zu\n", args->sent_cb_call_count);
+		if (args->sent_cb_call_count == multithread_insert_count) {
+			M_event_done(args->el);
+		}
+	}
+
 	if (args->test_id == EXTERNAL_QUEUE) {
 		M_event_done(args->el);
 	}
@@ -580,6 +590,65 @@ static char * test_external_queue_get_cb()
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+typedef struct {
+	M_net_smtp_t *sp;
+	M_email_t    *e;
+} multithread_arg_t;
+
+static void multithread_insert_task(void *thunk)
+{
+	multithread_arg_t *arg = thunk;
+	M_net_smtp_queue_smtp(arg->sp, arg->e);
+}
+
+START_TEST(multithread_insert)
+{
+	M_uint16 testport;
+
+	args_t args = { 0 };
+	args.test_id = MULTITHREAD_INSERT;
+
+	M_event_t             *el        = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t               *dns       = M_dns_create(el);
+	M_email_t             *e         = generate_email(1, test_address);
+	multithread_arg_t     *tests     = NULL;
+	void                 **testptrs  = NULL;
+	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
+	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
+	size_t                 i         = 0;
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
+			"should fail adding tcp endpoint without setting dns");
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	tests = M_malloc_zero(sizeof(*tests) * multithread_insert_count);
+	testptrs = M_malloc_zero(sizeof(*testptrs) * multithread_insert_count);
+	for (i = 0; i < multithread_insert_count; i++) {
+		tests[i].sp = sp;
+		tests[i].e  = e;
+		testptrs[i] = &tests[i];
+	}
+	M_threadpool_dispatch(tp_parent, multithread_insert_task, testptrs, multithread_insert_count);
+	args.el = el;
+
+	M_threadpool_parent_wait(tp_parent);
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+}
+END_TEST
 START_TEST(dump_queue)
 {
 	args_t args = { 0 };
@@ -1168,79 +1237,132 @@ static Suite *smtp_suite(void)
 
 	suite = suite_create("smtp");
 
+	/*NO_ENDPOINTS            = 1, */
+#if TESTONLY == 0 || TESTONLY == 1
 	tc = tcase_create("no-endpoints");
 	tcase_add_test(tc, check_no_endpoints);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*EMU_SENDMSG             = 2, */
+#if TESTONLY == 0 || TESTONLY == 2
 	tc = tcase_create("emu-sendmsg");
 	tcase_add_test(tc, emu_sendmsg);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*EMU_ACCEPT_DISCONNECT   = 3, */
+#if TESTONLY == 0 || TESTONLY == 3
 	tc = tcase_create("emu-accept-disconnect");
 	tcase_add_test(tc, emu_accept_disconnect);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*IOCREATE_RETURN_FALSE   = 4,*/
+#if TESTONLY == 0 || TESTONLY == 4
 	tc = tcase_create("iocreate_return_false");
 	tcase_add_test(tc, iocreate_return_false);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*NO_SERVER               = 5,*/
+#if TESTONLY == 0 || TESTONLY == 5
 	tc = tcase_create("no server");
 	tcase_add_test(tc, no_server);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*TLS_UNSUPPORTING_SERVER = 6,*/
+#if TESTONLY == 0 || TESTONLY == 6
 	tc = tcase_create("tls unsupporting server");
 	tcase_add_test(tc, tls_unsupporting_server);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*TIMEOUTS                = 7,*/
+#if TESTONLY == 0 || TESTONLY == 7
 	tc = tcase_create("timeouts");
 	tcase_add_test(tc, timeouts);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*STATUS                  = 11, */
+#if TESTONLY == 0 || TESTONLY == 11
 	tc = tcase_create("status");
 	tcase_add_test(tc, status);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*PROC_ENDPOINT           = 12,*/
+#if TESTONLY == 0 || TESTONLY == 12
 	tc = tcase_create("proc_endpoint");
 	tcase_add_test(tc, proc_endpoint);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*DOT_MSG                 = 13,*/
+#if TESTONLY == 0 || TESTONLY == 13
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*PROC_NOT_FOUND          = 14,*/
+#if TESTONLY == 0 || TESTONLY == 14
 	tc = tcase_create("proc_not_found");
 	tcase_add_test(tc, proc_not_found);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*HALT_RESTART            = 15,*/
+#if TESTONLY == 0 || TESTONLY == 15
 	tc = tcase_create("halt restart");
 	tcase_add_test(tc, halt_restart);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*EXTERNAL_QUEUE          = 16,*/
+#if TESTONLY == 0 || TESTONLY == 16
 	tc = tcase_create("external queue");
 	tcase_add_test(tc, external_queue);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*JUNK_MSG                = 17,*/
+#if TESTONLY == 0 || TESTONLY == 17
 	tc = tcase_create("junk msg");
 	tcase_add_test(tc, junk_msg);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
 
+/*DUMP_QUEUE              = 18,*/
+#if TESTONLY == 0 || TESTONLY == 18
 	tc = tcase_create("dump queue");
 	tcase_add_test(tc, dump_queue);
 	tcase_set_timeout(tc, 1);
 	suite_add_tcase(suite, tc);
+#endif
+
+/*MULTITHREAD_INSERT      = 19, */
+#if TESTONLY == 0 || TESTONLY == 19
+	tc = tcase_create("multithread insert");
+	tcase_add_test(tc, multithread_insert);
+	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
 
 	return suite;
 }
