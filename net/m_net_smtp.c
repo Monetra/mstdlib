@@ -485,7 +485,7 @@ static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 	if (slot->msg == NULL)
 		return;
 
-	if (slot->is_backout || slot->is_failure) {
+	if (slot->is_backout || !slot->is_successfully_sent) {
 		reschedule_slot(slot);
 	} else {
 		slot->sp->cbs.sent_cb(slot->headers, slot->sp->thunk);
@@ -544,7 +544,7 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 		case M_EVENT_TYPE_DISCONNECTED:
 			if (io == slot->io) {
 				if (!M_io_process_get_result_code(io, &slot->process.result_code)) {
-					slot->is_failure = M_TRUE;
+					slot->is_successfully_sent = M_FALSE;
 					if (slot->errmsg[0] == 0) {
 						M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Error getting result code");
 					}
@@ -554,7 +554,7 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 					slot->out_buf = NULL;
 					process_fail(slot, stdout_str);
 					M_free(stdout_str);
-					slot->is_failure = M_TRUE;
+					slot->is_successfully_sent = M_FALSE;
 					if (slot->errmsg[0] == 0) {
 						M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Bad result code %d", slot->process.result_code);
 					}
@@ -598,14 +598,14 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 				if (io_error == M_IO_ERROR_DISCONNECT) {
 					goto destroy;
 				}
-				if (slot->is_failure) {
+				if (!slot->is_successfully_sent) {
 					/* Give process a chance to parse and react to input */
 					slot->event_timer = M_event_timer_oneshot(slot->sp->el, 100, M_TRUE, proc_io_stdin_cb, slot);
 				} else {
 					slot->event_timer = NULL;
 				}
 			}
-			if (slot->is_failure == M_FALSE) {
+			if (slot->is_successfully_sent) {
 				M_io_disconnect(io);
 			}
 			return M_FALSE;
@@ -764,7 +764,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 			goto backout;
 			break;
 		case M_EVENT_TYPE_OTHER:
-			if (slot->is_failure == M_FALSE) {
+			if (slot->is_successfully_sent) {
 				/* Idle timeout */
 				slot->tcp.is_QUIT_enabled = M_TRUE;
 				break;
@@ -811,8 +811,8 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 		goto destroy;
 	}
 
-	if (slot->is_failure == M_FALSE && slot->msg != NULL) {
-		/* successfully sent message. get ready to accept another. */
+	if (slot->is_successfully_sent && slot->msg != NULL) {
+		/* get ready to accept another. */
 		clean_slot(slot);
 		M_event_timer_reset(slot->event_timer, sp->tcp_idle_ms);
 		return M_TRUE;
@@ -992,7 +992,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 				slot->msg = msg;
 				slot->number_of_tries = num_tries;
 				slot->headers = headers;
-				slot->is_failure = M_TRUE; /* will be unmarked as failure on success */
+				slot->is_successfully_sent = M_FALSE;
 				M_mem_set(slot->errmsg, 0, sizeof(slot->errmsg));
 				slot->email = e;
 				if (slot->endpoint_type == M_NET_SMTP_EPTYPE_TCP) {

@@ -205,7 +205,7 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	slot->is_failure = M_FALSE; /* Success */
+	slot->is_successfully_sent = M_TRUE;
 
 	if (slot->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
@@ -218,11 +218,11 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *next)
 {
 
-	/* Initially entering this state slot->is_failure will be false (it succeeded) from the previous
+	/* Initially entering this state slot->is_succesfully_sent will be true from the previous
 		* state.  Any state machine errors will cause the state machine to error out and the connection will
 		* be closed and restarted.  An idle timeout can cause the is_QUIT_enabled to be set after first entering
 		* this state.  Once the slot has had the old message cleaned out and a new message inserted it will set
-		* the is_failure state to TRUE.  Messages are assumed to be failures until they prove success.
+		* the is_successfully_sent state to FALSE.  Messages are assumed to be failures until they prove success.
 		*/
 
 	M_net_smtp_endpoint_slot_t *slot = data;
@@ -230,7 +230,7 @@ static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *
 		*next = STATE_QUIT;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
-	if (slot->is_failure == M_TRUE) {
+	if (slot->is_successfully_sent == M_FALSE) {
 		*next = STATE_SENDMSG;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
