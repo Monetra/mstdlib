@@ -190,6 +190,11 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %llu: %s",
 				slot->tcp.smtp_response_code, line);
+		if (slot->tcp.smtp_response_code = 457) {
+			/* 457 is not listed in RFC 5321 as used, 451 is typically used for graylisting,
+			 * for testing purposes 457 will mean to retry in 3000ms */
+			slot->retry_ms = 3000;
+		}
 		goto done;
 	}
 

@@ -74,6 +74,7 @@ typedef struct {
 	M_bool                      is_alive;
 	M_bool                      is_successfully_sent;
 	M_bool                      is_backout;
+	size_t                      retry_ms;
 	M_net_smtp_t               *sp;
 	M_net_smtp_endpoint_type_t  endpoint_type;
 	M_state_machine_t          *state_machine;

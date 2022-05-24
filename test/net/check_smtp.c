@@ -7,7 +7,7 @@
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
 
-#define DEBUG 2
+#define DEBUG 1
 
 /* globals */
 M_json_node_t *check_smtp_json          = NULL;
@@ -15,6 +15,7 @@ char          *test_address             = NULL;
 char          *sendmail_emu             = NULL;
 M_list_str_t  *test_external_queue      = NULL;
 const size_t   multithread_insert_count = 1000;
+const size_t   multithread_retry_count  = 1000;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -102,6 +103,8 @@ typedef struct {
 	M_io_t        *io_listen;
 	test_id_t      test_id;
 	M_io_t        *stall_io;
+	const char    *CONNECTED_str;
+	const char    *DATA_ACK_str;
 	struct {
 		M_io_t     *io;
 		M_buf_t    *out_buf;
@@ -120,7 +123,6 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	const char      *eol          = "\r\n";
 	const char      *eodata       = "\r\n.\r\n";
 	const char      *ending       = NULL;
-	const char      *str          = NULL;
 	M_parser_t      *in_parser    = NULL;
 	M_buf_t         *out_buf      = NULL;
 	M_io_t         **emu_io       = NULL;
@@ -192,8 +194,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		case M_EVENT_TYPE_CONNECTED:
 			M_parser_consume(in_parser, M_parser_len(in_parser));
 			M_buf_truncate(out_buf, M_buf_len(out_buf));
-			str = M_list_str_at(emu->json_values, 0);
-			M_buf_add_str(out_buf, str);
+			M_buf_add_str(out_buf, emu->CONNECTED_str);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
@@ -223,7 +224,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		event_debug("smtp emulator %p READ %d bytes \"%s\"", io, M_str_len(line), line);
 #endif
 		if (*is_data_mode) {
-			M_buf_add_str(out_buf, M_list_str_at(emu->json_values, 1));
+			M_buf_add_str(out_buf, emu->DATA_ACK_str);
 			*is_data_mode = M_FALSE;
 		} else {
 			if (M_str_eq(line, "DATA\r\n")) {
@@ -285,6 +286,40 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 }
 
+static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
+{
+
+	if (emu->regexs != NULL) {
+		for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
+			M_re_t *re = M_list_take_first(emu->regexs);
+			M_re_destroy(re);
+		}
+		M_list_destroy(emu->regexs, M_FALSE);
+	}
+	M_list_str_destroy(emu->json_values);
+	M_list_str_destroy(emu->json_keys);
+
+	emu->json = M_json_object_value(check_smtp_json, json_name);
+	emu->json_keys = M_json_object_keys(emu->json);
+	emu->json_values = M_list_str_create(M_LIST_NONE);
+	emu->regexs = M_list_create(NULL, M_LIST_NONE);
+	for (size_t i = 0; i < M_list_str_len(emu->json_keys); i++) {
+		const char *key   = M_list_str_at(emu->json_keys, i);
+		if (M_str_eq(key, "CONNECTED")) {
+			emu->CONNECTED_str = M_json_object_value_string(emu->json, key);
+			continue;
+		}
+		if (M_str_eq(key, "DATA_ACK")) {
+			emu->DATA_ACK_str = M_json_object_value_string(emu->json, key);
+			continue;
+		}
+		const char *value = M_json_object_value_string(emu->json, key);
+		M_re_t *re        = M_re_compile(key, M_RE_UNGREEDY);
+		M_list_insert(emu->regexs, re);
+		M_list_str_insert(emu->json_values, value);
+	}
+}
+
 static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type, const char *json_name,
 		M_uint16 *testport, test_id_t test_id)
 {
@@ -295,17 +330,7 @@ static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type
 	emu->el = el;
 	emu->test_id = test_id;
 	emu->tls_type = tls_type;
-	emu->json = M_json_object_value(check_smtp_json, json_name);
-	emu->json_keys = M_json_object_keys(emu->json);
-	emu->json_values = M_list_str_create(M_LIST_NONE);
-	emu->regexs = M_list_create(NULL, M_LIST_NONE);
-	for (size_t i = 0; i < M_list_str_len(emu->json_keys); i++) {
-		const char *key   = M_list_str_at(emu->json_keys, i);
-		const char *value = M_json_object_value_string(emu->json, key);
-		M_re_t *re        = M_re_compile(key, M_RE_UNGREEDY);
-		M_list_insert(emu->regexs, re);
-		M_list_str_insert(emu->json_values, value);
-	}
+	smtp_emulator_switch(emu, json_name);
 	while ((ioerr = M_io_net_server_create(&emu->io_listen, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
 		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
@@ -349,28 +374,29 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 typedef struct {
-	M_bool        is_success;
-	M_bool        is_connect_cb_called;
-	M_bool        is_connect_fail_cb_called;
-	M_bool        is_disconnect_cb_called;
-	M_bool        is_process_fail_cb_called;
-	M_bool        is_processing_halted_cb_called;
-	M_bool        is_sent_cb_called;
-	M_bool        is_send_failed_cb_called;
-	M_bool        is_reschedule_cb_called;
-	M_bool        is_iocreate_cb_called;
-	M_uint64      connect_cb_call_count;
-	M_uint64      connect_fail_cb_call_count;
-	M_uint64      disconnect_cb_call_count;
-	M_uint64      process_fail_cb_call_count;
-	M_uint64      processing_halted_cb_call_count;
-	M_uint64      sent_cb_call_count;
-	M_uint64      send_failed_cb_call_count;
-	M_uint64      reschedule_cb_call_count;
-	M_uint64      iocreate_cb_call_count;
-	test_id_t     test_id;
-	M_event_t    *el;
-	M_net_smtp_t *sp;
+	M_bool           is_success;
+	M_bool           is_connect_cb_called;
+	M_bool           is_connect_fail_cb_called;
+	M_bool           is_disconnect_cb_called;
+	M_bool           is_process_fail_cb_called;
+	M_bool           is_processing_halted_cb_called;
+	M_bool           is_sent_cb_called;
+	M_bool           is_send_failed_cb_called;
+	M_bool           is_reschedule_cb_called;
+	M_bool           is_iocreate_cb_called;
+	M_uint64         connect_cb_call_count;
+	M_uint64         connect_fail_cb_call_count;
+	M_uint64         disconnect_cb_call_count;
+	M_uint64         process_fail_cb_call_count;
+	M_uint64         processing_halted_cb_call_count;
+	M_uint64         sent_cb_call_count;
+	M_uint64         send_failed_cb_call_count;
+	M_uint64         reschedule_cb_call_count;
+	M_uint64         iocreate_cb_call_count;
+	test_id_t        test_id;
+	M_event_t       *el;
+	M_net_smtp_t    *sp;
+	smtp_emulator_t *emu;
 } args_t;
 
 static M_email_t * generate_email_with_text(const char *to_address, const char *text)
@@ -378,11 +404,10 @@ static M_email_t * generate_email_with_text(const char *to_address, const char *
 	M_email_t     *e;
 	M_hash_dict_t *headers;
 
-
 	e = M_email_create();
 	M_email_set_from(e, NULL, "smtp_cli", "no-reply+smtp-test@monetra.com");
 	M_email_to_append(e, NULL, NULL, to_address);
-	M_email_set_subject(e, "smtp_cli testing");
+	M_email_set_subject(e, "Testing");
 	headers = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
 	M_hash_dict_insert(headers, "Content-Type", "text/plain; charset=\"utf-8\"");
 	M_hash_dict_insert(headers, "Content-Transfer-Encoding", "7bit");
@@ -490,9 +515,20 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args_t *args = thunk;
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
-	event_debug("M_net_smtp_sent_cb(%p, %p): %llu", headers, thunk, args->sent_cb_call_count);
+	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
 	if (args->test_id == EMU_SENDMSG) {
 		M_event_done(args->el);
+	}
+
+	if (args->test_id == MULTITHREAD_RETRY) {
+		/*const char *subject;
+		M_printf("before\n");
+		M_hash_dict_get(headers, "subject", &subject);
+		M_printf("subject: %p\n", subject);
+		*/
+		if (args->sent_cb_call_count == multithread_retry_count) {
+			M_event_done(args->el);
+		}
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT) {
@@ -533,6 +569,13 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
+	if (args->test_id == MULTITHREAD_RETRY) {
+		if (args->send_failed_cb_call_count == multithread_retry_count) {
+			M_printf("Send failed for %zu msgs, retry in 3 sec\n", multithread_retry_count);
+			smtp_emulator_switch(args->emu, "minimal");
+		}
+		return M_TRUE; /* requeue message */
+	}
 	if (args->test_id == EMU_ACCEPT_DISCONNECT) {
 		M_event_done(args->el);
 	}
@@ -601,6 +644,58 @@ static void multithread_insert_task(void *thunk)
 	M_net_smtp_queue_smtp(arg->sp, arg->e);
 }
 
+START_TEST(multithread_retry)
+{
+	M_uint16 testport;
+
+	args_t args = { 0 };
+	args.test_id = MULTITHREAD_RETRY;
+
+	M_event_t             *el        = M_event_pool_create(0);
+	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "reject_457", &testport, args.test_id);
+	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t               *dns       = M_dns_create(el);
+	multithread_arg_t     *tests     = NULL;
+	void                 **testptrs  = NULL;
+	M_email_t             *e         = generate_email(1, test_address);
+	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
+	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
+	size_t                 i         = 0;
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
+			"should fail adding tcp endpoint without setting dns");
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	tests = M_malloc_zero(sizeof(*tests) * multithread_retry_count);
+	testptrs = M_malloc_zero(sizeof(*testptrs) * multithread_retry_count);
+	for (i = 0; i < multithread_retry_count; i++) {
+		tests[i].sp = sp;
+		tests[i].e  = e;
+		testptrs[i] = &tests[i];
+	}
+	M_threadpool_dispatch(tp_parent, multithread_insert_task, testptrs, multithread_retry_count);
+	args.el = el;
+	args.emu = emu;
+
+	M_threadpool_parent_wait(tp_parent);
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.sent_cb_call_count = multithread_retry_count, "should have called sent_cb count times");
+
+	M_free(testptrs);
+	M_free(tests);
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+}
+END_TEST
+
 START_TEST(multithread_insert)
 {
 	M_uint16 testport;
@@ -642,6 +737,8 @@ START_TEST(multithread_insert)
 
 	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
 
+	M_free(testptrs);
+	M_free(tests);
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
@@ -1360,6 +1457,14 @@ static Suite *smtp_suite(void)
 	tc = tcase_create("multithread insert");
 	tcase_add_test(tc, multithread_insert);
 	tcase_set_timeout(tc, 1);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*MULTITHREAD_RETRY       = 20, */
+#if TESTONLY == 0 || TESTONLY == 20
+	tc = tcase_create("multithread retry");
+	tcase_add_test(tc, multithread_retry);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
