@@ -154,10 +154,15 @@ static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint
 {
 	M_net_smtp_endpoint_slot_t *slot   = data;
 	M_parser_t                 *parser = NULL;
+	char                       *msg    = NULL;
 
-	parser = M_parser_create_const((unsigned char *)slot->msg, M_str_len(slot->msg), M_PARSER_FLAG_NONE);
+	M_email_bcc_clear(slot->email);
+	msg = M_email_simple_write(slot->email);
+
+	parser = M_parser_create_const((unsigned char *)msg, M_str_len(msg), M_PARSER_FLAG_NONE);
 	M_parser_mark(parser);
 
+	/* Period stuff all "\r\n."'s in msg */
 	while (M_parser_consume_until(parser, (unsigned char *)"\r\n.", 3, M_FALSE)) {
 		M_parser_read_buf_mark(parser, slot->out_buf);
 		M_buf_add_str(slot->out_buf, "\r\n..");
@@ -171,6 +176,7 @@ static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint
 	M_buf_add_str(slot->out_buf, "\r\n.\r\n");
 
 	M_parser_destroy(parser);
+	M_free(msg);
 
 	*next = STATE_DATA_STOP_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -190,7 +196,7 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 		const char *line = M_list_str_last(slot->tcp.smtp_response);
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %llu: %s",
 				slot->tcp.smtp_response_code, line);
-		if (slot->tcp.smtp_response_code = 457) {
+		if (slot->tcp.smtp_response_code == 457) {
 			/* 457 is not listed in RFC 5321 as used, 451 is typically used for graylisting,
 			 * for testing purposes 457 will mean to retry in 3000ms */
 			slot->retry_ms = 3000;

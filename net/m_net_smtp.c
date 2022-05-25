@@ -1006,9 +1006,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 	M_bool                      is_done      = M_FALSE;
 	size_t                      i;
 
-	e = M_email_create();
-
-	if (!M_email_set_headers(e, headers))
+	if (M_email_simple_read(&e, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL) != M_EMAIL_ERROR_SUCCESS)
 		goto fail;
 
 	for (i = 0; i < ep->slot_count; i++) {
