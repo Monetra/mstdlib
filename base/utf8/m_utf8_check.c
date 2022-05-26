@@ -49,7 +49,7 @@ static M_bool is_x_chr(const char *str, const char **next, M_bool(*cp_func)(M_ui
 	M_uint32 cp;
 
 	if (M_str_isempty(str))
-		return M_FALSE;
+		return M_TRUE;
 
 	if (M_utf8_get_cp(str, &cp, next) != M_UTF8_ERROR_SUCCESS)
 		return M_FALSE;
@@ -65,7 +65,7 @@ static M_bool is_x(const char *str, M_bool(*cp_func)(M_uint32 cp))
 	M_uint32 cp;
 
 	if (M_str_isempty(str))
-		return M_FALSE;
+		return M_TRUE;
 
 	do {
 		const char *next = NULL;
