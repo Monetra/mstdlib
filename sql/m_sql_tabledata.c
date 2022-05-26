@@ -769,7 +769,7 @@ static M_bool M_sql_tabledata_field_validate(M_sql_tabledata_field_t *field, con
 					return M_FALSE;
 				}
 			} else {
-				if (!M_utf8_isprint(const_temp)) {
+				if (!M_str_isempty(const_temp) && !M_utf8_isprint(const_temp)) {
 					M_snprintf(error, error_len, "not printable");
 					return M_FALSE;
 				}
