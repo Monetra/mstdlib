@@ -89,6 +89,7 @@ static M_uint64 processing_halted_cb(M_bool no_endpoint, void *thunk)
 	if (prag->is_debug) {
 		M_printf("%s:%d: %s(%d, %p)\n", __FILE__, __LINE__, __FUNCTION__, no_endpoint, thunk);
 	}
+	M_event_done(prag->el);
 	return 0; /* Seconds to wait before retry.  0 stops trying */
 }
 
@@ -161,7 +162,7 @@ static M_bool add_tcp_endpoint(const char *address, M_net_smtp_t *sp, prag_t *pr
 	if (prag->dns == NULL) {
 		M_tls_clientctx_t *ctx = M_tls_clientctx_create();
 		M_tls_clientctx_set_default_trust(ctx);
-		//M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+		M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
 		prag->dns = M_dns_create(prag->el);
 		M_net_smtp_setup_tcp(sp, prag->dns, ctx);
 		M_tls_clientctx_destroy(ctx);

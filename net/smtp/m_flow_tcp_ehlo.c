@@ -91,9 +91,9 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 			slot->tcp.is_starttls_capable = M_TRUE;
 			continue;
 		}
-		if (M_str_caseeq_max("AUTH ", ehlo_line, 5) == 0) {
+		if (M_str_caseeq_max("AUTH ", ehlo_line, 5)) {
 			/* "AUTH " not "AUTH=" */
-			determine_auth_method(ehlo_line, slot);
+			determine_auth_method(ehlo_line + 5, slot);
 			continue;
 		}
 	}

@@ -33,7 +33,7 @@ typedef enum {
 	STATE_AUTH_LOGIN_PASSWORD,
 	STATE_AUTH_LOGIN_RESPONSE,
 	STATE_AUTH_CRAM_MD5,
-	STATE_AUTH_CRAM_MD5_SALT_RESPONSE,
+	STATE_AUTH_CRAM_MD5_SECRET_RESPONSE,
 	STATE_AUTH_CRAM_MD5_FINAL_RESPONSE,
 } m_state_ids;
 
@@ -165,14 +165,14 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 		goto done;
 	}
 
-	if (M_str_cmpsort_max(&line[4], "VXNlcm5hbWU6\r\n", 14) == 0) {
+	if (M_str_caseeq_max(line, "VXNlcm5hbWU6", 12)) {
 		/* base64 for "Username" */
 		*next = STATE_AUTH_LOGIN_USERNAME;
 		machine_status = M_STATE_MACHINE_STATUS_NEXT;
 		goto done;
 	}
 
-	if (M_str_cmpsort_max(&line[4], "UGFzc3dvcmQ6\r\n", 14) == 0) {
+	if (M_str_caseeq_max(line, "UGFzc3dvcmQ6", 12)) {
 		/* base64 for "Password" */
 		*next = STATE_AUTH_LOGIN_PASSWORD;
 		machine_status = M_STATE_MACHINE_STATUS_NEXT;
@@ -189,11 +189,11 @@ static M_state_machine_status_t M_state_auth_cram_md5(void *data, M_uint64 *next
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
 	M_buf_add_str(slot->out_buf, "AUTH CRAM-MD5\r\n");
-	*next = STATE_AUTH_CRAM_MD5_SALT_RESPONSE;
+	*next = STATE_AUTH_CRAM_MD5_SECRET_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data,
+static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot           = data;
@@ -218,10 +218,10 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 		goto done;
 	}
 
-	if (M_bincodec_decode(buf, sizeof(buf)-1, &line[4], M_str_len(&line[4]), M_BINCODEC_BASE64) <= 0) {
+	if (M_bincodec_decode(buf, sizeof(buf)-1, line, M_str_len(line), M_BINCODEC_BASE64) <= 0) {
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to decode salt: %s", line);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to decode cram-md5 secret: %s", line);
 		goto done;
 	}
 
@@ -229,7 +229,7 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 	HMAC(
 		EVP_md5(),
 		slot->tcp.password, (int)slot->tcp.password_len,
-		buf, M_str_len((const char *)buf), /* buf contains salt */
+		buf, M_str_len((const char *)buf), /* buf contains cram-md5 secret */
 		d, &uint
 	);
 
@@ -244,6 +244,7 @@ static M_state_machine_status_t M_auth_cram_md5_salt_response_post_cb(void *data
 		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Allocation failed");
 		goto done;
 	}
+
 	M_buf_add_str(slot->out_buf, challenge);
 	M_buf_add_str(slot->out_buf, "\r\n");
 	M_free(challenge);
@@ -283,8 +284,8 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth()
 	M_state_machine_insert_state(m, STATE_AUTH_CRAM_MD5, 0, NULL, M_state_auth_cram_md5, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_SALT_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_cram_md5_salt_response_post_cb, NULL, NULL);
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_SECRET_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_cram_md5_secret_response_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();

@@ -90,9 +90,11 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 	slot->tcp.smtp_response_code = response_code;
 	M_parser_mark_rewind(slot->in_parser);
 	M_parser_consume(slot->in_parser, 4); /* skip over number code */
-	line = M_parser_read_strdup_until(slot->in_parser, "\r\n", 2);
+	line = M_parser_read_strdup_until(slot->in_parser, "\r\n", M_FALSE);
 	M_list_str_insert(slot->tcp.smtp_response, line);
 	M_free(line);
+
+	M_parser_consume(slot->in_parser, 2); /* skip over \r\n */
 
 	if (byte == '-') {
 		*next = STATE_READ_LINE;
