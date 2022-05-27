@@ -23,6 +23,7 @@
 
 #include "m_flow.h"
 #include <openssl/hmac.h>
+#include <openssl/rand.h>
 
 typedef enum {
 	STATE_AUTH_START = 1,
@@ -35,6 +36,10 @@ typedef enum {
 	STATE_AUTH_CRAM_MD5,
 	STATE_AUTH_CRAM_MD5_SECRET_RESPONSE,
 	STATE_AUTH_CRAM_MD5_FINAL_RESPONSE,
+	STATE_AUTH_DIGEST_MD5,
+	STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE,
+	STATE_AUTH_DIGEST_MD5_ACK_RESPONSE,
+	STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE,
 } m_state_ids;
 
 static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
@@ -54,6 +59,9 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 			*next = STATE_AUTH_CRAM_MD5;
 			return M_STATE_MACHINE_STATUS_NEXT;
 			break;
+		case M_NET_SMTP_AUTHTYPE_DIGEST_MD5:
+			*next = STATE_AUTH_DIGEST_MD5;
+			return M_STATE_MACHINE_STATUS_NEXT;
 		case M_NET_SMTP_AUTHTYPE_NONE:
 			return M_STATE_MACHINE_STATUS_DONE;
 			break;
@@ -87,14 +95,9 @@ static M_state_machine_status_t M_auth_final_response_post_cb(void *data, M_stat
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 235) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 235 auth response, got: %llu: %s",
-				slot->tcp.smtp_response_code, M_list_str_last(slot->tcp.smtp_response));
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 235))
 		goto done;
-	}
+
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:
@@ -141,24 +144,11 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 
 	line = M_list_str_last(slot->tcp.smtp_response);
 
-	slot->tcp.auth_login_response_count++;
-	if (slot->tcp.auth_login_response_count < 3 && slot->tcp.smtp_response_code != 334) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 334 auth response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (slot->tcp.auth_login_response_count < 3 && !M_net_smtp_flow_tcp_check_smtp_response_code(slot, 334))
 		goto done;
-	}
 
-	if (slot->tcp.auth_login_response_count == 3 && slot->tcp.smtp_response_code != 235) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 235 auth response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (slot->tcp.auth_login_response_count == 3 && !M_net_smtp_flow_tcp_check_smtp_response_code(slot, 235))
 		goto done;
-	}
 
 	if (slot->tcp.auth_login_response_count == 3) {
 		machine_status = M_STATE_MACHINE_STATUS_DONE;
@@ -208,16 +198,10 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	line = M_list_str_last(slot->tcp.smtp_response);
-	if (slot->tcp.smtp_response_code != 334) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 334 auth response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 334))
 		goto done;
-	}
 
+	line = M_list_str_last(slot->tcp.smtp_response);
 	if (M_bincodec_decode(buf, sizeof(buf)-1, line, M_str_len(line), M_BINCODEC_BASE64) <= 0) {
 		slot->tcp.is_connect_fail = M_TRUE;
 		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
@@ -250,6 +234,239 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	M_free(challenge);
 
 	*next = STATE_AUTH_CRAM_MD5_FINAL_RESPONSE;
+	machine_status = M_STATE_MACHINE_STATUS_NEXT;
+
+done:
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+}
+
+static void RFC2831_HEX(unsigned char b[16], char s[33])
+{
+	M_snprintf(s, 33, /* sizeof(s) == sizeof(void*) */
+		"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		b[0], b[1], b[2] , b[3] , b[4] , b[5] , b[6] , b[7],
+		b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]
+	);
+}
+
+static void RFC2831_H(char *s, size_t len, unsigned char b[16])
+{
+	unsigned int mdlen = 16;
+	EVP_Digest(s, len, b, &mdlen, EVP_md5(), NULL);
+}
+
+static M_state_machine_status_t M_state_auth_digest_md5(void *data, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot = data;
+	M_buf_add_str(slot->out_buf, "AUTH DIGEST-MD5\r\n");
+	*next = STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE;
+	return M_STATE_MACHINE_STATUS_NEXT;
+}
+
+typedef struct {
+	const char *username;
+	const char *realm;
+	const char *password;
+	const char *algorithm;
+	const char *nonce;
+	const char *nonce_count;
+	const char *cnonce;
+	const char *qop;
+	const char *method;
+	const char *digest_uri;
+	const char *H_entity_body;
+	const char *authzid;
+} digest_md5_parameters_t;
+
+static void digest_md5_compute_HA1(digest_md5_parameters_t *parameters, unsigned char HA1[16])
+{
+	M_buf_t *buf   = NULL;
+	char    *str   = NULL;
+	size_t   len;
+
+	buf = M_buf_create();
+	M_bprintf(buf, "%s:%s:%s", parameters->username, parameters->realm, parameters->password);
+	str = M_buf_finish_str(buf, &len);
+	RFC2831_H(str, len, HA1);
+	M_free(str);
+
+	buf = M_buf_create();
+	M_buf_add_bytes(buf, HA1, 16);
+	M_bprintf(buf, ":%s:%s", parameters->nonce, parameters->cnonce);
+	if (parameters->authzid != NULL) {
+		M_bprintf(buf, ":%s", parameters->authzid);
+	}
+	str = M_buf_finish_str(buf, &len);
+	RFC2831_H(str, len, HA1);
+	M_free(str);
+}
+
+static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned char HA2[16])
+{
+	M_buf_t *buf   = NULL;
+	char    *str   = NULL;
+	size_t   len;
+
+	buf = M_buf_create();
+	M_bprintf(buf, "%s:%s", parameters->method, parameters->digest_uri);
+	if (parameters->qop != NULL &&
+		(M_str_caseeq(parameters->qop, "auth-int") ||
+			M_str_caseeq(parameters->qop, "auth-conf"))
+	) {
+		 M_bprintf(buf, ":%s", parameters->H_entity_body);
+	}
+	str = M_buf_finish_str(buf, &len);
+	RFC2831_H(str, len, HA2);
+	M_free(str);
+}
+
+static void digest_md5_compute_response(digest_md5_parameters_t *parameters, char response[32])
+{
+	M_buf_t       *buf             = NULL;
+	char          *str             = NULL;
+	size_t         i               = 0;
+	unsigned char  HA1[16]         = { 0 };
+	unsigned char  HA2[16]         = { 0 };
+	unsigned char  HFINAL[16]      = { 0 };
+	size_t         len;
+
+	digest_md5_compute_HA1(parameters, HA1);
+	digest_md5_compute_HA2(parameters, HA2);
+
+	buf = M_buf_create();
+
+	for (i = 0; i < 16; i++) {
+		M_buf_add_bytehex(buf, HA1[i], M_FALSE);
+	}
+
+	M_bprintf(buf, ":%s:", parameters->nonce);
+	if (parameters->qop != NULL) {
+		M_bprintf(buf, "%s:%s:%s:", parameters->nonce_count, parameters->cnonce, parameters->qop);
+	}
+
+	for (i = 0; i < 16; i++) {
+		M_buf_add_bytehex(buf, HA2[i], M_FALSE);
+	}
+
+	str = M_buf_finish_str(buf, &len);
+	RFC2831_H(str, len, HFINAL);
+	M_free(str);
+
+	RFC2831_HEX(HFINAL, response);
+}
+
+static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot             = data;
+	M_state_machine_status_t    machine_status   = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	char                       *parameters_str   = NULL;
+	M_hash_dict_t              *parameters_dict  = NULL;
+	char                       *digest_uri       = NULL;
+	M_buf_t                    *buf              = NULL;
+	char                       *str              = NULL;
+	char                       *str_b64          = NULL;
+	const char                 *line             = NULL;
+	size_t                      digest_uri_size  = 0;
+	char                        response[33]     = { 0 };
+	unsigned char               cnonce_bytes[16] = { 0 };
+	char                        cnonce[33]       = { 0 };
+	digest_md5_parameters_t     parameters       = { 0 };
+	size_t                      len;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 334))
+		goto done;
+
+	line = M_list_str_last(slot->tcp.smtp_response);
+	if (
+		!(parameters_str  = (char *)M_bincodec_decode_alloc(line, M_str_len(line), &len, M_BINCODEC_BASE64)) ||
+		!(parameters_dict = M_hash_dict_deserialize(parameters_str, len, ',', '=', '"', '\\', M_HASH_DICT_NONE))
+	) {
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to decode digest-md5 parameters: %s", line);
+		goto done;
+	}
+
+	parameters.username = slot->tcp.username;
+	//parameters.username = "user";
+	M_hash_dict_get(parameters_dict, "realm", &parameters.realm);
+	parameters.password = slot->tcp.password;
+	M_hash_dict_get(parameters_dict, "algorithm", &parameters.algorithm);
+	M_hash_dict_get(parameters_dict, "nonce", &parameters.nonce);
+	M_hash_dict_get(parameters_dict, "qop", &parameters.qop);
+	M_hash_dict_get(parameters_dict, "authzid", &parameters.authzid);
+	RAND_bytes(cnonce_bytes, sizeof(cnonce_bytes));
+	RFC2831_HEX(cnonce_bytes, cnonce);
+	parameters.cnonce = cnonce;
+	parameters.nonce_count = "00000001"; /* Always - we will terminate if it doesn't work */
+	parameters.method = "AUTHENTICATE"; /* Always */
+	parameters.H_entity_body = "00000000000000000000000000000000"; /* Always */
+	digest_uri_size = 5 + M_str_len(parameters.realm) + 1;
+	digest_uri = M_malloc(digest_uri_size);
+	M_snprintf(digest_uri, digest_uri_size, "smtp/%s", parameters.realm);
+	parameters.digest_uri = digest_uri;
+
+	digest_md5_compute_response(&parameters, response);
+
+	M_hash_dict_remove(parameters_dict, "algorithm");
+	M_hash_dict_insert(parameters_dict, "username", parameters.username);
+	M_hash_dict_insert(parameters_dict, "cnonce", parameters.cnonce);
+	M_hash_dict_insert(parameters_dict, "nc", parameters.nonce_count);
+	M_hash_dict_insert(parameters_dict, "digest-uri", parameters.digest_uri);
+	M_hash_dict_insert(parameters_dict, "response", response);
+
+	buf = M_buf_create();
+	M_hash_dict_serialize_buf(parameters_dict, buf, ',', '=', '"', '\\', M_HASH_DICT_SER_FLAG_NONE);
+	str = M_buf_finish_str(buf, &len);
+	str_b64 = M_bincodec_encode_alloc((unsigned char*)str, len, 0, M_BINCODEC_BASE64);
+	M_buf_add_str(slot->out_buf, str_b64);
+	M_buf_add_str(slot->out_buf, "\r\n");
+
+	*next = STATE_AUTH_DIGEST_MD5_ACK_RESPONSE;
+	machine_status = M_STATE_MACHINE_STATUS_NEXT;
+done:
+	M_free(str);
+	M_free(str_b64);
+	M_free(digest_uri);
+	M_free(parameters_str);
+	M_hash_dict_destroy(parameters_dict);
+	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+}
+
+static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *data,
+		M_state_machine_status_t sub_status, M_uint64 *next)
+{
+	M_net_smtp_endpoint_slot_t *slot             = data;
+	M_state_machine_status_t    machine_status   = M_STATE_MACHINE_STATUS_ERROR_STATE;
+
+	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+		goto done;
+
+	/*
+	 * If everything worked, the line will contain a base64 encoded rspauth=<md5hash>
+	 * It is sometimes used for sessioning information, but we are going to
+	 * drop it on the floor for our SMTP purposes.
+	 */
+
+
+	if (slot->tcp.smtp_response_code == 250) {
+		/* It is possible for the SMTP server to send a
+			* 250 <respcode> to eliminate a tedious back and forth */
+		machine_status = M_STATE_MACHINE_STATUS_DONE;
+		goto done;
+	}
+
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 334))
+		goto done;
+
+
+	M_buf_add_str(slot->out_buf, "\r\n");
+
+	*next = STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE;
 	machine_status = M_STATE_MACHINE_STATUS_NEXT;
 
 done:
@@ -290,6 +507,24 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth()
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
 	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_final_response_post_cb, NULL, NULL);
+	/* M_auth_final_response_post_cb is shared */
+	M_state_machine_destroy(sub_m);
+
+	M_state_machine_insert_state(m, STATE_AUTH_DIGEST_MD5, 0, NULL, M_state_auth_digest_md5, NULL, NULL);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_digest_md5_nonce_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_ACK_RESPONSE, 0, NULL, sub_m,
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_digest_md5_ack_response_post_cb, NULL, NULL);
+	M_state_machine_destroy(sub_m);
+
+	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, 0, NULL, sub_m,
 			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_final_response_post_cb, NULL, NULL);
 	/* M_auth_final_response_post_cb is shared */
 	M_state_machine_destroy(sub_m);

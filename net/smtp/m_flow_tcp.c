@@ -36,6 +36,21 @@ typedef enum {
 	STATE_DISCONNECTING,
 } m_state_ids;
 
+M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *slot, M_uint64 expected_code)
+{
+	const char *line;
+	if (slot->tcp.smtp_response_code != expected_code) {
+		/* Classify as connect failure so endpoint can get removed */
+		slot->tcp.is_connect_fail = M_TRUE;
+		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
+		line = M_list_str_last(slot->tcp.smtp_response);
+		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected %llu response, got: %llu: %s",
+				expected_code, slot->tcp.smtp_response_code, line);
+		return M_FALSE;
+	}
+	return M_TRUE;
+}
+
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
 	M_net_smtp_endpoint_slot_t *slot = data;
@@ -57,15 +72,8 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 220) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 opening statement, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
 		goto done;
-	}
 
 	if (!M_str_caseeq(slot->tcp.address, "localhost")) {
 		line = M_list_str_first(slot->tcp.smtp_response);

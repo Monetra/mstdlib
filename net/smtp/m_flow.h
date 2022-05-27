@@ -47,6 +47,7 @@ typedef enum {
 	M_NET_SMTP_AUTHTYPE_LOGIN,
 	M_NET_SMTP_AUTHTYPE_PLAIN,
 	M_NET_SMTP_AUTHTYPE_CRAM_MD5,
+	M_NET_SMTP_AUTHTYPE_DIGEST_MD5,
 } M_net_smtp_authtype_t;
 
 typedef struct {
@@ -57,10 +58,11 @@ typedef struct {
 
 static const M_net_smtp_auth_search_t M_net_smtp_auth_search[] =
 {
-	{ .priority = 0, .str = "NONE" ,    .type = M_NET_SMTP_AUTHTYPE_NONE     },
-	{ .priority = 1, .str = "LOGIN",    .type = M_NET_SMTP_AUTHTYPE_LOGIN    },
-	{ .priority = 2, .str = "PLAIN",    .type = M_NET_SMTP_AUTHTYPE_PLAIN    },
-	{ .priority = 3, .str = "CRAM-MD5", .type = M_NET_SMTP_AUTHTYPE_CRAM_MD5 },
+	{ .priority = 0, .str = "NONE" ,      .type = M_NET_SMTP_AUTHTYPE_NONE       },
+	{ .priority = 1, .str = "LOGIN",      .type = M_NET_SMTP_AUTHTYPE_LOGIN      },
+	{ .priority = 2, .str = "PLAIN",      .type = M_NET_SMTP_AUTHTYPE_PLAIN      },
+	{ .priority = 3, .str = "CRAM-MD5",   .type = M_NET_SMTP_AUTHTYPE_CRAM_MD5   },
+	{ .priority = 4, .str = "DIGEST-MD5", .type = M_NET_SMTP_AUTHTYPE_DIGEST_MD5 },
 };
 static const size_t M_net_smtp_auth_search_len = sizeof(M_net_smtp_auth_search) / sizeof(M_net_smtp_auth_search[0]);
 
@@ -124,6 +126,7 @@ typedef struct {
 	};
 } M_net_smtp_endpoint_slot_t;
 
+M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *slot, M_uint64 expected_code);
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next);
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
 		void *data, M_state_machine_status_t sub_status, M_uint64 *next);

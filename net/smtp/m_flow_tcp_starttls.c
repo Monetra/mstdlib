@@ -47,14 +47,8 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 220) {
-		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 220 auth response, got: %llu: %s",
-				slot->tcp.smtp_response_code, M_list_str_last(slot->tcp.smtp_response));
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
 		goto done;
-	}
 
 	slot->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_READY;
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
