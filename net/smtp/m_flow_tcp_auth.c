@@ -21,9 +21,15 @@
  * THE SOFTWARE.
  */
 
-#include "m_flow.h"
+#include "m_net_smtp_int.h"
 #include <openssl/hmac.h>
 #include <openssl/rand.h>
+/*
+	ep->tcp.auth_login_user = M_bincodec_encode_alloc(
+			(const unsigned char *)username, M_str_len(username), 0, M_BINCODEC_BASE64);
+	ep->tcp.auth_login_pass = M_bincodec_encode_alloc(
+			(const unsigned char *)password, M_str_len(password), 0, M_BINCODEC_BASE64);
+			*/
 
 typedef enum {
 	STATE_AUTH_START = 1,
@@ -50,36 +56,55 @@ static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 		case M_NET_SMTP_AUTHTYPE_PLAIN:
 			*next = STATE_AUTH_PLAIN;
 			return M_STATE_MACHINE_STATUS_NEXT;
-			break;
 		case M_NET_SMTP_AUTHTYPE_LOGIN:
 			*next = STATE_AUTH_LOGIN;
 			return M_STATE_MACHINE_STATUS_NEXT;
-			break;
 		case M_NET_SMTP_AUTHTYPE_CRAM_MD5:
 			*next = STATE_AUTH_CRAM_MD5;
 			return M_STATE_MACHINE_STATUS_NEXT;
-			break;
 		case M_NET_SMTP_AUTHTYPE_DIGEST_MD5:
 			*next = STATE_AUTH_DIGEST_MD5;
 			return M_STATE_MACHINE_STATUS_NEXT;
 		case M_NET_SMTP_AUTHTYPE_NONE:
 			return M_STATE_MACHINE_STATUS_DONE;
-			break;
 	}
 
 	/* Classify as connect failure so endpoint can get removed */
 	slot->tcp.is_connect_fail = M_TRUE;
 	slot->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Something weird happened");
+	M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unsupported SMTP authentication type: %d", slot->tcp.smtp_authtype);
 	return M_STATE_MACHINE_STATUS_ERROR_STATE;
+}
+
+static char * create_auth_plain(const char *username, const char *password)
+{
+	char    *auth_str_base64 = NULL;
+	size_t   len             = 0;
+	M_buf_t *buf             = NULL;
+	char    *str             = NULL;
+
+	buf = M_buf_create();
+	M_buf_add_byte(buf, 0);
+	M_buf_add_str(buf, username);
+	M_buf_add_byte(buf, 0);
+	M_buf_add_str(buf, password);
+	str = M_buf_finish_str(buf, &len);
+
+	auth_str_base64 = M_bincodec_encode_alloc((const unsigned char *)str, len, 0, M_BINCODEC_BASE64);
+	M_free(str);
+	return auth_str_base64;
 }
 
 static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_slot_t *slot       = data;
+	char                       *auth_plain = NULL;
+
+	auth_plain = create_auth_plain(slot->endpoint->tcp.username, slot->endpoint->tcp.password);
 	M_buf_add_str(slot->out_buf, "AUTH PLAIN ");
-	M_buf_add_str(slot->out_buf, slot->tcp.auth_plain);
+	M_buf_add_str(slot->out_buf, auth_plain);
 	M_buf_add_str(slot->out_buf, "\r\n");
+	M_free(auth_plain);
 	*next = STATE_AUTH_PLAIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -115,18 +140,38 @@ static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
-	M_buf_add_str(slot->out_buf, slot->tcp.auth_login_user);
+	M_net_smtp_endpoint_slot_t *slot         = data;
+	char                       *username_b64 = NULL;
+
+	username_b64 = M_bincodec_encode_alloc(
+		(const unsigned char *)slot->endpoint->tcp.username,
+		M_str_len(slot->endpoint->tcp.username),
+		0,
+		M_BINCODEC_BASE64
+	);
+
+	M_buf_add_str(slot->out_buf, username_b64);
 	M_buf_add_str(slot->out_buf, "\r\n");
+	M_free(username_b64);
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
-	M_buf_add_str(slot->out_buf, slot->tcp.auth_login_pass);
+	M_net_smtp_endpoint_slot_t *slot         = data;
+	char                       *password_b64 = NULL;
+
+	password_b64 = M_bincodec_encode_alloc(
+		(const unsigned char *)slot->endpoint->tcp.password,
+		M_str_len(slot->endpoint->tcp.password),
+		0,
+		M_BINCODEC_BASE64
+	);
+
+	M_buf_add_str(slot->out_buf, password_b64);
 	M_buf_add_str(slot->out_buf, "\r\n");
+	M_free(password_b64);
 	*next = STATE_AUTH_LOGIN_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -212,7 +257,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	uint = sizeof(d);
 	HMAC(
 		EVP_md5(),
-		slot->tcp.password, (int)slot->tcp.password_len,
+		slot->endpoint->tcp.password, (int)M_str_len(slot->endpoint->tcp.password),
 		buf, M_str_len((const char *)buf), /* buf contains cram-md5 secret */
 		d, &uint
 	);
@@ -220,7 +265,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	len = M_snprintf(
 		(char *)buf, sizeof(buf),
 		"%s %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		slot->tcp.username,
+		slot->endpoint->tcp.username,
 		d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]
 	);
 
@@ -391,10 +436,10 @@ static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *d
 		goto done;
 	}
 
-	parameters.username = slot->tcp.username;
+	parameters.username = slot->endpoint->tcp.username;
 	//parameters.username = "user";
 	M_hash_dict_get(parameters_dict, "realm", &parameters.realm);
-	parameters.password = slot->tcp.password;
+	parameters.password = slot->endpoint->tcp.password;
 	M_hash_dict_get(parameters_dict, "algorithm", &parameters.algorithm);
 	M_hash_dict_get(parameters_dict, "nonce", &parameters.nonce);
 	M_hash_dict_get(parameters_dict, "qop", &parameters.qop);

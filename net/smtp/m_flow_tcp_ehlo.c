@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "m_flow.h"
+#include "m_net_smtp_int.h"
 
 typedef enum {
 	STATE_EHLO = 1,
@@ -43,21 +43,43 @@ static void determine_auth_method(const char *line, M_net_smtp_endpoint_slot_t *
 	size_t  *method_lens;
 	size_t  n;
 	size_t  i;
-	size_t  j;
 	size_t  found_priority = 0;
+
+	slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
 
 	methods = M_str_explode(' ', line, M_str_len(line), &n, &method_lens);
 	for (i = 0; i < n; i++) {
-		/* Only need to look for higher priority methods */
-		for (j = found_priority + 1; j < M_net_smtp_auth_search_len; j++) {
-			if (M_str_eq(methods[i], M_net_smtp_auth_search[j].str)) {
-				slot->tcp.smtp_authtype = M_net_smtp_auth_search[j].type;
-				found_priority = j;
-				break;
-			}
-		}
-		if (found_priority + 1 == M_net_smtp_auth_search_len)
+
+		if (M_str_caseeq(methods[i], "DIGEST-MD5")) {
+			slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_DIGEST_MD5;
 			break; /* The best */
+		}
+
+		if (found_priority == 3)
+			continue;
+
+		if (M_str_caseeq(methods[i], "CRAM-MD5")) {
+			slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_CRAM_MD5;
+			found_priority = 3;
+			continue;
+		}
+
+		if (found_priority == 2)
+			continue;
+
+		if (M_str_caseeq(methods[i], "PLAIN")) {
+			slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_PLAIN;
+			found_priority = 2;
+			continue;
+		}
+
+		if (found_priority == 1)
+			continue;
+
+		if (M_str_caseeq(methods[i], "LOGIN")) {
+			slot->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_LOGIN;
+			found_priority = 1;
+		}
 	}
 	M_str_explode_free(methods, n);
 	M_free(method_lens);

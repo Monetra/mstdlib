@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "m_flow.h"
+#include "m_net_smtp_int.h"
 
 typedef enum {
 	STATE_READ_LINE = 1,

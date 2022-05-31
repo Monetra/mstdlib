@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "m_flow.h"
+#include "m_net_smtp_int.h"
 
 typedef enum {
 	STATE_CONNECTING = 1,
@@ -75,10 +75,11 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
 		goto done;
 
-	if (!M_str_caseeq(slot->tcp.address, "localhost")) {
+	if (!M_str_caseeq(slot->endpoint->tcp.address, "localhost")) {
 		line = M_list_str_first(slot->tcp.smtp_response);
-		if (!M_str_caseeq_max(slot->tcp.address, line, slot->tcp.address_len)) {
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"", slot->tcp.address, line);
+		if (!M_str_caseeq_max(slot->endpoint->tcp.address, line, M_str_len(slot->endpoint->tcp.address))) {
+			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"",
+					slot->endpoint->tcp.address, line);
 			goto done;
 		}
 	}
@@ -140,13 +141,11 @@ static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_statu
 			slot->tcp.net_error = M_NET_ERROR_NOTPERM;
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Server does not support STARTTLS");
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
-			break;
 		case M_NET_SMTP_TLS_IMPLICIT:
 		case M_NET_SMTP_TLS_STARTTLS_READY:
 		case M_NET_SMTP_TLS_STARTTLS_ADDED:
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Invalid TLS state.");
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
-			break;
 	}
 	return M_STATE_MACHINE_STATUS_NEXT;
 }

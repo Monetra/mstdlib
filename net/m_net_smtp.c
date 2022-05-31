@@ -24,7 +24,7 @@
 #include "m_net_int.h"
 #include <mstdlib/base/m_defs.h> /* M_CAST_OFF_CONST */
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
-#include "smtp/m_flow.h" /* State machines */
+#include "smtp/m_net_smtp_int.h" /* State machines & internal structure definitions */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -64,38 +64,6 @@ typedef struct {
 	M_event_timer_t *event_timer;
 } retry_msg_t;
 
-typedef struct {
-	M_net_smtp_endpoint_type_t  type;
-	size_t                      slot_count;
-	size_t                      slot_available;
-	M_bool                      is_alive;
-	M_bool                      is_removed;
-	union {
-		struct {
-			char          *address;
-			M_uint16       port;
-			M_bool         connect_tls;
-			char          *username;
-			char          *password;
-			size_t         address_len;
-			size_t         password_len;
-			size_t         username_len;
-			char          *auth_plain;
-			char          *auth_login_user;
-			char          *auth_login_pass;
-			size_t         max_conns;
-		} tcp;
-		struct {
-			char          *command;
-			M_list_str_t  *args;
-			M_hash_dict_t *env;
-			M_uint64       timeout_ms;
-			size_t         max_processes;
-		} process;
-	};
-	M_net_smtp_endpoint_slot_t  slots[];
-} endpoint_t;
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 /* forward declarations */
 static void process_queue_queue(M_net_smtp_t *sp);
@@ -132,7 +100,7 @@ static M_bool is_available_failover(M_net_smtp_t *sp)
 {
 	size_t i;
 	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const endpoint_t *ep = M_list_at(sp->endpoints, i);
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed)
 			return ep->slot_available > 0;
 	}
@@ -145,8 +113,8 @@ static M_bool is_available_round_robin(M_net_smtp_t *sp)
 	size_t len = M_list_len(sp->endpoints);
 
 	for (i = 0; i < len; i++) {
-		size_t            idx = (sp->round_robin_idx + i) % len;
-		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
+		size_t                       idx = (sp->round_robin_idx + i) % len;
+		const M_net_smtp_endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 		if (!ep->is_removed && ep->slot_available > 0)
 			return M_TRUE;
 	}
@@ -158,15 +126,13 @@ static M_bool is_available(M_net_smtp_t *sp)
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
 			return is_available_failover(sp);
-			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
 			return is_available_round_robin(sp);
-			break;
 	}
 	return M_FALSE;
 }
 
-static void destroy_endpoint(endpoint_t *ep)
+static void destroy_endpoint(M_net_smtp_endpoint_t *ep)
 {
 	size_t i;
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
@@ -178,12 +144,9 @@ static void destroy_endpoint(endpoint_t *ep)
 		M_free(ep->tcp.address);
 		M_free(ep->tcp.username);
 		M_free(ep->tcp.password);
-		M_free(ep->tcp.auth_plain);
-		M_free(ep->tcp.auth_login_user);
-		M_free(ep->tcp.auth_login_pass);
 	}
 	for (i = 0; i < ep->slot_count; i++) {
-		M_thread_mutex_destroy(ep->slots[i].lock);
+		M_thread_mutex_destroy(ep->send_slots[i].lock);
 	}
 	M_free(ep);
 }
@@ -266,9 +229,9 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 
 void M_net_smtp_destroy(M_net_smtp_t *sp)
 {
-	endpoint_t      *ep    = NULL;
-	M_event_timer_t *timer = NULL;
-	retry_msg_t     *retry = NULL;
+	M_net_smtp_endpoint_t *ep    = NULL;
+	M_event_timer_t       *timer = NULL;
+	retry_msg_t           *retry = NULL;
 
 	if (sp == NULL)
 		return;
@@ -437,8 +400,8 @@ static void round_robin_skip_removed(M_net_smtp_t *sp)
 	size_t len = M_list_len(sp->endpoints);
 
 	for (i = 0; i < len; i++) {
-		size_t            idx = (sp->round_robin_idx + i) % len;
-		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
+		size_t                       idx = (sp->round_robin_idx + i) % len;
+		const M_net_smtp_endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 		if (ep->is_removed)
 			continue;
 		sp->round_robin_idx = idx;
@@ -446,11 +409,11 @@ static void round_robin_skip_removed(M_net_smtp_t *sp)
 	}
 }
 
-static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
+static void remove_endpoint(M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
 {
-	size_t            i;
-	M_bool            is_all_endpoints_removed = M_TRUE;
-	const endpoint_t *const_ep                 = NULL;
+	size_t                       i;
+	M_bool                       is_all_endpoints_removed = M_TRUE;
+	const M_net_smtp_endpoint_t *const_ep                 = NULL;
 
 	ep->is_removed = M_TRUE;
 	for (i = 0; i < M_list_len(sp->endpoints); i++) {
@@ -480,7 +443,7 @@ static void remove_endpoint(M_net_smtp_t *sp, endpoint_t *ep)
 
 static void rotate_endpoints(M_net_smtp_t *sp)
 {
-	endpoint_t *ep;
+	M_net_smtp_endpoint_t *ep;
 
 	if (sp->load_balance_mode != M_NET_SMTP_LOAD_BALANCE_FAILOVER)
 		return;
@@ -494,7 +457,7 @@ static void rotate_endpoints(M_net_smtp_t *sp)
 
 static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_str)
 {
-	const endpoint_t *const_ep = slot->endpoint;
+	const M_net_smtp_endpoint_t *const_ep = slot->endpoint;
 
 	if (slot->sp->cbs.process_fail_cb(
 		const_ep->process.command,
@@ -503,7 +466,7 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 		slot->errmsg,
 		slot->sp->thunk)
 	) {
-		remove_endpoint(slot->sp, M_CAST_OFF_CONST(endpoint_t*, const_ep));
+		remove_endpoint(slot->sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, const_ep));
 	} else {
 		/* Had a failure, but they want to keep the endpoint. */
 		rotate_endpoints(slot->sp);
@@ -512,7 +475,7 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 
 static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	endpoint_t *ep = M_CAST_OFF_CONST(endpoint_t*, slot->endpoint);
+	M_net_smtp_endpoint_t *ep = M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, slot->endpoint);
 
 	if (slot->msg == NULL)
 		return;
@@ -641,7 +604,6 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 				M_io_disconnect(io);
 			}
 			return M_FALSE;
-			break;
 		case M_EVENT_TYPE_ERROR:
 		case M_EVENT_TYPE_ACCEPT:
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Unexpected event: %s", M_event_type_string(etype));
@@ -716,8 +678,8 @@ static void proc_io_proc_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 
 static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 {
-	M_net_smtp_t      *sp       = slot->sp;
-	const endpoint_t  *const_ep = slot->endpoint;
+	M_net_smtp_t                 *sp       = slot->sp;
+	const M_net_smtp_endpoint_t  *const_ep = slot->endpoint;
 
 	if (sp->cbs.connect_fail_cb(
 		const_ep->tcp.address,
@@ -726,7 +688,7 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 		slot->errmsg,
 		sp->thunk
 	)) {
-		remove_endpoint(sp, M_CAST_OFF_CONST(endpoint_t *, const_ep));
+		remove_endpoint(sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t *, const_ep));
 	} else {
 		/* Had a failure, but they want to keep the endpoint. */
 		rotate_endpoints(sp);
@@ -739,14 +701,14 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 	* wrapped around this function. */
 static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	M_net_smtp_endpoint_slot_t *slot            = thunk;
-	M_net_smtp_t               *sp              = slot->sp;
-	const endpoint_t           *const_ep        = slot->endpoint;
-	M_net_smtp_connect_cb       connect_cb      = sp->cbs.connect_cb;
-	M_net_smtp_iocreate_cb      iocreate_cb     = sp->cbs.iocreate_cb;
-	M_io_error_t                io_error        = M_IO_ERROR_SUCCESS;
-	M_bool                      is_done         = M_FALSE;
-	M_net_smtp_status_t         status;
+	M_net_smtp_endpoint_slot_t  *slot            = thunk;
+	M_net_smtp_t                *sp              = slot->sp;
+	const M_net_smtp_endpoint_t *const_ep        = slot->endpoint;
+	M_net_smtp_connect_cb        connect_cb      = sp->cbs.connect_cb;
+	M_net_smtp_iocreate_cb       iocreate_cb     = sp->cbs.iocreate_cb;
+	M_io_error_t                 io_error        = M_IO_ERROR_SUCCESS;
+	M_bool                       is_done         = M_FALSE;
+	M_net_smtp_status_t          status;
 	(void)el;
 
 	switch(etype) {
@@ -907,7 +869,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		continue_processing_after_finish(sp);
 }
 
-static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
+static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
 	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
 	slot->endpoint_type = M_NET_SMTP_EPTYPE_PROCESS;
@@ -936,7 +898,7 @@ static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_
 	return M_TRUE;
 }
 
-static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
+static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
 	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
 
@@ -948,7 +910,7 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_s
 		return M_FALSE;
 
 	if (ep->tcp.connect_tls) {
-		io_error = M_io_tls_client_add(slot->io, slot->sp->tcp_tls_ctx, NULL, &slot->tcp.tls_ctx_layer_idx);
+		io_error = M_io_tls_client_add(slot->io, slot->sp->tcp_tls_ctx, NULL, NULL);
 		if (io_error != M_IO_ERROR_SUCCESS) {
 			M_io_destroy(slot->io);
 			slot->io = NULL;
@@ -962,22 +924,12 @@ static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_s
 	slot->event_timer          = M_event_timer_add(sp->el, tcp_io_cb, slot);
 	slot->state_machine        = M_net_smtp_flow_tcp();
 
-	slot->tcp.address          = ep->tcp.address;
-	slot->tcp.username         = ep->tcp.username;
-	slot->tcp.password         = ep->tcp.password;
-	slot->tcp.address_len      = ep->tcp.address_len;
-	slot->tcp.username_len     = ep->tcp.username_len;
-	slot->tcp.password_len     = ep->tcp.password_len;
-	slot->tcp.auth_plain       = ep->tcp.auth_plain;
-	slot->tcp.auth_login_user  = ep->tcp.auth_login_user;
-	slot->tcp.auth_login_pass  = ep->tcp.auth_login_pass;
-
 	M_event_timer_start(slot->event_timer, sp->tcp_connect_ms);
 
 	return M_TRUE;
 }
 
-static void bootstrap_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
+static void bootstrap_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
 {
 	slot->sp          = sp; /* need to be set first in case of sp->cbs.process_fail() */
 	M_bool is_success = M_TRUE;
@@ -997,9 +949,9 @@ static void bootstrap_slot(M_net_smtp_t *sp, const endpoint_t *ep, M_net_smtp_en
 	return;
 }
 
-static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char *msg, size_t num_tries, M_hash_dict_t *headers)
+static void slate_msg_insert(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *const_ep, char *msg, size_t num_tries, M_hash_dict_t *headers)
 {
-	endpoint_t                 *ep           = M_CAST_OFF_CONST(endpoint_t *,const_ep);
+	M_net_smtp_endpoint_t      *ep           = M_CAST_OFF_CONST(M_net_smtp_endpoint_t *,const_ep);
 	M_net_smtp_endpoint_slot_t *slot         = NULL;
 	M_email_t                  *e            = NULL;
 	M_bool                      is_bootstrap = M_FALSE;
@@ -1010,7 +962,7 @@ static void slate_msg_insert(M_net_smtp_t *sp, const endpoint_t *const_ep, char 
 		goto fail;
 
 	for (i = 0; i < ep->slot_count; i++) {
-		slot = &ep->slots[i];
+		slot = &ep->send_slots[i];
 		slot->endpoint = ep;
 		M_thread_mutex_lock(slot->lock);
 		if (slot->msg == NULL) {
@@ -1057,7 +1009,7 @@ static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_
 {
 	size_t i;
 	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const endpoint_t *ep = M_list_at(sp->endpoints, i);
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed) {
 			if (ep->slot_available > 0)
 				slate_msg_insert(sp, ep, msg, num_tries, headers);
@@ -1072,8 +1024,8 @@ static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries,
 	size_t len = M_list_len(sp->endpoints);
 
 	for (i = 0; i < len; i++) {
-		size_t            idx = (sp->round_robin_idx + i) % len;
-		const endpoint_t *ep  = M_list_at(sp->endpoints, idx);
+		size_t                       idx = (sp->round_robin_idx + i) % len;
+		const M_net_smtp_endpoint_t *ep  = M_list_at(sp->endpoints, idx);
 
 		if (!ep->is_removed && ep->slot_available > 0) {
 			slate_msg_insert(sp, ep, msg, num_tries, headers);
@@ -1166,11 +1118,11 @@ static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_
 	}
 }
 
-static M_bool idle_check_endpoint(const endpoint_t *ep)
+static M_bool idle_check_endpoint(const M_net_smtp_endpoint_t *ep)
 {
 	size_t i;
 	for (i = 0; i < ep->slot_count; i++) {
-		if (ep->slots[i].msg != NULL)
+		if (ep->send_slots[i].msg != NULL)
 			return M_FALSE;
 	}
 	return M_TRUE;
@@ -1202,7 +1154,7 @@ static void prune_removed_endpoints(M_net_smtp_t *sp)
 {
 	size_t i;
 	for (i = M_list_len(sp->endpoints); i > 0; i--) {
-		const endpoint_t *ep = M_list_at(sp->endpoints, i - 1);
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i - 1);
 		if (ep->is_removed) {
 			destroy_endpoint(M_list_take_at(sp->endpoints, i - 1));
 		}
@@ -1211,10 +1163,10 @@ static void prune_removed_endpoints(M_net_smtp_t *sp)
 
 static void processing_halted(M_net_smtp_t *sp)
 {
-	M_bool               is_no_endpoints = M_TRUE;
-	const endpoint_t    *ep              = NULL;
-	M_uint64             delay_ms;
-	size_t               i;
+	M_bool                       is_no_endpoints = M_TRUE;
+	const M_net_smtp_endpoint_t *ep              = NULL;
+	M_uint64                     delay_ms;
+	size_t                       i;
 
 	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		ep = M_list_at(sp->endpoints, i);
@@ -1272,11 +1224,9 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		case M_NET_SMTP_STATUS_NOENDPOINTS:
 			sp->cbs.processing_halted_cb(M_TRUE, sp->thunk);
 			return M_FALSE;
-			break;
 		case M_NET_SMTP_STATUS_PROCESSING:
 		case M_NET_SMTP_STATUS_IDLE:
 			return M_TRUE;
-			break;
 		case M_NET_SMTP_STATUS_STOPPING:
 			/* Actually, we're not stopping */
 		case M_NET_SMTP_STATUS_STOPPED:
@@ -1284,7 +1234,6 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 			sp->status = M_NET_SMTP_STATUS_PROCESSING;
 			process_queue_queue(sp);
 			return M_TRUE;
-			break;
 	}
 	return M_FALSE; /* impossible */
 }
@@ -1328,30 +1277,6 @@ void M_net_smtp_setup_tcp_timeouts(M_net_smtp_t *sp, M_uint64 connect_ms, M_uint
 	sp->tcp_idle_ms    = idle_ms;
 }
 
-static char * base64_alloc(const char *str, size_t len)
-{
-	return M_bincodec_encode_alloc((const unsigned char *)str, len, 0, M_BINCODEC_BASE64);
-}
-
-static char * create_str_auth_plain_base64(const char *username, size_t username_len,
-		const char *password, size_t password_len)
-{
-	char           *auth_str        = NULL;
-	char           *auth_str_base64 = NULL;
-	size_t          len             = 0;
-
-	len = username_len + password_len + 2;
-	auth_str = M_malloc_zero(len);
-	if (auth_str == NULL)
-		return NULL;
-	M_mem_move(&auth_str[1], username, username_len);
-	M_mem_move(&auth_str[2 + username_len], password, password_len);
-
-	auth_str_base64 = base64_alloc(auth_str, len);
-	M_free(auth_str);
-	return auth_str_base64;
-}
-
 M_bool M_net_smtp_add_endpoint_tcp(
 	M_net_smtp_t *sp,
 	const char   *address,
@@ -1362,11 +1287,10 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	size_t        max_conns
 )
 {
-	endpoint_t          *ep         = NULL;
-	char                *auth_plain = NULL;
-	size_t               total_size = 0;
-	M_net_smtp_status_t  status;
-	size_t               i;
+	M_net_smtp_endpoint_t *ep         = NULL;
+	size_t                 total_size = 0;
+	M_net_smtp_status_t    status;
+	size_t                 i;
 
 	if (sp == NULL || max_conns == 0 || address == NULL || username == NULL || password == NULL || sp->tcp_dns == NULL)
 		return M_FALSE;
@@ -1377,21 +1301,13 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (port == 0)
 		port = 25;
 
-	total_size = sizeof(*ep) + sizeof(ep->slots[0]) * max_conns;
+	total_size = sizeof(*ep) + sizeof(ep->send_slots[0]) * max_conns;
 
 	ep                      = M_malloc_zero(total_size);
 	ep->tcp.address         = M_strdup(address);
 	ep->tcp.username        = M_strdup(username);
 	ep->tcp.password        = M_strdup(password);
-	ep->tcp.address_len     = M_str_len(address);
-	ep->tcp.username_len    = M_str_len(username);
-	ep->tcp.password_len    = M_str_len(password);
 
-	auth_plain = create_str_auth_plain_base64(username, ep->tcp.username_len, password, ep->tcp.password_len);
-
-	ep->tcp.auth_plain      = auth_plain;
-	ep->tcp.auth_login_user = base64_alloc(username, ep->tcp.username_len);
-	ep->tcp.auth_login_pass = base64_alloc(password, ep->tcp.password_len);
 	ep->slot_count          = max_conns;
 	ep->slot_available      = max_conns;
 	ep->tcp.port            = port;
@@ -1399,8 +1315,8 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	ep->tcp.max_conns       = max_conns;
 
 	for (i = 0; i < ep->slot_count; i++) {
-		ep->slots[i].endpoint = ep;
-		ep->slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		ep->send_slots[i].endpoint = ep;
+		ep->send_slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	}
 
 	M_list_insert(sp->endpoints, ep);
@@ -1426,10 +1342,10 @@ M_bool M_net_smtp_add_endpoint_process(
 	size_t               max_processes
 )
 {
-	endpoint_t          *ep         = NULL;
-	size_t               total_size;
-	M_net_smtp_status_t  status;
-	size_t               i;
+	M_net_smtp_endpoint_t *ep         = NULL;
+	size_t                 total_size;
+	M_net_smtp_status_t    status;
+	size_t                 i;
 
 	if (sp == NULL || command == NULL)
 		return M_FALSE;
@@ -1437,7 +1353,7 @@ M_bool M_net_smtp_add_endpoint_process(
 	if (max_processes == 0)
 		max_processes = 1;
 
-	total_size = sizeof(*ep) + sizeof(ep->slots[0]) * max_processes;
+	total_size = sizeof(*ep) + sizeof(ep->send_slots[0]) * max_processes;
 
 	ep                        = M_malloc_zero(total_size);
 	ep->process.command       = M_strdup(command);
@@ -1450,8 +1366,8 @@ M_bool M_net_smtp_add_endpoint_process(
 	ep->process.max_processes = max_processes;
 
 	for (i = 0; i < ep->slot_count; i++) {
-		ep->slots[i].endpoint = ep;
-		ep->slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+		ep->send_slots[i].endpoint = ep;
+		ep->send_slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	}
 
 	M_list_insert(sp->endpoints, ep);
