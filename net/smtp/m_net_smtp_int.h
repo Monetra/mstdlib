@@ -56,28 +56,49 @@ typedef enum {
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDOUT (1u << 2u)
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDERR (1u << 3u)
 
-typedef struct endpoint_struct M_net_smtp_endpoint_t;
+typedef struct endpoint_struct {
+	M_net_smtp_endpoint_type_t  type;
+	M_bool                      is_removed;
+	size_t                      max_sessions;
+	M_thread_rwlock_t          *sessions_rwlock;
+	M_list_t                   *send_sessions;
+	M_list_t                   *idle_sessions;
+	union {
+		struct {
+			char          *address;
+			M_uint16       port;
+			M_bool         connect_tls;
+			char          *username;
+			char          *password;
+		} tcp;
+		struct {
+			char          *command;
+			M_list_str_t  *args;
+			M_hash_dict_t *env;
+			M_uint64       timeout_ms;
+		} process;
+	};
+} M_net_smtp_endpoint_t;
 
 typedef struct {
-	M_bool                      is_alive;
-	M_bool                      is_successfully_sent;
-	M_bool                      is_backout;
-	size_t                      retry_ms;
-	M_net_smtp_t               *sp;
-	M_net_smtp_endpoint_type_t  endpoint_type;
-	M_state_machine_t          *state_machine;
-	unsigned int                connection_mask;
-	M_thread_mutex_t           *lock;
-	char                       *msg;
-	M_io_t                     *io;
-	M_hash_dict_t              *headers;
-	M_email_t                  *email;
-	size_t                      number_of_tries;
-	M_net_smtp_endpoint_t      *endpoint;
-	M_buf_t                    *out_buf;
-	M_parser_t                 *in_parser;
-	M_event_timer_t            *event_timer;
-	char                        errmsg[128];
+	M_bool                       is_alive;
+	M_bool                       is_successfully_sent;
+	M_bool                       is_backout;
+	size_t                       retry_ms;
+	M_net_smtp_t                *sp;
+	M_state_machine_t           *state_machine;
+	unsigned int                 connection_mask;
+	M_thread_mutex_t            *mutex;
+	char                        *msg;
+	M_io_t                      *io;
+	const M_hash_dict_t         *headers;
+	M_email_t                   *email;
+	size_t                       number_of_tries;
+	const M_net_smtp_endpoint_t *ep;
+	M_buf_t                     *out_buf;
+	M_parser_t                  *in_parser;
+	M_event_timer_t             *event_timer;
+	char                         errmsg[128];
 	union {
 		struct {
 			M_bool                  is_starttls_capable;
@@ -101,32 +122,6 @@ typedef struct {
 		} process;
 	};
 } M_net_smtp_endpoint_slot_t;
-
-typedef struct endpoint_struct {
-	M_net_smtp_endpoint_type_t  type;
-	size_t                      slot_count;
-	size_t                      slot_available;
-	M_bool                      is_alive;
-	M_bool                      is_removed;
-	union {
-		struct {
-			char          *address;
-			M_uint16       port;
-			M_bool         connect_tls;
-			char          *username;
-			char          *password;
-			size_t         max_conns;
-		} tcp;
-		struct {
-			char          *command;
-			M_list_str_t  *args;
-			M_hash_dict_t *env;
-			M_uint64       timeout_ms;
-			size_t         max_processes;
-		} process;
-	};
-	M_net_smtp_endpoint_slot_t  send_slots[];
-} M_net_smtp_endpoint_t;
 
 M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *slot, M_uint64 expected_code);
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next);

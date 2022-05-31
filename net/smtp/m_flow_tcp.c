@@ -75,11 +75,11 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
 		goto done;
 
-	if (!M_str_caseeq(slot->endpoint->tcp.address, "localhost")) {
+	if (!M_str_caseeq(slot->ep->tcp.address, "localhost")) {
 		line = M_list_str_first(slot->tcp.smtp_response);
-		if (!M_str_caseeq_max(slot->endpoint->tcp.address, line, M_str_len(slot->endpoint->tcp.address))) {
+		if (!M_str_caseeq_max(slot->ep->tcp.address, line, M_str_len(slot->ep->tcp.address))) {
 			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"",
-					slot->endpoint->tcp.address, line);
+					slot->ep->tcp.address, line);
 			goto done;
 		}
 	}

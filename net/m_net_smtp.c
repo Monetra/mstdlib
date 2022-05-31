@@ -53,6 +53,7 @@ struct M_net_smtp {
 	M_bool                             is_external_queue_enabled;
 	M_bool                             is_external_queue_pending;
 	M_event_timer_t                   *restart_processing_timer;
+	M_thread_mutex_t                  *endpoints_mutex;
 	char *                           (*external_queue_get_cb)(void);
 };
 
@@ -71,6 +72,7 @@ static void processing_halted(M_net_smtp_t *sp);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 static int  process_external_queue_num(M_net_smtp_t *sp);
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static void slot_destroy(M_net_smtp_endpoint_slot_t *slot);
 
 static M_bool is_running(M_net_smtp_status_t status)
 {
@@ -96,45 +98,55 @@ static M_bool is_pending(M_net_smtp_t *sp)
 	return is_pending_retry || is_pending_internal;
 }
 
-static M_bool is_available_failover(M_net_smtp_t *sp)
+static M_bool is_endpoint_available(const M_net_smtp_endpoint_t *ep)
 {
-	size_t i;
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
-		if (!ep->is_removed)
-			return ep->slot_available > 0;
-	}
-	return M_FALSE;
+	return (ep->max_sessions - M_list_len(ep->send_sessions)) > 0;
 }
 
-static M_bool is_available_round_robin(M_net_smtp_t *sp)
+static const M_net_smtp_endpoint_t *active_endpoint(M_net_smtp_t *sp)
 {
-	size_t i;
-	size_t len = M_list_len(sp->endpoints);
-
-	for (i = 0; i < len; i++) {
-		size_t                       idx = (sp->round_robin_idx + i) % len;
-		const M_net_smtp_endpoint_t *ep  = M_list_at(sp->endpoints, idx);
-		if (!ep->is_removed && ep->slot_available > 0)
-			return M_TRUE;
-	}
-	return M_FALSE;
-}
-
-static M_bool is_available(M_net_smtp_t *sp)
-{
+	const M_net_smtp_endpoint_t *ep;
+	size_t                       i;
+	size_t                       idx;
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
-			return is_available_failover(sp);
+			for (i = 0; i < M_list_len(sp->endpoints); i++) {
+				ep = M_list_at(sp->endpoints, i);
+				if (ep->is_removed)
+					continue;
+				if (is_endpoint_available(ep)) {
+					return ep;
+				} else {
+					return NULL;
+				}
+			}
+			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
-			return is_available_round_robin(sp);
+			for (i = 0; i < M_list_len(sp->endpoints); i++) {
+				idx = (sp->round_robin_idx + i) % M_list_len(sp->endpoints);
+				ep = M_list_at(sp->endpoints, idx);
+				if (!ep->is_removed && is_endpoint_available(ep))
+					return ep;
+			}
+			break;
 	}
-	return M_FALSE;
+	return NULL;
 }
 
 static void destroy_endpoint(M_net_smtp_endpoint_t *ep)
 {
-	size_t i;
+	M_net_smtp_endpoint_slot_t *slot;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	while (
+		(slot = M_list_take_last(ep->send_sessions)) != NULL ||
+		(slot = M_list_take_last(ep->idle_sessions)) != NULL
+	) {
+		slot_destroy(slot);
+	}
+	M_list_destroy(ep->send_sessions, M_TRUE);
+	M_list_destroy(ep->idle_sessions, M_TRUE);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	M_thread_rwlock_destroy(ep->sessions_rwlock);
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
 		M_free(ep->process.command);
 		M_list_str_destroy(ep->process.args);
@@ -144,9 +156,6 @@ static void destroy_endpoint(M_net_smtp_endpoint_t *ep)
 		M_free(ep->tcp.address);
 		M_free(ep->tcp.username);
 		M_free(ep->tcp.password);
-	}
-	for (i = 0; i < ep->slot_count; i++) {
-		M_thread_mutex_destroy(ep->send_slots[i].lock);
 	}
 	M_free(ep);
 }
@@ -201,6 +210,7 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->retry_timers          = M_list_create(NULL, M_LIST_NONE);
 	sp->retry_queue_rwlock    = M_thread_rwlock_create();
 	sp->status_rwlock         = M_thread_rwlock_create();
+	sp->endpoints_mutex       = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 #define ASSIGN_CB(x) sp->cbs.x = cbs->x ? cbs->x : nop_##x;
 	ASSIGN_CB(connect_cb);
@@ -306,7 +316,7 @@ static void reschedule_event_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		process_queue_queue(sp);
 }
 
-static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *headers, M_bool is_backout, size_t num_tries, const char* errmsg, size_t retry_ms)
+static void reschedule_msg(M_net_smtp_t *sp, const char *msg, const M_hash_dict_t *headers, M_bool is_backout, size_t num_tries, const char* errmsg, size_t retry_ms)
 {
 	retry_msg_t               *retry          = NULL;
 	M_bool                     is_requeue     = M_FALSE;
@@ -363,11 +373,6 @@ static void reschedule_msg(M_net_smtp_t *sp, const char *msg, M_hash_dict_t *hea
 		M_list_insert(sp->retry_timers, retry->event_timer);
 		M_thread_rwlock_unlock(sp->retry_queue_rwlock);
 	}
-}
-
-static void reschedule_slot(const M_net_smtp_endpoint_slot_t *slot)
-{
-	reschedule_msg(slot->sp, slot->msg, slot->headers, slot->is_backout, slot->number_of_tries + 1, slot->errmsg, slot->retry_ms);
 }
 
 static M_bool run_state_machine(M_net_smtp_endpoint_slot_t *slot, M_bool *is_done)
@@ -457,7 +462,7 @@ static void rotate_endpoints(M_net_smtp_t *sp)
 
 static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_str)
 {
-	const M_net_smtp_endpoint_t *const_ep = slot->endpoint;
+	const M_net_smtp_endpoint_t *const_ep = slot->ep;
 
 	if (slot->sp->cbs.process_fail_cb(
 		const_ep->process.command,
@@ -475,13 +480,13 @@ static void process_fail(M_net_smtp_endpoint_slot_t *slot, const char *stdout_st
 
 static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 {
-	M_net_smtp_endpoint_t *ep = M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, slot->endpoint);
+	M_net_smtp_endpoint_t *ep = M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, slot->ep);
 
 	if (slot->msg == NULL)
 		return;
 
 	if (slot->is_backout || !slot->is_successfully_sent) {
-		reschedule_slot(slot);
+		reschedule_msg(slot->sp, slot->msg, slot->headers, slot->is_backout, slot->number_of_tries + 1, slot->errmsg, slot->retry_ms);
 	} else {
 		slot->sp->cbs.sent_cb(slot->headers, slot->sp->thunk);
 	}
@@ -489,9 +494,10 @@ static void clean_slot(M_net_smtp_endpoint_slot_t *slot)
 	slot->email = NULL;
 	M_free(slot->msg);
 	slot->msg = NULL;
-	M_hash_dict_destroy(slot->headers);
 	slot->headers = NULL;
-	ep->slot_available++;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_list_remove_val(ep->send_sessions, slot, M_LIST_MATCH_PTR);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
 }
 
 static void continue_processing_after_finish(M_net_smtp_t *sp)
@@ -505,7 +511,7 @@ static void continue_processing_after_finish(M_net_smtp_t *sp)
 		process_queue_queue(sp);
 }
 
-static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
+static void slot_destroy(M_net_smtp_endpoint_slot_t *slot)
 {
 	clean_slot(slot);
 	M_event_timer_remove(slot->event_timer);
@@ -517,13 +523,18 @@ static void destroy_slot(M_net_smtp_endpoint_slot_t *slot)
 	M_state_machine_destroy(slot->state_machine);
 	slot->state_machine = NULL;
 	slot->is_alive = M_FALSE;
+	M_thread_mutex_destroy(slot->mutex);
+	M_thread_rwlock_lock(slot->ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_list_remove_val(slot->ep->idle_sessions, slot, M_LIST_MATCH_PTR);
+	M_thread_rwlock_unlock(slot->ep->sessions_rwlock);
+	M_free(slot);
 }
 
 /* Return value is whether to run continue processing another
 	* message.  process_queue_queue() can potentially destroy
 	* the endpoint + slots + slot locks, which will seg fault the unlock
 	* wrapped around this function. */
-static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
+static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask, M_bool *is_destroy_slot)
 {
 	M_net_smtp_endpoint_slot_t *slot     = thunk;
 	M_io_error_t                io_error = M_IO_ERROR_SUCCESS;
@@ -636,7 +647,7 @@ destroy:
 		*slot_io = NULL;
 		slot->connection_mask &= ~connection_mask;
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
-			destroy_slot(slot);
+			*is_destroy_slot = M_TRUE;
 			return M_TRUE;
 		}
 	}
@@ -648,9 +659,12 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	M_net_smtp_endpoint_slot_t *slot                   = thunk;
 	M_net_smtp_t               *sp                     = slot->sp;
 	M_bool                      is_continue_processing = M_FALSE;
-	M_thread_mutex_lock(slot->lock);
-	is_continue_processing = proc_io_cb_sub(el, etype, io, thunk, connection_mask);
-	M_thread_mutex_unlock(slot->lock);
+	M_bool                      is_destroy_slot        = M_FALSE;
+	M_thread_mutex_lock(slot->mutex);
+	is_continue_processing = proc_io_cb_sub(el, etype, io, thunk, connection_mask, &is_destroy_slot);
+	M_thread_mutex_unlock(slot->mutex);
+	if (is_destroy_slot)
+		slot_destroy(slot);
 	if (is_continue_processing)
 		continue_processing_after_finish(sp);
 }
@@ -679,7 +693,7 @@ static void proc_io_proc_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 {
 	M_net_smtp_t                 *sp       = slot->sp;
-	const M_net_smtp_endpoint_t  *const_ep = slot->endpoint;
+	const M_net_smtp_endpoint_t  *const_ep = slot->ep;
 
 	if (sp->cbs.connect_fail_cb(
 		const_ep->tcp.address,
@@ -699,11 +713,11 @@ static void connect_fail(M_net_smtp_endpoint_slot_t *slot)
 	* message.  process_queue_queue() can potentially destroy
 	* the endpoint + slots + slot locks, which will seg fault the unlock
 	* wrapped around this function. */
-static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, M_bool *is_slot_destroy)
 {
 	M_net_smtp_endpoint_slot_t  *slot            = thunk;
 	M_net_smtp_t                *sp              = slot->sp;
-	const M_net_smtp_endpoint_t *const_ep        = slot->endpoint;
+	const M_net_smtp_endpoint_t *const_ep        = slot->ep;
 	M_net_smtp_connect_cb        connect_cb      = sp->cbs.connect_cb;
 	M_net_smtp_iocreate_cb       iocreate_cb     = sp->cbs.iocreate_cb;
 	M_io_error_t                 io_error        = M_IO_ERROR_SUCCESS;
@@ -810,6 +824,9 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 	if (slot->is_successfully_sent && slot->msg != NULL) {
 		/* get ready to accept another. */
 		clean_slot(slot);
+		M_thread_rwlock_lock(slot->ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+		M_list_insert(slot->ep->idle_sessions, slot);
+		M_thread_rwlock_unlock(slot->ep->sessions_rwlock);
 		M_event_timer_reset(slot->event_timer, sp->tcp_idle_ms);
 		return M_TRUE;
 	}
@@ -846,7 +863,7 @@ destroy:
 		slot->connection_mask &= ~M_NET_SMTP_CONNECTION_MASK_IO;
 		if (slot->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			M_bool is_backout = slot->is_backout;
-			destroy_slot(slot);
+			*is_slot_destroy = M_TRUE;
 			if (is_backout == M_FALSE) {
 				sp->cbs.disconnect_cb(const_ep->tcp.address, const_ep->tcp.port, sp->thunk);
 			}
@@ -862,220 +879,157 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	M_net_smtp_endpoint_slot_t *slot                   = thunk;
 	M_net_smtp_t               *sp                     = slot->sp;
 	M_bool                      is_continue_processing = M_FALSE;
-	M_thread_mutex_lock(slot->lock);
-	is_continue_processing = tcp_io_cb_sub(el, etype, io, thunk);
-	M_thread_mutex_unlock(slot->lock);
+	M_bool                      is_slot_destroy        = M_FALSE;
+	M_thread_mutex_lock(slot->mutex);
+	is_continue_processing = tcp_io_cb_sub(el, etype, io, thunk, &is_slot_destroy);
+	M_thread_mutex_unlock(slot->mutex);
+
+	if (is_slot_destroy)
+			slot_destroy(slot);
+
 	if (is_continue_processing)
 		continue_processing_after_finish(sp);
 }
 
-static M_bool bootstrap_proc_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
+static M_net_smtp_endpoint_slot_t *slot_create(M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep)
 {
-	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
-	slot->endpoint_type = M_NET_SMTP_EPTYPE_PROCESS;
+	M_io_error_t                io_error = M_IO_ERROR_SUCCESS;
+	M_net_smtp_endpoint_slot_t *session  = NULL;
 
-	io_error = M_io_process_create(
-		ep->process.command,
-		ep->process.args,
-		ep->process.env,
-		ep->process.timeout_ms,
-		&slot->io,
-		&slot->process.io_stdin,
-		&slot->process.io_stdout,
-		&slot->process.io_stderr
-	);
-	if (io_error != M_IO_ERROR_SUCCESS) {
-		slot->process.result_code = (int)io_error;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "%s", M_io_error_string(io_error));
-		process_fail(slot, "");
-		return M_FALSE;
-	}
-	slot->state_machine = M_net_smtp_flow_process();
-	M_event_add(sp->el, slot->io               , proc_io_proc_cb  , slot);
-	M_event_add(sp->el, slot->process.io_stdin , proc_io_stdin_cb , slot);
-	M_event_add(sp->el, slot->process.io_stdout, proc_io_stdout_cb, slot);
-	M_event_add(sp->el, slot->process.io_stderr, proc_io_stderr_cb, slot);
-	return M_TRUE;
-}
-
-static M_bool bootstrap_tcp_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
-{
-	M_io_error_t io_error = M_IO_ERROR_SUCCESS;
-
-	slot->endpoint_type = M_NET_SMTP_EPTYPE_TCP;
-
-	io_error = M_io_net_client_create(&slot->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
-
-	if (io_error != M_IO_ERROR_SUCCESS)
-		return M_FALSE;
-
-	if (ep->tcp.connect_tls) {
-		io_error = M_io_tls_client_add(slot->io, slot->sp->tcp_tls_ctx, NULL, NULL);
-		if (io_error != M_IO_ERROR_SUCCESS) {
-			M_io_destroy(slot->io);
-			slot->io = NULL;
-			return M_FALSE;
-		}
-		slot->tcp.tls_state = M_NET_SMTP_TLS_IMPLICIT;
-	}
-
-	M_event_add(sp->el, slot->io, tcp_io_cb, slot);
-
-	slot->event_timer          = M_event_timer_add(sp->el, tcp_io_cb, slot);
-	slot->state_machine        = M_net_smtp_flow_tcp();
-
-	M_event_timer_start(slot->event_timer, sp->tcp_connect_ms);
-
-	return M_TRUE;
-}
-
-static void bootstrap_slot(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_net_smtp_endpoint_slot_t *slot)
-{
-	slot->sp          = sp; /* need to be set first in case of sp->cbs.process_fail() */
-	M_bool is_success = M_TRUE;
+	session = M_malloc_zero(sizeof(*session));
+	session->sp = sp;
+	session->ep = ep;
+	session->mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
-		is_success = bootstrap_proc_slot(sp, ep, slot);
+		io_error = M_io_process_create(
+			ep->process.command,
+			ep->process.args,
+			ep->process.env,
+			ep->process.timeout_ms,
+			&session->io,
+			&session->process.io_stdin,
+			&session->process.io_stdout,
+			&session->process.io_stderr
+		);
+		if (io_error != M_IO_ERROR_SUCCESS) {
+			session->process.result_code = (int)io_error;
+			M_snprintf(session->errmsg, sizeof(session->errmsg), "%s", M_io_error_string(io_error));
+			process_fail(session, "");
+			goto fail;
+		}
+		session->state_machine = M_net_smtp_flow_process();
+		M_event_add(sp->el, session->io               , proc_io_proc_cb  , session);
+		M_event_add(sp->el, session->process.io_stdin , proc_io_stdin_cb , session);
+		M_event_add(sp->el, session->process.io_stdout, proc_io_stdout_cb, session);
+		M_event_add(sp->el, session->process.io_stderr, proc_io_stderr_cb, session);
 	} else {
-		is_success = bootstrap_tcp_slot(sp, ep, slot);
+		io_error = M_io_net_client_create(&session->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
+		if (io_error != M_IO_ERROR_SUCCESS)
+			goto fail;
+
+		if (ep->tcp.connect_tls) {
+			io_error = M_io_tls_client_add(session->io, session->sp->tcp_tls_ctx, NULL, NULL);
+			if (io_error != M_IO_ERROR_SUCCESS) {
+				M_io_destroy(session->io);
+				session->io = NULL;
+				goto fail;
+			}
+			session->tcp.tls_state = M_NET_SMTP_TLS_IMPLICIT;
+		}
+
+		session->state_machine        = M_net_smtp_flow_tcp();
+		M_event_add(sp->el, session->io, tcp_io_cb, session);
+		session->event_timer          = M_event_timer_add(sp->el, tcp_io_cb, session);
+		M_event_timer_start(session->event_timer, sp->tcp_connect_ms);
 	}
 
-	if (!is_success)
-		return;
-
-	slot->out_buf   = M_buf_create();
-	slot->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
-	slot->is_alive  = M_TRUE;
-	return;
+	session->out_buf   = M_buf_create();
+	session->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
+	session->is_alive  = M_TRUE;
+	return session;
+fail:
+	M_event_timer_remove(session->event_timer);
+	M_parser_destroy(session->in_parser);
+	M_buf_cancel(session->out_buf);
+	M_thread_mutex_destroy(session->mutex);
+	M_free(session);
+	return NULL;
 }
 
-static void slate_msg_insert(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *const_ep, char *msg, size_t num_tries, M_hash_dict_t *headers)
+static void start_sendmsg_task(M_net_smtp_t *sp, const M_net_smtp_endpoint_t* const_ep, char *msg, size_t num_tries)
 {
+	const M_hash_dict_t        *headers      = NULL;
 	M_net_smtp_endpoint_t      *ep           = M_CAST_OFF_CONST(M_net_smtp_endpoint_t *,const_ep);
 	M_net_smtp_endpoint_slot_t *slot         = NULL;
 	M_email_t                  *e            = NULL;
 	M_bool                      is_bootstrap = M_FALSE;
-	M_bool                      is_done      = M_FALSE;
-	size_t                      i;
 
-	if (M_email_simple_read(&e, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL) != M_EMAIL_ERROR_SUCCESS)
-		goto fail;
-
-	for (i = 0; i < ep->slot_count; i++) {
-		slot = &ep->send_slots[i];
-		slot->endpoint = ep;
-		M_thread_mutex_lock(slot->lock);
-		if (slot->msg == NULL) {
-			if (slot->io == NULL) {
-				bootstrap_slot(sp, ep, slot);
-				is_bootstrap = M_TRUE;
-			}
-			if (slot->is_alive) {
-				ep->is_alive = M_TRUE;
-				slot->msg = msg;
-				slot->number_of_tries = num_tries;
-				slot->headers = headers;
-				slot->is_successfully_sent = M_FALSE;
-				slot->is_backout = M_FALSE;
-				slot->retry_ms = sp->retry_default_ms;
-				M_mem_set(slot->errmsg, 0, sizeof(slot->errmsg));
-				slot->email = e;
-				if (slot->endpoint_type == M_NET_SMTP_EPTYPE_TCP) {
-					slot->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
-					if (!is_bootstrap) {
-						/* Use sub because we already have a lock */
-						tcp_io_cb_sub(slot->sp->el, M_EVENT_TYPE_WRITE, slot->io, slot);
-					}
-				}
-				ep->slot_available--;
-				is_done = M_TRUE;
-			}
-		}
-		M_thread_mutex_unlock(slot->lock);
-		if (is_done)
-			return;
-	}
-
-	/* failed to bootstrap */
-
-fail:
-	M_email_destroy(e);
-	reschedule_msg(sp, msg, headers, M_TRUE, num_tries + 1, "Internal failure", sp->retry_default_ms);
-	M_free(msg);
-	M_hash_dict_destroy(headers);
-}
-
-static void slate_msg_failover(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
-{
-	size_t i;
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
-		if (!ep->is_removed) {
-			if (ep->slot_available > 0)
-				slate_msg_insert(sp, ep, msg, num_tries, headers);
-			break;
-		}
-	}
-}
-
-static void slate_msg_round_robin(M_net_smtp_t *sp, char *msg, size_t num_tries, M_hash_dict_t *headers)
-{
-	size_t i;
-	size_t len = M_list_len(sp->endpoints);
-
-	for (i = 0; i < len; i++) {
-		size_t                       idx = (sp->round_robin_idx + i) % len;
-		const M_net_smtp_endpoint_t *ep  = M_list_at(sp->endpoints, idx);
-
-		if (!ep->is_removed && ep->slot_available > 0) {
-			slate_msg_insert(sp, ep, msg, num_tries, headers);
-			if (idx == sp->round_robin_idx) {
-				sp->round_robin_idx = (idx + 1) % len;
-				round_robin_skip_removed(sp);
-			}
-			return;
-		}
-	}
-}
-
-static void slate_msg(M_net_smtp_t *sp, char *msg, size_t num_tries)
-{
-	M_hash_dict_t   *headers = NULL;
-
-	if (M_email_simple_split_header_body(msg, &headers, NULL) != M_EMAIL_ERROR_SUCCESS) {
+	if (M_email_simple_read(&e, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL) != M_EMAIL_ERROR_SUCCESS) {
 		M_bool is_retrying = M_FALSE;
 		num_tries = sp->is_external_queue_enabled ? 0 : 1;
-		sp->cbs.send_failed_cb(headers, msg, num_tries, is_retrying, sp->thunk);
+		sp->cbs.send_failed_cb(NULL, msg, num_tries, is_retrying, sp->thunk);
+		M_email_destroy(e);
+		M_free(msg);
 		continue_processing_after_finish(sp);
 		return;
 	}
 
-	switch (sp->load_balance_mode) {
-		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
-			slate_msg_failover(sp, msg, num_tries, headers);
-			break;
-		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
-			slate_msg_round_robin(sp, msg, num_tries, headers);
-			break;
-	}
-	return;
-}
+	headers = M_email_headers(e);
 
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	slot = M_list_take_first(ep->idle_sessions);
+	if (slot == NULL) {
+		slot = slot_create(sp, ep);
+		if (slot == NULL) {
+			reschedule_msg(sp, msg, headers, M_TRUE, num_tries + 1, "Failure creating session", sp->retry_default_ms);
+			M_email_destroy(e);
+			M_free(msg);
+			M_thread_rwlock_unlock(ep->sessions_rwlock);
+			return;
+		}
+		is_bootstrap = M_TRUE;
+	}
+	M_thread_mutex_lock(slot->mutex);
+	slot->ep = ep;
+	slot->msg = msg;
+	slot->number_of_tries = num_tries;
+	slot->headers = headers;
+	slot->is_successfully_sent = M_FALSE;
+	slot->is_backout = M_FALSE;
+	slot->retry_ms = sp->retry_default_ms;
+	M_mem_set(slot->errmsg, 0, sizeof(slot->errmsg));
+	slot->email = e;
+	if (slot->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		slot->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
+		if (!is_bootstrap) {
+			M_bool is_slot_destroy = M_FALSE;
+			/* Use sub because we already have a lock */
+			tcp_io_cb_sub(slot->sp->el, M_EVENT_TYPE_WRITE, slot->io, slot, &is_slot_destroy);
+		}
+	}
+	M_list_insert(ep->send_sessions, slot);
+	M_thread_mutex_unlock(slot->mutex);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+}
 
 static int process_external_queue_num(M_net_smtp_t *sp)
 {
-	int n = 0;
+	const M_net_smtp_endpoint_t *ep = NULL;
+	int                          n  = 0;
 
-	while (is_available(sp)) {
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	while ((ep = active_endpoint(sp)) != NULL) {
 		char *msg = sp->external_queue_get_cb();
 		if (msg == NULL) {
 			sp->is_external_queue_pending = M_FALSE;
 			return n;
 		}
 
-		slate_msg(sp, msg, 0);
+		start_sendmsg_task(sp, ep, msg, 0);
 		n++;
 	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 	return n;
 }
 
@@ -1090,20 +1044,22 @@ static void process_external_queue(M_event_t *event, M_event_type_t type, M_io_t
 
 static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	M_net_smtp_t *sp    = cb_arg;
+	M_net_smtp_t                *sp = cb_arg;
+	const M_net_smtp_endpoint_t *ep = NULL;
 
 	(void)event;
 	(void)io;
 	(void)type;
 
-	while (is_available(sp)) {
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	while ((ep = active_endpoint(sp)) != NULL) {
 		retry_msg_t *retry = NULL;
 		char        *msg   = NULL;
 		M_thread_rwlock_lock(sp->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 		retry = M_list_take_first(sp->retry_queue);
 		M_thread_rwlock_unlock(sp->retry_queue_rwlock);
 		if (retry != NULL) {
-			slate_msg(sp, retry->msg, retry->number_of_tries);
+			start_sendmsg_task(sp, ep, retry->msg, retry->number_of_tries);
 			M_free(retry);
 			continue;
 		}
@@ -1111,21 +1067,17 @@ static void process_internal_queues(M_event_t *event, M_event_type_t type, M_io_
 		msg = M_list_str_take_first(sp->internal_queue);
 		M_thread_rwlock_unlock(sp->internal_queue_rwlock);
 		if (msg != NULL) {
-			slate_msg(sp, msg, 0);
+			start_sendmsg_task(sp, ep, msg, 0);
 			continue;
 		}
 		break;
 	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 static M_bool idle_check_endpoint(const M_net_smtp_endpoint_t *ep)
 {
-	size_t i;
-	for (i = 0; i < ep->slot_count; i++) {
-		if (ep->send_slots[i].msg != NULL)
-			return M_FALSE;
-	}
-	return M_TRUE;
+	return (M_list_len(ep->send_sessions) == 0);
 }
 
 static M_bool idle_check(M_net_smtp_t *sp)
@@ -1288,9 +1240,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 )
 {
 	M_net_smtp_endpoint_t *ep         = NULL;
-	size_t                 total_size = 0;
 	M_net_smtp_status_t    status;
-	size_t                 i;
 
 	if (sp == NULL || max_conns == 0 || address == NULL || username == NULL || password == NULL || sp->tcp_dns == NULL)
 		return M_FALSE;
@@ -1301,23 +1251,17 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (port == 0)
 		port = 25;
 
-	total_size = sizeof(*ep) + sizeof(ep->send_slots[0]) * max_conns;
-
-	ep                      = M_malloc_zero(total_size);
-	ep->tcp.address         = M_strdup(address);
-	ep->tcp.username        = M_strdup(username);
-	ep->tcp.password        = M_strdup(password);
-
-	ep->slot_count          = max_conns;
-	ep->slot_available      = max_conns;
-	ep->tcp.port            = port;
-	ep->tcp.connect_tls     = connect_tls;
-	ep->tcp.max_conns       = max_conns;
-
-	for (i = 0; i < ep->slot_count; i++) {
-		ep->send_slots[i].endpoint = ep;
-		ep->send_slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-	}
+	ep                        = M_malloc_zero(sizeof(*ep));
+	ep->type                  = M_NET_SMTP_EPTYPE_TCP;
+	ep->max_sessions          = max_conns;
+	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->sessions_rwlock       = M_thread_rwlock_create();
+	ep->tcp.address           = M_strdup(address);
+	ep->tcp.username          = M_strdup(username);
+	ep->tcp.password          = M_strdup(password);
+	ep->tcp.port              = port;
+	ep->tcp.connect_tls       = connect_tls;
 
 	M_list_insert(sp->endpoints, ep);
 
@@ -1343,9 +1287,7 @@ M_bool M_net_smtp_add_endpoint_process(
 )
 {
 	M_net_smtp_endpoint_t *ep         = NULL;
-	size_t                 total_size;
 	M_net_smtp_status_t    status;
-	size_t                 i;
 
 	if (sp == NULL || command == NULL)
 		return M_FALSE;
@@ -1353,22 +1295,16 @@ M_bool M_net_smtp_add_endpoint_process(
 	if (max_processes == 0)
 		max_processes = 1;
 
-	total_size = sizeof(*ep) + sizeof(ep->send_slots[0]) * max_processes;
-
-	ep                        = M_malloc_zero(total_size);
+	ep                        = M_malloc_zero(sizeof(*ep));
+	ep->type                  = M_NET_SMTP_EPTYPE_PROCESS;
+	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->sessions_rwlock       = M_thread_rwlock_create();
+	ep->max_sessions          = max_processes;
 	ep->process.command       = M_strdup(command);
 	ep->process.args          = M_list_str_duplicate(args);
 	ep->process.env           = M_hash_dict_duplicate(env);
-	ep->type                  = M_NET_SMTP_EPTYPE_PROCESS;
-	ep->slot_count            = max_processes;
-	ep->slot_available        = max_processes;
 	ep->process.timeout_ms    = timeout_ms;
-	ep->process.max_processes = max_processes;
-
-	for (i = 0; i < ep->slot_count; i++) {
-		ep->send_slots[i].endpoint = ep;
-		ep->send_slots[i].lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-	}
 
 	M_list_insert(sp->endpoints, ep);
 

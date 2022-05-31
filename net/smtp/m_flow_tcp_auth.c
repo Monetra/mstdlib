@@ -100,7 +100,7 @@ static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 	M_net_smtp_endpoint_slot_t *slot       = data;
 	char                       *auth_plain = NULL;
 
-	auth_plain = create_auth_plain(slot->endpoint->tcp.username, slot->endpoint->tcp.password);
+	auth_plain = create_auth_plain(slot->ep->tcp.username, slot->ep->tcp.password);
 	M_buf_add_str(slot->out_buf, "AUTH PLAIN ");
 	M_buf_add_str(slot->out_buf, auth_plain);
 	M_buf_add_str(slot->out_buf, "\r\n");
@@ -144,8 +144,8 @@ static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64
 	char                       *username_b64 = NULL;
 
 	username_b64 = M_bincodec_encode_alloc(
-		(const unsigned char *)slot->endpoint->tcp.username,
-		M_str_len(slot->endpoint->tcp.username),
+		(const unsigned char *)slot->ep->tcp.username,
+		M_str_len(slot->ep->tcp.username),
 		0,
 		M_BINCODEC_BASE64
 	);
@@ -163,8 +163,8 @@ static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64
 	char                       *password_b64 = NULL;
 
 	password_b64 = M_bincodec_encode_alloc(
-		(const unsigned char *)slot->endpoint->tcp.password,
-		M_str_len(slot->endpoint->tcp.password),
+		(const unsigned char *)slot->ep->tcp.password,
+		M_str_len(slot->ep->tcp.password),
 		0,
 		M_BINCODEC_BASE64
 	);
@@ -257,7 +257,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	uint = sizeof(d);
 	HMAC(
 		EVP_md5(),
-		slot->endpoint->tcp.password, (int)M_str_len(slot->endpoint->tcp.password),
+		slot->ep->tcp.password, (int)M_str_len(slot->ep->tcp.password),
 		buf, M_str_len((const char *)buf), /* buf contains cram-md5 secret */
 		d, &uint
 	);
@@ -265,7 +265,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	len = M_snprintf(
 		(char *)buf, sizeof(buf),
 		"%s %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		slot->endpoint->tcp.username,
+		slot->ep->tcp.username,
 		d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]
 	);
 
@@ -436,10 +436,10 @@ static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *d
 		goto done;
 	}
 
-	parameters.username = slot->endpoint->tcp.username;
+	parameters.username = slot->ep->tcp.username;
 	//parameters.username = "user";
 	M_hash_dict_get(parameters_dict, "realm", &parameters.realm);
-	parameters.password = slot->endpoint->tcp.password;
+	parameters.password = slot->ep->tcp.password;
 	M_hash_dict_get(parameters_dict, "algorithm", &parameters.algorithm);
 	M_hash_dict_get(parameters_dict, "nonce", &parameters.nonce);
 	M_hash_dict_get(parameters_dict, "qop", &parameters.qop);
