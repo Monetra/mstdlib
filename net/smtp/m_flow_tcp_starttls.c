@@ -30,9 +30,9 @@ typedef enum {
 
 static M_state_machine_status_t M_state_starttls(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	M_bprintf(slot->out_buf, "STARTTLS\r\n");
+	M_bprintf(session->out_buf, "STARTTLS\r\n");
 	*next = STATE_STARTTLS_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -40,17 +40,17 @@ static M_state_machine_status_t M_state_starttls(void *data, M_uint64 *next)
 static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
 		goto done;
 
-	slot->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_READY;
+	session->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_READY;
 	machine_status = M_STATE_MACHINE_STATUS_DONE;
 
 done:

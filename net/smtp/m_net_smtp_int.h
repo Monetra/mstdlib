@@ -121,9 +121,9 @@ typedef struct {
 			const char             *next_write_chunk;
 		} process;
 	};
-} M_net_smtp_endpoint_slot_t;
+} M_net_smtp_endpoint_session_t;
 
-M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *slot, M_uint64 expected_code);
+M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_session_t *session, M_uint64 expected_code);
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next);
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
 		void *data, M_state_machine_status_t sub_status, M_uint64 *next);

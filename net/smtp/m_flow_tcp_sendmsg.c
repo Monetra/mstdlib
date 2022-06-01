@@ -36,15 +36,15 @@ typedef enum {
 
 static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot    = data;
-	const char                 *address = NULL;
+	M_net_smtp_endpoint_session_t *session = data;
+	const char                    *address = NULL;
 
-	if (!M_email_from(slot->email, NULL, NULL, &address)) {
+	if (!M_email_from(session->email, NULL, NULL, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
-	M_buf_add_str(slot->out_buf, "MAIL FROM:<");
-	M_buf_add_str(slot->out_buf, address);
-	M_buf_add_str(slot->out_buf, ">\r\n");
+	M_buf_add_str(session->out_buf, "MAIL FROM:<");
+	M_buf_add_str(session->out_buf, address);
+	M_buf_add_str(session->out_buf, ">\r\n");
 	*next = STATE_MAIL_FROM_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
@@ -52,16 +52,16 @@ static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 250) {
-		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 mail-from response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (session->tcp.smtp_response_code != 250) {
+		const char *line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 mail-from response, got: %llu: %s",
+				session->tcp.smtp_response_code, line);
 		goto done;
 	}
 	*next = STATE_RCPT_TO;
@@ -73,16 +73,16 @@ done:
 
 static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot    = data;
-	char                 *address = NULL;
+	M_net_smtp_endpoint_session_t *session = data;
+	char                          *address = NULL;
 
-	address = M_list_str_take_last(slot->tcp.rcpt_to);
+	address = M_list_str_take_last(session->tcp.rcpt_to);
 	if (address == NULL)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	M_buf_add_str(slot->out_buf, "RCPT TO:<");
-	M_buf_add_str(slot->out_buf, address);
-	M_buf_add_str(slot->out_buf, ">\r\n");
+	M_buf_add_str(session->out_buf, "RCPT TO:<");
+	M_buf_add_str(session->out_buf, address);
+	M_buf_add_str(session->out_buf, ">\r\n");
 
 	M_free(address);
 
@@ -93,20 +93,20 @@ static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 250) {
-		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 rcpt-to response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (session->tcp.smtp_response_code != 250) {
+		const char *line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 rcpt-to response, got: %llu: %s",
+				session->tcp.smtp_response_code, line);
 		goto done;
 	}
 
-	if (M_list_str_len(slot->tcp.rcpt_to) > 0) {
+	if (M_list_str_len(session->tcp.rcpt_to) > 0) {
 		*next = STATE_RCPT_TO;
 	} else {
 		*next = STATE_DATA;
@@ -119,9 +119,9 @@ done:
 
 static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	M_buf_add_str(slot->out_buf, "DATA\r\n");
+	M_buf_add_str(session->out_buf, "DATA\r\n");
 
 	*next = STATE_DATA_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -130,16 +130,16 @@ static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 static M_state_machine_status_t M_data_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 354) {
-		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 354 data response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
+	if (session->tcp.smtp_response_code != 354) {
+		const char *line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 354 data response, got: %llu: %s",
+				session->tcp.smtp_response_code, line);
 		goto done;
 	}
 
@@ -152,28 +152,28 @@ done:
 
 static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot   = data;
-	M_parser_t                 *parser = NULL;
-	char                       *msg    = NULL;
+	M_net_smtp_endpoint_session_t *session = data;
+	M_parser_t                    *parser  = NULL;
+	char                          *msg     = NULL;
 
-	M_email_bcc_clear(slot->email);
-	msg = M_email_simple_write(slot->email);
+	M_email_bcc_clear(session->email);
+	msg = M_email_simple_write(session->email);
 
 	parser = M_parser_create_const((unsigned char *)msg, M_str_len(msg), M_PARSER_FLAG_NONE);
 	M_parser_mark(parser);
 
 	/* Period stuff all "\r\n."'s in msg */
 	while (M_parser_consume_until(parser, (unsigned char *)"\r\n.", 3, M_FALSE)) {
-		M_parser_read_buf_mark(parser, slot->out_buf);
-		M_buf_add_str(slot->out_buf, "\r\n..");
+		M_parser_read_buf_mark(parser, session->out_buf);
+		M_buf_add_str(session->out_buf, "\r\n..");
 		M_parser_consume(parser, 3);
 		M_parser_mark(parser);
 	}
 
 	M_parser_consume(parser, M_parser_len(parser));
-	M_parser_read_buf_mark(parser, slot->out_buf);
+	M_parser_read_buf_mark(parser, session->out_buf);
 
-	M_buf_add_str(slot->out_buf, "\r\n.\r\n");
+	M_buf_add_str(session->out_buf, "\r\n.\r\n");
 
 	M_parser_destroy(parser);
 	M_free(msg);
@@ -185,21 +185,21 @@ static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint
 static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (slot->tcp.smtp_response_code != 250) {
-		const char *line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected 250 data response, got: %llu: %s",
-				slot->tcp.smtp_response_code, line);
-		if (slot->tcp.smtp_response_code == 457) {
+	if (session->tcp.smtp_response_code != 250) {
+		const char *line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 data response, got: %llu: %s",
+				session->tcp.smtp_response_code, line);
+		if (session->tcp.smtp_response_code == 457) {
 			/* 457 is not listed in RFC 5321 as used, 451 is typically used for graylisting,
 			 * for testing purposes 457 will mean to retry in 3000ms */
-			slot->retry_ms = 3000;
+			session->retry_ms = 3000;
 		}
 		goto done;
 	}

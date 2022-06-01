@@ -34,12 +34,12 @@ typedef enum {
 
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 	if (
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) &&
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) &&
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) &&
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) &&
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) &&
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) &&
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
 	) {
 		*next = STATE_WRITE_START;
 		return M_STATE_MACHINE_STATUS_NEXT;
@@ -49,9 +49,9 @@ static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	slot->process.next_write_chunk = slot->msg;
+	session->process.next_write_chunk = session->msg;
 
 	*next = STATE_WRITE_CHUNK;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -60,22 +60,22 @@ static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 {
-	const char                 *next_chunk = NULL;
-	M_net_smtp_endpoint_slot_t *slot       = data;
-	size_t                      chunk_len  = 0;
+	const char                    *next_chunk = NULL;
+	M_net_smtp_endpoint_session_t *session    = data;
+	size_t                         chunk_len  = 0;
 
 	/* This is used to detect if the command quits early.
 		* sendmail will if -i isn't specified */
-	next_chunk = M_str_str(slot->process.next_write_chunk, "\r\n.\r\n");
+	next_chunk = M_str_str(session->process.next_write_chunk, "\r\n.\r\n");
 	if (next_chunk == NULL) {
-		M_buf_add_str(slot->out_buf, slot->process.next_write_chunk);
+		M_buf_add_str(session->out_buf, session->process.next_write_chunk);
 		*next = STATE_WRITE_FINISH;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 	next_chunk = &next_chunk[5];
-	chunk_len = (size_t)(next_chunk - slot->process.next_write_chunk);
-	M_buf_add_str_max(slot->out_buf, slot->process.next_write_chunk, chunk_len);
-	slot->process.next_write_chunk = next_chunk;
+	chunk_len = (size_t)(next_chunk - session->process.next_write_chunk);
+	M_buf_add_str_max(session->out_buf, session->process.next_write_chunk, chunk_len);
+	session->process.next_write_chunk = next_chunk;
 	*next = STATE_WRITE_CHUNK_WAIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
 
@@ -83,8 +83,8 @@ static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_chunk_wait(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
-	if (M_buf_len(slot->out_buf) > 0) {
+	M_net_smtp_endpoint_session_t *session = data;
+	if (M_buf_len(session->out_buf) > 0) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
 	*next = STATE_WRITE_CHUNK;
@@ -93,9 +93,9 @@ static M_state_machine_status_t M_state_write_chunk_wait(void *data, M_uint64 *n
 
 static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	slot->is_successfully_sent = M_TRUE;
+	session->is_successfully_sent = M_TRUE;
 
 	*next = STATE_DISCONNECTING;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -104,17 +104,17 @@ static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 	(void)next;
 	if (
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) ||
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) ||
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) ||
-		((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) ||
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) ||
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) ||
+		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
 	) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
-	if (M_buf_len(slot->out_buf) > 0) {
+	if (M_buf_len(session->out_buf) > 0) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	return M_STATE_MACHINE_STATUS_DONE;

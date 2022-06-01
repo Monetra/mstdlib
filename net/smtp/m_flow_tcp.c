@@ -36,16 +36,16 @@ typedef enum {
 	STATE_DISCONNECTING,
 } m_state_ids;
 
-M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *slot, M_uint64 expected_code)
+M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_session_t *session, M_uint64 expected_code)
 {
 	const char *line;
-	if (slot->tcp.smtp_response_code != expected_code) {
+	if (session->tcp.smtp_response_code != expected_code) {
 		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		line = M_list_str_last(slot->tcp.smtp_response);
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Expected %llu response, got: %llu: %s",
-				expected_code, slot->tcp.smtp_response_code, line);
+		session->tcp.is_connect_fail = M_TRUE;
+		session->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
+		line = M_list_str_last(session->tcp.smtp_response);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected %llu response, got: %llu: %s",
+				expected_code, session->tcp.smtp_response_code, line);
 		return M_FALSE;
 	}
 	return M_TRUE;
@@ -53,9 +53,9 @@ M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_slot_t *
 
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	if ((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
+	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
 		*next = STATE_OPENING_RESPONSE;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
@@ -65,21 +65,21 @@ static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	M_state_machine_status_t    machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	const char                 *line           = NULL;
+	M_net_smtp_endpoint_session_t *session        = data;
+	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	const char                    *line           = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
 
-	if (!M_net_smtp_flow_tcp_check_smtp_response_code(slot, 220))
+	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
 		goto done;
 
-	if (!M_str_caseeq(slot->ep->tcp.address, "localhost")) {
-		line = M_list_str_first(slot->tcp.smtp_response);
-		if (!M_str_caseeq_max(slot->ep->tcp.address, line, M_str_len(slot->ep->tcp.address))) {
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Domain mismatch \"%s\" != \"%s\"",
-					slot->ep->tcp.address, line);
+	if (!M_str_caseeq(session->ep->tcp.address, "localhost")) {
+		line = M_list_str_first(session->tcp.smtp_response);
+		if (!M_str_caseeq_max(session->ep->tcp.address, line, M_str_len(session->ep->tcp.address))) {
+			M_snprintf(session->errmsg, sizeof(session->errmsg), "Domain mismatch \"%s\" != \"%s\"",
+					session->ep->tcp.address, line);
 			goto done;
 		}
 	}
@@ -92,14 +92,14 @@ done:
 
 static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot    = data;
-	const char                 *address = NULL;
-	const char                 *domain  = NULL;
+	M_net_smtp_endpoint_session_t *session = data;
+	const char                    *address = NULL;
+	const char                    *domain  = NULL;
 	(void)status;
 	(void)next;
 
-	if (!M_email_from(slot->email, NULL, NULL, &address)) {
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to parse \"From:\": %s", slot->msg);
+	if (!M_email_from(session->email, NULL, NULL, &address)) {
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to parse \"From:\": %s", session->msg);
 		return M_FALSE;
 	}
 
@@ -107,9 +107,9 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 		address == NULL                                ||
 		(domain = M_str_chr(address, '@')) == NULL     ||
 		(domain = &domain[1]) == NULL                  ||
-		(slot->tcp.ehlo_domain = M_strdup(domain)) == NULL
+		(session->tcp.ehlo_domain = M_strdup(domain)) == NULL
 	) {
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Failed to parse domain from: %s\n", domain);
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to parse domain from: %s\n", domain);
 		return M_FALSE;
 	}
 
@@ -118,33 +118,33 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 
 static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	M_free(slot->tcp.ehlo_domain);
-	slot->tcp.ehlo_domain = NULL;
+	M_free(session->tcp.ehlo_domain);
+	session->tcp.ehlo_domain = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	switch(slot->tcp.tls_state) {
+	switch(session->tcp.tls_state) {
 		case M_NET_SMTP_TLS_NONE:
 		case M_NET_SMTP_TLS_CONNECTED:
 			*next = STATE_AUTH;
 			break;
 		case M_NET_SMTP_TLS_STARTTLS:
-			if (slot->tcp.is_starttls_capable) {
+			if (session->tcp.is_starttls_capable) {
 				*next = STATE_STARTTLS;
 				break;
 			}
 			/* Classify as connect failure so endpoint can get removed */
-			slot->tcp.is_connect_fail = M_TRUE;
-			slot->tcp.net_error = M_NET_ERROR_NOTPERM;
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Server does not support STARTTLS");
+			session->tcp.is_connect_fail = M_TRUE;
+			session->tcp.net_error = M_NET_ERROR_NOTPERM;
+			M_snprintf(session->errmsg, sizeof(session->errmsg), "Server does not support STARTTLS");
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
 		case M_NET_SMTP_TLS_IMPLICIT:
 		case M_NET_SMTP_TLS_STARTTLS_READY:
 		case M_NET_SMTP_TLS_STARTTLS_ADDED:
-			M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Invalid TLS state.");
+			M_snprintf(session->errmsg, sizeof(session->errmsg), "Invalid TLS state.");
 			return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -174,29 +174,29 @@ static M_state_machine_status_t M_auth_post_cb(void *data, M_state_machine_statu
 
 static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
-	const char *group;
-	const char *name;
-	const char *address;
-	size_t      i;
+	M_net_smtp_endpoint_session_t *session = data;
+	const char                    *group;
+	const char                    *name;
+	const char                    *address;
+	size_t                         i;
 	(void)status;
 	(void)next;
 
-	slot->tcp.rcpt_to = M_list_str_create(M_LIST_STR_NONE);
+	session->tcp.rcpt_to = M_list_str_create(M_LIST_STR_NONE);
 
-	for (i = 0; i < M_email_to_len(slot->email); i++) {
-		M_email_to(slot->email, i, &group, &name, &address);
-		M_list_str_insert(slot->tcp.rcpt_to, address);
+	for (i = 0; i < M_email_to_len(session->email); i++) {
+		M_email_to(session->email, i, &group, &name, &address);
+		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
-	for (i = 0; i < M_email_cc_len(slot->email); i++) {
-		M_email_cc(slot->email, i, &group, &name, &address);
-		M_list_str_insert(slot->tcp.rcpt_to, address);
+	for (i = 0; i < M_email_cc_len(session->email); i++) {
+		M_email_cc(session->email, i, &group, &name, &address);
+		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
-	for (i = 0; i < M_email_bcc_len(slot->email); i++) {
-		M_email_bcc(slot->email, i, &group, &name, &address);
-		M_list_str_insert(slot->tcp.rcpt_to, address);
+	for (i = 0; i < M_email_bcc_len(session->email); i++) {
+		M_email_bcc(session->email, i, &group, &name, &address);
+		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
 	return M_TRUE;
@@ -204,17 +204,17 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 
 static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	M_list_str_destroy(slot->tcp.rcpt_to);
-	slot->tcp.rcpt_to = NULL;
+	M_list_str_destroy(session->tcp.rcpt_to);
+	session->tcp.rcpt_to = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		return sub_status;
 
-	slot->is_successfully_sent = M_TRUE;
+	session->is_successfully_sent = M_TRUE;
 
-	if (slot->tcp.is_QUIT_enabled) {
+	if (session->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
 	} else {
 		*next = STATE_WAIT_FOR_NEXT_MSG;
@@ -225,19 +225,19 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *next)
 {
 
-	/* Initially entering this state slot->is_succesfully_sent will be true from the previous
+	/* Initially entering this state session->is_succesfully_sent will be true from the previous
 		* state.  Any state machine errors will cause the state machine to error out and the connection will
 		* be closed and restarted.  An idle timeout can cause the is_QUIT_enabled to be set after first entering
-		* this state.  Once the slot has had the old message cleaned out and a new message inserted it will set
+		* this state.  Once the session has had the old message cleaned out and a new message inserted it will set
 		* the is_successfully_sent state to FALSE.  Messages are assumed to be failures until they prove success.
 		*/
 
-	M_net_smtp_endpoint_slot_t *slot = data;
-	if (slot->tcp.is_QUIT_enabled) {
+	M_net_smtp_endpoint_session_t *session = data;
+	if (session->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
-	if (slot->is_successfully_sent == M_FALSE) {
+	if (session->is_successfully_sent == M_FALSE) {
 		*next = STATE_SENDMSG;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
@@ -246,21 +246,21 @@ static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *
 
 static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
-	M_buf_add_str(slot->out_buf, "QUIT\r\n");
+	M_buf_add_str(session->out_buf, "QUIT\r\n");
 	*next = STATE_QUIT_ACK;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 
 /* Although RFC 5321 calls for a 221 reply, if they don't send one we need to move on,
 	* regardless of how upset John Klensin may get. */
 
-	if (M_parser_consume_until(slot->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
+	if (M_parser_consume_until(session->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
 		*next = STATE_DISCONNECTING;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
@@ -269,10 +269,10 @@ static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot      = data;
+	M_net_smtp_endpoint_session_t *session      = data;
 	(void)next;
 
-	if ((slot->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
+	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
 	return M_STATE_MACHINE_STATUS_DONE;

@@ -29,18 +29,18 @@ typedef enum {
 
 static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot           = data;
-	unsigned char               byte           = 0;
-	M_uint64                    response_code  = 0;
-	char                       *line           = NULL;
+	M_net_smtp_endpoint_session_t *session        = data;
+	unsigned char                  byte           = 0;
+	M_uint64                       response_code  = 0;
+	char                          *line           = NULL;
 
-	M_parser_mark(slot->in_parser);
-	if (!M_parser_consume_str_until(slot->in_parser, "\r\n", M_TRUE)) {
-		M_parser_mark_clear(slot->in_parser);
+	M_parser_mark(session->in_parser);
+	if (!M_parser_consume_str_until(session->in_parser, "\r\n", M_TRUE)) {
+		M_parser_mark_clear(session->in_parser);
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
-	M_parser_mark_rewind(slot->in_parser);
-	M_parser_mark(slot->in_parser);
+	M_parser_mark_rewind(session->in_parser);
+	M_parser_mark(session->in_parser);
 
 /* RFC 5321 p47
  * Greeting       = ( "220 " (Domain / address-literal)
@@ -73,28 +73,28 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 
 
 	if (
-		M_parser_len(slot->in_parser) < 5                                                   ||
-		!M_parser_read_uint(slot->in_parser, M_PARSER_INTEGER_ASCII, 3, 10, &response_code) ||
+		M_parser_len(session->in_parser) < 5                                                   ||
+		!M_parser_read_uint(session->in_parser, M_PARSER_INTEGER_ASCII, 3, 10, &response_code) ||
 		!(response_code >= 200 && response_code <= 559)                                     ||
-		!M_parser_peek_byte(slot->in_parser, &byte)                                         ||
+		!M_parser_peek_byte(session->in_parser, &byte)                                         ||
 		!M_str_chr(" -\r", (char)byte)                                                      ||
-		(slot->tcp.smtp_response_code != 0 && slot->tcp.smtp_response_code != response_code)
+		(session->tcp.smtp_response_code != 0 && session->tcp.smtp_response_code != response_code)
 	) {
-		M_parser_mark_clear(slot->in_parser);
+		M_parser_mark_clear(session->in_parser);
 		/* Classify as connect failure so endpoint can get removed */
-		slot->tcp.is_connect_fail = M_TRUE;
-		slot->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
-		M_snprintf(slot->errmsg, sizeof(slot->errmsg), "Ill-formed SMTP response");
+		session->tcp.is_connect_fail = M_TRUE;
+		session->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Ill-formed SMTP response");
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
-	slot->tcp.smtp_response_code = response_code;
-	M_parser_mark_rewind(slot->in_parser);
-	M_parser_consume(slot->in_parser, 4); /* skip over number code */
-	line = M_parser_read_strdup_until(slot->in_parser, "\r\n", M_FALSE);
-	M_list_str_insert(slot->tcp.smtp_response, line);
+	session->tcp.smtp_response_code = response_code;
+	M_parser_mark_rewind(session->in_parser);
+	M_parser_consume(session->in_parser, 4); /* skip over number code */
+	line = M_parser_read_strdup_until(session->in_parser, "\r\n", M_FALSE);
+	M_list_str_insert(session->tcp.smtp_response, line);
 	M_free(line);
 
-	M_parser_consume(slot->in_parser, 2); /* skip over \r\n */
+	M_parser_consume(session->in_parser, 2); /* skip over \r\n */
 
 	if (byte == '-') {
 		*next = STATE_READ_LINE;
@@ -106,23 +106,23 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 	(void)status;
 	(void)next;
 
-	slot->tcp.smtp_response = M_list_str_create(M_LIST_STR_NONE);
-	slot->tcp.smtp_response_code = 0;
+	session->tcp.smtp_response = M_list_str_create(M_LIST_STR_NONE);
+	session->tcp.smtp_response_code = 0;
 	return M_TRUE;
 }
 
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_slot_t *slot = data;
+	M_net_smtp_endpoint_session_t *session = data;
 	(void)next;
-	M_list_str_destroy(slot->tcp.smtp_response);
-	slot->tcp.smtp_response = NULL;
-	slot->tcp.smtp_response_code = 0;
+	M_list_str_destroy(session->tcp.smtp_response);
+	session->tcp.smtp_response = NULL;
+	session->tcp.smtp_response_code = 0;
 	return sub_status;
 }
 
