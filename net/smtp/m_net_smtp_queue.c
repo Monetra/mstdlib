@@ -153,7 +153,7 @@ static int process_external_queue_num(const M_net_smtp_t *sp)
 	M_net_smtp_queue_t          *q  = sp->queue;
 
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	while ((ep = M_net_smtp_endpoint(sp)) != NULL) {
+	while ((ep = M_net_smtp_endpoint(M_CAST_OFF_CONST(M_net_smtp_t*,sp))) != NULL) {
 		char *msg = q->external_queue_get_cb();
 		if (msg == NULL) {
 			q->is_external_queue_pending = M_FALSE;

@@ -89,9 +89,10 @@ typedef struct {
 	};
 } M_net_smtp_session_t;
 
+M_net_smtp_session_t * M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep);
+
 void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session);
-void M_net_smtp_session_clean(M_net_smtp_session_t *session);
-M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep);
-void M_net_smtp_session_destroy(M_net_smtp_session_t *session);
+void M_net_smtp_session_clean         (M_net_smtp_session_t *session);
+void M_net_smtp_session_destroy       (M_net_smtp_session_t *session);
 
 #endif

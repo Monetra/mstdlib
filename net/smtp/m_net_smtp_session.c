@@ -1,6 +1,8 @@
 #include "m_net_smtp_int.h"
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 /* forward declarations */
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
@@ -27,85 +29,6 @@ static M_bool run_state_machine(M_net_smtp_session_t *session, M_bool *is_done)
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "State machine failure: %d", result);
 	}
 	return M_FALSE;
-}
-
-static void remove_endpoint(const M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
-{
-	size_t                       i;
-	M_bool                       is_all_endpoints_removed = M_TRUE;
-	const M_net_smtp_endpoint_t *const_ep                 = NULL;
-
-	ep->is_removed = M_TRUE;
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const_ep = M_list_at(sp->endpoints, i);
-		if (const_ep->is_removed == M_FALSE) {
-			is_all_endpoints_removed = M_FALSE;
-		}
-	}
-
-	if (is_all_endpoints_removed) {
-		M_net_smtp_status_t status;
-		M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
-		status = M_net_smtp_status(sp);
-		if (status == M_NET_SMTP_STATUS_STOPPING) {
-			/* need to check if idle then process_halted() */
-			M_net_smtp_queue_delegate_msgs(sp->queue);
-		}
-	}
-
-}
-
-
-static void rotate_endpoints(const M_net_smtp_t *sp)
-{
-	M_net_smtp_endpoint_t *ep;
-
-	if (sp->load_balance_mode != M_NET_SMTP_LOAD_BALANCE_FAILOVER)
-		return;
-
-	if (M_list_len(sp->endpoints) <= 1)
-		return;
-
-	ep = M_list_take_first(sp->endpoints);
-	M_list_insert(sp->endpoints, ep);
-}
-
-static void connect_fail(M_net_smtp_session_t *session)
-{
-	const M_net_smtp_t           *sp       = session->sp;
-	const M_net_smtp_endpoint_t  *const_ep = session->ep;
-
-	if (sp->cbs.connect_fail_cb(
-		const_ep->tcp.address,
-		const_ep->tcp.port,
-		session->tcp.net_error,
-		session->errmsg,
-		sp->thunk
-	)) {
-		remove_endpoint(sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t *, const_ep));
-	} else {
-		/* Had a failure, but they want to keep the endpoint. */
-		rotate_endpoints(sp);
-	}
-}
-
-
-static void process_fail(M_net_smtp_session_t *session, const char *stdout_str)
-{
-	const M_net_smtp_endpoint_t *const_ep = session->ep;
-
-	if (session->sp->cbs.process_fail_cb(
-		const_ep->process.command,
-		session->process.result_code,
-		stdout_str,
-		session->errmsg,
-		session->sp->thunk)
-	) {
-		remove_endpoint(session->sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, const_ep));
-	} else {
-		/* Had a failure, but they want to keep the endpoint. */
-		rotate_endpoints(session->sp);
-	}
 }
 
 
@@ -255,7 +178,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 
 	return M_FALSE;
 backout:
-	connect_fail(session);
+	M_net_smtp_connect_fail(session->sp, session->ep, session->tcp.net_error, session->errmsg);
 	session->is_backout = M_TRUE;
 destroy:
 	if (session->io != NULL) {
@@ -321,7 +244,7 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 				if (session->process.result_code != 0) {
 					char *stdout_str = M_buf_finish_str(session->out_buf, NULL);
 					session->out_buf = NULL;
-					process_fail(session, stdout_str);
+					M_net_smtp_process_fail(session->sp, session->ep, session->process.result_code, stdout_str, session->errmsg);
 					M_free(stdout_str);
 					session->is_successfully_sent = M_FALSE;
 					if (session->errmsg[0] == 0) {
@@ -498,7 +421,7 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		if (io_error != M_IO_ERROR_SUCCESS) {
 			session->process.result_code = (int)io_error;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "%s", M_io_error_string(io_error));
-			process_fail(session, "");
+			M_net_smtp_process_fail(session->sp, session->ep, session->process.result_code, "", session->errmsg);
 			goto fail;
 		}
 		session->state_machine = M_net_smtp_flow_process();

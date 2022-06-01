@@ -25,6 +25,79 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static void restart_processing(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	M_net_smtp_t *sp = thunk;
+	(void)el;
+	(void)etype;
+	(void)io;
+
+	M_event_timer_remove(sp->restart_processing_timer);
+	sp->restart_processing_timer = NULL;
+	M_net_smtp_resume(sp);
+}
+
+static void resume_after_add_endpoint(M_net_smtp_t *sp)
+{
+	M_net_smtp_status_t status = M_net_smtp_status(sp);
+
+	if (status == M_NET_SMTP_STATUS_NOENDPOINTS) {
+		M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+		sp->status = M_NET_SMTP_STATUS_STOPPED;
+		M_thread_rwlock_unlock(sp->status_rwlock);
+	}
+	M_net_smtp_resume(sp);
+}
+
+static void remove_endpoint(const M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
+{
+	size_t                       i;
+	M_bool                       is_all_endpoints_removed = M_TRUE;
+	const M_net_smtp_endpoint_t *const_ep                 = NULL;
+
+	ep->is_removed = M_TRUE;
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+		const_ep = M_list_at(sp->endpoints, i);
+		if (const_ep->is_removed == M_FALSE) {
+			is_all_endpoints_removed = M_FALSE;
+		}
+	}
+
+	if (is_all_endpoints_removed) {
+		M_net_smtp_status_t status;
+		M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
+		status = M_net_smtp_status(sp);
+		if (status == M_NET_SMTP_STATUS_STOPPING) {
+			/* need to check if idle then process_halted() */
+			M_net_smtp_queue_delegate_msgs(sp->queue);
+		}
+	}
+}
+
+static void cull_endpoint(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
+{
+	if (M_list_len(sp->endpoints) <= 1)
+		return;
+
+	M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
+	M_list_insert(sp->endpoints, ep);
+}
+
+static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
+{
+	if (is_remove_ep) {
+		remove_endpoint(sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, ep));
+	} else {
+		/* Had a failure, but they want to keep the endpoint. Move this endpoint to the back of the lists
+		* so failover will move through the list
+		*/
+		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER)
+			cull_endpoint(sp, ep);
+	}
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_bool M_net_smtp_is_running(M_net_smtp_status_t status)
 {
 	return status == M_NET_SMTP_STATUS_PROCESSING || status == M_NET_SMTP_STATUS_IDLE;
@@ -68,18 +141,6 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint(M_net_smtp_t *sp)
 	return NULL;
 }
 
-static void restart_processing_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	M_net_smtp_t *sp = thunk;
-	(void)el;
-	(void)etype;
-	(void)io;
-
-	M_event_timer_remove(sp->restart_processing_timer);
-	sp->restart_processing_timer = NULL;
-	M_net_smtp_resume(sp);
-}
-
 void M_net_smtp_prune_endpoints(M_net_smtp_t *sp)
 {
 	size_t i;
@@ -116,24 +177,40 @@ void M_net_smtp_processing_halted(M_net_smtp_t *sp)
 	if (delay_ms == 0 || is_no_endpoints)
 		return;
 
-	sp->restart_processing_timer = M_event_timer_oneshot(sp->el, delay_ms, M_FALSE, restart_processing_cb, sp);
+	sp->restart_processing_timer = M_event_timer_oneshot(sp->el, delay_ms, M_FALSE, restart_processing, sp);
 }
 
-static void resume_after_add_endpoint(M_net_smtp_t *sp)
+void M_net_smtp_connect_fail(
+	const M_net_smtp_t *sp,
+	const M_net_smtp_endpoint_t *ep,
+	M_net_error_t net_error,
+	const char *errmsg
+)
 {
-	M_net_smtp_status_t status = M_net_smtp_status(sp);
+	M_bool is_remove_ep = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
+	endpoint_failure(sp, ep, is_remove_ep);
+}
 
-	if (status == M_NET_SMTP_STATUS_NOENDPOINTS) {
-		M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		sp->status = M_NET_SMTP_STATUS_STOPPED;
-		M_thread_rwlock_unlock(sp->status_rwlock);
-	}
-	M_net_smtp_resume(sp);
+
+void M_net_smtp_process_fail(
+	const M_net_smtp_t *sp,
+	const M_net_smtp_endpoint_t *ep,
+	int result_code,
+	const char *stdout_str,
+	const char *errmsg
+)
+{
+	M_bool is_remove_ep = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
+	endpoint_failure(sp, ep, is_remove_ep);
 }
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-/* NOP callbacks */
+
+/* These NOP callbacks are used to avoid NULL checking for functions. If they don't
+ * supply a callback we will just use these.
+ */
+
 #define x2(return_value) (void)b; (void)a; return return_value;
 #define x3(return_value) (void)c; x2(return_value)
 #define x4(return_value) (void)d; x3(return_value)

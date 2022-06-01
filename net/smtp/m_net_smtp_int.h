@@ -28,6 +28,7 @@
 #include "m_net_smtp_session.h"
 #include "m_net_smtp_endpoint.h"
 #include "m_net_smtp_queue.h"
+#include "m_net_smtp_flow.h"
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_net.h>
@@ -57,22 +58,25 @@ struct M_net_smtp {
 	M_net_smtp_queue_t                *queue;
 };
 
-void M_net_smtp_prune_endpoints(M_net_smtp_t *sp);
-M_bool M_net_smtp_is_running(M_net_smtp_status_t status);
-void M_net_smtp_round_robin_advance(M_net_smtp_t *sp);
-const M_net_smtp_endpoint_t * M_net_smtp_endpoint(M_net_smtp_t *sp);
-M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_session_t *session, M_uint64 expected_code);
-M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next);
-M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
-		void *data, M_state_machine_status_t sub_status, M_uint64 *next);
-void M_net_smtp_processing_halted(M_net_smtp_t *sp);
+M_bool                        M_net_smtp_is_running(M_net_smtp_status_t status);
 
-M_state_machine_t *M_net_smtp_flow_process(void);
-M_state_machine_t *M_net_smtp_flow_tcp_smtp_response(void);
-M_state_machine_t *M_net_smtp_flow_tcp_starttls(void);
-M_state_machine_t *M_net_smtp_flow_tcp_sendmsg(void);
-M_state_machine_t *M_net_smtp_flow_tcp_auth(void);
-M_state_machine_t *M_net_smtp_flow_tcp_ehlo(void);
-M_state_machine_t *M_net_smtp_flow_tcp(void);
+void                          M_net_smtp_prune_endpoints    (M_net_smtp_t *sp);
+const M_net_smtp_endpoint_t * M_net_smtp_endpoint           (M_net_smtp_t *sp);
+void                          M_net_smtp_processing_halted  (M_net_smtp_t *sp);
+
+void M_net_smtp_connect_fail(
+	const M_net_smtp_t *sp,
+	const M_net_smtp_endpoint_t *ep,
+	M_net_error_t net_error,
+	const char *errmsg
+);
+
+void M_net_smtp_process_fail(
+	const M_net_smtp_t *sp,
+	const M_net_smtp_endpoint_t *ep,
+	int result_code,
+	const char *stdout_str,
+	const char *errmsg
+);
 
 #endif
