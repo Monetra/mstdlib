@@ -24,12 +24,6 @@
 #include "m_net_smtp_int.h"
 #include <openssl/hmac.h>
 #include <openssl/rand.h>
-/*
-	ep->tcp.auth_login_user = M_bincodec_encode_alloc(
-			(const unsigned char *)username, M_str_len(username), 0, M_BINCODEC_BASE64);
-	ep->tcp.auth_login_pass = M_bincodec_encode_alloc(
-			(const unsigned char *)password, M_str_len(password), 0, M_BINCODEC_BASE64);
-			*/
 
 typedef enum {
 	STATE_AUTH_START = 1,
@@ -50,7 +44,7 @@ typedef enum {
 
 static M_state_machine_status_t M_state_auth_start(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	switch (session->tcp.smtp_authtype) {
 		case M_NET_SMTP_AUTHTYPE_PLAIN:
@@ -97,8 +91,8 @@ static char * create_auth_plain(const char *username, const char *password)
 
 static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session    = data;
-	char                          *auth_plain = NULL;
+	M_net_smtp_session_t *session    = data;
+	char                 *auth_plain = NULL;
 
 	auth_plain = create_auth_plain(session->ep->tcp.username, session->ep->tcp.password);
 	M_buf_add_str(session->out_buf, "AUTH PLAIN ");
@@ -113,8 +107,8 @@ static M_state_machine_status_t M_state_auth_plain(void *data, M_uint64 *next)
 static M_state_machine_status_t M_auth_final_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
@@ -131,7 +125,7 @@ done:
 
 static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	M_buf_add_str(session->out_buf, "AUTH LOGIN\r\n");
 	session->tcp.auth_login_response_count = 0;
 	*next = STATE_AUTH_LOGIN_RESPONSE;
@@ -140,8 +134,8 @@ static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session      = data;
-	char                          *username_b64 = NULL;
+	M_net_smtp_session_t *session      = data;
+	char                 *username_b64 = NULL;
 
 	username_b64 = M_bincodec_encode_alloc(
 		(const unsigned char *)session->ep->tcp.username,
@@ -159,8 +153,8 @@ static M_state_machine_status_t M_state_auth_login_username(void *data, M_uint64
 
 static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session      = data;
-	char                          *password_b64 = NULL;
+	M_net_smtp_session_t *session      = data;
+	char                 *password_b64 = NULL;
 
 	password_b64 = M_bincodec_encode_alloc(
 		(const unsigned char *)session->ep->tcp.password,
@@ -179,9 +173,9 @@ static M_state_machine_status_t M_state_auth_login_password(void *data, M_uint64
 static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	const char                    *line           = NULL;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	const char               *line           = NULL;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
@@ -222,7 +216,7 @@ done:
 
 static M_state_machine_status_t M_state_auth_cram_md5(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	M_buf_add_str(session->out_buf, "AUTH CRAM-MD5\r\n");
 	*next = STATE_AUTH_CRAM_MD5_SECRET_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -231,14 +225,14 @@ static M_state_machine_status_t M_state_auth_cram_md5(void *data, M_uint64 *next
 static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	size_t                         len            = 0;
-	unsigned int                   uint           = 0;
-	unsigned char                  buf[512]       = { 0 };
-	char                          *challenge      = NULL;
-	const char                    *line;
-	unsigned char                  d[16]; /* digest */
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	size_t                    len            = 0;
+	unsigned int              uint           = 0;
+	unsigned char             buf[512]       = { 0 };
+	char                     *challenge      = NULL;
+	const char               *line;
+	unsigned char             d[16]; /* digest */
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -302,7 +296,7 @@ static void RFC2831_H(char *s, size_t len, unsigned char b[16])
 
 static M_state_machine_status_t M_state_auth_digest_md5(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	M_buf_add_str(session->out_buf, "AUTH DIGEST-MD5\r\n");
 	*next = STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -403,21 +397,21 @@ static void digest_md5_compute_response(digest_md5_parameters_t *parameters, cha
 static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session          = data;
-	M_state_machine_status_t       machine_status   = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	char                          *parameters_str   = NULL;
-	M_hash_dict_t                 *parameters_dict  = NULL;
-	char                          *digest_uri       = NULL;
-	M_buf_t                       *buf              = NULL;
-	char                          *str              = NULL;
-	char                          *str_b64          = NULL;
-	const char                    *line             = NULL;
-	size_t                         digest_uri_size  = 0;
-	char                           response[33]     = { 0 };
-	unsigned char                  cnonce_bytes[16] = { 0 };
-	char                           cnonce[33]       = { 0 };
-	digest_md5_parameters_t        parameters       = { 0 };
-	size_t                         len;
+	M_net_smtp_session_t     *session          = data;
+	M_state_machine_status_t  machine_status   = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	char                     *parameters_str   = NULL;
+	M_hash_dict_t            *parameters_dict  = NULL;
+	char                     *digest_uri       = NULL;
+	M_buf_t                  *buf              = NULL;
+	char                     *str              = NULL;
+	char                     *str_b64          = NULL;
+	const char               *line             = NULL;
+	size_t                    digest_uri_size  = 0;
+	char                      response[33]     = { 0 };
+	unsigned char             cnonce_bytes[16] = { 0 };
+	char                      cnonce[33]       = { 0 };
+	digest_md5_parameters_t   parameters       = { 0 };
+	size_t                    len;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -485,8 +479,8 @@ done:
 static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;

@@ -36,8 +36,8 @@ typedef enum {
 
 static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
-	const char                    *address = NULL;
+	M_net_smtp_session_t *session = data;
+	const char           *address = NULL;
 
 	if (!M_email_from(session->email, NULL, NULL, &address)) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -52,8 +52,8 @@ static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -73,8 +73,8 @@ done:
 
 static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
-	char                          *address = NULL;
+	M_net_smtp_session_t *session = data;
+	char                 *address = NULL;
 
 	address = M_list_str_take_last(session->tcp.rcpt_to);
 	if (address == NULL)
@@ -93,8 +93,8 @@ static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -119,7 +119,7 @@ done:
 
 static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_buf_add_str(session->out_buf, "DATA\r\n");
 
@@ -130,8 +130,8 @@ static M_state_machine_status_t M_state_data(void *data, M_uint64 *next)
 static M_state_machine_status_t M_data_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -152,9 +152,9 @@ done:
 
 static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
-	M_parser_t                    *parser  = NULL;
-	char                          *msg     = NULL;
+	M_net_smtp_session_t *session = data;
+	M_parser_t           *parser  = NULL;
+	char                 *msg     = NULL;
 
 	M_email_bcc_clear(session->email);
 	msg = M_email_simple_write(session->email);
@@ -185,8 +185,8 @@ static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint
 static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)

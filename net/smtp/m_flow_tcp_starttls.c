@@ -30,7 +30,7 @@ typedef enum {
 
 static M_state_machine_status_t M_state_starttls(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_bprintf(session->out_buf, "STARTTLS\r\n");
 	*next = STATE_STARTTLS_RESPONSE;
@@ -40,8 +40,8 @@ static M_state_machine_status_t M_state_starttls(void *data, M_uint64 *next)
 static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)

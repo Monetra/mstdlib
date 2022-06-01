@@ -36,7 +36,7 @@ typedef enum {
 	STATE_DISCONNECTING,
 } m_state_ids;
 
-M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_session_t *session, M_uint64 expected_code)
+M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_session_t *session, M_uint64 expected_code)
 {
 	const char *line;
 	if (session->tcp.smtp_response_code != expected_code) {
@@ -53,7 +53,7 @@ M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_endpoint_session_
 
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
 		*next = STATE_OPENING_RESPONSE;
@@ -65,9 +65,9 @@ static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	const char                    *line           = NULL;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	const char               *line           = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
 		goto done;
@@ -92,9 +92,9 @@ done:
 
 static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
-	const char                    *address = NULL;
-	const char                    *domain  = NULL;
+	M_net_smtp_session_t *session = data;
+	const char           *address = NULL;
+	const char           *domain  = NULL;
 	(void)status;
 	(void)next;
 
@@ -118,7 +118,7 @@ static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint
 
 static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_free(session->tcp.ehlo_domain);
 	session->tcp.ehlo_domain = NULL;
@@ -174,11 +174,11 @@ static M_state_machine_status_t M_auth_post_cb(void *data, M_state_machine_statu
 
 static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
-	const char                    *group;
-	const char                    *name;
-	const char                    *address;
-	size_t                         i;
+	M_net_smtp_session_t *session = data;
+	const char           *group;
+	const char           *name;
+	const char           *address;
+	size_t                i;
 	(void)status;
 	(void)next;
 
@@ -204,7 +204,7 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 
 static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_list_str_destroy(session->tcp.rcpt_to);
 	session->tcp.rcpt_to = NULL;
@@ -232,7 +232,7 @@ static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *
 		* the is_successfully_sent state to FALSE.  Messages are assumed to be failures until they prove success.
 		*/
 
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	if (session->tcp.is_QUIT_enabled) {
 		*next = STATE_QUIT;
 		return M_STATE_MACHINE_STATUS_NEXT;
@@ -246,7 +246,7 @@ static M_state_machine_status_t M_state_wait_for_next_msg(void *data, M_uint64 *
 
 static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_buf_add_str(session->out_buf, "QUIT\r\n");
 	*next = STATE_QUIT_ACK;
@@ -255,7 +255,7 @@ static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 /* Although RFC 5321 calls for a 221 reply, if they don't send one we need to move on,
 	* regardless of how upset John Klensin may get. */
@@ -269,7 +269,7 @@ static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session      = data;
+	M_net_smtp_session_t *session      = data;
 	(void)next;
 
 	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {

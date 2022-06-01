@@ -30,14 +30,14 @@ typedef enum {
 
 static M_state_machine_status_t M_state_ehlo(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	M_bprintf(session->out_buf, "EHLO %s\r\n", session->tcp.ehlo_domain);
 	*next = STATE_EHLO_RESPONSE;
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static void determine_auth_method(const char *line, M_net_smtp_endpoint_session_t *session)
+static void determine_auth_method(const char *line, M_net_smtp_session_t *session)
 {
 	char   **methods;
 	size_t  *method_lens;
@@ -88,9 +88,9 @@ static void determine_auth_method(const char *line, M_net_smtp_endpoint_session_
 static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	M_state_machine_status_t       machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-	size_t                         i;
+	M_net_smtp_session_t     *session        = data;
+	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	size_t                    i;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)

@@ -34,7 +34,7 @@ typedef enum {
 
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	if (
 		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) &&
 		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) &&
@@ -49,7 +49,7 @@ static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	session->process.next_write_chunk = session->msg;
 
@@ -60,9 +60,9 @@ static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 {
-	const char                    *next_chunk = NULL;
-	M_net_smtp_endpoint_session_t *session    = data;
-	size_t                         chunk_len  = 0;
+	const char           *next_chunk = NULL;
+	M_net_smtp_session_t *session    = data;
+	size_t                chunk_len  = 0;
 
 	/* This is used to detect if the command quits early.
 		* sendmail will if -i isn't specified */
@@ -83,7 +83,7 @@ static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_chunk_wait(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	if (M_buf_len(session->out_buf) > 0) {
 		return M_STATE_MACHINE_STATUS_WAIT;
 	}
@@ -93,7 +93,7 @@ static M_state_machine_status_t M_state_write_chunk_wait(void *data, M_uint64 *n
 
 static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 
 	session->is_successfully_sent = M_TRUE;
 
@@ -104,7 +104,7 @@ static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	(void)next;
 	if (
 		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) ||

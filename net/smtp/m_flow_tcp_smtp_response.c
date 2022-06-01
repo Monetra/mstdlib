@@ -29,10 +29,10 @@ typedef enum {
 
 static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session        = data;
-	unsigned char                  byte           = 0;
-	M_uint64                       response_code  = 0;
-	char                          *line           = NULL;
+	M_net_smtp_session_t *session        = data;
+	unsigned char         byte           = 0;
+	M_uint64              response_code  = 0;
+	char                 *line           = NULL;
 
 	M_parser_mark(session->in_parser);
 	if (!M_parser_consume_str_until(session->in_parser, "\r\n", M_TRUE)) {
@@ -106,7 +106,7 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 
 M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	(void)status;
 	(void)next;
 
@@ -118,7 +118,7 @@ M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machi
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(void *data, M_state_machine_status_t sub_status,
 		M_uint64 *next)
 {
-	M_net_smtp_endpoint_session_t *session = data;
+	M_net_smtp_session_t *session = data;
 	(void)next;
 	M_list_str_destroy(session->tcp.smtp_response);
 	session->tcp.smtp_response = NULL;
