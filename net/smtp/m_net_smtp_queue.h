@@ -41,17 +41,30 @@ typedef struct {
 	char *                           (*external_queue_get_cb)(void);
 } M_net_smtp_queue_t;
 
-M_list_str_t *M_net_smtp_queue_dump(M_net_smtp_queue_t *q);
-void M_net_smtp_queue_reschedule_msg(const M_net_smtp_t *sp, const char *msg, const M_hash_dict_t *headers, M_bool is_backout, size_t num_tries, const char* errmsg, size_t retry_ms);
-void M_net_smtp_queue_set_num_attempts(M_net_smtp_queue_t *q, size_t num);
-M_bool M_net_smtp_queue_smtp_int(M_net_smtp_queue_t *q, const M_email_t *e);
-M_bool M_net_smtp_queue_message_int(M_net_smtp_queue_t *q, const char *msg);
-M_bool M_net_smtp_queue_is_pending(M_net_smtp_queue_t *q);
+typedef struct {
+	const M_net_smtp_t *sp;
+	const char *msg;
+	const M_hash_dict_t *headers;
+	M_bool is_backout;
+	size_t num_tries;
+	const char* errmsg;
+	size_t retry_ms;
+} M_net_smtp_queue_reschedule_msg_args_t;
+
 M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number_of_attempts, size_t retry_default_ms);
-void M_net_smtp_queue_destroy(M_net_smtp_queue_t *q);
-void M_net_smtp_queue_delegate_msgs(M_net_smtp_queue_t *q);
-void M_net_smtp_queue_resume(M_net_smtp_queue_t *q);
-M_bool M_net_smtp_queue_use_external_queue(M_net_smtp_queue_t *q, char *(*get_cb)(void));
-void M_net_smtp_queue_external_have_messages(M_net_smtp_queue_t *q);
+
+void                 M_net_smtp_queue_destroy               (M_net_smtp_queue_t *q);
+M_bool               M_net_smtp_queue_is_pending            (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_dispatch_msgs         (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_continue              (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_reschedule_msg        (M_net_smtp_queue_reschedule_msg_args_t *args);
+
+/* These are pass-through functions for the API */
+M_list_str_t *       M_net_smtp_queue_dump                  (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_set_num_attempts      (M_net_smtp_queue_t *q, size_t num);
+M_bool               M_net_smtp_queue_smtp_int              (M_net_smtp_queue_t *q, const M_email_t *e);
+M_bool               M_net_smtp_queue_message_int           (M_net_smtp_queue_t *q, const char *msg);
+M_bool               M_net_smtp_queue_use_external_queue    (M_net_smtp_queue_t *q, char *(*get_cb)(void));
+void                 M_net_smtp_queue_external_have_messages(M_net_smtp_queue_t *q);
 
 #endif

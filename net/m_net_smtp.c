@@ -37,9 +37,15 @@ static void restart_processing(M_event_t *el, M_event_type_t etype, M_io_t *io, 
 	M_net_smtp_resume(sp);
 }
 
-static void resume_after_add_endpoint(M_net_smtp_t *sp)
+static void add_endpoint(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
 {
-	M_net_smtp_status_t status = M_net_smtp_status(sp);
+	M_net_smtp_status_t status;
+
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	M_list_insert(sp->endpoints, ep);
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+
+	status = M_net_smtp_status(sp);
 
 	if (status == M_NET_SMTP_STATUS_NOENDPOINTS) {
 		M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
@@ -69,31 +75,26 @@ static void remove_endpoint(const M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
 		status = M_net_smtp_status(sp);
 		if (status == M_NET_SMTP_STATUS_STOPPING) {
 			/* need to check if idle then process_halted() */
-			M_net_smtp_queue_delegate_msgs(sp->queue);
+			M_net_smtp_queue_dispatch_msgs(sp->queue);
 		}
 	}
 }
 
-static void cull_endpoint(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
-{
-	if (M_list_len(sp->endpoints) <= 1)
-		return;
-
-	M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
-	M_list_insert(sp->endpoints, ep);
-}
-
 static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
 {
+	M_thread_mutex_lock(sp->endpoints_mutex);
 	if (is_remove_ep) {
 		remove_endpoint(sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, ep));
 	} else {
-		/* Had a failure, but they want to keep the endpoint. Move this endpoint to the back of the lists
-		* so failover will move through the list
-		*/
-		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER)
-			cull_endpoint(sp, ep);
+		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(sp->endpoints) > 1) {
+			/* Had a failure, but they want to keep the endpoint.
+			 * Move this endpoint to the back of the lists to failover
+			 */
+			M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
+			M_list_insert(sp->endpoints, ep);
+		}
 	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -103,11 +104,12 @@ M_bool M_net_smtp_is_running(M_net_smtp_status_t status)
 	return status == M_NET_SMTP_STATUS_PROCESSING || status == M_NET_SMTP_STATUS_IDLE;
 }
 
-const M_net_smtp_endpoint_t *M_net_smtp_endpoint(M_net_smtp_t *sp)
+const M_net_smtp_endpoint_t *M_net_smtp_endpoint_acquire(M_net_smtp_t *sp)
 {
 	const M_net_smtp_endpoint_t *ep;
 	size_t                       i;
 	size_t                       idx;
+	M_thread_mutex_lock(sp->endpoints_mutex);
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
 			for (i = 0; i < M_list_len(sp->endpoints); i++) {
@@ -117,6 +119,7 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint(M_net_smtp_t *sp)
 				if (M_net_smtp_endpoint_is_available(ep)) {
 					return ep;
 				} else {
+					M_thread_mutex_unlock(sp->endpoints_mutex);
 					return NULL;
 				}
 			}
@@ -138,7 +141,13 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint(M_net_smtp_t *sp)
 			}
 			break;
 	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 	return NULL;
+}
+
+void M_net_smtp_endpoint_release(M_net_smtp_t *sp)
+{
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 void M_net_smtp_prune_endpoints(M_net_smtp_t *sp)
@@ -325,7 +334,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 			M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
 		case M_NET_SMTP_STATUS_STOPPING:
 			sp->status = M_NET_SMTP_STATUS_PROCESSING;
-			M_net_smtp_queue_delegate_msgs(sp->queue);
+			M_net_smtp_queue_dispatch_msgs(sp->queue);
 			return M_TRUE;
 	}
 	return M_FALSE; /* impossible */
@@ -391,8 +400,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 		port = 25;
 
 	ep = M_net_smtp_endpoint_create_tcp(address, port, connect_tls, username, password, max_conns);
-	M_list_insert(sp->endpoints, ep);
-	resume_after_add_endpoint(sp);
+	add_endpoint(sp, ep);
 
 	return M_TRUE;
 }
@@ -415,8 +423,7 @@ M_bool M_net_smtp_add_endpoint_process(
 		max_processes = 1;
 
 	ep = M_net_smtp_endpoint_create_proc(command, args, env, timeout_ms, max_processes);
-	M_list_insert(sp->endpoints, ep);
-	resume_after_add_endpoint(sp);
+	add_endpoint(sp, ep);
 
 	return M_TRUE;
 }

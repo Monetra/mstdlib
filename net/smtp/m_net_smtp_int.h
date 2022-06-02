@@ -60,9 +60,10 @@ struct M_net_smtp {
 
 M_bool                        M_net_smtp_is_running(M_net_smtp_status_t status);
 
-void                          M_net_smtp_prune_endpoints    (M_net_smtp_t *sp);
-const M_net_smtp_endpoint_t * M_net_smtp_endpoint           (M_net_smtp_t *sp);
-void                          M_net_smtp_processing_halted  (M_net_smtp_t *sp);
+void                          M_net_smtp_prune_endpoints      (M_net_smtp_t *sp);
+const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire     (M_net_smtp_t *sp);
+void                          M_net_smtp_endpoint_release     (M_net_smtp_t *sp);
+void                          M_net_smtp_processing_halted    (M_net_smtp_t *sp);
 
 void M_net_smtp_connect_fail(
 	const M_net_smtp_t *sp,
@@ -78,5 +79,20 @@ void M_net_smtp_process_fail(
 	const char *stdout_str,
 	const char *errmsg
 );
+
+typedef struct {
+	const M_net_smtp_t  *sp;
+	char                *msg;
+	size_t               num_tries;
+	const M_hash_dict_t *headers;
+	M_email_t           *email;
+	M_bool               is_bootstrap;
+} M_net_smtp_dispatch_msg_args_t;
+
+/* This is prototyped in m_net_smtp_int.h instead of m_net_smtp_session.h to avoid a dependency problem */
+void   M_net_smtp_session_dispatch_msg  (M_net_smtp_session_t *session, M_net_smtp_dispatch_msg_args_t *args);
+
+/* This is prototyped in m_net_smtp_int.h instead of m_net_smtp_endpoint.h to avoid a dependency problem */
+M_bool M_net_smtp_endpoint_dispatch_msg  (const M_net_smtp_endpoint_t *ep, M_net_smtp_dispatch_msg_args_t *args);
 
 #endif

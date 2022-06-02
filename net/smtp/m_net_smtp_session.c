@@ -147,9 +147,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 	if (session->is_successfully_sent && session->msg != NULL) {
 		/* get ready to accept another. */
 		M_net_smtp_session_clean(session);
-		M_thread_rwlock_lock(session->ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		M_list_insert(session->ep->idle_sessions, session);
-		M_thread_rwlock_unlock(session->ep->sessions_rwlock);
+		M_net_smtp_endpoint_idle_session(session->ep, session);
 		M_event_timer_reset(session->event_timer, sp->tcp_idle_ms);
 		return M_TRUE;
 	}
@@ -211,7 +209,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 			M_net_smtp_session_destroy(session);
 
 	if (is_continue_processing)
-		M_net_smtp_queue_resume(sp->queue);
+		M_net_smtp_queue_continue(sp->queue);
 }
 
 
@@ -352,7 +350,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	if (is_destroy_session)
 		M_net_smtp_session_destroy(session);
 	if (is_continue_processing)
-		M_net_smtp_queue_resume(sp->queue);
+		M_net_smtp_queue_continue(sp->queue);
 }
 
 #define PROC_IO_CB(type,TYPE) \
@@ -367,16 +365,43 @@ PROC_IO_CB(stdin , _STDIN )
 PROC_IO_CB(proc  ,        )
 
 #undef PROC_IO_CB
+void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_dispatch_msg_args_t *args)
+{
+	const M_net_smtp_t          *sp = session->sp;
+	const M_net_smtp_queue_t    *q  = sp->queue;
+	M_thread_mutex_lock(session->mutex);
+	session->msg = args->msg;
+	session->number_of_tries = args->num_tries;
+	session->headers = args->headers;
+	session->is_successfully_sent = M_FALSE;
+	session->is_backout = M_FALSE;
+	session->retry_ms = q->retry_default_ms;
+	M_mem_set(session->errmsg, 0, sizeof(session->errmsg));
+	session->email = args->email;
+	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		session->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
+		if (!args->is_bootstrap) {
+			M_net_smtp_session_reactivate_tcp(session);
+		}
+	}
+	M_thread_mutex_unlock(session->mutex);
+}
 
 void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 {
-	M_net_smtp_endpoint_t *ep = M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, session->ep);
-
 	if (session->msg == NULL)
 		return;
 
 	if (session->is_backout || !session->is_successfully_sent) {
-		M_net_smtp_queue_reschedule_msg(session->sp, session->msg, session->headers, session->is_backout, session->number_of_tries + 1, session->errmsg, session->retry_ms);
+		M_net_smtp_queue_reschedule_msg_args_t args;
+		args.sp = session->sp;
+		args.msg = session->msg;
+		args.headers = session->headers;
+		args.is_backout = session->is_backout;
+		args.num_tries = session->number_of_tries + 1;
+		args.errmsg = session->errmsg;
+		args.retry_ms = session->retry_ms;
+		M_net_smtp_queue_reschedule_msg(&args);
 	} else {
 		session->sp->cbs.sent_cb(session->headers, session->sp->thunk);
 	}
@@ -385,9 +410,6 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 	M_free(session->msg);
 	session->msg = NULL;
 	session->headers = NULL;
-	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	M_list_remove_val(ep->send_sessions, session, M_LIST_MATCH_PTR);
-	M_thread_rwlock_unlock(ep->sessions_rwlock);
 }
 
 void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session)
@@ -476,8 +498,6 @@ void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 	session->state_machine = NULL;
 	session->is_alive = M_FALSE;
 	M_thread_mutex_destroy(session->mutex);
-	M_thread_rwlock_lock(session->ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	M_list_remove_val(session->ep->idle_sessions, session, M_LIST_MATCH_PTR);
-	M_thread_rwlock_unlock(session->ep->sessions_rwlock);
+	M_net_smtp_endpoint_remove_session(session->ep, session);
 	M_free(session);
 }

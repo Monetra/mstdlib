@@ -25,14 +25,59 @@
 
 M_bool M_net_smtp_endpoint_is_available(const M_net_smtp_endpoint_t *ep)
 {
-	return (ep->max_sessions - M_list_len(ep->send_sessions)) > 0;
+	M_bool is_available;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_READ);
+	is_available = (ep->max_sessions - M_list_len(ep->send_sessions)) > 0;
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	return is_available;
 }
 
 M_bool M_net_smtp_endpoint_is_idle(const M_net_smtp_endpoint_t *ep)
 {
-	return (M_list_len(ep->send_sessions) == 0);
+	M_bool is_idle;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_READ);
+	is_idle = (M_list_len(ep->send_sessions) == 0);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	return is_idle;
 }
 
+void M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session)
+{
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_list_remove_val(ep->send_sessions, session, M_LIST_MATCH_PTR);
+	M_list_remove_val(ep->idle_sessions, session, M_LIST_MATCH_PTR);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+}
+
+void M_net_smtp_endpoint_idle_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session)
+{
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_list_remove_val(ep->send_sessions, session, M_LIST_MATCH_PTR);
+	M_list_insert(ep->idle_sessions, session);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+}
+
+M_bool M_net_smtp_endpoint_dispatch_msg(const M_net_smtp_endpoint_t *ep, M_net_smtp_dispatch_msg_args_t *args)
+{
+	const M_net_smtp_t   *sp      = args->sp;
+	M_net_smtp_session_t *session;
+
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	args->is_bootstrap = M_FALSE;
+	session = M_list_take_first(ep->idle_sessions);
+	if (session == NULL) {
+		args->is_bootstrap = M_TRUE;
+		session = M_net_smtp_session_create(sp, ep);
+		if (session == NULL) {
+			M_thread_rwlock_unlock(ep->sessions_rwlock);
+			return M_FALSE;
+		}
+	}
+	M_net_smtp_session_dispatch_msg(session, args);
+	M_list_insert(ep->send_sessions, session);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	return M_TRUE;
+}
 
 M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(
 	const char   *address,
