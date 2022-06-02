@@ -73,76 +73,81 @@ static void dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* co
 	}
 }
 
-static int dispatch_msgs_external_num(const M_net_smtp_t *const_sp)
+static int dispatch_msgs_external_num(M_net_smtp_t *sp)
 {
-	const M_net_smtp_endpoint_t *ep = NULL;
-	int                          n  = 0;
-	M_net_smtp_queue_t          *q  = const_sp->queue;
-	M_net_smtp_t                *sp = M_CAST_OFF_CONST(M_net_smtp_t*,const_sp);
+	M_net_smtp_queue_t          *q   = sp->queue;
+	const M_net_smtp_endpoint_t *ep  = NULL;
+	char                        *msg = NULL;
 
-	while ((ep = M_net_smtp_endpoint_acquire(sp)) != NULL) {
-		char *msg = q->external_queue_get_cb();
-		if (msg != NULL) {
-			dispatch_msg(sp, ep, msg, 0);
-			n++;
-		}
+	ep = M_net_smtp_endpoint_acquire(sp);
+
+	if (ep == NULL)
+		return 0;
+
+	msg = q->external_queue_get_cb();
+
+	if (msg == NULL) {
+		q->is_external_queue_pending = M_FALSE;
 		M_net_smtp_endpoint_release(sp);
-		if (msg == NULL) {
-			q->is_external_queue_pending = M_FALSE;
-			break;
-		}
+		return 0;
 	}
-	return n;
+
+	dispatch_msg(sp, ep, msg, 0);
+	M_net_smtp_endpoint_release(sp);
+	return 1;
 }
 
 static int dispatch_msgs_internal_num(M_net_smtp_t *sp)
 {
-	const M_net_smtp_endpoint_t *ep = NULL;
-	M_net_smtp_queue_t          *q  = sp->queue;
-	int                          n  = 0;
+	M_net_smtp_queue_t          *q     = sp->queue;
+	const M_net_smtp_endpoint_t *ep    = NULL;
+	retry_msg_t                 *retry = NULL;
+	char                        *msg   = NULL;
 
-	while ((ep = M_net_smtp_endpoint_acquire(sp)) != NULL) {
-		retry_msg_t *retry = NULL;
-		char        *msg   = NULL;
-		M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		retry = M_list_take_first(q->retry_queue);
-		M_thread_rwlock_unlock(q->retry_queue_rwlock);
-		if (retry != NULL) {
-			dispatch_msg(sp, ep, retry->msg, retry->number_of_tries);
-			n++;
-			M_free(retry);
-			M_net_smtp_endpoint_release(sp);
-			continue;
-		}
-		M_thread_rwlock_lock(q->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		msg = M_list_str_take_first(q->internal_queue);
-		M_thread_rwlock_unlock(q->internal_queue_rwlock);
-		if (msg != NULL) {
-			dispatch_msg(sp, ep, msg, 0);
-			n++;
-			M_net_smtp_endpoint_release(sp);
-			continue;
-		}
+	ep = M_net_smtp_endpoint_acquire(sp);
+
+	if (ep == NULL)
+		return 0;
+
+	M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	retry = M_list_take_first(q->retry_queue);
+	M_thread_rwlock_unlock(q->retry_queue_rwlock);
+
+	if (retry != NULL) {
+		dispatch_msg(sp, ep, retry->msg, retry->number_of_tries);
+		M_free(retry);
 		M_net_smtp_endpoint_release(sp);
-		break;
+		return 1;
 	}
-	return n;
+
+	M_thread_rwlock_lock(q->internal_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	msg = M_list_str_take_first(q->internal_queue);
+	M_thread_rwlock_unlock(q->internal_queue_rwlock);
+
+	if (msg != NULL) {
+		dispatch_msg(sp, ep, msg, 0);
+		M_net_smtp_endpoint_release(sp);
+		return 1;
+	}
+
+	M_net_smtp_endpoint_release(sp);
+	return 0;
 }
 
 static void dispatch_msgs_external(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	(void)event;
 	(void)io;
 	(void)type;
-	dispatch_msgs_external_num(cb_arg);
+	if (dispatch_msgs_external_num(cb_arg) != 0)
+		M_event_queue_task(event, dispatch_msgs_external, cb_arg);
 }
 
 static void dispatch_msgs_internal(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	(void)event;
 	(void)io;
 	(void)type;
-	dispatch_msgs_internal_num(cb_arg);
+	if (dispatch_msgs_internal_num(cb_arg) != 0)
+		M_event_queue_task(event, dispatch_msgs_internal, cb_arg);
 }
 
 static M_bool is_all_endpoints_idle(M_net_smtp_t *sp)
@@ -244,13 +249,12 @@ void M_net_smtp_queue_dispatch_msgs(M_net_smtp_queue_t *q)
 
 void M_net_smtp_queue_continue(M_net_smtp_queue_t *q)
 {
-	const M_net_smtp_t* sp = q->sp;
 	if (!q->is_external_queue_enabled) {
 		M_net_smtp_queue_dispatch_msgs(q);
 		return;
 	}
 	/* eager eval external queue to determine IDLE */
-	if (dispatch_msgs_external_num(sp) == 0)
+	if (dispatch_msgs_external_num(M_CAST_OFF_CONST(M_net_smtp_t*,q->sp)) == 0)
 		M_net_smtp_queue_dispatch_msgs(q);
 }
 
