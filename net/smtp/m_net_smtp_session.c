@@ -157,7 +157,7 @@ static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_
 
 	return SESSION_PROCESSING;
 backout:
-	M_net_smtp_connect_fail(session->sp, session->ep, session->tcp.net_error, session->errmsg);
+	M_net_smtp_connect_fail(session);
 	session->is_backout = M_TRUE;
 destroy:
 	if (session->io != NULL) {
@@ -188,7 +188,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
 		case SESSION_IDLE:
-			M_net_smtp_queue_continue(q);
+			M_net_smtp_queue_advance(q);
 			break;
 		case SESSION_STALE:
 		case SESSION_PROCESSING:
@@ -219,7 +219,7 @@ static session_status_t proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io
 				if (session->process.result_code != 0) {
 					char *stdout_str = M_buf_finish_str(session->out_buf, NULL);
 					session->out_buf = NULL;
-					M_net_smtp_process_fail(session->sp, session->ep, session->process.result_code, stdout_str, session->errmsg);
+					M_net_smtp_process_fail(session, stdout_str);
 					M_free(stdout_str);
 					session->is_successfully_sent = M_FALSE;
 					if (session->errmsg[0] == 0) {
@@ -337,7 +337,7 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
 		case SESSION_IDLE:
-			M_net_smtp_queue_continue(q);
+			M_net_smtp_queue_advance(q);
 		break;
 		case SESSION_STALE:
 		case SESSION_PROCESSING:
@@ -436,7 +436,7 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		if (io_error != M_IO_ERROR_SUCCESS) {
 			session->process.result_code = (int)io_error;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "%s", M_io_error_string(io_error));
-			M_net_smtp_process_fail(session->sp, session->ep, session->process.result_code, "", session->errmsg);
+			M_net_smtp_process_fail(session, "");
 			goto fail;
 		}
 		session->state_machine = M_net_smtp_flow_process();

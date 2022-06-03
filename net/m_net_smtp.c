@@ -48,7 +48,7 @@ static void endpoint_failure(endpoint_failure_args_t *args)
 			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,args->sp));
 			if (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING) {
 				/* need to check if idle then process_halted() */
-				M_net_smtp_queue_dispatch_msg(args->sp->queue);
+				M_net_smtp_queue_advance(args->sp->queue);
 			}
 		}
 	} else {
@@ -222,13 +222,13 @@ void M_net_smtp_processing_halted(M_net_smtp_t *sp)
 	sp->restart_processing_timer = M_event_timer_oneshot(sp->el, delay_ms, M_FALSE, restart_processing_task, sp);
 }
 
-void M_net_smtp_connect_fail(
-	const M_net_smtp_t *sp,
-	const M_net_smtp_endpoint_t *ep,
-	M_net_error_t net_error,
-	const char *errmsg
-)
+void M_net_smtp_connect_fail(M_net_smtp_session_t *session)
 {
+	const M_net_smtp_t          *sp        = session->sp;
+	const M_net_smtp_endpoint_t *ep        = session->ep;
+	M_net_error_t                net_error = session->tcp.net_error;
+	const char                  *errmsg    = session->errmsg;
+
 	M_bool is_remove_ep = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
 	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
 	if (is_remove_ep) {
@@ -240,14 +240,13 @@ void M_net_smtp_connect_fail(
 }
 
 
-void M_net_smtp_process_fail(
-	const M_net_smtp_t *sp,
-	const M_net_smtp_endpoint_t *ep,
-	int result_code,
-	const char *stdout_str,
-	const char *errmsg
-)
+void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_str)
 {
+	const M_net_smtp_t          *sp          = session->sp;
+	const M_net_smtp_endpoint_t *ep          = session->ep;
+	int                          result_code = session->process.result_code;
+	const char                  *errmsg      = session->errmsg;
+
 	M_bool is_remove_ep = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
 	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
 	if (is_remove_ep) {
@@ -392,7 +391,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 			M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
 		case M_NET_SMTP_STATUS_STOPPING:
 			sp->status = M_NET_SMTP_STATUS_PROCESSING;
-			M_net_smtp_queue_dispatch_msg(sp->queue);
+			M_net_smtp_queue_advance(sp->queue);
 			return M_TRUE;
 	}
 	return M_FALSE; /* impossible */

@@ -58,30 +58,6 @@ struct M_net_smtp {
 	M_net_smtp_queue_t                *queue;
 };
 
-M_bool                        M_net_smtp_is_running(M_net_smtp_status_t status);
-
-void                          M_net_smtp_prune_endpoints         (M_net_smtp_t *sp);
-const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire        (M_net_smtp_t *sp);
-void                          M_net_smtp_endpoint_release        (M_net_smtp_t *sp);
-void                          M_net_smtp_processing_halted       (M_net_smtp_t *sp);
-M_bool                        M_net_smtp_is_all_endpoints_idle   (M_net_smtp_t *sp);
-M_bool                        M_net_smtp_is_all_endpoints_removed(const M_net_smtp_t *sp);
-
-void M_net_smtp_connect_fail(
-	const M_net_smtp_t *sp,
-	const M_net_smtp_endpoint_t *ep,
-	M_net_error_t net_error,
-	const char *errmsg
-);
-
-void M_net_smtp_process_fail(
-	const M_net_smtp_t *sp,
-	const M_net_smtp_endpoint_t *ep,
-	int result_code,
-	const char *stdout_str,
-	const char *errmsg
-);
-
 typedef struct {
 	const M_net_smtp_t  *sp;
 	char                *msg;
@@ -91,10 +67,22 @@ typedef struct {
 	M_bool               is_bootstrap;
 } M_net_smtp_dispatch_msg_args_t;
 
+const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire (M_net_smtp_t *sp);
+
+M_bool M_net_smtp_is_running               (M_net_smtp_status_t status);
+void   M_net_smtp_prune_endpoints          (M_net_smtp_t *sp);
+void   M_net_smtp_endpoint_release         (M_net_smtp_t *sp);
+void   M_net_smtp_processing_halted        (M_net_smtp_t *sp);
+M_bool M_net_smtp_is_all_endpoints_idle    (M_net_smtp_t *sp);
+M_bool M_net_smtp_is_all_endpoints_removed (const M_net_smtp_t *sp);
+
+void   M_net_smtp_connect_fail             (M_net_smtp_session_t *session);
+void   M_net_smtp_process_fail             (M_net_smtp_session_t *session, const char *outstr);
+
 /* This is prototyped in m_net_smtp_int.h instead of m_net_smtp_session.h to avoid a dependency problem */
-void   M_net_smtp_session_dispatch_msg  (M_net_smtp_session_t *session, M_net_smtp_dispatch_msg_args_t *args);
+void   M_net_smtp_session_dispatch_msg     (M_net_smtp_session_t *session, M_net_smtp_dispatch_msg_args_t *args);
 
 /* This is prototyped in m_net_smtp_int.h instead of m_net_smtp_endpoint.h to avoid a dependency problem */
-M_bool M_net_smtp_endpoint_dispatch_msg  (const M_net_smtp_endpoint_t *ep, M_net_smtp_dispatch_msg_args_t *args);
+M_bool M_net_smtp_endpoint_dispatch_msg    (const M_net_smtp_endpoint_t *ep, M_net_smtp_dispatch_msg_args_t *args);
 
 #endif

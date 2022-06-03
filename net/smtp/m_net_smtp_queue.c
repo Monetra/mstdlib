@@ -43,7 +43,7 @@ static void retry_msg_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void
 	M_list_insert(q->retry_queue, retry);
 	M_thread_rwlock_unlock(q->retry_queue_rwlock);
 	if (M_net_smtp_status(q->sp) == M_NET_SMTP_STATUS_IDLE)
-		M_net_smtp_queue_dispatch_msg(q);
+		M_net_smtp_queue_advance(q);
 }
 
 static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, char *msg, size_t num_tries)
@@ -153,7 +153,7 @@ static void dispatch_msg_external_task(M_event_t *event, M_event_type_t type, M_
 		case DISPATCH_MSG_NO_ATTEMPT_NO_MSG:
 			/* The external messages pending flag has now been cleared so running dispatch_msg
 				* will return the state to IDLE */
-			M_net_smtp_queue_dispatch_msg(sp->queue);
+			M_net_smtp_queue_advance(sp->queue);
 			break;
 		case DISPATCH_MSG_NO_ATTEMPT_NO_ENDPOINT:
 			break;
@@ -161,7 +161,7 @@ static void dispatch_msg_external_task(M_event_t *event, M_event_type_t type, M_
 			M_event_queue_task(event, dispatch_msg_external_task, sp);
 			break;
 		case DISPATCH_MSG_FAILURE:
-			M_net_smtp_queue_continue(sp->queue);
+			M_net_smtp_queue_advance(sp->queue);
 			break;
 	}
 }
@@ -180,7 +180,7 @@ static void dispatch_msg_internal_task(M_event_t *event, M_event_type_t type, M_
 			M_event_queue_task(event, dispatch_msg_internal_task, sp);
 			break;
 		case DISPATCH_MSG_FAILURE:
-			M_net_smtp_queue_continue(sp->queue);
+			M_net_smtp_queue_advance(sp->queue);
 			break;
 	}
 }
@@ -251,19 +251,22 @@ M_bool M_net_smtp_queue_is_pending(M_net_smtp_queue_t *q)
 	return is_pending_retry || is_pending_internal;
 }
 
-void M_net_smtp_queue_dispatch_msg(M_net_smtp_queue_t *q)
+void M_net_smtp_queue_advance(M_net_smtp_queue_t *q)
 {
 	M_net_smtp_t *sp = M_CAST_OFF_CONST(M_net_smtp_t*, q->sp);
 
 	M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	if (M_net_smtp_is_running(sp->status) && M_net_smtp_queue_is_pending(q)) {
 		sp->status = M_NET_SMTP_STATUS_PROCESSING;
+		M_thread_rwlock_unlock(sp->status_rwlock);
 		if (q->is_external_queue_enabled) {
-			M_event_queue_task(sp->el, dispatch_msg_external_task, sp);
+			dispatch_msg_external_task(sp->el, M_EVENT_TYPE_OTHER, NULL, sp);
 		} else {
-			M_event_queue_task(sp->el, dispatch_msg_internal_task, sp);
+			dispatch_msg_internal_task(sp->el, M_EVENT_TYPE_OTHER, NULL, sp);
 		}
-	} else if (M_net_smtp_is_all_endpoints_idle(sp)) {
+		return;
+	}
+	if (M_net_smtp_is_all_endpoints_idle(sp)) {
 		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
 			M_net_smtp_processing_halted(sp);
 		} else {
@@ -272,17 +275,6 @@ void M_net_smtp_queue_dispatch_msg(M_net_smtp_queue_t *q)
 		}
 	}
 	M_thread_rwlock_unlock(sp->status_rwlock);
-}
-
-void M_net_smtp_queue_continue(M_net_smtp_queue_t *q)
-{
-	if (q->is_external_queue_enabled) {
-		M_net_smtp_t *sp = M_CAST_OFF_CONST(M_net_smtp_t*, q->sp);
-		/* eager eval external queue to determine IDLE */
-		dispatch_msg_external_task(sp->el, M_EVENT_TYPE_OTHER, NULL, sp);
-	} else {
-		M_net_smtp_queue_dispatch_msg(q);
-	}
 }
 
 void M_net_smtp_queue_reschedule_msg(M_net_smtp_queue_reschedule_msg_args_t *args)
@@ -421,7 +413,7 @@ M_bool M_net_smtp_queue_message_int(M_net_smtp_queue_t *q, const char *msg)
 
 	status = M_net_smtp_status(q->sp);
 	if (status == M_NET_SMTP_STATUS_IDLE)
-		M_net_smtp_queue_dispatch_msg(q);
+		M_net_smtp_queue_advance(q);
 
 	return M_TRUE;
 }
@@ -447,5 +439,5 @@ void M_net_smtp_queue_external_have_messages(M_net_smtp_queue_t *q)
 	q->is_external_queue_pending = M_TRUE;
 	status = M_net_smtp_status(q->sp);
 	if (status == M_NET_SMTP_STATUS_IDLE)
-		M_net_smtp_queue_dispatch_msg(q);
+		M_net_smtp_queue_advance(q);
 }
