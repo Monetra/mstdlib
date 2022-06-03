@@ -1,52 +1,27 @@
 #include "m_net_smtp_int.h"
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
+typedef enum {
+	SESSION_PROCESSING = 1,
+	SESSION_IDLE,
+	SESSION_FINISHED,
+	SESSION_STALE,
+} session_status_t;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* forward declarations */
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 
-static M_bool run_state_machine(M_net_smtp_session_t *session, M_bool *is_done)
+static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	M_state_machine_status_t result;
-
-	result = M_state_machine_run(session->state_machine, session);
-	if (result == M_STATE_MACHINE_STATUS_WAIT) {
-		if (is_done != NULL) {
-			*is_done = M_FALSE;
-		}
-		return M_TRUE;
-	}
-	if (result == M_STATE_MACHINE_STATUS_DONE) {
-		if (is_done != NULL) {
-			*is_done = M_TRUE;
-		}
-		return M_TRUE;
-	}
-
-	if (session->errmsg[0] == 0) {
-		M_snprintf(session->errmsg, sizeof(session->errmsg), "State machine failure: %d", result);
-	}
-	return M_FALSE;
-}
-
-
-/* Return value is whether to run continue processing another
-	* message.  process_queue_queue() can potentially destroy
-	* the endpoint + sessions + session locks, which will seg fault the unlock
-	* wrapped around this function. */
-static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, M_bool *is_session_destroy)
-{
-	M_net_smtp_session_t        *session     = thunk;
-	const M_net_smtp_t          *sp          = session->sp;
-	const M_net_smtp_endpoint_t *const_ep    = session->ep;
-	M_net_smtp_connect_cb        connect_cb  = sp->cbs.connect_cb;
-	M_net_smtp_iocreate_cb       iocreate_cb = sp->cbs.iocreate_cb;
-	M_io_error_t                 io_error    = M_IO_ERROR_SUCCESS;
-	M_bool                       is_done     = M_FALSE;
-	M_net_smtp_status_t          status;
-	(void)el;
+	M_net_smtp_session_t        *session            = thunk;
+	const M_net_smtp_t          *sp                 = session->sp;
+	const M_net_smtp_endpoint_t *const_ep           = session->ep;
+	M_net_smtp_connect_cb        connect_cb         = sp->cbs.connect_cb;
+	M_net_smtp_iocreate_cb       iocreate_cb        = sp->cbs.iocreate_cb;
+	M_io_error_t                 io_error           = M_IO_ERROR_SUCCESS;
 
 	switch(etype) {
 		case M_EVENT_TYPE_CONNECTED:
@@ -65,7 +40,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 
 			if (session->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED || session->tcp.tls_state == M_NET_SMTP_TLS_IMPLICIT) {
 				session->tcp.tls_state = M_NET_SMTP_TLS_CONNECTED;
-				return M_FALSE;
+				return SESSION_PROCESSING;
 			}
 
 			break;
@@ -76,7 +51,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 			io_error = M_io_read_into_parser(io, session->in_parser);
 
 			if (io_error == M_IO_ERROR_WOULDBLOCK)
-				return M_FALSE;
+				return SESSION_PROCESSING;
 
 			if (io_error == M_IO_ERROR_DISCONNECT) {
 				goto destroy;
@@ -111,9 +86,9 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 				if (io_error != M_IO_ERROR_SUCCESS) {
 					goto destroy;
 				}
-				M_event_add(sp->el, session->io, tcp_io_cb, session);
+				M_event_add(el, session->io, tcp_io_cb, session);
 				M_event_timer_reset(session->event_timer, sp->tcp_connect_ms);
-				return M_FALSE;
+				return SESSION_PROCESSING;
 			}
 			do {
 				if (etype == M_EVENT_TYPE_OTHER) {
@@ -130,26 +105,32 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 				session->tcp.net_error = M_net_io_error_to_net_error(M_io_get_error(io));
 			} while(0);
 			goto backout;
-			return M_FALSE;
 	}
 
-	status = M_net_smtp_status(sp);
-	if (status == M_NET_SMTP_STATUS_STOPPING)
+	if (M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPING)
 		session->tcp.is_QUIT_enabled = M_TRUE;
 
-	if (!run_state_machine(session, &is_done) || is_done) {
-		if (session->tcp.is_connect_fail) {
-			goto backout;
-		}
-		goto destroy;
+	switch (M_state_machine_run(session->state_machine, session)) {
+		case M_STATE_MACHINE_STATUS_WAIT:
+			break;
+		case M_STATE_MACHINE_STATUS_DONE:
+			goto destroy;
+		default: /* M_STATE_MACHINE_STATUS_ERROR_STATE is the only real other option */
+			if (M_str_eq(session->errmsg, "")) {
+				M_snprintf(session->errmsg, sizeof(session->errmsg), "State machine error");
+			}
+			if (session->tcp.is_connect_fail) {
+				goto backout;
+			}
+			goto destroy;
 	}
 
-	if (session->is_successfully_sent && session->msg != NULL) {
+	if (session->is_successfully_sent && session->msg != NULL && !session->tcp.is_QUIT_enabled) {
 		/* get ready to accept another. */
 		M_net_smtp_session_clean(session);
 		M_net_smtp_endpoint_idle_session(session->ep, session);
 		M_event_timer_reset(session->event_timer, sp->tcp_idle_ms);
-		return M_TRUE;
+		return SESSION_IDLE;
 	}
 
 	if (session->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_READY) {
@@ -160,7 +141,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_CONNECTED, M_IO_ERROR_SUCCESS);
 		M_io_layer_release(layer);
 		session->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_ADDED;
-		return M_FALSE; /* short circuit out */
+		return SESSION_PROCESSING; /* short circuit out */
 	}
 
 	if (M_buf_len(session->out_buf) > 0) {
@@ -174,7 +155,7 @@ static M_bool tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, voi
 		}
 	}
 
-	return M_FALSE;
+	return SESSION_PROCESSING;
 backout:
 	M_net_smtp_connect_fail(session->sp, session->ep, session->tcp.net_error, session->errmsg);
 	session->is_backout = M_TRUE;
@@ -183,48 +164,44 @@ destroy:
 		M_io_destroy(io);
 		session->connection_mask &= ~M_NET_SMTP_CONNECTION_MASK_IO;
 		if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
-			M_bool is_backout = session->is_backout;
-			*is_session_destroy = M_TRUE;
-			if (is_backout == M_FALSE) {
+			if (session->is_backout == M_FALSE) {
 				sp->cbs.disconnect_cb(const_ep->tcp.address, const_ep->tcp.port, sp->thunk);
 			}
 		}
 		session->io = NULL;
-		return M_TRUE;
+		return SESSION_FINISHED;
 	}
-	return M_FALSE;
+	return SESSION_STALE;
 }
 
 static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_session_t *session                = thunk;
-	const M_net_smtp_t   *sp                     = session->sp;
-	M_bool                is_continue_processing = M_FALSE;
-	M_bool                is_session_destroy     = M_FALSE;
+	M_net_smtp_queue_t   *q                      = session->sp->queue;
+	session_status_t      status;
+
 	M_thread_mutex_lock(session->mutex);
-	is_continue_processing = tcp_io_cb_sub(el, etype, io, thunk, &is_session_destroy);
+	status = tcp_io_cb_sub(el, etype, io, thunk);
 	M_thread_mutex_unlock(session->mutex);
 
-	if (is_session_destroy)
+	switch (status) {
+		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
-
-	if (is_continue_processing)
-		M_net_smtp_queue_continue(sp->queue);
+		case SESSION_IDLE:
+			M_net_smtp_queue_continue(q);
+			break;
+		case SESSION_STALE:
+		case SESSION_PROCESSING:
+			break;
+	}
 }
 
-
-
-/* Return value is whether to run continue processing another
-	* message.  process_queue_queue() can potentially destroy
-	* the endpoint + sessions + session locks, which will seg fault the unlock
-	* wrapped around this function. */
-static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask, M_bool *is_destroy_session)
+static session_status_t proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
 	M_net_smtp_session_t  *session    = thunk;
 	M_io_error_t           io_error   = M_IO_ERROR_SUCCESS;
 	M_io_t               **session_io = NULL;
 	size_t                 len;
-	M_bool                 is_done;
 	(void)el;
 
 	switch(etype) {
@@ -298,7 +275,7 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 			if (session->is_successfully_sent) {
 				M_io_disconnect(io);
 			}
-			return M_FALSE;
+			return SESSION_PROCESSING;
 		case M_EVENT_TYPE_ERROR:
 		case M_EVENT_TYPE_ACCEPT:
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
@@ -308,8 +285,17 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 			break;
 	}
 
-	if (!run_state_machine(session, &is_done) || is_done)
-		goto destroy;
+	switch (M_state_machine_run(session->state_machine, session)) {
+		case M_STATE_MACHINE_STATUS_WAIT:
+			break;
+		case M_STATE_MACHINE_STATUS_DONE:
+			goto destroy;
+		default: /* M_STATE_MACHINE_STATUS_ERROR_STATE is the only real other option */
+			if (M_str_eq(session->errmsg, "")) {
+				M_snprintf(session->errmsg, sizeof(session->errmsg), "State machine error");
+			}
+			goto destroy;
+	}
 
 	if (M_buf_len(session->out_buf) > 0) {
 		M_io_layer_t *layer;
@@ -318,7 +304,7 @@ static M_bool proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, vo
 		M_io_layer_release(layer);
 	}
 
-	return M_FALSE;
+	return SESSION_PROCESSING;
 destroy:
 	switch (connection_mask) {
 		case M_NET_SMTP_CONNECTION_MASK_IO:        session_io = &session->io;                break;
@@ -331,26 +317,32 @@ destroy:
 		*session_io = NULL;
 		session->connection_mask &= ~connection_mask;
 		if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
-			*is_destroy_session = M_TRUE;
-			return M_TRUE;
+			return SESSION_FINISHED;
 		}
 	}
-	return M_FALSE;
+	return SESSION_PROCESSING;
 }
 
 static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
-	M_net_smtp_session_t *session                = thunk;
-	const M_net_smtp_t   *sp                     = session->sp;
-	M_bool                is_continue_processing = M_FALSE;
-	M_bool                is_destroy_session     = M_FALSE;
+	M_net_smtp_session_t *session = thunk;
+	M_net_smtp_queue_t   *q       = session->sp->queue;
+	session_status_t      status;
+
 	M_thread_mutex_lock(session->mutex);
-	is_continue_processing = proc_io_cb_sub(el, etype, io, thunk, connection_mask, &is_destroy_session);
+	status = proc_io_cb_sub(el, etype, io, thunk, connection_mask);
 	M_thread_mutex_unlock(session->mutex);
-	if (is_destroy_session)
-		M_net_smtp_session_destroy(session);
-	if (is_continue_processing)
-		M_net_smtp_queue_continue(sp->queue);
+
+	switch(status) {
+		case SESSION_FINISHED:
+			M_net_smtp_session_destroy(session);
+		case SESSION_IDLE:
+			M_net_smtp_queue_continue(q);
+		break;
+		case SESSION_STALE:
+		case SESSION_PROCESSING:
+			break;
+	}
 }
 
 #define PROC_IO_CB(type,TYPE) \
@@ -365,6 +357,9 @@ PROC_IO_CB(stdin , _STDIN )
 PROC_IO_CB(proc  ,        )
 
 #undef PROC_IO_CB
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_dispatch_msg_args_t *args)
 {
 	const M_net_smtp_t          *sp = session->sp;
@@ -414,9 +409,7 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 
 void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session)
 {
-	M_bool is_session_destroy = M_FALSE;
-	/* Use sub because we already have a lock */
-	tcp_io_cb_sub(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session, &is_session_destroy);
+	tcp_io_cb_sub(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
 }
 
 M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep)

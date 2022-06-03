@@ -73,9 +73,10 @@ M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(
 	size_t max_conns
 );
 
-M_bool M_net_smtp_endpoint_is_available  (const M_net_smtp_endpoint_t *ep);
-M_bool M_net_smtp_endpoint_is_idle       (const M_net_smtp_endpoint_t *ep);
-void   M_net_smtp_endpoint_destroy       (M_net_smtp_endpoint_t *ep);
+M_bool M_net_smtp_endpoint_is_available    (const M_net_smtp_endpoint_t *ep);
+M_bool M_net_smtp_endpoint_is_idle         (const M_net_smtp_endpoint_t *ep);
+void   M_net_smtp_endpoint_reactivate_idle (const M_net_smtp_endpoint_t *ep);
+void   M_net_smtp_endpoint_destroy         (M_net_smtp_endpoint_t *ep);
 
 /* These are prototyped in m_net_smtp_session.h instead of m_net_smtp_endpoint.h to avoid a dependency problem
 void   M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session);

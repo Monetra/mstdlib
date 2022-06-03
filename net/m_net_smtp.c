@@ -31,6 +31,15 @@ typedef struct {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static endpoint_failure_args_t *endpoint_failure_args_alloc(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
+{
+	endpoint_failure_args_t *args = M_malloc_zero(sizeof(*args));
+	args->sp                      = sp;
+	args->ep                      = ep;
+	args->is_remove_ep            = is_remove_ep;
+	return args;
+}
+
 static void restart_processing_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_t *sp = thunk;
@@ -127,12 +136,14 @@ M_bool M_net_smtp_is_all_endpoints_idle(M_net_smtp_t *sp)
 {
 	M_bool is_all_endpoints_idle = M_TRUE;
 	size_t i;
+	M_thread_mutex_lock(sp->endpoints_mutex);
 	for (i = 0; i < M_list_len(sp->endpoints); i++) {
 		if (M_net_smtp_endpoint_is_idle(M_list_at(sp->endpoints, i)) == M_FALSE) {
 			is_all_endpoints_idle =  M_FALSE;
 			break;
 		}
 	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 	return is_all_endpoints_idle;
 }
 
@@ -228,16 +239,13 @@ void M_net_smtp_connect_fail(
 	const char *errmsg
 )
 {
-	endpoint_failure_args_t *args = M_malloc_zero(sizeof(*args));
 	M_bool is_remove_ep = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
-	args->sp = sp;
-	args->ep = ep;
-	args->is_remove_ep = is_remove_ep;
+	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
 	if (is_remove_ep) {
 		/* Immediately set this so it will get skipped in msg dispatch */
-		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = is_remove_ep;
+		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
 	}
-	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints_lock */
+	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints lock */
 	M_event_queue_task(sp->el, endpoint_failure_task, args);
 }
 
@@ -250,16 +258,13 @@ void M_net_smtp_process_fail(
 	const char *errmsg
 )
 {
-	endpoint_failure_args_t *args = M_malloc_zero(sizeof(*args));
 	M_bool is_remove_ep = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
-	args->sp = sp;
-	args->ep = ep;
-	args->is_remove_ep = is_remove_ep;
+	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
 	if (is_remove_ep) {
 		/* Immediately set this so it will get skipped in msg dispatch */
-		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = is_remove_ep;
+		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
 	}
-	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints_lock */
+	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints lock */
 	M_event_queue_task(sp->el, endpoint_failure_task, args);
 }
 
@@ -305,7 +310,7 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->endpoints             = M_list_create(NULL, M_LIST_NONE);
 	sp->queue                 = M_net_smtp_queue_create(sp, 3, 900000 /* 15min */);
 	sp->status_rwlock         = M_thread_rwlock_create();
-	sp->endpoints_mutex       = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	sp->endpoints_mutex       = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
 
 #define ASSIGN_CB(x) sp->cbs.x = cbs->x ? cbs->x : nop_##x;
 	ASSIGN_CB(connect_cb);
@@ -349,19 +354,32 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 
 void M_net_smtp_pause(M_net_smtp_t *sp)
 {
+	size_t i;
+
 	if (sp == NULL)
 		return;
 
-	if (!M_net_smtp_is_running(M_net_smtp_status(sp)))
-		return;
-
 	M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	if (!M_net_smtp_is_running(sp->status)) {
+		M_thread_rwlock_unlock(sp->status_rwlock);
+		return;
+	}
+
 	if (sp->status == M_NET_SMTP_STATUS_IDLE) {
 		M_net_smtp_processing_halted(sp);
 	} else {
 		sp->status = M_NET_SMTP_STATUS_STOPPING;
 	}
 	M_thread_rwlock_unlock(sp->status_rwlock);
+
+	M_thread_mutex_lock(sp->endpoints_mutex);
+
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+		/* Reactivate any idling sessions so they can receive the
+			* STOPPING status update */
+		M_net_smtp_endpoint_reactivate_idle(M_list_at(sp->endpoints, i));
+	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)

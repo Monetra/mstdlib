@@ -41,6 +41,17 @@ M_bool M_net_smtp_endpoint_is_idle(const M_net_smtp_endpoint_t *ep)
 	return is_idle;
 }
 
+void M_net_smtp_endpoint_reactivate_idle(const M_net_smtp_endpoint_t *ep)
+{
+	M_net_smtp_session_t *session;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	while ((session = M_list_take_last(ep->idle_sessions)) != NULL) {
+		M_list_insert(ep->send_sessions, session);
+		M_net_smtp_session_reactivate_tcp(session);
+	}
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+}
+
 void M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session)
 {
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
