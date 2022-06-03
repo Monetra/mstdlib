@@ -55,7 +55,7 @@ M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number
 
 void                 M_net_smtp_queue_destroy               (M_net_smtp_queue_t *q);
 M_bool               M_net_smtp_queue_is_pending            (M_net_smtp_queue_t *q);
-void                 M_net_smtp_queue_dispatch_msgs         (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_dispatch_msg          (M_net_smtp_queue_t *q);
 void                 M_net_smtp_queue_continue              (M_net_smtp_queue_t *q);
 void                 M_net_smtp_queue_reschedule_msg        (M_net_smtp_queue_reschedule_msg_args_t *args);
 

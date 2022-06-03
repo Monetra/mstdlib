@@ -81,7 +81,7 @@ static void remove_endpoint(const M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
 		status = M_net_smtp_status(sp);
 		if (status == M_NET_SMTP_STATUS_STOPPING) {
 			/* need to check if idle then process_halted() */
-			M_net_smtp_queue_dispatch_msgs(sp->queue);
+			M_net_smtp_queue_dispatch_msg(sp->queue);
 		}
 	}
 }
@@ -121,6 +121,19 @@ static void endpoint_failure_task(M_event_t *el, M_event_type_t etype, M_io_t *i
 M_bool M_net_smtp_is_running(M_net_smtp_status_t status)
 {
 	return status == M_NET_SMTP_STATUS_PROCESSING || status == M_NET_SMTP_STATUS_IDLE;
+}
+
+M_bool M_net_smtp_is_all_endpoints_idle(M_net_smtp_t *sp)
+{
+	M_bool is_all_endpoints_idle = M_TRUE;
+	size_t i;
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+		if (M_net_smtp_endpoint_is_idle(M_list_at(sp->endpoints, i)) == M_FALSE) {
+			is_all_endpoints_idle =  M_FALSE;
+			break;
+		}
+	}
+	return is_all_endpoints_idle;
 }
 
 const M_net_smtp_endpoint_t *M_net_smtp_endpoint_acquire(M_net_smtp_t *sp)
@@ -371,7 +384,7 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 			M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
 		case M_NET_SMTP_STATUS_STOPPING:
 			sp->status = M_NET_SMTP_STATUS_PROCESSING;
-			M_net_smtp_queue_dispatch_msgs(sp->queue);
+			M_net_smtp_queue_dispatch_msg(sp->queue);
 			return M_TRUE;
 	}
 	return M_FALSE; /* impossible */
