@@ -56,22 +56,25 @@ typedef struct {
 	};
 } M_net_smtp_endpoint_t;
 
-M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(
-	const char *command,
-	const M_list_str_t *args,
-	const M_hash_dict_t *env,
-	M_uint64 timeout_ms,
-	size_t max_processes
-);
+typedef struct {
+	const char   *address;
+	M_uint16      port;
+	M_bool        connect_tls;
+	const char   *username;
+	const char   *password;
+	size_t        max_conns;
+} M_net_smtp_endpoint_tcp_args_t;
 
-M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(
-	const char *address,
-	M_uint16 port,
-	M_bool connect_tls,
-	const char *username,
-	const char *password,
-	size_t max_conns
-);
+typedef struct {
+	const char *command;
+	const M_list_str_t *args;
+	const M_hash_dict_t *env;
+	M_uint64 timeout_ms;
+	size_t max_processes;
+} M_net_smtp_endpoint_proc_args_t;
+
+M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(M_net_smtp_endpoint_proc_args_t *args);
+M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(M_net_smtp_endpoint_tcp_args_t *args);
 
 M_bool M_net_smtp_endpoint_is_available    (const M_net_smtp_endpoint_t *ep);
 M_bool M_net_smtp_endpoint_is_idle         (const M_net_smtp_endpoint_t *ep);

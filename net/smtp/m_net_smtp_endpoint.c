@@ -90,39 +90,26 @@ M_bool M_net_smtp_endpoint_dispatch_msg(const M_net_smtp_endpoint_t *ep, M_net_s
 	return M_TRUE;
 }
 
-M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(
-	const char   *address,
-	M_uint16      port,
-	M_bool        connect_tls,
-	const char   *username,
-	const char   *password,
-	size_t        max_conns
-)
+M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(M_net_smtp_endpoint_tcp_args_t *args)
 {
 	M_net_smtp_endpoint_t *ep = M_malloc_zero(sizeof(*ep));
 
 	ep->type                  = M_NET_SMTP_EPTYPE_TCP;
-	ep->max_sessions          = max_conns;
+	ep->max_sessions          = args->max_conns;
 	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->sessions_rwlock       = M_thread_rwlock_create();
-	ep->tcp.address           = M_strdup(address);
-	ep->tcp.username          = M_strdup(username);
-	ep->tcp.password          = M_strdup(password);
-	ep->tcp.port              = port;
-	ep->tcp.connect_tls       = connect_tls;
+	ep->tcp.address           = M_strdup(args->address);
+	ep->tcp.username          = M_strdup(args->username);
+	ep->tcp.password          = M_strdup(args->password);
+	ep->tcp.port              = args->port;
+	ep->tcp.connect_tls       = args->connect_tls;
 
 	return ep;
 
 }
 
-M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(
-	const char          *command,
-	const M_list_str_t  *args,
-	const M_hash_dict_t *env,
-	M_uint64             timeout_ms,
-	size_t               max_processes
-)
+M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(M_net_smtp_endpoint_proc_args_t *args)
 {
 	M_net_smtp_endpoint_t *ep = M_malloc_zero(sizeof(*ep));
 
@@ -130,11 +117,11 @@ M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(
 	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->sessions_rwlock       = M_thread_rwlock_create();
-	ep->max_sessions          = max_processes;
-	ep->process.command       = M_strdup(command);
-	ep->process.args          = M_list_str_duplicate(args);
-	ep->process.env           = M_hash_dict_duplicate(env);
-	ep->process.timeout_ms    = timeout_ms;
+	ep->max_sessions          = args->max_processes;
+	ep->process.command       = M_strdup(args->command);
+	ep->process.args          = M_list_str_duplicate(args->args);
+	ep->process.env           = M_hash_dict_duplicate(args->env);
+	ep->process.timeout_ms    = args->timeout_ms;
 
 	return ep;
 }

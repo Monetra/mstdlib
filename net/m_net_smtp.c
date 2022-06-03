@@ -40,6 +40,53 @@ static endpoint_failure_args_t *endpoint_failure_args_alloc(const M_net_smtp_t *
 	return args;
 }
 
+static void endpoint_failure(endpoint_failure_args_t *args)
+{
+	M_thread_mutex_lock(args->sp->endpoints_mutex);
+	if (args->is_remove_ep) {
+		if (M_net_smtp_is_all_endpoints_removed(args->sp)) {
+			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,args->sp));
+			if (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING) {
+				/* need to check if idle then process_halted() */
+				M_net_smtp_queue_dispatch_msg(args->sp->queue);
+			}
+		}
+	} else {
+		if (args->sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(args->sp->endpoints) > 1) {
+			/* Had a failure, but they want to keep the endpoint.
+			 * Fail this endpoint over to the back of the list.
+			 */
+			M_list_remove_val(args->sp->endpoints, args->ep, M_LIST_MATCH_PTR);
+			M_list_insert(args->sp->endpoints, args->ep);
+		}
+	}
+	M_thread_mutex_unlock(args->sp->endpoints_mutex);
+}
+
+static void endpoint_failure_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	endpoint_failure(thunk);
+	M_free(thunk);
+}
+
+static void add_endpoint(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
+{
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	M_list_insert(sp->endpoints, ep);
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+
+	M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	if (sp->status == M_NET_SMTP_STATUS_NOENDPOINTS) {
+		sp->status = M_NET_SMTP_STATUS_STOPPED;
+	}
+	M_thread_rwlock_unlock(sp->status_rwlock);
+
+	M_net_smtp_resume(sp);
+}
+
 static void restart_processing_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_t *sp = thunk;
@@ -52,84 +99,27 @@ static void restart_processing_task(M_event_t *el, M_event_type_t etype, M_io_t 
 	M_net_smtp_resume(sp);
 }
 
-static void add_endpoint(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
-{
-	M_net_smtp_status_t status;
-
-	M_thread_mutex_lock(sp->endpoints_mutex);
-	M_list_insert(sp->endpoints, ep);
-	M_thread_mutex_unlock(sp->endpoints_mutex);
-
-	status = M_net_smtp_status(sp);
-
-	if (status == M_NET_SMTP_STATUS_NOENDPOINTS) {
-		M_thread_rwlock_lock(sp->status_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		sp->status = M_NET_SMTP_STATUS_STOPPED;
-		M_thread_rwlock_unlock(sp->status_rwlock);
-	}
-	M_net_smtp_resume(sp);
-}
-
-static void remove_endpoint(const M_net_smtp_t *sp, M_net_smtp_endpoint_t *ep)
-{
-	size_t                       i;
-	M_bool                       is_all_endpoints_removed = M_TRUE;
-	const M_net_smtp_endpoint_t *const_ep                 = NULL;
-
-	ep->is_removed = M_TRUE;
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		const_ep = M_list_at(sp->endpoints, i);
-		if (const_ep->is_removed == M_FALSE) {
-			is_all_endpoints_removed = M_FALSE;
-		}
-	}
-
-	if (is_all_endpoints_removed) {
-		M_net_smtp_status_t status;
-		M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
-		status = M_net_smtp_status(sp);
-		if (status == M_NET_SMTP_STATUS_STOPPING) {
-			/* need to check if idle then process_halted() */
-			M_net_smtp_queue_dispatch_msg(sp->queue);
-		}
-	}
-}
-
-static void endpoint_failure(endpoint_failure_args_t *args)
-{
-	const M_net_smtp_t          *sp           = args->sp;
-	const M_net_smtp_endpoint_t *ep           = args->ep;
-	M_bool                       is_remove_ep = args->is_remove_ep;
-	M_thread_mutex_lock(sp->endpoints_mutex);
-	if (is_remove_ep) {
-		remove_endpoint(sp, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*, ep));
-	} else {
-		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(sp->endpoints) > 1) {
-			/* Had a failure, but they want to keep the endpoint.
-			 * Move this endpoint to the back of the lists to failover
-			 */
-			M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
-			M_list_insert(sp->endpoints, ep);
-		}
-	}
-	M_thread_mutex_unlock(sp->endpoints_mutex);
-}
-
-static void endpoint_failure_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	(void)el;
-	(void)etype;
-	(void)io;
-	endpoint_failure(thunk);
-	M_free(thunk);
-}
-
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_bool M_net_smtp_is_running(M_net_smtp_status_t status)
 {
 	return status == M_NET_SMTP_STATUS_PROCESSING || status == M_NET_SMTP_STATUS_IDLE;
+}
+
+M_bool M_net_smtp_is_all_endpoints_removed(const M_net_smtp_t *sp)
+{
+	M_bool is_all_endpoints_removed = M_TRUE;
+	size_t i;
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
+		if (!ep->is_removed) {
+			is_all_endpoints_removed = M_FALSE;
+			break;
+		}
+	}
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+	return is_all_endpoints_removed;
 }
 
 M_bool M_net_smtp_is_all_endpoints_idle(M_net_smtp_t *sp)
@@ -457,6 +447,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 )
 {
 	M_net_smtp_endpoint_t *ep = NULL;
+	M_net_smtp_endpoint_tcp_args_t args = { address, port, connect_tls, username, password, max_conns };
 
 	if (sp == NULL || max_conns == 0 || address == NULL || username == NULL || password == NULL || sp->tcp_dns == NULL)
 		return M_FALSE;
@@ -467,7 +458,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	if (port == 0)
 		port = 25;
 
-	ep = M_net_smtp_endpoint_create_tcp(address, port, connect_tls, username, password, max_conns);
+	ep = M_net_smtp_endpoint_create_tcp(&args);
 	add_endpoint(sp, ep);
 
 	return M_TRUE;
@@ -483,14 +474,15 @@ M_bool M_net_smtp_add_endpoint_process(
 )
 {
 	M_net_smtp_endpoint_t *ep = NULL;
+	M_net_smtp_endpoint_proc_args_t proc_args = { command, args, env, timeout_ms, max_processes };
 
 	if (sp == NULL || command == NULL)
 		return M_FALSE;
 
 	if (max_processes == 0)
-		max_processes = 1;
+		proc_args.max_processes = 1;
 
-	ep = M_net_smtp_endpoint_create_proc(command, args, env, timeout_ms, max_processes);
+	ep = M_net_smtp_endpoint_create_proc(&proc_args);
 	add_endpoint(sp, ep);
 
 	return M_TRUE;

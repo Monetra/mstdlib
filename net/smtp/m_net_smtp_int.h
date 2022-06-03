@@ -60,11 +60,12 @@ struct M_net_smtp {
 
 M_bool                        M_net_smtp_is_running(M_net_smtp_status_t status);
 
-void                          M_net_smtp_prune_endpoints      (M_net_smtp_t *sp);
-const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire     (M_net_smtp_t *sp);
-void                          M_net_smtp_endpoint_release     (M_net_smtp_t *sp);
-void                          M_net_smtp_processing_halted    (M_net_smtp_t *sp);
-M_bool                        M_net_smtp_is_all_endpoints_idle(M_net_smtp_t *sp);
+void                          M_net_smtp_prune_endpoints         (M_net_smtp_t *sp);
+const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire        (M_net_smtp_t *sp);
+void                          M_net_smtp_endpoint_release        (M_net_smtp_t *sp);
+void                          M_net_smtp_processing_halted       (M_net_smtp_t *sp);
+M_bool                        M_net_smtp_is_all_endpoints_idle   (M_net_smtp_t *sp);
+M_bool                        M_net_smtp_is_all_endpoints_removed(const M_net_smtp_t *sp);
 
 void M_net_smtp_connect_fail(
 	const M_net_smtp_t *sp,
