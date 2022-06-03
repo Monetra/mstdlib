@@ -10,11 +10,18 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* forward declarations */
-static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
-static void proc_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static void trigger_write_softevent(M_io_t *io)
+{
+	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+}
 
-static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+/* forward declarations */
+static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static void session_proc_advance_stdin_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+
+static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_session_t        *session            = thunk;
 	const M_net_smtp_t          *sp                 = session->sp;
@@ -44,25 +51,28 @@ static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_
 			}
 
 			break;
-		case M_EVENT_TYPE_DISCONNECTED:
-			goto destroy;
-			break;
+		case M_EVENT_TYPE_DISCONNECTED: goto destroy;
 		case M_EVENT_TYPE_READ:
 			io_error = M_io_read_into_parser(io, session->in_parser);
-
-			if (io_error == M_IO_ERROR_WOULDBLOCK)
-				return SESSION_PROCESSING;
-
-			if (io_error == M_IO_ERROR_DISCONNECT) {
-				goto destroy;
-			}
-
-			if (io_error != M_IO_ERROR_SUCCESS) {
-				M_snprintf(session->errmsg, sizeof(session->errmsg), "Read failure: %s", M_io_error_string(io_error));
-				goto destroy;
+			switch (io_error) {
+				case M_IO_ERROR_SUCCESS: break;
+				case M_IO_ERROR_WOULDBLOCK: return SESSION_PROCESSING;
+				case M_IO_ERROR_DISCONNECT: goto destroy;
+				default:
+					M_snprintf(session->errmsg, sizeof(session->errmsg), "Read failed: %s", M_io_error_string(io_error));
+					goto destroy;
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
+			io_error = M_io_write_from_buf(io, session->out_buf);
+			switch (io_error) {
+				case M_IO_ERROR_SUCCESS: break;
+				case M_IO_ERROR_WOULDBLOCK: return SESSION_PROCESSING;
+				case M_IO_ERROR_DISCONNECT: goto destroy;
+				default:
+					M_snprintf(session->errmsg, sizeof(session->errmsg), "Write failed: %s", M_io_error_string(io_error));
+					goto destroy;
+			}
 			break;
 		case M_EVENT_TYPE_ACCEPT:
 			/* should be impossible */
@@ -74,6 +84,7 @@ static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_
 			if (session->is_successfully_sent) {
 				/* Idle timeout */
 				session->tcp.is_QUIT_enabled = M_TRUE;
+				M_event_timer_stop(session->event_timer);
 				break;
 			}
 		case M_EVENT_TYPE_ERROR:
@@ -86,7 +97,7 @@ static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_
 				if (io_error != M_IO_ERROR_SUCCESS) {
 					goto destroy;
 				}
-				M_event_add(el, session->io, tcp_io_cb, session);
+				M_event_add(el, session->io, session_tcp_advance_task, session);
 				M_event_timer_reset(session->event_timer, sp->tcp_connect_ms);
 				return SESSION_PROCESSING;
 			}
@@ -144,16 +155,8 @@ static session_status_t tcp_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_
 		return SESSION_PROCESSING; /* short circuit out */
 	}
 
-	if (M_buf_len(session->out_buf) > 0) {
-		io_error = M_io_write_from_buf(io, session->out_buf);
-		if (io_error == M_IO_ERROR_DISCONNECT) {
-			goto destroy;
-		}
-		if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
-			M_snprintf(session->errmsg, sizeof(session->errmsg), "Write failed: %s", M_io_error_string(io_error));
-			goto destroy;
-		}
-	}
+	if (M_buf_len(session->out_buf) > 0)
+		trigger_write_softevent(session->io);
 
 	return SESSION_PROCESSING;
 backout:
@@ -174,14 +177,14 @@ destroy:
 	return SESSION_STALE;
 }
 
-static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	M_net_smtp_session_t *session                = thunk;
 	M_net_smtp_queue_t   *q                      = session->sp->queue;
 	session_status_t      status;
 
 	M_thread_mutex_lock(session->mutex);
-	status = tcp_io_cb_sub(el, etype, io, thunk);
+	status = session_tcp_advance(el, etype, io, thunk);
 	M_thread_mutex_unlock(session->mutex);
 
 	switch (status) {
@@ -196,7 +199,7 @@ static void tcp_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thu
 	}
 }
 
-static session_status_t proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
+static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
 	M_net_smtp_session_t  *session    = thunk;
 	M_io_error_t           io_error   = M_IO_ERROR_SUCCESS;
@@ -267,7 +270,7 @@ static session_status_t proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io
 				}
 				if (!session->is_successfully_sent) {
 					/* Give process a chance to parse and react to input */
-					session->event_timer = M_event_timer_oneshot(session->sp->el, 100, M_TRUE, proc_io_stdin_cb, session);
+					session->event_timer = M_event_timer_oneshot(session->sp->el, 100, M_TRUE, session_proc_advance_stdin_task, session);
 				} else {
 					session->event_timer = NULL;
 				}
@@ -297,12 +300,8 @@ static session_status_t proc_io_cb_sub(M_event_t *el, M_event_type_t etype, M_io
 			goto destroy;
 	}
 
-	if (M_buf_len(session->out_buf) > 0) {
-		M_io_layer_t *layer;
-		layer = M_io_layer_acquire(session->process.io_stdin, 0, NULL);
-		M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
-		M_io_layer_release(layer);
-	}
+	if (M_buf_len(session->out_buf) > 0)
+		trigger_write_softevent(session->process.io_stdin);
 
 	return SESSION_PROCESSING;
 destroy:
@@ -323,14 +322,14 @@ destroy:
 	return SESSION_PROCESSING;
 }
 
-static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
+static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk, unsigned int connection_mask)
 {
 	M_net_smtp_session_t *session = thunk;
 	M_net_smtp_queue_t   *q       = session->sp->queue;
 	session_status_t      status;
 
 	M_thread_mutex_lock(session->mutex);
-	status = proc_io_cb_sub(el, etype, io, thunk, connection_mask);
+	status = session_proc_advance(el, etype, io, thunk, connection_mask);
 	M_thread_mutex_unlock(session->mutex);
 
 	switch(status) {
@@ -345,18 +344,18 @@ static void proc_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *th
 	}
 }
 
-#define PROC_IO_CB(type,TYPE) \
-static void proc_io_##type##_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk) \
+#define SESSION_PROC_ADVANCE_TASK(type,TYPE) \
+static void session_proc_advance_##type##_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk) \
 { \
-	return proc_io_cb(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
+	return session_proc_advance_task(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
 }
 
-PROC_IO_CB(stderr, _STDERR)
-PROC_IO_CB(stdout, _STDOUT)
-PROC_IO_CB(stdin , _STDIN )
-PROC_IO_CB(proc  ,        )
+SESSION_PROC_ADVANCE_TASK(stderr, _STDERR)
+SESSION_PROC_ADVANCE_TASK(stdout, _STDOUT)
+SESSION_PROC_ADVANCE_TASK(stdin , _STDIN )
+SESSION_PROC_ADVANCE_TASK(proc  ,        )
 
-#undef PROC_IO_CB
+#undef SESSION_PROC_ADVANCE_TASK
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -376,7 +375,8 @@ void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_d
 	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
 		session->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
 		if (!args->is_bootstrap) {
-			M_net_smtp_session_reactivate_tcp(session);
+			/* M_net_smtp_session_reactivate_tcp(session); w/out the lock */
+			session_tcp_advance(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
 		}
 	}
 	M_thread_mutex_unlock(session->mutex);
@@ -409,7 +409,7 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 
 void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session)
 {
-	tcp_io_cb_sub(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
+	session_tcp_advance_task(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
 }
 
 M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep)
@@ -440,10 +440,10 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 			goto fail;
 		}
 		session->state_machine = M_net_smtp_flow_process();
-		M_event_add(sp->el, session->io               , proc_io_proc_cb  , session);
-		M_event_add(sp->el, session->process.io_stdin , proc_io_stdin_cb , session);
-		M_event_add(sp->el, session->process.io_stdout, proc_io_stdout_cb, session);
-		M_event_add(sp->el, session->process.io_stderr, proc_io_stderr_cb, session);
+		M_event_add(sp->el, session->io               , session_proc_advance_proc_task  , session);
+		M_event_add(sp->el, session->process.io_stdin , session_proc_advance_stdin_task , session);
+		M_event_add(sp->el, session->process.io_stdout, session_proc_advance_stdout_task, session);
+		M_event_add(sp->el, session->process.io_stderr, session_proc_advance_stderr_task, session);
 	} else {
 		io_error = M_io_net_client_create(&session->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
 		if (io_error != M_IO_ERROR_SUCCESS)
@@ -460,8 +460,8 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		}
 
 		session->state_machine        = M_net_smtp_flow_tcp();
-		M_event_add(sp->el, session->io, tcp_io_cb, session);
-		session->event_timer          = M_event_timer_add(sp->el, tcp_io_cb, session);
+		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
+		session->event_timer          = M_event_timer_add(sp->el, session_tcp_advance_task, session);
 		M_event_timer_start(session->event_timer, sp->tcp_connect_ms);
 	}
 
