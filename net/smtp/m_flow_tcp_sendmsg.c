@@ -210,7 +210,7 @@ done:
 	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
 }
 
-M_state_machine_t * M_net_smtp_flow_tcp_sendmsg()
+M_state_machine_t * M_net_smtp_flow_tcp_sendmsg(void)
 {
 	M_state_machine_t *m     = NULL;
 	M_state_machine_t *sub_m = NULL;

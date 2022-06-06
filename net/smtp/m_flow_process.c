@@ -120,7 +120,7 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 
-M_state_machine_t * M_net_smtp_flow_process()
+M_state_machine_t * M_net_smtp_flow_process(void)
 {
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "M-net-smtp-flow-process", M_STATE_MACHINE_NONE);

@@ -514,7 +514,7 @@ done:
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_state_machine_t * M_net_smtp_flow_tcp_auth()
+M_state_machine_t * M_net_smtp_flow_tcp_auth(void)
 {
 	M_state_machine_t *m      = NULL;
 	M_state_machine_t *sub_m  = NULL;

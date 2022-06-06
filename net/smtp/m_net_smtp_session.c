@@ -190,6 +190,8 @@ static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t
 	switch (status) {
 		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
+			M_net_smtp_queue_advance(q);
+			break;
 		case SESSION_IDLE:
 			M_net_smtp_queue_advance(q);
 			break;
@@ -335,6 +337,8 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 	switch (status) {
 		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
+			M_net_smtp_queue_advance(q);
+			break;
 		case SESSION_IDLE:
 			M_net_smtp_queue_advance(q);
 			break;

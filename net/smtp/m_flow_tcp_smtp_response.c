@@ -126,7 +126,7 @@ M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(void *
 	return sub_status;
 }
 
-M_state_machine_t * M_net_smtp_flow_tcp_smtp_response()
+M_state_machine_t * M_net_smtp_flow_tcp_smtp_response(void)
 {
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "SMTP-flow-tcp-smtp-response", M_STATE_MACHINE_CONTINUE_LOOP | M_STATE_MACHINE_SELF_CALL);

@@ -280,7 +280,7 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_state_machine_t * M_net_smtp_flow_tcp()
+M_state_machine_t * M_net_smtp_flow_tcp(void)
 {
 	M_state_machine_t *m      = NULL;
 	M_state_machine_t *sub_m  = NULL;
