@@ -277,6 +277,14 @@ void M_net_smtp_queue_advance(M_net_smtp_queue_t *q)
 	M_thread_rwlock_unlock(sp->status_rwlock);
 }
 
+void M_net_smtp_queue_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	M_net_smtp_queue_advance(thunk);
+}
+
 void M_net_smtp_queue_reschedule_msg(M_net_smtp_queue_reschedule_msg_args_t *args)
 {
 	const M_net_smtp_t        *sp             = args->sp;

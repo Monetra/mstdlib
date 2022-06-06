@@ -56,6 +56,7 @@ M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number
 void                 M_net_smtp_queue_destroy               (M_net_smtp_queue_t *q);
 M_bool               M_net_smtp_queue_is_pending            (M_net_smtp_queue_t *q);
 void                 M_net_smtp_queue_advance               (M_net_smtp_queue_t *q);
+void                 M_net_smtp_queue_advance_task          (M_event_t *el, M_event_type_t type, M_io_t *io, void *q);
 void                 M_net_smtp_queue_reschedule_msg        (M_net_smtp_queue_reschedule_msg_args_t *args);
 
 /* These are pass-through functions for the API */

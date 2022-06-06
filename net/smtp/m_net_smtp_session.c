@@ -179,8 +179,8 @@ destroy:
 
 static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	M_net_smtp_session_t *session                = thunk;
-	M_net_smtp_queue_t   *q                      = session->sp->queue;
+	M_net_smtp_session_t *session = thunk;
+	M_net_smtp_queue_t   *q       = session->sp->queue;
 	session_status_t      status;
 
 	M_thread_mutex_lock(session->mutex);
@@ -332,12 +332,12 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 	status = session_proc_advance(el, etype, io, thunk, connection_mask);
 	M_thread_mutex_unlock(session->mutex);
 
-	switch(status) {
+	switch (status) {
 		case SESSION_FINISHED:
 			M_net_smtp_session_destroy(session);
 		case SESSION_IDLE:
 			M_net_smtp_queue_advance(q);
-		break;
+			break;
 		case SESSION_STALE:
 		case SESSION_PROCESSING:
 			break;

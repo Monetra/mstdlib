@@ -23,53 +23,26 @@
 
 #include "smtp/m_net_smtp_int.h"
 
-typedef struct {
-	const M_net_smtp_t          *sp;
-	const M_net_smtp_endpoint_t *ep;
-	M_bool                       is_remove_ep;
-} endpoint_failure_args_t;
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static endpoint_failure_args_t *endpoint_failure_args_alloc(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
+static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, M_bool is_remove_ep)
 {
-	endpoint_failure_args_t *args = M_malloc_zero(sizeof(*args));
-	args->sp                      = sp;
-	args->ep                      = ep;
-	args->is_remove_ep            = is_remove_ep;
-	return args;
-}
-
-static void endpoint_failure(endpoint_failure_args_t *args)
-{
-	M_thread_mutex_lock(args->sp->endpoints_mutex);
-	if (args->is_remove_ep) {
-		if (M_net_smtp_is_all_endpoints_removed(args->sp)) {
-			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,args->sp));
-			if (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING) {
-				/* need to check if idle then process_halted() */
-				M_net_smtp_queue_advance(args->sp->queue);
-			}
+	M_thread_mutex_lock(sp->endpoints_mutex);
+	if (is_remove_ep) {
+		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
+		if (M_net_smtp_is_all_endpoints_removed(sp)) {
+			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
 		}
 	} else {
-		if (args->sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(args->sp->endpoints) > 1) {
+		if (sp->load_balance_mode == M_NET_SMTP_LOAD_BALANCE_FAILOVER && M_list_len(sp->endpoints) > 1) {
 			/* Had a failure, but they want to keep the endpoint.
 			 * Fail this endpoint over to the back of the list.
 			 */
-			M_list_remove_val(args->sp->endpoints, args->ep, M_LIST_MATCH_PTR);
-			M_list_insert(args->sp->endpoints, args->ep);
+			M_list_remove_val(sp->endpoints, ep, M_LIST_MATCH_PTR);
+			M_list_insert(sp->endpoints, ep);
 		}
 	}
-	M_thread_mutex_unlock(args->sp->endpoints_mutex);
-}
-
-static void endpoint_failure_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	(void)el;
-	(void)etype;
-	(void)io;
-	endpoint_failure(thunk);
-	M_free(thunk);
+	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 static void add_endpoint(M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep)
@@ -196,18 +169,8 @@ void M_net_smtp_prune_endpoints(M_net_smtp_t *sp)
 
 void M_net_smtp_processing_halted(M_net_smtp_t *sp)
 {
-	M_bool                       is_no_endpoints = M_TRUE;
-	const M_net_smtp_endpoint_t *ep              = NULL;
+	M_bool                       is_no_endpoints = M_net_smtp_is_all_endpoints_removed(sp);
 	M_uint64                     delay_ms;
-	size_t                       i;
-
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		ep = M_list_at(sp->endpoints, i);
-		if (!ep->is_removed) {
-			is_no_endpoints = M_FALSE;
-			break;
-		}
-	}
 
 	if (is_no_endpoints) {
 		sp->status = M_NET_SMTP_STATUS_NOENDPOINTS;
@@ -230,15 +193,8 @@ void M_net_smtp_connect_fail(M_net_smtp_session_t *session)
 	const char                  *errmsg    = session->errmsg;
 
 	M_bool is_remove_ep = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
-	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
-	if (is_remove_ep) {
-		/* Immediately set this so it will get skipped in msg dispatch */
-		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
-	}
-	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints lock */
-	M_event_queue_task(sp->el, endpoint_failure_task, args);
+	endpoint_failure(sp, ep, is_remove_ep);
 }
-
 
 void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_str)
 {
@@ -248,13 +204,7 @@ void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_s
 	const char                  *errmsg      = session->errmsg;
 
 	M_bool is_remove_ep = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
-	endpoint_failure_args_t *args = endpoint_failure_args_alloc(sp, ep, is_remove_ep);
-	if (is_remove_ep) {
-		/* Immediately set this so it will get skipped in msg dispatch */
-		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
-	}
-	/* The endpoint_failure_task will take care of processing_halt outside of the endpoints lock */
-	M_event_queue_task(sp->el, endpoint_failure_task, args);
+	endpoint_failure(sp, ep, is_remove_ep);
 }
 
 
@@ -390,8 +340,12 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		case M_NET_SMTP_STATUS_STOPPED:
 			M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
 		case M_NET_SMTP_STATUS_STOPPING:
-			sp->status = M_NET_SMTP_STATUS_PROCESSING;
-			M_net_smtp_queue_advance(sp->queue);
+			if (M_net_smtp_queue_is_pending(sp->queue)) {
+				sp->status = M_NET_SMTP_STATUS_PROCESSING;
+				M_event_queue_task(sp->el, M_net_smtp_queue_advance_task, sp->queue);
+			} else {
+				sp->status = M_NET_SMTP_STATUS_IDLE;
+			}
 			return M_TRUE;
 	}
 	return M_FALSE; /* impossible */
