@@ -435,6 +435,7 @@ static M_email_t * generate_email(size_t idx, const char *to_address)
 
 	M_snprintf(msg, sizeof(msg), "%04lld%02lld%02lld:%02lld%02lld%02lld, %zu\n", ltime.year, ltime.month, ltime.day, ltime.hour, ltime.min, ltime.sec, idx);
 
+	M_time_tzs_destroy(tzs);
 	return generate_email_with_text(to_address, msg);
 }
 
@@ -1292,7 +1293,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 6
 	tc = tcase_create("tls unsupporting server");
 	tcase_add_test(tc, tls_unsupporting_server);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 10); /* M_tls_clientctx_set_default_trust(ctx) takes a long time in valgrind */
 	suite_add_tcase(suite, tc);
 #endif
 
