@@ -230,6 +230,7 @@ void M_net_smtp_queue_destroy(M_net_smtp_queue_t *q)
 	M_list_str_destroy(q->internal_queue);
 	M_thread_rwlock_unlock(q->internal_queue_rwlock);
 	M_thread_rwlock_destroy(q->internal_queue_rwlock);
+	M_free(q);
 }
 
 M_bool M_net_smtp_queue_is_pending(M_net_smtp_queue_t *q)
