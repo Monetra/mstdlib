@@ -353,8 +353,8 @@ static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type
 
 static void smtp_emulator_destroy(smtp_emulator_t *emu)
 {
-	for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
-		M_re_t *re = M_list_take_first(emu->regexs);
+	M_re_t *re;
+	while ((re = M_list_take_last(emu->regexs)) != NULL) {
 		M_re_destroy(re);
 	}
 	M_list_destroy(emu->regexs, M_FALSE);

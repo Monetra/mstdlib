@@ -487,6 +487,7 @@ fail:
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
 	M_net_smtp_session_clean(session);
+	M_io_destroy(session->io);
 	M_event_timer_remove(session->event_timer);
 	session->event_timer = NULL;
 	M_buf_cancel(session->out_buf);
