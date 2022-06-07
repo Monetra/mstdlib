@@ -25,6 +25,7 @@
 
 typedef enum {
 	STATE_READ_LINE = 1,
+	STATE_CLEANUP
 } m_state_ids;
 
 static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
@@ -124,6 +125,25 @@ M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(void *
 	session->tcp.smtp_response = NULL;
 	session->tcp.smtp_response_code = 0;
 	return sub_status;
+}
+
+static M_state_machine_status_t M_state_cleanup(void *data, M_state_machine_cleanup_reason_t reason, M_uint64 *next)
+{
+	M_net_smtp_session_t *session = data;
+	(void)next;
+	(void)reason;
+	M_list_str_destroy(session->tcp.smtp_response);
+	session->tcp.smtp_response = NULL;
+	session->tcp.smtp_response_code = 0;
+	return M_STATE_MACHINE_STATUS_DONE;
+}
+
+M_state_machine_cleanup_t *M_net_smtp_flow_tcp_smtp_response_cleanup(void)
+{
+	M_state_machine_cleanup_t *m;
+	m = M_state_machine_cleanup_create(0, "SMTP-flow-tcp-smtp-response-cleanup", M_STATE_MACHINE_NONE);
+	M_state_machine_cleanup_insert_state(m, STATE_CLEANUP, 0, NULL, M_state_cleanup, NULL, NULL);
+	return m;
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_smtp_response(void)

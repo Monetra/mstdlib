@@ -89,12 +89,11 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 		M_uint64 *next)
 {
 	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	size_t                    i;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 250) {
 		/* Classify as connect failure so endpoint can get removed */
@@ -102,7 +101,7 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 		session->tcp.net_error = M_NET_ERROR_PROTOFORMAT;
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "Expected 250 EHLO response code, got: %llu",
 				session->tcp.smtp_response_code);
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 
 	session->tcp.is_starttls_capable = M_FALSE;
@@ -119,24 +118,24 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 			continue;
 		}
 	}
-	machine_status = M_STATE_MACHINE_STATUS_DONE;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_DONE;
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_ehlo(void)
 {
-	M_state_machine_t *m      = NULL;
-	M_state_machine_t *sub_m  = NULL;
+	M_state_machine_t         *m         = NULL;
+	M_state_machine_t         *sub_m     = NULL;
+	M_state_machine_cleanup_t *cleanup_m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-ehlo", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_EHLO, 0, NULL, M_state_ehlo, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
 	M_state_machine_insert_sub_state_machine(m, STATE_EHLO_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_ehlo_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_ehlo_response_post_cb, cleanup_m, NULL);
 	M_state_machine_destroy(sub_m);
+	M_state_machine_cleanup_destroy(cleanup_m);
 
 	return m;
 }

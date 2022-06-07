@@ -70,24 +70,21 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	const char               *line           = NULL;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_str_caseeq(session->ep->tcp.address, "localhost")) {
 		line = M_list_str_first(session->tcp.smtp_response);
 		if (!M_str_caseeq_max(session->ep->tcp.address, line, M_str_len(session->ep->tcp.address))) {
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Domain mismatch \"%s\" != \"%s\"",
 					session->ep->tcp.address, line);
-			goto done;
+			return M_STATE_MACHINE_STATUS_ERROR_STATE;
 		}
 	}
 	*next = STATE_EHLO;
-	machine_status = M_STATE_MACHINE_STATUS_NEXT;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
@@ -282,16 +279,19 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 
 M_state_machine_t * M_net_smtp_flow_tcp(void)
 {
-	M_state_machine_t *m      = NULL;
-	M_state_machine_t *sub_m  = NULL;
+	M_state_machine_t         *m         = NULL;
+	M_state_machine_t         *sub_m     = NULL;
+	M_state_machine_cleanup_t *cleanup_m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_smtp_response();
+	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
 	M_state_machine_insert_sub_state_machine(m, STATE_OPENING_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_opening_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_opening_response_post_cb, cleanup_m, NULL);
 	M_state_machine_destroy(sub_m);
+	M_state_machine_cleanup_destroy(cleanup_m);
 
 	sub_m = M_net_smtp_flow_tcp_starttls();
 	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS, 0, NULL, sub_m,

@@ -41,33 +41,33 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	session->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS_READY;
-	machine_status = M_STATE_MACHINE_STATUS_DONE;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_DONE;
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_starttls(void)
 {
-	M_state_machine_t *m     = NULL;
-	M_state_machine_t *sub_m = NULL;
+	M_state_machine_t         *m         = NULL;
+	M_state_machine_t         *sub_m     = NULL;
+	M_state_machine_cleanup_t *cleanup_m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_STARTTLS, 0, NULL, M_state_starttls, NULL, NULL);
 
 	sub_m = M_net_smtp_flow_tcp_sendmsg();
+	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
 	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_starttls_response_post_cb, NULL, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_starttls_response_post_cb, cleanup_m, NULL);
 	M_state_machine_destroy(sub_m);
+	M_state_machine_cleanup_destroy(cleanup_m);
+
 	return m;
 }

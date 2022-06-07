@@ -895,7 +895,7 @@ START_TEST(dot_msg)
 
 	args.test_id = DOT_MSG;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
-	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 10);
+	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1), "Couldn't add TCP endpoint");
 
 	/* these test aspects have strange timing failures.
@@ -1039,6 +1039,7 @@ START_TEST(timeouts)
 	M_net_smtp_resume(sp);
 
 	M_event_loop(el, 1000);
+	M_event_loop(el, 50); /* extra cleanup */
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 2, "connect/stall timeouts should have called connect_fail");
 	ck_assert_msg(args.sent_cb_call_count == 3, "idle timeout should have sent all 3 messages");
@@ -1301,7 +1302,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 7
 	tc = tcase_create("timeouts");
 	tcase_add_test(tc, timeouts);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 

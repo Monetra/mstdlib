@@ -29,12 +29,13 @@ M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_state_machi
 M_state_machine_status_t M_net_smtp_flow_tcp_smtp_response_post_cb_helper(
 		void *data, M_state_machine_status_t sub_status, M_uint64 *next);
 
-M_state_machine_t *M_net_smtp_flow_process(void);
-M_state_machine_t *M_net_smtp_flow_tcp_smtp_response(void);
-M_state_machine_t *M_net_smtp_flow_tcp_starttls(void);
-M_state_machine_t *M_net_smtp_flow_tcp_sendmsg(void);
-M_state_machine_t *M_net_smtp_flow_tcp_auth(void);
-M_state_machine_t *M_net_smtp_flow_tcp_ehlo(void);
-M_state_machine_t *M_net_smtp_flow_tcp(void);
+M_state_machine_t         *M_net_smtp_flow_process(void);
+M_state_machine_cleanup_t *M_net_smtp_flow_tcp_smtp_response_cleanup(void);
+M_state_machine_t         *M_net_smtp_flow_tcp_smtp_response(void);
+M_state_machine_t         *M_net_smtp_flow_tcp_starttls(void);
+M_state_machine_t         *M_net_smtp_flow_tcp_sendmsg(void);
+M_state_machine_t         *M_net_smtp_flow_tcp_auth(void);
+M_state_machine_t         *M_net_smtp_flow_tcp_ehlo(void);
+M_state_machine_t         *M_net_smtp_flow_tcp(void);
 
 #endif
