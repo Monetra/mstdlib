@@ -381,6 +381,9 @@ void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_d
 		if (!args->is_bootstrap) {
 			/* M_net_smtp_session_reactivate_tcp(session); w/out the lock */
 			session_tcp_advance(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
+			M_event_timer_reset(session->event_timer, sp->tcp_stall_ms);
+		} else {
+			M_event_timer_start(session->event_timer, sp->tcp_connect_ms);
 		}
 	}
 	M_thread_mutex_unlock(session->mutex);
@@ -466,7 +469,6 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		session->state_machine        = M_net_smtp_flow_tcp();
 		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
 		session->event_timer          = M_event_timer_add(sp->el, session_tcp_advance_task, session);
-		M_event_timer_start(session->event_timer, sp->tcp_connect_ms);
 	}
 
 	session->out_buf   = M_buf_create();
