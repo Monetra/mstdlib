@@ -14,8 +14,8 @@ M_json_node_t *check_smtp_json          = NULL;
 char          *test_address             = NULL;
 char          *sendmail_emu             = NULL;
 M_list_str_t  *test_external_queue      = NULL;
-const size_t   multithread_insert_count = 1000;
-const size_t   multithread_retry_count  = 1000;
+const size_t   multithread_insert_count = 100;
+const size_t   multithread_retry_count  = 100;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -1373,7 +1373,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 19
 	tc = tcase_create("multithread insert");
 	tcase_add_test(tc, multithread_insert);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
