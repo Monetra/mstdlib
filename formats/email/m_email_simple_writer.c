@@ -51,6 +51,7 @@ static char *M_email_write_gen_boundary(void)
 		M_buf_add_byte(buf, (unsigned char)num);
 	}
 
+	M_rand_destroy(r);
 	return M_buf_finish_str(buf, NULL);
 }
 
