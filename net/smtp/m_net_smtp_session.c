@@ -189,7 +189,10 @@ static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t
 
 	switch (status) {
 		case SESSION_FINISHED:
-			M_net_smtp_session_destroy(session);
+			M_event_timer_stop(session->event_timer);
+			M_net_smtp_endpoint_remove_session(session->ep, session);
+			M_net_smtp_session_clean(session);
+			M_event_queue_task(session->sp->el, M_net_smtp_session_destroy_task, session);
 			M_net_smtp_queue_advance(q);
 			break;
 		case SESSION_IDLE:
@@ -336,7 +339,9 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 
 	switch (status) {
 		case SESSION_FINISHED:
-			M_net_smtp_session_destroy(session);
+			M_net_smtp_endpoint_remove_session(session->ep, session);
+			M_net_smtp_session_clean(session);
+			M_event_queue_task(session->sp->el, M_net_smtp_session_destroy_task, session);
 			M_net_smtp_queue_advance(q);
 			break;
 		case SESSION_IDLE:
@@ -486,7 +491,6 @@ fail:
 
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
-	M_net_smtp_session_clean(session);
 	M_io_destroy(session->io);
 	M_event_timer_remove(session->event_timer);
 	session->event_timer = NULL;
@@ -498,6 +502,5 @@ void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 	session->state_machine = NULL;
 	session->is_alive = M_FALSE;
 	M_thread_mutex_destroy(session->mutex);
-	M_net_smtp_endpoint_remove_session(session->ep, session);
 	M_free(session);
 }

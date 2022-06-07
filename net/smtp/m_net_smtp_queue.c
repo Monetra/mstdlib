@@ -450,3 +450,11 @@ void M_net_smtp_queue_external_have_messages(M_net_smtp_queue_t *q)
 	if (status == M_NET_SMTP_STATUS_IDLE)
 		M_event_queue_task(q->sp->el, M_net_smtp_queue_advance_task, q);
 }
+
+void M_net_smtp_session_destroy_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	M_net_smtp_session_destroy(thunk);
+}
