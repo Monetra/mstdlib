@@ -110,6 +110,8 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 					}
 					session->tcp.net_error = M_NET_ERROR_TIMEOUT_STALL;
 					M_snprintf(session->errmsg, sizeof(session->errmsg), "Stall timeout");
+					M_state_machine_reset(session->state_machine, M_STATE_MACHINE_CLEANUP_REASON_ERROR);
+					M_state_machine_run(session->state_machine, session);
 					break;
 				}
 				M_io_get_error_string(io, session->errmsg, sizeof(session->errmsg));
