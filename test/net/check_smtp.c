@@ -305,6 +305,8 @@ static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 	emu->regexs = M_list_create(NULL, M_LIST_NONE);
 	for (size_t i = 0; i < M_list_str_len(emu->json_keys); i++) {
 		const char *key   = M_list_str_at(emu->json_keys, i);
+		const char *value = M_json_object_value_string(emu->json, key);
+		M_re_t     *re    = NULL;
 		if (M_str_eq(key, "CONNECTED")) {
 			emu->CONNECTED_str = M_json_object_value_string(emu->json, key);
 			continue;
@@ -313,8 +315,7 @@ static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 			emu->DATA_ACK_str = M_json_object_value_string(emu->json, key);
 			continue;
 		}
-		const char *value = M_json_object_value_string(emu->json, key);
-		M_re_t *re        = M_re_compile(key, M_RE_UNGREEDY);
+		re = M_re_compile(key, M_RE_UNGREEDY);
 		M_list_insert(emu->regexs, re);
 		M_list_str_insert(emu->json_values, value);
 	}
@@ -627,7 +628,7 @@ struct M_net_smtp_callbacks test_cbs  = {
 };
 
 
-static char * test_external_queue_get_cb()
+static char * test_external_queue_get_cb(void)
 {
 	return M_list_str_take_first(test_external_queue);
 }
