@@ -1309,7 +1309,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 11
 	tc = tcase_create("status");
 	tcase_add_test(tc, status);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1317,7 +1317,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 12
 	tc = tcase_create("proc_endpoint");
 	tcase_add_test(tc, proc_endpoint);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
