@@ -282,10 +282,13 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 		return;
 
 	M_net_smtp_queue_destroy(sp->queue);
+	M_thread_mutex_lock(sp->endpoints_mutex);
 	while ((ep = M_list_take_last(sp->endpoints)) != NULL) {
 		M_net_smtp_endpoint_destroy(ep);
 	}
 	M_list_destroy(sp->endpoints, M_TRUE);
+	M_thread_mutex_unlock(sp->endpoints_mutex);
+	M_thread_mutex_destroy(sp->endpoints_mutex);
 	M_event_timer_remove(sp->restart_processing_timer);
 	M_thread_rwlock_destroy(sp->status_rwlock);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
