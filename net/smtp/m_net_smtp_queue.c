@@ -422,7 +422,7 @@ M_bool M_net_smtp_queue_message_int(M_net_smtp_queue_t *q, const char *msg)
 
 	status = M_net_smtp_status(q->sp);
 	if (status == M_NET_SMTP_STATUS_IDLE)
-		M_net_smtp_queue_advance(q);
+		M_event_queue_task(q->sp->el, M_net_smtp_queue_advance_task, q);
 
 	return M_TRUE;
 }
@@ -448,5 +448,5 @@ void M_net_smtp_queue_external_have_messages(M_net_smtp_queue_t *q)
 	q->is_external_queue_pending = M_TRUE;
 	status = M_net_smtp_status(q->sp);
 	if (status == M_NET_SMTP_STATUS_IDLE)
-		M_net_smtp_queue_advance(q);
+		M_event_queue_task(q->sp->el, M_net_smtp_queue_advance_task, q);
 }
