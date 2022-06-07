@@ -91,7 +91,7 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			if (session->tcp.tls_state == M_NET_SMTP_TLS_IMPLICIT && session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 				/* Implict TLS failed.  Follwup with with STARTTLS */
 				session->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS;
-				M_io_destroy(io);
+				M_io_destroy(session->io);
 				io_error = M_io_net_client_create(&session->io, sp->tcp_dns, const_ep->tcp.address,
 						const_ep->tcp.port, M_IO_NET_ANY);
 				if (io_error != M_IO_ERROR_SUCCESS) {
@@ -164,7 +164,7 @@ backout:
 	session->is_backout = M_TRUE;
 destroy:
 	if (session->io != NULL) {
-		M_io_destroy(io);
+		M_io_destroy(session->io);
 		session->connection_mask &= ~M_NET_SMTP_CONNECTION_MASK_IO;
 		if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			if (session->is_backout == M_FALSE) {
@@ -317,7 +317,7 @@ destroy:
 		case M_NET_SMTP_CONNECTION_MASK_IO_STDERR: session_io = &session->process.io_stderr; break;
 	}
 	if (*session_io != NULL) {
-		M_io_destroy(io);
+		M_io_destroy(*session_io);
 		*session_io = NULL;
 		session->connection_mask &= ~connection_mask;
 		if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
