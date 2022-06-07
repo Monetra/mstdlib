@@ -142,6 +142,7 @@ static M_bool M_email_simple_write_add_single_address(const M_email_t *email, M_
 	}
 
 	M_email_add_header_entry(buf, key, full);
+	M_free(full);
 	return M_TRUE;
 }
 
