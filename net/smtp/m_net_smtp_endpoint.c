@@ -52,6 +52,14 @@ void M_net_smtp_endpoint_reactivate_idle(const M_net_smtp_endpoint_t *ep)
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 }
 
+void M_net_smtp_endpoint_reactivate_idle_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	M_net_smtp_endpoint_reactivate_idle(thunk);
+}
+
 void M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session)
 {
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);

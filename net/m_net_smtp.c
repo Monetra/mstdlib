@@ -30,6 +30,8 @@ static void endpoint_failure(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t
 	M_thread_mutex_lock(sp->endpoints_mutex);
 	if (is_remove_ep) {
 		M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep)->is_removed = M_TRUE;
+		/* Reactivate any idle sessions to quit out */
+		M_event_queue_task(sp->el, M_net_smtp_endpoint_reactivate_idle_task, M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep));
 		if (M_net_smtp_is_all_endpoints_removed(sp)) {
 			M_net_smtp_pause(M_CAST_OFF_CONST(M_net_smtp_t*,sp));
 		}
@@ -207,7 +209,6 @@ void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_s
 	endpoint_failure(sp, ep, is_remove_ep);
 }
 
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* These NOP callbacks are used to avoid NULL checking for functions. If they don't
@@ -293,8 +294,6 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 
 void M_net_smtp_pause(M_net_smtp_t *sp)
 {
-	size_t i;
-
 	if (sp == NULL)
 		return;
 
@@ -310,15 +309,6 @@ void M_net_smtp_pause(M_net_smtp_t *sp)
 		sp->status = M_NET_SMTP_STATUS_STOPPING;
 	}
 	M_thread_rwlock_unlock(sp->status_rwlock);
-
-	M_thread_mutex_lock(sp->endpoints_mutex);
-
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
-		/* Reactivate any idling sessions so they can receive the
-			* STOPPING status update */
-		M_net_smtp_endpoint_reactivate_idle(M_list_at(sp->endpoints, i));
-	}
-	M_thread_mutex_unlock(sp->endpoints_mutex);
 }
 
 M_bool M_net_smtp_resume(M_net_smtp_t *sp)

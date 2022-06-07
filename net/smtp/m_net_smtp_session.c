@@ -118,7 +118,7 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			goto backout;
 	}
 
-	if (M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPING)
+	if (M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPING || session->ep->is_removed)
 		session->tcp.is_QUIT_enabled = M_TRUE;
 
 	switch (M_state_machine_run(session->state_machine, session)) {
