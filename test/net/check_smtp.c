@@ -646,13 +646,10 @@ static void multithread_insert_task(void *thunk)
 
 START_TEST(multithread_retry)
 {
-	M_uint16 testport;
-
-	args_t args = { 0 };
-	args.test_id = MULTITHREAD_RETRY;
-
+	M_uint16               testport;
+	args_t                 args      = { 0 };
 	M_event_t             *el        = M_event_pool_create(0);
-	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "reject_457", &testport, args.test_id);
+	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "reject_457", &testport, MULTITHREAD_RETRY);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);
 	multithread_arg_t     *tests     = NULL;
@@ -662,6 +659,7 @@ START_TEST(multithread_retry)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	args.test_id = MULTITHREAD_RETRY;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
 
@@ -698,13 +696,10 @@ END_TEST
 
 START_TEST(multithread_insert)
 {
-	M_uint16 testport;
-
-	args_t args = { 0 };
-	args.test_id = MULTITHREAD_INSERT;
-
+	M_uint16               testport;
+	args_t                 args      = { 0 };
 	M_event_t             *el        = M_event_pool_create(0);
-	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);
 	M_email_t             *e         = generate_email(1, test_address);
@@ -714,6 +709,7 @@ START_TEST(multithread_insert)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	args.test_id = MULTITHREAD_INSERT;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
 
@@ -748,13 +744,12 @@ START_TEST(multithread_insert)
 END_TEST
 START_TEST(dump_queue)
 {
-	args_t args = { 0 };
-	args.test_id = DUMP_QUEUE;
-
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_list_str_t      *list        = NULL;
 
+	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
 	list = M_net_smtp_dump_queue(sp);
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
@@ -774,12 +769,11 @@ START_TEST(dump_queue)
 END_TEST
 START_TEST(junk_msg)
 {
-	args_t args = { 0 };
-	args.test_id = JUNK_MSG;
-
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 
+	args.test_id = JUNK_MSG;
 	M_net_smtp_queue_message(sp, "junk");
 
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
@@ -798,14 +792,13 @@ START_TEST(junk_msg)
 END_TEST
 START_TEST(external_queue)
 {
-	args_t args = { 0 };
-	args.test_id = EXTERNAL_QUEUE;
-
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 	char              *msg         = M_email_simple_write(e);
 
+	args.test_id = EXTERNAL_QUEUE;
 	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
 	M_net_smtp_use_external_queue(sp, test_external_queue_get_cb);
 
@@ -833,15 +826,13 @@ END_TEST
 
 START_TEST(halt_restart)
 {
-	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
-
-	args_t args = { 0 };
-	args.test_id = HALT_RESTART;
-
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 
+	args.test_id = HALT_RESTART;
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 	args.el = el;
@@ -864,15 +855,13 @@ END_TEST
 
 START_TEST(proc_not_found)
 {
-	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
-
-	args_t args = { 0 };
-	args.test_id = PROC_NOT_FOUND;
-
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 
+	args.test_id = PROC_NOT_FOUND;
 	M_net_smtp_queue_smtp(sp, e);
 
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "proc_not_found", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
@@ -894,18 +883,15 @@ START_TEST(proc_not_found)
 END_TEST
 START_TEST(dot_msg)
 {
-	M_uint16       testport;
-	/*M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE); */
-
-	args_t args = { 0 };
-	args.test_id = DOT_MSG;
-
+	M_uint16           testport;
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOT_MSG);
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
 
+	args.test_id = DOT_MSG;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 10);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1), "Couldn't add TCP endpoint");
@@ -946,16 +932,14 @@ START_TEST(dot_msg)
 END_TEST
 START_TEST(proc_endpoint)
 {
-	M_list_str_t  *cmd_args = M_list_str_create(M_LIST_STR_NONE);
-
-	args_t args = { 0 };
-	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
-
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e1          = generate_email(1, test_address);
 	M_email_t         *e2          = generate_email(2, test_address);
 
+	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
 	M_net_smtp_queue_smtp(sp, e1);
@@ -984,18 +968,16 @@ START_TEST(proc_endpoint)
 END_TEST
 START_TEST(status)
 {
-	M_uint16 testport;
-
-	args_t args = { 0 };
-	args.test_id = STATUS;
-
+	M_uint16           testport;
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
+	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e1          = generate_email(1, test_address);
 	M_email_t         *e2          = generate_email(2, test_address);
 
+	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
 	M_net_smtp_queue_smtp(sp, e1);
@@ -1026,13 +1008,10 @@ END_TEST
 
 START_TEST(timeouts)
 {
-	M_uint16 testport1;
-	M_uint16 testport2;
-	M_uint16 testport3;
-
-	args_t args = { 0 };
-	args.test_id = TIMEOUTS;
-
+	M_uint16           testport1;
+	M_uint16           testport2;
+	M_uint16           testport3;
+	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t   *emu_connect = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport1, TIMEOUT_CONNECT);
 	smtp_emulator_t   *emu_stall   = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport2, TIMEOUT_STALL);
@@ -1043,9 +1022,7 @@ START_TEST(timeouts)
 	M_email_t         *e2          = generate_email(2, test_address);
 	M_email_t         *e3          = generate_email(3, test_address);
 
-	M_printf("TIMEOUT_CONNECT server on port %u\n", testport1);
-	M_printf("TIMEOUT_STALL server on port %u\n", testport2);
-	M_printf("TIMEOUT_IDLE server on port %u\n", testport3);
+	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 200);
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
@@ -1079,30 +1056,16 @@ END_TEST
 
 START_TEST(tls_unsupporting_server)
 {
-	M_uint16 testport;
+	M_uint16           testport;
+	args_t             args     = { 0 };
+	M_event_t         *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, TLS_UNSUPPORTING_SERVER);
+	M_net_smtp_t      *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t           *dns      = M_dns_create(el);
+	M_email_t         *e        = generate_email(1, test_address);
+	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
 
-	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = connect_cb,
-		.connect_fail_cb      = connect_fail_cb,
-		.disconnect_cb        = disconnect_cb,
-		.process_fail_cb      = process_fail_cb,
-		.processing_halted_cb = processing_halted_cb,
-		.sent_cb              = sent_cb,
-		.send_failed_cb       = send_failed_cb,
-		.reschedule_cb        = reschedule_cb,
-		.iocreate_cb          = iocreate_cb,
-	};
-
-	args_t args = { 0 };
 	args.test_id = TLS_UNSUPPORTING_SERVER;
-
-	M_event_t         *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t   *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t      *sp  = M_net_smtp_create(el, &cbs, &args);
-	M_dns_t           *dns = M_dns_create(el);
-	M_email_t         *e   = generate_email(1, test_address);
-	M_tls_clientctx_t *ctx = M_tls_clientctx_create();
-
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
 	M_net_smtp_setup_tcp(sp, dns, ctx);
@@ -1128,17 +1091,15 @@ END_TEST
 
 START_TEST(no_server)
 {
-	M_uint16 testport;
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, NO_SERVER);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
 
-	args_t args = { 0 };
 	args.test_id = NO_SERVER;
-
-	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t    *sp  = M_net_smtp_create(el, &test_cbs, &args);
-	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, test_address);
-
 	smtp_emulator_destroy(emu); /* just needed an open port */
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1162,29 +1123,15 @@ END_TEST
 
 START_TEST(iocreate_return_false)
 {
-	M_uint16 testport;
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, IOCREATE_RETURN_FALSE);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
 
-	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = connect_cb,
-		.connect_fail_cb      = connect_fail_cb,
-		.disconnect_cb        = disconnect_cb,
-		.process_fail_cb      = process_fail_cb,
-		.processing_halted_cb = processing_halted_cb,
-		.sent_cb              = sent_cb,
-		.send_failed_cb       = send_failed_cb,
-		.reschedule_cb        = reschedule_cb,
-		.iocreate_cb          = iocreate_cb,
-	};
-
-	args_t args = { 0 };
 	args.test_id = IOCREATE_RETURN_FALSE;
-
-	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
-	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, test_address);
-
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
 
@@ -1210,32 +1157,15 @@ END_TEST
 
 START_TEST(emu_accept_disconnect)
 {
-	M_uint16 testport;
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, EMU_ACCEPT_DISCONNECT);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
 
-	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = NULL,
-		.connect_fail_cb      = NULL,
-		.disconnect_cb        = NULL,
-		.process_fail_cb      = NULL,
-		.processing_halted_cb = NULL,
-		.sent_cb              = NULL,
-		.send_failed_cb       = send_failed_cb,
-		.reschedule_cb        = NULL,
-		.iocreate_cb          = NULL,
-	};
-
-	args_t args = {
-		.is_send_failed_cb_called = M_FALSE,
-		.test_id = EMU_ACCEPT_DISCONNECT,
-		.el = NULL,
-	};
-
-	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t    *sp  = M_net_smtp_create(el, &cbs, &args);
-	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, test_address);
-
+	args.test_id = EMU_ACCEPT_DISCONNECT;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
 
@@ -1258,16 +1188,15 @@ END_TEST
 
 START_TEST(emu_sendmsg)
 {
-	M_uint16 testport;
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, EMU_SENDMSG);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
 
-	args_t args = { 0 };
 	args.test_id = EMU_SENDMSG;
-
-	M_event_t       *el  = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t *emu = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, args.test_id);
-	M_net_smtp_t    *sp  = M_net_smtp_create(el, &test_cbs, &args);
-	M_dns_t         *dns = M_dns_create(el);
-	M_email_t       *e   = generate_email(1, test_address);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
 
@@ -1298,25 +1227,11 @@ END_TEST
 
 START_TEST(check_no_endpoints)
 {
-	struct M_net_smtp_callbacks cbs  = {
-		.connect_cb           = NULL,
-		.connect_fail_cb      = NULL,
-		.disconnect_cb        = NULL,
-		.process_fail_cb      = NULL,
-		.processing_halted_cb = processing_halted_cb,
-		.sent_cb              = NULL,
-		.send_failed_cb       = NULL,
-		.reschedule_cb        = NULL,
-		.iocreate_cb          = NULL,
-	};
+	args_t        args = { 0 };
+	M_event_t    *el   = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t *sp   = M_net_smtp_create(el, &test_cbs, &args);
 
-	args_t args = {
-		.is_success = M_FALSE,
-		.test_id = NO_ENDPOINTS,
-	};
-
-	M_event_t *el = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t *sp = M_net_smtp_create(el, &cbs, &args);
+	args.test_id = NO_ENDPOINTS;
 	ck_assert_msg(M_net_smtp_resume(sp) == M_FALSE, "should fail with no endpoints");
 	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
 	M_net_smtp_destroy(sp);
