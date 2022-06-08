@@ -116,6 +116,7 @@ M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_tcp(M_net_smtp_endpoint_tcp_a
 	ep->max_sessions          = args->max_conns;
 	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->cull_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->sessions_rwlock       = M_thread_rwlock_create();
 	ep->tcp.address           = M_strdup(args->address);
 	ep->tcp.username          = M_strdup(args->username);
