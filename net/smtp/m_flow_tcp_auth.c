@@ -515,6 +515,7 @@ M_state_machine_t * M_net_smtp_flow_tcp_auth(void)
 
 	M_state_machine_insert_state(m, STATE_AUTH_DIGEST_MD5, 0, NULL, M_state_auth_digest_md5, NULL, NULL);
 	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, M_auth_digest_md5_nonce_response_post_cb);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_ACK_RESPONSE, M_auth_digest_md5_ack_response_post_cb);
 	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb);
 
 	return m;
