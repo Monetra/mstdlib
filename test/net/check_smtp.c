@@ -288,10 +288,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 {
-
 	if (emu->regexs != NULL) {
-		for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
-			M_re_t *re = M_list_take_first(emu->regexs);
+		M_re_t *re;
+		while ((re = M_list_take_last(emu->regexs)) != NULL) {
 			M_re_destroy(re);
 		}
 		M_list_destroy(emu->regexs, M_FALSE);
@@ -686,6 +685,7 @@ START_TEST(multithread_retry)
 
 	ck_assert_msg(args.sent_cb_call_count = multithread_retry_count, "should have called sent_cb count times");
 
+	M_threadpool_parent_destroy(tp_parent);
 	M_free(testptrs);
 	M_free(tests);
 	M_email_destroy(e);
@@ -735,6 +735,7 @@ START_TEST(multithread_insert)
 
 	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
 
+	M_threadpool_parent_destroy(tp_parent);
 	M_free(testptrs);
 	M_free(tests);
 	M_email_destroy(e);

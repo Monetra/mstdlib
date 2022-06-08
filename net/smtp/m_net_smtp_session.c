@@ -514,6 +514,7 @@ fail:
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
 	M_thread_mutex_lock(session->mutex);
+	M_net_smtp_session_clean(session);
 	M_net_smtp_session_destroy_int(session);
 	M_net_smtp_endpoint_remove_session(session->ep, session);
 	M_thread_mutex_unlock(session->mutex);
