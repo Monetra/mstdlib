@@ -686,6 +686,7 @@ START_TEST(multithread_retry)
 	ck_assert_msg(args.sent_cb_call_count = multithread_retry_count, "should have called sent_cb count times");
 
 	M_threadpool_parent_destroy(tp_parent);
+	M_threadpool_destroy(tp);
 	M_free(testptrs);
 	M_free(tests);
 	M_email_destroy(e);
@@ -696,6 +697,7 @@ START_TEST(multithread_retry)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -739,6 +741,7 @@ START_TEST(multithread_insert)
 	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
 
 	M_threadpool_parent_destroy(tp_parent);
+	M_threadpool_destroy(tp);
 	M_free(testptrs);
 	M_free(tests);
 	M_email_destroy(e);
@@ -749,6 +752,7 @@ START_TEST(multithread_insert)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(dump_queue)
@@ -777,6 +781,7 @@ START_TEST(dump_queue)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(junk_msg)
@@ -803,6 +808,7 @@ START_TEST(junk_msg)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(external_queue)
@@ -839,6 +845,7 @@ START_TEST(external_queue)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -871,6 +878,7 @@ START_TEST(halt_restart)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -903,6 +911,7 @@ START_TEST(proc_not_found)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(dot_msg)
@@ -955,6 +964,7 @@ START_TEST(dot_msg)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(proc_endpoint)
@@ -994,6 +1004,7 @@ START_TEST(proc_endpoint)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 START_TEST(status)
@@ -1036,6 +1047,7 @@ START_TEST(status)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1088,6 +1100,7 @@ START_TEST(timeouts)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1126,6 +1139,7 @@ START_TEST(tls_unsupporting_server)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1161,6 +1175,7 @@ START_TEST(no_server)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1198,6 +1213,7 @@ START_TEST(iocreate_return_false)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1232,6 +1248,7 @@ START_TEST(emu_accept_disconnect)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1273,6 +1290,7 @@ START_TEST(emu_sendmsg)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1291,6 +1309,7 @@ START_TEST(check_no_endpoints)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+	M_library_cleanup();
 }
 END_TEST
 
@@ -1378,7 +1397,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 13
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1386,7 +1405,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 14
 	tc = tcase_create("proc_not_found");
 	tcase_add_test(tc, proc_not_found);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1394,7 +1413,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 15
 	tc = tcase_create("halt restart");
 	tcase_add_test(tc, halt_restart);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1402,7 +1421,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 16
 	tc = tcase_create("external queue");
 	tcase_add_test(tc, external_queue);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1410,7 +1429,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 17
 	tc = tcase_create("junk msg");
 	tcase_add_test(tc, junk_msg);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1418,7 +1437,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 18
 	tc = tcase_create("dump queue");
 	tcase_add_test(tc, dump_queue);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 3);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -1475,6 +1494,8 @@ int main(int argc, char **argv)
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
+
+	M_library_cleanup();
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
