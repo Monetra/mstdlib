@@ -10,12 +10,9 @@
 #define DEBUG 0
 
 /* globals */
-M_json_node_t *check_smtp_json          = NULL;
-char          *test_address             = NULL;
-char          *sendmail_emu             = NULL;
-M_list_str_t  *test_external_queue      = NULL;
 const size_t   multithread_insert_count = 100;
 const size_t   multithread_retry_count  = 100;
+M_list_str_t  *test_external_queue      = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -41,6 +38,31 @@ typedef enum {
 } test_id_t;
 
 #define TESTONLY 0
+
+const char *argv0    = NULL;
+const char *env_USER = NULL;
+static M_json_node_t * check_smtp_json_alloc(void)
+{
+	return M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
+}
+
+static char * test_address_alloc(void)
+{
+	size_t len  = M_str_len(env_USER) + M_str_len("@localhost");
+	char  *addr = M_malloc_zero(len + 1);
+	M_snprintf(addr, len + 1, "%s@localhost", env_USER);
+	return addr;
+}
+
+static char * sendmail_emu_alloc(void)
+{
+	char   *dirname = M_fs_path_dirname(argv0, M_FS_SYSTEM_AUTO);
+	size_t  len     = M_str_len(dirname) + M_str_len("/sendmail_emu");
+	char   *emu     = M_malloc_zero(len + 1);
+	M_snprintf(emu, len + 1, "%s/sendmail_emu", dirname);
+	M_free(dirname);
+	return emu;
+}
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -288,6 +310,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 
 static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 {
+	M_json_node_t *check_smtp_json = check_smtp_json_alloc();
 	if (emu->regexs != NULL) {
 		M_re_t *re;
 		while ((re = M_list_take_last(emu->regexs)) != NULL) {
@@ -318,6 +341,7 @@ static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 		M_list_insert(emu->regexs, re);
 		M_list_str_insert(emu->json_values, value);
 	}
+	M_json_node_destroy(check_smtp_json);
 }
 
 static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type, const char *json_name,
@@ -655,10 +679,13 @@ START_TEST(multithread_retry)
 	M_dns_t               *dns       = M_dns_create(el);
 	multithread_arg_t     *tests     = NULL;
 	void                 **testptrs  = NULL;
-	M_email_t             *e         = generate_email(1, test_address);
+	char                  *em_addr   = test_address_alloc();
+	M_email_t             *e         = generate_email(1, em_addr);
 	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
+
+	M_free(em_addr);
 
 	args.test_id = MULTITHREAD_RETRY;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
@@ -704,12 +731,15 @@ START_TEST(multithread_insert)
 	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);
-	M_email_t             *e         = generate_email(1, test_address);
+	char                  *em_addr   = test_address_alloc();
+	M_email_t             *e         = generate_email(1, em_addr);
 	multithread_arg_t     *tests     = NULL;
 	void                 **testptrs  = NULL;
 	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
+
+	M_free(em_addr);
 
 	args.test_id = MULTITHREAD_INSERT;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
@@ -747,10 +777,11 @@ START_TEST(multithread_insert)
 END_TEST
 START_TEST(dump_queue)
 {
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_list_str_t      *list        = NULL;
+	args_t             args         = { 0 };
+	M_event_t         *el           = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp           = M_net_smtp_create(el, &test_cbs, &args);
+	M_list_str_t      *list         = NULL;
+	char              *sendmail_emu = sendmail_emu_alloc();
 
 	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
@@ -765,6 +796,7 @@ START_TEST(dump_queue)
 	ck_assert_msg(args.send_failed_cb_call_count == 0, "shouldn't have sent anything");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_free(sendmail_emu);
 	M_list_str_destroy(list);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
@@ -772,9 +804,10 @@ START_TEST(dump_queue)
 END_TEST
 START_TEST(junk_msg)
 {
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	args_t             args         = { 0 };
+	M_event_t         *el           = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp           = M_net_smtp_create(el, &test_cbs, &args);
+	char              *sendmail_emu = sendmail_emu_alloc();
 
 	args.test_id = JUNK_MSG;
 	M_net_smtp_queue_message(sp, "junk");
@@ -789,17 +822,22 @@ START_TEST(junk_msg)
 	ck_assert_msg(args.is_success, "shouldn't allow retry");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_free(sendmail_emu);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 }
 END_TEST
 START_TEST(external_queue)
 {
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_email_t         *e           = generate_email(1, test_address);
-	char              *msg         = M_email_simple_write(e);
+	args_t             args         = { 0 };
+	M_event_t         *el           = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp           = M_net_smtp_create(el, &test_cbs, &args);
+	char              *em_addr      = test_address_alloc();
+	M_email_t         *e            = generate_email(1, em_addr);
+	char              *msg          = M_email_simple_write(e);
+	char              *sendmail_emu = sendmail_emu_alloc();
+
+	M_free(em_addr);
 
 	args.test_id = EXTERNAL_QUEUE;
 	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
@@ -818,6 +856,7 @@ START_TEST(external_queue)
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_free(sendmail_emu);
 	M_free(msg);
 	M_email_destroy(e);
 	M_net_smtp_destroy(sp);
@@ -829,11 +868,15 @@ END_TEST
 
 START_TEST(halt_restart)
 {
-	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_email_t         *e           = generate_email(1, test_address);
+	M_list_str_t      *cmd_args     = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args         = { 0 };
+	M_event_t         *el           = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp           = M_net_smtp_create(el, &test_cbs, &args);
+	char              *em_addr      = test_address_alloc();
+	M_email_t         *e            = generate_email(1, em_addr);
+	char              *sendmail_emu = sendmail_emu_alloc();
+
+	M_free(em_addr);
 
 	args.test_id = HALT_RESTART;
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
@@ -849,6 +892,7 @@ START_TEST(halt_restart)
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have processing halted from pause()");
 
+	M_free(sendmail_emu);
 	M_email_destroy(e);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
@@ -862,7 +906,10 @@ START_TEST(proc_not_found)
 	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_email_t         *e           = generate_email(1, test_address);
+	char              *em_addr     = test_address_alloc();
+	M_email_t         *e           = generate_email(1, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = PROC_NOT_FOUND;
 	M_net_smtp_queue_smtp(sp, e);
@@ -892,7 +939,10 @@ START_TEST(dot_msg)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOT_MSG);
 	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
+	char              *em_addr     = test_address_alloc();
+	M_email_t         *e           = generate_email_with_text(em_addr, "\r\n.\r\n after message");
+
+	M_free(em_addr);
 
 	args.test_id = DOT_MSG;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -935,12 +985,16 @@ START_TEST(dot_msg)
 END_TEST
 START_TEST(proc_endpoint)
 {
-	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_email_t         *e1          = generate_email(1, test_address);
-	M_email_t         *e2          = generate_email(2, test_address);
+	M_list_str_t      *cmd_args     = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args         = { 0 };
+	M_event_t         *el           = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp           = M_net_smtp_create(el, &test_cbs, &args);
+	char              *em_addr      = test_address_alloc();
+	M_email_t         *e1           = generate_email(1, em_addr);
+	M_email_t         *e2           = generate_email(2, em_addr);
+	char              *sendmail_emu = sendmail_emu_alloc();
+
+	M_free(em_addr);
 
 	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -962,6 +1016,7 @@ START_TEST(proc_endpoint)
 	M_net_smtp_resume(sp);
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
 
+	M_free(sendmail_emu);
 	M_email_destroy(e1);
 	M_email_destroy(e2);
 	M_net_smtp_destroy(sp);
@@ -977,8 +1032,11 @@ START_TEST(status)
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, test_address);
-	M_email_t         *e2          = generate_email(2, test_address);
+	char              *em_addr     = test_address_alloc();
+	M_email_t         *e1          = generate_email(1, em_addr);
+	M_email_t         *e2          = generate_email(2, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -1021,9 +1079,12 @@ START_TEST(timeouts)
 	smtp_emulator_t   *emu_idle    = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport3, TIMEOUT_IDLE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, test_address);
-	M_email_t         *e2          = generate_email(2, test_address);
-	M_email_t         *e3          = generate_email(3, test_address);
+	char              *em_addr     = test_address_alloc();
+	M_email_t         *e1          = generate_email(1, em_addr);
+	M_email_t         *e2          = generate_email(2, em_addr);
+	M_email_t         *e3          = generate_email(3, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1066,8 +1127,11 @@ START_TEST(tls_unsupporting_server)
 	smtp_emulator_t   *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, TLS_UNSUPPORTING_SERVER);
 	M_net_smtp_t      *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t           *dns      = M_dns_create(el);
-	M_email_t         *e        = generate_email(1, test_address);
+	char              *em_addr  = test_address_alloc();
+	M_email_t         *e        = generate_email(1, em_addr);
 	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
+
+	M_free(em_addr);
 
 	args.test_id = TLS_UNSUPPORTING_SERVER;
 	M_tls_clientctx_set_default_trust(ctx);
@@ -1101,7 +1165,10 @@ START_TEST(no_server)
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, NO_SERVER);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
-	M_email_t       *e        = generate_email(1, test_address);
+	char            *em_addr  = test_address_alloc();
+	M_email_t       *e        = generate_email(1, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = NO_SERVER;
 	smtp_emulator_destroy(emu); /* just needed an open port */
@@ -1133,7 +1200,10 @@ START_TEST(iocreate_return_false)
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, IOCREATE_RETURN_FALSE);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
-	M_email_t       *e        = generate_email(1, test_address);
+	char            *em_addr  = test_address_alloc();
+	M_email_t       *e        = generate_email(1, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = IOCREATE_RETURN_FALSE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1167,7 +1237,10 @@ START_TEST(emu_accept_disconnect)
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, EMU_ACCEPT_DISCONNECT);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
-	M_email_t       *e        = generate_email(1, test_address);
+	char            *em_addr  = test_address_alloc();
+	M_email_t       *e        = generate_email(1, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = EMU_ACCEPT_DISCONNECT;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1198,7 +1271,10 @@ START_TEST(emu_sendmsg)
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, EMU_SENDMSG);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
-	M_email_t       *e        = generate_email(1, test_address);
+	char            *em_addr  = test_address_alloc();
+	M_email_t       *e        = generate_email(1, em_addr);
+
+	M_free(em_addr);
 
 	args.test_id = EMU_SENDMSG;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
@@ -1392,27 +1468,12 @@ static Suite *smtp_suite(void)
 
 int main(int argc, char **argv)
 {
-	SRunner    *sr;
-	int         nf;
-	size_t      len;
-	char       *dirname;
-	const char *env_USER;
-
+	SRunner       *sr;
+	int            nf;
 	(void)argc;
-	(void)argv;
 
 	env_USER = getenv("USER");
-	len = M_str_len(env_USER) + M_str_len("@localhost");
-	test_address = M_malloc_zero(len + 1);
-	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
-
-	dirname = M_fs_path_dirname(argv[0], M_FS_SYSTEM_AUTO);
-	len = M_str_len(dirname) + M_str_len("/sendmail_emu");
-	sendmail_emu = M_malloc_zero(len + 1);
-	M_snprintf(sendmail_emu, len + 1, "%s/sendmail_emu", dirname);
-	M_free(dirname);
-
-	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
+	argv0    = argv[0];
 
 	sr = srunner_create(smtp_suite());
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_smtp.log");
@@ -1420,10 +1481,6 @@ int main(int argc, char **argv)
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);
-
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
