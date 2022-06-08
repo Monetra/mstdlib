@@ -39,6 +39,7 @@ typedef struct {
 	M_thread_rwlock_t          *sessions_rwlock;
 	M_list_t                   *send_sessions;
 	M_list_t                   *idle_sessions;
+	M_list_t                   *cull_sessions;
 	union {
 		struct {
 			char          *address;
@@ -83,6 +84,7 @@ void   M_net_smtp_endpoint_reactivate_idle_task(M_event_t *el, M_event_type_t et
 void   M_net_smtp_endpoint_destroy             (M_net_smtp_endpoint_t *ep);
 
 /* These are prototyped in m_net_smtp_session.h instead of m_net_smtp_endpoint.h to avoid a dependency problem
+void   M_net_smtp_endpoint_cull_session  (const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session);
 void   M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session);
 void   M_net_smtp_endpoint_idle_session  (const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session);
 */

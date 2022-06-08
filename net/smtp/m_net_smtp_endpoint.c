@@ -65,6 +65,16 @@ void M_net_smtp_endpoint_remove_session(const M_net_smtp_endpoint_t *ep, M_net_s
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	M_list_remove_val(ep->send_sessions, session, M_LIST_MATCH_PTR);
 	M_list_remove_val(ep->idle_sessions, session, M_LIST_MATCH_PTR);
+	M_list_remove_val(ep->cull_sessions, session, M_LIST_MATCH_PTR);
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+}
+
+void M_net_smtp_endpoint_cull_session(const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session)
+{
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
+	M_list_remove_val(ep->send_sessions, session, M_LIST_MATCH_PTR);
+	M_list_remove_val(ep->idle_sessions, session, M_LIST_MATCH_PTR);
+	M_list_insert(ep->cull_sessions, session);
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 }
 
@@ -124,6 +134,7 @@ M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(M_net_smtp_endpoint_proc
 	ep->type                  = M_NET_SMTP_EPTYPE_PROCESS;
 	ep->send_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->idle_sessions         = M_list_create(NULL, M_LIST_NONE);
+	ep->cull_sessions         = M_list_create(NULL, M_LIST_NONE);
 	ep->sessions_rwlock       = M_thread_rwlock_create();
 	ep->max_sessions          = args->max_processes;
 	ep->process.command       = M_strdup(args->command);
@@ -140,12 +151,14 @@ void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 	while (
 		(session = M_list_take_last(ep->send_sessions)) != NULL ||
-		(session = M_list_take_last(ep->idle_sessions)) != NULL
+		(session = M_list_take_last(ep->idle_sessions)) != NULL ||
+		(session = M_list_take_last(ep->cull_sessions)) != NULL
 	) {
 		M_net_smtp_session_destroy(session);
 	}
 	M_list_destroy(ep->send_sessions, M_TRUE);
 	M_list_destroy(ep->idle_sessions, M_TRUE);
+	M_list_destroy(ep->cull_sessions, M_TRUE);
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 	M_thread_rwlock_destroy(ep->sessions_rwlock);
 	switch (ep->type) {

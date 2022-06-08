@@ -190,7 +190,7 @@ static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t
 	switch (status) {
 		case SESSION_FINISHED:
 			M_event_timer_stop(session->event_timer);
-			M_net_smtp_endpoint_remove_session(session->ep, session);
+			M_net_smtp_endpoint_cull_session(session->ep, session);
 			M_net_smtp_session_clean(session);
 			M_event_queue_task(session->sp->el, M_net_smtp_session_destroy_task, session);
 			M_net_smtp_queue_advance(q);
@@ -339,7 +339,7 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 
 	switch (status) {
 		case SESSION_FINISHED:
-			M_net_smtp_endpoint_remove_session(session->ep, session);
+			M_net_smtp_endpoint_cull_session(session->ep, session);
 			M_net_smtp_session_clean(session);
 			M_event_queue_task(session->sp->el, M_net_smtp_session_destroy_task, session);
 			M_net_smtp_queue_advance(q);
@@ -503,6 +503,7 @@ void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 	M_state_machine_destroy(session->state_machine);
 	session->state_machine = NULL;
 	session->is_alive = M_FALSE;
+	M_net_smtp_endpoint_remove_session(session->ep, session);
 	M_thread_mutex_destroy(session->mutex);
 	M_free(session);
 }
