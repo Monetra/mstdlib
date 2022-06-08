@@ -693,6 +693,9 @@ START_TEST(multithread_retry)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -743,6 +746,9 @@ START_TEST(multithread_insert)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(dump_queue)
@@ -768,6 +774,9 @@ START_TEST(dump_queue)
 	M_list_str_destroy(list);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(junk_msg)
@@ -791,6 +800,9 @@ START_TEST(junk_msg)
 
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(external_queue)
@@ -824,6 +836,9 @@ START_TEST(external_queue)
 	M_event_destroy(el);
 	M_list_str_destroy(test_external_queue);
 	test_external_queue = NULL;
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -853,6 +868,9 @@ START_TEST(halt_restart)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -882,6 +900,9 @@ START_TEST(proc_not_found)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(dot_msg)
@@ -931,6 +952,9 @@ START_TEST(dot_msg)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	/* M_list_str_destroy(cmd_args); */
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(proc_endpoint)
@@ -967,6 +991,9 @@ START_TEST(proc_endpoint)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 START_TEST(status)
@@ -1006,6 +1033,9 @@ START_TEST(status)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1055,6 +1085,9 @@ START_TEST(timeouts)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1090,6 +1123,9 @@ START_TEST(tls_unsupporting_server)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1122,6 +1158,9 @@ START_TEST(no_server)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1156,6 +1195,9 @@ START_TEST(iocreate_return_false)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1187,6 +1229,9 @@ START_TEST(emu_accept_disconnect)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1225,6 +1270,9 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
@@ -1240,6 +1288,9 @@ START_TEST(check_no_endpoints)
 	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
 }
 END_TEST
 
