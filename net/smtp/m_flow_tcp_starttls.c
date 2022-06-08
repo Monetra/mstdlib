@@ -55,19 +55,11 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 
 M_state_machine_t * M_net_smtp_flow_tcp_starttls(void)
 {
-	M_state_machine_t         *m         = NULL;
-	M_state_machine_t         *sub_m     = NULL;
-	M_state_machine_cleanup_t *cleanup_m = NULL;
+	M_state_machine_t *m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
 	M_state_machine_insert_state(m, STATE_STARTTLS, 0, NULL, M_state_starttls, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_sendmsg();
-	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
-	M_state_machine_insert_sub_state_machine(m, STATE_STARTTLS_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_starttls_response_post_cb, cleanup_m, NULL);
-	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_STARTTLS_RESPONSE, M_starttls_response_post_cb);
 
 	return m;
 }

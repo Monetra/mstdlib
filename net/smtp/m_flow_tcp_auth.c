@@ -108,19 +108,15 @@ static M_state_machine_status_t M_auth_final_response_post_cb(void *data, M_stat
 		M_uint64 *next)
 {
 	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 235))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	machine_status = M_STATE_MACHINE_STATUS_DONE;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_DONE;
 }
 
 static M_state_machine_status_t M_state_auth_login(void *data, M_uint64 *next)
@@ -174,44 +170,37 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 		M_uint64 *next)
 {
 	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	const char               *line           = NULL;
 	(void)next;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	line = M_list_str_last(session->tcp.smtp_response);
 
 	if (session->tcp.auth_login_response_count < 3 && !M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.auth_login_response_count == 3 && !M_net_smtp_flow_tcp_check_smtp_response_code(session, 235))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
-	if (session->tcp.auth_login_response_count == 3) {
-		machine_status = M_STATE_MACHINE_STATUS_DONE;
-		goto done;
-	}
+	if (session->tcp.auth_login_response_count == 3)
+		return M_STATE_MACHINE_STATUS_DONE;
 
 	if (M_str_caseeq_max(line, "VXNlcm5hbWU6", 12)) {
 		/* base64 for "Username" */
 		*next = STATE_AUTH_LOGIN_USERNAME;
-		machine_status = M_STATE_MACHINE_STATUS_NEXT;
-		goto done;
+		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 
 	if (M_str_caseeq_max(line, "UGFzc3dvcmQ6", 12)) {
 		/* base64 for "Password" */
 		*next = STATE_AUTH_LOGIN_PASSWORD;
-		machine_status = M_STATE_MACHINE_STATUS_NEXT;
-		goto done;
+		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 
 	M_snprintf(session->errmsg, sizeof(session->errmsg), "Unknown auth-login request: %s", line);
-	machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_ERROR_STATE;
 }
 
 static M_state_machine_status_t M_state_auth_cram_md5(void *data, M_uint64 *next)
@@ -226,7 +215,6 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
 	size_t                    len            = 0;
 	unsigned int              uint           = 0;
 	unsigned char             buf[512]       = { 0 };
@@ -235,17 +223,17 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	unsigned char             d[16]; /* digest */
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	line = M_list_str_last(session->tcp.smtp_response);
 	if (M_bincodec_decode(buf, sizeof(buf)-1, line, M_str_len(line), M_BINCODEC_BASE64) <= 0) {
 		session->tcp.is_connect_fail = M_TRUE;
 		session->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to decode cram-md5 secret: %s", line);
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 
 	uint = sizeof(d);
@@ -265,7 +253,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 
 	if (!(challenge = M_bincodec_encode_alloc(buf, len, 0, M_BINCODEC_BASE64))) {
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "Allocation failed");
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}
 
 	M_buf_add_str(session->out_buf, challenge);
@@ -273,10 +261,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	M_free(challenge);
 
 	*next = STATE_AUTH_CRAM_MD5_FINAL_RESPONSE;
-	machine_status = M_STATE_MACHINE_STATUS_NEXT;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static void RFC2831_HEX(unsigned char b[16], char s[33])
@@ -473,17 +458,16 @@ done:
 	M_free(digest_uri);
 	M_free(parameters_str);
 	M_hash_dict_destroy(parameters_dict);
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return machine_status;
 }
 
 static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *data,
 		M_state_machine_status_t sub_status, M_uint64 *next)
 {
-	M_net_smtp_session_t     *session        = data;
-	M_state_machine_status_t  machine_status = M_STATE_MACHINE_STATUS_ERROR_STATE;
+	M_net_smtp_session_t *session = data;
 
 	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	/*
 	 * If everything worked, the line will contain a base64 encoded rspauth=<md5hash>
@@ -495,78 +479,43 @@ static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *dat
 	if (session->tcp.smtp_response_code == 250) {
 		/* It is possible for the SMTP server to send a
 			* 250 <respcode> to eliminate a tedious back and forth */
-		machine_status = M_STATE_MACHINE_STATUS_DONE;
-		goto done;
+		return M_STATE_MACHINE_STATUS_DONE;
 	}
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
-		goto done;
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 
 	M_buf_add_str(session->out_buf, "\r\n");
 
 	*next = STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE;
-	machine_status = M_STATE_MACHINE_STATUS_NEXT;
-
-done:
-	return M_net_smtp_flow_tcp_smtp_response_post_cb_helper(data, machine_status, NULL);
+	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_state_machine_t * M_net_smtp_flow_tcp_auth(void)
 {
-	M_state_machine_t *m      = NULL;
-	M_state_machine_t *sub_m  = NULL;
+	M_state_machine_t *m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-auth", M_STATE_MACHINE_NONE);
+
 	M_state_machine_insert_state(m, STATE_AUTH_START, 0, NULL, M_state_auth_start, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_AUTH_PLAIN, 0, NULL, M_state_auth_plain, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_PLAIN_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_final_response_post_cb, NULL, NULL);
-	/* M_auth_final_response_post_cb is shared */
-	M_state_machine_destroy(sub_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_PLAIN_RESPONSE, M_auth_final_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_AUTH_LOGIN, 0, NULL, M_state_auth_login, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_USERNAME, 0, NULL, M_state_auth_login_username, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_AUTH_LOGIN_PASSWORD, 0, NULL, M_state_auth_login_password, NULL, NULL);
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_LOGIN_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_login_response_post_cb, NULL, NULL);
-	M_state_machine_destroy(sub_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_LOGIN_RESPONSE, M_auth_login_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_AUTH_CRAM_MD5, 0, NULL, M_state_auth_cram_md5, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_SECRET_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_cram_md5_secret_response_post_cb, NULL, NULL);
-	M_state_machine_destroy(sub_m);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_final_response_post_cb, NULL, NULL);
-	/* M_auth_final_response_post_cb is shared */
-	M_state_machine_destroy(sub_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_SECRET_RESPONSE, M_auth_cram_md5_secret_response_post_cb);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_CRAM_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_AUTH_DIGEST_MD5, 0, NULL, M_state_auth_digest_md5, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_digest_md5_nonce_response_post_cb, NULL, NULL);
-	M_state_machine_destroy(sub_m);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_ACK_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_digest_md5_ack_response_post_cb, NULL, NULL);
-	M_state_machine_destroy(sub_m);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_insert_sub_state_machine(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_auth_final_response_post_cb, NULL, NULL);
-	/* M_auth_final_response_post_cb is shared */
-	M_state_machine_destroy(sub_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_NONCE_RESPONSE, M_auth_digest_md5_nonce_response_post_cb);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_AUTH_DIGEST_MD5_FINAL_RESPONSE, M_auth_final_response_post_cb);
 
 	return m;
 }

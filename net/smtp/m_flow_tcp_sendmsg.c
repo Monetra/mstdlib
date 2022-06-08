@@ -196,47 +196,21 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 
 M_state_machine_t * M_net_smtp_flow_tcp_sendmsg(void)
 {
-	M_state_machine_t         *m         = NULL;
-	M_state_machine_t         *sub_m     = NULL;
-	M_state_machine_cleanup_t *cleanup_m = NULL;
+	M_state_machine_t *m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp-sendmsg", M_STATE_MACHINE_NONE);
 
 	M_state_machine_insert_state(m, STATE_MAIL_FROM, 0, NULL, M_state_mail_from, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
-	M_state_machine_insert_sub_state_machine(m, STATE_MAIL_FROM_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_mail_from_response_post_cb, cleanup_m, NULL);
-	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_MAIL_FROM_RESPONSE, M_mail_from_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_RCPT_TO, 0, NULL, M_state_rcpt_to, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
-	M_state_machine_insert_sub_state_machine(m, STATE_RCPT_TO_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_rcpt_to_response_post_cb, cleanup_m, NULL);
-	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_RCPT_TO_RESPONSE, M_rcpt_to_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_DATA, 0, NULL, M_state_data, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
-	M_state_machine_insert_sub_state_machine(m, STATE_DATA_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_data_response_post_cb, cleanup_m, NULL);
-	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_RESPONSE, M_data_response_post_cb);
 
 	M_state_machine_insert_state(m, STATE_DATA_PAYLOAD_AND_STOP, 0, NULL, M_state_data_payload_and_stop, NULL, NULL);
-
-	sub_m = M_net_smtp_flow_tcp_smtp_response();
-	cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
-	M_state_machine_insert_sub_state_machine(m, STATE_DATA_STOP_RESPONSE, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, M_data_stop_response_post_cb, cleanup_m, NULL);
-	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
+	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_DATA_STOP_RESPONSE, M_data_stop_response_post_cb);
 
 	return m;
 }
