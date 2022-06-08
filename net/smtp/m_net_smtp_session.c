@@ -474,6 +474,7 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		session->state_machine        = M_net_smtp_flow_tcp();
 		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
 		session->event_timer          = M_event_timer_add(sp->el, session_tcp_advance_task, session);
+		session->tcp.smtp_response    = M_list_str_create(M_LIST_STR_NONE);
 	}
 
 	session->out_buf   = M_buf_create();
@@ -491,6 +492,9 @@ fail:
 
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
+	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		M_list_str_destroy(session->tcp.smtp_response);
+	}
 	M_io_destroy(session->io);
 	M_event_timer_remove(session->event_timer);
 	session->event_timer = NULL;
@@ -498,8 +502,6 @@ void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 	session->out_buf = NULL;
 	M_parser_destroy(session->in_parser);
 	session->in_parser = NULL;
-	M_state_machine_reset(session->state_machine, M_STATE_MACHINE_CLEANUP_REASON_CANCEL);
-	M_state_machine_run(session->state_machine, session);
 	M_state_machine_destroy(session->state_machine);
 	session->state_machine = NULL;
 	session->is_alive = M_FALSE;

@@ -111,28 +111,10 @@ static M_bool M_net_smtp_flow_tcp_smtp_response_pre_cb_helper(void *data, M_stat
 	(void)status;
 	(void)next;
 
+	M_list_str_destroy(session->tcp.smtp_response);
 	session->tcp.smtp_response = M_list_str_create(M_LIST_STR_NONE);
 	session->tcp.smtp_response_code = 0;
 	return M_TRUE;
-}
-
-static M_state_machine_status_t M_state_cleanup(void *data, M_state_machine_cleanup_reason_t reason, M_uint64 *next)
-{
-	M_net_smtp_session_t *session = data;
-	(void)next;
-	(void)reason;
-	M_list_str_destroy(session->tcp.smtp_response);
-	session->tcp.smtp_response = NULL;
-	session->tcp.smtp_response_code = 0;
-	return M_STATE_MACHINE_STATUS_DONE;
-}
-
-M_state_machine_cleanup_t *M_net_smtp_flow_tcp_smtp_response_cleanup(void)
-{
-	M_state_machine_cleanup_t *m;
-	m = M_state_machine_cleanup_create(0, "SMTP-flow-tcp-smtp-response-cleanup", M_STATE_MACHINE_NONE);
-	M_state_machine_cleanup_insert_state(m, STATE_CLEANUP, 0, NULL, M_state_cleanup, NULL, NULL);
-	return m;
 }
 
 M_state_machine_t * M_net_smtp_flow_tcp_smtp_response(void)
@@ -147,9 +129,7 @@ void M_net_smtp_flow_tcp_smtp_response_insert_subm(M_state_machine_t *m, M_uint6
 		M_state_machine_post_cb post_cb)
 {
 	M_state_machine_t *sub_m = M_net_smtp_flow_tcp_smtp_response();
-	M_state_machine_cleanup_t *cleanup_m = M_net_smtp_flow_tcp_smtp_response_cleanup();
 	M_state_machine_insert_sub_state_machine(m, id, 0, NULL, sub_m,
-			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, post_cb, cleanup_m, NULL);
+			M_net_smtp_flow_tcp_smtp_response_pre_cb_helper, post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
-	M_state_machine_cleanup_destroy(cleanup_m);
 }
