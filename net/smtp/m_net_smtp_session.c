@@ -424,6 +424,29 @@ void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session)
 	session_tcp_advance_task(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
 }
 
+static void M_net_smtp_session_destroy_int(M_net_smtp_session_t *session)
+{
+	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		M_list_str_destroy(session->tcp.smtp_response);
+		M_io_destroy(session->io);
+	}
+	if (session->ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
+		M_io_destroy(session->io);
+		M_io_destroy(session->process.io_stdin);
+		M_io_destroy(session->process.io_stdout);
+		M_io_destroy(session->process.io_stderr);
+	}
+	M_event_timer_remove(session->event_timer);
+	session->event_timer = NULL;
+	M_buf_cancel(session->out_buf);
+	session->out_buf = NULL;
+	M_parser_destroy(session->in_parser);
+	session->in_parser = NULL;
+	M_state_machine_destroy(session->state_machine);
+	session->state_machine = NULL;
+	session->is_alive = M_FALSE;
+}
+
 M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep)
 {
 	M_io_error_t          io_error = M_IO_ERROR_SUCCESS;
@@ -482,36 +505,18 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 	session->is_alive  = M_TRUE;
 	return session;
 fail:
-	M_net_smtp_session_destroy(session);
+	M_net_smtp_session_destroy_int(session);
+	M_thread_mutex_destroy(session->mutex);
+	M_free(session);
 	return NULL;
 }
 
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
-	if (session->mutex != NULL)
-		M_thread_mutex_lock(session->mutex);
-	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
-		M_list_str_destroy(session->tcp.smtp_response);
-		M_io_destroy(session->io);
-	}
-	if (session->ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
-		M_io_destroy(session->io);
-		M_io_destroy(session->process.io_stdin);
-		M_io_destroy(session->process.io_stdout);
-		M_io_destroy(session->process.io_stderr);
-	}
-	M_event_timer_remove(session->event_timer);
-	session->event_timer = NULL;
-	M_buf_cancel(session->out_buf);
-	session->out_buf = NULL;
-	M_parser_destroy(session->in_parser);
-	session->in_parser = NULL;
-	M_state_machine_destroy(session->state_machine);
-	session->state_machine = NULL;
-	session->is_alive = M_FALSE;
+	M_thread_mutex_lock(session->mutex);
+	M_net_smtp_session_destroy_int(session);
 	M_net_smtp_endpoint_remove_session(session->ep, session);
-	if (session->mutex != NULL)
-		M_thread_mutex_unlock(session->mutex);
+	M_thread_mutex_unlock(session->mutex);
 	M_thread_mutex_destroy(session->mutex);
 	M_free(session);
 }
