@@ -7,7 +7,7 @@
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t *check_smtp_json          = NULL;
@@ -43,7 +43,7 @@ typedef enum {
 	AUTH_CRAM_MD5           = 23,
 } test_id_t;
 
-#define TESTONLY 23
+#define TESTONLY 0
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
