@@ -41,6 +41,7 @@ typedef enum {
 	AUTH_LOGIN              = 21,
 	AUTH_PLAIN              = 22,
 	AUTH_CRAM_MD5           = 23,
+	AUTH_DIGEST_MD5         = 24,
 } test_id_t;
 
 #define TESTONLY 0
@@ -108,6 +109,7 @@ typedef struct {
 	M_io_t        *stall_io;
 	const char    *CONNECTED_str;
 	const char    *DATA_ACK_str;
+	const char    *DIGEST_MD5_str;
 	struct {
 		M_io_t     *io;
 		M_buf_t    *out_buf;
@@ -237,6 +239,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				*is_QUIT = M_TRUE;
 			}
 			is_no_match = M_TRUE;
+			if (M_str_len(line) == 278) {
+				M_buf_add_str(out_buf, emu->DIGEST_MD5_str);
+				is_no_match = M_FALSE;
+			}
 			for (size_t i = 0; i < M_list_len(emu->regexs); i++) {
 				const M_re_t *re = M_list_at(emu->regexs, i);
 				if (M_re_eq(re, line)) {
@@ -315,6 +321,10 @@ static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 		}
 		if (M_str_eq(key, "DATA_ACK")) {
 			emu->DATA_ACK_str = M_json_object_value_string(emu->json, key);
+			continue;
+		}
+		if (M_str_eq(key, "DIGEST-MD5")) {
+			emu->DIGEST_MD5_str = M_json_object_value_string(emu->json, key);
 			continue;
 		}
 		re = M_re_compile(key, M_RE_UNGREEDY);
@@ -462,7 +472,7 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			return M_TRUE; /* Remove endpoint */
 		}
 	}
-	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5) {
+	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == TIMEOUTS) {
@@ -523,7 +533,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
-	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5) {
+	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
 		M_event_done(args->el);
 	}
 
@@ -1258,6 +1268,44 @@ START_TEST(emu_accept_disconnect)
 }
 END_TEST
 
+START_TEST(auth_digest_md5)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "auth_digest_md5", &testport, AUTH_DIGEST_MD5);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	args.test_id = AUTH_DIGEST_MD5;
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, 500);
+
+	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
+	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
+	M_library_cleanup();
+}
+END_TEST
+
 START_TEST(auth_cram_md5)
 {
 	M_uint16         testport;
@@ -1598,6 +1646,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 23
 	tc = tcase_create("auth cram md5");
 	tcase_add_test(tc, auth_cram_md5);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*AUTH_DIGEST_MD5         = 24, */
+#if TESTONLY == 0 || TESTONLY == 24
+	tc = tcase_create("auth digest md5");
+	tcase_add_test(tc, auth_digest_md5);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
