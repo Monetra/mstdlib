@@ -15,6 +15,17 @@ const char * json_str = \
 		"\"DATA\\r\\n\": \"354 \\r\\n\"," \
 		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
 	"}," \
+	"\"auth_cram_md5\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH CRAM-MD5\\r\\n\"," \
+		"\"MAIL FROM:<[^>]*>\\r\\n\": \"250 \\r\\n\"," \
+		"\"AUTH CRAM-MD5[^\\r]*\\r\\n\": \"334 PDA0NjQ1NDA4NzU3ODk5OTEuMTY1NDc5OTM4NEBha2lzdGxlci5wMTBqYXgub2ZmaWNlLm1vbmV0cmEuY29tPg==\\r\\n\"," \
+		"\"dXNlciAzMjEwMGVlYzdhMzJiNDNlNWE1NzQ3NjY4NTc2ODQ5MQ[^\\r]*\\r\\n\": \"235 \\r\\n\"," \
+		"\"RCPT TO:<[^>]*>\\r\\n\": \"250 \\r\\n\"," \
+		"\"DATA\\r\\n\": \"354 \\r\\n\"," \
+		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
+	"}," \
 	"\"auth_plain\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \
