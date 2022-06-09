@@ -177,6 +177,7 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	line = M_list_str_last(session->tcp.smtp_response);
+	session->tcp.auth_login_response_count++;
 
 	if (session->tcp.auth_login_response_count < 3 && !M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
