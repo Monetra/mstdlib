@@ -15,6 +15,17 @@ const char * json_str = \
 		"\"DATA\\r\\n\": \"354 \\r\\n\"," \
 		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
 	"}," \
+	"\"starttls\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 STARTTLS\\r\\n\"," \
+		"\"STARTTLS\\r\\n\": \"220 \\r\\n\"," \
+		"\"MAIL FROM:<[^>]*>\\r\\n\": \"250 \\r\\n\"," \
+		"\"AUTH[^\\r]*\\r\\n\": \"503 \\r\\n\"," \
+		"\"RCPT TO:<[^>]*>\\r\\n\": \"250 \\r\\n\"," \
+		"\"DATA\\r\\n\": \"354 \\r\\n\"," \
+		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
+	"}," \
 	"\"auth_digest_md5\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \

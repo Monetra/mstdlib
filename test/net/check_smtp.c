@@ -6,16 +6,20 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
+#include <mstdlib/io/m_io_layer.h>
+
+#include "../../io/m_io_int.h"
 
 #define DEBUG 0
 
 /* globals */
-M_json_node_t *check_smtp_json          = NULL;
-char          *test_address             = NULL;
-char          *sendmail_emu             = NULL;
-M_list_str_t  *test_external_queue      = NULL;
-const size_t   multithread_insert_count = 100;
-const size_t   multithread_retry_count  = 100;
+M_json_node_t     *check_smtp_json          = NULL;
+char              *test_address             = NULL;
+char              *sendmail_emu             = NULL;
+M_list_str_t      *test_external_queue      = NULL;
+M_tls_serverctx_t *test_serverctx           = NULL;
+const size_t       multithread_insert_count = 100;
+const size_t       multithread_retry_count  = 100;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -42,9 +46,20 @@ typedef enum {
 	AUTH_PLAIN              = 22,
 	AUTH_CRAM_MD5           = 23,
 	AUTH_DIGEST_MD5         = 24,
+	STARTTLS                = 25,
+	IMPLICIT_TLS            = 26,
 } test_id_t;
 
 #define TESTONLY 0
+
+static void cleanup(void)
+{
+	M_json_node_destroy(check_smtp_json);
+	M_free(test_address);
+	M_free(sendmail_emu);
+	M_tls_serverctx_destroy(test_serverctx);
+	M_library_cleanup();
+}
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -97,25 +112,28 @@ typedef enum {
 } tls_types_t;
 
 typedef struct {
-	tls_types_t    tls_type;
-	M_uint16       port;
-	M_json_node_t *json;
-	M_list_str_t  *json_keys;
-	M_list_str_t  *json_values;
-	M_list_t      *regexs;
-	M_event_t     *el;
-	M_io_t        *io_listen;
-	test_id_t      test_id;
-	M_io_t        *stall_io;
-	const char    *CONNECTED_str;
-	const char    *DATA_ACK_str;
-	const char    *DIGEST_MD5_str;
+	tls_types_t        tls_type;
+	M_tls_serverctx_t *serverctx;
+	M_uint16           port;
+	M_json_node_t     *json;
+	M_list_str_t      *json_keys;
+	M_list_str_t      *json_values;
+	M_list_t          *regexs;
+	M_event_t         *el;
+	M_io_t            *io_listen;
+	M_io_t            *starttls_io;
+	test_id_t          test_id;
+	M_io_t            *stall_io;
+	const char        *CONNECTED_str;
+	const char        *DATA_ACK_str;
+	const char        *DIGEST_MD5_str;
 	struct {
 		M_io_t     *io;
 		M_buf_t    *out_buf;
 		M_parser_t *in_parser;
 		M_bool      is_data_mode;
 		M_bool      is_QUIT;
+		M_bool      is_STARTTLS;
 	} conn[16];
 } smtp_emulator_t;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -133,7 +151,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	M_io_t         **emu_io       = NULL;
 	M_bool          *is_data_mode = NULL;
 	M_bool          *is_QUIT      = NULL;
+	M_bool          *is_STARTTLS  = NULL;
 	M_io_error_t     ioerr;
+	static int       error_count  = 0;
 	(void)el;
 
 	if (emu->test_id == TIMEOUT_CONNECT && etype == M_EVENT_TYPE_ACCEPT) 
@@ -176,6 +196,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			in_parser = emu->conn[i].in_parser;
 			out_buf = emu->conn[i].out_buf;
 			is_QUIT = &emu->conn[i].is_QUIT;
+			is_STARTTLS = &emu->conn[i].is_STARTTLS;
 			is_data_mode = &emu->conn[i].is_data_mode;
 		}
 	}
@@ -194,6 +215,11 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(in_parser),
 						M_parser_len(in_parser), (const char *)M_parser_peek(in_parser));
 #endif
+			} else {
+				error_count++;
+				if (error_count >= 10) {
+					exit(0);
+				}
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
@@ -212,6 +238,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				return;
 			}
 		case M_EVENT_TYPE_ERROR:
+			error_count++;
+			if (error_count >= 10) {
+				exit(0);
+			}
 		case M_EVENT_TYPE_OTHER:
 			break;
 		case M_EVENT_TYPE_ACCEPT:
@@ -234,6 +264,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 		} else {
 			if (M_str_eq(line, "DATA\r\n")) {
 				*is_data_mode = M_TRUE;
+			}
+			if (M_str_eq(line, "STARTTLS\r\n")) {
+				*is_STARTTLS = M_TRUE;
 			}
 			if (M_str_eq(line, "QUIT\r\n")) {
 				*is_QUIT = M_TRUE;
@@ -291,6 +324,16 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			*is_QUIT = M_FALSE;
 			return;
 		}
+		if (*is_STARTTLS) {
+			//M_io_tls_server_add(io, emu->serverctx, NULL);
+			M_io_layer_t *layer;
+			layer = M_io_layer_acquire(emu->starttls_io, 1, "TLS");
+			M_printf("%p layer->cb: %p\n", layer, &layer->cb);
+			layer->cb.cb_accept(io, layer);
+			M_printf("state: %d\n", layer->cb.cb_state(layer));
+			M_io_layer_release(layer);
+			*is_STARTTLS = M_FALSE;
+		}
 	}
 
 }
@@ -333,24 +376,44 @@ static void smtp_emulator_switch(smtp_emulator_t *emu, const char *json_name)
 	}
 }
 
-static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type, const char *json_name,
-		M_uint16 *testport, test_id_t test_id)
+static M_io_t *net_server_create_search(M_uint16 *port)
+{
+	M_io_error_t  ioerr;
+	M_io_t       *io;
+	while ((ioerr = M_io_net_server_create(&io, *port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		event_debug("Port %d in use, switching to new port %d", (int)*port, (int)newport);
+		*port = newport;
+	}
+	return io;
+}
+
+static smtp_emulator_t *smtp_emulator_create_tls(M_event_t *el, tls_types_t tls_type, const char *json_name,
+		M_uint16 *testport, test_id_t test_id, M_tls_serverctx_t *serverctx)
 {
 	smtp_emulator_t *emu      = M_malloc_zero(sizeof(*emu));
 	M_uint16         port     = (M_uint16)M_rand_range(NULL, 10000, 50000);
-	M_io_error_t     ioerr;
 
 	emu->el = el;
+	M_tls_serverctx_upref(serverctx);
+	emu->serverctx = serverctx;
 	emu->test_id = test_id;
 	emu->tls_type = tls_type;
 	smtp_emulator_switch(emu, json_name);
-	while ((ioerr = M_io_net_server_create(&emu->io_listen, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
+	emu->io_listen = net_server_create_search(&port);
 	emu->port = port;
 	*testport = port;
+	if (emu->tls_type == TLS_TYPE_IMPLICIT) {
+		M_io_layer_t *layer;
+		M_io_tls_server_add(emu->io_listen, emu->serverctx, NULL);
+		layer = M_io_layer_acquire(emu->io_listen, 1, "TLS");
+		M_printf("state: %d\n", layer->cb.cb_state(layer));
+	}
+	if (emu->tls_type == TLS_TYPE_STARTTLS) {
+		M_uint16 tmp_port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		emu->starttls_io = net_server_create_search(&tmp_port);
+		M_io_tls_server_add(emu->starttls_io, emu->serverctx, NULL);
+	}
 	M_event_add(emu->el, emu->io_listen, smtp_emulator_io_cb, emu);
 
 	for (size_t i = 0; i < ARRAY_LEN(emu->conn); i++) {
@@ -363,6 +426,12 @@ static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type
 	return emu;
 }
 
+static smtp_emulator_t *smtp_emulator_create(M_event_t *el, tls_types_t tls_type, const char *json_name,
+		M_uint16 *testport, test_id_t test_id)
+{
+	return smtp_emulator_create_tls(el, tls_type, json_name, testport, test_id, NULL);
+}
+
 static void smtp_emulator_destroy(smtp_emulator_t *emu)
 {
 	M_re_t *re;
@@ -370,6 +439,7 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 		M_re_destroy(re);
 	}
 	M_list_destroy(emu->regexs, M_FALSE);
+	M_tls_serverctx_destroy(emu->serverctx);
 	M_list_str_destroy(emu->json_values);
 	M_list_str_destroy(emu->json_keys);
 	M_io_destroy(emu->io_listen);
@@ -533,7 +603,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
-	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
+	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
 		M_event_done(args->el);
 	}
 
@@ -710,10 +780,7 @@ START_TEST(multithread_retry)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -765,10 +832,7 @@ START_TEST(multithread_insert)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(dump_queue)
@@ -794,10 +858,7 @@ START_TEST(dump_queue)
 	M_list_str_destroy(list);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(junk_msg)
@@ -821,10 +882,7 @@ START_TEST(junk_msg)
 
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(external_queue)
@@ -858,10 +916,7 @@ START_TEST(external_queue)
 	M_event_destroy(el);
 	M_list_str_destroy(test_external_queue);
 	test_external_queue = NULL;
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -891,10 +946,7 @@ START_TEST(halt_restart)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -924,10 +976,7 @@ START_TEST(proc_not_found)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(dot_msg)
@@ -977,10 +1026,7 @@ START_TEST(dot_msg)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	/* M_list_str_destroy(cmd_args); */
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(proc_endpoint)
@@ -1017,10 +1063,7 @@ START_TEST(proc_endpoint)
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	M_list_str_destroy(cmd_args);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 START_TEST(status)
@@ -1060,10 +1103,7 @@ START_TEST(status)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1113,10 +1153,7 @@ START_TEST(timeouts)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1152,10 +1189,7 @@ START_TEST(tls_unsupporting_server)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1188,10 +1222,7 @@ START_TEST(no_server)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1226,10 +1257,7 @@ START_TEST(iocreate_return_false)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1261,10 +1289,7 @@ START_TEST(emu_accept_disconnect)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1299,10 +1324,7 @@ START_TEST(auth_digest_md5)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1337,10 +1359,7 @@ START_TEST(auth_cram_md5)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1375,10 +1394,7 @@ START_TEST(auth_plain)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1414,10 +1430,86 @@ START_TEST(auth_login)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
+}
+END_TEST
+
+START_TEST(starttls)
+{
+	M_uint16           testport;
+	args_t             args       = { 0 };
+	M_event_t         *el         = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu        = smtp_emulator_create_tls(el, TLS_TYPE_STARTTLS, "starttls", &testport, STARTTLS, test_serverctx);
+	M_net_smtp_t      *sp         = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t           *dns        = M_dns_create(el);
+	M_email_t         *e          = generate_email(1, test_address);
+	M_tls_clientctx_t *ctx        = M_tls_clientctx_create();
+
+	args.test_id = STARTTLS;
+	M_tls_clientctx_set_default_trust(ctx);
+	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
+	M_tls_clientctx_destroy(ctx);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_TRUE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
+	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
+START_TEST(implicit_tls)
+{
+	M_uint16           testport;
+	args_t             args     = { 0 };
+	M_event_t         *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t   *emu      = smtp_emulator_create_tls(el, TLS_TYPE_IMPLICIT, "minimal", &testport, IMPLICIT_TLS, test_serverctx);
+	M_net_smtp_t      *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t           *dns      = M_dns_create(el);
+	M_email_t         *e        = generate_email(1, test_address);
+	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
+
+	args.test_id = IMPLICIT_TLS;
+	M_tls_clientctx_set_default_trust(ctx);
+	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
+	M_tls_clientctx_destroy(ctx);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_TRUE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
+	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
 }
 END_TEST
 
@@ -1456,10 +1548,7 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1475,10 +1564,7 @@ START_TEST(check_no_endpoints)
 	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-	M_library_cleanup();
+	cleanup();
 }
 END_TEST
 
@@ -1658,7 +1744,77 @@ static Suite *smtp_suite(void)
 	suite_add_tcase(suite, tc);
 #endif
 
+/*STARTTLS                = 25, */
+#if TESTONLY == 0 || TESTONLY == 25
+	/*
+	tc = tcase_create("starttls");
+	tcase_add_test(tc, starttls);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+	*/
+#endif
+
+/*IMPLICIT_TLS            = 26, */
+#if TESTONLY == 0 || TESTONLY == 26
+	tc = tcase_create("implicit_tls");
+	tcase_add_test(tc, implicit_tls);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
 	return suite;
+}
+
+static M_tls_serverctx_t *self_signed_serverctx(void)
+{
+	char               *realcert;
+	char               *realkey;
+	M_tls_x509_t       *x509;
+	M_tls_serverctx_t  *serverctx;
+	/* Generate real cert */
+	realkey = M_tls_rsa_generate_key(2048);
+	if (realkey == NULL) {
+		event_debug("failed to generate RSA private key");
+		return NULL;
+	}
+	x509 = M_tls_x509_new(realkey);
+	if (x509 == NULL) {
+		event_debug("failed to generate X509 cert");
+		return NULL;
+	}
+	if (!M_tls_x509_txt_add(x509, M_TLS_X509_TXT_COMMONNAME, "localhost", M_FALSE)) {
+		event_debug("failed to add common name");
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_DNS, "localhost", M_TRUE)) {
+		event_debug("failed to add subjectaltname1");
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_DNS, "localhost.localdomain", M_TRUE)) {
+		event_debug("failed to add subjectaltname2");
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_IP, "127.0.0.1", M_TRUE)) {
+		event_debug("failed to add subjectaltname3");
+		return NULL;
+	}
+	if (!M_tls_x509_txt_SAN_add(x509, M_TLS_X509_SAN_TYPE_IP, "::1", M_TRUE)) {
+		event_debug("failed to add subjectaltname4");
+		return NULL;
+	}
+
+	realcert = M_tls_x509_selfsign(x509, 365 * 24 * 60 * 60 /* 1 year */);
+	if (realcert == NULL) {
+		event_debug("failed to self-sign");
+		return NULL;
+	}
+	M_tls_x509_destroy(x509);
+//M_printf("PrivateKey: %s\n", key);
+	event_debug("ServerCert: %s\n", realcert);
+	serverctx = M_tls_serverctx_create((const M_uint8 *)realkey, M_str_len(realkey), (const M_uint8 *)realcert, M_str_len(realcert), NULL, 0);
+	M_free(realkey);
+	M_free(realcert);
+	return serverctx;
 }
 
 int main(int argc, char **argv)
@@ -1683,6 +1839,8 @@ int main(int argc, char **argv)
 	M_snprintf(sendmail_emu, len + 1, "%s/sendmail_emu", dirname);
 	M_free(dirname);
 
+	test_serverctx = self_signed_serverctx();
+
 	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
 
 	sr = srunner_create(smtp_suite());
@@ -1692,11 +1850,7 @@ int main(int argc, char **argv)
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
-	M_json_node_destroy(check_smtp_json);
-	M_free(test_address);
-	M_free(sendmail_emu);
-
-	M_library_cleanup();
+	cleanup();
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
