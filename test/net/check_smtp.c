@@ -48,6 +48,7 @@ typedef enum {
 	AUTH_DIGEST_MD5         = 24,
 	STARTTLS                = 25,
 	IMPLICIT_TLS            = 26,
+	DUMMY_CHECKS            = 27,
 } test_id_t;
 
 #define TESTONLY 0
@@ -139,6 +140,12 @@ typedef struct {
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static void smtp_emulator_starttls_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	smtp_emulator_t *emu          = thunk;
+	event_debug("smtp emulator starttls io:%p event %s triggered", io, event_type_str(etype));
+}
+
 static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	smtp_emulator_t *emu          = thunk;
@@ -154,6 +161,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	M_bool          *is_STARTTLS  = NULL;
 	M_io_error_t     ioerr;
 	static int       error_count  = 0;
+	char             errmsg[256];
 	(void)el;
 
 	if (emu->test_id == TIMEOUT_CONNECT && etype == M_EVENT_TYPE_ACCEPT) 
@@ -238,6 +246,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				return;
 			}
 		case M_EVENT_TYPE_ERROR:
+			M_io_get_error_string(io, errmsg, sizeof(errmsg));
+			M_printf("%s", errmsg);
 			error_count++;
 			if (error_count >= 10) {
 				exit(0);
@@ -413,6 +423,7 @@ static smtp_emulator_t *smtp_emulator_create_tls(M_event_t *el, tls_types_t tls_
 		M_uint16 tmp_port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 		emu->starttls_io = net_server_create_search(&tmp_port);
 		M_io_tls_server_add(emu->starttls_io, emu->serverctx, NULL);
+		M_event_add(emu->el, emu->starttls_io, smtp_emulator_starttls_io_cb, emu);
 	}
 	M_event_add(emu->el, emu->io_listen, smtp_emulator_io_cb, emu);
 
@@ -1570,6 +1581,52 @@ START_TEST(check_no_endpoints)
 }
 END_TEST
 
+START_TEST(dummy_checks)
+{
+
+	args_t             args = { 0 };
+	M_event_t         *el   = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp   = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e    = generate_email(1, test_address);
+	M_dns_t           *dns  = M_dns_create(el);
+	M_tls_clientctx_t *ctx  = M_tls_clientctx_create();
+
+	args.test_id = DUMMY_CHECKS;
+
+	M_net_smtp_external_queue_have_messages(NULL);
+	ck_assert_msg(M_net_smtp_use_external_queue(NULL, test_external_queue_get_cb) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_use_external_queue(sp, NULL) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_queue_message(NULL, "junk") == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_queue_message(sp, NULL) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_dump_queue(NULL) == NULL, "should fail");
+	ck_assert_msg(M_net_smtp_queue_smtp(NULL, e) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_queue_smtp(sp, NULL) == M_FALSE, "should fail");
+	M_net_smtp_set_num_attempts(NULL, 1);
+	ck_assert_msg(M_net_smtp_load_balance(NULL, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(NULL, sendmail_emu, NULL, NULL, 100, 2) == M_FALSE, "should fail");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, NULL, NULL, NULL, 100, 2) == M_FALSE, "should fail");
+	M_net_smtp_setup_tcp_timeouts(NULL, 1, 2, 3);
+	M_net_smtp_setup_tcp(NULL, dns, ctx);
+	ck_assert_msg(M_net_smtp_status(NULL) == M_NET_SMTP_STATUS_NOENDPOINTS, "should fail");
+	ck_assert_msg(M_net_smtp_resume(NULL) == M_FALSE, "should fail");
+	M_net_smtp_pause(NULL);
+	M_net_smtp_destroy(NULL);
+	ck_assert_msg(M_net_smtp_create(NULL, NULL, NULL) == NULL, "should fail");
+
+	ck_assert_msg(M_net_smtp_use_external_queue(sp, test_external_queue_get_cb) == M_TRUE, "should work");
+	/* should only work on internal */
+	ck_assert_msg(M_net_smtp_queue_smtp(sp, e) == M_FALSE, "should fail");
+	M_net_smtp_set_num_attempts(sp, 3);
+
+	M_tls_clientctx_destroy(ctx);
+	M_dns_destroy(dns);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *smtp_suite(void)
@@ -1760,6 +1817,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 26
 	tc = tcase_create("implicit_tls");
 	tcase_add_test(tc, implicit_tls);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*IMPLICIT_TLS            = 27, */
+#if TESTONLY == 0 || TESTONLY == 27
+	tc = tcase_create("dummy checks");
+	tcase_add_test(tc, dummy_checks);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
