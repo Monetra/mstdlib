@@ -84,7 +84,8 @@ typedef struct {
 			M_io_t                 *io_stdout;
 			M_io_t                 *io_stderr;
 			int                     result_code;
-			const char             *next_write_chunk;
+			const char             *msg;
+			size_t                  len;
 		} process;
 	};
 } M_net_smtp_session_t;

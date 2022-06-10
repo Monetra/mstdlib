@@ -46,7 +46,8 @@ static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
 
-	session->process.next_write_chunk = session->msg;
+	session->process.msg = session->msg;
+	session->process.len = M_str_len(session->msg);
 
 	*next = STATE_WRITE_CHUNK;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -55,22 +56,27 @@ static M_state_machine_status_t M_state_write_start(void *data, M_uint64 *next)
 
 static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 {
-	const char           *next_chunk = NULL;
 	M_net_smtp_session_t *session    = data;
-	size_t                chunk_len  = 0;
+	size_t                len        = 0;
+	M_parser_t           *parser     = NULL;
+
+	parser = M_parser_create_const((unsigned char *)session->process.msg, session->process.len, M_PARSER_SPLIT_FLAG_NONE);
 
 	/* This is used to detect if the command quits early.
-		* sendmail will if -i isn't specified */
-	next_chunk = M_str_str(session->process.next_write_chunk, "\r\n.\r\n");
-	if (next_chunk == NULL) {
-		M_buf_add_str(session->out_buf, session->process.next_write_chunk);
+	 * sendmail will if -i isn't specified */
+
+	len = M_parser_consume_until(parser, (unsigned char *)"\r\n.\r\n", 5, M_TRUE);
+	M_parser_destroy(parser);
+
+	if (len == 0) {
+		M_buf_add_str(session->out_buf, session->process.msg);
 		*next = STATE_WRITE_FINISH;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
-	next_chunk = &next_chunk[5];
-	chunk_len = (size_t)(next_chunk - session->process.next_write_chunk);
-	M_buf_add_str_max(session->out_buf, session->process.next_write_chunk, chunk_len);
-	session->process.next_write_chunk = next_chunk;
+
+	M_buf_add_str_max(session->out_buf, session->process.msg, len);
+	session->process.msg += len;
+	session->process.len -= len;
 	*next = STATE_WRITE_CHUNK_WAIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
 
