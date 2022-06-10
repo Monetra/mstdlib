@@ -43,7 +43,7 @@ static M_state_machine_status_t M_starttls_response_post_cb(void *data,
 	M_net_smtp_session_t     *session        = data;
 	(void)next;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))

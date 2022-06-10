@@ -439,7 +439,9 @@ static void smtp_emulator_destroy(smtp_emulator_t *emu)
 		M_re_destroy(re);
 	}
 	M_list_destroy(emu->regexs, M_FALSE);
-	M_tls_serverctx_destroy(emu->serverctx);
+	if (emu->serverctx) {
+		M_tls_serverctx_destroy(emu->serverctx);
+	}
 	M_list_str_destroy(emu->json_values);
 	M_list_str_destroy(emu->json_keys);
 	M_io_destroy(emu->io_listen);

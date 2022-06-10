@@ -130,7 +130,7 @@ static M_list_str_t *json_array_to_list_str(M_json_node_t *node)
 {
 	M_list_str_t *list = M_list_str_create(M_LIST_STR_NONE);
 	size_t        i;
-	for (i = 0; i < M_json_array_len(node); i++) {
+	for (i=0; i<M_json_array_len(node); i++) {
 		M_list_str_insert(list, M_json_array_at_string(node, i));
 	}
 	return list;
@@ -142,7 +142,7 @@ static M_hash_dict_t *json_object_to_hash_dict(M_json_node_t *node)
 	M_list_str_t  *keys;
 	size_t         i;
 	keys = M_json_object_keys(node);
-	for (i = 0; i < M_list_str_len(keys); i++) {
+	for (i=0; i<M_list_str_len(keys); i++) {
 		const char *key = M_list_str_at(keys, i);
 		const char *value = M_json_object_value_string(node, key);
 		M_hash_dict_insert(h, key, value);
@@ -245,7 +245,7 @@ int run(prag_t *prag)
 	sp = M_net_smtp_create(prag->el, &cbs, prag);
 	M_net_smtp_setup_tcp_timeouts(sp, 300000, 300000, 300000);
 
-	for (i = 0; i < M_list_len(prag->endpoints); i++) {
+	for (i=0; i<M_list_len(prag->endpoints); i++) {
 		if (!add_endpoint(sp, prag, M_list_at(prag->endpoints, i))) {
 			M_printf("Error: %s\n", prag->errmsg);
 			rc = 1;
@@ -253,7 +253,7 @@ int run(prag_t *prag)
 		}
 	}
 
-	for (i = 0; i < prag->num_to_generate; i++) {
+	for (i=0; i<prag->num_to_generate; i++) {
 		M_email_t *e = generate_email(i, prag->to_address);
 		if (prag->is_show_only) {
 			char *msg = M_email_simple_write(e);
@@ -423,7 +423,7 @@ static void destroy_prag(prag_t *prag)
 	size_t         len  = M_list_len(prag->endpoints);
 	size_t         i;
 
-	for (i = 0; i < len; i++) {
+	for (i=0; i<len; i++) {
 		json = M_list_take_first(prag->endpoints);
 		M_json_node_destroy(json);
 	}

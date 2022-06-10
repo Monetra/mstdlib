@@ -110,7 +110,7 @@ static M_state_machine_status_t M_auth_final_response_post_cb(void *data, M_stat
 	M_net_smtp_session_t     *session        = data;
 	(void)next;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 235))
@@ -173,7 +173,7 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 	const char               *line           = NULL;
 	(void)next;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	line = M_list_str_last(session->tcp.smtp_response);
@@ -223,7 +223,7 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	const char               *line;
 	unsigned char             d[16]; /* digest */
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
@@ -265,8 +265,11 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static void RFC2831_HEX(unsigned char b[16], char s[33])
+static void RFC2831_HEX(unsigned char *b, size_t b_len, char *s, size_t s_len)
 {
+	if (b_len != 16 || s_len != 33)
+		return;
+
 	M_snprintf(s, 33, /* sizeof(s) == sizeof(void*) */
 		"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 		b[0], b[1], b[2] , b[3] , b[4] , b[5] , b[6] , b[7],
@@ -274,9 +277,13 @@ static void RFC2831_HEX(unsigned char b[16], char s[33])
 	);
 }
 
-static void RFC2831_H(char *s, size_t len, unsigned char b[16])
+static void RFC2831_H(char *s, size_t len, unsigned char *b, size_t b_len)
 {
 	unsigned int mdlen = 16;
+
+	if (b_len != 16)
+		return;
+
 	EVP_Digest(s, len, b, &mdlen, EVP_md5(), NULL);
 }
 
@@ -303,16 +310,19 @@ typedef struct {
 	const char *authzid;
 } digest_md5_parameters_t;
 
-static void digest_md5_compute_HA1(digest_md5_parameters_t *parameters, unsigned char HA1[16])
+static void digest_md5_compute_HA1(digest_md5_parameters_t *parameters, unsigned char *HA1, size_t HA1_len)
 {
 	M_buf_t *buf   = NULL;
 	char    *str   = NULL;
 	size_t   len;
 
+	if (HA1_len != 16)
+		return;
+
 	buf = M_buf_create();
 	M_bprintf(buf, "%s:%s:%s", parameters->username, parameters->realm, parameters->password);
 	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA1);
+	RFC2831_H(str, len, HA1, HA1_len);
 	M_free(str);
 
 	buf = M_buf_create();
@@ -322,15 +332,18 @@ static void digest_md5_compute_HA1(digest_md5_parameters_t *parameters, unsigned
 		M_bprintf(buf, ":%s", parameters->authzid);
 	}
 	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA1);
+	RFC2831_H(str, len, HA1, HA1_len);
 	M_free(str);
 }
 
-static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned char HA2[16])
+static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned char *HA2, size_t HA2_len)
 {
 	M_buf_t *buf   = NULL;
 	char    *str   = NULL;
 	size_t   len;
+
+	if (HA2_len != 16)
+		return;
 
 	buf = M_buf_create();
 	M_bprintf(buf, "%s:%s", parameters->method, parameters->digest_uri);
@@ -341,11 +354,11 @@ static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned
 		 M_bprintf(buf, ":%s", parameters->H_entity_body);
 	}
 	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA2);
+	RFC2831_H(str, len, HA2, HA2_len);
 	M_free(str);
 }
 
-static void digest_md5_compute_response(digest_md5_parameters_t *parameters, char response[32])
+static void digest_md5_compute_response(digest_md5_parameters_t *parameters, char* response, size_t response_len)
 {
 	M_buf_t       *buf             = NULL;
 	char          *str             = NULL;
@@ -355,12 +368,15 @@ static void digest_md5_compute_response(digest_md5_parameters_t *parameters, cha
 	unsigned char  HFINAL[16]      = { 0 };
 	size_t         len;
 
-	digest_md5_compute_HA1(parameters, HA1);
-	digest_md5_compute_HA2(parameters, HA2);
+	if (response_len != 33)
+		return;
+
+	digest_md5_compute_HA1(parameters, HA1, sizeof(HA1));
+	digest_md5_compute_HA2(parameters, HA2, sizeof(HA2));
 
 	buf = M_buf_create();
 
-	for (i = 0; i < 16; i++) {
+	for (i=0; i<16; i++) {
 		M_buf_add_bytehex(buf, HA1[i], M_FALSE);
 	}
 
@@ -369,15 +385,15 @@ static void digest_md5_compute_response(digest_md5_parameters_t *parameters, cha
 		M_bprintf(buf, "%s:%s:%s:", parameters->nonce_count, parameters->cnonce, parameters->qop);
 	}
 
-	for (i = 0; i < 16; i++) {
+	for (i=0; i<16; i++) {
 		M_buf_add_bytehex(buf, HA2[i], M_FALSE);
 	}
 
 	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HFINAL);
+	RFC2831_H(str, len, HFINAL, sizeof(HFINAL));
 	M_free(str);
 
-	RFC2831_HEX(HFINAL, response);
+	RFC2831_HEX(HFINAL, sizeof(HFINAL), response, response_len);
 }
 
 static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *data,
@@ -399,22 +415,23 @@ static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *d
 	digest_md5_parameters_t   parameters       = { 0 };
 	size_t                    len;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		goto done;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 334))
 		goto done;
 
 	line = M_list_str_last(session->tcp.smtp_response);
-	if (
-		!(parameters_str  = (char *)M_bincodec_decode_alloc(line, M_str_len(line), &len, M_BINCODEC_BASE64)) ||
-		!(parameters_dict = M_hash_dict_deserialize(parameters_str, len, ',', '=', '"', '\\', M_HASH_DICT_NONE))
-	) {
-		session->tcp.is_connect_fail = M_TRUE;
-		session->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
-		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to decode digest-md5 parameters: %s", line);
-		goto done;
-	}
+
+	parameters_str = (char *)M_bincodec_decode_alloc(line, M_str_len(line), &len, M_BINCODEC_BASE64);
+
+	if (parameters_str == NULL)
+		goto fail_to_decode_parameters;
+
+	parameters_dict = M_hash_dict_deserialize(parameters_str, len, ',', '=', '"', '\\', M_HASH_DICT_NONE);
+
+	if (parameters_dict == NULL)
+		goto fail_to_decode_parameters;
 
 	parameters.username = session->ep->tcp.username;
 	//parameters.username = "user";
@@ -425,7 +442,7 @@ static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *d
 	M_hash_dict_get(parameters_dict, "qop", &parameters.qop);
 	M_hash_dict_get(parameters_dict, "authzid", &parameters.authzid);
 	RAND_bytes(cnonce_bytes, sizeof(cnonce_bytes));
-	RFC2831_HEX(cnonce_bytes, cnonce);
+	RFC2831_HEX(cnonce_bytes, sizeof(cnonce_bytes), cnonce, sizeof(cnonce));
 	parameters.cnonce = cnonce;
 	parameters.nonce_count = "00000001"; /* Always - we will terminate if it doesn't work */
 	parameters.method = "AUTHENTICATE"; /* Always */
@@ -435,7 +452,7 @@ static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *d
 	M_snprintf(digest_uri, digest_uri_size, "smtp/%s", parameters.realm);
 	parameters.digest_uri = digest_uri;
 
-	digest_md5_compute_response(&parameters, response);
+	digest_md5_compute_response(&parameters, response, sizeof(response));
 
 	M_hash_dict_remove(parameters_dict, "algorithm");
 	M_hash_dict_insert(parameters_dict, "username", parameters.username);
@@ -460,6 +477,11 @@ done:
 	M_free(parameters_str);
 	M_hash_dict_destroy(parameters_dict);
 	return machine_status;
+fail_to_decode_parameters:
+	session->tcp.is_connect_fail = M_TRUE;
+	session->tcp.net_error = M_NET_ERROR_AUTHENTICATION;
+	M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to decode digest-md5 parameters: %s", line);
+	goto done;
 }
 
 static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *data,
@@ -467,7 +489,7 @@ static M_state_machine_status_t M_auth_digest_md5_ack_response_post_cb(void *dat
 {
 	M_net_smtp_session_t *session = data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	/*

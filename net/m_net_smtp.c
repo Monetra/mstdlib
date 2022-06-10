@@ -86,7 +86,7 @@ M_bool M_net_smtp_is_all_endpoints_removed(const M_net_smtp_t *sp)
 	M_bool is_all_endpoints_removed = M_TRUE;
 	size_t i;
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+	for (i=0; i<M_list_len(sp->endpoints); i++) {
 		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (!ep->is_removed) {
 			is_all_endpoints_removed = M_FALSE;
@@ -102,7 +102,7 @@ M_bool M_net_smtp_is_all_endpoints_idle(M_net_smtp_t *sp)
 	M_bool is_all_endpoints_idle = M_TRUE;
 	size_t i;
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	for (i = 0; i < M_list_len(sp->endpoints); i++) {
+	for (i=0; i<M_list_len(sp->endpoints); i++) {
 		if (M_net_smtp_endpoint_is_idle(M_list_at(sp->endpoints, i)) == M_FALSE) {
 			is_all_endpoints_idle =  M_FALSE;
 			break;
@@ -120,20 +120,19 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint_acquire(M_net_smtp_t *sp)
 	M_thread_mutex_lock(sp->endpoints_mutex);
 	switch (sp->load_balance_mode) {
 		case M_NET_SMTP_LOAD_BALANCE_FAILOVER:
-			for (i = 0; i < M_list_len(sp->endpoints); i++) {
+			for (i=0; i<M_list_len(sp->endpoints); i++) {
 				ep = M_list_at(sp->endpoints, i);
 				if (ep->is_removed)
 					continue;
 				if (M_net_smtp_endpoint_is_available(ep)) {
 					return ep;
-				} else {
-					M_thread_mutex_unlock(sp->endpoints_mutex);
-					return NULL;
 				}
+				M_thread_mutex_unlock(sp->endpoints_mutex);
+				return NULL;
 			}
 			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:
-			for (i = 0; i < M_list_len(sp->endpoints); i++) {
+			for (i=0; i<M_list_len(sp->endpoints); i++) {
 				idx = (sp->round_robin_idx + i + 1) % M_list_len(sp->endpoints);
 				ep = M_list_at(sp->endpoints, idx);
 				if (ep->is_removed)
@@ -143,8 +142,6 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint_acquire(M_net_smtp_t *sp)
 						sp->round_robin_idx = idx;
 					}
 					return ep;
-				} else {
-					continue;
 				}
 			}
 			break;
@@ -161,10 +158,10 @@ void M_net_smtp_endpoint_release(M_net_smtp_t *sp)
 void M_net_smtp_prune_endpoints(M_net_smtp_t *sp)
 {
 	size_t i;
-	for (i = M_list_len(sp->endpoints); i > 0; i--) {
-		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i - 1);
+	for (i=M_list_len(sp->endpoints); i-->0; ) {
+		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (ep->is_removed) {
-			M_net_smtp_endpoint_destroy(M_list_take_at(sp->endpoints, i - 1));
+			M_net_smtp_endpoint_destroy(M_list_take_at(sp->endpoints, i));
 		}
 	}
 }
@@ -215,27 +212,78 @@ void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_s
  * supply a callback we will just use these.
  */
 
-#define x2(return_value) (void)b; (void)a; return return_value;
-#define x3(return_value) (void)c; x2(return_value)
-#define x4(return_value) (void)d; x3(return_value)
-#define x5(return_value) (void)e; x4(return_value)
-#define NP(return_type, name) static return_type nop_##name##_cb
+static void nop_sent_cb(const M_hash_dict_t *a, void * b)
+{
+	(void)a;
+	(void)b;
+}
 
-NP(void    , sent             ) (const M_hash_dict_t *a, void * b) { x2() }
-NP(void    , connect          ) (const char *a, M_uint16 b, void *c) { x3() }
-NP(void    , disconnect       ) (const char *a, M_uint16 b, void *c) { x3() }
-NP(void    , reschedule       ) (const char *a, M_uint64 b, void *c) { x3() }
-NP(M_bool  , connect_fail     ) (const char *a, M_uint16 b, M_net_error_t c, const char *d, void *e) { x5(M_FALSE) }
-NP(M_bool  , process_fail     ) (const char *a, int b, const char *c, const char *d, void *e) { x5(M_FALSE) }
-NP(M_bool  , send_failed      ) (const M_hash_dict_t *a, const char *b, size_t c, M_bool d, void *e) { x5(M_TRUE) }
-NP(M_uint64, processing_halted) (M_bool a, void *b) { x2(0) }
-NP(M_bool  , iocreate         ) (M_io_t *a, char *b, size_t c, void *d) { x4(M_TRUE) }
+static void nop_connect_cb(const char *a, M_uint16 b, void *c)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+}
 
-#undef NP
-#undef x5
-#undef x4
-#undef x3
-#undef x2
+static void nop_disconnect_cb(const char *a, M_uint16 b, void *c)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+}
+
+static void nop_reschedule_cb(const char *a, M_uint64 b, void *c)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+}
+
+static M_bool nop_connect_fail_cb(const char *a, M_uint16 b, M_net_error_t c, const char *d, void *e)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+	(void)d;
+	(void)e;
+	return M_FALSE; /* Don't remove endpoint */
+}
+
+static M_bool nop_process_fail_cb(const char *a, int b, const char *c, const char *d, void *e)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+	(void)d;
+	(void)e;
+	return M_FALSE; /* Don't remove endpoint */
+}
+
+static M_bool nop_send_failed_cb(const M_hash_dict_t *a, const char *b, size_t c, M_bool d, void *e)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+	(void)d;
+	(void)e;
+	return M_TRUE; /* Requeue message */
+}
+
+static M_uint64 nop_processing_halted_cb(M_bool a, void *b)
+{
+	(void)a;
+	(void)b;
+	return 0; /* Don't restart processing */
+}
+
+static M_bool nop_iocreate_cb(M_io_t *a, char *b, size_t c, void *d)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+	(void)d;
+	return M_TRUE; /* Continue */
+}
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -246,30 +294,26 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	if (el == NULL)
 		return NULL;
 
-	sp                        = M_malloc_zero(sizeof(*sp));
-	sp->endpoints             = M_list_create(NULL, M_LIST_NONE);
-	sp->queue                 = M_net_smtp_queue_create(sp, 3, 900000 /* 15min */);
-	sp->status_rwlock         = M_thread_rwlock_create();
-	sp->endpoints_mutex       = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
-
-#define ASSIGN_CB(x) sp->cbs.x = cbs->x ? cbs->x : nop_##x;
-	ASSIGN_CB(connect_cb);
-	ASSIGN_CB(connect_fail_cb);
-	ASSIGN_CB(disconnect_cb);
-	ASSIGN_CB(process_fail_cb);
-	ASSIGN_CB(processing_halted_cb);
-	ASSIGN_CB(sent_cb);
-	ASSIGN_CB(send_failed_cb);
-	ASSIGN_CB(reschedule_cb);
-	ASSIGN_CB(iocreate_cb);
-#undef ASSIGN_CB
-
-	sp->el                     = el;
-	sp->thunk                  = thunk;
-	sp->status                 = M_NET_SMTP_STATUS_NOENDPOINTS;
-	sp->tcp_connect_ms         = 5000;
-	sp->tcp_stall_ms           = 5000;
-	sp->tcp_idle_ms            = 1000;
+	sp                           = M_malloc_zero(sizeof(*sp));
+	sp->endpoints                = M_list_create(NULL, M_LIST_NONE);
+	sp->queue                    = M_net_smtp_queue_create(sp, 3, 900000 /* 15min */);
+	sp->status_rwlock            = M_thread_rwlock_create();
+	sp->endpoints_mutex          = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
+	sp->cbs.connect_cb           = cbs->connect_cb           ? cbs->connect_cb           : nop_connect_cb;
+	sp->cbs.connect_fail_cb      = cbs->connect_fail_cb      ? cbs->connect_fail_cb      : nop_connect_fail_cb;
+	sp->cbs.disconnect_cb        = cbs->disconnect_cb        ? cbs->disconnect_cb        : nop_disconnect_cb;
+	sp->cbs.process_fail_cb      = cbs->process_fail_cb      ? cbs->process_fail_cb      : nop_process_fail_cb;
+	sp->cbs.processing_halted_cb = cbs->processing_halted_cb ? cbs->processing_halted_cb : nop_processing_halted_cb;
+	sp->cbs.sent_cb              = cbs->sent_cb              ? cbs->sent_cb              : nop_sent_cb;
+	sp->cbs.send_failed_cb       = cbs->send_failed_cb       ? cbs->send_failed_cb       : nop_send_failed_cb;
+	sp->cbs.reschedule_cb        = cbs->reschedule_cb        ? cbs->reschedule_cb        : nop_reschedule_cb;
+	sp->cbs.iocreate_cb          = cbs->iocreate_cb          ? cbs->iocreate_cb          : nop_iocreate_cb;
+	sp->el                       = el;
+	sp->thunk                    = thunk;
+	sp->status                   = M_NET_SMTP_STATUS_NOENDPOINTS;
+	sp->tcp_connect_ms           = 5000;
+	sp->tcp_stall_ms             = 5000;
+	sp->tcp_idle_ms              = 1000;
 
 	return sp;
 }
@@ -283,8 +327,10 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	while ((ep = M_list_take_last(sp->endpoints)) != NULL) {
+	ep = M_list_take_last(sp->endpoints);
+	while (ep != NULL) {
 		M_net_smtp_endpoint_destroy(ep);
+		ep = M_list_take_last(sp->endpoints);
 	}
 	M_list_destroy(sp->endpoints, M_TRUE);
 	M_thread_mutex_unlock(sp->endpoints_mutex);

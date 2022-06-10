@@ -29,7 +29,6 @@
 typedef struct {
 	const M_net_smtp_t                *sp;
 	size_t                             max_number_of_attempts;
-	M_list_t                          *retry_timers;
 	M_list_t                          *retry_queue;
 	M_list_t                          *retry_timeout_queue;
 	M_thread_rwlock_t                 *retry_queue_rwlock;

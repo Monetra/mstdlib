@@ -68,7 +68,7 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	M_net_smtp_session_t *session = data;
 	const char           *line    = NULL;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (!M_net_smtp_flow_tcp_check_smtp_response_code(session, 220))
@@ -86,26 +86,31 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
+static char *email_address_domain_cpy(const char* address)
+{
+	const char *domain = M_str_chr(address, '@');
+
+	if (domain == NULL)
+		return NULL;
+
+	return M_strdup(domain + 1);
+}
+
 static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
 	const char           *address = NULL;
-	const char           *domain  = NULL;
 	(void)status;
 	(void)next;
 
-	if (!M_email_from(session->email, NULL, NULL, &address)) {
+	if (!M_email_from(session->email, NULL, NULL, &address) || address == NULL) {
 		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to parse \"From:\": %s", session->msg);
 		return M_FALSE;
 	}
 
-	if (
-		address == NULL                                ||
-		(domain = M_str_chr(address, '@')) == NULL     ||
-		(domain = &domain[1]) == NULL                  ||
-		(session->tcp.ehlo_domain = M_strdup(domain)) == NULL
-	) {
-		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to parse domain from: %s\n", domain);
+	session->tcp.ehlo_domain = email_address_domain_cpy(address);
+	if (session->tcp.ehlo_domain == NULL) {
+		M_snprintf(session->errmsg, sizeof(session->errmsg), "Could not extract domain from email address: %s\n", address);
 		return M_FALSE;
 	}
 
@@ -119,8 +124,8 @@ static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_statu
 	M_free(session->tcp.ehlo_domain);
 	session->tcp.ehlo_domain = NULL;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	switch(session->tcp.tls_state) {
 		case M_NET_SMTP_TLS_NONE:
@@ -150,8 +155,8 @@ static M_state_machine_status_t M_starttls_post_cb(void *data, M_state_machine_s
 {
 	(void)data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	*next = STATE_EHLO;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -161,8 +166,8 @@ static M_state_machine_status_t M_auth_post_cb(void *data, M_state_machine_statu
 {
 	(void)data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	*next = STATE_SENDMSG;
 	return M_STATE_MACHINE_STATUS_NEXT;
@@ -180,17 +185,17 @@ static M_bool M_sendmsg_pre_cb(void *data, M_state_machine_status_t *status, M_u
 
 	session->tcp.rcpt_to = M_list_str_create(M_LIST_STR_NONE);
 
-	for (i = 0; i < M_email_to_len(session->email); i++) {
+	for (i=0; i<M_email_to_len(session->email); i++) {
 		M_email_to(session->email, i, &group, &name, &address);
 		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
-	for (i = 0; i < M_email_cc_len(session->email); i++) {
+	for (i=0; i<M_email_cc_len(session->email); i++) {
 		M_email_cc(session->email, i, &group, &name, &address);
 		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
 
-	for (i = 0; i < M_email_bcc_len(session->email); i++) {
+	for (i=0; i<M_email_bcc_len(session->email); i++) {
 		M_email_bcc(session->email, i, &group, &name, &address);
 		M_list_str_insert(session->tcp.rcpt_to, address);
 	}
@@ -205,8 +210,8 @@ static M_state_machine_status_t M_sendmsg_post_cb(void *data, M_state_machine_st
 	M_list_str_destroy(session->tcp.rcpt_to);
 	session->tcp.rcpt_to = NULL;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
-		return sub_status;
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
+		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	session->is_successfully_sent = M_TRUE;
 

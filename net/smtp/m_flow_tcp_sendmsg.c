@@ -54,7 +54,7 @@ static M_state_machine_status_t M_mail_from_response_post_cb(void *data,
 {
 	M_net_smtp_session_t     *session        = data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 250) {
@@ -91,7 +91,7 @@ static M_state_machine_status_t M_rcpt_to_response_post_cb(void *data,
 {
 	M_net_smtp_session_t     *session        = data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 250) {
@@ -124,7 +124,7 @@ static M_state_machine_status_t M_data_response_post_cb(void *data,
 {
 	M_net_smtp_session_t     *session        = data;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 354) {
@@ -176,7 +176,7 @@ static M_state_machine_status_t M_data_stop_response_post_cb(void *data,
 	M_net_smtp_session_t     *session        = data;
 	(void)next;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 250) {

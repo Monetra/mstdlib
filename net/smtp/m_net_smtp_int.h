@@ -38,6 +38,7 @@
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDIN  (1u << 1u)
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDOUT (1u << 2u)
 #define M_NET_SMTP_CONNECTION_MASK_IO_STDERR (1u << 3u)
+#define M_NET_SMTP_CONNECTION_MASK_PROC_ALL  ((unsigned)0xF)
 
 struct M_net_smtp {
 	M_event_t                         *el;

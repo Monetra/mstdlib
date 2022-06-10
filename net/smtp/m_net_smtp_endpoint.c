@@ -45,9 +45,11 @@ void M_net_smtp_endpoint_reactivate_idle(const M_net_smtp_endpoint_t *ep)
 {
 	M_net_smtp_session_t *session;
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	while ((session = M_list_take_last(ep->idle_sessions)) != NULL) {
+	session = M_list_take_last(ep->idle_sessions);
+	while (session != NULL) {
 		M_list_insert(ep->send_sessions, session);
 		M_net_smtp_session_reactivate_tcp(session);
+		session = M_list_take_last(ep->idle_sessions);
 	}
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 }
@@ -150,16 +152,31 @@ void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 {
 	M_net_smtp_session_t *session;
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	while (
-		(session = M_list_take_last(ep->send_sessions)) != NULL ||
-		(session = M_list_take_last(ep->idle_sessions)) != NULL ||
-		(session = M_list_take_last(ep->cull_sessions)) != NULL
-	) {
+
+	session = M_list_take_last(ep->send_sessions);
+	while (session != NULL) {
 		M_net_smtp_session_destroy(session);
+		session = M_list_take_last(ep->send_sessions);
 	}
+
+	session = M_list_take_last(ep->idle_sessions);
+	while (session != NULL) {
+		M_net_smtp_session_destroy(session);
+		session = M_list_take_last(ep->idle_sessions);
+	}
+
+	session = M_list_take_last(ep->cull_sessions);
+	while (session != NULL) {
+		M_net_smtp_session_destroy(session);
+		session = M_list_take_last(ep->cull_sessions);
+	}
+
+	/* These lists have to be destroyed AFTER all sessions are destroyed.
+		* They can't be mixed in. */
 	M_list_destroy(ep->send_sessions, M_TRUE);
 	M_list_destroy(ep->idle_sessions, M_TRUE);
 	M_list_destroy(ep->cull_sessions, M_TRUE);
+
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
 	M_thread_rwlock_destroy(ep->sessions_rwlock);
 	switch (ep->type) {

@@ -4,7 +4,7 @@ typedef struct {
 	const M_net_smtp_t    *sp;
 	char                  *msg;
 	size_t                 number_of_tries;
-	M_event_timer_t       *event_timer;
+	M_event_timer_t       *timer;
 } retry_msg_t;
 
 typedef enum {
@@ -23,7 +23,7 @@ static retry_msg_t *retry_msg_alloc(const M_net_smtp_t *sp, char *msg, size_t nu
 	retry->sp              = sp;
 	retry->msg             = msg;
 	retry->number_of_tries = number_of_tries;
-	retry->event_timer     = event_timer;
+	retry->timer           = event_timer;
 	return retry;
 }
 
@@ -36,9 +36,8 @@ static void retry_msg_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void
 	(void)etype;
 
 	M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	M_event_timer_remove(retry->event_timer);
-	M_list_remove_val(q->retry_timers, retry->event_timer, M_LIST_MATCH_PTR);
-	retry->event_timer = NULL;
+	M_event_timer_remove(retry->timer);
+	retry->timer = NULL;
 	M_list_remove_val(q->retry_timeout_queue, retry, M_LIST_MATCH_PTR);
 	M_list_insert(q->retry_queue, retry);
 	M_thread_rwlock_unlock(q->retry_queue_rwlock);
@@ -196,7 +195,6 @@ M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number
 	q->internal_queue_rwlock  = M_thread_rwlock_create();
 	q->retry_queue            = M_list_create(NULL, M_LIST_NONE);
 	q->retry_timeout_queue    = M_list_create(NULL, M_LIST_NONE);
-	q->retry_timers           = M_list_create(NULL, M_LIST_NONE);
 	q->retry_queue_rwlock     = M_thread_rwlock_create();
 
 	q->max_number_of_attempts = max_number_of_attempts;
@@ -208,20 +206,24 @@ M_net_smtp_queue_t * M_net_smtp_queue_create(M_net_smtp_t *sp, size_t max_number
 void M_net_smtp_queue_destroy(M_net_smtp_queue_t *q)
 {
 	retry_msg_t           *retry = NULL;
-	M_event_timer_t       *timer = NULL;
 
 	M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	while ((timer = M_list_take_last(q->retry_timers)) != NULL) {
-		M_event_timer_remove(timer);
-	}
-	M_list_destroy(q->retry_timers, M_TRUE);
-	while (
-		(retry = M_list_take_last(q->retry_queue))         != NULL ||
-		(retry = M_list_take_last(q->retry_timeout_queue)) != NULL
-	) {
+
+	retry = M_list_take_last(q->retry_queue);
+	while (retry != NULL) {
 		M_free(retry->msg);
 		M_free(retry);
+		retry = M_list_take_last(q->retry_queue);
 	}
+
+	retry = M_list_take_last(q->retry_timeout_queue);
+	while (retry != NULL) {
+		M_event_timer_remove(retry->timer);
+		M_free(retry->msg);
+		M_free(retry);
+		retry = M_list_take_last(q->retry_timeout_queue);
+	}
+
 	M_thread_rwlock_unlock(q->retry_queue_rwlock);
 	M_list_destroy(q->retry_queue, M_TRUE);
 	M_list_destroy(q->retry_timeout_queue, M_TRUE);
@@ -336,9 +338,8 @@ void M_net_smtp_queue_reschedule_msg(M_net_smtp_queue_reschedule_msg_args_t *arg
 	if (is_requeue) {
 		retry = retry_msg_alloc(sp, M_strdup(msg), num_tries, NULL);
 		M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-		retry->event_timer = M_event_timer_oneshot(sp->el, retry_ms, M_FALSE, retry_msg_task, retry);
+		retry->timer = M_event_timer_oneshot(sp->el, retry_ms, M_FALSE, retry_msg_task, retry);
 		M_list_insert(q->retry_timeout_queue, retry);
-		M_list_insert(q->retry_timers, retry->event_timer);
 		M_thread_rwlock_unlock(q->retry_queue_rwlock);
 	}
 }
@@ -351,7 +352,6 @@ M_list_str_t *M_net_smtp_queue_dump(M_net_smtp_queue_t *q)
 	M_list_str_t       *list;
 	char               *msg;
 	retry_msg_t        *retry;
-	M_event_timer_t    *timer;
 
 	if (q->is_external_queue_enabled) {
 		list = M_list_str_create(M_LIST_STR_NONE);
@@ -368,19 +368,25 @@ M_list_str_t *M_net_smtp_queue_dump(M_net_smtp_queue_t *q)
 	M_thread_rwlock_unlock(q->internal_queue_rwlock);
 
 	M_thread_rwlock_lock(q->retry_queue_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
-	while (
-		(retry = M_list_take_first(q->retry_queue))         != NULL ||
-		(retry = M_list_take_first(q->retry_timeout_queue)) != NULL
-	) {
+
+	retry = M_list_take_first(q->retry_queue);
+	while (retry != NULL) {
 		M_list_str_insert(list, retry->msg);
 		M_free(retry->msg);
 		M_free(retry);
+		retry = M_list_take_first(q->retry_queue);
 	}
-	M_thread_rwlock_unlock(q->retry_queue_rwlock);
 
-	while ((timer = M_list_take_first(q->retry_timers)) != NULL) {
-		M_event_timer_remove(timer);
+	retry = M_list_take_first(q->retry_timeout_queue);
+	while (retry != NULL) {
+		M_list_str_insert(list, retry->msg);
+		M_event_timer_remove(retry->timer);
+		M_free(retry->msg);
+		M_free(retry);
+		retry = M_list_take_first(q->retry_timeout_queue);
 	}
+
+	M_thread_rwlock_unlock(q->retry_queue_rwlock);
 
 	return list;
 }

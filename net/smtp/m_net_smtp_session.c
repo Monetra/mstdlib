@@ -51,13 +51,17 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			}
 
 			break;
-		case M_EVENT_TYPE_DISCONNECTED: goto destroy;
+		case M_EVENT_TYPE_DISCONNECTED:
+			goto destroy;
 		case M_EVENT_TYPE_READ:
 			io_error = M_io_read_into_parser(io, session->in_parser);
 			switch (io_error) {
-				case M_IO_ERROR_SUCCESS: break;
-				case M_IO_ERROR_WOULDBLOCK: return SESSION_PROCESSING;
-				case M_IO_ERROR_DISCONNECT: goto destroy;
+				case M_IO_ERROR_SUCCESS:
+					break;
+				case M_IO_ERROR_WOULDBLOCK:
+					return SESSION_PROCESSING;
+				case M_IO_ERROR_DISCONNECT:
+					goto destroy;
 				default:
 					M_snprintf(session->errmsg, sizeof(session->errmsg), "Read failed: %s", M_io_error_string(io_error));
 					goto destroy;
@@ -66,9 +70,12 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 		case M_EVENT_TYPE_WRITE:
 			io_error = M_io_write_from_buf(io, session->out_buf);
 			switch (io_error) {
-				case M_IO_ERROR_SUCCESS: break;
-				case M_IO_ERROR_WOULDBLOCK: return SESSION_PROCESSING;
-				case M_IO_ERROR_DISCONNECT: goto destroy;
+				case M_IO_ERROR_SUCCESS:
+					break;
+				case M_IO_ERROR_WOULDBLOCK:
+					return SESSION_PROCESSING;
+				case M_IO_ERROR_DISCONNECT:
+					goto destroy;
 				default:
 					M_snprintf(session->errmsg, sizeof(session->errmsg), "Write failed: %s", M_io_error_string(io_error));
 					goto destroy;
@@ -372,15 +379,18 @@ void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_d
 {
 	const M_net_smtp_t          *sp = session->sp;
 	const M_net_smtp_queue_t    *q  = sp->queue;
+
 	M_thread_mutex_lock(session->mutex);
-	session->msg = args->msg;
-	session->number_of_tries = args->num_tries;
-	session->headers = args->headers;
-	session->is_successfully_sent = M_FALSE;
-	session->is_backout = M_FALSE;
-	session->retry_ms = q->retry_default_ms;
+
+	session->msg                    = args->msg;
+	session->number_of_tries        = args->num_tries;
+	session->headers                = args->headers;
+	session->is_successfully_sent   = M_FALSE;
+	session->is_backout             = M_FALSE;
+	session->retry_ms               = q->retry_default_ms;
+	session->email                  = args->email;
 	M_mem_set(session->errmsg, 0, sizeof(session->errmsg));
-	session->email = args->email;
+
 	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
 		session->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
 		if (!args->is_bootstrap) {
@@ -400,22 +410,18 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 		return;
 
 	if (session->is_backout || !session->is_successfully_sent) {
-		M_net_smtp_queue_reschedule_msg_args_t args;
-		args.sp = session->sp;
-		args.msg = session->msg;
-		args.headers = session->headers;
-		args.is_backout = session->is_backout;
-		args.num_tries = session->number_of_tries + 1;
-		args.errmsg = session->errmsg;
-		args.retry_ms = session->retry_ms;
+		M_net_smtp_queue_reschedule_msg_args_t args = { session->sp, session->msg, session->headers, session->is_backout,
+			session->number_of_tries + 1, session->errmsg, session->retry_ms };
 		M_net_smtp_queue_reschedule_msg(&args);
 	} else {
 		session->sp->cbs.sent_cb(session->headers, session->sp->thunk);
 	}
+
 	M_email_destroy(session->email);
-	session->email = NULL;
 	M_free(session->msg);
-	session->msg = NULL;
+
+	session->email   = NULL;
+	session->msg     = NULL;
 	session->headers = NULL;
 }
 
@@ -430,21 +436,24 @@ static void M_net_smtp_session_destroy_int(M_net_smtp_session_t *session)
 		M_list_str_destroy(session->tcp.smtp_response);
 		M_io_destroy(session->io);
 	}
+
 	if (session->ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
 		M_io_destroy(session->io);
 		M_io_destroy(session->process.io_stdin);
 		M_io_destroy(session->process.io_stdout);
 		M_io_destroy(session->process.io_stderr);
 	}
+
 	M_event_timer_remove(session->event_timer);
-	session->event_timer = NULL;
 	M_buf_cancel(session->out_buf);
-	session->out_buf = NULL;
 	M_parser_destroy(session->in_parser);
-	session->in_parser = NULL;
 	M_state_machine_destroy(session->state_machine);
+
+	session->is_alive      = M_FALSE;
 	session->state_machine = NULL;
-	session->is_alive = M_FALSE;
+	session->in_parser     = NULL;
+	session->out_buf       = NULL;
+	session->event_timer   = NULL;
 }
 
 M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t* ep)
@@ -452,10 +461,10 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 	M_io_error_t          io_error = M_IO_ERROR_SUCCESS;
 	M_net_smtp_session_t *session  = NULL;
 
-	session = M_malloc_zero(sizeof(*session));
-	session->sp = sp;
-	session->ep = ep;
-	session->mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	session                        = M_malloc_zero(sizeof(*session));
+	session->sp                    = sp;
+	session->ep                    = ep;
+	session->mutex                 = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
 		io_error = M_io_process_create(
@@ -495,9 +504,9 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		}
 
 		session->state_machine        = M_net_smtp_flow_tcp();
-		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
 		session->event_timer          = M_event_timer_add(sp->el, session_tcp_advance_task, session);
 		session->tcp.smtp_response    = M_list_str_create(M_LIST_STR_NONE);
+		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
 	}
 
 	session->out_buf   = M_buf_create();

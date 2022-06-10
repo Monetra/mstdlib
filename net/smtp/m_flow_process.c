@@ -35,12 +35,7 @@ typedef enum {
 static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
-	if (
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) &&
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) &&
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) &&
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
-	) {
+	if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_PROC_ALL) {
 		*next = STATE_WRITE_START;
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
@@ -106,14 +101,10 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 {
 	M_net_smtp_session_t *session = data;
 	(void)next;
-	if (
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO)        != 0u) ||
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDIN)  != 0u) ||
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) != 0u) ||
-		((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO_STDERR) != 0u)
-	) {
+
+	if (session->connection_mask != M_NET_SMTP_CONNECTION_MASK_NONE)
 		return M_STATE_MACHINE_STATUS_WAIT;
-	}
+
 	if (M_buf_len(session->out_buf) > 0) {
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 	}

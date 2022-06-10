@@ -48,7 +48,7 @@ static void determine_auth_method(const char *line, M_net_smtp_session_t *sessio
 	session->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
 
 	methods = M_str_explode(' ', line, M_str_len(line), &n, &method_lens);
-	for (i = 0; i < n; i++) {
+	for (i=0; i<n; i++) {
 
 		if (M_str_caseeq(methods[i], "DIGEST-MD5")) {
 			session->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_DIGEST_MD5;
@@ -92,7 +92,7 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 	size_t                    i;
 	(void)next;
 
-	if (sub_status == M_STATE_MACHINE_STATUS_ERROR_STATE)
+	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	if (session->tcp.smtp_response_code != 250) {
@@ -106,7 +106,7 @@ static M_state_machine_status_t M_ehlo_response_post_cb(void *data, M_state_mach
 
 	session->tcp.is_starttls_capable = M_FALSE;
 	session->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
-	for (i = 0; i < M_list_str_len(session->tcp.smtp_response); i++) {
+	for (i=0; i<M_list_str_len(session->tcp.smtp_response); i++) {
 		const char *ehlo_line = M_list_str_at(session->tcp.smtp_response, i);
 		if (M_str_caseeq_max("STARTTLS", ehlo_line, 8)) {
 			session->tcp.is_starttls_capable = M_TRUE;
