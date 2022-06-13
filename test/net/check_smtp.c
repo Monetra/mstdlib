@@ -245,10 +245,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			return;
 			break;
 		case M_EVENT_TYPE_WRITE:
-			if (emu->test_id == TIMEOUT_STALL) {
+		case M_EVENT_TYPE_ERROR:
+			if (etype == M_EVENT_TYPE_WRITE && emu->test_id == TIMEOUT_STALL) {
 				return;
 			}
-		case M_EVENT_TYPE_ERROR:
 			if (emu->test_id == STARTTLS) {
 				M_io_get_error_string(io, errmsg, sizeof(errmsg));
 				M_printf("%s\n", errmsg);
