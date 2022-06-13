@@ -61,7 +61,7 @@ const char * json_str = \
 	"\"auth_digest_md5\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \
-		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN PLAIN CRAM-MD5 DIGEST-MD5\\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN LOGIN PLAIN PLAIN CRAM-MD5 CRAM-MD5 DIGEST-MD5\\r\\n\"," \
 		"\"MAIL FROM:<[^>]*>\\r\\n\": \"250 \\r\\n\"," \
 		"\"AUTH DIGEST-MD5[^\\r]*\\r\\n\": \"334 cmVhbG09ImxvY2FsaG9zdCIsbm9uY2U9IjJqWmo2RzE3bHVXNy9xbXdzdmV3QWc9PSIscW9wPSJhdXRoIixjaGFyc2V0PSJ1dGYtOCIsYWxnb3JpdGhtPSJtZDUtc2VzcyI=\\r\\n\"," \
 		"\"DIGEST-MD5\": \"334 \\r\\n\"," \
