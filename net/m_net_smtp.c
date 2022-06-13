@@ -290,6 +290,8 @@ static M_bool nop_iocreate_cb(M_io_t *a, char *b, size_t c, void *d)
 M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks *cbs, void *thunk)
 {
 	M_net_smtp_t *sp;
+	const struct M_net_smtp_callbacks nop_cbs = { nop_connect_cb, nop_connect_fail_cb, nop_disconnect_cb, nop_process_fail_cb, 
+		nop_processing_halted_cb, nop_sent_cb, nop_send_failed_cb, nop_reschedule_cb, nop_iocreate_cb };
 
 	if (el == NULL)
 		return NULL;
@@ -299,21 +301,25 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->queue                    = M_net_smtp_queue_create(sp, 3, 900000 /* 15min */);
 	sp->status_rwlock            = M_thread_rwlock_create();
 	sp->endpoints_mutex          = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
-	sp->cbs.connect_cb           = cbs->connect_cb           ? cbs->connect_cb           : nop_connect_cb;
-	sp->cbs.connect_fail_cb      = cbs->connect_fail_cb      ? cbs->connect_fail_cb      : nop_connect_fail_cb;
-	sp->cbs.disconnect_cb        = cbs->disconnect_cb        ? cbs->disconnect_cb        : nop_disconnect_cb;
-	sp->cbs.process_fail_cb      = cbs->process_fail_cb      ? cbs->process_fail_cb      : nop_process_fail_cb;
-	sp->cbs.processing_halted_cb = cbs->processing_halted_cb ? cbs->processing_halted_cb : nop_processing_halted_cb;
-	sp->cbs.sent_cb              = cbs->sent_cb              ? cbs->sent_cb              : nop_sent_cb;
-	sp->cbs.send_failed_cb       = cbs->send_failed_cb       ? cbs->send_failed_cb       : nop_send_failed_cb;
-	sp->cbs.reschedule_cb        = cbs->reschedule_cb        ? cbs->reschedule_cb        : nop_reschedule_cb;
-	sp->cbs.iocreate_cb          = cbs->iocreate_cb          ? cbs->iocreate_cb          : nop_iocreate_cb;
-	sp->el                       = el;
-	sp->thunk                    = thunk;
-	sp->status                   = M_NET_SMTP_STATUS_NOENDPOINTS;
-	sp->tcp_connect_ms           = 5000;
-	sp->tcp_stall_ms             = 5000;
-	sp->tcp_idle_ms              = 1000;
+	if (cbs == NULL) {
+		M_mem_copy(&sp->cbs, &nop_cbs, sizeof(sp->cbs));
+	} else {
+		sp->cbs.connect_cb           = cbs->connect_cb           ? cbs->connect_cb           : nop_connect_cb;
+		sp->cbs.connect_fail_cb      = cbs->connect_fail_cb      ? cbs->connect_fail_cb      : nop_connect_fail_cb;
+		sp->cbs.disconnect_cb        = cbs->disconnect_cb        ? cbs->disconnect_cb        : nop_disconnect_cb;
+		sp->cbs.process_fail_cb      = cbs->process_fail_cb      ? cbs->process_fail_cb      : nop_process_fail_cb;
+		sp->cbs.processing_halted_cb = cbs->processing_halted_cb ? cbs->processing_halted_cb : nop_processing_halted_cb;
+		sp->cbs.sent_cb              = cbs->sent_cb              ? cbs->sent_cb              : nop_sent_cb;
+		sp->cbs.send_failed_cb       = cbs->send_failed_cb       ? cbs->send_failed_cb       : nop_send_failed_cb;
+		sp->cbs.reschedule_cb        = cbs->reschedule_cb        ? cbs->reschedule_cb        : nop_reschedule_cb;
+		sp->cbs.iocreate_cb          = cbs->iocreate_cb          ? cbs->iocreate_cb          : nop_iocreate_cb;
+	}
+	sp->el             = el;
+	sp->thunk          = thunk;
+	sp->status         = M_NET_SMTP_STATUS_NOENDPOINTS;
+	sp->tcp_connect_ms = 5000;
+	sp->tcp_stall_ms   = 5000;
+	sp->tcp_idle_ms    = 1000;
 
 	return sp;
 }

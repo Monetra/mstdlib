@@ -51,10 +51,11 @@ typedef enum {
 	DUMMY_CHECKS            = 27,
 	BAD_SERVER              = 28,
 	BAD_SERVER_2            = 29,
-	REACTIVATE_IDLE         = 30
+	REACTIVATE_IDLE         = 30,
+	DEFAULT_CBS             = 31,
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 31
 
 static void cleanup(void)
 {
@@ -1738,6 +1739,42 @@ START_TEST(reactivate_idle)
 }
 END_TEST
 
+START_TEST(default_cbs)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DEFAULT_CBS);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	args.test_id = DEFAULT_CBS;
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 0);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, 500);
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	M_net_smtp_pause(sp);
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "should return to stopped after pause()");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(emu_sendmsg)
 {
 	M_uint16         testport;
@@ -2059,6 +2096,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 30
 	tc = tcase_create("reactivate_idle");
 	tcase_add_test(tc, reactivate_idle);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*DEFAULT_CBS             = 31, */
+#if TESTONLY == 0 || TESTONLY == 31
+	tc = tcase_create("default cbs");
+	tcase_add_test(tc, default_cbs);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
