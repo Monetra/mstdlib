@@ -1323,18 +1323,17 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 
 static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 {
-	M_io_error_t   err;
 	size_t         layer_id;
-	M_io_layer_t  *layer;
-	M_io_handle_t *handle;
 	M_io_handle_t *orig_handle = M_io_layer_get_handle(orig_layer);
 
 	/* Add a new layer into the new io object with the same settings as we have */
 	return M_io_tls_server_add(io, orig_handle->serverctx, &layer_id);
 }
 
-static M_bool M_io_tls_setup_server(M_io_handle_t *handle)
+static M_bool M_io_tls_setup_server(M_io_layer_t *layer)
 {
+	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+
 	/* Initialize SSL handle */
 	handle->ssl = SSL_new(handle->serverctx->ctx);
 
@@ -1367,7 +1366,6 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 
 	/* XXX: Verify cert is added to ctx otherwise fail */
 
-
 	handle              = M_malloc_zero(sizeof(*handle));
 	handle->is_client   = M_FALSE; /* To know if we are accepting (server) or connecting (client) */
 	M_tls_serverctx_upref(ctx);
@@ -1377,8 +1375,6 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 	M_io_callbacks_reg_init(callbacks, M_io_tls_init_cb);
 	if (M_io_get_type(io) == M_IO_TYPE_LISTENER) {
 		M_io_callbacks_reg_accept(callbacks, M_io_tls_accept_cb);
-	} else {
-		M_io_tls_setup_server(handle);
 	}
 	M_io_callbacks_reg_read(callbacks, M_io_tls_read_cb);
 	M_io_callbacks_reg_write(callbacks, M_io_tls_write_cb);
@@ -1391,6 +1387,10 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 	M_io_callbacks_reg_errormsg(callbacks, M_io_tls_errormsg_cb);
 	layer = M_io_layer_add(io, "TLS", handle, callbacks);
 	M_io_callbacks_destroy(callbacks);
+
+	if (M_io_get_type(io) != M_IO_TYPE_LISTENER) {
+		M_io_tls_setup_server(layer);
+	}
 
 	if (layer_id != NULL)
 		*layer_id = M_io_layer_get_index(layer);
