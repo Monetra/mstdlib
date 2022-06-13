@@ -94,7 +94,10 @@ static M_state_machine_status_t M_state_read_line(void *data, M_uint64 *next)
 	}
 
 	M_parser_mark_rewind(session->in_parser);
-	M_parser_consume(session->in_parser, 4); /* skip over number code */
+	M_parser_consume(session->in_parser, 3); /* skip over number code */
+	if (byte != '\r') {
+		M_parser_consume(session->in_parser, 1); /* skip over seperator */
+	}
 	line = M_parser_read_strdup_until(session->in_parser, "\r\n", M_FALSE);
 	M_list_str_insert(session->tcp.smtp_response, line);
 	M_free(line);
