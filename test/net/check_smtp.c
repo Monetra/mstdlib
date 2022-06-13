@@ -55,7 +55,7 @@ typedef enum {
 	DEFAULT_CBS             = 31,
 } test_id_t;
 
-#define TESTONLY 31
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -1745,7 +1745,7 @@ START_TEST(default_cbs)
 	args_t           args     = { 0 };
 	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DEFAULT_CBS);
-	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, NULL, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
