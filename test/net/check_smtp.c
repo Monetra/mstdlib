@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -54,7 +54,7 @@ typedef enum {
 	REACTIVATE_IDLE         = 30
 } test_id_t;
 
-#define TESTONLY 30
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -620,7 +620,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == REACTIVATE_IDLE) {
-		if (args->sent_cb_call_count == 3) {
+		if (args->sent_cb_call_count == 3 || args->sent_cb_call_count == 6) {
 			M_event_done(args->el);
 		}
 	}
@@ -1203,6 +1203,7 @@ START_TEST(tls_unsupporting_server)
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
 	M_net_smtp_setup_tcp(sp, dns, ctx);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
 	M_tls_clientctx_destroy(ctx);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_TRUE, "user", "pass", 1);
 
@@ -1711,12 +1712,22 @@ START_TEST(reactivate_idle)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
+	ck_assert_msg(args.sent_cb_call_count == 3, "should have called sent_cb 3 times");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle");
+
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+
 	smtp_emulator_switch(emu, "bad9");
 	M_net_smtp_queue_smtp(sp, e);
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.sent_cb_call_count == 3, "should have called sent_cb 3 times");
+	ck_assert_msg(args.sent_cb_call_count == 6, "should have called sent_cb 6 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have halted");
 
 	M_email_destroy(e);
