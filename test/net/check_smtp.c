@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -51,9 +51,10 @@ typedef enum {
 	DUMMY_CHECKS            = 27,
 	BAD_SERVER              = 28,
 	BAD_SERVER_2            = 29,
+	REACTIVATE_IDLE         = 30
 } test_id_t;
 
-#define TESTONLY 29
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -610,6 +611,12 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
 		M_event_done(args->el);
+	}
+
+	if (args->test_id == REACTIVATE_IDLE) {
+		if (args->sent_cb_call_count == 3) {
+			M_event_done(args->el);
+		}
 	}
 
 	if (args->test_id == MULTITHREAD_RETRY) {
@@ -1674,6 +1681,43 @@ START_TEST(bad_server)
 }
 END_TEST
 
+START_TEST(reactivate_idle)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, REACTIVATE_IDLE);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	args.test_id = REACTIVATE_IDLE;
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 4000);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 3) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+	M_net_smtp_pause(sp);
+
+	ck_assert_msg(args.sent_cb_call_count == 3, "should have called sent_cb 3 times");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "should have stopped");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(emu_sendmsg)
 {
 	M_uint16         testport;
@@ -1987,6 +2031,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 29
 	tc = tcase_create("bad server 2");
 	tcase_add_test(tc, bad_server_2);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*REACTIVATE_IDLE         = 30, */
+#if TESTONLY == 0 || TESTONLY == 30
+	tc = tcase_create("reactivate_idle");
+	tcase_add_test(tc, reactivate_idle);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
