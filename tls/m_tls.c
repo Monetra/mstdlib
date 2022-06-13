@@ -1320,6 +1320,7 @@ M_io_error_t M_io_tls_client_add(M_io_t *io, M_tls_clientctx_t *ctx, const char 
 }
 
 
+
 static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 {
 	M_io_error_t   err;
@@ -1329,18 +1330,13 @@ static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 	M_io_handle_t *orig_handle = M_io_layer_get_handle(orig_layer);
 
 	/* Add a new layer into the new io object with the same settings as we have */
-	err = M_io_tls_server_add(io, orig_handle->serverctx, &layer_id);
-	if (err != M_IO_ERROR_SUCCESS)
-		return err;
+	return M_io_tls_server_add(io, orig_handle->serverctx, &layer_id);
+}
 
-	layer  = M_io_layer_acquire(io, layer_id, "TLS");
-	if (layer == NULL)
-		return M_IO_ERROR_ERROR;
-
-	handle = M_io_layer_get_handle(layer);
-
+static M_bool M_io_tls_setup_server(M_io_handle_t *handle)
+{
 	/* Initialize SSL handle */
-	handle->ssl         = SSL_new(handle->serverctx->ctx);
+	handle->ssl = SSL_new(handle->serverctx->ctx);
 
 	/* If DHE negotiation is enabled, set it up now */
 	if (handle->serverctx->dh) {
@@ -1356,8 +1352,7 @@ static M_io_error_t M_io_tls_accept_cb(M_io_t *io, M_io_layer_t *orig_layer)
 	handle->write_buf   = M_buf_create();
 #endif
 
-	M_io_layer_release(layer);
-	return M_IO_ERROR_SUCCESS;
+	return M_TRUE;
 }
 
 
@@ -1372,15 +1367,19 @@ M_io_error_t M_io_tls_server_add(M_io_t *io, M_tls_serverctx_t *ctx, size_t *lay
 
 	/* XXX: Verify cert is added to ctx otherwise fail */
 
-	M_tls_serverctx_upref(ctx);
 
 	handle              = M_malloc_zero(sizeof(*handle));
 	handle->is_client   = M_FALSE; /* To know if we are accepting (server) or connecting (client) */
+	M_tls_serverctx_upref(ctx);
 	handle->serverctx   = ctx;
 
 	callbacks = M_io_callbacks_create();
 	M_io_callbacks_reg_init(callbacks, M_io_tls_init_cb);
-	M_io_callbacks_reg_accept(callbacks, M_io_tls_accept_cb);
+	if (M_io_get_type(io) == M_IO_TYPE_LISTENER) {
+		M_io_callbacks_reg_accept(callbacks, M_io_tls_accept_cb);
+	} else {
+		M_io_tls_setup_server(handle);
+	}
 	M_io_callbacks_reg_read(callbacks, M_io_tls_read_cb);
 	M_io_callbacks_reg_write(callbacks, M_io_tls_write_cb);
 	M_io_callbacks_reg_processevent(callbacks, M_io_tls_process_cb);
