@@ -16,7 +16,7 @@ const char * json_str = \
 		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
 	"}," \
 	"\"bad1\": {" \
-		"\"CONNECTED\": \"Hi!\\r\\n\"" \
+		"\"CONNECTED\": \"Hi\\r\\n\"" \
 	"}," \
 	"\"bad2\": {" \
 		"\"CONNECTED\": \"Greetings, fellow human!\\r\\n\"" \
