@@ -247,6 +247,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			session->connection_mask |= connection_mask;
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
+			session->connection_mask &= ~connection_mask;
 			if (io == session->io) {
 				if (!M_io_process_get_result_code(io, &session->process.result_code)) {
 					session->is_successfully_sent = M_FALSE;
@@ -265,13 +266,13 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 					}
 				}
 			}
-			goto destroy;
 			break;
 		case M_EVENT_TYPE_READ:
 			if (connection_mask == M_NET_SMTP_CONNECTION_MASK_IO_STDERR) {
 				io_error = M_io_read(io, (unsigned char *)session->errmsg, sizeof(session->errmsg) - 1, &len);
 				if (io_error == M_IO_ERROR_DISCONNECT) {
-					goto destroy;
+					session->connection_mask &= ~connection_mask;
+					break;
 				}
 				if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 					M_snprintf(session->errmsg, sizeof(session->errmsg), "Read failure: %s", M_io_error_string(io_error));
@@ -283,7 +284,8 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			if (connection_mask == M_NET_SMTP_CONNECTION_MASK_IO_STDOUT) {
 				io_error = M_io_read_into_parser(io, session->in_parser);
 				if (io_error == M_IO_ERROR_DISCONNECT) {
-					goto destroy;
+					session->connection_mask &= ~connection_mask;
+					break;
 				}
 				if (io_error != M_IO_ERROR_SUCCESS && io_error != M_IO_ERROR_WOULDBLOCK) {
 					M_snprintf(session->errmsg, sizeof(session->errmsg), "Read failure: %s", M_io_error_string(io_error));
@@ -301,20 +303,26 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			if (M_buf_len(session->out_buf) > 0) {
 				io_error = M_io_write_from_buf(io, session->out_buf);
 				if (io_error == M_IO_ERROR_DISCONNECT) {
-					goto destroy;
+					session->connection_mask &= ~connection_mask;
+					break;
 				}
-				if (!session->is_successfully_sent) {
+				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
-					session->event_timer = M_event_timer_oneshot(session->sp->el, 100, M_TRUE, session_proc_advance_stdin_task, session);
+					session->event_timer = M_event_timer_oneshot(session->sp->el, 5000, M_TRUE, session_proc_advance_stdin_task, session);
 				} else {
 					session->event_timer = NULL;
 				}
 			}
-			if (session->is_successfully_sent) {
-				M_io_disconnect(io);
+			if (session->process.len == 0) {
+				session->connection_mask &= ~connection_mask;
+				break;
 			}
 			return SESSION_PROCESSING;
 		case M_EVENT_TYPE_ERROR:
+			if (io == session->io && M_io_get_error(io) == M_IO_ERROR_TIMEDOUT) {
+				session->connection_mask &= ~connection_mask;
+				break;
+			}
 		case M_EVENT_TYPE_ACCEPT:
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
@@ -335,6 +343,9 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			goto destroy;
 	}
 
+	if ((session->connection_mask & connection_mask) == 0)
+		goto destroy;
+
 	if (M_buf_len(session->out_buf) > 0)
 		trigger_write_softevent(session->process.io_stdin);
 
@@ -349,7 +360,6 @@ destroy:
 	if (*session_io != NULL) {
 		M_io_destroy(*session_io);
 		*session_io = NULL;
-		session->connection_mask &= ~connection_mask;
 		if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 			return SESSION_FINISHED;
 		}

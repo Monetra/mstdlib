@@ -69,6 +69,7 @@ static M_state_machine_status_t M_state_write_chunk(void *data, M_uint64 *next)
 	M_parser_destroy(parser);
 
 	if (len == 0) {
+		session->process.len = 0;
 		M_buf_add_str(session->out_buf, session->process.msg);
 		*next = STATE_WRITE_FINISH;
 		return M_STATE_MACHINE_STATUS_NEXT;
@@ -95,9 +96,10 @@ static M_state_machine_status_t M_state_write_chunk_wait(void *data, M_uint64 *n
 static M_state_machine_status_t M_state_write_finish(void *data, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
-
+	if (M_buf_len(session->out_buf) > 0) {
+		return M_STATE_MACHINE_STATUS_WAIT;
+	}
 	session->is_successfully_sent = M_TRUE;
-
 	*next = STATE_DISCONNECTING;
 	return M_STATE_MACHINE_STATUS_NEXT;
 
@@ -111,9 +113,6 @@ static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next
 	if (session->connection_mask != M_NET_SMTP_CONNECTION_MASK_NONE)
 		return M_STATE_MACHINE_STATUS_WAIT;
 
-	if (M_buf_len(session->out_buf) > 0) {
-		return M_STATE_MACHINE_STATUS_ERROR_STATE;
-	}
 	return M_STATE_MACHINE_STATUS_DONE;
 }
 

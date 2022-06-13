@@ -142,7 +142,8 @@ typedef struct {
 
 static void smtp_emulator_starttls_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
-	smtp_emulator_t *emu          = thunk;
+	(void)thunk;
+	(void)el;
 	event_debug("smtp emulator starttls io:%p event %s triggered", io, event_type_str(etype));
 }
 
@@ -224,9 +225,11 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 						M_parser_len(in_parser), (const char *)M_parser_peek(in_parser));
 #endif
 			} else {
-				error_count++;
-				if (error_count >= 10) {
-					exit(0);
+				if (emu->test_id == STARTTLS) {
+					error_count++;
+					if (error_count >= 10) {
+						exit(0);
+					}
 				}
 			}
 			break;
@@ -246,11 +249,13 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				return;
 			}
 		case M_EVENT_TYPE_ERROR:
-			M_io_get_error_string(io, errmsg, sizeof(errmsg));
-			M_printf("%s", errmsg);
-			error_count++;
-			if (error_count >= 10) {
-				exit(0);
+			if (emu->test_id == STARTTLS) {
+				M_io_get_error_string(io, errmsg, sizeof(errmsg));
+				M_printf("%s\n", errmsg);
+				error_count++;
+				if (error_count >= 10) {
+					exit(0);
+				}
 			}
 		case M_EVENT_TYPE_OTHER:
 			break;
@@ -1447,6 +1452,7 @@ START_TEST(auth_login)
 }
 END_TEST
 
+#if 0
 START_TEST(starttls)
 {
 	M_uint16           testport;
@@ -1485,6 +1491,7 @@ START_TEST(starttls)
 	cleanup();
 }
 END_TEST
+#endif
 
 START_TEST(implicit_tls)
 {
