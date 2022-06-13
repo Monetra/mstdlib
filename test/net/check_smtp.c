@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 0
+#define DEBUG 2
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -54,7 +54,7 @@ typedef enum {
 	REACTIVATE_IDLE         = 30
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 30
 
 static void cleanup(void)
 {
@@ -541,6 +541,9 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			return M_TRUE; /* Remove endpoint */
 		}
 	}
+	if (args->test_id == REACTIVATE_IDLE) {
+		return M_TRUE;
+	}
 	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
 		M_event_done(args->el);
 	}
@@ -583,6 +586,9 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
+		M_event_done(args->el);
+	}
+	if (args->test_id == REACTIVATE_IDLE) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == NO_ENDPOINTS) {
@@ -1694,25 +1700,28 @@ START_TEST(reactivate_idle)
 	args.test_id = REACTIVATE_IDLE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 4000);
-	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 3) == M_TRUE,
-			"should succeed adding tcp after setting dns");
 
 	args.el = el;
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
-	M_net_smtp_resume(sp);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 3) == M_TRUE,
+			"should succeed adding tcp after setting dns");
 
 	M_event_loop(el, M_TIMEOUT_INF);
-	M_net_smtp_pause(sp);
+
+	smtp_emulator_switch(emu, "bad9");
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.sent_cb_call_count == 3, "should have called sent_cb 3 times");
-	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "should have stopped");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have halted");
 
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
-	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
 	cleanup();
 }
