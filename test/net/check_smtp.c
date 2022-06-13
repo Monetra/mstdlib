@@ -1743,6 +1743,7 @@ START_TEST(default_cbs)
 {
 	M_uint16         testport;
 	args_t           args     = { 0 };
+	M_list_str_t    *cmd_args = M_list_str_create(M_LIST_STR_NONE);
 	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DEFAULT_CBS);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, NULL, &args);
@@ -1755,21 +1756,31 @@ START_TEST(default_cbs)
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
 			"should succeed adding tcp after setting dns");
 
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, "proc_not_found", cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+
 	args.el = el;
 	M_net_smtp_queue_smtp(sp, e);
 
 	M_event_loop(el, 500);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
-
 	M_net_smtp_pause(sp);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "should return to stopped after pause()");
 
+	M_net_smtp_resume(sp);
+
+	smtp_emulator_destroy(emu);
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, 10);
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "should still be processing bouncing between failovers");
+
+	M_list_str_destroy(cmd_args);
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
-	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
 	cleanup();
 }
