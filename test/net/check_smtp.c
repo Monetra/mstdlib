@@ -629,7 +629,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == DOT_MSG) {
-		if (args->sent_cb_call_count == 2) {
+		if (args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) {
 			M_event_done(args->el);
 		}
 	}
@@ -663,7 +663,10 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == DOT_MSG) {
-		M_event_done(args->el);
+		if (args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) {
+			M_event_done(args->el);
+		}
+		return M_FALSE;
 	}
 	if (args->test_id == JUNK_MSG) {
 		args->is_success = (can_requeue == M_FALSE);
@@ -978,6 +981,8 @@ END_TEST
 START_TEST(dot_msg)
 {
 	M_uint16           testport;
+	M_list_str_t      *cmd_args1   = M_list_str_create(M_LIST_STR_NONE);
+	M_list_str_t      *cmd_args2   = M_list_str_create(M_LIST_STR_NONE);
 	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
@@ -985,18 +990,17 @@ START_TEST(dot_msg)
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
 
-	args.test_id = DOT_MSG;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1), "Couldn't add TCP endpoint");
 
-	/* these test aspects have strange timing failures.
-	M_list_str_insert(cmd_args, "-t");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
+	args.test_id = DOT_MSG;
+	M_list_str_insert(cmd_args2, "-t");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args2, NULL, 10000, 1), "Couldn't add endpoint_process");
 
-	M_list_str_insert(cmd_args, "-i");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
-	*/
+	M_list_str_insert(cmd_args1, "-t");
+	M_list_str_insert(cmd_args1, "-i");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args1, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 
 	M_net_smtp_pause(sp);
@@ -1005,17 +1009,20 @@ START_TEST(dot_msg)
 
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
 
 	M_net_smtp_resume(sp);
 
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, 8000);
 
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
-	ck_assert_msg(args.connect_fail_cb_call_count == 0, "should not have had a connect fail");
+	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
 
+	M_list_str_destroy(cmd_args1);
+	M_list_str_destroy(cmd_args2);
 	smtp_emulator_destroy(emu);
 	M_dns_destroy(dns);
 	M_email_destroy(e);
@@ -1694,7 +1701,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 13
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
