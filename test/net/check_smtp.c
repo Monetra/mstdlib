@@ -275,7 +275,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			if (M_str_eq(line, "DATA\r\n")) {
 				*is_data_mode = M_TRUE;
 			}
-			if (M_str_eq(line, "STARTTLS\r\n")) {
+			if (M_str_eq(line, "STARTTLS\r\n") && emu->test_id != BAD_SERVER) {
 				*is_STARTTLS = M_TRUE;
 			}
 			if (M_str_eq(line, "QUIT\r\n")) {
@@ -546,9 +546,6 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 		return M_TRUE;
 	}
 	if (args->test_id == BAD_SERVER) {
-		if (args->connect_fail_cb_call_count == 5) {
-			M_event_done(args->el);
-		}
 		return M_TRUE;
 	}
 	return M_FALSE; /* Should TCP endpoint be removed? */
@@ -591,6 +588,10 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	}
 	if (args->test_id == HALT_RESTART) {
 		return 10; /* restart in 10ms */
+	}
+	if (args->test_id == BAD_SERVER) {
+		M_event_done(args->el);
+		return 0;
 	}
 
 	if (args->test_id == PROC_NOT_FOUND) {
@@ -1530,6 +1531,9 @@ START_TEST(bad_server)
 	M_uint16         testport3;
 	M_uint16         testport4;
 	M_uint16         testport5;
+	M_uint16         testport6;
+	M_uint16         testport7;
+	M_uint16         testport8;
 	args_t           args     = { 0 };
 	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t *emu1     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad1", &testport1, BAD_SERVER);
@@ -1537,19 +1541,29 @@ START_TEST(bad_server)
 	smtp_emulator_t *emu3     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad3", &testport3, BAD_SERVER);
 	smtp_emulator_t *emu4     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad4", &testport4, BAD_SERVER);
 	smtp_emulator_t *emu5     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad5", &testport5, BAD_SERVER);
+	smtp_emulator_t *emu6     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad6", &testport6, BAD_SERVER);
+	smtp_emulator_t *emu7     = smtp_emulator_create(el, TLS_TYPE_STARTTLS, "bad7", &testport7, BAD_SERVER);
+	smtp_emulator_t *emu8     = smtp_emulator_create(el, TLS_TYPE_STARTTLS, "bad8", &testport8, BAD_SERVER);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
 
 	args.test_id = BAD_SERVER;
 
-	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_tls_clientctx_set_default_trust(ctx);
+	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
+	M_tls_clientctx_destroy(ctx);
 
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport1, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport2, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport3, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport4, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport5, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport6, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport7, M_TRUE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport8, M_TRUE, "user", "pass", 1);
 
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
 
@@ -1559,10 +1573,13 @@ START_TEST(bad_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.connect_fail_cb_call_count == 5, "should have failed 5 connections ");
+	ck_assert_msg(args.connect_fail_cb_call_count == 8, "should have failed 8 connections ");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
 
 	M_email_destroy(e);
@@ -1573,6 +1590,9 @@ START_TEST(bad_server)
 	smtp_emulator_destroy(emu3);
 	smtp_emulator_destroy(emu4);
 	smtp_emulator_destroy(emu5);
+	smtp_emulator_destroy(emu6);
+	smtp_emulator_destroy(emu7);
+	smtp_emulator_destroy(emu8);
 	M_event_destroy(el);
 	cleanup();
 }
