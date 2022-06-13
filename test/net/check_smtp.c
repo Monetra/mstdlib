@@ -140,13 +140,6 @@ typedef struct {
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void smtp_emulator_starttls_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	(void)thunk;
-	(void)el;
-	event_debug("smtp emulator starttls io:%p event %s triggered", io, event_type_str(etype));
-}
-
 static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	smtp_emulator_t *emu          = thunk;
@@ -162,7 +155,6 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	M_bool          *is_STARTTLS  = NULL;
 	M_io_error_t     ioerr;
 	static int       error_count  = 0;
-	char             errmsg[256];
 	(void)el;
 
 	if (emu->test_id == TIMEOUT_CONNECT && etype == M_EVENT_TYPE_ACCEPT) 
@@ -227,13 +219,17 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			} else {
 				if (emu->test_id == STARTTLS) {
 					error_count++;
-					if (error_count >= 10) {
+					if (error_count >= 100) {
 						exit(0);
 					}
 				}
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
+			if (*is_STARTTLS) {
+				*is_STARTTLS = M_FALSE;
+				return;
+			}
 			M_parser_consume(in_parser, M_parser_len(in_parser));
 			M_buf_truncate(out_buf, M_buf_len(out_buf));
 			M_buf_add_str(out_buf, emu->CONNECTED_str);
@@ -250,10 +246,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				return;
 			}
 			if (emu->test_id == STARTTLS) {
-				M_io_get_error_string(io, errmsg, sizeof(errmsg));
-				M_printf("%s\n", errmsg);
 				error_count++;
-				if (error_count >= 10) {
+				if (error_count >= 100) {
 					exit(0);
 				}
 			}
@@ -340,14 +334,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			return;
 		}
 		if (*is_STARTTLS) {
-			//M_io_tls_server_add(io, emu->serverctx, NULL);
-			M_io_layer_t *layer;
-			layer = M_io_layer_acquire(emu->starttls_io, 1, "TLS");
-			M_printf("%p layer->cb: %p\n", layer, &layer->cb);
-			layer->cb.cb_accept(io, layer);
-			M_printf("state: %d\n", layer->cb.cb_state(layer));
-			M_io_layer_release(layer);
-			*is_STARTTLS = M_FALSE;
+			M_io_tls_server_add(io, emu->serverctx, NULL);
 		}
 	}
 
@@ -419,16 +406,7 @@ static smtp_emulator_t *smtp_emulator_create_tls(M_event_t *el, tls_types_t tls_
 	emu->port = port;
 	*testport = port;
 	if (emu->tls_type == TLS_TYPE_IMPLICIT) {
-		M_io_layer_t *layer;
 		M_io_tls_server_add(emu->io_listen, emu->serverctx, NULL);
-		layer = M_io_layer_acquire(emu->io_listen, 1, "TLS");
-		M_printf("state: %d\n", layer->cb.cb_state(layer));
-	}
-	if (emu->tls_type == TLS_TYPE_STARTTLS) {
-		M_uint16 tmp_port = (M_uint16)M_rand_range(NULL, 10000, 50000);
-		emu->starttls_io = net_server_create_search(&tmp_port);
-		M_io_tls_server_add(emu->starttls_io, emu->serverctx, NULL);
-		M_event_add(emu->el, emu->starttls_io, smtp_emulator_starttls_io_cb, emu);
 	}
 	M_event_add(emu->el, emu->io_listen, smtp_emulator_io_cb, emu);
 
@@ -1452,7 +1430,6 @@ START_TEST(auth_login)
 }
 END_TEST
 
-#if 0
 START_TEST(starttls)
 {
 	M_uint16           testport;
@@ -1491,7 +1468,6 @@ START_TEST(starttls)
 	cleanup();
 }
 END_TEST
-#endif
 
 START_TEST(implicit_tls)
 {
@@ -1812,12 +1788,10 @@ static Suite *smtp_suite(void)
 
 /*STARTTLS                = 25, */
 #if TESTONLY == 0 || TESTONLY == 25
-	/*
 	tc = tcase_create("starttls");
 	tcase_add_test(tc, starttls);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
-	*/
 #endif
 
 /*IMPLICIT_TLS            = 26, */
