@@ -111,13 +111,13 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			goto backout;
 			break;
 		case M_EVENT_TYPE_OTHER:
-			if (session->is_successfully_sent) {
+		case M_EVENT_TYPE_ERROR:
+			if (etype == M_EVENT_TYPE_OTHER && session->is_successfully_sent) {
 				/* Idle timeout */
 				session->tcp.is_QUIT_enabled = M_TRUE;
 				M_event_timer_stop(session->event_timer);
 				break;
 			}
-		case M_EVENT_TYPE_ERROR:
 			if (session->tcp.tls_state == M_NET_SMTP_TLS_IMPLICIT && session->connection_mask == M_NET_SMTP_CONNECTION_MASK_NONE) {
 				/* Implict TLS failed.  Follwup with with STARTTLS */
 				session->tcp.tls_state = M_NET_SMTP_TLS_STARTTLS;
@@ -319,11 +319,15 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			}
 			return SESSION_PROCESSING;
 		case M_EVENT_TYPE_ERROR:
-			if (io == session->io && M_io_get_error(io) == M_IO_ERROR_TIMEDOUT) {
+		case M_EVENT_TYPE_ACCEPT:
+			if (etype == M_EVENT_TYPE_ERROR && connection_mask == M_NET_SMTP_CONNECTION_MASK_IO_STDIN) {
 				session->connection_mask &= ~connection_mask;
 				break;
 			}
-		case M_EVENT_TYPE_ACCEPT:
+			if (etype == M_EVENT_TYPE_ERROR && io == session->io && M_io_get_error(io) == M_IO_ERROR_TIMEDOUT) {
+				session->connection_mask &= ~connection_mask;
+				break;
+			}
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			break;
