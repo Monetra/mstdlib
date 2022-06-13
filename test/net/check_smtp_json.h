@@ -15,6 +15,22 @@ const char * json_str = \
 		"\"DATA\\r\\n\": \"354 \\r\\n\"," \
 		"\"QUIT\\r\\n\": \"221 \\r\\n\"" \
 	"}," \
+	"\"bad1\": {" \
+		"\"CONNECTED\": \"Hi!\\r\\n\"" \
+	"}," \
+	"\"bad2\": {" \
+		"\"CONNECTED\": \"Greetings, fellow human!\\r\\n\"" \
+	"}," \
+	"\"bad3\": {" \
+		"\"CONNECTED\": \"999 Auf deutsch\\r\\n\"" \
+	"}," \
+	"\"bad4\": {" \
+		"\"CONNECTED\": \"220...\\r\\n\"" \
+	"}," \
+	"\"bad5\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250-VRFY\\r\\n251 AUTH PLAIN\\r\\n\"" \
+	"}," \
 	"\"starttls\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \
