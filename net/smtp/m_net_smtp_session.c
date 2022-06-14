@@ -308,7 +308,13 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
-					session->event_timer = M_event_timer_oneshot(session->sp->el, 5000, M_TRUE, session_proc_advance_stdin_task, session);
+					M_uint64 timeout_ms = 5000;
+					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < 5500) {
+						/* If we have less than 5.5 seconds before a process timeout, use 90% of the time available
+							* to try to detect a problem */
+						timeout_ms = (session->ep->process.timeout_ms * 9) / 10;
+					}
+					session->event_timer = M_event_timer_oneshot(session->sp->el, timeout_ms, M_FALSE, session_proc_advance_stdin_task, session);
 				} else {
 					session->event_timer = NULL;
 				}
@@ -332,6 +338,11 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_OTHER:
+			if (session->event_timer != NULL) {
+				M_event_timer_stop(session->event_timer);
+				M_event_timer_remove(session->event_timer);
+				session->event_timer = NULL;
+			}
 			break;
 	}
 
