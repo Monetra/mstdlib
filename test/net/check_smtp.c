@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 0
+#define DEBUG 2
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -56,9 +56,10 @@ typedef enum {
 	BCC_TEST                = 32,
 	BAD_AUTH                = 33,
 	PROCESS_ERROR_EXIT      = 34,
+	DOMAIN_MISMATCH         = 35,
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 35
 
 static void cleanup(void)
 {
@@ -545,6 +546,9 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			return M_TRUE; /* Remove endpoint */
 		}
 	}
+	if (args->test_id == DOMAIN_MISMATCH) {
+		return M_TRUE;
+	}
 	if (args->test_id == REACTIVATE_IDLE) {
 		return M_TRUE;
 	}
@@ -594,6 +598,9 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
+		M_event_done(args->el);
+	}
+	if (args->test_id == DOMAIN_MISMATCH) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == REACTIVATE_IDLE) {
@@ -2029,6 +2036,39 @@ START_TEST(bcc_test)
 }
 END_TEST
 
+START_TEST(domain_mismatch)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOMAIN_MISMATCH);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	args.test_id = DOMAIN_MISMATCH;
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "127.0.0.1", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.connect_fail_cb_call_count == 1, "Should have connect failed with wrong domain");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should process halted after endpoint removed");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(emu_sendmsg)
 {
 	M_uint16         testport;
@@ -2385,6 +2425,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 34
 	tc = tcase_create("process error exit");
 	tcase_add_test(tc, process_error_exit);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*DOMAIN_MISMATCH         = 35, */
+#if TESTONLY == 0 || TESTONLY == 35
+	tc = tcase_create("domain mismatch");
+	tcase_add_test(tc, domain_mismatch);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
