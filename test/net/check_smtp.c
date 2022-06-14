@@ -622,9 +622,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == BCC_TEST) {
-		char *str = M_hash_dict_serialize(headers, ';', '=', '"', '\\', M_HASH_DICT_SER_FLAG_NONE);
-		event_debug("sent_cb headers (%zu): %s", M_hash_dict_num_keys(headers), str);
-		M_free(str);
 		M_event_done(args->el);
 	}
 
