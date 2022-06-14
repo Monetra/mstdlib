@@ -626,7 +626,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == REACTIVATE_IDLE) {
-		if (args->sent_cb_call_count == 3 || args->sent_cb_call_count == 6) {
+		if (args->sent_cb_call_count == 3 || args->sent_cb_call_count == 6 || args->sent_cb_call_count == 7) {
 			M_event_done(args->el);
 		}
 	}
@@ -1744,6 +1744,17 @@ START_TEST(reactivate_idle)
 
 	ck_assert_msg(args.sent_cb_call_count == 6, "should have called sent_cb 6 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have halted");
+
+	smtp_emulator_switch(emu, "minimal");
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 3) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.sent_cb_call_count == 7, "should have called sent_cb 7 times");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should idle");
+
 
 	M_email_destroy(e);
 	M_dns_destroy(dns);

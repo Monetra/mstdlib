@@ -157,12 +157,28 @@ void M_net_smtp_endpoint_release(M_net_smtp_t *sp)
 void M_net_smtp_prune_endpoints(M_net_smtp_t *sp)
 {
 	size_t i;
+	M_bool is_requeue = M_FALSE;
 	for (i=M_list_len(sp->endpoints); i-->0; ) {
 		const M_net_smtp_endpoint_t *ep = M_list_at(sp->endpoints, i);
 		if (ep->is_removed) {
-			M_net_smtp_endpoint_destroy(M_list_take_at(sp->endpoints, i));
+			if (M_net_smtp_endpoint_destroy_is_ready(ep)) {
+				M_net_smtp_endpoint_destroy(M_list_take_at(sp->endpoints, i));
+			} else {
+				is_requeue = M_TRUE;
+			}
 		}
 	}
+	if (is_requeue) {
+		M_event_queue_task(sp->el, M_net_smtp_prune_endpoints_task, sp);
+	}
+}
+
+void M_net_smtp_prune_endpoints_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	M_net_smtp_prune_endpoints(thunk);
 }
 
 void M_net_smtp_processing_halted(M_net_smtp_t *sp)
@@ -384,7 +400,9 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		case M_NET_SMTP_STATUS_STOPPED:
 		case M_NET_SMTP_STATUS_STOPPING:
 			if (status == M_NET_SMTP_STATUS_STOPPED) {
-				M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
+				/* Prune any removed endpoints before starting again, but after any pending reactivate idle */
+				M_event_queue_task(sp->el, M_net_smtp_prune_endpoints_task, sp);
+				M_net_smtp_prune_endpoints(sp);
 			}
 			if (M_net_smtp_queue_is_pending(sp->queue)) {
 				sp->status = M_NET_SMTP_STATUS_PROCESSING;

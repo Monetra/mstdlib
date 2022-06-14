@@ -148,6 +148,20 @@ M_net_smtp_endpoint_t * M_net_smtp_endpoint_create_proc(M_net_smtp_endpoint_proc
 	return ep;
 }
 
+M_bool M_net_smtp_endpoint_destroy_is_ready(const M_net_smtp_endpoint_t *ep)
+{
+	M_bool is_ready = M_FALSE;
+	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_READ);
+
+	is_ready =
+		M_list_len(ep->send_sessions) == 0 &&
+		M_list_len(ep->idle_sessions) == 0 &&
+		M_list_len(ep->cull_sessions) == 0;
+
+	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	return is_ready;
+}
+
 void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 {
 	M_net_smtp_session_t *session;

@@ -82,6 +82,7 @@ M_bool M_net_smtp_endpoint_is_idle             (const M_net_smtp_endpoint_t *ep)
 void   M_net_smtp_endpoint_reactivate_idle     (const M_net_smtp_endpoint_t *ep);
 void   M_net_smtp_endpoint_reactivate_idle_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 void   M_net_smtp_endpoint_destroy             (M_net_smtp_endpoint_t *ep);
+M_bool M_net_smtp_endpoint_destroy_is_ready    (const M_net_smtp_endpoint_t *ep);
 
 /* These are prototyped in m_net_smtp_session.h instead of m_net_smtp_endpoint.h to avoid a dependency problem
 void   M_net_smtp_endpoint_cull_session  (const M_net_smtp_endpoint_t *ep, M_net_smtp_session_t *session);
