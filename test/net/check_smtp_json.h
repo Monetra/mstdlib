@@ -27,6 +27,9 @@ const char * json_str = \
 	"\"bad4\": {" \
 		"\"CONNECTED\": \"220...\\r\\n\"" \
 	"}," \
+	"\"bad4_2\": {" \
+		"\"CONNECTED\": \"221 \\r\\n\"" \
+	"}," \
 	"\"bad5\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"EHLO[^\\r]*\\r\\n\": \"250-VRFY\\r\\n251 AUTH PLAIN\\r\\n\"" \
