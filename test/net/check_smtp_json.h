@@ -154,6 +154,24 @@ const char * json_str = \
 		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
 		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"334 Jibberish\\r\\n\"" \
 	"}," \
+	"\"bad_auth8\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH CRAM-MD5\\r\\n\"," \
+		"\"AUTH CRAM-MD5[^\\r]*\\r\\n\": \"no\\r\\n\"" \
+	"}," \
+	"\"bad_auth9\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH CRAM-MD5\\r\\n\"," \
+		"\"AUTH CRAM-MD5[^\\r]*\\r\\n\": \"333 PDA0NjQ1NDA4NzU3ODk5OTEuMTY1NDc5OTM4NEBha2lzdGxlci5wMTBqYXgub2ZmaWNlLm1vbmV0cmEuY29tPg==\\r\\n\"" \
+	"}," \
+	"\"bad_auth10\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH CRAM-MD5\\r\\n\"," \
+		"\"AUTH CRAM-MD5[^\\r]*\\r\\n\": \"334 (ノ° °)ノ︵┻━┻ \\r\\n\"" \
+	"}," \
 	"\"starttls\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \

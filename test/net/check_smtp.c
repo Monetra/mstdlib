@@ -1489,6 +1489,9 @@ START_TEST(bad_auth)
 	M_uint16         testport5;
 	M_uint16         testport6;
 	M_uint16         testport7;
+	M_uint16         testport8;
+	M_uint16         testport9;
+	M_uint16         testport10;
 	args_t           args     = { 0 };
 	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
 	smtp_emulator_t *emu1     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth1", &testport1, BAD_SERVER);
@@ -1498,6 +1501,9 @@ START_TEST(bad_auth)
 	smtp_emulator_t *emu5     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth5", &testport5, BAD_SERVER);
 	smtp_emulator_t *emu6     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth6", &testport6, BAD_SERVER);
 	smtp_emulator_t *emu7     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth7", &testport7, BAD_SERVER);
+	smtp_emulator_t *emu8     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth8", &testport8, BAD_SERVER);
+	smtp_emulator_t *emu9     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth9", &testport9, BAD_SERVER);
+	smtp_emulator_t *emu10    = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth10", &testport10, BAD_SERVER);
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
@@ -1517,6 +1523,9 @@ START_TEST(bad_auth)
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport5, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport6, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport7, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport8, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport9, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport10, M_FALSE, "user", "pass", 1);
 
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
 
@@ -1528,10 +1537,13 @@ START_TEST(bad_auth)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.connect_fail_cb_call_count == 7, "should have failed 7 connections ");
+	ck_assert_msg(args.connect_fail_cb_call_count == 10, "should have failed 10 connections ");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
 
 	M_email_destroy(e);
@@ -1544,6 +1556,9 @@ START_TEST(bad_auth)
 	smtp_emulator_destroy(emu5);
 	smtp_emulator_destroy(emu6);
 	smtp_emulator_destroy(emu7);
+	smtp_emulator_destroy(emu8);
+	smtp_emulator_destroy(emu9);
+	smtp_emulator_destroy(emu10);
 	M_event_destroy(el);
 	cleanup();
 }
