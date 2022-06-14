@@ -127,8 +127,7 @@ const M_net_smtp_endpoint_t *M_net_smtp_endpoint_acquire(M_net_smtp_t *sp)
 				if (M_net_smtp_endpoint_is_available(ep)) {
 					return ep;
 				}
-				M_thread_mutex_unlock(sp->endpoints_mutex);
-				return NULL;
+				break;
 			}
 			break;
 		case M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN:

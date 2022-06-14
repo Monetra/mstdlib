@@ -1827,6 +1827,9 @@ START_TEST(emu_sendmsg)
 	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
