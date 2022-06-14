@@ -1869,7 +1869,7 @@ START_TEST(reactivate_idle)
 
 	args.test_id = REACTIVATE_IDLE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
-	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 4000);
+	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 4000);
 
 	args.el = el;
 	M_net_smtp_queue_smtp(sp, e);
@@ -1909,7 +1909,7 @@ START_TEST(reactivate_idle)
 	ck_assert_msg(args.sent_cb_call_count == 7, "should have called sent_cb 7 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should idle");
 
-
+	smtp_emulator_destroy(emu);
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
@@ -1959,7 +1959,7 @@ START_TEST(default_cbs)
 	smtp_emulator_destroy(emu);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, 50);
+	M_event_loop(el, 300);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after failovers and reject_457");
 
@@ -1970,7 +1970,7 @@ START_TEST(default_cbs)
 	M_list_str_insert(test_external_queue, msg);
 	M_net_smtp_external_queue_have_messages(sp);
 
-	M_event_loop(el, 50);
+	M_event_loop(el, 300);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after reject_457");
 
@@ -2313,7 +2313,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 25
 	tc = tcase_create("starttls");
 	tcase_add_test(tc, starttls);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2321,7 +2321,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 26
 	tc = tcase_create("implicit_tls");
 	tcase_add_test(tc, implicit_tls);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2337,7 +2337,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 28
 	tc = tcase_create("bad server");
 	tcase_add_test(tc, bad_server);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2353,7 +2353,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 30
 	tc = tcase_create("reactivate_idle");
 	tcase_add_test(tc, reactivate_idle);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2361,7 +2361,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 31
 	tc = tcase_create("default cbs");
 	tcase_add_test(tc, default_cbs);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2377,7 +2377,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 33
 	tc = tcase_create("bad auth");
 	tcase_add_test(tc, bad_auth);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
