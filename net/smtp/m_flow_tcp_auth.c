@@ -269,24 +269,22 @@ static M_state_machine_status_t M_auth_cram_md5_secret_response_post_cb(void *da
 
 static void RFC2831_HEX(unsigned char *b, size_t b_len, char *s, size_t s_len)
 {
-	if (b_len != 16 || s_len != 33)
-		return;
-
-	M_snprintf(s, 33, /* sizeof(s) == sizeof(void*) */
-		"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-		b[0], b[1], b[2] , b[3] , b[4] , b[5] , b[6] , b[7],
-		b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]
-	);
+	if (b_len == 16 && s_len == 33) {
+		M_snprintf(s, 33, /* sizeof(s) == sizeof(void*) */
+			"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+			b[0], b[1], b[2] , b[3] , b[4] , b[5] , b[6] , b[7],
+			b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]
+		);
+	}
 }
 
 static void RFC2831_H(char *s, size_t len, unsigned char *b, size_t b_len)
 {
 	unsigned int mdlen = 16;
 
-	if (b_len != 16)
-		return;
-
-	EVP_Digest(s, len, b, &mdlen, EVP_md5(), NULL);
+	if (b_len == 16) {
+		EVP_Digest(s, len, b, &mdlen, EVP_md5(), NULL);
+	}
 }
 
 static M_state_machine_status_t M_state_auth_digest_md5(void *data, M_uint64 *next)
@@ -318,24 +316,23 @@ static void digest_md5_compute_HA1(digest_md5_parameters_t *parameters, unsigned
 	char    *str   = NULL;
 	size_t   len;
 
-	if (HA1_len != 16)
-		return;
+	if (HA1_len == 16) {
+		buf = M_buf_create();
+		M_bprintf(buf, "%s:%s:%s", parameters->username, parameters->realm, parameters->password);
+		str = M_buf_finish_str(buf, &len);
+		RFC2831_H(str, len, HA1, HA1_len);
+		M_free(str);
 
-	buf = M_buf_create();
-	M_bprintf(buf, "%s:%s:%s", parameters->username, parameters->realm, parameters->password);
-	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA1, HA1_len);
-	M_free(str);
-
-	buf = M_buf_create();
-	M_buf_add_bytes(buf, HA1, 16);
-	M_bprintf(buf, ":%s:%s", parameters->nonce, parameters->cnonce);
-	if (parameters->authzid != NULL) {
-		M_bprintf(buf, ":%s", parameters->authzid);
+		buf = M_buf_create();
+		M_buf_add_bytes(buf, HA1, 16);
+		M_bprintf(buf, ":%s:%s", parameters->nonce, parameters->cnonce);
+		if (parameters->authzid != NULL) {
+			M_bprintf(buf, ":%s", parameters->authzid);
+		}
+		str = M_buf_finish_str(buf, &len);
+		RFC2831_H(str, len, HA1, HA1_len);
+		M_free(str);
 	}
-	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA1, HA1_len);
-	M_free(str);
 }
 
 static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned char *HA2, size_t HA2_len)
@@ -344,20 +341,20 @@ static void digest_md5_compute_HA2(digest_md5_parameters_t *parameters, unsigned
 	char    *str   = NULL;
 	size_t   len;
 
-	if (HA2_len != 16)
-		return;
-
-	buf = M_buf_create();
-	M_bprintf(buf, "%s:%s", parameters->method, parameters->digest_uri);
-	if (parameters->qop != NULL &&
-		(M_str_caseeq(parameters->qop, "auth-int") ||
-			M_str_caseeq(parameters->qop, "auth-conf"))
-	) {
-		 M_bprintf(buf, ":%s", parameters->H_entity_body);
+	if (HA2_len == 16) {
+		buf = M_buf_create();
+		M_bprintf(buf, "%s:%s", parameters->method, parameters->digest_uri);
+		if (parameters->qop != NULL &&
+			(M_str_caseeq(parameters->qop, "auth-int") ||
+				M_str_caseeq(parameters->qop, "auth-conf"))
+		) {
+			 M_bprintf(buf, ":%s", parameters->H_entity_body);
+		}
+		str = M_buf_finish_str(buf, &len);
+		RFC2831_H(str, len, HA2, HA2_len);
+		M_free(str);
 	}
-	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HA2, HA2_len);
-	M_free(str);
+
 }
 
 static void digest_md5_compute_response(digest_md5_parameters_t *parameters, char* response, size_t response_len)
@@ -370,32 +367,32 @@ static void digest_md5_compute_response(digest_md5_parameters_t *parameters, cha
 	unsigned char  HFINAL[16]      = { 0 };
 	size_t         len;
 
-	if (response_len != 33)
-		return;
+	if (response_len == 33) {
 
-	digest_md5_compute_HA1(parameters, HA1, sizeof(HA1));
-	digest_md5_compute_HA2(parameters, HA2, sizeof(HA2));
+		digest_md5_compute_HA1(parameters, HA1, sizeof(HA1));
+		digest_md5_compute_HA2(parameters, HA2, sizeof(HA2));
 
-	buf = M_buf_create();
+		buf = M_buf_create();
 
-	for (i=0; i<16; i++) {
-		M_buf_add_bytehex(buf, HA1[i], M_FALSE);
+		for (i=0; i<16; i++) {
+			M_buf_add_bytehex(buf, HA1[i], M_FALSE);
+		}
+
+		M_bprintf(buf, ":%s:", parameters->nonce);
+		if (parameters->qop != NULL) {
+			M_bprintf(buf, "%s:%s:%s:", parameters->nonce_count, parameters->cnonce, parameters->qop);
+		}
+
+		for (i=0; i<16; i++) {
+			M_buf_add_bytehex(buf, HA2[i], M_FALSE);
+		}
+
+		str = M_buf_finish_str(buf, &len);
+		RFC2831_H(str, len, HFINAL, sizeof(HFINAL));
+		M_free(str);
+
+		RFC2831_HEX(HFINAL, sizeof(HFINAL), response, response_len);
 	}
-
-	M_bprintf(buf, ":%s:", parameters->nonce);
-	if (parameters->qop != NULL) {
-		M_bprintf(buf, "%s:%s:%s:", parameters->nonce_count, parameters->cnonce, parameters->qop);
-	}
-
-	for (i=0; i<16; i++) {
-		M_buf_add_bytehex(buf, HA2[i], M_FALSE);
-	}
-
-	str = M_buf_finish_str(buf, &len);
-	RFC2831_H(str, len, HFINAL, sizeof(HFINAL));
-	M_free(str);
-
-	RFC2831_HEX(HFINAL, sizeof(HFINAL), response, response_len);
 }
 
 static M_state_machine_status_t M_auth_digest_md5_nonce_response_post_cb(void *data,
