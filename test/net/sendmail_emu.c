@@ -14,6 +14,11 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
+			if (argv[i][1] == 'x') {
+				i++;
+				if (i == argc) { return 0; }
+				return atoi(argv[i]);
+			}
 			if (argv[i][1] == 'i') {
 				is_ignore_fullstop = true;
 				continue;

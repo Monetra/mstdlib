@@ -55,6 +55,7 @@ typedef enum {
 	DEFAULT_CBS             = 31,
 	BCC_TEST                = 32,
 	BAD_AUTH                = 33,
+	PROCESS_ERROR_EXIT      = 34,
 } test_id_t;
 
 #define TESTONLY 0
@@ -579,6 +580,10 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
 
+	if (args->test_id == PROCESS_ERROR_EXIT) {
+		M_event_done(args->el);
+	}
+
 	return M_TRUE; /* Should process endpoint be removed? */
 }
 
@@ -1067,6 +1072,40 @@ START_TEST(dot_msg)
 	cleanup();
 }
 END_TEST
+START_TEST(process_error_exit)
+{
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+	args_t             args        = { 0 };
+	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
+	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t         *e1          = generate_email(1, test_address);
+
+	args.test_id = PROCESS_ERROR_EXIT;
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
+
+	M_net_smtp_queue_smtp(sp, e1);
+
+	M_list_str_insert(cmd_args, "-x");
+	M_list_str_insert(cmd_args, "15");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
+
+	args.el = el;
+	args.sp = sp;
+
+	M_event_loop(el, 1000);
+
+	ck_assert_msg(args.process_fail_cb_call_count == 1, "Should have called process_fail");
+
+	M_email_destroy(e1);
+	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	M_list_str_destroy(cmd_args);
+	cleanup();
+}
+END_TEST
+
 START_TEST(proc_endpoint)
 {
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
@@ -2293,6 +2332,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 33
 	tc = tcase_create("bad auth");
 	tcase_add_test(tc, bad_auth);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*PROCESS_ERROR_EXIT      = 34, */
+#if TESTONLY == 0 || TESTONLY == 34
+	tc = tcase_create("process error exit");
+	tcase_add_test(tc, process_error_exit);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
