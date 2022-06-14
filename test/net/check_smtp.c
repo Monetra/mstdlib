@@ -1776,6 +1776,7 @@ START_TEST(default_cbs)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, NULL, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+	char            *msg      = M_email_simple_write(e);
 
 	args.test_id = DEFAULT_CBS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1802,7 +1803,10 @@ START_TEST(default_cbs)
 	M_net_smtp_resume(sp);
 
 	smtp_emulator_destroy(emu);
-	M_net_smtp_queue_smtp(sp, e);
+	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
+	M_net_smtp_use_external_queue(sp, test_external_queue_get_cb);
+	M_list_str_insert(test_external_queue, msg);
+	M_net_smtp_external_queue_have_messages(sp);
 
 	M_event_loop(el, 50);
 
@@ -1811,9 +1815,12 @@ START_TEST(default_cbs)
 	smtp_emulator_destroy(emu2);
 	M_list_str_destroy(cmd_args);
 	M_email_destroy(e);
+	M_free(msg);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
+	M_list_str_destroy(test_external_queue);
+	test_external_queue = NULL;
 	cleanup();
 }
 END_TEST
