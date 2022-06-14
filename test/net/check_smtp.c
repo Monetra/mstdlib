@@ -53,6 +53,7 @@ typedef enum {
 	BAD_SERVER_2            = 29,
 	REACTIVATE_IDLE         = 30,
 	DEFAULT_CBS             = 31,
+	BCC_TEST                = 32,
 } test_id_t;
 
 #define TESTONLY 0
@@ -617,6 +618,13 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args->sent_cb_call_count++;
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
+		M_event_done(args->el);
+	}
+
+	if (args->test_id == BCC_TEST) {
+		char *str = M_hash_dict_serialize(headers, ';', '=', '"', '\\', M_HASH_DICT_SER_FLAG_NONE);
+		event_debug("sent_cb headers (%zu): %s", M_hash_dict_num_keys(headers), str);
+		M_free(str);
 		M_event_done(args->el);
 	}
 
@@ -1605,6 +1613,7 @@ START_TEST(bad_server)
 	M_uint16         testport2;
 	M_uint16         testport3;
 	M_uint16         testport4;
+	M_uint16         testport4_2;
 	M_uint16         testport5;
 	M_uint16         testport6;
 	M_uint16         testport7;
@@ -1619,6 +1628,7 @@ START_TEST(bad_server)
 	smtp_emulator_t *emu2     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad2", &testport2, BAD_SERVER);
 	smtp_emulator_t *emu3     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad3", &testport3, BAD_SERVER);
 	smtp_emulator_t *emu4     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad4", &testport4, BAD_SERVER);
+	smtp_emulator_t *emu4_2   = smtp_emulator_create(el, TLS_TYPE_NONE, "bad4_2", &testport4_2, BAD_SERVER);
 	smtp_emulator_t *emu5     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad5", &testport5, BAD_SERVER);
 	smtp_emulator_t *emu6     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad6", &testport6, BAD_SERVER);
 	smtp_emulator_t *emu7     = smtp_emulator_create(el, TLS_TYPE_STARTTLS, "bad7", &testport7, BAD_SERVER);
@@ -1643,6 +1653,7 @@ START_TEST(bad_server)
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport2, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport3, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport4, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport4_2, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport5, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport6, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport7, M_TRUE, "user", "pass", 1);
@@ -1667,10 +1678,11 @@ START_TEST(bad_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.connect_fail_cb_call_count == 12, "should have failed 12 connections ");
+	ck_assert_msg(args.connect_fail_cb_call_count == 13, "should have failed 13 connections ");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
 
 	M_email_destroy(e);
@@ -1680,6 +1692,7 @@ START_TEST(bad_server)
 	smtp_emulator_destroy(emu2);
 	smtp_emulator_destroy(emu3);
 	smtp_emulator_destroy(emu4);
+	smtp_emulator_destroy(emu4_2);
 	smtp_emulator_destroy(emu5);
 	smtp_emulator_destroy(emu6);
 	smtp_emulator_destroy(emu7);
@@ -1792,6 +1805,48 @@ START_TEST(default_cbs)
 	M_email_destroy(e);
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
+START_TEST(bcc_test)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, BCC_TEST);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	M_email_cc_append(e, NULL, NULL, "cc@localhost");
+	M_email_bcc_append(e, NULL, NULL, "bcc@localhost");
+
+	args.test_id = BCC_TEST;
+
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
+	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
+	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
 	M_event_destroy(el);
 	cleanup();
 }
@@ -2129,6 +2184,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 31
 	tc = tcase_create("default cbs");
 	tcase_add_test(tc, default_cbs);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*BCC_TEST                = 32, */
+#if TESTONLY == 0 || TESTONLY == 32
+	tc = tcase_create("bcc test");
+	tcase_add_test(tc, bcc_test);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
