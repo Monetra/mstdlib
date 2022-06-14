@@ -382,8 +382,10 @@ M_bool M_net_smtp_resume(M_net_smtp_t *sp)
 		case M_NET_SMTP_STATUS_IDLE:
 			return M_TRUE;
 		case M_NET_SMTP_STATUS_STOPPED:
-			M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
 		case M_NET_SMTP_STATUS_STOPPING:
+			if (status == M_NET_SMTP_STATUS_STOPPED) {
+				M_net_smtp_prune_endpoints(sp); /* Prune any removed endpoints before starting again */
+			}
 			if (M_net_smtp_queue_is_pending(sp->queue)) {
 				sp->status = M_NET_SMTP_STATUS_PROCESSING;
 				M_event_queue_task(sp->el, M_net_smtp_queue_advance_task, sp->queue);
