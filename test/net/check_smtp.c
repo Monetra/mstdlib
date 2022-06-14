@@ -873,7 +873,7 @@ START_TEST(dump_queue)
 	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
 	list = M_net_smtp_dump_queue(sp);
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 0), "Couldn't add endpoint_process");
 	args.el = el;
 	args.sp = sp;
 
@@ -1203,6 +1203,10 @@ START_TEST(tls_unsupporting_server)
 	args.test_id = TLS_UNSUPPORTING_SERVER;
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_TRUE, "user", "pass", 1) == M_FALSE, "should fail to add TLS because ctx is NULL");
+
 	M_net_smtp_setup_tcp(sp, dns, ctx);
 	M_net_smtp_setup_tcp(sp, dns, ctx);
 	M_tls_clientctx_destroy(ctx);
@@ -1772,6 +1776,7 @@ START_TEST(default_cbs)
 	M_net_smtp_pause(sp);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "should return to stopped after pause()");
+	M_net_smtp_pause(sp);
 
 	M_net_smtp_resume(sp);
 
