@@ -200,6 +200,8 @@ static M_state_machine_status_t M_auth_login_response_post_cb(void *data, M_stat
 		return M_STATE_MACHINE_STATUS_NEXT;
 	}
 
+	session->tcp.is_connect_fail = M_TRUE;
+	session->tcp.net_error = M_NET_ERROR_PROTONOTSUPPORTED;
 	M_snprintf(session->errmsg, sizeof(session->errmsg), "Unknown auth-login request: %s", line);
 	return M_STATE_MACHINE_STATUS_ERROR_STATE;
 }

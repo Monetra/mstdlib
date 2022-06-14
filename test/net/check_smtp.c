@@ -54,6 +54,7 @@ typedef enum {
 	REACTIVATE_IDLE         = 30,
 	DEFAULT_CBS             = 31,
 	BCC_TEST                = 32,
+	BAD_AUTH                = 33,
 } test_id_t;
 
 #define TESTONLY 0
@@ -552,7 +553,7 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 	if (args->test_id == TIMEOUTS) {
 		return M_TRUE;
 	}
-	if (args->test_id == BAD_SERVER) {
+	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
 		return M_TRUE;
 	}
 	return M_FALSE; /* Should TCP endpoint be removed? */
@@ -599,7 +600,7 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 	if (args->test_id == HALT_RESTART) {
 		return 10; /* restart in 10ms */
 	}
-	if (args->test_id == BAD_SERVER) {
+	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
 		M_event_done(args->el);
 		return 0;
 	}
@@ -1440,6 +1441,75 @@ START_TEST(auth_plain)
 }
 END_TEST
 
+START_TEST(bad_auth)
+{
+	M_uint16         testport1;
+	M_uint16         testport2;
+	M_uint16         testport3;
+	M_uint16         testport4;
+	M_uint16         testport5;
+	M_uint16         testport6;
+	M_uint16         testport7;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu1     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth1", &testport1, BAD_SERVER);
+	smtp_emulator_t *emu2     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth2", &testport2, BAD_SERVER);
+	smtp_emulator_t *emu3     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth3", &testport3, BAD_SERVER);
+	smtp_emulator_t *emu4     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth4", &testport4, BAD_SERVER);
+	smtp_emulator_t *emu5     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth5", &testport5, BAD_SERVER);
+	smtp_emulator_t *emu6     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth6", &testport6, BAD_SERVER);
+	smtp_emulator_t *emu7     = smtp_emulator_create(el, TLS_TYPE_NONE, "bad_auth7", &testport7, BAD_SERVER);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
+
+	args.test_id = BAD_SERVER;
+
+	M_tls_clientctx_set_default_trust(ctx);
+	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
+	M_net_smtp_setup_tcp(sp, dns, ctx);
+	M_tls_clientctx_destroy(ctx);
+
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport1, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport2, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport3, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport4, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport5, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport6, M_FALSE, "user", "pass", 1);
+	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport7, M_FALSE, "user", "pass", 1);
+
+	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
+
+	args.el = el;
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_queue_smtp(sp, e);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.connect_fail_cb_call_count == 7, "should have failed 7 connections ");
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu1);
+	smtp_emulator_destroy(emu2);
+	smtp_emulator_destroy(emu3);
+	smtp_emulator_destroy(emu4);
+	smtp_emulator_destroy(emu5);
+	smtp_emulator_destroy(emu6);
+	smtp_emulator_destroy(emu7);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(auth_login)
 {
 	M_uint16         testport;
@@ -2215,6 +2285,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 32
 	tc = tcase_create("bcc test");
 	tcase_add_test(tc, bcc_test);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*BAD_AUTH                = 33, */
+#if TESTONLY == 0 || TESTONLY == 33
+	tc = tcase_create("bad auth");
+	tcase_add_test(tc, bad_auth);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif

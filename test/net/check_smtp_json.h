@@ -108,6 +108,52 @@ const char * json_str = \
 		"\"RCPT TO:<[^>]*>\\r\\n\": \"250\\r\\n\"," \
 		"\"DATA\\r\\n\": \"354 \\r\\n\"" \
 	"}," \
+	"\"bad_auth1\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH PLAIN\\r\\n\"," \
+		"\"AUTH PLAIN[^\\r]*\\r\\n\": \"no\\r\\n\"" \
+	"}," \
+	"\"bad_auth2\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH PLAIN\\r\\n\"," \
+		"\"AUTH PLAIN[^\\r]*\\r\\n\": \"234 not 235\\r\\n\"" \
+	"}," \
+	"\"bad_auth3\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
+		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"no\\r\\n\"" \
+	"}," \
+	"\"bad_auth4\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
+		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"235 not 334\\r\\n\"" \
+	"}," \
+	"\"bad_auth5\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
+		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"334 VXNlcm5hbWU6\\r\\n\"," \
+		"\"dXNlcg[^\\r]*\\r\\n\": \"250 not 334\\r\\n\"," \
+		"\"cGFzcw[^\\r]*\\r\\n\": \"235 \\r\\n\"" \
+	"}," \
+	"\"bad_auth6\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
+		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"334 VXNlcm5hbWU6\\r\\n\"," \
+		"\"dXNlcg[^\\r]*\\r\\n\": \"334 UGFzc3dvcmQ6\\r\\n\"," \
+		"\"cGFzcw[^\\r]*\\r\\n\": \"200 not 235\\r\\n\"" \
+	"}," \
+	"\"bad_auth7\": {" \
+		"\"CONNECTED\": \"220 \\r\\n\"," \
+		"\"DATA_ACK\": \"250 \\r\\n\"," \
+		"\"EHLO[^\\r]*\\r\\n\": \"250 AUTH LOGIN\\r\\n\"," \
+		"\"AUTH LOGIN[^\\r]*\\r\\n\": \"334 Jibberish\\r\\n\"" \
+	"}," \
 	"\"starttls\": {" \
 		"\"CONNECTED\": \"220 \\r\\n\"," \
 		"\"DATA_ACK\": \"250 \\r\\n\"," \
