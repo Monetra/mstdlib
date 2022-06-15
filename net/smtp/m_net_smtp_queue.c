@@ -72,6 +72,7 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 {
 	M_net_smtp_dispatch_msg_args_t        dispatch_args = { sp, msg, num_tries, NULL, NULL, M_FALSE };
 	M_email_error_t                       email_error;
+	size_t                                num_rcpt_to_addresses;
 
 	email_error = M_email_simple_read(&dispatch_args.email, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
 	if (email_error != M_EMAIL_ERROR_SUCCESS) {
@@ -82,6 +83,23 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 	}
 
 	M_email_simple_split_header_body(msg, &dispatch_args.headers, NULL);
+
+	if (!M_email_from(dispatch_args.email, NULL, NULL, NULL)) {
+		M_bool is_retrying = M_FALSE;
+		num_tries = sp->queue->is_external_queue_enabled ? 0 : 1;
+		sp->cbs.send_failed_cb(dispatch_args.headers, "No from address found", num_tries, is_retrying, sp->thunk);
+		goto fail;
+	}
+
+	num_rcpt_to_addresses = M_email_to_len(dispatch_args.email) + M_email_cc_len(dispatch_args.email) +
+			M_email_bcc_len(dispatch_args.email);
+
+	if (num_rcpt_to_addresses == 0) {
+		M_bool is_retrying = M_FALSE;
+		num_tries = sp->queue->is_external_queue_enabled ? 0 : 1;
+		sp->cbs.send_failed_cb(dispatch_args.headers, "No send addresses found", num_tries, is_retrying, sp->thunk);
+		goto fail;
+	}
 
 	if (sp->queue->max_number_of_attempts == 0) {
 		M_net_smtp_queue_reschedule_msg_args_t reschedule_args = { sp, msg, dispatch_args.headers, M_FALSE, num_tries,

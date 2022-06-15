@@ -695,6 +695,11 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
+	if (args->test_id == BCC_TEST) {
+		if (args->send_failed_cb_call_count == 2) {
+			M_event_done(args->el);
+		}
+	}
 	if (args->test_id == BAD_SERVER_2) {
 		if (args->send_failed_cb_call_count == 4) {
 			M_event_done(args->el);
@@ -2009,9 +2014,35 @@ START_TEST(bcc_test)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+	const char      *no_from  =
+"To: akistler@localhost\r\n"
+"CC: cc@localhost\r\n"
+"Content-Type: multipart/alternative; boundary=\"------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\"\r\n"
+"Subject: Testing\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"20220615:104441, 1\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
+	const char      *no_to    =
+"From: smtp_cli <no-reply+smtp-test@monetra.com>\r\n"
+"Content-Type: multipart/alternative; boundary=\"------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\"\r\n"
+"Subject: Testing\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"20220615:104441, 1\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
 
 	M_email_cc_append(e, NULL, NULL, "cc@localhost");
 	M_email_bcc_append(e, NULL, NULL, "bcc@localhost");
+
 
 	args.test_id = BCC_TEST;
 
@@ -2031,8 +2062,12 @@ START_TEST(bcc_test)
 	ck_assert_msg(args.is_success, "should have removed BCC from headers");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 
-	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,
-			"should succeed adding tcp after setting dns");
+	ck_assert_msg(M_net_smtp_queue_message(sp, no_from) == M_TRUE, "should add");
+	ck_assert_msg(M_net_smtp_queue_message(sp, no_to) == M_TRUE, "should add");
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.send_failed_cb_call_count == 2, "should fail to send msg with no from and no to");
 
 	M_email_destroy(e);
 	M_dns_destroy(dns);

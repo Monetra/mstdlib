@@ -166,6 +166,7 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			goto destroy;
 	}
 
+
 	if (session->is_successfully_sent && session->msg != NULL && !session->tcp.is_QUIT_enabled) {
 		/* get ready to accept another. */
 		M_net_smtp_session_clean(session);
@@ -442,9 +443,8 @@ void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_d
 	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
 		session->tcp.is_QUIT_enabled = (sp->tcp_idle_ms == 0);
 		if (!args->is_bootstrap) {
-			/* M_net_smtp_session_reactivate_tcp(session); w/out the lock */
-			session_tcp_advance(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
 			M_event_timer_reset(session->event_timer, sp->tcp_stall_ms);
+			M_event_queue_task(session->sp->el, M_net_smtp_session_reactivate_tcp_task, session);
 		} else {
 			M_event_timer_start(session->event_timer, sp->tcp_connect_ms);
 		}
@@ -477,6 +477,14 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 void M_net_smtp_session_reactivate_tcp(M_net_smtp_session_t *session)
 {
 	session_tcp_advance_task(session->sp->el, M_EVENT_TYPE_WRITE, session->io, session);
+}
+
+void M_net_smtp_session_reactivate_tcp_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	(void)el;
+	(void)etype;
+	(void)io;
+	M_net_smtp_session_reactivate_tcp(thunk);
 }
 
 static void M_net_smtp_session_destroy_int(M_net_smtp_session_t *session)

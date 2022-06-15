@@ -38,10 +38,7 @@ static M_state_machine_status_t M_state_mail_from(void *data, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
 	const char           *address = NULL;
-
-	if (!M_email_from(session->email, NULL, NULL, &address)) {
-		return M_STATE_MACHINE_STATUS_ERROR_STATE;
-	}
+	M_email_from(session->email, NULL, NULL, &address);
 	M_buf_add_str(session->out_buf, "MAIL FROM:<");
 	M_buf_add_str(session->out_buf, address);
 	M_buf_add_str(session->out_buf, ">\r\n");
@@ -73,8 +70,6 @@ static M_state_machine_status_t M_state_rcpt_to(void *data, M_uint64 *next)
 	char                 *address = NULL;
 
 	address = M_list_str_take_last(session->tcp.rcpt_to);
-	if (address == NULL)
-		return M_STATE_MACHINE_STATUS_ERROR_STATE;
 
 	M_buf_add_str(session->out_buf, "RCPT TO:<");
 	M_buf_add_str(session->out_buf, address);
