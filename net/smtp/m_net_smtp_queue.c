@@ -83,6 +83,13 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 
 	dispatch_args.headers = M_email_headers(dispatch_args.email);
 
+	if (sp->queue->max_number_of_attempts == 0) {
+		M_net_smtp_queue_reschedule_msg_args_t reschedule_args = { sp, msg, dispatch_args.headers, M_FALSE, num_tries,
+			"Max number attempts set to 0", sp->queue->retry_default_ms };
+		M_net_smtp_queue_reschedule_msg(&reschedule_args);
+		goto fail;
+	}
+
 	if (!M_net_smtp_endpoint_dispatch_msg(M_CAST_OFF_CONST(M_net_smtp_endpoint_t*,ep), &dispatch_args)) {
 		M_net_smtp_queue_reschedule_msg_args_t reschedule_args = { sp, msg, dispatch_args.headers, M_TRUE, num_tries + 1,
 				"Failure creating session", sp->queue->retry_default_ms };

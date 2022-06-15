@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -57,9 +57,10 @@ typedef enum {
 	BAD_AUTH                = 33,
 	PROCESS_ERROR_EXIT      = 34,
 	DOMAIN_MISMATCH         = 35,
+	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 35
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -698,6 +699,10 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 			M_event_done(args->el);
 		}
 		return M_FALSE;
+	}
+	if (args->test_id == MAX_ATTEMPTS_0) {
+		args->is_success = (can_requeue == M_FALSE);
+		M_event_done(args->el);
 	}
 	if (args->test_id == MULTITHREAD_RETRY) {
 		if (args->send_failed_cb_call_count == multithread_retry_count) {
@@ -2069,6 +2074,43 @@ START_TEST(domain_mismatch)
 }
 END_TEST
 
+START_TEST(max_attempts_0)
+{
+	M_uint16         testport;
+	args_t           args     = { 0 };
+	M_event_t       *el       = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t *emu      = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MAX_ATTEMPTS_0);
+	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t         *dns      = M_dns_create(el);
+	M_email_t       *e        = generate_email(1, test_address);
+
+	args.test_id = MAX_ATTEMPTS_0;
+	M_net_smtp_setup_tcp(sp, dns, NULL);
+	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
+			"should succeed adding tcp after setting dns");
+
+	args.el = el;
+	M_net_smtp_set_num_attempts(sp, 0);
+	M_net_smtp_queue_smtp(sp, e);
+	M_net_smtp_resume(sp);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_success, "should not be able to requeue");
+	ck_assert_msg(args.send_failed_cb_call_count == 1, "should have failed to send message");
+	ck_assert_msg(args.is_connect_cb_called == M_FALSE, "should not have called connect_cb");
+
+	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
+
+	M_email_destroy(e);
+	M_dns_destroy(dns);
+	M_net_smtp_destroy(sp);
+	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
 START_TEST(emu_sendmsg)
 {
 	M_uint16         testport;
@@ -2433,6 +2475,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 35
 	tc = tcase_create("domain mismatch");
 	tcase_add_test(tc, domain_mismatch);
+	tcase_set_timeout(tc, 2);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*MAX_ATTEMPTS_0          = 36, */
+#if TESTONLY == 0 || TESTONLY == 36
+	tc = tcase_create("max attempts 0");
+	tcase_add_test(tc, max_attempts_0);
 	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 #endif
