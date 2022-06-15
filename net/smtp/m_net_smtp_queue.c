@@ -68,10 +68,21 @@ static void retry_msg_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void
 		M_net_smtp_queue_advance(q);
 }
 
+static char *email_address_domain_cpy(const char* address)
+{
+	const char *domain = M_str_chr(address, '@');
+
+	if (domain == NULL)
+		return NULL;
+
+	return M_strdup(domain + 1);
+}
+
 static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *ep, char *msg, size_t num_tries)
 {
-	M_net_smtp_dispatch_msg_args_t        dispatch_args = { sp, msg, num_tries, NULL, NULL, M_FALSE };
+	M_net_smtp_dispatch_msg_args_t        dispatch_args = { sp, msg, num_tries, NULL, NULL, M_FALSE, NULL };
 	M_email_error_t                       email_error;
+	const char                           *address;
 	size_t                                num_rcpt_to_addresses;
 
 	email_error = M_email_simple_read(&dispatch_args.email, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
@@ -84,10 +95,18 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 
 	M_email_simple_split_header_body(msg, &dispatch_args.headers, NULL);
 
-	if (!M_email_from(dispatch_args.email, NULL, NULL, NULL)) {
+	if (!M_email_from(dispatch_args.email, NULL, NULL, &address) || address == NULL) {
 		M_bool is_retrying = M_FALSE;
 		num_tries = sp->queue->is_external_queue_enabled ? 0 : 1;
 		sp->cbs.send_failed_cb(dispatch_args.headers, "No from address found", num_tries, is_retrying, sp->thunk);
+		goto fail;
+	}
+
+	dispatch_args.domain = email_address_domain_cpy(address);
+	if (dispatch_args.domain == NULL) {
+		M_bool is_retrying = M_FALSE;
+		num_tries = sp->queue->is_external_queue_enabled ? 0 : 1;
+		sp->cbs.send_failed_cb(dispatch_args.headers, "No domain found in email address", num_tries, is_retrying, sp->thunk);
 		goto fail;
 	}
 
@@ -116,6 +135,7 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 	}
 	return M_TRUE;
 fail:
+	M_free(dispatch_args.domain);
 	M_email_destroy(dispatch_args.email);
 	M_hash_dict_destroy(dispatch_args.headers);
 	M_free(msg);

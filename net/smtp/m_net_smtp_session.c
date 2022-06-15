@@ -438,6 +438,11 @@ void M_net_smtp_session_dispatch_msg(M_net_smtp_session_t *session, M_net_smtp_d
 	session->is_backout             = M_FALSE;
 	session->retry_ms               = q->retry_default_ms;
 	session->email                  = args->email;
+	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		session->tcp.ehlo_domain = args->domain;
+	} else {
+		M_free(args->domain);
+	}
 	M_mem_set(session->errmsg, 0, sizeof(session->errmsg));
 
 	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
@@ -465,6 +470,9 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 		session->sp->cbs.sent_cb(session->headers, session->sp->thunk);
 	}
 
+	if (session->ep->type == M_NET_SMTP_EPTYPE_TCP) {
+		M_free(session->tcp.ehlo_domain);
+	}
 	M_email_destroy(session->email);
 	M_hash_dict_destroy(session->headers);
 	M_free(session->msg);

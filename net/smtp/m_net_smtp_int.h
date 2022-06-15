@@ -66,6 +66,7 @@ typedef struct {
 	M_hash_dict_t       *headers;
 	M_email_t           *email;
 	M_bool               is_bootstrap;
+	char                *domain;
 } M_net_smtp_dispatch_msg_args_t;
 
 const M_net_smtp_endpoint_t * M_net_smtp_endpoint_acquire (M_net_smtp_t *sp);

@@ -24,8 +24,7 @@
 #include "m_net_smtp_int.h"
 
 typedef enum {
-	STATE_CONNECTING = 1,
-	STATE_OPENING_RESPONSE,
+	STATE_OPENING_RESPONSE = 1,
 	STATE_EHLO,
 	STATE_STARTTLS,
 	STATE_AUTH,
@@ -33,7 +32,6 @@ typedef enum {
 	STATE_WAIT_FOR_NEXT_MSG,
 	STATE_QUIT,
 	STATE_QUIT_ACK,
-	STATE_DISCONNECTING,
 } m_state_ids;
 
 M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_session_t *session, M_uint64 expected_code)
@@ -49,17 +47,6 @@ M_bool M_net_smtp_flow_tcp_check_smtp_response_code(M_net_smtp_session_t *sessio
 		return M_FALSE;
 	}
 	return M_TRUE;
-}
-
-static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
-{
-	M_net_smtp_session_t *session = data;
-
-	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
-		*next = STATE_OPENING_RESPONSE;
-		return M_STATE_MACHINE_STATUS_NEXT;
-	}
-	return M_STATE_MACHINE_STATUS_WAIT;
 }
 
 static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_machine_status_t sub_status,
@@ -88,43 +75,9 @@ static M_state_machine_status_t M_opening_response_post_cb(void *data, M_state_m
 	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
-static char *email_address_domain_cpy(const char* address)
-{
-	const char *domain = M_str_chr(address, '@');
-
-	if (domain == NULL)
-		return NULL;
-
-	return M_strdup(domain + 1);
-}
-
-static M_bool M_ehlo_pre_cb(void *data, M_state_machine_status_t *status, M_uint64 *next)
-{
-	M_net_smtp_session_t *session = data;
-	const char           *address = NULL;
-	(void)status;
-	(void)next;
-
-	if (!M_email_from(session->email, NULL, NULL, &address) || address == NULL) {
-		M_snprintf(session->errmsg, sizeof(session->errmsg), "Failed to parse \"From:\": %s", session->msg);
-		return M_FALSE;
-	}
-
-	session->tcp.ehlo_domain = email_address_domain_cpy(address);
-	if (session->tcp.ehlo_domain == NULL) {
-		M_snprintf(session->errmsg, sizeof(session->errmsg), "Could not extract domain from email address: %s\n", address);
-		return M_FALSE;
-	}
-
-	return M_TRUE;
-}
-
 static M_state_machine_status_t M_ehlo_post_cb(void *data, M_state_machine_status_t sub_status, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
-
-	M_free(session->tcp.ehlo_domain);
-	session->tcp.ehlo_domain = NULL;
 
 	if (sub_status != M_STATE_MACHINE_STATUS_DONE)
 		return M_STATE_MACHINE_STATUS_ERROR_STATE;
@@ -259,26 +212,15 @@ static M_state_machine_status_t M_state_quit(void *data, M_uint64 *next)
 static M_state_machine_status_t M_state_quit_ack(void *data, M_uint64 *next)
 {
 	M_net_smtp_session_t *session = data;
+	(void)next;
 
 /* Although RFC 5321 calls for a 221 reply, if they don't send one we need to move on,
 	* regardless of how upset John Klensin may get. */
 
 	if (M_parser_consume_until(session->in_parser, (const unsigned char *)"\r\n", 2, M_TRUE)) {
-		*next = STATE_DISCONNECTING;
-		return M_STATE_MACHINE_STATUS_NEXT;
+		return M_STATE_MACHINE_STATUS_DONE;
 	}
 	return M_STATE_MACHINE_STATUS_WAIT;
-}
-
-static M_state_machine_status_t M_state_disconnecting(void *data, M_uint64 *next)
-{
-	M_net_smtp_session_t *session      = data;
-	(void)next;
-
-	if ((session->connection_mask & M_NET_SMTP_CONNECTION_MASK_IO) != 0u) {
-		return M_STATE_MACHINE_STATUS_WAIT;
-	}
-	return M_STATE_MACHINE_STATUS_DONE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -289,7 +231,6 @@ M_state_machine_t * M_net_smtp_flow_tcp(void)
 	M_state_machine_t *sub_m = NULL;
 
 	m = M_state_machine_create(0, "SMTP-flow-tcp", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
 
 	M_net_smtp_flow_tcp_smtp_response_insert_subm(m, STATE_OPENING_RESPONSE, M_opening_response_post_cb);
 
@@ -300,7 +241,7 @@ M_state_machine_t * M_net_smtp_flow_tcp(void)
 
 	sub_m = M_net_smtp_flow_tcp_ehlo();
 	M_state_machine_insert_sub_state_machine(m, STATE_EHLO, 0, NULL, sub_m,
-			M_ehlo_pre_cb, M_ehlo_post_cb, NULL, NULL);
+			NULL, M_ehlo_post_cb, NULL, NULL);
 	M_state_machine_destroy(sub_m);
 
 	sub_m = M_net_smtp_flow_tcp_auth();
@@ -316,6 +257,5 @@ M_state_machine_t * M_net_smtp_flow_tcp(void)
 	M_state_machine_insert_state(m, STATE_WAIT_FOR_NEXT_MSG, 0, NULL, M_state_wait_for_next_msg, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_QUIT, 0, NULL, M_state_quit, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_QUIT_ACK, 0, NULL, M_state_quit_ack, NULL, NULL);
-	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
 	return m;
 }
