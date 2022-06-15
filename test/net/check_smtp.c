@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 32
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -637,9 +637,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 
 	if (args->test_id == BCC_TEST) {
 		args->is_success = M_hash_dict_get(headers, "BCC", NULL) == M_FALSE;
-		char *str = M_hash_dict_serialize(headers, ';', '=', '"', '\\', M_HASH_DICT_SER_FLAG_NONE);
-		M_printf("BCC_TEST headers: %s\n", str);
-		M_free(str);
 		M_event_done(args->el);
 	}
 
