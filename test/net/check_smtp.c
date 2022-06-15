@@ -696,7 +696,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
 	if (args->test_id == BCC_TEST) {
-		if (args->send_failed_cb_call_count == 2) {
+		if (args->send_failed_cb_call_count == 4) {
 			M_event_done(args->el);
 		}
 	}
@@ -2039,6 +2039,34 @@ START_TEST(bcc_test)
 "20220615:104441, 1\r\n"
 "\r\n"
 "--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
+	const char      *bad_from1  =
+"From: <mal>\r\n"
+"To: akistler@localhost\r\n"
+"CC: cc@localhost\r\n"
+"Content-Type: multipart/alternative; boundary=\"------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\"\r\n"
+"Subject: Testing\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"20220615:104441, 1\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
+	const char      *bad_from2  =
+"From: <mal@>\r\n"
+"To: akistler@localhost\r\n"
+"CC: cc@localhost\r\n"
+"Content-Type: multipart/alternative; boundary=\"------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\"\r\n"
+"Subject: Testing\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"20220615:104441, 1\r\n"
+"\r\n"
+"--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
 
 	M_email_cc_append(e, NULL, NULL, "cc@localhost");
 	M_email_bcc_append(e, NULL, NULL, "bcc@localhost");
@@ -2064,10 +2092,12 @@ START_TEST(bcc_test)
 
 	ck_assert_msg(M_net_smtp_queue_message(sp, no_from) == M_TRUE, "should add");
 	ck_assert_msg(M_net_smtp_queue_message(sp, no_to) == M_TRUE, "should add");
+	ck_assert_msg(M_net_smtp_queue_message(sp, bad_from1) == M_TRUE, "should add");
+	ck_assert_msg(M_net_smtp_queue_message(sp, bad_from2) == M_TRUE, "should add");
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	ck_assert_msg(args.send_failed_cb_call_count == 2, "should fail to send msg with no from and no to");
+	ck_assert_msg(args.send_failed_cb_call_count == 4, "should fail to send msg with no from and no to");
 
 	M_email_destroy(e);
 	M_dns_destroy(dns);
