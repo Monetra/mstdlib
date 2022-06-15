@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 0
+#define DEBUG 2
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 32
 
 static void cleanup(void)
 {
@@ -636,6 +636,10 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == BCC_TEST) {
+		args->is_success = M_hash_dict_get(headers, "BCC", NULL) == M_FALSE;
+		char *str = M_hash_dict_serialize(headers, ';', '=', '"', '\\', M_HASH_DICT_SER_FLAG_NONE);
+		M_printf("BCC_TEST headers: %s\n", str);
+		M_free(str);
 		M_event_done(args->el);
 	}
 
@@ -2027,6 +2031,7 @@ START_TEST(bcc_test)
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
 	ck_assert_msg(args.is_sent_cb_called, "should have called sent_cb");
+	ck_assert_msg(args.is_success, "should have removed BCC from headers");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,

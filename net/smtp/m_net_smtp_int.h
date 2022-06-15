@@ -63,7 +63,7 @@ typedef struct {
 	const M_net_smtp_t  *sp;
 	char                *msg;
 	size_t               num_tries;
-	const M_hash_dict_t *headers;
+	M_hash_dict_t       *headers;
 	M_email_t           *email;
 	M_bool               is_bootstrap;
 } M_net_smtp_dispatch_msg_args_t;

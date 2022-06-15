@@ -144,8 +144,12 @@ static M_state_machine_status_t M_state_data_payload_and_stop(void *data, M_uint
 	M_parser_t           *parser  = NULL;
 	char                 *msg     = NULL;
 
-	M_email_bcc_clear(session->email);
-	msg = M_email_simple_write(session->email);
+	if (M_email_bcc_len(session->email) > 0) {
+		M_email_bcc_clear(session->email);
+		msg = M_email_simple_write(session->email);
+		M_hash_dict_destroy(session->headers);
+		M_email_simple_split_header_body(msg, &session->headers, NULL);
+	}
 
 	parser = M_parser_create_const((unsigned char *)msg, M_str_len(msg), M_PARSER_FLAG_NONE);
 	M_parser_mark(parser);

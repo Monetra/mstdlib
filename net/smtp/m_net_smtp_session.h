@@ -57,7 +57,7 @@ typedef struct {
 	M_thread_mutex_t            *mutex;
 	char                        *msg;
 	M_io_t                      *io;
-	const M_hash_dict_t         *headers;
+	M_hash_dict_t               *headers;
 	M_email_t                   *email;
 	size_t                       number_of_tries;
 	const M_net_smtp_endpoint_t *ep;

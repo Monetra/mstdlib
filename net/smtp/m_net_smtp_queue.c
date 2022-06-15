@@ -81,7 +81,7 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 		goto fail;
 	}
 
-	dispatch_args.headers = M_email_headers(dispatch_args.email);
+	M_email_simple_split_header_body(msg, &dispatch_args.headers, NULL);
 
 	if (sp->queue->max_number_of_attempts == 0) {
 		M_net_smtp_queue_reschedule_msg_args_t reschedule_args = { sp, msg, dispatch_args.headers, M_FALSE, num_tries,
@@ -99,6 +99,7 @@ static M_bool dispatch_msg(const M_net_smtp_t *sp, const M_net_smtp_endpoint_t *
 	return M_TRUE;
 fail:
 	M_email_destroy(dispatch_args.email);
+	M_hash_dict_destroy(dispatch_args.headers);
 	M_free(msg);
 	return M_FALSE;
 }

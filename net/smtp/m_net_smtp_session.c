@@ -466,6 +466,7 @@ void M_net_smtp_session_clean(M_net_smtp_session_t *session)
 	}
 
 	M_email_destroy(session->email);
+	M_hash_dict_destroy(session->headers);
 	M_free(session->msg);
 
 	session->email   = NULL;
