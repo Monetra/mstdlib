@@ -315,7 +315,7 @@ M_net_smtp_t *M_net_smtp_create(M_event_t *el, const struct M_net_smtp_callbacks
 	sp->endpoints                = M_list_create(NULL, M_LIST_NONE);
 	sp->queue                    = M_net_smtp_queue_create(sp, 3, 900000 /* 15min */);
 	sp->status_rwlock            = M_thread_rwlock_create();
-	sp->endpoints_mutex          = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
+	sp->endpoints_mutex          = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	if (cbs == NULL) {
 		M_mem_copy(&sp->cbs, &nop_cbs, sizeof(sp->cbs));
 	} else {
