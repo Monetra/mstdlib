@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 2
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -2621,6 +2621,9 @@ int main(int argc, char **argv)
 	(void)argv;
 
 	env_USER = getenv("USER");
+	if (env_USER == NULL) {
+		env_USER = "test";
+	}
 	len = M_str_len(env_USER) + M_str_len("@localhost");
 	test_address = M_malloc_zero(len + 1);
 	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
