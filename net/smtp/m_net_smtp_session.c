@@ -585,6 +585,16 @@ fail:
 	return NULL;
 }
 
+void M_net_smtp_session_isolate_destroy(M_net_smtp_session_t *session)
+{
+	M_thread_mutex_lock(session->mutex);
+	M_net_smtp_session_clean(session);
+	M_net_smtp_session_destroy_int(session);
+	M_thread_mutex_unlock(session->mutex);
+	M_thread_mutex_destroy(session->mutex);
+	M_free(session);
+}
+
 void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
 {
 	M_thread_mutex_lock(session->mutex);
