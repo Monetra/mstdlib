@@ -326,7 +326,7 @@ task:
 task:
   name: "MacOS - CMake"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *cmake_build
@@ -335,7 +335,7 @@ task:
 task:
   name: "MacOS - AutoTools"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *autotools_build
@@ -344,7 +344,7 @@ task:
 task:
   name: "MacOS - Static Analysis"
   macos_instance:
-    image: big-sur-xcode
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.4.1
   << : *macos_template
   << : *fetch_thirdparty
   << : *static_analysis_build
