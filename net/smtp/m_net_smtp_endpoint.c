@@ -165,45 +165,77 @@ M_bool M_net_smtp_endpoint_destroy_is_ready(const M_net_smtp_endpoint_t *ep)
 void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 {
 	M_net_smtp_session_t *session;
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_rwlock_lock(ep->sessions_rwlock, M_THREAD_RWLOCK_TYPE_WRITE);
 
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	session = M_list_take_last(ep->send_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (session != NULL) {
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		M_net_smtp_session_destroy(session);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		session = M_list_take_last(ep->send_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	}
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 
 	session = M_list_take_last(ep->idle_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (session != NULL) {
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		M_net_smtp_session_destroy(session);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		session = M_list_take_last(ep->idle_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	}
 
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	session = M_list_take_last(ep->cull_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (session != NULL) {
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		M_net_smtp_session_destroy(session);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		session = M_list_take_last(ep->cull_sessions);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	}
 
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	/* These lists have to be destroyed AFTER all sessions are destroyed.
 		* They can't be mixed in. */
 	M_list_destroy(ep->send_sessions, M_TRUE);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_list_destroy(ep->idle_sessions, M_TRUE);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_list_destroy(ep->cull_sessions, M_TRUE);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 
 	M_thread_rwlock_unlock(ep->sessions_rwlock);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_rwlock_destroy(ep->sessions_rwlock);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	switch (ep->type) {
 		case M_NET_SMTP_EPTYPE_PROCESS:
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_free(ep->process.command);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_list_str_destroy(ep->process.args);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_hash_dict_destroy(ep->process.env);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			break;
 		case M_NET_SMTP_EPTYPE_TCP:
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_free(ep->tcp.address);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_free(ep->tcp.username);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			M_free(ep->tcp.password);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 			break;
 	}
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_free(ep);
+	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 }
