@@ -630,8 +630,9 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args_t *args = thunk;
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
-	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count);
+	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu) (args->test_id: %d)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count, args->test_id);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
+		M_printf("M_event_done()\n");
 		M_event_done(args->el);
 	}
 
