@@ -184,7 +184,7 @@ void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (session != NULL) {
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
-		M_net_smtp_session_destroy(session);
+		M_net_smtp_session_isolate_destroy(session);
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		session = M_list_take_last(ep->idle_sessions);
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
@@ -195,7 +195,7 @@ void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (session != NULL) {
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
-		M_net_smtp_session_destroy(session);
+		M_net_smtp_session_isolate_destroy(session);
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		session = M_list_take_last(ep->cull_sessions);
 	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
