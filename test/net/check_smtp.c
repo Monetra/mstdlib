@@ -630,9 +630,9 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	args_t *args = thunk;
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
-	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu) (args->test_id: %d)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count, args->test_id);
+	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu) (args->test_id: %d) (EMU_SENDMSG: %d)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count, args->test_id, EMU_SENDMSG);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
-		M_printf("M_event_done()\n");
+		event_debug("M_event_done()");
 		M_event_done(args->el);
 	}
 
@@ -2203,7 +2203,7 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_resume(sp);
 
 	M_event_loop(el, M_TIMEOUT_INF);
-	M_printf("exit loop\n");
+	event_debug("exit loop");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -2213,17 +2213,17 @@ START_TEST(emu_sendmsg)
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,
 			"should succeed adding tcp after setting dns");
 
-	M_printf("M_email_destroy()\n");
+	event_debug("M_email_destroy()");
 	M_email_destroy(e);
-	M_printf("M_dns_destroy()\n");
+	event_debug("M_dns_destroy()");
 	M_dns_destroy(dns);
-	M_printf("M_net_smtp_destroy()\n");
+	event_debug("M_net_smtp_destroy()");
 	M_net_smtp_destroy(sp);
-	M_printf("M_smtp_emulator_destroy()\n");
+	event_debug("M_smtp_emulator_destroy()");
 	smtp_emulator_destroy(emu);
-	M_printf("M_event_destroy()\n");
+	event_debug("M_event_destroy()");
 	M_event_destroy(el);
-	M_printf("cleanup()\n");
+	event_debug("cleanup()");
 	cleanup();
 }
 END_TEST
