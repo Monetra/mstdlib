@@ -2202,6 +2202,7 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_resume(sp);
 
 	M_event_loop(el, M_TIMEOUT_INF);
+	M_printf("exit loop\n");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -2211,11 +2212,17 @@ START_TEST(emu_sendmsg)
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", 0, M_FALSE, "user", "pass", 1) == M_TRUE,
 			"should succeed adding tcp after setting dns");
 
+	M_printf("M_email_destroy()\n");
 	M_email_destroy(e);
+	M_printf("M_dns_destroy()\n");
 	M_dns_destroy(dns);
+	M_printf("M_net_smtp_destroy()\n");
 	M_net_smtp_destroy(sp);
+	M_printf("M_smtp_emulator_destroy()\n");
 	smtp_emulator_destroy(emu);
+	M_printf("M_event_destroy()\n");
 	M_event_destroy(el);
+	M_printf("cleanup()\n");
 	cleanup();
 }
 END_TEST
