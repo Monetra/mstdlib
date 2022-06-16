@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 2
+#define TESTONLY 0
 
 static void cleanup(void)
 {

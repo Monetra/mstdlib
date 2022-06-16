@@ -346,35 +346,20 @@ void M_net_smtp_destroy(M_net_smtp_t *sp)
 	if (sp == NULL)
 		return;
 
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_tls_clientctx_destroy(sp->tcp_tls_ctx);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_mutex_lock(sp->endpoints_mutex);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	ep = M_list_take_last(sp->endpoints);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	while (ep != NULL) {
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		M_net_smtp_endpoint_destroy(ep);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 		ep = M_list_take_last(sp->endpoints);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	}
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_list_destroy(sp->endpoints, M_TRUE);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_mutex_unlock(sp->endpoints_mutex);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_mutex_destroy(sp->endpoints_mutex);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_event_timer_remove(sp->restart_processing_timer);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_thread_rwlock_destroy(sp->status_rwlock);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_net_smtp_queue_destroy(sp->queue);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 	M_free(sp);
-	M_fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
 }
 
 void M_net_smtp_pause(M_net_smtp_t *sp)
