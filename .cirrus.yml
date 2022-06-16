@@ -182,10 +182,10 @@ freebsd_template: &freebsd_template
 macos_template: &macos_template
   env:
     DIST: "MACOS"
-    SCAN_BUILD: "/usr/local/opt/llvm/bin/scan-build"
+    SCAN_BUILD: "/opt/homebrew/opt/llvm/bin/scan-build"
     MAKE: "make"
-    OPENSSL_ROOT_DIR: "/usr/local/opt/openssl@1.1"
-    PostgreSQL_DIR: "/usr/local/opt/libpq"
+    OPENSSL_ROOT_DIR: "/opt/homebrew/opt/openssl@3"
+    PostgreSQL_DIR: "/opt/homebrew/opt/libpq"
     CONFIG_OPTS: "--with-openssl-dir=/usr/local/opt/openssl@1.1 --with-sqlite-dir=/usr/local/opt/sqlite --with-postgresql-dir=/usr/local/opt/libpq"
     CMAKE_OPTS: "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR -DPostgreSQL_DIR=$PostgreSQL_DIR"
   osdeps_install_script:
