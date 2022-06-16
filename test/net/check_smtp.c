@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 2
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -239,7 +239,9 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				*is_STARTTLS = M_FALSE;
 				return;
 			}
-			M_parser_consume(in_parser, M_parser_len(in_parser));
+			if (M_parser_len(in_parser) > 0) {
+				M_parser_consume(in_parser, M_parser_len(in_parser));
+			}
 			M_buf_truncate(out_buf, M_buf_len(out_buf));
 			M_buf_add_str(out_buf, emu->CONNECTED_str);
 			break;
