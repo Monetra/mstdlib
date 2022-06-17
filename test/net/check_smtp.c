@@ -2368,7 +2368,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 12
 	tc = tcase_create("proc_endpoint");
 	tcase_add_test(tc, proc_endpoint);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2376,7 +2376,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 13
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
-	tcase_set_timeout(tc, 10);
+	tcase_set_timeout(tc, 15);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2392,7 +2392,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 15
 	tc = tcase_create("halt restart");
 	tcase_add_test(tc, halt_restart);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2400,7 +2400,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 16
 	tc = tcase_create("external queue");
 	tcase_add_test(tc, external_queue);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2544,7 +2544,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 34
 	tc = tcase_create("process error exit");
 	tcase_add_test(tc, process_error_exit);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 10);
 	suite_add_tcase(suite, tc);
 #endif
 
