@@ -2376,7 +2376,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 13
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
-	tcase_set_timeout(tc, 15);
+	tcase_set_timeout(tc, 20);
 	suite_add_tcase(suite, tc);
 #endif
 
