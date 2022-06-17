@@ -2313,7 +2313,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 2
 	tc = tcase_create("emu-sendmsg");
 	tcase_add_test(tc, emu_sendmsg);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2321,7 +2321,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 3
 	tc = tcase_create("emu-accept-disconnect");
 	tcase_add_test(tc, emu_accept_disconnect);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2329,7 +2329,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 4
 	tc = tcase_create("iocreate_return_false");
 	tcase_add_test(tc, iocreate_return_false);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2361,7 +2361,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 11
 	tc = tcase_create("status");
 	tcase_add_test(tc, status);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2369,7 +2369,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 12
 	tc = tcase_create("proc_endpoint");
 	tcase_add_test(tc, proc_endpoint);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2385,7 +2385,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 14
 	tc = tcase_create("proc_not_found");
 	tcase_add_test(tc, proc_not_found);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2393,7 +2393,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 15
 	tc = tcase_create("halt restart");
 	tcase_add_test(tc, halt_restart);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2409,7 +2409,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 17
 	tc = tcase_create("junk msg");
 	tcase_add_test(tc, junk_msg);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2417,7 +2417,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 18
 	tc = tcase_create("dump queue");
 	tcase_add_test(tc, dump_queue);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2441,7 +2441,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 21
 	tc = tcase_create("auth login");
 	tcase_add_test(tc, auth_login);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2449,7 +2449,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 22
 	tc = tcase_create("auth plain");
 	tcase_add_test(tc, auth_plain);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2457,7 +2457,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 23
 	tc = tcase_create("auth cram md5");
 	tcase_add_test(tc, auth_cram_md5);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2465,7 +2465,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 24
 	tc = tcase_create("auth digest md5");
 	tcase_add_test(tc, auth_digest_md5);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2489,7 +2489,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 27
 	tc = tcase_create("dummy checks");
 	tcase_add_test(tc, dummy_checks);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2505,7 +2505,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 29
 	tc = tcase_create("bad server 2");
 	tcase_add_test(tc, bad_server_2);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2529,7 +2529,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 32
 	tc = tcase_create("bcc test");
 	tcase_add_test(tc, bcc_test);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
