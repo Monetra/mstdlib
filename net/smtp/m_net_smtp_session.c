@@ -556,11 +556,13 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 	} else {
 		io_error = M_io_net_client_create(&session->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
 		if (io_error != M_IO_ERROR_SUCCESS) {
-			M_snprintf(session->errmsg, sizeof(session->errmsg), "%s", M_io_error_string(io_error));
+			M_snprintf(session->errmsg, sizeof(session->errmsg), "Error creating session: %s", M_io_error_string(io_error));
 			session->tcp.net_error = M_net_io_error_to_net_error(io_error);
 			M_net_smtp_connect_fail(session);
 			goto fail;
 		}
+
+		M_io_net_set_connect_timeout_ms(session->io, sp->tcp_connect_ms);
 
 		if (ep->tcp.connect_tls) {
 			io_error = M_io_tls_client_add(session->io, session->sp->tcp_tls_ctx, NULL, NULL);

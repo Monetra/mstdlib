@@ -1310,6 +1310,7 @@ START_TEST(no_server)
 	smtp_emulator_destroy(emu); /* just needed an open port */
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
+	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 100);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
 
 	args.el = el;
