@@ -1115,7 +1115,7 @@ START_TEST(process_error_exit)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.process_fail_cb_call_count == 1, "Should have called process_fail");
 
