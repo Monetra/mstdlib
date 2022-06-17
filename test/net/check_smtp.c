@@ -934,7 +934,7 @@ START_TEST(junk_msg)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "should have failed to sent 1 message");
 	ck_assert_msg(args.is_success, "shouldn't allow retry");
@@ -1026,7 +1026,7 @@ START_TEST(proc_not_found)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have had a process fail");
 	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have halted processing");
@@ -1077,7 +1077,7 @@ START_TEST(dot_msg)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 8000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
@@ -1149,7 +1149,7 @@ START_TEST(proc_endpoint)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
@@ -1188,7 +1188,7 @@ START_TEST(status)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
@@ -1235,8 +1235,7 @@ START_TEST(timeouts)
 	M_net_smtp_queue_smtp(sp, e3);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 1000);
-	M_event_loop(el, 50); /* extra cleanup */
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 2, "connect/stall timeouts should have called connect_fail");
 	ck_assert_msg(args.sent_cb_call_count == 3, "idle timeout should have sent all 3 messages");
@@ -1282,7 +1281,7 @@ START_TEST(tls_unsupporting_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
 	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
@@ -1348,7 +1347,7 @@ START_TEST(iocreate_return_false)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_iocreate_cb_called == M_TRUE, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called == M_FALSE, "shouldn't have called send_failed_cb");
@@ -1416,7 +1415,7 @@ START_TEST(auth_digest_md5)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 500);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1451,7 +1450,7 @@ START_TEST(auth_cram_md5)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 500);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1486,7 +1485,7 @@ START_TEST(auth_plain)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 500);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1636,7 +1635,7 @@ START_TEST(auth_login)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
