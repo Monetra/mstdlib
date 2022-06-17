@@ -241,8 +241,6 @@ foreach (test_src ${tests})
 			NAME    ${test_prog}_memcheck
 			COMMAND Valgrind::valgrind "--leak-check=full"
 									   "--show-reachable=yes"
-									   "--trace-children=yes"
-									   "--trace-children-skip=*sendmail_emu"
 									   "--num-callers=24"
 									   "--suppressions=${PROJECT_SOURCE_DIR}/valgrind/check.suppressions"
 									   $<TARGET_FILE:${test_prog}> "from_ctest"
