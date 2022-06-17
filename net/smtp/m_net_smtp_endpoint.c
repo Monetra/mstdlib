@@ -169,19 +169,19 @@ void M_net_smtp_endpoint_destroy(M_net_smtp_endpoint_t *ep)
 
 	session = M_list_take_last(ep->send_sessions);
 	while (session != NULL) {
-		M_net_smtp_session_isolate_destroy(session);
+		M_net_smtp_session_destroy(session, M_FALSE);
 		session = M_list_take_last(ep->send_sessions);
 	}
 
 	session = M_list_take_last(ep->idle_sessions);
 	while (session != NULL) {
-		M_net_smtp_session_isolate_destroy(session);
+		M_net_smtp_session_destroy(session, M_FALSE);
 		session = M_list_take_last(ep->idle_sessions);
 	}
 
 	session = M_list_take_last(ep->cull_sessions);
 	while (session != NULL) {
-		M_net_smtp_session_isolate_destroy(session);
+		M_net_smtp_session_destroy(session, M_FALSE);
 		session = M_list_take_last(ep->cull_sessions);
 	}
 

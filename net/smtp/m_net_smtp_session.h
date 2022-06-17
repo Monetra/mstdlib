@@ -95,8 +95,7 @@ M_net_smtp_session_t * M_net_smtp_session_create(const M_net_smtp_t *sp, const M
 void M_net_smtp_session_reactivate_tcp     (M_net_smtp_session_t *session);
 void M_net_smtp_session_reactivate_tcp_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 void M_net_smtp_session_clean              (M_net_smtp_session_t *session);
-void M_net_smtp_session_isolate_destroy    (M_net_smtp_session_t *session);
-void M_net_smtp_session_destroy            (M_net_smtp_session_t *session);
+void M_net_smtp_session_destroy            (M_net_smtp_session_t *session, M_bool is_remove_from_endpoint);
 void M_net_smtp_session_destroy_task       (M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 
 /* These are prototyped in m_net_smtp_session.h instead of m_net_smtp_endpoint.h to avoid a dependency problem */

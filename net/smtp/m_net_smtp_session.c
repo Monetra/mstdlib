@@ -585,22 +585,14 @@ fail:
 	return NULL;
 }
 
-void M_net_smtp_session_isolate_destroy(M_net_smtp_session_t *session)
+void M_net_smtp_session_destroy(M_net_smtp_session_t *session, M_bool is_remove_from_endpoint)
 {
 	M_thread_mutex_lock(session->mutex);
 	M_net_smtp_session_clean(session);
 	M_net_smtp_session_destroy_int(session);
-	M_thread_mutex_unlock(session->mutex);
-	M_thread_mutex_destroy(session->mutex);
-	M_free(session);
-}
-
-void M_net_smtp_session_destroy(M_net_smtp_session_t *session)
-{
-	M_thread_mutex_lock(session->mutex);
-	M_net_smtp_session_clean(session);
-	M_net_smtp_session_destroy_int(session);
-	M_net_smtp_endpoint_remove_session(session->ep, session);
+	if (is_remove_from_endpoint) {
+		M_net_smtp_endpoint_remove_session(session->ep, session);
+	}
 	M_thread_mutex_unlock(session->mutex);
 	M_thread_mutex_destroy(session->mutex);
 	M_free(session);

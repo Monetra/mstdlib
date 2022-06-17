@@ -531,5 +531,5 @@ void M_net_smtp_session_destroy_task(M_event_t *el, M_event_type_t etype, M_io_t
 	(void)el;
 	(void)etype;
 	(void)io;
-	M_net_smtp_session_destroy(thunk);
+	M_net_smtp_session_destroy(thunk, M_TRUE);
 }
