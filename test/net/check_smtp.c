@@ -20,6 +20,7 @@ M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
 const size_t       multithread_insert_count = 100;
 const size_t       multithread_retry_count  = 100;
+SRunner           *sr                       = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -64,6 +65,7 @@ typedef enum {
 
 static void cleanup(void)
 {
+	srunner_free(sr);
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
@@ -2621,7 +2623,6 @@ static M_tls_serverctx_t *self_signed_serverctx(void)
 
 int main(int argc, char **argv)
 {
-	SRunner    *sr;
 	int         nf;
 	size_t      len;
 	char       *dirname;
@@ -2653,7 +2654,6 @@ int main(int argc, char **argv)
 
 	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
-	srunner_free(sr);
 
 	cleanup();
 
