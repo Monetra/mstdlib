@@ -965,7 +965,7 @@ START_TEST(external_queue)
 	M_list_str_insert(test_external_queue, msg);
 	M_net_smtp_external_queue_have_messages(sp);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
@@ -2401,7 +2401,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 16
 	tc = tcase_create("external queue");
 	tcase_add_test(tc, external_queue);
-	tcase_set_timeout(tc, 3);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
