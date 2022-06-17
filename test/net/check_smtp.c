@@ -1316,7 +1316,7 @@ START_TEST(no_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
 	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
@@ -2336,7 +2336,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 5
 	tc = tcase_create("no server");
 	tcase_add_test(tc, no_server);
-	tcase_set_timeout(tc, 1);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
