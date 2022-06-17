@@ -2545,7 +2545,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 34
 	tc = tcase_create("process error exit");
 	tcase_add_test(tc, process_error_exit);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2553,7 +2553,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 35
 	tc = tcase_create("domain mismatch");
 	tcase_add_test(tc, domain_mismatch);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
@@ -2561,7 +2561,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 36
 	tc = tcase_create("max attempts 0");
 	tcase_add_test(tc, max_attempts_0);
-	tcase_set_timeout(tc, 2);
+	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif
 
