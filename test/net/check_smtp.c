@@ -997,7 +997,7 @@ START_TEST(halt_restart)
 	M_net_smtp_pause(sp);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, 1000);
+	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have processing halted from pause()");
