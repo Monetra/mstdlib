@@ -23,7 +23,7 @@ M_dns_t           *dns = NULL;
 /* Don't make it too large, sometimes appveyor gets overloaded and it can take too long to send */
 #define SEND_AND_DISCONNECT_SIZE ((1024 * 1024 * 1) + 5)
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
