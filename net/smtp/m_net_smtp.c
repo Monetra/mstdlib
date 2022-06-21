@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include "smtp/m_net_smtp_int.h"
+#include "m_net_smtp_int.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
