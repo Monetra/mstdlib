@@ -51,6 +51,7 @@ static char *M_email_write_gen_boundary(void)
 		M_buf_add_byte(buf, (unsigned char)num);
 	}
 
+	M_rand_destroy(r);
 	return M_buf_finish_str(buf, NULL);
 }
 
@@ -141,6 +142,7 @@ static M_bool M_email_simple_write_add_single_address(const M_email_t *email, M_
 	}
 
 	M_email_add_header_entry(buf, key, full);
+	M_free(full);
 	return M_TRUE;
 }
 

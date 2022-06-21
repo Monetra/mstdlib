@@ -164,6 +164,13 @@ if(MSTDLIB_BUILD_TEXT)
 		text/check_verify.c
 	)
 endif()
+# net
+if(MSTDLIB_BUILD_NET)
+	list(APPEND tests
+		net/check_smtp.c
+		net/sendmail_emu.c
+	)
+endif()
 
 # Include the slow tests in the list of tests we're going to run, if not explicitly disabled by the user.
 if (NOT MSTDLIB_SKIP_SLOW_TESTS)
@@ -191,6 +198,9 @@ endif ()
 if (TARGET Mstdlib::text)
 	list(APPEND test_deps Mstdlib::text)
 endif ()
+if (TARGET Mstdlib::net)
+	list(APPEND test_deps Mstdlib::net)
+endif()
 if (UNIX AND NOT APPLE)
 	list(APPEND test_deps m)
 endif ()
@@ -231,7 +241,6 @@ foreach (test_src ${tests})
 			NAME    ${test_prog}_memcheck
 			COMMAND Valgrind::valgrind "--leak-check=full"
 									   "--show-reachable=yes"
-									   "--trace-children=yes"
 									   "--num-callers=24"
 									   "--suppressions=${PROJECT_SOURCE_DIR}/valgrind/check.suppressions"
 									   $<TARGET_FILE:${test_prog}> "from_ctest"
