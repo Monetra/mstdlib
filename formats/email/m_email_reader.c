@@ -215,11 +215,10 @@ static M_email_error_t M_email_header_process_content_type(M_email_reader_t *ema
 	emailr->data_format = M_EMAIL_DATA_FORMAT_MULTIPART;
 
 	parser = M_parser_create_const((const unsigned char *)val, M_str_len(val), M_PARSER_FLAG_NONE);
-	if (M_parser_consume_str_until(parser, "boundary=", M_FALSE) == 0) {
+	if (M_parser_consume_str_until(parser, "oundary=", M_TRUE) == 0) {
 		M_parser_destroy(parser);
 		return M_EMAIL_ERROR_MULTIPART_NOBOUNDARY;
 	}
-	M_parser_consume(parser, 9 /* "boundary=" */);
 
 	if (M_parser_peek_byte(parser, &byte) && byte == '"')
 		M_parser_consume(parser, 1);
