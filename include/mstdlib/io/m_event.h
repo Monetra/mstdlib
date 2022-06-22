@@ -235,9 +235,15 @@ enum M_EVENT_FLAGS {
                                                      *   need to use it without your knowledge. */
 	M_EVENT_FLAG_EXITONEMPTY          = 1 << 1, /*!< Exit the event loop when there are no registered events */
 	M_EVENT_FLAG_EXITONEMPTY_NOTIMERS = 1 << 2, /*!< When combined with M_EVENT_FLAG_EXITONEMPTY, will ignore timers */
-	M_EVENT_FLAG_SCALABLE_ONLY        = 1 << 3  /*!< Only utilize the 'scalable/large' event subsystem instead of dynamically
-	                                             *   switching at a certain load.  Useful mostly for test cases, in general
-	                                             *   this should not be used. */
+	M_EVENT_FLAG_NON_SCALABLE         = 1 << 3  /*!< Utilize the 'non-scalable/small' event subsystem, generally
+	                                             *   implemented using poll() instead of the more scalable solution
+	                                             *   using kqueue() or epoll().  The main reason one might want to use
+	                                             *   this is if a large number of event loops are being created such
+	                                             *   as when using the blocking APIs, using the scalable solution
+	                                             *   generally consumes additional file descriptors which may not be
+	                                             *   desirable.  Not all systems have different subsystems, in which
+	                                             *   case this flag will be ignored.
+	                                             */
 };
 
 /*! Possible values to pass to M_event_get_statistic() */

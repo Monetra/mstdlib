@@ -272,9 +272,9 @@ typedef struct {
 	M_uint64 runtime_ms;
 } stats_t;
 
-static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool, M_bool scalable_only, stats_t *stats)
+static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool, M_bool nonscalable, stats_t *stats)
 {
-	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(scalable_only?M_EVENT_FLAG_SCALABLE_ONLY:M_EVENT_FLAG_NONE);
+	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(nonscalable?M_EVENT_FLAG_NON_SCALABLE:M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	size_t             i;
 	M_event_err_t      err;
@@ -388,26 +388,26 @@ START_TEST(check_event_net_stat)
 		const char *name;
 		M_uint64    num_conns;
 		M_uint64    delay_response_ms;
-		M_bool      scalable_only;
+		M_bool      nonscalable;
 	} tests[] = {
-		{ "small 1 conn no delay   ", 1,   0, M_FALSE },
-		{ "small 1 conn 15ms delay ", 1,  15, M_FALSE },
-		{ "small 1 conn 300ms delay", 1, 300, M_FALSE },
-		{ "large 1 conn no delay   ", 1,   0, M_TRUE  },
-		{ "large 1 conn 15ms delay ", 1,  15, M_TRUE  },
-		{ "large 1 conn 300ms delay", 1, 300, M_TRUE  },
-		{ "small 2 conn no delay   ", 2,   0, M_FALSE },
-		{ "small 2 conn 15ms delay ", 2,  15, M_FALSE },
-		{ "small 2 conn 300ms delay", 2, 300, M_FALSE },
-		{ "large 2 conn no delay   ", 2,   0, M_TRUE  },
-		{ "large 2 conn 15ms delay ", 2,  15, M_TRUE  },
-		{ "large 2 conn 300ms delay", 2, 300, M_TRUE  },
-		{ "small 5 conn no delay   ", 5,   0, M_FALSE },
-		{ "small 5 conn 15ms delay ", 5,  15, M_FALSE },
-		{ "small 5 conn 300ms delay", 5, 300, M_FALSE },
-		{ "large 5 conn no delay   ", 5,   0, M_TRUE  },
-		{ "large 5 conn 15ms delay ", 5,  15, M_TRUE  },
-		{ "large 5 conn 300ms delay", 5, 300, M_TRUE  },
+		{ "non-scalable 1 conn no delay   ", 1,   0, M_TRUE  },
+		{ "non-scalable 1 conn 15ms delay ", 1,  15, M_TRUE  },
+		{ "non-scalable 1 conn 300ms delay", 1, 300, M_TRUE  },
+		{ "normal 1 conn no delay   ",       1,   0, M_FALSE },
+		{ "normal 1 conn 15ms delay ",       1,  15, M_FALSE },
+		{ "normal 1 conn 300ms delay",       1, 300, M_FALSE },
+		{ "non-scalable 2 conn no delay   ", 2,   0, M_TRUE  },
+		{ "non-scalable 2 conn 15ms delay ", 2,  15, M_TRUE  },
+		{ "non-scalable 2 conn 300ms delay", 2, 300, M_TRUE  },
+		{ "normal 2 conn no delay   ",       2,   0, M_FALSE },
+		{ "normal 2 conn 15ms delay ",       2,  15, M_FALSE },
+		{ "normal 2 conn 300ms delay",       2, 300, M_FALSE },
+		{ "non-scalable 5 conn no delay   ", 5,   0, M_TRUE  },
+		{ "non-scalable 5 conn 15ms delay ", 5,  15, M_TRUE  },
+		{ "non-scalable 5 conn 300ms delay", 5, 300, M_TRUE  },
+		{ "normal 5 conn no delay   ",       5,   0, M_FALSE },
+		{ "normal 5 conn 15ms delay ",       5,  15, M_FALSE },
+		{ "normal 5 conn 300ms delay",       5, 300, M_FALSE },
 	};
 
 	cnt   = sizeof(tests) / sizeof(*tests);
@@ -416,7 +416,7 @@ START_TEST(check_event_net_stat)
 	for (i=0; i < cnt; i++) {
 		M_timeval_t starttv;
 		M_time_elapsed_start(&starttv);
-		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].scalable_only, &stats[i]);
+		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].nonscalable, &stats[i]);
 		ck_assert_msg(err == M_EVENT_ERR_DONE, "%s expected M_EVENT_ERR_DONE got %s", tests[i].name, event_err_msg(err));
 		stats[i].runtime_ms = M_time_elapsed(&starttv);
 	}
