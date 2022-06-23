@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 13
 
 static void cleanup(void)
 {
