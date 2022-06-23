@@ -186,7 +186,7 @@ macos_template: &macos_template
     MAKE: "make"
     OPENSSL_ROOT_DIR: "/opt/homebrew/opt/openssl@3"
     PostgreSQL_DIR: "/opt/homebrew/opt/libpq"
-    CONFIG_OPTS: "--with-openssl-dir=/opt/homebrew/opt/openssl@3 --with-sqlite-dir=/opt/homebrew/opt/sqlite3 --with-postgresql-dir=/opt/homebrew/opt/libpq"
+    CONFIG_OPTS: "--with-openssl-dir=/opt/homebrew/opt/openssl@3 --with-sqlite-dir=/opt/homebrew/opt/sqlite3 --with-postgresql-dir=/opt/homebrew/opt/libpq --with-check=/opt/homebrew/opt/check"
     CMAKE_OPTS: "-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR -DPostgreSQL_DIR=$PostgreSQL_DIR"
   osdeps_install_script:
     - brew update &&
