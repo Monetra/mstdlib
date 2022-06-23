@@ -86,6 +86,7 @@ typedef struct {
 			int                     result_code;
 			size_t                  len;
 			const char             *msg_second_part;
+			M_bool                  is_done_waiting;
 		} process;
 	};
 } M_net_smtp_session_t;

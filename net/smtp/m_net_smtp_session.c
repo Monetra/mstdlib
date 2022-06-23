@@ -340,6 +340,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 			break;
 		case M_EVENT_TYPE_OTHER:
 			if (session->event_timer != NULL) {
+				session->process.is_done_waiting = M_TRUE;
 				M_event_timer_stop(session->event_timer);
 				M_event_timer_remove(session->event_timer);
 				session->event_timer = NULL;
