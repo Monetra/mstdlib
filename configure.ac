@@ -22,6 +22,8 @@ dnl AC_PROG_CC([clang llvm-gcc gcc])
 AC_LANG([C])
 AC_PROG_CC_STDC
 AM_PROG_CC_C_O
+AC_PROG_OBJC
+dnl AS_CASE([$target_os], [darwin*], [AC_PROG_OBJC], [AM_CONDITIONAL([am__fastdepOBJC], [false])])
 dnl __typeof__ -> typeof
 AC_C_TYPEOF
 AM_PROG_AS
