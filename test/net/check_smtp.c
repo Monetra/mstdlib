@@ -1077,13 +1077,7 @@ static void warmup_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, 
 	if (etype == M_EVENT_TYPE_CONNECTED) {
 		M_io_destroy(io);
 	}
-	if (etype == M_EVENT_TYPE_DISCONNECTED) {
-		*mask &= ~2;
-	}
 	event_debug("warmup_io_stdin_cb - mask: %X", *mask);
-	if (*mask == 0) {
-		M_event_done(el);
-	}
 }
 
 static void warmup_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
@@ -1154,7 +1148,7 @@ START_TEST(dot_msg)
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
 
-	warmup_sendmail_emu(el);
+	ck_assert_msg(warmup_sendmail_emu(el), "Should succeed with warmup");
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
@@ -1184,6 +1178,7 @@ START_TEST(dot_msg)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
+	event_debug("send_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
 
