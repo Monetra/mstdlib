@@ -235,10 +235,6 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
-			if (*is_STARTTLS) {
-				*is_STARTTLS = M_FALSE;
-				return;
-			}
 			if (M_parser_len(in_parser) > 0) {
 				M_parser_consume(in_parser, M_parser_len(in_parser));
 			}
@@ -345,7 +341,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			return;
 		}
 		if (*is_STARTTLS) {
+			event_debug("M_io_tls_server_add(%p)\n", io);
 			M_io_tls_server_add(io, emu->serverctx, NULL);
+			/* 20220623 a change in the event system changed the behavior so this no longer
+			 * sends a CONNECT call.  Previosly this flag was cleared by a check in CONNECT.
+			 * -- AK */
+			*is_STARTTLS = M_FALSE;
 		}
 	}
 
@@ -675,7 +676,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == DOT_MSG) {
-		if (args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) {
+		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
 			M_event_done(args->el);
 		}
 	}
@@ -724,7 +725,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == DOT_MSG) {
-		if (args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) {
+		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
 			M_event_done(args->el);
 		}
 		return M_FALSE;

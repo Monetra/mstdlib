@@ -30,22 +30,12 @@
  */
 
 typedef enum {
-	STATE_CONNECTING = 1,
-	STATE_WRITE_FIRST_PART,
+	STATE_WRITE_FIRST_PART = 1,
+	STATE_WRITE_WAIT,
 	STATE_WRITE_SECOND_PART,
 	STATE_WRITE_FINISH,
 	STATE_DISCONNECTING,
 } m_state_ids;
-
-static M_state_machine_status_t M_state_connecting(void *data, M_uint64 *next)
-{
-	M_net_smtp_session_t *session = data;
-	if (session->connection_mask == M_NET_SMTP_CONNECTION_MASK_PROC_ALL) {
-		*next = STATE_WRITE_FIRST_PART;
-		return M_STATE_MACHINE_STATUS_NEXT;
-	}
-	return M_STATE_MACHINE_STATUS_WAIT;
-}
 
 static M_state_machine_status_t M_state_write_first_part(void *data, M_uint64 *next)
 {
@@ -71,9 +61,21 @@ static M_state_machine_status_t M_state_write_first_part(void *data, M_uint64 *n
 	M_buf_add_str_max(session->out_buf, session->msg, len);
 	session->process.msg_second_part = session->msg + len;
 	session->process.len -= len;
-	*next = STATE_WRITE_SECOND_PART;
+	session->process.is_done_waiting = M_FALSE;
+	*next = STATE_WRITE_WAIT;
 	return M_STATE_MACHINE_STATUS_NEXT;
 
+}
+
+static M_state_machine_status_t M_state_write_wait(void *data, M_uint64 *next)
+{
+	M_net_smtp_session_t *session = data;
+	if (!session->process.is_done_waiting) {
+		return M_STATE_MACHINE_STATUS_WAIT;
+	}
+
+	*next = STATE_WRITE_SECOND_PART;
+	return M_STATE_MACHINE_STATUS_NEXT;
 }
 
 static M_state_machine_status_t M_state_write_second_part(void *data, M_uint64 *next)
@@ -120,8 +122,8 @@ M_state_machine_t * M_net_smtp_flow_process(void)
 {
 	M_state_machine_t *m;
 	m = M_state_machine_create(0, "M-net-smtp-flow-process", M_STATE_MACHINE_NONE);
-	M_state_machine_insert_state(m, STATE_CONNECTING, 0, NULL, M_state_connecting, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_WRITE_FIRST_PART, 0, NULL, M_state_write_first_part, NULL, NULL);
+	M_state_machine_insert_state(m, STATE_WRITE_WAIT, 0, NULL, M_state_write_wait, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_WRITE_SECOND_PART, 0, NULL, M_state_write_second_part, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_WRITE_FINISH, 0, NULL, M_state_write_finish, NULL, NULL);
 	M_state_machine_insert_state(m, STATE_DISCONNECTING, 0, NULL, M_state_disconnecting, NULL, NULL);
