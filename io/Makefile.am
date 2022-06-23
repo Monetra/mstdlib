@@ -20,6 +20,7 @@ libmstdlib_io_la_SOURCES = \
 	m_io_bwshaping.c \
 	m_io_hid.c \
 	m_io_loopback.c \
+	m_io_meta.c \
 	m_io_mfi_notimpl.c \
 	m_io_net.c \
 	m_io_netdns.c \
