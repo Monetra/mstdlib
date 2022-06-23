@@ -60,7 +60,7 @@ typedef enum {
 	MAX_ATTEMPTS_0          = 36,
 } test_id_t;
 
-#define TESTONLY 13
+#define TESTONLY 0
 
 static void cleanup(void)
 {
@@ -1121,8 +1121,11 @@ static void warmup_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 static M_bool warmup_sendmail_emu(M_event_t *el)
 {
 	M_io_error_t io_err;
-	int mask;
-	M_io_t *io, *io_stdin, *io_stdout, *io_stderr;
+	int          mask      = 0;
+	M_io_t      *io        = NULL;
+	M_io_t      *io_stdin  = NULL;
+	M_io_t      *io_stdout = NULL;
+	M_io_t      *io_stderr = NULL;
 
 	io_err = M_io_process_create(sendmail_emu, NULL, NULL, 10000, &io, &io_stdin, &io_stdout, &io_stderr);
 
