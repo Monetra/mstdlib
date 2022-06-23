@@ -91,6 +91,10 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
+			if (session->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED) {
+				/* Need to wait for M_EVENT_TYPE_CONNECT */
+				return SESSION_PROCESSING;
+			}
 			io_error = M_io_write_from_buf(io, session->out_buf);
 			switch (io_error) {
 				case M_IO_ERROR_SUCCESS:
@@ -554,6 +558,7 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		M_event_add(sp->el, session->process.io_stdin , session_proc_advance_stdin_task , session);
 		M_event_add(sp->el, session->process.io_stdout, session_proc_advance_stdout_task, session);
 		M_event_add(sp->el, session->process.io_stderr, session_proc_advance_stderr_task, session);
+		session->connection_mask = M_NET_SMTP_CONNECTION_MASK_PROC_ALL;
 	} else {
 		io_error = M_io_net_client_create(&session->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
 		if (io_error != M_IO_ERROR_SUCCESS) {

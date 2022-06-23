@@ -41,6 +41,7 @@ do {\
 
 
 typedef struct {
+	M_bool one_member;
 } emailr_test_t;
 
 

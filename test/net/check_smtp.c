@@ -144,6 +144,7 @@ typedef struct {
 		M_bool      is_data_mode;
 		M_bool      is_QUIT;
 		M_bool      is_STARTTLS;
+		int         sttls_state;
 	} conn[16];
 } smtp_emulator_t;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -162,6 +163,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	M_bool          *is_data_mode = NULL;
 	M_bool          *is_QUIT      = NULL;
 	M_bool          *is_STARTTLS  = NULL;
+	int             *sttls_state  = NULL;
 	M_io_error_t     ioerr;
 	static int       error_count  = 0;
 	(void)el;
@@ -207,12 +209,15 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			out_buf = emu->conn[i].out_buf;
 			is_QUIT = &emu->conn[i].is_QUIT;
 			is_STARTTLS = &emu->conn[i].is_STARTTLS;
+			sttls_state = &emu->conn[i].sttls_state;
 			is_data_mode = &emu->conn[i].is_data_mode;
 		}
 	}
 
 	switch(etype) {
 		case M_EVENT_TYPE_READ:
+			if (*sttls_state == 2)
+				return;
 			ioerr = M_io_read_into_parser(io, in_parser);
 			if (ioerr == M_IO_ERROR_DISCONNECT) {
 				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
@@ -235,6 +240,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
+			if (*is_STARTTLS) {
+				*is_STARTTLS = M_FALSE;
+				*sttls_state = 3;
+				return;
+			}
+			*sttls_state = 0;
 			if (M_parser_len(in_parser) > 0) {
 				M_parser_consume(in_parser, M_parser_len(in_parser));
 			}
@@ -249,6 +260,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			break;
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_ERROR:
+			if (*sttls_state == 2)
+				return;
 			if (etype == M_EVENT_TYPE_WRITE && emu->test_id == TIMEOUT_STALL) {
 				return;
 			}
@@ -259,6 +272,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				}
 			}
 		case M_EVENT_TYPE_OTHER:
+			if (*sttls_state == 2)
+				return;
 			break;
 		case M_EVENT_TYPE_ACCEPT:
 			return; /* Already handled */
@@ -283,6 +298,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			}
 			if (M_str_eq(line, "STARTTLS\r\n") && emu->test_id != BAD_SERVER) {
 				*is_STARTTLS = M_TRUE;
+				*sttls_state = 1;
 			}
 			if (M_str_eq(line, "QUIT\r\n")) {
 				*is_QUIT = M_TRUE;
@@ -340,13 +356,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			*is_QUIT = M_FALSE;
 			return;
 		}
-		if (*is_STARTTLS) {
+		if (*is_STARTTLS && *sttls_state == 1) {
 			event_debug("M_io_tls_server_add(%p)\n", io);
 			M_io_tls_server_add(io, emu->serverctx, NULL);
-			/* 20220623 a change in the event system changed the behavior so this no longer
-			 * sends a CONNECT call.  Previosly this flag was cleared by a check in CONNECT.
-			 * -- AK */
-			*is_STARTTLS = M_FALSE;
+			*sttls_state = 2;
 		}
 	}
 
@@ -1040,6 +1053,90 @@ START_TEST(proc_not_found)
 	cleanup();
 }
 END_TEST
+
+static void warmup_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 1;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		*mask &= ~1;
+		M_io_destroy(io);
+	}
+	event_debug("warmup_io_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+
+static void warmup_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	(void)el;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		M_io_destroy(io);
+	}
+	event_debug("warmup_io_stdin_cb - mask: %X", *mask);
+}
+
+static void warmup_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 4;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		M_io_destroy(io);
+		*mask &= ~4;
+	}
+	event_debug("warmup_io_stderr_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+static void warmup_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 8;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		M_io_destroy(io);
+		*mask &= ~8;
+	}
+	event_debug("warmup_io_stdout_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+static M_bool warmup_sendmail_emu(M_event_t *el)
+{
+	M_io_error_t io_err;
+	int          mask      = 0;
+	M_io_t      *io        = NULL;
+	M_io_t      *io_stdin  = NULL;
+	M_io_t      *io_stdout = NULL;
+	M_io_t      *io_stderr = NULL;
+
+	io_err = M_io_process_create(sendmail_emu, NULL, NULL, 10000, &io, &io_stdin, &io_stdout, &io_stderr);
+
+	if (io_err != M_IO_ERROR_SUCCESS)
+		return M_FALSE;
+
+	M_event_add(el, io, warmup_io_cb, &mask);
+	M_event_add(el, io_stdin, warmup_io_stdin_cb, &mask);
+	M_event_add(el, io_stdout, warmup_io_stdout_cb, &mask);
+	M_event_add(el, io_stderr, warmup_io_stderr_cb, &mask);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	return M_TRUE;
+}
+
 START_TEST(dot_msg)
 {
 	M_uint16           testport;
@@ -1051,6 +1148,8 @@ START_TEST(dot_msg)
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOT_MSG);
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
+
+	ck_assert_msg(warmup_sendmail_emu(el), "Should succeed with warmup");
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
@@ -1080,6 +1179,7 @@ START_TEST(dot_msg)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
+	event_debug("send_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
 
