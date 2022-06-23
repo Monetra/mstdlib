@@ -1053,6 +1053,92 @@ START_TEST(proc_not_found)
 	cleanup();
 }
 END_TEST
+
+static void warmup_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 1;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		*mask &= ~1;
+		M_io_destroy(io);
+	}
+	event_debug("warmup_io_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+
+static void warmup_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		M_io_destroy(io);
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		*mask &= ~2;
+	}
+	event_debug("warmup_io_stdin_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+static void warmup_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 4;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		M_io_destroy(io);
+		*mask &= ~4;
+	}
+	event_debug("warmup_io_stderr_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+static void warmup_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
+{
+	int *mask = thunk;
+	if (etype == M_EVENT_TYPE_CONNECTED) {
+		*mask |= 8;
+	}
+	if (etype == M_EVENT_TYPE_DISCONNECTED) {
+		M_io_destroy(io);
+		*mask &= ~8;
+	}
+	event_debug("warmup_io_stdout_cb - mask: %X", *mask);
+	if (*mask == 0) {
+		M_event_done(el);
+	}
+}
+
+static M_bool warmup_sendmail_emu(M_event_t *el)
+{
+	M_io_error_t io_err;
+	int mask;
+	M_io_t *io, *io_stdin, *io_stdout, *io_stderr;
+
+	io_err = M_io_process_create(sendmail_emu, NULL, NULL, 10000, &io, &io_stdin, &io_stdout, &io_stderr);
+
+	if (io_err != M_IO_ERROR_SUCCESS)
+		return M_FALSE;
+
+	M_event_add(el, io, warmup_io_cb, &mask);
+	M_event_add(el, io_stdin, warmup_io_stdin_cb, &mask);
+	M_event_add(el, io_stdout, warmup_io_stdout_cb, &mask);
+	M_event_add(el, io_stderr, warmup_io_stderr_cb, &mask);
+
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	return M_TRUE;
+}
+
 START_TEST(dot_msg)
 {
 	M_uint16           testport;
@@ -1064,6 +1150,8 @@ START_TEST(dot_msg)
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOT_MSG);
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
+
+	warmup_sendmail_emu(el);
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
