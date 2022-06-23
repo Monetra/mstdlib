@@ -91,6 +91,10 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
+			if (session->tcp.tls_state == M_NET_SMTP_TLS_STARTTLS_ADDED) {
+				/* Need to wait for M_EVENT_TYPE_CONNECT */
+				return SESSION_PROCESSING;
+			}
 			io_error = M_io_write_from_buf(io, session->out_buf);
 			switch (io_error) {
 				case M_IO_ERROR_SUCCESS:
