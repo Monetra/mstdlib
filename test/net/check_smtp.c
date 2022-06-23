@@ -144,6 +144,7 @@ typedef struct {
 		M_bool      is_data_mode;
 		M_bool      is_QUIT;
 		M_bool      is_STARTTLS;
+		int         sttls_state;
 	} conn[16];
 } smtp_emulator_t;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -162,6 +163,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 	M_bool          *is_data_mode = NULL;
 	M_bool          *is_QUIT      = NULL;
 	M_bool          *is_STARTTLS  = NULL;
+	int             *sttls_state  = NULL;
 	M_io_error_t     ioerr;
 	static int       error_count  = 0;
 	(void)el;
@@ -207,12 +209,15 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			out_buf = emu->conn[i].out_buf;
 			is_QUIT = &emu->conn[i].is_QUIT;
 			is_STARTTLS = &emu->conn[i].is_STARTTLS;
+			sttls_state = &emu->conn[i].sttls_state;
 			is_data_mode = &emu->conn[i].is_data_mode;
 		}
 	}
 
 	switch(etype) {
 		case M_EVENT_TYPE_READ:
+			if (*sttls_state == 2)
+				return;
 			ioerr = M_io_read_into_parser(io, in_parser);
 			if (ioerr == M_IO_ERROR_DISCONNECT) {
 				event_debug("%s:%d: smtp emulator M_io_destroy(%p)", __FILE__, __LINE__, io);
@@ -235,6 +240,12 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
+			if (*is_STARTTLS) {
+				*is_STARTTLS = M_FALSE;
+				*sttls_state = 3;
+				return;
+			}
+			*sttls_state = 0;
 			if (M_parser_len(in_parser) > 0) {
 				M_parser_consume(in_parser, M_parser_len(in_parser));
 			}
@@ -249,6 +260,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			break;
 		case M_EVENT_TYPE_WRITE:
 		case M_EVENT_TYPE_ERROR:
+			if (*sttls_state == 2)
+				return;
 			if (etype == M_EVENT_TYPE_WRITE && emu->test_id == TIMEOUT_STALL) {
 				return;
 			}
@@ -259,6 +272,8 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				}
 			}
 		case M_EVENT_TYPE_OTHER:
+			if (*sttls_state == 2)
+				return;
 			break;
 		case M_EVENT_TYPE_ACCEPT:
 			return; /* Already handled */
@@ -283,6 +298,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			}
 			if (M_str_eq(line, "STARTTLS\r\n") && emu->test_id != BAD_SERVER) {
 				*is_STARTTLS = M_TRUE;
+				*sttls_state = 1;
 			}
 			if (M_str_eq(line, "QUIT\r\n")) {
 				*is_QUIT = M_TRUE;
@@ -340,13 +356,10 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			*is_QUIT = M_FALSE;
 			return;
 		}
-		if (*is_STARTTLS) {
+		if (*is_STARTTLS && *sttls_state == 1) {
 			event_debug("M_io_tls_server_add(%p)\n", io);
 			M_io_tls_server_add(io, emu->serverctx, NULL);
-			/* 20220623 a change in the event system changed the behavior so this no longer
-			 * sends a CONNECT call.  Previosly this flag was cleared by a check in CONNECT.
-			 * -- AK */
-			*is_STARTTLS = M_FALSE;
+			*sttls_state = 2;
 		}
 	}
 
