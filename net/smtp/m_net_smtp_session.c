@@ -323,7 +323,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
-					M_uint64 timeout_ms = 21000;
+					M_uint64 timeout_ms = 5000;
 					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < (timeout_ms * 10) / 9) {
 						/* If we have less than 90% of the timeout before a process timeout, use 90% of the time available
 							* to try to detect a problem */

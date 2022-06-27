@@ -1174,11 +1174,11 @@ START_TEST(dot_msg)
 
 	args.test_id = DOT_MSG;
 	M_list_str_insert(cmd_args2, "-t");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args2, NULL, 30000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args2, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 	M_list_str_insert(cmd_args1, "-t");
 	M_list_str_insert(cmd_args1, "-i");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args1, NULL, 30000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args1, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 
 	M_net_smtp_pause(sp);
@@ -2498,7 +2498,7 @@ static Suite *smtp_suite(void)
 #if INCLUDE_DOT_MSG_TEST
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
-	tcase_set_timeout(tc, 30);
+	tcase_set_timeout(tc, 15);
 	suite_add_tcase(suite, tc);
 #endif
 #endif

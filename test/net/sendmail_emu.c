@@ -35,6 +35,11 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (setvbuf(stdin, NULL, _IONBF, 0) != 0) {
+		fprintf(stderr, "Error setting stdin to no buffering\n");
+		return 0;
+	}
+
 	while (1) {
 		c = fgetc(stdin);
 		if (feof(stdin)) { break; }
