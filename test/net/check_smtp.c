@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <check.h>
 
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
@@ -62,13 +63,20 @@ typedef enum {
 
 #define TESTONLY 0
 
-static void cleanup(void)
+static void cleanup_int(void)
 {
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
 	M_tls_serverctx_destroy(test_serverctx);
 	M_library_cleanup();
+}
+
+static void cleanup(void)
+{
+#ifndef _WIN32
+	cleanup_int();
+#endif
 }
 
 #if defined(DEBUG) && DEBUG > 0
@@ -1077,6 +1085,7 @@ static void warmup_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, 
 	(void)el;
 	if (etype == M_EVENT_TYPE_CONNECTED) {
 		M_io_destroy(io);
+		*mask &= ~2;
 	}
 	event_debug("warmup_io_stdin_cb - mask: %X", *mask);
 }
@@ -1084,9 +1093,6 @@ static void warmup_io_stdin_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, 
 static void warmup_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	int *mask = thunk;
-	if (etype == M_EVENT_TYPE_CONNECTED) {
-		*mask |= 4;
-	}
 	if (etype == M_EVENT_TYPE_DISCONNECTED) {
 		M_io_destroy(io);
 		*mask &= ~4;
@@ -1100,9 +1106,6 @@ static void warmup_io_stderr_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 static void warmup_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	int *mask = thunk;
-	if (etype == M_EVENT_TYPE_CONNECTED) {
-		*mask |= 8;
-	}
 	if (etype == M_EVENT_TYPE_DISCONNECTED) {
 		M_io_destroy(io);
 		*mask &= ~8;
@@ -1116,7 +1119,7 @@ static void warmup_io_stdout_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 static M_bool warmup_sendmail_emu(M_event_t *el)
 {
 	M_io_error_t io_err;
-	int          mask      = 0;
+	int          mask      = 0xF;
 	M_io_t      *io        = NULL;
 	M_io_t      *io_stdin  = NULL;
 	M_io_t      *io_stdout = NULL;
@@ -1135,6 +1138,7 @@ static M_bool warmup_sendmail_emu(M_event_t *el)
 	M_event_loop(el, M_TIMEOUT_INF);
 
 	return M_TRUE;
+
 }
 
 START_TEST(dot_msg)
@@ -1157,11 +1161,11 @@ START_TEST(dot_msg)
 
 	args.test_id = DOT_MSG;
 	M_list_str_insert(cmd_args2, "-t");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args2, NULL, 10000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args2, NULL, 20000, 1), "Couldn't add endpoint_process");
 
 	M_list_str_insert(cmd_args1, "-t");
 	M_list_str_insert(cmd_args1, "-i");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args1, NULL, 10000, 1), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args1, NULL, 20000, 1), "Couldn't add endpoint_process");
 
 
 	M_net_smtp_pause(sp);
@@ -1209,7 +1213,7 @@ START_TEST(process_error_exit)
 
 	M_list_str_insert(cmd_args, "-x");
 	M_list_str_insert(cmd_args, "15");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 2000, 2), "Couldn't add endpoint_process");
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
 
@@ -2727,6 +2731,7 @@ int main(int argc, char **argv)
 	char       *dirname;
 	const char *env_USER;
 	SRunner    *sr;
+	M_json_error_t error;
 
 	(void)argc;
 	(void)argv;
@@ -2740,14 +2745,22 @@ int main(int argc, char **argv)
 	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
 
 	dirname = M_fs_path_dirname(argv[0], M_FS_SYSTEM_AUTO);
+#ifdef _WIN32
+	len = M_str_len(dirname) + M_str_len("\\sendmail_emu.exe");
+	sendmail_emu = M_malloc_zero(len + 1);
+	M_snprintf(sendmail_emu, len + 1, "%s\\sendmail_emu.exe", dirname);
+#else
 	len = M_str_len(dirname) + M_str_len("/sendmail_emu");
 	sendmail_emu = M_malloc_zero(len + 1);
 	M_snprintf(sendmail_emu, len + 1, "%s/sendmail_emu", dirname);
+#endif
 	M_free(dirname);
 
 	test_serverctx = self_signed_serverctx();
 
-	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, NULL, NULL, NULL, NULL);
+	check_smtp_json = M_json_read(json_str, M_str_len(json_str), M_JSON_READER_NONE, &len, &error, NULL, NULL);
+
+	M_printf("JSON: len: %zu, error: %d\n", len, error);
 
 	sr = srunner_create(smtp_suite());
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_smtp.log");
@@ -2756,7 +2769,7 @@ int main(int argc, char **argv)
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
-	cleanup();
+	cleanup_int();
 
 	return nf == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

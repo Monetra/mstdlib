@@ -33,11 +33,16 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void trigger_write_softevent(M_io_t *io)
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 {
 	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
+}
+
+static void trigger_write_softevent(M_io_t *io)
+{
+	trigger_softevent(io, M_EVENT_TYPE_WRITE);
 }
 
 /* forward declarations */
@@ -270,6 +275,9 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 						M_snprintf(session->errmsg, sizeof(session->errmsg), "Bad result code %d", session->process.result_code);
 					}
 				}
+				if (session->process.io_stdin != NULL) {
+					trigger_softevent(session->process.io_stdin, M_EVENT_TYPE_DISCONNECTED);
+				}
 			}
 			break;
 		case M_EVENT_TYPE_READ:
@@ -313,9 +321,9 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
-					M_uint64 timeout_ms = 5000;
-					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < 5500) {
-						/* If we have less than 5.5 seconds before a process timeout, use 90% of the time available
+					M_uint64 timeout_ms = 15000;
+					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < (timeout_ms * 10) / 9) {
+						/* If we have less than 90% of the timeout before a process timeout, use 90% of the time available
 							* to try to detect a problem */
 						timeout_ms = (session->ep->process.timeout_ms * 9) / 10;
 					}
