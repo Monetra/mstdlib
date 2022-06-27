@@ -923,11 +923,13 @@ START_TEST(dump_queue)
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_list_str_t      *list        = NULL;
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
 	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
 	list = M_net_smtp_dump_queue(sp);
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 0), "Couldn't add endpoint_process");
+	M_list_str_insert(cmd_args, "-");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 1000, 0), "Couldn't add endpoint_process");
 	args.el = el;
 	args.sp = sp;
 
@@ -937,6 +939,7 @@ START_TEST(dump_queue)
 	ck_assert_msg(args.send_failed_cb_call_count == 0, "shouldn't have sent anything");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_list_str_destroy(cmd_args);
 	M_list_str_destroy(list);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
@@ -948,11 +951,13 @@ START_TEST(junk_msg)
 	args_t             args        = { 0 };
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
 	args.test_id = JUNK_MSG;
 	M_net_smtp_queue_message(sp, "junk");
 
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+	M_list_str_insert(cmd_args, "-");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 1000, 1), "Couldn't add endpoint_process");
 	args.el = el;
 	args.sp = sp;
 
@@ -962,6 +967,7 @@ START_TEST(junk_msg)
 	ck_assert_msg(args.is_success, "shouldn't allow retry");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_list_str_destroy(cmd_args);
 	M_net_smtp_destroy(sp);
 	M_event_destroy(el);
 	cleanup();
@@ -974,12 +980,14 @@ START_TEST(external_queue)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 	char              *msg         = M_email_simple_write(e);
+	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
 	args.test_id = EXTERNAL_QUEUE;
 	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
 	M_net_smtp_use_external_queue(sp, test_external_queue_get_cb);
 
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, NULL, NULL, 1000, 1), "Couldn't add endpoint_process");
+	M_list_str_insert(cmd_args, "-");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 1000, 1), "Couldn't add endpoint_process");
 
 	args.el = el;
 	args.sp = sp;
@@ -992,6 +1000,7 @@ START_TEST(external_queue)
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
 
+	M_list_str_destroy(cmd_args);
 	M_free(msg);
 	M_email_destroy(e);
 	M_net_smtp_destroy(sp);
@@ -1011,6 +1020,7 @@ START_TEST(halt_restart)
 	M_email_t         *e           = generate_email(1, test_address);
 
 	args.test_id = HALT_RESTART;
+	M_list_str_insert(cmd_args, "-");
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
 
 	args.el = el;
@@ -1247,6 +1257,7 @@ START_TEST(proc_endpoint)
 	M_net_smtp_queue_smtp(sp, e1);
 	M_net_smtp_queue_smtp(sp, e2);
 
+	M_list_str_insert(cmd_args, "-");
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");

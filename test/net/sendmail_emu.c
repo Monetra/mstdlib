@@ -12,6 +12,10 @@ int main(int argc, char **argv)
 	int     i;
 	int     c;
 
+	if (argc == 1) {
+		return 0;
+	}
+
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			if (argv[i][1] == 'x') {
