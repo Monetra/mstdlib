@@ -2101,7 +2101,7 @@ START_TEST(default_cbs)
 	smtp_emulator_destroy(emu);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, 3000);
+	M_event_loop(el, 1500);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after failovers and reject_457");
 
@@ -2112,7 +2112,7 @@ START_TEST(default_cbs)
 	M_list_str_insert(test_external_queue, msg);
 	M_net_smtp_external_queue_have_messages(sp);
 
-	M_event_loop(el, 3000);
+	M_event_loop(el, 1500);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after reject_457");
 
