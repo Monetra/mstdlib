@@ -428,7 +428,7 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 #define SESSION_PROC_ADVANCE_TASK(type,TYPE) \
 static void session_proc_advance_##type##_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk) \
 { \
-	return session_proc_advance_task(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
+	session_proc_advance_task(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
 }
 
 SESSION_PROC_ADVANCE_TASK(stderr, _STDERR)
