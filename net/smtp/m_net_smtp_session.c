@@ -305,11 +305,13 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				goto destroy; /* shouldn't receive anything on stdout */
 			}
+			session->is_successfully_sent = M_FALSE;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_WRITE:
 			if (connection_mask != M_NET_SMTP_CONNECTION_MASK_IO_STDIN) {
+				session->is_successfully_sent = M_FALSE;
 				M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 				goto destroy;
 			}
@@ -321,7 +323,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
-					M_uint64 timeout_ms = 15000;
+					M_uint64 timeout_ms = 21000;
 					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < (timeout_ms * 10) / 9) {
 						/* If we have less than 90% of the timeout before a process timeout, use 90% of the time available
 							* to try to detect a problem */
@@ -347,6 +349,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				session->connection_mask &= ~connection_mask;
 				break;
 			}
+			session->is_successfully_sent = M_FALSE;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			break;
