@@ -4,6 +4,7 @@
 #include <string.h>
 #ifdef _WIN32
 #include <fcntl.h>
+#include <io.h>
 #endif
 
 int main(int argc, char **argv)
