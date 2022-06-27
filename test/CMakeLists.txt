@@ -168,7 +168,6 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
-		net/sendmail_emu.c
 	)
 endif()
 
@@ -252,6 +251,12 @@ foreach (test_src ${tests})
 		)
 	endif ()
 endforeach ()
+
+# Need helper program for smtp proceess tests
+if(MSTDLIB_BUILD_NET)
+	add_executable(sendmail_emu net/sendmail_emu.c)
+	target_link_libraries(sendmail_emu PRIVATE ${test_deps})
+endif()
 
 # Make Check target
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
