@@ -12,7 +12,7 @@
 #include "../../io/m_io_int.h"
 
 #define DEBUG 0
-#define INCLUDE_DOT_MSG_TEST 0
+#define INCLUDE_DOT_MSG_TEST 1
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
