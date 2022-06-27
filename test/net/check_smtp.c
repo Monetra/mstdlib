@@ -12,6 +12,7 @@
 #include "../../io/m_io_int.h"
 
 #define DEBUG 0
+#define INCLUDE_DOT_MSG_TEST 0
 
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
@@ -1072,6 +1073,8 @@ START_TEST(proc_not_found)
 }
 END_TEST
 
+#if INCLUDE_DOT_MSG_TEST
+
 static void warmup_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
 	int *mask = thunk;
@@ -1208,6 +1211,8 @@ START_TEST(dot_msg)
 	cleanup();
 }
 END_TEST
+#endif
+
 START_TEST(process_error_exit)
 {
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
@@ -2083,7 +2088,7 @@ START_TEST(default_cbs)
 	args.el = el;
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, 500);
+	M_event_loop(el, 3000);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
 	M_net_smtp_pause(sp);
@@ -2096,7 +2101,7 @@ START_TEST(default_cbs)
 	smtp_emulator_destroy(emu);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, 300);
+	M_event_loop(el, 3000);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after failovers and reject_457");
 
@@ -2107,7 +2112,7 @@ START_TEST(default_cbs)
 	M_list_str_insert(test_external_queue, msg);
 	M_net_smtp_external_queue_have_messages(sp);
 
-	M_event_loop(el, 300);
+	M_event_loop(el, 3000);
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle after reject_457");
 
@@ -2490,10 +2495,12 @@ static Suite *smtp_suite(void)
 
 /*DOT_MSG                 = 13,*/
 #if TESTONLY == 0 || TESTONLY == 13
+#if INCLUDE_DOT_MSG_TEST
 	tc = tcase_create("dot msg");
 	tcase_add_test(tc, dot_msg);
 	tcase_set_timeout(tc, 30);
 	suite_add_tcase(suite, tc);
+#endif
 #endif
 
 /*PROC_NOT_FOUND          = 14,*/
@@ -2636,7 +2643,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 31
 	tc = tcase_create("default cbs");
 	tcase_add_test(tc, default_cbs);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 20);
 	suite_add_tcase(suite, tc);
 #endif
 
