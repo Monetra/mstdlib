@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 0
+#define DEBUG 2
 #define INCLUDE_DOT_MSG_TEST 1
 
 /* globals */
@@ -59,9 +59,10 @@ typedef enum {
 	PROCESS_ERROR_EXIT      = 34,
 	DOMAIN_MISMATCH         = 35,
 	MAX_ATTEMPTS_0          = 36,
+	MULTITHREAD_INSERT_PROC = 37,
 } test_id_t;
 
-#define TESTONLY 0
+#define TESTONLY 37
 
 static void cleanup_int(void)
 {
@@ -685,7 +686,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		}
 	}
 
-	if (args->test_id == MULTITHREAD_INSERT) {
+	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
 		if (args->sent_cb_call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
@@ -861,6 +862,51 @@ START_TEST(multithread_retry)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
+START_TEST(multithread_insert_proc)
+{
+	args_t                 args      = { 0 };
+	M_event_t             *el        = M_event_pool_create(0);
+	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t             *e         = generate_email(1, test_address);
+	multithread_arg_t     *tests     = NULL;
+	void                 **testptrs  = NULL;
+	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
+	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
+	size_t                 i         = 0;
+	M_list_str_t          *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+
+	args.test_id = MULTITHREAD_INSERT_PROC;
+
+	M_list_str_insert(cmd_args, "-");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 1000, 0), "Couldn't add endpoint_process");
+
+	tests = M_malloc_zero(sizeof(*tests) * multithread_insert_count);
+	testptrs = M_malloc_zero(sizeof(*testptrs) * multithread_insert_count);
+	for (i = 0; i < multithread_insert_count; i++) {
+		tests[i].sp = sp;
+		tests[i].e  = e;
+		testptrs[i] = &tests[i];
+	}
+	M_threadpool_dispatch(tp_parent, multithread_insert_task, testptrs, multithread_insert_count);
+	args.el = el;
+
+	M_threadpool_parent_wait(tp_parent);
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
+
+	M_threadpool_parent_destroy(tp_parent);
+	M_threadpool_destroy(tp);
+	M_free(testptrs);
+	M_free(tests);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_list_str_destroy(cmd_args);
 	M_event_destroy(el);
 	cleanup();
 }
@@ -2692,6 +2738,14 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 36
 	tc = tcase_create("max attempts 0");
 	tcase_add_test(tc, max_attempts_0);
+	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*MULTITHREAD_INSERT_PROC = 37, */
+#if TESTONLY == 0 || TESTONLY == 37
+	tc = tcase_create("multithread insert proc");
+	tcase_add_test(tc, multithread_insert_proc);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);
 #endif

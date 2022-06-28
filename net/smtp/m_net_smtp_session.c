@@ -48,6 +48,8 @@ static void trigger_write_softevent(M_io_t *io)
 /* forward declarations */
 static void session_tcp_advance_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 static void session_proc_advance_stdin_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static void session_proc_advance_stdout_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
+static void session_proc_advance_stderr_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk);
 
 static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
@@ -396,6 +398,16 @@ destroy:
 			return SESSION_FINISHED;
 		}
 	}
+
+	if (session->process.io_stdin != NULL)
+		trigger_softevent(session->process.io_stdin, M_EVENT_TYPE_DISCONNECTED);
+
+	if (session->process.io_stdout != NULL)
+		trigger_softevent(session->process.io_stdout, M_EVENT_TYPE_DISCONNECTED);
+
+	if (session->process.io_stderr != NULL)
+		trigger_softevent(session->process.io_stderr, M_EVENT_TYPE_DISCONNECTED);
+
 	return SESSION_PROCESSING;
 }
 
@@ -406,6 +418,11 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 	session_status_t      status;
 
 	M_thread_mutex_lock(session->mutex);
+	if (connection_mask == M_NET_SMTP_CONNECTION_MASK_IO && etype == M_EVENT_TYPE_CONNECTED) {
+		M_event_add(el, session->process.io_stdin , session_proc_advance_stdin_task , session);
+		M_event_add(el, session->process.io_stdout, session_proc_advance_stdout_task, session);
+		M_event_add(el, session->process.io_stderr, session_proc_advance_stderr_task, session);
+	}
 	status = session_proc_advance(el, etype, io, thunk, connection_mask);
 	M_thread_mutex_unlock(session->mutex);
 
@@ -566,9 +583,6 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		}
 		session->state_machine = M_net_smtp_flow_process();
 		M_event_add(sp->el, session->io               , session_proc_advance_proc_task  , session);
-		M_event_add(sp->el, session->process.io_stdin , session_proc_advance_stdin_task , session);
-		M_event_add(sp->el, session->process.io_stdout, session_proc_advance_stdout_task, session);
-		M_event_add(sp->el, session->process.io_stderr, session_proc_advance_stderr_task, session);
 		session->connection_mask = M_NET_SMTP_CONNECTION_MASK_PROC_ALL;
 	} else {
 		io_error = M_io_net_client_create(&session->io, sp->tcp_dns, ep->tcp.address, ep->tcp.port, M_IO_NET_ANY);
