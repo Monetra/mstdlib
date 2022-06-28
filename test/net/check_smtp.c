@@ -10,7 +10,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 2
+#define DEBUG 0
 #define INCLUDE_DOT_MSG_TEST 1
 
 /* globals */
@@ -62,7 +62,7 @@ typedef enum {
 	MULTITHREAD_INSERT_PROC = 37,
 } test_id_t;
 
-#define TESTONLY 37
+#define TESTONLY 0
 
 static void cleanup_int(void)
 {
