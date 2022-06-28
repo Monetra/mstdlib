@@ -1367,6 +1367,7 @@ START_TEST(status)
 		case M_NET_SMTP_STATUS_STOPPING: M_printf("STOPPING\n"); break;
 		case M_NET_SMTP_STATUS_STOPPED: break;
 	}
+	M_printf("smtp_status: %d\n", smtp_status);
 	ck_assert_msg(smtp_status == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
 	M_net_smtp_resume(sp);
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
