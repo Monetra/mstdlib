@@ -883,7 +883,7 @@ START_TEST(multithread_insert_proc)
 	args.test_id = MULTITHREAD_INSERT_PROC;
 
 	M_list_str_insert(cmd_args, "-");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 1000, 0), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 0), "Couldn't add endpoint_process");
 
 	tests = M_malloc_zero(sizeof(*tests) * multithread_insert_count);
 	testptrs = M_malloc_zero(sizeof(*testptrs) * multithread_insert_count);
@@ -2746,7 +2746,7 @@ static Suite *smtp_suite(void)
 #if TESTONLY == 0 || TESTONLY == 37
 	tc = tcase_create("multithread insert proc");
 	tcase_add_test(tc, multithread_insert_proc);
-	tcase_set_timeout(tc, 5);
+	tcase_set_timeout(tc, 15);
 	suite_add_tcase(suite, tc);
 #endif
 
