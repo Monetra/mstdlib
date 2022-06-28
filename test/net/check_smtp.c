@@ -20,7 +20,7 @@ char              *sendmail_emu             = NULL;
 M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
 const size_t       multithread_insert_count = 100;
-const size_t       multithread_retry_count  = 10;
+const size_t       multithread_retry_count  = 11;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
