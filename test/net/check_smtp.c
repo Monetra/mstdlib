@@ -20,7 +20,7 @@ char              *sendmail_emu             = NULL;
 M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
 const size_t       multithread_insert_count = 100;
-const size_t       multithread_retry_count  = 10;
+const size_t       multithread_retry_count  = 11;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -59,6 +59,7 @@ typedef enum {
 	PROCESS_ERROR_EXIT      = 34,
 	DOMAIN_MISMATCH         = 35,
 	MAX_ATTEMPTS_0          = 36,
+	MULTITHREAD_INSERT_PROC = 37,
 } test_id_t;
 
 #define TESTONLY 0
@@ -568,25 +569,25 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			M_net_errcode_to_str(net_err), error, thunk);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		if (args->connect_fail_cb_call_count == 2) {
-			return M_TRUE; /* Remove endpoint */
+			return M_FALSE; /* Remove endpoint */
 		}
 	}
 	if (args->test_id == DOMAIN_MISMATCH) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == REACTIVATE_IDLE) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == TIMEOUTS) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
-		return M_TRUE;
+		return M_FALSE;
 	}
-	return M_FALSE; /* Should TCP endpoint be removed? */
+	return M_TRUE; /* Keep endpoint */
 }
 
 static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
@@ -613,7 +614,7 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 		M_event_done(args->el);
 	}
 
-	return M_TRUE; /* Should process endpoint be removed? */
+	return M_FALSE; /* Remove endpoint */
 }
 
 static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
@@ -685,7 +686,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		}
 	}
 
-	if (args->test_id == MULTITHREAD_INSERT) {
+	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
 		if (args->sent_cb_call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
@@ -861,6 +862,51 @@ START_TEST(multithread_retry)
 	M_dns_destroy(dns);
 	M_net_smtp_destroy(sp);
 	smtp_emulator_destroy(emu);
+	M_event_destroy(el);
+	cleanup();
+}
+END_TEST
+
+START_TEST(multithread_insert_proc)
+{
+	args_t                 args      = { 0 };
+	M_event_t             *el        = M_event_pool_create(0);
+	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
+	M_email_t             *e         = generate_email(1, test_address);
+	multithread_arg_t     *tests     = NULL;
+	void                 **testptrs  = NULL;
+	M_threadpool_t        *tp        = M_threadpool_create(10, 10, 10, 0);
+	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
+	size_t                 i         = 0;
+	M_list_str_t          *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+
+	args.test_id = MULTITHREAD_INSERT_PROC;
+
+	M_list_str_insert(cmd_args, "-");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 0), "Couldn't add endpoint_process");
+
+	tests = M_malloc_zero(sizeof(*tests) * multithread_insert_count);
+	testptrs = M_malloc_zero(sizeof(*testptrs) * multithread_insert_count);
+	for (i = 0; i < multithread_insert_count; i++) {
+		tests[i].sp = sp;
+		tests[i].e  = e;
+		testptrs[i] = &tests[i];
+	}
+	M_threadpool_dispatch(tp_parent, multithread_insert_task, testptrs, multithread_insert_count);
+	args.el = el;
+
+	M_threadpool_parent_wait(tp_parent);
+	M_event_loop(el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
+
+	M_threadpool_parent_destroy(tp_parent);
+	M_threadpool_destroy(tp);
+	M_free(testptrs);
+	M_free(tests);
+	M_email_destroy(e);
+	M_net_smtp_destroy(sp);
+	M_list_str_destroy(cmd_args);
 	M_event_destroy(el);
 	cleanup();
 }
@@ -1284,16 +1330,18 @@ START_TEST(proc_endpoint)
 	cleanup();
 }
 END_TEST
+
 START_TEST(status)
 {
-	M_uint16           testport;
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, test_address);
-	M_email_t         *e2          = generate_email(2, test_address);
+	M_uint16             testport;
+	args_t               args        = { 0 };
+	M_event_t           *el          = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t     *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
+	M_net_smtp_t        *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t             *dns         = M_dns_create(el);
+	M_email_t           *e1          = generate_email(1, test_address);
+	M_email_t           *e2          = generate_email(2, test_address);
+	M_net_smtp_status_t  smtp_status;
 
 	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -1311,7 +1359,16 @@ START_TEST(status)
 	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
-	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
+	smtp_status = M_net_smtp_status(sp);
+	switch(smtp_status) {
+		case M_NET_SMTP_STATUS_IDLE: M_printf("IDLE\n"); break;
+		case M_NET_SMTP_STATUS_PROCESSING: M_printf("PROCESSING\n"); break;
+		case M_NET_SMTP_STATUS_NOENDPOINTS: M_printf("NOENDPOINTS\n"); break;
+		case M_NET_SMTP_STATUS_STOPPING: M_printf("STOPPING\n"); break;
+		case M_NET_SMTP_STATUS_STOPPED: break;
+	}
+	M_printf("smtp_status: %d\n", smtp_status);
+	ck_assert_msg(smtp_status == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
 	M_net_smtp_resume(sp);
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
 
@@ -2683,6 +2740,14 @@ static Suite *smtp_suite(void)
 	tc = tcase_create("max attempts 0");
 	tcase_add_test(tc, max_attempts_0);
 	tcase_set_timeout(tc, 5);
+	suite_add_tcase(suite, tc);
+#endif
+
+/*MULTITHREAD_INSERT_PROC = 37, */
+#if TESTONLY == 0 || TESTONLY == 37
+	tc = tcase_create("multithread insert proc");
+	tcase_add_test(tc, multithread_insert_proc);
+	tcase_set_timeout(tc, 15);
 	suite_add_tcase(suite, tc);
 #endif
 
