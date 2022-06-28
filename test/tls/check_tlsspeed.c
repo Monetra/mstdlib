@@ -6,6 +6,7 @@
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_tls.h>
+#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -40,6 +41,18 @@ static void event_debug(const char *fmt, ...)
 	(void)fmt;
 }
 #endif
+
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
+{
+	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+}
+
+static void trigger_write_softevent(M_io_t *io)
+{
+	trigger_softevent(io, M_EVENT_TYPE_WRITE);
+}
 
 
 static const char *event_type_str(M_event_type_t type)
@@ -127,11 +140,17 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
+			comm = NULL;
 			net_data_destroy(data);
 			break;
 		default:
 			/* Ignore */
 			break;
+	}
+	if (comm != NULL) {
+		if (M_buf_len(data->buf) > 0) {
+			trigger_write_softevent(comm);
+		}
 	}
 }
 
