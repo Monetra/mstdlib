@@ -568,25 +568,25 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 			M_net_errcode_to_str(net_err), error, thunk);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		if (args->connect_fail_cb_call_count == 2) {
-			return M_TRUE; /* Remove endpoint */
+			return M_FALSE; /* Remove endpoint */
 		}
 	}
 	if (args->test_id == DOMAIN_MISMATCH) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == REACTIVATE_IDLE) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5) {
 		M_event_done(args->el);
 	}
 	if (args->test_id == TIMEOUTS) {
-		return M_TRUE;
+		return M_FALSE;
 	}
 	if (args->test_id == BAD_SERVER || args->test_id == BAD_AUTH) {
-		return M_TRUE;
+		return M_FALSE;
 	}
-	return M_FALSE; /* Should TCP endpoint be removed? */
+	return M_TRUE; /* Keep endpoint */
 }
 
 static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
@@ -613,7 +613,7 @@ static M_bool process_fail_cb(const char *command, int result_code, const char *
 		M_event_done(args->el);
 	}
 
-	return M_TRUE; /* Should process endpoint be removed? */
+	return M_FALSE; /* Remove endpoint */
 }
 
 static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
@@ -1284,16 +1284,18 @@ START_TEST(proc_endpoint)
 	cleanup();
 }
 END_TEST
+
 START_TEST(status)
 {
-	M_uint16           testport;
-	args_t             args        = { 0 };
-	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
-	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
-	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
-	M_dns_t           *dns         = M_dns_create(el);
-	M_email_t         *e1          = generate_email(1, test_address);
-	M_email_t         *e2          = generate_email(2, test_address);
+	M_uint16             testport;
+	args_t               args        = { 0 };
+	M_event_t           *el          = M_event_create(M_EVENT_FLAG_NONE);
+	smtp_emulator_t     *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, STATUS);
+	M_net_smtp_t        *sp          = M_net_smtp_create(el, &test_cbs, &args);
+	M_dns_t             *dns         = M_dns_create(el);
+	M_email_t           *e1          = generate_email(1, test_address);
+	M_email_t           *e2          = generate_email(2, test_address);
+	M_net_smtp_status_t  smtp_status;
 
 	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -1311,7 +1313,15 @@ START_TEST(status)
 	M_event_loop(el, M_TIMEOUT_INF);
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
-	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
+	smtp_status = M_net_smtp_status(sp);
+	switch(smtp_status) {
+		case M_NET_SMTP_STATUS_IDLE: M_printf("IDLE\n"); break;
+		case M_NET_SMTP_STATUS_PROCESSING: M_printf("PROCESSING\n"); break;
+		case M_NET_SMTP_STATUS_NOENDPOINTS: M_printf("NOENDPOINTS\n"); break;
+		case M_NET_SMTP_STATUS_STOPPING: M_printf("STOPPING\n"); break;
+		case M_NET_SMTP_STATUS_STOPPED: break;
+	}
+	ck_assert_msg(smtp_status == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
 	M_net_smtp_resume(sp);
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
 

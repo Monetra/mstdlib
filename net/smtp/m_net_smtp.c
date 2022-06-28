@@ -206,7 +206,7 @@ void M_net_smtp_connect_fail(M_net_smtp_session_t *session)
 	M_net_error_t                net_error = session->tcp.net_error;
 	const char                  *errmsg    = session->errmsg;
 
-	M_bool is_remove_ep = sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
+	M_bool is_remove_ep = !sp->cbs.connect_fail_cb(ep->tcp.address, ep->tcp.port, net_error, errmsg, sp->thunk);
 	endpoint_failure(sp, ep, is_remove_ep);
 }
 
@@ -217,7 +217,7 @@ void M_net_smtp_process_fail(M_net_smtp_session_t *session, const char *stdout_s
 	int                          result_code = session->process.result_code;
 	const char                  *errmsg      = session->errmsg;
 
-	M_bool is_remove_ep = sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
+	M_bool is_remove_ep = !sp->cbs.process_fail_cb(ep->process.command, result_code, stdout_str, errmsg, sp->thunk);
 	endpoint_failure(sp, ep, is_remove_ep);
 }
 
@@ -261,7 +261,7 @@ static M_bool nop_connect_fail_cb(const char *a, M_uint16 b, M_net_error_t c, co
 	(void)c;
 	(void)d;
 	(void)e;
-	return M_FALSE; /* Don't remove endpoint */
+	return M_TRUE; /* Don't remove endpoint */
 }
 
 static M_bool nop_process_fail_cb(const char *a, int b, const char *c, const char *d, void *e)
@@ -271,7 +271,7 @@ static M_bool nop_process_fail_cb(const char *a, int b, const char *c, const cha
 	(void)c;
 	(void)d;
 	(void)e;
-	return M_FALSE; /* Don't remove endpoint */
+	return M_TRUE; /* Don't remove endpoint */
 }
 
 static M_bool nop_send_failed_cb(const M_hash_dict_t *a, const char *b, size_t c, M_bool d, void *e)
