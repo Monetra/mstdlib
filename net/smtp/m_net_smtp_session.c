@@ -33,11 +33,16 @@ typedef enum {
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void trigger_write_softevent(M_io_t *io)
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 {
 	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
-	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_WRITE, M_IO_ERROR_SUCCESS);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
+}
+
+static void trigger_write_softevent(M_io_t *io)
+{
+	trigger_softevent(io, M_EVENT_TYPE_WRITE);
 }
 
 /* forward declarations */
@@ -270,6 +275,9 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 						M_snprintf(session->errmsg, sizeof(session->errmsg), "Bad result code %d", session->process.result_code);
 					}
 				}
+				if (session->process.io_stdin != NULL) {
+					trigger_softevent(session->process.io_stdin, M_EVENT_TYPE_DISCONNECTED);
+				}
 			}
 			break;
 		case M_EVENT_TYPE_READ:
@@ -297,11 +305,13 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				}
 				goto destroy; /* shouldn't receive anything on stdout */
 			}
+			session->is_successfully_sent = M_FALSE;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			break;
 		case M_EVENT_TYPE_WRITE:
 			if (connection_mask != M_NET_SMTP_CONNECTION_MASK_IO_STDIN) {
+				session->is_successfully_sent = M_FALSE;
 				M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 				goto destroy;
 			}
@@ -314,8 +324,8 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				if (session->process.len > 0) {
 					/* Give process a chance to parse and react to input */
 					M_uint64 timeout_ms = 5000;
-					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < 5500) {
-						/* If we have less than 5.5 seconds before a process timeout, use 90% of the time available
+					if (session->ep->process.timeout_ms > 0 && session->ep->process.timeout_ms < (timeout_ms * 10) / 9) {
+						/* If we have less than 90% of the timeout before a process timeout, use 90% of the time available
 							* to try to detect a problem */
 						timeout_ms = (session->ep->process.timeout_ms * 9) / 10;
 					}
@@ -339,6 +349,7 @@ static session_status_t session_proc_advance(M_event_t *el, M_event_type_t etype
 				session->connection_mask &= ~connection_mask;
 				break;
 			}
+			session->is_successfully_sent = M_FALSE;
 			M_snprintf(session->errmsg, sizeof(session->errmsg), "Unexpected event: %s", M_event_type_string(etype));
 			goto destroy;
 			break;
@@ -417,7 +428,7 @@ static void session_proc_advance_task(M_event_t *el, M_event_type_t etype, M_io_
 #define SESSION_PROC_ADVANCE_TASK(type,TYPE) \
 static void session_proc_advance_##type##_task(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk) \
 { \
-	return session_proc_advance_task(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
+	session_proc_advance_task(el, etype, io, thunk, M_NET_SMTP_CONNECTION_MASK_IO##TYPE); \
 }
 
 SESSION_PROC_ADVANCE_TASK(stderr, _STDERR)

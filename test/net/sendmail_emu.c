@@ -2,6 +2,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 int main(int argc, char **argv)
 {
@@ -11,6 +15,14 @@ int main(int argc, char **argv)
 	int     nbytes             = 0;
 	int     i;
 	int     c;
+
+	if (argc == 1) {
+		return 0;
+	}
+
+#ifdef _WIN32
+	_setmode(_fileno(stdin), O_BINARY);
+#endif
 
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
@@ -29,6 +41,11 @@ int main(int argc, char **argv)
 				outfile = fopen(argv[i], "ab");
 			}
 		}
+	}
+
+	if (setvbuf(stdin, NULL, _IONBF, 0) != 0) {
+		fprintf(stderr, "Error setting stdin to no buffering\n");
+		return 0;
 	}
 
 	while (1) {

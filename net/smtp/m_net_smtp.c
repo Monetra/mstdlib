@@ -473,7 +473,7 @@ M_bool M_net_smtp_add_endpoint_tcp(
 		return M_FALSE;
 
 	if (port == 0)
-		port = 25;
+		args.port = 25;
 
 	ep = M_net_smtp_endpoint_create_tcp(&args);
 	add_endpoint(sp, ep);
