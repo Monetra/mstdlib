@@ -49,12 +49,6 @@ static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 	M_io_layer_release(layer);
 }
 
-static void trigger_write_softevent(M_io_t *io)
-{
-	trigger_softevent(io, M_EVENT_TYPE_WRITE);
-}
-
-
 static const char *event_type_str(M_event_type_t type)
 {
 	switch (type) {
@@ -81,17 +75,19 @@ struct net_data {
 	M_buf_t    *buf;
 	M_timeval_t starttv;
 	M_uint64    count;
+	M_io_t     *io;
 };
 typedef struct net_data net_data_t;
 
 net_data_t *net_data_client = NULL;
 net_data_t *net_data_server = NULL;
 
-static net_data_t *net_data_create(void)
+static net_data_t *net_data_create(M_io_t* io)
 {
 	net_data_t *data = M_malloc_zero(sizeof(*data));
 	data->buf = M_buf_create();
 	M_time_elapsed_start(&data->starttv);
+	data->io = io;
 	return data;
 }
 
@@ -133,8 +129,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (M_buf_len(data->buf) == 0 && net_data_client->count == net_data_server->count) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
-			} else {
-				trigger_write_softevent(comm);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -153,6 +147,11 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		default:
 			/* Ignore */
 			break;
+	}
+	if (comm != NULL) {
+		if (M_buf_len(data->buf) > 0) {
+			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
+		}
 	}
 }
 
@@ -181,6 +180,8 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				M_buf_truncate(data->buf, 0);
 				if (net_data_client->count > net_data_server->count) {
 					trigger_softevent(comm, M_EVENT_TYPE_READ);
+				} else {
+					trigger_softevent(net_data_client->io, M_EVENT_TYPE_WRITE);
 				}
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
@@ -220,7 +221,7 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_ACCEPT:
 			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
-				net_data_server = net_data_create();
+				net_data_server = net_data_create(newcomm);
 				M_event_add(event, newcomm, net_serverconn_cb, net_data_server);
 
 			}
@@ -377,7 +378,7 @@ static M_bool check_tlsspeed_test(void)
 		return M_FALSE;
 	}
 
-	net_data_client = net_data_create();
+	net_data_client = net_data_create(netclient);
 	if (!M_event_add(event, netclient, net_client_cb, net_data_client)) {
 		event_debug("failed to add net client");
 		return M_FALSE;
