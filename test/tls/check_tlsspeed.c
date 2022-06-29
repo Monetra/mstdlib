@@ -75,6 +75,7 @@ struct net_data {
 	M_buf_t    *buf;
 	M_timeval_t starttv;
 	M_uint64    count;
+	M_uint64    call_count;
 	M_io_t     *io;
 };
 typedef struct net_data net_data_t;
@@ -118,6 +119,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
 				data->count += mysize - M_buf_len(data->buf);
+				data->call_count++;
 				event_debug("net client %p wrote %zu bytes (%llu Bps) count: %llu / %llu", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), net_data_client->count, net_data_server->count);
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
@@ -170,6 +172,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
 				data->count += M_buf_len(data->buf) - mysize;
+				data->call_count++;
 				event_debug("net serverconn %p read %zu bytes (%llu Bps) count: %llu / %llu", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), net_data_client->count, net_data_server->count);
 //				M_printf("read size %zu bytes\n", M_buf_len(data->buf) - mysize);
 				M_buf_truncate(data->buf, 0);
@@ -380,6 +383,12 @@ static M_bool check_tlsspeed_test(void)
 	event_debug("added client connections to event loop");
 
 	err = M_event_loop(event, 10000);
+
+	if (err == M_EVENT_ERR_TIMEOUT) {
+		M_printf("Timed Out..");
+		M_printf("net_data_client: { count: %llu, call_count: %llu }\n", net_data_client->count, net_data_client->call_count);
+		M_printf("net_data_server: { count: %llu, call_count: %llu }\n", net_data_server->count, net_data_server->call_count);
+	}
 
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 
