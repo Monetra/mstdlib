@@ -72,12 +72,16 @@ static const char *event_type_str(M_event_type_t type)
 	return "UNKNOWN";
 }
 
-
 struct net_data {
 	M_buf_t    *buf;
 	M_timeval_t starttv;
+	M_uint64    count;
 };
 typedef struct net_data net_data_t;
+
+net_data_t *net_data_client = NULL;
+net_data_t *net_data_server = NULL;
+
 
 static net_data_t *net_data_create(void)
 {
@@ -113,7 +117,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				data->count += mysize - M_buf_len(data->buf);
+				event_debug("net client %p wrote %zu bytes (%llu Bps) count %llu", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), data->count);
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
@@ -121,9 +126,11 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				M_io_disconnect(comm);
 				break;
 			}
-			if (M_buf_len(data->buf) == 0) {
+			if (M_buf_len(data->buf) == 0 && net_data_client->count == net_data_server->count) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+			} else {
+				trigger_write_softevent(comm);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -145,11 +152,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			/* Ignore */
 			break;
 	}
-	if (comm != NULL) {
-		if (M_buf_len(data->buf) > 0) {
-			trigger_write_softevent(comm);
-		}
-	}
 }
 
 
@@ -169,8 +171,12 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				event_debug("net serverconn %p read %zu bytes (%llu Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
+				data->count += M_buf_len(data->buf) - mysize;
+				event_debug("net serverconn %p read %zu bytes (%llu Bps) count: %llu", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), data->count);
 				M_buf_truncate(data->buf, 0);
+				if (net_data_client->count > net_data_server->count) {
+					trigger_softevent(comm, M_EVENT_TYPE_READ);
+				}
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
 			}
@@ -207,7 +213,8 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_ACCEPT:
 			if (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
-				M_event_add(event, newcomm, net_serverconn_cb, net_data_create());
+				net_data_server = net_data_create();
+				M_event_add(event, newcomm, net_serverconn_cb, net_data_server);
 				event_debug("stopping listener, no longer needed");
 				M_io_destroy(comm);
 			}
@@ -292,7 +299,8 @@ static M_bool check_event_bwshaping_test(void)
 	}
 
 
-	if (!M_event_add(event, netclient, net_client_cb, net_data_create())) {
+	net_data_client = net_data_create();
+	if (!M_event_add(event, netclient, net_client_cb, net_data_client)) {
 		event_debug("failed to add net client");
 		goto done_error;
 	}
