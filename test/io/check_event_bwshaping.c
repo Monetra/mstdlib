@@ -14,7 +14,7 @@ size_t   server_id;
 size_t   client_id;
 M_uint64 runtime_ms;
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
