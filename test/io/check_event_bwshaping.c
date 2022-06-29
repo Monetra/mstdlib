@@ -14,7 +14,7 @@ size_t   server_id;
 size_t   client_id;
 M_uint64 runtime_ms;
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -125,6 +125,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (M_buf_len(data->buf) == 0 && net_data_client->count == net_data_server->count) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -145,11 +146,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		default:
 			/* Ignore */
 			break;
-	}
-	if (comm != NULL) {
-		if (M_buf_len(data->buf) > 0) {
-			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
-		}
 	}
 }
 
@@ -173,9 +169,8 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				data->count += M_buf_len(data->buf) - mysize;
 				event_debug("net serverconn %p read %zu bytes (%llu Bps) count: %llu", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), data->count);
 				M_buf_truncate(data->buf, 0);
-				if (net_data_client->count > net_data_server->count) {
-					trigger_softevent(comm, M_EVENT_TYPE_READ);
-				} else {
+				trigger_softevent(comm, M_EVENT_TYPE_READ);
+				if (net_data_client->count == net_data_server->count) {
 					trigger_softevent(net_data_client->io, M_EVENT_TYPE_WRITE);
 				}
 			} else {
