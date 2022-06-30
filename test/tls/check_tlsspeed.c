@@ -76,6 +76,7 @@ struct net_data {
 	M_timeval_t starttv;
 	M_uint64    count;
 	M_uint64    call_count;
+	M_uint64    connected_call_count;
 	M_io_t     *io;
 };
 typedef struct net_data net_data_t;
@@ -114,6 +115,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			event_debug("net client %p connected", comm);
 			M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
+			data->connected_call_count++;
 			break;
 		case M_EVENT_TYPE_WRITE:
 			mysize = M_buf_len(data->buf);
@@ -126,7 +128,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
 				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
-				M_printf("client: { () %llu, %llu bytes }, server: { () %llu, %llu bytes }\n", net_data_client->call_count, net_data_client->count, net_data_server->call_count, net_data_server->count);
+				M_printf("client: { () %llu, %llu bytes, connected() %llu }, server: { () %llu, %llu bytes }\n", net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_server->call_count, net_data_server->count);
 				M_io_disconnect(comm);
 				break;
 			}
@@ -390,7 +392,7 @@ static M_bool check_tlsspeed_test(void)
 	err = M_event_loop(event, 10000);
 
 	if (err == M_EVENT_ERR_TIMEOUT) {
-		M_snprintf(errmsg, sizeof(errmsg), "TIMOUT: client: { () %llu, %llu bytes }, server: { () %llu, %llu bytes }", net_data_client->count, net_data_client->call_count, net_data_server->count, net_data_server->call_count);
+		M_snprintf(errmsg, sizeof(errmsg), "TIMOUT: client: { () %llu, %llu bytes, connected() %llu }, server: { () %llu, %llu bytes }", net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_server->call_count, net_data_server->count);
 	} else {
 		M_snprintf(errmsg, sizeof(errmsg), "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 	}
