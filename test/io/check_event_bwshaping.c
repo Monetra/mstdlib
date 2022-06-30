@@ -73,6 +73,7 @@ struct net_data {
 	M_uint64    call_count;
 	M_uint64    connected_call_count;
 	M_io_t     *io;
+	char        errmsg[256];
 };
 typedef struct net_data net_data_t;
 
@@ -139,15 +140,14 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (type == M_EVENT_TYPE_ERROR) {
 				char error[256];
 				M_io_get_error_string(comm, error, sizeof(error));
-				event_debug("net client %p ERROR %s", comm, error);
+				M_snprintf(data->errmsg, sizeof(data->errmsg), "net client %p ERROR %s", comm, error);
+				event_debug("%s", data->errmsg);
 			}
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
 			comm = NULL;
-			net_data_destroy(data);
-			if (M_event_num_objects(event) == 0)
-				M_event_done(event);
+			M_event_done(event);
 			break;
 		default:
 			/* Ignore */
@@ -197,7 +197,6 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
 			M_io_destroy(comm);
-			net_data_destroy(data);
 			if (M_event_num_objects(event) == 0)
 				M_event_done(event);
 			break;
@@ -314,16 +313,16 @@ static M_bool check_event_bwshaping_test(void)
 	event_debug("entering loop");
 	err = M_event_loop(event, 10000);
 
-	if (err == M_EVENT_ERR_TIMEOUT) {
-		M_snprintf(errmsg, sizeof(errmsg), "TIMOUT: client: { () %llu, %llu bytes, connected() %llu }, server: { () %llu, %llu bytes }", net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_server->call_count, net_data_server->count);
-	} else {
-		M_snprintf(errmsg, sizeof(errmsg), "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
-	}
+	M_snprintf(errmsg, sizeof(errmsg), "%s: client: { () %llu, %llu bytes, connected() %llu, errmsg: %s }, server: { () %llu, %llu bytes }", event_err_msg(err), net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_client->errmsg, net_data_server->call_count, net_data_server->count);
 
+	net_data_destroy(net_data_client);
+	net_data_destroy(net_data_server);
 	/* Cleanup */
 	M_event_destroy(event);
 	M_library_cleanup();
 	event_debug("exited");
+
+	M_printf("%s", errmsg);
 
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "%s", errmsg);
 	return err==M_EVENT_ERR_DONE?M_TRUE:M_FALSE;
