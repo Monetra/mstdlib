@@ -109,7 +109,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net client %p connected", comm);
 			M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
-			/* Fall-thru */
+			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
+			break;
 		case M_EVENT_TYPE_WRITE:
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
