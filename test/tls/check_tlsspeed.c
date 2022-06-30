@@ -108,7 +108,8 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	(void)event;
 
 	event_debug("net client %p event %s triggered", comm, event_type_str(type));
-	data->call_count++;
+	if (data != NULL)
+		data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_READ:
 			/* Do nothing */
@@ -169,7 +170,8 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	(void)event;
 
 	event_debug("net serverconn %p event %s triggered", comm, event_type_str(type));
-	data->call_count++;
+	if (data != NULL)
+		data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net serverconn %p Connected", comm);
