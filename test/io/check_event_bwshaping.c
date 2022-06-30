@@ -121,6 +121,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
 				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
+				M_printf("client: { () %llu, %llu bytes }, server: { () %llu, %llu bytes }\n", net_data_client->call_count, net_data_client->count, net_data_server->call_count, net_data_server->count);
 				M_io_disconnect(comm);
 				break;
 			}
@@ -163,6 +164,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net serverconn %p Connected", comm);
+			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_READ:
 			mysize = M_buf_len(data->buf);
@@ -247,6 +249,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_io_t        *netclient = NULL;
 	M_event_err_t  err;
 	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	char           errmsg[256];
 
 	runtime_ms = 4000;
 
@@ -309,9 +312,9 @@ static M_bool check_event_bwshaping_test(void)
 	err = M_event_loop(event, 10000);
 
 	if (err == M_EVENT_ERR_TIMEOUT) {
-		M_printf("Timed Out..");
-		M_printf("net_data_client: { count: %llu, call_count: %llu }\n", net_data_client->count, net_data_client->call_count);
-		M_printf("net_data_server: { count: %llu, call_count: %llu }\n", net_data_server->count, net_data_server->call_count);
+		M_snprintf(errmsg, sizeof(errmsg), "TIMOUT: client: { () %llu, %llu bytes }, server: { () %llu, %llu bytes }", net_data_client->count, net_data_client->call_count, net_data_server->count, net_data_server->call_count);
+	} else {
+		M_snprintf(errmsg, sizeof(errmsg), "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 	}
 
 	/* Cleanup */
@@ -319,7 +322,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_library_cleanup();
 	event_debug("exited");
 
-	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
+	ck_assert_msg(err == M_EVENT_ERR_DONE, "%s", errmsg);
 	return err==M_EVENT_ERR_DONE?M_TRUE:M_FALSE;
 
 done_error:
