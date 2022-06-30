@@ -221,7 +221,12 @@ static Suite *block_net_suite(void)
 	suite = suite_create("block_net");
 
 	tc_block_net = tcase_create("block_net");
-	//tcase_set_timeout(tc_block_net, 30);
+	/* Needs enough time for M_thread_sleep(10000); */
+	/* 20220630 - Debian fails with:
+	 * 46/66 Test #46: check_block_net ..................***Failed    8.04 sec
+	 * ../test/io/check_block_net.c:203:E:block_net:check_block_net:0: (after this point) Test timeout expired
+	 */
+	tcase_set_timeout(tc_block_net, 15);
 	tcase_add_test(tc_block_net, check_block_net);
 	suite_add_tcase(suite, tc_block_net);
 
