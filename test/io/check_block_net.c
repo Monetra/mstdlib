@@ -14,7 +14,7 @@ M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_thread_mutex_t *debug_lock = NULL;
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -79,33 +79,36 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			event_debug("%p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
 		}
 
-		err = M_io_block_read_into_parser(conn, readparser, 20);
-		if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
-			if (err == M_IO_ERROR_DISCONNECT) {
-				event_debug("%p %s disconnected", conn, is_server?"netserver":"netclient");
-			} else {
-				event_debug("%p %s error during read %d", conn, is_server?"netserver":"netclient", (int)err);
+		while (1) {
+			err = M_io_block_read_into_parser(conn, readparser, 20);
+			if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
+				if (err == M_IO_ERROR_DISCONNECT) {
+					event_debug("%p %s disconnected", conn, is_server?"netserver":"netclient");
+				} else {
+					event_debug("%p %s error during read %d", conn, is_server?"netserver":"netclient", (int)err);
+				}
+				goto cleanup;
 			}
-			goto cleanup;
-		}
-		if (M_parser_len(readparser)) {
-			event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
-		}
-		if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
-			/* Delay server connection count until we actually receive a message.
-			 * Sometimes windows does a spurious connection for some reason */
-			M_atomic_inc_u64(&server_connection_count);
+			if (M_parser_len(readparser)) {
+				event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+			}
+			if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
+				/* Delay server connection count until we actually receive a message.
+				 * Sometimes windows does a spurious connection for some reason */
+				M_atomic_inc_u64(&server_connection_count);
 
-			M_parser_truncate(readparser, 0);
-			event_debug("%p %s closing connection", conn, is_server?"netserver":"netclient");
-			M_io_block_disconnect(conn);
-			goto cleanup;
+				M_parser_truncate(readparser, 0);
+				event_debug("%p %s closing connection", conn, is_server?"netserver":"netclient");
+				M_io_block_disconnect(conn);
+				goto cleanup;
+			}
+			if (M_parser_compare_str(readparser, "HelloWorld", 0, M_FALSE)) {
+				M_parser_truncate(readparser, 0);
+				M_buf_add_str(writebuf, "GoodBye");
+				break;
+			}
+			/* event_debug("%p %s loop", conn, is_server?"netserver":"netclient"); */
 		}
-		if (M_parser_compare_str(readparser, "HelloWorld", 0, M_FALSE)) {
-			M_parser_truncate(readparser, 0);
-			M_buf_add_str(writebuf, "GoodBye");
-		}
-		/* event_debug("%p %s loop", conn, is_server?"netserver":"netclient"); */
 	}
 cleanup:
 	event_debug("%p %s cleaning up", conn, is_server?"netserver":"netclient");
@@ -221,11 +224,6 @@ static Suite *block_net_suite(void)
 	suite = suite_create("block_net");
 
 	tc_block_net = tcase_create("block_net");
-	/* Needs enough time for M_thread_sleep(10000); */
-	/* 20220630 - Debian fails with:
-	 * 46/66 Test #46: check_block_net ..................***Failed    8.04 sec
-	 * ../test/io/check_block_net.c:203:E:block_net:check_block_net:0: (after this point) Test timeout expired
-	 */
 	tcase_set_timeout(tc_block_net, 15);
 	tcase_add_test(tc_block_net, check_block_net);
 	suite_add_tcase(suite, tc_block_net);
