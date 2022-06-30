@@ -392,7 +392,6 @@ static M_bool check_tlsspeed_test(void)
 	err = M_event_loop(event, 10000);
 
 	M_snprintf(errmsg, sizeof(errmsg), "%s: client: { () %llu, %llu bytes, connected() %llu, errmsg: %s }, server: { () %llu, %llu bytes }", event_err_msg(err), net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_client->errmsg, net_data_server->call_count, net_data_server->count);
-	}
 
 	M_printf("%s", errmsg);
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "%s", errmsg);
