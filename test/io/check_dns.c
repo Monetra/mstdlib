@@ -344,6 +344,8 @@ START_TEST(check_dns_reload)
 
 	for (i=0; hosts[i] != NULL; i++) {
 		M_atomic_inc_u32(&queries);
+	}
+	for (i=0; hosts[i] != NULL; i++) {
 		event_debug("query: %s", hosts[i]);
 		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cb, M_CAST_OFF_CONST(void *, hosts[i]));
 
@@ -359,6 +361,8 @@ START_TEST(check_dns_reload)
 	/* This should get cached results now */
 	for (i=0; hosts[i] != NULL; i++) {
 		M_atomic_inc_u32(&queries);
+	}
+	for (i=0; hosts[i] != NULL; i++) {
 		event_debug("query: %s", hosts[i]);
 		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cache_cb, M_CAST_OFF_CONST(void *, hosts[i]));
 	}
