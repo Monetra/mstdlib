@@ -108,6 +108,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 	(void)event;
 
 	event_debug("net client %p event %s triggered", comm, event_type_str(type));
+	data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_READ:
 			/* Do nothing */
@@ -123,7 +124,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
 				data->count += mysize - M_buf_len(data->buf);
-				data->call_count++;
 				event_debug("net client %p wrote %zu bytes (%llu Bps) count: %llu / %llu", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), net_data_client->count, net_data_server->count);
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
@@ -144,7 +144,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (type == M_EVENT_TYPE_ERROR) {
 				char error[256];
 				M_io_get_error_string(comm, error, sizeof(error));
-				M_snprintf(data->errmsg, sizeof(data->errmsg), "net client %p ERROR %s", comm, error);
+				M_snprintf(data->errmsg, sizeof(data->errmsg), "@%llu() net client %p ERROR %s", data->call_count, comm, error);
 				event_debug("%s", data->errmsg);
 			}
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
@@ -169,6 +169,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 	(void)event;
 
 	event_debug("net serverconn %p event %s triggered", comm, event_type_str(type));
+	data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net serverconn %p Connected", comm);
@@ -179,7 +180,6 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
 				data->count += M_buf_len(data->buf) - mysize;
-				data->call_count++;
 				event_debug("net serverconn %p read %zu bytes (%llu Bps) count: %llu / %llu", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), net_data_client->count, net_data_server->count);
 //				M_printf("read size %zu bytes\n", M_buf_len(data->buf) - mysize);
 				M_buf_truncate(data->buf, 0);
@@ -198,7 +198,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			if (type == M_EVENT_TYPE_ERROR) {
 				char error[256];
 				M_io_get_error_string(comm, error, sizeof(error));
-				event_debug("net serverconn %p ERROR %s", comm, error);
+				event_debug("@%llu() net serverconn %p ERROR %s", data->call_count, comm, error);
 			}
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
@@ -391,7 +391,7 @@ static M_bool check_tlsspeed_test(void)
 
 	err = M_event_loop(event, 10000);
 
-	M_snprintf(errmsg, sizeof(errmsg), "%s: client: { () %llu, %llu bytes, connected() %llu, errmsg: %s }, server: { () %llu, %llu bytes }", event_err_msg(err), net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_client->errmsg, net_data_server->call_count, net_data_server->count);
+	M_snprintf(errmsg, sizeof(errmsg), "%s: client: { () %llu, %llu bytes, connected() %llu, errmsg: \"%s\" }, server: { () %llu, %llu bytes, errmsg: \"%s\" }", event_err_msg(err), net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_client->errmsg, net_data_server->call_count, net_data_server->count, net_data_server->errmsg);
 
 	M_printf("%s", errmsg);
 	ck_assert_msg(err == M_EVENT_ERR_DONE, "%s", errmsg);
