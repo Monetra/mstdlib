@@ -829,6 +829,8 @@ START_TEST(multithread_retry)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	M_printf("START_TEST(multithread_retry)\n");
+
 	args.test_id = MULTITHREAD_RETRY;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -880,6 +882,8 @@ START_TEST(multithread_insert_proc)
 	size_t                 i         = 0;
 	M_list_str_t          *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
+	M_printf("START_TEST(multithread_insert_proc)\n");
+
 	args.test_id = MULTITHREAD_INSERT_PROC;
 
 	M_list_str_insert(cmd_args, "-");
@@ -927,6 +931,8 @@ START_TEST(multithread_insert)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	M_printf("START_TEST(multithread_insert)\n");
+
 	args.test_id = MULTITHREAD_INSERT;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -971,6 +977,8 @@ START_TEST(dump_queue)
 	M_list_str_t      *list        = NULL;
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
+	M_printf("START_TEST(dump_queue)\n");
+
 	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
 	list = M_net_smtp_dump_queue(sp);
@@ -998,6 +1006,8 @@ START_TEST(junk_msg)
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+
+	M_printf("START_TEST(junk_msg)\n");
 
 	args.test_id = JUNK_MSG;
 	M_net_smtp_queue_message(sp, "junk");
@@ -1027,6 +1037,8 @@ START_TEST(external_queue)
 	M_email_t         *e           = generate_email(1, test_address);
 	char              *msg         = M_email_simple_write(e);
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+
+	M_printf("START_TEST(external_queue)\n");
 
 	args.test_id = EXTERNAL_QUEUE;
 	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
@@ -1065,6 +1077,8 @@ START_TEST(halt_restart)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 
+	M_printf("START_TEST(halt_restart)\n");
+
 	args.test_id = HALT_RESTART;
 	M_list_str_insert(cmd_args, "-");
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
@@ -1095,6 +1109,8 @@ START_TEST(proc_not_found)
 	M_event_t         *el          = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
+
+	M_printf("START_TEST(proc_not_found)\n");
 
 	args.test_id = PROC_NOT_FOUND;
 	M_net_smtp_queue_smtp(sp, e);
@@ -1211,6 +1227,8 @@ START_TEST(dot_msg)
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
 
+	M_printf("START_TEST(dot_msg)\n");
+
 	ck_assert_msg(warmup_sendmail_emu(el), "Should succeed with warmup");
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1266,6 +1284,8 @@ START_TEST(process_error_exit)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e1          = generate_email(1, test_address);
 
+	M_printf("START_TEST(process_error_exit)\n");
+
 	args.test_id = PROCESS_ERROR_EXIT;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -1300,6 +1320,8 @@ START_TEST(proc_endpoint)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e1          = generate_email(1, test_address);
 	M_email_t         *e2          = generate_email(2, test_address);
+
+	M_printf("START_TEST(proc_endpoint)\n");
 
 	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -1342,6 +1364,8 @@ START_TEST(status)
 	M_email_t           *e1          = generate_email(1, test_address);
 	M_email_t           *e2          = generate_email(2, test_address);
 	M_net_smtp_status_t  smtp_status;
+
+	M_printf("START_TEST(status)\n");
 
 	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
@@ -1398,6 +1422,8 @@ START_TEST(timeouts)
 	M_email_t         *e2          = generate_email(2, test_address);
 	M_email_t         *e3          = generate_email(3, test_address);
 
+	M_printf("START_TEST(timeouts)\n");
+
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
@@ -1442,6 +1468,8 @@ START_TEST(tls_unsupporting_server)
 	M_email_t         *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
 
+	M_printf("START_TEST(tls_unsupporting_server)\n");
+
 	args.test_id = TLS_UNSUPPORTING_SERVER;
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
@@ -1482,6 +1510,8 @@ START_TEST(no_server)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(no_server)\n");
+
 	args.test_id = NO_SERVER;
 	smtp_emulator_destroy(emu); /* just needed an open port */
 
@@ -1515,6 +1545,8 @@ START_TEST(iocreate_return_false)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(iocreate_return_false)\n");
 
 	args.test_id = IOCREATE_RETURN_FALSE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1551,6 +1583,8 @@ START_TEST(emu_accept_disconnect)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(emu_accept_disconnect)\n");
+
 	args.test_id = EMU_ACCEPT_DISCONNECT;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
@@ -1582,6 +1616,8 @@ START_TEST(auth_digest_md5)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(auth_digest_md5)\n");
 
 	args.test_id = AUTH_DIGEST_MD5;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1618,6 +1654,8 @@ START_TEST(auth_cram_md5)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_cram_md5)\n");
+
 	args.test_id = AUTH_CRAM_MD5;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
@@ -1652,6 +1690,8 @@ START_TEST(auth_plain)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(auth_plain)\n");
 
 	args.test_id = AUTH_PLAIN;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1718,6 +1758,8 @@ START_TEST(bad_auth)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
+
+	M_printf("START_TEST(bad_auth)\n");
 
 	args.test_id = BAD_SERVER;
 
@@ -1802,6 +1844,8 @@ START_TEST(auth_login)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_login)\n");
+
 	args.test_id = AUTH_LOGIN;
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1838,6 +1882,8 @@ START_TEST(starttls)
 	M_dns_t           *dns        = M_dns_create(el);
 	M_email_t         *e          = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx        = M_tls_clientctx_create();
+
+	M_printf("START_TEST(starttls)\n");
 
 	args.test_id = STARTTLS;
 	M_tls_clientctx_set_default_trust(ctx);
@@ -1877,6 +1923,8 @@ START_TEST(implicit_tls)
 	M_dns_t           *dns      = M_dns_create(el);
 	M_email_t         *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
+
+	M_printf("START_TEST(implicit_tls)\n");
 
 	args.test_id = IMPLICIT_TLS;
 	M_tls_clientctx_set_default_trust(ctx);
@@ -1922,6 +1970,8 @@ START_TEST(bad_server_2)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(bad_server_2)\n");
 
 	args.test_id              = BAD_SERVER_2;
 
@@ -1990,6 +2040,8 @@ START_TEST(bad_server)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
+
+	M_printf("START_TEST(bad_server)\n");
 
 	args.test_id = BAD_SERVER;
 
@@ -2065,6 +2117,8 @@ START_TEST(reactivate_idle)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(reactivate_idle)\n");
+
 	args.test_id = REACTIVATE_IDLE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 4000);
@@ -2129,6 +2183,8 @@ START_TEST(default_cbs)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 	char            *msg      = M_email_simple_write(e);
+
+	M_printf("START_TEST(default_cbs)\n");
 
 	args.test_id = DEFAULT_CBS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -2248,6 +2304,8 @@ START_TEST(bcc_test)
 "\r\n"
 "--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
 
+	M_printf("START_TEST(bcc_test)\n");
+
 	M_email_cc_append(e, NULL, NULL, "cc@localhost");
 	M_email_bcc_append(e, NULL, NULL, "bcc@localhost");
 
@@ -2298,6 +2356,8 @@ START_TEST(domain_mismatch)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(domain_mismatch)\n");
+
 	args.test_id = DOMAIN_MISMATCH;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 
@@ -2330,6 +2390,8 @@ START_TEST(max_attempts_0)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(max_attempts_0)\n");
 
 	args.test_id = MAX_ATTEMPTS_0;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -2367,6 +2429,8 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_t    *sp       = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
+
+	M_printf("START_TEST(emu_sendmsg)\n");
 
 	args.test_id = EMU_SENDMSG;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
@@ -2414,6 +2478,8 @@ START_TEST(check_no_endpoints)
 	M_event_t    *el   = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t *sp   = M_net_smtp_create(el, &test_cbs, &args);
 
+	M_printf("START_TEST(check_no_endpoints)\n");
+
 	args.test_id = NO_ENDPOINTS;
 	ck_assert_msg(M_net_smtp_resume(sp) == M_FALSE, "should fail with no endpoints");
 	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
@@ -2432,6 +2498,8 @@ START_TEST(dummy_checks)
 	M_email_t         *e    = generate_email(1, test_address);
 	M_dns_t           *dns  = M_dns_create(el);
 	M_tls_clientctx_t *ctx  = M_tls_clientctx_create();
+
+	M_printf("START_TEST(dummy_checks)\n");
 
 	args.test_id = DUMMY_CHECKS;
 
