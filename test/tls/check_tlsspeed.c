@@ -85,12 +85,11 @@ typedef struct net_data net_data_t;
 net_data_t *net_data_client = NULL;
 net_data_t *net_data_server = NULL;
 
-static net_data_t *net_data_create(M_io_t* io)
+static net_data_t *net_data_create()
 {
 	net_data_t *data = M_malloc_zero(sizeof(*data));
 	data->buf = M_buf_create();
 	M_time_elapsed_start(&data->starttv);
-	data->io = io;
 	return data;
 }
 
@@ -226,7 +225,7 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_ACCEPT:
 			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
-				net_data_server = net_data_create(newcomm);
+				net_data_server->io = newcomm;
 				M_event_add(event, newcomm, net_serverconn_cb, net_data_server);
 
 			}
@@ -267,6 +266,9 @@ static M_bool check_tlsspeed_test(void)
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
 	M_io_error_t       ioerr;
 	char               errmsg[256];
+
+	net_data_server = net_data_create();
+	net_data_client = net_data_create();
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -384,7 +386,7 @@ static M_bool check_tlsspeed_test(void)
 		return M_FALSE;
 	}
 
-	net_data_client = net_data_create(netclient);
+	net_data_client->io = netclient;
 	if (!M_event_add(event, netclient, net_client_cb, net_data_client)) {
 		event_debug("failed to add net client");
 		return M_FALSE;

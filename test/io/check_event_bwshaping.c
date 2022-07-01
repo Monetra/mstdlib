@@ -81,12 +81,11 @@ net_data_t *net_data_client = NULL;
 net_data_t *net_data_server = NULL;
 
 
-static net_data_t *net_data_create(M_io_t *io)
+static net_data_t *net_data_create()
 {
 	net_data_t *data = M_malloc_zero(sizeof(*data));
 	data->buf = M_buf_create();
 	M_time_elapsed_start(&data->starttv);
-	data->io = io;
 	return data;
 }
 
@@ -216,7 +215,7 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_ACCEPT:
 			if (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
-				net_data_server = net_data_create(newcomm);
+				net_data_server->io = newcomm;
 				M_event_add(event, newcomm, net_serverconn_cb, net_data_server);
 				event_debug("stopping listener, no longer needed");
 				M_io_destroy(comm);
@@ -254,6 +253,8 @@ static M_bool check_event_bwshaping_test(void)
 	char           errmsg[256];
 
 	runtime_ms = 4000;
+	net_data_server = net_data_create();
+	net_data_client = net_data_create();
 
 	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
@@ -303,7 +304,7 @@ static M_bool check_event_bwshaping_test(void)
 	}
 
 
-	net_data_client = net_data_create(netclient);
+	net_data_client->io = netclient;
 	if (!M_event_add(event, netclient, net_client_cb, net_data_client)) {
 		event_debug("failed to add net client");
 		goto done_error;
