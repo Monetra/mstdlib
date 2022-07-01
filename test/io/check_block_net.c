@@ -52,7 +52,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 	if (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
 		char msg[256];
 		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("%p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
+		event_debug("1. %p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
 		goto cleanup;
 	}
 	if (is_server) {
@@ -63,7 +63,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 		M_atomic_inc_u64(&active_client_connections);
 		M_atomic_inc_u64(&client_connection_count);
 	}
-	event_debug("%p %s connected", conn, is_server?"netserver":"netclient");
+	event_debug("2. %p %s connected", conn, is_server?"netserver":"netclient");
 
 	if (is_server) {
 		M_buf_add_str(writebuf, "HelloWorld");
@@ -74,31 +74,31 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			size_t len = M_buf_len(writebuf);
 			err        = M_io_block_write_from_buf(conn, writebuf, 20);
 			if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
-				event_debug("%p %s error during write", conn, is_server?"netserver":"netclient");
+				event_debug("3. %p %s error during write", conn, is_server?"netserver":"netclient");
 				goto cleanup;
 			}
-			event_debug("%p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
+			event_debug("4. %p %s wrote %zu bytes", conn, is_server?"netserver":"netclient", len - M_buf_len(writebuf));
 		}
 
 		while (1) {
 			err = M_io_block_read_into_parser(conn, readparser, 20);
 			if (err != M_IO_ERROR_SUCCESS && err != M_IO_ERROR_WOULDBLOCK) {
 				if (err == M_IO_ERROR_DISCONNECT) {
-					event_debug("%p %s disconnected", conn, is_server?"netserver":"netclient");
+					event_debug("5. %p %s disconnected", conn, is_server?"netserver":"netclient");
 				} else {
-					event_debug("%p %s error during read %d", conn, is_server?"netserver":"netclient", (int)err);
+					event_debug("6. %p %s error during read %d", conn, is_server?"netserver":"netclient", (int)err);
 				}
 				goto cleanup;
 			}
 			if (M_parser_len(readparser)) {
-				event_debug("%p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
+				event_debug("7. %p %s has (%zu) \"%.*s\"", conn, is_server?"netserver":"netclient", M_parser_len(readparser), (int)M_parser_len(readparser), M_parser_peek(readparser));
 			}
 			if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 				/* Delay server connection count until we actually receive a message.
 				 * Sometimes windows does a spurious connection for some reason */
 
 				M_parser_truncate(readparser, 0);
-				event_debug("%p %s closing connection", conn, is_server?"netserver":"netclient");
+				event_debug("8. %p %s closing connection", conn, is_server?"netserver":"netclient");
 				M_io_block_disconnect(conn);
 				M_atomic_inc_u64(&server_connection_count);
 				goto cleanup;
@@ -108,11 +108,11 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 				M_buf_add_str(writebuf, "GoodBye");
 				break;
 			}
-			event_debug("%p %s loop", conn, is_server?"netserver":"netclient");
+			event_debug("9. %p %s loop", conn, is_server?"netserver":"netclient");
 		}
 	}
 cleanup:
-	event_debug("%p %s cleaning up", conn, is_server?"netserver":"netclient");
+	event_debug("10. %p %s cleaning up", conn, is_server?"netserver":"netclient");
 	M_io_destroy(conn);
 	M_parser_destroy(readparser);
 	M_buf_cancel(writebuf);
@@ -122,7 +122,7 @@ cleanup:
 		if (active_client_connections)
 			M_atomic_dec_u64(&active_client_connections);
 	}
-	event_debug("active_s %llu, active_c %llu, total_s %llu, total_c %llu, expected %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
+	event_debug("11. active_s %llu, active_c %llu, total_s %llu, total_c %llu, expected %llu", active_server_connections, active_client_connections, server_connection_count, client_connection_count, expected_connections);
 }
 
 static void *server_thread(void *arg)
