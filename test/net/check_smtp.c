@@ -2847,7 +2847,7 @@ int main(int argc, char **argv)
 	sr = srunner_create(smtp_suite());
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_smtp.log");
 
-	srunner_run_all(sr, CK_NORMAL);
+	srunner_run_all(sr, CK_VERBOSE);
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
