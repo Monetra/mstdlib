@@ -96,11 +96,11 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 			if (M_parser_compare_str(readparser, "GoodBye", 0, M_FALSE)) {
 				/* Delay server connection count until we actually receive a message.
 				 * Sometimes windows does a spurious connection for some reason */
-				M_atomic_inc_u64(&server_connection_count);
 
 				M_parser_truncate(readparser, 0);
 				event_debug("%p %s closing connection", conn, is_server?"netserver":"netclient");
 				M_io_block_disconnect(conn);
+				M_atomic_inc_u64(&server_connection_count);
 				goto cleanup;
 			}
 			if (M_parser_compare_str(readparser, "HelloWorld", 0, M_FALSE)) {
@@ -108,7 +108,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 				M_buf_add_str(writebuf, "GoodBye");
 				break;
 			}
-			/* event_debug("%p %s loop", conn, is_server?"netserver":"netclient"); */
+			event_debug("%p %s loop", conn, is_server?"netserver":"netclient");
 		}
 	}
 cleanup:
