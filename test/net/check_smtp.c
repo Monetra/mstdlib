@@ -1331,7 +1331,7 @@ START_TEST(proc_endpoint)
 	M_net_smtp_queue_smtp(sp, e2);
 
 	M_list_str_insert(cmd_args, "-");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 5000, 2), "Couldn't add endpoint_process");
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
 
