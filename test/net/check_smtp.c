@@ -704,6 +704,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_hash_dict_get(headers, "subject", &subject);
 		M_printf("subject: %p\n", subject);
 		*/
+		M_printf("sent_cb: %llu\n", call_count);
 		if (call_count == multithread_retry_count) {
 			M_event_done(args->el);
 		}
@@ -766,6 +767,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == MULTITHREAD_RETRY) {
+		M_printf("send_failed %llu\n", call_count);
 		if (call_count == multithread_retry_count) {
 			M_printf("Send failed for %zu msgs, retry in 3 sec\n", multithread_retry_count);
 			smtp_emulator_switch(args->emu, "minimal");
@@ -887,9 +889,11 @@ START_TEST(multithread_retry)
 	args.emu = emu;
 
 	M_threadpool_parent_wait(tp_parent);
+	M_printf("Dispatched all messages\n");
 	M_event_loop(el, M_TIMEOUT_INF);
+	M_printf("Returned from loop\n");
 
-	ck_assert_msg(args.sent_cb_call_count = multithread_retry_count, "should have called sent_cb count times");
+	ck_assert_msg(args.sent_cb_call_count == multithread_retry_count, "should have called sent_cb count times");
 
 	M_threadpool_parent_destroy(tp_parent);
 	M_threadpool_destroy(tp);
@@ -1294,7 +1298,7 @@ START_TEST(dot_msg)
 
 	M_event_loop(el, M_TIMEOUT_INF);
 
-	event_debug("send_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
+	event_debug("sent_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
 
@@ -2951,7 +2955,7 @@ int main(int argc, char **argv)
 	sr = srunner_create(smtp_suite());
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_smtp.log");
 
-	srunner_run_all(sr, CK_VERBOSE);
+	srunner_run_all(sr, CK_NORMAL);
 	nf = srunner_ntests_failed(sr);
 	srunner_free(sr);
 
