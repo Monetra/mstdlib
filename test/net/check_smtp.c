@@ -22,6 +22,7 @@ M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
 const size_t       multithread_insert_count = 100;
 const size_t       multithread_retry_count  = 11;
+M_thread_mutex_t  *mutex                    = NULL;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -67,6 +68,7 @@ typedef enum {
 
 static void cleanup_int(void)
 {
+	M_thread_mutex_destroy(mutex);
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
@@ -556,20 +558,26 @@ static void connect_cb(const char *address, M_uint16 port, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_connect_cb(\"%s\", %u, %p)", address, port, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_connect_cb_called = M_TRUE;
 	args->connect_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 }
 
 static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t net_err,
 		const char *error, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  call_count;
+	M_thread_mutex_lock(mutex);
 	args->is_connect_fail_cb_called = M_TRUE;
 	args->connect_fail_cb_call_count++;
+	call_count = args->connect_fail_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	event_debug("M_net_smtp_connect_fail_cb(\"%s\", %u, %s, \"%s\", %p)", address, port,
 			M_net_errcode_to_str(net_err), error, thunk);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
-		if (args->connect_fail_cb_call_count == 2) {
+		if (call_count == 2) {
 			return M_FALSE; /* Remove endpoint */
 		}
 	}
@@ -593,12 +601,16 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 
 static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  sent_call_count;
 	event_debug("M_net_smtp_disconnect_cb(\"%s\", %u, %p)", address, port, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_disconnect_cb_called = M_TRUE;
 	args->disconnect_cb_call_count++;
-	if (args->test_id == TIMEOUTS && args->sent_cb_call_count >= 3) {
-		event_debug("TIMEOUTS: M_event_done(%p) (%d >= 3)\n", args->el, args->sent_cb_call_count);
+	sent_call_count = args->sent_cb_call_count;
+	M_thread_mutex_unlock(mutex);
+	if (args->test_id == TIMEOUTS && sent_call_count >= 3) {
+		event_debug("TIMEOUTS: M_event_done(%p) (%d >= 3)\n", args->el, sent_call_count);
 		M_event_done(args->el);
 	}
 }
@@ -606,10 +618,12 @@ static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
 static M_bool process_fail_cb(const char *command, int result_code, const char *proc_stdout,
 		const char *proc_stderr, void *thunk)
 {
-	args_t *args = thunk;
-	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
+	args_t   *args = thunk;
+	event_debug("M_net_smtp_process_fail_cb(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 
 	if (args->test_id == PROCESS_ERROR_EXIT) {
 		M_event_done(args->el);
@@ -622,8 +636,10 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_processing_halted_cb(%s, %p)", no_endpoints ? "M_TRUE" : "M_FALSE", thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		M_event_done(args->el);
 	}
@@ -656,9 +672,15 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 
 static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 {
-	args_t *args = thunk;
+	M_uint64  call_count;
+	M_uint64  failed_call_count;
+	args_t   *args = thunk;
+	M_thread_mutex_lock(mutex);
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
+	call_count = args->sent_cb_call_count;
+	failed_call_count = args->send_failed_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu) (args->test_id: %d) (EMU_SENDMSG: %d)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count, args->test_id, EMU_SENDMSG);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
 		event_debug("M_event_done()");
@@ -671,7 +693,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == REACTIVATE_IDLE) {
-		if (args->sent_cb_call_count == 3 || args->sent_cb_call_count == 6 || args->sent_cb_call_count == 7) {
+		if (call_count == 3 || call_count == 6 || call_count == 7) {
 			M_event_done(args->el);
 		}
 	}
@@ -682,13 +704,13 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_hash_dict_get(headers, "subject", &subject);
 		M_printf("subject: %p\n", subject);
 		*/
-		if (args->sent_cb_call_count == multithread_retry_count) {
+		if (call_count == multithread_retry_count) {
 			M_event_done(args->el);
 		}
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
-		if (args->sent_cb_call_count == multithread_insert_count) {
+		if (call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
 	}
@@ -702,13 +724,13 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == DOT_MSG) {
-		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
+		if ((call_count == 2 && failed_call_count == 1) || call_count == 3) {
 			M_event_done(args->el);
 		}
 	}
 
 	if (args->test_id == STATUS) {
-		if (args->sent_cb_call_count == 1) {
+		if (call_count == 1) {
 			M_net_smtp_pause(args->sp);
 			args->is_success = (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING);
 		}
@@ -718,17 +740,23 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, size_t attempt_num,
 		M_bool can_requeue, void *thunk)
 {
-	args_t *args = thunk;
+	M_uint64  call_count;
+	M_uint64  sent_call_count;
+	args_t   *args = thunk;
 	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
+	call_count = args->send_failed_cb_call_count;
+	sent_call_count = args->sent_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == BCC_TEST) {
-		if (args->send_failed_cb_call_count == 4) {
+		if (call_count == 4) {
 			M_event_done(args->el);
 		}
 	}
 	if (args->test_id == BAD_SERVER_2) {
-		if (args->send_failed_cb_call_count == 4) {
+		if (call_count == 4) {
 			M_event_done(args->el);
 		}
 		return M_FALSE;
@@ -738,7 +766,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == MULTITHREAD_RETRY) {
-		if (args->send_failed_cb_call_count == multithread_retry_count) {
+		if (call_count == multithread_retry_count) {
 			M_printf("Send failed for %zu msgs, retry in 3 sec\n", multithread_retry_count);
 			smtp_emulator_switch(args->emu, "minimal");
 		}
@@ -748,7 +776,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == DOT_MSG) {
-		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
+		if ((sent_call_count == 2 && call_count == 1) || sent_call_count == 3) {
 			M_event_done(args->el);
 		}
 		return M_FALSE;
@@ -764,18 +792,24 @@ static void reschedule_cb(const char *msg, M_uint64 wait_sec, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_reschedule_cb(\"%s\", %zu, %p)", msg, wait_sec, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_reschedule_cb_called = M_TRUE;
 	args->reschedule_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 }
 
 static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  call_count;
 	event_debug("M_net_smtp_iocreate_cb(%p, %p, %zu, %p)", io, error, errlen, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_iocreate_cb_called = M_TRUE;
 	args->iocreate_cb_call_count++;
+	call_count = args->iocreate_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == IOCREATE_RETURN_FALSE) {
-		if (args->iocreate_cb_call_count == 2) {
+		if (call_count == 2) {
 			event_debug("M_event_done(%p)\n", args->el);
 			M_event_done(args->el);
 		}
@@ -2893,6 +2927,8 @@ int main(int argc, char **argv)
 	len = M_str_len(env_USER) + M_str_len("@localhost");
 	test_address = M_malloc_zero(len + 1);
 	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
+
+	mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	dirname = M_fs_path_dirname(argv[0], M_FS_SYSTEM_AUTO);
 #ifdef _WIN32
