@@ -5,6 +5,8 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 
+#define DEBUG_INFO_ADDRESS_MAP 0
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #define add_test(SUITENAME, TESTNAME)\
@@ -17,10 +19,6 @@ do {\
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#define test_data "a"
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 START_TEST(check_testing)
 {
 	M_email_t        *email;
@@ -28,6 +26,7 @@ START_TEST(check_testing)
 	M_email_error_t   res;
 	size_t            len;
 	size_t            len_read = 0;
+	const char       *test_data = "a";
 
 	len = M_str_len(test_data);
 	res = M_email_simple_read(&email, test_data, len, M_EMAIL_SIMPLE_READ_NONE, &len_read);
@@ -48,6 +47,7 @@ START_TEST(check_splitting)
 	char             *body    = NULL;
 	char             *out     = NULL;
 	M_email_error_t   res;
+	const char       *test_data = "a";
 
 
 	res = M_email_simple_split_header_body(test_data, &headers, &body);
@@ -63,6 +63,118 @@ START_TEST(check_splitting)
 }
 END_TEST
 
+START_TEST(check_mixed_multipart)
+{
+	const char       *test_data =
+"MIME-Version: 1.0\r\n"
+"Content-Type: multipart/mixed; boundary=\"A2DX_654FDAD-BSDA\"\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA\r\n"
+"Content-Type: multipart/alternative; boundary=\"DTGHJ678IJDA-242_S124\"\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"Status:       SUCCESS\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124\r\n"
+"Content-type: text/html; charset=\"us-ascii\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"<html>\r\n"
+"<head></head>\r\n"
+"<body>\r\n"
+"</body>\r\n"
+"</html>\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124--\r\n"
+"\r\n"
+"--A2DX_654FDAD-BSDA\r\n"
+"Content-Type: text/text; charset=\"utf-8\"; name=\"1_details.csv\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"Content-Disposition: attachment; size=\"85\"; filename=\"1_details.csv\"\r\n"
+"\r\n"
+"type,card,account,amount,ordernum,status\r\n"
+"SALE,MC,5454,19.92,T218769465123080,Success\r\n"
+"--A2DX_654FDAD-BSDA--\r\n"
+"";
+	char             *out     = NULL;
+	M_email_error_t   eer;
+	M_email_t        *e;
+	size_t            len;
+
+	eer = M_email_simple_read(&e, test_data, M_str_len(test_data), M_EMAIL_SIMPLE_READ_NONE, &len);
+
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should return M_EMAIL_ERROR_SUCCESS");
+	ck_assert_msg(len == M_str_len(test_data), "Should have read the entire message");
+	out = M_email_simple_write(e);
+	ck_assert_msg(out != NULL, "Should have written message");
+
+	M_email_destroy(e);
+	M_free(out);
+}
+END_TEST
+
+START_TEST(check_addresses)
+{
+	size_t i;
+	struct {
+		const char      *address;
+		M_email_error_t  eer;
+	} test[] = {
+		{ "<fully@qualified.com"         , M_EMAIL_ERROR_SUCCESS },
+		{ "Fred@here.com, Zeke@there.com", M_EMAIL_ERROR_SUCCESS },
+		{ "Fred@here.com; Zeke@there.com", M_EMAIL_ERROR_SUCCESS },
+		{ "Fred@invalid"                 , M_EMAIL_ERROR_SUCCESS },
+		{ "Mal <mal@formed.com"          , M_EMAIL_ERROR_SUCCESS },
+		{ "Mal < mal@formed.com >"       , M_EMAIL_ERROR_SUCCESS },
+		{ "Mal <mal>"                    , M_EMAIL_ERROR_ADDRESS },
+		{ "Mal <>"                       , M_EMAIL_ERROR_ADDRESS },
+	};
+
+	const char *test_data =
+"From: monetra@mydomain.com\r\n"
+"Date: Wed, 06 Jul 2022 16:03:34 -0400\r\n"
+"MIME-Version: 1.0\r\n"
+"To: %s\r\n"
+"Content-Type: multipart/alternative; boundary=\"------------j7eBAXe8KOcZ@cBNaMqQbJlx3uGM\"\r\n"
+"Subject: Urgent Monetra Notification : START\r\n"
+"\r\n"
+"--------------j7eBAXe8KOcZ@cBNaMqQbJlx3uGM\r\n"
+"Content-Type: TEXT/PLAIN\r\n"
+"\r\n"
+"Monetra has been successfully started\r\n"
+"\r\n"
+"\r\n"
+"--------------j7eBAXe8KOcZ@cBNaMqQbJlx3uGM--\r\n";
+	for (i=0; i<sizeof(test)/sizeof(test[0]); i++) {
+		char            *msg;
+		char            *msg2;
+		M_hash_dict_t   *headers;
+		M_email_t       *e;
+		M_email_error_t  eer;
+
+		M_asprintf(&msg, test_data, test[i].address);
+		M_email_simple_split_header_body(msg, &headers, NULL);
+#if DEBUG_INFO_ADDRESS_MAP
+		M_printf("%s\n", M_hash_dict_get_direct(headers, "To"));
+#endif
+		eer = M_email_simple_read(&e, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
+		ck_assert_msg(eer == test[i].eer, "Expected %d, got %d", test[i].eer, eer);
+		msg2 = M_email_simple_write(e);
+		M_email_simple_split_header_body(msg2, &headers, NULL);
+#if DEBUG_INFO_ADDRESS_MAP
+		M_printf("|->%s\n", M_hash_dict_get_direct(headers, "To"));
+#endif
+		M_hash_dict_destroy(headers);
+		M_email_destroy(e);
+		M_free(msg);
+		M_free(msg2);
+	}
+
+}
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -75,6 +187,8 @@ int main(void)
 
 	add_test(suite, check_testing);
 	add_test(suite, check_splitting);
+	add_test(suite, check_mixed_multipart);
+	add_test(suite, check_addresses);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
