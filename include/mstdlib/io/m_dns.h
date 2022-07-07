@@ -112,12 +112,13 @@ typedef enum M_dns_happyeb_status M_dns_happyeb_status_t;
 
 /*! Result codes for DNS queries */
 enum M_dns_result {
-    M_DNS_RESULT_SUCCESS       = 0, /*!< DNS result successful                      */
-    M_DNS_RESULT_SUCCESS_CACHE = 1, /*!< DNS result successful, returned from cache */
-    M_DNS_RESULT_SERVFAIL      = 2, /*!< DNS server failure                         */
-    M_DNS_RESULT_NOTFOUND      = 3, /*!< DNS server returned a Not Found error      */
-    M_DNS_RESULT_TIMEOUT       = 4, /*!< Timeout resolving DNS name                 */
-    M_DNS_RESULT_INVALID       = 5  /*!< Invalid use                                */
+    M_DNS_RESULT_SUCCESS                = 0, /*!< DNS result successful                      */
+    M_DNS_RESULT_SUCCESS_CACHE          = 1, /*!< DNS result successful, returned from cache */
+    M_DNS_RESULT_SUCCESS_CACHE_EVICTION = 2, /*!< DNS result successful, evicting old cache */
+    M_DNS_RESULT_SERVFAIL               = 3, /*!< DNS server failure                         */
+    M_DNS_RESULT_NOTFOUND               = 4, /*!< DNS server returned a Not Found error      */
+    M_DNS_RESULT_TIMEOUT                = 5, /*!< Timeout resolving DNS name                 */
+    M_DNS_RESULT_INVALID                = 6  /*!< Invalid use                                */
 };
 typedef enum M_dns_result M_dns_result_t;
 
