@@ -116,6 +116,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net client %p connected", comm);
 			M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+			data->count += 1024 * 1024 * 8;
 			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			data->connected_call_count++;
 			break;
@@ -123,7 +124,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				data->count += mysize - M_buf_len(data->buf);
 				event_debug("net client %p wrote %zu bytes (%llu Bps) count: %llu / %llu", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), net_data_client->count, net_data_server->count);
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
@@ -136,6 +136,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (M_buf_len(data->buf) == 0 && net_data_client->count == net_data_server->count) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+				data->count += 1024 * 1024 * 8;
 				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
 			break;
