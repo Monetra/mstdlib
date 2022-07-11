@@ -423,7 +423,7 @@ static M_io_t *net_server_create_search(M_uint16 *port)
 	M_io_error_t  ioerr;
 	M_io_t       *io;
 	while ((ioerr = M_io_net_server_create(&io, *port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
 		event_debug("Port %d in use, switching to new port %d", (int)*port, (int)newport);
 		*port = newport;
 	}
@@ -434,7 +434,7 @@ static smtp_emulator_t *smtp_emulator_create_tls(M_event_t *el, tls_types_t tls_
 		M_uint16 *testport, test_id_t test_id, M_tls_serverctx_t *serverctx)
 {
 	smtp_emulator_t *emu      = M_malloc_zero(sizeof(*emu));
-	M_uint16         port     = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16         port     = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
 	emu->el = el;
 	M_tls_serverctx_upref(serverctx);
