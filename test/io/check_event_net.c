@@ -301,7 +301,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	}
 
 	if (ioerr != M_IO_ERROR_SUCCESS) {
-		event_debug("failed to create net server: %s", M_io_error_string(ioerr));
+		M_printf("failed to create net server: %s\n", M_io_error_string(ioerr));
 		return M_EVENT_ERR_RETURN;
 	}
 #if DEBUG
@@ -309,14 +309,14 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 #endif
 	event_debug("listener started");
 	if (!M_event_add(event, netserver, net_server_cb, NULL)) {
-		event_debug("failed to add net server");
+		M_printf("failed to add net server\n");
 		return M_EVENT_ERR_RETURN;
 	}
 	event_debug("listener added to event");
 	net_output_stats(event);
 	for (i=0; i<num_connections; i++) {
 		if (M_io_net_client_create(&netclient, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
-			event_debug("failed to create net client");
+			M_printf("failed to create net client\n");
 			return M_EVENT_ERR_RETURN;
 		}
 		M_io_net_set_keepalives(netclient, 10, 10, 10);
@@ -325,7 +325,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 #endif
 		connstate = M_malloc_zero(sizeof(*connstate));
 		if (!M_event_add(event, netclient, net_client_cb, connstate)) {
-			event_debug("failed to add net client");
+			M_printf("failed to add net client\n");
 			return M_EVENT_ERR_RETURN;
 		}
 	}
@@ -413,7 +413,7 @@ START_TEST(check_event_net_stat)
 	cnt   = sizeof(tests) / sizeof(*tests);
 	stats = M_malloc_zero(cnt * sizeof(*stats));
 
-	for (i=0; i < cnt; i++) {
+	for (i=0; i<cnt; i++) {
 		M_timeval_t starttv;
 		M_time_elapsed_start(&starttv);
 		err = check_event_net_test(tests[i].num_conns, tests[i].delay_response_ms, M_FALSE, tests[i].nonscalable, &stats[i]);
