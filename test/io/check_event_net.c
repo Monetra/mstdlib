@@ -295,7 +295,8 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	event_debug("starting %llu connection test", num_connections);
 
 	/* On Windows some (or maybe only one) port in 10000-50000 returns Not Permitted */
-	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) != M_IO_ERROR_ADDRINUSE) {
+	/* https://stackoverflow.com/questions/48478869/cannot-bind-to-some-ports-due-to-permission-denied */
+	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
 		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
 		port             = newport;
