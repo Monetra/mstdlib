@@ -1480,7 +1480,7 @@ START_TEST(timeouts)
 
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
-	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
+	M_net_smtp_setup_tcp_timeouts(sp, 500, 750, 1000);
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport1, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport2, M_FALSE, "user", "pass", 1);
