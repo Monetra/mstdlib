@@ -32,7 +32,7 @@
 M_bool got_response = M_FALSE;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG > 0
 #include <stdarg.h>
@@ -316,7 +316,9 @@ static void ghbn_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t r
 static void ghbn_cache_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t result)
 {
 	M_uint32 num_left;
-	ck_assert_msg(result == M_DNS_RESULT_SUCCESS_CACHE, "Expected successful cached DNS query for %s, got %d", (const char *)cb_data, (int)result);
+	M_bool   is_success;
+	is_success = (result == M_DNS_RESULT_SUCCESS_CACHE || result == M_DNS_RESULT_SUCCESS_CACHE_EVICT);
+	ck_assert_msg(is_success, "Expected successful cached DNS query for %s, got %d", (const char *)cb_data, (int)result);
 	ck_assert_msg(M_list_str_len(ipaddrs) > 0, "Expected DNS query for %s to return ip addresses", (const char *)cb_data);
 
 	num_left = M_atomic_dec_u32(&queries) - 1;
