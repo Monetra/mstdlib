@@ -47,14 +47,6 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 	M_buf_t     *writebuf   = M_buf_create();
 	M_io_error_t err;
 
-	/* Odd, but we need to wait on a connection right now even though this
-	 * was an accept() */
-	if (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
-		char msg[256];
-		M_io_get_error_string(conn, msg, sizeof(msg));
-		event_debug("1. %p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
-		goto cleanup;
-	}
 	if (is_server) {
 		M_atomic_inc_u64(&active_server_connections);
 		/* Delay server connection count until we actually receive a message.
@@ -62,6 +54,14 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 	} else {
 		M_atomic_inc_u64(&active_client_connections);
 		M_atomic_inc_u64(&client_connection_count);
+	}
+	/* Odd, but we need to wait on a connection right now even though this
+	 * was an accept() */
+	if (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
+		char msg[256];
+		M_io_get_error_string(conn, msg, sizeof(msg));
+		event_debug("1. %p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
+		goto cleanup;
 	}
 	event_debug("2. %p %s connected", conn, is_server?"netserver":"netclient");
 
