@@ -879,7 +879,7 @@ static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type,
 	(void)io;
 
 	if (query->is_cache_eviction && query->result == M_DNS_RESULT_SUCCESS) {
-		query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICTION);
+		query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICT);
 	} else {
 		query->callback(query->ipaddrs, query->cb_data, query->result);
 	}
@@ -1054,10 +1054,10 @@ static char *M_dns_punyhostname(const char *hostname)
 
 void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data)
 {
-	char                *punyhost = NULL;
+	char                *punyhost          = NULL;
 	int                  aftype;
-	M_dns_query_t       *query    = NULL;
-	M_dns_cache_entry_t *entry    = NULL;
+	M_dns_query_t       *query             = NULL;
+	M_dns_cache_entry_t *entry             = NULL;
 	M_bool               is_cache_eviction = M_FALSE;
 
 	if (callback == NULL)
@@ -1123,7 +1123,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 
 	entry = M_dns_cache_get_entry(dns, hostname, aftype);
 	if (entry != NULL) {
-		if((entry->ts + (M_time_t)entry->ttl) > M_time()) {
+		if((entry->ts + (M_time_t)entry->ttl) >= M_time()) {
 			M_list_str_t *ipaddrs = M_dns_happyeb_sort(dns, entry->addrs);
 			M_thread_mutex_unlock(dns->lock);
 

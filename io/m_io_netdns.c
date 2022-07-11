@@ -376,7 +376,7 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 	size_t         i;
 
 	handle->data.netdns.query_time = M_time_elapsed(&handle->data.netdns.query_start);
-	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE) {
+	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE && result != M_DNS_RESULT_SUCCESS_CACHE_EVICT) {
 		handle->state = M_IO_NET_STATE_ERROR;
 		switch (result) {
 			case M_DNS_RESULT_SERVFAIL:
@@ -394,6 +394,7 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 			/* Not possible */
 			case M_DNS_RESULT_SUCCESS:
 			case M_DNS_RESULT_SUCCESS_CACHE:
+			case M_DNS_RESULT_SUCCESS_CACHE_EVICT:
 				break;
 
 		}
