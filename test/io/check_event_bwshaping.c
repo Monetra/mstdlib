@@ -240,7 +240,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_event_t     *event     = M_event_create(M_EVENT_FLAG_EXITONEMPTY);
 	M_io_t        *netclient = NULL;
 	M_event_err_t  err;
-	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
 	runtime_ms = 4000;
 

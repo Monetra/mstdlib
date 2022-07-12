@@ -204,7 +204,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_tls_serverctx_t *serverctx;
 	M_tls_clientctx_t *clientctx;
 	M_io_error_t       err;
-	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
 	active_client_connections = 0;
 	active_server_connections = 0;
