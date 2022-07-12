@@ -503,7 +503,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	event_debug("starting %llu connection test", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
 		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
 		port             = newport;
 	}
@@ -754,7 +754,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	M_tls_serverctx_t  *serverctx;
 	M_tls_clientctx_t  *clientctx;
 	M_io_error_t        ioerr;
-	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	const char * const hosts[] = { "localhost" };
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -835,7 +835,7 @@ static M_event_err_t check_tls_sendanddisconnect_test(void)
 	event_debug("starting write then disconnect test");
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
 		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
 		port             = newport;
 	}
