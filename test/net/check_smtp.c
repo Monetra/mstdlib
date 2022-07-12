@@ -202,7 +202,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			if (emu->conn[i].io == NULL) { break; }
 		}
 		if (i == ARRAY_LEN(emu->conn)) {
-			M_printf("Emulator ran out of connections!");
+			M_printf("Emulator ran out of connections! Port %u", emu->port);
 			exit(1);
 		}
 		ioerr = M_io_accept(&emu->conn[i].io, io);
