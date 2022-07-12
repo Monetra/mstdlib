@@ -165,7 +165,6 @@ static void check_block_net_test(M_uint64 num_connections)
 	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	M_io_error_t     ioerr;
 
-	event_debug("Test %llu connections", num_connections);
 
 	active_client_connections = 0;
 	active_server_connections = 0;
@@ -173,11 +172,8 @@ static void check_block_net_test(M_uint64 num_connections)
 	server_connection_count   = 0;
 	expected_connections      = num_connections;
 
-	event_debug("creating mutex", num_connections);
 
-	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
-
-	event_debug("created mutex", num_connections);
+	event_debug("Test %llu connections", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
 		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
@@ -201,10 +197,8 @@ static void check_block_net_test(M_uint64 num_connections)
 	}
 
 	M_thread_join(thread, NULL);
-	M_dns_destroy(dns);
 	event_debug("exited");
-	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
-	M_library_cleanup();
+	M_dns_destroy(dns);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -213,10 +207,13 @@ START_TEST(check_block_net)
 {
 	M_uint64 tests[] = { 1, 25, /* 100, 200, -- disable because of mac */ 0 };
 	size_t   i;
+	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	for (i=0; tests[i] != 0; i++) {
 		check_block_net_test(tests[i]);
 	}
+	M_thread_mutex_destroy(debug_lock); debug_lock = NULL;
+	M_library_cleanup();
 }
 END_TEST
 
