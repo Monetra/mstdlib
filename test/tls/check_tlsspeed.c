@@ -102,9 +102,10 @@ static void net_data_destroy(net_data_t *data)
 static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *arg)
 {
 	size_t        mysize;
-	net_data_t   *data = arg;
+	net_data_t   *data = net_data_client;
 
 	(void)event;
+	(void)arg;
 
 	event_debug("net client %p event %s triggered", comm, event_type_str(type));
 	if (data != NULL)
@@ -163,11 +164,12 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *arg)
 {
 	size_t        mysize;
-	net_data_t   *data = arg;
+	net_data_t   *data = net_data_server;
 	M_io_error_t  err;
 	M_uint64      KBps;
 
 	(void)event;
+	(void)arg;
 
 	event_debug("net serverconn %p event %s triggered", comm, event_type_str(type));
 	if (data != NULL)
