@@ -158,7 +158,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	M_thread_attr_t *attr = M_thread_attr_create();
 	M_dns_t         *dns       = M_dns_create(NULL);
 	M_io_t          *netserver = NULL;
-	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	M_io_error_t     ioerr;
 
 	active_client_connections = 0;
@@ -171,7 +171,7 @@ static void check_block_net_test(M_uint64 num_connections)
 	event_debug("Test %llu connections", num_connections);
 
 	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 50000);
+		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
 		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
 		port             = newport;
 	}

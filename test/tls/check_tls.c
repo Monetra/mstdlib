@@ -358,7 +358,7 @@ static M_event_err_t check_tls_test(M_uint64 num_connections)
 	M_tls_clientctx_t  *clientctx;
 	M_list_str_t       *applist;
 	M_io_error_t        ioerr;
-	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16            port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	const char * const hosts[] = { "localhost"
 #ifdef RANDOMIZE_HOSTS
 	, "127.0.0.1", "::1"
