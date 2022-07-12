@@ -5,6 +5,7 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
+#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -38,6 +39,13 @@ static void event_debug(const char *fmt, ...)
 	(void)fmt;
 }
 #endif
+
+static void trigger_softevent(M_io_t *io, M_event_type_t etype)
+{
+	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
+	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
+	M_io_layer_release(layer);
+}
 
 
 static const char *event_type_str(M_event_type_t type)
@@ -113,6 +121,7 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 			}
+			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
