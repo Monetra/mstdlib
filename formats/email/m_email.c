@@ -52,8 +52,8 @@ struct M_email {
 	M_list_t                  *parts; /* List of M_email_part_t */
 	char                      *preamble;
 	char                      *epilogue;
-	M_email_address_t *reply_to;
-	M_email_address_t *from;
+	M_email_address_t         *reply_to;
+	M_email_address_t         *from;
 	char                      *subject;
 };
 

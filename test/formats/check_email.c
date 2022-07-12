@@ -66,6 +66,8 @@ END_TEST
 START_TEST(check_mixed_multipart)
 {
 	const char       *test_data =
+"To: test@localhost\r\n"
+"From: test@localhost\r\n"
 "MIME-Version: 1.0\r\n"
 "Content-Type: multipart/mixed; boundary=\"A2DX_654FDAD-BSDA\"\r\n"
 "\r\n"
@@ -110,6 +112,9 @@ START_TEST(check_mixed_multipart)
 	ck_assert_msg(len == M_str_len(test_data), "Should have read the entire message");
 	out = M_email_simple_write(e);
 	ck_assert_msg(out != NULL, "Should have written message");
+	/* 1 multipart/alternative + 1 text/plain + 1 text/html + 1 attachment = 4 */
+	ck_assert_msg(M_email_parts_len(e) == 4, "Should have 4 parts.  Has %zu", M_email_parts_len(e));
+	M_printf("%s\n", out);
 
 	M_email_destroy(e);
 	M_free(out);
