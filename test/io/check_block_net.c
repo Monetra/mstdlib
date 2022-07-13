@@ -43,8 +43,9 @@ static void event_debug(const char *fmt, ...)
 
 static void handle_connection(M_io_t *conn, M_bool is_server)
 {
-	M_parser_t  *readparser = M_parser_create(M_PARSER_FLAG_NONE);
-	M_buf_t     *writebuf   = M_buf_create();
+	size_t       retry_count = 1;
+	M_parser_t  *readparser  = M_parser_create(M_PARSER_FLAG_NONE);
+	M_buf_t     *writebuf    = M_buf_create();
 	M_io_error_t err;
 
 	if (is_server) {
@@ -57,11 +58,15 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 	}
 	/* Odd, but we need to wait on a connection right now even though this
 	 * was an accept() */
-	if (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
+	while (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
 		char msg[256];
 		M_io_get_error_string(conn, msg, sizeof(msg));
 		event_debug("1. %p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
-		goto cleanup;
+		retry_count++;
+		if (retry_count > 5 || is_server) {
+			goto cleanup;
+		}
+		event_debug("Retry connection %zu / 5", retry_count);
 	}
 	event_debug("2. %p %s connected", conn, is_server?"netserver":"netclient");
 
