@@ -148,6 +148,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("pipe reader %p Connected", comm);
+			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_READ:
 			mysize = M_buf_len(data->buf);
@@ -158,6 +159,7 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			} else {
 				event_debug("pipe reader %p read returned %d", comm, (int)err);
 			}
+			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_WRITE:
 			break;
