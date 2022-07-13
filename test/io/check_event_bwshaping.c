@@ -108,7 +108,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
 				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf));
-				event_debug("net client %p wrote at rate (%llu Bps)", comm, M_io_bwshapping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				event_debug("net client %p wrote at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
