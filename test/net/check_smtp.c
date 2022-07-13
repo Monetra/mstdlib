@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <check.h>
 
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_net.h>
 #include <mstdlib/mstdlib_text.h>
@@ -13,6 +14,8 @@
 #define DEBUG 0
 #define INCLUDE_DOT_MSG_TEST 1
 
+#define MAX_TIMEOUT 60000
+
 /* globals */
 M_json_node_t     *check_smtp_json          = NULL;
 char              *test_address             = NULL;
@@ -21,6 +24,8 @@ M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
 const size_t       multithread_insert_count = 100;
 const size_t       multithread_retry_count  = 11;
+M_thread_mutex_t  *mutex                    = NULL;
+M_event_err_t      event_err;
 
 typedef enum {
 	NO_ENDPOINTS            = 1,
@@ -66,6 +71,7 @@ typedef enum {
 
 static void cleanup_int(void)
 {
+	M_thread_mutex_destroy(mutex);
 	M_json_node_destroy(check_smtp_json);
 	M_free(test_address);
 	M_free(sendmail_emu);
@@ -196,7 +202,7 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 			if (emu->conn[i].io == NULL) { break; }
 		}
 		if (i == ARRAY_LEN(emu->conn)) {
-			M_printf("Emulator ran out of connections!");
+			M_printf("Emulator ran out of connections! Port %u", emu->port);
 			exit(1);
 		}
 		ioerr = M_io_accept(&emu->conn[i].io, io);
@@ -428,7 +434,7 @@ static smtp_emulator_t *smtp_emulator_create_tls(M_event_t *el, tls_types_t tls_
 		M_uint16 *testport, test_id_t test_id, M_tls_serverctx_t *serverctx)
 {
 	smtp_emulator_t *emu      = M_malloc_zero(sizeof(*emu));
-	M_uint16         port     = (M_uint16)M_rand_range(NULL, 10000, 50000);
+	M_uint16         port     = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
 	emu->el = el;
 	M_tls_serverctx_upref(serverctx);
@@ -555,20 +561,26 @@ static void connect_cb(const char *address, M_uint16 port, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_connect_cb(\"%s\", %u, %p)", address, port, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_connect_cb_called = M_TRUE;
 	args->connect_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 }
 
 static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t net_err,
 		const char *error, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  call_count;
+	M_thread_mutex_lock(mutex);
 	args->is_connect_fail_cb_called = M_TRUE;
 	args->connect_fail_cb_call_count++;
+	call_count = args->connect_fail_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	event_debug("M_net_smtp_connect_fail_cb(\"%s\", %u, %s, \"%s\", %p)", address, port,
 			M_net_errcode_to_str(net_err), error, thunk);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
-		if (args->connect_fail_cb_call_count == 2) {
+		if (call_count == 2) {
 			return M_FALSE; /* Remove endpoint */
 		}
 	}
@@ -592,12 +604,16 @@ static M_bool connect_fail_cb(const char *address, M_uint16 port, M_net_error_t 
 
 static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  sent_call_count;
 	event_debug("M_net_smtp_disconnect_cb(\"%s\", %u, %p)", address, port, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_disconnect_cb_called = M_TRUE;
 	args->disconnect_cb_call_count++;
-	if (args->test_id == TIMEOUTS && args->sent_cb_call_count >= 3) {
-		event_debug("TIMEOUTS: M_event_done(%p) (%d >= 3)\n", args->el, args->sent_cb_call_count);
+	sent_call_count = args->sent_cb_call_count;
+	M_thread_mutex_unlock(mutex);
+	if (args->test_id == TIMEOUTS && sent_call_count >= 3) {
+		event_debug("TIMEOUTS: M_event_done(%p) (%d >= 3)\n", args->el, sent_call_count);
 		M_event_done(args->el);
 	}
 }
@@ -605,10 +621,12 @@ static void disconnect_cb(const char *address, M_uint16 port, void *thunk)
 static M_bool process_fail_cb(const char *command, int result_code, const char *proc_stdout,
 		const char *proc_stderr, void *thunk)
 {
-	args_t *args = thunk;
-	event_debug("M_net_smtp_process_fail(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
+	args_t   *args = thunk;
+	event_debug("M_net_smtp_process_fail_cb(\"%s\", %d, \"%s\", \"%s\", %p)", command, result_code, proc_stdout, proc_stderr, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_process_fail_cb_called = M_TRUE;
 	args->process_fail_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 
 	if (args->test_id == PROCESS_ERROR_EXIT) {
 		M_event_done(args->el);
@@ -621,8 +639,10 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_processing_halted_cb(%s, %p)", no_endpoints ? "M_TRUE" : "M_FALSE", thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_processing_halted_cb_called = M_TRUE;
 	args->processing_halted_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == NO_SERVER || args->test_id == TLS_UNSUPPORTING_SERVER) {
 		M_event_done(args->el);
 	}
@@ -655,9 +675,15 @@ static M_uint64 processing_halted_cb(M_bool no_endpoints, void *thunk)
 
 static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 {
-	args_t *args = thunk;
+	M_uint64  call_count;
+	M_uint64  failed_call_count;
+	args_t   *args = thunk;
+	M_thread_mutex_lock(mutex);
 	args->is_sent_cb_called = M_TRUE;
 	args->sent_cb_call_count++;
+	call_count = args->sent_cb_call_count;
+	failed_call_count = args->send_failed_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	event_debug("M_net_smtp_sent_cb(%p, %p): %llu (failed: %llu) (connfail: %llu) (args->test_id: %d) (EMU_SENDMSG: %d)", headers, thunk, args->sent_cb_call_count, args->send_failed_cb_call_count, args->connect_fail_cb_call_count, args->test_id, EMU_SENDMSG);
 	if (args->test_id == EMU_SENDMSG || args->test_id == AUTH_PLAIN || args->test_id == AUTH_LOGIN || args->test_id == AUTH_CRAM_MD5 || args->test_id == AUTH_DIGEST_MD5 || args->test_id == IMPLICIT_TLS || args->test_id == STARTTLS) {
 		event_debug("M_event_done()");
@@ -670,7 +696,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == REACTIVATE_IDLE) {
-		if (args->sent_cb_call_count == 3 || args->sent_cb_call_count == 6 || args->sent_cb_call_count == 7) {
+		if (call_count == 3 || call_count == 6 || call_count == 7) {
 			M_event_done(args->el);
 		}
 	}
@@ -681,13 +707,14 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_hash_dict_get(headers, "subject", &subject);
 		M_printf("subject: %p\n", subject);
 		*/
-		if (args->sent_cb_call_count == multithread_retry_count) {
+		M_printf("sent_cb: %llu\n", call_count);
+		if (call_count == multithread_retry_count) {
 			M_event_done(args->el);
 		}
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
-		if (args->sent_cb_call_count == multithread_insert_count) {
+		if (call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
 	}
@@ -701,13 +728,13 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == DOT_MSG) {
-		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
+		if ((call_count == 2 && failed_call_count == 1) || call_count == 3) {
 			M_event_done(args->el);
 		}
 	}
 
 	if (args->test_id == STATUS) {
-		if (args->sent_cb_call_count == 1) {
+		if (call_count == 1) {
 			M_net_smtp_pause(args->sp);
 			args->is_success = (M_net_smtp_status(args->sp) == M_NET_SMTP_STATUS_STOPPING);
 		}
@@ -717,17 +744,23 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, size_t attempt_num,
 		M_bool can_requeue, void *thunk)
 {
-	args_t *args = thunk;
+	M_uint64  call_count;
+	M_uint64  sent_call_count;
+	args_t   *args = thunk;
 	event_debug("M_net_smtp_send_failed_cb(%p, \"%s\", %zu, %s, %p)", headers, error, attempt_num, can_requeue ? "M_TRUE" : "M_FALSE", thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_send_failed_cb_called = M_TRUE;
 	args->send_failed_cb_call_count++;
+	call_count = args->send_failed_cb_call_count;
+	sent_call_count = args->sent_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == BCC_TEST) {
-		if (args->send_failed_cb_call_count == 4) {
+		if (call_count == 4) {
 			M_event_done(args->el);
 		}
 	}
 	if (args->test_id == BAD_SERVER_2) {
-		if (args->send_failed_cb_call_count == 4) {
+		if (call_count == 4) {
 			M_event_done(args->el);
 		}
 		return M_FALSE;
@@ -737,7 +770,8 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == MULTITHREAD_RETRY) {
-		if (args->send_failed_cb_call_count == multithread_retry_count) {
+		M_printf("send_failed %llu\n", call_count);
+		if (call_count == multithread_retry_count) {
 			M_printf("Send failed for %zu msgs, retry in 3 sec\n", multithread_retry_count);
 			smtp_emulator_switch(args->emu, "minimal");
 		}
@@ -747,7 +781,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 		M_event_done(args->el);
 	}
 	if (args->test_id == DOT_MSG) {
-		if ((args->sent_cb_call_count == 2 && args->send_failed_cb_call_count == 1) || args->sent_cb_call_count == 3) {
+		if ((sent_call_count == 2 && call_count == 1) || sent_call_count == 3) {
 			M_event_done(args->el);
 		}
 		return M_FALSE;
@@ -763,18 +797,24 @@ static void reschedule_cb(const char *msg, M_uint64 wait_sec, void *thunk)
 {
 	args_t *args = thunk;
 	event_debug("M_net_smtp_reschedule_cb(\"%s\", %zu, %p)", msg, wait_sec, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_reschedule_cb_called = M_TRUE;
 	args->reschedule_cb_call_count++;
+	M_thread_mutex_unlock(mutex);
 }
 
 static M_bool iocreate_cb(M_io_t *io, char *error, size_t errlen, void *thunk)
 {
-	args_t *args = thunk;
+	args_t   *args = thunk;
+	M_uint64  call_count;
 	event_debug("M_net_smtp_iocreate_cb(%p, %p, %zu, %p)", io, error, errlen, thunk);
+	M_thread_mutex_lock(mutex);
 	args->is_iocreate_cb_called = M_TRUE;
 	args->iocreate_cb_call_count++;
+	call_count = args->iocreate_cb_call_count;
+	M_thread_mutex_unlock(mutex);
 	if (args->test_id == IOCREATE_RETURN_FALSE) {
-		if (args->iocreate_cb_call_count == 2) {
+		if (call_count == 2) {
 			event_debug("M_event_done(%p)\n", args->el);
 			M_event_done(args->el);
 		}
@@ -829,6 +869,8 @@ START_TEST(multithread_retry)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	M_printf("START_TEST(multithread_retry)\n");
+
 	args.test_id = MULTITHREAD_RETRY;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -850,9 +892,13 @@ START_TEST(multithread_retry)
 	args.emu = emu;
 
 	M_threadpool_parent_wait(tp_parent);
-	M_event_loop(el, M_TIMEOUT_INF);
+	M_printf("Dispatched all messages\n");
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	M_printf("Returned from loop\n");
 
-	ck_assert_msg(args.sent_cb_call_count = multithread_retry_count, "should have called sent_cb count times");
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+
+	ck_assert_msg(args.sent_cb_call_count == multithread_retry_count, "should have called sent_cb count times");
 
 	M_threadpool_parent_destroy(tp_parent);
 	M_threadpool_destroy(tp);
@@ -880,6 +926,8 @@ START_TEST(multithread_insert_proc)
 	size_t                 i         = 0;
 	M_list_str_t          *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
+	M_printf("START_TEST(multithread_insert_proc)\n");
+
 	args.test_id = MULTITHREAD_INSERT_PROC;
 
 	M_list_str_insert(cmd_args, "-");
@@ -896,7 +944,8 @@ START_TEST(multithread_insert_proc)
 	args.el = el;
 
 	M_threadpool_parent_wait(tp_parent);
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
 
@@ -927,6 +976,8 @@ START_TEST(multithread_insert)
 	M_threadpool_parent_t *tp_parent = M_threadpool_parent_create(tp);
 	size_t                 i         = 0;
 
+	M_printf("START_TEST(multithread_insert)\n");
+
 	args.test_id = MULTITHREAD_INSERT;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -947,7 +998,8 @@ START_TEST(multithread_insert)
 	args.el = el;
 
 	M_threadpool_parent_wait(tp_parent);
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
 
@@ -970,6 +1022,8 @@ START_TEST(dump_queue)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_list_str_t      *list        = NULL;
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
+
+	M_printf("START_TEST(dump_queue)\n");
 
 	args.test_id = DUMP_QUEUE;
 	M_net_smtp_queue_message(sp, "junk");
@@ -999,6 +1053,8 @@ START_TEST(junk_msg)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
+	M_printf("START_TEST(junk_msg)\n");
+
 	args.test_id = JUNK_MSG;
 	M_net_smtp_queue_message(sp, "junk");
 
@@ -1007,7 +1063,8 @@ START_TEST(junk_msg)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "should have failed to sent 1 message");
 	ck_assert_msg(args.is_success, "shouldn't allow retry");
@@ -1028,6 +1085,8 @@ START_TEST(external_queue)
 	char              *msg         = M_email_simple_write(e);
 	M_list_str_t      *cmd_args    = M_list_str_create(M_LIST_STR_NONE);
 
+	M_printf("START_TEST(external_queue)\n");
+
 	args.test_id = EXTERNAL_QUEUE;
 	test_external_queue = M_list_str_create(M_LIST_STR_NONE);
 	M_net_smtp_use_external_queue(sp, test_external_queue_get_cb);
@@ -1041,7 +1100,8 @@ START_TEST(external_queue)
 	M_list_str_insert(test_external_queue, msg);
 	M_net_smtp_external_queue_have_messages(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be in idle");
@@ -1065,6 +1125,8 @@ START_TEST(halt_restart)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 
+	M_printf("START_TEST(halt_restart)\n");
+
 	args.test_id = HALT_RESTART;
 	M_list_str_insert(cmd_args, "-");
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 1), "Couldn't add endpoint_process");
@@ -1075,7 +1137,8 @@ START_TEST(halt_restart)
 	M_net_smtp_pause(sp);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == 1, "should have sent 1 message");
 	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have processing halted from pause()");
@@ -1096,6 +1159,8 @@ START_TEST(proc_not_found)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e           = generate_email(1, test_address);
 
+	M_printf("START_TEST(proc_not_found)\n");
+
 	args.test_id = PROC_NOT_FOUND;
 	M_net_smtp_queue_smtp(sp, e);
 
@@ -1104,7 +1169,8 @@ START_TEST(proc_not_found)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.process_fail_cb_call_count == 1, "should have had a process fail");
 	ck_assert_msg(args.processing_halted_cb_call_count == 1, "should have halted processing");
@@ -1193,7 +1259,8 @@ static M_bool warmup_sendmail_emu(M_event_t *el)
 	M_event_add(el, io_stdout, warmup_io_stdout_cb, &mask);
 	M_event_add(el, io_stderr, warmup_io_stderr_cb, &mask);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	return M_TRUE;
 
@@ -1210,6 +1277,8 @@ START_TEST(dot_msg)
 	smtp_emulator_t   *emu         = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, DOT_MSG);
 	M_dns_t           *dns         = M_dns_create(el);
 	M_email_t         *e           = generate_email_with_text(test_address, "\r\n.\r\n after message");
+
+	M_printf("START_TEST(dot_msg)\n");
 
 	ck_assert_msg(warmup_sendmail_emu(el), "Should succeed with warmup");
 
@@ -1239,9 +1308,10 @@ START_TEST(dot_msg)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
-	event_debug("send_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
+	event_debug("sent_cb_call_count: %d, send_failed_cb_call_count: %d\n", args.sent_cb_call_count, args.send_failed_cb_call_count);
 	ck_assert_msg(args.sent_cb_call_count == 2, "2 Messages should have sent");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "1 Message should have failed to send");
 
@@ -1266,6 +1336,8 @@ START_TEST(process_error_exit)
 	M_net_smtp_t      *sp          = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t         *e1          = generate_email(1, test_address);
 
+	M_printf("START_TEST(process_error_exit)\n");
+
 	args.test_id = PROCESS_ERROR_EXIT;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -1280,7 +1352,8 @@ START_TEST(process_error_exit)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.process_fail_cb_call_count == 1, "Should have called process_fail");
 
@@ -1301,6 +1374,8 @@ START_TEST(proc_endpoint)
 	M_email_t         *e1          = generate_email(1, test_address);
 	M_email_t         *e2          = generate_email(2, test_address);
 
+	M_printf("START_TEST(proc_endpoint)\n");
+
 	args.test_id = STATUS; /* Does the same thing as Status, but with Proc endpoints */
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -1308,14 +1383,15 @@ START_TEST(proc_endpoint)
 	M_net_smtp_queue_smtp(sp, e2);
 
 	M_list_str_insert(cmd_args, "-");
-	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 100, 2), "Couldn't add endpoint_process");
+	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 5000, 2), "Couldn't add endpoint_process");
 
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_PROCESSING, "Should start processing as soon as endpoint added");
 
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
@@ -1343,6 +1419,8 @@ START_TEST(status)
 	M_email_t           *e2          = generate_email(2, test_address);
 	M_net_smtp_status_t  smtp_status;
 
+	M_printf("START_TEST(status)\n");
+
 	args.test_id = STATUS;
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "Should return status no endpoints");
 
@@ -1356,7 +1434,8 @@ START_TEST(status)
 	args.el = el;
 	args.sp = sp;
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_success, "Should have seen status STOPPING after pause() call");
 	smtp_status = M_net_smtp_status(sp);
@@ -1367,8 +1446,7 @@ START_TEST(status)
 		case M_NET_SMTP_STATUS_STOPPING: M_printf("STOPPING\n"); break;
 		case M_NET_SMTP_STATUS_STOPPED: break;
 	}
-	M_printf("smtp_status: %d\n", smtp_status);
-	ck_assert_msg(smtp_status == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing");
+	ck_assert_msg(smtp_status == M_NET_SMTP_STATUS_STOPPED, "Should have stopped processing:%d instead %d", M_NET_SMTP_STATUS_STOPPED, smtp_status);
 	M_net_smtp_resume(sp);
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "Should be idle on restart");
 
@@ -1398,9 +1476,11 @@ START_TEST(timeouts)
 	M_email_t         *e2          = generate_email(2, test_address);
 	M_email_t         *e3          = generate_email(3, test_address);
 
+	M_printf("START_TEST(timeouts)\n");
+
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
-	M_net_smtp_setup_tcp_timeouts(sp, 200, 300, 400);
+	M_net_smtp_setup_tcp_timeouts(sp, 500, 750, 1000);
 	M_net_smtp_load_balance(sp, M_NET_SMTP_LOAD_BALANCE_ROUNDROBIN);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport1, M_FALSE, "user", "pass", 1);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport2, M_FALSE, "user", "pass", 1);
@@ -1412,7 +1492,8 @@ START_TEST(timeouts)
 	M_net_smtp_queue_smtp(sp, e3);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 2, "connect/stall timeouts should have called connect_fail");
 	ck_assert_msg(args.sent_cb_call_count == 3, "idle timeout should have sent all 3 messages");
@@ -1442,6 +1523,8 @@ START_TEST(tls_unsupporting_server)
 	M_email_t         *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
 
+	M_printf("START_TEST(tls_unsupporting_server)\n");
+
 	args.test_id = TLS_UNSUPPORTING_SERVER;
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
@@ -1458,7 +1541,8 @@ START_TEST(tls_unsupporting_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
 	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
@@ -1482,6 +1566,8 @@ START_TEST(no_server)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(no_server)\n");
+
 	args.test_id = NO_SERVER;
 	smtp_emulator_destroy(emu); /* just needed an open port */
 
@@ -1493,7 +1579,8 @@ START_TEST(no_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_connect_fail_cb_called == M_TRUE, "should have called connect_fail_cb");
 	ck_assert_msg(args.is_processing_halted_cb_called == M_TRUE, "should have called processing_halted_cb");
@@ -1516,6 +1603,8 @@ START_TEST(iocreate_return_false)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(iocreate_return_false)\n");
+
 	args.test_id = IOCREATE_RETURN_FALSE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
@@ -1524,7 +1613,8 @@ START_TEST(iocreate_return_false)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called == M_TRUE, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called == M_FALSE, "shouldn't have called send_failed_cb");
@@ -1551,6 +1641,8 @@ START_TEST(emu_accept_disconnect)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(emu_accept_disconnect)\n");
+
 	args.test_id = EMU_ACCEPT_DISCONNECT;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1);
@@ -1559,7 +1651,8 @@ START_TEST(emu_accept_disconnect)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_send_failed_cb_called, "should have called send_failed_cb");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should return to idle after sent_cb()");
@@ -1583,6 +1676,8 @@ START_TEST(auth_digest_md5)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_digest_md5)\n");
+
 	args.test_id = AUTH_DIGEST_MD5;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
@@ -1592,7 +1687,8 @@ START_TEST(auth_digest_md5)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1618,6 +1714,8 @@ START_TEST(auth_cram_md5)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_cram_md5)\n");
+
 	args.test_id = AUTH_CRAM_MD5;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
@@ -1627,7 +1725,8 @@ START_TEST(auth_cram_md5)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1653,6 +1752,8 @@ START_TEST(auth_plain)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_plain)\n");
+
 	args.test_id = AUTH_PLAIN;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
@@ -1662,7 +1763,8 @@ START_TEST(auth_plain)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1719,6 +1821,8 @@ START_TEST(bad_auth)
 	M_email_t       *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
 
+	M_printf("START_TEST(bad_auth)\n");
+
 	args.test_id = BAD_SERVER;
 
 	M_tls_clientctx_set_default_trust(ctx);
@@ -1763,7 +1867,8 @@ START_TEST(bad_auth)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 16, "should have failed 16 connections ");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
@@ -1802,6 +1907,8 @@ START_TEST(auth_login)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(auth_login)\n");
+
 	args.test_id = AUTH_LOGIN;
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1812,7 +1919,8 @@ START_TEST(auth_login)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1839,6 +1947,8 @@ START_TEST(starttls)
 	M_email_t         *e          = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx        = M_tls_clientctx_create();
 
+	M_printf("START_TEST(starttls)\n");
+
 	args.test_id = STARTTLS;
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
@@ -1851,7 +1961,8 @@ START_TEST(starttls)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1878,6 +1989,8 @@ START_TEST(implicit_tls)
 	M_email_t         *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx      = M_tls_clientctx_create();
 
+	M_printf("START_TEST(implicit_tls)\n");
+
 	args.test_id = IMPLICIT_TLS;
 	M_tls_clientctx_set_default_trust(ctx);
 	M_tls_clientctx_set_verify_level(ctx, M_TLS_VERIFY_NONE);
@@ -1891,7 +2004,8 @@ START_TEST(implicit_tls)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -1923,6 +2037,8 @@ START_TEST(bad_server_2)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(bad_server_2)\n");
+
 	args.test_id              = BAD_SERVER_2;
 
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -1940,7 +2056,8 @@ START_TEST(bad_server_2)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.send_failed_cb_call_count == 4, "should have failed 8 messages ");
 
@@ -1991,6 +2108,8 @@ START_TEST(bad_server)
 	M_email_t       *e        = generate_email(1, test_address);
 	M_tls_clientctx_t *ctx    = M_tls_clientctx_create();
 
+	M_printf("START_TEST(bad_server)\n");
+
 	args.test_id = BAD_SERVER;
 
 	M_tls_clientctx_set_default_trust(ctx);
@@ -2029,7 +2148,8 @@ START_TEST(bad_server)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 13, "should have failed 13 connections ");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have process halted w/ noendpoints");
@@ -2065,6 +2185,8 @@ START_TEST(reactivate_idle)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(reactivate_idle)\n");
+
 	args.test_id = REACTIVATE_IDLE;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 4000);
@@ -2077,7 +2199,8 @@ START_TEST(reactivate_idle)
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 3) == M_TRUE,
 			"should succeed adding tcp after setting dns");
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == 3, "should have called sent_cb 3 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should be idle");
@@ -2086,13 +2209,15 @@ START_TEST(reactivate_idle)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 
 	smtp_emulator_switch(emu, "bad9");
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == 6, "should have called sent_cb 6 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should have halted");
@@ -2102,7 +2227,8 @@ START_TEST(reactivate_idle)
 			"should succeed adding tcp after setting dns");
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == 7, "should have called sent_cb 7 times");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_IDLE, "should idle");
@@ -2129,6 +2255,8 @@ START_TEST(default_cbs)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 	char            *msg      = M_email_simple_write(e);
+
+	M_printf("START_TEST(default_cbs)\n");
 
 	args.test_id = DEFAULT_CBS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
@@ -2248,6 +2376,8 @@ START_TEST(bcc_test)
 "\r\n"
 "--------------HAaLZiQJuZlCrCgRbX5QSim4b[ao--\r\n";
 
+	M_printf("START_TEST(bcc_test)\n");
+
 	M_email_cc_append(e, NULL, NULL, "cc@localhost");
 	M_email_bcc_append(e, NULL, NULL, "bcc@localhost");
 
@@ -2262,7 +2392,8 @@ START_TEST(bcc_test)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
 	ck_assert_msg(args.is_connect_cb_called, "should have called connect_cb");
@@ -2275,7 +2406,8 @@ START_TEST(bcc_test)
 	ck_assert_msg(M_net_smtp_queue_message(sp, bad_from1) == M_TRUE, "should add");
 	ck_assert_msg(M_net_smtp_queue_message(sp, bad_from2) == M_TRUE, "should add");
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.send_failed_cb_call_count == 4, "should fail to send msg with no from and no to");
 
@@ -2298,6 +2430,8 @@ START_TEST(domain_mismatch)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(domain_mismatch)\n");
+
 	args.test_id = DOMAIN_MISMATCH;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 
@@ -2307,7 +2441,8 @@ START_TEST(domain_mismatch)
 	args.el = el;
 	M_net_smtp_queue_smtp(sp, e);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.connect_fail_cb_call_count == 1, "Should have connect failed with wrong domain");
 	ck_assert_msg(M_net_smtp_status(sp) == M_NET_SMTP_STATUS_NOENDPOINTS, "should process halted after endpoint removed");
@@ -2331,6 +2466,8 @@ START_TEST(max_attempts_0)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(max_attempts_0)\n");
+
 	args.test_id = MAX_ATTEMPTS_0;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
@@ -2341,7 +2478,8 @@ START_TEST(max_attempts_0)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.is_success, "should not be able to requeue");
 	ck_assert_msg(args.send_failed_cb_call_count == 1, "should have failed to send message");
@@ -2368,6 +2506,8 @@ START_TEST(emu_sendmsg)
 	M_dns_t         *dns      = M_dns_create(el);
 	M_email_t       *e        = generate_email(1, test_address);
 
+	M_printf("START_TEST(emu_sendmsg)\n");
+
 	args.test_id = EMU_SENDMSG;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -2381,7 +2521,8 @@ START_TEST(emu_sendmsg)
 	M_net_smtp_queue_smtp(sp, e);
 	M_net_smtp_resume(sp);
 
-	M_event_loop(el, M_TIMEOUT_INF);
+	event_err = M_event_loop(el, MAX_TIMEOUT);
+	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 	event_debug("exit loop");
 
 	ck_assert_msg(args.is_iocreate_cb_called, "should have called iocreate_cb");
@@ -2414,6 +2555,8 @@ START_TEST(check_no_endpoints)
 	M_event_t    *el   = M_event_create(M_EVENT_FLAG_NONE);
 	M_net_smtp_t *sp   = M_net_smtp_create(el, &test_cbs, &args);
 
+	M_printf("START_TEST(check_no_endpoints)\n");
+
 	args.test_id = NO_ENDPOINTS;
 	ck_assert_msg(M_net_smtp_resume(sp) == M_FALSE, "should fail with no endpoints");
 	ck_assert_msg(args.is_success, "should trigger processing_halted_cb with no endpoints");
@@ -2432,6 +2575,8 @@ START_TEST(dummy_checks)
 	M_email_t         *e    = generate_email(1, test_address);
 	M_dns_t           *dns  = M_dns_create(el);
 	M_tls_clientctx_t *ctx  = M_tls_clientctx_create();
+
+	M_printf("START_TEST(dummy_checks)\n");
 
 	args.test_id = DUMMY_CHECKS;
 
@@ -2825,6 +2970,8 @@ int main(int argc, char **argv)
 	len = M_str_len(env_USER) + M_str_len("@localhost");
 	test_address = M_malloc_zero(len + 1);
 	M_snprintf(test_address, len + 1, "%s@localhost", env_USER);
+
+	mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	dirname = M_fs_path_dirname(argv[0], M_FS_SYSTEM_AUTO);
 #ifdef _WIN32
