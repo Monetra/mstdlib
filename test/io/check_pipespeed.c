@@ -47,7 +47,6 @@ static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 	M_io_layer_release(layer);
 }
 
-
 static const char *event_type_str(M_event_type_t type)
 {
 	switch (type) {

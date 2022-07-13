@@ -74,18 +74,10 @@ static const char *event_type_str(M_event_type_t type)
 struct net_data {
 	M_buf_t    *buf;
 	M_timeval_t starttv;
-	M_uint64    count;
-	M_uint64    call_count;
-	M_uint64    connected_call_count;
-	M_io_t     *io;
-	char        errmsg[256];
 };
 typedef struct net_data net_data_t;
 
-net_data_t *net_data_client = NULL;
-net_data_t *net_data_server = NULL;
-
-static net_data_t *net_data_create()
+static net_data_t *net_data_create(void)
 {
 	net_data_t *data = M_malloc_zero(sizeof(*data));
 	data->buf = M_buf_create();
@@ -102,14 +94,11 @@ static void net_data_destroy(net_data_t *data)
 static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *arg)
 {
 	size_t        mysize;
-	net_data_t   *data = net_data_client;
+	net_data_t   *data = arg;
 
 	(void)event;
-	(void)arg;
 
 	event_debug("net client %p event %s triggered", comm, event_type_str(type));
-	if (data != NULL)
-		data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_READ:
 			/* Do nothing */
@@ -117,42 +106,37 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net client %p connected", comm);
 			M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
-			data->count += 1024 * 1024 * 8;
-			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
-			data->connected_call_count++;
-			break;
+			/* Fall-thru */
 		case M_EVENT_TYPE_WRITE:
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %zu bytes (%llu Bps) count: %llu / %llu", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), net_data_client->count, net_data_server->count);
+				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
 				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
-				M_printf("client: { () %llu, %llu bytes, connected() %llu }, server: { () %llu, %llu bytes }\n", net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_server->call_count, net_data_server->count);
 				M_io_disconnect(comm);
 				break;
 			}
-			if (M_buf_len(data->buf) == 0 && net_data_client->count == net_data_server->count) {
+			if (M_buf_len(data->buf) == 0) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
-				data->count += 1024 * 1024 * 8;
-				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
+			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
 			if (type == M_EVENT_TYPE_ERROR) {
 				char error[256];
 				M_io_get_error_string(comm, error, sizeof(error));
-				M_snprintf(data->errmsg, sizeof(data->errmsg), "@%llu() net client %p ERROR %s", data->call_count, comm, error);
-				event_debug("%s", data->errmsg);
+				event_debug("net client %p ERROR %s", comm, error);
 			}
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
 			M_io_destroy(comm);
 			comm = NULL;
+			net_data_destroy(data);
 			break;
 		default:
 			/* Ignore */
@@ -164,33 +148,24 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, void *arg)
 {
 	size_t        mysize;
-	net_data_t   *data = net_data_server;
+	net_data_t   *data = arg;
 	M_io_error_t  err;
 	M_uint64      KBps;
 
 	(void)event;
-	(void)arg;
 
 	event_debug("net serverconn %p event %s triggered", comm, event_type_str(type));
-	if (data != NULL)
-		data->call_count++;
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("net serverconn %p Connected", comm);
-			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_READ:
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				data->count += M_buf_len(data->buf) - mysize;
-				event_debug("net serverconn %p read %zu bytes (%llu Bps) count: %llu / %llu", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), net_data_client->count, net_data_server->count);
+				event_debug("net serverconn %p read %zu bytes (%llu Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
 //				M_printf("read size %zu bytes\n", M_buf_len(data->buf) - mysize);
 				M_buf_truncate(data->buf, 0);
-				trigger_softevent(comm, M_EVENT_TYPE_READ);
-				if (net_data_client->count == net_data_server->count) {
-					trigger_softevent(net_data_client->io, M_EVENT_TYPE_WRITE);
-				}
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
 			}
@@ -202,7 +177,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			if (type == M_EVENT_TYPE_ERROR) {
 				char error[256];
 				M_io_get_error_string(comm, error, sizeof(error));
-				event_debug("@%llu() net serverconn %p ERROR %s", data->call_count, comm, error);
+				event_debug("net serverconn %p ERROR %s", comm, error);
 			}
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
@@ -211,6 +186,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			M_io_destroy(comm);
 			M_io_destroy(netserver);
 			M_event_done_with_disconnect(event, 0, 5*1000 /* 5 sec */);
+			net_data_destroy(data);
 			break;
 		default:
 			/* Ignore */
@@ -228,8 +204,7 @@ static void net_server_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		case M_EVENT_TYPE_ACCEPT:
 			while (M_io_accept(&newcomm, comm) == M_IO_ERROR_SUCCESS) {
 				event_debug("Accepted new connection");
-				net_data_server->io = newcomm;
-				M_event_add(event, newcomm, net_serverconn_cb, net_data_server);
+				M_event_add(event, newcomm, net_serverconn_cb, net_data_create());
 
 			}
 			break;
@@ -268,10 +243,6 @@ static M_bool check_tlsspeed_test(void)
 	M_tls_clientctx_t *clientctx;
 	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	M_io_error_t       ioerr;
-	char               errmsg[256];
-
-	net_data_server = net_data_create();
-	net_data_client = net_data_create();
 
 	/* GENERATE CERTIFICATES */
 	event_debug("Generating certificates");
@@ -389,8 +360,7 @@ static M_bool check_tlsspeed_test(void)
 		return M_FALSE;
 	}
 
-	net_data_client->io = netclient;
-	if (!M_event_add(event, netclient, net_client_cb, net_data_client)) {
+	if (!M_event_add(event, netclient, net_client_cb, net_data_create())) {
 		event_debug("failed to add net client");
 		return M_FALSE;
 	}
@@ -398,14 +368,9 @@ static M_bool check_tlsspeed_test(void)
 
 	err = M_event_loop(event, 10000);
 
-	M_snprintf(errmsg, sizeof(errmsg), "%s: client: { () %llu, %llu bytes, connected() %llu, errmsg: \"%s\" }, server: { () %llu, %llu bytes, errmsg: \"%s\" }", event_err_msg(err), net_data_client->call_count, net_data_client->count, net_data_client->connected_call_count, net_data_client->errmsg, net_data_server->call_count, net_data_server->count, net_data_server->errmsg);
-
-	M_printf("%s", errmsg);
-	ck_assert_msg(err == M_EVENT_ERR_DONE, "%s", errmsg);
+	ck_assert_msg(err == M_EVENT_ERR_DONE, "expected M_EVENT_ERR_DONE got %s", event_err_msg(err));
 
 	/* Cleanup */
-	net_data_destroy(net_data_client);
-	net_data_destroy(net_data_server);
 	//M_io_destroy(netserver);
 	M_event_destroy(event);
 	M_tls_clientctx_destroy(clientctx);
