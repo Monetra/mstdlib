@@ -738,6 +738,9 @@ static M_bool M_io_bwshaping_disconnect_cb(M_io_layer_t *layer)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 
+	M_printf("%s:%d: M_io_bwshaping_disconnect_cb()\n", __FILE__, __LINE__);
+	fflush(stdout);
+
 	handle->is_disconnecting = M_TRUE;
 
 	/* Pass to next layer */
