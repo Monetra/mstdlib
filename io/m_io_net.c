@@ -1131,6 +1131,7 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
+	int            res;
 
 	M_printf("%s:%d\n", __FILE__, __LINE__);
 	fflush(stdout);
@@ -1151,8 +1152,11 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 		return M_TRUE;
 #else
 	/* If unable to close gracefully, go ahead and say we're disconnected */
-	if (shutdown(handle->data.net.sock, SHUT_WR) != 0)
+	res = shutdown(handle->data.net.sock, SHUT_WR);
+	if (res != 0) {
+		M_printf("%s:%d: shutdown() returned: %d\n", __FILE__, __LINE__, res);
 		return M_TRUE;
+	}
 #endif
 	/* Make sure we re-activate waiting on a read event if it is not active as that is the only
 	 * way we will receive the disconnect notification */
