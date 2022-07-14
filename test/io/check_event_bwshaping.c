@@ -112,6 +112,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 				event_debug("net client %p wrote %zu bytes", comm, mysize - M_buf_len(data->buf));
 				event_debug("net client %p wrote at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
+			event_debug("net client %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			elapsed_ms = M_time_elapsed(&data->starttv);
 			event_debug("net client %p elapsed %llu", comm, elapsed_ms);
 			if (runtime_ms == 0 || elapsed_ms >= runtime_ms) {
@@ -135,6 +136,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			}
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
+			event_debug("net client %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			M_io_destroy(comm);
 			comm = NULL;
 			net_data_destroy(data);
@@ -170,6 +172,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
 			}
+			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			break;
 		case M_EVENT_TYPE_WRITE:
 			break;
@@ -182,6 +185,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			}
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
+			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			M_io_destroy(comm);
 			net_data_destroy(data);
 			if (M_event_num_objects(event) == 0)
