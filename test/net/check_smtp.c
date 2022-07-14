@@ -245,13 +245,6 @@ static void smtp_emulator_io_cb(M_event_t *el, M_event_type_t etype, M_io_t *io,
 				event_debug("M_io_read_into_parser: %d:%.*s\n", M_parser_len(in_parser),
 						M_parser_len(in_parser), (const char *)M_parser_peek(in_parser));
 #endif
-			} else {
-				if (emu->test_id == STARTTLS) {
-					error_count++;
-					if (error_count >= 100) {
-						exit(0);
-					}
-				}
 			}
 			break;
 		case M_EVENT_TYPE_CONNECTED:
