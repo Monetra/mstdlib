@@ -472,7 +472,7 @@ M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size
 
 	/* Users are told events are delivered as level-triggered-resettable, so we need to trigger
 	 * soft events since the event subsystem is edge-triggered */
-	if (err == M_IO_ERROR_WOULDBLOCK || (err == M_IO_ERROR_SUCCESS && buf_len > *len_read)) {
+	if (err == M_IO_ERROR_WOULDBLOCK) {
 		/* Delete any read soft events, as we know we'd block */
 		M_io_user_softevent_del(io, M_EVENT_TYPE_READ);
 	} else if (err == M_IO_ERROR_SUCCESS) {
