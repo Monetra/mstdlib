@@ -544,6 +544,9 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	M_event_t     *event  = M_io_get_event(comm);
 	M_io_type_t    ctype  = M_io_get_type(comm);
 
+	M_printf("%s:%d: M_io_net_process_cb(%p,%d)\n", __FILE__, __LINE__, layer, *type);
+	fflush(stdout);
+
 	/* If we are disconnected already, we should pass thru DISCONNECT or ERROR events and drop
 	 * any others (DISCONNECT and ERROR events might otherwise not have yet been delivered) */
 	if (handle->state == M_IO_NET_STATE_DISCONNECTED || handle->state == M_IO_NET_STATE_ERROR) {
