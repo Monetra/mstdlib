@@ -209,6 +209,8 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 
 	errno  = 0;
 	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
+	M_printf("%s:%d: retval: %zd\n", __FILE__, __LINE__, retval);
+	fflush(stdout);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
@@ -549,6 +551,8 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, 0);
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
 		if (*type == M_EVENT_TYPE_DISCONNECTED || *type == M_EVENT_TYPE_ERROR) {
+			M_printf("%s:%d: DISCONNECTED\n", __FILE__, __LINE__);
+			fflush(stdout);
 			return M_FALSE;
 		}
 		return M_TRUE;
@@ -1124,6 +1128,9 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
+
+	M_printf("%s:%d\n", __FILE__, __LINE__);
+	fflush(stdout);
 
 	if (handle->state != M_IO_NET_STATE_CONNECTED || M_io_get_type(io) != M_IO_TYPE_STREAM) {
 		/* Already been called, tell caller to wait longer */
