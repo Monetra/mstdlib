@@ -63,6 +63,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 		M_io_get_error_string(conn, msg, sizeof(msg));
 		event_debug("1. %p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
 		retry_count++;
+		M_thread_sleep(100000);
 		if (retry_count > 5 || is_server) {
 			goto cleanup;
 		}
