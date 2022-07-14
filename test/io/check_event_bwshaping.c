@@ -91,6 +91,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 {
 	size_t        mysize;
 	net_data_t   *data = arg;
+	M_uint64      elapsed_ms;
 
 	(void)event;
 
@@ -107,17 +108,19 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf));
+				event_debug("net client %p wrote %zu bytes", comm, mysize - M_buf_len(data->buf));
 				event_debug("net client %p wrote at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
-			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
+			elapsed_ms = M_time_elapsed(&data->starttv);
+			event_debug("net client %p elapsed %llu", comm, elapsed_ms);
+			if (runtime_ms == 0 || elapsed_ms >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
-				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
 				M_io_disconnect(comm);
 				break;
 			}
 			if (M_buf_len(data->buf) == 0) {
 				/* Refill */
+				event_debug("net client %p refilling buf", comm);
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
@@ -234,7 +237,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_event_err_t  err;
 	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
-	runtime_ms = 4000;
+	runtime_ms = 5000;
 
 	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
