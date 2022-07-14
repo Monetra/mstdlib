@@ -475,7 +475,7 @@ M_io_error_t M_io_read_meta(M_io_t *io, unsigned char *buf, size_t buf_len, size
 	if (err == M_IO_ERROR_WOULDBLOCK || (err == M_IO_ERROR_SUCCESS && buf_len > *len_read)) {
 		/* Delete any read soft events, as we know we'd block */
 		M_io_user_softevent_del(io, M_EVENT_TYPE_READ);
-		M_printf("%s:%d: deleting soft events: M_io_get_state(): %d\n", M_io_get_state(io));
+		M_printf("%s:%d: deleting soft events: M_io_get_state(): %d\n", __FILE__, __LINE__, M_io_get_state(io));
 		fflush(stdout);
 	} else if (err == M_IO_ERROR_SUCCESS) {
 		/* There's more likely more data to read, trigger a soft event */
