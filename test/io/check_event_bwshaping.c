@@ -13,6 +13,7 @@ M_io_t  *netserver;
 size_t   server_id;
 size_t   client_id;
 M_uint64 runtime_ms;
+M_bool   is_client_disconnected = M_FALSE;
 
 #define DEBUG 1
 
@@ -140,6 +141,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			M_io_destroy(comm);
 			comm = NULL;
 			net_data_destroy(data);
+			is_client_disconnected = M_TRUE;
 			if (M_event_num_objects(event) == 0)
 				M_event_done(event);
 			break;
@@ -173,6 +175,9 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
 			}
 			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
+			if (is_client_disconnected) {
+				trigger_softevent(comm, M_EVENT_TYPE_READ);
+			}
 			break;
 		case M_EVENT_TYPE_WRITE:
 			break;
