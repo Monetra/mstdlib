@@ -141,8 +141,12 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->events[i].ident, (void **)&member))
 			continue;
 
+		M_printf("%s:%d:\n", __FILE__, __LINE__);
+
 		/* Disconnect */
 		if (event->u.loop.impl_data->events[i].flags & EV_EOF) {
+			M_printf("%s:%d: kqueue EV_EOF\n", __FILE__, __LINE__);
+			fflush(stdout);
 			/* NOTE: always deliver READ event first on a disconnect to make sure any
 			 *       possible pending data is flushed. */
 			if (member->waittype & M_EVENT_WAIT_READ) {
@@ -172,6 +176,8 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 
 		/* Read */
 		if (event->u.loop.impl_data->events[i].filter == EVFILT_READ) {
+			M_printf("EVFILT_READ: data %ld\n", event->u.loop.impl_data->events[i].data);
+			fflush(stdout);
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 			continue;
 		}
