@@ -191,6 +191,21 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 	M_event_timer_stop(handle->timer);
 }
 
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#endif
+
+static void M_fionread(M_io_handle_t *handle)
+{
+	unsigned int bytes;
+#ifdef _WIN32
+	ioctlsocket(handle->data.net.sock, FIONREAD, &bytes);
+#else
+	ioctl(handle->data.net.sock, FIONREAD, &bytes);
+#endif
+	M_printf("%s:%d: FIONREAD bytes: %u\n", __FILE__, __LINE__, bytes);
+	fflush(stdout);
+}
 
 #ifdef _WIN32
 #  define RECV_TYPE     char *
@@ -208,9 +223,11 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	(void)meta;
 
 	errno  = 0;
+	M_fionread(handle);
 	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
 	M_printf("%s:%d: retval: %zd\n", __FILE__, __LINE__, retval);
 	fflush(stdout);
+	M_fionread(handle);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;

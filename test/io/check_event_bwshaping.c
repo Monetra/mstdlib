@@ -14,6 +14,7 @@ size_t   server_id;
 size_t   client_id;
 M_uint64 runtime_ms;
 M_bool   is_client_disconnected = M_FALSE;
+int      server_trigger_count = 0;
 
 #define DEBUG 1
 
@@ -176,7 +177,10 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			}
 			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			if (is_client_disconnected) {
-				trigger_softevent(comm, M_EVENT_TYPE_READ);
+				if (server_trigger_count < 10) {
+					trigger_softevent(comm, M_EVENT_TYPE_READ);
+				}
+				server_trigger_count++;
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
