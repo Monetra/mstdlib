@@ -89,6 +89,8 @@ static M_bool M_is_fionread_pending(M_io_handle_t *handle)
 #else
 	ioctl(handle->data.net.sock, FIONREAD, &bytes);
 #endif
+	M_printf("%s:%d: fionread_pending: %u\n", __FILE__, __LINE__, bytes);
+	fflush(stdout);
 	return (bytes > 0);
 }
 
