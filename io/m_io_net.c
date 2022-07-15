@@ -79,7 +79,6 @@ typedef int socklen_t;
 
 #ifndef _WIN32
 #include <sys/ioctl.h>
-#include <sys/sockio.h>
 #endif
 
 static void M_fionread(M_io_handle_t *handle)
