@@ -81,7 +81,7 @@ typedef int socklen_t;
 #include <sys/ioctl.h>
 #endif
 
-static void M_fionread(M_io_handle_t *handle)
+static M_bool M_is_fionread_pending(M_io_handle_t *handle)
 {
 	unsigned int bytes;
 #ifdef _WIN32
@@ -89,8 +89,7 @@ static void M_fionread(M_io_handle_t *handle)
 #else
 	ioctl(handle->data.net.sock, FIONREAD, &bytes);
 #endif
-	M_printf("%s:%d: FIONREAD bytes: %u\n", __FILE__, __LINE__, bytes);
-	fflush(stdout);
+	return (bytes > 0);
 }
 
 #ifdef _WIN32
@@ -218,15 +217,22 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 {
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
+	size_t         max_read_len = *read_len;
+	*read_len = 0;
 
 	(void)meta;
 
 	errno  = 0;
-	M_fionread(handle);
-	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
+	do {
+		RECV_LEN_TYPE recv_read_len = max_read_len - *read_len;
+		retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)&buf[*read_len], recv_read_len, 0);
+		if (retval <= 0) {
+			break;
+		}
+		*read_len += (size_t)retval;
+	} while(M_is_fionread_pending(handle) && *read_len < max_read_len);
 	M_printf("%s:%d: retval: %zd\n", __FILE__, __LINE__, retval);
 	fflush(stdout);
-	M_fionread(handle);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
@@ -236,7 +242,6 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 		return handle->data.net.last_error;
 	}
 
-	*read_len = (size_t)retval;
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -562,11 +567,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 	M_printf("%s:%d: M_io_net_process_cb(%p,%d)\n", __FILE__, __LINE__, layer, *type);
 	fflush(stdout);
-	if (*type == M_EVENT_TYPE_READ) {
-		M_fionread(handle);
-		M_printf("---\n");
-		fflush(stdout);
-	}
 
 	/* If we are disconnected already, we should pass thru DISCONNECT or ERROR events and drop
 	 * any others (DISCONNECT and ERROR events might otherwise not have yet been delivered) */
