@@ -818,6 +818,7 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	const char        *bindip = handle->host;
 	int                type   = SOCK_STREAM;
 	int                rv;
+	struct linger      so_linger = { M_TRUE, 0 };
 
 	/* If the bind address was set to NULL, that means to listen on all interfaces.  Lets
 	 * set it appropriately based on the type of connection requested. */
@@ -884,6 +885,8 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	M_io_posix_fd_set_closeonexec(handle->data.net.sock, M_TRUE);
 #endif
 
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+	(void)rv;
 
 	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
