@@ -77,6 +77,22 @@ typedef int socklen_t;
 #  endif
 #endif
 
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#include <sys/sockio.h>
+#endif
+
+static void M_fionread(M_io_handle_t *handle)
+{
+	unsigned int bytes;
+#ifdef _WIN32
+	ioctlsocket(handle->data.net.sock, FIONREAD, &bytes);
+#else
+	ioctl(handle->data.net.sock, FIONREAD, &bytes);
+#endif
+	M_printf("%s:%d: FIONREAD bytes: %u\n", __FILE__, __LINE__, bytes);
+	fflush(stdout);
+}
 
 #ifdef _WIN32
 static M_io_error_t M_io_net_resolve_error_sys(DWORD err)
@@ -189,22 +205,6 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 
 	M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_ERROR, M_io_net_resolve_error_sys(handle->data.net.last_error_sys));
 	M_event_timer_stop(handle->timer);
-}
-
-#ifndef _WIN32
-#include <sys/ioctl.h>
-#endif
-
-static void M_fionread(M_io_handle_t *handle)
-{
-	unsigned int bytes;
-#ifdef _WIN32
-	ioctlsocket(handle->data.net.sock, FIONREAD, &bytes);
-#else
-	ioctl(handle->data.net.sock, FIONREAD, &bytes);
-#endif
-	M_printf("%s:%d: FIONREAD bytes: %u\n", __FILE__, __LINE__, bytes);
-	fflush(stdout);
 }
 
 #ifdef _WIN32
@@ -563,6 +563,11 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 
 	M_printf("%s:%d: M_io_net_process_cb(%p,%d)\n", __FILE__, __LINE__, layer, *type);
 	fflush(stdout);
+	if (*type == M_EVENT_TYPE_READ) {
+		M_fionread(handle);
+		M_printf("---\n");
+		fflush(stdout);
+	}
 
 	/* If we are disconnected already, we should pass thru DISCONNECT or ERROR events and drop
 	 * any others (DISCONNECT and ERROR events might otherwise not have yet been delivered) */
@@ -1150,7 +1155,7 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	M_event_t     *event  = M_io_get_event(io);
 	int            res;
 
-	M_printf("%s:%d\n", __FILE__, __LINE__);
+	M_printf("%s:%d: %s\n", __FILE__, __LINE__, __FUNCTION__);
 	fflush(stdout);
 
 	if (handle->state != M_IO_NET_STATE_CONNECTED || M_io_get_type(io) != M_IO_TYPE_STREAM) {
