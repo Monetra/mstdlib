@@ -106,6 +106,7 @@ START_TEST(check_mixed_alternate)
 	M_email_destroy(e);
 	M_free(out);
 }
+END_TEST
 
 START_TEST(check_mixed_multipart)
 {
@@ -222,6 +223,7 @@ START_TEST(check_addresses)
 	}
 
 }
+END_TEST
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
