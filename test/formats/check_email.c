@@ -65,29 +65,29 @@ END_TEST
 
 START_TEST(check_mixed_alternate)
 {
-	const char       *test_data =
-"To: test@localhost\r\n"
-"From: test@localhost\r\n"
-"MIME-Version: 1.0\r\n"
-"Content-Type: multipart/alternative; boundary=\"DTGHJ678IJDA-242_S124\"\r\n"
-"\r\n"
-"--DTGHJ678IJDA-242_S124\r\n"
-"Content-Type: text/plain; charset=\"utf-8\"\r\n"
-"Content-Transfer-Encoding: 7bit\r\n"
-"\r\n"
-"Status:       SUCCESS\r\n"
-"\r\n"
-"--DTGHJ678IJDA-242_S124\r\n"
-"Content-type: text/html; charset=\"us-ascii\"\r\n"
-"Content-Transfer-Encoding: 7bit\r\n"
-"\r\n"
-"<html>\r\n"
-"<head></head>\r\n"
-"<body>\r\n"
-"</body>\r\n"
-"</html>\r\n"
-"\r\n"
-"--DTGHJ678IJDA-242_S124--\r\n"
+	const char       *test_data = \
+"To: test@localhost\r\n" \
+"From: test@localhost\r\n" \
+"MIME-Version: 1.0\r\n" \
+"Content-Type: multipart/alternative; boundary=\"DTGHJ678IJDA-242_S124\"\r\n" \
+"\r\n" \
+"--DTGHJ678IJDA-242_S124\r\n" \
+"Content-Type: text/plain; charset=\"utf-8\"\r\n" \
+"Content-Transfer-Encoding: 7bit\r\n" \
+"\r\n" \
+"Status:       SUCCESS\r\n" \
+"\r\n" \
+"--DTGHJ678IJDA-242_S124\r\n" \
+"Content-type: text/html; charset=\"us-ascii\"\r\n" \
+"Content-Transfer-Encoding: 7bit\r\n" \
+"\r\n" \
+"<html>\r\n" \
+"<head></head>\r\n" \
+"<body>\r\n" \
+"</body>\r\n" \
+"</html>\r\n" \
+"\r\n" \
+"--DTGHJ678IJDA-242_S124--\r\n" \
 "";
 	char             *out     = NULL;
 	M_email_error_t   eer;
