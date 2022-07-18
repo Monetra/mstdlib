@@ -135,13 +135,17 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 	if (event->u.loop.impl_data->nevents <= 0)
 		return;
 
+	if (event->u.loop.impl_data->nevents >= KQUEUE_WAIT_EVENTS) {
+		M_printf("%s:%d: Warning that nevents: %d\n", __FILE__, __LINE__, event->u.loop.impl_data->nevents);
+	}
+
 	/* Process events */
 	for (i=0; i<(size_t)event->u.loop.impl_data->nevents; i++) {
 		M_event_evhandle_t     *member  = NULL;
 		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->events[i].ident, (void **)&member))
 			continue;
 
-		M_printf("%s:%d:\n", __FILE__, __LINE__);
+		M_printf("%s:%d: flags: %04X, fflags: %08X\n", __FILE__, __LINE__, event->u.loop.impl_data->events[i].flags, event->u.loop.impl_data->events[i].fflags);
 
 		/* Disconnect */
 		if (event->u.loop.impl_data->events[i].flags & EV_EOF) {
