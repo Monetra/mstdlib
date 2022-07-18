@@ -339,11 +339,20 @@ void M_net_smtp_queue_advance(M_net_smtp_queue_t *q)
 		return;
 	}
 	if (M_net_smtp_is_all_endpoints_idle(sp)) {
-		if (sp->status == M_NET_SMTP_STATUS_STOPPING) {
-			M_net_smtp_processing_halted(sp);
-		} else {
-			sp->status = M_NET_SMTP_STATUS_IDLE;
-			M_net_smtp_prune_endpoints(sp);
+		switch (sp->status) {
+			case M_NET_SMTP_STATUS_NOENDPOINTS:
+			case M_NET_SMTP_STATUS_IDLE:
+				break;
+			case M_NET_SMTP_STATUS_STOPPING:
+				M_net_smtp_processing_halted(sp);
+				break;
+			case M_NET_SMTP_STATUS_PROCESSING:
+				sp->status = M_NET_SMTP_STATUS_IDLE;
+				M_net_smtp_prune_endpoints(sp);
+				break;
+			case M_NET_SMTP_STATUS_STOPPED:
+				M_net_smtp_prune_endpoints(sp);
+				break;
 		}
 	}
 	M_thread_rwlock_unlock(sp->status_rwlock);
