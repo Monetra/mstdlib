@@ -205,18 +205,19 @@ START_TEST(check_addresses)
 		M_email_error_t  eer;
 
 		M_asprintf(&msg, test_data, test[i].address);
-		M_email_simple_split_header_body(msg, &headers, NULL);
 #if DEBUG_INFO_ADDRESS_MAP
+		M_email_simple_split_header_body(msg, &headers, NULL);
 		M_printf("%s\n", M_hash_dict_get_direct(headers, "To"));
+		M_hash_dict_destroy(headers);
 #endif
 		eer = M_email_simple_read(&e, msg, M_str_len(msg), M_EMAIL_SIMPLE_READ_NONE, NULL);
 		ck_assert_msg(eer == test[i].eer, "Expected %d, got %d", test[i].eer, eer);
 		msg2 = M_email_simple_write(e);
-		M_email_simple_split_header_body(msg2, &headers, NULL);
 #if DEBUG_INFO_ADDRESS_MAP
+		M_email_simple_split_header_body(msg2, &headers, NULL);
 		M_printf("|->%s\n", M_hash_dict_get_direct(headers, "To"));
-#endif
 		M_hash_dict_destroy(headers);
+#endif
 		M_email_destroy(e);
 		M_free(msg);
 		M_free(msg2);
