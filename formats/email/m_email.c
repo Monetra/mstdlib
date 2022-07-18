@@ -238,6 +238,8 @@ static M_bool parse_insert_attachment(M_email_t *email, const char *data, size_t
 
 	ret = M_email_part_append_attachment(email, data, len, headers, content_type, transfer_encoding, filename, idx);
 	M_free(content_type);
+	M_free(filename);
+	M_free(transfer_encoding);
 	return ret;
 }
 
