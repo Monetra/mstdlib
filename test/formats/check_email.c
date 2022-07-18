@@ -63,6 +63,50 @@ START_TEST(check_splitting)
 }
 END_TEST
 
+START_TEST(check_mixed_alternate)
+{
+	const char       *test_data =
+"To: test@localhost\r\n"
+"From: test@localhost\r\n"
+"MIME-Version: 1.0\r\n"
+"Content-Type: multipart/alternative; boundary=\"DTGHJ678IJDA-242_S124\"\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124\r\n"
+"Content-Type: text/plain; charset=\"utf-8\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"Status:       SUCCESS\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124\r\n"
+"Content-type: text/html; charset=\"us-ascii\"\r\n"
+"Content-Transfer-Encoding: 7bit\r\n"
+"\r\n"
+"<html>\r\n"
+"<head></head>\r\n"
+"<body>\r\n"
+"</body>\r\n"
+"</html>\r\n"
+"\r\n"
+"--DTGHJ678IJDA-242_S124--\r\n"
+"";
+	char             *out     = NULL;
+	M_email_error_t   eer;
+	M_email_t        *e;
+	size_t            len;
+
+	eer = M_email_simple_read(&e, test_data, M_str_len(test_data), M_EMAIL_SIMPLE_READ_NONE, &len);
+
+	ck_assert_msg(eer == M_EMAIL_ERROR_SUCCESS, "Should return M_EMAIL_ERROR_SUCCESS");
+	ck_assert_msg(len == M_str_len(test_data), "Should have read the entire message");
+	out = M_email_simple_write(e);
+	ck_assert_msg(out != NULL, "Should have written message");
+	/* 1 text/plain + 1 text/html = 2 */
+	ck_assert_msg(M_email_parts_len(e) == 2, "Should have 2 parts.  Has %zu", M_email_parts_len(e));
+
+	M_email_destroy(e);
+	M_free(out);
+}
+
 START_TEST(check_mixed_multipart)
 {
 	const char       *test_data =
@@ -114,7 +158,6 @@ START_TEST(check_mixed_multipart)
 	ck_assert_msg(out != NULL, "Should have written message");
 	/* 1 multipart/alternative + 1 text/plain + 1 text/html + 1 attachment = 4 */
 	ck_assert_msg(M_email_parts_len(e) == 4, "Should have 4 parts.  Has %zu", M_email_parts_len(e));
-	M_printf("%s\n", out);
 
 	M_email_destroy(e);
 	M_free(out);
@@ -192,6 +235,7 @@ int main(void)
 
 	add_test(suite, check_testing);
 	add_test(suite, check_splitting);
+	add_test(suite, check_mixed_alternate);
 	add_test(suite, check_mixed_multipart);
 	add_test(suite, check_addresses);
 
