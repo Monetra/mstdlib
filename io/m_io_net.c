@@ -523,6 +523,17 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
 	(void)rv; /* silence coverity */
 
+	do {
+		int sndbuf_size;
+		int rcvbuf_size;
+		socklen_t len;
+		len = sizeof(sndbuf_size);
+		rv = getsockopt(handle->data.net.sock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, &len);
+		len = sizeof(rcvbuf_size);
+		rv = getsockopt(handle->data.net.sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, &len);
+		M_printf("%s:%d: SO_SNDBUF: %d, SO_RCVBUF: %d\n", __FILE__, __LINE__, sndbuf_size, rcvbuf_size);
+	} while (0);
+
 	if (handle->settings.ka_enable)
 		M_io_net_set_sockopts_keepalives(handle);
 
