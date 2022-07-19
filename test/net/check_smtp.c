@@ -160,7 +160,7 @@ typedef struct {
 		M_bool      is_QUIT;
 		M_bool      is_STARTTLS;
 		int         sttls_state;
-	} conn[16];
+	} conn[64];
 } smtp_emulator_t;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -2632,8 +2632,7 @@ static Suite *smtp_suite(void)
 #endif
 
 /*EMU_ACCEPT_DISCONNECT   = 3, */
-#if 0
-//#if TESTONLY == 0 || TESTONLY == 3
+#if TESTONLY == 0 || TESTONLY == 3
 	tc = tcase_create("emu-accept-disconnect");
 	tcase_add_test(tc, emu_accept_disconnect);
 	tcase_set_timeout(tc, 5);
