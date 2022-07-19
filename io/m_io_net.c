@@ -89,8 +89,6 @@ static M_bool M_is_fionread_pending(M_io_handle_t *handle)
 #else
 	ioctl(handle->data.net.sock, FIONREAD, &bytes);
 #endif
-	M_printf("%s:%d: fionread_pending: %u\n", __FILE__, __LINE__, bytes);
-	fflush(stdout);
 	return (bytes > 0);
 }
 
@@ -233,8 +231,6 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 		}
 		*read_len += (size_t)retval;
 	} while(M_is_fionread_pending(handle) && *read_len < max_read_len);
-	M_printf("%s:%d: retval: %zd\n", __FILE__, __LINE__, retval);
-	fflush(stdout);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
@@ -567,8 +563,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	M_event_t     *event  = M_io_get_event(comm);
 	M_io_type_t    ctype  = M_io_get_type(comm);
 
-	M_printf("%s:%d: M_io_net_process_cb(%p,%d)\n", __FILE__, __LINE__, layer, *type);
-	fflush(stdout);
 
 	/* If we are disconnected already, we should pass thru DISCONNECT or ERROR events and drop
 	 * any others (DISCONNECT and ERROR events might otherwise not have yet been delivered) */
@@ -577,8 +571,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, 0);
 		M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
 		if (*type == M_EVENT_TYPE_DISCONNECTED || *type == M_EVENT_TYPE_ERROR) {
-			M_printf("%s:%d: DISCONNECTED\n", __FILE__, __LINE__);
-			fflush(stdout);
 			return M_FALSE;
 		}
 		return M_TRUE;
@@ -1159,9 +1151,6 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	M_event_t     *event  = M_io_get_event(io);
 	int            res;
 
-	M_printf("%s:%d: %s\n", __FILE__, __LINE__, __FUNCTION__);
-	fflush(stdout);
-
 	if (handle->state != M_IO_NET_STATE_CONNECTED || M_io_get_type(io) != M_IO_TYPE_STREAM) {
 		/* Already been called, tell caller to wait longer */
 		if (handle->state == M_IO_NET_STATE_DISCONNECTING)
@@ -1180,7 +1169,6 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	/* If unable to close gracefully, go ahead and say we're disconnected */
 	res = shutdown(handle->data.net.sock, SHUT_WR);
 	if (res != 0) {
-		M_printf("%s:%d: shutdown() returned: %d\n", __FILE__, __LINE__, res);
 		return M_TRUE;
 	}
 #endif

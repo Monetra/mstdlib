@@ -28,6 +28,8 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include "m_io_posix_common.h"
 
 #define KQUEUE_WAIT_EVENTS 64
@@ -111,6 +113,7 @@ static void M_event_impl_kqueue_data_structure(M_event_t *event)
 static M_bool M_event_impl_kqueue_wait(M_event_t *event, M_uint64 timeout_ms)
 {
 	struct timespec timeout;
+	int    err;
 
 	if (timeout_ms != M_TIMEOUT_INF) {
 		timeout.tv_sec  = timeout_ms / 1000;
@@ -120,6 +123,12 @@ static M_bool M_event_impl_kqueue_wait(M_event_t *event, M_uint64 timeout_ms)
 	event->u.loop.impl_data->nevents = kevent(event->u.loop.impl_data->kqueue_fd, NULL, 0,
 	                                          event->u.loop.impl_data->events, KQUEUE_WAIT_EVENTS,
 	                                          (timeout_ms != M_TIMEOUT_INF)?&timeout:NULL);
+	err = errno;
+
+	if (event->u.loop.impl_data->nevents == -1) {
+		M_printf("%s:%d: kevent returned -1: %d, %s\n", __FILE__, __LINE__, err, strerror(errno));
+		fflush(stdout);
+	}
 
 	if (event->u.loop.impl_data->nevents > 0) {
 		return M_TRUE;
@@ -135,8 +144,9 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 	if (event->u.loop.impl_data->nevents <= 0)
 		return;
 
-	if (event->u.loop.impl_data->nevents >= KQUEUE_WAIT_EVENTS) {
+	if (event->u.loop.impl_data->nevents >= KQUEUE_WAIT_EVENTS - 1) {
 		M_printf("%s:%d: Warning that nevents: %d\n", __FILE__, __LINE__, event->u.loop.impl_data->nevents);
+		fflush(stdout);
 	}
 
 	/* Process events */
