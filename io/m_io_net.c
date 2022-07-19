@@ -218,7 +218,6 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	size_t         max_read_len = *read_len;
-	int            err;
 	*read_len = 0;
 
 	(void)meta;
@@ -237,11 +236,11 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
 		return M_IO_ERROR_DISCONNECT;
 	} else if (retval < 0) {
-		err = errno;
 		M_io_net_resolve_error(handle);
-		M_printf("retval: %zd, errno: %d (%s)\n", retval, err, strerror(err));
 		return handle->data.net.last_error;
 	}
+
+
 
 	return M_IO_ERROR_SUCCESS;
 }
@@ -1162,6 +1161,14 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	}
 
 	handle->state = M_IO_NET_STATE_DISCONNECTING;
+
+	do {
+		int nwrite;
+		socklen_t len = sizeof(nwrite);
+		getsockopt(handle->data.net.sock, SOL_SOCKET, SO_NWRITE, &nwrite, &len);
+		M_printf("%s:%d: nwrite: %d\n", __FILE__, __LINE__, nwrite);
+		fflush(stdout);
+	} while(0);
 
 	/* Tell the remote end we want to shutdown */
 #ifdef _WIN32
