@@ -70,7 +70,11 @@ static void M_event_impl_kqueue_modify_event(M_event_t *event, M_event_modify_ty
 			 * events.
 			 *	if (caps & M_EVENT_CAPS_READ) {
 			 */
-			EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+			/*EV_EOF         Filters may set this flag to indicate filter-specific EOF
+			 *               condition.
+			 */
+
+			EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR | EV_EOF, 0, 0, NULL);
 			nev++;
 			if (caps & M_EVENT_CAPS_WRITE) {
 				/* NOTE: EV_CLEAR sets edge-triggered instead of level-triggered */

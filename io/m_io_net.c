@@ -1162,14 +1162,6 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 
 	handle->state = M_IO_NET_STATE_DISCONNECTING;
 
-	do {
-		int nwrite;
-		socklen_t len = sizeof(nwrite);
-		getsockopt(handle->data.net.sock, SOL_SOCKET, SO_NWRITE, &nwrite, &len);
-		M_printf("%s:%d: nwrite: %d\n", __FILE__, __LINE__, nwrite);
-		fflush(stdout);
-	} while(0);
-
 	/* Tell the remote end we want to shutdown */
 #ifdef _WIN32
 	/* If unable to close gracefully, go ahead and say we're disconnected */
