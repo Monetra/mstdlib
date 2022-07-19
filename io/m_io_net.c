@@ -77,20 +77,6 @@ typedef int socklen_t;
 #  endif
 #endif
 
-#ifndef _WIN32
-#include <sys/ioctl.h>
-#endif
-
-static M_bool M_is_fionread_pending(M_io_handle_t *handle)
-{
-	unsigned int bytes;
-#ifdef _WIN32
-	ioctlsocket(handle->data.net.sock, FIONREAD, &bytes);
-#else
-	ioctl(handle->data.net.sock, FIONREAD, &bytes);
-#endif
-	return (bytes > 0);
-}
 
 #ifdef _WIN32
 static M_io_error_t M_io_net_resolve_error_sys(DWORD err)
@@ -205,6 +191,7 @@ static void M_io_net_timeout_cb(M_event_t *event, M_event_type_t type, M_io_t *c
 	M_event_timer_stop(handle->timer);
 }
 
+
 #ifdef _WIN32
 #  define RECV_TYPE     char *
 #  define RECV_LEN_TYPE int
@@ -217,20 +204,11 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 {
 	ssize_t        retval;
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	size_t         max_read_len = *read_len;
-	*read_len = 0;
 
 	(void)meta;
 
 	errno  = 0;
-	do {
-		RECV_LEN_TYPE recv_read_len = max_read_len - *read_len;
-		retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)&buf[*read_len], recv_read_len, 0);
-		if (retval <= 0) {
-			break;
-		}
-		*read_len += (size_t)retval;
-	} while(M_is_fionread_pending(handle) && *read_len < max_read_len);
+	retval = (ssize_t)recv(handle->data.net.sock, (RECV_TYPE)buf, (RECV_LEN_TYPE)*read_len, 0);
 	if (retval == 0) {
 		handle->data.net.last_error_sys = 0;
 		handle->data.net.last_error     = M_IO_ERROR_DISCONNECT;
@@ -240,8 +218,7 @@ static M_io_error_t M_io_net_read_cb_int(M_io_layer_t *layer, unsigned char *buf
 		return handle->data.net.last_error;
 	}
 
-
-
+	*read_len = (size_t)retval;
 	return M_IO_ERROR_SUCCESS;
 }
 
@@ -527,17 +504,6 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	} while(0);
 #endif
 
-	do {
-		int sndbuf_size;
-		int rcvbuf_size;
-		socklen_t len;
-		len = sizeof(sndbuf_size);
-		rv = getsockopt(handle->data.net.sock, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, &len);
-		len = sizeof(rcvbuf_size);
-		rv = getsockopt(handle->data.net.sock, SOL_SOCKET, SO_RCVBUF, &rcvbuf_size, &len);
-		M_printf("%s:%d: SO_SNDBUF: %d, SO_RCVBUF: %d\n", __FILE__, __LINE__, sndbuf_size, rcvbuf_size);
-	} while (0);
-
 	if (handle->settings.ka_enable)
 		M_io_net_set_sockopts_keepalives(handle);
 
@@ -579,7 +545,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 	M_io_t        *comm   = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(comm);
 	M_io_type_t    ctype  = M_io_get_type(comm);
-
 
 	/* If we are disconnected already, we should pass thru DISCONNECT or ERROR events and drop
 	 * any others (DISCONNECT and ERROR events might otherwise not have yet been delivered) */
@@ -829,7 +794,6 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	const char        *bindip = handle->host;
 	int                type   = SOCK_STREAM;
 	int                rv;
-	struct linger      so_linger = { M_TRUE, 0 };
 
 	/* If the bind address was set to NULL, that means to listen on all interfaces.  Lets
 	 * set it appropriately based on the type of connection requested. */
@@ -896,8 +860,6 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	M_io_posix_fd_set_closeonexec(handle->data.net.sock, M_TRUE);
 #endif
 
-	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
-	(void)rv;
 
 	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
@@ -1166,7 +1128,6 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
 	M_io_t        *io     = M_io_layer_get_io(layer);
 	M_event_t     *event  = M_io_get_event(io);
-	int            res;
 
 	if (handle->state != M_IO_NET_STATE_CONNECTED || M_io_get_type(io) != M_IO_TYPE_STREAM) {
 		/* Already been called, tell caller to wait longer */
@@ -1184,10 +1145,8 @@ static M_bool M_io_net_disconnect_cb(M_io_layer_t *layer)
 		return M_TRUE;
 #else
 	/* If unable to close gracefully, go ahead and say we're disconnected */
-	res = shutdown(handle->data.net.sock, SHUT_WR);
-	if (res != 0) {
+	if (shutdown(handle->data.net.sock, SHUT_WR) != 0)
 		return M_TRUE;
-	}
 #endif
 	/* Make sure we re-activate waiting on a read event if it is not active as that is the only
 	 * way we will receive the disconnect notification */

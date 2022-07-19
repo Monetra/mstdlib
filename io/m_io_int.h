@@ -75,6 +75,9 @@ struct M_io_callbacks {
 	 *  be called if cb_state() returns M_IO_STATE_ERROR.  Returns false if cannot generate an error string. */
 	M_bool         (*cb_errormsg)(M_io_layer_t *layer, char *error, size_t err_len);
 
+	/*! Determine if OS-level read event is a disconnect */
+	M_bool         (*cb_is_disconnect_read)(M_io_layer_t *layer);
+
 	/* 
 	 * Append brief technical details about the layer (e.g. IP address/port IPv4 vs IPv6, SSL Ciphers/Protocol, BW Limitations):
 	 * void         (*cb_describe)(M_io_layer_t *layer, M_buf_t *buf);

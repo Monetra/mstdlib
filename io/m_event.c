@@ -811,8 +811,6 @@ static void M_event_queue_pending(M_event_t *event, M_io_t *io, size_t layer_id,
 //M_printf("%s(): io %p layer %zu handle %d type %d\n", __FUNCTION__, io_or_timer, layer_id, handle, (int)type);
 	ev                       = (M_uint16)(1 << type);
 	entry->events[layer_id] |= ev;
-	if (type == M_EVENT_TYPE_READ) {
-	}
 
 	/* NOTE: we use the highest bit as an indicator that the *next* layer needs
 	 *       to be checked when processing events, so tag all layers below this

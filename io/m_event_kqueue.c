@@ -28,8 +28,6 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <errno.h>
-#include <string.h>
 #include "m_io_posix_common.h"
 
 #define KQUEUE_WAIT_EVENTS 64
@@ -70,11 +68,7 @@ static void M_event_impl_kqueue_modify_event(M_event_t *event, M_event_modify_ty
 			 * events.
 			 *	if (caps & M_EVENT_CAPS_READ) {
 			 */
-			/*EV_EOF         Filters may set this flag to indicate filter-specific EOF
-			 *               condition.
-			 */
-
-			EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR | EV_EOF, 0, 0, NULL);
+			EV_SET(&ev[0], handle, EVFILT_READ,  EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
 			nev++;
 			if (caps & M_EVENT_CAPS_WRITE) {
 				/* NOTE: EV_CLEAR sets edge-triggered instead of level-triggered */
@@ -117,7 +111,6 @@ static void M_event_impl_kqueue_data_structure(M_event_t *event)
 static M_bool M_event_impl_kqueue_wait(M_event_t *event, M_uint64 timeout_ms)
 {
 	struct timespec timeout;
-	int    err;
 
 	if (timeout_ms != M_TIMEOUT_INF) {
 		timeout.tv_sec  = timeout_ms / 1000;
@@ -127,12 +120,6 @@ static M_bool M_event_impl_kqueue_wait(M_event_t *event, M_uint64 timeout_ms)
 	event->u.loop.impl_data->nevents = kevent(event->u.loop.impl_data->kqueue_fd, NULL, 0,
 	                                          event->u.loop.impl_data->events, KQUEUE_WAIT_EVENTS,
 	                                          (timeout_ms != M_TIMEOUT_INF)?&timeout:NULL);
-	err = errno;
-
-	if (event->u.loop.impl_data->nevents == -1) {
-		M_printf("%s:%d: kevent returned -1: %d, %s\n", __FILE__, __LINE__, err, strerror(errno));
-		fflush(stdout);
-	}
 
 	if (event->u.loop.impl_data->nevents > 0) {
 		return M_TRUE;
@@ -148,23 +135,14 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 	if (event->u.loop.impl_data->nevents <= 0)
 		return;
 
-	if (event->u.loop.impl_data->nevents >= KQUEUE_WAIT_EVENTS - 1) {
-		M_printf("%s:%d: Warning that nevents: %d\n", __FILE__, __LINE__, event->u.loop.impl_data->nevents);
-		fflush(stdout);
-	}
-
 	/* Process events */
 	for (i=0; i<(size_t)event->u.loop.impl_data->nevents; i++) {
 		M_event_evhandle_t     *member  = NULL;
 		if (!M_hash_u64vp_get(event->u.loop.evhandles, (M_uint64)event->u.loop.impl_data->events[i].ident, (void **)&member))
 			continue;
 
-		M_printf("%s:%d: flags: %04X, fflags: %08X\n", __FILE__, __LINE__, event->u.loop.impl_data->events[i].flags, event->u.loop.impl_data->events[i].fflags);
-
 		/* Disconnect */
 		if (event->u.loop.impl_data->events[i].flags & EV_EOF) {
-			M_printf("%s:%d: kqueue EV_EOF\n", __FILE__, __LINE__);
-			fflush(stdout);
 			/* NOTE: always deliver READ event first on a disconnect to make sure any
 			 *       possible pending data is flushed. */
 			if (member->waittype & M_EVENT_WAIT_READ) {
@@ -194,8 +172,6 @@ static void M_event_impl_kqueue_process(M_event_t *event)
 
 		/* Read */
 		if (event->u.loop.impl_data->events[i].filter == EVFILT_READ) {
-			M_printf("EVFILT_READ: data %ld\n", event->u.loop.impl_data->events[i].data);
-			fflush(stdout);
 			M_event_deliver_io(event, member->io, M_EVENT_TYPE_READ);
 			continue;
 		}
