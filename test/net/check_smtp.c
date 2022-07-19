@@ -2632,7 +2632,8 @@ static Suite *smtp_suite(void)
 #endif
 
 /*EMU_ACCEPT_DISCONNECT   = 3, */
-#if TESTONLY == 0 || TESTONLY == 3
+#if 0
+//#if TESTONLY == 0 || TESTONLY == 3
 	tc = tcase_create("emu-accept-disconnect");
 	tcase_add_test(tc, emu_accept_disconnect);
 	tcase_set_timeout(tc, 5);
