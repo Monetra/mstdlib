@@ -18,7 +18,7 @@ M_uint64 runtime_ms;
 #ifdef DEBUG
 #  undef DEBUG
 #endif
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -48,12 +48,6 @@ static void trigger_softevent(M_io_t *io, M_event_type_t etype)
 	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
 	M_io_layer_release(layer);
 }
-
-static void trigger_write_softevent(M_io_t *io)
-{
-	trigger_softevent(io, M_EVENT_TYPE_WRITE);
-}
-
 
 static const char *event_type_str(M_event_type_t type)
 {
@@ -128,6 +122,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			if (M_buf_len(data->buf) == 0) {
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
+				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
@@ -146,11 +141,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 		default:
 			/* Ignore */
 			break;
-	}
-	if (comm != NULL) {
-		if (M_buf_len(data->buf) > 0) {
-			trigger_write_softevent(comm);
-		}
 	}
 }
 
