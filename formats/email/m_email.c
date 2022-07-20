@@ -52,8 +52,8 @@ struct M_email {
 	M_list_t                  *parts; /* List of M_email_part_t */
 	char                      *preamble;
 	char                      *epilogue;
-	M_email_address_t *reply_to;
-	M_email_address_t *from;
+	M_email_address_t         *reply_to;
+	M_email_address_t         *from;
 	char                      *subject;
 };
 
@@ -213,6 +213,7 @@ static M_bool parse_insert_attachment(M_email_t *email, const char *data, size_t
 	char       *content_type      = NULL;
 	char       *filename          = NULL;
 	char       *transfer_encoding = NULL;
+	M_bool      ret;
 
 	const_temp = M_hash_dict_get_direct(headers, "Content-Transfer-Encoding");
 	if (!M_str_isempty(const_temp))
@@ -235,7 +236,11 @@ static M_bool parse_insert_attachment(M_email_t *email, const char *data, size_t
 		}
 	}
 
-	return M_email_part_append_attachment(email, data, len, headers, content_type, transfer_encoding, filename, idx);
+	ret = M_email_part_append_attachment(email, data, len, headers, content_type, transfer_encoding, filename, idx);
+	M_free(content_type);
+	M_free(filename);
+	M_free(transfer_encoding);
+	return ret;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
