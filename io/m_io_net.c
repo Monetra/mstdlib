@@ -465,6 +465,7 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 {
 	int ival;
 	int rv;
+	struct linger so_linger;
 
 	/* Set Nagle, if enable TCP_NODELAY is 0 (off), otherwise it is 1 (on) */
 	ival = (handle->settings.nagle_enable)?0:1;
@@ -495,14 +496,13 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 	 * |---------|----------|----------------------------------------------------------------|----------------|
 	 */
 #ifdef _WIN32
-	do {
-		struct linger so_linger;
-		so_linger.l_onoff  = 1;
-		so_linger.l_linger = 0;
-		rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
-		(void)rv; /* silence coverity */
-	} while(0);
+	so_linger.l_onoff  = 1;
+#else
+	so_linger.l_onoff  = 0;
 #endif
+	so_linger.l_linger = 0;
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_LINGER, (const void *)&so_linger, sizeof(so_linger));
+	(void)rv; /* silence coverity */
 
 	if (handle->settings.ka_enable)
 		M_io_net_set_sockopts_keepalives(handle);
