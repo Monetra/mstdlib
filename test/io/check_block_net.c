@@ -8,12 +8,15 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-M_uint64 active_client_connections;
-M_uint64 active_server_connections;
-M_uint64 client_connection_count;
-M_uint64 server_connection_count;
-M_uint64 expected_connections;
+M_dns_t          *dns;
+M_uint16          port;
+M_uint64          active_client_connections;
+M_uint64          active_server_connections;
+M_uint64          client_connection_count;
+M_uint64          server_connection_count;
+M_uint64          expected_connections;
 M_thread_mutex_t *debug_lock = NULL;
+
 #define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
@@ -48,7 +51,7 @@ static void handle_connection(M_io_t *conn, M_bool is_server)
 
 	/* Odd, but we need to wait on a connection right now even though this
 	 * was an accept() */
-	if (M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
+	if (is_server && M_io_block_connect(conn) != M_IO_ERROR_SUCCESS) {
 		char msg[256];
 		M_io_get_error_string(conn, msg, sizeof(msg));
 		event_debug("%p %s Failed to %s connection: %s", conn, is_server?"netserver":"netclient", is_server?"accept":"perform", msg);
@@ -129,8 +132,21 @@ static void *server_thread(void *arg)
 
 static void *client_thread(void *arg)
 {
+	M_io_t *conn        = NULL;
+	int     retry_count = 0;
+	(void)arg;
 	event_debug("attempting client connection");
-	handle_connection(arg, M_FALSE);
+	do {
+		retry_count++;
+		if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) == M_IO_ERROR_SUCCESS) {
+			if (M_io_block_connect(conn) == M_IO_ERROR_SUCCESS)
+				break;
+		}
+		event_debug("connection failed attempt %d / 5", retry_count);
+	} while (retry_count < 5);
+	if (retry_count < 5) {
+		handle_connection(conn, M_FALSE);
+	}
 	return NULL;
 }
 
@@ -152,15 +168,13 @@ static void *listener_thread(void *arg)
 
 static void check_block_net_test(M_uint64 num_connections)
 {
-	M_io_t          *conn;
 	size_t           i;
 	M_threadid_t     thread;
 	M_thread_attr_t *attr = M_thread_attr_create();
-	M_dns_t         *dns       = M_dns_create(NULL);
 	M_io_t          *netserver = NULL;
-	M_uint16         port      = (M_uint16)M_rand_range(NULL, 10000, 48000);
 	M_io_error_t     ioerr;
 
+	dns                       = M_dns_create(NULL);
 	active_client_connections = 0;
 	active_server_connections = 0;
 	client_connection_count   = 0;
@@ -170,25 +184,25 @@ static void check_block_net_test(M_uint64 num_connections)
 
 	event_debug("Test %llu connections", num_connections);
 
-	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
+	do {
+		port  = (M_uint16)M_rand_range(NULL, 10000, 48000);
+		ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY);
+	} while (ioerr == M_IO_ERROR_ADDRINUSE);
 
 	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return;
 	}
+
+	event_debug("Server created on port %d", (int)port);
+
 	M_thread_attr_set_create_joinable(attr, M_TRUE);
 	thread = M_thread_create(attr, listener_thread, netserver);
 	M_thread_attr_destroy(attr);
 
 	M_thread_sleep(10000);
 	for (i=0; i<expected_connections; i++) {
-		if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS)
-			break;
-		M_thread_create(NULL, client_thread, conn);
+		M_thread_create(NULL, client_thread, NULL);
 	}
 
 	M_thread_join(thread, NULL);
