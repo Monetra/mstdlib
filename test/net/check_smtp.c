@@ -710,8 +710,9 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
-		M_printf("sent_cb: %llu / %llu\n", call_count, multithread_insert_count); fflush(stdout);
+		M_printf("sent_cb: %llu == %llu (%s)\n", call_count, multithread_insert_count, call_count == multithread_insert_count ? "M_TRUE" : "M_FALSE"); fflush(stdout);
 		if (call_count == multithread_insert_count) {
+			M_printf("calling M_event_done(%p)\n", args->el); fflush(stdout);
 			M_event_done(args->el);
 		}
 	}
@@ -882,7 +883,7 @@ START_TEST(multithread_retry)
 	tp           = M_threadpool_create(10, 10, 10, 0);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	tp_parent    = M_threadpool_parent_create(tp);
-	M_printf("FINISHED INITIALIZATION\n"); fflush(stdout);
+	M_printf("INITIALIZATION FINISHED\n"); fflush(stdout);
 
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -904,9 +905,9 @@ START_TEST(multithread_retry)
 	args.emu = emu;
 
 	M_threadpool_parent_wait(tp_parent);
-	M_printf("Dispatched all messages\n");
+	M_printf("Dispatched all messages\n"); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
-	M_printf("Returned from loop\n");
+	M_printf("Returned from loop\n"); fflush(stdout);
 
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
@@ -984,7 +985,7 @@ START_TEST(multithread_insert_proc)
 
 	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
 
-	M_printf("STARTING DEALLOCATION\n"); fflush(stdout);
+	M_printf("DEALLOCATION STARTING\n"); fflush(stdout);
 	M_threadpool_parent_destroy(tp_parent);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_threadpool_destroy(tp);
@@ -1002,7 +1003,7 @@ START_TEST(multithread_insert_proc)
 	M_event_destroy(el);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	cleanup();
-	M_printf("FINISHED DEALLOCATION\n"); fflush(stdout);
+	M_printf("DEALLOCATION FINISHED\n"); fflush(stdout);
 }
 END_TEST
 
@@ -1022,22 +1023,22 @@ START_TEST(multithread_insert)
 	size_t                 i         = 0;
 
 	M_printf("START_TEST(multithread_insert)\n"); fflush(stdout);
+	args.test_id = MULTITHREAD_INSERT;
 	el        = M_event_pool_create(0);
 	M_printf("%s:%d\n", __FILE__, __LINE__);
-	emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
-	M_printf("%s:%d\n", __FILE__, __LINE__);
-	sp        = M_net_smtp_create(el, &test_cbs, &args);
-	M_printf("%s:%d\n", __FILE__, __LINE__);
-	dns       = M_dns_create(el);
-	M_printf("%s:%d\n", __FILE__, __LINE__);
-	e         = generate_email(1, test_address);
-	M_printf("%s:%d\n", __FILE__, __LINE__);
-	tp        = M_threadpool_create(10, 10, 10, 0);
-	M_printf("%s:%d\n", __FILE__, __LINE__);
-	tp_parent = M_threadpool_parent_create(tp);
+	emu          = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
+	sp           = M_net_smtp_create(el, &test_cbs, &args);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
+	dns          = M_dns_create(el);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
+	e            = generate_email(1, test_address);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
+	tp           = M_threadpool_create(10, 10, 10, 0);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
+	tp_parent    = M_threadpool_parent_create(tp);
 	M_printf("INITIALIZATION FINISHED\n"); fflush(stdout);
 
-	args.test_id = MULTITHREAD_INSERT;
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
 
@@ -1055,9 +1056,13 @@ START_TEST(multithread_insert)
 	}
 	M_threadpool_dispatch(tp_parent, multithread_insert_task, testptrs, multithread_insert_count);
 	args.el = el;
+	args.emu = emu;
 
 	M_threadpool_parent_wait(tp_parent);
+	M_printf("Dispatched all messages\n"); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
+	M_printf("Returned from loop\n"); fflush(stdout);
+
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
 	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
