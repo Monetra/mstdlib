@@ -912,16 +912,27 @@ START_TEST(multithread_retry)
 
 	ck_assert_msg(args.sent_cb_call_count == multithread_retry_count, "should have called sent_cb count times");
 
+	M_printf("STARTING DEALLOCATION\n"); fflush(stdout);
 	M_threadpool_parent_destroy(tp_parent);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_threadpool_destroy(tp);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(testptrs);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(tests);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_email_destroy(e);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_dns_destroy(dns);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_net_smtp_destroy(sp);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	smtp_emulator_destroy(emu);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_event_destroy(el);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	cleanup();
+	M_printf("FINISHED DEALLOCATION\n"); fflush(stdout);
 }
 END_TEST
 
@@ -971,17 +982,27 @@ START_TEST(multithread_insert_proc)
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
-	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
+	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
 
+	M_printf("STARTING DEALLOCATION\n"); fflush(stdout);
 	M_threadpool_parent_destroy(tp_parent);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_threadpool_destroy(tp);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(testptrs);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(tests);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_email_destroy(e);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_net_smtp_destroy(sp);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_list_str_destroy(cmd_args);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	M_event_destroy(el);
+	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	cleanup();
+	M_printf("FINISHED DEALLOCATION\n"); fflush(stdout);
 }
 END_TEST
 
@@ -1039,18 +1060,29 @@ START_TEST(multithread_insert)
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
-	ck_assert_msg(args.sent_cb_call_count = multithread_insert_count, "should have called sent_cb count times");
+	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
 
+	M_printf("STARTING DEALLOCATION\n"); fflush(stdout);
 	M_threadpool_parent_destroy(tp_parent);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_threadpool_destroy(tp);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(testptrs);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_free(tests);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_email_destroy(e);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_dns_destroy(dns);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_net_smtp_destroy(sp);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	smtp_emulator_destroy(emu);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	M_event_destroy(el);
+	M_printf("%s:%d\n", __FILE__, __LINE__); fflush(stdout);
 	cleanup();
+	M_printf("FINISHED DEALLOCATION\n"); fflush(stdout);
 }
 END_TEST
 START_TEST(dump_queue)
