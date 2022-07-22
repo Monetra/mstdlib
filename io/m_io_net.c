@@ -544,13 +544,6 @@ static void M_io_net_set_fastpath(M_io_handle_t *handle)
 #endif
 }
 
-static void trigger_softevent(M_io_t *io, M_event_type_t etype)
-{
-	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
-	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
-	M_io_layer_release(layer);
-}
-
 static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -598,7 +591,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 					handle->data.net.last_error = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
 				}
 
-				if (*type == M_EVENT_TYPE_WRITE && handle->data.net.last_error_sys == 0) {
+				if ((*type == M_EVENT_TYPE_WRITE || *type == M_EVENT_TYPE_READ) && handle->data.net.last_error_sys == 0) {
 					handle->data.net.last_error = M_IO_ERROR_SUCCESS;
 					/* Remove write waiter, add read waiter */
 					M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
@@ -609,16 +602,6 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 					handle->state = M_IO_NET_STATE_CONNECTED;
 					M_event_timer_stop(handle->timer);
 					break;
-				} else if (*type == M_EVENT_TYPE_READ && handle->data.net.is_conn_read_2 == M_FALSE) {
-					/* 20220722 - poll can return with flags POLLIN | POLLOUT on initial event.  Reads are done first
-					 * to detect EOF conditions as early as possible.  The MacOS logic below would falsely identify this
-					 * condition as a software abort.  In order to separate the two conditions we will consume the first
-					 * read event setting a flag and trigger a second event.  If POLLOUT is set the connection will
-					 * then correctly set up and the soft READ will then process.  Otherwise it will return to here and
-					 * execute the MacOS logic. -- AK */
-					handle->data.net.is_conn_read_2 = M_TRUE;
-					trigger_softevent(comm, M_EVENT_TYPE_READ);
-					return M_TRUE; /* Consume this event -- wait for the softevent */
 				} else {
 #ifndef _WIN32
 					/* MacOSX has a weird bug where they return EV_EOF under high load for establishing a
