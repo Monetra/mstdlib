@@ -35,6 +35,7 @@ M_thread_mutex_lock(debug_lock);
 	M_vprintf(buf, ap);
 M_thread_mutex_unlock(debug_lock);
 	va_end(ap);
+	fflush(stdout);
 }
 #else
 static void event_debug(const char *fmt, ...)
@@ -133,20 +134,19 @@ static void *server_thread(void *arg)
 static void *client_thread(void *arg)
 {
 	M_io_t *conn        = NULL;
-	int     retry_count = 0;
 	(void)arg;
 	event_debug("attempting client connection");
-	do {
-		retry_count++;
-		if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) == M_IO_ERROR_SUCCESS) {
-			if (M_io_block_connect(conn) == M_IO_ERROR_SUCCESS)
-				break;
+	if (M_io_net_client_create(&conn, dns, "localhost", port, M_IO_NET_ANY) == M_IO_ERROR_SUCCESS) {
+		if (M_io_block_connect(conn) == M_IO_ERROR_SUCCESS) {
+			handle_connection(conn, M_FALSE);
+			return NULL;
+		} else {
+			char msg[256];
+			M_io_get_error_string(conn, msg, sizeof(msg));
+			event_debug("M_io_block_connect(): \"%s\"\n", msg);
 		}
-		event_debug("connection failed attempt %d / 5", retry_count);
-	} while (retry_count < 5);
-	if (retry_count < 5) {
-		handle_connection(conn, M_FALSE);
 	}
+	event_debug("client connection failed");
 	return NULL;
 }
 
@@ -216,7 +216,7 @@ static void check_block_net_test(M_uint64 num_connections)
 
 START_TEST(check_block_net)
 {
-	M_uint64 tests[] = { 1, 25, /* 100, 200, -- disable because of mac */ 0 };
+	M_uint64 tests[] = { 1, 25, /* 100, 200, */ 0 };
 	size_t   i;
 
 	for (i=0; tests[i] != 0; i++) {

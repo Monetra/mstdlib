@@ -544,7 +544,6 @@ static void M_io_net_set_fastpath(M_io_handle_t *handle)
 #endif
 }
 
-
 static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 {
 	M_io_handle_t *handle = M_io_layer_get_handle(layer);
@@ -592,7 +591,7 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 					handle->data.net.last_error = M_io_net_resolve_error_sys(handle->data.net.last_error_sys);
 				}
 
-				if (*type == M_EVENT_TYPE_WRITE && handle->data.net.last_error_sys == 0) {
+				if ((*type == M_EVENT_TYPE_WRITE || *type == M_EVENT_TYPE_READ) && handle->data.net.last_error_sys == 0) {
 					handle->data.net.last_error = M_IO_ERROR_SUCCESS;
 					/* Remove write waiter, add read waiter */
 					M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
