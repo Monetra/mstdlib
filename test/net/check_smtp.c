@@ -21,8 +21,8 @@ char              *test_address             = NULL;
 char              *sendmail_emu             = NULL;
 M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
-const size_t       multithread_insert_count = 10;
-const size_t       multithread_retry_count  = 11;
+const M_uint64     multithread_insert_count = 10;
+const M_uint64     multithread_retry_count  = 11;
 M_thread_mutex_t  *mutex                    = NULL;
 M_event_err_t      event_err;
 
@@ -703,13 +703,14 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_hash_dict_get(headers, "subject", &subject);
 		M_printf("subject: %p\n", subject);
 		*/
-		M_printf("sent_cb: %llu\n", call_count);
+		M_printf("sent_cb: %llu\n", call_count); fflush(stdout);
 		if (call_count == multithread_retry_count) {
 			M_event_done(args->el);
 		}
 	}
 
 	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
+		M_printf("sent_cb: %llu / %llu\n", call_count, multithread_insert_count); fflush(stdout);
 		if (call_count == multithread_insert_count) {
 			M_event_done(args->el);
 		}
@@ -768,7 +769,7 @@ static M_bool send_failed_cb(const M_hash_dict_t *headers, const char *error, si
 	if (args->test_id == MULTITHREAD_RETRY) {
 		M_printf("send_failed %llu\n", call_count);
 		if (call_count == multithread_retry_count) {
-			M_printf("Send failed for %zu msgs, retry in 3 sec\n", multithread_retry_count);
+			M_printf("Send failed for %llu msgs, retry in 3 sec\n", multithread_retry_count);
 			smtp_emulator_switch(args->emu, "minimal");
 		}
 		return M_TRUE; /* requeue message */
