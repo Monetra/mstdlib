@@ -58,6 +58,7 @@ struct M_io_handle_net {
 	M_EVENT_HANDLE       evhandle;       /*!< Event handle                                                   */
 	M_EVENT_SOCKET       sock;           /*!< Socket/File Descriptor                                         */
 	unsigned short       eport;          /*!< Ephemeral port for informational purposes                      */
+	M_bool               is_conn_read_2; /*!< Flag indicating the second READ event while connecting         */
 #ifdef _WIN32
 	DWORD                last_error_sys;
 #else
