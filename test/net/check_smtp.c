@@ -22,7 +22,7 @@ char              *test_address             = NULL;
 char              *sendmail_emu             = NULL;
 M_list_str_t      *test_external_queue      = NULL;
 M_tls_serverctx_t *test_serverctx           = NULL;
-const size_t       multithread_insert_count = 100;
+const size_t       multithread_insert_count = 10;
 const size_t       multithread_retry_count  = 11;
 M_thread_mutex_t  *mutex                    = NULL;
 M_event_err_t      event_err;
@@ -160,7 +160,7 @@ typedef struct {
 		M_bool      is_QUIT;
 		M_bool      is_STARTTLS;
 		int         sttls_state;
-	} conn[16];
+	} conn[64];
 } smtp_emulator_t;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
