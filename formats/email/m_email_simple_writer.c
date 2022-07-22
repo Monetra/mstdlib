@@ -32,6 +32,17 @@ static const size_t LINE_LEN = 78;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+static M_bool M_email_has_attachment(const M_email_t *email)
+{
+	size_t i;
+	for (i=0; i<M_email_parts_len(email); i++) {
+		if (M_email_part_is_attachmenet(email, i))
+			return M_TRUE;
+	}
+	return M_FALSE;
+}
+
+
 static char *M_email_write_gen_boundary(void)
 {
 	M_rand_t *r;
@@ -212,13 +223,19 @@ static M_bool M_email_simple_write_add_headers_recipients(const M_email_t *email
 	return M_TRUE;
 }
 
-static M_bool M_email_simple_write_add_headers_content_type(M_buf_t *buf, const char *boundary)
+static M_bool M_email_simple_write_add_headers_content_type(M_buf_t *buf, const char *boundary, M_bool is_mixed)
 {
 	M_buf_t *mbuf;
 	char    *out;
 
 	mbuf = M_buf_create();
-	M_buf_add_str(mbuf, "multipart/alternative; boundary=\"");
+	M_buf_add_str(mbuf, "multipart/");
+	if (is_mixed) {
+		M_buf_add_str(mbuf, "mixed");
+	} else {
+		M_buf_add_str(mbuf, "alternative");
+	}
+	M_buf_add_str(mbuf, "; boundary=\"");
 	M_buf_add_str(mbuf, boundary);
 	M_buf_add_byte(mbuf, '\"');
 
@@ -249,7 +266,7 @@ static M_bool M_email_simple_write_add_headers(const M_email_t *email, M_buf_t *
 	if (!M_email_simple_write_add_headers_recipients(email, buf))
 		return M_FALSE;
 
-	if (!M_email_simple_write_add_headers_content_type(buf, boundary))
+	if (!M_email_simple_write_add_headers_content_type(buf, boundary, M_email_has_attachment(email)))
 		return M_FALSE;
 
 	if (!M_email_simple_write_add_headers_subject(email, buf))
@@ -278,7 +295,7 @@ static M_bool M_email_simple_write_add_preamble(const M_email_t *email, M_buf_t 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static M_bool M_email_simple_write_add_parts(const M_email_t *email, M_buf_t *buf, const char *boundary)
+static M_bool M_email_simple_write_add_parts(const M_email_t *email, M_buf_t *buf, const char *boundary, const char *sub_boundary, M_bool is_processing_attachments)
 {
 	size_t len;
 	size_t i;
@@ -290,15 +307,26 @@ static M_bool M_email_simple_write_add_parts(const M_email_t *email, M_buf_t *bu
 		const char          *key;
 		const char          *val;
 
+		if (M_email_part_is_attachmenet(email, i) != is_processing_attachments)
+			continue;
+
 		/* Add the boundary. */
 		M_buf_add_str(buf, "--");
-		M_buf_add_str(buf, boundary);
+		if (is_processing_attachments || i == 0) {
+			M_buf_add_str(buf, boundary);
+		} else {
+			M_buf_add_str(buf, sub_boundary);
+		}
 		M_buf_add_str(buf, "\r\n");
 
 		/* Add the headers. */
 		headers = M_email_part_headers(email, i);
 		M_hash_dict_enumerate(headers, &he);
 		while (M_hash_dict_enumerate_next(headers, he, &key, &val)) {
+			if (i == 0 && M_str_caseeq(key, "Content-Type") && M_str_casestr(val, "multipart") != NULL) {
+				M_email_simple_write_add_headers_content_type(buf, sub_boundary, M_FALSE);
+				continue;
+			}
 			M_email_add_header_entry(buf, key, val);
 		}
 		M_hash_dict_enumerate_free(he);
@@ -364,8 +392,13 @@ static M_bool M_email_simple_write_add_parts(const M_email_t *email, M_buf_t *bu
 
 	/* Ending boundary. */
 	M_buf_add_str(buf, "--");
-	M_buf_add_str(buf, boundary);
-	M_buf_add_str(buf, "--");
+	if (is_processing_attachments) {
+		M_buf_add_str(buf, boundary);
+		M_buf_add_str(buf, "--");
+	} else {
+		M_buf_add_str(buf, sub_boundary);
+		M_buf_add_str(buf, "--\r\n\r\n");
+	}
 
 	return M_TRUE;
 }
@@ -406,14 +439,15 @@ char *M_email_simple_write(const M_email_t *email)
 
 M_bool M_email_simple_write_buf(const M_email_t *email, M_buf_t *buf)
 {
-	char   *boundary;
+	char   *boundary     = NULL;
+	char   *sub_boundary = NULL;
 	size_t  start_len;
 
 	if (email == NULL || buf == NULL)
 		return M_FALSE;
 
-	start_len = M_buf_len(buf);
-	boundary  = M_email_write_gen_boundary();
+	start_len    = M_buf_len(buf);
+	boundary     = M_email_write_gen_boundary();
 
 	if (!M_email_simple_write_add_headers(email, buf, boundary))
 		goto err;
@@ -421,17 +455,28 @@ M_bool M_email_simple_write_buf(const M_email_t *email, M_buf_t *buf)
 	if (!M_email_simple_write_add_preamble(email, buf))
 		goto err;
 
-	if (!M_email_simple_write_add_parts(email, buf, boundary))
-		goto err;
+	if (M_email_has_attachment(email)) {
+		sub_boundary = M_email_write_gen_boundary();
+		if (!M_email_simple_write_add_parts(email, buf, boundary, sub_boundary, M_FALSE))
+			goto err;
+
+		if (!M_email_simple_write_add_parts(email, buf, boundary, NULL, M_TRUE))
+			goto err;
+	} else {
+		if (!M_email_simple_write_add_parts(email, buf, boundary, boundary, M_FALSE))
+			goto err;
+	}
 
 	if (!M_email_simple_write_add_epilouge(email, buf))
 		goto err;
 
 	M_free(boundary);
+	M_free(sub_boundary);
 	return M_TRUE;
 
 err:
 	M_free(boundary);
+	M_free(sub_boundary);
 	M_buf_truncate(buf, start_len);
 	return M_FALSE;
 }

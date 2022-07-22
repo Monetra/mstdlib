@@ -498,6 +498,12 @@ static void M_io_net_set_sockopts(M_io_handle_t *handle)
 #ifdef _WIN32
 	so_linger.l_onoff  = 1;
 #else
+	/* 20220720 -- Cirrus CI's FreeBSD needs SO_LINGER to be off.  When it is on, a client will initiate a
+	* disconnect sequence with shutdown() via M_io_disconnect() returning 0 errors.  The system will then
+	* flag an EV_EOF event indicating that a graceful shutdown sequence completed.  Then socket will close()
+	* via M_io_destroy().  If this happens when there is pending data (activating the SO_LINGER logic)
+	* the server will never receive an EV_EOF flagged event. I have many logs available if you want more
+	* information -- AK */
 	so_linger.l_onoff  = 0;
 #endif
 	so_linger.l_linger = 0;
