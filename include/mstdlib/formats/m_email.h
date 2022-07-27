@@ -184,7 +184,7 @@ M_API const char *M_email_subject(const M_email_t *email);
  * \param[in] suffix Suffix to id string
  *
  */
-M_API void M_email_messageid(M_email_t *email, const char* prefix, const char* suffix);
+M_API void M_email_messageid(M_email_t *email, const char *prefix, const char *suffix);
 
 /*! Stamp email with date.  That is, generate and assign to header "Date".
  *
@@ -193,7 +193,7 @@ M_API void M_email_messageid(M_email_t *email, const char* prefix, const char* s
  * \param[in] format Date format string. NULL defaults to "%a, %d %b %Y %T %z"
  *
  */
-M_API void M_email_date(M_email_t *email, const char* format);
+M_API void M_email_date(M_email_t *email, const char *format);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
