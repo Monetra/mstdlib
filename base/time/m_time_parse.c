@@ -817,9 +817,11 @@ M_time_t M_time_from_str(const char *timestr, const M_time_tz_t *tz, M_bool defa
 
 char *M_time_to_str(const char *fmt, const M_time_localtm_t *tm)
 {
-	M_buf_t          *buf;
-	M_time_localtm_t  mytm;
-	M_time_t          gmtoff;
+	M_buf_t           *buf;
+	M_time_localtm_t   mytm;
+	M_time_t           gmtoff;
+	static const char *weekday_abbr[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	static const char *month_abbr[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	if (fmt == NULL || tm == NULL)
 		return NULL;
@@ -838,6 +840,14 @@ char *M_time_to_str(const char *fmt, const M_time_localtm_t *tm)
 				/* The % character. */
 				case '%':
 					M_buf_add_byte(buf, '%');
+					break;
+				/* weekday, abbreviated: Wed */
+				case 'a':
+					M_buf_add_str(buf, weekday_abbr[mytm.wday]);
+					break;
+				/* month, abbreviated: Jul */
+				case 'b':
+					M_buf_add_str(buf, month_abbr[mytm.month - 1]);
 					break;
 				/* month in 2 digit format. */
 				case 'm':
@@ -868,6 +878,14 @@ char *M_time_to_str(const char *fmt, const M_time_localtm_t *tm)
 					break;
 				/* seconds in 2 digit format. */
 				case 'S':
+					M_buf_add_int_just(buf, mytm.sec, 2);
+					break;
+				/* shortcut for %H:%M:%S */
+				case 'T':
+					M_buf_add_int_just(buf, mytm.hour, 2);
+					M_buf_add_str(buf, ":");
+					M_buf_add_int_just(buf, mytm.min, 2);
+					M_buf_add_str(buf, ":");
 					M_buf_add_int_just(buf, mytm.sec, 2);
 					break;
 				case 'P':
