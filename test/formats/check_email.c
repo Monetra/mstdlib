@@ -41,6 +41,38 @@ START_TEST(check_testing)
 }
 END_TEST
 
+START_TEST(check_date)
+{
+	M_email_t           *email = M_email_create();
+	const char          *date;
+	const M_hash_dict_t *headers;
+
+	M_email_date(email, NULL);
+	headers = M_email_headers(email);
+	date = M_hash_dict_get_direct(headers, "Date");
+
+	ck_assert_msg(date != NULL, "date header should exist");
+
+	M_email_destroy(email);
+}
+END_TEST
+
+START_TEST(check_messageid)
+{
+	M_email_t           *email = M_email_create();
+	const char          *messageid;
+	const M_hash_dict_t *headers;
+
+	M_email_messageid(email, "<MONETRA.", "@mydomain.com>");
+	headers = M_email_headers(email);
+	messageid = M_hash_dict_get_direct(headers, "Message-ID");
+
+	ck_assert_msg(messageid != NULL, "date header should exist");
+
+	M_email_destroy(email);
+}
+END_TEST
+
 START_TEST(check_splitting)
 {
 	M_hash_dict_t    *headers = NULL;
@@ -200,9 +232,11 @@ START_TEST(check_addresses)
 	for (i=0; i<sizeof(test)/sizeof(test[0]); i++) {
 		char            *msg;
 		char            *msg2;
-		M_hash_dict_t   *headers;
 		M_email_t       *e;
 		M_email_error_t  eer;
+#if DEBUG_INFO_ADDRESS_MAP
+		M_hash_dict_t   *headers;
+#endif
 
 		M_asprintf(&msg, test_data, test[i].address);
 #if DEBUG_INFO_ADDRESS_MAP
@@ -241,6 +275,8 @@ int main(void)
 	add_test(suite, check_mixed_alternate);
 	add_test(suite, check_mixed_multipart);
 	add_test(suite, check_addresses);
+	add_test(suite, check_date);
+	add_test(suite, check_messageid);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_email.log");
