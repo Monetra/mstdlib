@@ -1024,7 +1024,7 @@ START_TEST(multithread_insert)
 
 	M_printf("START_TEST(multithread_insert)\n"); fflush(stdout);
 	args.test_id = MULTITHREAD_INSERT;
-	el        = M_event_pool_create(0);
+	el           = M_event_pool_create(0);
 	M_printf("%s:%d\n", __FILE__, __LINE__);
 	emu          = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
@@ -1059,7 +1059,7 @@ START_TEST(multithread_insert)
 	args.emu = emu;
 
 	M_threadpool_parent_wait(tp_parent);
-	M_printf("Dispatched all messages\n"); fflush(stdout);
+	M_printf("Dispatched all messages, about to M_event_loop(%p, %d)\n", el, MAX_TIMEOUT); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	M_printf("Returned from loop\n"); fflush(stdout);
 
@@ -2335,7 +2335,7 @@ START_TEST(default_cbs)
 
 	args.test_id = DEFAULT_CBS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
-	M_net_smtp_setup_tcp_timeouts(sp, 100, 100, 0);
+	M_net_smtp_setup_tcp_timeouts(sp, 1000, 1000, 0);
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_TRUE,
 			"should succeed adding tcp after setting dns");
 
