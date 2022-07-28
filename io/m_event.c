@@ -172,8 +172,9 @@ M_event_t *M_event_pool_create(size_t max_threads)
 	M_event_t *event;
 
 	if (max_threads == 0)
-		max_threads = SIZE_MAX;
+		max_threads = SIZE_MAX - 1;
 
+	M_printf("M_MIN(%zu, %zu): %zu\n", M_thread_num_cpu_cores(), max_threads, M_MIN(M_thread_num_cpu_cores(), max_threads)); fflush(stdout);
 	num_threads = M_MIN(M_thread_num_cpu_cores(), max_threads);
 	if (num_threads == 0)
 		num_threads = 1;
@@ -1133,6 +1134,7 @@ void M_event_done(M_event_t *event)
 	if (event->type == M_EVENT_BASE_TYPE_POOL) {
 		size_t i;
 		for (i=0; i<event->u.pool.thread_count; i++) {
+			if (m_event_debug) { M_printf("%zu / %zu\n", i, event->u.pool.thread_count); fflush(stdout); }
 			STEP M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
 		}
 		return;
