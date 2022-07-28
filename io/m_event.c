@@ -172,7 +172,7 @@ M_event_t *M_event_pool_create(size_t max_threads)
 	M_event_t *event;
 
 	if (max_threads == 0)
-		max_threads = SIZE_MAX - 1;
+		max_threads = SIZE_MAX;
 
 	M_printf("M_MIN(%zu, %zu): %zu\n", M_thread_num_cpu_cores(), max_threads, M_MIN(M_thread_num_cpu_cores(), max_threads)); fflush(stdout);
 	num_threads = M_MIN(M_thread_num_cpu_cores(), max_threads);
@@ -496,6 +496,9 @@ void M_event_wake(M_event_t *event)
 		return;
 
 	/* Only signal event loop if currently blocked */
+	if (m_event_debug) {
+		M_printf("event->u.loop.waiting: %s, event->u.loop.parent_wake: %p\n", event->u.loop.waiting ? "M_TRUE": "M_FALSE", event->u.loop.parent_wake); fflush(stdout);
+	}
 	if (event->u.loop.waiting && event->u.loop.parent_wake != NULL) {
 		M_io_osevent_trigger(event->u.loop.parent_wake);
 	}
@@ -1135,7 +1138,7 @@ void M_event_done(M_event_t *event)
 		size_t i;
 		for (i=0; i<event->u.pool.thread_count; i++) {
 			if (m_event_debug) { M_printf("%zu / %zu\n", i, event->u.pool.thread_count); fflush(stdout); }
-			STEP M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
+			M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
 		}
 		return;
 	}
