@@ -235,7 +235,7 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_bool check_tlsspeed_test(void)
 {
-	M_event_t         *event = M_event_pool_create(0);
+	M_event_t         *event = M_event_pool_create(2);
 	//M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_event_err_t      err;

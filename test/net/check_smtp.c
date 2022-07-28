@@ -710,7 +710,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
 			m_event_debug = M_TRUE;
 			M_event_done(args->el);
-			m_event_debug = M_FALSE;
 		}
 	}
 
@@ -720,7 +719,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
 			m_event_debug = M_TRUE;
 			M_event_done(args->el);
-			m_event_debug = M_FALSE;
 		}
 	}
 
@@ -877,7 +875,7 @@ START_TEST(multithread_retry)
 	M_printf("START_TEST(multithread_retry)\n"); fflush(stdout);
 	args.test_id = MULTITHREAD_RETRY;
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
-	el           = M_event_pool_create(0);
+	el           = M_event_pool_create(2);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	emu          = smtp_emulator_create(el, TLS_TYPE_NONE, "reject_457", &testport, MULTITHREAD_RETRY);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
@@ -915,6 +913,7 @@ START_TEST(multithread_retry)
 	M_printf("Dispatched all messages\n"); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	M_printf("Returned from loop\n"); fflush(stdout);
+	m_event_debug = M_FALSE;
 
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
@@ -960,7 +959,7 @@ START_TEST(multithread_insert_proc)
 	M_printf("START_TEST(multithread_insert_proc)\n"); fflush(stdout);
 	args.test_id = MULTITHREAD_INSERT_PROC;
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
-	el           = M_event_pool_create(0);
+	el           = M_event_pool_create(2);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	sp           = M_net_smtp_create(el, &test_cbs, &args);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
@@ -989,6 +988,7 @@ START_TEST(multithread_insert_proc)
 	M_threadpool_parent_wait(tp_parent);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
+	m_event_debug = M_FALSE;
 
 	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
 
@@ -1031,7 +1031,7 @@ START_TEST(multithread_insert)
 
 	M_printf("START_TEST(multithread_insert)\n"); fflush(stdout);
 	args.test_id = MULTITHREAD_INSERT;
-	el           = M_event_pool_create(0);
+	el           = M_event_pool_create(2);
 	M_printf("%s:%d\n", __FILE__, __LINE__);
 	emu          = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
@@ -1069,6 +1069,7 @@ START_TEST(multithread_insert)
 	M_printf("Dispatched all messages, about to M_event_loop(%p, %d)\n", el, MAX_TIMEOUT); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	M_printf("Returned from loop\n"); fflush(stdout);
+	m_event_debug = M_FALSE;
 
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
