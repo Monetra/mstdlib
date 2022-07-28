@@ -278,8 +278,10 @@ static size_t M_thread_num_cpu_cores_int(void)
 	count = (int)sysinfo.dwNumberOfProcessors;
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
 	count = (int)sysconf(_SC_NPROCESSORS_ONLN);
+	M_printf("%s:%d: sysconf(_SC_NPROCESSORS_ONLN): %d\n", __FILE__, __LINE__, count); fflush(stdout);
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROC_ONLN)
 	count = (int)sysconf(_SC_NPROC_ONLN);
+	M_printf("%s:%d: sysconf(_SC_NPROC_ONLN): %d\n", __FILE__, __LINE__, count); fflush(stdout);
 #elif defined(HW_AVAILCPU) || defined(HW_NCPU)
 	int    mib[4];
 	size_t len    = sizeof(count);
@@ -291,12 +293,14 @@ static size_t M_thread_num_cpu_cores_int(void)
 
 	/* get the number of CPUs from the system */
 	sysctl(mib, 2, &count, &len, NULL, 0);
+	M_printf("%s:%d: sysctl({CTL_HW,HW_AVAILCPU}): %d\n", __FILE__, __LINE__, count); fflush(stdout);
 #  endif /* HW_AVAILCPU */
 
 #  if defined(HW_NCPU)
 	if (count < 1) {
 		mib[1] = HW_NCPU;
 		sysctl(mib, 2, &count, &len, NULL, 0);
+		M_printf("%s:%d: sysctl({CTL_HW,HW_NCPU}): %d\n", __FILE__, __LINE__, count); fflush(stdout);
 	}
 #  endif /* HW_NCPU */
 #else
