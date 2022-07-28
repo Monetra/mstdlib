@@ -11,6 +11,8 @@
 
 #include "../../io/m_io_int.h"
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 #define DEBUG 0
 #define INCLUDE_DOT_MSG_TEST 1
 
@@ -858,7 +860,7 @@ START_TEST(multithread_retry)
 {
 	M_uint16               testport;
 	args_t                 args      = { 0 };
-	M_event_t             *el        = M_event_pool_create(0);
+	M_event_t             *el        = M_event_pool_create(NUM_CPU);
 	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "reject_457", &testport, MULTITHREAD_RETRY);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);
@@ -916,7 +918,7 @@ END_TEST
 START_TEST(multithread_insert_proc)
 {
 	args_t                 args      = { 0 };
-	M_event_t             *el        = M_event_pool_create(0);
+	M_event_t             *el        = M_event_pool_create(NUM_CPU);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_email_t             *e         = generate_email(1, test_address);
 	multithread_arg_t     *tests     = NULL;
@@ -965,7 +967,7 @@ START_TEST(multithread_insert)
 {
 	M_uint16               testport;
 	args_t                 args      = { 0 };
-	M_event_t             *el        = M_event_pool_create(0);
+	M_event_t             *el        = M_event_pool_create(NUM_CPU);
 	smtp_emulator_t       *emu       = smtp_emulator_create(el, TLS_TYPE_NONE, "minimal", &testport, MULTITHREAD_INSERT);
 	M_net_smtp_t          *sp        = M_net_smtp_create(el, &test_cbs, &args);
 	M_dns_t               *dns       = M_dns_create(el);

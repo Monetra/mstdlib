@@ -6,6 +6,8 @@
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_uint64 active_client_connections;
@@ -171,7 +173,7 @@ static const char *event_err_msg(M_event_err_t err)
 static M_event_err_t check_event_pipe_test(M_uint64 num_connections)
 {
 	M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
-//	M_event_t         *event = M_event_pool_create(0);
+//	M_event_t         *event = M_event_pool_create(NUM_CPU);
 	M_io_t            *pipereader;
 	M_io_t            *pipewriter;
 	char               msg[256];

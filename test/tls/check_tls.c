@@ -7,6 +7,8 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_tls.h>
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 // Enable below to cycle between localhost, 127.0.0.1, and ::1 to verify they all work as expected
 //#define RANDOMIZE_HOSTS
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -343,7 +345,7 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_event_err_t check_tls_test(M_uint64 num_connections)
 {
-	M_event_t          *event = M_event_pool_create(0);
+	M_event_t          *event = M_event_pool_create(NUM_CPU);
 	//M_event_t        *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t             *netclient;
 	size_t              i;
@@ -744,7 +746,7 @@ static void net_client_sad_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 
 static M_event_err_t check_tls_sendanddisconnect_test(void)
 {
-	M_event_t          *event = M_event_pool_create(0);
+	M_event_t          *event = M_event_pool_create(NUM_CPU);
 	//M_event_t        *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t             *netclient;
 	M_event_err_t       err;

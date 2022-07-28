@@ -7,6 +7,8 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/io/m_io_layer.h>
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_uint64 active_client_connections;
@@ -274,7 +276,7 @@ typedef struct {
 
 static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 delay_ms, M_bool use_pool, M_bool nonscalable, stats_t *stats)
 {
-	M_event_t         *event = use_pool?M_event_pool_create(0):M_event_create(nonscalable?M_EVENT_FLAG_NON_SCALABLE:M_EVENT_FLAG_NONE);
+	M_event_t         *event = use_pool?M_event_pool_create(NUM_CPU):M_event_create(nonscalable?M_EVENT_FLAG_NON_SCALABLE:M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	size_t             i;
 	M_event_err_t      err;

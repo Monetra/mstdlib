@@ -8,6 +8,8 @@
 #include <mstdlib/mstdlib_tls.h>
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_io_t  *netserver;
@@ -232,7 +234,7 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_bool check_tlsspeed_test(void)
 {
-	M_event_t         *event = M_event_pool_create(0);
+	M_event_t         *event = M_event_pool_create(NUM_CPU);
 	//M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_event_err_t      err;

@@ -6,6 +6,8 @@
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
 
+#define NUM_CPU (getenv("CIRRUS_NUM_CPU") ? (size_t)atoi(getenv("CIRRUS_NUM_CPU")) : (size_t)0)
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 typedef struct {
@@ -356,7 +358,7 @@ START_TEST(check_event_many)
 	M_mem_set(&data, 0, sizeof(data));
 
 	data.num   = 100000;
-	data.el1   = M_event_pool_create(0);
+	data.el1   = M_event_pool_create(NUM_CPU);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	data.timers = M_list_create(&cbs, M_LIST_NONE);
@@ -400,7 +402,7 @@ START_TEST(check_event_many2)
 	M_mem_set(&data, 0, sizeof(data));
 
 	data.num   = 100000;
-	data.el1   = M_event_pool_create(0);
+	data.el1   = M_event_pool_create(NUM_CPU);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	data.timers = M_list_create(&cbs, M_LIST_NONE);
@@ -444,7 +446,7 @@ START_TEST(check_event_many_remove)
 	M_mem_set(&data, 0, sizeof(data));
 
 	data.num   = 25000; /* Need a low number for slow travis build systems */
-	data.el1   = M_event_pool_create(0);
+	data.el1   = M_event_pool_create(NUM_CPU);
 	data.mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	data.timers = M_list_create(&cbs, M_LIST_NONE);
