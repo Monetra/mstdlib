@@ -10,6 +10,8 @@
 
 #include "../../io/m_io_int.h"
 
+extern M_bool m_event_debug;
+
 #define DEBUG 0
 #define INCLUDE_DOT_MSG_TEST 1
 
@@ -706,7 +708,9 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_printf("sent_cb: %llu\n", call_count); fflush(stdout);
 		if (call_count == multithread_retry_count) {
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
+			m_event_debug = M_TRUE;
 			M_event_done(args->el);
+			m_event_debug = M_FALSE;
 		}
 	}
 
@@ -714,7 +718,9 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_printf("sent_cb: %llu == %llu (%s)\n", call_count, multithread_insert_count, call_count == multithread_insert_count ? "M_TRUE" : "M_FALSE"); fflush(stdout);
 		if (call_count == multithread_insert_count) {
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
+			m_event_debug = M_TRUE;
 			M_event_done(args->el);
+			m_event_debug = M_FALSE;
 		}
 	}
 
@@ -2822,7 +2828,7 @@ static Suite *smtp_suite(void)
 
 /*MULTITHREAD_INSERT      = 19, */
 #if TESTONLY == 0 || TESTONLY == 19
-	tc = tcase_create("multithread insert");
+	tc = tcase_create("multithread_insert");
 	tcase_add_test(tc, multithread_insert);
 	tcase_set_timeout(tc, 5);
 	suite_add_tcase(suite, tc);

@@ -28,6 +28,9 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "base/m_defs_int.h"
 
+M_bool m_event_debug = M_FALSE;
+#define STEP if (m_event_debug) { M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout); }
+
 const char *M_event_type_string(M_event_type_t type)
 {
 	switch (type) {
@@ -236,7 +239,7 @@ void M_event_lock(M_event_t *event)
 	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP) {
 		return;
 	}
-//M_printf("%s(): [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event);
+//M_printf("%s(): [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event); fflush(stdout);
 	M_thread_mutex_lock(event->u.loop.lock);
 //M_printf("%s(): LOCKED [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event);  fflush(stdout);
 }
@@ -1106,10 +1109,10 @@ static void M_event_status_change(M_event_t *event, M_event_status_t status)
 	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP)
 		return;
 
-	M_event_lock(event);
-	event->u.loop.status_change = status;
-	M_event_wake(event);
-	M_event_unlock(event);
+	STEP M_event_lock(event);
+	STEP event->u.loop.status_change = status;
+	STEP M_event_wake(event);
+	STEP M_event_unlock(event);
 }
 
 
@@ -1120,17 +1123,18 @@ void M_event_done(M_event_t *event)
 
 	if (event->type == M_EVENT_BASE_TYPE_LOOP) {
 		if (event->u.loop.parent) {
-			M_event_done(event->u.loop.parent);
+			STEP M_event_done(event->u.loop.parent);
 		} else {
-			M_event_status_change(event, M_EVENT_STATUS_DONE);
+			STEP M_event_status_change(event, M_EVENT_STATUS_DONE);
 		}
 		return;
 	}
 
 	if (event->type == M_EVENT_BASE_TYPE_POOL) {
 		size_t i;
-		for (i=0; i<event->u.pool.thread_count; i++)
-			M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
+		for (i=0; i<event->u.pool.thread_count; i++) {
+			STEP M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
+		}
 		return;
 	}
 }
