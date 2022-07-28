@@ -1459,6 +1459,7 @@ static M_event_err_t M_event_pool_loop(M_event_t *event, M_uint64 timeout_ms)
 	for (i=1; i<event->u.pool.thread_count; i++) {
 		void *val = NULL;
 		M_thread_join(event->u.pool.thread_ids[i], &val);
+		if (m_event_debug) { M_printf("M_thread_join %lu (%zu)\n", event->u.pool.thread_ids[i], i); fflush(stdout); }
 	}
 
 	/* Unbind the main thread from the first core */
