@@ -705,6 +705,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		*/
 		M_printf("sent_cb: %llu\n", call_count); fflush(stdout);
 		if (call_count == multithread_retry_count) {
+			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
 			M_event_done(args->el);
 		}
 	}
@@ -712,7 +713,7 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 	if (args->test_id == MULTITHREAD_INSERT || args->test_id == MULTITHREAD_INSERT_PROC) {
 		M_printf("sent_cb: %llu == %llu (%s)\n", call_count, multithread_insert_count, call_count == multithread_insert_count ? "M_TRUE" : "M_FALSE"); fflush(stdout);
 		if (call_count == multithread_insert_count) {
-			M_printf("calling M_event_done(%p)\n", args->el); fflush(stdout);
+			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
 			M_event_done(args->el);
 		}
 	}
@@ -883,7 +884,7 @@ START_TEST(multithread_retry)
 	tp           = M_threadpool_create(10, 10, 10, 0);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	tp_parent    = M_threadpool_parent_create(tp);
-	M_printf("INITIALIZATION FINISHED\n"); fflush(stdout);
+	M_printf("INITIALIZATION FINISHED TID%lu\n", M_thread_self()); fflush(stdout);
 
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 10) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
@@ -964,7 +965,7 @@ START_TEST(multithread_insert_proc)
 	tp_parent    = M_threadpool_parent_create(tp);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	cmd_args     = M_list_str_create(M_LIST_STR_NONE);
-	M_printf("FINISHED INITIALIZATION\n"); fflush(stdout);
+	M_printf("FINISHED INITIALIZATION TID%lu\n", M_thread_self()); fflush(stdout);
 
 	M_list_str_insert(cmd_args, "-");
 	ck_assert_msg(M_net_smtp_add_endpoint_process(sp, sendmail_emu, cmd_args, NULL, 10000, 0), "Couldn't add endpoint_process");
@@ -1037,7 +1038,7 @@ START_TEST(multithread_insert)
 	tp           = M_threadpool_create(10, 10, 10, 0);
 	M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout);
 	tp_parent    = M_threadpool_parent_create(tp);
-	M_printf("INITIALIZATION FINISHED\n"); fflush(stdout);
+	M_printf("INITIALIZATION FINISHED TID%lu\n", M_thread_self()); fflush(stdout);
 
 	ck_assert_msg(M_net_smtp_add_endpoint_tcp(sp, "localhost", testport, M_FALSE, "user", "pass", 1) == M_FALSE,
 			"should fail adding tcp endpoint without setting dns");
