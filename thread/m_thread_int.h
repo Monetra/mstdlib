@@ -34,6 +34,9 @@
 #  include <signal.h>
 #  include <poll.h>
 #endif
+#ifdef __linux__
+#  include <sched.h>
+#endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
