@@ -240,7 +240,6 @@ static void M_thread_init_routine(M_uint64 flags)
 			max_cpus = 1;
 
 		if (sched_getaffinity(0, sizeof(cs), &cs) == 0) {
-			size_t i;
 			for (i=0; i<(size_t)max_cpus; i++) {
 				if (CPU_ISSET(i, &cs)) {
 					M_list_u64_insert(thread_cpus, i);
@@ -364,7 +363,7 @@ size_t M_thread_num_cpu_cores(void)
 #ifdef __linux__
 void M_thread_linux_cpu_set(cpu_set_t *set, int cpu)
 {
-	int real_cpu = (int)M_list_u64_at(thread_cpus, cpu);
+	int real_cpu = (int)M_list_u64_at(thread_cpus, (size_t)cpu);
 	CPU_SET(real_cpu, set);
 }
 #endif

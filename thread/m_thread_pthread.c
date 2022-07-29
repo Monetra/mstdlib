@@ -252,16 +252,16 @@ static void M_thread_pthread_set_cpu(M_cpu_set_t *cs, int processor_id)
 		size_t i;
 		for (i=0; i<M_thread_num_cpu_cores(); i++) {
 #  ifdef __linux__
-			M_thread_linux_cpu_set(cpuset, (int)i);
+			M_thread_linux_cpu_set(cs, (int)i);
 #  else
-			CPU_SET((int)i, &cpuset);
+			CPU_SET((int)i, &cs);
 #  endif
 		}
 	} else {
 #  ifdef __linux__
-		M_thread_linux_cpu_set(cpuset, (int)processor_id);
+		M_thread_linux_cpu_set(cs, (int)processor_id);
 #  else
-		CPU_SET(processor_id, &cpuset);
+		CPU_SET(processor_id, &cs);
 #  endif
 	}
 }
