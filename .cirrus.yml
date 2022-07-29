@@ -23,7 +23,7 @@ cmake_test: &cmake_test
     CTEST_OUTPUT_ON_FAILURE: "1"
     CK_VERBOSITY: "verbose"
   cmake_test_script:
-    - cd _builds/test && ctest -VV && ifconfig && hostname && pwd && whoami
+    - cd _builds/test && ctest -VV && uname -a && hostname && pwd && whoami
 
 autotools_build: &autotools_build
   env:
