@@ -254,14 +254,14 @@ static void M_thread_pthread_set_cpu(M_cpu_set_t *cs, int processor_id)
 #  ifdef __linux__
 			M_thread_linux_cpu_set(cs, (int)i);
 #  else
-			CPU_SET((int)i, &cs);
+			CPU_SET((int)i, cs);
 #  endif
 		}
 	} else {
 #  ifdef __linux__
 		M_thread_linux_cpu_set(cs, (int)processor_id);
 #  else
-		CPU_SET(processor_id, &cs);
+		CPU_SET(processor_id, cs);
 #  endif
 	}
 }
