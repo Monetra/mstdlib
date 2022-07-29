@@ -43,6 +43,9 @@ static M_thread_mutex_t           *thread_count_mutex      = NULL;
 static M_uint64                    thread_count            = 0;   /* M_uint64 so we can use atomics (instead of size_t) */
 static M_thread_mutex_t           *thread_destructor_mutex = NULL;
 static M_list_t                   *thread_destructors      = NULL;
+#ifdef __linux__
+static M_list_u64_t               *thread_cpus             = NULL; /* List of available CPUs, for proper handling of linux containers */
+#endif
 
 static struct {
 	M_thread_model_t  id;
@@ -181,6 +184,11 @@ static void M_thread_deinit(void *arg)
 	M_mem_set(&thread_cbs, 0, sizeof(thread_cbs));
 	thread_model = M_THREAD_MODEL_INVALID;
 
+#ifdef __linux__
+	M_list_u64_destroy(thread_cpus);
+	thread_cpus = NULL;
+#endif
+
 }
 
 
@@ -217,6 +225,35 @@ static void M_thread_init_routine(M_uint64 flags)
 	thread_destructor_mutex = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 	thread_destructors      = M_list_create(NULL, M_LIST_SET_PTR);
 	M_thread_destructor_insert(M_thread_tls_purge_thread);
+
+#ifdef __linux__
+	/* Support for containerized environments */
+	if (thread_model != M_THREAD_MODEL_COOP) {
+		long      max_cpus = M_MAX(sysconf(_SC_NPROCESSORS_ONLN), sysconf(_SC_NPROCESSORS_CONF));
+		cpu_set_t cs;
+
+		thread_cpus = M_list_u64_create(M_LIST_U64_NONE);
+
+		CPU_ZERO(&cs);
+
+		if (max_cpus < 1)
+			max_cpus = 1;
+
+		if (sched_getaffinity(0, sizeof(cs), &cs) == 0) {
+			size_t i;
+			for (i=0; i<(size_t)max_cpus; i++) {
+				if (CPU_ISSET(i, &cs)) {
+					M_list_u64_insert(thread_cpus, i);
+				}
+			}
+		}
+
+		if (M_list_u64_len(thread_cpus) == 0){
+			/* Assume exactly 1 cpu: 0 */
+			M_list_u64_insert(thread_cpus, 0);
+		}
+	}
+#endif
 }
 
 
@@ -276,6 +313,8 @@ static size_t M_thread_num_cpu_cores_int(void)
 
 	GetSystemInfo(&sysinfo);
 	count = (int)sysinfo.dwNumberOfProcessors;
+#elif defined(__linux__)
+	count = (int)M_list_u64_len(thread_cpus);
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
 	count = (int)sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(HAVE_SYSCONF) && defined(_SC_NPROC_ONLN)
@@ -322,7 +361,13 @@ size_t M_thread_num_cpu_cores(void)
 	return M_thread_num_cpu_cores_int();
 }
 
-
+#ifdef __linux__
+void M_thread_linux_cpu_set(cpu_set_t *set, int cpu)
+{
+	int real_cpu = (int)M_list_u64_at(thread_cpus, cpu);
+	CPU_SET(real_cpu, set);
+}
+#endif
 
 M_bool M_thread_destructor_insert(void (*destructor)(void))
 {

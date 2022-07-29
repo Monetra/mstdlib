@@ -108,6 +108,12 @@ void M_thread_tls_init(void);
 void M_thread_tls_deinit(void);
 void M_thread_tls_purge_thread(void);
 
+#  ifdef __linux__
+/* Map index of CPU to available CPU core.  This is due to cgroup restrictions in containers, we can't
+ * use a normal index. */
+void M_thread_linux_cpu_set(cpu_set_t *set, int cpu);
+#  endif
+
 __END_DECLS
 
 #endif /* __M_THREAD_THREAD_INT_H__ */

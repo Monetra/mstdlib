@@ -238,26 +238,47 @@ static M_bool M_thread_pthread_set_priority(M_thread_t *thread, M_threadid_t tid
 }
 
 
-static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t tid, int processor_id)
-{
-#if defined(HAVE_PTHREAD_SETAFFINITY_NP)
-#  if defined(HAVE_CPUSET_T)
-	cpuset_t  cpuset;
-#  elif defined(HAVE_CPU_SET_T)
-	cpu_set_t cpuset;
+#if defined(HAVE_CPUSET_T) || defined(HAVE_CPU_SET_T)
+#  ifdef HAVE_CPUSET_T
+#    define M_cpu_set_t cpuset_t
 #  else
-#    error unknown cpuset data type
+#    define M_cpu_set_t cpu_set_t
 #  endif
 
-	CPU_ZERO(&cpuset);
+static void M_thread_pthread_set_cpu(M_cpu_set_t *cs, int processor_id)
+{
+	CPU_ZERO(cs);
 	if (processor_id == -1) {
 		size_t i;
 		for (i=0; i<M_thread_num_cpu_cores(); i++) {
+#  ifdef __linux__
+			M_thread_linux_cpu_set(cpuset, (int)i);
+#  else
 			CPU_SET((int)i, &cpuset);
+#  endif
 		}
 	} else {
+#  ifdef __linux__
+		M_thread_linux_cpu_set(cpuset, (int)processor_id);
+#  else
 		CPU_SET(processor_id, &cpuset);
+#  endif
 	}
+}
+
+#endif
+
+
+static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t tid, int processor_id)
+{
+#if defined(HAVE_PTHREAD_SETAFFINITY_NP)
+#  if !defined(HAVE_CPUSET_T) && !defined(HAVE_CPU_SET_T)
+#    error unknown cpuset data type
+#  endif
+	M_cpu_set_t cpuset;
+
+	M_thread_pthread_set_cpu(&cpuset, processor_id);
+
 	(void)tid;
 	if (pthread_setaffinity_np((pthread_t)thread, sizeof(cpuset), &cpuset) != 0) {
 		M_fprintf(stderr, "pthread_setaffinity_np thread %lld to processor %d failed\n", (M_int64)thread, processor_id);
@@ -266,19 +287,11 @@ static M_bool M_thread_pthread_set_processor(M_thread_t *thread, M_threadid_t ti
 #elif defined(HAVE_SCHED_SETAFFINITY) && defined(HAVE_CPU_SET_T)
 	/* Other C libraries on Linux may not wrap sched_setaffinity() into a pthread_setaffinity_np().  So lets support passing
 	 * the tid to sched_setaffinity() which according to the docs has the same effect on linux. */
-	cpu_set_t cpuset;
+	M_cpu_set_t cpuset;
 
 	(void)thread;
 
-	CPU_ZERO(&cpuset);
-	if (processor_id == -1) {
-		size_t i;
-		for (i=0; i<M_thread_num_cpu_cores(); i++) {
-			CPU_SET((int)i, &cpuset);
-		}
-	} else {
-		CPU_SET(processor_id, &cpuset);
-	}
+	M_thread_pthread_set_cpu(&cpuset, processor_id);
 
 	if (sched_setaffinity(tid, sizeof(cpuset), &cpuset) != 0) {
 		M_fprintf(stderr, "sched_setaffinity thread %lld to processor %d failed: %s\n", (M_int64)thread, processor_id, strerror(errno));
