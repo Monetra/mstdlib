@@ -10,8 +10,6 @@
 
 #include "../../io/m_io_int.h"
 
-extern M_bool m_event_debug;
-
 #define DEBUG 0
 #define INCLUDE_DOT_MSG_TEST 1
 
@@ -708,7 +706,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_printf("sent_cb: %llu\n", call_count); fflush(stdout);
 		if (call_count == multithread_retry_count) {
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
-			m_event_debug = M_TRUE;
 			M_event_done(args->el);
 		}
 	}
@@ -717,7 +714,6 @@ static void sent_cb(const M_hash_dict_t *headers, void *thunk)
 		M_printf("sent_cb: %llu == %llu (%s)\n", call_count, multithread_insert_count, call_count == multithread_insert_count ? "M_TRUE" : "M_FALSE"); fflush(stdout);
 		if (call_count == multithread_insert_count) {
 			M_printf("TID%lu calling M_event_done(%p)\n", M_thread_self(), args->el); fflush(stdout);
-			m_event_debug = M_TRUE;
 			M_event_done(args->el);
 		}
 	}
@@ -913,7 +909,6 @@ START_TEST(multithread_retry)
 	M_printf("Dispatched all messages\n"); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	M_printf("Returned from loop\n"); fflush(stdout);
-	m_event_debug = M_FALSE;
 
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
@@ -988,7 +983,6 @@ START_TEST(multithread_insert_proc)
 	M_threadpool_parent_wait(tp_parent);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
-	m_event_debug = M_FALSE;
 
 	ck_assert_msg(args.sent_cb_call_count == multithread_insert_count, "should have called sent_cb count times");
 
@@ -1069,7 +1063,6 @@ START_TEST(multithread_insert)
 	M_printf("Dispatched all messages, about to M_event_loop(%p, %d)\n", el, MAX_TIMEOUT); fflush(stdout);
 	event_err = M_event_loop(el, MAX_TIMEOUT);
 	M_printf("Returned from loop\n"); fflush(stdout);
-	m_event_debug = M_FALSE;
 
 	ck_assert_msg(event_err != M_EVENT_ERR_TIMEOUT, "Shouldn't timeout");
 
