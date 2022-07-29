@@ -158,7 +158,7 @@ debian_template: &debian_template
     COV_PLATFORM: linux-x64
   osdeps_install_script:
     - apt-get update &&
-      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip
+      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip ssh
 
 debian_x64_template: &debian_x64_template
   << : *debian_template
@@ -177,7 +177,7 @@ freebsd_template: &freebsd_template
     SCAN_BUILD: "scan-build"
     MAKE: "gmake"
   osdeps_install_script:
-    - pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip autoconf automake libtool gmake
+    - pkg install -y cmake check ninja mariadb-connector-c postgresql13-client unixODBC git wget unzip autoconf automake libtool gmake ssh
 
 macos_template: &macos_template
   env:
