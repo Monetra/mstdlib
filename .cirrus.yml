@@ -28,14 +28,7 @@ cmake_test: &cmake_test
 ssh_wait: &ssh_wait
   env:
   ssh_wait_script:
-    - ifconfig &&
-      hostname &&
-      whoami &&
-      pwd &&
-      sshd &&
-      ps -A | grep ssh &&
-      sleep 600
-
+    - ifconfig && hostname && whoami && pwd && sshd && ps -A | grep ssh && sleep 600
 
 autotools_build: &autotools_build
   env:
