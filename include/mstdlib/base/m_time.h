@@ -854,6 +854,22 @@ M_API M_time_t M_time_from_str(const char *timestr, const M_time_tz_t *tz, M_boo
  * \param[in] fmt The format of the string.
  * \param[in] tm  The tm strcut to read from.
  *
+ * Supports the following format options
+ * - %% - The % character.
+ * - \%a - Weekday abbreviation (ex: Wed) - English only.  Output only.
+ * - \%b - Month abbreviation (ex: Jan) - English only.  Output only.
+ * - \%m - month in 2 digit format.
+ * - \%d - day in 2 digit format.
+ * - \%y - year in 2 digit format.
+ * - \%Y - year in 4 digit format.
+ * - \%H - hour in 2 digit (24 hour) format.
+ * - \%I - hour in 2 digit (12 hour) format. Should be paired with am/pm descriptors.
+ * - \%M - minutes in 2 digit format.
+ * - \%S - seconds in 2 digit format.
+ * - \%T - shortcut for "%H:%M:%S".
+ * - \%P, \%p - AM/PM, am/pm.
+ * - \%z - timezone [+-]hhmm
+ * - \%Z - timezone abbreviation (ex EST, EDT)
  * \return NULL if failed to format string. Otherwise returns a NULL terminated string.
  *
  * \see M_time_parsefmt

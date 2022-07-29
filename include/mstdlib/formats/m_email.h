@@ -175,6 +175,28 @@ M_API const char *M_email_subject(const M_email_t *email);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+/*! Stamp email with randomized message id.  That is, generate and assign to header "Message-ID".
+ *
+ * \param[in] email The email to stamp.
+ *
+ * \param[in] prefix Prefix to id string
+ *
+ * \param[in] suffix Suffix to id string
+ *
+ */
+M_API void M_email_messageid(M_email_t *email, const char *prefix, const char *suffix);
+
+/*! Stamp email with date.  That is, generate and assign to header "Date".
+ *
+ * \param[in] email The email to stamp.
+ *
+ * \param[in] format Date format string. NULL defaults to "%a, %d %b %Y %T %z"
+ *
+ */
+M_API void M_email_date(M_email_t *email, const char *format);
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 M_API const char *M_email_preamble(const M_email_t *email);
 M_API void M_email_set_preamble(M_email_t *email, const char *data, size_t len);
 M_API const char *M_email_epilouge(const M_email_t *email);

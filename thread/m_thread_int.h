@@ -34,6 +34,9 @@
 #  include <signal.h>
 #  include <poll.h>
 #endif
+#ifdef __linux__
+#  include <sched.h>
+#endif
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -107,6 +110,12 @@ M_bool M_thread_rwlock_emu_unlock(M_thread_rwlock_t *rwlock);
 void M_thread_tls_init(void);
 void M_thread_tls_deinit(void);
 void M_thread_tls_purge_thread(void);
+
+#  ifdef __linux__
+/* Map index of CPU to available CPU core.  This is due to cgroup restrictions in containers, we can't
+ * use a normal index. */
+void M_thread_linux_cpu_set(cpu_set_t *set, int cpu);
+#  endif
 
 __END_DECLS
 
