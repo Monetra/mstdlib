@@ -25,6 +25,18 @@ cmake_test: &cmake_test
   cmake_test_script:
     - cd _builds/test && ctest -VV
 
+ssh_wait: &ssh_wait
+  env:
+  ssh_wait_script:
+    - ifconfig &&
+      hostname &&
+      whoami &&
+      pwd &&
+      sshd &&
+      ps -A | grep ssh &&
+      sleep 600
+
+
 autotools_build: &autotools_build
   env:
     BUILD_TYPE: "autotools"
@@ -263,6 +275,7 @@ task:
   << : *fetch_thirdparty
   << : *cmake_build
   << : *cmake_test
+  << : *ssh_wait
 
 task:
   name: "Debian arm64 - AutoTools"
