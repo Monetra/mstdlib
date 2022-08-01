@@ -150,6 +150,7 @@ static void M_event_loop_init(M_event_t *event, M_uint32 flags)
 
 	if (!(event->u.loop.flags & M_EVENT_FLAG_NOWAKE))
 		event->u.loop.parent_wake = M_io_osevent_create(event);
+	event->u.loop.status_change = 0;
 }
 
 
@@ -1266,7 +1267,10 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 		return M_EVENT_ERR_MISUSE;
 	}
 	event->u.loop.status        = M_EVENT_STATUS_RUNNING;
-	event->u.loop.status_change = 0;
+	if (event->u.loop.status_change != M_EVENT_STATUS_DONE &&
+	    event->u.loop.status_change != M_EVENT_STATUS_RETURN) {
+		event->u.loop.status_change = 0;
+	}
 	event->u.loop.timeout_ms    = timeout_ms;
 	event->u.loop.threadid      = M_thread_self();
 
