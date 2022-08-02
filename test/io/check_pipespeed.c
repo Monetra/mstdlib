@@ -5,7 +5,6 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
-#include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add (STARTTLS) */
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -40,12 +39,6 @@ static void event_debug(const char *fmt, ...)
 }
 #endif
 
-static void trigger_softevent(M_io_t *io, M_event_type_t etype)
-{
-	M_io_layer_t *layer = M_io_layer_acquire(io, 0, NULL);
-	M_io_layer_softevent_add(layer, M_FALSE, etype, M_IO_ERROR_SUCCESS);
-	M_io_layer_release(layer);
-}
 
 static const char *event_type_str(M_event_type_t type)
 {
@@ -111,16 +104,15 @@ static void pipe_writer_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 				M_io_write_from_buf(comm, data->buf);
 				event_debug("pipe writer %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, writer_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
-			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
-				event_debug("pipe writer %p initiating disconnect", comm);
-				M_io_disconnect(comm);
-				break;
-			}
 			if (M_buf_len(data->buf) == 0) {
+				if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
+					event_debug("pipe writer %p initiating disconnect", comm);
+					M_io_disconnect(comm);
+					break;
+				}
 				/* Refill */
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 			}
-			trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 		case M_EVENT_TYPE_ERROR:
@@ -148,7 +140,6 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			event_debug("pipe reader %p Connected", comm);
-			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_READ:
 			mysize = M_buf_len(data->buf);
@@ -159,7 +150,6 @@ static void pipe_reader_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, 
 			} else {
 				event_debug("pipe reader %p read returned %d", comm, (int)err);
 			}
-			trigger_softevent(comm, M_EVENT_TYPE_READ);
 			break;
 		case M_EVENT_TYPE_WRITE:
 			break;

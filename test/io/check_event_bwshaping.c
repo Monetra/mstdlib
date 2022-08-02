@@ -13,10 +13,8 @@ M_io_t  *netserver;
 size_t   server_id;
 size_t   client_id;
 M_uint64 runtime_ms;
-M_bool   is_client_disconnected = M_FALSE;
-int      server_trigger_count = 0;
 
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -32,7 +30,6 @@ static void event_debug(const char *fmt, ...)
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
-	fflush(stdout);
 }
 #else
 static void event_debug(const char *fmt, ...)
@@ -94,7 +91,6 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 {
 	size_t        mysize;
 	net_data_t   *data = arg;
-	M_uint64      elapsed_ms;
 
 	(void)event;
 
@@ -111,20 +107,16 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %zu bytes", comm, mysize - M_buf_len(data->buf));
-				event_debug("net client %p wrote at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
-			event_debug("net client %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
-			elapsed_ms = M_time_elapsed(&data->starttv);
-			event_debug("net client %p elapsed %llu", comm, elapsed_ms);
-			if (runtime_ms == 0 || elapsed_ms >= runtime_ms) {
+			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
+				M_printf("Initiate disconnect %llu / %llu\n", M_time_elapsed(&data->starttv), runtime_ms);
 				M_io_disconnect(comm);
 				break;
 			}
 			if (M_buf_len(data->buf) == 0) {
 				/* Refill */
-				event_debug("net client %p refilling buf", comm);
 				M_buf_add_fill(data->buf, '0', 1024 * 1024 * 8);
 				trigger_softevent(comm, M_EVENT_TYPE_WRITE);
 			}
@@ -138,11 +130,9 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			}
 			event_debug("net client %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT), M_io_bwshaping_get_totalms(comm, client_id));
-			event_debug("net client %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			M_io_destroy(comm);
 			comm = NULL;
 			net_data_destroy(data);
-			is_client_disconnected = M_TRUE;
 			if (M_event_num_objects(event) == 0)
 				M_event_done(event);
 			break;
@@ -169,18 +159,10 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				event_debug("net serverconn %p read %zu bytes", comm, M_buf_len(data->buf) - mysize);
-				event_debug("net serverconn %p read at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
+				event_debug("net serverconn %p read %zu bytes (%llu Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
 				M_buf_truncate(data->buf, 0);
 			} else {
 				event_debug("net serverconn %p read returned %d", comm, (int)err);
-			}
-			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
-			if (is_client_disconnected) {
-				if (server_trigger_count < 10) {
-					trigger_softevent(comm, M_EVENT_TYPE_READ);
-				}
-				server_trigger_count++;
 			}
 			break;
 		case M_EVENT_TYPE_WRITE:
@@ -194,7 +176,6 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			}
 			event_debug("net serverconn %p Freeing connection (%llu total bytes in %llu ms)", comm,
 				M_io_bwshaping_get_totalbytes(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN), M_io_bwshaping_get_totalms(comm, server_id));
-			event_debug("net serverconn %p M_event_num_objects: %zu", comm, M_event_num_objects(event));
 			M_io_destroy(comm);
 			net_data_destroy(data);
 			if (M_event_num_objects(event) == 0)
@@ -251,7 +232,7 @@ static M_bool check_event_bwshaping_test(void)
 	M_event_err_t  err;
 	M_uint16       port = (M_uint16)M_rand_range(NULL, 10000, 48000);
 
-	runtime_ms = 5000;
+	runtime_ms = 4000;
 
 	if (M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");

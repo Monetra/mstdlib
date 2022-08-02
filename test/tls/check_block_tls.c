@@ -15,7 +15,7 @@ M_uint64 client_connection_count;
 M_uint64 server_connection_count;
 M_uint64 expected_connections;
 M_thread_mutex_t *debug_lock = NULL;
-#define DEBUG 1
+#define DEBUG 0
 
 #if defined(DEBUG) && DEBUG
 #include <stdarg.h>
@@ -486,7 +486,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	}
 
 	/* Lets make sure both the data and the disconnect are buffered */
-	M_thread_sleep(48000);
+	M_thread_sleep(50000);
 
 	/* Read GoodBye */
 	while (1) {

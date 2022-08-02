@@ -34,7 +34,6 @@ static void event_debug(const char *fmt, ...)
 	M_snprintf(buf, sizeof(buf), "%lld.%06lld: %s\n", tv.tv_sec, tv.tv_usec, fmt);
 	M_vprintf(buf, ap);
 	va_end(ap);
-	fflush(stdout);
 }
 #else
 static void event_debug(const char *fmt, ...)
@@ -112,8 +111,7 @@ static void net_client_cb(M_event_t *event, M_event_type_t type, M_io_t *comm, v
 			mysize = M_buf_len(data->buf);
 			if (mysize) {
 				M_io_write_from_buf(comm, data->buf);
-				event_debug("net client %p wrote %zu bytes", comm, mysize - M_buf_len(data->buf));
-				event_debug("net client %p at a rate of (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
+				event_debug("net client %p wrote %zu bytes (%llu Bps)", comm, mysize - M_buf_len(data->buf), M_io_bwshaping_get_Bps(comm, client_id, M_IO_BWSHAPING_DIRECTION_OUT));
 			}
 			if (runtime_ms == 0 || M_time_elapsed(&data->starttv) >= runtime_ms) {
 				event_debug("net client %p initiating disconnect", comm);
@@ -165,8 +163,7 @@ static void net_serverconn_cb(M_event_t *event, M_event_type_t type, M_io_t *com
 			mysize = M_buf_len(data->buf);
 			err    = M_io_read_into_buf(comm, data->buf);
 			if (err == M_IO_ERROR_SUCCESS) {
-				event_debug("net serverconn %p read %zu bytes", comm, M_buf_len(data->buf) - mysize);
-				event_debug("net serverconn %p read at rate (%llu Bps)", comm, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
+				event_debug("net serverconn %p read %zu bytes (%llu Bps)", comm, M_buf_len(data->buf) - mysize, M_io_bwshaping_get_Bps(comm, server_id, M_IO_BWSHAPING_DIRECTION_IN));
 //				M_printf("read size %zu bytes\n", M_buf_len(data->buf) - mysize);
 				M_buf_truncate(data->buf, 0);
 			} else {
@@ -235,7 +232,7 @@ static const char *event_err_msg(M_event_err_t err)
 
 static M_bool check_tlsspeed_test(void)
 {
-	M_event_t         *event = M_event_pool_create(2);
+	M_event_t         *event = M_event_pool_create(0);
 	//M_event_t         *event = M_event_create(M_EVENT_FLAG_NONE);
 	M_io_t            *netclient;
 	M_event_err_t      err;

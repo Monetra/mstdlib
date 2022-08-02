@@ -1,7 +1,7 @@
 #include "m_config.h"
 #include <stdlib.h>
 #include <check.h>
- 
+
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_thread.h>
 #include <mstdlib/mstdlib_io.h>
@@ -306,14 +306,11 @@ static void ghbn_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t r
 	ck_assert_msg(result == M_DNS_RESULT_SUCCESS, "Expected successful DNS query for %s, got %d", (const char *)cb_data, (int)result);
 	ck_assert_msg(M_list_str_len(ipaddrs) > 0, "Expected DNS query for %s to return ip addresses", (const char *)cb_data);
 
-	addr     = M_list_str_at(ipaddrs, M_rand_range(NULL, 0, M_list_str_len(ipaddrs)));
-
-	M_dns_happyeyeballs_update(dns, addr, M_HAPPYEB_STATUS_GOOD);
-
-	/* decrement last */
 	num_left = M_atomic_dec_u32(&queries) - 1;
+	addr     = M_list_str_at(ipaddrs, M_rand_range(NULL, 0, M_list_str_len(ipaddrs)));
 	event_debug("result for %s returned %zu ip addresses. marking %s as heb GOOD. %u queries remaining", (const char *)cb_data, M_list_str_len(ipaddrs), addr, num_left);
 
+	M_dns_happyeyeballs_update(dns, addr, M_HAPPYEB_STATUS_GOOD);
 }
 
 static void ghbn_cache_cb(const M_list_str_t *ipaddrs, void *cb_data, M_dns_result_t result)
@@ -349,8 +346,6 @@ START_TEST(check_dns_reload)
 
 	for (i=0; hosts[i] != NULL; i++) {
 		M_atomic_inc_u32(&queries);
-	}
-	for (i=0; hosts[i] != NULL; i++) {
 		event_debug("query: %s", hosts[i]);
 		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cb, M_CAST_OFF_CONST(void *, hosts[i]));
 
@@ -366,8 +361,6 @@ START_TEST(check_dns_reload)
 	/* This should get cached results now */
 	for (i=0; hosts[i] != NULL; i++) {
 		M_atomic_inc_u32(&queries);
-	}
-	for (i=0; hosts[i] != NULL; i++) {
 		event_debug("query: %s", hosts[i]);
 		M_dns_gethostbyname(dns, NULL, hosts[i], M_IO_NET_ANY, ghbn_cache_cb, M_CAST_OFF_CONST(void *, hosts[i]));
 	}

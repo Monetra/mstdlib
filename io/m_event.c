@@ -28,9 +28,6 @@
 #include <mstdlib/io/m_io_layer.h>
 #include "base/m_defs_int.h"
 
-M_bool m_event_debug = M_FALSE;
-#define STEP if (m_event_debug) { M_printf("%s:%d:\n", __FILE__, __LINE__); fflush(stdout); }
-
 const char *M_event_type_string(M_event_type_t type)
 {
 	switch (type) {
@@ -153,6 +150,7 @@ static void M_event_loop_init(M_event_t *event, M_uint32 flags)
 
 	if (!(event->u.loop.flags & M_EVENT_FLAG_NOWAKE))
 		event->u.loop.parent_wake = M_io_osevent_create(event);
+	event->u.loop.status_change = 0;
 }
 
 
@@ -174,7 +172,6 @@ M_event_t *M_event_pool_create(size_t max_threads)
 	if (max_threads == 0)
 		max_threads = SIZE_MAX;
 
-	M_printf("M_MIN(%zu, %zu): %zu\n", M_thread_num_cpu_cores(), max_threads, M_MIN(M_thread_num_cpu_cores(), max_threads)); fflush(stdout);
 	num_threads = M_MIN(M_thread_num_cpu_cores(), max_threads);
 	if (num_threads == 0)
 		num_threads = 1;
@@ -240,7 +237,7 @@ void M_event_lock(M_event_t *event)
 	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP) {
 		return;
 	}
-//M_printf("%s(): [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event); fflush(stdout);
+//M_printf("%s(): [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event);
 	M_thread_mutex_lock(event->u.loop.lock);
 //M_printf("%s(): LOCKED [%p] %p\n", __FUNCTION__, (void *)M_thread_self(), event);  fflush(stdout);
 }
@@ -496,9 +493,6 @@ void M_event_wake(M_event_t *event)
 		return;
 
 	/* Only signal event loop if currently blocked */
-	if (m_event_debug) {
-		M_printf("event->u.loop.waiting: %s, event->u.loop.parent_wake: %p\n", event->u.loop.waiting ? "M_TRUE": "M_FALSE", event->u.loop.parent_wake); fflush(stdout);
-	}
 	if (event->u.loop.waiting && event->u.loop.parent_wake != NULL) {
 		M_io_osevent_trigger(event->u.loop.parent_wake);
 	}
@@ -1113,10 +1107,10 @@ static void M_event_status_change(M_event_t *event, M_event_status_t status)
 	if (event == NULL || event->type != M_EVENT_BASE_TYPE_LOOP)
 		return;
 
-	STEP M_event_lock(event);
-	STEP event->u.loop.status_change = status;
-	STEP M_event_wake(event);
-	STEP M_event_unlock(event);
+	M_event_lock(event);
+	event->u.loop.status_change = status;
+	M_event_wake(event);
+	M_event_unlock(event);
 }
 
 
@@ -1127,19 +1121,17 @@ void M_event_done(M_event_t *event)
 
 	if (event->type == M_EVENT_BASE_TYPE_LOOP) {
 		if (event->u.loop.parent) {
-			STEP M_event_done(event->u.loop.parent);
+			M_event_done(event->u.loop.parent);
 		} else {
-			STEP M_event_status_change(event, M_EVENT_STATUS_DONE);
+			M_event_status_change(event, M_EVENT_STATUS_DONE);
 		}
 		return;
 	}
 
 	if (event->type == M_EVENT_BASE_TYPE_POOL) {
 		size_t i;
-		for (i=0; i<event->u.pool.thread_count; i++) {
-			if (m_event_debug) { M_printf("%zu / %zu\n", i, event->u.pool.thread_count); fflush(stdout); }
+		for (i=0; i<event->u.pool.thread_count; i++)
 			M_event_status_change(&event->u.pool.thread_evloop[i], M_EVENT_STATUS_DONE);
-		}
 		return;
 	}
 }
@@ -1275,7 +1267,10 @@ static M_event_err_t M_event_loop_loop(M_event_t *event, M_uint64 timeout_ms)
 		return M_EVENT_ERR_MISUSE;
 	}
 	event->u.loop.status        = M_EVENT_STATUS_RUNNING;
-	event->u.loop.status_change = 0;
+	if (event->u.loop.status_change != M_EVENT_STATUS_DONE &&
+	    event->u.loop.status_change != M_EVENT_STATUS_RETURN) {
+		event->u.loop.status_change = 0;
+	}
 	event->u.loop.timeout_ms    = timeout_ms;
 	event->u.loop.threadid      = M_thread_self();
 
@@ -1459,7 +1454,6 @@ static M_event_err_t M_event_pool_loop(M_event_t *event, M_uint64 timeout_ms)
 	for (i=1; i<event->u.pool.thread_count; i++) {
 		void *val = NULL;
 		M_thread_join(event->u.pool.thread_ids[i], &val);
-		if (m_event_debug) { M_printf("M_thread_join %lu (%zu)\n", event->u.pool.thread_ids[i], i); fflush(stdout); }
 	}
 
 	/* Unbind the main thread from the first core */
