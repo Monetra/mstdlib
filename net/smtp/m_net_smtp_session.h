@@ -47,7 +47,6 @@ typedef enum {
 } M_net_smtp_authtype_t;
 
 typedef struct {
-	M_bool                       is_alive;
 	M_bool                       is_successfully_sent;
 	M_bool                       is_backout;
 	size_t                       retry_ms;
