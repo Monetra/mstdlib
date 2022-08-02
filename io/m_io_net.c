@@ -597,6 +597,10 @@ static M_bool M_io_net_process_cb(M_io_layer_t *layer, M_event_type_t *type)
 					M_event_handle_modify(event, M_EVENT_MODTYPE_DEL_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_WRITE, 0);
 					M_event_handle_modify(event, M_EVENT_MODTYPE_ADD_WAITTYPE, comm, handle->data.net.evhandle, handle->data.net.sock, M_EVENT_WAIT_READ, 0);
 
+					if (*type == M_EVENT_TYPE_READ) {
+						/* Add another event for the read because this one is transformed to connect */
+						M_io_layer_softevent_add(layer, M_FALSE, M_EVENT_TYPE_READ, M_IO_ERROR_SUCCESS);
+					}
 					/* Rewrite event to say connected */
 					*type         = M_EVENT_TYPE_CONNECTED;
 					handle->state = M_IO_NET_STATE_CONNECTED;

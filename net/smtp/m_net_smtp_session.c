@@ -79,7 +79,6 @@ static session_status_t session_tcp_advance(M_event_t *el, M_event_type_t etype,
 				session->tcp.tls_state = M_NET_SMTP_TLS_CONNECTED;
 				return SESSION_PROCESSING;
 			}
-
 			break;
 		case M_EVENT_TYPE_DISCONNECTED:
 			goto destroy;
