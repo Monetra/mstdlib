@@ -613,8 +613,6 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 
 	return session;
 fail:
-	M_buf_cancel(session->out_buf);
-	M_parser_destroy(session->in_parser);
 	M_net_smtp_session_destroy_int(session);
 	M_thread_mutex_destroy(session->mutex);
 	M_free(session);
