@@ -17,6 +17,7 @@ configuration:
 # Note: You can set extra cmake args for a particular matrix entry with CMAKE_EXTRA_OPTIONS. For example:
 #     CMAKE_EXTRA_OPTIONS: -DOPENSSL_ROOT_DIR=C:/OpenSSL-Win32
 environment:
+  APPVEYOR_RDP_PASSWORD: ABCabc123!
   matrix:
     # MSVC 2022, 32-bit x86
     - COMPILER: MSVC
@@ -80,7 +81,7 @@ on_finish:
   - dir /B *.log > list.txt
   - cmake -E tar cfv all_tests.zip --format=zip --files-from=list.txt
   - appveyor PushArtifact all_tests.zip
-#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 # Force build worker to stay open after build is done, so we can RDP into it.
 
 # Enable RDP connections into build worker.
