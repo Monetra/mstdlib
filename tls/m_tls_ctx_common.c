@@ -62,6 +62,13 @@ SSL_CTX *M_tls_ctx_init(M_bool is_server)
 		return NULL;
 	}
 
+	/* Set security level to 1, which is what 1.0.1 uses.  OpenSSL v3 doesn't let us
+	 * otherwise choose lower ciphers for compatibility, but since we allow the
+	 * user to explicitly overwrite ciphers and protocols we need this */
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL && !defined(LIBRESSL_VERSION_NUMBER)
+	SSL_CTX_set_security_level(ctx, 1);
+#endif
+
 	/* Set some default options */
 	M_tls_ctx_set_protocols(ctx, M_TLS_PROTOCOL_DEFAULT);
 	M_tls_ctx_set_ciphers(ctx, is_server?TLS_SERVER_CIPHERS:TLS_CLIENT_CIPHERS);
