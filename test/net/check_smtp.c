@@ -1476,6 +1476,8 @@ START_TEST(timeouts)
 	M_email_t         *e3          = generate_email(3, test_address);
 
 	M_printf("START_TEST(timeouts)\n");
+	M_printf("testports: { %hu, %hu, %hu }\n", testport1, testport2, testport3);
+	fflush(stdout);
 
 	args.test_id = TIMEOUTS;
 	M_net_smtp_setup_tcp(sp, dns, NULL);
