@@ -546,7 +546,6 @@ static void M_net_smtp_session_destroy_int(M_net_smtp_session_t *session)
 	M_parser_destroy(session->in_parser);
 	M_state_machine_destroy(session->state_machine);
 
-	session->is_alive      = M_FALSE;
 	session->state_machine = NULL;
 	session->in_parser     = NULL;
 	session->out_buf       = NULL;
@@ -562,6 +561,8 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 	session->sp                    = sp;
 	session->ep                    = ep;
 	session->mutex                 = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
+	session->out_buf               = M_buf_create();
+	session->in_parser             = M_parser_create(M_PARSER_FLAG_NONE);
 
 	if (ep->type == M_NET_SMTP_EPTYPE_PROCESS) {
 		io_error = M_io_process_create(
@@ -610,9 +611,6 @@ M_net_smtp_session_t *M_net_smtp_session_create(const M_net_smtp_t *sp, const M_
 		M_event_add(sp->el, session->io, session_tcp_advance_task, session);
 	}
 
-	session->out_buf   = M_buf_create();
-	session->in_parser = M_parser_create(M_PARSER_FLAG_NONE);
-	session->is_alive  = M_TRUE;
 	return session;
 fail:
 	M_net_smtp_session_destroy_int(session);
