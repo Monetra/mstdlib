@@ -68,11 +68,13 @@ void M_time_elapsed_start(M_timeval_t *start_tv)
 	 *       we need to use long doubles (80bit) instead.  Hopefully we won't lose
 	 *       enough precision to matter. */
 	microsecs = (M_uint64)((long double)counter.QuadPart / ((long double)freq.QuadPart / 1000000.0));
+	M_printf("%s:%d: freq: %llx, counter: %llx, microsecs: %llu\n", __FILE__, __LINE__, freq.QuadPart, counter.QuadPart, microsecs); fflush(stdout);
 
 	start_tv->tv_sec  = (M_time_t)(microsecs / 1000000);
 	start_tv->tv_usec = (M_time_t)(microsecs % 1000000);
 #elif defined(_WIN32)
 	M_uint32 mtime    = timeGetTime();
+	M_printf("%s:%d: mtime: %u\n", __FILE__, __LINE__, mtime); fflush(stdout);
 	start_tv->tv_sec  = mtime / 1000;
 	start_tv->tv_usec = (mtime % 1000) * 1000;
 #elif defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0 && defined(_POSIX_MONOTONIC_CLOCK)

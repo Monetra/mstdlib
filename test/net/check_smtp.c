@@ -11,7 +11,7 @@
 
 #include "../../io/m_io_int.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #define INCLUDE_DOT_MSG_TEST 1
 
 #define MAX_TIMEOUT 60000
