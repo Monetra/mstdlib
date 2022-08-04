@@ -811,11 +811,11 @@ static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
 
 	if (sockaddr_ptr->sa_family == AF_INET) {
 		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in->sin_port;
+		handle->data.net.eport = M_ntoh16(sockaddr_in->sin_port);
 #ifdef AF_INET6
 	} else if (sockaddr_ptr->sa_family == AF_INET6) {
 		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in6->sin6_port;
+		handle->data.net.eport = M_ntoh16(sockaddr_in6->sin6_port);
 #endif
 	} else {
 		return M_FALSE;
