@@ -901,14 +901,23 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 #endif
 
 
+#ifndef _WIN32
+	/* On Unix systems on an application restart you may get "Address already in use" errors because the prior
+	 * instance of the application had connections that are in TIME_WAIT status.  Setting SO_REUSEADDR
+	 * allows re-binding the same address and port as long as connections are in TIME_WAIT if it would
+	 * otherwise fail.  It does not allow 'stealing' of a bind (however SO_REUSEPORT does)
+	 *
+	 * On Windows, its braindead and allows 'stealing' as it doesn't have the defined TIME_WAIT check.
+	 * So there we just need to use SO_EXCLUSIVEADDRUSE to prevent 'stealing', we shouldn't ever get
+	 * the "Address already in use" errors on Windows.
+	 */
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
+	(void)rv; /* silence coverity */
+#endif
+
 #ifdef SO_EXCLUSIVEADDRUSE
 	/* Windows, prevent 'stealing' of bound ports, why would this be allowed by default? */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
-	(void)rv; /* silence coverity */
-#else
-	/* MSDN suggests not using SO_REUSEADDR for winsock if possible. */
-	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
-	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
 	(void)rv; /* silence coverity */
 #endif
 
