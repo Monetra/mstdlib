@@ -1439,7 +1439,7 @@ M_io_error_t M_io_net_server_create(M_io_t **io_out, unsigned short port, const 
 	M_io_callbacks_t *callbacks;
 	M_io_error_t      err;
 
-	if (io_out == NULL || port == 0)
+	if (io_out == NULL)
 		return M_IO_ERROR_INVALID;
 
 	*io_out = NULL;
