@@ -280,7 +280,7 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	M_event_err_t      err;
 	conn_state_t      *connstate;
 	M_io_error_t       ioerr;
-	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 48000);
+	M_uint16           port = 0;
 
 	expected_connections      = num_connections;
 	active_client_connections = 0;
@@ -294,16 +294,15 @@ static M_event_err_t check_event_net_test(M_uint64 num_connections, M_uint64 del
 	net_output_stats(event);
 	event_debug("starting %llu connection test", num_connections);
 
-	while ((ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
+	ioerr = M_io_net_server_create(&netserver, 0 /* any port */, NULL, M_IO_NET_ANY);
 
 	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server: %s", M_io_error_string(ioerr));
 		return M_EVENT_ERR_RETURN;
 	}
+
+	port = M_io_net_get_port(netserver);
+
 #if DEBUG
 	M_io_add_trace(netserver, NULL, trace, netserver, NULL, NULL);
 #endif

@@ -204,7 +204,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	M_tls_serverctx_t *serverctx;
 	M_tls_clientctx_t *clientctx;
 	M_io_error_t       err;
-	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 48000);
+	M_uint16           port = 0;
 
 	active_client_connections = 0;
 	active_server_connections = 0;
@@ -213,7 +213,7 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 	expected_connections      = num_connections;
 	debug_lock                = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
-	event_debug("%s(): enter test for %d connections, port %d", __FUNCTION__, (int)num_connections, (int)port);
+	event_debug("%s(): enter test for %d connections", __FUNCTION__, (int)num_connections);
 
 	/* Generate real cert */
 	if (!tls_gen_key_cert(&key, &cert))
@@ -252,17 +252,14 @@ static M_event_err_t check_block_tls_test(M_uint64 num_connections)
 
 	event_debug("Test %llu connections", num_connections);
 
-	while ((err = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
+	err = M_io_net_server_create(&netserver, 0 /* any port */, NULL, M_IO_NET_ANY);
 
 	if (err != M_IO_ERROR_SUCCESS) {
-		event_debug("failed to create net server on port %d", (int)port);
+		event_debug("failed to create net server");
 		return M_EVENT_ERR_RETURN;
 	}
 
+	port = M_io_net_get_port(netserver);
 
 	if (M_io_tls_server_add(netserver, serverctx, NULL) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to wrap net server with tls");
@@ -402,7 +399,7 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_event_err_t      ev_err = M_EVENT_ERR_RETURN;
 	M_bool             has_goodbye = M_FALSE;
 	M_io_error_t       err;
-	M_uint16           port = (M_uint16)M_rand_range(NULL, 10000, 48000);
+	M_uint16           port = 0;
 
 	debug_lock = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
@@ -442,16 +439,13 @@ static M_event_err_t check_block_tls_disconresp_test(void)
 	M_free(key);
 	M_free(cert);
 
-	while ((err = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY)) == M_IO_ERROR_ADDRINUSE) {
-		M_uint16 newport = (M_uint16)M_rand_range(NULL, 10000, 48000);
-		event_debug("Port %d in use, switching to new port %d", (int)port, (int)newport);
-		port             = newport;
-	}
-
+	err = M_io_net_server_create(&netserver, 0 /* any port */, NULL, M_IO_NET_ANY);
 	if (err != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server on port %d", (int)port);
 		return M_EVENT_ERR_RETURN;
 	}
+
+	port = M_io_net_get_port(netserver);
 
 	if (M_io_tls_server_add(netserver, serverctx, NULL) != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to wrap net server with tls");
