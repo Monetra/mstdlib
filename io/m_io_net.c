@@ -901,12 +901,14 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 #endif
 
 
-	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
-	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
-	(void)rv; /* silence coverity */
 #ifdef SO_EXCLUSIVEADDRUSE
 	/* Windows, prevent 'stealing' of bound ports, why would this be allowed by default? */
 	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const void *)&enable, sizeof(enable));
+	(void)rv; /* silence coverity */
+#else
+	/* MSDN suggests not using SO_REUSEADDR for winsock if possible. */
+	/* NOTE: We don't ever want to set SO_REUSEPORT which would allow 'stealing' of our bind */
+	rv = setsockopt(handle->data.net.sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&enable, sizeof(enable));
 	(void)rv; /* silence coverity */
 #endif
 
@@ -939,6 +941,9 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 		M_io_net_resolve_error(handle);
 #ifdef _WIN32
 		closesocket(handle->data.net.sock);
+		if (handle->data.net.last_error == M_IO_ERROR_NOTPERM) {
+			handle->data.net.last_error = M_IO_ERROR_ADDRINUSE;
+		}
 #else
 		close(handle->data.net.sock);
 #endif

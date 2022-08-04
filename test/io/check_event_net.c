@@ -434,6 +434,25 @@ START_TEST(check_event_net_stat)
 }
 END_TEST
 
+START_TEST(check_event_net_addrinuse)
+{
+	M_io_error_t  ioerr;
+	M_io_t       *io1 = NULL;
+	M_io_t       *io2 = NULL;
+	M_uint16      port;
+
+	do {
+		port  = (M_uint16)M_rand_range(NULL, 10000, 48000);
+		ioerr = M_io_net_server_create(&io1, port, NULL, M_IO_NET_ANY);
+	} while (ioerr == M_IO_ERROR_ADDRINUSE);
+
+	ioerr  = M_io_net_server_create(&io2, port, NULL, M_IO_NET_ANY);
+	ck_assert_msg(ioerr == M_IO_ERROR_ADDRINUSE, "server_create returned %s, not %s", M_io_error_string(ioerr), M_io_error_string(M_IO_ERROR_ADDRINUSE));
+
+	M_io_destroy(io1);
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 static Suite *event_net_suite(void)
@@ -451,7 +470,11 @@ static Suite *event_net_suite(void)
 	tc    = tcase_create("event_net_stat");
 	tcase_add_test(tc, check_event_net_stat);
 	tcase_set_timeout(tc, 20);
+	suite_add_tcase(suite, tc);
 
+	tc    = tcase_create("event_net_addrinuse");
+	tcase_add_test(tc, check_event_net_addrinuse);
+	tcase_set_timeout(tc, 2);
 	suite_add_tcase(suite, tc);
 
 	return suite;
