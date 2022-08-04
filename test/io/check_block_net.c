@@ -184,15 +184,14 @@ static void check_block_net_test(M_uint64 num_connections)
 
 	event_debug("Test %llu connections", num_connections);
 
-	do {
-		port  = (M_uint16)M_rand_range(NULL, 10000, 48000);
-		ioerr = M_io_net_server_create(&netserver, port, NULL, M_IO_NET_ANY);
-	} while (ioerr == M_IO_ERROR_ADDRINUSE);
+	ioerr = M_io_net_server_create(&netserver, 0 /* any port */, NULL, M_IO_NET_ANY);
 
 	if (ioerr != M_IO_ERROR_SUCCESS) {
 		event_debug("failed to create net server");
 		return;
 	}
+
+	port = M_io_net_get_port(netserver);
 
 	event_debug("Server created on port %d", (int)port);
 

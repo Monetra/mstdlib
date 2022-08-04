@@ -794,6 +794,37 @@ static M_bool M_io_net_IsWindowsVistaOrGreater(void)
 #endif
 
 
+static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
+{
+#ifdef HAVE_SOCKADDR_STORAGE
+	struct sockaddr_storage sockaddr;
+#else
+	struct sockaddr         sockaddr;
+#endif
+	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
+	socklen_t               sockaddr_size = sizeof(sockaddr);
+
+	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
+
+	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0)
+		return M_FALSE;
+
+	if (sockaddr_ptr->sa_family == AF_INET) {
+		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
+		handle->data.net.eport = sockaddr_in->sin_port;
+#ifdef AF_INET6
+	} else if (sockaddr_ptr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
+		handle->data.net.eport = sockaddr_in6->sin6_port;
+#endif
+	} else {
+		return M_FALSE;
+	}
+
+	return M_TRUE;
+}
+
+
 static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 {
 	struct sockaddr   *sa;
@@ -916,6 +947,12 @@ static M_io_error_t M_io_net_listen_bind_int(M_io_handle_t *handle)
 	}
 	M_free(sa);
 
+	/* port of 0 means let the OS assign.  In this case, we need to fill in the port metadata */
+	if (handle->port == 0) {
+		M_io_net_set_ephemeral_port(handle);
+		handle->port = handle->data.net.eport;
+	}
+
 	M_io_net_set_fastpath(handle);
 
 	if (listen(handle->data.net.sock, 512) == -1) {
@@ -973,36 +1010,6 @@ static M_bool M_io_net_listen_init_cb(M_io_layer_t *layer)
 	return M_TRUE;
 }
 
-
-static M_bool M_io_net_set_ephemeral_port(M_io_handle_t *handle)
-{
-#ifdef HAVE_SOCKADDR_STORAGE
-	struct sockaddr_storage sockaddr;
-#else
-	struct sockaddr         sockaddr;
-#endif
-	struct sockaddr        *sockaddr_ptr  = (struct sockaddr *)&sockaddr;
-	socklen_t               sockaddr_size = sizeof(sockaddr);
-
-	M_mem_set(sockaddr_ptr, 0, (size_t)sockaddr_size);
-
-	if (getsockname(handle->data.net.sock, sockaddr_ptr, &sockaddr_size) != 0)
-		return M_FALSE;
-
-	if (sockaddr_ptr->sa_family == AF_INET) {
-		struct sockaddr_in *sockaddr_in = (struct sockaddr_in *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in->sin_port;
-#ifdef AF_INET6
-	} else if (sockaddr_ptr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sockaddr_in6 = (struct sockaddr_in6 *)((void *)sockaddr_ptr);
-		handle->data.net.eport = sockaddr_in6->sin6_port;
-#endif
-	} else {
-		return M_FALSE;
-	}
-
-	return M_TRUE;
-}
 
 static M_bool M_io_net_start_connect(M_io_layer_t *layer, struct sockaddr *peer, socklen_t peer_size, int type)
 {
