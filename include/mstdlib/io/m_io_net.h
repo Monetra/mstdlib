@@ -344,7 +344,8 @@ typedef enum M_io_net_type M_io_net_type_t;
 /*! Create a server listener net object.
  *
  * \param[out] io_out  io object for communication.
- * \param[in]  port    Port to listen on.
+ * \param[in]  port    Port to listen on.  If 0 is used, the OS will assign an unused port which can be retrieved
+ *                     immediately after successful return of this function via M_io_net_get_port().
  * \param[in]  bind_ip NULL to listen on all interfaces, or an explicit ip address to listen on.
  *                     Note that listening on localhost ::1 will be ipv6 only, or localhost 127.0.0.1 will be
  *                     ipv4 only.
