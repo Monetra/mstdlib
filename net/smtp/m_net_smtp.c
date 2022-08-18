@@ -466,7 +466,10 @@ M_bool M_net_smtp_add_endpoint_tcp(
 	M_net_smtp_endpoint_t *ep = NULL;
 	M_net_smtp_endpoint_tcp_args_t args = { address, port, connect_tls, username, password, max_conns };
 
-	if (sp == NULL || max_conns == 0 || address == NULL || username == NULL || password == NULL || sp->tcp_dns == NULL)
+	if ((username == NULL && password != NULL) || (username != NULL && password == NULL))
+		return M_FALSE;
+
+	if (sp == NULL || max_conns == 0 || address == NULL || sp->tcp_dns == NULL)
 		return M_FALSE;
 
 	if (connect_tls && sp->tcp_tls_ctx == NULL)

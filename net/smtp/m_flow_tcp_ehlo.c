@@ -46,6 +46,8 @@ static void determine_auth_method(const char *line, M_net_smtp_session_t *sessio
 	size_t  found_priority = 0;
 
 	session->tcp.smtp_authtype = M_NET_SMTP_AUTHTYPE_NONE;
+	if (session->ep->tcp.username == NULL)
+		return;
 
 	methods = M_str_explode(' ', line, M_str_len(line), &n, &method_lens);
 	for (i=0; i<n; i++) {
