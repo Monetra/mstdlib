@@ -637,6 +637,7 @@ M_bool M_sql_report_filter_add_rule(M_sql_report_filter_t *filter, const char *c
 	if (rules == NULL) {
 		struct M_list_callbacks cb = { NULL, NULL, NULL, M_sql_report_filter_rule_free };
 		rules = M_list_create(&cb, M_LIST_NONE);
+		M_hash_strvp_insert(filter->cols, column, rules);
 	}
 
 	rdata                   = M_malloc_zero(sizeof(*rdata));
