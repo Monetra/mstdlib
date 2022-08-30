@@ -804,6 +804,8 @@ static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *repo
 
 static M_sql_report_cberror_t M_sql_report_filter_row(const M_sql_report_t *report, M_sql_report_state_t *state)
 {
+	if (report->filter == NULL)
+		return M_SQL_REPORT_SUCCESS;
 	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_OR && state->filter_matches)
 		return M_SQL_REPORT_SUCCESS;
 	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_AND && state->filter_matches == report->filter->num_rules)
