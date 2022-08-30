@@ -743,9 +743,14 @@ static M_bool M_rule_not_empty(const char *data, size_t data_len, const char *ru
 
 static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *report, M_sql_report_state_t *state, const char *col_name, const char *data, size_t len)
 {
-	M_list_t *rules   = M_hash_strvp_get_direct(report->filter->cols, col_name);
+	M_list_t *rules   = NULL;
 	size_t    i;
 	size_t    matches = 0;
+
+	if (report->filter == NULL)
+		return M_SQL_REPORT_SUCCESS;
+
+	rules = M_hash_strvp_get_direct(report->filter->cols, col_name);
 
 	if (rules == NULL)
 		return M_SQL_REPORT_SUCCESS;
