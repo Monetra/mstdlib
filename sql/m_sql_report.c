@@ -756,6 +756,10 @@ static M_sql_report_cberror_t M_sql_report_filter_col(const M_sql_report_t *repo
 	if (rules == NULL)
 		return M_SQL_REPORT_SUCCESS;
 
+	/* If we're doing OR and we've already hit a match, no need to check on anything else as it just wastes cycles */
+	if (report->filter->type == M_SQL_REPORT_FILTER_TYPE_OR && state->filter_matches)
+		return M_SQL_REPORT_SUCCESS;
+
 	for (i=0; i<M_list_len(rules); i++) {
 		const M_sql_report_filter_rules_t *rule           = M_list_at(rules, i);
 		M_bool                           (*cb)(const char *data, size_t data_len, const char *rule_data, size_t rule_data_len, M_bool case_insensitive);
