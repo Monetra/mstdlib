@@ -144,10 +144,12 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		}
 
 		/* If we have data the data length must match the length of the data. */
-		if (data != NULL && (size_t)i64v != data_len) {
+		if (data_len == 0)
+			data_len = (size_t)i64v;
+
+		if (data_len != (size_t)i64v)
 			goto err;
-		}
-		data_len = (size_t)i64v;
+
 	} else {
 		/* Data can be binary so we'll check for a text encoding to know if
 		 * we can treat the data as text. */
