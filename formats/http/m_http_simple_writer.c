@@ -132,12 +132,8 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	myheaders = M_http_headers_dict(http);
 
 	/* Validate some headers. */
-	if (data != NULL && data_len != 0) {
-		/* Can't have transfer-encoding AND data. */
-		if (M_hash_dict_get(myheaders, "Transfer-Encoding", NULL)) {
-			goto err;
-		}
-	}
+	if (data == NULL || data_len == 0)
+		M_hash_dict_remove(myheaders, "Transfer-Encoding");
 
 	/* Ensure that content-length is present (even if body length is zero). */
 	if (M_hash_dict_get(myheaders, "Content-Length", &val)) {
@@ -166,9 +162,11 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		M_http_set_header(http, "Content-Length", tempa);
 	}
 
-	if (!M_str_isempty(content_type)) {
+	if (data == NULL || data_len == 0) {
+		M_hash_dict_remove(myheaders, "Content-Type");
+	} else if (!M_str_isempty(content_type)) {
 		M_http_set_header(http, "Content-Type", content_type);
-	} else {
+	} else if (data != NULL && data_len != 0) {
 		/* Ensure something is set for content type. */
 		if (!M_hash_dict_get(myheaders, "Content-Type", NULL)) {
 			/* If there isn't a content type we set a default. */
@@ -181,7 +179,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	}
 
 	/* If we've encoded the data (or utf-8) mark the content as such. */
-	if (!M_str_isempty(charset)) {
+	if (!M_str_isempty(charset) && data != NULL && data_len != 0) {
 		/* We might already have a charaset modifier but that's okay.
  		 * The last value of the same key will be used. Since we're
 		 * adding charset as the last element ours will be used.
@@ -365,6 +363,14 @@ M_bool M_http_simple_write_response_buf(M_buf_t *buf, M_uint32 code, const char 
 	}
 	M_buf_add_str(buf, reason);
 	M_buf_add_str(buf, "\r\n");
+
+	/* 1xx, 204 and 304 do not output a body. */
+	if (code / 100 == 1 || code == 204 || code == 304) {
+		content_type = NULL;
+		data         = NULL;
+		data_len     = 0;
+		charset      = NULL;
+	}
 
 	if (!M_http_simple_write_int(buf, content_type, headers, data, data_len, charset)) {
 		M_buf_truncate(buf, start_len);
