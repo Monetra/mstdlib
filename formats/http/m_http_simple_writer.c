@@ -133,7 +133,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 
 	/* Validate some headers. */
 	if (data == NULL || data_len == 0)
-		M_hash_dict_remove(myheaders, "Transfer-Encoding");
+		M_http_remove_header(http, "Transfer-Encoding");
 
 	/* Ensure that content-length is present (even if body length is zero). */
 	if (M_hash_dict_get(myheaders, "Content-Length", &val)) {
@@ -163,7 +163,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 	}
 
 	if (data == NULL || data_len == 0) {
-		M_hash_dict_remove(myheaders, "Content-Type");
+		M_http_remove_header(http, "Content-Type");
 	} else if (!M_str_isempty(content_type)) {
 		M_http_set_header(http, "Content-Type", content_type);
 	} else if (data != NULL && data_len != 0) {
