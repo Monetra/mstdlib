@@ -147,6 +147,7 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		if (data != NULL && (size_t)i64v != data_len) {
 			goto err;
 		}
+		data_len = (size_t)i64v;
 	} else {
 		/* Data can be binary so we'll check for a text encoding to know if
 		 * we can treat the data as text. */
@@ -162,11 +163,11 @@ static M_bool M_http_simple_write_int(M_buf_t *buf, const char *content_type, co
 		M_http_set_header(http, "Content-Length", tempa);
 	}
 
-	if (data == NULL || data_len == 0) {
+	if (data_len == 0) {
 		M_http_remove_header(http, "Content-Type");
 	} else if (!M_str_isempty(content_type)) {
 		M_http_set_header(http, "Content-Type", content_type);
-	} else if (data != NULL && data_len != 0) {
+	} else {
 		/* Ensure something is set for content type. */
 		if (!M_hash_dict_get(myheaders, "Content-Type", NULL)) {
 			/* If there isn't a content type we set a default. */
