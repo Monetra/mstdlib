@@ -143,7 +143,7 @@ typedef struct {
 	"-----------------------------7d41b838504d8--"
 
 /* Multipart preamble and epilouge. */
-#define http9_data "POST /upload/data HTTP/1.1\r\n" \
+#define http9_error_data "POST /upload/data HTTP/1.1\r\n" \
 	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
 	"\r\n" \
 	"preamble\r\n" \
@@ -151,7 +151,18 @@ typedef struct {
 	"\r\n" \
 	"Part data\r\n" \
 	"-----------------------------7d41b838504d8--\r\n" \
-	"epilouge" \
+	"epilouge"
+
+#define http9_data "POST /upload/data HTTP/1.1\r\n" \
+	"Content-Type: multipart/form-data; boundary=---------------------------7d41b838504d8\r\n" \
+	"Content-Length: 121\r\n" \
+	"\r\n" \
+	"preamble\r\n" \
+	"-----------------------------7d41b838504d8\r\n" \
+	"\r\n" \
+	"Part data\r\n" \
+	"-----------------------------7d41b838504d8--\r\n" \
+	"epilouge"
 
 /* 3 messages stacked into one stream. */
 #define http10_data "HTTP/1.1 200 OK\r\n" \
@@ -863,9 +874,11 @@ START_TEST(check_httpr9)
 
 	ht  = httpr_test_create();
 	hr  = gen_reader(ht);
+
+
 	res = M_http_reader_read(hr, (const unsigned char *)http9_data, M_str_len(http9_data), &len_read);
 
-	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS_MORE_POSSIBLE, "Parse failed: %d", res);
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
 	ck_assert_msg(len_read == M_str_len(http9_data), "Did not read full message: got '%zu', expected '%zu'", len_read, M_str_len(http9_data));
 
 	/* data. */
@@ -883,6 +896,12 @@ START_TEST(check_httpr9)
 	gval = M_buf_peek(ht->epilouge);
 	eval = "epilouge";
 	ck_assert_msg(M_str_eq(gval, eval), "Wrong epilouge data: got '%s', expected '%s'", gval, eval);
+
+	M_http_reader_destroy(hr);
+	hr  = gen_reader(ht);
+
+	res = M_http_reader_read(hr, (const unsigned char *)http9_error_data, M_str_len(http9_error_data), &len_read);
+	ck_assert_msg(res == M_HTTP_ERROR_MULTIPART_INVALID, "Multipart needs content-length so this should return an error");
 
 	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
@@ -1158,6 +1177,25 @@ START_TEST(check_query_string)
 }
 END_TEST
 
+#define http_body_len \
+"PATCH /api/v2/user/enable?user=foo HTTP/1.1\r\n" \
+"Host: localhost:8666\r\n" \
+"Authorization: Basic bar\r\n" \
+"User-Agent: curl/7.79.1\r\n" \
+"Accept: */*\r\n" \
+"\r\n"
+
+START_TEST(check_body_len)
+{
+	httpr_test_t    *ht       = httpr_test_create();;
+	M_http_reader_t *hr       = gen_reader(ht);
+	size_t           len_read;
+	M_http_error_t   res      = M_http_reader_read(hr, (const unsigned char *)http_body_len, M_str_len(http_body_len), &len_read);
+
+	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Should have 0 body len and be done");
+}
+END_TEST
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 int main(void)
@@ -1183,6 +1221,7 @@ int main(void)
 	add_test(suite, check_httpr13);
 	add_test(suite, check_header_format);
 	add_test(suite, check_query_string);
+	add_test(suite, check_body_len);
 
 	sr = srunner_create(suite);
 	if (getenv("CK_LOG_FILE_NAME")==NULL) srunner_set_log(sr, "check_http_reader.log");

@@ -377,6 +377,7 @@ static M_http_error_t M_http_read_start_line_response(M_http_reader_t *httpr, M_
 
 	/* Send along the data. */
 	res = httpr->cbs.start_func(M_HTTP_MESSAGE_TYPE_RESPONSE, version, M_HTTP_METHOD_UNKNOWN, NULL, (M_uint32)code, reason, httpr->thunk);
+	httpr->msg_type = M_HTTP_MESSAGE_TYPE_RESPONSE;
 	M_free(reason);
 
 	return res;
@@ -426,6 +427,7 @@ static M_http_error_t M_http_read_start_line_request(M_http_reader_t *httpr, M_p
 
 	/* Send along the data. */
 	res = httpr->cbs.start_func(M_HTTP_MESSAGE_TYPE_REQUEST, version, method, uri, 0, NULL, httpr->thunk);
+	httpr->msg_type = M_HTTP_MESSAGE_TYPE_REQUEST;
 
 done:
 	M_http_destroy(http);
@@ -1128,6 +1130,30 @@ done:
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+static M_http_error_t M_http_reader_calculate_body_len(M_http_reader_t *httpr)
+{
+	if (httpr->data_type == M_HTTP_DATA_FORMAT_CHUNKED) {
+		return M_HTTP_ERROR_SUCCESS;
+	}
+
+	if (
+		httpr->msg_type      == M_HTTP_MESSAGE_TYPE_REQUEST  &&
+		httpr->data_type     == M_HTTP_DATA_FORMAT_MULTIPART &&
+		httpr->have_body_len == M_FALSE
+	) {
+		/* This has a body len of 0. It doesn't have enough space to start a boundary */
+		return M_HTTP_ERROR_MULTIPART_INVALID;
+	}
+
+
+	if (httpr->msg_type == M_HTTP_MESSAGE_TYPE_REQUEST && httpr->have_body_len == M_FALSE) {
+		/* See RFC7230 3.3.3.6 */
+		httpr->have_body_len = M_TRUE;
+		httpr->body_len      = 0;
+	}
+
+	return M_HTTP_ERROR_SUCCESS;
+}
 
 M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *data, size_t data_len, size_t *len_read)
 {
@@ -1203,10 +1229,14 @@ M_http_error_t M_http_reader_read(M_http_reader_t *httpr, const unsigned char *d
 			httpr->rstep = M_HTTP_READER_STEP_DONE;
 		}
 
-		res = httpr->cbs.header_done_func(httpr->data_type, httpr->thunk);
-		if (res != M_HTTP_ERROR_SUCCESS) {
+		res = M_http_reader_calculate_body_len(httpr);
+		if (res != M_HTTP_ERROR_SUCCESS)
 			goto done;
-		}
+
+		res = httpr->cbs.header_done_func(httpr->data_type, httpr->thunk);
+		if (res != M_HTTP_ERROR_SUCCESS)
+			goto done;
+
 	}
 
 	/* Read the body (not chunked message). */
@@ -1265,6 +1295,7 @@ M_http_reader_t *M_http_reader_create(struct M_http_reader_callbacks *cbs, M_uin
 	httpr->flags     = flags;
 	httpr->thunk     = thunk;
 	httpr->data_type = M_HTTP_DATA_FORMAT_BODY;
+	httpr->msg_type  = M_HTTP_MESSAGE_TYPE_UNKNOWN;
 
 	httpr->cbs.start_func                   = M_http_reader_start_func_default;
 	httpr->cbs.header_full_func             = M_http_reader_header_full_func_default;

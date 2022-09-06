@@ -62,6 +62,7 @@ struct M_http_reader {
 	M_bool                          have_end;
 	M_bool                          have_part;
 	M_bool                          have_epilouge;
+	M_http_message_type_t           msg_type;
 };
 
 #endif
