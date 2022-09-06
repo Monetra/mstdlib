@@ -875,7 +875,6 @@ START_TEST(check_httpr9)
 	ht  = httpr_test_create();
 	hr  = gen_reader(ht);
 
-
 	res = M_http_reader_read(hr, (const unsigned char *)http9_data, M_str_len(http9_data), &len_read);
 
 	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Parse failed: %d", res);
@@ -897,7 +896,10 @@ START_TEST(check_httpr9)
 	eval = "epilouge";
 	ck_assert_msg(M_str_eq(gval, eval), "Wrong epilouge data: got '%s', expected '%s'", gval, eval);
 
+	httpr_test_destroy(ht);
 	M_http_reader_destroy(hr);
+
+	ht  = httpr_test_create();
 	hr  = gen_reader(ht);
 
 	res = M_http_reader_read(hr, (const unsigned char *)http9_error_data, M_str_len(http9_error_data), &len_read);
