@@ -1195,6 +1195,9 @@ START_TEST(check_body_len)
 	M_http_error_t   res      = M_http_reader_read(hr, (const unsigned char *)http_body_len, M_str_len(http_body_len), &len_read);
 
 	ck_assert_msg(res == M_HTTP_ERROR_SUCCESS, "Should have 0 body len and be done");
+
+	httpr_test_destroy(ht);
+	M_http_reader_destroy(hr);
 }
 END_TEST
 
