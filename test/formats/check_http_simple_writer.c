@@ -81,6 +81,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example.com\r\n" \
 	"User-Agent: simple-writer\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -88,6 +89,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example.com\r\n" \
 	"User-Agent: simple-writer\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -95,6 +97,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example.com\r\n" \
 	"User-Agent: simple-writer\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -111,6 +114,7 @@ static void validate_output(char *out, size_t *out_len, const char *expected, si
 	"Host: example.com:443\r\n" \
 	"User-Agent: swriter\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -465,11 +469,13 @@ END_TEST
 
 #define rsp_data_rsp2 "HTTP/1.1 201 OMG\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
 #define rsp_data_rsp3 "HTTP/1.1 400 Bad Request\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: text/plain; charset=utf-8\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
@@ -527,6 +533,7 @@ END_TEST
 
 #define clen_rsp2 "HTTP/1.1 200 OK\r\n" \
 	"Content-Length: 0\r\n" \
+	"Content-Type: application/octet-stream\r\n" \
 	"Date:\r\n" \
 	"\r\n"
 
