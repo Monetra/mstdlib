@@ -24,6 +24,7 @@
 #include <mstdlib/formats/m_settings.h>
 #include <mstdlib/formats/m_table.h>
 #include <mstdlib/formats/m_xml.h>
+#include <mstdlib/formats/m_url.h>
 
 #endif /* __MSTDLIB_FORMATS_H__ */
 

@@ -74,6 +74,10 @@ set(sources
 	xml/m_xml_reader.c
 	xml/m_xml_writer.c
 	xml/m_xml_xpath.c
+
+	# url:
+	url/m_url.c
+	url/thirdparty/url_parser.c
 )
 
 # Build the library.
