@@ -25,6 +25,17 @@
 #include <mstdlib/formats/m_url.h>
 #include "url_parser.h"
 
+struct M_url {
+	char     *schema;
+	char     *host;
+	char     *port;
+	char     *path;
+	char     *query;
+	char     *fragment;
+	char     *userinfo;
+	M_uint16  port_u16;
+};
+
 static void M_url_set_field(const char *url_str, struct http_parser_url *url, char **field, int idx)
 {
 	if ((url->field_set & (1 << idx)) != 0) {
@@ -60,6 +71,62 @@ M_url_t *M_url_create(const char *url_str)
 	M_url_set_field(url_str, &url_st, &url->userinfo, UF_USERINFO);
 
 	return url;
+}
+
+const char *M_url_schema(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->schema;
+}
+
+const char *M_url_host(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->host;
+}
+
+const char *M_url_port(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->port;
+}
+
+const char *M_url_path(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->path;
+}
+
+const char *M_url_query(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->query;
+}
+
+const char *M_url_fragment(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->fragment;
+}
+
+const char *M_url_userinfo(M_url_t *url)
+{
+	if (url == NULL)
+		return NULL;
+	return url->userinfo;
+}
+
+M_uint16 M_url_port_u16(M_url_t *url)
+{
+	if (url == NULL)
+		return 0;
+	return url->port_u16;
 }
 
 void M_url_destroy(M_url_t *url)

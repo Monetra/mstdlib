@@ -32,22 +32,37 @@ __BEGIN_DECLS
  *  \ingroup m_formats
  * URL Parser.
  *
- * This parser wraps the url-parser in nghttp2's codebase, which in turn was extracted
- * from nodejs' http_parser.  It supports many of the features of RFC 3986, but is not
+ * This parser supports many of the features of RFC 3986, but is not
  * a fully compliant URI parser.
+ *
+ * Specifically from RFC3986 section 1.1.2:
+ *
+ * SUPPORTED?
+ *
+ * YES  ftp://ftp.is.co.za/rfc/rfc1808.txt
+ *
+ * YES  http://www.ietf.org/rfc/rfc2396.txt
+ *
+ * YES  ldap://[2001:db8::7]/c=GB?objectClass?one
+ *
+ * NO   mailto:John.Doe@example.com
+ *
+ * NO   news:comp.infosystems.www.servers.unix
+ *
+ * NO   tel:+1-816-555-1212
+ *
+ * YES  telnet://192.0.2.16:80/
+ *
+ * NO   urn:oasis:names:specification:docbook:dtd:xml:4.1.2
+ *
+ * YES  http://http:%2f%2fhttp:%2f%2f@http://http://?http://#http://
+ *
  * @{
  */
 
-typedef struct M_url {
-	char     *schema;
-	char     *host;
-	char     *port;
-	char     *path;
-	char     *query;
-	char     *fragment;
-	char     *userinfo;
-	M_uint16  port_u16;
-} M_url_t;
+struct M_url;
+typedef struct M_url M_url_t;
+
 
 /*! Parse URL string into structure parts.
  *
@@ -56,6 +71,70 @@ typedef struct M_url {
  * \return Parsed URL struct or NULL on error.
  */
 M_API M_url_t *M_url_create(const char *url_str);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return schema string (NULL if none)
+ */
+M_API const char *M_url_schema(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return host string (NULL if none)
+ */
+M_API const char *M_url_host(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return port string (NULL if none)
+ */
+M_API const char *M_url_port(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return path string (NULL if none)
+ */
+M_API const char *M_url_path(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return query string (NULL if none)
+ */
+M_API const char *M_url_query(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return fragment string (NULL if none)
+ */
+M_API const char *M_url_fragment(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return userinfo string (NULL if none)
+ */
+M_API const char *M_url_userinfo(M_url_t *url);
+
+/*! Getter function
+ *
+ * \param[in]  url parsed URL.
+ *
+ * \return port as M_uint16 (0 if none)
+ */
+M_API M_uint16    M_url_port_u16(M_url_t *url);
 
 /*! Destroy parsed URL struct
  *

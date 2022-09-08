@@ -20,13 +20,13 @@ START_TEST(check_http_http)
 {
 	M_url_t *url = M_url_create("http://http:%%2f%%2fhttp:%%2f%%2f@http://http://?http://#http://");
 	ck_assert_msg(url != NULL, "Should have parsed");
-	ck_assert_msg(M_str_eq(url->schema, "http"), "Should have parsed schema");
-	ck_assert_msg(M_str_eq(url->host, "http"), "Should have parsed host");
-	ck_assert_msg(M_str_eq(url->userinfo, "http:%%2f%%2fhttp:%%2f%%2f"), "Should have parsed userinfo");
-	ck_assert_msg(url->port == NULL, "Shouldn't have parsed port");
-	ck_assert_msg(M_str_eq(url->path, "//http://"), "Should have parsed path");
-	ck_assert_msg(M_str_eq(url->query, "http://"), "Should have parsed query");
-	ck_assert_msg(M_str_eq(url->fragment, "http://"), "Should have parsed fragment");
+	ck_assert_msg(M_str_eq(M_url_schema(url), "http"), "Should have parsed schema");
+	ck_assert_msg(M_str_eq(M_url_host(url), "http"), "Should have parsed host");
+	ck_assert_msg(M_str_eq(M_url_userinfo(url), "http:%%2f%%2fhttp:%%2f%%2f"), "Should have parsed userinfo");
+	ck_assert_msg(M_str_eq(M_url_path(url), "//http://"), "Should have parsed path");
+	ck_assert_msg(M_str_eq(M_url_query(url), "http://"), "Should have parsed query");
+	ck_assert_msg(M_str_eq(M_url_fragment(url), "http://"), "Should have parsed fragment");
+	ck_assert_msg(M_url_port(url) == NULL, "Shouldn't have parsed port");
 	M_url_destroy(url);
 }
 END_TEST
@@ -34,14 +34,14 @@ END_TEST
 START_TEST(check_url)
 {
 	M_url_t *url        = M_url_create("schema://userinfo@host:8080/path?query#fragment");
-	ck_assert_msg(M_str_eq(url->schema, "schema"), "Should have parsed schema");
-	ck_assert_msg(M_str_eq(url->host, "host"), "Should have parsed host");
-	ck_assert_msg(M_str_eq(url->userinfo, "userinfo"), "Should have parsed userinfo");
-	ck_assert_msg(M_str_eq(url->port, "8080"), "Should have parsed port");
-	ck_assert_msg(M_str_eq(url->path, "/path"), "Should have parsed path");
-	ck_assert_msg(M_str_eq(url->query, "query"), "Should have parsed query");
-	ck_assert_msg(M_str_eq(url->fragment, "fragment"), "Should have parsed fragment");
-	ck_assert_msg(url->port_u16 == 8080, "Should have parsed port as uint16");
+	ck_assert_msg(M_str_eq(M_url_schema(url), "schema"), "Should have parsed schema");
+	ck_assert_msg(M_str_eq(M_url_host(url), "host"), "Should have parsed host");
+	ck_assert_msg(M_str_eq(M_url_userinfo(url), "userinfo"), "Should have parsed userinfo");
+	ck_assert_msg(M_str_eq(M_url_port(url), "8080"), "Should have parsed port");
+	ck_assert_msg(M_str_eq(M_url_path(url), "/path"), "Should have parsed path");
+	ck_assert_msg(M_str_eq(M_url_query(url), "query"), "Should have parsed query");
+	ck_assert_msg(M_str_eq(M_url_fragment(url), "fragment"), "Should have parsed fragment");
+	ck_assert_msg(M_url_port_u16(url) == 8080, "Should have parsed port as uint16");
 	M_url_destroy(url);
 }
 END_TEST
@@ -58,7 +58,7 @@ int main(void)
 
 	suite = suite_create("url");
 
-	//add_test(suite, check_url);
+	add_test(suite, check_url);
 	add_test(suite, check_http_http);
 
 	sr = srunner_create(suite);
