@@ -297,7 +297,7 @@ task:
 task:
   name: "FreeBSD x64 - CMake"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *cmake_build
@@ -306,7 +306,7 @@ task:
 task:
   name: "FreeBSD x64 - AutoTools"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *autotools_build
@@ -315,7 +315,7 @@ task:
 task:
   name: "FreeBSD x64 - Static Analysis"
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
   << : *freebsd_template
   << : *fetch_thirdparty
   << : *static_analysis_build

@@ -39,23 +39,15 @@ __BEGIN_DECLS
  *
  * SUPPORTED?
  *
- * YES  ftp://ftp.is.co.za/rfc/rfc1808.txt
- *
- * YES  http://www.ietf.org/rfc/rfc2396.txt
- *
- * YES  ldap://[2001:db8::7]/c=GB?objectClass?one
- *
- * NO   mailto:John.Doe@example.com
- *
- * NO   news:comp.infosystems.www.servers.unix
- *
- * NO   tel:+1-816-555-1212
- *
- * YES  telnet://192.0.2.16:80/
- *
- * NO   urn:oasis:names:specification:docbook:dtd:xml:4.1.2
- *
- * YES  http://http:%2f%2fhttp:%2f%2f@http://http://?http://#http://
+ * - YES  ftp://ftp.is.co.za/rfc/rfc1808.txt
+ * - YES  http://www.ietf.org/rfc/rfc2396.txt
+ * - YES  ldap://[2001:db8::7]/c=GB?objectClass?one
+ * - NO   mailto:John.Doe@example.com
+ * - NO   news:comp.infosystems.www.servers.unix
+ * - NO   tel:+1-816-555-1212
+ * - YES  telnet://192.0.2.16:80/
+ * - NO   urn:oasis:names:specification:docbook:dtd:xml:4.1.2
+ * - YES  http://http:%2f%2fhttp:%2f%2f@http://http://?http://#http://
  *
  * @{
  */
