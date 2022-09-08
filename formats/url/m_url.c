@@ -35,7 +35,7 @@ static void M_url_set_field(const char *url_str, struct http_parser_url *url, ch
 	}
 }
 
-M_API M_url_t *M_url_create(const char *url_str)
+M_url_t *M_url_create(const char *url_str)
 {
 	struct http_parser_url  url_st = { 0 };
 	int                     res    = 0;
@@ -62,7 +62,7 @@ M_API M_url_t *M_url_create(const char *url_str)
 	return url;
 }
 
-M_API void M_url_destroy(M_url_t *url)
+void M_url_destroy(M_url_t *url)
 {
 	if (url == NULL)
 		return;
