@@ -77,7 +77,7 @@ set(sources
 
 	# url:
 	url/m_url.c
-	url/thirdparty/url_parser.c
+	url/url_parser.c
 )
 
 # Build the library.

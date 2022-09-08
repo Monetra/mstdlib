@@ -23,7 +23,7 @@
 
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/formats/m_url.h>
-#include "thirdparty/url_parser.h"
+#include "url_parser.h"
 
 static void M_url_set_field(const char *url_str, struct http_parser_url *url, char **field, int idx)
 {
