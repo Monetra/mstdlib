@@ -99,6 +99,7 @@ if (MSTDLIB_BUILD_FORMATS)
 		formats/check_mtzfile.c
 		formats/check_settings.c
 		formats/check_table.c
+		formats/check_url.c
 		formats/check_xml.c
 		formats/check_xml_entities.c
 	)
