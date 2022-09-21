@@ -525,6 +525,7 @@ static M_http_error_t start_func(M_http_message_type_t type, M_http_version_t ve
 		ht->uri    = M_strdup(uri);
 	} else if (type == M_HTTP_MESSAGE_TYPE_RESPONSE) {
 		ht->code   = code;
+		M_free(ht->reason);
 		ht->reason = M_strdup(reason);
 	} else {
 		return M_HTTP_ERROR_USER_FAILURE;

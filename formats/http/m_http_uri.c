@@ -52,7 +52,7 @@ M_bool M_http_set_uri(M_http_t *http, const char *uri)
 	http->uri = M_strdup(uri);
 
 	M_hash_dict_destroy(http->query_args);
-	M_http_parse_query_string(M_url_query(http->url_st), M_TEXTCODEC_UNKNOWN);
+	http->query_args = M_http_parse_query_string(M_url_query(http->url_st), M_TEXTCODEC_UNKNOWN);
 
 	return M_TRUE;
 }
