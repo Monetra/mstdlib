@@ -40,7 +40,7 @@ __BEGIN_DECLS
  * @{
  */
 
-extern const char *M_http2_pri_str;
+M_API extern const char *M_http2_pri_str;
 
 typedef enum {
 	M_HTTP2_FRAME_TYPE_DATA          = 0x00,

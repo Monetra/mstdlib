@@ -204,6 +204,8 @@ const char *M_http_version_to_str(M_http_version_t version)
 			return "HTTP/1.1";
 		case M_HTTP_VERSION_2:
 			return "HTTP/2";
+		case M_HTTP_VERSION_ANY:
+			return "HTTP/ANY";
 		case M_HTTP_VERSION_UNKNOWN:
 			break;
 	}
