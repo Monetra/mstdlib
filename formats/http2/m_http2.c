@@ -24,7 +24,6 @@
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/formats/m_http2.h>
 
-const char *M_http2_pri_str = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
 
 #include "generated/m_http2_static_header_table.c"
 /* m_http2_static_header_table.c initializes the following struct:
@@ -332,4 +331,17 @@ M_bool M_http2_decode_framehdr(M_parser_t *parser, M_http2_framehdr_t *framehdr)
 
 	M_parser_consume(parser, 9);
 	return M_TRUE;
+}
+
+void M_http2_pri_str_to_buf(M_buf_t *buf)
+{
+	static const char *pri_str = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
+	M_buf_add_str(buf, pri_str);
+}
+
+char *M_http2_pri_str_copy()
+{
+	M_buf_t *buf = M_buf_create();
+	M_http2_pri_str_to_buf(buf);
+	return M_buf_finish_str(buf, NULL);
 }

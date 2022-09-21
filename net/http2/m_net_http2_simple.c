@@ -263,7 +263,7 @@ static void M_net_http2_simple_init(M_net_http2_simple_t *h2, const char *schema
 	h2->authority      = M_strdup(authority);
 	h2->max_frame_size = 0x00FFFFFF;
 
-	M_buf_add_str(h2->out_buf, M_http2_pri_str); /* Upgrade to HTTP2 */
+	M_http2_pri_str_to_buf(h2->out_buf);
 
 	settings = M_http2_frame_settings_create(0, 0);
 	M_http2_frame_settings_add(settings, M_HTTP2_SETTING_HEADER_TABLE_SIZE, 0); /* Disable Dynamic Table */

@@ -40,8 +40,6 @@ __BEGIN_DECLS
  * @{
  */
 
-M_API extern const char *M_http2_pri_str;
-
 typedef enum {
 	M_HTTP2_FRAME_TYPE_DATA          = 0x00,
 	M_HTTP2_FRAME_TYPE_HEADERS       = 0x01,
@@ -233,6 +231,9 @@ M_API void M_http2_frame_headers_add(M_http2_frame_headers_t *h2f_headers, const
 
 M_API void M_http2_goaway_to_buf(M_http2_stream_t *stream, M_uint32 errcode, const M_uint8 *data, size_t data_len, M_buf_t *buf);
 M_API M_uint8 *M_http2_goaway_to_data(M_http2_stream_t *stream, M_uint32 errcode, const M_uint8 *data, size_t data_len);
+
+M_API void M_http2_pri_str_to_buf(M_buf_t *buf);
+M_API char *M_http2_pri_str_copy(void);
 
 /*! @} */
 
