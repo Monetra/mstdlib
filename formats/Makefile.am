@@ -48,7 +48,11 @@ libmstdlib_formats_la_SOURCES =  \
 	xml/m_xml_entities.c         \
 	xml/m_xml_reader.c           \
 	xml/m_xml_writer.c           \
-	xml/m_xml_xpath.c
+	xml/m_xml_xpath.c            \
+	\
+	url/m_url.c                  \
+	url/url_parser.c             \
+
 
 libmstdlib_formats_la_DEPENDENCIES = @ADD_OBJECTS@
 libmstdlib_formats_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/text/libmstdlib_text.la
