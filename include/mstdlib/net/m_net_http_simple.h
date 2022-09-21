@@ -292,6 +292,16 @@ M_API void M_net_http_simple_set_timeouts(M_net_http_simple_t *hs, M_uint64 conn
 M_API void M_net_http_simple_set_max_redirects(M_net_http_simple_t *hs, M_uint64 max);
 
 
+/*! Set the HTTP version
+ *
+ * Default HTTP v1
+ *
+ * \param[in] hs      HTTP simple network object.
+ * \param[in] version which version to use
+ */
+M_API void M_net_http_simple_set_version(M_net_http_simple_t *hs, M_http_version_t version);
+
+
 /*! Set max receive data size
  *
  * Default 50 MB.

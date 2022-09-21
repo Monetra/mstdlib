@@ -112,7 +112,13 @@ typedef enum {
 	M_HTTP_ERROR_MULTIPART_INVALID,          /*!< Multipart is invalid. */
 	M_HTTP_ERROR_UNSUPPORTED_DATA,           /*!< Data received is unsupported. */
 	M_HTTP_ERROR_TEXTCODEC_FAILURE,          /*!< Text decode failure. */
-	M_HTTP_ERROR_USER_FAILURE                /*!< Generic callback generated failure. */
+	M_HTTP_ERROR_USER_FAILURE,               /*!< Generic callback generated failure. */
+	M_HTTP_ERROR_INVALID_FRAME_TYPE,         /*!< Invalid HTTP2 frame type. */
+	M_HTTP_ERROR_INVALID_SETTING_TYPE,       /*!< Invalid HTTP2 setting type. */
+	M_HTTP_ERROR_INTERNAL,                   /*!< Internal problem. Indicates a processing error. */
+	M_HTTP_ERROR_MISALIGNED_SETTINGS,        /*!< HTTP2 settings frame didn't align properly */
+	M_HTTP_ERROR_INVALID_TABLE_INDEX,        /*!< HTTP2 attempted to index 0, or greater than the maximum table index. */
+	M_HTTP_ERROR_STREAM_ID,                  /*!< HTTP2 bad stream id reference */
 } M_http_error_t;
 
 
@@ -129,6 +135,8 @@ typedef enum {
 	M_HTTP_VERSION_UNKNOWN = 0, /*!< Unknown. */
 	M_HTTP_VERSION_1_0,         /*!< 1.0 */
 	M_HTTP_VERSION_1_1,         /*!< 1.1 */
+	M_HTTP_VERSION_2,           /*!< 2   */
+	M_HTTP_VERION_ANY,          /*!< Use highest mutually supported version */
 } M_http_version_t;
 
 

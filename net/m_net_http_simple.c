@@ -1,17 +1,17 @@
 /* The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2019 Monetra Technologies, LLC.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,45 +26,38 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct M_net_http_simple {
-	M_event_t         *el;
-
-	M_dns_t           *dns;
-	M_tls_clientctx_t *ctx;
-
-	M_uint64           redirect_max;
-	M_uint64           redirect_cnt;
-
-	M_uint64           receive_max;
-
-	M_uint64           timeout_connect_ms;
-	M_uint64           timeout_stall_ms;
-	M_uint64           timeout_overall_ms;
-	M_event_timer_t   *timer_stall;
-	M_event_timer_t   *timer_overall;
-
-	M_io_t            *io;
-	M_parser_t        *read_parser;
-	M_buf_t           *header_buf;
-
+	M_event_t            *el;
+	M_dns_t              *dns;
+	M_tls_clientctx_t    *ctx;
+	M_uint64              redirect_max;
+	M_uint64              redirect_cnt;
+	M_uint64              receive_max;
+	M_uint64              timeout_connect_ms;
+	M_uint64              timeout_stall_ms;
+	M_uint64              timeout_overall_ms;
+	M_event_timer_t      *timer_stall;
+	M_event_timer_t      *timer_overall;
+	M_io_t               *io;
+	M_parser_t           *read_parser;
+	M_buf_t              *header_buf;
 	M_http_simple_read_t *simple;
-
-	M_http_method_t  method;
-	char            *user_agent;
-	char            *content_type;
-	char            *charset;
-	M_hash_dict_t   *headers;
-	unsigned char   *message;
-	size_t           message_len;
-	size_t           message_pos;
-
-	M_http_error_t   httperr;
-	M_net_error_t    neterr;
-	char             error[256];
-
-	void            *thunk;
-
-	M_net_http_simple_done_cb      done_cb;
-	M_net_http_simple_iocreate_cb  iocreate_cb;
+	M_http_method_t       method;
+	char                 *user_agent;
+	char                 *content_type;
+	char                 *charset;
+	M_hash_dict_t        *headers;
+	unsigned char        *message;
+	size_t                message_len;
+	size_t                message_pos;
+	M_http_version_t      version;
+	M_http_error_t        httperr;
+	M_net_error_t         neterr;
+	char                  error[256];
+	void                  *thunk;
+	struct {
+		M_net_http_simple_done_cb      done_cb;
+		M_net_http_simple_iocreate_cb  iocreate_cb;
+	} cbs;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -72,6 +65,15 @@ struct M_net_http_simple {
 static const char *DEFAULT_USER_AGENT = "MSTDLIB/Net HTTP Simple " NET_HTTP_VERSION;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+static M_bool iocreate_cb_default(M_io_t *io, char *error, size_t errlen, void *thunk)
+{
+	(void)io;
+	(void)error;
+	(void)errlen;
+	(void)thunk;
+	return M_TRUE;
+}
 
 static void io_destroy_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 {
@@ -117,86 +119,16 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-static void split_url(const char *url, char **host, M_uint16 *port, char **uri)
-{
-	M_parser_t *parser;
-	M_uint64    port64;
-	M_uint16    myport;
-
-	if (port == NULL)
-		port = &myport;
-	*port = 0;
-
-	parser = M_parser_create_const((const unsigned char *)url, M_str_len(url), M_PARSER_FLAG_NONE);
-
-	/* Kill off the prefix. */ 
-	M_parser_consume_str_until(parser, "://", M_TRUE);
-
-	/* Mark the start of the host. */
-	M_parser_mark(parser);
-
-	if (M_parser_consume_str_until(parser, ":", M_FALSE) != 0) {
-		/* Having a ":" means we have a port so everything before is
-		 * the host. */
-		if (host != NULL) {
-			*host = M_parser_read_strdup_mark(parser);
-		}
-
-		/* kill the ":". */
-		M_parser_consume(parser, 1);
-
-		/* Read the port. */
-		if (M_parser_read_uint(parser, M_PARSER_INTEGER_ASCII, 0, 10, &port64)) {
-			*port = (M_uint16)port64;
-		}
-	} else if (M_parser_consume_str_until(parser, "/", M_FALSE) != 0) {
-		/* No port was specified try to find the start of the path. */
-		if (host != NULL) {
-			*host = M_parser_read_strdup_mark(parser);
-		}
-	} else {
-		/* No port and no / means all we have is the host. */
-		if (host != NULL) {
-			*host = M_parser_read_strdup(parser, M_parser_len(parser));
-		}
-	}
-
-	/* Get the uri. */
-	if (M_parser_len(parser) == 0) {
-		/* Nothing left, must be /. */
-		if (uri != NULL) {
-			*uri = M_strdup("/");
-		}
-	} else {
-		if (uri != NULL) {
-			*uri = M_parser_read_strdup(parser, M_parser_len(parser));
-		}
-	}
-
-	if (*port == 0) {
-		if (M_str_caseeq_start(url, "http://")) {
-			*port = 80;
-		} else {
-			/* Prefer secure connections. */
-			*port = 443;
-		}
-	}
-
-	M_parser_destroy(parser);
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 static void call_done(M_net_http_simple_t *hs)
 {
 	/* Got the final data. Stop our timers. */
 	M_event_timer_stop(hs->timer_stall);
 	M_event_timer_stop(hs->timer_overall);
 
-	hs->done_cb(hs->neterr, hs->httperr, hs->simple, hs->error, hs->thunk);
+	hs->cbs.done_cb(hs->neterr, hs->httperr, hs->simple, hs->error, hs->thunk);
 
 	/* DO NOT USE hs after this point. Nothing can set
- 	 * hs as a thunk argument for a cb to receive!!! */
+	 * hs as a thunk argument for a cb to receive!!! */
 	M_net_http_simple_destroy(hs);
 }
 
@@ -277,16 +209,12 @@ static void M_net_http_simple_ready_send(M_net_http_simple_t *hs)
 	io_disconnect_and_destroy(hs);
 }
 
-static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
+static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 {
-	char         *hostname;
-	M_uint16      port;
 	M_io_error_t  ioerr;
 	size_t        lid;
 
-	split_url(url, &hostname, &port, NULL);
-	ioerr = M_io_net_client_create(&hs->io, hs->dns, hostname, port, M_IO_NET_ANY);
-	M_free(hostname);
+	ioerr = M_io_net_client_create(&hs->io, hs->dns, M_url_host(url_st), M_url_port_u16(url_st), M_IO_NET_ANY);
 	if (ioerr != M_IO_ERROR_SUCCESS) {
 		hs->neterr = M_NET_ERROR_CREATE;
 		M_snprintf(hs->error, sizeof(hs->error), "Failed to create network client: %s", M_io_error_string(ioerr));
@@ -294,7 +222,7 @@ static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
 	}
 
 	/* If this is an https connection add the context. */
-	if (M_str_caseeq_start(url, "https://")) {
+	if (M_str_caseeq_start(M_url_schema(url_st), "https")) {
 		if (hs->ctx == NULL) {
 			hs->neterr = M_NET_ERROR_TLS_REQUIRED;
 			M_snprintf(hs->error, sizeof(hs->error), "HTTPS Connection required but client context no set");
@@ -312,15 +240,13 @@ static M_bool setup_io(M_net_http_simple_t *hs, const char *url)
 	}
 
 	/* Allow the user of this object to add any additional layers. Logging, bw shapping... */
-	if (hs->iocreate_cb) {
-		if (!hs->iocreate_cb(hs->io, hs->error, sizeof(hs->error), hs->thunk)) {
-			hs->neterr = M_NET_ERROR_CREATE;
-			if (M_str_isempty(hs->error)) {
-				M_snprintf(hs->error, sizeof(hs->error), "iocreate generic failure");
-			}
-			io_disconnect_and_destroy(hs);
-			return M_FALSE;
+	if (!hs->cbs.iocreate_cb(hs->io, hs->error, sizeof(hs->error), hs->thunk)) {
+		hs->neterr = M_NET_ERROR_CREATE;
+		if (M_str_isempty(hs->error)) {
+			M_snprintf(hs->error, sizeof(hs->error), "iocreate generic failure");
 		}
+		io_disconnect_and_destroy(hs);
+		return M_FALSE;
 	}
 
 	return M_TRUE;
@@ -425,23 +351,21 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 
 	(void)el;
 
-    switch (etype) {
-        case M_EVENT_TYPE_CONNECTED:
+	switch (etype) {
+		case M_EVENT_TYPE_CONNECTED:
 			/* Kick this off by writing our headers. */
 			if (!write_data(io, hs)) {
 				call_done(hs);
 			}
-            break;
-        case M_EVENT_TYPE_READ:
-            M_io_read_into_parser(io, hs->read_parser);
-
+			break;
+		case M_EVENT_TYPE_READ:
+			M_io_read_into_parser(io, hs->read_parser);
 			if (hs->receive_max != 0 && M_parser_len(hs->read_parser) > hs->receive_max) {
 				hs->neterr = M_NET_ERROR_OVER_LIMIT;
 				M_snprintf(hs->error, sizeof(hs->error), "Exceeded maximum receive data size limit");
 				call_done(hs);
 				break;
 			}
-
 			M_parser_mark(hs->read_parser);
 			httperr = M_http_simple_read_parser(&hs->simple, hs->read_parser, M_HTTP_SIMPLE_READ_NONE);
 			if (httperr == M_HTTP_ERROR_SUCCESS) {
@@ -454,7 +378,6 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 					M_http_simple_read_destroy(hs->simple);
 					hs->simple = NULL;
 				}
-
 				M_parser_mark_rewind(hs->read_parser);
 				timer_start_stall(hs);
 			} else {
@@ -463,15 +386,14 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 				M_snprintf(hs->error, sizeof(hs->error), "Format error: %s", M_http_errcode_to_str(httperr));
 				call_done(hs);
 			}
-
-            break;
-        case M_EVENT_TYPE_WRITE:
+			break;
+		case M_EVENT_TYPE_WRITE:
 			timer_start_stall(hs);
 			if (!write_data(io, hs)) {
 				call_done(hs);
 			}
-            break;
-        case M_EVENT_TYPE_DISCONNECTED:
+			break;
+		case M_EVENT_TYPE_DISCONNECTED:
 			/* We got a disconenct from the server. Normally we're the ones
 			 * to disconnect once we get the response.
 			 *
@@ -485,16 +407,16 @@ static void run_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
 			hs->neterr = M_NET_ERROR_DISCONNET;
 			M_io_get_error_string(io, hs->error, sizeof(hs->error));
 			call_done(hs);
-            break;
-        case M_EVENT_TYPE_ERROR:
+			break;
+		case M_EVENT_TYPE_ERROR:
 			hs->neterr = M_net_io_error_to_net_error(M_io_get_error(io));
 			M_io_get_error_string(io, hs->error, sizeof(hs->error));
 			call_done(hs);
-            break;
-        case M_EVENT_TYPE_ACCEPT:
-        case M_EVENT_TYPE_OTHER:
-            break;
-    }
+			break;
+		case M_EVENT_TYPE_ACCEPT:
+		case M_EVENT_TYPE_OTHER:
+			break;
+	}
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -506,14 +428,15 @@ M_net_http_simple_t *M_net_http_simple_create(M_event_t *el, M_dns_t *dns, M_net
 	if (el == NULL || dns == NULL || done_cb == NULL)
 		return NULL;
 
-	hs               = M_malloc_zero(sizeof(*hs));
-	hs->el           = el;
-	hs->dns          = dns;
-	hs->redirect_max = 16;
-	hs->receive_max  = 1024*1024*50; /* 50 MB */
-	hs->done_cb      = done_cb;
-	hs->method       = M_HTTP_METHOD_GET;
-	hs->user_agent   = M_strdup(DEFAULT_USER_AGENT);
+	hs                  = M_malloc_zero(sizeof(*hs));
+	hs->el              = el;
+	hs->dns             = dns;
+	hs->redirect_max    = 16;
+	hs->receive_max     = 1024*1024*50; /* 50 MB */
+	hs->cbs.done_cb     = done_cb;
+	hs->cbs.iocreate_cb = iocreate_cb_default;
+	hs->method          = M_HTTP_METHOD_GET;
+	hs->user_agent      = M_strdup(DEFAULT_USER_AGENT);
 
 	return hs;
 }
@@ -563,7 +486,18 @@ void M_net_http_simple_set_iocreate(M_net_http_simple_t *hs, M_net_http_simple_i
 {
 	if (hs == NULL)
 		return;
-	hs->iocreate_cb = iocreate_cb;
+	if (iocreate_cb != NULL) {
+		hs->cbs.iocreate_cb = iocreate_cb;
+	} else {
+		hs->cbs.iocreate_cb = iocreate_cb_default;
+	}
+}
+
+void M_net_http_simple_set_version(M_net_http_simple_t *hs, M_http_version_t version)
+{
+	if (hs == NULL)
+		return;
+	hs->version = version;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -576,7 +510,7 @@ void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_t meth
 	hs->method = method;
 
 	/* We're going to free everything just in case this was called multiple
- 	 * times. I shouldn't be but we'll be safe. */
+	 * times. I shouldn't be but we'll be safe. */
 
 	M_free(hs->user_agent);
 	hs->user_agent = NULL;
@@ -615,11 +549,13 @@ void M_net_http_simple_set_message(M_net_http_simple_t *hs, M_http_method_t meth
 
 M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *thunk)
 {
-	char     *host;
-	char     *uri;
-	M_uint16  port;
+	M_url_t  *url_st;
 
 	if (hs == NULL || M_str_isempty(url) || (!M_str_caseeq_start(url, "http://") && !M_str_caseeq_start(url, "https://")))
+		return M_FALSE;
+
+	url_st = M_url_create(url);
+	if (url_st == NULL)
 		return M_FALSE;
 
 	/* Setup the object for sending data. */
@@ -628,21 +564,20 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	hs->thunk = thunk;
 
 	/* Create our io object. */
-	if (!setup_io(hs, url))
+	if (!setup_io(hs, url_st)) {
+		M_url_destroy(url_st);
 		return M_FALSE;
+	}
 
 	/* Setup read and write buffer. */
 	hs->header_buf  = M_buf_create();
 	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
 
 	/* Add the data to the write buf. */
-	split_url(url, &host, &port, &uri);
 	M_http_simple_write_request_buf(hs->header_buf, hs->method,
-		host, port, uri,
+		M_url_host(url_st), M_url_port_u16(url_st), M_url_path(url_st),
 		hs->user_agent, hs->content_type, hs->headers,
 		NULL, hs->message_len, hs->charset);
-	M_free(host);
-	M_free(uri);
 
 	/* Start/reset our timers. */
 	timer_start_connect(hs);
@@ -655,8 +590,10 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 		hs->neterr = M_NET_ERROR_INTERNAL;
 		M_snprintf(hs->error, sizeof(hs->error), "Event error: Failed to start");
 		io_disconnect_and_destroy(hs);
+		M_url_destroy(url_st);
 		return M_FALSE;
 	}
 
+	M_url_destroy(url_st);
 	return M_TRUE;
 }

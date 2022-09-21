@@ -84,19 +84,19 @@ static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *h
 	M_hash_dict_merge(&myheaders, M_hash_dict_duplicate(headers));
 
 	/* Add the host. */
-	if (!M_str_isempty(host)) {
-		M_hash_dict_remove(myheaders, "Host");
-		if (port == 0 || port == 80) {
-			M_hash_dict_insert(myheaders, "Host", host);
-		} else {
-			M_asprintf(&hostport, "%s:%u", host, port);
-			M_hash_dict_insert(myheaders, "Host", hostport);
-			M_free(hostport);
-		}
-	} else if (!M_hash_dict_get(myheaders, "Host", NULL)) {
+	if (M_str_isempty(host) && M_hash_dict_get(myheaders, "Host", NULL)) {
 		/* Host is required. */
 		M_hash_dict_destroy(myheaders);
 		return NULL;
+	}
+
+	M_hash_dict_remove(myheaders, "Host");
+	if (port == 0 || port == 80) {
+		M_hash_dict_insert(myheaders, "Host", host);
+	} else {
+		M_asprintf(&hostport, "%s:%u", host, port);
+		M_hash_dict_insert(myheaders, "Host", hostport);
+		M_free(hostport);
 	}
 
 	/* Add the user agent. */
@@ -276,7 +276,7 @@ unsigned char *M_http_simple_write_request(M_http_method_t method,
 	return M_buf_finish(buf, len);
 }
 
-M_API M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
+M_bool M_http_simple_write_request_buf(M_buf_t *buf, M_http_method_t method,
 	const char *host, unsigned short port, const char *uri,
 	const char *user_agent, const char *content_type, const M_hash_dict_t *headers,
 	const unsigned char *data, size_t data_len, const char *charset)

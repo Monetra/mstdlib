@@ -13,6 +13,8 @@ find_package(OpenSSL REQUIRED)
 set(sources
 	m_net.c
 	m_net_http_simple.c
+	http2/m_net_http2_simple.c
+	http2/m_net_http2_simple_request.c
 	smtp/m_net_smtp.c
 	smtp/m_flow_process.c
 	smtp/m_flow_tcp.c
@@ -47,6 +49,7 @@ endif ()
 target_include_directories(${PROJECT_NAME}
 	PUBLIC  "$<INSTALL_INTERFACE:${MSTDLIB_INSTALL_LOCATION_HEADERS}>"
 	        "$<BUILD_INTERFACE:${MSTDLIB_TOPLEVEL_DIR}/include>"
+	        "${NGHTTP2_INCLUDE_DIR}"
 	PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
@@ -55,7 +58,8 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC  Mstdlib::formats
 	        Mstdlib::io
 	        Mstdlib::tls
-	PRIVATE OpenSSL::Crypto Mstdlib::config
+	PRIVATE OpenSSL::Crypto
+	        Mstdlib::config
 )
 
 # Link extra system libraries.
@@ -69,6 +73,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	find_library(SECURITY NAMES Security)
 	target_link_libraries(${PROJECT_NAME}
 		PRIVATE "${SECURITY}"
+		        "${NGHTTP2_LIBRARY}"
 	)
 endif ()
 
