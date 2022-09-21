@@ -51,7 +51,7 @@ libmstdlib_formats_la_SOURCES =  \
 	xml/m_xml_xpath.c            \
 	\
 	url/m_url.c                  \
-	url/url_parser.c             \
+	url/url_parser.c
 
 
 libmstdlib_formats_la_DEPENDENCIES = @ADD_OBJECTS@

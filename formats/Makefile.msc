@@ -68,7 +68,7 @@ OBJS      = \
 	xml/m_xml_xpath.obj            \
 	\
 	url/m_url.obj                  \
-	url/url_parser.obj             \
+	url/url_parser.obj
 
 
 # targets
