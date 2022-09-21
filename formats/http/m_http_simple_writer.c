@@ -80,23 +80,24 @@ static M_hash_dict_t *M_http_simple_write_request_headers(const M_hash_dict_t *h
 	M_hash_dict_t *myheaders;
 	char          *hostport;
 
-	myheaders = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
-	M_hash_dict_merge(&myheaders, M_hash_dict_duplicate(headers));
-
-	/* Add the host. */
-	if (M_str_isempty(host) && M_hash_dict_get(myheaders, "Host", NULL)) {
+	if (M_str_isempty(host) && !M_hash_dict_get(headers, "Host", NULL)) {
 		/* Host is required. */
-		M_hash_dict_destroy(myheaders);
 		return NULL;
 	}
 
-	M_hash_dict_remove(myheaders, "Host");
-	if (port == 0 || port == 80) {
-		M_hash_dict_insert(myheaders, "Host", host);
-	} else {
-		M_asprintf(&hostport, "%s:%u", host, port);
-		M_hash_dict_insert(myheaders, "Host", hostport);
-		M_free(hostport);
+	myheaders = M_hash_dict_create(8, 75, M_HASH_DICT_CASECMP|M_HASH_DICT_KEYS_ORDERED|M_HASH_DICT_MULTI_VALUE);
+	M_hash_dict_merge(&myheaders, M_hash_dict_duplicate(headers));
+
+	if (!M_str_isempty(host)) {
+		/* Use host argument if exists */
+		M_hash_dict_remove(myheaders, "Host");
+		if (port == 0 || port == 80) {
+			M_hash_dict_insert(myheaders, "Host", host);
+		} else {
+			M_asprintf(&hostport, "%s:%u", host, port);
+			M_hash_dict_insert(myheaders, "Host", hostport);
+			M_free(hostport);
+		}
 	}
 
 	/* Add the user agent. */
