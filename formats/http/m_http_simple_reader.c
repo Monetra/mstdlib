@@ -135,9 +135,8 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 			/* Store the host if we need to update it. */
 			if (M_str_isempty(http_host)) {
 				M_url_set_host(simple->http->url_st, host);
-			} else {
-				M_free(host);
 			}
+			M_free(host);
 
 			/* Store the port if we need to update it. */
 			if (http_port == 0) {
