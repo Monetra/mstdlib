@@ -125,11 +125,15 @@ static M_http_error_t M_http2_http_reader_headers_end_func(M_http2_framehdr_t *f
 	M_http_reader_t     *hr      = args->hr;
 	M_http_error_t       h_error;
 	(void)framehdr;
-	h_error = hr->cbs.header_done_func(M_HTTP_DATA_FORMAT_CHUNKED, hr->thunk);
+	h_error = hr->cbs.header_done_func(hr->data_type, hr->thunk);
 	hr->rstep = M_HTTP_READER_STEP_BODY;
-	if (hr->data_type == M_HTTP_DATA_FORMAT_MULTIPART) {
+
+	if (hr->data_type == M_HTTP_DATA_FORMAT_MULTIPART)
 		hr->rstep = M_HTTP_READER_STEP_MULTIPART_PREAMBLE;
-	}
+
+	if (hr->data_type == M_HTTP_DATA_FORMAT_CHUNKED)
+		hr->rstep = M_HTTP_READER_STEP_CHUNK_START;
+
 	return h_error;
 }
 
