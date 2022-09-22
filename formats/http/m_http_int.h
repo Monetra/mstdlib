@@ -57,10 +57,7 @@ struct M_http {
 	M_http_method_t        method;
 
 	char                  *uri;
-	char                  *host;
-	M_uint16               port;
-	char                  *path;
-	char                  *query_string;
+	M_url_t               *url_st;
 	M_hash_dict_t         *query_args;
 
 	M_bool                 is_chunked;

@@ -70,7 +70,14 @@ M_API M_url_t *M_url_create(const char *url_str);
  *
  * \return schema string (NULL if none)
  */
-M_API const char *M_url_schema(M_url_t *url);
+M_API const char *M_url_schema(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url  parsed URL.
+ * \param[in]  schema new schema to use
+ */
+M_API void        M_url_set_schema(M_url_t *url, const char *schema);
 
 /*! Getter function
  *
@@ -78,7 +85,14 @@ M_API const char *M_url_schema(M_url_t *url);
  *
  * \return host string (NULL if none)
  */
-M_API const char *M_url_host(M_url_t *url);
+M_API const char *M_url_host(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url  parsed URL.
+ * \param[in]  host new host to use
+ */
+M_API void        M_url_set_host(M_url_t *url, const char *host);
 
 /*! Getter function
  *
@@ -86,7 +100,14 @@ M_API const char *M_url_host(M_url_t *url);
  *
  * \return port string (NULL if none)
  */
-M_API const char *M_url_port(M_url_t *url);
+M_API const char *M_url_port(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url  parsed URL.
+ * \param[in]  port new port to use
+ */
+M_API void        M_url_set_port(M_url_t *url, const char *port);
 
 /*! Getter function
  *
@@ -94,7 +115,14 @@ M_API const char *M_url_port(M_url_t *url);
  *
  * \return path string (NULL if none)
  */
-M_API const char *M_url_path(M_url_t *url);
+M_API const char *M_url_path(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url  parsed URL.
+ * \param[in]  path new path to use
+ */
+M_API void        M_url_set_path(M_url_t *url, const char *path);
 
 /*! Getter function
  *
@@ -102,7 +130,14 @@ M_API const char *M_url_path(M_url_t *url);
  *
  * \return query string (NULL if none)
  */
-M_API const char *M_url_query(M_url_t *url);
+M_API const char *M_url_query(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url   parsed URL.
+ * \param[in]  query new query to use
+ */
+M_API void        M_url_set_query(M_url_t *url, const char *query);
 
 /*! Getter function
  *
@@ -110,7 +145,14 @@ M_API const char *M_url_query(M_url_t *url);
  *
  * \return fragment string (NULL if none)
  */
-M_API const char *M_url_fragment(M_url_t *url);
+M_API const char *M_url_fragment(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url      parsed URL.
+ * \param[in]  fragment new fragment to use
+ */
+M_API void        M_url_set_fragment(M_url_t *url, const char *fragment);
 
 /*! Getter function
  *
@@ -118,7 +160,14 @@ M_API const char *M_url_fragment(M_url_t *url);
  *
  * \return userinfo string (NULL if none)
  */
-M_API const char *M_url_userinfo(M_url_t *url);
+M_API const char *M_url_userinfo(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url      parsed URL.
+ * \param[in]  userinfo new userinfo to use
+ */
+M_API void        M_url_set_userinfo(M_url_t *url, const char *userinfo);
 
 /*! Getter function
  *
@@ -126,7 +175,14 @@ M_API const char *M_url_userinfo(M_url_t *url);
  *
  * \return port as M_uint16 (0 if none)
  */
-M_API M_uint16    M_url_port_u16(M_url_t *url);
+M_API M_uint16    M_url_port_u16(const M_url_t *url);
+
+/*! Setter function
+ *
+ * \param[in]  url  parsed URL.
+ * \param[in]  port new port to use
+ */
+M_API void        M_url_set_port_u16(M_url_t *url, M_uint16 port);
 
 /*! Destroy parsed URL struct
  *
