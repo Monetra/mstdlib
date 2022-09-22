@@ -21,6 +21,8 @@
  * THE SOFTWARE.
  */
 
+/* This is generated from a kludge of shell scripts. From RFC7531 it extracts appendix-A table-1. */
+
 static struct {
 	const char *key;
 	const char *value;
@@ -41,7 +43,7 @@ static struct {
 	{":status", "404" },
 	{":status", "500" },
 	{"accept-charset", NULL },
-	{"accept-encoding", "gzip,deflate" },
+	{"accept-encoding", "gzip, deflate" },
 	{"accept-language", NULL },
 	{"accept-ranges", NULL },
 	{"accept", NULL },

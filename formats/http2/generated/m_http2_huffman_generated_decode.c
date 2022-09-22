@@ -23,6 +23,14 @@
 
 #include <mstdlib/mstdlib.h>
 
+/* This is generated from a kludge of shell scripts and javascript to be ran
+ * in a browser's developer tool console.  It extracts the table from
+ * RFC7541 appendix B.  It creates a list of all the huffman codes and then
+ * all the intermediate states of bit by bit processing.  It dedups the list
+ * then inserts all the states into a JSON object.  The c-code is emitted from
+ * traversing the object.  It creates a switch based state machine which processes
+ * a bit at a time.  Once it reads a complete huffman code it emits the charcode and resets. */
+
 /* Generated code */
 
 typedef enum {

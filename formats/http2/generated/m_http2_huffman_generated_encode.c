@@ -21,6 +21,10 @@
  * THE SOFTWARE.
  */
 
+/* This is generated from a kludge of shell scripts.  It extracts the table
+ * from RFC7541 Appendix B and creates a lookup table that maps
+ * 8 bit charcode -> huffman code */
+
 /* Generated code */
 
 struct {
