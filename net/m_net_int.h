@@ -30,6 +30,8 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_net.h>
 
+#include "http2/m_net_http2_simple.h"
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 M_net_error_t M_net_io_error_to_net_error(M_io_error_t ioerr);

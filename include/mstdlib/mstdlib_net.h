@@ -34,7 +34,6 @@
 
 #include <mstdlib/net/m_net.h>
 #include <mstdlib/net/m_net_http_simple.h>
-#include <mstdlib/net/m_net_http2_simple.h>
 #include <mstdlib/net/m_net_smtp.h>
 
 #endif /* __MSTDLIB_NET_H__ */
