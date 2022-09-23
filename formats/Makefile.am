@@ -28,6 +28,13 @@ libmstdlib_formats_la_SOURCES =  \
 	http/m_http_simple_writer.c  \
 	http/m_http_uri.c            \
 	\
+	http2/m_http2.c                \
+	http2/m_http2_frame.c          \
+	http2/m_http2_frame_headers.c  \
+	http2/m_http2_frame_settings.c \
+	http2/m_http2_http_reader.c    \
+	http2/m_http2_reader.c         \
+	\
 	json/m_json.c \
 	json/m_json_jsonpath.c       \
 	json/m_json_reader.c         \
@@ -48,7 +55,11 @@ libmstdlib_formats_la_SOURCES =  \
 	xml/m_xml_entities.c         \
 	xml/m_xml_reader.c           \
 	xml/m_xml_writer.c           \
-	xml/m_xml_xpath.c
+	xml/m_xml_xpath.c            \
+	\
+	url/m_url.c                  \
+	url/url_parser.c
+
 
 libmstdlib_formats_la_DEPENDENCIES = @ADD_OBJECTS@
 libmstdlib_formats_la_LIBADD = @ADD_OBJECTS@ $(top_builddir)/base/libmstdlib.la $(top_builddir)/text/libmstdlib_text.la

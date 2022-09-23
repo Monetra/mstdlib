@@ -59,9 +59,7 @@ static void M_http_reset_int(M_http_t *http)
 
 	M_free(http->reason_phrase);
 	M_free(http->uri);
-	M_free(http->host);
-	M_free(http->path);
-	M_free(http->query_string);
+	M_url_destroy(http->url_st);
 	M_hash_dict_destroy(http->query_args);
 	M_hash_strvp_destroy(http->headers, M_TRUE);
 	M_free(http->content_type);
@@ -204,6 +202,10 @@ const char *M_http_version_to_str(M_http_version_t version)
 			return "HTTP/1.0";
 		case M_HTTP_VERSION_1_1:
 			return "HTTP/1.1";
+		case M_HTTP_VERSION_2:
+			return "HTTP/2";
+		case M_HTTP_VERSION_ANY:
+			return "HTTP/ANY";
 		case M_HTTP_VERSION_UNKNOWN:
 			break;
 	}
@@ -443,6 +445,12 @@ const char *M_http_errcode_to_str(M_http_error_t err)
 		ERRCASE(M_HTTP_ERROR_UNSUPPORTED_DATA);
 		ERRCASE(M_HTTP_ERROR_TEXTCODEC_FAILURE);
 		ERRCASE(M_HTTP_ERROR_USER_FAILURE);
+		ERRCASE(M_HTTP_ERROR_INVALID_FRAME_TYPE);
+		ERRCASE(M_HTTP_ERROR_INVALID_SETTING_TYPE);
+		ERRCASE(M_HTTP_ERROR_INTERNAL);
+		ERRCASE(M_HTTP_ERROR_MISALIGNED_SETTINGS);
+		ERRCASE(M_HTTP_ERROR_INVALID_TABLE_INDEX);
+		ERRCASE(M_HTTP_ERROR_STREAM_ID);
 	}
 	return ret;
 }

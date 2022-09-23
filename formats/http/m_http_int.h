@@ -31,6 +31,7 @@
 
 #include "http/m_http_header.h"
 #include "http/m_http_reader_int.h"
+#include <formats/http2/m_http2.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Internal object used by simple and other internal functionality to track
@@ -57,10 +58,7 @@ struct M_http {
 	M_http_method_t        method;
 
 	char                  *uri;
-	char                  *host;
-	M_uint16               port;
-	char                  *path;
-	char                  *query_string;
+	M_url_t               *url_st;
 	M_hash_dict_t         *query_args;
 
 	M_bool                 is_chunked;
