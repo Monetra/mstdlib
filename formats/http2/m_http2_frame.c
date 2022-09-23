@@ -22,7 +22,7 @@
  */
 
 #include <mstdlib/mstdlib.h>
-#include <mstdlib/formats/m_http2.h>
+#include <formats/http2/m_http2.h>
 
 void M_http2_goaway_to_buf(M_http2_stream_t *stream, M_uint32 errcode, const M_uint8 *data, size_t data_len, M_buf_t *buf)
 {

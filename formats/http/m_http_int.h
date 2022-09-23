@@ -31,6 +31,7 @@
 
 #include "http/m_http_header.h"
 #include "http/m_http_reader_int.h"
+#include <formats/http2/m_http2.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Internal object used by simple and other internal functionality to track

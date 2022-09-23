@@ -30,6 +30,7 @@
 #include <mstdlib/mstdlib_io.h>
 #include <mstdlib/mstdlib_net.h>
 
+#include <formats/http2/m_http2.h>
 #include "http2/m_net_http2_simple.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

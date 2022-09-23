@@ -24,6 +24,7 @@
 #include "../m_net_int.h"
 #include "m_net_http2_simple_request.h"
 #include <mstdlib/io/m_io_layer.h> /* M_io_layer_softevent_add */
+#include <formats/http2/m_http2.h>
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

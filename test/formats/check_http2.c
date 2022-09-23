@@ -2,6 +2,7 @@
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE, srand, rand */
 #include <check.h>
 
+#include <formats/http2/m_http2.h>
 #include <mstdlib/mstdlib.h>
 #include <mstdlib/mstdlib_formats.h>
 

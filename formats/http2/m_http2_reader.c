@@ -22,7 +22,7 @@
  */
 
 #include <mstdlib/mstdlib.h>
-#include <mstdlib/formats/m_http2.h>
+#include <formats/http2/m_http2.h>
 
 struct M_http2_reader {
 	struct M_http2_reader_callbacks  cbs;

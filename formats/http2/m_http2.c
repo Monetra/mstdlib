@@ -22,7 +22,7 @@
  */
 
 #include <mstdlib/mstdlib.h>
-#include <mstdlib/formats/m_http2.h>
+#include <formats/http2/m_http2.h>
 
 
 #include "generated/m_http2_static_header_table.c"

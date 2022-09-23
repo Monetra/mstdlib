@@ -22,7 +22,7 @@
  */
 
 #include <mstdlib/mstdlib.h>
-#include <mstdlib/formats/m_http2.h>
+#include <formats/http2/m_http2.h>
 #include "../http/m_http_reader_int.h"
 
 typedef struct {
