@@ -110,6 +110,8 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 	M_http_simple_read_t *simple = thunk;
 	char                 *val;
 	M_int64               i64v;
+	const char           *http_host = NULL;
+	M_uint16              http_port = 0;
 
 	switch (format) {
 		case M_HTTP_DATA_FORMAT_NONE:
@@ -122,23 +124,23 @@ static M_http_error_t M_http_simple_read_header_done_cb(M_http_data_format_t for
 	}
 
 	/* Set host/port if they were not part of the URI. */
-	val = M_http_header(simple->http, "host");
-	if ((M_str_isempty(simple->http->host) || simple->http->port == 0) && !M_str_isempty(val)) {
+	val       = M_http_header(simple->http, "host");
+	http_host = M_http_host(simple->http);
+	M_http_port(simple->http, &http_port);
+	if ((M_str_isempty(http_host) || http_port == 0) && !M_str_isempty(val)) {
 		char     *host   = NULL;
 		M_uint16  port   = 0;
 
 		if (M_http_simple_read_parse_host(val, &host, &port)) {
 			/* Store the host if we need to update it. */
-			if (M_str_isempty(simple->http->host)) {
-				M_free(simple->http->host);
-				simple->http->host = host;
-			} else {
-				M_free(host);
+			if (M_str_isempty(http_host)) {
+				M_url_set_host(simple->http->url_st, host);
 			}
+			M_free(host);
 
 			/* Store the port if we need to update it. */
-			if (simple->http->port == 0) {
-				simple->http->port = port;
+			if (http_port == 0) {
+				M_url_set_port_u16(simple->http->url_st, port);
 			}
 		}
 	}
