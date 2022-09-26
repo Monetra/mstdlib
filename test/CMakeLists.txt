@@ -171,6 +171,7 @@ endif()
 if(MSTDLIB_BUILD_NET)
 	list(APPEND tests
 		net/check_smtp.c
+		net/check_net_http.c
 	)
 endif()
 
