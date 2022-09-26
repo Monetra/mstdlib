@@ -113,6 +113,9 @@ static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 	M_http_simple_read_destroy(hs->simple);
 	M_hash_dict_destroy(hs->headers);
 	M_free(hs->message);
+	M_free(hs->charset);
+	M_free(hs->content_type);
+	M_free(hs->user_agent);
 
 	M_free(hs);
 }
