@@ -62,9 +62,6 @@ struct test_server_t {
 	M_io_t               *io_listen;
 	M_uint16              port;
 	M_json_node_t        *json;
-	M_hash_dict_t        *index_dict;
-	const char           *match_response;
-	const char           *unmatch_response;
 	size_t                stream_count;
 	test_server_stream_t  streams[16];
 };
@@ -93,14 +90,41 @@ static M_http_error_t respond_header_full_func(const char *key, const char *val,
 	return M_HTTP_ERROR_SUCCESS;
 }
 
+static M_bool check_headers_match_keys(M_hash_dict_t *headers, M_json_node_t *json_keys)
+{
+	size_t len = M_json_array_len(json_keys);
+	size_t i;
+	for (i=0; i<len; i++) {
+		M_json_node_t *json_key_entry = M_json_array_at(json_keys, i);
+		const char    *key            = M_json_object_value_string(json_key_entry, "key");
+		const char    *value          = M_json_object_value_string(json_key_entry, "value");
+		const char    *header_value   = M_hash_dict_get_direct(headers, key);
+		if (header_value == NULL || !M_str_eq(value, header_value))
+			return M_FALSE;
+	}
+	return M_TRUE;
+}
+
+static void compute_response(M_hash_dict_t *headers, M_json_node_t *json, M_buf_t *buf)
+{
+	M_json_node_t *json_entries = M_json_object_value(json, "entries");
+	size_t         len          = M_json_array_len(json_entries);
+	size_t         i;
+	for (i=0; i<len; i++) {
+		M_json_node_t *json_entry = M_json_array_at(json_entries, i);
+		M_json_node_t *json_keys  = M_json_object_value(json_entry, "keys");
+		if (check_headers_match_keys(headers, json_keys)) {
+			M_buf_add_str(buf, M_json_object_value_string(json_entry, "value"));
+			return;
+		}
+	}
+	M_buf_add_str(buf, M_json_object_value_string(json, "notfound_response"));
+	return;
+}
+
 static void respond(test_server_stream_t *stream)
 {
 	size_t               len;
-	M_hash_dict_enum_t  *hashenum;
-	const M_hash_dict_t *hash;
-	const char          *key;
-	const char          *value;
-	M_bool               is_match;
 	struct M_http_reader_callbacks cbs = {
 		respond_start_func,
 		respond_header_full_func,
@@ -131,23 +155,7 @@ static void respond(test_server_stream_t *stream)
 	M_http_reader_read(respond_httpr, M_parser_peek(stream->in_parser), M_parser_len(stream->in_parser), &len);
 	M_http_reader_destroy(respond_httpr);
 	M_parser_consume(stream->in_parser, len);
-	hash = stream->server->index_dict;
-	len = M_hash_dict_enumerate(hash, &hashenum);
-	is_match = M_TRUE;
-	while (M_hash_dict_enumerate_next(hash, hashenum, &key, &value)) {
-		const char *request_value = M_hash_dict_get_direct(stream->request_headers, key);
-		if (request_value == NULL || !M_str_eq(request_value, value)) {
-			is_match = M_FALSE;
-			break;
-		}
-	}
-	M_hash_dict_enumerate_free(hashenum);
-	if (is_match) {
-		M_buf_add_str(stream->out_buf, stream->server->match_response);
-	} else {
-		M_buf_add_str(stream->out_buf, stream->server->unmatch_response);
-	}
-
+	compute_response(stream->request_headers, stream->server->json, stream->out_buf);
 	stream->is_responded = M_TRUE;
 
 	trigger_softevent(stream->io, M_EVENT_TYPE_WRITE);
@@ -214,32 +222,10 @@ static void test_server_listen_cb(M_event_t *event, M_event_type_t type, M_io_t 
 
 static test_server_t *test_server_create(test_server_args_t *args)
 {
-	test_server_t *srv;
-	M_list_str_t  *json_keys;
-	M_json_node_t *json;
-	M_json_node_t *json_index;
-	size_t         i;
-
-	srv             = M_malloc_zero(sizeof(*srv));
-
+	test_server_t *srv     = M_malloc_zero(sizeof(*srv));
 	M_io_net_server_create(&srv->io_listen, 0, NULL, M_IO_NET_ANY);
-
-	srv->port             = M_io_net_get_port(srv->io_listen);
-	json                  = M_json_object_value(g.json, args->json_key);
-	srv->match_response   = M_json_object_value_string(json, "match_response");
-	srv->unmatch_response = M_json_object_value_string(json, "unmatch_response");
-	json_index            = M_json_object_value(json, "index");
-	json_keys             = M_json_object_keys(json_index);
-	srv->index_dict       = M_hash_dict_create(8, 75, M_HASH_DICT_NONE);
-
-	for (i=0; i<M_list_str_len(json_keys); i++) {
-		const char *key   = M_list_str_at(json_keys, i);
-		const char *value = M_json_object_value_string(json_index, key);
-		M_hash_dict_insert(srv->index_dict, key, value);
-	}
-
-	M_list_str_destroy(json_keys);
-
+	srv->port              = M_io_net_get_port(srv->io_listen);
+	srv->json              = M_json_object_value(g.json, args->json_key);
 	M_event_add(g.el, srv->io_listen, test_server_listen_cb, srv);
 	return srv;
 }
@@ -273,7 +259,6 @@ static void test_server_destroy(test_server_t *srv)
 	for (i=0; i<srv->stream_count; i++) {
 		test_server_stream_deinit(&srv->streams[i]);
 	}
-	M_hash_dict_destroy(srv->index_dict);
 	M_io_destroy(srv->io_listen);
 	srv->io_listen = NULL;
 	M_free(srv);
