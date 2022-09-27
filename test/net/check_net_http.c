@@ -105,8 +105,23 @@ static M_bool check_headers_match_keys(M_hash_dict_t *headers, M_json_node_t *js
 	return M_TRUE;
 }
 
-static void compute_response(M_hash_dict_t *headers, M_json_node_t *json, M_buf_t *buf)
+static void add_output_string(M_buf_t *buf, const char *str, const test_server_t *srv)
 {
+	char *new_str;
+	if (M_str_str(str, ":%hu") == NULL) {
+		M_buf_add_str(buf, str);
+		return;
+	}
+	M_asprintf(&new_str, str, srv->port);
+	M_buf_add_str(buf, new_str);
+	M_free(new_str);
+}
+
+static void compute_response(test_server_stream_t *stream)
+{
+	M_hash_dict_t *headers      = stream->request_headers;
+	M_json_node_t *json         = stream->server->json;
+	M_buf_t       *buf          = stream->out_buf;
 	M_json_node_t *json_entries = M_json_object_value(json, "entries");
 	size_t         len          = M_json_array_len(json_entries);
 	size_t         i;
@@ -114,11 +129,11 @@ static void compute_response(M_hash_dict_t *headers, M_json_node_t *json, M_buf_
 		M_json_node_t *json_entry = M_json_array_at(json_entries, i);
 		M_json_node_t *json_keys  = M_json_object_value(json_entry, "keys");
 		if (check_headers_match_keys(headers, json_keys)) {
-			M_buf_add_str(buf, M_json_object_value_string(json_entry, "value"));
+			add_output_string(buf, M_json_object_value_string(json_entry, "value"), stream->server);
 			return;
 		}
 	}
-	M_buf_add_str(buf, M_json_object_value_string(json, "notfound_response"));
+	add_output_string(buf, M_json_object_value_string(json, "notfound_response"), stream->server);
 	return;
 }
 
@@ -155,7 +170,7 @@ static void respond(test_server_stream_t *stream)
 	M_http_reader_read(respond_httpr, M_parser_peek(stream->in_parser), M_parser_len(stream->in_parser), &len);
 	M_http_reader_destroy(respond_httpr);
 	M_parser_consume(stream->in_parser, len);
-	compute_response(stream->request_headers, stream->server->json, stream->out_buf);
+	compute_response(stream);
 	stream->is_responded = M_TRUE;
 
 	trigger_softevent(stream->io, M_EVENT_TYPE_WRITE);
@@ -277,6 +292,28 @@ static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_
 	M_event_done(g.el);
 }
 
+START_TEST(check_redirect)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999/redirect";
+
+	sprintf(url, "http://localhost:%hu/redirect", srv->port);
+	M_net_http_simple_set_timeouts(hs, 2000, 0, 0);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+
+	M_event_loop(g.el, M_TIMEOUT_INF);
+
+	ck_assert_msg(args.is_success == M_TRUE, "Should have received 'It works!' HTML");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_basic)
 {
 	test_server_args_t   srv_args  = { "basic" };
@@ -318,6 +355,7 @@ static Suite *net_http_suite(void)
 	suite_add_tcase(suite, tc);
 
 	add_test("basic", check_basic);
+	add_test("redirect", check_redirect);
 
 #undef add_test_timeout
 #undef add_test
