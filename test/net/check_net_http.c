@@ -16,7 +16,9 @@ struct {
 } g;
 
 typedef struct {
-	M_bool is_success;
+	M_bool         is_success;
+	M_net_error_t  net_error;
+	M_http_error_t http_error;
 } test_args_t;
 
 static void cleanup_int(void)
@@ -63,6 +65,7 @@ struct test_server_t {
 	M_uint16              port;
 	M_json_node_t        *json;
 	size_t                stream_count;
+	char                 *name;
 	test_server_stream_t  streams[16];
 };
 
@@ -186,6 +189,10 @@ static void test_server_event_cb(M_event_t *event, M_event_type_t type, M_io_t *
 	M_http_error_t        herr;
 	(void)event;
 	(void)io;
+
+	if (M_str_eq(stream->server->name, "timeout"))
+		return;
+
 	switch (type) {
 		case M_EVENT_TYPE_CONNECTED:
 			test_server_stream_init(stream);
@@ -239,6 +246,7 @@ static test_server_t *test_server_create(test_server_args_t *args)
 {
 	test_server_t *srv     = M_malloc_zero(sizeof(*srv));
 	M_io_net_server_create(&srv->io_listen, 0, NULL, M_IO_NET_ANY);
+	srv->name              = M_strdup(args->json_key);
 	srv->port              = M_io_net_get_port(srv->io_listen);
 	srv->json              = M_json_object_value(g.json, args->json_key);
 	M_event_add(g.el, srv->io_listen, test_server_listen_cb, srv);
@@ -274,6 +282,7 @@ static void test_server_destroy(test_server_t *srv)
 	for (i=0; i<srv->stream_count; i++) {
 		test_server_stream_deinit(&srv->streams[i]);
 	}
+	M_free(srv->name);
 	M_io_destroy(srv->io_listen);
 	srv->io_listen = NULL;
 	M_free(srv);
@@ -283,14 +292,42 @@ static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_
 {
 	test_args_t *args = thunk;
 	const char  *body = (const char *)M_http_simple_read_body(simple, NULL);
-	(void)net_error;
-	(void)http_error;
 	(void)error;
 	if (M_str_eq(body, "<html><body><h1>It works!</h1></body></html>")) {
 		args->is_success = M_TRUE;
 	}
+	args->net_error = net_error;
+	args->http_error = http_error;
 	M_event_done(g.el);
 }
+
+START_TEST(check_timeout)
+{
+	test_server_args_t   srv_args  = { "timeout" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999";
+
+	sprintf(url, "http://localhost:%hu", srv->port);
+
+	M_net_http_simple_set_timeouts(hs, 0, 1, 100);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_TIMEOUT_STALL, "Should have timed out with M_NET_ERROR_TIMEOUT_STALL");
+
+	hs = M_net_http_simple_create(g.el, g.dns, done_cb);
+	M_net_http_simple_set_timeouts(hs, 0, 100, 1);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_TIMEOUT, "Should have timed out with %d, not %d", M_NET_ERROR_TIMEOUT, args.net_error);
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
 
 START_TEST(check_redirect)
 {
@@ -301,7 +338,7 @@ START_TEST(check_redirect)
 	char                 url[]     = "http://localhost:99999/redirect";
 
 	sprintf(url, "http://localhost:%hu/redirect", srv->port);
-	M_net_http_simple_set_timeouts(hs, 2000, 0, 0);
+	M_net_http_simple_set_timeouts(hs, 100, 100, 100);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
@@ -323,7 +360,6 @@ START_TEST(check_basic)
 	char                 url[]     = "http://localhost:99999";
 
 	sprintf(url, "http://localhost:%hu", srv->port);
-	M_net_http_simple_set_timeouts(hs, 2000, 0, 0);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
@@ -356,6 +392,7 @@ static Suite *net_http_suite(void)
 
 	add_test("basic", check_basic);
 	add_test("redirect", check_redirect);
+	add_test("timeout", check_timeout);
 
 #undef add_test_timeout
 #undef add_test
