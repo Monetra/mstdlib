@@ -129,6 +129,7 @@ static void respond(test_server_stream_t *stream)
 	};
 	M_http_reader_t *respond_httpr = M_http_reader_create(&cbs, M_HTTP_READER_NONE, stream);
 	M_http_reader_read(respond_httpr, M_parser_peek(stream->in_parser), M_parser_len(stream->in_parser), &len);
+	M_http_reader_destroy(respond_httpr);
 	M_parser_consume(stream->in_parser, len);
 	hash = stream->server->index_dict;
 	len = M_hash_dict_enumerate(hash, &hashenum);
