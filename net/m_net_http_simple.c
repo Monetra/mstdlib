@@ -573,8 +573,10 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	}
 
 	/* Setup read and write buffer. */
+	/*
 	hs->header_buf  = M_buf_create();
 	hs->read_parser = M_parser_create(M_PARSER_FLAG_NONE);
+	*/ /* Already done in M_net_http_simple_ready_send() */
 
 	/* Add the data to the write buf. */
 	M_http_simple_write_request_buf(hs->header_buf, hs->method,
