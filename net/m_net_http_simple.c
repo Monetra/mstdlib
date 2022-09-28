@@ -75,33 +75,10 @@ static M_bool iocreate_cb_default(M_io_t *io, char *error, size_t errlen, void *
 	return M_TRUE;
 }
 
-static void io_destroy_cb(M_event_t *el, M_event_type_t etype, M_io_t *io, void *thunk)
-{
-	(void)el;
-	(void)etype;
-	(void)thunk;
-	M_io_destroy(io);
-}
-
-static void io_disconnect_and_destroy(M_net_http_simple_t *hs)
-{
-	M_io_state_t state;
-
-	if (hs == NULL || hs->io == NULL)
-		return;
-
-	state = M_io_get_state(hs->io);
-	if (state == M_IO_STATE_CONNECTED || state == M_IO_STATE_DISCONNECTING) {
-		M_event_edit_io_cb(hs->io, io_destroy_cb, NULL);
-	} else {
-		M_io_destroy(hs->io);
-	}
-	hs->io = NULL;
-}
-
 static void M_net_http_simple_destroy(M_net_http_simple_t *hs)
 {
-	io_disconnect_and_destroy(hs);
+	M_io_destroy(hs->io);
+	hs->io = NULL;
 
 	M_tls_clientctx_destroy(hs->ctx);
 
@@ -209,7 +186,8 @@ static void M_net_http_simple_ready_send(M_net_http_simple_t *hs)
 	M_http_simple_read_destroy(hs->simple);
 	hs->simple = NULL;
 
-	io_disconnect_and_destroy(hs);
+	M_io_destroy(hs->io);
+	hs->io = NULL;
 }
 
 static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
@@ -229,16 +207,14 @@ static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 		if (hs->ctx == NULL) {
 			hs->neterr = M_NET_ERROR_TLS_REQUIRED;
 			M_snprintf(hs->error, sizeof(hs->error), "HTTPS Connection required but client context no set");
-			io_disconnect_and_destroy(hs);
-			return M_FALSE;
+			goto fail;
 		}
 			
 		ioerr = M_io_tls_client_add(hs->io, hs->ctx, NULL, &lid);
 		if (ioerr != M_IO_ERROR_SUCCESS) {
 			hs->neterr = M_NET_ERROR_TLS_SETUP_FAILURE;
 			M_snprintf(hs->error, sizeof(hs->error), "Failed to add client context: %s", M_io_error_string(ioerr));
-			io_disconnect_and_destroy(hs);
-			return M_FALSE;
+			goto fail;
 		}
 	}
 
@@ -248,11 +224,14 @@ static M_bool setup_io(M_net_http_simple_t *hs, const M_url_t *url_st)
 		if (M_str_isempty(hs->error)) {
 			M_snprintf(hs->error, sizeof(hs->error), "iocreate generic failure");
 		}
-		io_disconnect_and_destroy(hs);
-		return M_FALSE;
+		goto fail;
 	}
 
 	return M_TRUE;
+fail:
+	M_io_destroy(hs->io);
+	hs->io = NULL;
+	return M_FALSE;
 }
 
 static void handle_redirect(M_net_http_simple_t *hs)
@@ -594,7 +573,8 @@ M_bool M_net_http_simple_send(M_net_http_simple_t *hs, const char *url, void *th
 	if (!M_event_add(hs->el, hs->io, run_cb, hs)) {
 		hs->neterr = M_NET_ERROR_INTERNAL;
 		M_snprintf(hs->error, sizeof(hs->error), "Event error: Failed to start");
-		io_disconnect_and_destroy(hs);
+		M_io_destroy(hs->io);
+		hs->io = NULL;
 		M_url_destroy(url_st);
 		return M_FALSE;
 	}
