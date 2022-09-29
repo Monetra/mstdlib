@@ -338,7 +338,6 @@ START_TEST(check_redirect)
 	char                 url[]     = "http://localhost:99999/redirect";
 
 	sprintf(url, "http://localhost:%hu/redirect", srv->port);
-	M_net_http_simple_set_timeouts(hs, 100, 100, 100);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
