@@ -970,14 +970,8 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 
 	M_thread_mutex_unlock(query->dns->lock);
 
-	if (is_cancelled)
-		return;
-
-	if (query->event) {
-		M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
-	} else {
+	if (!is_cancelled)
 		M_dns_gethostbyname_result_cb(NULL, M_EVENT_TYPE_OTHER, NULL, query);
-	}
 }
 
 static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
