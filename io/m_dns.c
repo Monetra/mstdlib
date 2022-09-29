@@ -67,7 +67,19 @@ struct M_dns {
 	M_uint64              server_cache_timeout_s;    /*!< How long before re-reading the DNS configuration from the system */
 	M_uint64              query_cache_max_s;         /*!< Maximum amount of time a DNS entry can be cached past its TTL if the DNS servers are unreachable */
 	M_uint64              happyeyeballs_cache_max_s; /*!< Maximum time to cache connectivity related information as per the Happy Eyeballs specification */
+	M_list_t             *cancelled_queries;
 };
+
+static size_t M_dns_total_pending(M_dns_t *dns)
+{
+	size_t i;
+	size_t total_pending = 0;
+	for (i=0; i<M_list_len(dns->ares_channels); i++) {
+		const M_dns_ares_t *achannel = M_list_at(dns->ares_channels, i);
+		total_pending += achannel->queries_pending;
+	}
+	return total_pending;
+}
 
 struct M_io_handle {
 	M_dns_t         *dns;
@@ -800,6 +812,8 @@ M_bool M_dns_destroy(M_dns_t *dns)
 	M_thread_mutex_destroy(dns->lock);
 	dns->lock = NULL;
 
+	M_list_destroy(dns->cancelled_queries, M_FALSE);
+
 	M_free(dns);
 
 	return M_TRUE;
@@ -831,6 +845,8 @@ M_dns_t *M_dns_create(M_event_t *event)
 
 	dns->sockhandle                = M_hash_u64vp_create(8, 75, M_HASH_U64VP_NONE, NULL);
 	dns->ares_channels             = M_list_create(&listcb, M_LIST_NONE);
+
+	dns->cancelled_queries         = M_list_create(NULL, M_LIST_NONE);
 
 	if (!M_dns_reload_server(dns, M_FALSE)) {
 		M_dns_destroy(dns);
@@ -892,8 +908,9 @@ static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type,
 
 static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_addrinfo *result)
 {
-	M_dns_query_t       *query = arg;
-	M_dns_cache_entry_t *entry = NULL;
+	M_dns_query_t       *query        = arg;
+	M_dns_cache_entry_t *entry        = NULL;
+	M_bool               is_cancelled = M_FALSE;
 
 	(void)timeouts;
 
@@ -939,10 +956,22 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 		query->ipaddrs = M_dns_happyeb_sort(query->dns, entry->addrs);
 	}
 
+	if (M_list_index_of(query->dns->cancelled_queries, query->cb_data, M_LIST_MATCH_PTR, NULL)) {
+		is_cancelled = M_TRUE;
+	}
+
 	/* If there is a destroy pending and we were the last query result, destroy! */
 	query->achannel->queries_pending--;
 
+	if (M_dns_total_pending(query->dns) == 0) {
+		/* Clear cancelled_queries list */
+		while (M_list_take_last(query->dns->cancelled_queries) != NULL);
+	}
+
 	M_thread_mutex_unlock(query->dns->lock);
+
+	if (is_cancelled)
+		return;
 
 	if (query->event) {
 		M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
@@ -1051,6 +1080,14 @@ static char *M_dns_punyhostname(const char *hostname)
 	return out;
 }
 
+void M_dns_gethostbyname_cancel(M_dns_t *dns, void* cb_arg)
+{
+	M_thread_mutex_lock(dns->lock);
+	if (M_dns_total_pending(dns) > 0) {
+		M_list_insert(dns->cancelled_queries, cb_arg);
+	}
+	M_thread_mutex_unlock(dns->lock);
+}
 
 void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data)
 {
