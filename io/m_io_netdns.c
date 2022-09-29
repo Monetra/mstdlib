@@ -371,9 +371,18 @@ static M_bool M_io_netdns_init_connect(M_io_layer_t *layer)
 
 static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_dns_result_t result)
 {
-	M_io_layer_t  *layer       = cb_data;
-	M_io_handle_t *handle      = M_io_layer_get_handle(layer);
+	M_ghbn_args_t *ghbn_args   = cb_data;
+	M_io_layer_t  *layer       = ghbn_args->layer;
+	M_io_handle_t *handle      = ghbn_args->handle;
 	size_t         i;
+
+	if (ghbn_args->is_deleted) {
+		/* They deleted the underlying layer/handle.. Obviously don't want this info anymore */
+		M_free(ghbn_args);
+		return;
+	}
+	M_free(ghbn_args);
+	handle->ghbn_args = NULL;
 
 	handle->data.netdns.query_time = M_time_elapsed(&handle->data.netdns.query_start);
 	if (result != M_DNS_RESULT_SUCCESS && result != M_DNS_RESULT_SUCCESS_CACHE && result != M_DNS_RESULT_SUCCESS_CACHE_EVICT) {
@@ -427,9 +436,10 @@ static void M_io_netdns_dns_callback(const M_list_str_t *ips, void *cb_data, M_d
 
 static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 {
-	M_io_t        *io     = M_io_layer_get_io(layer);
-	M_io_handle_t *handle = M_io_layer_get_handle(layer);
-	M_event_t     *event  = M_io_get_event(io);
+	M_io_t        *io        = M_io_layer_get_io(layer);
+	M_io_handle_t *handle    = M_io_layer_get_handle(layer);
+	M_event_t     *event     = M_io_get_event(io);
+	M_ghbn_args_t *ghbn_args = NULL;
 
 	switch (handle->state) {
 		case M_IO_NET_STATE_INIT:
@@ -437,7 +447,12 @@ static M_bool M_io_netdns_init_cb(M_io_layer_t *layer)
 			handle->state              = M_IO_NET_STATE_RESOLVING;
 //M_printf("%s(): looking up %s\n", __FUNCTION__, handle->host);
 			M_time_elapsed_start(&handle->data.netdns.query_start);
-			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->type, M_io_netdns_dns_callback, layer);
+			ghbn_args = M_malloc_zero(sizeof(*ghbn_args));
+			ghbn_args->is_deleted = M_FALSE;
+			ghbn_args->layer      = layer;
+			ghbn_args->handle     = handle;
+			handle->ghbn_args     = ghbn_args;
+			M_dns_gethostbyname(handle->data.netdns.dns, event, handle->host, handle->type, M_io_netdns_dns_callback, ghbn_args);
 			break;
 		case M_IO_NET_STATE_CONNECTING:
 			/* Re-bind io event handle(s) */
@@ -557,6 +572,9 @@ static void M_io_netdns_destroy_cb(M_io_layer_t *layer)
 	/* reset_cb() clears the rest and is called first */
 
 	M_free(handle->host);
+	if (handle->ghbn_args != NULL) {
+		handle->ghbn_args->is_deleted = M_TRUE;
+	}
 	M_free(handle);
 }
 
