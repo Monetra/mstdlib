@@ -68,19 +68,9 @@ struct M_dns {
 	M_uint64              server_cache_timeout_s;    /*!< How long before re-reading the DNS configuration from the system */
 	M_uint64              query_cache_max_s;         /*!< Maximum amount of time a DNS entry can be cached past its TTL if the DNS servers are unreachable */
 	M_uint64              happyeyeballs_cache_max_s; /*!< Maximum time to cache connectivity related information as per the Happy Eyeballs specification */
-	M_list_t             *cancelled_queries;
+	M_list_t             *cancelled_queries;         /*!< List of cb_args to cancel pending requests */
+	size_t                total_pending;             /*!< Total pending gethostbyname lookups */
 };
-
-static size_t M_dns_total_pending(M_dns_t *dns)
-{
-	size_t i;
-	size_t total_pending = 0;
-	for (i=0; i<M_list_len(dns->ares_channels); i++) {
-		const M_dns_ares_t *achannel = M_list_at(dns->ares_channels, i);
-		total_pending += achannel->queries_pending;
-	}
-	return total_pending;
-}
 
 struct M_io_handle {
 	M_dns_t         *dns;
@@ -965,8 +955,9 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 
 	/* If there is a destroy pending and we were the last query result, destroy! */
 	query->achannel->queries_pending--;
+	query->dns->total_pending--;
 
-	if (M_dns_total_pending(query->dns) == 0) {
+	if (query->dns->total_pending == 0) {
 		/* Clear cancelled_queries list */
 		while (M_list_take_last(query->dns->cancelled_queries) != NULL);
 	}
@@ -1086,7 +1077,7 @@ static char *M_dns_punyhostname(const char *hostname)
 void M_dns_gethostbyname_cancel(M_dns_t *dns, void* cb_arg)
 {
 	M_thread_mutex_lock(dns->cancel_lock);
-	if (M_dns_total_pending(dns) > 0) {
+	if (dns->total_pending > 0) {
 		M_list_insert(dns->cancelled_queries, cb_arg);
 	}
 	M_thread_mutex_unlock(dns->cancel_lock);
@@ -1187,6 +1178,7 @@ void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M
 	query->cb_data           = cb_data;
 	query->is_cache_eviction = is_cache_eviction;
 
+	query->dns->total_pending++;
 	M_event_queue_task(dns->event, M_dns_gethostbyname_enqueue, query);
 
 	M_free(punyhost);
