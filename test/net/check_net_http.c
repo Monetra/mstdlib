@@ -301,6 +301,30 @@ static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_
 	M_event_done(g.el);
 }
 
+START_TEST(check_nullguards)
+{
+	M_net_http_simple_t *hs = M_net_http_simple_create(g.el, g.dns, done_cb);
+
+	ck_assert_msg(M_net_http_simple_create(NULL, g.dns, done_cb) == NULL, "Should reject");
+	ck_assert_msg(M_net_http_simple_create(g.el, NULL , done_cb) == NULL, "Should reject");
+	ck_assert_msg(M_net_http_simple_create(g.el, g.dns, NULL   ) == NULL, "Should reject");
+	M_net_http_simple_cancel(NULL);
+	M_net_http_simple_set_timeouts(NULL, 1, 1, 1);
+	M_net_http_simple_set_max_redirects(NULL, 1);
+	M_net_http_simple_set_max_receive_size(NULL, 1024);
+	M_net_http_simple_set_tlsctx(NULL, NULL);
+	M_net_http_simple_set_iocreate(NULL, NULL);
+	M_net_http_simple_set_iocreate(hs, NULL);
+	M_net_http_simple_set_version(NULL, M_HTTP_VERSION_2);
+	M_net_http_simple_set_message(NULL, M_HTTP_METHOD_GET, NULL, NULL, NULL, NULL, NULL, 0);
+
+	ck_assert_msg(M_net_http_simple_send(NULL, NULL, NULL) == M_FALSE, "Should reject");
+
+	M_net_http_simple_cancel(hs);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_timeout)
 {
 	test_server_args_t   srv_args  = { "timeout" };
@@ -392,6 +416,7 @@ static Suite *net_http_suite(void)
 	add_test("basic", check_basic);
 	add_test("redirect", check_redirect);
 	add_test("timeout", check_timeout);
+	add_test("nullguards", check_nullguards);
 
 #undef add_test_timeout
 #undef add_test
