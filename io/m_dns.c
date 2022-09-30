@@ -876,31 +876,43 @@ typedef struct  {
 	M_dns_result_t        result;       /*!< Ending result code */
 } M_dns_query_t;
 
-
 static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
 {
-	M_dns_query_t *query    = cb_arg;
+	M_dns_query_t *query        = cb_arg;
+	M_bool         is_cancelled = M_FALSE;
 	(void)event;
 	(void)type;
 	(void)io;
 
-	if (query->is_cache_eviction && query->result == M_DNS_RESULT_SUCCESS) {
-		query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICT);
-	} else {
-		query->callback(query->ipaddrs, query->cb_data, query->result);
+	M_thread_mutex_lock(query->dns->lock);
+	if (M_list_index_of(query->dns->cancelled_queries, query->cb_data, M_LIST_MATCH_PTR, NULL)) {
+		is_cancelled = M_TRUE;
 	}
+	query->dns->total_pending--;
+	if (query->dns->total_pending == 0) {
+		/* Clear cancelled_queries list */
+		while (M_list_take_last(query->dns->cancelled_queries) != NULL);
+	}
+
+	if (!is_cancelled) {
+		if (query->is_cache_eviction && query->result == M_DNS_RESULT_SUCCESS) {
+			query->callback(query->ipaddrs, query->cb_data, M_DNS_RESULT_SUCCESS_CACHE_EVICT);
+		} else {
+			query->callback(query->ipaddrs, query->cb_data, query->result);
+		}
+	}
+
+	M_thread_mutex_unlock(query->dns->lock);
 
 	M_list_str_destroy(query->ipaddrs);
 	M_free(query->hostname);
 	M_free(query);
 }
 
-
 static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_addrinfo *result)
 {
 	M_dns_query_t       *query        = arg;
 	M_dns_cache_entry_t *entry        = NULL;
-	M_bool               is_cancelled = M_FALSE;
 
 	(void)timeouts;
 
@@ -946,27 +958,11 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 		query->ipaddrs = M_dns_happyeb_sort(query->dns, entry->addrs);
 	}
 
-	if (M_list_index_of(query->dns->cancelled_queries, query->cb_data, M_LIST_MATCH_PTR, NULL)) {
-		is_cancelled = M_TRUE;
-	}
-
 	/* If there is a destroy pending and we were the last query result, destroy! */
 	query->achannel->queries_pending--;
-	query->dns->total_pending--;
 
-	if (query->dns->total_pending == 0) {
-		/* Clear cancelled_queries list */
-		while (M_list_take_last(query->dns->cancelled_queries) != NULL);
-	}
 
 	M_thread_mutex_unlock(query->dns->lock);
-
-	if (is_cancelled) {
-		M_list_str_destroy(query->ipaddrs);
-		M_free(query->hostname);
-		M_free(query);
-		return;
-	}
 
 	if (query->event) {
 		M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
