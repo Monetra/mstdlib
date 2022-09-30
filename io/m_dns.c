@@ -889,6 +889,10 @@ static void M_dns_gethostbyname_result_cb(M_event_t *event, M_event_type_t type,
 	} else {
 		query->callback(query->ipaddrs, query->cb_data, query->result);
 	}
+
+	M_list_str_destroy(query->ipaddrs);
+	M_free(query->hostname);
+	M_free(query);
 }
 
 
@@ -957,12 +961,19 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 
 	M_thread_mutex_unlock(query->dns->lock);
 
-	if (!is_cancelled)
-		M_dns_gethostbyname_result_cb(NULL, M_EVENT_TYPE_OTHER, NULL, query);
+	if (is_cancelled) {
+		M_list_str_destroy(query->ipaddrs);
+		M_free(query->hostname);
+		M_free(query);
+		return;
+	}
 
-	M_list_str_destroy(query->ipaddrs);
-	M_free(query->hostname);
-	M_free(query);
+	if (query->event) {
+		M_event_queue_task(query->event, M_dns_gethostbyname_result_cb, query);
+	} else {
+		M_dns_gethostbyname_result_cb(NULL, M_EVENT_TYPE_OTHER, NULL, query);
+	}
+
 
 }
 
