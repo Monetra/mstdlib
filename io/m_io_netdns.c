@@ -523,6 +523,10 @@ static M_bool M_io_netdns_reset_cb(M_io_layer_t *layer)
 	if (handle == NULL)
 		return M_FALSE;
 
+	if (handle->data.netdns.pending_queries > 0) {
+		M_dns_gethostbyname_cancel(handle->data.netdns.dns, layer);
+	}
+
 	for (i=0; i<handle->data.netdns.io_try_cnt; i++) {
 		if (handle->data.netdns.io_try[i] != NULL)
 			M_io_destroy(handle->data.netdns.io_try[i]);
@@ -559,9 +563,6 @@ static void M_io_netdns_destroy_cb(M_io_layer_t *layer)
 	/* reset_cb() clears the rest and is called first */
 
 	M_free(handle->host);
-	if (handle->data.netdns.pending_queries > 0) {
-		M_dns_gethostbyname_cancel(handle->data.netdns.dns, layer);
-	}
 	M_free(handle);
 }
 
