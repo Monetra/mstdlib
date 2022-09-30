@@ -49,7 +49,6 @@ struct M_dns {
 	M_bool                isup;
 
 	M_thread_mutex_t     *lock;              /*!< Concurrency lock */
-	M_thread_mutex_t     *cancel_lock;       /*!< Concurrency lock for cancel operation */
 	M_bool                destroy_pending;   /*!< Whether or not entire DNS subsystem is terminating */
 	M_event_t            *event;             /*!< Registered event object */
 	M_io_t               *io;                /*!< Registered IO object */
@@ -801,7 +800,6 @@ M_bool M_dns_destroy(M_dns_t *dns)
 	dns->sockhandle = NULL;
 
 	M_thread_mutex_destroy(dns->lock);
-	M_thread_mutex_destroy(dns->cancel_lock);
 	dns->lock = NULL;
 
 	M_list_destroy(dns->cancelled_queries, M_FALSE);
@@ -829,7 +827,6 @@ M_dns_t *M_dns_create(M_event_t *event)
 	dns->query_cache_max_s         = 3600;  /* 1 hr */
 	dns->happyeyeballs_cache_max_s = 600;   /* 10 minutes */
 	dns->lock                      = M_thread_mutex_create(M_THREAD_MUTEXATTR_RECURSIVE);
-	dns->cancel_lock               = M_thread_mutex_create(M_THREAD_MUTEXATTR_NONE);
 
 	dns->cache                     = M_queue_create(NULL /* Naturally sorted by TS on insert */, M_dns_cache_free_cb);
 	dns->cache_lookup              = M_hash_strvp_create(16, 75, M_HASH_STRVP_NONE, NULL);
@@ -900,7 +897,6 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 	M_dns_query_t       *query        = arg;
 	M_dns_cache_entry_t *entry        = NULL;
 	M_bool               is_cancelled = M_FALSE;
-	M_thread_mutex_t    *cancel_lock  = NULL;
 
 	(void)timeouts;
 
@@ -923,7 +919,6 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 			break;
 	}
 
-	cancel_lock = query->dns->cancel_lock;
 	M_thread_mutex_lock(query->dns->lock);
 
 	entry = M_dns_cache_get_entry(query->dns, query->hostname, query->aftype);
@@ -947,8 +942,6 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 		query->ipaddrs = M_dns_happyeb_sort(query->dns, entry->addrs);
 	}
 
-	M_thread_mutex_lock(cancel_lock);
-
 	if (M_list_index_of(query->dns->cancelled_queries, query->cb_data, M_LIST_MATCH_PTR, NULL)) {
 		is_cancelled = M_TRUE;
 	}
@@ -971,7 +964,6 @@ static void ares_addrinfo_cb(void *arg, int status, int timeouts, struct ares_ad
 	M_free(query->hostname);
 	M_free(query);
 
-	M_thread_mutex_unlock(cancel_lock);
 }
 
 static void M_dns_gethostbyname_enqueue(M_event_t *event, M_event_type_t type, M_io_t *io, void *cb_arg)
@@ -1076,11 +1068,13 @@ static char *M_dns_punyhostname(const char *hostname)
 
 void M_dns_gethostbyname_cancel(M_dns_t *dns, void* cb_arg)
 {
-	M_thread_mutex_lock(dns->cancel_lock);
+	if (dns == NULL)
+		return;
+	M_thread_mutex_lock(dns->lock);
 	if (dns->total_pending > 0) {
 		M_list_insert(dns->cancelled_queries, cb_arg);
 	}
-	M_thread_mutex_unlock(dns->cancel_lock);
+	M_thread_mutex_unlock(dns->lock);
 }
 
 void M_dns_gethostbyname(M_dns_t *dns, M_event_t *event, const char *hostname, M_io_net_type_t type, M_dns_ghbn_callback_t callback, void *cb_data)
