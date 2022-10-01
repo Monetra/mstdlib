@@ -440,6 +440,11 @@ static M_sql_report_col_t *M_sql_report_create_cols_passthru(const M_sql_report_
 			continue;
 
 		M_mem_copy(&cols[num_cols], col, sizeof(*col));
+
+		/* Get column index from name */
+		if (col->sql_col_name)
+			M_sql_stmt_result_col_idx(stmt, col->sql_col_name, (size_t *)&cols[num_cols].sql_col_idx);
+
 		num_cols++;
 	}
 
