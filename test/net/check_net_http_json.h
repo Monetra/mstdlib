@@ -42,6 +42,17 @@ const char * json_str = \
 						"\"value\": \"GET\" " \
 					"}, { " \
 						"\"key\": \":path\", " \
+						"\"value\": \"/redirect_bad2\" " \
+					"} " \
+				"], " \
+				"\"value\": \"HTTP/1.1 301 Moved Permanently\\r\\nLocation: http://localhost:0/ \\r\\n\\r\\n\" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
 						"\"value\": \"/redirect2\" " \
 					"} " \
 				"], " \

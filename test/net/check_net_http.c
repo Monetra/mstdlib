@@ -411,6 +411,7 @@ START_TEST(check_redirect)
 	char                 url[]     = "http://localhost:99999/redirect";
 	char                 url2[]    = "http://localhost:99999/redirect_bad";
 	char                 url3[]    = "http://localhost:99999/redirect3";
+	char                 url4[]    = "http://localhost:99999/redirect_bad2";
 
 	sprintf(url, "http://localhost:%hu/redirect", srv->port);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
@@ -435,7 +436,12 @@ START_TEST(check_redirect)
 	M_event_loop(g.el, M_TIMEOUT_INF);
 	ck_assert_msg(args.net_error == M_NET_ERROR_REDIRECT_LIMIT, "Should have failed redirect limit");
 
-
+	hs = M_net_http_simple_create(g.el, g.dns, done_cb);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	sprintf(url4, "http://localhost:%hu/redirect_bad2", srv->port);
+	ck_assert_msg(M_net_http_simple_send(hs, url4, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_CREATE, "Should have failed redirect");
 
 	test_server_destroy(srv);
 	cleanup();
@@ -452,6 +458,9 @@ START_TEST(check_basic)
 
 	sprintf(url, "http://localhost:%hu", srv->port);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	/* Double set to test for memory leak */
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_version(hs, M_HTTP_VERSION_1_1);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
 	M_event_loop(g.el, M_TIMEOUT_INF);
