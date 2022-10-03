@@ -301,6 +301,29 @@ static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_
 	M_event_done(g.el);
 }
 
+START_TEST(check_badurl)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url1[]    = "http://";
+	char                 url2[]    = "https://localhost:99999";
+	char                 url3[]    = "http://localhost:99999";
+
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(!M_net_http_simple_send(hs, url1, &args), "Should fail invalid URL");
+
+	sprintf(url2, "https://localhost:%hu", srv->port);
+	sprintf(url3, "http://localhost:%hu", srv->port);
+	ck_assert_msg(!M_net_http_simple_send(hs, url2, &args), "Should fail no SSL");
+	test_server_destroy(srv);
+	ck_assert_msg(!M_net_http_simple_send(hs, url3, &args), "Should fail no server");
+
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_nullguards)
 {
 	M_net_http_simple_t *hs = M_net_http_simple_create(g.el, g.dns, done_cb);
@@ -335,7 +358,7 @@ START_TEST(check_timeout)
 
 	sprintf(url, "http://localhost:%hu", srv->port);
 
-	M_net_http_simple_set_timeouts(hs, 0, 1, 100);
+	M_net_http_simple_set_timeouts(hs, 1000, 1, 100);
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 	M_event_loop(g.el, M_TIMEOUT_INF);
@@ -417,6 +440,7 @@ static Suite *net_http_suite(void)
 	add_test("redirect", check_redirect);
 	add_test("timeout", check_timeout);
 	add_test("nullguards", check_nullguards);
+	add_test("badurl", check_badurl);
 
 #undef add_test_timeout
 #undef add_test
