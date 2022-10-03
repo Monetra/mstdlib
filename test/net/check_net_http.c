@@ -310,6 +310,26 @@ static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thu
 	return M_FALSE;
 }
 
+START_TEST(check_recvmax)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999";
+
+	sprintf(url, "http://localhost:%hu", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_max_receive_size(hs, 3);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_OVER_LIMIT, "Should have maxed out");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_post)
 {
 	test_server_args_t   srv_args  = { "basic" };
@@ -529,6 +549,7 @@ static Suite *net_http_suite(void)
 	add_test("badurl", check_badurl);
 	add_test("iocreate_cb", check_iocreate_cb);
 	add_test("post", check_post);
+	add_test("recvmax", check_recvmax);
 
 #undef add_test_timeout
 #undef add_test
