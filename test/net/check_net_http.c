@@ -301,6 +301,33 @@ static void done_cb(M_net_error_t net_error, M_http_error_t http_error, const M_
 	M_event_done(g.el);
 }
 
+static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thunk)
+{
+	(void)io;
+	(void)error;
+	(void)errlen;
+	(void)thunk;
+	return M_FALSE;
+}
+
+START_TEST(check_iocreate_cb)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999";
+
+	sprintf(url, "http://localhost:%hu", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_iocreate(hs, iocreate_cb_fail);
+	ck_assert_msg(!M_net_http_simple_send(hs, url, &args), "Shouldn't send message");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_badurl)
 {
 	test_server_args_t   srv_args  = { "basic" };
@@ -457,6 +484,7 @@ static Suite *net_http_suite(void)
 	add_test("timeout", check_timeout);
 	add_test("nullguards", check_nullguards);
 	add_test("badurl", check_badurl);
+	add_test("iocreate_cb", check_iocreate_cb);
 
 #undef add_test_timeout
 #undef add_test
