@@ -310,6 +310,24 @@ static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thu
 	return M_FALSE;
 }
 
+START_TEST(check_tls)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "https://localhost:99999/";
+
+	sprintf(url, "https://localhost:%hu/", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_tlsctx(hs, g.ctx);
+	/* Double set to check memory leak */
+	M_net_http_simple_set_tlsctx(hs, g.ctx);
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_disconnect)
 {
 	test_server_args_t   srv_args  = { "basic" };
@@ -590,6 +608,7 @@ static Suite *net_http_suite(void)
 	add_test("recvmax", check_recvmax);
 	add_test("badproto", check_badproto);
 	add_test("disconnect", check_disconnect);
+	add_test("tls", check_tls);
 
 #undef add_test_timeout
 #undef add_test
