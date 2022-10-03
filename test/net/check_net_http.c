@@ -310,6 +310,44 @@ static M_bool iocreate_cb_fail(M_io_t *io, char *error, size_t errlen, void *thu
 	return M_FALSE;
 }
 
+START_TEST(check_disconnect)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999/disconnect";
+
+	sprintf(url, "http://localhost:%hu/disconnect", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_DISCONNET, "Should have disconnected");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
+START_TEST(check_badproto)
+{
+	test_server_args_t   srv_args  = { "basic" };
+	test_args_t          args      = { 0 };
+	test_server_t       *srv       = test_server_create(&srv_args);
+	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
+	char                 url[]     = "http://localhost:99999/badproto";
+
+	sprintf(url, "http://localhost:%hu/badproto", srv->port);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
+	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
+	M_event_loop(g.el, M_TIMEOUT_INF);
+	ck_assert_msg(args.net_error == M_NET_ERROR_PROTOFORMAT, "Should errored out");
+
+	test_server_destroy(srv);
+	cleanup();
+}
+END_TEST
+
 START_TEST(check_recvmax)
 {
 	test_server_args_t   srv_args  = { "basic" };
@@ -550,6 +588,8 @@ static Suite *net_http_suite(void)
 	add_test("iocreate_cb", check_iocreate_cb);
 	add_test("post", check_post);
 	add_test("recvmax", check_recvmax);
+	add_test("badproto", check_badproto);
+	add_test("disconnect", check_disconnect);
 
 #undef add_test_timeout
 #undef add_test

@@ -17,6 +17,28 @@ const char * json_str = \
 				"\"keys\": [ " \
 					"{ " \
 						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
+						"\"value\": \"/badproto\" " \
+					"} " \
+				"], " \
+				"\"value\": \"HTTP/1.4 200 OK\\r\\n\" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
+						"\"value\": \"GET\" " \
+					"}, { " \
+						"\"key\": \":path\", " \
+						"\"value\": \"/disconnect\" " \
+					"} " \
+				"], " \
+				"\"value\": \"(ノ° °)ノ︵┻━┻ \" " \
+			"}, { " \
+				"\"keys\": [ " \
+					"{ " \
+						"\"key\": \":method\", " \
 						"\"value\": \"POST\" " \
 					"}, { " \
 						"\"key\": \":path\", " \
