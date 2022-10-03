@@ -307,18 +307,15 @@ START_TEST(check_badurl)
 	test_args_t          args      = { 0 };
 	test_server_t       *srv       = test_server_create(&srv_args);
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
-	char                 url1[]    = "http://";
+	char                 url1[]    = "http://localhost:0";
 	char                 url2[]    = "https://localhost:99999";
-	char                 url3[]    = "http://localhost:99999";
 
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(!M_net_http_simple_send(hs, url1, &args), "Should fail invalid URL");
 
 	sprintf(url2, "https://localhost:%hu", srv->port);
-	sprintf(url3, "http://localhost:%hu", srv->port);
 	ck_assert_msg(!M_net_http_simple_send(hs, url2, &args), "Should fail no SSL");
 	test_server_destroy(srv);
-	ck_assert_msg(!M_net_http_simple_send(hs, url3, &args), "Should fail no server");
 
 	cleanup();
 }
