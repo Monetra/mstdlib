@@ -459,6 +459,10 @@ void M_net_http_simple_set_tlsctx(M_net_http_simple_t *hs, M_tls_clientctx_t *ct
 {
 	if (hs == NULL)
 		return;
+
+	/* unhook existing ctx */
+	M_tls_clientctx_destroy(hs->ctx);
+
 	hs->ctx = ctx;
 	/* Make sure this doesn't go away while we're holding it. */
 	M_tls_clientctx_upref(hs->ctx);
