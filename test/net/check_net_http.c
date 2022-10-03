@@ -323,6 +323,7 @@ START_TEST(check_tls)
 	/* Double set to check memory leak */
 	M_net_http_simple_set_tlsctx(hs, g.ctx);
 
+	M_net_http_simple_cancel(hs);
 	test_server_destroy(srv);
 	cleanup();
 }
