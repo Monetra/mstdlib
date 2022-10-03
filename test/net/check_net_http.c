@@ -365,12 +365,16 @@ START_TEST(check_badurl)
 	M_net_http_simple_t *hs        = M_net_http_simple_create(g.el, g.dns, done_cb);
 	char                 url1[]    = "http://localhost:0";
 	char                 url2[]    = "https://localhost:99999";
+	char                 url3[]    = "http://-- --";
 
 	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
 	ck_assert_msg(!M_net_http_simple_send(hs, url1, &args), "Should fail invalid URL");
 
 	sprintf(url2, "https://localhost:%hu", srv->port);
 	ck_assert_msg(!M_net_http_simple_send(hs, url2, &args), "Should fail no SSL");
+
+	ck_assert_msg(!M_net_http_simple_send(hs, url3, &args), "Should fail bad formatted URL");
+
 	test_server_destroy(srv);
 	M_net_http_simple_cancel(hs);
 
@@ -485,9 +489,9 @@ START_TEST(check_basic)
 	char                 url[]     = "http://localhost:99999";
 
 	sprintf(url, "http://localhost:%hu", srv->port);
-	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
 	/* Double set to test for memory leak */
-	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, NULL, "text/plain", "utf-8", NULL, NULL, 0);
+	M_net_http_simple_set_message(hs, M_HTTP_METHOD_GET, "User Agent", "text/plain", "utf-8", NULL, NULL, 0);
 	M_net_http_simple_set_version(hs, M_HTTP_VERSION_1_1);
 	ck_assert_msg(M_net_http_simple_send(hs, url, &args), "Should send message");
 
