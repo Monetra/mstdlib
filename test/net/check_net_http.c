@@ -323,6 +323,7 @@ START_TEST(check_iocreate_cb)
 	M_net_http_simple_set_iocreate(hs, iocreate_cb_fail);
 	ck_assert_msg(!M_net_http_simple_send(hs, url, &args), "Shouldn't send message");
 
+	M_net_http_simple_cancel(hs);
 	test_server_destroy(srv);
 	cleanup();
 }
@@ -343,6 +344,7 @@ START_TEST(check_badurl)
 	sprintf(url2, "https://localhost:%hu", srv->port);
 	ck_assert_msg(!M_net_http_simple_send(hs, url2, &args), "Should fail no SSL");
 	test_server_destroy(srv);
+	M_net_http_simple_cancel(hs);
 
 	cleanup();
 }
